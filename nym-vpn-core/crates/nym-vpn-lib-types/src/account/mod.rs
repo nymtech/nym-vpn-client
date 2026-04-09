@@ -8,6 +8,7 @@ pub mod deeplink;
 pub mod request_zknym;
 pub mod ticketbooks;
 
+use nym_network_defaults::deprecated;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
@@ -277,6 +278,7 @@ pub struct VpnAccountSummary {
     pub subscription_kind: Option<NymVpnSubscriptionKind>,
     pub is_recurring: bool,
     pub subscription_status: Option<NymVpnSubscriptionStatus>,
+    pub subscription: Option<Subscription>,
 }
 
 // Exported methods
@@ -358,6 +360,20 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             None
         };
 
+        let subscription = if let Some(active) = &value.subscription.active {
+            Some(Subscription {
+                status: NymVpnSubscriptionStatus::Active,
+                subscription: NymVpnSubscription::from(active),
+            })
+        } else if let Some(pending) = &value.subscription.pending {
+            Some(Subscription {
+                status: NymVpnSubscriptionStatus::Pending,
+                subscription: NymVpnSubscription::from(pending),
+            })
+        } else {
+            None
+        };
+
         Ok(Self {
             subscription_valid_until,
             traffic_used_gb: value.fair_usage.usedGB,
@@ -375,6 +391,7 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
                 .map(|s| s.is_recurring)
                 .unwrap_or(false),
             subscription_status,
+            subscription,
         })
     }
 }
@@ -456,6 +473,58 @@ impl From<nym_vpn_api_client::response::NymVpnSubscriptionKind> for NymVpnSubscr
 pub enum NymVpnSubscriptionStatus {
     Pending,
     Active,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct NymVpnSubscription {
+    pub created_on_utc: String,
+    pub last_updated_utc: String,
+    pub id: String,
+    pub valid_until_utc: String,
+    pub valid_from_utc: String,
+    pub status: String,
+    pub kind: NymVpnSubscriptionKind,
+    pub is_recurring: bool,
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscription {
+    fn from(value: &nym_vpn_api_client::response::NymVpnSubscription) -> Self {
+        Self {
+            created_on_utc: value.created_on_utc.clone(),
+            last_updated_utc: value.last_updated_utc.clone(),
+            id: value.id.clone(),
+            valid_until_utc: value.valid_until_utc.clone(),
+            valid_from_utc: value.valid_from_utc.clone(),
+            status: format!("{:?}", value.status).to_lowercase(),
+            kind: value.kind.clone().into(),
+            is_recurring: value.is_recurring,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct Subscription {
+    pub status: NymVpnSubscriptionStatus,
+    pub subscription: NymVpnSubscription,
 }
 
 #[cfg(feature = "nym-type-conversions")]

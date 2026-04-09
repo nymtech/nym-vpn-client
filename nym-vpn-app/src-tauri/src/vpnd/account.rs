@@ -115,6 +115,52 @@ impl From<lib::NymVpnSubscriptionStatus> for SubscriptionStatus {
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TNymVpnSubscription")]
+#[serde(rename_all = "kebab-case")]
+pub struct NymVpnSubscription {
+    pub created_on_utc: String,
+    pub last_updated_utc: String,
+    pub id: String,
+    pub valid_until_utc: String,
+    pub valid_from_utc: String,
+    pub status: String,
+    pub kind: VpnSubscriptionKind,
+    pub is_recurring: bool,
+}
+
+impl From<lib::NymVpnSubscription> for NymVpnSubscription {
+    fn from(sub: lib::NymVpnSubscription) -> Self {
+        NymVpnSubscription {
+            created_on_utc: sub.created_on_utc,
+            last_updated_utc: sub.last_updated_utc,
+            id: sub.id,
+            valid_until_utc: sub.valid_until_utc,
+            valid_from_utc: sub.valid_from_utc,
+            status: sub.status,
+            kind: VpnSubscriptionKind::from(sub.kind),
+            is_recurring: sub.is_recurring,
+        }
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TSubscription")]
+#[serde(rename_all = "kebab-case")]
+pub struct Subscription {
+    pub status: SubscriptionStatus,
+    pub subscription: NymVpnSubscription,
+}
+
+impl From<lib::Subscription> for Subscription {
+    fn from(sub: lib::Subscription) -> Self {
+        Subscription {
+            status: SubscriptionStatus::from(sub.status),
+            subscription: NymVpnSubscription::from(sub.subscription),
+        }
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TAccountSummary")]
 #[serde(rename_all = "kebab-case")]
 pub struct AccountSummary {
@@ -131,6 +177,7 @@ pub struct AccountSummary {
     pub subscription_kind: Option<VpnSubscriptionKind>,
     pub is_recurring: bool,
     pub subscription_status: Option<SubscriptionStatus>,
+    pub subscription: Option<Subscription>,
 }
 
 impl From<lib::VpnAccountSummary> for AccountSummary {
@@ -159,6 +206,7 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
             subscription_kind: summary.subscription_kind.map(VpnSubscriptionKind::from),
             is_recurring: summary.is_recurring,
             subscription_status: summary.subscription_status.map(SubscriptionStatus::from),
+            subscription: summary.subscription.map(Subscription::from),
         }
     }
 }

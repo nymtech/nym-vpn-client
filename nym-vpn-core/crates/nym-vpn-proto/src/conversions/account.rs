@@ -3,8 +3,9 @@
 
 use nym_vpn_lib_types::{
     AccountCommandError, AutologinResponse, AvailableTickets, DeeplinkClient, DeeplinkKind,
-    GetDeeplinkParams, NymVpnSubscriptionKind, NymVpnSubscriptionStatus, StoredAccountMode,
-    VpnAccountAuthMethod, VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
+    GetDeeplinkParams, NymVpnSubscription, NymVpnSubscriptionKind, NymVpnSubscriptionStatus,
+    StoredAccountMode, Subscription, VpnAccountAuthMethod, VpnAccountStatus, VpnAccountSummary,
+    VpnApiError, VpnApiErrorResponse,
 };
 
 use crate::{
@@ -313,6 +314,11 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             })
             .transpose()?;
 
+        let subscription = value
+            .subscription
+            .map(Subscription::try_from)
+            .transpose()?;
+
         Ok(Self {
             subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
@@ -325,6 +331,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             subscription_kind,
             is_recurring: value.is_recurring,
             subscription_status,
+            subscription,
         })
     }
 }
@@ -358,6 +365,8 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             .subscription_status
             .map(|status| proto::NymVpnSubscriptionStatus::from(status) as i32);
 
+        let subscription = value.subscription.map(proto::Subscription::from);
+
         Self {
             subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
@@ -370,7 +379,75 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             subscription_kind,
             is_recurring: value.is_recurring,
             subscription_status,
+            subscription,
         }
+    }
+}
+
+impl From<NymVpnSubscription> for proto::NymVpnSubscription {
+    fn from(value: NymVpnSubscription) -> Self {
+        Self {
+            created_on_utc: value.created_on_utc,
+            last_updated_utc: value.last_updated_utc,
+            id: value.id,
+            valid_until_utc: value.valid_until_utc,
+            valid_from_utc: value.valid_from_utc,
+            status: value.status,
+            kind: Some(proto::NymVpnSubscriptionKind::from(value.kind)),
+            is_recurring: value.is_recurring,
+        }
+    }
+}
+
+impl TryFrom<proto::NymVpnSubscription> for NymVpnSubscription {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::NymVpnSubscription) -> Result<Self, Self::Error> {
+        let kind = value
+            .kind
+            .map(NymVpnSubscriptionKind::try_from)
+            .transpose()?
+            .ok_or(ConversionError::NoValueSet("NymVpnSubscription.kind"))?;
+
+        Ok(Self {
+            created_on_utc: value.created_on_utc,
+            last_updated_utc: value.last_updated_utc,
+            id: value.id,
+            valid_until_utc: value.valid_until_utc,
+            valid_from_utc: value.valid_from_utc,
+            status: value.status,
+            kind,
+            is_recurring: value.is_recurring,
+        })
+    }
+}
+
+impl From<Subscription> for proto::Subscription {
+    fn from(value: Subscription) -> Self {
+        Self {
+            status: proto::NymVpnSubscriptionStatus::from(value.status) as i32,
+            subscription: Some(proto::NymVpnSubscription::from(value.subscription)),
+        }
+    }
+}
+
+impl TryFrom<proto::Subscription> for Subscription {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::Subscription) -> Result<Self, Self::Error> {
+        let status = proto::NymVpnSubscriptionStatus::try_from(value.status)
+            .map(NymVpnSubscriptionStatus::from)
+            .map_err(|_| ConversionError::NoValueSet("Subscription.status"))?;
+
+        let subscription = value
+            .subscription
+            .ok_or(ConversionError::NoValueSet("Subscription.subscription"))?
+            .try_into()?;
+
+        Ok(Self {
+            status,
+            subscription,
+        })
     }
 }
 
