@@ -276,6 +276,7 @@ pub struct VpnAccountSummary {
     pub account_mode: Option<StoredAccountMode>,
     pub subscription_kind: Option<NymVpnSubscriptionKind>,
     pub is_recurring: bool,
+    pub subscription_status: Option<NymVpnSubscriptionStatus>,
 }
 
 // Exported methods
@@ -349,6 +350,15 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             .map(TryInto::try_into)
             .collect::<Result<Vec<_>, _>>()?;
 
+        let subscription_status = if value.subscription.active.is_some() {
+            Some(NymVpnSubscriptionStatus::Active)
+        } else if value.subscription.pending.is_some() {
+            Some(NymVpnSubscriptionStatus::Pending)
+        } else {
+            None
+        };
+   
+
         Ok(Self {
             subscription_valid_until,
             traffic_used_gb: value.fair_usage.usedGB,
@@ -365,6 +375,7 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
                 .as_ref()
                 .map(|s| s.is_recurring)
                 .unwrap_or(false),
+            subscription_status,
         })
     }
 }
@@ -431,6 +442,21 @@ impl From<nym_vpn_api_client::response::NymVpnSubscriptionKind> for NymVpnSubscr
             }
         }
     }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum NymVpnSubscriptionStatus {
+    Pending,
+    Active,
 }
 
 #[cfg(feature = "nym-type-conversions")]

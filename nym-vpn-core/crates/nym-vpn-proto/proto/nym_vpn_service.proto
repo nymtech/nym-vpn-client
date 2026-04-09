@@ -890,6 +890,12 @@ message VpnAccountSummary {
   optional StoredAccountMode account_mode = 8;
   optional NymVpnSubscriptionKind subscription_kind = 9;
   bool is_recurring = 10;
+  optional NymVpnSubscriptionStatus subscription_status = 11;
+}
+
+enum NymVpnSubscriptionStatus {
+  SUBSCRIPTION_PENDING = 0;
+  SUBSCRIPTION_ACTIVE = 1;
 }
 
 message VpnAccountAuthMethod {

@@ -15,6 +15,7 @@ const MAX_FAIR_USAGE: u64 = 2000;
 pub fn mock_subscription_summary_with_device(
     active_account: bool,
     active_sub: bool,
+    pending_sub: bool,
     device_nb: u64,
     fair_usage: u64,
     active_device: Option<NymVpnDevice>,
@@ -27,6 +28,21 @@ pub fn mock_subscription_summary_with_device(
             valid_until_utc: "2025-08-20 13:46:26.572Z".to_string(),
             valid_from_utc: "2025-07-21 13:46:26.572Z".to_string(),
             status: NymVpnSubscriptionStatus::Active,
+            kind: NymVpnSubscriptionKind::Freepass,
+            is_recurring: false,
+        })
+    } else {
+        None
+    };
+
+    let pending_subscription = if pending_sub {
+        Some(NymVpnSubscription {
+            created_on_utc: "whatever".to_string(),
+            last_updated_utc: "whatever".to_string(),
+            id: "whatever".to_string(),
+            valid_until_utc: "2025-08-20 13:46:26.572Z".to_string(),
+            valid_from_utc: "2025-07-21 13:46:26.572Z".to_string(),
+            status: NymVpnSubscriptionStatus::Pending,
             kind: NymVpnSubscriptionKind::Freepass,
             is_recurring: false,
         })
@@ -53,6 +69,7 @@ pub fn mock_subscription_summary_with_device(
             subscription: NymVpnAccountSummarySubscription {
                 is_active: active_sub,
                 active: subscription,
+                pending: pending_subscription,
             },
             devices: NymVpnAccountSummaryDevices {
                 active: device_nb,
@@ -79,20 +96,25 @@ pub fn mock_api_device(status: NymVpnDeviceStatus) -> NymVpnDevice {
 }
 
 pub fn inactive_account() -> NymVpnAccountSummaryWithDeviceResponse {
-    mock_subscription_summary_with_device(false, false, 0, 0, None)
+    mock_subscription_summary_with_device(false, false, false, 0, 0, None)
+}
+
+pub fn pending_subscription() -> NymVpnAccountSummaryWithDeviceResponse {
+    mock_subscription_summary_with_device(true, false, true, 0, 0, None)
 }
 
 pub fn account_with_inactive_sub() -> NymVpnAccountSummaryWithDeviceResponse {
-    mock_subscription_summary_with_device(true, false, 0, 0, None)
+    mock_subscription_summary_with_device(true, false, false, 0, 0, None)
 }
 
 pub fn account_with_unregistered_device() -> NymVpnAccountSummaryWithDeviceResponse {
-    mock_subscription_summary_with_device(true, true, 0, 0, None)
+    mock_subscription_summary_with_device(true, true, false, 0, 0, None)
 }
 pub fn account_ready_to_connect() -> NymVpnAccountSummaryWithDeviceResponse {
     mock_subscription_summary_with_device(
         true,
         true,
+        false,
         0,
         0,
         Some(mock_api_device(NymVpnDeviceStatus::Active)),
@@ -101,11 +123,11 @@ pub fn account_ready_to_connect() -> NymVpnAccountSummaryWithDeviceResponse {
 
 // Special cases
 pub fn account_no_fair_usage() -> NymVpnAccountSummaryWithDeviceResponse {
-    mock_subscription_summary_with_device(true, true, 0, MAX_FAIR_USAGE, None)
+    mock_subscription_summary_with_device(true, true, false, 0, MAX_FAIR_USAGE, None)
 }
 
 pub fn account_max_devices() -> NymVpnAccountSummaryWithDeviceResponse {
-    mock_subscription_summary_with_device(true, true, MAX_DEVICE_NB, 0, None)
+    mock_subscription_summary_with_device(true, true, false, MAX_DEVICE_NB, 0, None)
 }
 
 pub fn unregistered_account() -> NymErrorResponse {

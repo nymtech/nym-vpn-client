@@ -106,6 +106,7 @@ impl NymVpnAccountSummaryWithDeviceResponse {
 pub struct NymVpnAccountSummarySubscription {
     pub is_active: bool,
     pub active: Option<NymVpnSubscription>,
+    pub pending: Option<NymVpnSubscription>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

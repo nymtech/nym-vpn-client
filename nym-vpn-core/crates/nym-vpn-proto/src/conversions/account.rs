@@ -4,7 +4,7 @@
 use nym_vpn_lib_types::{
     AccountCommandError, AutologinResponse, AvailableTickets, DeeplinkClient, DeeplinkKind,
     GetDeeplinkParams, NymVpnSubscriptionKind, StoredAccountMode, VpnAccountAuthMethod,
-    VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
+    VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse, NymVpnSubscriptionStatus
 };
 
 use crate::{
@@ -302,6 +302,15 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             .map(NymVpnSubscriptionKind::try_from)
             .transpose()?;
 
+        let subscription_status = value
+            .subscription_status
+            .map(|status| {
+                proto::NymVpnSubscriptionStatus::try_from(status)
+                .map(NymVpnSubscriptionStatus::from)
+                .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.subscription_status"))
+            })
+            .transpose()?;
+
         Ok(Self {
             subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
@@ -313,6 +322,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             account_mode,
             subscription_kind,
             is_recurring: value.is_recurring,
+            subscription_status,
         })
     }
 }
@@ -342,6 +352,10 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             .subscription_kind
             .map(proto::NymVpnSubscriptionKind::from);
 
+        let subscription_status = value
+            .subscription_status
+            .map(|status| proto::NymVpnSubscriptionStatus::from(status) as i32);
+
         Self {
             subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
@@ -353,6 +367,7 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             account_mode,
             subscription_kind,
             is_recurring: value.is_recurring,
+            subscription_status,
         }
     }
 }
@@ -414,6 +429,24 @@ impl From<VpnAccountStatus> for proto::VpnAccountStatus {
             VpnAccountStatus::Active => proto::VpnAccountStatus::Active,
             VpnAccountStatus::Inactive => proto::VpnAccountStatus::Inactive,
             VpnAccountStatus::DeleteMe => proto::VpnAccountStatus::DeleteMe,
+        }
+    }
+}
+
+impl From<proto::NymVpnSubscriptionStatus> for NymVpnSubscriptionStatus {
+    fn from(value: proto::NymVpnSubscriptionStatus) -> Self {
+        match value {
+            proto::NymVpnSubscriptionStatus::SubscriptionPending => NymVpnSubscriptionStatus::Pending,
+            proto::NymVpnSubscriptionStatus::SubscriptionActive => NymVpnSubscriptionStatus::Active,
+        }
+    }
+}
+
+impl From<NymVpnSubscriptionStatus> for proto::NymVpnSubscriptionStatus {
+    fn from(value: NymVpnSubscriptionStatus) -> Self {
+        match value {
+            NymVpnSubscriptionStatus::Pending => proto::NymVpnSubscriptionStatus::SubscriptionPending,
+            NymVpnSubscriptionStatus::Active => proto::NymVpnSubscriptionStatus::SubscriptionActive,
         }
     }
 }
