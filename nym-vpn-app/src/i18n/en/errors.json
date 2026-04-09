@@ -45,7 +45,8 @@
     "no-subscription": "You don’t have an active plan. Tap Get started to begin anonymous browsing.",
     "status-not-active": "Your account is inactive",
     "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
-    "offline": "Device is offline"
+    "offline": "Device is offline",
+    "pending-subscription": "Confirming payment"
   },
   "autologin": {
     "timeout": "Autologin timeout",

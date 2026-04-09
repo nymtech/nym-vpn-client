@@ -21,6 +21,8 @@ function useI18nAccountState() {
           return t('account.no-subscription');
         case 'max-device-reached':
           return t('account.max-devices-reached');
+        case 'pending-subscription':
+          return t('account.pending-subscription');
         default:
           return t('account.internal');
       }

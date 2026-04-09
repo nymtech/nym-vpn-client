@@ -29,6 +29,7 @@ function TunnelState() {
     accountState === 'max-device-reached' ||
     accountState === 'no-subscription' ||
     accountState === 'bandwidth-exceeded' ||
+    accountState === 'pending-subscription' ||
     accountState === 'status-not-active' ||
     accountState === 'error';
   const isError = tunnelError || error || isAccountError;

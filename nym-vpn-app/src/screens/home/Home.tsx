@@ -188,7 +188,12 @@ function Home() {
       return false;
     }
 
-    return loading || daemonUnavailable || state === 'offline';
+    return (
+      loading ||
+      daemonUnavailable ||
+      state === 'offline' ||
+      accountState === 'pending-subscription'
+    );
   };
 
   const goToNodeList = (hop: 'entry' | 'exit') => {
