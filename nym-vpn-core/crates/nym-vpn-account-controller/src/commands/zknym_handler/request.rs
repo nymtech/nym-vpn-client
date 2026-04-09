@@ -672,7 +672,9 @@ impl RequestZkNymTask {
             Ok(ticketbook)
         })
         .await
-        .map_err(|err| RequestZkNymError::internal(format!("unblind_and_aggregate panicked: {err}")))?
+        .map_err(|err| {
+            RequestZkNymError::internal(format!("unblind_and_aggregate panicked: {err}"))
+        })?
     }
 
     async fn confirm_zk_nym_downloaded(&self, id: &str) -> Result<StatusOk, RequestZkNymError> {

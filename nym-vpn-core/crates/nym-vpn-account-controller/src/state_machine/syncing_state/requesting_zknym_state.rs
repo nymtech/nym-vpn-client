@@ -359,7 +359,9 @@ impl RequestingZkNymsState {
                     .is_all_ticket_types_above_minimal_threshold()
                     .await
                 {
-                    info!("RefreshAccountState: tickets already sufficient, transitioning to ReadyState");
+                    info!(
+                        "RefreshAccountState: tickets already sufficient, transitioning to ReadyState"
+                    );
                     self.zk_nym_fetching_handle.abort();
                     return NextAccountControllerState::NewState(ReadyState::enter());
                 }
