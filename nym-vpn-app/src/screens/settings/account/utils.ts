@@ -14,7 +14,8 @@ export const getAccountDescriptionColor = (
     state === 'no-subscription' ||
     state === 'bandwidth-exceeded' ||
     state === 'max-device-reached' ||
-    state === 'error'
+    state === 'error' ||
+    state === 'pending-subscription'
   ) {
     return 'text-aphrodisiac';
   }
