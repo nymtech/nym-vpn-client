@@ -195,7 +195,7 @@ impl SyncingState {
                 summary.account_summary.account.status.to_string(),
             ))
         } else if summary.subscription_pending() {
-            // subscription exists but is not yet active (e.g. IAP payment still processing)
+            // subscription exists but is not yet active (e.g. cash payment still processing)
             Err(SyncError::PendingSubscription)
         } else if !summary.subscription_active() {
             // that there is an active subscription

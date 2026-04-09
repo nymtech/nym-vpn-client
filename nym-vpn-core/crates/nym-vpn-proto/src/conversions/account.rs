@@ -3,8 +3,8 @@
 
 use nym_vpn_lib_types::{
     AccountCommandError, AutologinResponse, AvailableTickets, DeeplinkClient, DeeplinkKind,
-    GetDeeplinkParams, NymVpnSubscriptionKind, StoredAccountMode, VpnAccountAuthMethod,
-    VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse, NymVpnSubscriptionStatus
+    GetDeeplinkParams, NymVpnSubscriptionKind, NymVpnSubscriptionStatus, StoredAccountMode,
+    VpnAccountAuthMethod, VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
 };
 
 use crate::{
@@ -306,8 +306,10 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             .subscription_status
             .map(|status| {
                 proto::NymVpnSubscriptionStatus::try_from(status)
-                .map(NymVpnSubscriptionStatus::from)
-                .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.subscription_status"))
+                    .map(NymVpnSubscriptionStatus::from)
+                    .map_err(|_| {
+                        ConversionError::NoValueSet("VpnAccountSummary.subscription_status")
+                    })
             })
             .transpose()?;
 
@@ -436,7 +438,9 @@ impl From<VpnAccountStatus> for proto::VpnAccountStatus {
 impl From<proto::NymVpnSubscriptionStatus> for NymVpnSubscriptionStatus {
     fn from(value: proto::NymVpnSubscriptionStatus) -> Self {
         match value {
-            proto::NymVpnSubscriptionStatus::SubscriptionPending => NymVpnSubscriptionStatus::Pending,
+            proto::NymVpnSubscriptionStatus::SubscriptionPending => {
+                NymVpnSubscriptionStatus::Pending
+            }
             proto::NymVpnSubscriptionStatus::SubscriptionActive => NymVpnSubscriptionStatus::Active,
         }
     }
@@ -445,7 +449,9 @@ impl From<proto::NymVpnSubscriptionStatus> for NymVpnSubscriptionStatus {
 impl From<NymVpnSubscriptionStatus> for proto::NymVpnSubscriptionStatus {
     fn from(value: NymVpnSubscriptionStatus) -> Self {
         match value {
-            NymVpnSubscriptionStatus::Pending => proto::NymVpnSubscriptionStatus::SubscriptionPending,
+            NymVpnSubscriptionStatus::Pending => {
+                proto::NymVpnSubscriptionStatus::SubscriptionPending
+            }
             NymVpnSubscriptionStatus::Active => proto::NymVpnSubscriptionStatus::SubscriptionActive,
         }
     }

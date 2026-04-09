@@ -357,7 +357,6 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
         } else {
             None
         };
-   
 
         Ok(Self {
             subscription_valid_until,
