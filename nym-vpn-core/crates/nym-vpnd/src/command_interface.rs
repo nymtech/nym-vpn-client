@@ -1179,11 +1179,11 @@ impl NymVpnService for CommandInterface {
 
     async fn add_split_tunnel_process(
         &self,
-        request: tonic::Request<i32>,
+        _request: tonic::Request<i32>,
     ) -> Result<tonic::Response<()>> {
         #[cfg(target_os = "linux")]
         {
-            let pid = request.into_inner();
+            let pid = _request.into_inner();
             self.send_and_wait(VpnServiceCommand::AddSplitTunnelProcess, pid)
                 .await?;
             Ok(tonic::Response::new(()))
@@ -1195,11 +1195,11 @@ impl NymVpnService for CommandInterface {
 
     async fn remove_split_tunnel_process(
         &self,
-        request: tonic::Request<i32>,
+        _request: tonic::Request<i32>,
     ) -> Result<tonic::Response<()>> {
         #[cfg(target_os = "linux")]
         {
-            let pid = request.into_inner();
+            let pid = _request.into_inner();
             self.send_and_wait(VpnServiceCommand::RemoveSplitTunnelProcess, pid)
                 .await?;
             Ok(tonic::Response::new(()))

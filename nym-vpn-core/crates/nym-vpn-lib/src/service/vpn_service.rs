@@ -65,15 +65,14 @@ use super::{
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
+#[cfg(target_os = "linux")]
+use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
     DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
     config::GlobalConfig,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     logging::LogFileRemoverHandle,
-    tunnel_state_machine::{
-        LinuxSplitTunnelConfiguration, NymConfig, TunnelCommand, TunnelConstants,
-        TunnelStateMachine,
-    },
+    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
 };
 
 // Seed used to generate device identity keys
