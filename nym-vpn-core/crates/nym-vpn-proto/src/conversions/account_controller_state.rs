@@ -39,6 +39,9 @@ impl From<proto::account_controller_state::Error> for AccountControllerErrorStat
             proto::account_controller_state::ErrorStateReason::InactiveSubscription => {
                 AccountControllerErrorStateReason::InactiveSubscription
             }
+            proto::account_controller_state::ErrorStateReason::PendingSubscription => {
+                AccountControllerErrorStateReason::PendingSubscription
+            }
             proto::account_controller_state::ErrorStateReason::MaxDeviceReached => {
                 AccountControllerErrorStateReason::MaxDeviceReached
             }
@@ -93,6 +96,14 @@ impl From<AccountControllerErrorStateReason> for proto::account_controller_state
             AccountControllerErrorStateReason::InactiveSubscription => {
                 proto::account_controller_state::Error {
                     reason: proto::account_controller_state::ErrorStateReason::InactiveSubscription
+                        .into(),
+                    context: None,
+                    details: None,
+                }
+            }
+            AccountControllerErrorStateReason::PendingSubscription => {
+                proto::account_controller_state::Error {
+                    reason: proto::account_controller_state::ErrorStateReason::PendingSubscription
                         .into(),
                     context: None,
                     details: None,

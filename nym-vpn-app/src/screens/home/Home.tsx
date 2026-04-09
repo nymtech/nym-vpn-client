@@ -47,6 +47,8 @@ function Home() {
     networkCompat,
   } = useMainState();
 
+  console.log('accountstate', accountState);
+
   const dispatch = useMainDispatch() as StateDispatch;
   const { setFocused, setSearch, setExpanded } = useNodeListState();
   const { lookupGw } = useGateways();

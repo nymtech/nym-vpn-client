@@ -179,7 +179,10 @@ constructor(private val billingManager: BillingManager, private val backendManag
 						state is AccountControllerState.UpgradeMode ||
 						(
 							state is AccountControllerState.Error &&
-								state.v1 == AccountControllerErrorStateReason.InactiveSubscription
+								(
+									state.v1 == AccountControllerErrorStateReason.InactiveSubscription ||
+										state.v1 == AccountControllerErrorStateReason.PendingSubscription
+									)
 							)
 				}
 				.collect { state ->
@@ -195,7 +198,9 @@ constructor(private val billingManager: BillingManager, private val backendManag
 						}
 
 						is AccountControllerState.Error -> {
-							if (state.v1 == AccountControllerErrorStateReason.InactiveSubscription) {
+							if (state.v1 == AccountControllerErrorStateReason.InactiveSubscription ||
+								state.v1 == AccountControllerErrorStateReason.PendingSubscription
+							) {
 								Timber.tag(TAG).i("AccountStateInactiveSubscription action=refresh")
 								refreshAccount()
 							}

@@ -53,6 +53,7 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::BandwidthExceeded => Self::BandwidthExceeded,
             Reason::InactiveAccount => Self::InactiveAccount,
             Reason::InactiveSubscription => Self::InactiveSubscription,
+            Reason::PendingSubscription => Self::PendingSubscription,
             Reason::MaxDevicesReached => Self::MaxDevicesReached,
             Reason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
             Reason::DeviceLoggedOut => Self::DeviceLoggedOut,
@@ -138,6 +139,10 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
             },
             ErrorStateReason::InactiveSubscription => Self {
                 reason: Reason::InactiveSubscription.into(),
+                message: None,
+            },
+            ErrorStateReason::PendingSubscription => Self {
+                reason: Reason::PendingSubscription.into(),
                 message: None,
             },
             ErrorStateReason::MaxDevicesReached => Self {

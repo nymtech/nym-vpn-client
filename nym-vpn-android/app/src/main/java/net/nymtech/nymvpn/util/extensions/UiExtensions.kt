@@ -150,6 +150,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
 	ErrorStateReason.TunnelProvider -> context.getString(R.string.error_tunnel_provider)
 
 	ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_active_plan)
+	ErrorStateReason.PendingSubscription -> context.getString(R.string.error_active_plan)
 
 	ErrorStateReason.CredentialWastedOnEntryGateway -> context.getString(R.string.error_bandwidth_entry)
 	ErrorStateReason.CredentialWastedOnExitGateway -> context.getString(R.string.error_bandwidth_exit)

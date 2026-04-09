@@ -40,6 +40,9 @@ pub enum AccountControllerErrorStateReason {
     /// Inactive Subscription
     InactiveSubscription,
 
+    /// Pending Subscription
+    PendingSubscription,
+
     /// Max device numbers reached
     MaxDeviceReached,
 
@@ -90,6 +93,9 @@ impl std::fmt::Display for AccountControllerErrorStateReason {
             }
             AccountControllerErrorStateReason::InactiveSubscription => {
                 write!(f, "Inactive subscription")
+            }
+            AccountControllerErrorStateReason::PendingSubscription => {
+                write!(f, "Pending subscription")
             }
             AccountControllerErrorStateReason::MaxDeviceReached => {
                 write!(f, "Max device numbers reached")

@@ -104,6 +104,9 @@ impl From<lib::AccountControllerErrorStateReason> for BackendError {
             lib::AccountControllerErrorStateReason::InactiveSubscription => {
                 BackendError::new("AC inactive subscription", ErrorKey::NoSubscription)
             }
+            lib::AccountControllerErrorStateReason::PendingSubscription => {
+                BackendError::new("AC pending subscription", ErrorKey::PendingSubscription)
+            }
             lib::AccountControllerErrorStateReason::MaxDeviceReached => {
                 BackendError::new("AC max devices reached", ErrorKey::MaxDeviceReached)
             }

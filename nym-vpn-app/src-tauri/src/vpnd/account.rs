@@ -20,6 +20,7 @@ pub enum AccountState {
     BandwidthExceeded,
     StatusNotActive,
     NoSubscription,
+    PendingSubscription,
     MaxDeviceReached,
     RequestingZkNyms,
     Error(BackendError),
@@ -44,6 +45,9 @@ impl AccountState {
                 } => AccountState::StatusNotActive,
                 lib::AccountControllerErrorStateReason::InactiveSubscription => {
                     AccountState::NoSubscription
+                }
+                lib::AccountControllerErrorStateReason::PendingSubscription => {
+                    AccountState::PendingSubscription
                 }
                 lib::AccountControllerErrorStateReason::MaxDeviceReached => {
                     AccountState::MaxDeviceReached

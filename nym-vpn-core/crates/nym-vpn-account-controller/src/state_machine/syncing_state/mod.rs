@@ -194,6 +194,9 @@ impl SyncingState {
             Err(SyncError::InactiveAccount(
                 summary.account_summary.account.status.to_string(),
             ))
+        } else if summary.subscription_pending() {
+            // subscription exists but is not yet active (e.g. IAP payment still processing)
+            Err(SyncError::PendingSubscription)
         } else if !summary.subscription_active() {
             // that there is an active subscription
             Err(SyncError::InactiveSubscription)
@@ -385,6 +388,7 @@ enum SyncError {
     InactiveAccount(String),
     UnregisteredAccount,
     InactiveSubscription,
+    PendingSubscription,
     ApiRequestError(String),
     ApiResponseError { details: String },
     DeviceTimeDesynced,
@@ -429,6 +433,7 @@ impl From<SyncError> for AccountControllerErrorStateReason {
                 status: "unregistered".into(),
             },
             InactiveSubscription => Self::InactiveSubscription,
+            PendingSubscription => Self::PendingSubscription,
             ApiRequestError(e) => Self::ApiFailure {
                 context: SYNCING_STATE_CONTEXT.into(),
                 details: e,

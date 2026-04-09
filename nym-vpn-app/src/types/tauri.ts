@@ -11,11 +11,11 @@ export type Address = { nymAddress: string; gatewayId: string };
 export type App = {
   name: string;
   /**
-   * Absolute path to the `.exe` file, when resolvable.
+   * Absolute path to the main executable.
    */
   executable_path: string;
   /**
-   * Absolute path to the icon file.
+   * Absolute path to the cached icon PNG, when available. Stored in tauri app cache directory.
    */
   icon: string | null;
 };
@@ -128,6 +128,7 @@ export type ErrorKey =
   | 'bandwidth-exceeded'
   | 'account-status-not-active'
   | 'no-subscription'
+  | 'pending-subscription'
   | 'max-device-reached'
   | 'device-time-desync'
   | 'get-mixnet-entry-countries-query'
@@ -324,6 +325,7 @@ export type TAccountState =
   | 'bandwidth-exceeded'
   | 'status-not-active'
   | 'no-subscription'
+  | 'pending-subscription'
   | 'max-device-reached'
   | 'requesting-zk-nyms'
   | { error: TBackendError };
@@ -478,6 +480,7 @@ export type TunnelError =
   | 'max-devices-reached'
   | 'bandwidth-exceeded'
   | 'inactive-subscription'
+  | 'pending-subscription'
   | 'device-time-out-of-sync'
   | 'device-logged-out'
   | 'ipv6-unavailable'

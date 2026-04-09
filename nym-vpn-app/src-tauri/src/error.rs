@@ -141,6 +141,7 @@ pub enum ErrorKey {
     BandwidthExceeded,
     AccountStatusNotActive,
     NoSubscription,
+    PendingSubscription,
     MaxDeviceReached,
     DeviceTimeDesync,
     // Failure when querying countries from daemon
