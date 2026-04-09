@@ -23,6 +23,7 @@ DOCKER_FLAG := --docker
 endif
 
 ARCH_ARM64_V8 := arm64-v8a
+ARCH_X86_64 := x86_64
 STRIP_TOOL_BIN := llvm-strip
 
 ifneq ($(strip $(NDK_TOOLCHAIN_DIR)),)
@@ -36,6 +37,7 @@ ANDROID_DIR := $(CURDIR)/../nym-vpn-android
 UNIFFI_OUT_DIR := $(ANDROID_DIR)/core/src/main/java/net/nymtech/vpn
 JNI_LIBS_DIR := $(ANDROID_DIR)/core/src/main/jniLibs
 ARM64_V8_BUILD_DIR := $(JNI_LIBS_DIR)/$(ARCH_ARM64_V8)
+X86_64_BUILD_DIR := $(JNI_LIBS_DIR)/$(ARCH_X86_64)
 
 DYNAMIC_LIB_PATH := $(CURDIR)/target/aarch64-linux-android/$(TARGET_DIR)/libnym_vpn_lib_uniffi.so
 WIREGUARD_DIR := $(CURDIR)/../wireguard
@@ -48,15 +50,23 @@ LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_
 
 .PHONY: build uniffi libwg strip clean
 
-all: $(ARM64_V8_BUILD_DIR)/libwg.so build uniffi strip $(LICENSES_FILE)
+all: $(ARM64_V8_BUILD_DIR)/libwg.so $(X86_64_BUILD_DIR)/libwg.so build uniffi strip $(LICENSES_FILE)
 
-build: $(ARM64_V8_BUILD_DIR)/libwg.so
-	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi --package nym-vpn-lib-types $(RELEASE_FLAG)
+build: $(ARM64_V8_BUILD_DIR)/libwg.so $(X86_64_BUILD_DIR)/libwg.so
+	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) build --package nym-vpn-lib-uniffi --package nym-vpn-lib-types $(RELEASE_FLAG)
 	cd $(ARM64_V8_BUILD_DIR) ; \
+	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so
+	cd $(X86_64_BUILD_DIR) ; \
 	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so
 
 strip: build
 	cd $(ARM64_V8_BUILD_DIR) ; \
+	for target in $(STRIP_TARGETS); do \
+		echo "Stripping $${target}" ; \
+        $(STRIP_TOOL) --strip-unneeded --strip-debug --remove-section=.comment -o "stripped_$${target}" "$${target}" ; \
+        mv stripped_$${target} $${target} ; \
+    done
+	cd $(X86_64_BUILD_DIR) ; \
 	for target in $(STRIP_TARGETS); do \
 		echo "Stripping $${target}" ; \
         $(STRIP_TOOL) --strip-unneeded --strip-debug --remove-section=.comment -o "stripped_$${target}" "$${target}" ; \
@@ -71,10 +81,14 @@ uniffi: build
 $(ARM64_V8_BUILD_DIR)/libwg.so: $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh --android $(DOCKER_FLAG)
 
-libwg: $(ARM64_V8_BUILD_DIR)/libwg.so
+$(X86_64_BUILD_DIR)/libwg.so: $(ARM64_V8_BUILD_DIR)/libwg.so
+	@# built as a side effect of the arm64 wireguard build above
+
+libwg: $(ARM64_V8_BUILD_DIR)/libwg.so $(X86_64_BUILD_DIR)/libwg.so
 
 clean:
 	rm -rf $(ARM64_V8_BUILD_DIR) || true
+	rm -rf $(X86_64_BUILD_DIR) || true
 	rm -rf $(JNI_LIBS_DIR) || true
 
 $(LICENSES_FILE): $(CURDIR)/Cargo.lock
