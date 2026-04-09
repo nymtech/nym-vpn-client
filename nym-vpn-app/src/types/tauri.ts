@@ -331,7 +331,6 @@ export type TAccountState =
   | { error: TBackendError };
 
 export type TAccountSummary = {
-  'subscription-valid-until': bigint | null;
   'traffic-used-gb': bigint;
   'traffic-limit-gb': bigint;
   'traffic-reset-time': bigint | null;
@@ -341,9 +340,7 @@ export type TAccountSummary = {
   'is-linked': boolean;
   'fair-usage-left': boolean;
   'is-subscription-active': boolean;
-  'subscription-kind': TVpnSubscriptionKind | null;
-  'is-recurring': boolean;
-  'subscription-status': TSubscriptionStatus | null;
+  subscription: TSubscription | null;
 };
 
 export type TApiTimeSkew = {
@@ -434,6 +431,22 @@ export type THttpReport = {
   remoteTime: TDiagnosticResult<TApiTimeSkew>;
   healthResponse: TDiagnosticResult<TDiagnosticHealthResponse>;
   nbNymnodes: TDiagnosticResult<number>;
+};
+
+export type TNymVpnSubscription = {
+  'created-on-utc': string;
+  'last-updated-utc': string;
+  id: string;
+  'valid-until-utc': string;
+  'valid-from-utc': string;
+  status: string;
+  kind: TVpnSubscriptionKind;
+  'is-recurring': boolean;
+};
+
+export type TSubscription = {
+  status: TSubscriptionStatus;
+  subscription: TNymVpnSubscription;
 };
 
 export type TSubscriptionStatus = 'pending' | 'active';

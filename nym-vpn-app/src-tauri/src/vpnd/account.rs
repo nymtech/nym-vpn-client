@@ -164,7 +164,6 @@ impl From<lib::Subscription> for Subscription {
 #[ts(export, export_to = "tauri.ts", rename = "TAccountSummary")]
 #[serde(rename_all = "kebab-case")]
 pub struct AccountSummary {
-    pub subscription_valid_until: Option<i64>,
     pub traffic_used_gb: u64,
     pub traffic_limit_gb: u64,
     pub traffic_reset_time: Option<i64>,
@@ -174,9 +173,6 @@ pub struct AccountSummary {
     pub is_linked: bool,
     pub fair_usage_left: bool,
     pub is_subscription_active: bool,
-    pub subscription_kind: Option<VpnSubscriptionKind>,
-    pub is_recurring: bool,
-    pub subscription_status: Option<SubscriptionStatus>,
     pub subscription: Option<Subscription>,
 }
 
@@ -187,9 +183,6 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
         let is_subscription_active = summary.is_subscription_active();
 
         AccountSummary {
-            subscription_valid_until: summary
-                .subscription_valid_until
-                .map(|dt| dt.unix_timestamp()),
             traffic_used_gb: summary.traffic_used_gb,
             traffic_limit_gb: summary.traffic_limit_gb,
             traffic_reset_time: summary.traffic_reset_time.map(|dt| dt.unix_timestamp()),
@@ -203,9 +196,6 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
             is_linked,
             fair_usage_left,
             is_subscription_active,
-            subscription_kind: summary.subscription_kind.map(VpnSubscriptionKind::from),
-            is_recurring: summary.is_recurring,
-            subscription_status: summary.subscription_status.map(SubscriptionStatus::from),
             subscription: summary.subscription.map(Subscription::from),
         }
     }

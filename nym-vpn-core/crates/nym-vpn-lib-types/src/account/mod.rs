@@ -8,7 +8,6 @@ pub mod deeplink;
 pub mod request_zknym;
 pub mod ticketbooks;
 
-use nym_network_defaults::deprecated;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
@@ -259,10 +258,6 @@ impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiErrorRespons
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct VpnAccountSummary {
-    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
-    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
-    pub subscription_valid_until: Option<OffsetDateTime>,
-
     pub traffic_used_gb: u64,
 
     pub traffic_limit_gb: u64,
@@ -275,9 +270,6 @@ pub struct VpnAccountSummary {
     pub canonical_account_addr: Option<String>,
     pub auth_methods: Vec<VpnAccountAuthMethod>,
     pub account_mode: Option<StoredAccountMode>,
-    pub subscription_kind: Option<NymVpnSubscriptionKind>,
-    pub is_recurring: bool,
-    pub subscription_status: Option<NymVpnSubscriptionStatus>,
     pub subscription: Option<Subscription>,
 }
 
@@ -287,9 +279,19 @@ pub struct VpnAccountSummary {
 impl VpnAccountSummary {
     /// Returns true if subscription is active
     pub fn is_subscription_active(&self) -> bool {
-        self.subscription_valid_until
-            .map(|time| time > OffsetDateTime::now_utc())
-            .unwrap_or(false)
+        if let Some(subscription) = &self.subscription {
+            match subscription.status {
+                NymVpnSubscriptionStatus::Active => OffsetDateTime::parse(
+                    subscription.subscription.valid_until_utc.as_str(),
+                    &time::format_description::well_known::Rfc3339,
+                )
+                .map(|t| t > OffsetDateTime::now_utc())
+                .unwrap_or(false),
+                _ => false,
+            }
+        } else {
+            false
+        }
     }
 
     pub fn fair_usage_left(&self) -> bool {
@@ -310,28 +312,6 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
     fn try_from(
         value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
     ) -> Result<Self, Self::Error> {
-        let subscription_valid_unti_str = value
-            .subscription
-            .active
-            .as_ref()
-            .map(|a| a.valid_until_utc.clone());
-        let subscription_valid_until = subscription_valid_unti_str
-            .as_ref()
-            .map(|time| OffsetDateTime::parse(time, &time::format_description::well_known::Rfc3339))
-            .transpose()
-            .map_err(|_| {
-                nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
-                    "invalid subscription valid_until_utc time format: {}",
-                    subscription_valid_unti_str.unwrap()
-                ))
-            })?;
-
-        let subscription_kind = value
-            .subscription
-            .active
-            .as_ref()
-            .map(|a| a.kind.clone().into());
-
         let traffic_reset_time_str = value.fair_usage.resetsOnUtc.clone();
         let traffic_reset_time = traffic_reset_time_str
             .as_ref()
@@ -352,30 +332,23 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             .map(TryInto::try_into)
             .collect::<Result<Vec<_>, _>>()?;
 
-        let subscription_status = if value.subscription.active.is_some() {
-            Some(NymVpnSubscriptionStatus::Active)
-        } else if value.subscription.pending.is_some() {
-            Some(NymVpnSubscriptionStatus::Pending)
-        } else {
-            None
-        };
-
         let subscription = if let Some(active) = &value.subscription.active {
             Some(Subscription {
                 status: NymVpnSubscriptionStatus::Active,
                 subscription: NymVpnSubscription::from(active),
             })
-        } else if let Some(pending) = &value.subscription.pending {
-            Some(Subscription {
-                status: NymVpnSubscriptionStatus::Pending,
-                subscription: NymVpnSubscription::from(pending),
-            })
         } else {
-            None
+            value
+                .subscription
+                .pending
+                .as_ref()
+                .map(|pending| Subscription {
+                    status: NymVpnSubscriptionStatus::Pending,
+                    subscription: NymVpnSubscription::from(pending),
+                })
         };
 
         Ok(Self {
-            subscription_valid_until,
             traffic_used_gb: value.fair_usage.usedGB,
             traffic_limit_gb: value.fair_usage.limitGB,
             traffic_reset_time,
@@ -383,14 +356,6 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             canonical_account_addr: value.account.canonical_account_addr.clone(),
             auth_methods,
             account_mode: None,
-            subscription_kind,
-            is_recurring: value
-                .subscription
-                .active
-                .as_ref()
-                .map(|s| s.is_recurring)
-                .unwrap_or(false),
-            subscription_status,
             subscription,
         })
     }

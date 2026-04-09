@@ -882,7 +882,6 @@ message VpnAccountSummaryResponse {
 }
 
 message VpnAccountSummary {
-  optional google.protobuf.Timestamp subscription_valid_until = 1;
   uint64 traffic_used_gb = 2;
   uint64 traffic_limit_gb = 3;
   optional google.protobuf.Timestamp traffic_reset_time = 4;
@@ -890,9 +889,6 @@ message VpnAccountSummary {
   optional string canonical_account_addr = 6;
   repeated VpnAccountAuthMethod auth_methods = 7;
   optional StoredAccountMode account_mode = 8;
-  optional NymVpnSubscriptionKind subscription_kind = 9;
-  bool is_recurring = 10;
-  optional NymVpnSubscriptionStatus subscription_status = 11;
   optional Subscription subscription = 12;
 }
 

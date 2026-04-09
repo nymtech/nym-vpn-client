@@ -265,15 +265,6 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
     type Error = ConversionError;
 
     fn try_from(value: proto::VpnAccountSummary) -> Result<Self, Self::Error> {
-        let subscription_valid_until = value
-            .subscription_valid_until
-            .map(|ts| {
-                prost_timestamp_into_offset_datetime(ts).map_err(|e| {
-                    ConversionError::ConvertTime("VpnAccountSummary.subscription_valid_until", e)
-                })
-            })
-            .transpose()?;
-
         let traffic_reset_time = value
             .traffic_reset_time
             .map(|ts| {
@@ -298,29 +289,9 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             .map(TryInto::try_into)
             .collect::<Result<_, ConversionError>>()?;
 
-        let subscription_kind = value
-            .subscription_kind
-            .map(NymVpnSubscriptionKind::try_from)
-            .transpose()?;
-
-        let subscription_status = value
-            .subscription_status
-            .map(|status| {
-                proto::NymVpnSubscriptionStatus::try_from(status)
-                    .map(NymVpnSubscriptionStatus::from)
-                    .map_err(|_| {
-                        ConversionError::NoValueSet("VpnAccountSummary.subscription_status")
-                    })
-            })
-            .transpose()?;
-
-        let subscription = value
-            .subscription
-            .map(Subscription::try_from)
-            .transpose()?;
+        let subscription = value.subscription.map(Subscription::try_from).transpose()?;
 
         Ok(Self {
-            subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
             traffic_limit_gb: value.traffic_limit_gb,
             traffic_reset_time,
@@ -328,9 +299,6 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             canonical_account_addr: value.canonical_account_addr,
             auth_methods,
             account_mode,
-            subscription_kind,
-            is_recurring: value.is_recurring,
-            subscription_status,
             subscription,
         })
     }
@@ -338,10 +306,6 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
 
 impl From<VpnAccountSummary> for proto::VpnAccountSummary {
     fn from(value: VpnAccountSummary) -> Self {
-        let subscription_valid_until = value
-            .subscription_valid_until
-            .map(offset_datetime_into_proto_timestamp);
-
         let traffic_reset_time = value
             .traffic_reset_time
             .map(offset_datetime_into_proto_timestamp);
@@ -357,18 +321,9 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             .account_mode
             .map(|mode| proto::StoredAccountMode::from(mode) as i32);
 
-        let subscription_kind = value
-            .subscription_kind
-            .map(proto::NymVpnSubscriptionKind::from);
-
-        let subscription_status = value
-            .subscription_status
-            .map(|status| proto::NymVpnSubscriptionStatus::from(status) as i32);
-
         let subscription = value.subscription.map(proto::Subscription::from);
 
         Self {
-            subscription_valid_until,
             traffic_used_gb: value.traffic_used_gb,
             traffic_limit_gb: value.traffic_limit_gb,
             traffic_reset_time,
@@ -376,9 +331,6 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             canonical_account_addr: value.canonical_account_addr,
             auth_methods,
             account_mode,
-            subscription_kind,
-            is_recurring: value.is_recurring,
-            subscription_status,
             subscription,
         }
     }
