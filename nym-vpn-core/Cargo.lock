@@ -5425,7 +5425,7 @@ dependencies = [
 
 [[package]]
 name = "nym-exclude"
-version = "1.28.0-beta"
+version = "1.29.0-beta"
 dependencies = [
  "nix 0.31.2",
  "nym-cgroup",
