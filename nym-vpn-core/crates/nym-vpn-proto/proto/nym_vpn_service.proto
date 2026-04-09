@@ -692,7 +692,6 @@ message AccountControllerState {
     INACTIVE_SUBSCRIPTION = 5;
     MAX_DEVICE_REACHED = 6;
     DEVICE_TIME_DESYNCED = 7;
-    PENDING_SUBSCRIPTION = 8;
   }
 
   message LoggedOut {}
@@ -708,6 +707,7 @@ message AccountControllerState {
   message Offline {}
   message Decentralised {}
   message UpgradeMode {}
+  message PendingSubscription {}
 
   oneof state {
     LoggedOut logged_out = 1;
@@ -718,6 +718,7 @@ message AccountControllerState {
     Offline offline = 5;
     Decentralised decentralised = 6;
     UpgradeMode upgrade_mode = 8;
+    PendingSubscription pending_subscription = 9;
   }
 }
 

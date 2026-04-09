@@ -42,6 +42,9 @@ pub enum AccountControllerState {
     /// Network is undergoing an upgrade, can't get zk-nyms, but got an alternative credential.
     UpgradeMode,
 
+    /// Logged in, subscription is pending (e.g. cash payment still processing)
+    PendingSubscription,
+
     /// Logged in, error during sync, can't proceed
     Error(AccountControllerErrorStateReason),
 }
@@ -69,6 +72,9 @@ impl fmt::Display for AccountControllerState {
             }
             AccountControllerState::UpgradeMode => {
                 write!(f, "Upgrade Mode")
+            }
+            Self::PendingSubscription => {
+                write!(f, "Pending Subscription")
             }
             Self::Error(reason) => write!(f, "Error : {reason}"),
         }

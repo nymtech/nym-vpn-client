@@ -1192,9 +1192,6 @@ impl account::Error {
                 AcError::ErrorState(AccountControllerErrorStateReason::InactiveSubscription) => {
                     Some(ErrorStateReason::InactiveSubscription)
                 }
-                AcError::ErrorState(AccountControllerErrorStateReason::PendingSubscription) => {
-                    Some(ErrorStateReason::PendingSubscription)
-                }
                 AcError::ErrorState(AccountControllerErrorStateReason::MaxDeviceReached) => {
                     Some(ErrorStateReason::MaxDevicesReached)
                 }

@@ -39,9 +39,6 @@ impl From<proto::account_controller_state::Error> for AccountControllerErrorStat
             proto::account_controller_state::ErrorStateReason::InactiveSubscription => {
                 AccountControllerErrorStateReason::InactiveSubscription
             }
-            proto::account_controller_state::ErrorStateReason::PendingSubscription => {
-                AccountControllerErrorStateReason::PendingSubscription
-            }
             proto::account_controller_state::ErrorStateReason::MaxDeviceReached => {
                 AccountControllerErrorStateReason::MaxDeviceReached
             }
@@ -101,14 +98,6 @@ impl From<AccountControllerErrorStateReason> for proto::account_controller_state
                     details: None,
                 }
             }
-            AccountControllerErrorStateReason::PendingSubscription => {
-                proto::account_controller_state::Error {
-                    reason: proto::account_controller_state::ErrorStateReason::PendingSubscription
-                        .into(),
-                    context: None,
-                    details: None,
-                }
-            }
             AccountControllerErrorStateReason::MaxDeviceReached => {
                 proto::account_controller_state::Error {
                     reason: proto::account_controller_state::ErrorStateReason::MaxDeviceReached
@@ -161,6 +150,11 @@ impl From<AccountControllerState> for proto::AccountControllerState {
                     proto::account_controller_state::UpgradeMode {},
                 )
             }
+            AccountControllerState::PendingSubscription => {
+                proto::account_controller_state::State::PendingSubscription(
+                    proto::account_controller_state::PendingSubscription {},
+                )
+            }
             AccountControllerState::Error(reason) => proto::account_controller_state::State::Error(
                 proto::account_controller_state::Error::from(reason),
             ),
@@ -205,6 +199,9 @@ impl TryFrom<proto::AccountControllerState> for AccountControllerState {
             proto::account_controller_state::State::UpgradeMode(
                 proto::account_controller_state::UpgradeMode {},
             ) => Self::UpgradeMode,
+            proto::account_controller_state::State::PendingSubscription(
+                proto::account_controller_state::PendingSubscription {},
+            ) => Self::PendingSubscription,
         })
     }
 }

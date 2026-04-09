@@ -186,9 +186,7 @@ async fn account_with_pending_sub_test() -> anyhow::Result<()> {
     test_bench.store_mock_account().await?;
 
     test_bench
-        .assert_state(AccountControllerState::Error(
-            AccountControllerErrorStateReason::PendingSubscription,
-        ))
+        .assert_state(AccountControllerState::PendingSubscription)
         .await;
     Ok(())
 }

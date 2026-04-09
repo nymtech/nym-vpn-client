@@ -31,7 +31,9 @@ impl AccountStateReceiver {
                 AccountControllerState::Error(reason) => {
                     return Err(AccountControllerError::ErrorState(reason));
                 }
-                AccountControllerState::Syncing | AccountControllerState::RequestingZkNyms => {
+                AccountControllerState::Syncing
+                | AccountControllerState::RequestingZkNyms
+                | AccountControllerState::PendingSubscription => {
                     tracing::debug!("Account controller is {state}, waiting for the next state");
 
                     self.inner.changed().await.map_err(|_| {
