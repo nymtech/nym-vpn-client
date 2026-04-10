@@ -1050,7 +1050,7 @@ impl VpndClient {
 
         #[cfg(any(target_os = "macos", target_os = "linux"))]
         {
-            warn!("Split tunnel addition can only be enabled on Windows");
+            warn!("Split tunnel addition can only be used on Windows");
             Ok(())
         }
     }
@@ -1070,7 +1070,7 @@ impl VpndClient {
 
         #[cfg(any(target_os = "macos", target_os = "linux"))]
         {
-            warn!("Split tunnel removal can only be enabled on Windows");
+            warn!("Split tunnel removal can only be used on Windows");
             Ok(())
         }
     }
