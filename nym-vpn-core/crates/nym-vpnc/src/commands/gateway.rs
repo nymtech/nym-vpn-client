@@ -203,7 +203,7 @@ impl Args {
             .into_iter()
             .map(|gateway| GatewayModel::new(gateway, gw_type))
             .collect::<Vec<_>>();
-        let mut table = Table::new(models.into_iter());
+        let mut table = Table::new(models);
         self.table_style.apply_style(&mut table);
         println!("{table}");
 
@@ -228,7 +228,7 @@ impl Args {
             .into_iter()
             .map(|gateway| GatewayModel::new(gateway, gw_type))
             .collect::<Vec<_>>();
-        let mut table = Table::new(models.into_iter());
+        let mut table = Table::new(models);
         self.table_style.apply_style(&mut table);
         println!("{table}");
 
