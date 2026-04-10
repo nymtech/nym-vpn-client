@@ -8,4 +8,7 @@ mod linux;
 fn main() {
     #[cfg(target_os = "linux")]
     linux::main();
+
+    #[cfg(not(target_os = "linux"))]
+    println!("This program is only supposed to run on Linux.")
 }

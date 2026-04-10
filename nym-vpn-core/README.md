@@ -294,7 +294,7 @@ cargo build --target=x86_64-pc-windows-gnu -p nym-vpn-lib
   setting the `net.ipv4.conf.all.arp_ignore` kernel parameter to `2` on Linux when a tunnel
   is established.
   The kernel config parameter is set by default, because otherwise an attacker who can send ARP
-  requests to the device running Mullvad can figure out the in-tunnel IP.
+  requests to the device running Nym VPN can figure out the in-tunnel IP.
 
 - `NYM_DNS_MODULE` - Allows changing the method that will be used for DNS configuration.
   By default this is automatically detected, but you can set it to one of the options below to

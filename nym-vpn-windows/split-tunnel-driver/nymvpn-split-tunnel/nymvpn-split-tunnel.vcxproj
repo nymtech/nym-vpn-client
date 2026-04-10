@@ -99,6 +99,7 @@
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)' == ''">trace.h</WppScanConfigurationData>
       <WppKernelMode>true</WppKernelMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <Inf2CatAdditionalOptions>/uselocaltime %(Inf2CatAdditionalOptions)</Inf2CatAdditionalOptions>
     </ClCompile>
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
@@ -115,6 +116,7 @@
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)' == ''">trace.h</WppScanConfigurationData>
       <WppKernelMode>true</WppKernelMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <Inf2CatAdditionalOptions>/uselocaltime %(Inf2CatAdditionalOptions)</Inf2CatAdditionalOptions>
     </ClCompile>
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
@@ -131,6 +133,7 @@
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)' == ''">trace.h</WppScanConfigurationData>
       <WppKernelMode>true</WppKernelMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <Inf2CatAdditionalOptions>/uselocaltime %(Inf2CatAdditionalOptions)</Inf2CatAdditionalOptions>
     </ClCompile>
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
@@ -147,6 +150,7 @@
       <WppScanConfigurationData Condition="'%(ClCompile.ScanConfigurationData)' == ''">trace.h</WppScanConfigurationData>
       <WppKernelMode>true</WppKernelMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <Inf2CatAdditionalOptions>/uselocaltime %(Inf2CatAdditionalOptions)</Inf2CatAdditionalOptions>
     </ClCompile>
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>

@@ -1255,8 +1255,12 @@ pub async fn start_command_interface(
             let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx);
 
             let server = Server::builder().add_service(NymVpnServiceServer::new(command_interface));
+            // Linux needs to handle the shutdown internally first, as it spawns an authentication prompt that needs to
+            // be closed in case of shutdown, so the stream can't be shutdown by tonic before that happens...
             #[cfg(target_os = "linux")]
             let ret = server.serve_with_incoming(incoming).await;
+            // ... but non-Linux desktops do authentication by signature verification, which can be stopped at any moment,
+            // so we serve it by attaching the shutdown token to tonic directly
             #[cfg(not(target_os = "linux"))]
             let ret = server
                 .serve_with_incoming_shutdown(
