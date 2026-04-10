@@ -32,7 +32,7 @@ SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o Connect
 
 VM_IP=""
 
-REQUIRED_BINARIES=(nym-vpnc nym-vpnd test-manager test-runner)
+REQUIRED_BINARIES=(nym-vpnc nym-vpnd nym-socks5-proxy test-manager test-runner)
 
 
 function validate_env() {
@@ -113,7 +113,7 @@ function build_all_in_container() {
 
             # VPN client + daemon
             cd /build/nym-vpn-core
-            cargo build --release -p nym-vpnc -p nym-vpnd
+            cargo build --release -p nym-vpnc -p nym-socks5-proxy -p nym-vpnd
 
             # test-manager (runs on exoscale ubuntu host),
             # test-runner (runs inside debian guest VM)
@@ -122,6 +122,7 @@ function build_all_in_container() {
 
             # collect all binaries
             cp /cargo-target/release/nym-vpnc          /dist/
+            cp /cargo-target/release/nym-socks5-proxy /dist/
             cp /cargo-target/release/nym-vpnd          /dist/
             cp /cargo-target/release/test-manager       /dist/
             cp /cargo-target/release/test-runner        /dist/
