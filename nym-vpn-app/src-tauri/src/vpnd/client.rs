@@ -1030,6 +1030,7 @@ impl VpndClient {
         }
         #[cfg(any(target_os = "macos", target_os = "linux"))]
         {
+            warn!("Split tunnel enabling can only be enabled on Windows");
             Ok(())
         }
     }
@@ -1040,9 +1041,18 @@ impl VpndClient {
     pub async fn add_app_to_split_tunnel(&self, app: SplitApp) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.add_split_tunnel_app(app.into())
-            .or_else(async |e| self.handle_rpc_error("add_split_tunnel_app", e).await)
-            .await
+        #[cfg(target_os = "windows")]
+        {
+            vpnd.add_split_tunnel_app(app.into())
+                .or_else(async |e| self.handle_rpc_error("add_split_tunnel_app", e).await)
+                .await
+        }
+
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
+        {
+            warn!("Split tunnel addition can only be enabled on Windows");
+            Ok(())
+        }
     }
 
     /// Remove app from split tunneling
@@ -1051,9 +1061,18 @@ impl VpndClient {
     pub async fn remove_app_from_split_tunnel(&self, app: SplitApp) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.remove_split_tunnel_app(app.into())
-            .or_else(async |e| self.handle_rpc_error("remove_split_tunnel_app", e).await)
-            .await
+        #[cfg(target_os = "windows")]
+        {
+            vpnd.remove_split_tunnel_app(app.into())
+                .or_else(async |e| self.handle_rpc_error("remove_split_tunnel_app", e).await)
+                .await
+        }
+
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
+        {
+            warn!("Split tunnel removal can only be enabled on Windows");
+            Ok(())
+        }
     }
 
     #[instrument(skip_all)]
