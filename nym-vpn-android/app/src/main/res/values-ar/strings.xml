@@ -532,5 +532,4 @@
 	<string name="diagnostic_copied">نسخ إلى الحافظة</string>
 	<string name="diagnostic_error">فشلت التشخيص</string>
 	<!-- Developer screen -->
-	<string name="developer_lewes_title">تمكين بروتوكول Lewes</string>
 </resources>

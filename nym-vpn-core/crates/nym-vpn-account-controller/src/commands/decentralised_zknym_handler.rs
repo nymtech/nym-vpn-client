@@ -36,7 +36,10 @@ pub(crate) async fn handle_obtain_ticketbooks<C: ConnectivityMonitor>(
     // determine required deposits amount and funds and ensure we have enough
     // (plus a bit more for tx fees)
     let deposits_amount = amount * TICKET_TYPES.len() as u64;
-    let raw_deposit_cost = client.get_required_deposit_amount().await?;
+    let raw_deposit_cost = client
+        .get_reduced_deposit_amount(client.address().to_string())
+        .await?
+        .unwrap_or(client.get_default_deposit_amount().await?);
     let per_deposit_cost_amount = raw_deposit_cost.amount.u128() + DEPOSIT_TX_FEE_AMOUNT;
     let total_deposits_cost = Coin::new(
         per_deposit_cost_amount * deposits_amount as u128,

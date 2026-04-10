@@ -1176,6 +1176,53 @@ impl NymVpnService for CommandInterface {
         #[cfg(not(target_os = "macos"))]
         Err(tonic::Status::internal("Unsupported platform"))
     }
+
+    async fn add_split_tunnel_process(
+        &self,
+        _request: tonic::Request<i32>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "linux")]
+        {
+            let pid = _request.into_inner();
+            self.send_and_wait(VpnServiceCommand::AddSplitTunnelProcess, pid)
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn remove_split_tunnel_process(
+        &self,
+        _request: tonic::Request<i32>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "linux")]
+        {
+            let pid = _request.into_inner();
+            self.send_and_wait(VpnServiceCommand::RemoveSplitTunnelProcess, pid)
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn clear_split_tunnel_processes(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "linux")]
+        {
+            self.send_and_wait(VpnServiceCommand::ClearSplitTunnelProcesses, ())
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
 }
 
 pub async fn start_command_interface(

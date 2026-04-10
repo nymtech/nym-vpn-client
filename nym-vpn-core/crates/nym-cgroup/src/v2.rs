@@ -6,9 +6,8 @@ use anyhow::{Context as _, anyhow};
 use nix::{errno::Errno, libc::pid_t, unistd::Pid};
 use std::{
     env,
-    ffi::CStr,
     fs::{self, File},
-    io::{self, Read, Seek, Write},
+    io::{self, Read, Seek},
     os::unix::fs::MetadataExt,
     path::PathBuf,
 };
@@ -99,12 +98,10 @@ impl CGroup2 {
     /// Assign a process to this cgroup2.
     pub fn add_pid(&self, pid: Pid) -> Result<(), Error> {
         // Format the PID as a string
-        let mut pid_buf = [0u8; 16];
-        write!(&mut pid_buf[..], "{pid}").expect("buf is large enough");
-        let pid_str = CStr::from_bytes_until_nul(&pid_buf).expect("buf contains null");
+        let pid_bytes = pid.to_string().into_bytes();
 
         // Write PID to `cgroup.procs`.
-        nix::unistd::write(&self.procs, pid_str.to_bytes())
+        nix::unistd::write(&self.procs, &pid_bytes)
             .with_context(|| anyhow!("Failed to add process {pid} to cgroup2"))?;
 
         Ok(())

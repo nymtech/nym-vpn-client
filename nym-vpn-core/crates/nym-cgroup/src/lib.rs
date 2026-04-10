@@ -22,18 +22,6 @@ pub const DEFAULT_NET_CLS_DIR: &str = "/sys/fs/cgroup/net_cls";
 #[error("CGroup error")]
 pub struct Error(#[from] anyhow::Error);
 
-impl Error {
-    /// Returns true if syscall resulted into no process found error
-    pub fn is_no_process_err(&self) -> bool {
-        for cause in self.0.chain() {
-            if let Some(err) = cause.downcast_ref::<nix::Error>() {
-                return *err == nix::Error::ESRCH;
-            }
-        }
-        false
-    }
-}
-
 /// Find the path of the cgroup v1 net_cls controller mount if it exists.
 ///
 /// Returns an error if `/proc/mounts` does not exist.

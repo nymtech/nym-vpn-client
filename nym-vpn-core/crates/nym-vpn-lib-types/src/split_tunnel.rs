@@ -22,7 +22,7 @@ pub struct SplitTunnelExcludedProcess {
     /// Process ID
     pub pid: i32, // libc::pid_t
 
-    /// Path to executable
+    /// Path to executable (macOS only)
     pub exec_path: PathBuf,
 
     /// Executable responsible for launching binary at `exec_path` (macOS only)

@@ -542,5 +542,4 @@
 	<string name="diagnostic_copied">ক্লিপবোর্ডে কপি করা হয়েছে</string>
 	<string name="diagnostic_error">Diagnostics failed</string>
 	<!-- Developer screen -->
-	<string name="developer_lewes_title">Enable Lewes Protocol</string>
 </resources>

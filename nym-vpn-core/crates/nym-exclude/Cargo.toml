@@ -1,0 +1,22 @@
+[package]
+name = "nym-exclude"
+description = "Runs programs outside the Nym VPN tunnel on Linux"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = { workspace = true, features = ["process", "user"] }
+nym-cgroup = { workspace = true }
+thiserror = { workspace = true }
+
+[features]
+cgroup2 = []

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "configure" ] ; then
+    chmod u+s /usr/bin/nym-exclude
+fi
+
+#DEBHELPER#
+exit 0

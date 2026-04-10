@@ -7,10 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0]
+
+### Added
+- Add Lewes protocol toggle to SettingsScreen.kt (https://github.com/nymtech/nym-vpn-client/pull/5049)
+- Add fallback to TimberTree when Logcat not available (https://github.com/nymtech/nym-vpn-client/pull/5049)
+
 ### Changed
 - Clean up SettingsScreen.kt (https://github.com/nymtech/nym-vpn-client/pull/5028)
 - Clean up SupportScreen.kt (https://github.com/nymtech/nym-vpn-client/pull/5028)
 - Clean up HopScreen.kt (https://github.com/nymtech/nym-vpn-client/pull/5028)
+- Update date formatting for subscription (https://github.com/nymtech/nym-vpn-client/pull/5062)
+
+### Fixed
+- Fix wording for Lewes protocol toggle (https://github.com/nymtech/nym-vpn-client/pull/5062)
 
 ## [3.2.0] - 31.03.2026
 

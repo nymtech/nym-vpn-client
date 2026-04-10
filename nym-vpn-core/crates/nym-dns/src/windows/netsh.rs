@@ -181,7 +181,7 @@ async fn wait_for_child(subproc: &mut Child, timeout: Duration) -> io::Result<Op
 
 fn create_netsh_set_command(interface_index: u32, server: &IpAddr) -> String {
     // Set primary DNS server:
-    // netsh interface ipv4 set dnsservers name="Mullvad" source=static address=10.64.0.1
+    // netsh interface ipv4 set dnsservers name="NymVPN" source=static address=10.64.0.1
     // validate=no
 
     let interface_type = if server.is_ipv4() { "ipv4" } else { "ipv6" };
@@ -192,7 +192,7 @@ fn create_netsh_set_command(interface_index: u32, server: &IpAddr) -> String {
 
 fn create_netsh_add_command(interface_index: u32, server: &IpAddr) -> String {
     // Add DNS server:
-    // netsh interface ipv4 add dnsservers name="Mullvad" address=10.64.0.2 validate=no
+    // netsh interface ipv4 add dnsservers name="NymVPN" address=10.64.0.2 validate=no
 
     let interface_type = if server.is_ipv4() { "ipv4" } else { "ipv6" };
     format!(
@@ -202,7 +202,7 @@ fn create_netsh_add_command(interface_index: u32, server: &IpAddr) -> String {
 
 fn create_netsh_flush_command(interface_index: u32, ip_version: IpVersion) -> String {
     // Flush DNS settings:
-    // netsh interface ipv4 set dnsservers name="Mullvad" source=static address=none validate=no
+    // netsh interface ipv4 set dnsservers name="NymVPN" source=static address=none validate=no
 
     let interface_type = match ip_version {
         IpVersion::V4 => "ipv4",

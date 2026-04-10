@@ -1,9 +1,5 @@
 #!/bin/bash
 #
-# This custom code signing script is used to sign more than just the Tauri app (NymVPN.exe),
-# but when it is used to sign that, it will also sign the daemon and the split-tunnel driver
-# artifacts, ready for bundling.
-#
 # This assumes the cwd is src-tauri/.
 #
 
@@ -40,9 +36,10 @@ function sign {
 
 exe=$1
 
-# If we are signing the Tauri app, then also sign the daemon and split-tunnel driver.
+# If we are signing the Tauri app, then also sign the daemon.
 if [[ "$exe" == *NymVPN.exe ]]; then
-	for additonal in "nym-vpnd.exe" "nymvpn-split-tunnel.sys" "nymvpn-split-tunnel.cat"; do
+	# shellcheck disable=SC2043
+	for additonal in "nym-vpnd.exe"; do
 		sign "$additonal"
 	done
 fi

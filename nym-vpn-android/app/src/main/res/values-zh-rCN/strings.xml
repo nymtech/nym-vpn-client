@@ -530,5 +530,4 @@
 	<string name="diagnostic_copied">已复制到剪贴板</string>
 	<string name="diagnostic_error">诊断失败</string>
 	<!-- Developer screen -->
-	<string name="developer_lewes_title">启用 Lewes 协议</string>
 </resources>

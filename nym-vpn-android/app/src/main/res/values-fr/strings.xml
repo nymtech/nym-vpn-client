@@ -530,5 +530,4 @@
 	<string name="diagnostic_copied">Copié dans le presse-papiers</string>
 	<string name="diagnostic_error">Les diagnostics ont échoué</string>
 	<!-- Developer screen -->
-	<string name="developer_lewes_title">Activer le protocole Lewes</string>
 </resources>
