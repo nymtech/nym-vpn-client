@@ -215,11 +215,11 @@ pub enum VpnServiceCommand {
     IsSplitTunnelSupported(oneshot::Sender<bool>, ()),
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     SetEnableSplitTunnel(oneshot::Sender<()>, bool),
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     AddSplitTunnelApp(oneshot::Sender<()>, SplitApp),
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     RemoveSplitTunnelApp(oneshot::Sender<()>, SplitApp),
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     ClearSplitTunnelApps(oneshot::Sender<()>, ()),
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     GetSplitTunnelExcludedProcesses(oneshot::Sender<SplitTunnelExcludedProcessList>, ()),
@@ -359,6 +359,7 @@ pub struct NymVpnService {
     // Split-tunnel management handle
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     #[cfg_attr(windows, allow(unused))]
+    #[cfg_attr(target_os = "linux", allow(unused))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
 
     // Split-tunnel join handle
@@ -1160,17 +1161,17 @@ impl NymVpnService {
                 self.handle_set_enable_split_tunnel(enabled).await;
                 let _ = tx.send(());
             }
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::AddSplitTunnelApp(tx, app) => {
                 self.handle_add_split_tunnel_app(app).await;
                 let _ = tx.send(());
             }
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::RemoveSplitTunnelApp(tx, app) => {
                 self.handle_remove_split_tunnel_app(app).await;
                 let _ = tx.send(());
             }
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::ClearSplitTunnelApps(tx, ()) => {
                 self.handle_clear_split_tunnel_apps().await;
                 let _ = tx.send(());
@@ -2152,25 +2153,25 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn handle_add_split_tunnel_app(&mut self, app: SplitApp) {
         self.config_manager.add_split_tunnel_app(app).await;
         self.update_tunnel_settings_with_throttle();
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn handle_remove_split_tunnel_app(&mut self, app: SplitApp) {
         self.config_manager.remove_split_tunnel_app(app).await;
         self.update_tunnel_settings_with_throttle();
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn handle_clear_split_tunnel_apps(&mut self) {
         self.config_manager.clear_split_tunnel_apps().await;
         self.update_tunnel_settings_with_throttle();
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     async fn handle_get_split_tunnel_excluded_processes(
         &mut self,
     ) -> SplitTunnelExcludedProcessList {
