@@ -30,6 +30,12 @@ pub fn fronted_http_client_builder(
         .map_err(Box::new)
         .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
+    #[cfg(test)]
+    {
+        // Avoid issues with discovery tests in CI.
+        builder = builder.non_shared();
+    }
+
     if let Some(user_agent) = user_agent {
         builder = builder.with_user_agent(user_agent.clone());
     }
