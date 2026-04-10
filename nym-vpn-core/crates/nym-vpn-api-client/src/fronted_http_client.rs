@@ -28,8 +28,7 @@ pub fn fronted_http_client_builder(
 
     let mut builder = ClientBuilder::new_with_urls(urls)
         .map_err(Box::new)
-        .map_err(VpnApiClientError::CreateVpnApiClient)?
-        .non_shared(); // forces a dedicated reqwest::Client per instance
+        .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
     if let Some(user_agent) = user_agent {
         builder = builder.with_user_agent(user_agent.clone());
