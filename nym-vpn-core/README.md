@@ -272,14 +272,59 @@ Then
 cargo build --target=x86_64-pc-windows-gnu -p nym-vpn-lib
 ```
 
-## Local DNS resolver (macOS only)
+## Environment variables used by the service
 
-Local DNS resolver is used to workaround issues related to captive portal detection on macOS. It can be disabled by setting `NYM_DISABLE_LOCAL_DNS_RESOLVER=1`
+* `NYM_FIREWALL_DEBUG` - Helps debugging the firewall. Does different things depending on
+  platform:
+  * Linux: Set to `"1"` to add packet counters to all firewall rules.
+  * macOS: Makes rules log the packets they match to the `pflog0` interface.
+    * Set to `"all"` to add logging to all rules.
+    * Set to `"pass"` to add logging to rules allowing packets.
+    * Set to `"drop"` to add logging to rules blocking packets.
 
-## Offline monitoring
+* `NYM_FIREWALL_DONT_SET_SRC_VALID_MARK` - Set this variable to `1` to stop the daemon from
+    setting the `net.ipv4.conf.all.src_valid_mark` kernel parameter to `1` on Linux when a tunnel
+    is established.
+    The kernel config parameter is set by default, because otherwise strict reverse path filtering
+    may prevent relay traffic from reaching the daemon. If `rp_filter` is set to `1` on the interface
+    that will be receiving relay traffic, and `src_valid_mark` is not set to `1`, the daemon will
+    not be able to receive relay traffic.
 
-- Offline monitoring can be disabled by setting the environment variable `NYM_DISABLE_OFFLINE_MONITOR=0`. When set, the status is always online.
-- macOS: set `NYM_USE_PATH_MONITOR=1` to use Apple Network framework for offline monitoring.
+* `NYM_FIREWALL_DONT_SET_ARP_IGNORE` - Set this variable to `1` to stop the daemon from
+    setting the `net.ipv4.conf.all.arp_ignore` kernel parameter to `2` on Linux when a tunnel
+    is established.
+    The kernel config parameter is set by default, because otherwise an attacker who can send ARP
+    requests to the device running Nym VPN can figure out the in-tunnel IP.
+
+* `NYM_DNS_MODULE` - Allows changing the method that will be used for DNS configuration.
+  By default this is automatically detected, but you can set it to one of the options below to
+  choose a specific method.
+
+  * Linux
+    * `"static-file"`: change the `/etc/resolv.conf` file directly
+    * `"resolvconf"`: use the `resolvconf` program
+    * `"systemd"`: use systemd's `resolved` service through DBus
+    * `"network-manager"`: use `NetworkManager` service through DBus
+
+  * Windows
+    * `iphlpapi`: use the IP helper API
+    * `netsh`: use the `netsh` program
+    * `tcpip`: set TCP/IP parameters in the registry
+
+* `NYM_DISABLE_LOCAL_DNS_RESOLVER` - Set this variable to `1` to disable the local DNS resolver
+  (macOS only).
+
+* `NYM_DISABLE_OFFLINE_MONITOR` - Set to `1` to forces the daemon to always assume the host is online.
+
+* `NYM_USE_PATH_MONITOR` - Set to `1` to use Apple Network framework for offline monitoring. (macOS only)
+
+* `NYM_CGROUP2_FS` - On Linux, forces the daemon to look for the cgroup2 filesystem at the
+  specified path, instead of `/sys/fs/cgroup`. The cgroup2 used for split tunneling will be created
+  in this directory.
+
+* `NYM_NET_CLS_MOUNT_DIR` - On Linux, forces the daemon to mount the `net_cls` controller in the
+  specified directory if it isn't mounted already. This will only have an effect on older systems
+  where cgroup v1 is used for split tunneling.
 
 ## Firewall logging
 

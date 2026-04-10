@@ -4939,6 +4939,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-cgroup"
+version = "1.29.0-beta"
+dependencies = [
+ "anyhow",
+ "log",
+ "nix 0.31.2",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "nym-client-core"
 version = "1.20.4"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.7-tola#97068b2aace6626e3dff6864a26e7b1ff35f5725"
@@ -5414,6 +5424,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-exclude"
+version = "1.29.0-beta"
+dependencies = [
+ "nix 0.31.2",
+ "nym-cgroup",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "nym-exit-policy"
 version = "1.20.4"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.7-tola#97068b2aace6626e3dff6864a26e7b1ff35f5725"
@@ -5435,6 +5454,7 @@ dependencies = [
  "mnl",
  "nftnl",
  "nix 0.31.2",
+ "nym-cgroup",
  "nym-common 1.29.0-beta",
  "nym-dns",
  "nym-firewall-config",
@@ -6417,14 +6437,21 @@ name = "nym-split-tunnel"
 version = "1.29.0-beta"
 dependencies = [
  "bitflags 2.11.0",
+ "bytes",
  "either",
  "futures-util",
  "insta",
  "ipnetwork",
  "libc",
  "memoffset",
+ "mnl",
+ "netlink-sys",
+ "nftnl",
  "nix 0.31.2",
+ "nym-cgroup",
  "nym-common 1.29.0-beta",
+ "nym-dbus",
+ "nym-firewall",
  "nym-firewall-config",
  "nym-ifconfig",
  "nym-macos",
@@ -6433,7 +6460,9 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-windows",
  "pcap",
+ "pidfd-util",
  "pnet_packet 0.35.0",
+ "procfs",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
@@ -6768,6 +6797,7 @@ dependencies = [
  "nym-authenticator-client",
  "nym-bandwidth-controller",
  "nym-bin-common",
+ "nym-cgroup",
  "nym-client-core",
  "nym-common 1.29.0-beta",
  "nym-config",
@@ -7753,6 +7783,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pidfd-util"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a66784389d9c6308293bfe877356968afd267862473aae47a6ed3eedef95da6"
+dependencies = [
+ "async-io",
+ "libc",
+ "nix 0.31.2",
+]
+
+[[package]]
 name = "pin-project"
 version = "1.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8093,6 +8134,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "29492a7b48a00ab80202528e235d2f80a04ccff3747540b4ec6881f2f2bc42d1"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "procfs"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "25485360a54d6861439d60facef26de713b1e126bf015ec8f98239467a2b82f7"
+dependencies = [
+ "bitflags 2.11.0",
+ "procfs-core",
+ "rustix",
+]
+
+[[package]]
+name = "procfs-core"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e6401bf7b6af22f78b563665d15a22e9aef27775b79b149a66ca022468a4e405"
+dependencies = [
+ "bitflags 2.11.0",
+ "hex",
 ]
 
 [[package]]

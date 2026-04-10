@@ -4,9 +4,11 @@ members = [
     "crates/nym-apple-network",
     "crates/nym-common",
     "crates/nym-connection-monitor",
+    "crates/nym-cgroup",
     "crates/nym-dbus",
     "crates/nym-diagnostic",
     "crates/nym-dns",
+    "crates/nym-exclude",
     "crates/nym-firewall",
     "crates/nym-firewall-config",
     "crates/nym-gateway-directory",
@@ -42,9 +44,10 @@ members = [
 
 default-members = [
     "crates/nym-diagnostic",
+    "crates/nym-exclude",
+    "crates/nym-setup",
     "crates/nym-vpnc",
     "crates/nym-vpnd",
-    "crates/nym-setup",
     "crates/uniffi-bindgen",
 ]
 
@@ -138,11 +141,13 @@ once_cell = "1.21"
 opentelemetry = "0.31.0"
 opentelemetry_sdk = "0.31.0"
 pfctl = "0.7.0"
+pidfd-util = "0.1.0"
 pnet_packet = "0.35.0"
 pbkdf2 = "0.12.2"
 pcap = "2.4.0"
 plist = "1.8.0"
 proc-macro2 = "1.0"
+procfs = { version = "0.18", default-features = false }
 prost = "0.14.3"
 prost-types = "0.14.3"
 pretty_assertions = "1.4.1"
@@ -162,6 +167,7 @@ regex = "1"
 resolv-conf = "0.7"
 rs-release = "0.1.11"
 rtnetlink = "0.20"
+netlink-sys = "0.8.8"
 rustls = { version = "0.23.36", default-features = false }
 rustls-pemfile = "2.1.3"
 semver = "1.0"
@@ -232,6 +238,7 @@ zbus_polkit = "5.0.0"
 zeroize = "1.8.2"
 
 nym-apple-network = { path = "crates/nym-apple-network" }
+nym-cgroup = { path = "crates/nym-cgroup" }
 nym-common = { path = "crates/nym-common" }
 nym-connection-monitor = { path = "crates/nym-connection-monitor" }
 nym-diagnostic = { path = "crates/nym-diagnostic" }

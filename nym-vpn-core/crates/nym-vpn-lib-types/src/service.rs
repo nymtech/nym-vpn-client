@@ -1,7 +1,6 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
 use std::{collections::HashSet, path::PathBuf};
 use std::{fmt, net::IpAddr, ops::RangeInclusive};
 
@@ -419,10 +418,7 @@ impl SplitApp {
     pub fn new(path: String) -> Self {
         Self { path }
     }
-}
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-impl SplitApp {
     pub fn path_buf(&self) -> PathBuf {
         PathBuf::from(&self.path)
     }
@@ -475,7 +471,6 @@ impl SplitTunnelSettings {
 
     /// Returns effective list of application paths participating in split tunneling when split tunneling is enabled.
     /// Otherwise, returns an empty set.
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub fn effective_app_paths(&self) -> HashSet<PathBuf> {
         HashSet::from_iter(self.effective_apps().iter().map(|v| v.path_buf()))
     }

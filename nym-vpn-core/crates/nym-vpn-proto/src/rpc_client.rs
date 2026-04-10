@@ -9,7 +9,7 @@ use tower::service_fn;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AutologinResponse,
@@ -844,6 +844,15 @@ impl RpcClient {
         RegistrationReport::try_from(response).map_err(Error::InvalidResponse)
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    pub async fn is_split_tunnel_supported(&mut self) -> Result<bool> {
+        self.0
+            .is_split_tunnel_supported(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub async fn set_enable_split_tunnel(&mut self, enable: bool) -> Result<()> {
         self.0
@@ -880,7 +889,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     pub async fn get_split_tunnel_excluded_processes(
         &mut self,
     ) -> Result<SplitTunnelExcludedProcessList> {
@@ -888,6 +897,33 @@ impl RpcClient {
             .get_split_tunnel_excluded_processes(())
             .await
             .map(|v| SplitTunnelExcludedProcessList::from(v.into_inner()))
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "linux")]
+    pub async fn add_split_tunnel_process(&mut self, pid: i32) -> Result<()> {
+        self.0
+            .add_split_tunnel_process(pid)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "linux")]
+    pub async fn remove_split_tunnel_process(&mut self, pid: i32) -> Result<()> {
+        self.0
+            .remove_split_tunnel_process(pid)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    #[cfg(target_os = "linux")]
+    pub async fn clear_split_tunnel_processes(&mut self) -> Result<()> {
+        self.0
+            .clear_split_tunnel_processes(())
+            .await
+            .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 

@@ -177,7 +177,7 @@ impl SplitTunnelHandle {
 
 impl SplitTunnel {
     /// Initialize split tunneling
-    pub fn spawn<F>(
+    pub async fn spawn<F>(
         route_manager: RouteManagerHandle,
         shutdown_token: CancellationToken,
         error_handler: F,

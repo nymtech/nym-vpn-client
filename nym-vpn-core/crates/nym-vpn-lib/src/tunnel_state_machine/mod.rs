@@ -110,6 +110,10 @@ pub struct TunnelConstants {
     #[cfg(target_os = "linux")]
     /// Firewall mark used for bypassing the tunnel
     pub fwmark: u32,
+
+    /// Tunnel specific routing table, traffic not marked will be routed via this routing table.
+    #[cfg(target_os = "linux")]
+    pub table_id: u32,
 }
 
 impl Default for TunnelConstants {
@@ -122,6 +126,8 @@ impl Default for TunnelConstants {
             ),
             #[cfg(target_os = "linux")]
             fwmark: crate::TUNNEL_FWMARK,
+            #[cfg(target_os = "linux")]
+            table_id: crate::TUNNEL_TABLE_ID,
         }
     }
 }
@@ -599,7 +605,7 @@ pub struct SharedState {
     filtering_resolver: resolver::ResolverHandle,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker: adblocker::AdBlockerTaskHandle,
-    #[cfg(any(windows, target_os = "macos"))]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
@@ -684,7 +690,7 @@ impl SharedState {
             Ok(had_interface != has_interface)
         }
 
-        #[cfg(target_os = "windows")]
+        #[cfg(any(target_os = "linux", target_os = "windows"))]
         {
             Ok(false)
         }
@@ -729,6 +735,17 @@ impl SharedState {
     }
 }
 
+#[cfg(target_os = "linux")]
+pub struct LinuxSplitTunnelConfiguration {
+    /// The cgroup2 used for split tunneling.
+    /// Traffic from processes in this cgroup2 should be allowed outside the tunnel.
+    pub excluded_cgroup2: Option<nym_cgroup::v2::CGroup2>,
+
+    /// The net_cls id of the v1 cgroup used for split tunneling.
+    /// This is used as a fallback to [`Self::excluded_cgroup2`] since old kernels don't support cgroups v2.
+    pub net_cls: Option<u32>,
+}
+
 #[derive(Debug, Clone)]
 pub struct NymConfig {
     pub config_path: Option<PathBuf>,
@@ -770,7 +787,9 @@ impl TunnelStateMachine {
         connectivity_handle: ConnectivityHandle,
         discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
         wg_keys_db: WireguardKeysDb,
-        #[cfg(any(windows, target_os = "macos"))] split_tunnel: nym_split_tunnel::SplitTunnelHandle,
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        split_tunnel: nym_split_tunnel::SplitTunnelHandle,
+        #[cfg(target_os = "linux")] split_tunnel_config: LinuxSplitTunnelConfiguration,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -827,6 +846,12 @@ impl TunnelStateMachine {
             initial_state: InitialFirewallState::None,
             #[cfg(target_os = "linux")]
             fwmark: tunnel_constants.fwmark,
+            #[cfg(target_os = "linux")]
+            table_id: tunnel_constants.table_id,
+            #[cfg(target_os = "linux")]
+            excluded_cgroup2: split_tunnel_config.excluded_cgroup2,
+            #[cfg(target_os = "linux")]
+            net_cls: split_tunnel_config.net_cls,
         })
         .map_err(Error::CreateFirewall)?;
 
