@@ -1,7 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashSet, fmt, net::IpAddr, ops::RangeInclusive, path::PathBuf};
+use std::{collections::HashSet, path::PathBuf};
+use std::{fmt, net::IpAddr, ops::RangeInclusive};
 
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
