@@ -1,0 +1,36 @@
+[package]
+name = "nym-socks5-proxy"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "SOCKS5 proxy subprocess managed by the nym-vpnd daemon"
+
+[lints]
+workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-compression = { workspace = true, features = ["tokio", "gzip"] }
+fast-socks5.workspace = true
+ipnet.workspace = true
+nym-socks5-proxy-ipc.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, features = [
+    "rt-multi-thread",
+    "io-std",
+    "io-util",
+    "macros",
+    "net",
+    "sync",
+    "signal",
+] }
+tokio-util = { workspace = true, features = ["codec"] }
+tracing.workspace = true
+tracing-appender.workspace = true
+tracing-subscriber = { workspace = true, features = ["env-filter", "ansi"] }

@@ -65,6 +65,7 @@ nym-offline-monitor.workspace = true
 nym-registration-client.workspace = true
 nym-registration-common.workspace = true
 nym-split-tunnel.workspace = true
+nym-socks5-proxy-ipc.workspace = true
 nym-statistics.workspace = true
 nym-statistics-api-client.workspace = true
 nym-vpn-api-client.workspace = true
