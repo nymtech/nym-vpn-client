@@ -20,6 +20,8 @@ members = [
     "crates/nym-routing",
     "crates/nym-setup",
     "crates/nym-split-tunnel",
+    "crates/nym-socks5-proxy",
+    "crates/nym-socks5-proxy-ipc",
     "crates/nym-statistics",
     "crates/nym-statistics-api-client",
     "crates/nym-vpn-account-controller",
@@ -104,6 +106,7 @@ env_logger = "0.11.10"
 endpoint-sec = "0.5.1"
 eventlog = "0.4.0"
 eyre = "0.6.12"
+fast-socks5 = "1.0.0"
 futures = "0.3.32"
 futures-util = "0.3"
 glob = "0.3"
@@ -248,6 +251,7 @@ nym-gateway-directory = { path = "crates/nym-gateway-directory" }
 nym-ipc = { path = "crates/nym-ipc" }
 nym-ifconfig = { path = "crates/nym-ifconfig" }
 nym-split-tunnel = { path = "crates/nym-split-tunnel" }
+nym-socks5-proxy-ipc = { path = "crates/nym-socks5-proxy-ipc" }
 nym-macos = { path = "crates/nym-macos" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
