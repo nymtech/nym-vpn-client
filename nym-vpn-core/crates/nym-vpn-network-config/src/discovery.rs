@@ -180,9 +180,6 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
 mod tests {
     use std::collections::HashMap;
 
-    // These tests need to run serially in order to avoid issues with the hyper crate.
-    use serial_test::serial;
-
     use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
     use super::*;
@@ -197,26 +194,22 @@ mod tests {
     };
 
     #[tokio::test]
-    #[serial]
     async fn test_mainnet_discovery_same_as_fetched() {
         test_discovery_equality(Discovery::default_mainnet()).await;
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_sandbox_discovery_same_as_fetched() {
         test_discovery_equality(Discovery::default_sandbox()).await;
     }
 
     #[tokio::test]
-    #[serial]
     async fn test_canary_discovery_same_as_fetched() {
         test_discovery_equality(Discovery::default_canary()).await;
     }
 
     // todo: remove ignore once evil discovery is back online
     #[tokio::test]
-    #[serial]
     #[ignore]
     async fn test_evil_discovery_same_as_fetched() {
         test_discovery_equality(Discovery::default_evil()).await;

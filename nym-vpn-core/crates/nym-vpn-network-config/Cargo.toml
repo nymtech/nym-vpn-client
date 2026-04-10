@@ -33,6 +33,3 @@ url = { workspace = true, features = ["serde"] }
 
 [build-dependencies]
 serde_json.workspace = true
-
-[dev-dependencies]
-serial_test.workspace = true
