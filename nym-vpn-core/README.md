@@ -20,51 +20,51 @@ After installing Rust, install the following Rust targets and dependencies to en
 
 1. Either install [Xcode](https://xcodereleases.com/) or Xcode Command Line tools via:
 
-   ```sh
-   xcode-select --install
-   ```
+    ```sh
+    xcode-select --install
+    ```
 
-   Verify installation with:
+    Verify installation with:
 
-   ```sh
-   xcode-select -p
-   # /Library/Developer/CommandLineTools
-   ```
+    ```sh
+    xcode-select -p
+    # /Library/Developer/CommandLineTools
+    ```
 
 2. Install `cargo-swift` compatible with uniffi 0.31:
 
-   ```sh
-   cargo install cargo-swift@0.11.0
-   ```
+    ```sh
+    cargo install cargo-swift@0.11.0
+    ```
 
 3. Install iOS targets:
 
-   ```sh
-   rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
-   ```
+    ```sh
+    rustup target add aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-ios
+    ```
 
 #### Android development
 
 1. Install Android Studio either from official site or using [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/)
 2. Install `cargo-ndk`:
 
-   ```sh
-   cargo install cargo-ndk
-   ```
+    ```sh
+    cargo install cargo-ndk
+    ```
 
 3. Install Rust targets for Android
 
-   ```sh
-   rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
-   ```
+    ```sh
+    rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+    ```
 
 ### Linux
 
 1. Install system dependencies:
 
-   ```sh
-   sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev
-   ```
+    ```sh
+    sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev
+    ```
 
 2. Install the latest protobuf-compiler from https://github.com/protocolbuffers/protobuf/releases
 3. Install Go from https://go.dev/dl/
@@ -73,86 +73,86 @@ After installing Rust, install the following Rust targets and dependencies to en
 
 1. Install Protobuf
 
-   ```sh
-   brew install protobuf
-   ```
+    ```sh
+    brew install protobuf
+    ```
 
 2. Install Golang
 
-   ```sh
-   brew install go
-   ```
+    ```sh
+    brew install go
+    ```
 
 ### Windows
 
 1. Install Visual Studio 2022 Community
 
-   When you install Visual Studio 2022, select the Desktop development with C++ workload, then under Individual Components add:
-   - MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools
-   - MSVC v143 - VS 2022 C++ ARM64/ARM64EC Spectre-mitigated libs (Latest)
-   - MSVC v143 - VS 2022 C++ x64/x86 Spectre-mitigated libs (Latest)
-   - C++ ATL for latest v143 build tools with Spectre Mitigations (ARM64/ARM64EC)
-   - C++ ATL for latest v143 build tools with Spectre Mitigations (x86 & x64)
-   - C++ MFC for latest v143 build tools with Spectre Mitigations (ARM64/ARM64EC)
-   - C++ MFC for latest v143 build tools with Spectre Mitigations (x86 & x64)
-   - C++ Clang tools for Windows
-   - Windows Driver Kit
+    When you install Visual Studio 2022, select the Desktop development with C++ workload, then under Individual Components add:
+    - MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools
+    - MSVC v143 - VS 2022 C++ ARM64/ARM64EC Spectre-mitigated libs (Latest)
+    - MSVC v143 - VS 2022 C++ x64/x86 Spectre-mitigated libs (Latest)
+    - C++ ATL for latest v143 build tools with Spectre Mitigations (ARM64/ARM64EC)
+    - C++ ATL for latest v143 build tools with Spectre Mitigations (x86 & x64)
+    - C++ MFC for latest v143 build tools with Spectre Mitigations (ARM64/ARM64EC)
+    - C++ MFC for latest v143 build tools with Spectre Mitigations (x86 & x64)
+    - C++ Clang tools for Windows
+    - Windows Driver Kit
 
 2. Install the WDK
 
-   Note, despite the Windows Driver Kit being installed as part of Visual Studio, above, it misses a vital directory if it's not also installed using this command:
+    Note, despite the Windows Driver Kit being installed as part of Visual Studio, above, it misses a vital directory if it's not also installed using this command:
 
-   ```
-   winget install --id Microsoft.WindowsWDK.10.0.26100
-   ```
+    ```
+    winget install --id Microsoft.WindowsWDK.10.0.26100
+    ```
 
 3. Install GNU make:
 
-   ```
-   winget install -e --id=GnuWin32.Make
-   ```
+    ```
+    winget install -e --id=GnuWin32.Make
+    ```
 
 4. Install the Protocol Buffers compiler (**protoc**)
-   - Download `protoc-<version>-win64.zip`
-   - Unzip to `C:\Program Files\protoc`.
-   - Add to environment:
+    - Download `protoc-<version>-win64.zip`
+    - Unzip to `C:\Program Files\protoc`.
+    - Add to environment:
 
-     ```bat
-     setx PROTOC "C:\Program Files\protoc\bin\protoc.exe" /M
-     setx PATH "%PATH%;C:\Program Files\protoc\bin" /M
-     ```
+        ```bat
+        setx PROTOC "C:\Program Files\protoc\bin\protoc.exe" /M
+        setx PATH "%PATH%;C:\Program Files\protoc\bin" /M
+        ```
 
-   - Verify that `protoc` is available in the path:
+    - Verify that `protoc` is available in the path:
 
-     ```cmd
-     protoc --version
-     ```
+        ```cmd
+        protoc --version
+        ```
 
 5. Install Libclang for x86 or x64 via winget:
 
-   ```
-   winget install -e --id=LLVM.LLVM
-   ```
+    ```
+    winget install -e --id=LLVM.LLVM
+    ```
 
-   If you are on ARM64, head to https://github.com/llvm/llvm-project/releases and download the latest release with "woa64" suffix.
+    If you are on ARM64, head to https://github.com/llvm/llvm-project/releases and download the latest release with "woa64" suffix.
 
-   Update your environment with `LIBCLANG_PATH` set to `C:\Program Files\LLVM\bin`.
+    Update your environment with `LIBCLANG_PATH` set to `C:\Program Files\LLVM\bin`.
 
 6. Install msys2 and mingw packages
-   - Download [msys2](https://www.msys2.org/#installation) and install it in the default location that it offers during installation (i.e: `C:\msys64`).
-   - Type in msys2 in the taskbar search then open "msys2 mingw64" if you run x64 Windows or "msys2 clangarm64" if you run arm64 Windows.
-   - In the appeared msys2 console, type in the following commands to update installed components and install clang for x64 and arm64:
-     ```sh
-     pacman -Suy
-     pacman -S --needed mingw-w64-x86_64-binutils mingw-w64-x86_64-gcc
-     pacman -S mingw-w64-x86_64-clang
-     pacman -S mingw-w64-clang-aarch64-clang
-     ```
+    - Download [msys2](https://www.msys2.org/#installation) and install it in the default location that it offers during installation (i.e: `C:\msys64`).
+    - Type in msys2 in the taskbar search then open "msys2 mingw64" if you run x64 Windows or "msys2 clangarm64" if you run arm64 Windows.
+    - In the appeared msys2 console, type in the following commands to update installed components and install clang for x64 and arm64:
+        ```sh
+        pacman -Suy
+        pacman -S --needed mingw-w64-x86_64-binutils mingw-w64-x86_64-gcc
+        pacman -S mingw-w64-x86_64-clang
+        pacman -S mingw-w64-clang-aarch64-clang
+        ```
 7. Install `cargo-get`:
 
-   ```sh
-   cargo install cargo-get
-   ```
+    ```sh
+    cargo install cargo-get
+    ```
 
 ## Code formatting
 
@@ -274,54 +274,55 @@ cargo build --target=x86_64-pc-windows-gnu -p nym-vpn-lib
 
 ## Environment variables used by the service
 
-- `NYM_FIREWALL_DEBUG` - Helps debugging the firewall. Does different things depending on
+* `NYM_FIREWALL_DEBUG` - Helps debugging the firewall. Does different things depending on
   platform:
-  - Linux: Set to `"1"` to add packet counters to all firewall rules.
-  - macOS: Makes rules log the packets they match to the `pflog0` interface.
-    - Set to `"all"` to add logging to all rules.
-    - Set to `"pass"` to add logging to rules allowing packets.
-    - Set to `"drop"` to add logging to rules blocking packets.
+  * Linux: Set to `"1"` to add packet counters to all firewall rules.
+  * macOS: Makes rules log the packets they match to the `pflog0` interface.
+    * Set to `"all"` to add logging to all rules.
+    * Set to `"pass"` to add logging to rules allowing packets.
+    * Set to `"drop"` to add logging to rules blocking packets.
 
-- `NYM_FIREWALL_DONT_SET_SRC_VALID_MARK` - Set this variable to `1` to stop the daemon from
-  setting the `net.ipv4.conf.all.src_valid_mark` kernel parameter to `1` on Linux when a tunnel
-  is established.
-  The kernel config parameter is set by default, because otherwise strict reverse path filtering
-  may prevent relay traffic from reaching the daemon. If `rp_filter` is set to `1` on the interface
-  that will be receiving relay traffic, and `src_valid_mark` is not set to `1`, the daemon will
-  not be able to receive relay traffic.
+* `NYM_FIREWALL_DONT_SET_SRC_VALID_MARK` - Set this variable to `1` to stop the daemon from
+    setting the `net.ipv4.conf.all.src_valid_mark` kernel parameter to `1` on Linux when a tunnel
+    is established.
+    The kernel config parameter is set by default, because otherwise strict reverse path filtering
+    may prevent relay traffic from reaching the daemon. If `rp_filter` is set to `1` on the interface
+    that will be receiving relay traffic, and `src_valid_mark` is not set to `1`, the daemon will
+    not be able to receive relay traffic.
 
-- `NYM_FIREWALL_DONT_SET_ARP_IGNORE` - Set this variable to `1` to stop the daemon from
-  setting the `net.ipv4.conf.all.arp_ignore` kernel parameter to `2` on Linux when a tunnel
-  is established.
-  The kernel config parameter is set by default, because otherwise an attacker who can send ARP
-  requests to the device running Nym VPN can figure out the in-tunnel IP.
+* `NYM_FIREWALL_DONT_SET_ARP_IGNORE` - Set this variable to `1` to stop the daemon from
+    setting the `net.ipv4.conf.all.arp_ignore` kernel parameter to `2` on Linux when a tunnel
+    is established.
+    The kernel config parameter is set by default, because otherwise an attacker who can send ARP
+    requests to the device running Nym VPN can figure out the in-tunnel IP.
 
-- `NYM_DNS_MODULE` - Allows changing the method that will be used for DNS configuration.
+* `NYM_DNS_MODULE` - Allows changing the method that will be used for DNS configuration.
   By default this is automatically detected, but you can set it to one of the options below to
   choose a specific method.
-  - Linux
-    - `"static-file"`: change the `/etc/resolv.conf` file directly
-    - `"resolvconf"`: use the `resolvconf` program
-    - `"systemd"`: use systemd's `resolved` service through DBus
-    - `"network-manager"`: use `NetworkManager` service through DBus
 
-  - Windows
-    - `iphlpapi`: use the IP helper API
-    - `netsh`: use the `netsh` program
-    - `tcpip`: set TCP/IP parameters in the registry
+  * Linux
+    * `"static-file"`: change the `/etc/resolv.conf` file directly
+    * `"resolvconf"`: use the `resolvconf` program
+    * `"systemd"`: use systemd's `resolved` service through DBus
+    * `"network-manager"`: use `NetworkManager` service through DBus
 
-- `NYM_DISABLE_LOCAL_DNS_RESOLVER` - Set this variable to `1` to disable the local DNS resolver
+  * Windows
+    * `iphlpapi`: use the IP helper API
+    * `netsh`: use the `netsh` program
+    * `tcpip`: set TCP/IP parameters in the registry
+
+* `NYM_DISABLE_LOCAL_DNS_RESOLVER` - Set this variable to `1` to disable the local DNS resolver
   (macOS only).
 
-- `NYM_DISABLE_OFFLINE_MONITOR` - Set to `1` to forces the daemon to always assume the host is online.
+* `NYM_DISABLE_OFFLINE_MONITOR` - Set to `1` to forces the daemon to always assume the host is online.
 
-- `NYM_USE_PATH_MONITOR` - Set to `1` to use Apple Network framework for offline monitoring. (macOS only)
+* `NYM_USE_PATH_MONITOR` - Set to `1` to use Apple Network framework for offline monitoring. (macOS only)
 
-- `NYM_CGROUP2_FS` - On Linux, forces the daemon to look for the cgroup2 filesystem at the
+* `NYM_CGROUP2_FS` - On Linux, forces the daemon to look for the cgroup2 filesystem at the
   specified path, instead of `/sys/fs/cgroup`. The cgroup2 used for split tunneling will be created
   in this directory.
 
-- `NYM_NET_CLS_MOUNT_DIR` - On Linux, forces the daemon to mount the `net_cls` controller in the
+* `NYM_NET_CLS_MOUNT_DIR` - On Linux, forces the daemon to mount the `net_cls` controller in the
   specified directory if it isn't mounted already. This will only have an effect on older systems
   where cgroup v1 is used for split tunneling.
 

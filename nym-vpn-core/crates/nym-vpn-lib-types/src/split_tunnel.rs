@@ -28,9 +28,6 @@ pub struct SplitTunnelExcludedProcess {
     /// Executable responsible for launching binary at `exec_path` (macOS only)
     /// Typically this value is equivalent to `exec_path`. In case of XPC process this points at the actual process controlling it.
     pub responsible_exec_path: PathBuf,
-
-    /// Parent executables that led to launch of binary at `exec_path` (Linux only)
-    pub ancestor_exec_paths: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone, Default)]

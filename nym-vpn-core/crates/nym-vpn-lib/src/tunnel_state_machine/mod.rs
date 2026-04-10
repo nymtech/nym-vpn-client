@@ -656,7 +656,7 @@ impl SharedState {
     /// Set which applications matching the given paths should be excluded from the tunnel
     ///
     /// Return whether a split tunnel interface was added or removed
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub async fn set_exclude_paths(
         &mut self,
         paths: HashSet<PathBuf>,
@@ -855,7 +855,7 @@ impl TunnelStateMachine {
         })
         .map_err(Error::CreateFirewall)?;
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
         if let Err(err) = split_tunnel
             .set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths())
             .await
@@ -878,7 +878,7 @@ impl TunnelStateMachine {
             filtering_resolver,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             adblocker,
-            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "macos", target_os = "windows"))]
             split_tunnel,
             nym_config,
             tunnel_settings,

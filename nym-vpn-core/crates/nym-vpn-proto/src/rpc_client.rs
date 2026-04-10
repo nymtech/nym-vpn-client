@@ -7,7 +7,7 @@ use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
@@ -862,7 +862,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub async fn add_split_tunnel_app(&mut self, app: SplitApp) -> Result<()> {
         self.0
             .add_split_tunnel_app(proto::SplitApp::from(app))
@@ -871,7 +871,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub async fn remove_split_tunnel_app(&mut self, app: SplitApp) -> Result<()> {
         self.0
             .remove_split_tunnel_app(proto::SplitApp::from(app))
@@ -880,7 +880,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub async fn clear_split_tunnel_apps(&mut self) -> Result<()> {
         self.0
             .clear_split_tunnel_apps(())

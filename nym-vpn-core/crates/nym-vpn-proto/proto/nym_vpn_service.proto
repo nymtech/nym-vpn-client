@@ -1031,7 +1031,6 @@ message SplitTunnelExcludedProcess {
   int32 pid = 1;
   string exec_path = 2;
   string responsible_exec_path = 3;
-  repeated string ancestor_exec_paths = 4;
 }
 
 message SplitTunnelExcludedProcessList {
