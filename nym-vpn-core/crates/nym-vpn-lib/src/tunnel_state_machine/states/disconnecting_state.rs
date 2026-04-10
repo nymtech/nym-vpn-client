@@ -1,9 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use std::collections::HashSet;
-
 use futures::future::{BoxFuture, Fuse, FusedFuture, FutureExt};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -114,13 +111,29 @@ impl TunnelStateHandler for DisconnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        #[cfg(any(target_os = "macos", target_os = "windows"))]
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
-                            if shared_state.tunnel_settings.diff(&tunnel_settings).is_some_and(|diff| diff.split_tunnel_changed()) {
-                                let _ = shared_state.set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await;
+                            let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                                return NextTunnelState::SameState(self);
+                            };
+
+                            shared_state.tunnel_settings = tunnel_settings;
+
+                            #[cfg(any(target_os = "macos", target_os = "windows"))]
+                            if diff.split_tunnel_changed() || diff.socks5_proxy_enabled_changed() {
+                                let _ = shared_state.set_split_tunnel_exclude_paths().await;
+                            }
+
+                            if diff.socks5_proxy_enabled_changed() {
+                                shared_state.start_or_stop_socks5_proxy().await;
                             }
                         }
-                        shared_state.tunnel_settings = tunnel_settings;
+
+                        #[cfg(any(target_os = "android", target_os = "ios"))]
+                        {
+                            shared_state.tunnel_settings = tunnel_settings;
+                        }
+
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::Block(reason) => {

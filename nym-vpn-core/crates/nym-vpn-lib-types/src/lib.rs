@@ -95,8 +95,8 @@ pub use rpc_requests::{
 };
 pub use service::{
     BackgroundCoverTrafficRate, ContinuousTrafficSendingRate, MixingDelay, MixnetTrafficConfig,
-    MixnetTrafficConfigValidationError, MixnetTrafficDefaults, SplitApp, SplitTunnelSettings,
-    TargetState, VpnServiceConfig, VpnServiceInfo,
+    MixnetTrafficConfigValidationError, MixnetTrafficDefaults, Socks5ProxySettings, SplitApp,
+    SplitTunnelSettings, TargetState, VpnServiceConfig, VpnServiceInfo,
 };
 pub use socks5::{EnableSocks5Request, HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 pub use split_tunnel::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};
