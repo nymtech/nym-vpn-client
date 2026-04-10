@@ -1019,12 +1019,19 @@ impl VpndClient {
     pub async fn enable_split_tunnel(&self, _enabled: bool) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd.set_enable_split_tunnel(_enabled)
-            .or_else(async |e| {
-                info!(error = %e, "vpnd.enable_split_tunnel() RPC failed");
-                self.handle_rpc_error("enable_split_tunnel", e).await
-            })
-            .await
+        #[cfg(target_os = "windows")]
+        {
+            vpnd.set_enable_split_tunnel(_enabled)
+                .or_else(async |e| {
+                    info!(error = %e, "vpnd.enable_split_tunnel() RPC failed");
+                    self.handle_rpc_error("enable_split_tunnel", e).await
+                })
+                .await
+        }
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
+        {
+            Ok(())
+        }
     }
 
     /// Add app to split tunneling

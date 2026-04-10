@@ -134,6 +134,7 @@ async fn main() -> Result<()> {
     info!("app version: {}", pkg_info.version);
     info!("Starting tauri app");
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_autostart::init(

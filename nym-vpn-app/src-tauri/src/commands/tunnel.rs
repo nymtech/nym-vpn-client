@@ -2,6 +2,7 @@ use crate::commands::gateway::Hop;
 use crate::{
     error::{BackendError, ErrorKey},
     events::AppHandleEventEmitter,
+    fs::app_discovery::{App, get_installed_apps},
     state::{SharedAppState, app::VpnMode},
     vpnd::{
         client::{Node, VpndClient, VpndError},
@@ -241,8 +242,6 @@ pub async fn set_enable_split_tunnel(
     vpnd.enable_split_tunnel(enabled).await?;
     Ok(())
 }
-
-use crate::fs::app_discovery::{App, get_installed_apps};
 
 #[instrument(skip_all)]
 #[tauri::command]
