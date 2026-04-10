@@ -138,6 +138,12 @@ fn blocking_ssh(
     ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
         .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
 
+    // Transfer nym-socks5-proxy
+    let source = local_runner_dir.join("nym-socks5-proxy");
+    log::debug!("Source: {}", source.display());
+    ssh_send_file_with_opts(&session, &source, temp_dir, FileOpts { executable: true })
+        .with_context(|| format!("Failed to send '{source:?}' to remote"))?;
+
     // Transfer nym-vpnc (for troubleshooting purposes, not used by tests)
     let source = local_runner_dir.join("nym-vpnc");
     log::debug!("Source: {}", source.display());

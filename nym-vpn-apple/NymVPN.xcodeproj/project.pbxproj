@@ -10,6 +10,7 @@
 		582C5F8E2C7654A800B678AE /* ConfigurationManager in Frameworks */ = {isa = PBXBuildFile; productRef = 582C5F8D2C7654A800B678AE /* ConfigurationManager */; };
 		5879C2062C80A37200BAB142 /* TunnelSettingsConversions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */; };
 		58C957422F8E505C00FD0C81 /* NymVPND.app in CopyFiles */ = {isa = PBXBuildFile; fileRef = 58C9571F2F8E3F0C00FD0C81 /* NymVPND.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		58E98AED2F92534300A120DF /* nym-socks5-proxy in Copy Files */ = {isa = PBXBuildFile; fileRef = 58E98AEB2F92533600A120DF /* nym-socks5-proxy */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		58FF8CE32F8EADEA0037AC51 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 58FF8CDE2F8EADEA0037AC51 /* Assets.xcassets */; };
 		58FF8CEC2F8EAF2F0037AC51 /* nym-setup in Copy Files */ = {isa = PBXBuildFile; fileRef = 58FF8CEA2F8EAF2F0037AC51 /* nym-setup */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		58FF8CED2F8EAF2F0037AC51 /* nym-vpnd in Copy Files */ = {isa = PBXBuildFile; fileRef = 58FF8CEB2F8EAF2F0037AC51 /* nym-vpnd */; };
@@ -174,6 +175,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 6;
 			files = (
+				58E98AED2F92534300A120DF /* nym-socks5-proxy in Copy Files */,
 				58FF8CEC2F8EAF2F0037AC51 /* nym-setup in Copy Files */,
 				58FF8CED2F8EAF2F0037AC51 /* nym-vpnd in Copy Files */,
 			);
@@ -216,6 +218,7 @@
 /* Begin PBXFileReference section */
 		5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelSettingsConversions.swift; sourceTree = "<group>"; };
 		58C9571F2F8E3F0C00FD0C81 /* NymVPND.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NymVPND.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		58E98AEB2F92533600A120DF /* nym-socks5-proxy */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "nym-socks5-proxy"; sourceTree = "<group>"; };
 		58FF8CDE2F8EADEA0037AC51 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		58FF8CDF2F8EADEA0037AC51 /* NymVPND.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPND.entitlements; sourceTree = "<group>"; };
 		58FF8CE02F8EADEA0037AC51 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -397,6 +400,7 @@
 				58FF8CE02F8EADEA0037AC51 /* Info.plist */,
 				58FF8CEA2F8EAF2F0037AC51 /* nym-setup */,
 				58FF8CEB2F8EAF2F0037AC51 /* nym-vpnd */,
+				58E98AEB2F92533600A120DF /* nym-socks5-proxy */,
 			);
 			path = NymVPND;
 			sourceTree = "<group>";
