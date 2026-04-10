@@ -30,9 +30,9 @@ pub fn fronted_http_client_builder(
         .map_err(Box::new)
         .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
-    #[cfg(all(test, windows))]
+    #[cfg(test)]
     {
-        // Avoid issues with discovery tests in Windows CI.
+        // Avoid issues with discovery tests in CI.
         builder = builder.non_shared();
     }
 
