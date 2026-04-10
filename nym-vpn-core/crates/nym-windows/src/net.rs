@@ -352,6 +352,29 @@ pub fn get_ip_address_for_interface(
     }
 }
 
+/// Returns the best IPv6 address for the given interface, preferring global unicast
+/// addresses over link-local (`fe80::/10`) ones.
+pub fn get_best_ipv6_address_for_interface(luid: NET_LUID_LH) -> Result<Option<Ipv6Addr>> {
+    let rows = get_unicast_table(Some(AddressFamily::Ipv6)).map_err(Error::ObtainUnicastAddress)?;
+
+    // Walk every IPv6 address on this interface; return the first global unicast one.
+    for row in rows
+        .into_iter()
+        .filter(|row| unsafe { row.InterfaceLuid.Value == luid.Value })
+    {
+        let ip = try_socketaddr_from_inet_sockaddr(row.Address)?.ip();
+        if let IpAddr::V6(v6) = ip {
+            let octets = v6.octets();
+            let is_link_local = octets[0] == 0xfe && (octets[1] & 0xc0) == 0x80;
+            if !is_link_local && !v6.is_loopback() && !v6.is_multicast() && !v6.is_unspecified() {
+                return Ok(Some(v6));
+            }
+        }
+    }
+
+    Ok(None)
+}
+
 /// Adds a unicast IP address for the given interface.
 pub fn add_ip_address_for_interface(luid: NET_LUID_LH, address: IpAddr) -> Result<()> {
     let mut row = unsafe { mem::zeroed() };

@@ -107,6 +107,15 @@ else
     echo "❌ Error: ${extracted_folder_name}/nym-vpnd not found."
 fi
 
+# Copy nym-socks5-proxy to ../Daemon folder
+if [[ -f "${extracted_folder_name}/nym-socks5-proxy" ]]; then
+    cp "${extracted_folder_name}/nym-socks5-proxy" "../Daemon/nym-socks5-proxy"
+    chmod +x "../Daemon/nym-socks5-proxy"
+    echo "nym-socks5-proxy copied successfully."
+else
+    echo "❌ Error: ${extracted_folder_name}/nym-socks5-proxy not found."
+fi
+
 # Remove the downloaded tar.gz file
 tar_file_name=$(basename "$macos_download_link")
 

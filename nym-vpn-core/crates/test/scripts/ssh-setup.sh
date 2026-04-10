@@ -26,7 +26,7 @@ done
 
 echo "Copying Nym VPN files to $RUNNER_DIR"
 
-for file in nym-vpnc nym-vpnd; do
+for file in nym-vpnc nym-vpnd nym-socks5-proxy; do
     echo "Moving $SCRIPT_DIR/$file to $RUNNER_DIR"
     cp -f "$SCRIPT_DIR/$file" "$RUNNER_DIR"
 done
@@ -35,6 +35,7 @@ done
 # Unprivileged users need execute rights for some executables
 chmod 775 "${RUNNER_DIR}/test-runner"
 chmod 775 "${RUNNER_DIR}/nym-vpnd"
+chmod 775 "${RUNNER_DIR}/nym-socks5-proxy"
 chmod 775 "${RUNNER_DIR}/nym-vpnc"
 
 

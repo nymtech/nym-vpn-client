@@ -1,9 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use std::collections::HashSet;
-
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -42,6 +39,12 @@ impl DisconnectedState {
 
         shared_state.allow_networking().await;
 
+        // Notify the SOCKS5 proxy subprocess that the VPN tunnel is down
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
+            shared_state.set_socks5_proxy_tunnel_addrs(None, None);
+        }
+
         (Box::new(Self), PrivateTunnelState::Disconnected)
     }
 
@@ -77,12 +80,29 @@ impl TunnelStateHandler for DisconnectedState {
                     },
                     TunnelCommand::Disconnect => NextTunnelState::SameState(self),
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        #[cfg(any(target_os = "macos", target_os = "windows"))]
-                        if shared_state.tunnel_settings.diff(&tunnel_settings).is_some_and(|diff| diff.split_tunnel_changed()) {
-                            let _ = shared_state.set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await;
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        {
+                            let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                                return NextTunnelState::SameState(self);
+                            };
+
+                            shared_state.tunnel_settings = tunnel_settings;
+
+                            #[cfg(any(target_os = "macos", target_os = "windows"))]
+                            if diff.split_tunnel_changed() || diff.socks5_proxy_enabled_changed() {
+                                let _ = shared_state.set_split_tunnel_exclude_paths().await;
+                            }
+
+                            if diff.socks5_proxy_enabled_changed() {
+                                shared_state.start_or_stop_socks5_proxy().await;
+                            }
                         }
 
-                        shared_state.tunnel_settings = tunnel_settings;
+                        #[cfg(any(target_os = "android", target_os = "ios"))]
+                        {
+                            shared_state.tunnel_settings = tunnel_settings;
+                        }
+
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::Block(_reason) => {
