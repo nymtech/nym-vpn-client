@@ -6,8 +6,8 @@ use std::{collections::HashMap, net::IpAddr};
 use ipnet::{Ipv4Net, Ipv6Net};
 
 use super::{
-    decompress, embedded_geoip_gz, parse_ipv4_cidrs, parse_ipv6_cidrs, CountryGeoData, CountryIpSet,
-    GeoIpDatabase, Ipv4RangeSet, Ipv6RangeSet, RoutingDecision,
+    CountryGeoData, CountryIpSet, GeoIpDatabase, Ipv4RangeSet, Ipv6RangeSet, RoutingDecision,
+    decompress, embedded_geoip_gz, parse_ipv4_cidrs, parse_ipv6_cidrs,
 };
 use crate::routing::decide_route;
 

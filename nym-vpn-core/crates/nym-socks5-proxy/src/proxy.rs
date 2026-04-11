@@ -9,9 +9,9 @@ use std::{
 
 use anyhow::{Context, Result};
 use fast_socks5::{
-    server::{transfer, Socks5ServerProtocol}, util::target_addr::TargetAddr,
-    ReplyError,
-    Socks5Command,
+    ReplyError, Socks5Command,
+    server::{Socks5ServerProtocol, transfer},
+    util::target_addr::TargetAddr,
 };
 use tokio::{
     net::{TcpListener, TcpSocket},
@@ -22,7 +22,7 @@ use tracing::{debug, info, warn};
 
 use nym_socks5_proxy_ipc::ProxyConfig;
 
-use crate::routing::{decide_route, GeoIpDatabase, RoutingDecision};
+use crate::routing::{GeoIpDatabase, RoutingDecision, decide_route};
 
 pub async fn run(
     config: ProxyConfig,

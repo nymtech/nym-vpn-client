@@ -6,7 +6,7 @@ mod routing;
 
 use std::{
     fs::create_dir_all,
-    io::{stdout, Write},
+    io::{Write, stdout},
     mem::discriminant,
     net::IpAddr,
     path::Path,
@@ -15,7 +15,7 @@ use std::{
 use anyhow::{Context, Result};
 use nym_socks5_proxy_ipc::{DaemonMessage, ErrorData, ProxyConfig, ProxyMessage};
 use tokio::{
-    io::{stdin, AsyncBufReadExt, BufReader},
+    io::{AsyncBufReadExt, BufReader, stdin},
     sync::watch,
 };
 use tokio_util::sync::CancellationToken;
@@ -183,7 +183,7 @@ fn send_error_message(msg: &str) {
 fn install_signal_handlers(shutdown_token: CancellationToken) {
     #[cfg(unix)]
     tokio::spawn(async move {
-        use tokio::signal::unix::{signal, SignalKind};
+        use tokio::signal::unix::{SignalKind, signal};
         let mut sigterm =
             signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
         let mut sigint = signal(SignalKind::interrupt()).expect("failed to install SIGINT handler");
@@ -205,7 +205,7 @@ fn install_signal_handlers(shutdown_token: CancellationToken) {
 }
 
 fn init_tracing(proxy_dir: &Path, log_level: &str) -> Result<()> {
-    use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+    use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
     let file_appender = tracing_appender::rolling::never(proxy_dir, "nym-socks5-proxy.log");
 
