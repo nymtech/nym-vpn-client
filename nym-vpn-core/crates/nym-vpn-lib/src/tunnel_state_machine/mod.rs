@@ -756,7 +756,6 @@ pub struct LinuxSplitTunnelConfiguration {
 pub struct NymConfig {
     pub config_path: Option<PathBuf>,
     pub data_path: Option<PathBuf>,
-    pub log_path: Option<PathBuf>,
     pub gateway_config: GatewayDirectoryConfig,
     pub network_rx: watch::Receiver<Box<Network>>,
 }

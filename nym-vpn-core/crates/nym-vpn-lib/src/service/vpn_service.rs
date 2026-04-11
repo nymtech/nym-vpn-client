@@ -552,7 +552,6 @@ impl NymVpnService {
         let nym_config = NymConfig {
             config_path: Some(config_dir.clone()),
             data_path: Some(network_data_dir.clone()),
-            log_path: parameters.log_path.as_ref().map(|lp| lp.dir.clone()),
             gateway_config: gateway_config.clone(),
             network_rx,
         };
