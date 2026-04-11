@@ -606,8 +606,6 @@ pub struct SharedState {
     filtering_resolver: resolver::ResolverHandle,
     #[cfg(not(target_os = "ios"))]
     adblocker: adblocker::AdBlockerTaskHandle,
-    /// Handle to the SOCKS5 proxy subprocess. `None` when the proxy binary
-    /// could not be found or failed to start (non-fatal).
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     socks5_proxy: Option<Socks5ProcessHandle>,
     #[cfg(any(target_os = "macos", target_os = "windows"))]

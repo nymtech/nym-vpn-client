@@ -3,6 +3,7 @@
 
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::Path,
     sync::Arc,
 };
 
@@ -25,7 +26,7 @@ use crate::routing::{decide_route, GeoIpDatabase, RoutingDecision};
 
 pub async fn run(
     config: ProxyConfig,
-    data_dir: &std::path::Path,
+    data_dir: &Path,
     tunnel_rx: watch::Receiver<Option<IpAddr>>,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
