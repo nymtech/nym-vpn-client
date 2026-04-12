@@ -3,7 +3,6 @@
 
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::Path,
     sync::Arc,
 };
 
@@ -16,42 +15,112 @@ use fast_socks5::{
 use tokio::{
     net::{TcpListener, TcpSocket},
     sync::watch,
+    task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, info, warn};
 
-use nym_socks5_proxy_ipc::ProxyConfig;
-
 use crate::routing::{GeoIpDatabase, RoutingDecision, decide_route};
 
-pub async fn run(
-    config: ProxyConfig,
-    data_dir: &Path,
+#[derive(Clone)]
+pub struct RuntimeConfig {
+    pub enabled: bool,
+    pub db: Arc<GeoIpDatabase>,
+}
+
+pub struct ListenerHandle {
+    runtime_config_rx: watch::Receiver<RuntimeConfig>,
     tunnel_rx: watch::Receiver<Option<IpAddr>>,
-    shutdown_token: CancellationToken,
-) -> Result<()> {
-    let listen_addr = SocketAddr::from(([127, 0, 0, 1], config.listen_port));
+    process_shutdown_token: CancellationToken,
+    listener_shutdown_token: CancellationToken,
+    join_handle: Option<JoinHandle<()>>,
+}
+
+impl ListenerHandle {
+    pub async fn start(
+        listen_port: u16,
+        runtime_config_rx: watch::Receiver<RuntimeConfig>,
+        tunnel_rx: watch::Receiver<Option<IpAddr>>,
+        process_shutdown_token: CancellationToken,
+    ) -> Result<Self> {
+        let listener_shutdown_token = process_shutdown_token.child_token();
+        let join_handle = start_accept_loop(
+            listen_port,
+            runtime_config_rx.clone(),
+            tunnel_rx.clone(),
+            process_shutdown_token.clone(),
+            listener_shutdown_token.clone(),
+        )
+        .await?;
+
+        Ok(Self {
+            runtime_config_rx,
+            tunnel_rx,
+            process_shutdown_token,
+            listener_shutdown_token,
+            join_handle: Some(join_handle),
+        })
+    }
+
+    pub async fn restart(&mut self, listen_port: u16) -> Result<()> {
+        self.stop().await;
+
+        let listener_shutdown_token = self.process_shutdown_token.child_token();
+        let join_handle = start_accept_loop(
+            listen_port,
+            self.runtime_config_rx.clone(),
+            self.tunnel_rx.clone(),
+            self.process_shutdown_token.clone(),
+            listener_shutdown_token.clone(),
+        )
+        .await?;
+
+        self.listener_shutdown_token = listener_shutdown_token;
+        self.join_handle = Some(join_handle);
+
+        Ok(())
+    }
+
+    pub async fn stop(&mut self) {
+        self.listener_shutdown_token.cancel();
+
+        if let Some(join_handle) = self.join_handle.take()
+            && let Err(err) = join_handle.await
+        {
+            warn!("SOCKS5 accept loop join failed: {err}");
+        }
+    }
+}
+
+async fn start_accept_loop(
+    listen_port: u16,
+    runtime_config_rx: watch::Receiver<RuntimeConfig>,
+    tunnel_rx: watch::Receiver<Option<IpAddr>>,
+    process_shutdown_token: CancellationToken,
+    listener_shutdown_token: CancellationToken,
+) -> Result<JoinHandle<()>> {
+    let listen_addr = SocketAddr::from(([127, 0, 0, 1], listen_port));
     let listener = TcpListener::bind(listen_addr)
         .await
         .with_context(|| format!("Failed to bind SOCKS5 listener on {listen_addr}"))?;
 
     info!(%listen_addr, "SOCKS5 proxy listener bound");
 
-    let db = GeoIpDatabase::load(&config.excluded_countries, data_dir)
-        .await
-        .context("Failed to build GeoIP database")?;
-    let db = Arc::new(db);
-
-    tokio::spawn(accept_loop(listener, tunnel_rx, db, shutdown_token));
-
-    Ok(())
+    Ok(tokio::spawn(accept_loop(
+        listener,
+        runtime_config_rx,
+        tunnel_rx,
+        process_shutdown_token,
+        listener_shutdown_token,
+    )))
 }
 
 async fn accept_loop(
     listener: TcpListener,
+    runtime_config_rx: watch::Receiver<RuntimeConfig>,
     tunnel_rx: watch::Receiver<Option<IpAddr>>,
-    db: Arc<GeoIpDatabase>,
-    shutdown_token: CancellationToken,
+    process_shutdown_token: CancellationToken,
+    listener_shutdown_token: CancellationToken,
 ) {
     loop {
         tokio::select! {
@@ -59,12 +128,12 @@ async fn accept_loop(
                 match accept_result {
                     Ok((stream, peer_addr)) => {
                         debug!(%peer_addr, "Accepted SOCKS5 connection");
-                        let shutdown = shutdown_token.clone();
+                        let shutdown = process_shutdown_token.clone();
+                        let runtime_config = runtime_config_rx.clone();
                         let tunnel = tunnel_rx.clone();
-                        let db = db.clone();
                         tokio::spawn(async move {
                             if let Err(err) =
-                                handle_connection(stream, peer_addr, tunnel, db, shutdown).await
+                                handle_connection(stream, peer_addr, runtime_config, tunnel, shutdown).await
                             {
                                 warn!(%peer_addr, "SOCKS5 connection error: {err:#}");
                             }
@@ -75,7 +144,7 @@ async fn accept_loop(
                     }
                 }
             }
-            _ = shutdown_token.cancelled() => {
+            _ = listener_shutdown_token.cancelled() => {
                 info!("SOCKS5 accept loop shutting down");
                 break;
             }
@@ -86,15 +155,16 @@ async fn accept_loop(
 async fn handle_connection(
     stream: tokio::net::TcpStream,
     peer_addr: SocketAddr,
+    runtime_config_rx: watch::Receiver<RuntimeConfig>,
     tunnel_rx: watch::Receiver<Option<IpAddr>>,
-    db: Arc<GeoIpDatabase>,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
     // Snapshot the current tunnel state at connection time.
+    let runtime_config = runtime_config_rx.borrow().clone();
     let tunnel_addr = *tunnel_rx.borrow();
 
     tokio::select! {
-        result = serve_socks5(stream, peer_addr, tunnel_addr, db) => result,
+        result = serve_socks5(stream, peer_addr, tunnel_addr, runtime_config) => result,
         _ = shutdown_token.cancelled() => {
             debug!(%peer_addr, "Connection aborted due to shutdown");
             Ok(())
@@ -106,7 +176,7 @@ async fn serve_socks5(
     stream: tokio::net::TcpStream,
     peer_addr: SocketAddr,
     tunnel_addr: Option<IpAddr>,
-    db: Arc<GeoIpDatabase>,
+    runtime_config: RuntimeConfig,
 ) -> Result<()> {
     // SOCKS5 handshake: method negotiation (no-auth) followed by command read.
     let (proto, cmd, target_addr) = Socks5ServerProtocol::accept_no_auth(stream)
@@ -140,7 +210,12 @@ async fn serve_socks5(
     // All IPs from the same domain should be in the same country, so checking
     // the first is representative and avoids unnecessary work.
     let first_ip = target_addrs[0].ip();
-    let routing = decide_route(first_ip, tunnel_addr, &db);
+    let routing = decide_route(
+        first_ip,
+        tunnel_addr,
+        runtime_config.enabled,
+        runtime_config.db.as_ref(),
+    );
 
     // When routing via default interface, pass `None` so sockets bind to INADDR_ANY.
     let effective_tunnel = match routing {

@@ -37,7 +37,7 @@ use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU
 use crate::tunnel_state_machine::{Error, Result};
 use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
-    TunnelStateHandler,
+    TunnelSettingsDiffFields, TunnelStateHandler,
     states::{ConnectingState, DisconnectedState, OfflineState},
 };
 
@@ -207,6 +207,11 @@ impl TunnelStateHandler for ErrorState {
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if diff.split_tunnel_changed() {
                             let _ = shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await;
+                        }
+
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        if diff.is_field_changed(&TunnelSettingsDiffFields::Socks5Proxy) {
+                            shared_state.update_socks5_proxy_settings();
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]

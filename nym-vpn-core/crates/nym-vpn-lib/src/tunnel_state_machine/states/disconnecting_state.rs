@@ -114,13 +114,22 @@ impl TunnelStateHandler for DisconnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
+                        let diff = shared_state.tunnel_settings.diff(&tunnel_settings);
+
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
-                        {
-                            if shared_state.tunnel_settings.diff(&tunnel_settings).is_some_and(|diff| diff.split_tunnel_changed()) {
+                            if diff.as_ref().is_some_and(|diff| diff.split_tunnel_changed()) {
                                 let _ = shared_state.set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await;
                             }
-                        }
+
                         shared_state.tunnel_settings = tunnel_settings;
+
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        if diff.as_ref().is_some_and(|diff| {
+                            diff.is_field_changed(&TunnelSettingsDiffFields::Socks5Proxy)
+                        }) {
+                            shared_state.update_socks5_proxy_settings();
+                        }
+
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::Block(reason) => {

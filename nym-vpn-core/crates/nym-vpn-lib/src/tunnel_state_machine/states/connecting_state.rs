@@ -24,7 +24,7 @@ use crate::tunnel_state_machine::Error;
 use crate::tunnel_state_machine::gateway_ext::GatewayExt;
 use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, Result,
-    SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
+    SharedState, TunnelCommand, TunnelInterface, TunnelSettingsDiffFields, TunnelStateHandler,
     states::{ConnectedState, DisconnectingState, ErrorState, OfflineState},
     tunnel::{SelectedGateways, Tombstone},
     tunnel_monitor::{
@@ -737,6 +737,11 @@ impl TunnelStateHandler for ConnectingState {
                                     }
                                 }
                             }
+                        }
+
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        if diff.is_field_changed(&TunnelSettingsDiffFields::Socks5Proxy) {
+                            shared_state.update_socks5_proxy_settings();
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
