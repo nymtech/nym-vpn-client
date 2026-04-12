@@ -38,6 +38,12 @@ pub struct GeoIpDatabase {
 }
 
 impl GeoIpDatabase {
+    pub fn empty() -> Self {
+        Self {
+            excluded_countries: HashMap::new(),
+        }
+    }
+
     /// Load GeoIP data from disk, and if the excluded country file does not exist, use the embedded data.
     /// If that doesn't exist then an error occurs.
     pub async fn load(excluded_countries: &[String], data_dir: &Path) -> Result<Self> {
@@ -76,8 +82,14 @@ impl GeoIpDatabase {
 pub fn decide_route(
     target_ip: IpAddr,
     tunnel_addr: Option<IpAddr>,
+    enabled: bool,
     db: &GeoIpDatabase,
 ) -> RoutingDecision {
+    if !enabled {
+        debug!(%target_ip, "Routing via default interface (SOCKS5 proxy disabled)");
+        return RoutingDecision::DefaultInterface;
+    }
+
     if tunnel_addr.is_none() {
         return RoutingDecision::DefaultInterface;
     }

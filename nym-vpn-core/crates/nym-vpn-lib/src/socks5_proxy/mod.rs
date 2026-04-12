@@ -55,6 +55,16 @@ pub struct Socks5ProcessHandle {
 }
 
 impl Socks5ProcessHandle {
+    pub fn update_config(&self, config: ProxyConfig) {
+        if self
+            .msg_tx
+            .send(DaemonMessage::UpdateConfig(config))
+            .is_err()
+        {
+            warn!("could not send UpdateConfig to proxy: channel closed");
+        }
+    }
+
     pub fn notify_vpn_connected(&self, tunnel_addr: IpAddr) {
         let msg = DaemonMessage::VpnConnected(VpnConnectedData { tunnel_addr });
         if self.msg_tx.send(msg).is_err() {
@@ -152,7 +162,7 @@ impl Socks5ProcessTask {
     }
 }
 
-fn find_proxy_binary() -> Result<PathBuf> {
+pub fn find_proxy_binary() -> Result<PathBuf> {
     let exe = env::current_exe().map_err(|e| {
         Socks5ProcessError::BinaryNotFound(format!(
             "Could not determine current executable path: {e}"

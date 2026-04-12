@@ -36,7 +36,7 @@ use std::sync::Arc;
 use std::{
     collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
@@ -62,13 +62,14 @@ use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    SplitTunnelSettings, TunnelConnectionData, TunnelEvent, TunnelState, TunnelType,
+    Socks5ProxySettings, SplitTunnelSettings, TunnelConnectionData, TunnelEvent, TunnelState,
+    TunnelType,
 };
 
 use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
-    tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
+    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
+    GatewayDirectoryError,
+    UserAgent,
 };
 
 use tunnel::SelectedGateways;
@@ -177,6 +178,9 @@ pub struct TunnelSettings {
 
     /// Split tunneling settings.
     pub split_tunnel: SplitTunnelSettings,
+
+    /// SOCKS5 Proxy settings.
+    pub socks5_proxy_settings: Socks5ProxySettings,
 }
 
 impl TunnelSettings {
@@ -272,6 +276,9 @@ impl TunnelSettings {
         if self.split_tunnel != other.split_tunnel {
             diff.add(TunnelSettingsDiffFields::SplitTunnel);
         }
+        if self.socks5_proxy_settings != other.socks5_proxy_settings {
+            diff.add(TunnelSettingsDiffFields::Socks5Proxy);
+        }
 
         if diff.is_empty() { None } else { Some(diff) }
     }
@@ -294,6 +301,7 @@ pub enum TunnelSettingsDiffFields {
     ExitPoint,
     Dns,
     SplitTunnel,
+    Socks5Proxy,
 }
 
 impl TunnelSettingsDiffFields {
@@ -308,7 +316,9 @@ impl TunnelSettingsDiffFields {
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
             | Self::Dns => true,
-            Self::AllowLan | Self::EnableAdBlocking | Self::SplitTunnel => false,
+            Self::AllowLan | Self::EnableAdBlocking | Self::SplitTunnel | Self::Socks5Proxy => {
+                false
+            }
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
             }
@@ -743,6 +753,37 @@ impl SharedState {
             })
             .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))
     }
+
+    #[cfg(not(any(target_os = "ios", target_os = "android")))]
+    fn update_socks5_proxy_settings(&self) {
+        let Some(handle) = &self.socks5_proxy else {
+            return;
+        };
+
+        let Some(data_path) = self.nym_config.data_path.as_ref() else {
+            tracing::error!("Data path is required but not configured");
+            return;
+        };
+
+        handle.update_config(build_socks5_proxy_config(&self.tunnel_settings, data_path));
+    }
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn build_socks5_proxy_config(
+    tunnel_settings: &TunnelSettings,
+    data_path: &Path,
+) -> nym_socks5_proxy_ipc::ProxyConfig {
+    nym_socks5_proxy_ipc::ProxyConfig {
+        enabled: tunnel_settings.socks5_proxy_settings.enabled,
+        listen_port: tunnel_settings.socks5_proxy_settings.listen_port,
+        data_dir: data_path.to_path_buf(),
+        log_level: "info".to_string(),
+        excluded_countries: tunnel_settings
+            .socks5_proxy_settings
+            .excluded_countries
+            .clone(),
+    }
 }
 
 #[cfg(target_os = "linux")]
@@ -855,14 +896,7 @@ impl TunnelStateMachine {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let (socks5_proxy, socks5_proxy_join_handle) = {
             let (event_tx, mut event_rx) = mpsc::unbounded_channel::<Socks5ProcessEvent>();
-            let proxy_config = nym_socks5_proxy_ipc::ProxyConfig {
-                // TODO: make the port configurable via TunnelSettings.
-                listen_port: 1080,
-                data_dir: data_path.to_path_buf(),
-                log_level: "info".to_string(),
-                // TODO: make excluded countries configurable via TunnelSettings.
-                excluded_countries: vec!["CN".to_string()],
-            };
+            let proxy_config = build_socks5_proxy_config(&tunnel_settings, data_path);
             match Socks5ProcessTask::spawn(proxy_config, event_tx, shutdown_token.child_token())
                 .await
             {

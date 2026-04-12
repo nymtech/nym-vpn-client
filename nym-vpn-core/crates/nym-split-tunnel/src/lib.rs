@@ -23,7 +23,24 @@ pub use imp::*;
 #[cfg(target_os = "windows")]
 pub use imp::{install_driver_service, uninstall_driver_service};
 
-use std::net::{Ipv4Addr, Ipv6Addr};
+use std::{
+    collections::HashSet,
+    net::{Ipv4Addr, Ipv6Addr},
+    path::{Path, PathBuf},
+};
+
+pub(crate) fn effective_exclude_paths(
+    paths: &HashSet<PathBuf>,
+    socks5_proxy_path: Option<&Path>,
+) -> HashSet<PathBuf> {
+    let mut effective_paths = paths.clone();
+
+    if let Some(socks5_proxy_path) = socks5_proxy_path {
+        effective_paths.insert(socks5_proxy_path.to_path_buf());
+    }
+
+    effective_paths
+}
 
 /// VPN tunnel interface configuration used by split tunneling.
 #[derive(Debug, Clone)]
@@ -49,4 +66,41 @@ pub enum SplitTunnelErrorCause {
 
     /// Other error
     Other,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::effective_exclude_paths;
+    use std::{collections::HashSet, path::PathBuf};
+
+    #[test]
+    fn effective_exclude_paths_returns_user_paths_when_no_proxy_path_is_set() {
+        let user_path = PathBuf::from("C:/Program Files/App/app.exe");
+        let user_paths = HashSet::from([user_path.clone()]);
+
+        let effective_paths = effective_exclude_paths(&user_paths, None);
+
+        assert_eq!(effective_paths, HashSet::from([user_path]));
+    }
+
+    #[test]
+    fn effective_exclude_paths_adds_proxy_path() {
+        let user_path = PathBuf::from("C:/Program Files/App/app.exe");
+        let proxy_path = PathBuf::from("C:/Program Files/Nym/nym-socks5-proxy.exe");
+        let user_paths = HashSet::from([user_path.clone()]);
+
+        let effective_paths = effective_exclude_paths(&user_paths, Some(&proxy_path));
+
+        assert_eq!(effective_paths, HashSet::from([user_path, proxy_path]));
+    }
+
+    #[test]
+    fn effective_exclude_paths_deduplicates_proxy_path() {
+        let proxy_path = PathBuf::from("C:/Program Files/Nym/nym-socks5-proxy.exe");
+        let user_paths = HashSet::from([proxy_path.clone()]);
+
+        let effective_paths = effective_exclude_paths(&user_paths, Some(&proxy_path));
+
+        assert_eq!(effective_paths, HashSet::from([proxy_path]));
+    }
 }

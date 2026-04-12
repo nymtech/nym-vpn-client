@@ -21,7 +21,7 @@ use tokio_util::sync::CancellationToken;
 use crate::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
-    TunnelCommand, TunnelInterface, TunnelStateHandler,
+    TunnelCommand, TunnelInterface, TunnelSettingsDiffFields, TunnelStateHandler,
     states::{ConnectingState, DisconnectingState},
     tunnel::SelectedGateways,
     tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
@@ -324,6 +324,11 @@ impl TunnelStateHandler for ConnectedState {
                                     }
                                 }
                             }
+                        }
+
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        if diff.is_field_changed(&TunnelSettingsDiffFields::Socks5Proxy) {
+                            shared_state.update_socks5_proxy_settings();
                         }
 
                         #[cfg(not(target_os = "ios"))]
