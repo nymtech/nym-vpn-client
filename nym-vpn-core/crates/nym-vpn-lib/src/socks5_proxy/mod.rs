@@ -19,34 +19,7 @@ const PROXY_BINARY_NAME: &str = if cfg!(windows) {
     "nym-socks5-proxy"
 };
 
-#[derive(Debug, thiserror::Error)]
-pub enum Socks5ProcessError {
-    #[error("Could not find nym-socks5-proxy executable: {0}")]
-    BinaryNotFound(String),
-
-    #[error("Failed to spawn nym-socks5-proxy: {0}")]
-    Spawn(#[source] std::io::Error),
-
-    #[error("Failed to send message to proxy: {0}")]
-    #[allow(dead_code)]
-    Send(#[source] std::io::Error),
-
-    #[error("Proxy process exited before reporting ready")]
-    ExitedBeforeReady,
-
-    #[error("Proxy reported an error: {0}")]
-    ProxyError(String),
-}
-
 type Result<T> = std::result::Result<T, Socks5ProcessError>;
-
-#[derive(Debug)]
-pub enum Socks5ProcessEvent {
-    Ready,
-    StatusUpdate { active_connections: u32 },
-    Error { message: String },
-    Exited { success: bool },
-}
 
 #[derive(Clone)]
 pub struct Socks5ProcessHandle {
@@ -150,6 +123,14 @@ impl Socks5ProcessTask {
 
         Ok((handle, join_handle))
     }
+}
+
+#[derive(Debug)]
+pub enum Socks5ProcessEvent {
+    Ready,
+    StatusUpdate { active_connections: u32 },
+    Error { message: String },
+    Exited { success: bool },
 }
 
 pub fn find_proxy_binary() -> Result<PathBuf> {
@@ -318,4 +299,23 @@ fn handle_proxy_line(
             });
         }
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum Socks5ProcessError {
+    #[error("Could not find nym-socks5-proxy executable: {0}")]
+    BinaryNotFound(String),
+
+    #[error("Failed to spawn nym-socks5-proxy: {0}")]
+    Spawn(#[source] std::io::Error),
+
+    #[error("Failed to send message to proxy: {0}")]
+    #[allow(dead_code)]
+    Send(#[source] std::io::Error),
+
+    #[error("Proxy process exited before reporting ready")]
+    ExitedBeforeReady,
+
+    #[error("Proxy reported an error: {0}")]
+    ProxyError(String),
 }
