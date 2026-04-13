@@ -32,6 +32,8 @@ TARGET_AARCH64_DIR := $(CURDIR)/target/aarch64-apple-darwin/$(BUILD_PROFILE)
 TARGET_X86_64_DIR  := $(CURDIR)/target/x86_64-apple-darwin/$(BUILD_PROFILE)
 
 BIN_TARGETS := nym-vpnd nym-vpnc nym-setup nym-diagnostic
+DAEMON_BIN := nym-vpnd
+DAEMON_ENTITLEMENTS := $(CURDIR)/crates/nym-vpnd/Entitlements.plist
 
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
@@ -46,7 +48,7 @@ all: build-all
 # 2. Disabled SIP. Apple require binary to be shipped as a part of app bundle. Otherwise executable is denied access to endpoint-security.
 build-dev:
 	cargo build
-	codesign --entitlements crates/nym-vpnd/Entitlements.plist --force -s - target/debug/nym-vpnd
+	codesign --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - target/debug/$(DAEMON_BIN)
 
 build-all: libwg $(BIN_TARGETS) rpc-swift-package
 
@@ -71,6 +73,11 @@ $(BIN_TARGETS): create-upload-dir
 	@echo "Creating universal $@ → $(UPLOAD_DIR_MAC)/$@"
 	$(LIPO) -create -output "$(UPLOAD_DIR_MAC)/$@" "$(TARGET_AARCH64_DIR)/$@" "$(TARGET_X86_64_DIR)/$@"
 	@echo "✅ Universal binary ready at: $(UPLOAD_DIR_MAC)/$@"
+
+	@if [ "$@" == "$(DAEMON_BIN)" ]; then \
+	    echo "Embed entitlements $(DAEMON_ENTITLEMENTS)"; \
+	    codesign --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - "$(UPLOAD_DIR_MAC)/$@"; \
+	fi
 
 create-upload-dir:
 	$(MKDIR) "$(UPLOAD_DIR_MAC)"
