@@ -4,5 +4,7 @@
 <dict>
   <key>com.apple.developer.endpoint-security.client</key>
   <true/>
+  <key>com.apple.application-identifier</key>
+  <string>VW5DZLFHM5.net.nymtech.vpn.daemon</string>
 </dict>
 </plist>
