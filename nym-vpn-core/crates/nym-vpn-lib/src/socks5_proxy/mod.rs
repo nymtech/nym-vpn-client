@@ -243,8 +243,8 @@ async fn supervisor(
                 }
             }
             _ = shutdown_token.cancelled() => {
-                debug!("supervisor: shutdown requested, waiting for child");
-                // stdin close (via writer task) will cause the child to exit.
+                debug!("nym-socks5-proxy: shutdown requested, waiting for child");
+                break;
             }
         }
     }
@@ -266,7 +266,9 @@ async fn supervisor(
     };
 
     if let Some(tx) = ready_tx.take() {
-        let _ = tx.send(Err("Proxy exited before sending ready message".to_string()));
+        let _ = tx.send(Err(
+            "nym-socks5-proxy exited before sending ready message".to_string()
+        ));
     }
 
     let _ = event_tx.send(Socks5ProcessEvent::Exited { success });
