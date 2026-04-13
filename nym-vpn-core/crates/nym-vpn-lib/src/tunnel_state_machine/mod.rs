@@ -24,6 +24,8 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::socks5_proxy::find_proxy_binary;
 #[cfg(not(target_os = "ios"))]
 use crate::adblocker;
 #[cfg(target_os = "android")]
@@ -35,8 +37,6 @@ use crate::{
     resolver::{self},
     socks5_proxy::{Socks5ProcessEvent, Socks5ProcessHandle, Socks5ProcessTask},
 };
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use crate::socks5_proxy::find_proxy_binary;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
