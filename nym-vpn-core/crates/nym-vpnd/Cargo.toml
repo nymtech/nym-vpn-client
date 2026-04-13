@@ -18,6 +18,7 @@ cgroup2 = ["nym-vpn-lib/cgroup2"]
 [dependencies]
 anyhow.workspace = true
 clap.workspace = true
+embed_plist.workspace = true
 futures.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = [
