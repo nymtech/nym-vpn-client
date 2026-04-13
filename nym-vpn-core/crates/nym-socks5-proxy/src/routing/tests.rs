@@ -108,20 +108,7 @@ fn decide_route_no_tunnel() {
         excluded_countries: HashMap::new(),
     };
     assert_eq!(
-        decide_route("1.0.1.1".parse().unwrap(), None, true, &db),
-        RoutingDecision::DefaultInterface,
-    );
-}
-
-#[test]
-fn decide_route_disabled_proxy() {
-    let db = GeoIpDatabase {
-        excluded_countries: HashMap::new(),
-    };
-    let tunnel: IpAddr = "10.0.0.1".parse().unwrap();
-
-    assert_eq!(
-        decide_route("8.8.8.8".parse().unwrap(), Some(tunnel), false, &db),
+        decide_route("1.0.1.1".parse().unwrap(), None, &db),
         RoutingDecision::DefaultInterface,
     );
 }
@@ -142,13 +129,13 @@ fn decide_route_excluded_country() {
 
     // Chinese IP → bypass tunnel.
     assert_eq!(
-        decide_route("1.0.1.1".parse().unwrap(), Some(tunnel), true, &db),
+        decide_route("1.0.1.1".parse().unwrap(), Some(tunnel), &db),
         RoutingDecision::DefaultInterface,
     );
 
     // Non-Chinese IP → use tunnel.
     assert_eq!(
-        decide_route("8.8.8.8".parse().unwrap(), Some(tunnel), true, &db),
+        decide_route("8.8.8.8".parse().unwrap(), Some(tunnel), &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }

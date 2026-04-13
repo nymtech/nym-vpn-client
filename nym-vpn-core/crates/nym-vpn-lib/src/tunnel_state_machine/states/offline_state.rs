@@ -14,8 +14,7 @@ use crate::tunnel_state_machine::ErrorStateReason;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
 use crate::tunnel_state_machine::{
-    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelSettingsDiffFields,
-    TunnelStateHandler,
+    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
     states::{ConnectingState, DisconnectedState, ErrorState},
     tunnel::SelectedGateways,
 };
@@ -148,6 +147,7 @@ impl TunnelStateHandler for OfflineState {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
+
                         shared_state.tunnel_settings = tunnel_settings;
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -156,8 +156,10 @@ impl TunnelStateHandler for OfflineState {
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                        if diff.is_field_changed(&TunnelSettingsDiffFields::Socks5Proxy) {
-                            shared_state.update_socks5_proxy_settings();
+                        if diff.socks5_proxy_enabled_changed() {
+                            shared_state
+                                .update_socks5_proxy_state()
+                                .await;
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
