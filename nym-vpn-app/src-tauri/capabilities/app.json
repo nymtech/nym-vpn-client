@@ -52,6 +52,16 @@
     },
     "autostart:allow-enable",
     "autostart:allow-disable",
-    "autostart:allow-is-enabled"
+    "autostart:allow-is-enabled",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "nym-exclude",
+          "cmd": "nym-exclude",
+          "args": true
+        }
+      ]
+    }
   ]
 }

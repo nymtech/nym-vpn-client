@@ -2,6 +2,7 @@ use crate::commands::gateway::Hop;
 use crate::{
     error::{BackendError, ErrorKey},
     events::AppHandleEventEmitter,
+    fs::app_discovery::{App, get_installed_apps},
     state::{SharedAppState, app::VpnMode},
     vpnd::{
         client::{Node, VpndClient, VpndError},
@@ -242,8 +243,6 @@ pub async fn set_enable_split_tunnel(
     Ok(())
 }
 
-use crate::fs::app_discovery::{App, get_installed_apps};
-
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn get_app_list(app: tauri::AppHandle) -> Result<Vec<App>, BackendError> {
@@ -271,4 +270,11 @@ pub async fn remove_app_from_split_tunnel(
 ) -> Result<(), BackendError> {
     vpnd.remove_app_from_split_tunnel(app).await?;
     Ok(())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn is_split_tunnel_supported(vpnd: State<'_, VpndClient>) -> Result<bool, BackendError> {
+    let is_supported = vpnd.is_split_tunnel_supported().await?;
+    Ok(is_supported)
 }

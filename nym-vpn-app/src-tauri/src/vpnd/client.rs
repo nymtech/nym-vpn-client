@@ -1019,11 +1019,6 @@ impl VpndClient {
     pub async fn enable_split_tunnel(&self, _enabled: bool) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        #[cfg(any(target_os = "linux", target_os = "macos"))]
-        {
-            Ok(())
-        }
-
         #[cfg(target_os = "windows")]
         {
             vpnd.set_enable_split_tunnel(_enabled)
@@ -1033,6 +1028,11 @@ impl VpndClient {
                 })
                 .await
         }
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
+        {
+            warn!("Split tunnel enabling can only be enabled on Windows");
+            Ok(())
+        }
     }
 
     /// Add app to split tunneling
@@ -1041,18 +1041,17 @@ impl VpndClient {
     pub async fn add_app_to_split_tunnel(&self, app: SplitApp) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        #[cfg(any(target_os = "linux", target_os = "macos"))]
-        {
-            let _ = vpnd;
-
-            Ok(())
-        }
-
         #[cfg(target_os = "windows")]
         {
             vpnd.add_split_tunnel_app(app.into())
                 .or_else(async |e| self.handle_rpc_error("add_split_tunnel_app", e).await)
                 .await
+        }
+
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
+        {
+            warn!("Split tunnel addition can only be used on Windows");
+            Ok(())
         }
     }
 
@@ -1062,17 +1061,29 @@ impl VpndClient {
     pub async fn remove_app_from_split_tunnel(&self, app: SplitApp) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        #[cfg(any(target_os = "linux", target_os = "macos"))]
-        {
-            let _ = vpnd;
-            Ok(())
-        }
-
         #[cfg(target_os = "windows")]
         {
             vpnd.remove_split_tunnel_app(app.into())
                 .or_else(async |e| self.handle_rpc_error("remove_split_tunnel_app", e).await)
                 .await
         }
+
+        #[cfg(any(target_os = "macos", target_os = "linux"))]
+        {
+            warn!("Split tunnel removal can only be used on Windows");
+            Ok(())
+        }
+    }
+
+    #[instrument(skip_all)]
+    pub async fn is_split_tunnel_supported(&self) -> Result<bool, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let is_supported = vpnd
+            .is_split_tunnel_supported()
+            .or_else(async |e| self.handle_rpc_error("is_split_tunnel_supported", e).await)
+            .await?;
+
+        Ok(is_supported)
     }
 }

@@ -68,5 +68,8 @@
       "ipv4": "Exit server routing error (IPv4)",
       "ipv6": "Exit server routing error (IPv6)"
     }
+  },
+  "split-tunnel": {
+    "failed-to-get-app-list": "Failed to get app list"
   }
 }
