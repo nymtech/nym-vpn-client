@@ -76,7 +76,7 @@ $(BIN_TARGETS): create-upload-dir
 
 	@if [ "$@" == "$(DAEMON_BIN)" ]; then \
 	    echo "Embed entitlements $(DAEMON_ENTITLEMENTS)"; \
-	    codesign --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - "$(UPLOAD_DIR_MAC)/$@"; \
+	    codesign -i net.nymtech.vpn.daemon -o runtime --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - "$(UPLOAD_DIR_MAC)/$@"; \
 	fi
 
 create-upload-dir:
