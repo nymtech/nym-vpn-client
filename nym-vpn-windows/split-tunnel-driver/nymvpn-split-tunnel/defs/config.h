@@ -13,11 +13,11 @@
 //
 
 // Default: exclude the process from the VPN tunnel (route via internet interface).
-#define ST_CONFIGURATION_ENTRY_FLAG_EXCLUDE  0x0000
+#define ST_CONFIGURATION_ENTRY_FLAG_EXCLUDE 0x0000
 
 // Route traffic according to the source IP the process binds to.
 // No bind/connect rewriting is performed.
-#define ST_CONFIGURATION_ENTRY_FLAG_HYBRID   0x0001
+#define ST_CONFIGURATION_ENTRY_FLAG_HYBRID 0x0001
 
 typedef struct tag_ST_CONFIGURATION_ENTRY {
     // Offset into buffer region that follows all entries.

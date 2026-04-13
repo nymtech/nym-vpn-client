@@ -27,9 +27,7 @@ Initialize(WDFDEVICE Device);
 // state transition may be performed at DISPATCH.
 //
 NTSTATUS
-SetConfigurationPrepare(
-    WDFREQUEST Request,
-    registeredimage::CONTEXT** Imageset);
+SetConfigurationPrepare(WDFREQUEST Request, registeredimage::CONTEXT** Imageset);
 
 NTSTATUS
 SetConfiguration(WDFDEVICE Device, registeredimage::CONTEXT* Imageset);

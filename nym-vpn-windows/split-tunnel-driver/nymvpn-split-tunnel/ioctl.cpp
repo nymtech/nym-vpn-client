@@ -103,8 +103,8 @@ bool NTAPI UpdateTargetSplitSetting(procregistry::PROCESS_REGISTRY_ENTRY* Entry,
     if (flags != 0 || registeredimage::HasEntryExact(context->RegisteredImage.Instance, &Entry->ImageName)) {
         bool const isHybrid = (flags & ST_CONFIGURATION_ENTRY_FLAG_HYBRID) != 0;
 
-        Entry->TargetSettings.Split =
-            isHybrid ? ST_PROCESS_SPLIT_STATUS_HYBRID_BY_CONFIG : ST_PROCESS_SPLIT_STATUS_ON_BY_CONFIG;
+        Entry->TargetSettings.Split = isHybrid ? ST_PROCESS_SPLIT_STATUS_HYBRID_BY_CONFIG
+                                               : ST_PROCESS_SPLIT_STATUS_ON_BY_CONFIG;
     } else if (Entry->ParentProcessId == 0 && Entry->Settings.Split == ST_PROCESS_SPLIT_STATUS_ON_BY_INHERITANCE) {
         Entry->TargetSettings.Split = ST_PROCESS_SPLIT_STATUS_ON_BY_INHERITANCE;
     }
@@ -307,7 +307,7 @@ firewall::PROCESS_SPLIT_VERDICT CallbackQueryProcess(HANDLE ProcessId, void* Raw
     if (process != NULL) {
         if (util::SplittingEnabled(process->Settings.Split)) {
             verdict = firewall::PROCESS_SPLIT_VERDICT::DO_SPLIT;
-    } else if (util::HybridEnabled(process->Settings.Split)) {
+        } else if (util::HybridEnabled(process->Settings.Split)) {
             verdict = firewall::PROCESS_SPLIT_VERDICT::BYPASS;
         } else {
             verdict = firewall::PROCESS_SPLIT_VERDICT::DONT_SPLIT;
@@ -815,10 +815,8 @@ Abort_teardown_eventing:
 // This runs at PASSIVE, in order to be able to downcase the strings.
 //
 NTSTATUS
-SetConfigurationPrepare(
-WDFREQUEST Request,
-registeredimage::CONTEXT** Imageset) {
-*Imageset = NULL;
+SetConfigurationPrepare(WDFREQUEST Request, registeredimage::CONTEXT** Imageset) {
+    *Imageset = NULL;
 
     PVOID buffer;
     size_t bufferLength;
