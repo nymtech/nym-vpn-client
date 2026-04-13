@@ -272,6 +272,12 @@ jobs:
             --name "NymVPN macOS + Daemon" \
             --save
 
+          app-store-connect profiles list \
+            --type MAC_APP_DIRECT \
+            --state ACTIVE \
+            --name "NymVPN daemon" \
+            --save
+
           keychain add-certificates
 
           echo "✅ Signing files successfully fetched and imported."
@@ -518,6 +524,8 @@ jobs:
             <dict>
               <key>net.nymtech.vpn</key>
               <string>NymVPN macOS + Daemon</string>
+              <key>net.nymtech.vpn.daemon</key>
+              <string>NymVPN daemon</string>
             </dict>
           </dict>
           </plist>

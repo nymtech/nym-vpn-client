@@ -34,6 +34,7 @@ TARGET_X86_64_DIR  := $(CURDIR)/target/x86_64-apple-darwin/$(BUILD_PROFILE)
 BIN_TARGETS := nym-vpnd nym-vpnc nym-setup nym-diagnostic
 DAEMON_BIN := nym-vpnd
 DAEMON_ENTITLEMENTS := $(CURDIR)/crates/nym-vpnd/Entitlements.plist
+DAEMON_IDENTIFIER := net.nymtech.vpn.daemon
 
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
@@ -76,7 +77,7 @@ $(BIN_TARGETS): create-upload-dir
 
 	@if [ "$@" == "$(DAEMON_BIN)" ]; then \
 	    echo "Embed entitlements $(DAEMON_ENTITLEMENTS)"; \
-	    codesign -i net.nymtech.vpn.daemon -o runtime --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - "$(UPLOAD_DIR_MAC)/$@"; \
+	    codesign -i "$(DAEMON_IDENTIFIER)" -o runtime --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - "$(UPLOAD_DIR_MAC)/$@"; \
 	fi
 
 create-upload-dir:
