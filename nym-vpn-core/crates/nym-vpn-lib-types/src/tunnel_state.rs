@@ -286,9 +286,6 @@ pub enum ErrorStateReason {
     /// Inactive Subscription
     InactiveSubscription,
 
-    /// Pending Subscription
-    PendingSubscription,
-
     /// Max device numbers reached
     MaxDevicesReached,
 
@@ -333,7 +330,6 @@ impl std::fmt::Display for ErrorStateReason {
             Self::BandwidthExceeded => f.write_str("BandwidthExceeded"),
             Self::InactiveAccount => f.write_str("InactiveAccount"),
             Self::InactiveSubscription => f.write_str("InactiveSubscription"),
-            Self::PendingSubscription => f.write_str("PendingSubscription"),
             Self::MaxDevicesReached => f.write_str("MaxDevicesReached"),
             Self::DeviceTimeOutOfSync => f.write_str("DeviceTimeOutOfSync"),
             Self::DeviceLoggedOut => f.write_str("DeviceLoggedOut"),

@@ -495,7 +495,6 @@ export type TunnelError =
   | 'max-devices-reached'
   | 'bandwidth-exceeded'
   | 'inactive-subscription'
-  | 'pending-subscription'
   | 'device-time-out-of-sync'
   | 'device-logged-out'
   | 'ipv6-unavailable'
