@@ -8,6 +8,17 @@
 // Structures related to configuration.
 //
 
+//
+// Flags for ST_CONFIGURATION_ENTRY.
+//
+
+// Default: exclude the process from the VPN tunnel (route via internet interface).
+#define ST_CONFIGURATION_ENTRY_FLAG_EXCLUDE  0x0000
+
+// Route traffic according to the source IP the process binds to.
+// No bind/connect rewriting is performed.
+#define ST_CONFIGURATION_ENTRY_FLAG_HYBRID   0x0001
+
 typedef struct tag_ST_CONFIGURATION_ENTRY {
     // Offset into buffer region that follows all entries.
     // The image name uses the device path.
@@ -15,6 +26,9 @@ typedef struct tag_ST_CONFIGURATION_ENTRY {
 
     // Byte length for non-null terminated wide char string.
     USHORT ImageNameLength;
+
+    // Combination of ST_CONFIGURATION_ENTRY_FLAG_* values.
+    USHORT Flags;
 } ST_CONFIGURATION_ENTRY;
 
 typedef struct tag_ST_CONFIGURATION_HEADER {

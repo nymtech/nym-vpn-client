@@ -98,8 +98,13 @@ bool NTAPI UpdateTargetSplitSetting(procregistry::PROCESS_REGISTRY_ENTRY* Entry,
 
     Entry->TargetSettings.Split = ST_PROCESS_SPLIT_STATUS_OFF;
 
-    if (registeredimage::HasEntryExact(context->RegisteredImage.Instance, &Entry->ImageName)) {
-        Entry->TargetSettings.Split = ST_PROCESS_SPLIT_STATUS_ON_BY_CONFIG;
+    USHORT const flags = registeredimage::GetEntryFlagsExact(context->RegisteredImage.Instance, &Entry->ImageName);
+
+    if (flags != 0 || registeredimage::HasEntryExact(context->RegisteredImage.Instance, &Entry->ImageName)) {
+        bool const isHybrid = (flags & ST_CONFIGURATION_ENTRY_FLAG_HYBRID) != 0;
+
+        Entry->TargetSettings.Split =
+            isHybrid ? ST_PROCESS_SPLIT_STATUS_HYBRID_BY_CONFIG : ST_PROCESS_SPLIT_STATUS_ON_BY_CONFIG;
     } else if (Entry->ParentProcessId == 0 && Entry->Settings.Split == ST_PROCESS_SPLIT_STATUS_ON_BY_INHERITANCE) {
         Entry->TargetSettings.Split = ST_PROCESS_SPLIT_STATUS_ON_BY_INHERITANCE;
     }
@@ -124,7 +129,7 @@ bool NTAPI UpdateTargetSplitSetting(procregistry::PROCESS_REGISTRY_ENTRY* Entry,
 // This is contrary to a previous design that used additional filters to block non-tunnel traffic.
 //
 bool NTAPI ApplyFinalizeTargetSettings(ST_DEVICE_CONTEXT* Context, procregistry::PROCESS_REGISTRY_ENTRY* Entry) {
-    if (!util::SplittingEnabled(Entry->Settings.Split)) {
+    if (!util::SplittingEnabled(Entry->Settings.Split) && !util::HybridEnabled(Entry->Settings.Split)) {
         NT_ASSERT(!Entry->Settings.HasFirewallState);
 
         if (!util::SplittingEnabled(Entry->TargetSettings.Split)) {
@@ -146,6 +151,32 @@ bool NTAPI ApplyFinalizeTargetSettings(ST_DEVICE_CONTEXT* Context, procregistry:
         return Entry->TargetSettings.HasFirewallState = true;
     }
 
+    if (util::HybridEnabled(Entry->Settings.Split)) {
+        NT_ASSERT(!Entry->Settings.HasFirewallState);
+
+        if (util::SplittingEnabled(Entry->TargetSettings.Split)) {
+            //
+            // Hybrid -> split: register tunnel-blocking filter for this app.
+            //
+
+            auto status = firewall::RegisterAppBecomingSplitTx(Context->Firewall, &Entry->ImageName);
+
+            if (!NT_SUCCESS(status)) {
+                return false;
+            }
+
+            return Entry->TargetSettings.HasFirewallState = true;
+        }
+
+        //
+        // Hybrid -> not split or hybrid -> hybrid: no firewall state needed.
+        //
+
+        Entry->TargetSettings.HasFirewallState = false;
+
+        return true;
+    }
+
     if (util::SplittingEnabled(Entry->TargetSettings.Split)) {
         Entry->TargetSettings.HasFirewallState = Entry->Settings.HasFirewallState;
 
@@ -153,7 +184,7 @@ bool NTAPI ApplyFinalizeTargetSettings(ST_DEVICE_CONTEXT* Context, procregistry:
     }
 
     //
-    // Split -> not split
+    // Split -> not split or split -> hybrid
     //
 
     if (Entry->Settings.HasFirewallState) {
@@ -210,7 +241,8 @@ struct CONFIGURATION_COMPUTE_LENGTH_CONTEXT {
     SIZE_T TotalStringLength;
 };
 
-bool NTAPI GetConfigurationComputeLength(const LOWER_UNICODE_STRING* Entry, void* Context) {
+bool NTAPI GetConfigurationComputeLength(const LOWER_UNICODE_STRING* Entry, USHORT Flags, void* Context) {
+    UNREFERENCED_PARAMETER(Flags);
     auto ctx = (CONFIGURATION_COMPUTE_LENGTH_CONTEXT*)Context;
 
     ++(ctx->NumEntries);
@@ -231,7 +263,7 @@ struct CONFIGURATION_SERIALIZE_CONTEXT {
     SIZE_T StringOffset;
 };
 
-bool NTAPI GetConfigurationSerialize(const LOWER_UNICODE_STRING* Entry, void* Context) {
+bool NTAPI GetConfigurationSerialize(const LOWER_UNICODE_STRING* Entry, USHORT Flags, void* Context) {
     auto ctx = (CONFIGURATION_SERIALIZE_CONTEXT*)Context;
 
     //
@@ -240,6 +272,7 @@ bool NTAPI GetConfigurationSerialize(const LOWER_UNICODE_STRING* Entry, void* Co
 
     ctx->Entry->ImageNameOffset = ctx->StringOffset;
     ctx->Entry->ImageNameLength = Entry->Length;
+    ctx->Entry->Flags = Flags;
 
     RtlCopyMemory(ctx->StringDest, Entry->Buffer, Entry->Length);
 
@@ -272,9 +305,13 @@ firewall::PROCESS_SPLIT_VERDICT CallbackQueryProcess(HANDLE ProcessId, void* Raw
     firewall::PROCESS_SPLIT_VERDICT verdict = firewall::PROCESS_SPLIT_VERDICT::UNKNOWN;
 
     if (process != NULL) {
-        verdict =
-            (util::SplittingEnabled(process->Settings.Split) ? firewall::PROCESS_SPLIT_VERDICT::DO_SPLIT
-                                                             : firewall::PROCESS_SPLIT_VERDICT::DONT_SPLIT);
+        if (util::SplittingEnabled(process->Settings.Split)) {
+            verdict = firewall::PROCESS_SPLIT_VERDICT::DO_SPLIT;
+    } else if (util::HybridEnabled(process->Settings.Split)) {
+            verdict = firewall::PROCESS_SPLIT_VERDICT::BYPASS;
+        } else {
+            verdict = firewall::PROCESS_SPLIT_VERDICT::DONT_SPLIT;
+        }
     }
 
     WdfSpinLockRelease(context->ProcessRegistry.Lock);
@@ -282,7 +319,8 @@ firewall::PROCESS_SPLIT_VERDICT CallbackQueryProcess(HANDLE ProcessId, void* Raw
     return verdict;
 }
 
-bool NTAPI DbgPrintConfiguration(const LOWER_UNICODE_STRING* Entry, void* Context) {
+bool NTAPI DbgPrintConfiguration(const LOWER_UNICODE_STRING* Entry, USHORT Flags, void* Context) {
+    UNREFERENCED_PARAMETER(Flags);
     UNREFERENCED_PARAMETER(Context);
 
     DbgPrint("%wZ\n", (const UNICODE_STRING*)Entry);
@@ -777,8 +815,10 @@ Abort_teardown_eventing:
 // This runs at PASSIVE, in order to be able to downcase the strings.
 //
 NTSTATUS
-SetConfigurationPrepare(WDFREQUEST Request, registeredimage::CONTEXT** Imageset) {
-    *Imageset = NULL;
+SetConfigurationPrepare(
+WDFREQUEST Request,
+registeredimage::CONTEXT** Imageset) {
+*Imageset = NULL;
 
     PVOID buffer;
     size_t bufferLength;
@@ -809,7 +849,7 @@ SetConfigurationPrepare(WDFREQUEST Request, registeredimage::CONTEXT** Imageset)
     }
 
     //
-    // Create new instance for storing image names.
+    // Create a new instance for storing all image names (excluded and hybrid).
     //
 
     registeredimage::CONTEXT* imageset;
@@ -823,7 +863,7 @@ SetConfigurationPrepare(WDFREQUEST Request, registeredimage::CONTEXT** Imageset)
     }
 
     //
-    // Insert each entry one by one.
+    // Insert each entry with its flags so callers can distinguish excluded from hybrid.
     //
 
     for (auto i = 0; i < header->NumEntries; ++i, ++entry) {
@@ -833,7 +873,7 @@ SetConfigurationPrepare(WDFREQUEST Request, registeredimage::CONTEXT** Imageset)
         s.MaximumLength = entry->ImageNameLength;
         s.Buffer = (WCHAR*)(stringBuffer + entry->ImageNameOffset);
 
-        status = registeredimage::AddEntry(imageset, &s);
+        status = registeredimage::AddEntry(imageset, &s, entry->Flags);
 
         if (!NT_SUCCESS(status)) {
             DbgPrint("Could not insert new entry into registered image instance: 0x%X\n", status);

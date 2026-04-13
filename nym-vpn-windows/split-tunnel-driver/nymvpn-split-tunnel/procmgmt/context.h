@@ -14,15 +14,15 @@
 namespace procmgmt {
 
 struct CONTEXT {
-    procmon::CONTEXT* ProcessMonitor;
+procmon::CONTEXT* ProcessMonitor;
 
-    procbroker::CONTEXT* ProcessEventBroker;
+procbroker::CONTEXT* ProcessEventBroker;
 
-    PROCESS_REGISTRY_MGMT* ProcessRegistry;
+PROCESS_REGISTRY_MGMT* ProcessRegistry;
 
-    REGISTERED_IMAGE_MGMT* RegisteredImage;
+REGISTERED_IMAGE_MGMT* RegisteredImage;
 
-    eventing::CONTEXT* Eventing;
+eventing::CONTEXT* Eventing;
 
     firewall::CONTEXT* Firewall;
 

@@ -454,7 +454,9 @@ impl InitializedSplitTunnel {
                         let mut monitored_paths_guard = monitored_paths.lock().unwrap();
 
                         let result = if !paths.is_empty() {
-                            handle.set_config(&paths).map_err(Error::SetConfiguration)
+                            handle
+                                .set_config(&paths, &[] as &[OsString])
+                                .map_err(Error::SetConfiguration)
                         } else {
                             handle.clear_config().map_err(Error::SetConfiguration)
                         };
@@ -555,7 +557,7 @@ impl InitializedSplitTunnel {
                 let paths = monitored_paths_copy.lock().unwrap();
                 let result = if !paths.is_empty() {
                     tracing::debug!("Re-resolving excluded paths");
-                    handle_copy.set_config(&paths)
+                    handle_copy.set_config(&paths, &[] as &[OsString])
                 } else {
                     continue;
                 };

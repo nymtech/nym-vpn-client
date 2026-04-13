@@ -14,6 +14,9 @@ struct REGISTERED_IMAGE_ENTRY {
 
     // Device path using all lower-case characters.
     LOWER_UNICODE_STRING ImageName;
+
+    // Combination of ST_CONFIGURATION_ENTRY_FLAG_* values.
+    USHORT Flags;
 };
 
 struct CONTEXT;
@@ -28,7 +31,7 @@ Initialize(CONTEXT** Context, ST_PAGEABLE Pageable);
 //
 // Converts imagename to lower case before creating an entry.
 //
-_IRQL_requires_(PASSIVE_LEVEL) NTSTATUS AddEntry(CONTEXT* Context, UNICODE_STRING* ImageName);
+_IRQL_requires_(PASSIVE_LEVEL) NTSTATUS AddEntry(CONTEXT* Context, UNICODE_STRING* ImageName, USHORT Flags = 0);
 
 //
 // AddEntryExact()
@@ -38,7 +41,7 @@ _IRQL_requires_(PASSIVE_LEVEL) NTSTATUS AddEntry(CONTEXT* Context, UNICODE_STRIN
 // Creates a new entry with the `ImageName` argument exactly as passed.
 //
 NTSTATUS
-AddEntryExact(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName);
+AddEntryExact(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName, USHORT Flags = 0);
 
 //
 // HasEntry()
@@ -76,7 +79,16 @@ bool RemoveEntry(CONTEXT* Context, UNICODE_STRING* ImageName);
 //
 bool RemoveEntryExact(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName);
 
-typedef bool(NTAPI* ST_RI_FOREACH)(const LOWER_UNICODE_STRING* ImageName, void* Context);
+//
+// GetEntryFlagsExact()
+//
+// IRQL <= DISPATCH
+//
+// Returns the flags stored with the entry matching `ImageName`, or 0 if not found.
+//
+USHORT GetEntryFlagsExact(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName);
+
+typedef bool(NTAPI* ST_RI_FOREACH)(const LOWER_UNICODE_STRING* ImageName, USHORT Flags, void* Context);
 
 bool ForEach(CONTEXT* Context, ST_RI_FOREACH Callback, void* ClientContext);
 

@@ -5,6 +5,7 @@
 #include "procmgmt.h"
 #include "context.h"
 #include "../util.h"
+#include "../defs/config.h"
 #include "../defs/events.h"
 #include "../eventing/builder.h"
 
@@ -131,10 +132,17 @@ struct ArrivalEvent {
 
 void EvaluateSplitting(CONTEXT* Context, procregistry::PROCESS_REGISTRY_ENTRY* RegistryEntry, ArrivalEvent* ArrivalEvent) {
     auto registeredImage = Context->RegisteredImage->Instance;
-    bool const splitByConfig = registeredimage::HasEntryExact(registeredImage, &RegistryEntry->ImageName);
+    USHORT const flags = registeredimage::GetEntryFlagsExact(registeredImage, &RegistryEntry->ImageName);
 
-    if (splitByConfig) {
-        RegistryEntry->Settings.Split = ST_PROCESS_SPLIT_STATUS_ON_BY_CONFIG;
+    if (flags != 0 || registeredimage::HasEntryExact(registeredImage, &RegistryEntry->ImageName)) {
+        bool const isHybrid = (flags & ST_CONFIGURATION_ENTRY_FLAG_HYBRID) != 0;
+
+        if (isHybrid) {
+            RegistryEntry->Settings.Split = ST_PROCESS_SPLIT_STATUS_HYBRID_BY_CONFIG;
+        } else {
+            RegistryEntry->Settings.Split = ST_PROCESS_SPLIT_STATUS_ON_BY_CONFIG;
+        }
+
         ArrivalEvent->SplittingReason |= ST_SPLITTING_REASON_BY_CONFIG;
     } else {
         //

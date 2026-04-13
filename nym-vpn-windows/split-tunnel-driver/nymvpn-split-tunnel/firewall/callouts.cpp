@@ -327,6 +327,15 @@ void CalloutClassifyBind(
 
         break;
     }
+    case PROCESS_SPLIT_VERDICT::BYPASS: {
+        //
+        // The process binds to whichever interface it chooses.
+        // No rewriting; just let the bind proceed.
+        //
+        ClassificationApplySoftPermit(ClassifyOut);
+
+        break;
+    }
     case PROCESS_SPLIT_VERDICT::UNKNOWN: {
         PendClassification(
             context->PendedClassifications,
@@ -577,6 +586,15 @@ void CalloutClassifyConnect(
 
         break;
     }
+    case PROCESS_SPLIT_VERDICT::BYPASS: {
+        //
+        // The process connects using whichever source IP it has bound to.
+        // No rewriting; just let the connection proceed.
+        //
+        ClassificationApplySoftPermit(ClassifyOut);
+
+        break;
+    }
     case PROCESS_SPLIT_VERDICT::UNKNOWN: {
         PendClassification(
             context->PendedClassifications,
@@ -725,11 +743,11 @@ void CalloutPermitSplitApps(
     auto const verdict = callbacks.QueryProcess(HANDLE(MetaValues->processId), callbacks.Context);
 
     //
-    // If the process is not marked for splitting we should just abort
+    // If the process is not marked for splitting or bypass we should just abort
     // and not attempt to classify the connection.
     //
 
-    if (verdict != PROCESS_SPLIT_VERDICT::DO_SPLIT) {
+    if (verdict != PROCESS_SPLIT_VERDICT::DO_SPLIT && verdict != PROCESS_SPLIT_VERDICT::BYPASS) {
         return;
     }
 
@@ -855,6 +873,8 @@ void CalloutBlockSplitApps(
     //
     // Block any processes which have not yet been evaluated.
     // This is a safety measure to prevent race conditions.
+    //
+    // Do not block bypass processes; their traffic is routed by source IP.
     //
 
     auto const shouldBlock = (verdict == PROCESS_SPLIT_VERDICT::DO_SPLIT) || (verdict == PROCESS_SPLIT_VERDICT::UNKNOWN);

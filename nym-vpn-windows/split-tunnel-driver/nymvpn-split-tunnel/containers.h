@@ -28,3 +28,5 @@ struct PROCESS_REGISTRY_MGMT {
 struct REGISTERED_IMAGE_MGMT {
     registeredimage::CONTEXT* volatile Instance;
 };
+
+
