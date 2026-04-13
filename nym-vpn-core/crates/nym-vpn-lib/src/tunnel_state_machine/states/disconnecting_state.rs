@@ -114,6 +114,7 @@ impl TunnelStateHandler for DisconnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
+                        #[cfg(any(target_os = "macos", target_os = "windows"))]
                         let diff = shared_state.tunnel_settings.diff(&tunnel_settings);
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -124,10 +125,8 @@ impl TunnelStateHandler for DisconnectingState {
                         shared_state.tunnel_settings = tunnel_settings;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                        if diff.as_ref().is_some_and(|diff| {
-                            diff.is_field_changed(&TunnelSettingsDiffFields::Socks5Proxy)
-                        }) {
-                            shared_state.update_socks5_proxy_settings();
+                        if diff.unwrap().socks5_proxy_enabled_changed() {
+                            shared_state.update_socks5_proxy_state().await;
                         }
 
                         NextTunnelState::SameState(self)

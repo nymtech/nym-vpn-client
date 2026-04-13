@@ -9,7 +9,6 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "type", content = "data")]
 pub enum DaemonMessage {
     Configure(ProxyConfig),
-    UpdateConfig(ProxyConfig),
     VpnConnected(VpnConnectedData),
     VpnDisconnected,
     Terminate,
@@ -31,9 +30,8 @@ impl FromStr for DaemonMessage {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProxyConfig {
-    pub enabled: bool,
     pub listen_port: u16,
     pub data_dir: PathBuf,
     pub log_level: String,

@@ -10,7 +10,6 @@ use std::{
     mem::discriminant,
     net::IpAddr,
     path::Path,
-    sync::Arc,
 };
 
 use anyhow::{Context, Result};
@@ -59,82 +58,25 @@ async fn main() -> Result<()> {
 
     tracing::info!("nym-socks5-proxy starting");
     tracing::info!(
-        enabled = config.enabled,
         port = config.listen_port,
         excluded_countries = ?config.excluded_countries,
         "Received configuration from daemon",
     );
 
-    let prepared_config = match prepare_config(None, config, &proxy_dir).await {
-        Ok(prepared_config) => prepared_config,
-        Err(err) => {
-            send_error_message(&format!("{err:#}"));
-            return Err(err);
-        }
-    };
-    let (runtime_config_tx, runtime_config_rx) = watch::channel(prepared_config.runtime_config);
-    let mut config = prepared_config.config;
-
     // Start the SOCKS5 proxy listener.
-    let mut listener = match proxy::ListenerHandle::start(
-        config.listen_port,
-        runtime_config_rx,
-        tunnel_rx,
-        shutdown_token.clone(),
-    )
-    .await {
-        Ok(listener) => listener,
-        Err(err) => {
-            let msg = format!("{err:#}");
-            tracing::error!("SOCKS5 proxy failed to start: {msg}");
-            tracing::error!("SOCKS5 proxy is not currently working");
-            send_error_message(&msg);
-            return Err(err);
-        }
-    };
+    if let Err(err) = proxy::run(config, &proxy_dir, tunnel_rx, shutdown_token.clone()).await {
+        let msg = format!("{err:#}");
+        tracing::error!("SOCKS5 proxy failed to start: {msg}");
+        send_error_message(&msg);
+        return Err(err);
+    }
 
     // Notify the daemon that the proxy is bound and ready.
     send_message(&ProxyMessage::Ack);
     tracing::info!("SOCKS5 proxy ready");
 
     // Continue reading daemon messages until stdin EOF or signal.
-    let mut lines = BufReader::new(stdin()).lines();
-
-    loop {
-        tokio::select! {
-            result = lines.next_line() => {
-                match result {
-                    Ok(Some(line)) if !line.trim().is_empty() => {
-                        handle_daemon_message(
-                            &line,
-                            &mut config,
-                            &mut listener,
-                            &proxy_dir,
-                            &tunnel_tx,
-                            &runtime_config_tx,
-                            &shutdown_token,
-                        )
-                        .await;
-                    }
-                    Ok(Some(_)) => {} // blank line — ignore
-                    Ok(None) => {
-                        tracing::info!("Stdin EOF — daemon closed connection, shutting down");
-                        shutdown_token.cancel();
-                        break;
-                    }
-                    Err(err) => {
-                        tracing::warn!("Error reading stdin: {err} — shutting down");
-                        shutdown_token.cancel();
-                        break;
-                    }
-                }
-            }
-            _ = shutdown_token.cancelled() => {
-                tracing::info!("Shutdown requested, exiting message loop");
-                break;
-            }
-        }
-    }
+    message_loop(tunnel_tx, shutdown_token.clone()).await;
 
     tracing::info!("nym-socks5-proxy exiting");
     Ok(())
@@ -167,48 +109,45 @@ async fn read_initial_config(shutdown_token: &CancellationToken) -> Result<Proxy
     }
 }
 
-async fn handle_daemon_message(
+async fn message_loop(tunnel_tx: watch::Sender<Option<IpAddr>>, shutdown_token: CancellationToken) {
+    let mut lines = BufReader::new(stdin()).lines();
+
+    loop {
+        tokio::select! {
+            result = lines.next_line() => {
+                match result {
+                    Ok(Some(line)) if !line.trim().is_empty() => {
+                        handle_daemon_message(&line, &tunnel_tx, &shutdown_token);
+                    }
+                    Ok(Some(_)) => {} // blank line — ignore
+                    Ok(None) => {
+                        tracing::info!("Stdin EOF — daemon closed connection, shutting down");
+                        shutdown_token.cancel();
+                        break;
+                    }
+                    Err(err) => {
+                        tracing::warn!("Error reading stdin: {err} — shutting down");
+                        shutdown_token.cancel();
+                        break;
+                    }
+                }
+            }
+            _ = shutdown_token.cancelled() => {
+                tracing::info!("Shutdown requested, exiting message loop");
+                break;
+            }
+        }
+    }
+}
+
+fn handle_daemon_message(
     line: &str,
-    config: &mut ProxyConfig,
-    listener: &mut proxy::ListenerHandle,
-    proxy_dir: &Path,
     tunnel_tx: &watch::Sender<Option<IpAddr>>,
-    runtime_config_tx: &watch::Sender<proxy::RuntimeConfig>,
     shutdown_token: &CancellationToken,
 ) {
     match line.parse::<DaemonMessage>() {
         Ok(DaemonMessage::Configure(_)) => {
             tracing::warn!("Received unexpected duplicate Configure message — ignoring");
-        }
-        Ok(DaemonMessage::UpdateConfig(new_config)) => {
-            match prepare_config(Some(config), new_config, proxy_dir).await {
-                Ok(prepared_config) => {
-                    if prepared_config.config.listen_port != config.listen_port
-                        && let Err(err) = listener.restart(prepared_config.config.listen_port).await
-                    {
-                        let message = format!("{err:#}");
-                        tracing::error!("Failed to restart SOCKS5 proxy listener: {message}");
-                        tracing::error!("SOCKS5 proxy is not currently working");
-                        send_error_message(&message);
-                        return;
-                    }
-
-                    *config = prepared_config.config;
-                    let _ = runtime_config_tx.send(prepared_config.runtime_config);
-                    tracing::info!(
-                        enabled = config.enabled,
-                        listen_port = config.listen_port,
-                        excluded_countries = ?config.excluded_countries,
-                        "Updated SOCKS5 proxy configuration",
-                    );
-                    send_message(&ProxyMessage::Ack);
-                }
-                Err(err) => {
-                    let message = format!("{err:#}");
-                    tracing::error!("Failed to update SOCKS5 proxy configuration: {message}");
-                    send_error_message(&message);
-                }
-            }
         }
         Ok(DaemonMessage::VpnConnected(data)) => {
             tracing::info!(tunnel_addr = %data.tunnel_addr, "VPN tunnel connected");
@@ -284,54 +223,3 @@ fn init_tracing(proxy_dir: &Path, log_level: &str) -> Result<()> {
 
     Ok(())
 }
-
-async fn load_runtime_config(
-    config: &ProxyConfig,
-    proxy_dir: &Path,
-) -> Result<proxy::RuntimeConfig> {
-    if !config.enabled {
-        return Ok(proxy::RuntimeConfig {
-            enabled: false,
-            db: Arc::new(crate::routing::GeoIpDatabase::empty()),
-        });
-    }
-
-    let db = crate::routing::GeoIpDatabase::load(&config.excluded_countries, proxy_dir)
-        .await
-        .context("Failed to build GeoIP database")?;
-
-    Ok(proxy::RuntimeConfig {
-        enabled: config.enabled,
-        db: Arc::new(db),
-    })
-}
-
-struct PreparedConfig {
-    config: ProxyConfig,
-    runtime_config: proxy::RuntimeConfig,
-}
-
-async fn prepare_config(
-    current_config: Option<&ProxyConfig>,
-    incoming_config: ProxyConfig,
-    proxy_dir: &Path,
-) -> Result<PreparedConfig> {
-    let config = match current_config {
-        Some(current_config) => ProxyConfig {
-            enabled: incoming_config.enabled,
-            listen_port: incoming_config.listen_port,
-            data_dir: current_config.data_dir.clone(),
-            log_level: current_config.log_level.clone(),
-            excluded_countries: incoming_config.excluded_countries,
-        },
-        None => incoming_config,
-    };
-
-    let runtime_config = load_runtime_config(&config, proxy_dir).await?;
-
-    Ok(PreparedConfig {
-        config,
-        runtime_config,
-    })
-}
-

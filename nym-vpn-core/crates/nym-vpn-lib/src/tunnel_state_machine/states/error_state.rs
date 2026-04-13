@@ -37,7 +37,7 @@ use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU
 use crate::tunnel_state_machine::{Error, Result};
 use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
-    TunnelSettingsDiffFields, TunnelStateHandler,
+    TunnelStateHandler,
     states::{ConnectingState, DisconnectedState, OfflineState},
 };
 
@@ -92,6 +92,14 @@ impl ErrorState {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             firewall_policy_params,
         };
+
+        // Notify the SOCKS5 proxy subprocess that the VPN tunnel is down so it can
+        // revert to default routing.
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
+            shared_state.set_socks5_proxy_tunnel_addr(None);
+            shared_state.notify_socks5_proxy_disconnected();
+        }
 
         (Box::new(blocked_state), PrivateTunnelState::Error(reason))
     }
@@ -202,6 +210,7 @@ impl TunnelStateHandler for ErrorState {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
+
                         shared_state.tunnel_settings = tunnel_settings;
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -210,8 +219,8 @@ impl TunnelStateHandler for ErrorState {
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                        if diff.is_field_changed(&TunnelSettingsDiffFields::Socks5Proxy) {
-                            shared_state.update_socks5_proxy_settings();
+                        if diff.socks5_proxy_enabled_changed() {
+                            shared_state.update_socks5_proxy_state().await;
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]

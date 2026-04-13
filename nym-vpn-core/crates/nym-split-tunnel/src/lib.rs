@@ -23,24 +23,13 @@ pub use imp::*;
 #[cfg(target_os = "windows")]
 pub use imp::{install_driver_service, uninstall_driver_service};
 
+use std::net::{Ipv4Addr, Ipv6Addr};
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::{
     collections::HashSet,
-    net::{Ipv4Addr, Ipv6Addr},
     path::{Path, PathBuf},
 };
-
-pub(crate) fn effective_exclude_paths(
-    paths: &HashSet<PathBuf>,
-    socks5_proxy_path: Option<&Path>,
-) -> HashSet<PathBuf> {
-    let mut effective_paths = paths.clone();
-
-    if let Some(socks5_proxy_path) = socks5_proxy_path {
-        effective_paths.insert(socks5_proxy_path.to_path_buf());
-    }
-
-    effective_paths
-}
 
 /// VPN tunnel interface configuration used by split tunneling.
 #[derive(Debug, Clone)]
@@ -66,6 +55,20 @@ pub enum SplitTunnelErrorCause {
 
     /// Other error
     Other,
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub(crate) fn effective_exclude_paths(
+    paths: &HashSet<PathBuf>,
+    socks5_proxy_path: Option<&Path>,
+) -> HashSet<PathBuf> {
+    let mut effective_paths = paths.clone();
+
+    if let Some(socks5_proxy_path) = socks5_proxy_path {
+        effective_paths.insert(socks5_proxy_path.to_path_buf());
+    }
+
+    effective_paths
 }
 
 #[cfg(test)]

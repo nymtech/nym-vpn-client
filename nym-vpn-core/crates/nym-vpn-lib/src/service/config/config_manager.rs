@@ -9,25 +9,25 @@ use std::{
 
 use nym_common::trace_err_chain;
 use nym_registration_client::MixnetClientConfig;
-use nym_vpn_lib_types::{MixnetTrafficConfigValidationError, Socks5ProxySettings};
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
+use nym_vpn_lib_types::{MixnetTrafficConfigValidationError, Socks5ProxySettings};
 use tokio::{fs, sync::broadcast};
 
 use crate::{
+    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE,
     service::{
         config::{
-            legacy, VpnServiceConfigExt, VpnServiceConfigVersion,
-            DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML,
+            DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
+            VpnServiceConfigVersion, legacy,
         },
         error::{Error, Result},
         read_json_config_file, read_toml_config_file, write_json_config_file,
-    }, tunnel_state_machine::{
+    },
+    tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, TunnelSettings,
         WireguardMultihopMode, WireguardTunnelOptions,
     },
-    DEFAULT_MIN_GATEWAY_PERFORMANCE,
-    DEFAULT_MIN_MIXNODE_PERFORMANCE,
 };
 
 pub struct VpnServiceConfigManager {

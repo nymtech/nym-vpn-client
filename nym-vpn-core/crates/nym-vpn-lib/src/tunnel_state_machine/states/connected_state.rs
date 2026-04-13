@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use std::collections::HashSet;
@@ -21,7 +21,7 @@ use tokio_util::sync::CancellationToken;
 use crate::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
-    TunnelCommand, TunnelInterface, TunnelSettingsDiffFields, TunnelStateHandler,
+    TunnelCommand, TunnelInterface, TunnelStateHandler,
     states::{ConnectingState, DisconnectingState},
     tunnel::SelectedGateways,
     tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
@@ -121,6 +121,17 @@ impl ConnectedState {
                 _shared_state,
             )
             .await;
+        }
+
+        // Notify the SOCKS5 proxy subprocess of the VPN tunnel address so it can
+        // bind to the tunnel interface.
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
+            let tunnel_addr = match &connection_data.tunnel {
+                TunnelConnectionData::Wireguard(wg) => IpAddr::V4(wg.entry.private_ipv4),
+                TunnelConnectionData::Mixnet(mx) => IpAddr::V4(mx.ipv4),
+            };
+            _shared_state.set_socks5_proxy_tunnel_addr(Some(tunnel_addr));
         }
 
         (
@@ -277,6 +288,7 @@ impl TunnelStateHandler for ConnectedState {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
+
                         shared_state.tunnel_settings = tunnel_settings;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -322,8 +334,10 @@ impl TunnelStateHandler for ConnectedState {
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                        if diff.is_field_changed(&TunnelSettingsDiffFields::Socks5Proxy) {
-                            shared_state.update_socks5_proxy_settings();
+                        if diff.socks5_proxy_enabled_changed() {
+                            shared_state
+                                .update_socks5_proxy_state()
+                                .await;
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
