@@ -34,7 +34,6 @@ public enum ErrorReason: LocalizedError, Codable {
     case deviceTimeOutOfSync
     case ipv6Unavailable
     case inactiveSubscription
-    case pendingSubscription
     case tunDevice
     case tunnelProvider
     case inactiveAccount
@@ -76,8 +75,6 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .ipv6Unavailable
         case .inactiveSubscription:
             self = .inactiveSubscription
-        case .pendingSubscription:
-            self = .pendingSubscription
         case .setFirewallPolicy:
             self = .setFirewallPolicy
         case .setRouting:
@@ -165,8 +162,6 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .ipv6Unavailable
         case .inactiveSubscription:
             self = .inactiveSubscription
-        case .pendingSubscription:
-            self = .pendingSubscription
         case .tunDevice:
             self = .tunDevice
         case .tunnelProvider:
@@ -254,9 +249,6 @@ private extension ErrorReason {
             "errorReason.bandwidthExceeded".localizedString
         case .inactiveSubscription:
             "errorReason.subscriptionExpired".localizedString
-        // TODO: add dedicated localization key for pending subscription
-        case .pendingSubscription:
-            "errorReason.subscriptionExpired".localizedString
         case .registrationInProgress:
             "errorReason.registrattionInProgress".localizedString
         case let .internalError(message):
@@ -333,7 +325,6 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case deviceTimeOutOfSync
     case ipv6Unavailable
     case inactiveSubscription
-    case pendingSubscription
     case tunDevice
     case tunnelProvider
     case inactiveAccount
@@ -389,8 +380,6 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .ipv6Unavailable
         case .inactiveSubscription:
             self = .inactiveSubscription
-        case .pendingSubscription:
-            self = .pendingSubscription
         case .setFirewallPolicy:
             self = .setFirewallPolicy
         case .setRouting:
