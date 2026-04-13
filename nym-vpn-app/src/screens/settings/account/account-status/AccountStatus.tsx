@@ -15,7 +15,7 @@ export function AccountStatus() {
     () =>
       accountState === 'no-subscription' ||
       accountState === 'status-not-active' ||
-      !accountSummary?.['is-subscription-active'],
+      !accountSummary?.isSubscriptionActive,
     [accountState, accountSummary],
   );
 

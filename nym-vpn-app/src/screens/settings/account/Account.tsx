@@ -164,7 +164,7 @@ function Account() {
             trailing: autologinLoading ? <Spinner /> : undefined,
             onClick: handleManageSubscription,
           },
-          ...(!accountSummary?.['is-linked']
+          ...(!accountSummary?.isLinked
             ? [
                 {
                   title: t('account.account-on-nym'),
@@ -180,7 +180,7 @@ function Account() {
       />
 
       <p className="text-sm text-iron dark:text-bombay">
-        {accountSummary?.['is-linked']
+        {accountSummary?.isLinked
           ? t('account.account-linked')
           : t('account.account-not-linked')}
       </p>

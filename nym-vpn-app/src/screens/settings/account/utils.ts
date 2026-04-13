@@ -22,7 +22,7 @@ export const getAccountDescriptionColor = (
   if (state === 'offline' || state === 'status-not-active') {
     return 'text-cheddar dark:text-king-nacho ';
   }
-  if (!accountSummary?.['is-subscription-active']) {
+  if (!accountSummary?.isSubscriptionActive) {
     return 'text-aphrodisiac';
   }
   return 'text-iron dark:text-bombay';
@@ -61,7 +61,7 @@ export const getAccountStateDescription = (
       return t('account.internal', { ns: 'errors' });
   }
 
-  if (!accountSummary?.['is-subscription-active']) {
+  if (!accountSummary?.isSubscriptionActive) {
     return t('account.no-plan');
   }
 
@@ -71,12 +71,12 @@ export const getAccountStateDescription = (
 
 export const getAccountStatus = (accountSummary?: TAccountSummary | null) => {
   const subscription = accountSummary?.subscription?.subscription;
-  if (!accountSummary || subscription?.['is-recurring']) {
+  if (!accountSummary || subscription?.isRecurring) {
     return 'green';
   }
 
   const diff = dayjs
-    .unix(Number(subscription?.['valid-until-utc']))
+    .unix(Number(subscription?.validUntilUtc))
     .diff(dayjs(), 'day');
 
   if (subscription?.kind === 'freepass' || subscription?.kind === 'one-month') {

@@ -16,23 +16,21 @@ export function ActivePlan({
   const { t } = useTranslation('account');
 
   const bandwidthRemainingProgress = useMemo(() => {
-    const used = accountSummary['traffic-used-gb'];
-    const limit = accountSummary['traffic-limit-gb'];
+    const used = accountSummary.trafficUsedGb;
+    const limit = accountSummary.trafficLimitGb;
 
     return ((Number(limit) - Number(used)) / Number(limit)) * 100;
   }, [accountSummary]);
 
   const bandwidthRemainingValue = useMemo(
     () =>
-      formatGb(
-        accountSummary['traffic-limit-gb'] - accountSummary['traffic-used-gb'],
-      ),
+      formatGb(accountSummary.trafficLimitGb - accountSummary.trafficUsedGb),
     [accountSummary],
   );
 
   const resetsOn = useMemo(() => {
     return dayjs
-      .unix(Number(accountSummary['traffic-reset-time']))
+      .unix(Number(accountSummary.trafficResetTime))
       .format('DD.MM.YYYY');
   }, [accountSummary]);
 
@@ -56,7 +54,7 @@ export function ActivePlan({
             {bandwidthRemainingValue}
           </Progress.Label>
           <Progress.Label className="text-sm font-medium text-right text-iron dark:text-bombay">
-            {formatGb(accountSummary['traffic-limit-gb'])}
+            {formatGb(accountSummary.trafficLimitGb)}
           </Progress.Label>
         </Progress.Root>
         <Separator
@@ -72,7 +70,7 @@ export function ActivePlan({
           </p>
         </div>
       </CardNewBody>
-      {!accountSummary.subscription?.subscription?.['is-recurring'] && (
+      {!accountSummary.subscription?.subscription?.isRecurring && (
         <RenewButton accountSummary={accountSummary} />
       )}
     </>

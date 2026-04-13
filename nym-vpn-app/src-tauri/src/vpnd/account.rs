@@ -97,7 +97,7 @@ impl From<lib::StoredAccountMode> for StoredAccountMode {
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TSubscriptionStatus")]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "camelCase")]
 pub enum SubscriptionStatus {
     Pending,
     Active,
@@ -114,7 +114,7 @@ impl From<lib::NymVpnSubscriptionStatus> for SubscriptionStatus {
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TNymVpnSubscription")]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "camelCase")]
 pub struct NymVpnSubscription {
     pub created_on_utc: String,
     pub last_updated_utc: String,
@@ -143,7 +143,7 @@ impl From<lib::NymVpnSubscription> for NymVpnSubscription {
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TSubscription")]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "camelCase")]
 pub struct Subscription {
     pub status: SubscriptionStatus,
     pub subscription: NymVpnSubscription,
@@ -160,7 +160,7 @@ impl From<lib::Subscription> for Subscription {
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TAccountSummary")]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "camelCase")]
 pub struct AccountSummary {
     pub traffic_used_gb: u64,
     pub traffic_limit_gb: u64,

@@ -330,15 +330,15 @@ export type TAccountState =
   | { error: TBackendError };
 
 export type TAccountSummary = {
-  'traffic-used-gb': bigint;
-  'traffic-limit-gb': bigint;
-  'traffic-reset-time': bigint | null;
-  'account-addr': string;
-  'canonical-account-addr': string | null;
-  'auth-methods': Array<TAuthMethod>;
-  'is-linked': boolean;
-  'fair-usage-left': boolean;
-  'is-subscription-active': boolean;
+  trafficUsedGb: bigint;
+  trafficLimitGb: bigint;
+  trafficResetTime: bigint | null;
+  accountAddr: string;
+  canonicalAccountAddr: string | null;
+  authMethods: Array<TAuthMethod>;
+  isLinked: boolean;
+  fairUsageLeft: boolean;
+  isSubscriptionActive: boolean;
   subscription: TSubscription | null;
 };
 
@@ -433,14 +433,14 @@ export type THttpReport = {
 };
 
 export type TNymVpnSubscription = {
-  'created-on-utc': string;
-  'last-updated-utc': string;
+  createdOnUtc: string;
+  lastUpdatedUtc: string;
   id: string;
-  'valid-until-utc': bigint;
-  'valid-from-utc': bigint;
+  validUntilUtc: bigint;
+  validFromUtc: bigint;
   status: string;
   kind: TVpnSubscriptionKind;
-  'is-recurring': boolean;
+  isRecurring: boolean;
 };
 
 export type TSubscription = {
