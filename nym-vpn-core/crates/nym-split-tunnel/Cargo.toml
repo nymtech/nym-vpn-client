@@ -9,6 +9,12 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
+[lints]
+workspace = true
+
+[features]
+cgroup2 = ["dep:nym-firewall"]
+
 [dependencies]
 either = { workspace = true, features = ["serde"] }
 futures-util.workspace = true
@@ -51,5 +57,14 @@ windows-sys = { workspace = true, features = [
     "Win32_System_ProcessStatus",
 ] }
 
-[lints]
-workspace = true
+[target.'cfg(target_os = "linux")'.dependencies]
+bytes.workspace = true
+netlink-sys = { workspace = true, features = ["tokio_socket"] }
+mnl = { workspace = true, features = ["mnl-1-0-4"] }
+# NOTE: the libnftnl version specified in `features`
+# MUST match the version that we link against
+nftnl = { workspace = true, features = ["nftnl-1-2-0"] }
+nix = { workspace = true, features = ["fs", "mount", "process"] }
+nym-cgroup.workspace = true
+nym-dbus.workspace = true
+nym-firewall = { workspace = true, optional = true }

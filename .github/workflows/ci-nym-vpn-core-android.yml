@@ -34,7 +34,7 @@ jobs:
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
-          targets: aarch64-linux-android
+          targets: aarch64-linux-android,x86_64-linux-android
 
       - name: Install cargo-ndk
         uses: baptiste0928/cargo-install@v3

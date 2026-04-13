@@ -1060,6 +1060,25 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(proto_report))
     }
 
+    async fn is_split_tunnel_supported(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<bool>> {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            let is_available = self
+                .send_and_wait(
+                    VpnServiceCommand::IsSplitTunnelSupported,
+                    _request.into_inner(),
+                )
+                .await?;
+            Ok(tonic::Response::new(is_available))
+        }
+
+        #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
     async fn set_enable_split_tunnel(
         &self,
         _request: tonic::Request<bool>,
@@ -1129,7 +1148,7 @@ impl NymVpnService for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::SplitTunnelExcludedProcessList>> {
-        #[cfg(target_os = "macos")]
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
         {
             let res = self
                 .send_and_wait(VpnServiceCommand::GetSplitTunnelExcludedProcesses, ())
@@ -1138,7 +1157,7 @@ impl NymVpnService for CommandInterface {
             Ok(tonic::Response::new(res))
         }
 
-        #[cfg(not(target_os = "macos"))]
+        #[cfg(not(any(target_os = "linux", target_os = "macos")))]
         Err(tonic::Status::internal("Unsupported platform"))
     }
 
@@ -1155,6 +1174,53 @@ impl NymVpnService for CommandInterface {
         }
 
         #[cfg(not(target_os = "macos"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn add_split_tunnel_process(
+        &self,
+        _request: tonic::Request<i32>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "linux")]
+        {
+            let pid = _request.into_inner();
+            self.send_and_wait(VpnServiceCommand::AddSplitTunnelProcess, pid)
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn remove_split_tunnel_process(
+        &self,
+        _request: tonic::Request<i32>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "linux")]
+        {
+            let pid = _request.into_inner();
+            self.send_and_wait(VpnServiceCommand::RemoveSplitTunnelProcess, pid)
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        Err(tonic::Status::internal("Unsupported platform"))
+    }
+
+    async fn clear_split_tunnel_processes(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "linux")]
+        {
+            self.send_and_wait(VpnServiceCommand::ClearSplitTunnelProcesses, ())
+                .await?;
+            Ok(tonic::Response::new(()))
+        }
+
+        #[cfg(not(target_os = "linux"))]
         Err(tonic::Status::internal("Unsupported platform"))
     }
 }
@@ -1189,8 +1255,12 @@ pub async fn start_command_interface(
             let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx);
 
             let server = Server::builder().add_service(NymVpnServiceServer::new(command_interface));
+            // Linux needs to handle the shutdown internally first, as it spawns an authentication prompt that needs to
+            // be closed in case of shutdown, so the stream can't be shutdown by tonic before that happens...
             #[cfg(target_os = "linux")]
             let ret = server.serve_with_incoming(incoming).await;
+            // ... but non-Linux desktops do authentication by signature verification, which can be stopped at any moment,
+            // so we serve it by attaching the shutdown token to tonic directly
             #[cfg(not(target_os = "linux"))]
             let ret = server
                 .serve_with_incoming_shutdown(

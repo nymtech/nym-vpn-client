@@ -1,0 +1,17 @@
+[package]
+name = "nym-cgroup"
+edition.workspace = true
+rust-version.workspace = true
+description = "An abstraction for linux cgroup"
+repository.workspace = true
+license.workspace = true
+version.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+anyhow.workspace = true
+log.workspace = true
+nix = { workspace = true, features = ["fs", "mount", "process"] }
+thiserror.workspace = true
+
+[lints]
+workspace = true

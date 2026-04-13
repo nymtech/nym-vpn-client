@@ -10,7 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [Windows] App Split Tunnelling (https://github.com/nymtech/nym-vpn-client/pull/4908).
-- CLI: add command to list processes excluded from VPN tunnel: `nym-vpnc split-tunnel excluded-processes`
+- CLI: add command to list processes excluded from VPN tunnel: `nym-vpnc split-tunnel excluded-processes` (https://github.com/nymtech/nym-vpn-client/pull/4905)
+- [Linux] Add support for per-app split-tunneling (https://github.com/nymtech/nym-vpn-client/pull/5001).
+
+### Changed
+
+- Stream SelectedGateways via buffered selection (https://github.com/nymtech/nym-vpn-client/pull/5037)
 
 ### Fixed
 

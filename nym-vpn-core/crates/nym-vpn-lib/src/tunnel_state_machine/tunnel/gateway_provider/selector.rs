@@ -5,8 +5,8 @@ use std::{net::SocketAddr, sync::Arc};
 
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{
-    BlacklistedGateways, EntryPoint, ExitPoint, Gateway, GatewayCacheHandle, GatewayFilter,
-    GatewayFilters, GatewayList, GatewayType,
+    BlacklistedGateways, EntryPoint, ExitPoint, Gateway, GatewayFilter, GatewayFilters,
+    GatewayList, GatewayType,
 };
 use nym_registration_client::RegistrationNymNode;
 use nym_registration_common::{NymNodeInformation, NymNodeLPInformation};
@@ -14,7 +14,10 @@ use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
 use crate::{
     GatewayDirectoryError,
-    tunnel_state_machine::{TunnelSettings, TunnelType, tunnel},
+    tunnel_state_machine::{
+        TunnelSettings, TunnelType,
+        tunnel::{self, gateway_provider::gateway_cache::GatewayCache},
+    },
 };
 
 #[derive(Clone)]
@@ -119,7 +122,7 @@ impl SelectedGateways {
 }
 
 pub async fn select_gateways(
-    gateway_cache_handle: GatewayCacheHandle,
+    gateway_cache: impl GatewayCache,
     blacklisted_entry_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     wg_keys_db: WireguardKeysDb,
@@ -147,7 +150,7 @@ pub async fn select_gateways(
 
     let (mut entry_gateways, exit_gateways) = match tunnel_settings.tunnel_type {
         TunnelType::Wireguard => {
-            let all_gateways = gateway_cache_handle
+            let all_gateways = gateway_cache
                 .lookup_gateways(GatewayType::Wg)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
@@ -169,21 +172,18 @@ pub async fn select_gateways(
         }
         TunnelType::Mixnet => {
             // Setup the gateway that we will use as the exit point
-            let exit_gateways = gateway_cache_handle
+            let exit_gateways = gateway_cache
                 .lookup_gateways(GatewayType::MixnetExit)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
             // Setup the gateway that we will use as the entry point
-            let entry_gateways = gateway_cache_handle
+            let entry_gateways = gateway_cache
                 .lookup_gateways(GatewayType::MixnetEntry)
                 .await
                 .map_err(GatewayDirectoryError::LookupGateways)?;
             (entry_gateways, exit_gateways)
         }
     };
-
-    tracing::info!("Found {} entry gateways", entry_gateways.len());
-    tracing::info!("Found {} exit gateways", exit_gateways.len());
 
     let exit_filters = if tunnel_settings.residential_exit {
         GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
@@ -228,36 +228,6 @@ pub async fn select_gateways(
         })?
         .exit_keypair()
         .clone();
-
-    tracing::debug!("Using entry public key: {}", entry_keys.public_key());
-    tracing::debug!("Using exit public key: {}", exit_keys.public_key());
-
-    tracing::info!(
-        "Using entry gateway: {}, location: {}, performance: {}",
-        entry_gateway.identity(),
-        entry_gateway
-            .two_letter_iso_country_code()
-            .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
-        entry_gateway
-            .mixnet_performance
-            .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
-    );
-    tracing::info!(
-        "Using exit gateway: {}, location: {}, performance: {}",
-        exit_gateway.identity(),
-        exit_gateway
-            .two_letter_iso_country_code()
-            .map_or_else(|| "unknown".to_string(), |code| code.to_string()),
-        exit_gateway
-            .mixnet_performance
-            .map_or_else(|| "unknown".to_string(), |perf| perf.to_string()),
-    );
-    tracing::info!(
-        "Using exit router address {}",
-        exit_gateway
-            .ipr_address
-            .map_or_else(|| "none".to_string(), |ipr| ipr.to_string())
-    );
 
     Ok(SelectedGateways {
         entry: Box::new(GatewayWithKeys {
