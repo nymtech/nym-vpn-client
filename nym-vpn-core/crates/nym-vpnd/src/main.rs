@@ -11,7 +11,6 @@ mod windows_service;
 
 use anyhow::Context;
 use clap::Parser;
-use nym_vpn_network_config::NetworkCache;
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -22,12 +21,10 @@ use nym_vpn_lib::{
     logging::LogFileRemoverHandle,
     service::{NymVpnService, NymVpnServiceParameters, ServiceConfigStorageType},
 };
-
 #[cfg(target_os = "windows")]
 use nym_vpn_lib::{install_split_tunnel_driver_service, uninstall_split_tunnel_driver_service};
-
 use nym_vpn_lib_types::LogPath;
-
+use nym_vpn_network_config::NetworkCache;
 #[cfg(target_os = "windows")]
 use windows_service::{
     SERVICE_NAME,
