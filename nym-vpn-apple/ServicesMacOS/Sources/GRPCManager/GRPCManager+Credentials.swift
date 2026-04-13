@@ -25,8 +25,9 @@ extension GRPCManager {
     public func accountSummary() async throws -> AccountSummary? {
         try await Task.detached { [weak self] in
             guard let summary = try await self?.rpcClient?.getAccountSummary() else { return nil }
+            let innerSub = summary.subscription?.subscription
             return AccountSummary(
-                validUntilTimeInterval: summary.subscriptionValidUntil,
+                validUntilTimeInterval: innerSub?.validUntilUtc,
                 trafficUsedGb: summary.trafficUsedGb,
                 trafficLimitGb: summary.trafficLimitGb,
                 trafficResetTimeInterval: summary.trafficResetTime,
@@ -35,8 +36,8 @@ extension GRPCManager {
                 accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
                 isLinked: summary.isLinked(),
                 isActive: summary.isSubscriptionActive(),
-                isAutoRenewEnabled: summary.isRecurring,
-                subscriptionKind: summary.subscriptionKind.map { VpnSubscriptionKind(from: $0) }
+                isAutoRenewEnabled: innerSub?.isRecurring ?? false,
+                subscriptionKind: innerSub.map { VpnSubscriptionKind(from: $0.kind) }
             )
         }.value
     }

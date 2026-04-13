@@ -14,14 +14,15 @@ export const getAccountDescriptionColor = (
     state === 'no-subscription' ||
     state === 'bandwidth-exceeded' ||
     state === 'max-device-reached' ||
-    state === 'error'
+    state === 'error' ||
+    state === 'pending-subscription'
   ) {
     return 'text-aphrodisiac';
   }
   if (state === 'offline' || state === 'status-not-active') {
     return 'text-cheddar dark:text-king-nacho ';
   }
-  if (!accountSummary?.['is-subscription-active']) {
+  if (!accountSummary?.isSubscriptionActive) {
     return 'text-aphrodisiac';
   }
   return 'text-iron dark:text-bombay';
@@ -52,13 +53,15 @@ export const getAccountStateDescription = (
       return t('account.bandwidth-exceeded');
     case 'requesting-zk-nyms':
       return t('account.requesting-zknyms');
+    case 'pending-subscription':
+      return t('account.pending-subscription', { ns: 'errors' });
     case 'offline':
       return t('account.offline', { ns: 'errors' });
     case 'error':
       return t('account.internal', { ns: 'errors' });
   }
 
-  if (!accountSummary?.['is-subscription-active']) {
+  if (!accountSummary?.isSubscriptionActive) {
     return t('account.no-plan');
   }
 
@@ -67,18 +70,16 @@ export const getAccountStateDescription = (
 };
 
 export const getAccountStatus = (accountSummary?: TAccountSummary | null) => {
-  if (!accountSummary || accountSummary?.['is-recurring']) {
+  const subscription = accountSummary?.subscription?.subscription;
+  if (!accountSummary || subscription?.isRecurring) {
     return 'green';
   }
 
   const diff = dayjs
-    .unix(Number(accountSummary?.['subscription-valid-until']))
+    .unix(Number(subscription?.validUntilUtc))
     .diff(dayjs(), 'day');
 
-  if (
-    accountSummary?.['subscription-kind'] === 'freepass' ||
-    accountSummary?.['subscription-kind'] === 'one-month'
-  ) {
+  if (subscription?.kind === 'freepass' || subscription?.kind === 'one-month') {
     if (diff < 3) return 'amber'; // 2 days left
     if (diff < 8) return 'yellow'; // 7 days left
     return 'green';

@@ -11,11 +11,11 @@ export type Address = { nymAddress: string; gatewayId: string };
 export type App = {
   name: string;
   /**
-   * Absolute path to the `.exe` file, when resolvable.
+   * Absolute path to the main executable.
    */
   executable_path: string;
   /**
-   * Absolute path to the icon file.
+   * Absolute path to the cached icon PNG, when available. Stored in tauri app cache directory.
    */
   icon: string | null;
 };
@@ -324,23 +324,22 @@ export type TAccountState =
   | 'bandwidth-exceeded'
   | 'status-not-active'
   | 'no-subscription'
+  | 'pending-subscription'
   | 'max-device-reached'
   | 'requesting-zk-nyms'
   | { error: TBackendError };
 
 export type TAccountSummary = {
-  'subscription-valid-until': bigint | null;
-  'traffic-used-gb': bigint;
-  'traffic-limit-gb': bigint;
-  'traffic-reset-time': bigint | null;
-  'account-addr': string;
-  'canonical-account-addr': string | null;
-  'auth-methods': Array<TAuthMethod>;
-  'is-linked': boolean;
-  'fair-usage-left': boolean;
-  'is-subscription-active': boolean;
-  'subscription-kind': TVpnSubscriptionKind | null;
-  'is-recurring': boolean;
+  trafficUsedGb: bigint;
+  trafficLimitGb: bigint;
+  trafficResetTime: bigint | null;
+  accountAddr: string;
+  canonicalAccountAddr: string | null;
+  authMethods: Array<TAuthMethod>;
+  isLinked: boolean;
+  fairUsageLeft: boolean;
+  isSubscriptionActive: boolean;
+  subscription: TSubscription | null;
 };
 
 export type TApiTimeSkew = {
@@ -432,6 +431,24 @@ export type THttpReport = {
   healthResponse: TDiagnosticResult<TDiagnosticHealthResponse>;
   nbNymnodes: TDiagnosticResult<number>;
 };
+
+export type TNymVpnSubscription = {
+  createdOnUtc: string;
+  lastUpdatedUtc: string;
+  id: string;
+  validUntilUtc: bigint;
+  validFromUtc: bigint;
+  status: string;
+  kind: TVpnSubscriptionKind;
+  isRecurring: boolean;
+};
+
+export type TSubscription = {
+  status: TSubscriptionStatus;
+  subscription: TNymVpnSubscription;
+};
+
+export type TSubscriptionStatus = 'pending' | 'active';
 
 export type TTunnelState =
   | 'disconnected'

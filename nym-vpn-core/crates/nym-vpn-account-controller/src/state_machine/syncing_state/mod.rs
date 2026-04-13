@@ -8,7 +8,8 @@ use crate::{
     commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
-        NextAccountControllerState, OfflineState, PrivateAccountControllerState,
+        NextAccountControllerState, OfflineState, PendingSubscriptionState,
+        PrivateAccountControllerState,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -38,7 +39,7 @@ const BACKOFF_BASE: u32 = 2;
 
 enum SyncEvent {
     /// Account summary is received
-    AccountSummary(VpnAccountSummary),
+    AccountSummary(Box<VpnAccountSummary>),
 
     /// Failure to complete synchronization
     Failure(SyncError),
@@ -86,9 +87,10 @@ impl SyncingState {
             return DecentralisedState::enter();
         }
         let Some(device) = shared_state.device.clone() else {
-            return ErrorState::enter(
-                SyncError::Internal("Logged in, but no device keys".into()).into(),
-            );
+            return ErrorState::enter(AccountControllerErrorStateReason::Internal {
+                context: SYNCING_STATE_CONTEXT.into(),
+                details: "Logged in, but no device keys".into(),
+            });
         };
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
@@ -187,13 +189,18 @@ impl SyncingState {
             Some(nym_vpn_store::types::StoredAccountMode::from(vpn_api_account.mode()).into());
 
         // Propagate account summary even if sync eventually fails.
-        let _ = event_tx.send(SyncEvent::AccountSummary(vpn_account_summary.clone()));
+        let _ = event_tx.send(SyncEvent::AccountSummary(Box::new(
+            vpn_account_summary.clone(),
+        )));
 
         // Checking that the account is active
         if !summary.account_active() {
             Err(SyncError::InactiveAccount(
                 summary.account_summary.account.status.to_string(),
             ))
+        } else if summary.subscription_pending() {
+            // subscription exists but is not yet active (e.g. cash payment still processing)
+            Err(SyncError::PendingSubscription)
         } else if !summary.subscription_active() {
             // that there is an active subscription
             Err(SyncError::InactiveSubscription)
@@ -266,26 +273,34 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
             Some(sync_event) = self.event_rx.recv() => {
                 match sync_event {
                     SyncEvent::AccountSummary(vpn_account_summary) => {
-                        shared_state.vpn_account_summary = Some(vpn_account_summary);
+                        shared_state.vpn_account_summary = Some(*vpn_account_summary);
                         NextAccountControllerState::SameState(self)
                     }
                     SyncEvent::Failure(err) => {
-                        if err.is_retryable() {
-                            if self.attempts > MAX_SYNCING_ATTEMPTS {
-                                tracing::debug!("Error trying to get account summary, exhausted retries : {}", err.to_string());
-                                NextAccountControllerState::NewState(ErrorState::enter(err.into()))
-                            } else {
-                                tracing::debug!(
-                                    "Error trying to get account summary attempt {}, retrying after {:?} : {}",
-                                    self.attempts,
-                                    Self::get_delay(self.attempts+1),
-                                    err.to_string()
-                                );
-                                NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
+                        let is_retryable = err.is_retryable();
+                        let err_str = err.to_string();
+                        match err.into_error_reason() {
+                            None => {
+                                tracing::debug!("Subscription is pending, waiting before retrying");
+                                NextAccountControllerState::NewState(PendingSubscriptionState::enter())
                             }
-                        } else {
-                            tracing::debug!("Error trying to get account summary, not retrying : {}", err.to_string());
-                            NextAccountControllerState::NewState(ErrorState::enter(err.into()))
+                            Some(reason) if is_retryable => {
+                                if self.attempts > MAX_SYNCING_ATTEMPTS {
+                                    tracing::debug!("Error trying to get account summary, exhausted retries : {err_str}");
+                                    NextAccountControllerState::NewState(ErrorState::enter(reason))
+                                } else {
+                                    tracing::debug!(
+                                        "Error trying to get account summary attempt {}, retrying after {:?} : {err_str}",
+                                        self.attempts,
+                                        Self::get_delay(self.attempts + 1),
+                                    );
+                                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
+                                }
+                            }
+                            Some(reason) => {
+                                tracing::debug!("Error trying to get account summary, not retrying : {err_str}");
+                                NextAccountControllerState::NewState(ErrorState::enter(reason))
+                            }
                         }
                     }
                     SyncEvent::Finished => {
@@ -381,10 +396,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
 
 #[derive(Debug, strum::Display)]
 enum SyncError {
-    Internal(String),
     InactiveAccount(String),
     UnregisteredAccount,
     InactiveSubscription,
+    PendingSubscription,
     ApiRequestError(String),
     ApiResponseError { details: String },
     DeviceTimeDesynced,
@@ -401,6 +416,37 @@ impl SyncError {
                 | SyncError::InactiveSubscription // in the case of IAP, it might take a while for the subscription to become active
         )
     }
+
+    /// Returns the corresponding error reason for the error state, or `None` if the error
+    /// should not result in an error state (e.g. pending subscription has its own state).
+    fn into_error_reason(self) -> Option<AccountControllerErrorStateReason> {
+        use SyncError::*;
+        match self {
+            PendingSubscription => None,
+            InactiveAccount(status) => {
+                Some(AccountControllerErrorStateReason::AccountStatusNotActive { status })
+            }
+            UnregisteredAccount => {
+                Some(AccountControllerErrorStateReason::AccountStatusNotActive {
+                    status: "unregistered".into(),
+                })
+            }
+            InactiveSubscription => Some(AccountControllerErrorStateReason::InactiveSubscription),
+            ApiRequestError(e) => Some(AccountControllerErrorStateReason::ApiFailure {
+                context: SYNCING_STATE_CONTEXT.into(),
+                details: e,
+            }),
+            ApiResponseError { details } => Some(AccountControllerErrorStateReason::ApiFailure {
+                context: SYNCING_STATE_CONTEXT.into(),
+                details,
+            }),
+            DeviceTimeDesynced => Some(AccountControllerErrorStateReason::DeviceTimeDesynced),
+            MaxDeviceReached => Some(AccountControllerErrorStateReason::MaxDeviceReached),
+            FairUsageDepleted => Some(AccountControllerErrorStateReason::BandwidthExceeded {
+                context: SYNCING_STATE_CONTEXT.into(),
+            }),
+        }
+    }
 }
 
 impl From<VpnApiClientError> for SyncError {
@@ -412,36 +458,6 @@ impl From<VpnApiClientError> for SyncError {
                     .unwrap_or(error_response.message),
             },
             Err(e) => SyncError::ApiRequestError(e.to_string()),
-        }
-    }
-}
-
-impl From<SyncError> for AccountControllerErrorStateReason {
-    fn from(value: SyncError) -> Self {
-        use SyncError::*;
-        match value {
-            Internal(details) => Self::Internal {
-                context: SYNCING_STATE_CONTEXT.into(),
-                details,
-            },
-            InactiveAccount(status) => Self::AccountStatusNotActive { status },
-            UnregisteredAccount => Self::AccountStatusNotActive {
-                status: "unregistered".into(),
-            },
-            InactiveSubscription => Self::InactiveSubscription,
-            ApiRequestError(e) => Self::ApiFailure {
-                context: SYNCING_STATE_CONTEXT.into(),
-                details: e,
-            },
-            ApiResponseError { details } => Self::ApiFailure {
-                context: SYNCING_STATE_CONTEXT.into(),
-                details,
-            },
-            DeviceTimeDesynced => Self::DeviceTimeDesynced,
-            MaxDeviceReached => Self::MaxDeviceReached,
-            FairUsageDepleted => Self::BandwidthExceeded {
-                context: SYNCING_STATE_CONTEXT.into(),
-            },
         }
     }
 }

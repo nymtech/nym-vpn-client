@@ -706,6 +706,7 @@ message AccountControllerState {
   message Offline {}
   message Decentralised {}
   message UpgradeMode {}
+  message PendingSubscription {}
 
   oneof state {
     LoggedOut logged_out = 1;
@@ -716,6 +717,7 @@ message AccountControllerState {
     Offline offline = 5;
     Decentralised decentralised = 6;
     UpgradeMode upgrade_mode = 8;
+    PendingSubscription pending_subscription = 9;
   }
 }
 
@@ -880,7 +882,6 @@ message VpnAccountSummaryResponse {
 }
 
 message VpnAccountSummary {
-  optional google.protobuf.Timestamp subscription_valid_until = 1;
   uint64 traffic_used_gb = 2;
   uint64 traffic_limit_gb = 3;
   optional google.protobuf.Timestamp traffic_reset_time = 4;
@@ -888,8 +889,28 @@ message VpnAccountSummary {
   optional string canonical_account_addr = 6;
   repeated VpnAccountAuthMethod auth_methods = 7;
   optional StoredAccountMode account_mode = 8;
-  optional NymVpnSubscriptionKind subscription_kind = 9;
-  bool is_recurring = 10;
+  optional Subscription subscription = 12;
+}
+
+message NymVpnSubscription {
+  string created_on_utc = 1;
+  string last_updated_utc = 2;
+  string id = 3;
+  int64 valid_until_utc = 4;
+  int64 valid_from_utc = 5;
+  string status = 6;
+  NymVpnSubscriptionKind kind = 7;
+  bool is_recurring = 8;
+}
+
+message Subscription {
+  NymVpnSubscriptionStatus status = 1;
+  NymVpnSubscription subscription = 2;
+}
+
+enum NymVpnSubscriptionStatus {
+  SUBSCRIPTION_PENDING = 0;
+  SUBSCRIPTION_ACTIVE = 1;
 }
 
 message VpnAccountAuthMethod {

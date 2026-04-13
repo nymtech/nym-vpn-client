@@ -14,6 +14,7 @@ mod decentralised_state;
 mod error_state;
 mod logged_out_state;
 mod offline_state;
+mod pending_subscription_state;
 mod ready_state;
 mod syncing_state;
 mod upgrade_mode_state;
@@ -21,6 +22,9 @@ mod upgrade_mode_state;
 
 /// Account stored, online, can't proceed without user action and/or temporary failure somewhere
 pub(crate) use error_state::ErrorState;
+
+/// Account stored, online, subscription is pending (e.g. cash payment processing)
+pub(crate) use pending_subscription_state::PendingSubscriptionState;
 
 /// No account stored, online
 pub use logged_out_state::LoggedOutState;
@@ -104,6 +108,7 @@ impl From<PrivateAccountControllerState> for AccountControllerState {
             PrivateAccountControllerState::ReadyToConnect => Self::ReadyToConnect,
             PrivateAccountControllerState::Decentralised => Self::Decentralised,
             PrivateAccountControllerState::UpgradeMode => Self::UpgradeMode,
+            PrivateAccountControllerState::PendingSubscription => Self::PendingSubscription,
             PrivateAccountControllerState::Error(reason) => Self::Error(reason),
             PrivateAccountControllerState::RequestingZkNyms => Self::RequestingZkNyms,
         }
@@ -119,6 +124,7 @@ pub(super) enum PrivateAccountControllerState {
     ReadyToConnect,
     Decentralised,
     UpgradeMode,
+    PendingSubscription,
     Error(AccountControllerErrorStateReason),
     RequestingZkNyms,
 }

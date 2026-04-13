@@ -20,6 +20,7 @@ pub enum AccountState {
     BandwidthExceeded,
     StatusNotActive,
     NoSubscription,
+    PendingSubscription,
     MaxDeviceReached,
     RequestingZkNyms,
     Error(BackendError),
@@ -29,6 +30,7 @@ impl AccountState {
     pub fn from_lib(state: lib::AccountControllerState) -> AccountState {
         match state {
             lib::AccountControllerState::LoggedOut => AccountState::LoggedOut,
+            lib::AccountControllerState::PendingSubscription => AccountState::PendingSubscription,
             lib::AccountControllerState::Syncing => AccountState::Syncing,
             lib::AccountControllerState::ReadyToConnect => AccountState::Ready,
             lib::AccountControllerState::Decentralised => AccountState::Decentralised,
@@ -94,10 +96,72 @@ impl From<lib::StoredAccountMode> for StoredAccountMode {
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TSubscriptionStatus")]
+#[serde(rename_all = "camelCase")]
+pub enum SubscriptionStatus {
+    Pending,
+    Active,
+}
+
+impl From<lib::NymVpnSubscriptionStatus> for SubscriptionStatus {
+    fn from(status: lib::NymVpnSubscriptionStatus) -> Self {
+        match status {
+            lib::NymVpnSubscriptionStatus::Pending => SubscriptionStatus::Pending,
+            lib::NymVpnSubscriptionStatus::Active => SubscriptionStatus::Active,
+        }
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TNymVpnSubscription")]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnSubscription {
+    pub created_on_utc: String,
+    pub last_updated_utc: String,
+    pub id: String,
+    pub valid_until_utc: i64,
+    pub valid_from_utc: i64,
+    pub status: String,
+    pub kind: VpnSubscriptionKind,
+    pub is_recurring: bool,
+}
+
+impl From<lib::NymVpnSubscription> for NymVpnSubscription {
+    fn from(sub: lib::NymVpnSubscription) -> Self {
+        NymVpnSubscription {
+            created_on_utc: sub.created_on_utc,
+            last_updated_utc: sub.last_updated_utc,
+            id: sub.id,
+            valid_until_utc: sub.valid_until_utc,
+            valid_from_utc: sub.valid_from_utc,
+            status: sub.status,
+            kind: VpnSubscriptionKind::from(sub.kind),
+            is_recurring: sub.is_recurring,
+        }
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TSubscription")]
+#[serde(rename_all = "camelCase")]
+pub struct Subscription {
+    pub status: SubscriptionStatus,
+    pub subscription: NymVpnSubscription,
+}
+
+impl From<lib::Subscription> for Subscription {
+    fn from(sub: lib::Subscription) -> Self {
+        Subscription {
+            status: SubscriptionStatus::from(sub.status),
+            subscription: NymVpnSubscription::from(sub.subscription),
+        }
+    }
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts", rename = "TAccountSummary")]
-#[serde(rename_all = "kebab-case")]
+#[serde(rename_all = "camelCase")]
 pub struct AccountSummary {
-    pub subscription_valid_until: Option<i64>,
     pub traffic_used_gb: u64,
     pub traffic_limit_gb: u64,
     pub traffic_reset_time: Option<i64>,
@@ -107,8 +171,7 @@ pub struct AccountSummary {
     pub is_linked: bool,
     pub fair_usage_left: bool,
     pub is_subscription_active: bool,
-    pub subscription_kind: Option<VpnSubscriptionKind>,
-    pub is_recurring: bool,
+    pub subscription: Option<Subscription>,
 }
 
 impl From<lib::VpnAccountSummary> for AccountSummary {
@@ -118,9 +181,6 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
         let is_subscription_active = summary.is_subscription_active();
 
         AccountSummary {
-            subscription_valid_until: summary
-                .subscription_valid_until
-                .map(|dt| dt.unix_timestamp()),
             traffic_used_gb: summary.traffic_used_gb,
             traffic_limit_gb: summary.traffic_limit_gb,
             traffic_reset_time: summary.traffic_reset_time.map(|dt| dt.unix_timestamp()),
@@ -134,8 +194,7 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
             is_linked,
             fair_usage_left,
             is_subscription_active,
-            subscription_kind: summary.subscription_kind.map(VpnSubscriptionKind::from),
-            is_recurring: summary.is_recurring,
+            subscription: summary.subscription.map(Subscription::from),
         }
     }
 }

@@ -88,6 +88,11 @@ impl NymVpnAccountSummaryWithDeviceResponse {
         self.account_summary.subscription.is_active
     }
 
+    pub fn subscription_pending(&self) -> bool {
+        !self.account_summary.subscription.is_active
+            && self.account_summary.subscription.pending.is_some()
+    }
+
     pub fn bandwidth_limit(&self) -> u64 {
         self.account_summary.fair_usage.limitGB
     }
@@ -106,6 +111,7 @@ impl NymVpnAccountSummaryWithDeviceResponse {
 pub struct NymVpnAccountSummarySubscription {
     pub is_active: bool,
     pub active: Option<NymVpnSubscription>,
+    pub pending: Option<NymVpnSubscription>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
