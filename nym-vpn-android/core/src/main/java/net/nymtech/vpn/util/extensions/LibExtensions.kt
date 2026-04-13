@@ -71,8 +71,6 @@ fun ErrorStateReason.toHumanReadableString(context: Context): String = when (thi
 	ErrorStateReason.BandwidthExceeded -> context.getString(R.string.error_reason_bandwidth_exceeded)
 	ErrorStateReason.InactiveAccount -> context.getString(R.string.error_reason_inactive_account)
 	ErrorStateReason.InactiveSubscription -> context.getString(R.string.error_reason_inactive_subscription)
-	// TODO: add dedicated string for pending subscription
-	ErrorStateReason.PendingSubscription -> context.getString(R.string.error_reason_inactive_subscription)
 	ErrorStateReason.MaxDevicesReached -> context.getString(R.string.error_reason_max_devices_reached)
 	ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.error_reason_device_time_out_of_sync)
 	ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_reason_device_logged_out)
