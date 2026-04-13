@@ -80,7 +80,7 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-react": "^7.34.4",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "globals": "^16.0.0",
+    "globals": "^17.5.0",
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.2.1",
