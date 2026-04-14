@@ -14,6 +14,7 @@ use nym_vpn_api_client::{
 };
 use rand::seq::IteratorRandom;
 use std::{
+    cmp::Ordering,
     collections::HashSet,
     fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
@@ -726,9 +727,18 @@ impl GatewayList {
             .choose(&mut rand::thread_rng())
     }
 
-    pub fn remove_gateway(&mut self, entry_gateway: &Gateway) {
-        self.gateways
-            .retain(|gateway| gateway.identity() != entry_gateway.identity());
+    pub fn filtered_min_by<F>(&self, filters: &GatewayFilters, cmp: F) -> Option<Gateway>
+    where
+        F: FnMut(&Gateway, &Gateway) -> Ordering,
+    {
+        self.filter(filters).into_iter().min_by(cmp)
+    }
+
+    pub fn retain_gateways_by<F>(&mut self, pred: F)
+    where
+        F: FnMut(&Gateway) -> bool,
+    {
+        self.gateways.retain(pred);
     }
 
     pub fn gw_type(&self) -> Option<GatewayType> {
@@ -820,7 +830,7 @@ impl GatewayList {
 
     /// Find the "best" entry gateway that matches `entry_point` using a descending score system.
     /// If no gateway matches the highest score, it will try the next lower score, and so on.
-    pub fn find_best_entry_gateway(
+    pub fn find_best_entry_point_gateway(
         &self,
         entry_point: &EntryPoint,
         base_filters: &GatewayFilters,
@@ -858,6 +868,28 @@ impl GatewayList {
             }),
             EntryPoint::Random => Err(Error::FailedToSelectGatewayRandomly),
         }
+    }
+
+    /// Find the "best" gateway with a given ordering criteria, using a descending score system.
+    /// If no gateway matches the highest score, it will try the next lower score, and so on.
+    pub fn find_best_ordering_criteria_gateway<F>(
+        &self,
+        mut ordering_criteria: F,
+        base_filters: &GatewayFilters,
+    ) -> Result<Gateway>
+    where
+        F: FnMut(&Gateway, &Gateway) -> Ordering,
+    {
+        for score in [ScoreValue::High, ScoreValue::Medium, ScoreValue::Low] {
+            tracing::debug!("Looking for gateway with minimum score: {score}");
+
+            let filters = base_filters.with(&[GatewayFilter::MinScore(score)]);
+
+            if let Some(gateway) = self.filtered_min_by(&filters, &mut ordering_criteria) {
+                return Ok(gateway);
+            }
+        }
+        Err(Error::FailedToSelectGatewayWithCriteria)
     }
 
     /// Find an exit gateway that matches `exit_point`.
@@ -934,7 +966,7 @@ impl GatewayList {
 
     /// Find the "best" exit gateway that matches `exit_point` using a descending score system.
     /// If no gateway matches the highest score, it will try the next lower score, and so on.
-    pub fn find_best_exit_gateway(
+    pub fn find_best_exit_point_gateway(
         &self,
         exit_point: &ExitPoint,
         base_filters: &GatewayFilters,

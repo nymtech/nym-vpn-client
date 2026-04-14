@@ -46,6 +46,7 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
@@ -794,6 +795,7 @@ impl TunnelStateMachine {
         account_controller_state: AccountStateReceiver,
         statistics_event_sender: StatisticsSender,
         gateway_cache_handle: GatewayCacheHandle,
+        nym_vpn_api_client: VpnApiClient,
         topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
         discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
@@ -881,6 +883,8 @@ impl TunnelStateMachine {
 
         let (gateway_provider, gateway_provider_handle) = GatewayProvider::new(
             gateway_cache_handle,
+            nym_vpn_api_client,
+            true,
             tunnel_settings.clone(),
             wg_keys_db,
             shutdown_token.clone(),
@@ -1111,6 +1115,9 @@ pub enum Error {
 
     #[error("gateway provider shut down")]
     GatewayProviderDown,
+
+    #[error("failed to query VPN API")]
+    VpnApiClientError(#[source] nym_vpn_api_client::error::VpnApiClientError),
 }
 
 impl Error {
@@ -1159,6 +1166,7 @@ impl Error {
             Self::ProbeRequiresIPv4Addr => ErrorStateReason::Internal(self.to_string()),
             Self::InvalidTunnelType => ErrorStateReason::Internal(self.to_string()),
             Self::GatewayProviderDown => ErrorStateReason::Internal(self.to_string()),
+            Self::VpnApiClientError(e) => ErrorStateReason::Internal(e.to_string()),
         })
     }
 }

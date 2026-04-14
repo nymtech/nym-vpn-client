@@ -3,9 +3,16 @@
 
 mod algorithm;
 mod gateway_cache;
+mod geo_ip;
 mod selector;
 
-use std::{sync::Arc, task::Poll};
+use std::{
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
+    task::Poll,
+};
 
 use futures::{FutureExt, Stream, StreamExt};
 use nym_gateway_directory::{BlacklistedGateways, GatewayClient, NodeIdentity};
@@ -24,6 +31,7 @@ use crate::tunnel_state_machine::{
         gateway_provider::{
             algorithm::{SelectAndSend, SelectionAlgorithm},
             gateway_cache::GatewayCache,
+            geo_ip::{GeoIpClient, GeoIpProvider},
         },
     },
 };
@@ -40,6 +48,7 @@ pub struct GatewayProvider<C: GatewayCache> {
     tunnel_settings_tx: mpsc::Sender<SelectAndSend>,
     selected_gateways_stream: SelectedGatewaysStream,
     blacklisted_entry_gateways: BlacklistedGateways,
+    active_geolocating: Arc<AtomicBool>,
 }
 
 impl<C: GatewayCache> Stream for GatewayProvider<C> {
@@ -61,16 +70,23 @@ impl<C: GatewayCache> Stream for GatewayProvider<C> {
 impl<C: GatewayCache> GatewayProvider<C> {
     pub async fn new(
         gateway_cache: C,
+        geo_ip_client: impl GeoIpClient,
+        active_geolocating: bool,
         initial_tunnel_settings: TunnelSettings,
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
     ) -> Result<(Self, JoinHandle<()>), crate::tunnel_state_machine::Error> {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_entry_gateways = BlacklistedGateways::new();
+        let active_geolocating = Arc::new(AtomicBool::new(active_geolocating));
+        let geo_ip_provider = GeoIpProvider::new(geo_ip_client, active_geolocating.clone())
+            .await
+            .map_err(crate::tunnel_state_machine::Error::VpnApiClientError)?;
         let selection_algorithm_handle = tokio::spawn(
             SelectionAlgorithm::new(
                 tunnel_settings_rx,
                 gateway_cache.clone(),
+                geo_ip_provider,
                 blacklisted_entry_gateways.clone(),
                 wg_keys_db,
                 shutdown_token,
@@ -86,6 +102,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 tunnel_settings_tx,
                 selected_gateways_stream,
                 blacklisted_entry_gateways,
+                active_geolocating,
             },
             selection_algorithm_handle,
         ))
@@ -105,6 +122,10 @@ impl<C: GatewayCache> GatewayProvider<C> {
             .await
             .map_err(|_| crate::tunnel_state_machine::Error::GatewayProviderDown)?;
         Ok(Arc::new(Mutex::new(ReceiverStream::new(selection_rx))))
+    }
+
+    pub fn set_active_geolocating(&self, active: bool) {
+        self.active_geolocating.store(active, Ordering::SeqCst);
     }
 
     pub async fn set_tunnel_settings(
@@ -163,7 +184,9 @@ pub mod tests {
     use nym_vpn_lib_types::{EntryPoint, ExitPoint, TunnelType};
     use tokio::sync::RwLock;
 
-    use crate::tunnel_state_machine::tunnel::gateway_provider::gateway_cache::tests::MockGatewayCache;
+    use crate::tunnel_state_machine::tunnel::gateway_provider::{
+        gateway_cache::tests::MockGatewayCache, geo_ip::tests::MockGeoIpClient,
+    };
 
     use super::*;
 
@@ -206,6 +229,8 @@ pub mod tests {
         let gateways = Arc::new(RwLock::new(None));
         let (mut gw_provider, handle) = GatewayProvider::new(
             MockGatewayCache::new(gateways),
+            MockGeoIpClient::new(),
+            false,
             default_tunnel_settings(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.child_token(),
@@ -233,6 +258,8 @@ pub mod tests {
         let gateways = Arc::new(RwLock::new(Some(possible_gateways.to_vec())));
         let (mut gw_provider, handle) = GatewayProvider::new(
             MockGatewayCache::new(gateways),
+            MockGeoIpClient::new(),
+            false,
             default_tunnel_settings(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.child_token(),

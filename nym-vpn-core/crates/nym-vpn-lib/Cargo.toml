@@ -27,6 +27,7 @@ ed25519-dalek = { workspace = true, features = [
     "rand_core",
 ] }
 futures.workspace = true
+geo.workspace = true
 hex.workspace = true
 hickory-resolver = { workspace = true, features = [
     "tokio",

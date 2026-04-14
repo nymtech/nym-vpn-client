@@ -67,6 +67,9 @@ pub enum Error {
     #[error("failed to select gateway randomly")]
     FailedToSelectGatewayRandomly,
 
+    #[error("failed to select gateway with given criteria")]
+    FailedToSelectGatewayWithCriteria,
+
     #[error("gateway {0} doesn't have a description available")]
     NoGatewayDescriptionAvailable(String),
 

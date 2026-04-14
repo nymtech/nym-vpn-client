@@ -473,7 +473,7 @@ impl NymVpnService {
         let nyxd_client = NyxdClient::new(&network_env);
 
         let account_controller = AccountController::new(
-            nym_vpn_api_client,
+            nym_vpn_api_client.clone(),
             nyxd_client,
             account_controller_config,
             storage,
@@ -640,6 +640,7 @@ impl NymVpnService {
             account_state_rx.clone(),
             statistics_event_sender.clone(),
             gateway_cache_handle.clone(),
+            nym_vpn_api_client,
             topology_service.clone(),
             connectivity_handle,
             discovery_refresher_command_tx,
