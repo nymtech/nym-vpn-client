@@ -701,11 +701,24 @@ impl SharedState {
     ///
     /// Return whether a split tunnel interface was added or removed
     #[cfg(any(target_os = "macos", target_os = "windows"))]
-    pub async fn set_exclude_paths(
+    pub async fn set_split_tunnel_exclude_paths(
         &mut self,
-        paths: HashSet<PathBuf>,
-        hybrid_paths: HashSet<PathBuf>,
     ) -> Result<bool, nym_split_tunnel::SplitTunnelErrorCause> {
+        let paths = self.tunnel_settings.split_tunnel.effective_app_paths();
+        let hybrid_paths = if self.tunnel_settings.socks5_proxy_settings.enabled {
+            match find_proxy_binary() {
+                Ok(path) => HashSet::from([path]),
+                Err(err) => {
+                    tracing::error!(
+                        "The SOCKS5 Proxy is enabled, but its binary could not be found!: {err:?}"
+                    );
+                    HashSet::new()
+                }
+            }
+        } else {
+            HashSet::new()
+        };
+
         tracing::info!("Updating ST exclude paths: {:?}", paths);
 
         #[cfg(target_os = "macos")]
@@ -841,33 +854,6 @@ impl SharedState {
                     handle.notify_vpn_connected(tunnel_addr);
                 }
 
-                // Exclude the socks5 proxy executable from split tunneling so its traffic
-                // always bypasses the VPN tunnel.
-                #[cfg(any(target_os = "macos", target_os = "windows"))]
-                match find_proxy_binary() {
-                    Ok(binary_path) => {
-                        tracing::debug!(
-                            "Excluding socks5 proxy binary from split tunnel: {}",
-                            binary_path.display()
-                        );
-                        if let Err(err) = self
-                            .split_tunnel
-                            .set_socks5_proxy_path(Some(binary_path))
-                            .await
-                        {
-                            tracing::warn!(
-                                "Failed to set socks5 proxy path in split tunnel: {:?}",
-                                err
-                            );
-                        }
-                    }
-                    Err(err) => {
-                        tracing::warn!(
-                            "Failed to find socks5 proxy binary for split tunnel exclusion: {err}"
-                        );
-                    }
-                }
-
                 self.socks5_proxy_state = Socks5ProxyState::Running(Socks5ProxyProcess {
                     handle,
                     join_handle,
@@ -911,19 +897,6 @@ impl SharedState {
         }
 
         self.socks5_proxy_state = Socks5ProxyState::Stopped;
-
-        // Remove the socks5 proxy executable from split tunnel exclusions now that the
-        // process has stopped.
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
-        {
-            tracing::debug!("Clearing socks5 proxy path from split tunnel exclusions");
-            if let Err(err) = self.split_tunnel.set_socks5_proxy_path(None).await {
-                tracing::warn!(
-                    "Failed to clear socks5 proxy path from split tunnel: {:?}",
-                    err
-                );
-            }
-        }
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

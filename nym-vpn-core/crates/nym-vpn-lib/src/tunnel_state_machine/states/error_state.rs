@@ -7,9 +7,6 @@ use std::{
     sync::Arc,
 };
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use std::collections::HashSet;
-
 #[cfg(target_os = "ios")]
 use ipnetwork::IpNetwork;
 #[cfg(target_os = "macos")]
@@ -215,7 +212,7 @@ impl TunnelStateHandler for ErrorState {
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if diff.split_tunnel_changed() {
-                            let _ = shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await;
+                            let _ = shared_state.set_split_tunnel_exclude_paths().await;
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
