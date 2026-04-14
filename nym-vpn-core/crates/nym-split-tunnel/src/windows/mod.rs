@@ -430,7 +430,7 @@ impl InitializedSplitTunnel {
         let (tx, rx): (RequestTx, _) = sync_mpsc::channel();
         let (init_tx, init_rx) = sync_mpsc::channel();
 
-        let monitored_paths = Arc::new(Mutex::new(vec![]));
+        let monitored_paths = Arc::new(Mutex::new((vec![], vec![])));
         let monitored_paths_copy = monitored_paths.clone();
 
         let (monitor_tx, monitor_rx) = sync_mpsc::channel();

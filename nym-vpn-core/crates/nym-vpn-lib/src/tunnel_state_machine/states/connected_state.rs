@@ -4,9 +4,6 @@
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::{IpAddr, SocketAddr};
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use std::collections::HashSet;
-
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 use nym_dns::DnsConfig;
 
@@ -305,7 +302,7 @@ impl TunnelStateHandler for ConnectedState {
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         {
                             if diff.split_tunnel_changed() {
-                                match shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await {
+                                match shared_state.set_split_tunnel_exclude_paths().await {
                                     Ok(interface_changed) => {
                                         if interface_changed {
                                             #[cfg(target_os = "macos")]
