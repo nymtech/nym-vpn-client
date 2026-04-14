@@ -258,9 +258,12 @@ impl ConnectingState {
         )
     }
 
-    async fn handle_tunnel_close(tombstone: Tombstone, _shared_state: &mut SharedState) {
+    async fn handle_tunnel_close(tombstone: Tombstone, shared_state: &mut SharedState) {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        _shared_state.route_handler.remove_routes().await;
+        shared_state.route_handler.remove_routes().await;
+
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        let _ = shared_state; // Avoid unused variable warning
 
         // drop tombstone to close tunnel devices
         let _ = tombstone;
@@ -390,7 +393,7 @@ impl ConnectingState {
     async fn handle_registered_with_gateways(
         &mut self,
         connection_data: Box<EstablishConnectionData>,
-        _shared_state: &mut SharedState,
+        shared_state: &mut SharedState,
     ) -> Result<()> {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
@@ -398,15 +401,18 @@ impl ConnectingState {
             // Because all bridges are already added to firewall exceptions.
             let wg_entry_endpoint = if let Some(TunnelConnectionData::Wireguard(ref wg)) =
                 connection_data.tunnel
-                && !_shared_state.tunnel_settings.bridges_enabled()
+                && !shared_state.tunnel_settings.bridges_enabled()
             {
                 Some(wg.entry.endpoint)
             } else {
                 None
             };
             self.firewall_policy_params.wg_entry_endpoint = wg_entry_endpoint;
-            Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)?;
+            Self::set_firewall_policy(shared_state, &self.firewall_policy_params)?;
         }
+
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        let _ = shared_state; // Avoid unused variable warning
 
         self.connection_data = Some(*connection_data);
 
@@ -474,7 +480,7 @@ impl ConnectingState {
     async fn handle_selected_gateways(
         &mut self,
         gateways: Box<SelectedGateways>,
-        _shared_state: &mut SharedState,
+        shared_state: &mut SharedState,
     ) -> Result<()> {
         let entry_gateway = gateways.entry_gateway();
         let exit_gateway = gateways.exit_gateway();
@@ -516,7 +522,7 @@ impl ConnectingState {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let set_policy_result = {
-            if _shared_state.tunnel_settings.bridges_enabled()
+            if shared_state.tunnel_settings.bridges_enabled()
                 && let Some(params) = &gateways.entry_gateway().bridge_params
             {
                 self.firewall_policy_params.bridge_endpoints = params.get_addrs()
@@ -525,7 +531,7 @@ impl ConnectingState {
             self.firewall_policy_params.ws_entry_endpoints = gateways.entry_gateway().endpoints();
             self.firewall_policy_params.lp_entry_endpoints =
                 gateways.entry_gateway().lp_endpoints();
-            Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)
+            Self::set_firewall_policy(shared_state, &self.firewall_policy_params)
         };
         self.selected_gateways = Some(*gateways);
 
@@ -535,7 +541,10 @@ impl ConnectingState {
         }
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
-        Ok(())
+        {
+            let _ = shared_state; // Avoid unused variable warning
+            Ok(())
+        }
     }
 
     fn make_connecting_tunnel_state(
@@ -705,7 +714,7 @@ impl TunnelStateHandler for ConnectingState {
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         {
-                            if diff.split_tunnel_changed() {
+                            if diff.split_tunnel_changed() || diff.socks5_proxy_enabled_changed() {
                                 match shared_state.set_split_tunnel_exclude_paths().await {
                                     Ok(interface_changed) => {
                                         if interface_changed {

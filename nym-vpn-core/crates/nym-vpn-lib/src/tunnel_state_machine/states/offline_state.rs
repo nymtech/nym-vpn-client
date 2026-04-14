@@ -148,7 +148,7 @@ impl TunnelStateHandler for OfflineState {
                         shared_state.tunnel_settings = tunnel_settings;
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
-                        if diff.split_tunnel_changed() {
+                        if diff.split_tunnel_changed() || diff.socks5_proxy_enabled_changed() {
                             let _ = shared_state.set_split_tunnel_exclude_paths().await;
                         }
 

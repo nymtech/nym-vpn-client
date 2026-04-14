@@ -793,6 +793,8 @@ impl SharedState {
     }
 
     /// Start or stop the SOCKS5 Proxy process, based on the current tunnel settings.
+    ///
+    /// TODO: Change the excluded countries, if it changes.
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn update_socks5_proxy_state(&mut self) {
         if self.tunnel_settings.socks5_proxy_settings.enabled {

@@ -204,24 +204,23 @@ impl TunnelStateHandler for ErrorState {
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
-                            return NextTunnelState::SameState(self);
-                        };
-
-                        shared_state.tunnel_settings = tunnel_settings;
-
-                        #[cfg(any(target_os = "macos", target_os = "windows"))]
-                        if diff.split_tunnel_changed() {
-                            let _ = shared_state.set_split_tunnel_exclude_paths().await;
-                        }
-
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                        if diff.socks5_proxy_enabled_changed() {
-                            shared_state.update_socks5_proxy_state().await;
-                        }
-
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
+                            let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                                return NextTunnelState::SameState(self);
+                            };
+
+                            shared_state.tunnel_settings = tunnel_settings;
+
+                            #[cfg(any(target_os = "macos", target_os = "windows"))]
+                            if diff.split_tunnel_changed() || diff.socks5_proxy_enabled_changed() {
+                                let _ = shared_state.set_split_tunnel_exclude_paths().await;
+                            }
+
+                            if diff.socks5_proxy_enabled_changed() {
+                                shared_state.update_socks5_proxy_state().await;
+                            }
+
                             if diff.allow_lan_changed() {
                                 self.firewall_policy_params.allow_lan = shared_state.tunnel_settings.allow_lan;
 
@@ -232,7 +231,9 @@ impl TunnelStateHandler for ErrorState {
                         }
 
                         #[cfg(any(target_os = "android", target_os = "ios"))]
-                        let _ = diff;
+                        {
+                            shared_state.tunnel_settings = tunnel_settings;
+                        }
 
                         NextTunnelState::SameState(self)
                     }
