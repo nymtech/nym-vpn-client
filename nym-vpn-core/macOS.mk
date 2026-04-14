@@ -75,11 +75,6 @@ $(BIN_TARGETS): create-upload-dir
 	$(LIPO) -create -output "$(UPLOAD_DIR_MAC)/$@" "$(TARGET_AARCH64_DIR)/$@" "$(TARGET_X86_64_DIR)/$@"
 	@echo "✅ Universal binary ready at: $(UPLOAD_DIR_MAC)/$@"
 
-	@if [ "$@" == "$(DAEMON_BIN)" ]; then \
-	    echo "Embed entitlements $(DAEMON_ENTITLEMENTS)"; \
-	    codesign -i "$(DAEMON_IDENTIFIER)" -o runtime --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - "$(UPLOAD_DIR_MAC)/$@"; \
-	fi
-
 create-upload-dir:
 	$(MKDIR) "$(UPLOAD_DIR_MAC)"
 
