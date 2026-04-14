@@ -450,6 +450,7 @@ impl VpnServiceConfigManager {
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
             split_tunnel: self.config.split_tunnel.clone(),
+            gateway_selection_algorithm: self.config.gateway_selection_algorithm,
         }
     }
 }

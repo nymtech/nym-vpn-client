@@ -46,6 +46,7 @@ pub struct VpnServiceConfig {
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
+    pub gateway_selection_algorithm: GatewaySelectionAlgorithm,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -113,6 +114,7 @@ impl Default for VpnServiceConfig {
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
             split_tunnel: SplitTunnelSettings::default(),
+            gateway_selection_algorithm: Default::default(),
         }
     }
 }
@@ -484,6 +486,28 @@ impl fmt::Display for SplitTunnelSettings {
         }
         Ok(())
     }
+}
+
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum GatewaySelectionAlgorithm {
+    #[default]
+    /// Select gateways explicitly using the entry and exit selectors.
+    Explicit,
+
+    /// Select gateways explicitly using the exit selector and automatically finding an entry gateway.
+    AutoEntryExplicitExit,
+
+    /// Select gateways by automatically finding an entry and an exit gateways.
+    Auto,
 }
 
 /// The target tunnel state.

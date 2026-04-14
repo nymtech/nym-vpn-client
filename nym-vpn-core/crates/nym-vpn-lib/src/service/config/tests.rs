@@ -135,7 +135,7 @@ location = "BE"
 "#;
 
     let json_content = r#"{
-  "version": "v8",
+  "version": "v9",
   "entry_point": {
     "country": {
       "two_letter_iso_country_code": "FR"
@@ -173,7 +173,8 @@ location = "BE"
   "split_tunnel": {
     "enabled": false,
     "apps": []
-  }
+  },
+  "gateway_selection_algorithm": "Explicit"
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Country {
@@ -198,7 +199,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
 "#;
 
     let json_content = r#"{
-  "version": "v8",
+  "version": "v9",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -236,7 +237,8 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   "split_tunnel": {
     "enabled": false,
     "apps": []
-  }
+  },
+  "gateway_selection_algorithm": "Explicit"
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
@@ -268,7 +270,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
 "#;
 
     let json_content = r#"{
-  "version": "v8",
+  "version": "v9",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -304,7 +306,8 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   "split_tunnel": {
     "enabled": false,
     "apps": []
-  }
+  },
+  "gateway_selection_algorithm": "Explicit"
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
@@ -331,7 +334,7 @@ exit_point = "Random"
 "#;
 
     let json_content = r#"{
-  "version": "v8",
+  "version": "v9",
   "entry_point": "random",
   "exit_point": "random",
   "allow_lan": false,
@@ -361,7 +364,8 @@ exit_point = "Random"
   "split_tunnel": {
     "enabled": false,
     "apps": []
-  }
+  },
+  "gateway_selection_algorithm": "Explicit"
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Random;
@@ -387,7 +391,7 @@ async fn test_service_config_migrate_from_v1() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v8",
+  "version": "v9",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -425,7 +429,8 @@ async fn test_service_config_migrate_from_v1() {
   "split_tunnel": {
     "enabled": false,
     "apps": []
-  }
+  },
+  "gateway_selection_algorithm": "Explicit"
 }"#;
 
     run_migrate_json_test(json_v1_content, json_latest_content).await;
@@ -460,7 +465,7 @@ async fn test_service_config_migrate_from_v2() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v8",
+  "version": "v9",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -498,7 +503,8 @@ async fn test_service_config_migrate_from_v2() {
   "split_tunnel": {
     "enabled": false,
     "apps": []
-  }
+  },
+  "gateway_selection_algorithm": "Explicit"
 }"#;
 
     run_migrate_json_test(json_v2_content, json_latest_content).await;
@@ -536,7 +542,7 @@ async fn test_service_config_migrate_from_v3() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v8",
+  "version": "v9",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -577,7 +583,8 @@ async fn test_service_config_migrate_from_v3() {
   "split_tunnel": {
     "enabled": false,
     "apps": []
-  }
+  },
+  "gateway_selection_algorithm": "Explicit"
 }"#;
 
     run_migrate_json_test(json_v3_content, json_latest_content).await;
@@ -624,7 +631,7 @@ async fn test_service_config_migrate_from_v4() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v8",
+  "version": "v9",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -665,7 +672,8 @@ async fn test_service_config_migrate_from_v4() {
   "split_tunnel": {
     "enabled": false,
     "apps": []
-  }
+  },
+  "gateway_selection_algorithm": "Explicit"
 }"#;
 
     run_migrate_json_test(json_v4_content, json_latest_content).await;
@@ -717,7 +725,7 @@ async fn test_service_config_migrate_from_v5() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v8",
+  "version": "v9",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -758,7 +766,8 @@ async fn test_service_config_migrate_from_v5() {
   "split_tunnel": {
     "enabled": false,
     "apps": []
-  }
+  },
+  "gateway_selection_algorithm": "Explicit"
 }"#;
 
     run_migrate_json_test(json_v5_content, json_latest_content).await;
@@ -807,6 +816,57 @@ async fn test_service_config_migrate_from_v6() {
 }"#;
 
     let json_latest_content = r#"{
+  "version": "v9",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "enable_bridges": false,
+  "enable_lewes_protocol": false,
+  "enable_ad_blocking": false,
+  "netstack": false,
+  "min_gateway_vpn_performance": 23,
+  "residential_exit": false,
+  "enable_custom_dns": true,
+  "custom_dns": [
+    "192.168.50.1",
+    "2001:db8:85a3::8a2e:370:7334"
+  ],
+  "mixnet_traffic": {
+    "poisson_parameter_for_loop_cover_stream": 12,
+    "average_packet_delay": 34,
+    "message_sending_average_delay": 56,
+    "disable_poisson_rate": true,
+    "disable_background_cover_traffic": true,
+    "min_mixnode_performance": 78,
+    "min_gateway_mixnet_performance": 90
+  },
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
+  },
+  "gateway_selection_algorithm": "Explicit"
+}"#;
+
+    run_migrate_json_test(json_v6_content, json_latest_content).await;
+}
+
+#[tokio::test]
+async fn test_service_config_migrate_from_v8() {
+    let json_v8_content = r#"{
   "version": "v8",
   "entry_point": {
     "gateway": {
@@ -851,7 +911,53 @@ async fn test_service_config_migrate_from_v6() {
   }
 }"#;
 
-    run_migrate_json_test(json_v6_content, json_latest_content).await;
+    let json_latest_content = r#"{
+  "version": "v9",
+  "entry_point": {
+    "gateway": {
+      "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
+    }
+  },
+  "exit_point": {
+    "address": {
+      "address": "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e"
+    }
+  },
+  "allow_lan": false,
+  "disable_ipv6": false,
+  "enable_two_hop": true,
+  "enable_bridges": false,
+  "enable_lewes_protocol": false,
+  "enable_ad_blocking": false,
+  "netstack": false,
+  "min_gateway_vpn_performance": 23,
+  "residential_exit": false,
+  "enable_custom_dns": true,
+  "custom_dns": [
+    "192.168.50.1",
+    "2001:db8:85a3::8a2e:370:7334"
+  ],
+  "mixnet_traffic": {
+    "poisson_parameter_for_loop_cover_stream": 12,
+    "average_packet_delay": 34,
+    "message_sending_average_delay": 56,
+    "disable_poisson_rate": true,
+    "disable_background_cover_traffic": true,
+    "min_mixnode_performance": 78,
+    "min_gateway_mixnet_performance": 90
+  },
+  "network_stats": {
+    "enabled": true,
+    "allow_disconnected": false
+  },
+  "split_tunnel": {
+    "enabled": false,
+    "apps": []
+  },
+  "gateway_selection_algorithm": "Explicit"
+}"#;
+
+    run_migrate_json_test(json_v8_content, json_latest_content).await;
 }
 
 #[tokio::test]
@@ -912,6 +1018,7 @@ async fn test_service_config_serialize_full() {
                 path: "/Applications/Firefox.app/Contents/MacOS/firefox".to_owned(),
             }],
         },
+        gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm::Auto,
     };
     run_serialize_test(config).await;
 }

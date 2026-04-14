@@ -61,6 +61,8 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             mixnet_traffic,
             network_stats,
             split_tunnel,
+            // todo: propagate algorithm
+            gateway_selection_algorithm: Default::default(),
         };
         Ok(config)
     }

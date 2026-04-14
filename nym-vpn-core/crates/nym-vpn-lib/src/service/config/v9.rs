@@ -11,6 +11,7 @@ use crate::service::{
         split_tunnel_settings::v8::SplitTunnelSettings,
     },
 };
+use nym_vpn_lib_types::GatewaySelectionAlgorithm;
 use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, str::FromStr};
 
@@ -32,11 +33,12 @@ pub struct VpnServiceConfig {
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
+    pub gateway_selection_algorithm: GatewaySelectionAlgorithm,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
-    fn from(v8: VpnServiceConfig) -> Self {
-        VpnServiceConfigExt::V8(v8)
+    fn from(v9: VpnServiceConfig) -> Self {
+        VpnServiceConfigExt::V9(v9)
     }
 }
 
@@ -79,7 +81,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             custom_dns,
             network_stats,
             split_tunnel,
-            ..Default::default()
+            gateway_selection_algorithm: value.gateway_selection_algorithm,
         };
 
         Ok(config)
