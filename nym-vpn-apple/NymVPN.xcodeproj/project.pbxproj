@@ -569,7 +569,9 @@
 			buildPhases = (
 				58C9571C2F8E3F0C00FD0C81 /* Frameworks */,
 				58C9571D2F8E3F0C00FD0C81 /* Resources */,
+				58FF8B822F8E79170037AC51 /* Sources */,
 				58C957352F8E405400FD0C81 /* Copy Files */,
+				58FF8B882F8E7F990037AC51 /* Move nym-vpnd */,
 			);
 			buildRules = (
 			);
@@ -875,6 +877,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		58FF8B882F8E7F990037AC51 /* Move nym-vpnd */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Move nym-vpnd";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$BUILT_PRODUCTS_DIR\"\nmv \"$EXECUTABLE_FOLDER_PATH/nym-vpnd\" \"$EXECUTABLE_PATH\"\n";
+		};
 		D94127BD2C00AB2E009EDB7A /* Run Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -916,6 +936,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		58FF8B822F8E79170037AC51 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D954C0B42B51C1CA00C6BAAC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
