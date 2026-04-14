@@ -1,0 +1,4 @@
+Có gì mới:
+- Cài đặt: Thêm tùy chọn bật/tắt giao thức Lewes.
+- Cập nhật giao diện người dùng: Dọn dẹp các màn hình Cài đặt, Hỗ trợ và Bước nhảy.
+- Cải tiến kỹ thuật: Thêm phương án dự phòng cho ghi nhật ký hệ thống.

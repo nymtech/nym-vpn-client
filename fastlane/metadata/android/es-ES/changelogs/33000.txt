@@ -1,0 +1,4 @@
+Novedades:
+- Configuración: Cambio de protocolo Lewes añadido.
+- Actualizaciones de UI: Limpiadas las pantallas de Configuración, Soporte y Salto.
+- Mejoras técnicas: Se añadieron retrocesos para el registro del sistema.

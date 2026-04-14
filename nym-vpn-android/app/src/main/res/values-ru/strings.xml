@@ -228,6 +228,9 @@
 	<string name="settings_language_help_title">Помощь с переводом</string>
 	<string name="settings_language_help_description">Сделайте приложение лучше на вашем языке.</string>
 	<string name="settings_event_lan_reconnecting">Переподключение для применения настроек LAN…</string>
+	<string name="settings_lewes_title">Включить протокол Lewes</string>
+	<string name="settings_lewes_on_description">Всегда выбирать постквантовые шлюзы</string>
+	<string name="settings_lewes_off_description">Предпочтения постквантового шлюза не заданы</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Для использования горячих клавиш требуется блокировка экрана.</string>
 	<string name="shortcut_title">Подтвердите действие</string>
@@ -361,7 +364,7 @@
 	<string name="account_generating_description_2">Создание анонимных сетевых учетных данных</string>
 	<string name="account_generating_description_3">Шифрование учетных данных ключом вашего устройства; только вы можете разблокировать их</string>
 	<string name="account_generating_error">Не удалось зарегистрировать учетную запись. Пожалуйста, повторите попытку позже</string>
-	<string name="account_generating_deeplink_title">Вход...</string>
+	<string name="account_generating_deeplink_title">Выполняется вход…</string>
 	<string name="account_generating_deeplink_description">Пожалуйста, подождите, пока мы верифицируем вашу аккаунт</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Обрабатываем ваш платёж в безопасном режиме…</string>
@@ -531,5 +534,7 @@
 	<string name="diagnostic_copy_report">Копировать отчет</string>
 	<string name="diagnostic_copied">Скопировано в буфер</string>
 	<string name="diagnostic_error">Сбой диагностики</string>
-	<!-- Developer screen -->
+	<!-- Support screen -->
+	<string name="support_protect_title">⚠️ Защитите себя от мошенничества</string>
+	<string name="support_protect_description">Обращайтесь в службу поддержки NymVPN только через официальные каналы, указанные ниже. Мы никогда не запрашиваем вашу кодовую фразу и не связываемся с вами первыми через личные сообщения.\n\nПолучили неожиданное сообщение? Скорее всего, это мошенники.</string>
 </resources>

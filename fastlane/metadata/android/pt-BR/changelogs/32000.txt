@@ -1,0 +1,6 @@
+Novidades:
+- Funcionalidade e interface de auto-login implementadas.
+- Introduziu uma ferramenta de diagnóstico.
+- Adicionada uma opção "Aleatório" para localizações de Entrada e Saída.
+- Adicionado um banner de informações exibindo o estado atual da assinatura.
+- Melhorias Técnicas: Verificações de conexão privada otimizadas.
