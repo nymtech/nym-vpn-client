@@ -5,9 +5,9 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
-    states::{ConnectingState, OfflineState},
-    tunnel::Tombstone,
+    states::{ConnectingState, OfflineState}, tunnel::Tombstone, NextTunnelState, PrivateTunnelState, SharedState,
+    TunnelCommand,
+    TunnelStateHandler,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
@@ -96,7 +96,7 @@ impl TunnelStateHandler for DisconnectedState {
                             }
 
                             if diff.socks5_proxy_enabled_changed() {
-                                shared_state.update_socks5_proxy_state().await;
+                                shared_state.start_or_stop_socks5_proxy().await;
                             }
                         }
 

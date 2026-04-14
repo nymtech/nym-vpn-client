@@ -6,11 +6,11 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
+    states::{ConnectingState, DisconnectedState, ErrorState, OfflineState}, tunnel::Tombstone, tunnel_monitor::TunnelMonitorHandle, NextTunnelState, PrivateActionAfterDisconnect,
+    PrivateTunnelState,
+    SharedState,
+    TunnelCommand,
     TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState, ErrorState, OfflineState},
-    tunnel::Tombstone,
-    tunnel_monitor::TunnelMonitorHandle,
 };
 
 type WaitHandle = BoxFuture<'static, Tombstone>;
@@ -125,7 +125,7 @@ impl TunnelStateHandler for DisconnectingState {
                             }
 
                             if diff.socks5_proxy_enabled_changed() {
-                                shared_state.update_socks5_proxy_state().await;
+                                shared_state.start_or_stop_socks5_proxy().await;
                             }
                         }
 
