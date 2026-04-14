@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>NymVPN</string>
+	<string>NymVPND</string>
 	<key>CFBundleExecutable</key>
 	<string>nym-vpnd</string>
 	<key>CFBundleIdentifier</key>

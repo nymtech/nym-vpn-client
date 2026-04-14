@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 73;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -274,8 +274,23 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		58BD2D7B2F8E63C9003E20B0 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			attributesByRelativePath = {
+				"nym-vpnd" = (
+					CodeSignOnCopy,
+				);
+			};
+			buildPhase = 58C957352F8E405400FD0C81 /* Copy Files */;
+			membershipExceptions = (
+				"nym-vpnd",
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		58C957202F8E3F0C00FD0C81 /* Daemon */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (58C957382F8E405C00FD0C81 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Daemon; sourceTree = "<group>"; };
+		58C957202F8E3F0C00FD0C81 /* Daemon */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (58C957382F8E405C00FD0C81 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, 58BD2D7B2F8E63C9003E20B0 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Daemon; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -753,7 +768,6 @@
 				};
 			};
 			buildConfigurationList = D99A14712B357E9900F2728B /* Build configuration list for PBXProject "NymVPN" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -781,6 +795,7 @@
 				D9E9F19E2C3807A00056EB8C /* XCRemoteSwiftPackageReference "Sparkle" */,
 				D98B32E62C58E0A4005A15A3 /* XCRemoteSwiftPackageReference "AcknowList" */,
 			);
+			preferredProjectObjectVersion = 56;
 			productRefGroup = D99A14772B357E9900F2728B /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
