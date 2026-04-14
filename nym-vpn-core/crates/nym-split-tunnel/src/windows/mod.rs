@@ -620,6 +620,8 @@ impl InitializedSplitTunnel {
         paths: HashSet<PathBuf>,
         hybrid_paths: HashSet<PathBuf>,
     ) -> Result<(), Error> {
+        // If a path appears in both sets, favour hybrid_paths and remove it from paths.
+        let paths: HashSet<PathBuf> = paths.difference(&hybrid_paths).cloned().collect();
         self.send_request(Request::SetPaths {
             paths: paths
                 .into_iter()

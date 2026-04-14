@@ -99,6 +99,11 @@ pub enum RoutingDecision {
     DefaultInterface,
     /// Send outgoing packets through the VPN tunnel
     VpnTunnel,
+    /// Route based on the source IP the process has bound to.
+    /// If the source IP equals the VPN tunnel address, the packet is forwarded through the VPN
+    /// tunnel; otherwise it is forwarded through the default interface.
+    /// No source IP rewriting is performed.
+    RouteBySourceIp,
     /// Drop the packet
     Drop,
 }
@@ -536,7 +541,39 @@ async fn classify_and_send(
     default_write: &mut bpf::WriteHalf,
     vpn_interface: Option<(&VpnInterface, &mut bpf::Bpf)>,
 ) {
-    match classify(packet).await {
+    // Read VPN interface addresses before borrowing the packet frame mutably.
+    let vpn_v4 = vpn_interface.as_ref().and_then(|t| t.0.v4_address);
+    let vpn_v6 = vpn_interface.as_ref().and_then(|t| t.0.v6_address);
+
+    // For hybrid processes (RouteBySourceIp), determine the final routing decision based on the
+    // packet's source address: packets bound to the VPN interface are forwarded through the VPN
+    // tunnel; all others use the default interface.
+    let decision = match classify(packet).await {
+        RoutingDecision::RouteBySourceIp => match packet.frame.get_ethertype() {
+            EtherTypes::Ipv4 => {
+                if MutableIpv4Packet::new(packet.frame.payload_mut())
+                    .is_some_and(|ip| vpn_v4 == Some(ip.get_source()))
+                {
+                    RoutingDecision::VpnTunnel
+                } else {
+                    RoutingDecision::DefaultInterface
+                }
+            }
+            EtherTypes::Ipv6 => {
+                if MutableIpv6Packet::new(packet.frame.payload_mut())
+                    .is_some_and(|ip| vpn_v6 == Some(ip.get_source()))
+                {
+                    RoutingDecision::VpnTunnel
+                } else {
+                    RoutingDecision::DefaultInterface
+                }
+            }
+            _ => RoutingDecision::DefaultInterface,
+        },
+        other => other,
+    };
+
+    match decision {
         RoutingDecision::DefaultInterface => match packet.frame.get_ethertype() {
             EtherTypes::Ipv4 => {
                 let Some(ref addrs) = default_interface.v4_addrs else {
@@ -648,6 +685,9 @@ async fn classify_and_send(
         }
         RoutingDecision::Drop => {
             tracing::trace!("Dropped packet from pid {}", packet.header.pth_pid);
+        }
+        RoutingDecision::RouteBySourceIp => {
+            unreachable!("RouteBySourceIp should have been resolved before this match")
         }
     }
 }
