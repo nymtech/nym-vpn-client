@@ -111,19 +111,27 @@ impl TunnelStateHandler for DisconnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        #[cfg(any(target_os = "macos", target_os = "windows"))]
-                        let diff = shared_state.tunnel_settings.diff(&tunnel_settings);
+                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        {
+                            let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                                return NextTunnelState::SameState(self);
+                            };
 
-                        #[cfg(any(target_os = "macos", target_os = "windows"))]
-                            if diff.as_ref().is_some_and(|diff| diff.split_tunnel_changed()) {
+                            shared_state.tunnel_settings = tunnel_settings;
+
+                            #[cfg(any(target_os = "macos", target_os = "windows"))]
+                            if diff.split_tunnel_changed() || diff.socks5_proxy_enabled_changed() {
                                 let _ = shared_state.set_split_tunnel_exclude_paths().await;
                             }
 
-                        shared_state.tunnel_settings = tunnel_settings;
+                            if diff.socks5_proxy_enabled_changed() {
+                                shared_state.update_socks5_proxy_state().await;
+                            }
+                        }
 
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                        if diff.unwrap().socks5_proxy_enabled_changed() {
-                            shared_state.update_socks5_proxy_state().await;
+                        #[cfg(any(target_os = "android", target_os = "ios"))]
+                        {
+                            shared_state.tunnel_settings = tunnel_settings;
                         }
 
                         NextTunnelState::SameState(self)

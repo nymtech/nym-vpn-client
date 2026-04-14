@@ -51,12 +51,12 @@ impl ConnectedState {
         selected_gateways: SelectedGateways,
         tunnel_monitor_handle: TunnelMonitorHandle,
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
-        _shared_state: &mut SharedState,
+        shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let wg_entry_endpoint =
             if let TunnelConnectionData::Wireguard(ref wg) = connection_data.tunnel {
-                if _shared_state.tunnel_settings.bridges_enabled() {
+                if shared_state.tunnel_settings.bridges_enabled() {
                     // this will be `Some` if we get to the connected state with bridges enabled.
                     wg.entry_bridge_addr.as_ref().map(|addr| addr.remote_addr)
                 } else {
@@ -76,14 +76,14 @@ impl ConnectedState {
             ws_endpoints.extend(selected_gateways.exit_gateway().endpoints());
 
             #[cfg(target_os = "macos")]
-            let redirect_interface = _shared_state.split_tunnel.interface().await;
+            let redirect_interface = shared_state.split_tunnel.interface().await;
 
             ConnectedPolicyParameters {
-                enable_ipv6: _shared_state.tunnel_settings.enable_ipv6,
-                allow_lan: _shared_state.tunnel_settings.allow_lan,
+                enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
+                allow_lan: shared_state.tunnel_settings.allow_lan,
                 wg_entry_endpoint,
                 ws_entry_endpoints: ws_endpoints,
-                dns_config: _shared_state.tunnel_settings.resolved_dns_config(),
+                dns_config: shared_state.tunnel_settings.resolved_dns_config(),
                 tunnel_interface: tunnel_interface.clone(),
                 #[cfg(target_os = "macos")]
                 redirect_interface,
@@ -101,21 +101,21 @@ impl ConnectedState {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         if let Err(e) =
-            Self::set_firewall_policy(_shared_state, &connected_state.firewall_policy_params)
+            Self::set_firewall_policy(shared_state, &connected_state.firewall_policy_params)
         {
             trace_err_chain!(e, "failed to apply firewall policy");
             return DisconnectingState::enter(
                 PrivateActionAfterDisconnect::Error(ErrorStateReason::SetFirewallPolicy),
                 Some(connected_state.tunnel_monitor_handle),
-                _shared_state,
+                shared_state,
             )
             .await;
-        } else if let Err(e) = connected_state.set_dns(_shared_state).await {
+        } else if let Err(e) = connected_state.set_dns(shared_state).await {
             trace_err_chain!(e, "failed to set dns");
             return DisconnectingState::enter(
                 PrivateActionAfterDisconnect::Error(ErrorStateReason::SetDns),
                 Some(connected_state.tunnel_monitor_handle),
-                _shared_state,
+                shared_state,
             )
             .await;
         }
@@ -128,8 +128,12 @@ impl ConnectedState {
                 TunnelConnectionData::Wireguard(wg) => IpAddr::V4(wg.entry.private_ipv4),
                 TunnelConnectionData::Mixnet(mx) => IpAddr::V4(mx.ipv4),
             };
-            _shared_state.set_socks5_proxy_tunnel_addr(Some(tunnel_addr));
+            shared_state.set_socks5_proxy_tunnel_addr(Some(tunnel_addr));
         }
+
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        let _ = shared_state; // Avoid unused variable warning
+
         
         #[cfg(target_os = "android")]
         _shared_state
@@ -301,7 +305,7 @@ impl TunnelStateHandler for ConnectedState {
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         {
-                            if diff.split_tunnel_changed() {
+                            if diff.split_tunnel_changed() || diff.socks5_proxy_enabled_changed() {
                                 match shared_state.set_split_tunnel_exclude_paths().await {
                                     Ok(interface_changed) => {
                                         if interface_changed {
