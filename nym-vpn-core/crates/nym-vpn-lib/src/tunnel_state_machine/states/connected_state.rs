@@ -16,15 +16,15 @@ use tokio_util::sync::CancellationToken;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::resolver::LOCAL_DNS_RESOLVER;
-use crate::tunnel_state_machine::{
-    ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
-    TunnelCommand, TunnelInterface, TunnelStateHandler,
-    states::{ConnectingState, DisconnectingState},
-    tunnel::SelectedGateways,
-    tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
-};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
+use crate::tunnel_state_machine::{gateway_ext::GatewayExt, Error, Result};
+use crate::tunnel_state_machine::{
+    states::{ConnectingState, DisconnectingState}, tunnel::SelectedGateways, tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle}, ConnectionData, NextTunnelState,
+    PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
+    TunnelCommand,
+    TunnelInterface,
+    TunnelStateHandler,
+};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -341,7 +341,7 @@ impl TunnelStateHandler for ConnectedState {
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         if diff.socks5_proxy_enabled_changed() {
                             shared_state
-                                .update_socks5_proxy_state()
+                                .start_or_stop_socks5_proxy()
                                 .await;
                         }
 

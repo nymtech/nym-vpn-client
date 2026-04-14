@@ -73,9 +73,9 @@ use nym_vpn_lib_types::{
 };
 
 use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
-    tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
+    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
+    GatewayDirectoryError,
+    UserAgent,
 };
 
 use tunnel::SelectedGateways;
@@ -807,7 +807,7 @@ impl SharedState {
     ///
     /// TODO: Change the excluded countries, if it changes.
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    async fn update_socks5_proxy_state(&mut self) {
+    async fn start_or_stop_socks5_proxy(&mut self) {
         if self.tunnel_settings.socks5_proxy_settings.enabled {
             self.start_socks5_proxy().await;
         } else {

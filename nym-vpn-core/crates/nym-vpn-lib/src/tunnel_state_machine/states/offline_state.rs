@@ -9,11 +9,11 @@ use crate::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::ErrorStateReason;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
+use crate::tunnel_state_machine::{states::error_state::BlockedPolicyParameters, Error, Result};
 use crate::tunnel_state_machine::{
-    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState, ErrorState},
-    tunnel::SelectedGateways,
+    states::{ConnectingState, DisconnectedState, ErrorState}, tunnel::SelectedGateways, NextTunnelState, PrivateTunnelState, SharedState,
+    TunnelCommand,
+    TunnelStateHandler,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;
@@ -155,7 +155,7 @@ impl TunnelStateHandler for OfflineState {
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         if diff.socks5_proxy_enabled_changed() {
                             shared_state
-                                .update_socks5_proxy_state()
+                                .start_or_stop_socks5_proxy()
                                 .await;
                         }
 
