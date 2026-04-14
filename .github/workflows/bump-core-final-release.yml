@@ -29,12 +29,12 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      # - name: Validate input
-      #   run: |
-      #     if ! echo "${{ inputs.branch }}" | grep -P '^release/.+$'; then
-      #       echo "::error:: Branch must start with 'release/' (got: ${{ inputs.branch }})"
-      #       exit 1
-      #     fi
+      - name: Validate input
+        run: |
+          if ! echo "${{ inputs.branch }}" | grep -P '^release/.+$'; then
+            echo "::error:: Branch must start with 'release/' (got: ${{ inputs.branch }})"
+            exit 1
+          fi
 
       - name: Configure git
         run: |
