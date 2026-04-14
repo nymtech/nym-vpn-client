@@ -112,6 +112,7 @@ pub struct NymVpnAccountSummarySubscription {
     pub is_active: bool,
     pub active: Option<NymVpnSubscription>,
     pub pending: Option<NymVpnSubscription>,
+    pub is_stacked: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

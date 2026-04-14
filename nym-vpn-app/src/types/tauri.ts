@@ -340,6 +340,7 @@ export type TAccountSummary = {
   fairUsageLeft: boolean;
   isSubscriptionActive: boolean;
   subscription: TSubscription | null;
+  isSubscriptionStacked: boolean;
 };
 
 export type TApiTimeSkew = {
