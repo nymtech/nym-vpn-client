@@ -1,6 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use std::collections::HashSet;
+
 use futures::future::{BoxFuture, Fuse, FusedFuture, FutureExt};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -114,7 +117,7 @@ impl TunnelStateHandler for DisconnectingState {
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         {
                             if shared_state.tunnel_settings.diff(&tunnel_settings).is_some_and(|diff| diff.split_tunnel_changed()) {
-                                let _ = shared_state.set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths()).await;
+                                let _ = shared_state.set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await;
                             }
                         }
                         shared_state.tunnel_settings = tunnel_settings;

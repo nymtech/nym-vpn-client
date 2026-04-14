@@ -11,7 +11,7 @@ use std::{
     ffi::OsString,
     io,
     path::{self, Path},
-    sync::{Arc, Mutex, MutexGuard, mpsc as sync_mpsc},
+    sync::{Arc, Mutex, mpsc as sync_mpsc},
 };
 
 use windows_sys::Win32::{
@@ -38,7 +38,7 @@ impl VolumeMonitor {
     pub fn spawn(
         path_monitor: PathMonitorHandle,
         update_tx: sync_mpsc::Sender<()>,
-        paths: Arc<Mutex<Vec<OsString>>>,
+        paths: Arc<Mutex<(Vec<OsString>, Vec<OsString>)>>,
     ) -> VolumeMonitorHandle {
         // A bitmask containing all (known) mounted drives.
         let known_state = Arc::new(Mutex::new(0u32));
@@ -66,7 +66,7 @@ fn start_internal_monitor(
     known_state: Arc<Mutex<u32>>,
     path_monitor: PathMonitorHandle,
     update_tx: sync_mpsc::Sender<()>,
-    paths: Arc<Mutex<Vec<OsString>>>,
+    paths: Arc<Mutex<(Vec<OsString>, Vec<OsString>)>>,
 ) -> WindowCloseHandle {
     use windows::Win32::Foundation::LRESULT;
 
@@ -75,6 +75,7 @@ fn start_internal_monitor(
             return LRESULT(unsafe { DefWindowProcW(window.0, message, w_param.0, l_param.0) });
         }
         let paths_guard = paths.lock().unwrap();
+        let (paths, hybrid_paths) = &*paths_guard;
         let mut known_state_guard = known_state.lock().unwrap();
 
         let volumes = unsafe { parse_device_volume_broadcast(&*(l_param.0 as *const _)) };
@@ -90,7 +91,7 @@ fn start_internal_monitor(
         // Compare against known state to ignore duplicate notifications
         // from frontends
         let state_diff = *known_state_guard ^ prev_state;
-        if state_diff != 0 && matches_volume(volumes, &paths_guard) {
+        if state_diff != 0 && matches_volume(volumes, paths, hybrid_paths) {
             // Reapply config
             let _ = update_tx.send(());
             let _ = path_monitor.refresh();
@@ -112,9 +113,9 @@ fn get_logical_drives() -> io::Result<u32> {
     Ok(result)
 }
 
-/// Return whether any of the paths in `paths_guard` reside on any volume in `volumes` (a mask).
-fn matches_volume(volumes: u32, paths_guard: &MutexGuard<'_, Vec<OsString>>) -> bool {
-    for path in paths_guard.iter() {
+/// Return whether any of the paths in `paths` or `hybrid_paths` reside on any volume in `volumes` (a mask).
+fn matches_volume(volumes: u32, paths: &[OsString], hybrid_paths: &[OsString]) -> bool {
+    for path in paths.iter().chain(hybrid_paths.iter()) {
         let path: &Path = path.as_ref();
         if let Some(path::Component::Prefix(prefix)) = path.components().next() {
             match prefix.kind() {

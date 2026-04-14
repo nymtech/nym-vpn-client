@@ -47,9 +47,17 @@ pub struct SplitTunnelHandle {
 
 impl SplitTunnelHandle {
     /// Set paths to exclude
-    pub async fn set_exclude_paths(&self, paths: HashSet<PathBuf>) -> Result<(), Error> {
+    pub async fn set_exclude_paths(
+        &self,
+        paths: HashSet<PathBuf>,
+        hybrid_paths: HashSet<PathBuf>,
+    ) -> Result<(), Error> {
         let (result_tx, result_rx) = oneshot::channel();
-        let _ = self.tx.send(Message::SetExcludePaths { result_tx, paths });
+        let _ = self.tx.send(Message::SetExcludePaths {
+            result_tx,
+            paths,
+            hybrid_paths,
+        });
         result_rx.await.map_err(|_| Error::Unavailable)?
     }
 
@@ -121,8 +129,13 @@ impl SplitTunnel {
                         break;
                     };
                     match message {
-                        Message::SetExcludePaths { result_tx, paths } => {
-                            let _ = result_tx.send(self.set_exclude_paths(paths));
+                        Message::SetExcludePaths {
+                            result_tx,
+                            paths,
+                            hybrid_paths,
+                        } => {
+                            let _ = result_tx
+                                .send(self.set_exclude_paths(paths, hybrid_paths));
                         }
                         Message::SetTunnel {
                             result_tx,
@@ -144,11 +157,15 @@ impl SplitTunnel {
     }
 
     /// Set a list of applications to exclude from the tunnel.
-    fn set_exclude_paths(&mut self, paths: HashSet<PathBuf>) -> Result<(), Error> {
+    fn set_exclude_paths(
+        &mut self,
+        paths: HashSet<PathBuf>,
+        hybrid_paths: HashSet<PathBuf>,
+    ) -> Result<(), Error> {
         match &mut self.state {
             State::Initialized(initialized) => {
                 tracing::debug!("Updating split tunnel excluded paths: {:?}", paths);
-                initialized.set_exclude_paths(paths)
+                initialized.set_exclude_paths(paths, hybrid_paths)
             }
             State::Failed => {
                 // If we return `Error::Unavailable` here, we will break the tunnel connect logic,
@@ -413,7 +430,7 @@ impl InitializedSplitTunnel {
         let (tx, rx): (RequestTx, _) = sync_mpsc::channel();
         let (init_tx, init_rx) = sync_mpsc::channel();
 
-        let monitored_paths = Arc::new(Mutex::new(vec![]));
+        let monitored_paths = Arc::new(Mutex::new((vec![], vec![])));
         let monitored_paths_copy = monitored_paths.clone();
 
         let (monitor_tx, monitor_rx) = sync_mpsc::channel();
@@ -450,25 +467,30 @@ impl InitializedSplitTunnel {
 
             while let Ok((request, response_tx)) = rx.recv() {
                 let response = match request {
-                    Request::SetPaths(paths) => {
+                    Request::SetPaths {
+                        paths,
+                        hybrid_paths,
+                    } => {
                         let mut monitored_paths_guard = monitored_paths.lock().unwrap();
 
-                        let result = if !paths.is_empty() {
+                        let result = if !paths.is_empty() || !hybrid_paths.is_empty() {
                             handle
-                                .set_config(&paths, &[] as &[OsString])
+                                .set_config(&paths, &hybrid_paths)
                                 .map_err(Error::SetConfiguration)
                         } else {
                             handle.clear_config().map_err(Error::SetConfiguration)
                         };
 
                         if result.is_ok() {
-                            if let Err(error) = path_monitor.set_paths(&paths) {
+                            let all_paths: Vec<OsString> =
+                                paths.iter().chain(hybrid_paths.iter()).cloned().collect();
+                            if let Err(error) = path_monitor.set_paths(&all_paths) {
                                 tracing::error!(
                                     "{}",
                                     error.display_chain_with_msg("Failed to update path monitor")
                                 );
                             }
-                            *monitored_paths_guard = paths;
+                            *monitored_paths_guard = (paths, hybrid_paths);
                         }
 
                         result
@@ -503,7 +525,7 @@ impl InitializedSplitTunnel {
                         // the best we can do is try to clean up as much as possible.
                         let reset_result = handle.reset().map_err(Error::ResetError);
 
-                        monitored_paths.lock().unwrap().clear();
+                        *monitored_paths.lock().unwrap() = (vec![], vec![]);
                         excluded_processes.write().unwrap().clear();
 
                         drop(volume_monitor);
@@ -554,13 +576,16 @@ impl InitializedSplitTunnel {
 
         std::thread::spawn(move || {
             while let Ok(()) = monitor_rx.recv() {
-                let paths = monitored_paths_copy.lock().unwrap();
-                let result = if !paths.is_empty() {
+                let paths_guard = monitored_paths_copy.lock().unwrap();
+                let (paths, hybrid_paths) = &*paths_guard;
+                let result = if !paths.is_empty() || !hybrid_paths.is_empty() {
                     tracing::debug!("Re-resolving excluded paths");
-                    handle_copy.set_config(&paths, &[] as &[OsString])
+                    handle_copy.set_config(paths, hybrid_paths)
                 } else {
+                    drop(paths_guard);
                     continue;
                 };
+                drop(paths_guard);
                 if let Err(error) = result {
                     tracing::error!(
                         "{}",
@@ -590,13 +615,21 @@ impl InitializedSplitTunnel {
     }
 
     /// Set a list of applications to exclude from the tunnel.
-    fn set_exclude_paths(&mut self, paths: HashSet<PathBuf>) -> Result<(), Error> {
-        self.send_request(Request::SetPaths(
-            paths
+    fn set_exclude_paths(
+        &mut self,
+        paths: HashSet<PathBuf>,
+        hybrid_paths: HashSet<PathBuf>,
+    ) -> Result<(), Error> {
+        self.send_request(Request::SetPaths {
+            paths: paths
                 .into_iter()
                 .map(|path| path.into_os_string())
                 .collect(),
-        ))
+            hybrid_paths: hybrid_paths
+                .into_iter()
+                .map(|path| path.into_os_string())
+                .collect(),
+        })
     }
 
     /// Instructs the driver to redirect traffic from sockets bound to 0.0.0.0, ::, or the
@@ -635,7 +668,10 @@ impl Drop for InitializedSplitTunnel {
 
 #[derive(PartialEq, Eq)]
 enum Request {
-    SetPaths(Vec<OsString>),
+    SetPaths {
+        paths: Vec<OsString>,
+        hybrid_paths: Vec<OsString>,
+    },
     RegisterIps(InterfaceAddresses),
     Stop,
 }
@@ -711,6 +747,7 @@ enum Message {
     SetExcludePaths {
         result_tx: oneshot::Sender<Result<(), Error>>,
         paths: HashSet<PathBuf>,
+        hybrid_paths: HashSet<PathBuf>,
     },
     /// Update VPN tunnel interface
     SetTunnel {

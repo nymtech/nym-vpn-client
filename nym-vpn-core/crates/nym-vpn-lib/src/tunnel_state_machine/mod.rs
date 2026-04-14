@@ -660,6 +660,7 @@ impl SharedState {
     pub async fn set_exclude_paths(
         &mut self,
         paths: HashSet<PathBuf>,
+        hybrid_paths: HashSet<PathBuf>,
     ) -> Result<bool, nym_split_tunnel::SplitTunnelErrorCause> {
         tracing::info!("Updating ST exclude paths: {:?}", paths);
 
@@ -667,7 +668,7 @@ impl SharedState {
         let had_interface = self.split_tunnel.interface().await.is_some();
 
         self.split_tunnel
-            .set_exclude_paths(paths)
+            .set_exclude_paths(paths, hybrid_paths)
             .await
             .inspect_err(|error| {
                 nym_common::trace_err_chain!(error, "failed to set split tunnel paths");
@@ -857,7 +858,10 @@ impl TunnelStateMachine {
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         if let Err(err) = split_tunnel
-            .set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths())
+            .set_exclude_paths(
+                tunnel_settings.split_tunnel.effective_app_paths(),
+                HashSet::new(),
+            )
             .await
         {
             nym_common::trace_err_chain!(err, "failed to set initial split tunnel paths");

@@ -1,6 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use std::collections::HashSet;
+
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -148,7 +151,7 @@ impl TunnelStateHandler for OfflineState {
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if diff.split_tunnel_changed() {
-                            let _ = shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths()).await;
+                            let _ = shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await;
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]

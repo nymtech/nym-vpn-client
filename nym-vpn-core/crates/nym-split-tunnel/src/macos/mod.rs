@@ -144,7 +144,11 @@ impl SplitTunnelHandle {
     }
 
     /// Set paths to exclude
-    pub async fn set_exclude_paths(&self, paths: HashSet<PathBuf>) -> Result<(), Error> {
+    pub async fn set_exclude_paths(
+        &self,
+        paths: HashSet<PathBuf>,
+        _hybrid_paths: HashSet<PathBuf>,
+    ) -> Result<(), Error> {
         let (result_tx, result_rx) = oneshot::channel();
         let _ = self.tx.send(Message::SetExcludePaths { result_tx, paths });
         result_rx.await.map_err(|_| Error::unavailable())?
