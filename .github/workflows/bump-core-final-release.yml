@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: "Release branch (e.g. release/2026.1-banana)"
+        description: 'Release branch (e.g. release/2026.1-banana)'
         type: string
         required: true
       dry_run:
-        description: "Test run that will only print git diff and all changes being made"
+        description: 'Test run that will only print git diff and all changes being made'
         required: true
         type: boolean
         default: true
@@ -46,6 +46,11 @@ jobs:
         with:
           ref: ${{ inputs.branch }}
 
+      - name: Install Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - name: Install cargo-edit
         uses: baptiste0928/cargo-install@v3
         with:
@@ -55,6 +60,11 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-get
+
+      - name: Install toml-cli
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: toml-cli
 
       - name: Compute final version
         id: version
@@ -86,6 +96,19 @@ jobs:
           # dry-run will update Cargo.lock with new package version, without any other changes
           cargo update --dry-run
 
+      - name: Update nym-vpn-app/src-tauri/tauri.conf.json
+        working-directory: nym-vpn-app/src-tauri
+        run: |
+          jq -r '.bundle.linux.deb.depends[] = "nym-vpnd (>= ${{ steps.version.outputs.final_version }})"' tauri.conf.json > new_tauri.conf.json
+          npx prettier --config ../prettier.config.js --write new_tauri.conf.json
+          mv new_tauri.conf.json tauri.conf.json
+
+      - name: Update nym-vpn-app/vpnd_compat.toml
+        working-directory: nym-vpn-app
+        run: |
+          toml set vpnd_compat.toml version ">=${{ steps.version.outputs.final_version }}" > new_vpnd_compat.toml
+          mv new_vpnd_compat.toml vpnd_compat.toml
+
       - name: Update CHANGELOG.md
         working-directory: nym-vpn-core
         run: |
@@ -98,7 +121,7 @@ jobs:
       - name: Create PR to finalize v${{ steps.version.outputs.final_version }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH_NAME: "ci/bump-final-v${{ steps.version.outputs.final_version }}"
+          BRANCH_NAME: 'ci/bump-final-v${{ steps.version.outputs.final_version }}'
         run: |
           git diff
           if [ '${{ inputs.dry_run }}' == 'true' ]; then
