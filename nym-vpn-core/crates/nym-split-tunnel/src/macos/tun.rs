@@ -99,6 +99,11 @@ pub enum RoutingDecision {
     DefaultInterface,
     /// Send outgoing packets through the VPN tunnel
     VpnTunnel,
+    /// Route based on the source IP the process has bound to.
+    /// If the source IP equals the VPN tunnel address, the packet is forwarded through the VPN
+    /// tunnel; otherwise it is forwarded through the default interface.
+    /// No source IP rewriting is performed.
+    RouteBySourceIp,
     /// Drop the packet
     Drop,
 }
@@ -644,6 +649,99 @@ async fn classify_and_send(
                     }
                 }
                 other => tracing::error!("unknown ethertype: {other}"),
+            }
+        }
+        RoutingDecision::RouteBySourceIp => {
+            // Read VPN interface addresses before borrowing the packet frame mutably.
+            let vpn_v4 = vpn_interface.as_ref().and_then(|t| t.0.v4_address);
+            let vpn_v6 = vpn_interface.as_ref().and_then(|t| t.0.v6_address);
+
+            match packet.frame.get_ethertype() {
+                EtherTypes::Ipv4 => {
+                    // Extract src_ip in an inner scope so the mutable borrow of packet.frame ends
+                    // before we borrow it again below.
+                    let src_ip = {
+                        let Some(ip) = MutableIpv4Packet::new(packet.frame.payload_mut()) else {
+                            tracing::error!("dropping invalid IPv4 hybrid packet");
+                            return;
+                        };
+                        ip.get_source()
+                    };
+
+                    if vpn_v4.is_some_and(|addr| src_ip == addr) {
+                        // Bound to the VPN interface: forward through the VPN tunnel.
+                        // The source IP is already correct; no rewriting is needed.
+                        if let Some((_, vpn_write)) = vpn_interface {
+                            let payload_len = packet.frame.payload().len();
+                            let _ = vpn_write.write(packet.frame.payload()).inspect_err(|error| {
+                                tracing::trace!(
+                                    "Failed to forward hybrid packet to VPN tunnel: {error}, size: {payload_len}"
+                                );
+                            });
+                        }
+                        return;
+                    }
+
+                    // Bound to the default interface: forward without source IP rewriting.
+                    let Some(ref addrs) = default_interface.v4_addrs else {
+                        tracing::trace!("dropping IPv4 hybrid packet: no default route");
+                        return;
+                    };
+                    if src_ip != addrs.source_ip {
+                        // Drop packet from unrecognized source
+                        return;
+                    }
+                    packet
+                        .frame
+                        .set_destination(addrs.gateway_address.into_bytes().into());
+                    if let Err(error) = default_write.write(packet.frame.packet()) {
+                        tracing::error!(
+                            "Failed to forward hybrid packet to default device: {error}"
+                        );
+                    }
+                }
+                EtherTypes::Ipv6 => {
+                    let src_ip = {
+                        let Some(ip) = MutableIpv6Packet::new(packet.frame.payload_mut()) else {
+                            tracing::error!("dropping invalid IPv6 hybrid packet");
+                            return;
+                        };
+                        ip.get_source()
+                    };
+
+                    if vpn_v6.is_some_and(|addr| src_ip == addr) {
+                        // Bound to the VPN interface: forward through the VPN tunnel.
+                        // The source IP is already correct; no rewriting is needed.
+                        if let Some((_, vpn_write)) = vpn_interface {
+                            let payload_len = packet.frame.payload().len();
+                            let _ = vpn_write.write(packet.frame.payload()).inspect_err(|error| {
+                                tracing::trace!(
+                                    "Failed to forward hybrid packet to VPN tunnel: {error}, size: {payload_len}"
+                                );
+                            });
+                        }
+                        return;
+                    }
+
+                    // Bound to the default interface: forward without source IP rewriting.
+                    let Some(ref addrs) = default_interface.v6_addrs else {
+                        tracing::trace!("dropping IPv6 hybrid packet: no default route");
+                        return;
+                    };
+                    if src_ip != addrs.source_ip {
+                        // Drop packet from unrecognized source
+                        return;
+                    }
+                    packet
+                        .frame
+                        .set_destination(addrs.gateway_address.into_bytes().into());
+                    if let Err(error) = default_write.write(packet.frame.packet()) {
+                        tracing::error!(
+                            "Failed to forward hybrid packet to default device: {error}"
+                        );
+                    }
+                }
+                other => tracing::error!("unknown ethertype for hybrid packet: {other}"),
             }
         }
         RoutingDecision::Drop => {

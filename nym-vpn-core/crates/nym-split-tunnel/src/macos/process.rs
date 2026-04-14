@@ -296,6 +296,11 @@ pub enum ExclusionStatus {
     Excluded,
     /// The process should not be excluded from the VPN
     Included,
+    /// The process traffic is routed based on the source IP it binds to:
+    /// if the source IP equals the VPN tunnel address, the packet is sent through the VPN;
+    /// otherwise it is sent through the default interface.
+    /// No source IP rewriting is performed.
+    Hybrid,
     /// The process is unknown
     Unknown,
 }
@@ -304,6 +309,7 @@ pub enum ExclusionStatus {
 struct InnerProcessStates {
     processes: HashMap<pid_t, ProcessInfo>,
     exclude_paths: HashSet<PathBuf>,
+    hybrid_paths: HashSet<PathBuf>,
 }
 
 impl ProcessStates {
@@ -312,6 +318,7 @@ impl ProcessStates {
         let mut states = InnerProcessStates {
             processes: HashMap::new(),
             exclude_paths: HashSet::new(),
+            hybrid_paths: HashSet::new(),
         };
 
         let processes = list_pids().map_err(Error::InitializePids)?;
@@ -337,52 +344,80 @@ impl ProcessStates {
         })
     }
 
-    pub async fn exclude_paths(&self, paths: HashSet<PathBuf>) {
+    /// Update the set of excluded and hybrid paths.
+    ///
+    /// - `paths`: executables to be fully excluded from the VPN tunnel (always routed via the
+    ///   default interface).
+    /// - `hybrid_paths`: executables that are routed based on their source IP binding. Traffic
+    ///   bound to the VPN tunnel address is sent through the VPN; all other traffic is sent via
+    ///   the default interface. Hybrid status is not inherited by child processes.
+    pub async fn set_paths(&self, paths: HashSet<PathBuf>, hybrid_paths: HashSet<PathBuf>) {
         let mut inner = self.inner.lock().await;
 
-        // Resolve symlinks and canonicalize paths to align user and system paths
-        let paths: HashSet<PathBuf> = stream::iter(paths)
-            .then(|path| async move {
-                tokio::fs::canonicalize(&path)
-                    .await
-                    .inspect_err(|err| {
-                        if err.kind() != std::io::ErrorKind::NotFound {
-                            tracing::warn!(
-                                "Failed to canonicalize path: {}. Error: {}",
-                                path.display(),
-                                err
-                            );
-                        }
-                    })
-                    .unwrap_or(path)
-            })
-            .collect()
-            .await;
+        /// Canonicalize a set of paths, resolving symlinks to align user and system paths.
+        async fn canonicalize(paths: HashSet<PathBuf>) -> HashSet<PathBuf> {
+            stream::iter(paths)
+                .then(|path| async move {
+                    tokio::fs::canonicalize(&path)
+                        .await
+                        .inspect_err(|err| {
+                            if err.kind() != std::io::ErrorKind::NotFound {
+                                tracing::warn!(
+                                    "Failed to canonicalize path: {}. Error: {}",
+                                    path.display(),
+                                    err
+                                );
+                            }
+                        })
+                        .unwrap_or(path)
+                })
+                .collect()
+                .await
+        }
+
+        let paths = canonicalize(paths).await;
+        let hybrid_paths = canonicalize(hybrid_paths).await;
 
         for info in inner.processes.values_mut() {
-            // Remove no-longer excluded paths from exclusion list
+            // Recompute excluded paths: keep intersection with the new set (preserves inherited
+            // exclusions that are still relevant) and add any direct matches.
             let mut new_exclude_paths: HashSet<_> = info
                 .excluded_by_paths
                 .intersection(&paths)
                 .cloned()
                 .collect();
-
-            // Check if own path is excluded
             if paths.contains(&info.exec_path) && !new_exclude_paths.contains(&info.exec_path) {
                 new_exclude_paths.insert(info.exec_path.clone());
             }
-
-            // Check if path for responsible app is excluded
             if paths.contains(&info.responsible_exec_path)
                 && !new_exclude_paths.contains(&info.responsible_exec_path)
             {
                 new_exclude_paths.insert(info.responsible_exec_path.clone());
             }
-
             info.excluded_by_paths = new_exclude_paths;
+
+            // Recompute hybrid paths: same intersection-then-add logic.
+            // Note: hybrid status is never inherited via fork, so the intersection here only
+            // retains entries that were set by a previous exec event.
+            let mut new_hybrid_paths: HashSet<_> = info
+                .hybrid_by_paths
+                .intersection(&hybrid_paths)
+                .cloned()
+                .collect();
+            if hybrid_paths.contains(&info.exec_path) && !new_hybrid_paths.contains(&info.exec_path)
+            {
+                new_hybrid_paths.insert(info.exec_path.clone());
+            }
+            if hybrid_paths.contains(&info.responsible_exec_path)
+                && !new_hybrid_paths.contains(&info.responsible_exec_path)
+            {
+                new_hybrid_paths.insert(info.responsible_exec_path.clone());
+            }
+            info.hybrid_by_paths = new_hybrid_paths;
         }
 
         inner.exclude_paths = paths;
+        inner.hybrid_paths = hybrid_paths;
     }
 
     pub async fn get_excluded_processes(&self) -> SplitTunnelExcludedProcessList {
@@ -407,6 +442,7 @@ impl ProcessStates {
         let inner = self.inner.lock().await;
         match inner.processes.get(&pid) {
             Some(val) if val.is_excluded() => ExclusionStatus::Excluded,
+            Some(val) if val.is_hybrid() => ExclusionStatus::Hybrid,
             Some(_) => ExclusionStatus::Included,
             None => ExclusionStatus::Unknown,
         }
@@ -460,10 +496,14 @@ impl InnerProcessStates {
             tracing::error!("Conflicting pid! State already contains {pid}");
         }
 
-        // Inherit exclusion status from parent
+        // Inherit exclusion status from parent, but NOT hybrid status.
+        // On Windows, ST_PROCESS_SPLIT_STATUS_HYBRID_BY_CONFIG is similarly never propagated
+        // to children; only the fully-excluded status is inherited.
         let base_info = match self.processes.get(&parent_pid) {
             Some(parent_info) => {
                 let mut cloned_info = parent_info.to_owned();
+                // Clear hybrid status — child processes must be configured explicitly
+                cloned_info.hybrid_by_paths.clear();
                 if let Some(resp_info) = self.processes.get(&responsible_pid) {
                     cloned_info.responsible_exec_path = resp_info.exec_path.clone();
                 }
@@ -535,6 +575,29 @@ impl InnerProcessStates {
                 info.responsible_exec_path.display()
             );
         }
+
+        // Check if process should be treated as hybrid by exec path
+        if !info.hybrid_by_paths.contains(&info.exec_path)
+            && self.hybrid_paths.contains(&info.exec_path)
+        {
+            info.hybrid_by_paths.insert(info.exec_path.clone());
+            tracing::trace!(
+                "Hybrid routing for {pid} by path: {}",
+                info.exec_path.display()
+            );
+        }
+
+        // Check if process should be treated as hybrid via the responsible exec path
+        if !info.hybrid_by_paths.contains(&info.responsible_exec_path)
+            && self.hybrid_paths.contains(&info.responsible_exec_path)
+        {
+            info.hybrid_by_paths
+                .insert(info.responsible_exec_path.clone());
+            tracing::trace!(
+                "Hybrid routing for {pid} by responsible path: {}",
+                info.responsible_exec_path.display()
+            );
+        }
     }
 
     fn handle_exit(&mut self, pid: pid_t) {
@@ -550,6 +613,9 @@ struct ProcessInfo {
     // Path of executable responsible for launching this process
     responsible_exec_path: PathBuf,
     excluded_by_paths: HashSet<PathBuf>,
+    /// Paths in `hybrid_paths` that caused this process to be treated as hybrid.
+    /// Unlike `excluded_by_paths`, this is never inherited by forked children.
+    hybrid_by_paths: HashSet<PathBuf>,
 }
 
 impl ProcessInfo {
@@ -558,11 +624,18 @@ impl ProcessInfo {
             exec_path,
             responsible_exec_path: responsible_path,
             excluded_by_paths: HashSet::new(),
+            hybrid_by_paths: HashSet::new(),
         }
     }
 
     fn is_excluded(&self) -> bool {
         !self.excluded_by_paths.is_empty()
+    }
+
+    /// Returns true when this process should be given hybrid routing.
+    /// Excluded status takes precedence: a process in both lists is treated as fully excluded.
+    fn is_hybrid(&self) -> bool {
+        !self.hybrid_by_paths.is_empty() && self.excluded_by_paths.is_empty()
     }
 }
 

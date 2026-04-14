@@ -113,6 +113,7 @@ enum Message {
     SetExcludePaths {
         result_tx: oneshot::Sender<Result<(), Error>>,
         paths: HashSet<PathBuf>,
+        hybrid_paths: HashSet<PathBuf>,
     },
     /// Update VPN tunnel interface
     SetTunnel {
@@ -147,10 +148,14 @@ impl SplitTunnelHandle {
     pub async fn set_exclude_paths(
         &self,
         paths: HashSet<PathBuf>,
-        _hybrid_paths: HashSet<PathBuf>,
+        hybrid_paths: HashSet<PathBuf>,
     ) -> Result<(), Error> {
         let (result_tx, result_rx) = oneshot::channel();
-        let _ = self.tx.send(Message::SetExcludePaths { result_tx, paths });
+        let _ = self.tx.send(Message::SetExcludePaths {
+            result_tx,
+            paths,
+            hybrid_paths,
+        });
         result_rx.await.map_err(|_| Error::unavailable())?
     }
 
@@ -263,8 +268,12 @@ impl SplitTunnel {
             Message::GetInterface { result_tx } => {
                 let _ = result_tx.send(self.interface().map(str::to_owned));
             }
-            Message::SetExcludePaths { result_tx, paths } => {
-                let _ = result_tx.send(self.state.set_exclude_paths(paths).await);
+            Message::SetExcludePaths {
+                result_tx,
+                paths,
+                hybrid_paths,
+            } => {
+                let _ = result_tx.send(self.state.set_exclude_paths(paths, hybrid_paths).await);
             }
             Message::SetTunnel {
                 result_tx,
@@ -402,24 +411,30 @@ impl State {
         matches!(self, State::Active { .. })
     }
 
-    /// Set paths to exclude. For a non-empty path, this will initialize split tunneling if a tunnel
-    /// device is also set.
-    async fn set_exclude_paths(&mut self, paths: HashSet<PathBuf>) -> Result<(), Error> {
-        self.transition(move |self_| self_.set_exclude_paths_inner(paths))
+    /// Set paths to exclude. For a non-empty set of excluded or hybrid paths, this will
+    /// initialize split tunneling if a tunnel device is also set.
+    async fn set_exclude_paths(
+        &mut self,
+        paths: HashSet<PathBuf>,
+        hybrid_paths: HashSet<PathBuf>,
+    ) -> Result<(), Error> {
+        self.transition(move |self_| self_.set_exclude_paths_inner(paths, hybrid_paths))
             .await
     }
 
     async fn set_exclude_paths_inner(
         mut self,
         paths: HashSet<PathBuf>,
+        hybrid_paths: HashSet<PathBuf>,
     ) -> Result<Self, ErrorWithTransition> {
+        let has_paths = !paths.is_empty() || !hybrid_paths.is_empty();
         match self {
             // If there are currently no paths and no process monitor, initialize it
-            State::NoExclusions { route_manager } if !paths.is_empty() => {
+            State::NoExclusions { route_manager } if has_paths => {
                 tracing::debug!("Initializing process monitor");
 
                 let process = process::ProcessMonitor::spawn().await?;
-                process.states().exclude_paths(paths).await;
+                process.states().set_paths(paths, hybrid_paths).await;
 
                 Ok(State::ProcessMonitorOnly {
                     route_manager,
@@ -430,11 +445,11 @@ impl State {
             State::StandBy {
                 route_manager,
                 vpn_interface,
-            } if !paths.is_empty() => {
+            } if has_paths => {
                 tracing::debug!("Initializing process monitor");
 
                 let process = process::ProcessMonitor::spawn().await?;
-                process.states().exclude_paths(paths).await;
+                process.states().set_paths(paths, hybrid_paths).await;
 
                 State::ProcessMonitorOnly {
                     route_manager,
@@ -443,10 +458,10 @@ impl State {
                 .set_tunnel_inner(vpn_interface)
                 .await
             }
-            // If 'paths' is empty, do nothing
+            // If both sets are empty, do nothing
             State::NoExclusions { .. } | State::StandBy { .. } => Ok(self),
-            // If 'paths' is empty but split tunneling was enabled for an active VPN connection,
-            // disable split tunneling while caching the VPN interface.
+            // If both sets are now empty but split tunneling was enabled for an active VPN
+            // connection, disable split tunneling while caching the VPN interface.
             //
             // Note that the point is to drop the split tunnel handle to clean up the split tunnel
             // interface from the user's system.
@@ -455,7 +470,7 @@ impl State {
                 mut process,
                 tun_handle,
                 vpn_interface,
-            } if paths.is_empty() => {
+            } if !has_paths => {
                 if let Err(error) = tun_handle.shutdown().await {
                     tracing::error!("Failed to stop split tunnel: {error}");
                 }
@@ -473,15 +488,15 @@ impl State {
             | State::ProcessMonitorOnly {
                 ref mut process, ..
             } => {
-                process.states().exclude_paths(paths).await;
+                process.states().set_paths(paths, hybrid_paths).await;
                 Ok(self)
             }
-            // If 'paths' is empty, transition out of the failed state
+            // If both sets are empty, transition out of the failed state
             State::Failed {
                 route_manager,
                 vpn_interface,
                 cause: _,
-            } if paths.is_empty() => {
+            } if !has_paths => {
                 tracing::debug!("Transitioning out of split tunnel error state");
 
                 match vpn_interface {
@@ -697,6 +712,7 @@ impl State {
 async fn classify_packet(packet: &PktapPacket, proc_states: ProcessStates) -> RoutingDecision {
     match proc_states.get_process_status(packet.header.pth_pid).await {
         ExclusionStatus::Excluded => RoutingDecision::DefaultInterface,
+        ExclusionStatus::Hybrid => RoutingDecision::RouteBySourceIp,
         ExclusionStatus::Included => RoutingDecision::VpnTunnel,
         ExclusionStatus::Unknown => {
             // TODO: Delay decision until next exec
