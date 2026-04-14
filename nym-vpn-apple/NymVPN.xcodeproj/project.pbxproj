@@ -278,12 +278,16 @@
 		58BD2D7B2F8E63C9003E20B0 /* PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			attributesByRelativePath = {
+				"nym-setup" = (
+					CodeSignOnCopy,
+				);
 				"nym-vpnd" = (
 					CodeSignOnCopy,
 				);
 			};
 			buildPhase = 58C957352F8E405400FD0C81 /* Copy Files */;
 			membershipExceptions = (
+				"nym-setup",
 				"nym-vpnd",
 			);
 		};
