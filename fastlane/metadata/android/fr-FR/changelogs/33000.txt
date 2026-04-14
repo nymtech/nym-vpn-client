@@ -1,0 +1,4 @@
+Nouveautés :
+- Réglages : Activation du protocole Lewes ajouté.
+- Mises à jour de l'interface utilisateur : Nettoyage des écrans Paramètres, Support et Hop.
+- Améliorations techniques : Ajout de replis pour l'enregistrement du système.

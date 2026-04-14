@@ -226,6 +226,9 @@
 	<string name="settings_language_help_title">Допоможіть з перекладом</string>
 	<string name="settings_language_help_description">Покращуйте додаток своєю мовою.</string>
 	<string name="settings_event_lan_reconnecting">Повторне підключення для застосування налаштувань LAN…</string>
+	<string name="settings_lewes_title">Увімкнути протокол Lewes</string>
+	<string name="settings_lewes_on_description">Завжди віддавайте перевагу постквантовим шлюзам</string>
+	<string name="settings_lewes_off_description">Відсутнє постквантове налаштування шлюзу</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Для використання ярликів необхідне блокування екрану.</string>
 	<string name="shortcut_title">Підтвердити дію</string>
@@ -530,5 +533,7 @@
 	<string name="diagnostic_copy_report">Скопіювати звіт</string>
 	<string name="diagnostic_copied">Скопійовано в буфер обміну</string>
 	<string name="diagnostic_error">Діагностика не вдалася</string>
-	<!-- Developer screen -->
+	<!-- Support screen -->
+	<string name="support_protect_title">⚠️ Захистіть себе від шахрайства</string>
+	<string name="support_protect_description">Звертайтеся до служби підтримки NymVPN тільки через офіційні канали, зазначені нижче. Ми ніколи не будемо запитувати ваш пароль і не будемо зв\'язуватися з вами першими через прямі повідомлення.\n\nОтримали несподіваний дзвінок? Швидше за все, це шахрайство.</string>
 </resources>

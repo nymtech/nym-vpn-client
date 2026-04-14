@@ -1,0 +1,6 @@
+क्या नया है:
+- Implemented auto-login functionality and interface.
+- Introduced a Diagnostic tool.
+- Added a "Random" option for Entry and Exit locations.
+- Added an info banner displaying your current subscription state.
+- Technical Improvements: Optimized Privy connection checks.

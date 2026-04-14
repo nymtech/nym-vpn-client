@@ -226,6 +226,9 @@
 	<string name="settings_language_help_title">Hỗ trợ dịch</string>
 	<string name="settings_language_help_description">Tối ưu ứng dụng theo ngôn ngữ của bạn.</string>
 	<string name="settings_event_lan_reconnecting">Đang kết nối lại để áp dụng cài đặt mạng LAN...</string>
+	<string name="settings_lewes_title">Bật giao thức Lewes</string>
+	<string name="settings_lewes_on_description">Luôn ưu tiên các cổng hậu lượng tử</string>
+	<string name="settings_lewes_off_description">Không có ưu tiên cổng hậu lượng tử nào</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Cần khóa màn hình để sử dụng các phím tắt.</string>
 	<string name="shortcut_title">Xác nhận hành động</string>
@@ -529,5 +532,7 @@
 	<string name="diagnostic_copy_report">Sao chép báo cáo</string>
 	<string name="diagnostic_copied">Đã sao chép vào bộ nhớ tạm</string>
 	<string name="diagnostic_error">Chẩn đoán không thành công</string>
-	<!-- Developer screen -->
+	<!-- Support screen -->
+	<string name="support_protect_title">⚠️ Bảo vệ bản thân khỏi lừa đảo</string>
+	<string name="support_protect_description">Chỉ liên hệ với bộ phận hỗ trợ của NymVPN qua các kênh chính thức được liệt kê bên dưới. Chúng tôi sẽ không bao giờ yêu cầu mật khẩu hoặc liên hệ với bạn trước qua tin nhắn trực tiếp.\n\nBạn nhận được liên hệ đáng ngờ? Rất có thể đây là lừa đảo.</string>
 </resources>

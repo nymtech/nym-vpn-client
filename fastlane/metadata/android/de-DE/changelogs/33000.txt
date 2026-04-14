@@ -1,0 +1,5 @@
+Was ist Neu:
+- Einstellungen: Lewes-Protokoll hinzugefügt.
+
+- UI-Updates: Einstellungen, Support und Hop-Ansichten überarbeitet.
+- Technische Verbesserungen: Fallback für das System-Logging hinzugefügt.
