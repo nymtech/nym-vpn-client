@@ -1,0 +1,6 @@
+Novedades:
+- Implementada funcionalidad e interfaz de inicio de sesión automático.
+- Presentación de una herramienta de diagnóstico.
+- Se ha añadido una opción "aleatoria" para ubicaciones de entrada y salida.
+- Se ha añadido un banner informativo que muestra tu estado actual de suscripción.
+- Mejoras técnicas: Comprobación optimizada de conexión privada.
