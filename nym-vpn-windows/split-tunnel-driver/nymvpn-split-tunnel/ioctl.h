@@ -21,7 +21,7 @@ Initialize(WDFDEVICE Device);
 //
 // SetConfigurationPrepare()
 //
-// Parse client buffer into registeredimage instance.
+// Parse client buffer into a registeredimage instance with per-entry flags.
 //
 // This should be called at PASSIVE, and the actual updating and
 // state transition may be performed at DISPATCH.

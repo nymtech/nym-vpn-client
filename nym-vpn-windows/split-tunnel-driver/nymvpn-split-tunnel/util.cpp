@@ -236,6 +236,10 @@ bool SplittingEnabled(ST_PROCESS_SPLIT_STATUS Status) {
     return (Status == ST_PROCESS_SPLIT_STATUS_ON_BY_CONFIG || Status == ST_PROCESS_SPLIT_STATUS_ON_BY_INHERITANCE);
 }
 
+bool HybridEnabled(ST_PROCESS_SPLIT_STATUS Status) {
+    return Status == ST_PROCESS_SPLIT_STATUS_HYBRID_BY_CONFIG;
+}
+
 bool Equal(const LOWER_UNICODE_STRING* lhs, const LOWER_UNICODE_STRING* rhs) {
     if (lhs->Length != rhs->Length) {
         return false;

@@ -28,12 +28,17 @@ typedef struct tag_LOWER_UNICODE_STRING {
 } LOWER_UNICODE_STRING;
 
 enum ST_PROCESS_SPLIT_STATUS {
-    // Traffic should be split.
+    // Traffic should be split (excluded from VPN).
     ST_PROCESS_SPLIT_STATUS_ON_BY_CONFIG = 0,
 
-    // Traffic should be split.
+    // Traffic should be split (excluded from VPN).
     ST_PROCESS_SPLIT_STATUS_ON_BY_INHERITANCE,
 
     // Traffic should not be split.
-    ST_PROCESS_SPLIT_STATUS_OFF
+    ST_PROCESS_SPLIT_STATUS_OFF,
+
+    // Traffic is routed according to the source IP address the process binds to.
+    // No bind/connect rewriting is performed; the process is responsible for
+    // binding to the correct interface. Non-tunnel traffic is permitted.
+    ST_PROCESS_SPLIT_STATUS_HYBRID_BY_CONFIG
 };

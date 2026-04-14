@@ -70,6 +70,8 @@ void StopIfDebugBuild();
 
 bool SplittingEnabled(ST_PROCESS_SPLIT_STATUS Status);
 
+bool HybridEnabled(ST_PROCESS_SPLIT_STATUS Status);
+
 bool Equal(const LOWER_UNICODE_STRING* lhs, const LOWER_UNICODE_STRING* rhs);
 
 void Swap(LOWER_UNICODE_STRING* lhs, LOWER_UNICODE_STRING* rhs);

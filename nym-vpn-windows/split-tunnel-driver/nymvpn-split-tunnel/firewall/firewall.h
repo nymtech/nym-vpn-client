@@ -25,6 +25,10 @@ enum class PROCESS_SPLIT_VERDICT {
     DO_SPLIT,
     DONT_SPLIT,
 
+    // Route traffic according to the source IP the process binds to.
+    // No bind/connect rewriting is performed.
+    BYPASS,
+
     // PID is unknown
     UNKNOWN
 };

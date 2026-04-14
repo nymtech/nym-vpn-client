@@ -313,7 +313,7 @@ impl DeviceHandle {
         DriverState::try_from(raw_state).map_err(io::Error::other)
     }
 
-    pub fn set_config<T: AsRef<OsStr>>(&self, apps: &[T]) -> io::Result<()> {
+    pub fn set_config<T: AsRef<OsStr>>(&self, apps: &[T], hybrid_apps: &[T]) -> io::Result<()> {
         let mut device_paths = Vec::with_capacity(apps.len());
         for app in apps {
             match get_device_path(app.as_ref()) {
@@ -329,7 +329,22 @@ impl DeviceHandle {
             }
         }
 
-        if device_paths.is_empty() {
+        let mut hybrid_device_paths = Vec::with_capacity(hybrid_apps.len());
+        for app in hybrid_apps {
+            match get_device_path(app.as_ref()) {
+                Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                    tracing::debug!(
+                        "{}\nPath: {}",
+                        error.display_chain_with_msg("Ignoring path on unmounted volume"),
+                        Path::new(app.as_ref()).display()
+                    );
+                }
+                Err(error) => return Err(error),
+                Ok(path) => hybrid_device_paths.push(path),
+            }
+        }
+
+        if device_paths.is_empty() && hybrid_device_paths.is_empty() {
             return self.clear_config();
         }
 
@@ -337,8 +352,12 @@ impl DeviceHandle {
         for path in &device_paths {
             tracing::debug!("    {}", Path::new(&path).display());
         }
+        tracing::debug!("Hybrid device paths:");
+        for path in &hybrid_device_paths {
+            tracing::debug!("    {}", Path::new(&path).display());
+        }
 
-        let config = make_process_config(&device_paths);
+        let config = make_process_config(&device_paths, &hybrid_device_paths);
 
         device_io_control(
             self,
@@ -385,6 +404,16 @@ struct ConfigurationHeader {
     total_length: usize,
 }
 
+/// Combination of `ST_CONFIGURATION_ENTRY_FLAG_*` values.
+type ConfigurationEntryFlags = u16;
+
+/// Default: exclude the process from the VPN tunnel (route via internet interface).
+const ST_CONFIGURATION_ENTRY_FLAG_EXCLUDE: ConfigurationEntryFlags = 0x0000;
+
+/// Route traffic according to the source IP the process binds to.
+/// No bind/connect rewriting is performed.
+const ST_CONFIGURATION_ENTRY_FLAG_HYBRID: ConfigurationEntryFlags = 0x0001;
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct ConfigurationEntry {
@@ -393,17 +422,34 @@ struct ConfigurationEntry {
     name_offset: usize,
     // Byte length for non-null terminated wide char string.
     name_length: u16,
+    // Combination of ST_CONFIGURATION_ENTRY_FLAG_* values.
+    flags: ConfigurationEntryFlags,
 }
 
 /// Create a buffer containing a `ConfigurationHeader` and number of `ConfigurationEntry`s,
 /// followed by the same number of paths to those entries.
-fn make_process_config<T: AsRef<OsStr>>(apps: &[T]) -> Vec<MaybeUninit<u8>> {
-    let apps: Vec<Vec<u16>> = apps
+/// `apps` are excluded from the VPN tunnel; `hybrid_apps` route based on their bound source IP.
+fn make_process_config<T: AsRef<OsStr>>(apps: &[T], hybrid_apps: &[T]) -> Vec<MaybeUninit<u8>> {
+    let apps: Vec<(Vec<u16>, ConfigurationEntryFlags)> = apps
         .iter()
-        .map(|app| app.as_ref().encode_wide().collect())
+        .map(|app| {
+            (
+                app.as_ref().encode_wide().collect(),
+                ST_CONFIGURATION_ENTRY_FLAG_EXCLUDE,
+            )
+        })
+        .chain(hybrid_apps.iter().map(|app| {
+            (
+                app.as_ref().encode_wide().collect(),
+                ST_CONFIGURATION_ENTRY_FLAG_HYBRID,
+            )
+        }))
         .collect();
 
-    let total_string_size: usize = apps.iter().map(|app| size_of::<u16>() * app.len()).sum();
+    let total_string_size: usize = apps
+        .iter()
+        .map(|(app, _)| size_of::<u16>() * app.len())
+        .sum();
 
     let total_buffer_size = size_of::<ConfigurationHeader>()
         + size_of::<ConfigurationEntry>() * apps.len()
@@ -425,13 +471,14 @@ fn make_process_config<T: AsRef<OsStr>>(apps: &[T]) -> Vec<MaybeUninit<u8>> {
     let (entries, string_data) = tail.split_at_mut(apps.len() * size_of::<ConfigurationEntry>());
     let mut string_offset = 0;
 
-    for (i, app) in apps.iter().enumerate() {
+    for (i, (app, flags)) in apps.iter().enumerate() {
         write_string_to_buffer(string_data, string_offset, app);
 
         let app_bytelen = size_of::<u16>() * app.len();
         let entry = ConfigurationEntry {
             name_offset: string_offset,
             name_length: app_bytelen as u16,
+            flags: *flags,
         };
         let entry_offset = size_of::<ConfigurationEntry>() * i;
 

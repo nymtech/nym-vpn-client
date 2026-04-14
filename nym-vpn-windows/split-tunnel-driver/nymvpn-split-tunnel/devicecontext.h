@@ -13,37 +13,34 @@
 #include "eventing/eventing.h"
 #include "procbroker/procbroker.h"
 
-struct DRIVER_STATE_MGMT
-{
-	WDFWAITLOCK Lock;
-	ST_DRIVER_STATE State;
+struct DRIVER_STATE_MGMT {
+    WDFWAITLOCK Lock;
+    ST_DRIVER_STATE State;
 };
 
-typedef struct tag_ST_DEVICE_CONTEXT
-{
-	DRIVER_STATE_MGMT DriverState;
+typedef struct tag_ST_DEVICE_CONTEXT {
+    DRIVER_STATE_MGMT DriverState;
 
-	// Parallel queue for processing IOCTLs which use inverted call.
-	WDFQUEUE ParallelRequestQueue;
+    // Parallel queue for processing IOCTLs which use inverted call.
+    WDFQUEUE ParallelRequestQueue;
 
-	// Serialized queue for processing of most IOCTLs.
-	WDFQUEUE SerializedRequestQueue;
+    // Serialized queue for processing of most IOCTLs.
+    WDFQUEUE SerializedRequestQueue;
 
-	ST_IP_ADDRESSES IpAddresses;
+    ST_IP_ADDRESSES IpAddresses;
 
-	PROCESS_REGISTRY_MGMT ProcessRegistry;
+    PROCESS_REGISTRY_MGMT ProcessRegistry;
 
-	// Protected by state lock.
-	REGISTERED_IMAGE_MGMT RegisteredImage;
+    // Protected by state lock.
+    REGISTERED_IMAGE_MGMT RegisteredImage;
 
-	firewall::CONTEXT *Firewall;
+    firewall::CONTEXT* Firewall;
 
-	procmgmt::CONTEXT *ProcessMgmt;
+    procmgmt::CONTEXT* ProcessMgmt;
 
-	eventing::CONTEXT *Eventing;
+    eventing::CONTEXT* Eventing;
 
-	procbroker::CONTEXT *ProcessEventBroker;
-}
-ST_DEVICE_CONTEXT;
+    procbroker::CONTEXT* ProcessEventBroker;
+} ST_DEVICE_CONTEXT;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(ST_DEVICE_CONTEXT, DeviceGetSplitTunnelContext)

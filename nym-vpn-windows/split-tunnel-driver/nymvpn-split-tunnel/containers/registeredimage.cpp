@@ -54,7 +54,7 @@ REGISTERED_IMAGE_ENTRY* FindEntryExact(CONTEXT* Context, LOWER_UNICODE_STRING* I
 }
 
 NTSTATUS
-AddEntryInner(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName) {
+AddEntryInner(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName, USHORT Flags) {
     //
     // Make a single allocation for the struct and string buffer.
     //
@@ -78,6 +78,7 @@ AddEntryInner(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName) {
     record->ImageName.Length = ImageName->Length;
     record->ImageName.MaximumLength = ImageName->Length;
     record->ImageName.Buffer = stringBuffer;
+    record->Flags = Flags;
 
     RtlCopyMemory(stringBuffer, ImageName->Buffer, ImageName->Length);
 
@@ -116,7 +117,7 @@ Initialize(CONTEXT** Context, ST_PAGEABLE Pageable) {
     return STATUS_SUCCESS;
 }
 
-_IRQL_requires_(PASSIVE_LEVEL) NTSTATUS AddEntry(CONTEXT* Context, UNICODE_STRING* ImageName) {
+_IRQL_requires_(PASSIVE_LEVEL) NTSTATUS AddEntry(CONTEXT* Context, UNICODE_STRING* ImageName, USHORT Flags) {
     NT_ASSERT(KeGetCurrentIrql() == PASSIVE_LEVEL);
 
     //
@@ -140,7 +141,7 @@ _IRQL_requires_(PASSIVE_LEVEL) NTSTATUS AddEntry(CONTEXT* Context, UNICODE_STRIN
         return status;
     }
 
-    status = AddEntryInner(Context, (LOWER_UNICODE_STRING*)&lowerImageName);
+    status = AddEntryInner(Context, (LOWER_UNICODE_STRING*)&lowerImageName, Flags);
 
     RtlFreeUnicodeString(&lowerImageName);
 
@@ -148,12 +149,12 @@ _IRQL_requires_(PASSIVE_LEVEL) NTSTATUS AddEntry(CONTEXT* Context, UNICODE_STRIN
 }
 
 NTSTATUS
-AddEntryExact(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName) {
+AddEntryExact(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName, USHORT Flags) {
     if (NULL != FindEntryExact(Context, ImageName)) {
         return STATUS_SUCCESS;
     }
 
-    return AddEntryInner(Context, ImageName);
+    return AddEntryInner(Context, ImageName, Flags);
 }
 
 bool HasEntry(CONTEXT* Context, UNICODE_STRING* ImageName) {
@@ -168,6 +169,12 @@ bool HasEntryExact(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName) {
     return record != NULL;
 }
 
+USHORT GetEntryFlagsExact(CONTEXT* Context, LOWER_UNICODE_STRING* ImageName) {
+    auto record = FindEntryExact(Context, ImageName);
+
+    return (record != NULL) ? record->Flags : 0;
+}
+
 bool RemoveEntry(CONTEXT* Context, UNICODE_STRING* ImageName) {
     return RemoveEntryInner(FindEntry(Context, ImageName));
 }
@@ -180,7 +187,7 @@ bool ForEach(CONTEXT* Context, ST_RI_FOREACH Callback, void* ClientContext) {
     for (auto entry = Context->ListEntry.Flink; entry != &Context->ListEntry; entry = entry->Flink) {
         auto typedEntry = (REGISTERED_IMAGE_ENTRY*)entry;
 
-        if (!Callback(&typedEntry->ImageName, ClientContext)) {
+        if (!Callback(&typedEntry->ImageName, typedEntry->Flags, ClientContext)) {
             return false;
         }
     }
