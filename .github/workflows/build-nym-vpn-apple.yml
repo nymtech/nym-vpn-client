@@ -541,36 +541,6 @@ jobs:
           echo "Available signing identities:"
           security find-identity -v -p codesigning
 
-          echo "🔐 Resolving macOS provisioning profile specifiers..."
-          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
-          MACOS_APP_PROFILE_SPECIFIER=""
-          MACOS_DAEMON_PROFILE_SPECIFIER=""
-
-          for profile in "$PROFILE_DIR"/*.provisionprofile "$PROFILE_DIR"/*.mobileprovision; do
-            [[ -f "$profile" ]] || continue
-            name=$(security cms -D -i "$profile" 2>/dev/null | plutil -extract Name raw -o - -- -)
-            case "$name" in
-              "NymVPN macOS + Daemon") MACOS_APP_PROFILE_SPECIFIER="$name" ;;
-              "NymVPN daemon") MACOS_DAEMON_PROFILE_SPECIFIER="$name" ;;
-            esac
-          done
-
-          if [[ -z "$MACOS_APP_PROFILE_SPECIFIER" ]]; then
-            echo "❌ Could not resolve macOS app profile specifier"
-            echo "   macOS app: '${MACOS_APP_PROFILE_SPECIFIER:-NOT FOUND}'"
-            exit 1
-          fi
-
-
-          if [[ -z "$MACOS_DAEMON_PROFILE_SPECIFIER" ]]; then
-            echo "❌ Could not resolve macOS daemon profile specifier"
-            echo "   macOS daemon: '${MACOS_DAEMON_PROFILE_SPECIFIER:-NOT FOUND}'"
-            exit 1
-          fi
-
-          echo "✅ App profile: $MACOS_APP_PROFILE_SPECIFIER"
-          echo "✅ Daemon profile: $MACOS_DAEMON_PROFILE_SPECIFIER"
-
           echo "Archiving macOS app..."
           xcodebuild archive \
             -workspace "NymVPN.xcworkspace" \
@@ -578,8 +548,6 @@ jobs:
             -configuration "Release" \
             -archivePath "$ARCHIVE_PATH" \
             -destination "generic/platform=macOS" \
-            MACOS_APP_PROFILE_SPECIFIER="${MACOS_APP_PROFILE_SPECIFIER}" \
-            MACOS_DAEMON_PROFILE_SPECIFIER="${MACOS_DAEMON_PROFILE_SPECIFIER}" \
             ENABLE_HARDENED_RUNTIME=YES \
             OTHER_CODE_SIGN_FLAGS="--timestamp" \
             | xcbeautify --renderer github-actions
