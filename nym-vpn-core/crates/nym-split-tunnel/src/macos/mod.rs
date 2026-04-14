@@ -427,6 +427,8 @@ impl State {
         paths: HashSet<PathBuf>,
         hybrid_paths: HashSet<PathBuf>,
     ) -> Result<Self, ErrorWithTransition> {
+        // If a path appears in both sets, favour hybrid_paths and remove it from paths.
+        let paths: HashSet<PathBuf> = paths.difference(&hybrid_paths).cloned().collect();
         let has_paths = !paths.is_empty() || !hybrid_paths.is_empty();
         match self {
             // If there are currently no paths and no process monitor, initialize it

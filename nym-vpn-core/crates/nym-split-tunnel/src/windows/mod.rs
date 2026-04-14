@@ -473,6 +473,10 @@ impl InitializedSplitTunnel {
                     } => {
                         let mut monitored_paths_guard = monitored_paths.lock().unwrap();
 
+                        // If a path appears in both sets, favour hybrid_paths and remove it from paths.
+                        let paths: HashSet<PathBuf> =
+                            paths.difference(&hybrid_paths).cloned().collect();
+
                         let result = if !paths.is_empty() || !hybrid_paths.is_empty() {
                             handle
                                 .set_config(&paths, &hybrid_paths)
