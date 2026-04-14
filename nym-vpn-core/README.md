@@ -405,3 +405,18 @@ If you want to filter by specific destination IP etc, add custom view and enter 
 ```
 
 You can create more complex filters but you'd need to know the exact attributes to fitler by. You can discover them by selecting individual event and switching to the details tab, then to XML view. This should show you all of the available XML attributes.
+
+## Split-tunnel development and testing on macOS
+
+[Endpoint security framework](https://developer.apple.com/documentation/EndpointSecurity) is used for monitoring processes for the purpose of automatic exclusion from VPN tunnel. 
+In production, Apple requires binary to be shipped as a part of app bundle. Otherwise executable is denied access to Endpoint Security. System protection (SIP) has to be disabled for it to work outside of app bundle in development mode.
+
+### Prepare the environment
+
+It's recommended to use a VM. Boot VM in recovery mode and run `csrutil disable` in terminal. Then reboot as normal. 
+
+Once done testing and developing, don't forget to reboot in recovery mode and re-enable system protection with `csrutil enable`.
+
+### Build & Sign
+
+The daemon has to be signed with `com.apple.developer.endpoint-security.client` entitlement. Use `make -f macOS.mk build-dev` in `nym-vpn-core` directory to build workspace and sign `nym-vpnd` with entitlements.

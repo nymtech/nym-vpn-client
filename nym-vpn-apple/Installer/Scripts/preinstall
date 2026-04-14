@@ -4,7 +4,8 @@ set -eu
 
 INSTALL_DIR=$2
 LOG_DIR=/var/log/nym-vpnd
-NYM_SETUP_BIN="$INSTALL_DIR/NymVPN.app/Contents/MacOS/nym-setup"
+OLD_NYM_SETUP_BIN="$INSTALL_DIR/NymVPN.app/Contents/MacOS/nym-setup"
+NEW_NYM_SETUP_BIN="$INSTALL_DIR/NymVPN.app/Contents/Library/LaunchDaemons/NymVPND.app/Contents/MacOS/nym-setup"
 
 PRIVILEGED_HELPER="/Library/PrivilegedHelperTools/net.nymtech.vpn.helper"
 LAUNCH_DAEMON_PLIST="/Library/LaunchDaemons/net.nymtech.vpn.helper.plist"
@@ -35,7 +36,11 @@ sudo launchctl disable "$SMAPP_SERVICE_VPN_HELPER_SERVICE" || echo "Failed to di
 sleep 1
 
 # Stop the existing daemon
-if [ -f "$NYM_SETUP_BIN" ]; then
-    "$NYM_SETUP_BIN" prepare-restart &>/dev/null || \
+if [ -f "$OLD_NYM_SETUP_BIN" ]; then
+    "$OLD_NYM_SETUP_BIN" prepare-restart &>/dev/null || \
+        echo "Failed to send 'prepare-restart' command to old nym-vpnd"
+fi
+if [ -f "$NEW_NYM_SETUP_BIN" ]; then
+    "$NEW_NYM_SETUP_BIN" prepare-restart &>/dev/null || \
         echo "Failed to send 'prepare-restart' command to old nym-vpnd"
 fi

@@ -32,13 +32,23 @@ TARGET_AARCH64_DIR := $(CURDIR)/target/aarch64-apple-darwin/$(BUILD_PROFILE)
 TARGET_X86_64_DIR  := $(CURDIR)/target/x86_64-apple-darwin/$(BUILD_PROFILE)
 
 BIN_TARGETS := nym-vpnd nym-vpnc nym-setup nym-diagnostic
+DAEMON_BIN := nym-vpnd
+DAEMON_ENTITLEMENTS := $(CURDIR)/../nym-vpn-apple/NymVPND/NymVPND.entitlements
 
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: all $(BIN_TARGETS) create-upload-dir
+.PHONY: all $(BIN_TARGETS) create-upload-dir build-dev build-all clean
 
 all: build-all
+
+# Build workspace and codesign nym-vpnd for development.
+# This is required to develop split-tunnel which requires:
+# 1. Binary signed with "com.apple.developer.endpoint-security.client" entitlement.
+# 2. Disabled SIP. Apple require binary to be shipped as a part of app bundle. Otherwise executable is denied access to endpoint-security.
+build-dev:
+	cargo build
+	codesign --entitlements "$(DAEMON_ENTITLEMENTS)" --force -s - target/debug/$(DAEMON_BIN)
 
 build-all: libwg $(BIN_TARGETS) rpc-swift-package
 

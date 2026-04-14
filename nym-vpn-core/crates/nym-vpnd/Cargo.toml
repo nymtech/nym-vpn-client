@@ -82,7 +82,7 @@ maintainer-scripts = "linux/scripts"
 recommends = "nym-vpnc"
 assets = [
     "$auto",
-    { source = "target/release/nym-exclude", dest = "usr/bin/nym-exclude", mode = "755" }
+    { source = "target/release/nym-exclude", dest = "usr/bin/nym-exclude", mode = "755" },
 ]
 revision = ""
 

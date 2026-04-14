@@ -258,11 +258,25 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "📦 Fetching signing files from App Store Connect..."
+          echo "📦 Fetching iOS signing files from App Store Connect..."
           app-store-connect fetch-signing-files net.nymtech.vpn \
             --type IOS_APP_ADHOC \
             --create \
-            --delete-stale-profiles
+            --delete-stale-profiles \
+            --platform IOS
+
+          echo "📦 Downloading macOS provisioning profiles..."
+          app-store-connect profiles list \
+            --type MAC_APP_DIRECT \
+            --state ACTIVE \
+            --name "NymVPN macOS + Daemon" \
+            --save
+
+          app-store-connect profiles list \
+            --type MAC_APP_DIRECT \
+            --state ACTIVE \
+            --name "NymVPN daemon" \
+            --save
 
           keychain add-certificates
 
@@ -379,7 +393,11 @@ jobs:
           # Export iOS build number for later steps (Zulip)
           echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"
 
-          echo "🚜 Update signing"
+          echo "🚜 Update signing (iOS only)"
+          # Save project.pbxproj before use-profiles mutates it, so macOS
+          # Release signing settings are preserved for the archive step.
+          cp NymVPN.xcodeproj/project.pbxproj NymVPN.xcodeproj/project.pbxproj.pre-ios-signing
+
           xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
 
           echo "🚀 Building signed iOS Release with Codemagic CLI..."
@@ -459,6 +477,22 @@ jobs:
 
           echo "✅ Upload completed successfully."
 
+      - name: Restore project signing for macOS
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+          # Restore project.pbxproj to undo any changes made by
+          # xcode-project use-profiles (iOS ad-hoc signing step).
+          # This ensures macOS Release targets retain their original
+          # manual signing settings from the committed project file.
+          if [[ -f NymVPN.xcodeproj/project.pbxproj.pre-ios-signing ]]; then
+            echo "🔄 Restoring project.pbxproj from pre-iOS-signing backup..."
+            mv NymVPN.xcodeproj/project.pbxproj.pre-ios-signing NymVPN.xcodeproj/project.pbxproj
+            echo "✅ macOS signing settings restored."
+          else
+            echo "ℹ️  No backup found (iOS build may have been skipped). Using project as-is."
+          fi
+
       - name: Archive macOS
         id: archive-macos
         working-directory: nym-vpn-apple
@@ -475,7 +509,7 @@ jobs:
 
           mkdir -p "$EXPORT_PATH"
 
-          # Create export options plist
+          # Create export options plist with explicit profile-to-bundle-ID mapping
           cat > "$EXPORT_PLIST" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -486,6 +520,13 @@ jobs:
             <key>signingStyle</key><string>manual</string>
             <key>signingCertificate</key><string>Developer ID Application</string>
             <key>stripSwiftSymbols</key><true/>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>net.nymtech.vpn</key>
+              <string>NymVPN macOS + Daemon</string>
+              <key>net.nymtech.vpn.daemon</key>
+              <string>NymVPN daemon</string>
+            </dict>
           </dict>
           </plist>
           PLIST
@@ -507,10 +548,6 @@ jobs:
             -configuration "Release" \
             -archivePath "$ARCHIVE_PATH" \
             -destination "generic/platform=macOS" \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
-            CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
-            PROVISIONING_PROFILE_SPECIFIER="" \
             ENABLE_HARDENED_RUNTIME=YES \
             OTHER_CODE_SIGN_FLAGS="--timestamp" \
             | xcbeautify --renderer github-actions

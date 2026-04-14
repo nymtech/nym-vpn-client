@@ -95,7 +95,7 @@ fi
 
 # 5) Copy the universal nym-vpnd → apple Daemon
 VPND_SRC="${CORE_ROOT}/upload/mac/nym-vpnd"
-VPND_DEST_DIR="${APPLE_ROOT}/Daemon"
+VPND_DEST_DIR="${APPLE_ROOT}/NymVPND"
 VPND_DEST="${VPND_DEST_DIR}/nym-vpnd"
 if [[ ! -f "${VPND_SRC}" ]]; then
   echo "[BuildCore][ERROR] ${VPND_SRC} not found. Make sure macOS.mk builds vpnd-universal."

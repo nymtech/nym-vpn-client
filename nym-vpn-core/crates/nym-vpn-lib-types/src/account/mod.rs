@@ -396,7 +396,7 @@ pub enum NymVpnSubscriptionKind {
     OneYear,
     TwoYears,
     Freepass,
-    #[serde(untagged)]
+    #[cfg_attr(feature = "serde", serde(untagged))]
     Other(String),
 }
 

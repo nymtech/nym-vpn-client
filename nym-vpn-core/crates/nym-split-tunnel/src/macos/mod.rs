@@ -4,7 +4,6 @@
 
 use std::{collections::HashSet, fmt, path::PathBuf, sync::Arc};
 
-use nym_common::trace_err_chain;
 use nym_routing::RouteManagerHandle;
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use tokio::{
@@ -209,27 +208,13 @@ impl SplitTunnel {
 
     async fn run(mut self) {
         loop {
-            let process_monitor_stopped = async {
-                match self.state.process_monitor() {
-                    Some(process) => process.wait().await,
-                    None => futures_util::future::pending().await,
-                }
-            };
-
             tokio::select! {
-                // Handle process monitor being stopped
-                result = process_monitor_stopped => {
-                    self.handle_process_monitor_shutdown(result);
-                }
-
-                // Handle messages
                 message = self.rx.recv() => {
                     let Some(message) = message else {
                         break
                     };
                     self.handle_message(message).await;
                 }
-
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
@@ -237,28 +222,6 @@ impl SplitTunnel {
         }
 
         self.shutdown().await;
-    }
-
-    /// Handle process monitor unexpectedly stopping
-    fn handle_process_monitor_shutdown(&mut self, result: Result<(), process::Error>) {
-        let cause = match result {
-            Ok(_) => SplitTunnelErrorCause::Other,
-            Err(ref error) => SplitTunnelErrorCause::from(error),
-        };
-        match result {
-            Ok(()) => tracing::error!("Process monitor stopped unexpectedly with no error"),
-            Err(ref error) => {
-                trace_err_chain!(error, "Process monitor stopped unexpectedly");
-            }
-        }
-
-        // Enter the error state if split tunneling is active. Otherwise, we might make incorrect
-        // decisions for new processes
-        if self.state.active() {
-            (*self.error_handler)(cause);
-        }
-
-        self.state.fail(result.err().map(Error::from));
     }
 
     /// Handle an incoming message
@@ -273,7 +236,18 @@ impl SplitTunnel {
                 paths,
                 hybrid_paths,
             } => {
-                let _ = result_tx.send(self.state.set_exclude_paths(paths, hybrid_paths).await);
+                let result = self.state.set_exclude_paths(paths, hybrid_paths).await;
+
+                // Enter the error state if split tunneling is active. Otherwise, we might make incorrect
+                // decisions for new processes
+                if let Err(err) = result.as_ref()
+                    && self.state.active()
+                {
+                    let st_error_cause = SplitTunnelErrorCause::from(err);
+                    (self.error_handler)(st_error_cause);
+                }
+
+                let _ = result_tx.send(result);
             }
             Message::SetTunnel {
                 result_tx,
@@ -299,11 +273,11 @@ impl SplitTunnel {
     /// Shut down split tunnel
     async fn shutdown(&mut self) {
         match self.state.fail(None) {
-            State::ProcessMonitorOnly { mut process, .. } => {
+            State::ProcessMonitorOnly { process, .. } => {
                 process.shutdown().await;
             }
             State::Active {
-                mut process,
+                process,
                 tun_handle,
                 ..
             } => {
@@ -423,7 +397,7 @@ impl State {
     }
 
     async fn set_exclude_paths_inner(
-        mut self,
+        self,
         paths: HashSet<PathBuf>,
         hybrid_paths: HashSet<PathBuf>,
     ) -> Result<Self, ErrorWithTransition> {
@@ -469,7 +443,7 @@ impl State {
             // interface from the user's system.
             State::Active {
                 route_manager,
-                mut process,
+                process,
                 tun_handle,
                 vpn_interface,
             } if !has_paths => {
@@ -484,12 +458,7 @@ impl State {
             }
             // If split tunneling is already initialized, or only the process monitor is, update the
             // paths only
-            State::Active {
-                ref mut process, ..
-            }
-            | State::ProcessMonitorOnly {
-                ref mut process, ..
-            } => {
+            State::Active { ref process, .. } | State::ProcessMonitorOnly { ref process, .. } => {
                 process.states().set_paths(paths, hybrid_paths).await;
                 Ok(self)
             }
@@ -572,7 +541,7 @@ impl State {
             // If split tunneling is already initialized, just update the interfaces
             State::Active {
                 route_manager,
-                mut process,
+                process,
                 tun_handle,
                 vpn_interface: old_vpn_interface,
             } => {
@@ -614,7 +583,7 @@ impl State {
             // If there is a process monitor, initialize split tunneling
             State::ProcessMonitorOnly {
                 route_manager,
-                mut process,
+                process,
             } => {
                 // Try to update the default interface first
                 // If this fails, remain in the current state and just fail

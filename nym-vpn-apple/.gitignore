@@ -67,8 +67,8 @@ Envs/canary.env
 Envs/sandbox.env
 Envs/mainnet.env
 
-Daemon/nym-vpnd
-Daemon/nym-setup
+NymVPND/nym-vpnd
+NymVPND/nym-setup
 
 fastlane/report.xml
 fastlane/README.md
