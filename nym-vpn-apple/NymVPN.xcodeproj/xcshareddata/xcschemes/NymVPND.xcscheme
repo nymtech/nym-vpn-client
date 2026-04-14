@@ -16,7 +16,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "58C9571E2F8E3F0C00FD0C81"
-               BuildableName = "nym-vpnd.app"
+               BuildableName = "NymVPND.app"
                BlueprintName = "NymVPND"
                ReferencedContainer = "container:NymVPN.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "58C9571E2F8E3F0C00FD0C81"
-            BuildableName = "nym-vpnd.app"
+            BuildableName = "NymVPND.app"
             BlueprintName = "NymVPND"
             ReferencedContainer = "container:NymVPN.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "58C9571E2F8E3F0C00FD0C81"
-            BuildableName = "nym-vpnd.app"
+            BuildableName = "NymVPND.app"
             BlueprintName = "NymVPND"
             ReferencedContainer = "container:NymVPN.xcodeproj">
          </BuildableReference>
