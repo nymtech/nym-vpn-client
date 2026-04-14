@@ -38,7 +38,7 @@ type SelectedGatewaysStream = Arc<Mutex<ReceiverStream<Result<SelectedGateways, 
 pub struct GatewayProvider<C: GatewayCache> {
     gateway_cache: C,
     tunnel_settings_tx: mpsc::Sender<SelectAndSend>,
-    selected_gateways_stream: Option<SelectedGatewaysStream>,
+    selected_gateways_stream: SelectedGatewaysStream,
     blacklisted_entry_gateways: BlacklistedGateways,
 }
 
@@ -49,11 +49,8 @@ impl<C: GatewayCache> Stream for GatewayProvider<C> {
         self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
-        let Some(selected_gateways_stream) = self.selected_gateways_stream.as_ref() else {
-            return Poll::Pending;
-        };
         let Poll::Ready(mut selected_gateways_stream) =
-            Box::pin(selected_gateways_stream.lock()).poll_unpin(cx)
+            Box::pin(self.selected_gateways_stream.lock()).poll_unpin(cx)
         else {
             return Poll::Pending;
         };
@@ -62,11 +59,12 @@ impl<C: GatewayCache> Stream for GatewayProvider<C> {
 }
 
 impl<C: GatewayCache> GatewayProvider<C> {
-    pub fn new(
+    pub async fn new(
         gateway_cache: C,
+        initial_tunnel_settings: TunnelSettings,
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
-    ) -> (Self, JoinHandle<()>) {
+    ) -> Result<(Self, JoinHandle<()>), crate::tunnel_state_machine::Error> {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_entry_gateways = BlacklistedGateways::new();
         let selection_algorithm_handle = tokio::spawn(
@@ -79,33 +77,43 @@ impl<C: GatewayCache> GatewayProvider<C> {
             )
             .run(),
         );
+        let selected_gateways_stream =
+            Self::inner_set_tunnel_settings(&tunnel_settings_tx, initial_tunnel_settings).await?;
 
-        (
+        Ok((
             Self {
                 gateway_cache,
                 tunnel_settings_tx,
-                selected_gateways_stream: None,
+                selected_gateways_stream,
                 blacklisted_entry_gateways,
             },
             selection_algorithm_handle,
-        )
+        ))
+    }
+
+    async fn inner_set_tunnel_settings(
+        tunnel_settings_tx: &mpsc::Sender<SelectAndSend>,
+        tunnel_settings: TunnelSettings,
+    ) -> Result<SelectedGatewaysStream, crate::tunnel_state_machine::Error> {
+        // Pre-compute at most 10 different possibilities of selected gateways
+        let (selection_tx, selection_rx) = mpsc::channel(10);
+        tunnel_settings_tx
+            .send(SelectAndSend {
+                tunnel_settings,
+                selection_tx,
+            })
+            .await
+            .map_err(|_| crate::tunnel_state_machine::Error::GatewayProviderDown)?;
+        Ok(Arc::new(Mutex::new(ReceiverStream::new(selection_rx))))
     }
 
     pub async fn set_tunnel_settings(
         &mut self,
         tunnel_settings: TunnelSettings,
     ) -> Result<(), crate::tunnel_state_machine::Error> {
-        // Pre-compute at most 10 different possibilities of selected gateways
-        let (selection_tx, selection_rx) = mpsc::channel(10);
         self.selected_gateways_stream =
-            Some(Arc::new(Mutex::new(ReceiverStream::new(selection_rx))));
-        self.tunnel_settings_tx
-            .send(SelectAndSend {
-                tunnel_settings,
-                selection_tx,
-            })
-            .await
-            .map_err(|_| crate::tunnel_state_machine::Error::GatewayProviderDown)
+            Self::inner_set_tunnel_settings(&self.tunnel_settings_tx, tunnel_settings).await?;
+        Ok(())
     }
 
     pub async fn replace_gateway_client(&self, gateway_client: GatewayClient) {
@@ -198,9 +206,12 @@ pub mod tests {
         let gateways = Arc::new(RwLock::new(None));
         let (mut gw_provider, handle) = GatewayProvider::new(
             MockGatewayCache::new(gateways),
+            default_tunnel_settings(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.child_token(),
-        );
+        )
+        .await
+        .unwrap();
         // No gateways come out of the stream when there are no tunnel settings
         assert!(
             tokio::time::timeout(Duration::from_millis(100), gw_provider.next())
@@ -222,9 +233,12 @@ pub mod tests {
         let gateways = Arc::new(RwLock::new(Some(possible_gateways.to_vec())));
         let (mut gw_provider, handle) = GatewayProvider::new(
             MockGatewayCache::new(gateways),
+            default_tunnel_settings(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.child_token(),
-        );
+        )
+        .await
+        .unwrap();
         gw_provider
             .set_tunnel_settings(default_tunnel_settings())
             .await

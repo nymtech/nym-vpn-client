@@ -879,8 +879,13 @@ impl TunnelStateMachine {
             nym_common::trace_err_chain!(err, "failed to set initial split tunnel paths");
         }
 
-        let (gateway_provider, gateway_provider_handle) =
-            GatewayProvider::new(gateway_cache_handle, wg_keys_db, shutdown_token.clone());
+        let (gateway_provider, gateway_provider_handle) = GatewayProvider::new(
+            gateway_cache_handle,
+            tunnel_settings.clone(),
+            wg_keys_db,
+            shutdown_token.clone(),
+        )
+        .await?;
 
         let mut shared_state = SharedState {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
