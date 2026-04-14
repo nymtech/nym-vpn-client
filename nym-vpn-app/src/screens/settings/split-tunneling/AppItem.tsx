@@ -25,9 +25,10 @@ function AppItem({ app, onStateChange }: AppItemProps) {
   const handleClick = async () => {
     if (os === 'linux') {
       try {
-        const result = await Command.create('nym-exclude', [
-          app.executable_path,
-        ]).execute();
+        const result = await Command.create(
+          'nym-exclude',
+          app.executable_path.split(' '),
+        ).execute();
         console.info('[nym-exclude] stdout', result.stdout);
         console.info('[nym-exclude] stderr', result.stderr);
       } catch (error) {
