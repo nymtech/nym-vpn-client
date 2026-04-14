@@ -42,6 +42,9 @@ nym-vpn-lib-types = { workspace = true, features = ["serde"] }
 nym-vpn-network-config = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 
+[target.'cfg(target_os = "macos")'.dependencies]
+embed_plist.workspace = true
+
 [target.'cfg(windows)'.dependencies]
 windows-service.workspace = true
 eventlog.workspace = true

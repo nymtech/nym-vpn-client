@@ -33,6 +33,9 @@ use windows_service::{
 
 use crate::cli::{CliArgs, Command};
 
+#[cfg(target_os = "macos")]
+embed_plist::embed_info_plist!("../Info.plist");
+
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 async fn main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
