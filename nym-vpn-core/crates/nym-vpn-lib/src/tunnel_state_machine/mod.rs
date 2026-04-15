@@ -50,9 +50,9 @@ use crate::{
 use crate::socks5_proxy::find_proxy_binary;
 
 use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
-    tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
+    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
+    GatewayDirectoryError,
+    UserAgent,
 };
 
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
@@ -849,7 +849,7 @@ impl SharedState {
         let data_dir = data_path.to_path_buf();
 
         let log_level = if cfg!(debug_assertions) {
-            "debug"
+            "info:nym_socks5_proxy=debug"
         } else {
             "info"
         }
