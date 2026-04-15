@@ -50,9 +50,9 @@ use crate::{
 use crate::socks5_proxy::find_proxy_binary;
 
 use crate::{
-    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
-    GatewayDirectoryError,
-    UserAgent,
+    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    mixnet::VpnTopologyServiceHandle,
+    tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
 
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
@@ -812,14 +812,17 @@ impl SharedState {
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn start_socks5_proxy(&mut self) {
-        if let Ok(config) = self.build_proxy_config() {
-            self.socks5_proxy_manager
-                .start(config, self.shutdown_token.clone())
-                .await;
-        } else {
-            tracing::error!(
-                "Failed to build SOCKS5 proxy configuration; cannot start the proxy process"
-            );
+        match self.build_proxy_config() {
+            Ok(config) => {
+                self.socks5_proxy_manager
+                    .start(config, self.shutdown_token.clone())
+                    .await;
+            }
+            Err(err) => {
+                tracing::error!(
+                    "SOCKS5 proxy configuration error: {err}; cannot start the proxy process"
+                );
+            }
         }
     }
 
@@ -849,7 +852,7 @@ impl SharedState {
         let data_dir = data_path.to_path_buf();
 
         let log_level = if cfg!(debug_assertions) {
-            "info:nym_socks5_proxy=debug"
+            "debug"
         } else {
             "info"
         }
@@ -1002,17 +1005,6 @@ impl TunnelStateMachine {
         })
         .map_err(Error::CreateFirewall)?;
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
-        if let Err(err) = split_tunnel
-            .set_exclude_paths(
-                tunnel_settings.split_tunnel.effective_app_paths(),
-                HashSet::new(),
-            )
-            .await
-        {
-            nym_common::trace_err_chain!(err, "failed to set initial split tunnel paths");
-        }
-
         let (gateway_provider, gateway_provider_handle) =
             GatewayProvider::new(gateway_cache_handle, wg_keys_db, shutdown_token.clone());
 
@@ -1048,6 +1040,11 @@ impl TunnelStateMachine {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             shutdown_token: shutdown_token.clone(),
         };
+
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        if let Err(err) = shared_state.set_split_tunnel_exclude_paths().await {
+            tracing::error!("failed to set initial split tunnel paths: {err:?}");
+        }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         if shared_state.tunnel_settings.socks5_proxy_settings.enabled {

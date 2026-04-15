@@ -48,9 +48,9 @@ impl ProxyConfig {
             return Err("data_dir must be a valid path".into());
         }
 
-        let valid_levels = ["error", "warn", "info", "debug", "trace"];
-        if !valid_levels.contains(&self.log_level.as_str()) {
-            return Err(format!("Invalid log_level: {}", self.log_level));
+        // The log_level can be more than just "info", "debug", etc., so just check it's not empty
+        if self.log_level.is_empty() {
+            return Err("log_level cannot be empty".into());
         }
 
         for country in &self.excluded_countries {

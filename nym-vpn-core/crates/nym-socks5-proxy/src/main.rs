@@ -8,7 +8,7 @@ mod routing;
 mod windows_bind;
 
 use std::{
-    fs::create_dir_all,
+    fs::{File, create_dir_all},
     io::{Write, stdout},
     mem::discriminant,
     net::IpAddr,
@@ -22,6 +22,7 @@ use tokio::{
     sync::watch,
 };
 use tokio_util::sync::CancellationToken;
+use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -197,23 +198,22 @@ fn install_signal_handlers(shutdown_token: CancellationToken) {
         shutdown_token.cancel();
     });
 }
-
 fn init_tracing(proxy_dir: &Path, log_level: &str) -> Result<()> {
-    use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+    let log_path = proxy_dir.join("nym-socks5-proxy.log");
+    let file = File::create(&log_path)
+        .with_context(|| format!("Failed to open log file '{}'", log_path.display()))?;
 
-    let file_appender = tracing_appender::rolling::never(proxy_dir, "nym-socks5-proxy.log");
-
-    // RUST_LOG overrides the level from the Configure message.
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
 
     tracing_subscriber::registry()
         .with(filter)
         .with(
             fmt::Layer::new()
-                .with_writer(file_appender)
+                .with_writer(std::sync::Mutex::new(file))
                 .with_ansi(false),
         )
-        .try_init()?;
+        .try_init()
+        .context("Failed to initialize tracing")?;
 
     Ok(())
 }
