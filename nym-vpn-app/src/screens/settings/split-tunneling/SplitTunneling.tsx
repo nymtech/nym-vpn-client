@@ -92,7 +92,7 @@ function SplitTunneling() {
 
       {/* Apps section */}
       <AnimatePresence initial={false}>
-        {enabled && (
+        {(enabled || os === 'linux') && (
           <motion.div
             key="apps-section"
             initial={{ opacity: 0 }}
