@@ -788,25 +788,25 @@ impl SharedState {
             .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))
     }
 
-    /// Start or stop the SOCKS5 Proxy process, based on the current tunnel settings.
-    ///
-    /// TODO: Change the excluded countries, if it changes.
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn start_or_stop_socks5_proxy(&mut self) {
-        if let Some(config) = self.build_proxy_config() {
-            let enabled = self.tunnel_settings.socks5_proxy_settings.enabled;
-            self.socks5_proxy_manager
-                .start_or_stop(enabled, config, self.shutdown_token.clone())
-                .await;
+        if self.tunnel_settings.socks5_proxy_settings.enabled {
+            self.start_socks5_proxy().await;
+        } else {
+            self.stop_socks5_proxy().await;
         }
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn start_socks5_proxy(&mut self) {
-        if let Some(config) = self.build_proxy_config() {
+        if let Ok(config) = self.build_proxy_config() {
             self.socks5_proxy_manager
                 .start(config, self.shutdown_token.clone())
                 .await;
+        } else {
+            tracing::error!(
+                "Failed to build SOCKS5 proxy configuration; cannot start the proxy process"
+            );
         }
     }
 
@@ -816,7 +816,7 @@ impl SharedState {
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    fn set_socks5_proxy_tunnel_addr(&mut self, tunnel_addr: Option<IpAddr>) {
+    fn set_socks5_proxy_tunnel_addr(&mut self, tunnel_addr: IpAddr) {
         self.socks5_proxy_manager.notify_connected(tunnel_addr);
     }
 
@@ -825,24 +825,39 @@ impl SharedState {
         self.socks5_proxy_manager.notify_disconnected();
     }
 
-    /// Build a [`ProxyConfig`] from the current settings, logging an error and
-    /// returning `None` if the data path is not configured.
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    fn build_proxy_config(&self) -> Option<ProxyConfig> {
+    fn build_proxy_config(&self) -> Result<ProxyConfig, String> {
         let Some(data_path) = self.nym_config.data_path.as_ref() else {
-            tracing::error!("Data path is required but not configured");
-            return None;
+            return Err("Data path is required but not configured".to_string());
         };
-        Some(ProxyConfig {
-            listen_port: self.tunnel_settings.socks5_proxy_settings.listen_port,
-            data_dir: data_path.to_path_buf(),
-            log_level: "info".to_string(),
-            excluded_countries: self
-                .tunnel_settings
-                .socks5_proxy_settings
-                .excluded_countries
-                .clone(),
-        })
+
+        let listen_port = self.tunnel_settings.socks5_proxy_settings.listen_port;
+
+        let data_dir = data_path.to_path_buf();
+
+        let log_level = if cfg!(debug_assertions) {
+            "debug"
+        } else {
+            "info"
+        }
+        .to_string();
+
+        let excluded_countries = self
+            .tunnel_settings
+            .socks5_proxy_settings
+            .excluded_countries
+            .clone();
+
+        let proxy_config = ProxyConfig {
+            listen_port,
+            data_dir,
+            log_level,
+            excluded_countries,
+        };
+
+        proxy_config.validate()?;
+
+        Ok(proxy_config)
     }
 }
 

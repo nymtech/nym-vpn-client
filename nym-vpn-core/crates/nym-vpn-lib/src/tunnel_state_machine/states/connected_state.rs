@@ -128,7 +128,7 @@ impl ConnectedState {
                 TunnelConnectionData::Wireguard(wg) => IpAddr::V4(wg.entry.private_ipv4),
                 TunnelConnectionData::Mixnet(mx) => IpAddr::V4(mx.ipv4),
             };
-            shared_state.set_socks5_proxy_tunnel_addr(Some(tunnel_addr));
+            shared_state.set_socks5_proxy_tunnel_addr(tunnel_addr);
         }
 
         #[cfg(any(target_os = "android", target_os = "ios"))]

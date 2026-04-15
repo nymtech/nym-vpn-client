@@ -28,7 +28,7 @@ async fn main() -> Result<()> {
     // Shared VPN tunnel state:
     //   None        = VPN disconnected / default routing
     //   Some(addr)  = VPN tunnel interface IP the proxy can route non-excluded traffic through
-    let (tunnel_tx, tunnel_rx) = watch::channel::<Option<IpAddr>>(None);
+    let (tunnel_addr_tx, tunnel_addr_rx) = watch::channel::<Option<IpAddr>>(None);
 
     // The first message from the daemon must be Configure.  Tracing is not yet
     // initialised here, so errors are reported only via ProxyMessage on stdout.
@@ -64,7 +64,7 @@ async fn main() -> Result<()> {
     );
 
     // Start the SOCKS5 proxy listener.
-    if let Err(err) = proxy::run(config, &proxy_dir, tunnel_rx, shutdown_token.clone()).await {
+    if let Err(err) = proxy::run(config, &proxy_dir, tunnel_addr_rx, shutdown_token.clone()).await {
         let msg = format!("{err:#}");
         tracing::error!("SOCKS5 proxy failed to start: {msg}");
         send_error_message(&msg);
@@ -76,7 +76,7 @@ async fn main() -> Result<()> {
     tracing::info!("SOCKS5 proxy ready");
 
     // Continue reading daemon messages until stdin EOF or signal.
-    message_loop(tunnel_tx, shutdown_token.clone()).await;
+    message_loop(tunnel_addr_tx, shutdown_token.clone()).await;
 
     tracing::info!("nym-socks5-proxy exiting");
     Ok(())
@@ -109,7 +109,10 @@ async fn read_initial_config(shutdown_token: &CancellationToken) -> Result<Proxy
     }
 }
 
-async fn message_loop(tunnel_tx: watch::Sender<Option<IpAddr>>, shutdown_token: CancellationToken) {
+async fn message_loop(
+    tunnel_addr_tx: watch::Sender<Option<IpAddr>>,
+    shutdown_token: CancellationToken,
+) {
     let mut lines = BufReader::new(stdin()).lines();
 
     loop {
@@ -117,7 +120,7 @@ async fn message_loop(tunnel_tx: watch::Sender<Option<IpAddr>>, shutdown_token: 
             result = lines.next_line() => {
                 match result {
                     Ok(Some(line)) if !line.trim().is_empty() => {
-                        handle_daemon_message(&line, &tunnel_tx, &shutdown_token);
+                        handle_daemon_message(&line, &tunnel_addr_tx, &shutdown_token);
                     }
                     Ok(Some(_)) => {} // blank line — ignore
                     Ok(None) => {
@@ -142,21 +145,22 @@ async fn message_loop(tunnel_tx: watch::Sender<Option<IpAddr>>, shutdown_token: 
 
 fn handle_daemon_message(
     line: &str,
-    tunnel_tx: &watch::Sender<Option<IpAddr>>,
+    tunnel_addr_tx: &watch::Sender<Option<IpAddr>>,
     shutdown_token: &CancellationToken,
 ) {
     match line.parse::<DaemonMessage>() {
         Ok(DaemonMessage::Configure(_)) => {
-            tracing::warn!("Received unexpected duplicate Configure message — ignoring");
+            tracing::warn!("Received unexpected duplicate Configure message; ignoring");
+            send_error_message("Unexpected Configure message");
         }
         Ok(DaemonMessage::VpnConnected(data)) => {
-            tracing::info!(tunnel_addr = %data.tunnel_addr, "VPN tunnel connected");
-            let _ = tunnel_tx.send(Some(data.tunnel_addr));
+            tracing::info!("VPN tunnel connected with address {}", data.tunnel_addr);
+            let _ = tunnel_addr_tx.send(Some(data.tunnel_addr));
             send_message(&ProxyMessage::Ack);
         }
         Ok(DaemonMessage::VpnDisconnected) => {
-            tracing::info!("VPN tunnel disconnected — reverting to default routing");
-            let _ = tunnel_tx.send(None);
+            tracing::info!("VPN tunnel disconnected; reverting to default routing");
+            let _ = tunnel_addr_tx.send(None);
             send_message(&ProxyMessage::Ack);
         }
         Ok(DaemonMessage::Terminate) => {

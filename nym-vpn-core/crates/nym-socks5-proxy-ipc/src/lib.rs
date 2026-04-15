@@ -38,6 +38,41 @@ pub struct ProxyConfig {
     pub excluded_countries: Vec<String>,
 }
 
+impl ProxyConfig {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.listen_port == 0 {
+            return Err("listen_port must be a valid non-zero port number".into());
+        }
+
+        if self.data_dir.as_os_str().is_empty() || !self.data_dir.is_dir() {
+            return Err("data_dir must be a valid path".into());
+        }
+
+        let valid_levels = ["error", "warn", "info", "debug", "trace"];
+        if !valid_levels.contains(&self.log_level.as_str()) {
+            return Err(format!("Invalid log_level: {}", self.log_level));
+        }
+
+        for country in &self.excluded_countries {
+            if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
+                return Err(format!(
+                    "Invalid excluded country code '{}': must be a 2-letter uppercase string",
+                    country
+                ));
+            }
+        }
+
+        let mut seen = std::collections::HashSet::new();
+        for country in &self.excluded_countries {
+            if !seen.insert(country) {
+                return Err(format!("Duplicate excluded country code: '{}'", country));
+            }
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VpnConnectedData {
     pub tunnel_addr: IpAddr,
