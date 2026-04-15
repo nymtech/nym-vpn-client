@@ -13,7 +13,7 @@ public struct AccountSummary {
     public var isLinked: Bool
     public var isActive: Bool
     public var isAutoRenewEnabled: Bool
-    public var subscriptionKind: VpnSubscriptionKind?
+    public var subscription: Subscription?
 
     public init(
         validUntilDate: Date?,
@@ -26,7 +26,7 @@ public struct AccountSummary {
         isLinked: Bool,
         isActive: Bool,
         isAutoRenewEnabled: Bool,
-        subscriptionKind: VpnSubscriptionKind? = nil
+        subscription: Subscription?
     ) {
         self.validUntilDate = validUntilDate
         self.trafficUsedGb = trafficUsedGb
@@ -38,7 +38,7 @@ public struct AccountSummary {
         self.isLinked = isLinked
         self.isActive = isActive
         self.isAutoRenewEnabled = isAutoRenewEnabled
-        self.subscriptionKind = subscriptionKind
+        self.subscription = subscription
     }
 
     public init(
@@ -52,7 +52,7 @@ public struct AccountSummary {
         isLinked: Bool,
         isActive: Bool,
         isAutoRenewEnabled: Bool,
-        subscriptionKind: VpnSubscriptionKind?
+        subscription: Subscription?
     ) {
         self.validUntilDate = validUntilTimeInterval.map { Date(timeIntervalSince1970: TimeInterval($0)) }
         self.trafficUsedGb = trafficUsedGb.flatMap(Int.init(exactly:))
@@ -64,7 +64,7 @@ public struct AccountSummary {
         self.isLinked = isLinked
         self.isActive = isActive
         self.isAutoRenewEnabled = isAutoRenewEnabled
-        self.subscriptionKind = subscriptionKind
+        self.subscription = subscription
     }
 
     public var formattedValidUntilDate: String? {
@@ -96,6 +96,7 @@ public struct AccountSummary {
     public var isExpiringSoon: Bool {
         guard let validUntilDate else { return false }
         let daysRemaining = Calendar.current.dateComponents([.day], from: Date(), to: validUntilDate).day ?? 0
+        let subscriptionKind = subscription?.subscription.kind
         let isShortPlan = subscriptionKind == .oneMonth || subscriptionKind == .freepass
         let threshold = isShortPlan ? 2 : 15
         return daysRemaining < threshold
@@ -104,6 +105,7 @@ public struct AccountSummary {
     public var isExpiringWarning: Bool {
         guard let validUntilDate else { return false }
         let daysRemaining = Calendar.current.dateComponents([.day], from: Date(), to: validUntilDate).day ?? 0
+        let subscriptionKind = subscription?.subscription.kind
         let isShortPlan = subscriptionKind == .oneMonth || subscriptionKind == .freepass
         let threshold = isShortPlan ? 7 : 60
         return daysRemaining < threshold

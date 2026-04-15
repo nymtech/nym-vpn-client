@@ -175,7 +175,14 @@ extension AccountAndDevicesView {
     }
 
     func manageSubscriptionSubtitle() -> AttributedString? {
-        credentialsManager.accountSummary?.planValidUntilAttributedString
+        let accountSummary = credentialsManager.accountSummary
+        if accountSummary?.subscription?.status == .pending {
+            var confirmingPayment = AttributedString("confirmingPayment".localizedString)
+            confirmingPayment.foregroundColor = NymColor.error
+            return confirmingPayment
+        } else {
+            return credentialsManager.accountSummary?.planValidUntilAttributedString
+        }
     }
 
     func nymLinkingText() -> some View {

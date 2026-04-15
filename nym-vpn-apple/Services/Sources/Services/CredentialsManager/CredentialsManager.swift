@@ -276,7 +276,7 @@ import PathManager
             isLinked: summary.isLinked(),
             isActive: summary.isSubscriptionActive(),
             isAutoRenewEnabled: innerSub?.isRecurring ?? false,
-            subscriptionKind: innerSub.map { VpnSubscriptionKind(from: $0.kind) }
+            subscription: summary.subscription.map { Subscription(from: $0) }
         )
 #elseif os(macOS)
         accountSummary = try? await grpcManager.accountSummary()
