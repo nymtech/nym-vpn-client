@@ -29,9 +29,6 @@ async fn main() -> Result<()> {
     let shutdown_token = CancellationToken::new();
     install_signal_handlers(shutdown_token.clone());
 
-    // Shared VPN tunnel address
-    let (tunnel_addr_tx, tunnel_addr_rx) = watch::channel::<Option<IpAddr>>(None);
-
     // Messages from the daemon are passed via stdin.
     // Responses are written via stdout.
     let mut lines = BufReader::new(stdin()).lines();
@@ -43,6 +40,12 @@ async fn main() -> Result<()> {
             return Err(err);
         }
     };
+
+    // Shared default interface address
+    let (default_addr_tx, default_addr_rx) = watch::channel::<Option<IpAddr>>(config.default_addr);
+
+    // Shared VPN tunnel address
+    let (tunnel_addr_tx, tunnel_addr_rx) = watch::channel::<Option<IpAddr>>(None);
 
     let proxy_dir = config.data_dir.join("nym-socks5-proxy");
     if let Err(err) = create_dir_all(&proxy_dir).with_context(|| {
@@ -63,7 +66,15 @@ async fn main() -> Result<()> {
     tracing::info!("nym-socks5-proxy starting. config={config:#?}");
 
     // Start the SOCKS5 proxy listener.
-    if let Err(err) = proxy::run(config, &proxy_dir, tunnel_addr_rx, shutdown_token.clone()).await {
+    if let Err(err) = proxy::run(
+        config,
+        &proxy_dir,
+        default_addr_rx,
+        tunnel_addr_rx,
+        shutdown_token.clone(),
+    )
+    .await
+    {
         let msg = format!("{err:#}");
         tracing::error!("SOCKS5 proxy failed to start: {msg}");
         send_error_message(&msg);
@@ -80,7 +91,7 @@ async fn main() -> Result<()> {
             result = lines.next_line() => {
                 match result {
                     Ok(Some(line)) if !line.trim().is_empty() => {
-                        handle_daemon_message(&line, &tunnel_addr_tx, &shutdown_token);
+                        handle_daemon_message(&line, &tunnel_addr_tx, &default_addr_tx, &shutdown_token);
                     }
                     Ok(Some(_)) => {} // blank line — ignore
                     Ok(None) => {
@@ -137,6 +148,7 @@ async fn read_initial_config(
 fn handle_daemon_message(
     line: &str,
     tunnel_addr_tx: &watch::Sender<Option<IpAddr>>,
+    default_iface_tx: &watch::Sender<Option<IpAddr>>,
     shutdown_token: &CancellationToken,
 ) {
     match line.parse::<DaemonMessage>() {
@@ -152,6 +164,11 @@ fn handle_daemon_message(
         Ok(DaemonMessage::VpnDisconnected) => {
             tracing::info!("VPN tunnel disconnected; reverting to default routing");
             let _ = tunnel_addr_tx.send(None);
+            send_message(&ProxyMessage::Ack);
+        }
+        Ok(DaemonMessage::DefaultAddrChanged(ip)) => {
+            tracing::info!("Default interface address changed to {ip:?}");
+            let _ = default_iface_tx.send(ip);
             send_message(&ProxyMessage::Ack);
         }
         Ok(DaemonMessage::Terminate) => {

@@ -21,7 +21,7 @@ use fast_socks5::{
     util::target_addr::TargetAddr,
 };
 use tokio::{
-    net::{TcpListener, TcpSocket},
+    net::{TcpListener, TcpSocket, TcpStream},
     sync::watch,
 };
 use tokio_util::sync::CancellationToken;
@@ -29,6 +29,7 @@ use tokio_util::sync::CancellationToken;
 pub async fn run(
     config: ProxyConfig,
     data_dir: &Path,
+    default_addr_rx: watch::Receiver<Option<IpAddr>>,
     tunnel_addr_rx: watch::Receiver<Option<IpAddr>>,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
@@ -44,13 +45,20 @@ pub async fn run(
         .context("Failed to build GeoIP database")?;
     let db = Arc::new(db);
 
-    tokio::spawn(accept_loop(listener, tunnel_addr_rx, db, shutdown_token));
+    tokio::spawn(accept_loop(
+        listener,
+        default_addr_rx,
+        tunnel_addr_rx,
+        db,
+        shutdown_token,
+    ));
 
     Ok(())
 }
 
 async fn accept_loop(
     listener: TcpListener,
+    default_addr_rx: watch::Receiver<Option<IpAddr>>,
     tunnel_addr_rx: watch::Receiver<Option<IpAddr>>,
     db: Arc<GeoIpDatabase>,
     shutdown_token: CancellationToken,
@@ -63,10 +71,11 @@ async fn accept_loop(
                         tracing::debug!(%peer_addr, "Accepted SOCKS5 connection");
                         let shutdown = shutdown_token.clone();
                         let tunnel_addr_rx_clone = tunnel_addr_rx.clone();
+                        let default_addr_rx_clone = default_addr_rx.clone();
                         let db = db.clone();
                         tokio::spawn(async move {
                             if let Err(err) =
-                                handle_connection(stream, peer_addr, tunnel_addr_rx_clone, db, shutdown).await
+                                handle_connection(stream, peer_addr, default_addr_rx_clone, tunnel_addr_rx_clone, db, shutdown).await
                             {
                                 tracing::warn!(%peer_addr, "SOCKS5 connection error: {err:#}");
                             }
@@ -88,15 +97,17 @@ async fn accept_loop(
 async fn handle_connection(
     stream: tokio::net::TcpStream,
     peer_addr: SocketAddr,
+    default_addr_rx: watch::Receiver<Option<IpAddr>>,
     tunnel_addr_rx: watch::Receiver<Option<IpAddr>>,
     db: Arc<GeoIpDatabase>,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
-    // Snapshot the current tunnel state at connection time.
+    // Snapshot the current addresses at connection time.
     let tunnel_addr = *tunnel_addr_rx.borrow();
+    let default_addr = *default_addr_rx.borrow();
 
     tokio::select! {
-        result = serve_socks5(stream, peer_addr, tunnel_addr, db) => result,
+        result = serve_socks5(stream, peer_addr, default_addr, tunnel_addr, db) => result,
         _ = shutdown_token.cancelled() => {
             tracing::debug!(%peer_addr, "Connection aborted due to shutdown");
             Ok(())
@@ -107,6 +118,7 @@ async fn handle_connection(
 async fn serve_socks5(
     stream: tokio::net::TcpStream,
     peer_addr: SocketAddr,
+    default_addr: Option<IpAddr>,
     tunnel_addr: Option<IpAddr>,
     db: Arc<GeoIpDatabase>,
 ) -> Result<()> {
@@ -148,22 +160,16 @@ async fn serve_socks5(
 
     tracing::debug!("Routing target_addr {target_addr} via {routing:?}");
 
-    // When routing via default interface, pass `None` so sockets bind to INADDR_ANY.
-    let effective_tunnel = match routing {
+    let bind_addr: Option<IpAddr> = match routing {
         RoutingDecision::VpnTunnelInterface => tunnel_addr,
-        RoutingDecision::DefaultInterface => None,
+        RoutingDecision::DefaultInterface => default_addr,
     };
 
     tracing::debug!(
-        %peer_addr,
-        %target_addr,
-        vpn_tunnel = ?tunnel_addr,
-        routing = ?routing,
-        "SOCKS5 CONNECT",
+        "SOCKS5 CONNECT. peer_addr: {peer_addr}, target_addr: {target_addr}, default_addr: {default_addr:?}, tunnel_addr: {tunnel_addr:?}, routing: {routing:?}"
     );
 
-    // Connect to the target, binding to the chosen interface.
-    let outbound = match connect_to_target(&target_addrs, effective_tunnel).await {
+    let outbound = match connect_to_target(&target_addrs, bind_addr).await {
         Ok(s) => s,
         Err(err) => {
             let _ = proto.reply_error(&ReplyError::HostUnreachable).await;
@@ -177,23 +183,18 @@ async fn serve_socks5(
         .local_addr()
         .context("Failed to get local address of outbound socket")?;
 
-    // Inform the SOCKS5 client that we've connected successfully.
     let inner = proto
         .reply_success(local_addr)
         .await
         .map_err(|e| anyhow::anyhow!("SOCKS5 reply_success to {peer_addr} failed: {e}"))?;
 
-    // Relay data between client and target until either side closes.
     transfer(inner, outbound).await;
 
     tracing::debug!(%peer_addr, %target_addr, "SOCKS5 connection closed");
     Ok(())
 }
 
-async fn connect_to_target(
-    addrs: &[SocketAddr],
-    tunnel_addr: Option<IpAddr>,
-) -> Result<tokio::net::TcpStream> {
+async fn connect_to_target(addrs: &[SocketAddr], bind_addr: Option<IpAddr>) -> Result<TcpStream> {
     let mut last_err: Option<anyhow::Error> = None;
 
     for &addr in addrs {
@@ -202,7 +203,7 @@ async fn connect_to_target(
             SocketAddr::V6(_) => TcpSocket::new_v6().context("Failed to create IPv6 socket")?,
         };
 
-        bind_socket_for_routing(&socket, addr, tunnel_addr);
+        bind_socket_for_routing(&socket, addr, bind_addr);
 
         match socket.connect(addr).await {
             Ok(stream) => return Ok(stream),
@@ -216,29 +217,10 @@ async fn connect_to_target(
     Err(last_err.unwrap_or_else(|| anyhow::anyhow!("No addresses to try")))
 }
 
-/// Bind a socket to the appropriate local interface for the desired routing path.
-///
-/// # Windows
-///
-/// On Windows, `socket.bind(tunnel_ip)` only sets the source address — it does **not**
-/// route packets through the tunnel interface.  Windows selects the egress interface by
-/// consulting the routing table based on the *destination* address.  If no matching
-/// route exists through the tunnel interface, `connect()` returns `WSAENETUNREACH`
-/// (error 10051) even though the tunnel is up and the bind itself succeeded.
-///
-/// The correct Windows mechanism is `IP_UNICAST_IF` / `IPV6_UNICAST_IF`, which forces
-/// traffic out of a specific interface identified by its index, **bypassing the routing
-/// table check**.  We look up the interface index by matching `tunnel_ip` against the
-/// unicast address table (`GetUnicastIpAddressTable`).
-///
-/// # macOS and Linux
-///
-/// Binding to the tunnel IP is sufficient: the kernel selects the egress interface based
-/// on the source address, so the packet is routed through the correct interface.
-fn bind_socket_for_routing(socket: &TcpSocket, target: SocketAddr, tunnel_addr: Option<IpAddr>) {
+fn bind_socket_for_routing(socket: &TcpSocket, target: SocketAddr, bind_addr: Option<IpAddr>) {
     #[cfg(windows)]
-    if let Some(tunnel_ip) = tunnel_addr {
-        match bind_by_interface_index(socket, tunnel_ip, target) {
+    if let Some(ip) = bind_addr {
+        match bind_by_interface_index(socket, ip, target) {
             Ok(()) => return,
             Err(err) => {
                 tracing::warn!("IP_UNICAST_IF binding failed: {err:#}; falling back to bind-by-IP")
@@ -247,7 +229,7 @@ fn bind_socket_for_routing(socket: &TcpSocket, target: SocketAddr, tunnel_addr: 
     }
 
     // Non-Windows, or Windows fallback: bind by source IP.
-    let bind_ip = match (target, tunnel_addr) {
+    let bind_ip = match (target, bind_addr) {
         (SocketAddr::V4(_), Some(IpAddr::V4(v4))) => IpAddr::V4(v4),
         (SocketAddr::V6(_), Some(IpAddr::V6(v6))) => IpAddr::V6(v6),
         (SocketAddr::V4(_), _) => IpAddr::V4(Ipv4Addr::UNSPECIFIED),
