@@ -4,6 +4,9 @@
 mod proxy;
 mod routing;
 
+#[cfg(target_os = "windows")]
+mod windows_bind;
+
 use std::{
     fs::create_dir_all,
     io::{Write, stdout},
@@ -25,14 +28,14 @@ async fn main() -> Result<()> {
     let shutdown_token = CancellationToken::new();
     install_signal_handlers(shutdown_token.clone());
 
-    // Shared VPN tunnel state:
-    //   None        = VPN disconnected / default routing
-    //   Some(addr)  = VPN tunnel interface IP the proxy can route non-excluded traffic through
+    // Shared VPN tunnel address
     let (tunnel_addr_tx, tunnel_addr_rx) = watch::channel::<Option<IpAddr>>(None);
 
-    // The first message from the daemon must be Configure.  Tracing is not yet
-    // initialised here, so errors are reported only via ProxyMessage on stdout.
-    let config = match read_initial_config(&shutdown_token).await {
+    // Messages from the daemon are passed via stdin.
+    // Responses are written via stdout.
+    let mut lines = BufReader::new(stdin()).lines();
+
+    let config = match read_initial_config(&mut lines, &shutdown_token).await {
         Ok(cfg) => cfg,
         Err(err) => {
             send_error_message(&format!("{err:#}"));
@@ -56,12 +59,7 @@ async fn main() -> Result<()> {
         return Err(err);
     }
 
-    tracing::info!("nym-socks5-proxy starting");
-    tracing::info!(
-        port = config.listen_port,
-        excluded_countries = ?config.excluded_countries,
-        "Received configuration from daemon",
-    );
+    tracing::info!("nym-socks5-proxy starting. config={config:#?}");
 
     // Start the SOCKS5 proxy listener.
     if let Err(err) = proxy::run(config, &proxy_dir, tunnel_addr_rx, shutdown_token.clone()).await {
@@ -76,16 +74,42 @@ async fn main() -> Result<()> {
     tracing::info!("SOCKS5 proxy ready");
 
     // Continue reading daemon messages until stdin EOF or signal.
-    message_loop(tunnel_addr_tx, shutdown_token.clone()).await;
+    loop {
+        tokio::select! {
+            result = lines.next_line() => {
+                match result {
+                    Ok(Some(line)) if !line.trim().is_empty() => {
+                        handle_daemon_message(&line, &tunnel_addr_tx, &shutdown_token);
+                    }
+                    Ok(Some(_)) => {} // blank line — ignore
+                    Ok(None) => {
+                        tracing::info!("Stdin end-of-file; shutting down");
+                        shutdown_token.cancel();
+                        break;
+                    }
+                    Err(err) => {
+                        tracing::warn!("Error reading stdin: {err}; shutting down");
+                        shutdown_token.cancel();
+                        break;
+                    }
+                }
+            }
+            _ = shutdown_token.cancelled() => {
+                tracing::info!("Shutdown requested");
+                break;
+            }
+        }
+    }
 
     tracing::info!("nym-socks5-proxy exiting");
     Ok(())
 }
 
-/// Read the very first line from stdin, which must be [`DaemonMessage::Configure`].
-async fn read_initial_config(shutdown_token: &CancellationToken) -> Result<ProxyConfig> {
-    let mut lines = BufReader::new(stdin()).lines();
-
+// Don't add tracing in this function as it's not initialized yet!
+async fn read_initial_config(
+    lines: &mut tokio::io::Lines<BufReader<tokio::io::Stdin>>,
+    shutdown_token: &CancellationToken,
+) -> Result<ProxyConfig> {
     let line = tokio::select! {
         result = lines.next_line() => {
             result
@@ -106,40 +130,6 @@ async fn read_initial_config(shutdown_token: &CancellationToken) -> Result<Proxy
             "Expected Configure as first message, got variant {:?}",
             discriminant(&other)
         ),
-    }
-}
-
-async fn message_loop(
-    tunnel_addr_tx: watch::Sender<Option<IpAddr>>,
-    shutdown_token: CancellationToken,
-) {
-    let mut lines = BufReader::new(stdin()).lines();
-
-    loop {
-        tokio::select! {
-            result = lines.next_line() => {
-                match result {
-                    Ok(Some(line)) if !line.trim().is_empty() => {
-                        handle_daemon_message(&line, &tunnel_addr_tx, &shutdown_token);
-                    }
-                    Ok(Some(_)) => {} // blank line — ignore
-                    Ok(None) => {
-                        tracing::info!("Stdin EOF — daemon closed connection, shutting down");
-                        shutdown_token.cancel();
-                        break;
-                    }
-                    Err(err) => {
-                        tracing::warn!("Error reading stdin: {err} — shutting down");
-                        shutdown_token.cancel();
-                        break;
-                    }
-                }
-            }
-            _ = shutdown_token.cancelled() => {
-                tracing::info!("Shutdown requested, exiting message loop");
-                break;
-            }
-        }
     }
 }
 
