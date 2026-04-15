@@ -137,12 +137,7 @@ fn spawn_event_logger(mut event_rx: mpsc::UnboundedReceiver<Socks5ProcessEvent>)
                     tracing::error!("nym-socks5-proxy reported an error: {message}");
                 }
                 Socks5ProcessEvent::Exited { success } => {
-                    if success {
-                        tracing::error!("nym-socks5-proxy failed to exit cleanly");
-                    } else {
-                        tracing::info!("nym-socks5-proxy exited successfully");
-                    }
-                    break;
+                    tracing::info!("nym-socks5-proxy exited: success={success}");
                 }
             }
         }
