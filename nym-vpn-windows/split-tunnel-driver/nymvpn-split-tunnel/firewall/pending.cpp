@@ -194,11 +194,22 @@ void HandleProcessEvent(HANDLE ProcessId, bool Arriving, void* Context) {
     auto maxAge = RECORD_MAX_LIFETIME_MS * MS_TO_100NS_FACTOR;
 
     //
-    // Iterate over all pended bind requests.
+    // Collect records to process while holding the lock, then process them
+    // after releasing it.
     //
-    // Fail all requests that are too old.
-    // Re-auth all requests that belong to the arriving process.
+    // This is required because completing or re-authing a pended classification
+    // (FwpsCompleteClassify0) can synchronously re-invoke a callout, which will
+    // attempt to acquire this same lock - causing a deadlock spin at DISPATCH_LEVEL
+    // that starves the scheduler.
     //
+
+    LIST_ENTRY toReauth;
+    LIST_ENTRY toFail;
+    LIST_ENTRY toFailNoReauth;
+
+    InitializeListHead(&toReauth);
+    InitializeListHead(&toFail);
+    InitializeListHead(&toFailNoReauth);
 
     WdfSpinLockAcquire(context->Lock);
 
@@ -212,9 +223,7 @@ void HandleProcessEvent(HANDLE ProcessId, bool Arriving, void* Context) {
 
         if (timeDelta > maxAge) {
             RemoveEntryList(&record->ListEntry);
-
-            FailPendedRequest(record);
-
+            InsertTailList(&toFail, &record->ListEntry);
             continue;
         }
 
@@ -225,13 +234,31 @@ void HandleProcessEvent(HANDLE ProcessId, bool Arriving, void* Context) {
         RemoveEntryList(&record->ListEntry);
 
         if (Arriving) {
-            ReauthPendedRequest(record);
+            InsertTailList(&toReauth, &record->ListEntry);
         } else {
-            FailPendedRequest(record, false);
+            InsertTailList(&toFailNoReauth, &record->ListEntry);
         }
     }
 
     WdfSpinLockRelease(context->Lock);
+
+    for (auto rawRecord = toReauth.Flink; rawRecord != &toReauth; /* no post-condition */) {
+        auto record = (PENDED_CLASSIFICATION*)rawRecord;
+        rawRecord = rawRecord->Flink;
+        ReauthPendedRequest(record);
+    }
+
+    for (auto rawRecord = toFail.Flink; rawRecord != &toFail; /* no post-condition */) {
+        auto record = (PENDED_CLASSIFICATION*)rawRecord;
+        rawRecord = rawRecord->Flink;
+        FailPendedRequest(record);
+    }
+
+    for (auto rawRecord = toFailNoReauth.Flink; rawRecord != &toFailNoReauth; /* no post-condition */) {
+        auto record = (PENDED_CLASSIFICATION*)rawRecord;
+        rawRecord = rawRecord->Flink;
+        FailPendedRequest(record, false);
+    }
 }
 
 } // anonymous namespace
