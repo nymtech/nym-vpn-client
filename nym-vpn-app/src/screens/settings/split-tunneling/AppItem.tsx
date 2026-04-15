@@ -1,8 +1,10 @@
 import clsx from 'clsx';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { type } from '@tauri-apps/plugin-os';
+import { useTranslation } from 'react-i18next';
 import MsIcon from '../../../ui/MsIcon';
 import { App } from '../../../types';
+import { PROBLEMATIC_APPS } from './utils/constants';
 
 export type AppEntry = App & {
   state: 'excluded' | 'included';
@@ -19,7 +21,10 @@ type AppItemProps = {
 };
 
 function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
+  const { t } = useTranslation('settings');
   const os = type();
+
+  const isProblematic = PROBLEMATIC_APPS.includes(app.executable_path);
 
   const handleClick = async () => {
     if (os === 'linux' && onLaunch) await onLaunch(app);
@@ -30,6 +35,7 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
       className={clsx(
         'flex items-center gap-3 px-4 py-3 bg-white dark:bg-charcoal',
         os === 'linux' && 'hover:bg-black/10 dark:hover:bg-charcoal/75',
+        isProblematic && 'opacity-50 cursor-not-allowed',
       )}
       onClick={handleClick}
     >
@@ -49,20 +55,27 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
         {os === 'linux' && (
           <div
             className={clsx(
-              'absolute bottom-0 right-0 h-2 w-2 bg-malachite-moss rounded-full animate-pulse',
+              'absolute bottom-0 right-0 h-2 w-2 bg-malachite-moss rounded-full',
               {
-                'bg-malachite-moss animate-ping': isRunning,
+                'bg-malachite-moss animate-ping duration-1000': isRunning,
                 'bg-ash dark:bg-mercury': !isRunning,
               },
             )}
           ></div>
         )}
       </div>
-      <span className="flex-1 text-sm text-baltic-sea dark:text-white truncate select-none">
-        {app.name}
-      </span>
+      <div className="flex flex-col gap-1 min-w-0 flex-1">
+        <span className="flex-1 text-sm text-baltic-sea dark:text-white truncate select-none">
+          {app.name}
+        </span>
+        {isProblematic && (
+          <span className="text-xs text-cheddar dark:text-king-nacho">
+            {t('split-tunneling.problematic-app')}
+          </span>
+        )}
+      </div>
       {os === 'linux' && (
-        <MsIcon icon="open_in_new" className="text-base text-bombay" />
+        <MsIcon icon="open_in_new" className="text-base text-bombay shrink-0" />
       )}
       {/* Only Windows can include/exclude apps from inside the app */}
       {/* Linux uses custom app launcher to launch the app and immediately exclude it from the tunnel */}

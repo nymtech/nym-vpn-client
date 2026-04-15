@@ -320,6 +320,7 @@
     "description-linux": "⚡ Launch any app from here to be excluded from the NymVPN funnel and connect directly to the internet!",
     "exclude-warning": "⚠️  Excluding an app will leave it unprotected.",
     "apps": "Apps",
+    "problematic-app": "App isn't available for split tunneling",
     "info-dialog": {
       "title": "Using split tunneling",
       "description-windows": "Split tunneling allows you to choose which apps use NymVPN.",
