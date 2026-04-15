@@ -44,6 +44,7 @@ function SplitTunneling() {
             if (!pids) return prev;
             const updated = pids.filter((p) => p !== child.pid);
             if (updated.length === 0) {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { [app.name]: _, ...rest } = prev;
               return rest;
             }
