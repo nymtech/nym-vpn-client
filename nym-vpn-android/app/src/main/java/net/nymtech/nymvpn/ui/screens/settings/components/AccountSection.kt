@@ -93,6 +93,6 @@ fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewAccountSection() {
 	NymVPNTheme(Theme.default()) {
-		AccountSection(true, null, {}, {})
+		AccountSection(isMnemonicStored = true, subscription = null, onAccountClick = {}, onPassphraseClick = {})
 	}
 }

@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import net.nymtech.billing.model.BillingCode
@@ -173,15 +172,6 @@ constructor(private val billingManager: BillingManager, private val backendManag
 		stateUpdatesJob = viewModelScope.launch {
 			backendManager.stateFlow
 				.map { it.accountState }
-				.filter { state ->
-					state is AccountControllerState.ReadyToConnect ||
-						state is AccountControllerState.Decentralised ||
-						state is AccountControllerState.UpgradeMode ||
-						(
-							state is AccountControllerState.Error &&
-								state.v1 == AccountControllerErrorStateReason.InactiveSubscription
-							)
-				}
 				.collect { state ->
 					_accountState.value = state
 

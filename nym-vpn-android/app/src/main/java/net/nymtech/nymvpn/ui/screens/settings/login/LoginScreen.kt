@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,11 +33,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
+import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.Route.*
@@ -54,13 +55,12 @@ import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewModel()) {
+fun LoginScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: LoginViewModel = hiltViewModel()) {
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
 	val context = LocalContext.current
 	val navController = LocalNavController.current
 	val lifecycleOwner = LocalLifecycleOwner.current
-	val scope = rememberCoroutineScope()
 
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val activity = context as? MainActivity
@@ -78,24 +78,17 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 			viewModel.events.collectLatest { event ->
 				when (event) {
 					is LoginEvent.NavigateAfterLogin -> {
-						when {
-							!event.hasValidSubscription && event.error.isNullOrBlank() -> {
-								navController.navigateAndClearWelcome(SelectPlan)
-							}
-
-							event.showTechnicalOpt -> {
-								navController.navigateAndClearWelcome(Technical)
-							}
-
-							else -> {
-								navController.navigateAndClearWelcome(Main())
-							}
+						appViewModel.notifyLoginStarted()
+						if (event.showTechnicalOpt) {
+							navController.navigateAndClearWelcome(Technical)
+						} else {
+							navController.navigateAndClearWelcome(Main())
 						}
 					}
 					LoginEvent.Processing -> {
 						val pass = uiState.mnemonic.trim()
 						if (pass.isNotEmpty()) {
-							scope.launch {
+							activity?.lifecycleScope?.launch {
 								savePasswordToManager(context = context, password = pass)
 							}
 						}

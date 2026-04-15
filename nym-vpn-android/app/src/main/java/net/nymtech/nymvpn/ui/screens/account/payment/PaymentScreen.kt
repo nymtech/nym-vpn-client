@@ -135,7 +135,7 @@ fun PaymentScreen(accountState: AccountControllerState?, start: Boolean, onAnima
 					R.string.account_payment_welcome,
 					R.string.account_payment_protected,
 				)
-				delay(1_000)
+				delay(3_000)
 				onAnimationEnd()
 			}
 
