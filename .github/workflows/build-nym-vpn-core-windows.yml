@@ -1,7 +1,7 @@
 name: build-nym-vpn-core-windows
 on:
   pull_request:
-    types: [opened]
+    types: [ opened ]
     paths:
       - ".github/workflows/build-nym-vpn-core-windows.yml"
   workflow_dispatch:
@@ -32,7 +32,7 @@ jobs:
 
   build-windows:
     if: github.actor != 'dependabot[bot]'
-    needs: [build-wireguard-go-windows, build-winfw-windows]
+    needs: [ build-wireguard-go-windows, build-winfw-windows ]
     runs-on: custom-windows-11
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
@@ -123,6 +123,7 @@ jobs:
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd.exe ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-socks5-proxy.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-diagnostic.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.LIBS_PATH }}/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.WINFW_PATH }}/winfw.dll ${{ env.UPLOAD_DIR_WINDOWS }}

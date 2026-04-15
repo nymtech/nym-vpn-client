@@ -697,8 +697,9 @@ Section Install
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"
 
-  ; Copy vpnd and libs
+  ; Copy vpnd, socks5-proxy and libs
   File "..\..\..\..\nym-vpnd.exe"
+  File "..\..\..\..\nym-socks5-proxy.exe"
   File "..\..\..\..\libwg.dll"
   File "..\..\..\..\wintun.dll"
   File "..\..\..\..\winfw.dll"
@@ -837,6 +838,7 @@ FunctionEnd
 Function Cleanup
   Delete "$INSTDIR\${MAINBINARYNAME}.exe"
   Delete "$INSTDIR\nym-vpnd.exe"
+  Delete "$INSTDIR\nym-socks5-proxy.exe"
   Delete "$INSTDIR\libwg.dll"
   Delete "$INSTDIR\wintun.dll"
   Delete "$INSTDIR\winfw.dll"
@@ -876,10 +878,10 @@ Section Uninstall
   ; vpnd cleanup
   Call un.VpndUninstall
   Delete "$INSTDIR\nym-vpnd.exe"
+  Delete "$INSTDIR\nym-socks5-proxy.exe"
   Delete "$INSTDIR\libwg.dll"
   Delete "$INSTDIR\wintun.dll"
   Delete "$INSTDIR\winfw.dll"
-
   Delete "$INSTDIR\nymvpn-split-tunnel.sys"
   Delete "$INSTDIR\nymvpn-split-tunnel.inf"
   Delete "$INSTDIR\nymvpn-split-tunnel.cat"
