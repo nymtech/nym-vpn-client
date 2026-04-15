@@ -36,8 +36,10 @@ impl Socks5ProxyManager {
         shutdown_token: CancellationToken,
     ) {
         if enabled {
+            tracing::debug!("Starting nym-socks5-proxy process");
             self.start(config, shutdown_token).await;
         } else {
+            tracing::debug!("Stopping nym-socks5-proxy process");
             self.stop().await;
         }
     }
@@ -121,12 +123,16 @@ impl Socks5ProxyManager {
         self.tunnel_addr = tunnel_addr;
 
         if let (Some(addr), Socks5ProxyState::Running(process)) = (tunnel_addr, &self.state) {
+            tracing::debug!(
+                "Notifying nym-socks5-proxy that the VPN is connected on address: {addr}"
+            );
             process.handle.notify_vpn_connected(addr);
         }
     }
 
     pub fn notify_disconnected(&self) {
         if let Socks5ProxyState::Running(process) = &self.state {
+            tracing::debug!("Notifying nym-socks5-proxy that the VPN is disconnected");
             process.handle.notify_vpn_disconnected();
         }
     }
@@ -140,13 +146,17 @@ fn spawn_event_logger(mut event_rx: mpsc::UnboundedReceiver<Socks5ProcessEvent>)
                     tracing::info!("nym-socks5-proxy ready");
                 }
                 Socks5ProcessEvent::StatusUpdate { active_connections } => {
-                    tracing::debug!(active_connections, "nym-socks5-proxy status update");
+                    tracing::info!("nym-socks5-proxy active connections: {active_connections}");
                 }
                 Socks5ProcessEvent::Error { message } => {
-                    tracing::error!(%message, "nym-socks5-proxy reported an error");
+                    tracing::error!("nym-socks5-proxy reported an error: {message}");
                 }
                 Socks5ProcessEvent::Exited { success } => {
-                    tracing::info!(success, "nym-socks5-proxy exited");
+                    if success {
+                        tracing::error!("nym-socks5-proxy failed to exit cleanly");
+                    } else {
+                        tracing::info!("nym-socks5-proxy exited successfully");
+                    }
                     break;
                 }
             }

@@ -11,7 +11,6 @@ use tokio::{
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tracing::{debug, error, info, warn};
 
 const PROXY_BINARY_NAME: &str = if cfg!(windows) {
     "nym-socks5-proxy.exe"
@@ -31,13 +30,13 @@ impl Socks5ProcessHandle {
     pub fn notify_vpn_connected(&self, tunnel_addr: IpAddr) {
         let msg = DaemonMessage::VpnConnected(VpnConnectedData { tunnel_addr });
         if self.msg_tx.send(msg).is_err() {
-            warn!("could not send VpnConnected to proxy: channel closed");
+            tracing::warn!("could not send VpnConnected to proxy: channel closed");
         }
     }
 
     pub fn notify_vpn_disconnected(&self) {
         if self.msg_tx.send(DaemonMessage::VpnDisconnected).is_err() {
-            warn!("could not send VpnDisconnected to proxy: channel closed");
+            tracing::warn!("could not send VpnDisconnected to proxy: channel closed");
         }
     }
 
@@ -57,7 +56,7 @@ impl Socks5ProcessTask {
     ) -> Result<(Socks5ProcessHandle, JoinHandle<()>)> {
         let binary_path = find_proxy_binary()?;
 
-        info!(
+        tracing::info!(
             binary = %binary_path.display(),
             listen_port = config.listen_port,
             "Spawning nym-socks5-proxy",
@@ -114,7 +113,7 @@ impl Socks5ProcessTask {
             Err(_) => return Err(Socks5ProcessError::ExitedBeforeReady),
         }
 
-        info!("nym-socks5-proxy is ready");
+        tracing::info!("nym-socks5-proxy is ready");
 
         let handle = Socks5ProcessHandle {
             msg_tx,
@@ -165,11 +164,11 @@ async fn stdin_writer(
                     Some(m) => {
                         let line = format!("{m}\n");
                         if let Err(e) = stdin.write_all(line.as_bytes()).await {
-                            warn!("failed to write to nym-socks5-proxy stdin: {e}");
+                            tracing::warn!("failed to write to nym-socks5-proxy stdin: {e}");
                             break;
                         }
                         if let Err(e) = stdin.flush().await {
-                            warn!("failed to flush nym-socks5-proxy stdin: {e}");
+                            tracing::warn!("failed to flush nym-socks5-proxy stdin: {e}");
                             break;
                         }
                     }
@@ -180,7 +179,7 @@ async fn stdin_writer(
                 }
             }
             _ = shutdown_token.cancelled() => {
-                debug!("stdin writer: shutdown requested, sending Terminate then closing stdin pipe");
+                tracing::debug!("stdin writer: shutdown requested, sending Terminate then closing stdin pipe");
                 // Best-effort: ask the proxy to stop cleanly before EOF.
                 let terminate = format!("{}\n", DaemonMessage::Terminate);
                 let _ = stdin.write_all(terminate.as_bytes()).await;
@@ -214,17 +213,17 @@ async fn supervisor(
                         handle_proxy_line(&line, &mut ready_tx, &event_tx);
                     }
                     Ok(None) => {
-                        debug!("nym-socks5-proxy stdout closed");
+                        tracing::debug!("nym-socks5-proxy stdout closed");
                         break;
                     }
                     Err(err) => {
-                        error!("error reading nym-socks5-proxy stdout: {err}");
+                        tracing::error!("error reading nym-socks5-proxy stdout: {err}");
                         break;
                     }
                 }
             }
             _ = shutdown_token.cancelled() => {
-                debug!("nym-socks5-proxy: shutdown requested, waiting for child");
+                tracing::debug!("nym-socks5-proxy: shutdown requested, waiting for child");
                 break;
             }
         }
@@ -232,15 +231,15 @@ async fn supervisor(
 
     let success = match tokio::time::timeout(Duration::from_secs(5), child.wait()).await {
         Ok(Ok(status)) => {
-            info!("nym-socks5-proxy exited with status {status}");
+            tracing::info!("nym-socks5-proxy exited with status {status}");
             status.success()
         }
         Ok(Err(err)) => {
-            error!("error waiting for nym-socks5-proxy: {err}");
+            tracing::error!("error waiting for nym-socks5-proxy: {err}");
             false
         }
         Err(_) => {
-            warn!("nym-socks5-proxy did not exit within timeout, killing it");
+            tracing::warn!("nym-socks5-proxy did not exit within timeout, killing it");
             let _ = child.kill().await;
             false
         }
@@ -263,7 +262,7 @@ fn handle_proxy_line(
     let msg = match line.parse::<ProxyMessage>() {
         Ok(m) => m,
         Err(err) => {
-            warn!("failed to parse nym-socks5-proxy message: {err}; raw: {line}");
+            tracing::warn!("failed to parse nym-socks5-proxy message: {err}; raw: {line}");
             return;
         }
     };
@@ -272,16 +271,16 @@ fn handle_proxy_line(
         ProxyMessage::Ack => {
             if let Some(tx) = ready_tx.take() {
                 // First Ack — proxy has bound its listener and is ready.
-                debug!("nym-socks5-proxy ready (startup Ack)");
+                tracing::debug!("nym-socks5-proxy ready (startup Ack)");
                 let _ = tx.send(Ok(()));
                 let _ = event_tx.send(Socks5ProcessEvent::Ready);
             } else {
                 // Subsequent Acks — acknowledgement of a VPN state-change message.
-                debug!("nym-socks5-proxy acknowledged message");
+                tracing::debug!("nym-socks5-proxy acknowledged message");
             }
         }
         ProxyMessage::Status(info) => {
-            debug!(
+            tracing::debug!(
                 active_connections = info.active_connections,
                 "nym-socks5-proxy status",
             );
@@ -290,7 +289,7 @@ fn handle_proxy_line(
             });
         }
         ProxyMessage::Error(info) => {
-            error!(message = %info.message, "nym-socks5-proxy reported error");
+            tracing::error!(message = %info.message, "nym-socks5-proxy reported error");
             if let Some(tx) = ready_tx.take() {
                 let _ = tx.send(Err(info.message.clone()));
             }
