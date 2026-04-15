@@ -1,12 +1,13 @@
-import { useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'motion/react';
 import { type } from '@tauri-apps/plugin-os';
+import { Command } from '@tauri-apps/plugin-shell';
 import PageAnim from '../../../ui/PageAnim';
 import SettingsMenuCard from '../../../ui/SettingsMenuCard';
 import Switch from '../../../ui/Switch';
-import { useDialog } from '../../../contexts';
+import { useDialog, useInAppNotify } from '../../../contexts';
 import { Spinner } from '../../../ui';
 import InfoDialog from './InfoDialog';
 import AppItem, { AppEntry } from './AppItem';
@@ -17,9 +18,57 @@ function SplitTunneling() {
 
   const { t } = useTranslation('settings');
   const { isOpen, close } = useDialog();
+  const { push } = useInAppNotify();
 
   const { apps, enabled, loading, setEnabled, add, remove, isSupported } =
     useSplitTunnel();
+
+  const [runningApps, setRunningApps] = useState<Record<string, number[]>>({});
+
+  const handleLaunch = useCallback(
+    async (app: AppEntry) => {
+      try {
+        const command = Command.create(
+          'nym-exclude',
+          app.executable_path.split(' '),
+        );
+
+        command.on('close', (data) => {
+          console.info('[nym-exclude] process closed with code', data.code);
+          setRunningApps((prev) => {
+            const pids = prev[app.name];
+            if (!pids) return prev;
+            const updated = pids.filter((p) => p !== child.pid);
+            if (updated.length === 0) {
+              const { [app.name]: _, ...rest } = prev;
+              return rest;
+            }
+            return { ...prev, [app.name]: updated };
+          });
+        });
+
+        command.on('error', (error) => {
+          console.error('[nym-exclude] process error', error);
+        });
+
+        const child = await command.spawn();
+        console.info('[nym-exclude] spawned PID', child.pid, 'for', app.name);
+
+        setRunningApps((prev) => ({
+          ...prev,
+          [app.name]: [...(prev[app.name] || []), child.pid],
+        }));
+      } catch (error) {
+        console.error('[nym-exclude] Failed to execute command', error);
+        push({
+          message: 'Failed to open app',
+          close: true,
+          type: 'error',
+        });
+      }
+    },
+    [push],
+  );
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -133,7 +182,12 @@ function SplitTunneling() {
                     {/* Apps in this section */}
                     {groupedApps[letter].map((app, i) => (
                       <div key={app.name}>
-                        <AppItem app={app} onStateChange={handleStateChange} />
+                        <AppItem
+                          app={app}
+                          onStateChange={handleStateChange}
+                          isRunning={(runningApps[app.name]?.length ?? 0) > 0}
+                          onLaunch={handleLaunch}
+                        />
                         {i < groupedApps[letter].length - 1 && (
                           <div className="mx-4 h-px bg-mercury/60 dark:bg-white/5" />
                         )}

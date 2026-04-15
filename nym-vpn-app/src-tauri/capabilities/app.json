@@ -54,7 +54,7 @@
     "autostart:allow-disable",
     "autostart:allow-is-enabled",
     {
-      "identifier": "shell:allow-execute",
+      "identifier": "shell:allow-spawn",
       "allow": [
         {
           "name": "nym-exclude",

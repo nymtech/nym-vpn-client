@@ -1,10 +1,8 @@
 import clsx from 'clsx';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { type } from '@tauri-apps/plugin-os';
-import { Command } from '@tauri-apps/plugin-shell';
 import MsIcon from '../../../ui/MsIcon';
 import { App } from '../../../types';
-import { useInAppNotify } from '../../../contexts';
 
 export type AppEntry = App & {
   state: 'excluded' | 'included';
@@ -16,30 +14,15 @@ type AppItemProps = {
     app: AppEntry,
     state: 'excluded' | 'included',
   ) => Promise<void>;
+  isRunning?: boolean;
+  onLaunch?: (app: AppEntry) => Promise<void>;
 };
 
-function AppItem({ app, onStateChange }: AppItemProps) {
+function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
   const os = type();
-  const { push } = useInAppNotify();
 
   const handleClick = async () => {
-    if (os === 'linux') {
-      try {
-        const result = await Command.create(
-          'nym-exclude',
-          app.executable_path.split(' '),
-        ).execute();
-        console.info('[nym-exclude] stdout', result.stdout);
-        console.info('[nym-exclude] stderr', result.stderr);
-      } catch (error) {
-        console.error('[nym-exclude] Failed to execute command', error);
-        push({
-          message: 'Failed to open app',
-          close: true,
-          type: 'error',
-        });
-      }
-    }
+    if (os === 'linux' && onLaunch) await onLaunch(app);
   };
 
   return (
@@ -50,7 +33,7 @@ function AppItem({ app, onStateChange }: AppItemProps) {
       )}
       onClick={handleClick}
     >
-      <div className={'w-7 h-7 flex items-center justify-center'}>
+      <div className="relative w-7 h-7 flex items-center justify-center">
         {app.icon && (
           <img
             src={convertFileSrc(app.icon)}
@@ -62,6 +45,17 @@ function AppItem({ app, onStateChange }: AppItemProps) {
           <div className="h-full w-full rounded-md  bg-faded-lavender dark:bg-ash text-baltic-sea dark:text-white flex items-center justify-center text-sm leading-none">
             {app.name[0].toUpperCase()}
           </div>
+        )}
+        {os === 'linux' && (
+          <div
+            className={clsx(
+              'absolute bottom-0 right-0 h-2 w-2 bg-malachite-moss rounded-full animate-pulse',
+              {
+                'bg-malachite-moss animate-ping': isRunning,
+                'bg-ash dark:bg-mercury': !isRunning,
+              },
+            )}
+          ></div>
         )}
       </div>
       <span className="flex-1 text-sm text-baltic-sea dark:text-white truncate select-none">
