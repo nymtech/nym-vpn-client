@@ -1,5 +1,6 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
+import { type } from '@tauri-apps/plugin-os';
 import { Button, Dialog, MsIcon } from '../../../ui';
 
 export type Props = {
@@ -9,6 +10,7 @@ export type Props = {
 
 function InfoDialog({ isOpen, onClose }: Props) {
   const { t } = useTranslation('settings');
+  const os = type();
 
   return (
     <Dialog
@@ -36,13 +38,23 @@ function InfoDialog({ isOpen, onClose }: Props) {
       {/* Body */}
       <div className="flex flex-col gap-4 text-sm text-iron dark:text-bombay">
         <p className="whitespace-pre-line">
-          {t('split-tunneling.info-dialog.description')}
+          {os === 'linux'
+            ? t('split-tunneling.info-dialog.description-linux')
+            : t('split-tunneling.info-dialog.description-windows')}
         </p>
 
         {/* Direct */}
         <div className="flex flex-col gap-2 text-sm">
-          <div className="flex items-center gap-1">
-            <MsIcon icon="block" className=" text-baltic-sea dark:text-white" />
+          <div className="flex items-center gap-2">
+            {os === 'linux' && (
+              <div className="h-2 w-2 bg-malachite-moss dark:bg-malachite rounded-full"></div>
+            )}
+            {os === 'windows' && (
+              <MsIcon
+                icon="block"
+                className=" text-baltic-sea dark:text-white"
+              />
+            )}
             <span className="font-bold text-baltic-sea dark:text-white">
               {t('split-tunneling.info-dialog.direct.label')}
             </span>
@@ -52,11 +64,16 @@ function InfoDialog({ isOpen, onClose }: Props) {
 
         {/* Via NymVPN */}
         <div className="flex flex-col gap-2 text-sm">
-          <div className="flex items-center gap-1">
-            <MsIcon
-              icon="shield"
-              className=" text-baltic-sea dark:text-white"
-            />
+          <div className="flex items-center gap-2">
+            {os === 'linux' && (
+              <div className="h-2 w-2 bg-ash dark:bg-mercury rounded-full"></div>
+            )}
+            {os === 'windows' && (
+              <MsIcon
+                icon="shield"
+                className=" text-baltic-sea dark:text-white"
+              />
+            )}
             <span className="font-bold text-baltic-sea dark:text-white">
               {t('split-tunneling.info-dialog.via-nym-vpn.label')}
             </span>

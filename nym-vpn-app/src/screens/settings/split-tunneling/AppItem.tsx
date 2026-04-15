@@ -67,6 +67,9 @@ function AppItem({ app, onStateChange }: AppItemProps) {
       <span className="flex-1 text-sm text-baltic-sea dark:text-white truncate select-none">
         {app.name}
       </span>
+      {os === 'linux' && (
+        <MsIcon icon="open_in_new" className="text-base text-bombay" />
+      )}
       {/* Only Windows can include/exclude apps from inside the app */}
       {/* Linux uses custom app launcher to launch the app and immediately exclude it from the tunnel */}
       {os === 'windows' && (

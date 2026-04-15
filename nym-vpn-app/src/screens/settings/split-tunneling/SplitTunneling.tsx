@@ -87,7 +87,14 @@ function SplitTunneling() {
 
       {/* Description */}
       <p className="text-sm text-iron dark:text-bombay">
-        {t('split-tunneling.description')}
+        {os === 'linux'
+          ? t('split-tunneling.description-linux')
+          : t('split-tunneling.description-windows')}
+      </p>
+
+      {/* Exclude warning */}
+      <p className="text-sm text-cheddar dark:text-king-nacho p-3 bg-mercury/40 dark:bg-mine-shaft/60 rounded-lg">
+        {t('split-tunneling.exclude-warning')}
       </p>
 
       {/* Apps section */}
