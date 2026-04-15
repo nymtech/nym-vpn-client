@@ -334,6 +334,12 @@
         "description": "Recommended setting for all apps."
       },
       "got-it": "Got it!"
+    },
+    "launch-confirm-dialog": {
+      "title": "Launching {{appName}}",
+      "description": "The app will be launched outside of the VPN tunnel and will connect directly to the internet (unprotected by NymVPN).\n\nBefore proceeding, please make sure the app is not already running. If it is, close all instances first, then launch the app from here.",
+      "launch": "Launch",
+      "cancel": "Cancel"
     }
   }
 }

@@ -57,7 +57,7 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
             className={clsx(
               'absolute bottom-0 right-0 h-2 w-2 bg-malachite-moss rounded-full',
               {
-                'bg-malachite-moss animate-ping duration-1000': isRunning,
+                'bg-malachite-moss animate-pulse duration-1000': isRunning,
                 'bg-ash dark:bg-mercury': !isRunning,
               },
             )}

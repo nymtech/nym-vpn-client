@@ -10,6 +10,7 @@ import Switch from '../../../ui/Switch';
 import { useDialog, useInAppNotify } from '../../../contexts';
 import { Spinner } from '../../../ui';
 import InfoDialog from './InfoDialog';
+import LaunchConfirmDialog from './LaunchConfirmDialog';
 import AppItem, { AppEntry } from './AppItem';
 import { useSplitTunnel } from './utils';
 
@@ -24,8 +25,11 @@ function SplitTunneling() {
     useSplitTunnel();
 
   const [runningApps, setRunningApps] = useState<Record<string, number[]>>({});
+  const [pendingLaunchApp, setPendingLaunchApp] = useState<AppEntry | null>(
+    null,
+  );
 
-  const handleLaunch = useCallback(
+  const spawnApp = useCallback(
     async (app: AppEntry) => {
       try {
         const command = Command.create(
@@ -69,6 +73,29 @@ function SplitTunneling() {
     },
     [push],
   );
+
+  const handleLaunch = useCallback(
+    async (app: AppEntry) => {
+      const hasRunningPids = (runningApps[app.name]?.length ?? 0) > 0;
+      if (hasRunningPids) {
+        await spawnApp(app);
+      } else {
+        setPendingLaunchApp(app);
+      }
+    },
+    [runningApps, spawnApp],
+  );
+
+  const handleLaunchConfirm = useCallback(async () => {
+    if (pendingLaunchApp) {
+      await spawnApp(pendingLaunchApp);
+    }
+    setPendingLaunchApp(null);
+  }, [pendingLaunchApp, spawnApp]);
+
+  const handleLaunchCancel = useCallback(() => {
+    setPendingLaunchApp(null);
+  }, []);
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -120,6 +147,13 @@ function SplitTunneling() {
       <InfoDialog
         isOpen={isOpen('split-tunneling-info')}
         onClose={() => close('split-tunneling-info')}
+      />
+
+      <LaunchConfirmDialog
+        isOpen={pendingLaunchApp !== null}
+        appName={pendingLaunchApp?.name ?? ''}
+        onConfirm={handleLaunchConfirm}
+        onCancel={handleLaunchCancel}
       />
 
       {/* Enable split tunneling on Windows only*/}
