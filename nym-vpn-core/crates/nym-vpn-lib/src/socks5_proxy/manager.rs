@@ -29,21 +29,6 @@ impl Socks5ProxyManager {
         }
     }
 
-    pub async fn start_or_stop(
-        &mut self,
-        enabled: bool,
-        config: ProxyConfig,
-        shutdown_token: CancellationToken,
-    ) {
-        if enabled {
-            tracing::debug!("Starting nym-socks5-proxy process");
-            self.start(config, shutdown_token).await;
-        } else {
-            tracing::debug!("Stopping nym-socks5-proxy process");
-            self.stop().await;
-        }
-    }
-
     pub async fn start(&mut self, config: ProxyConfig, shutdown_token: CancellationToken) {
         let previous = std::mem::replace(&mut self.state, Socks5ProxyState::Starting);
 
@@ -119,14 +104,14 @@ impl Socks5ProxyManager {
         self.state = Socks5ProxyState::Stopped;
     }
 
-    pub fn notify_connected(&mut self, tunnel_addr: Option<IpAddr>) {
-        self.tunnel_addr = tunnel_addr;
+    pub fn notify_connected(&mut self, tunnel_addr: IpAddr) {
+        self.tunnel_addr = Some(tunnel_addr);
 
-        if let (Some(addr), Socks5ProxyState::Running(process)) = (tunnel_addr, &self.state) {
+        if let Socks5ProxyState::Running(process) = &self.state {
             tracing::debug!(
-                "Notifying nym-socks5-proxy that the VPN is connected on address: {addr}"
+                "Notifying nym-socks5-proxy that the VPN is connected on address: {tunnel_addr}"
             );
-            process.handle.notify_vpn_connected(addr);
+            process.handle.notify_vpn_connected(tunnel_addr);
         }
     }
 

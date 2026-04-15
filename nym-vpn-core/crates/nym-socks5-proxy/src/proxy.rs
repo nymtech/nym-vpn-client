@@ -27,7 +27,7 @@ use crate::routing::{GeoIpDatabase, RoutingDecision, decide_route};
 pub async fn run(
     config: ProxyConfig,
     data_dir: &Path,
-    tunnel_rx: watch::Receiver<Option<IpAddr>>,
+    tunnel_addr_rx: watch::Receiver<Option<IpAddr>>,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
     let listen_addr = SocketAddr::from(([127, 0, 0, 1], config.listen_port));
@@ -42,14 +42,14 @@ pub async fn run(
         .context("Failed to build GeoIP database")?;
     let db = Arc::new(db);
 
-    tokio::spawn(accept_loop(listener, tunnel_rx, db, shutdown_token));
+    tokio::spawn(accept_loop(listener, tunnel_addr_rx, db, shutdown_token));
 
     Ok(())
 }
 
 async fn accept_loop(
     listener: TcpListener,
-    tunnel_rx: watch::Receiver<Option<IpAddr>>,
+    tunnel_addr_rx: watch::Receiver<Option<IpAddr>>,
     db: Arc<GeoIpDatabase>,
     shutdown_token: CancellationToken,
 ) {
@@ -60,11 +60,11 @@ async fn accept_loop(
                     Ok((stream, peer_addr)) => {
                         debug!(%peer_addr, "Accepted SOCKS5 connection");
                         let shutdown = shutdown_token.clone();
-                        let tunnel = tunnel_rx.clone();
+                        let tunnel_addr_rx_clone = tunnel_addr_rx.clone();
                         let db = db.clone();
                         tokio::spawn(async move {
                             if let Err(err) =
-                                handle_connection(stream, peer_addr, tunnel, db, shutdown).await
+                                handle_connection(stream, peer_addr, tunnel_addr_rx_clone, db, shutdown).await
                             {
                                 warn!(%peer_addr, "SOCKS5 connection error: {err:#}");
                             }
@@ -86,12 +86,12 @@ async fn accept_loop(
 async fn handle_connection(
     stream: tokio::net::TcpStream,
     peer_addr: SocketAddr,
-    tunnel_rx: watch::Receiver<Option<IpAddr>>,
+    tunnel_addr_rx: watch::Receiver<Option<IpAddr>>,
     db: Arc<GeoIpDatabase>,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
     // Snapshot the current tunnel state at connection time.
-    let tunnel_addr = *tunnel_rx.borrow();
+    let tunnel_addr = *tunnel_addr_rx.borrow();
 
     tokio::select! {
         result = serve_socks5(stream, peer_addr, tunnel_addr, db) => result,
@@ -115,6 +115,8 @@ async fn serve_socks5(
         .read_command()
         .await
         .map_err(|e| anyhow::anyhow!("SOCKS5 command read failed from {peer_addr}: {e}"))?;
+
+    tracing::debug!("SOCKS5 accept command: {cmd:#x?}, target_addr: {target_addr:#?}");
 
     // Only TCP CONNECT is supported; BIND and UDP ASSOCIATE are not.
     if cmd != Socks5Command::TCPConnect {
@@ -141,6 +143,8 @@ async fn serve_socks5(
     // the first is representative and avoids unnecessary work.
     let first_ip = target_addrs[0].ip();
     let routing = decide_route(first_ip, tunnel_addr, &db);
+
+    tracing::debug!("Routing target_addr {target_addr} via {routing:?}");
 
     // When routing via default interface, pass `None` so sockets bind to INADDR_ANY.
     let effective_tunnel = match routing {

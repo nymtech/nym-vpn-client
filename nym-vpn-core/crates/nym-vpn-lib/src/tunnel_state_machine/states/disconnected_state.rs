@@ -43,7 +43,6 @@ impl DisconnectedState {
         // revert to default routing.
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
-            shared_state.set_socks5_proxy_tunnel_addr(None);
             shared_state.notify_socks5_proxy_disconnected();
         }
 
