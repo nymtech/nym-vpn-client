@@ -70,7 +70,8 @@ export function ActivePlan({
           </p>
         </div>
       </CardNewBody>
-      {!accountSummary.subscription?.subscription?.isRecurring && (
+      {(!accountSummary.subscription?.subscription?.isRecurring ||
+        !accountSummary.isSubscriptionStacked) && (
         <RenewButton accountSummary={accountSummary} />
       )}
     </>

@@ -71,7 +71,11 @@ export const getAccountStateDescription = (
 
 export const getAccountStatus = (accountSummary?: TAccountSummary | null) => {
   const subscription = accountSummary?.subscription?.subscription;
-  if (!accountSummary || subscription?.isRecurring) {
+  if (
+    !accountSummary ||
+    subscription?.isRecurring ||
+    accountSummary.isSubscriptionStacked
+  ) {
     return 'green';
   }
 

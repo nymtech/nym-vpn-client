@@ -271,6 +271,7 @@ pub struct VpnAccountSummary {
     pub auth_methods: Vec<VpnAccountAuthMethod>,
     pub account_mode: Option<StoredAccountMode>,
     pub subscription: Option<Subscription>,
+    pub is_subscription_stacked: bool,
 }
 
 // Exported methods
@@ -355,6 +356,7 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             auth_methods,
             account_mode: None,
             subscription,
+            is_subscription_stacked: value.subscription.is_stacked,
         })
     }
 }
