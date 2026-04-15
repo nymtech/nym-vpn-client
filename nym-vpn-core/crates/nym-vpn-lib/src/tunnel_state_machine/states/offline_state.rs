@@ -9,11 +9,11 @@ use crate::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(target_os = "macos")]
 use crate::tunnel_state_machine::ErrorStateReason;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::{states::error_state::BlockedPolicyParameters, Error, Result};
+use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
 use crate::tunnel_state_machine::{
-    states::{ConnectingState, DisconnectedState, ErrorState}, tunnel::SelectedGateways, NextTunnelState, PrivateTunnelState, SharedState,
-    TunnelCommand,
-    TunnelStateHandler,
+    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
+    states::{ConnectingState, DisconnectedState, ErrorState},
+    tunnel::SelectedGateways,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;

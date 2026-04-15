@@ -5,9 +5,9 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
-    states::{ConnectingState, OfflineState}, tunnel::Tombstone, NextTunnelState, PrivateTunnelState, SharedState,
-    TunnelCommand,
-    TunnelStateHandler,
+    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
+    states::{ConnectingState, OfflineState},
+    tunnel::Tombstone,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_common::trace_err_chain;

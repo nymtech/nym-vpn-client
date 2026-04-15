@@ -30,13 +30,13 @@ use crate::resolver::LOCAL_DNS_RESOLVER;
 use crate::tunnel_provider::{OSTunProvider, TunnelSettings};
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
-use crate::tunnel_state_machine::{
-    states::{ConnectingState, DisconnectedState, OfflineState}, ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState,
-    TunnelCommand,
-    TunnelStateHandler,
-};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result};
+use crate::tunnel_state_machine::{
+    ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
+    TunnelStateHandler,
+    states::{ConnectingState, DisconnectedState, OfflineState},
+};
 
 /// Interface addresses used as placeholders when in error state.
 #[cfg(target_os = "ios")]
