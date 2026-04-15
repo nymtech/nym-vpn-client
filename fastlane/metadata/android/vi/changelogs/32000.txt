@@ -1,0 +1,6 @@
+Có gì mới:
+- Triển khai chức năng và giao diện tự động đăng nhập.
+- Giới thiệu công cụ Chẩn đoán.
+- Thêm tùy chọn "Ngẫu nhiên" cho vị trí Vào và vị trí thoát.
+- Thêm biểu ngữ thông tin hiển thị trạng thái đăng ký hiện tại của bạn.
+- Cải tiến kỹ thuật: Tối ưu hóa kiểm tra kết nối Privy.

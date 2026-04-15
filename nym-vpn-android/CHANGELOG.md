@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Update the login/account creation flow for status checks (https://github.com/nymtech/nym-vpn-client/pull/5102)
+
+### Fixed
+- Fix issue with disappearing password manager dialog (https://github.com/nymtech/nym-vpn-client/pull/5102)
+
 ## [3.3.0]
 
 ### Added

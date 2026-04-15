@@ -23,6 +23,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import androidx.compose.ui.res.stringResource
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
 import net.nymtech.nymvpn.ui.model.ConnectionState
@@ -36,7 +37,15 @@ import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.ErrorStateReason
 
 @Composable
-fun ConnectionStatus(connectionState: ConnectionState, vpnMode: Tunnel.Mode, connectionTime: String?, theme: Theme, modifier: Modifier = Modifier, isAppInForeground: Boolean) {
+fun ConnectionStatus(
+	connectionState: ConnectionState,
+	vpnMode: Tunnel.Mode,
+	connectionTime: String?,
+	theme: Theme,
+	modifier: Modifier = Modifier,
+	isAppInForeground: Boolean,
+	isAccountInitializing: Boolean = false,
+) {
 	val isDarkMode = isSystemInDarkTheme()
 	val surfaceAvailable by rememberSurfaceAvailability()
 	val context = LocalContext.current
@@ -112,6 +121,15 @@ fun ConnectionStatus(connectionState: ConnectionState, vpnMode: Tunnel.Mode, con
 				message = context.getString(R.string.no_internet),
 				textColor = MaterialTheme.colorScheme.onSurfaceVariant,
 			)
+
+			ConnectionState.Disconnected -> {
+				if (isAccountInitializing) {
+					StatusInfoLabel(
+						message = stringResource(R.string.account_info_updating),
+						textColor = MaterialTheme.colorScheme.onSurfaceVariant,
+					)
+				}
+			}
 
 			is ConnectionState.Connected -> {
 				// Optional

@@ -3,36 +3,29 @@ package net.nymtech.nymvpn.ui.screens.settings.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
-import net.nymtech.nymvpn.manager.backend.hasValidSubscription
-import net.nymtech.nymvpn.manager.environment.EnvironmentManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
-import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(private val settingsRepository: SettingsRepository, private val backendManager: BackendManager, private val environmentManager: EnvironmentManager) :
-	ViewModel() {
+class LoginViewModel @Inject constructor(private val settingsRepository: SettingsRepository, private val backendManager: BackendManager) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-login-vm"
-		private const val ACCOUNT_READY_TIMEOUT_MS = 20_000L
+		private const val LOGIN_DELAY_MS = 2_000L
 	}
 
 	private val _uiState = MutableStateFlow(LoginUiState())
@@ -68,45 +61,15 @@ class LoginViewModel @Inject constructor(private val settingsRepository: Setting
 		runCatching {
 			backendManager.storeMnemonic(phrase)
 
-			_events.tryEmit(
-				LoginEvent.Processing,
-			)
+			_events.tryEmit(LoginEvent.Processing)
 			Timber.tag(TAG).i("MnemonicImportSuccess")
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 
 			backendManager.refreshAccount()
-
-			val accountState = waitForAccountReady()
-			Timber.tag(TAG).i("AccountStateAfterLogin state=%s", accountState)
-			var error: String? = null
-
-			val hasValidSubscription = when (accountState) {
-				is AccountControllerState.ReadyToConnect,
-				is AccountControllerState.Decentralised,
-				is AccountControllerState.UpgradeMode,
-				-> backendManager.hasValidSubscription(TAG)
-
-				is AccountControllerState.Error -> {
-					Timber.tag(TAG).w("AccountStateError reason=%s", accountState.v1)
-					error = accountState.v1.toString()
-					false
-				}
-
-				else -> {
-					Timber.tag(TAG).w("AccountReadyTimeout, proceeding with subscription check")
-					backendManager.hasValidSubscription(TAG)
-				}
-			}
+			delay(LOGIN_DELAY_MS)
 
 			val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
-
-			_events.tryEmit(
-				LoginEvent.NavigateAfterLogin(
-					showTechnicalOpt = shouldShowTechnical,
-					hasValidSubscription = hasValidSubscription,
-					error = error,
-				),
-			)
+			_events.tryEmit(LoginEvent.NavigateAfterLogin(showTechnicalOpt = shouldShowTechnical))
 
 			_uiState.update { it.copy(isLoading = false, showMaxDevicesModal = false) }
 		}.onFailure { t ->
@@ -122,20 +85,6 @@ class LoginViewModel @Inject constructor(private val settingsRepository: Setting
 
 			SnackbarController.showMessage(StringValue.StringResource(R.string.invalid_recovery_phrase))
 		}
-	}
-
-	private suspend fun waitForAccountReady(): AccountControllerState? = withTimeoutOrNull(ACCOUNT_READY_TIMEOUT_MS) {
-		backendManager.stateFlow
-			.map {
-				it.accountState
-			}
-			.filter { state ->
-				state is AccountControllerState.ReadyToConnect ||
-					state is AccountControllerState.Decentralised ||
-					state is AccountControllerState.UpgradeMode ||
-					state is AccountControllerState.Error
-			}
-			.first()
 	}
 
 	fun dismissMaxDevicesModal() {

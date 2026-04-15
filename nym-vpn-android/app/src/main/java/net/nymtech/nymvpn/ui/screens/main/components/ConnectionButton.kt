@@ -34,6 +34,7 @@ fun ConnectionButton(
 	connectionState: ConnectionState,
 	accountState: AccountControllerState,
 	isMnemonicStored: Boolean,
+	isAccountInitializing: Boolean,
 	onConnect: () -> Unit,
 	onDisconnect: () -> Unit,
 	onStopKillSwitch: () -> Unit,
