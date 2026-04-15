@@ -161,7 +161,7 @@ async fn serve_socks5(
     tracing::debug!("Routing target_addr {target_addr} via {routing:?}");
 
     let bind_addr: Option<IpAddr> = match routing {
-        RoutingDecision::VpnTunnelInterface => tunnel_addr,
+        RoutingDecision::VpnTunnelInterface => None,
         RoutingDecision::DefaultInterface => default_addr,
     };
 
