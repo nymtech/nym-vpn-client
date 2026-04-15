@@ -19,26 +19,33 @@ mod tunnel_monitor;
 #[cfg(windows)]
 mod wintun;
 
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::AndroidTunProvider;
-#[cfg(target_os = "ios")]
-use crate::tunnel_provider::OSTunProvider;
-
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use crate::socks5_proxy::find_proxy_binary;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::{
-    adblocker,
-    resolver::{self},
-    socks5_proxy::{Socks5ProcessEvent, Socks5ProcessHandle, Socks5ProcessTask},
-};
-
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
 use std::{
     collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     path::PathBuf,
+};
+
+#[cfg(target_os = "android")]
+use crate::tunnel_provider::AndroidTunProvider;
+#[cfg(target_os = "ios")]
+use crate::tunnel_provider::OSTunProvider;
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use crate::{
+    adblocker,
+    resolver::{self},
+    socks5_proxy::Socks5ProxyManager,
+};
+
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::socks5_proxy::find_proxy_binary;
+
+use crate::{
+    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    mixnet::VpnTopologyServiceHandle,
+    tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
 
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
@@ -65,12 +72,6 @@ use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
     Socks5ProxySettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
-};
-
-use crate::{
-    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
-    GatewayDirectoryError,
-    UserAgent,
 };
 
 use tunnel::SelectedGateways;
@@ -284,6 +285,11 @@ impl TunnelSettings {
             if self.socks5_proxy_settings.enabled != other.socks5_proxy_settings.enabled {
                 diff.add(TunnelSettingsDiffFields::Socks5ProxyEnabled);
             }
+            if self.socks5_proxy_settings.excluded_countries
+                != other.socks5_proxy_settings.excluded_countries
+            {
+                diff.add(TunnelSettingsDiffFields::Socks5ProxyExcludedCountries);
+            }
         }
 
         if diff.is_empty() { None } else { Some(diff) }
@@ -309,6 +315,7 @@ pub enum TunnelSettingsDiffFields {
     SplitTunnel,
     Socks5Proxy,
     Socks5ProxyEnabled,
+    Socks5ProxyExcludedCountries,
 }
 
 impl TunnelSettingsDiffFields {
@@ -327,7 +334,8 @@ impl TunnelSettingsDiffFields {
             | Self::EnableAdBlocking
             | Self::SplitTunnel
             | Self::Socks5Proxy
-            | Self::Socks5ProxyEnabled => false,
+            | Self::Socks5ProxyEnabled
+            | Self::Socks5ProxyExcludedCountries => false,
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
             }
@@ -385,6 +393,10 @@ impl TunnelSettingsDiff {
 
     pub fn socks5_proxy_enabled_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::Socks5ProxyEnabled)
+    }
+
+    pub fn socks5_proxy_excluded_countries_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::Socks5ProxyExcludedCountries)
     }
 
     // Returns true if changed tunnel settings should lead to tunnel reconnect
@@ -630,9 +642,7 @@ pub struct SharedState {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     adblocker: adblocker::AdBlockerTaskHandle,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    socks5_proxy_state: Socks5ProxyState,
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    socks5_proxy_tunnel_addr: Option<IpAddr>,
+    socks5_proxy_manager: Socks5ProxyManager,
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
     nym_config: NymConfig,
@@ -652,20 +662,6 @@ pub struct SharedState {
     user_agent: UserAgent,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     shutdown_token: CancellationToken,
-}
-
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-struct Socks5ProxyProcess {
-    handle: Socks5ProcessHandle,
-    join_handle: JoinHandle<()>,
-}
-
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-enum Socks5ProxyState {
-    Stopped,
-    Starting,
-    Running(Socks5ProxyProcess),
-    Stopping,
 }
 
 impl SharedState {
@@ -719,7 +715,7 @@ impl SharedState {
             HashSet::new()
         };
 
-        tracing::info!("Updating ST exclude paths: {:?}", paths);
+        tracing::info!("Updating Split Tunnel exclude paths: {:?}", paths);
 
         #[cfg(target_os = "macos")]
         let had_interface = self.split_tunnel.interface().await.is_some();
@@ -797,45 +793,47 @@ impl SharedState {
     /// TODO: Change the excluded countries, if it changes.
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn start_or_stop_socks5_proxy(&mut self) {
-        if self.tunnel_settings.socks5_proxy_settings.enabled {
-            self.start_socks5_proxy().await;
-        } else {
-            self.stop_socks5_proxy().await;
+        if let Some(config) = self.build_proxy_config() {
+            let enabled = self.tunnel_settings.socks5_proxy_settings.enabled;
+            self.socks5_proxy_manager
+                .start_or_stop(enabled, config, self.shutdown_token.clone())
+                .await;
         }
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn start_socks5_proxy(&mut self) {
-        let previous_state =
-            std::mem::replace(&mut self.socks5_proxy_state, Socks5ProxyState::Starting);
-
-        match previous_state {
-            Socks5ProxyState::Stopped => {}
-            Socks5ProxyState::Starting => {
-                tracing::debug!("nym-socks5-proxy is already starting");
-                self.socks5_proxy_state = Socks5ProxyState::Starting;
-                return;
-            }
-            Socks5ProxyState::Running(process) => {
-                tracing::debug!("nym-socks5-proxy is already running");
-                self.socks5_proxy_state = Socks5ProxyState::Running(process);
-                return;
-            }
-            Socks5ProxyState::Stopping => {
-                tracing::debug!("nym-socks5-proxy is already stopping");
-                self.socks5_proxy_state = Socks5ProxyState::Stopping;
-                return;
-            }
+        if let Some(config) = self.build_proxy_config() {
+            self.socks5_proxy_manager
+                .start(config, self.shutdown_token.clone())
+                .await;
         }
+    }
 
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    async fn stop_socks5_proxy(&mut self) {
+        self.socks5_proxy_manager.stop().await;
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    fn set_socks5_proxy_tunnel_addr(&mut self, tunnel_addr: Option<IpAddr>) {
+        self.socks5_proxy_manager.notify_connected(tunnel_addr);
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    fn notify_socks5_proxy_disconnected(&self) {
+        self.socks5_proxy_manager.notify_disconnected();
+    }
+
+    /// Build a [`ProxyConfig`] from the current settings, logging an error and
+    /// returning `None` if the data path is not configured.
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    fn build_proxy_config(&self) -> Option<ProxyConfig> {
         let Some(data_path) = self.nym_config.data_path.as_ref() else {
             tracing::error!("Data path is required but not configured");
-            self.socks5_proxy_state = Socks5ProxyState::Stopped;
-            return;
+            return None;
         };
-
-        let (event_tx, event_rx) = mpsc::unbounded_channel::<Socks5ProcessEvent>();
-        let proxy_config = ProxyConfig {
+        Some(ProxyConfig {
             listen_port: self.tunnel_settings.socks5_proxy_settings.listen_port,
             data_dir: data_path.to_path_buf(),
             log_level: "info".to_string(),
@@ -844,103 +842,8 @@ impl SharedState {
                 .socks5_proxy_settings
                 .excluded_countries
                 .clone(),
-        };
-
-        match Socks5ProcessTask::spawn(proxy_config, event_tx, self.shutdown_token.child_token())
-            .await
-        {
-            Ok((handle, join_handle)) => {
-                spawn_socks5_proxy_event_logger(event_rx);
-
-                if let Some(tunnel_addr) = self.socks5_proxy_tunnel_addr {
-                    handle.notify_vpn_connected(tunnel_addr);
-                }
-
-                self.socks5_proxy_state = Socks5ProxyState::Running(Socks5ProxyProcess {
-                    handle,
-                    join_handle,
-                });
-            }
-            Err(err) => {
-                tracing::warn!("Failed to start nym-socks5-proxy (continuing without it): {err}",);
-                self.socks5_proxy_state = Socks5ProxyState::Stopped;
-            }
-        }
+        })
     }
-
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    async fn stop_socks5_proxy(&mut self) {
-        let previous_state =
-            std::mem::replace(&mut self.socks5_proxy_state, Socks5ProxyState::Stopping);
-
-        let Socks5ProxyState::Running(process) = previous_state else {
-            match previous_state {
-                Socks5ProxyState::Stopped => {
-                    tracing::debug!("nym-socks5-proxy is already stopped");
-                    self.socks5_proxy_state = Socks5ProxyState::Stopped;
-                }
-                Socks5ProxyState::Starting => {
-                    tracing::debug!("nym-socks5-proxy is already starting");
-                    self.socks5_proxy_state = Socks5ProxyState::Starting;
-                }
-                Socks5ProxyState::Stopping => {
-                    tracing::debug!("nym-socks5-proxy is already stopping");
-                    self.socks5_proxy_state = Socks5ProxyState::Stopping;
-                }
-                Socks5ProxyState::Running(_) => unreachable!(),
-            }
-            return;
-        };
-
-        process.handle.shutdown();
-
-        if let Err(err) = process.join_handle.await {
-            tracing::error!("Failed to join on socks5 process task: {err}");
-        }
-
-        self.socks5_proxy_state = Socks5ProxyState::Stopped;
-    }
-
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    fn set_socks5_proxy_tunnel_addr(&mut self, tunnel_addr: Option<IpAddr>) {
-        self.socks5_proxy_tunnel_addr = tunnel_addr;
-
-        if let (Some(tunnel_addr), Socks5ProxyState::Running(process)) =
-            (tunnel_addr, &self.socks5_proxy_state)
-        {
-            process.handle.notify_vpn_connected(tunnel_addr);
-        }
-    }
-
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    fn notify_socks5_proxy_disconnected(&self) {
-        if let Socks5ProxyState::Running(process) = &self.socks5_proxy_state {
-            process.handle.notify_vpn_disconnected();
-        }
-    }
-}
-
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-fn spawn_socks5_proxy_event_logger(mut event_rx: mpsc::UnboundedReceiver<Socks5ProcessEvent>) {
-    tokio::spawn(async move {
-        while let Some(event) = event_rx.recv().await {
-            match event {
-                Socks5ProcessEvent::Ready => {
-                    tracing::info!("nym-socks5-proxy ready");
-                }
-                Socks5ProcessEvent::StatusUpdate { active_connections } => {
-                    tracing::debug!(active_connections, "nym-socks5-proxy status update");
-                }
-                Socks5ProcessEvent::Error { message } => {
-                    tracing::error!(%message, "nym-socks5-proxy reported an error");
-                }
-                Socks5ProcessEvent::Exited { success } => {
-                    tracing::info!(success, "nym-socks5-proxy exited");
-                    break;
-                }
-            }
-        }
-    });
 }
 
 #[cfg(target_os = "linux")]
@@ -1088,9 +991,7 @@ impl TunnelStateMachine {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             adblocker,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            socks5_proxy_state: Socks5ProxyState::Stopped,
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            socks5_proxy_tunnel_addr: None,
+            socks5_proxy_manager: Socks5ProxyManager::new(),
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             split_tunnel,
             nym_config,
