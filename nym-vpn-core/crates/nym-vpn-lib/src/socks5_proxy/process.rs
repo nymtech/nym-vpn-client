@@ -40,6 +40,16 @@ impl Socks5ProcessHandle {
         }
     }
 
+    pub fn notify_default_addr_changed(&self, ip: Option<IpAddr>) {
+        if self
+            .msg_tx
+            .send(DaemonMessage::DefaultAddrChanged(ip))
+            .is_err()
+        {
+            tracing::warn!("could not send DefaultAddrChanged to proxy: channel closed");
+        }
+    }
+
     /// Gracefully shut down the proxy process.
     pub fn shutdown(&self) {
         self.shutdown_token.cancel();

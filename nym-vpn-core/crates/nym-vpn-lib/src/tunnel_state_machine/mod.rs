@@ -43,11 +43,14 @@ use crate::resolver;
 use crate::{
     adblocker,
     resolver::{self},
-    socks5_proxy::Socks5ProxyManager,
+    socks5_proxy::{Socks5ProxyManager, get_default_addr},
 };
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::socks5_proxy::find_proxy_binary;
+
+#[cfg(target_os = "windows")]
+use crate::socks5_proxy::get_default_addr_sync;
 
 use crate::{
     GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
@@ -650,6 +653,10 @@ pub struct SharedState {
     adblocker: adblocker::AdBlockerTaskHandle,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     socks5_proxy_manager: Socks5ProxyManager,
+    #[cfg(target_os = "windows")]
+    default_addr_callback: Option<route_handler::CallbackHandle>,
+    #[cfg(target_os = "macos")]
+    default_addr_monitor_task: Option<JoinHandle<()>>,
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
     nym_config: NymConfig,
@@ -812,11 +819,15 @@ impl SharedState {
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn start_socks5_proxy(&mut self) {
-        match self.build_proxy_config() {
+        let default_addr = get_default_addr(&self.route_handler.inner_handle()).await;
+        match self.build_proxy_config(default_addr) {
             Ok(config) => {
                 self.socks5_proxy_manager
                     .start(config, self.shutdown_token.clone())
                     .await;
+
+                #[cfg(any(target_os = "windows", target_os = "macos"))]
+                self.start_default_addr_monitor().await;
             }
             Err(err) => {
                 tracing::error!(
@@ -828,6 +839,17 @@ impl SharedState {
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn stop_socks5_proxy(&mut self) {
+        // Stop receiving route-change events before tearing down the proxy IPC channel.
+        #[cfg(target_os = "windows")]
+        {
+            self.default_addr_callback = None;
+        }
+        #[cfg(target_os = "macos")]
+        {
+            if let Some(task) = self.default_addr_monitor_task.take() {
+                task.abort();
+            }
+        }
         self.socks5_proxy_manager.stop().await;
     }
 
@@ -842,7 +864,10 @@ impl SharedState {
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    fn build_proxy_config(&self) -> Result<ProxyConfig, String> {
+    fn build_proxy_config(
+        &self,
+        default_interface_ip: Option<std::net::IpAddr>,
+    ) -> Result<ProxyConfig, String> {
         let Some(data_path) = self.nym_config.data_path.as_ref() else {
             return Err("Data path is required but not configured".to_string());
         };
@@ -869,11 +894,118 @@ impl SharedState {
             data_dir,
             log_level,
             excluded_countries,
+            default_addr: default_interface_ip,
         };
 
         proxy_config.validate()?;
 
         Ok(proxy_config)
+    }
+
+    #[cfg(target_os = "windows")]
+    async fn start_default_addr_monitor(&mut self) {
+        let Some(proxy_handle) = self.socks5_proxy_manager.process_handle() else {
+            tracing::warn!("Cannot register default route monitor: proxy is not running");
+            return;
+        };
+
+        // The callback is Fn (not FnOnce) and must be Send.  `Socks5ProcessHandle` is Clone+Send.
+        let callback: route_handler::Callback = Box::new(move |event, _family| {
+            match event {
+                nym_routing::EventType::Updated(_) | nym_routing::EventType::UpdatedDetails(_) => {
+                    // Re-query the physical default interface IP and forward it to the proxy.
+                    let ip = get_default_addr_sync();
+                    tracing::debug!("Default interface changed; notifying proxy of new IP: {ip:?}");
+                    proxy_handle.notify_default_addr_changed(ip);
+                }
+                nym_routing::EventType::Removed => {
+                    // Default route has been removed entirely — notify proxy so it can stop
+                    // binding to a stale address.
+                    tracing::debug!("Default route removed; notifying proxy");
+                    proxy_handle.notify_default_addr_changed(None);
+                }
+            }
+        });
+
+        match self
+            .route_handler
+            .add_default_route_listener(callback)
+            .await
+        {
+            Ok(handle) => {
+                tracing::debug!("Registered default route change monitor for SOCKS5 proxy");
+                self.default_addr_callback = Some(handle);
+            }
+            Err(err) => {
+                tracing::warn!(
+                    "Failed to register default route change callback for SOCKS5 proxy: {err}"
+                );
+            }
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    async fn start_default_addr_monitor(&mut self) {
+        use nym_routing::DefaultRouteEvent;
+
+        let Some(proxy_handle) = self.socks5_proxy_manager.process_handle() else {
+            tracing::warn!("Cannot start default route monitor: proxy is not running");
+            return;
+        };
+
+        // Clone the inner RouteManagerHandle so it can be moved into the spawned task.
+        let route_manager = self.route_handler.inner_handle();
+
+        let mut listener = match route_manager.default_route_listener().await {
+            Ok(rx) => rx,
+            Err(err) => {
+                tracing::warn!(
+                    "Failed to subscribe to default route changes for SOCKS5 proxy: {err}"
+                );
+                return;
+            }
+        };
+
+        let task = tokio::spawn(async move {
+            while let Some(event) = listener.recv().await {
+                match event {
+                    DefaultRouteEvent::AddedOrChangedV4 => {
+                        // Re-query the current IPv4 default interface address.
+                        match route_manager.get_default_routes().await {
+                            Ok((Some(route), _)) => {
+                                tracing::debug!(
+                                    "Default interface changed to {ip}; notifying proxy",
+                                    ip = route.ip
+                                );
+                                proxy_handle.notify_default_addr_changed(Some(route.ip));
+                            }
+                            Ok((None, _)) => {
+                                tracing::debug!(
+                                    "Default IPv4 route changed but is now absent; notifying proxy"
+                                );
+                                proxy_handle.notify_default_addr_changed(None);
+                            }
+                            Err(err) => {
+                                tracing::warn!(
+                                    "Failed to query default route after change event: {err}"
+                                );
+                            }
+                        }
+                    }
+                    DefaultRouteEvent::RemovedV4 => {
+                        // Interface gone — notify proxy so it stops binding to a stale address.
+                        tracing::debug!("Default IPv4 route removed; notifying proxy");
+                        proxy_handle.notify_default_addr_changed(None);
+                    }
+                    // Only IPv4 is used for SOCKS5 proxy routing.
+                    DefaultRouteEvent::AddedOrChangedV6 | DefaultRouteEvent::RemovedV6 => {}
+                }
+            }
+            tracing::debug!("Default route listener closed; macOS monitor task exiting");
+        });
+
+        tracing::debug!("Started default route change monitor for SOCKS5 proxy (macOS)");
+        self.default_addr_monitor_task = Some(task);
     }
 }
 
@@ -1022,6 +1154,10 @@ impl TunnelStateMachine {
             adblocker,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             socks5_proxy_manager: Socks5ProxyManager::new(),
+            #[cfg(windows)]
+            default_addr_callback: None,
+            #[cfg(target_os = "macos")]
+            default_addr_monitor_task: None,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             split_tunnel,
             nym_config,

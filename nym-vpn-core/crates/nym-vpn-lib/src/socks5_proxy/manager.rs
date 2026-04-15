@@ -3,7 +3,9 @@
 
 use std::net::IpAddr;
 
-use super::process::{Socks5ProcessEvent, Socks5ProcessTask, Socks5ProxyProcess};
+use super::process::{
+    Socks5ProcessEvent, Socks5ProcessHandle, Socks5ProcessTask, Socks5ProxyProcess,
+};
 
 use nym_socks5_proxy_ipc::ProxyConfig;
 use tokio::sync::mpsc;
@@ -119,6 +121,25 @@ impl Socks5ProxyManager {
         if let Socks5ProxyState::Running(process) = &self.state {
             tracing::debug!("Notifying nym-socks5-proxy that the VPN is disconnected");
             process.handle.notify_vpn_disconnected();
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn notify_default_addr_changed(&self, ip: Option<IpAddr>) {
+        if let Socks5ProxyState::Running(process) = &self.state {
+            tracing::debug!(
+                "Notifying nym-socks5-proxy that the default interface changed to {ip:?}"
+            );
+            process.handle.notify_default_addr_changed(ip);
+        }
+    }
+
+    /// Return a clone of the current process handle, if the proxy is running.
+    pub fn process_handle(&self) -> Option<Socks5ProcessHandle> {
+        if let Socks5ProxyState::Running(process) = &self.state {
+            Some(process.handle.clone())
+        } else {
+            None
         }
     }
 }

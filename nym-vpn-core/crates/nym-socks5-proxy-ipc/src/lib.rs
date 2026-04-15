@@ -11,6 +11,7 @@ pub enum DaemonMessage {
     Configure(ProxyConfig),
     VpnConnected(VpnConnectedData),
     VpnDisconnected,
+    DefaultAddrChanged(Option<IpAddr>),
     Terminate,
 }
 
@@ -32,6 +33,7 @@ impl FromStr for DaemonMessage {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProxyConfig {
+    pub default_addr: Option<IpAddr>,
     pub listen_port: u16,
     pub data_dir: PathBuf,
     pub log_level: String,
