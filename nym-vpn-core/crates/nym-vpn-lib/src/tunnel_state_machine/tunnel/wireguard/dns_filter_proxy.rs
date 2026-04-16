@@ -161,7 +161,7 @@ async fn run_proxy(
             // Inbound: wireguard → tun
             result = filter_socket.recv(&mut wg_buf) => {
                 match result {
-                    Ok(0) => continue,
+                    Ok(0) => break,
                     Ok(n) => {
                         if let Err(e) = tun_device.write_all(&wg_buf[..n]).await {
                             tracing::debug!("DNS proxy: write from wg to tun failed: {e}");
