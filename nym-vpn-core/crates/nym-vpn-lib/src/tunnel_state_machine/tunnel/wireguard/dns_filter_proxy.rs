@@ -284,7 +284,7 @@ async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
             };
             match tcp.get_destination() {
                 DOT_PORT => {
-                    tracing::debug!("DNS proxy: RST TCP/853 (DoT) from IPv6");
+                    tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv6");
                     Some(build_tcp_rst_response_v6(&ip, &tcp))
                 }
                 DNS_PORT => {
