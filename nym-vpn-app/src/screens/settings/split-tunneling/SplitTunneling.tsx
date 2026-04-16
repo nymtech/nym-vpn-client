@@ -1,25 +1,107 @@
-import { useMemo, useRef } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'motion/react';
 import { type } from '@tauri-apps/plugin-os';
+import { Command } from '@tauri-apps/plugin-shell';
 import PageAnim from '../../../ui/PageAnim';
 import SettingsMenuCard from '../../../ui/SettingsMenuCard';
 import Switch from '../../../ui/Switch';
-import { useDialog } from '../../../contexts';
+import { useDialog, useInAppNotify } from '../../../contexts';
 import { Spinner } from '../../../ui';
 import InfoDialog from './InfoDialog';
+import LaunchConfirmDialog from './LaunchConfirmDialog';
 import AppItem, { AppEntry } from './AppItem';
 import { useSplitTunnel } from './utils';
+import { PROBLEMATIC_APPS } from './utils/constants';
 
 function SplitTunneling() {
   const os = type();
 
   const { t } = useTranslation('settings');
   const { isOpen, close } = useDialog();
+  const { push } = useInAppNotify();
 
   const { apps, enabled, loading, setEnabled, add, remove, isSupported } =
     useSplitTunnel();
+
+  const [runningApps, setRunningApps] = useState<Record<string, number[]>>({});
+  const [pendingLaunchApp, setPendingLaunchApp] = useState<AppEntry | null>(
+    null,
+  );
+
+  const spawnApp = useCallback(
+    async (app: AppEntry) => {
+      try {
+        const command = Command.create(
+          'nym-exclude',
+          app.executable_path.split(' '),
+        );
+
+        command.on('close', (data) => {
+          console.info('[nym-exclude] process closed with code', data.code);
+          setRunningApps((prev) => {
+            const pids = prev[app.name];
+            if (!pids) return prev;
+            const updated = pids.filter((p) => p !== child.pid);
+            if (updated.length === 0) {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { [app.name]: _, ...rest } = prev;
+              return rest;
+            }
+            return { ...prev, [app.name]: updated };
+          });
+        });
+
+        command.on('error', (error) => {
+          console.error('[nym-exclude] process error', error);
+        });
+
+        const child = await command.spawn();
+        console.info('[nym-exclude] spawned PID', child.pid, 'for', app.name);
+
+        setRunningApps((prev) => ({
+          ...prev,
+          [app.name]: [...(prev[app.name] || []), child.pid],
+        }));
+      } catch (error) {
+        console.error('[nym-exclude] Failed to execute command', error);
+        push({
+          message: 'Failed to open app',
+          close: true,
+          type: 'error',
+        });
+      }
+    },
+    [push],
+  );
+
+  const handleLaunch = useCallback(
+    async (app: AppEntry) => {
+      const hasRunningPids = (runningApps[app.name]?.length ?? 0) > 0;
+      const isProblematic = PROBLEMATIC_APPS.WITH_WARNING.has(
+        app.executable_path.split('/').pop() || '',
+      );
+
+      if (isProblematic && !hasRunningPids) {
+        setPendingLaunchApp(app);
+      } else {
+        await spawnApp(app);
+      }
+    },
+    [runningApps, spawnApp],
+  );
+
+  const handleLaunchConfirm = useCallback(async () => {
+    if (pendingLaunchApp) {
+      await spawnApp(pendingLaunchApp);
+    }
+    setPendingLaunchApp(null);
+  }, [pendingLaunchApp, spawnApp]);
+
+  const handleLaunchCancel = useCallback(() => {
+    setPendingLaunchApp(null);
+  }, []);
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -73,6 +155,13 @@ function SplitTunneling() {
         onClose={() => close('split-tunneling-info')}
       />
 
+      <LaunchConfirmDialog
+        isOpen={pendingLaunchApp !== null}
+        appName={pendingLaunchApp?.name ?? ''}
+        onConfirm={handleLaunchConfirm}
+        onCancel={handleLaunchCancel}
+      />
+
       {/* Enable split tunneling on Windows only*/}
       {os === 'windows' && (
         <SettingsMenuCard
@@ -87,7 +176,14 @@ function SplitTunneling() {
 
       {/* Description */}
       <p className="text-sm text-iron dark:text-bombay">
-        {t('split-tunneling.description')}
+        {os === 'linux'
+          ? t('split-tunneling.description-linux')
+          : t('split-tunneling.description-windows')}
+      </p>
+
+      {/* Exclude warning */}
+      <p className="text-sm text-cheddar dark:text-king-nacho p-3 bg-mercury/40 dark:bg-mine-shaft/60 rounded-lg">
+        {t('split-tunneling.exclude-warning')}
       </p>
 
       {/* Apps section */}
@@ -126,7 +222,12 @@ function SplitTunneling() {
                     {/* Apps in this section */}
                     {groupedApps[letter].map((app, i) => (
                       <div key={app.name}>
-                        <AppItem app={app} onStateChange={handleStateChange} />
+                        <AppItem
+                          app={app}
+                          onStateChange={handleStateChange}
+                          isRunning={(runningApps[app.name]?.length ?? 0) > 0}
+                          onLaunch={handleLaunch}
+                        />
                         {i < groupedApps[letter].length - 1 && (
                           <div className="mx-4 h-px bg-mercury/60 dark:bg-white/5" />
                         )}

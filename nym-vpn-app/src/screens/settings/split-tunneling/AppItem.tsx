@@ -1,10 +1,11 @@
 import clsx from 'clsx';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { type } from '@tauri-apps/plugin-os';
-import { Command } from '@tauri-apps/plugin-shell';
+import { useTranslation } from 'react-i18next';
+import { useMemo } from 'react';
 import MsIcon from '../../../ui/MsIcon';
 import { App } from '../../../types';
-import { useInAppNotify } from '../../../contexts';
+import { PROBLEMATIC_APPS } from './utils/constants';
 
 export type AppEntry = App & {
   state: 'excluded' | 'included';
@@ -16,30 +17,22 @@ type AppItemProps = {
     app: AppEntry,
     state: 'excluded' | 'included',
   ) => Promise<void>;
+  isRunning?: boolean;
+  onLaunch?: (app: AppEntry) => Promise<void>;
 };
 
-function AppItem({ app, onStateChange }: AppItemProps) {
+function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
+  const { t } = useTranslation('settings');
   const os = type();
-  const { push } = useInAppNotify();
+
+  const isProblematic = useMemo(
+    () =>
+      PROBLEMATIC_APPS.DISABLED.has(app.executable_path.split('/').pop() || ''),
+    [app.executable_path],
+  );
 
   const handleClick = async () => {
-    if (os === 'linux') {
-      try {
-        const result = await Command.create(
-          'nym-exclude',
-          app.executable_path.split(' '),
-        ).execute();
-        console.info('[nym-exclude] stdout', result.stdout);
-        console.info('[nym-exclude] stderr', result.stderr);
-      } catch (error) {
-        console.error('[nym-exclude] Failed to execute command', error);
-        push({
-          message: 'Failed to open app',
-          close: true,
-          type: 'error',
-        });
-      }
-    }
+    if (os === 'linux' && onLaunch) await onLaunch(app);
   };
 
   return (
@@ -47,10 +40,11 @@ function AppItem({ app, onStateChange }: AppItemProps) {
       className={clsx(
         'flex items-center gap-3 px-4 py-3 bg-white dark:bg-charcoal',
         os === 'linux' && 'hover:bg-black/10 dark:hover:bg-charcoal/75',
+        isProblematic && 'opacity-50 cursor-not-allowed',
       )}
       onClick={handleClick}
     >
-      <div className={'w-7 h-7 flex items-center justify-center'}>
+      <div className="relative w-7 h-7 flex items-center justify-center">
         {app.icon && (
           <img
             src={convertFileSrc(app.icon)}
@@ -63,10 +57,31 @@ function AppItem({ app, onStateChange }: AppItemProps) {
             {app.name[0].toUpperCase()}
           </div>
         )}
+        {os === 'linux' && (
+          <div
+            className={clsx(
+              'absolute bottom-0 right-0 h-2 w-2 bg-malachite-moss rounded-full',
+              {
+                'bg-malachite-moss animate-pulse duration-1000': isRunning,
+                'bg-ash dark:bg-mercury': !isRunning,
+              },
+            )}
+          ></div>
+        )}
       </div>
-      <span className="flex-1 text-sm text-baltic-sea dark:text-white truncate select-none">
-        {app.name}
-      </span>
+      <div className="flex flex-col gap-1 min-w-0 flex-1">
+        <span className="flex-1 text-sm text-baltic-sea dark:text-white truncate select-none">
+          {app.name}
+        </span>
+        {isProblematic && (
+          <span className="text-xs text-cheddar dark:text-king-nacho">
+            {t('split-tunneling.problematic-app')}
+          </span>
+        )}
+      </div>
+      {os === 'linux' && (
+        <MsIcon icon="open_in_new" className="text-base text-bombay shrink-0" />
+      )}
       {/* Only Windows can include/exclude apps from inside the app */}
       {/* Linux uses custom app launcher to launch the app and immediately exclude it from the tunnel */}
       {os === 'windows' && (
