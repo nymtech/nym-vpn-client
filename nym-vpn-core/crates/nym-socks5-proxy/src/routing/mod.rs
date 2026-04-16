@@ -15,6 +15,7 @@ mod tests;
 use anyhow::{Context, Result};
 use async_compression::tokio::bufread::GzipDecoder;
 use ipnet::{Ipv4Net, Ipv6Net};
+use nym_socks5_proxy_ipc::InterfaceAddresses;
 use serde::Deserialize;
 use std::{
     collections::HashMap,
@@ -75,10 +76,13 @@ impl GeoIpDatabase {
 
 pub fn decide_route(
     target_ip: IpAddr,
-    tunnel_addr: Option<IpAddr>,
+    tunnel_addrs: &InterfaceAddresses,
     db: &GeoIpDatabase,
 ) -> RoutingDecision {
-    if tunnel_addr.is_none() {
+    if matches!(target_ip, IpAddr::V4(_)) && tunnel_addrs.v4_addr.is_none() {
+        return RoutingDecision::DefaultInterface;
+    }
+    if matches!(target_ip, IpAddr::V6(_)) && tunnel_addrs.v6_addr.is_none() {
         return RoutingDecision::DefaultInterface;
     }
 

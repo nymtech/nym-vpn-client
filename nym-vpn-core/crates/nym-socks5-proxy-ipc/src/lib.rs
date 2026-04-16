@@ -1,17 +1,19 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, net::IpAddr, path::PathBuf, str::FromStr};
-
 use serde::{Deserialize, Serialize};
+use std::{
+    fmt,
+    net::{Ipv4Addr, Ipv6Addr},
+    path::PathBuf,
+    str::FromStr,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data")]
 pub enum DaemonMessage {
     Configure(ProxyConfig),
-    VpnConnected(VpnConnectedData),
-    VpnDisconnected,
-    DefaultAddrChanged(Option<IpAddr>),
+    SetTunnelAddresses(InterfaceAddresses),
     Terminate,
 }
 
@@ -33,7 +35,6 @@ impl FromStr for DaemonMessage {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProxyConfig {
-    pub default_addr: Option<IpAddr>,
     pub listen_port: u16,
     pub data_dir: PathBuf,
     pub log_level: String,
@@ -75,9 +76,10 @@ impl ProxyConfig {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VpnConnectedData {
-    pub tunnel_addr: IpAddr,
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct InterfaceAddresses {
+    pub v4_addr: Option<Ipv4Addr>,
+    pub v6_addr: Option<Ipv6Addr>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

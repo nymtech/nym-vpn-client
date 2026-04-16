@@ -1,13 +1,11 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
+use std::net::{Ipv4Addr, Ipv6Addr};
 
-use super::process::{
-    Socks5ProcessEvent, Socks5ProcessHandle, Socks5ProcessTask, Socks5ProxyProcess,
-};
+use super::process::{Socks5ProcessEvent, Socks5ProcessTask, Socks5ProxyProcess};
 
-use nym_socks5_proxy_ipc::ProxyConfig;
+use nym_socks5_proxy_ipc::{InterfaceAddresses, ProxyConfig};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -20,14 +18,14 @@ enum Socks5ProxyState {
 
 pub struct Socks5ProxyManager {
     state: Socks5ProxyState,
-    pub tunnel_addr: Option<IpAddr>,
+    tunnel_addrs: InterfaceAddresses,
 }
 
 impl Socks5ProxyManager {
     pub fn new() -> Self {
         Self {
             state: Socks5ProxyState::Stopped,
-            tunnel_addr: None,
+            tunnel_addrs: InterfaceAddresses::default(),
         }
     }
 
@@ -59,9 +57,7 @@ impl Socks5ProxyManager {
             Ok((handle, join_handle)) => {
                 spawn_event_logger(event_rx);
 
-                if let Some(addr) = self.tunnel_addr {
-                    handle.notify_vpn_connected(addr);
-                }
+                handle.set_tunnel_addrs(self.tunnel_addrs.clone());
 
                 self.state = Socks5ProxyState::Running(Socks5ProxyProcess {
                     handle,
@@ -106,40 +102,16 @@ impl Socks5ProxyManager {
         self.state = Socks5ProxyState::Stopped;
     }
 
-    pub fn notify_connected(&mut self, tunnel_addr: IpAddr) {
-        self.tunnel_addr = Some(tunnel_addr);
+    pub fn set_tunnel_addrs(&mut self, v4_addr: Option<Ipv4Addr>, v6_addr: Option<Ipv6Addr>) {
+        self.tunnel_addrs.v4_addr = v4_addr;
+        self.tunnel_addrs.v6_addr = v6_addr;
 
         if let Socks5ProxyState::Running(process) = &self.state {
             tracing::debug!(
-                "Notifying nym-socks5-proxy that the VPN is connected on address: {tunnel_addr}"
+                "Notifying nym-socks5-proxy of new tunnel addresses: {:?}",
+                self.tunnel_addrs
             );
-            process.handle.notify_vpn_connected(tunnel_addr);
-        }
-    }
-
-    pub fn notify_disconnected(&self) {
-        if let Socks5ProxyState::Running(process) = &self.state {
-            tracing::debug!("Notifying nym-socks5-proxy that the VPN is disconnected");
-            process.handle.notify_vpn_disconnected();
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn notify_default_addr_changed(&self, ip: Option<IpAddr>) {
-        if let Socks5ProxyState::Running(process) = &self.state {
-            tracing::debug!(
-                "Notifying nym-socks5-proxy that the default interface changed to {ip:?}"
-            );
-            process.handle.notify_default_addr_changed(ip);
-        }
-    }
-
-    /// Return a clone of the current process handle, if the proxy is running.
-    pub fn process_handle(&self) -> Option<Socks5ProcessHandle> {
-        if let Socks5ProxyState::Running(process) = &self.state {
-            Some(process.handle.clone())
-        } else {
-            None
+            process.handle.set_tunnel_addrs(self.tunnel_addrs.clone());
         }
     }
 }
