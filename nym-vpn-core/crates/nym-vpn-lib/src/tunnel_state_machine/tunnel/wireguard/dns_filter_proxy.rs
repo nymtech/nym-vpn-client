@@ -240,11 +240,7 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
             if dst != DNS_PORT {
                 return None;
             }
-            tracing::debug!(
-                "Handle DNS query for tcp/{}:{}",
-                ip.get_destination(),
-                dst
-            );
+            tracing::debug!("Handle DNS query for tcp/{}:{}", ip.get_destination(), dst);
             let domain = blocked_domain(tcp.payload(), dns_filter).await?;
             tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
             Some(build_tcp_rst_v4(&ip, &tcp))
