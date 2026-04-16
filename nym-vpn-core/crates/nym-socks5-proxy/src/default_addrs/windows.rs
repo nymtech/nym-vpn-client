@@ -1,15 +1,15 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_routing::{Callback, RouteManagerHandle, get_best_default_route};
+use nym_routing::{get_best_default_route, Callback, RouteManagerHandle};
 use nym_socks5_proxy_ipc::InterfaceAddresses;
 use nym_windows::net::{
-    AddressFamily, get_best_ipv6_address_for_interface, get_ip_address_for_interface,
+    get_best_ipv6_address_for_interface, get_ip_address_for_interface, AddressFamily,
 };
 use std::net::IpAddr;
 use tokio::sync::watch;
 
-pub async fn start() -> watch::Receiver<InterfaceAddresses> {
+pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
     let initial = snapshot();
     let (tx, rx) = watch::channel(initial);
     tokio::spawn(monitor_task(tx));
