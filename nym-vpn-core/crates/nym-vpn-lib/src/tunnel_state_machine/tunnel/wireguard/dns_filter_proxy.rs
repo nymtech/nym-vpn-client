@@ -195,22 +195,16 @@ async fn maybe_nxdomain(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>
 }
 
 async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
-    let ip = match Ipv4Packet::new(packet) {
-        Some(ip) => ip,
-        None => {
-            tracing::debug!("DNS filter proxy: failed to parse IPv4 packet");
-            return None;
-        }
+    let Some(ip) = Ipv4Packet::new(packet) else {
+        tracing::debug!("DNS filter proxy: failed to parse IPv4 packet");
+        return None;
     };
 
     match ip.get_next_level_protocol() {
         IpNextHeaderProtocols::Udp => {
-            let udp = match UdpPacket::new(ip.payload()) {
-                Some(udp) => udp,
-                None => {
-                    tracing::debug!("DNS filter proxy: failed to parse UDP packet from IPv4");
-                    return None;
-                }
+            let Some(udp) = UdpPacket::new(ip.payload()) else {
+                tracing::debug!("DNS filter proxy: failed to parse UDP packet from IPv4");
+                return None;
             };
             if udp.get_destination() != DNS_PORT {
                 return None;
@@ -225,12 +219,9 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
 }
 
 async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
-    let ip = match Ipv6Packet::new(packet) {
-        Some(ip) => ip,
-        None => {
-            tracing::debug!("DNS filter proxy: failed to parse IPv6 packet");
-            return None;
-        }
+    let Some(ip) = Ipv6Packet::new(packet) else {
+        tracing::debug!("DNS filter proxy: failed to parse IPv6 packet");
+        return None;
     };
 
     match ip.get_next_header() {
