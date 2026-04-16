@@ -7,6 +7,9 @@ pub mod ip;
 #[cfg(test)]
 mod tests;
 
+pub use domain::DomainSet;
+pub use ip::GeoIpDatabase;
+
 use std::{
     io::Cursor,
     net::{IpAddr, SocketAddr},
@@ -17,9 +20,6 @@ use anyhow::{Context, Result};
 use async_compression::tokio::bufread::GzipDecoder;
 use nym_socks5_proxy_ipc::InterfaceAddresses;
 use tokio::io::AsyncReadExt;
-
-pub use domain::DomainSet;
-pub use ip::GeoIpDatabase;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RoutingDecision {

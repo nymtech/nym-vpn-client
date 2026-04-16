@@ -17,6 +17,7 @@ anyhow.workspace = true
 async-compression = { workspace = true, features = ["tokio", "gzip"] }
 fast-socks5.workspace = true
 ipnet.workspace = true
+iprange.workspace = true
 nym-routing.workspace = true
 nym-socks5-proxy-ipc.workspace = true
 serde = { workspace = true, features = ["derive"] }
