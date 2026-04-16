@@ -95,7 +95,7 @@ async fn accept_loop(
 }
 
 async fn handle_connection(
-    stream: tokio::net::TcpStream,
+    stream: TcpStream,
     peer_addr: SocketAddr,
     default_addrs_rx: watch::Receiver<InterfaceAddresses>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
@@ -116,13 +116,12 @@ async fn handle_connection(
 }
 
 async fn serve_socks5(
-    stream: tokio::net::TcpStream,
+    stream: TcpStream,
     peer_addr: SocketAddr,
     default_addrs: &InterfaceAddresses,
     tunnel_addrs: &InterfaceAddresses,
     db: Arc<GeoIpDatabase>,
 ) -> Result<()> {
-    // SOCKS5 handshake: method negotiation (no-auth) followed by command read.
     let (proto, cmd, target_addr) = Socks5ServerProtocol::accept_no_auth(stream)
         .await
         .map_err(|err| anyhow::anyhow!("SOCKS5 handshake failed from {peer_addr}: {err}"))?
@@ -132,18 +131,18 @@ async fn serve_socks5(
 
     tracing::debug!("SOCKS5 accept command: {cmd:#x?}, target_addr: {target_addr:#?}");
 
-    // Only TCP CONNECT is supported; BIND and UDP ASSOCIATE are not.
+    // Only TCP CONNECT is supported; BIND and UDP ASSOCIATE are not
     if cmd != Socks5Command::TCPConnect {
         let _ = proto.reply_error(&ReplyError::CommandNotSupported).await;
         anyhow::bail!("Unsupported SOCKS5 command {cmd:?} from {peer_addr}");
     }
 
-    // Resolve the target to one or more socket addresses.
+    // Look-up target addresses
     let target_addrs: Vec<SocketAddr> = match &target_addr {
         TargetAddr::Ip(addr) => vec![*addr],
         TargetAddr::Domain(host, port) => tokio::net::lookup_host(format!("{host}:{port}"))
             .await
-            .map_err(|e| anyhow::anyhow!("DNS lookup failed for {host}:{port}: {e}"))?
+            .map_err(|err| anyhow::anyhow!("DNS lookup failed for {host}:{port}: {err}"))?
             .collect(),
     };
 
@@ -152,28 +151,20 @@ async fn serve_socks5(
         anyhow::bail!("No addresses resolved for {target_addr} (from {peer_addr})");
     }
 
-    // Routing decision is based on the first resolved address.
-    let first_ip = target_addrs[0].ip();
-    let routing = decide_route(first_ip, tunnel_addrs, &db);
-
-    // For CN (excluded-country) traffic we bind to the matching default-interface
-    // address so the OS routes it directly over the physical interface.
-    // For VPN traffic we bind to INADDR_ANY and let the kernel route it through
-    // the tunnel interface automatically.
-    let bind_addr: Option<IpAddr> = match routing {
-        RoutingDecision::DefaultInterface => match first_ip {
-            IpAddr::V4(_) => default_addrs.v4_addr.map(IpAddr::V4),
-            IpAddr::V6(_) => default_addrs.v6_addr.map(IpAddr::V6),
-        },
+    // Decide how we're going to route this connection
+    let routing_decision = decide_route(&target_addrs, tunnel_addrs, &db);
+    let bind_addrs: Option<&InterfaceAddresses> = match routing_decision {
+        RoutingDecision::DefaultInterface => Some(default_addrs),
         RoutingDecision::VpnTunnelInterface => None,
     };
 
+    tracing::info!("SOCKS5 CONNECT {peer_addr} -> {target_addr}");
+
     tracing::debug!(
-        "SOCKS5 CONNECT peer={peer_addr} target={target_addr} routing={routing:?} \
-         bind={bind_addr:?} default={default_addrs:?} tunnel={tunnel_addrs:?}"
+        "target_addrs={target_addrs:?} routing_decision={routing_decision:?}, bind_addrs={bind_addrs:?} default_addrs={default_addrs:?} tunnel_addrs={tunnel_addrs:?}"
     );
 
-    let outbound = match connect_to_target(&target_addrs, bind_addr).await {
+    let outbound = match connect_to_target(&target_addrs, bind_addrs).await {
         Ok(s) => s,
         Err(err) => {
             let _ = proto.reply_error(&ReplyError::HostUnreachable).await;
@@ -190,15 +181,19 @@ async fn serve_socks5(
     let inner = proto
         .reply_success(local_addr)
         .await
-        .map_err(|e| anyhow::anyhow!("SOCKS5 reply_success to {peer_addr} failed: {e}"))?;
+        .map_err(|err| anyhow::anyhow!("SOCKS5 reply_success to {peer_addr} failed: {err}"))?;
 
     transfer(inner, outbound).await;
 
-    tracing::debug!(%peer_addr, %target_addr, "SOCKS5 connection closed");
+    tracing::info!("SOCKS5 connection {peer_addr} -> {target_addr} closed");
+
     Ok(())
 }
 
-async fn connect_to_target(addrs: &[SocketAddr], bind_addr: Option<IpAddr>) -> Result<TcpStream> {
+async fn connect_to_target(
+    addrs: &[SocketAddr],
+    bind_addrs: Option<&InterfaceAddresses>,
+) -> Result<TcpStream> {
     let mut last_err: Option<anyhow::Error> = None;
 
     for &addr in addrs {
@@ -207,12 +202,12 @@ async fn connect_to_target(addrs: &[SocketAddr], bind_addr: Option<IpAddr>) -> R
             SocketAddr::V6(_) => TcpSocket::new_v6().context("Failed to create IPv6 socket")?,
         };
 
-        bind_socket_for_routing(&socket, addr, bind_addr);
+        bind_socket_for_routing(&socket, addr, bind_addrs);
 
         match socket.connect(addr).await {
             Ok(stream) => return Ok(stream),
             Err(err) => {
-                tracing::error!("Connect to {addr} failed: {err}");
+                tracing::debug!("Connect to {addr} failed: {err}");
                 last_err = Some(anyhow::Error::from(err));
             }
         }
@@ -221,7 +216,17 @@ async fn connect_to_target(addrs: &[SocketAddr], bind_addr: Option<IpAddr>) -> R
     Err(last_err.unwrap_or_else(|| anyhow::anyhow!("No addresses to try")))
 }
 
-fn bind_socket_for_routing(socket: &TcpSocket, target: SocketAddr, bind_addr: Option<IpAddr>) {
+fn bind_socket_for_routing(
+    socket: &TcpSocket,
+    target: SocketAddr,
+    bind_addrs: Option<&InterfaceAddresses>,
+) {
+    // Resolve the per-family bind IP from the InterfaceAddresses (if any).
+    let bind_addr: Option<IpAddr> = bind_addrs.and_then(|ia| match target {
+        SocketAddr::V4(_) => ia.v4_addr.map(IpAddr::V4),
+        SocketAddr::V6(_) => ia.v6_addr.map(IpAddr::V6),
+    });
+
     #[cfg(target_os = "windows")]
     if let Some(ip) = bind_addr {
         match bind_by_interface_index(socket, ip, target) {

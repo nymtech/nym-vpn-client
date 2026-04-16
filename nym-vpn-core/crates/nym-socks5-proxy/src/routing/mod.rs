@@ -12,17 +12,18 @@
 #[cfg(test)]
 mod tests;
 
+use std::{
+    collections::HashMap,
+    io::Cursor,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    path::Path,
+};
+
 use anyhow::{Context, Result};
 use async_compression::tokio::bufread::GzipDecoder;
 use ipnet::{Ipv4Net, Ipv6Net};
 use nym_socks5_proxy_ipc::InterfaceAddresses;
 use serde::Deserialize;
-use std::{
-    collections::HashMap,
-    io::Cursor,
-    net::{IpAddr, Ipv4Addr, Ipv6Addr},
-    path::Path,
-};
 use tokio::io::AsyncReadExt;
 
 static EMBEDDED_GEOIP: &[(&str, &[u8])] = &[("CN", include_bytes!("../../builtin/CN.json.gz"))];
@@ -55,9 +56,9 @@ impl GeoIpDatabase {
                     );
                     countries.insert(upper, set);
                 }
-                Err(error) => {
+                Err(err) => {
                     tracing::warn!(
-                        "Failed to load GeoIP data for {upper}: {error:#}.  This country will not be excluded."
+                        "Failed to load GeoIP data for {upper}: {err:#}.  This country will not be excluded."
                     );
                 }
             }
@@ -70,26 +71,6 @@ impl GeoIpDatabase {
 
     pub fn is_excluded(&self, ip: IpAddr) -> bool {
         self.excluded_countries.values().any(|set| set.contains(ip))
-    }
-}
-
-pub fn decide_route(
-    target_ip: IpAddr,
-    tunnel_addrs: &InterfaceAddresses,
-    db: &GeoIpDatabase,
-) -> RoutingDecision {
-    if matches!(target_ip, IpAddr::V4(_)) && tunnel_addrs.v4_addr.is_none() {
-        return RoutingDecision::DefaultInterface;
-    }
-    if matches!(target_ip, IpAddr::V6(_)) && tunnel_addrs.v6_addr.is_none() {
-        return RoutingDecision::DefaultInterface;
-    }
-
-    if db.is_excluded(target_ip) {
-        tracing::debug!("Routing to IP {target_ip} via default interface (excluded country)");
-        RoutingDecision::DefaultInterface
-    } else {
-        RoutingDecision::VpnTunnelInterface
     }
 }
 
@@ -267,6 +248,28 @@ async fn decompress(gz_bytes: &[u8]) -> Result<String> {
         .await
         .context("Gzip decompression failed")?;
     String::from_utf8(out).context("Decompressed GeoIP data is not valid UTF-8")
+}
+
+/// Make a routing decision by checking ALL resolved socket addresses.
+/// If any address is in an excluded country, the whole connection bypasses the tunnel.
+/// If none are excluded but the tunnel can reach at least one address family, use the tunnel.
+pub fn decide_route(
+    addrs: &[SocketAddr],
+    tunnel_addrs: &InterfaceAddresses,
+    db: &GeoIpDatabase,
+) -> RoutingDecision {
+    if addrs.iter().any(|sa| db.is_excluded(sa.ip())) {
+        return RoutingDecision::DefaultInterface;
+    }
+    let tunnel_can_reach_any = addrs.iter().any(|sa| match sa.ip() {
+        IpAddr::V4(_) => tunnel_addrs.v4_addr.is_some(),
+        IpAddr::V6(_) => tunnel_addrs.v6_addr.is_some(),
+    });
+    if tunnel_can_reach_any {
+        RoutingDecision::VpnTunnelInterface
+    } else {
+        RoutingDecision::DefaultInterface
+    }
 }
 
 fn parse_ipv4_cidrs(cidrs: &[String]) -> Result<Ipv4RangeSet> {
