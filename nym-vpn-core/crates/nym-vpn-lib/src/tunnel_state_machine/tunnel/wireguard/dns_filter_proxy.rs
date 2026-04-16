@@ -246,8 +246,10 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
             };
             tracing::trace!(
                 "DNS proxy: IPv4 UDP packet src={}:{} dst={}:{}",
-                ip.get_source(), udp.get_source(),
-                ip.get_destination(), udp.get_destination()
+                ip.get_source(),
+                udp.get_source(),
+                ip.get_destination(),
+                udp.get_destination()
             );
             if udp.get_destination() != DNS_PORT {
                 return None;
@@ -278,8 +280,10 @@ async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
             };
             tracing::trace!(
                 "DNS proxy: IPv6 UDP packet src=[{}]:{} dst=[{}]:{}",
-                ip.get_source(), udp.get_source(),
-                ip.get_destination(), udp.get_destination()
+                ip.get_source(),
+                udp.get_source(),
+                ip.get_destination(),
+                udp.get_destination()
             );
             if udp.get_destination() != DNS_PORT {
                 return None;
