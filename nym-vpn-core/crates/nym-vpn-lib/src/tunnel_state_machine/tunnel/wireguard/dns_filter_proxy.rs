@@ -24,10 +24,10 @@ use nix::{
 };
 use pnet_packet::{
     MutablePacket, Packet,
-    dns::DnsPacket,
     ip::IpNextHeaderProtocols,
     ipv4::{self, Ipv4Packet, MutableIpv4Packet},
     ipv6::{Ipv6Packet, MutableIpv6Packet},
+    tcp::TcpPacket,
     udp::{self, MutableUdpPacket, UdpPacket},
 };
 use tokio::{
@@ -45,6 +45,9 @@ const MAX_PACKET_SIZE: usize = 65536;
 
 /// UDP port used by DNS.
 const DNS_PORT: u16 = 53;
+
+/// DNS-over-TLS port (RFC 7858). Dropped to prevent Android from bypassing UDP/53 interception.
+const DOT_PORT: u16 = 853;
 
 /// IPv4 version nibble.
 const IP_VERSION_4: u8 = 4;
@@ -136,17 +139,20 @@ async fn run_proxy(
                     Ok(0) => break,
                     Ok(n) => {
                         let packet = &tun_buf[..n];
-                        match maybe_nxdomain(packet, &dns_filter).await {
-                            Some(response) => {
-                                // Blocked — write NXDOMAIN directly back to the tun device.
-                                if let Err(e) = tun_device.write_all(&response).await {
-                                    tracing::debug!("DNS proxy: write NXDOMAIN to tun failed: {e}");
+                        tracing::trace!("DNS proxy: received {} bytes from tun (first byte: {:#04x})", n, packet.first().copied().unwrap_or(0));
+                        if should_drop(packet) {
+                            tracing::trace!("DNS proxy: dropping TCP/853 (DoT) packet");
+                        } else {
+                            match maybe_nxdomain(packet, &dns_filter).await {
+                                Some(response) => {
+                                    if let Err(e) = tun_device.write_all(&response).await {
+                                        tracing::debug!("DNS proxy: write NXDOMAIN to tun failed: {e}");
+                                    }
                                 }
-                            }
-                            None => {
-                                // Pass through to wireguard-go.
-                                if let Err(e) = filter_socket.send(packet).await {
-                                    tracing::debug!("DNS proxy: send to wg socket failed: {e}");
+                                None => {
+                                    if let Err(e) = filter_socket.send(packet).await {
+                                        tracing::debug!("DNS proxy: send to wg socket failed: {e}");
+                                    }
                                 }
                             }
                         }
@@ -181,8 +187,40 @@ async fn run_proxy(
     tracing::debug!("DNS filter proxy stopped");
 }
 
-/// If `packet` is a DNS query for a blocked domain, return a pre-built NXDOMAIN response.
-/// Returns `None` if the packet should pass through.
+fn should_drop(packet: &[u8]) -> bool {
+    match packet.first().map(|b| b >> 4) {
+        Some(IP_VERSION_4) => should_drop_v4(packet),
+        Some(IP_VERSION_6) => should_drop_v6(packet),
+        _ => false,
+    }
+}
+
+fn should_drop_v4(packet: &[u8]) -> bool {
+    let Some(ip) = Ipv4Packet::new(packet) else {
+        return false;
+    };
+    if ip.get_next_level_protocol() != IpNextHeaderProtocols::Tcp {
+        return false;
+    }
+    let Some(tcp) = TcpPacket::new(ip.payload()) else {
+        return false;
+    };
+    tcp.get_destination() == DOT_PORT
+}
+
+fn should_drop_v6(packet: &[u8]) -> bool {
+    let Some(ip) = Ipv6Packet::new(packet) else {
+        return false;
+    };
+    if ip.get_next_header() != IpNextHeaderProtocols::Tcp {
+        return false;
+    }
+    let Some(tcp) = TcpPacket::new(ip.payload()) else {
+        return false;
+    };
+    tcp.get_destination() == DOT_PORT
+}
+
 async fn maybe_nxdomain(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
     match packet.first().map(|b| b >> 4)? {
         IP_VERSION_4 => maybe_nxdomain_v4(packet, dns_filter).await,
@@ -206,6 +244,11 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
                 tracing::debug!("DNS filter proxy: failed to parse UDP packet from IPv4");
                 return None;
             };
+            tracing::trace!(
+                "DNS proxy: IPv4 UDP packet src={}:{} dst={}:{}",
+                ip.get_source(), udp.get_source(),
+                ip.get_destination(), udp.get_destination()
+            );
             if udp.get_destination() != DNS_PORT {
                 return None;
             }
@@ -233,6 +276,11 @@ async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
                     return None;
                 }
             };
+            tracing::trace!(
+                "DNS proxy: IPv6 UDP packet src=[{}]:{} dst=[{}]:{}",
+                ip.get_source(), udp.get_source(),
+                ip.get_destination(), udp.get_destination()
+            );
             if udp.get_destination() != DNS_PORT {
                 return None;
             }
@@ -247,20 +295,24 @@ async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
 
 /// Returns the queried domain name if it should be blocked, `None` otherwise.
 async fn blocked_domain(dns_payload: &[u8], dns_filter: &DnsFilter) -> Option<String> {
-    let dns = match DnsPacket::new(dns_payload) {
-        Some(dns) => dns,
-        None => {
-            tracing::debug!("DNS filter proxy: failed to parse DNS packet");
+    let msg = match Message::from_vec(dns_payload) {
+        Ok(msg) => msg,
+        Err(e) => {
+            tracing::debug!("DNS filter proxy: failed to parse DNS message: {e}");
             return None;
         }
     };
-    if dns.get_is_response() != 0 {
+    if msg.message_type() != MessageType::Query {
         return None;
     }
     let guard = dns_filter.lock().await;
-    dns.get_queries().iter().find_map(|query| {
-        let domain = query.get_qname_parsed().trim_end_matches('.').to_string();
-        matches!(guard.should_block(&domain), DnsFilterDecision::Block(_)).then_some(domain)
+    msg.queries().iter().find_map(|query| {
+        let domain = query.name().to_string();
+        let domain = domain.trim_end_matches('.');
+        tracing::debug!("DNS proxy: checking domain '{domain}'");
+        let decision = guard.should_block(domain);
+        tracing::debug!("DNS proxy: should_block('{domain}') = {decision:?}");
+        matches!(decision, DnsFilterDecision::Block(_)).then_some(domain.to_string())
     })
 }
 

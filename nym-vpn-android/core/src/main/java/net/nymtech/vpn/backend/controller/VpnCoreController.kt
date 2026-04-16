@@ -395,6 +395,10 @@ class VpnCoreController(
 			if (force || prev?.exitPoint != cfg.exitPoint) {
 				sender.setExitPoint(cfg.exitPoint)
 			}
+
+			if (force || prev?.adBlockingEnabled != cfg.adBlockingEnabled) {
+				sender.setEnableAdBlocking(cfg.adBlockingEnabled)
+			}
 		}
 
 		lastAppliedConfig = cfg
