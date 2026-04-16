@@ -1,12 +1,6 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-//! IP-range based exclusion.
-//!
-//! Stores sorted `(start, end)` pairs for IPv4 and IPv6 separately and uses
-//! binary search for O(log n) membership tests.  Adjacent or overlapping
-//! ranges are merged on construction so the set stays compact.
-
 use std::{
     collections::HashMap,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
@@ -15,6 +9,7 @@ use std::{
 
 use anyhow::{Context, Result};
 use ipnet::{Ipv4Net, Ipv6Net};
+use iprange::IpRange;
 use serde::Deserialize;
 
 static EMBEDDED_GEOIP: &[(&str, &[u8])] = &[("CN", include_bytes!("../../builtin/CN-ip.json.gz"))];
@@ -24,8 +19,6 @@ pub struct GeoIpDatabase {
 }
 
 impl GeoIpDatabase {
-    /// Load GeoIP data for each excluded country code.  Falls back to embedded
-    /// data when no on-disk file is found.
     pub async fn load(excluded_countries: &[String], data_dir: &Path) -> Result<Self> {
         let mut countries = HashMap::new();
 
@@ -33,17 +26,19 @@ impl GeoIpDatabase {
             let upper = code.to_uppercase();
             match load_country_ip_set(&upper, data_dir).await {
                 Ok(set) => {
+                    let (v4_ranges, v6_ranges) = set.len();
                     tracing::info!(
                         country = %upper,
-                        v4_ranges = set.v4.len(),
-                        v6_ranges = set.v6.len(),
+                        v4_ranges,
+                        v6_ranges,
                         "Loaded GeoIP data for country",
                     );
                     countries.insert(upper, set);
                 }
                 Err(err) => {
                     tracing::warn!(
-                        "Failed to load GeoIP data for {upper}: {err:#}.  This country will not be excluded."
+                        "Failed to load GeoIP data for {upper}: {err:#}.  \
+                         This country will not be excluded."
                     );
                 }
             }
@@ -60,107 +55,23 @@ impl GeoIpDatabase {
     }
 }
 
-#[derive(Debug, Default)]
-pub(super) struct Ipv4RangeSet {
-    /// Network start addresses, sorted ascending.  Binary search target.
-    pub(super) starts: Vec<u32>,
-    /// Corresponding inclusive end addresses.
-    pub(super) ends: Vec<u32>,
-}
-
-impl Ipv4RangeSet {
-    pub(super) fn from_cidrs(cidrs: impl Iterator<Item = Ipv4Net>) -> Self {
-        let mut pairs: Vec<(u32, u32)> = cidrs
-            .map(|net| (u32::from(net.network()), u32::from(net.broadcast())))
-            .collect();
-        pairs.sort_unstable_by_key(|&(s, _)| s);
-        let pairs = merge_v4(pairs);
-        let (starts, ends) = pairs.into_iter().unzip();
-        Self { starts, ends }
-    }
-
-    #[inline]
-    pub(super) fn contains(&self, ip: Ipv4Addr) -> bool {
-        let q = u32::from(ip);
-        let idx = self.starts.partition_point(|&s| s <= q);
-        if idx == 0 {
-            return false;
-        }
-        q <= unsafe { *self.ends.get_unchecked(idx - 1) }
-    }
-
-    pub(super) fn len(&self) -> usize {
-        self.starts.len()
-    }
-}
-
-#[derive(Debug, Default)]
-pub(super) struct Ipv6RangeSet {
-    pub(super) starts: Vec<u128>,
-    pub(super) ends: Vec<u128>,
-}
-
-impl Ipv6RangeSet {
-    pub(super) fn from_cidrs(cidrs: impl Iterator<Item = Ipv6Net>) -> Self {
-        let mut pairs: Vec<(u128, u128)> = cidrs
-            .map(|net| (u128::from(net.network()), u128::from(net.broadcast())))
-            .collect();
-        pairs.sort_unstable_by_key(|&(s, _)| s);
-        let pairs = merge_v6(pairs);
-        let (starts, ends) = pairs.into_iter().unzip();
-        Self { starts, ends }
-    }
-
-    #[inline]
-    pub(super) fn contains(&self, ip: Ipv6Addr) -> bool {
-        let q = u128::from(ip);
-        let idx = self.starts.partition_point(|&s| s <= q);
-        if idx == 0 {
-            return false;
-        }
-        q <= unsafe { *self.ends.get_unchecked(idx - 1) }
-    }
-
-    pub(super) fn len(&self) -> usize {
-        self.starts.len()
-    }
-}
-
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub(super) struct CountryIpSet {
-    pub(super) v4: Ipv4RangeSet,
-    pub(super) v6: Ipv6RangeSet,
+    pub(super) v4: IpRange<Ipv4Net>,
+    pub(super) v6: IpRange<Ipv6Net>,
 }
 
 impl CountryIpSet {
     pub(super) fn contains(&self, ip: IpAddr) -> bool {
         match ip {
-            IpAddr::V4(v4) => self.v4.contains(v4),
-            IpAddr::V6(v6) => self.v6.contains(v6),
+            IpAddr::V4(v4) => self.v4.contains(&host_net_v4(v4)),
+            IpAddr::V6(v6) => self.v6.contains(&host_net_v6(v6)),
         }
     }
-}
 
-fn merge_v4(sorted: Vec<(u32, u32)>) -> Vec<(u32, u32)> {
-    let mut out: Vec<(u32, u32)> = Vec::with_capacity(sorted.len());
-    for (start, end) in sorted {
-        match out.last_mut() {
-            Some(last) if start <= last.1.saturating_add(1) => last.1 = last.1.max(end),
-            _ => out.push((start, end)),
-        }
+    pub(super) fn len(&self) -> (usize, usize) {
+        (self.v4.iter().count(), self.v6.iter().count())
     }
-    out
-}
-
-fn merge_v6(sorted: Vec<(u128, u128)>) -> Vec<(u128, u128)> {
-    let mut out: Vec<(u128, u128)> = Vec::with_capacity(sorted.len());
-    for (start, end) in sorted {
-        match out.last_mut() {
-            Some(last) if start <= last.1.saturating_add(1) => last.1 = last.1.max(end),
-            _ => out.push((start, end)),
-        }
-    }
-    out
 }
 
 #[derive(Deserialize)]
@@ -220,14 +131,30 @@ pub(super) fn embedded_geoip_gz(country_code: &str) -> Option<&'static [u8]> {
         .map(|&(_, data)| data)
 }
 
-pub(super) fn parse_ipv4_cidrs(cidrs: &[String]) -> Result<Ipv4RangeSet> {
-    let nets: Result<Vec<Ipv4Net>, _> = cidrs.iter().map(|s| s.trim().parse::<Ipv4Net>()).collect();
-    let nets = nets.context("Invalid IPv4 CIDR entry")?;
-    Ok(Ipv4RangeSet::from_cidrs(nets.into_iter()))
+pub(super) fn parse_ipv4_cidrs(cidrs: &[String]) -> Result<IpRange<Ipv4Net>> {
+    let mut range = IpRange::new();
+    for s in cidrs {
+        let net: Ipv4Net = s.trim().parse().context("Invalid IPv4 CIDR entry")?;
+        range.add(net);
+    }
+    Ok(range)
 }
 
-pub(super) fn parse_ipv6_cidrs(cidrs: &[String]) -> Result<Ipv6RangeSet> {
-    let nets: Result<Vec<Ipv6Net>, _> = cidrs.iter().map(|s| s.trim().parse::<Ipv6Net>()).collect();
-    let nets = nets.context("Invalid IPv6 CIDR entry")?;
-    Ok(Ipv6RangeSet::from_cidrs(nets.into_iter()))
+pub(super) fn parse_ipv6_cidrs(cidrs: &[String]) -> Result<IpRange<Ipv6Net>> {
+    let mut range = IpRange::new();
+    for s in cidrs {
+        let net: Ipv6Net = s.trim().parse().context("Invalid IPv6 CIDR entry")?;
+        range.add(net);
+    }
+    Ok(range)
+}
+
+#[inline]
+fn host_net_v4(ip: Ipv4Addr) -> Ipv4Net {
+    Ipv4Net::new(ip, 32).expect("32 is a valid IPv4 prefix length")
+}
+
+#[inline]
+fn host_net_v6(ip: Ipv6Addr) -> Ipv6Net {
+    Ipv6Net::new(ip, 128).expect("128 is a valid IPv6 prefix length")
 }

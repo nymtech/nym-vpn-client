@@ -6256,6 +6256,7 @@ dependencies = [
  "async-compression",
  "fast-socks5",
  "ipnet",
+ "iprange",
  "nym-routing",
  "nym-socks5-proxy-ipc",
  "nym-windows",
