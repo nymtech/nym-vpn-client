@@ -7,7 +7,9 @@ use std::{
     sync::Arc,
 };
 
-use crate::routing::{GeoIpDatabase, RoutingDecision, decide_route};
+use crate::routing::{
+    RoutingDatabase, RoutingDecision, decide_route_for_addrs, is_excluded_domain,
+};
 
 #[cfg(target_os = "windows")]
 use super::windows_bind::bind_by_interface_index;
@@ -40,9 +42,9 @@ pub async fn run(
 
     tracing::info!(%listen_addr, "SOCKS5 proxy listener bound");
 
-    let db = GeoIpDatabase::load(&config.excluded_countries, data_dir)
+    let db = RoutingDatabase::load(&config.excluded_countries, data_dir)
         .await
-        .context("Failed to build GeoIP database")?;
+        .context("Failed to build routing database")?;
     let db = Arc::new(db);
 
     tokio::spawn(accept_loop(
@@ -60,7 +62,7 @@ async fn accept_loop(
     listener: TcpListener,
     default_addrs_rx: watch::Receiver<InterfaceAddresses>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
-    db: Arc<GeoIpDatabase>,
+    db: Arc<RoutingDatabase>,
     shutdown_token: CancellationToken,
 ) {
     loop {
@@ -99,7 +101,7 @@ async fn handle_connection(
     peer_addr: SocketAddr,
     default_addrs_rx: watch::Receiver<InterfaceAddresses>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
-    db: Arc<GeoIpDatabase>,
+    db: Arc<RoutingDatabase>,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
     // Snapshot both address sets at connection time.
@@ -120,7 +122,7 @@ async fn serve_socks5(
     peer_addr: SocketAddr,
     default_addrs: &InterfaceAddresses,
     tunnel_addrs: &InterfaceAddresses,
-    db: Arc<GeoIpDatabase>,
+    db: Arc<RoutingDatabase>,
 ) -> Result<()> {
     let (proto, cmd, target_addr) = Socks5ServerProtocol::accept_no_auth(stream)
         .await
@@ -137,6 +139,12 @@ async fn serve_socks5(
         anyhow::bail!("Unsupported SOCKS5 command {cmd:?} from {peer_addr}");
     }
 
+    // Domain-based exclusion check (before DNS to avoid CDN masking of CN origin IPs).
+    let domain_excluded = match &target_addr {
+        TargetAddr::Domain(host, _) => is_excluded_domain(host, &db.domain),
+        TargetAddr::Ip(_) => false,
+    };
+
     // Look-up target addresses
     let target_addrs: Vec<SocketAddr> = match &target_addr {
         TargetAddr::Ip(addr) => vec![*addr],
@@ -151,17 +159,22 @@ async fn serve_socks5(
         anyhow::bail!("No addresses resolved for {target_addr} (from {peer_addr})");
     }
 
-    // Decide how we're going to route this connection
-    let routing_decision = decide_route(&target_addrs, tunnel_addrs, &db);
+    let routing_decision = if domain_excluded {
+        RoutingDecision::DefaultInterface
+    } else {
+        decide_route_for_addrs(&target_addrs, tunnel_addrs, &db.geo_ip)
+    };
+
     let bind_addrs: Option<&InterfaceAddresses> = match routing_decision {
         RoutingDecision::DefaultInterface => Some(default_addrs),
         RoutingDecision::VpnTunnelInterface => None,
     };
 
     tracing::info!("SOCKS5 CONNECT {peer_addr} -> {target_addr}");
-
     tracing::debug!(
-        "target_addrs={target_addrs:?} routing_decision={routing_decision:?}, bind_addrs={bind_addrs:?} default_addrs={default_addrs:?} tunnel_addrs={tunnel_addrs:?}"
+        "domain_excluded={domain_excluded} target_addrs={target_addrs:?} \
+         routing_decision={routing_decision:?} bind_addrs={bind_addrs:?} \
+         default_addrs={default_addrs:?} tunnel_addrs={tunnel_addrs:?}"
     );
 
     let outbound = match connect_to_target(&target_addrs, bind_addrs).await {
