@@ -4,8 +4,12 @@
 use std::collections::HashMap;
 
 use super::{
-    CountryGeoData, CountryIpSet, GeoIpDatabase, Ipv4RangeSet, Ipv6RangeSet, RoutingDecision,
-    decide_route, decompress, embedded_geoip_gz, parse_ipv4_cidrs, parse_ipv6_cidrs,
+    RoutingDecision, decide_route_for_addrs,
+    domain::DomainSet,
+    ip::{
+        CountryGeoData, CountryIpSet, GeoIpDatabase, Ipv4RangeSet, Ipv6RangeSet, decompress_gz,
+        embedded_geoip_gz, parse_ipv4_cidrs, parse_ipv6_cidrs,
+    },
 };
 use ipnet::{Ipv4Net, Ipv6Net};
 use nym_socks5_proxy_ipc::InterfaceAddresses;
@@ -31,7 +35,7 @@ fn make_v6_set(cidrs: &[&str]) -> Ipv6RangeSet {
 async fn embedded_country_data(country_code: &str) -> CountryGeoData {
     let gz = embedded_geoip_gz(country_code)
         .unwrap_or_else(|| panic!("No embedded GeoIP data for {country_code}"));
-    let json = decompress(gz)
+    let json = decompress_gz(gz)
         .await
         .unwrap_or_else(|e| panic!("Decompression failed for {country_code}: {e}"));
     serde_json::from_str(&json)
@@ -108,10 +112,6 @@ async fn embedded_cn_ipv6_parses() {
     );
 }
 
-// ---------------------------------------------------------------------------
-// IPv6 range-set tests
-// ---------------------------------------------------------------------------
-
 #[test]
 fn ipv6_boundary() {
     let set = make_v6_set(&["2001:db8::/32"]);
@@ -156,17 +156,13 @@ fn ipv6_empty_set() {
     assert!(!set.contains("::1".parse().unwrap()));
 }
 
-// ---------------------------------------------------------------------------
-// decide_route IPv6 tests
-// ---------------------------------------------------------------------------
-
 #[test]
 fn decide_route_no_tunnel() {
     let db = GeoIpDatabase {
         excluded_countries: HashMap::new(),
     };
     assert_eq!(
-        decide_route(&sa("1.0.1.1"), &InterfaceAddresses::default(), &db),
+        decide_route_for_addrs(&sa("1.0.1.1"), &InterfaceAddresses::default(), &db),
         RoutingDecision::DefaultInterface,
     );
 }
@@ -190,13 +186,13 @@ fn decide_route_excluded_country() {
 
     // Chinese IP → bypass tunnel.
     assert_eq!(
-        decide_route(&sa("1.0.1.1"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("1.0.1.1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
 
     // Non-Chinese IP → use tunnel.
     assert_eq!(
-        decide_route(&sa("8.8.8.8"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("8.8.8.8"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }
@@ -208,7 +204,7 @@ fn decide_route_no_tunnel_ipv6() {
         excluded_countries: HashMap::new(),
     };
     assert_eq!(
-        decide_route(&sa("2001:db8::1"), &InterfaceAddresses::default(), &db),
+        decide_route_for_addrs(&sa("2001:db8::1"), &InterfaceAddresses::default(), &db),
         RoutingDecision::DefaultInterface,
     );
 }
@@ -224,12 +220,12 @@ fn decide_route_ipv6_no_v6_tunnel() {
         v6_addr: None,
     };
     assert_eq!(
-        decide_route(&sa("2606:4700::1"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("2606:4700::1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
     // IPv4 destinations can still use the tunnel.
     assert_eq!(
-        decide_route(&sa("1.1.1.1"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("1.1.1.1"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }
@@ -254,21 +250,21 @@ fn decide_route_excluded_country_ipv6() {
 
     // Chinese IPv6 → bypass tunnel.
     assert_eq!(
-        decide_route(&sa("2001:250::1"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("2001:250::1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
     assert_eq!(
-        decide_route(&sa("240e::1"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("240e::1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
 
     // Non-Chinese IPv6 → use tunnel.
     assert_eq!(
-        decide_route(&sa("2606:4700::1"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("2606:4700::1"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
     assert_eq!(
-        decide_route(&sa("2001:4860:4860::8888"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("2001:4860:4860::8888"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }
@@ -293,22 +289,22 @@ fn decide_route_dual_stack_tunnel() {
 
     // CN IPv4 → default interface.
     assert_eq!(
-        decide_route(&sa("1.0.1.1"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("1.0.1.1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
     // CN IPv6 → default interface.
     assert_eq!(
-        decide_route(&sa("2001:250::1"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("2001:250::1"), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
     // Non-CN IPv4 → tunnel.
     assert_eq!(
-        decide_route(&sa("8.8.8.8"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("8.8.8.8"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
     // Non-CN IPv6 → tunnel.
     assert_eq!(
-        decide_route(&sa("2606:4700::1"), &tunnel_addrs, &db),
+        decide_route_for_addrs(&sa("2606:4700::1"), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }
@@ -344,4 +340,51 @@ async fn embedded_cn_ipv6_known_addresses() {
         !set.contains("2001:4860:4860::8888".parse().unwrap()),
         "Google DNS should not be in CN IPv6 set"
     );
+}
+
+fn make_domain_set(domain: &[&str]) -> DomainSet {
+    let text = domain.join("\n");
+    DomainSet::from_text(&text).unwrap()
+}
+
+#[test]
+fn domain_exact_match() {
+    let set = make_domain_set(&["ipip.net", "baidu.com"]);
+    assert!(set.is_excluded("ipip.net"));
+    assert!(set.is_excluded("baidu.com"));
+}
+
+#[test]
+fn domain_subdomain_match() {
+    let set = make_domain_set(&["ipip.net"]);
+    assert!(set.is_excluded("myip.ipip.net"));
+    assert!(set.is_excluded("sub.myip.ipip.net"));
+}
+
+#[test]
+fn domain_no_partial_match() {
+    let set = make_domain_set(&["ipip.net"]);
+    assert!(!set.is_excluded("notipip.net"));
+}
+
+#[test]
+fn domain_fqdn_trailing_dot() {
+    let set = make_domain_set(&["ipip.net"]);
+    assert!(set.is_excluded("myip.ipip.net."));
+}
+
+#[test]
+fn domain_non_cn() {
+    let set = make_domain_set(&["ipip.net", "baidu.com"]);
+    assert!(!set.is_excluded("google.com"));
+    assert!(!set.is_excluded("cloudflare.com"));
+}
+
+#[tokio::test]
+async fn domain_embedded_contains_ipip() {
+    let set = DomainSet::load(&["CN".into()]).await.unwrap();
+    assert!(set.is_excluded("ipip.net"));
+    assert!(set.is_excluded("myip.ipip.net"));
+    assert!(!set.is_excluded("google.com"));
+    assert!(!set.is_excluded("cloudflare.com"));
 }
