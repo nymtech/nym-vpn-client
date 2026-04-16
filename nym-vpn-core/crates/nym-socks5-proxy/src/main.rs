@@ -9,8 +9,8 @@ mod routing;
 mod windows_bind;
 
 use std::{
-    fs::{create_dir_all, File},
-    io::{stdout, Write},
+    fs::{File, create_dir_all},
+    io::{Write, stdout},
     mem::discriminant,
     path::Path,
 };
@@ -20,11 +20,11 @@ use nym_socks5_proxy_ipc::{
     DaemonMessage, ErrorData, InterfaceAddresses, ProxyConfig, ProxyMessage,
 };
 use tokio::{
-    io::{stdin, AsyncBufReadExt, BufReader},
+    io::{AsyncBufReadExt, BufReader, stdin},
     sync::watch,
 };
 use tokio_util::sync::CancellationToken;
-use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -43,8 +43,8 @@ async fn main() -> Result<()> {
         }
     };
 
-    // Monitor `nym-routing` for default internet address changes.
-    let default_addr_rx = default_addrs::start_monitor().await;
+    // Monitor `nym-routing` for default internet address changes (both IPv4 and IPv6).
+    let default_addrs_rx = default_addrs::start_monitor().await;
 
     // Shared VPN tunnel addressese
     let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());
@@ -71,7 +71,7 @@ async fn main() -> Result<()> {
     if let Err(err) = proxy::run(
         config,
         &proxy_dir,
-        default_addr_rx,
+        default_addrs_rx,
         tunnel_addrs_rx,
         shutdown_token.clone(),
     )
@@ -186,7 +186,7 @@ fn send_error_message(msg: &str) {
 fn install_signal_handlers(shutdown_token: CancellationToken) {
     #[cfg(unix)]
     tokio::spawn(async move {
-        use tokio::signal::unix::{signal, SignalKind};
+        use tokio::signal::unix::{SignalKind, signal};
         let mut sigterm =
             signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
         let mut sigint = signal(SignalKind::interrupt()).expect("failed to install SIGINT handler");
