@@ -226,6 +226,9 @@
 	<string name="settings_language_help_title">帮助我们翻译</string>
 	<string name="settings_language_help_description">让应用程序以更好的方式显示您的本地语言。</string>
 	<string name="settings_event_lan_reconnecting">正在重新连接以应用局域网设置…</string>
+	<string name="settings_lewes_title">启用 Lewes 协议</string>
+	<string name="settings_lewes_on_description">总是喜欢数量后网关</string>
+	<string name="settings_lewes_off_description">没有后定量网关首选项</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">使用快捷方式需要锁屏。</string>
 	<string name="shortcut_title">确认操作</string>
@@ -529,5 +532,7 @@
 	<string name="diagnostic_copy_report">复制报表</string>
 	<string name="diagnostic_copied">已复制到剪贴板</string>
 	<string name="diagnostic_error">诊断失败</string>
-	<!-- Developer screen -->
+	<!-- Support screen -->
+	<string name="support_protect_title">⚠️ 保护您自己免遭诈骗</string>
+	<string name="support_protect_description">仅通过下面列出的官方频道联系 NymVPN 支持。我们将永远不会要求您的密码，也不会先通过直接消息与您联系。\n\n收到意外联系人？这可能是一个故障。</string>
 </resources>

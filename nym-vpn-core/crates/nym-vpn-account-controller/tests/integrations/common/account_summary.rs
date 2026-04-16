@@ -70,6 +70,7 @@ pub fn mock_subscription_summary_with_device(
                 is_active: active_sub,
                 active: subscription,
                 pending: pending_subscription,
+                is_stacked: false,
             },
             devices: NymVpnAccountSummaryDevices {
                 active: device_nb,

@@ -314,6 +314,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				connectionTime = connectionTime,
 				theme = appUiState.settings.theme ?: Theme.AUTOMATIC,
 				isAppInForeground = isAppInForeground,
+				isAccountInitializing = appUiState.isAccountInitializing,
 			)
 			Spacer(modifier = Modifier.weight(1f))
 			Column(
@@ -375,6 +376,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				ConnectionButton(
 					connectionState = uiState.connectionState,
 					isMnemonicStored = appUiState.managerState.isMnemonicStored,
+					isAccountInitializing = appUiState.isAccountInitializing,
 					onConnect = { onConnectPressed() },
 					onDisconnect = { onDisconnectPressed() },
 					onStopKillSwitch = { onStopKillSwitchPressed() },

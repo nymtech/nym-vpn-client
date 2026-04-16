@@ -890,6 +890,7 @@ message VpnAccountSummary {
   repeated VpnAccountAuthMethod auth_methods = 7;
   optional StoredAccountMode account_mode = 8;
   optional Subscription subscription = 12;
+  bool is_subscription_stacked = 13;
 }
 
 message NymVpnSubscription {

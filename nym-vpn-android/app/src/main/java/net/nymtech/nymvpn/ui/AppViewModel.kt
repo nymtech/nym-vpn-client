@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +26,6 @@ import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
-import net.nymtech.nymvpn.manager.backend.hasValidSubscription
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
@@ -55,7 +55,7 @@ constructor(
 
 	companion object {
 		private const val TAG = "app-vm"
-		private const val AUTH_TIMEOUT_MS = 20_000L
+		private const val ACCOUNT_INIT_TIMEOUT_MS = 30_000L
 	}
 
 	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
@@ -72,7 +72,10 @@ constructor(
 	private val _autologinState = MutableStateFlow<AutologinState>(AutologinState.Idle)
 	val autologinState: StateFlow<AutologinState> = _autologinState.asStateFlow()
 
+	private val accountInitializingState = MutableStateFlow(false)
+
 	private var autologinJob: Job? = null
+	private var accountInitJob: Job? = null
 
 	val uiState =
 		combine(
@@ -92,8 +95,12 @@ constructor(
 				)
 			},
 			backendManager.accountSummaryFlow,
-		) { base, accountSummary ->
-			base.copy(subscription = accountSummary?.toSubscriptionUiState())
+			accountInitializingState,
+		) { base, accountSummary, isInitializing ->
+			base.copy(
+				subscription = accountSummary?.toSubscriptionUiState(),
+				isAccountInitializing = isInitializing,
+			)
 		}.stateIn(
 			viewModelScope,
 			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
@@ -127,6 +134,25 @@ constructor(
 	fun dismissAutologin() {
 		_autologinState.value = AutologinState.Idle
 	}
+
+	fun notifyLoginStarted() {
+		accountInitJob?.cancel()
+		accountInitializingState.value = true
+		accountInitJob = viewModelScope.launch {
+			withTimeoutOrNull(ACCOUNT_INIT_TIMEOUT_MS) {
+				backendManager.stateFlow
+					.map { it.accountState }
+					.filter { isSettledAccountState(it) }
+					.first()
+			}
+			accountInitializingState.value = false
+		}
+	}
+
+	private fun isSettledAccountState(state: AccountControllerState): Boolean = state is AccountControllerState.ReadyToConnect ||
+		state is AccountControllerState.Decentralised ||
+		state is AccountControllerState.UpgradeMode ||
+		state is AccountControllerState.Error
 
 	fun onConfigurationHandled() {
 		_configurationChange.value = false
@@ -283,38 +309,11 @@ constructor(
 
 			runCatching { backendManager.refreshAccount() }
 
-			val accountState = withTimeoutOrNull(AUTH_TIMEOUT_MS) {
-				backendManager.stateFlow
-					.map { it.accountState }
-					.filter { state ->
-						state is AccountControllerState.ReadyToConnect ||
-							state is AccountControllerState.Decentralised ||
-							state is AccountControllerState.UpgradeMode ||
-							state is AccountControllerState.Error
-					}
-					.first()
-			}
+			delay(2_000L)
+			notifyLoginStarted()
 
-			when (accountState) {
-				is AccountControllerState.ReadyToConnect,
-				is AccountControllerState.Decentralised,
-				is AccountControllerState.UpgradeMode,
-				-> {
-					if (backendManager.hasValidSubscription(TAG)) {
-						Route.Main()
-					} else {
-						Route.SelectPlan
-					}
-				}
-
-				is AccountControllerState.Error -> {
-					Route.SelectPlan
-				}
-
-				else -> {
-					Route.Main(autoStart = false)
-				}
-			}
+			val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
+			if (shouldShowTechnical) Route.Technical else Route.Main()
 		} catch (e: Exception) {
 			Timber.tag(TAG).e(e, "FailedStoreDeeplink or processing error")
 			Route.Main(autoStart = false)

@@ -1,0 +1,6 @@
+Was ist Neu:
+- Auto-Login-Funktion und Benutzeroberfläche wurden implementiert.
+- Ein Diagnose-Tool wurde eingeführt.
+- Eine „Zufällig“-Option für Ein- und Austrittsorte wurde hinzugefügt.
+- Ein Info-Banner mit deinem aktuellen Abo-Status wurde hinzugefügt.
+- Technische Verbesserungen: Privy-Verbindungstests wurden optimiert.

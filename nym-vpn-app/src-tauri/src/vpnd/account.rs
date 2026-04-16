@@ -172,6 +172,7 @@ pub struct AccountSummary {
     pub fair_usage_left: bool,
     pub is_subscription_active: bool,
     pub subscription: Option<Subscription>,
+    pub is_subscription_stacked: bool,
 }
 
 impl From<lib::VpnAccountSummary> for AccountSummary {
@@ -195,6 +196,7 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
             fair_usage_left,
             is_subscription_active,
             subscription: summary.subscription.map(Subscription::from),
+            is_subscription_stacked: summary.is_subscription_stacked,
         }
     }
 }

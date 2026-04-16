@@ -25,13 +25,10 @@
     }
   },
   "lewes": {
-    "title": "Lewes protocol",
-    "desc": {
-      "on": "Always prefer post-quantum gateways",
-      "off": "No post-quantum gateway preference"
-    },
+    "title": "Post-quantum",
+    "desc": "Always prefer post-quantum gateways",
     "errors": {
-      "failed": "Failed to enable Lewes protocol"
+      "failed": "Failed to enable Post-quantum"
     }
   },
   "notifications": {

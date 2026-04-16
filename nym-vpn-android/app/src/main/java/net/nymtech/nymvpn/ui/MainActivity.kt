@@ -291,7 +291,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Login>(
 									enterTransition = { fadeIn() },
 									exitTransition = { fadeOut() },
-								) { LoginScreen(appState) }
+								) { LoginScreen(appState, appViewModel) }
 
 								composable<Route.Licenses> { LicensesScreen() }
 								composable<Route.Censorship> { CensorshipScreen(appState) }

@@ -1,0 +1,6 @@
+Nouveautés :
+- Implémentation de la fonctionnalité de connexion automatique et de l'interface.
+- Introduire un outil de diagnostic.
+- Ajout d'une option "Aléatoire" pour les emplacements d'entrée et de sortie.
+- Ajout d'une bannière d'information affichant l'état actuel de votre abonnement.
+- Améliorations techniques : Contrôles de connexion privés optimisés.

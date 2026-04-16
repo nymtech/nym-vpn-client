@@ -228,6 +228,9 @@
 	<string name="settings_language_help_title">Ayuda con la traducción</string>
 	<string name="settings_language_help_description">Haz la aplicación mejor en tu idioma.</string>
 	<string name="settings_event_lan_reconnecting">Reconectando para aplicar los ajustes de LAN...</string>
+	<string name="settings_lewes_title">Habilitar Protocolo Lewes</string>
+	<string name="settings_lewes_on_description">Siempre prefiere pasarelas postcuánticas</string>
+	<string name="settings_lewes_off_description">Sin preferencia de puerta de enlace postcuántica</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bloqueo de pantalla necesario para usar accesos directos.</string>
 	<string name="shortcut_title">Confirmar acción</string>
@@ -531,5 +534,7 @@
 	<string name="diagnostic_copy_report">Copiar informe</string>
 	<string name="diagnostic_copied">Copiado al portapapeles</string>
 	<string name="diagnostic_error">Diagnóstico fallido</string>
-	<!-- Developer screen -->
+	<!-- Support screen -->
+	<string name="support_protect_title">⚠️ Protéjase de estafas</string>
+	<string name="support_protect_description">Póngase en contacto con el soporte de NymVPN a través de los canales oficiales listados a continuación. Nunca le pediremos su contraseña o nos pondremos en contacto con usted primero a través de mensajes directos.\n\n¿Se ha recibido un contacto inesperado? Es probable que sea una estafa.</string>
 </resources>

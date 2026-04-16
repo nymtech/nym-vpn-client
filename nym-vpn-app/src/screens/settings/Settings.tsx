@@ -139,9 +139,7 @@ function Settings() {
           },
           {
             title: t('lewes.title'),
-            desc: enableLewesProtocol
-              ? t('lewes.desc.on')
-              : t('lewes.desc.off'),
+            desc: t('lewes.desc'),
             leadingIcon: 'matter',
             onClick: handleLewesProtocol,
             trailing: (
