@@ -232,18 +232,20 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
                 return None;
             };
             let dst = tcp.get_destination();
-            if dst == DOT_PORT {
-                // Always RST DoT connections to force Android back to UDP/53.
-                tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv4");
-                return Some(build_tcp_rst_v4(&ip, &tcp));
+            match dst {
+                DOT_PORT => {
+                    // Always RST DoT connections to force Android back to UDP/53.
+                    tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv4");
+                    Some(build_tcp_rst_v4(&ip, &tcp))
+                }
+                DNS_PORT => {
+                    tracing::debug!("Handle DNS query for tcp/{}:{}", ip.get_destination(), dst);
+                    let domain = blocked_domain(tcp.payload(), dns_filter).await?;
+                    tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+                    Some(build_tcp_rst_v4(&ip, &tcp))
+                }
+                _ => None,
             }
-            if dst != DNS_PORT {
-                return None;
-            }
-            tracing::debug!("Handle DNS query for tcp/{}:{}", ip.get_destination(), dst);
-            let domain = blocked_domain(tcp.payload(), dns_filter).await?;
-            tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
-            Some(build_tcp_rst_v4(&ip, &tcp))
         }
         _ => None,
     }
@@ -285,21 +287,23 @@ async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
                 return None;
             };
             let dst = tcp.get_destination();
-            if dst == DOT_PORT {
-                tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv6");
-                return Some(build_tcp_rst_v6(&ip, &tcp));
+            match dst {
+                DOT_PORT => {
+                    tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv6");
+                    Some(build_tcp_rst_v6(&ip, &tcp));
+                }
+                DNS_PORT => {
+                    tracing::debug!(
+                        "Handle DNS query for tcp/[{}]:{}",
+                        ip.get_destination(),
+                        dst
+                    );
+                    let domain = blocked_domain(tcp.payload(), dns_filter).await?;
+                    tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+                    Some(build_tcp_rst_v6(&ip, &tcp))
+                }
+                _ => None,
             }
-            if dst != DNS_PORT {
-                return None;
-            }
-            tracing::debug!(
-                "Handle DNS query for tcp/[{}]:{}",
-                ip.get_destination(),
-                dst
-            );
-            let domain = blocked_domain(tcp.payload(), dns_filter).await?;
-            tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
-            Some(build_tcp_rst_v6(&ip, &tcp))
         }
         _ => None,
     }
