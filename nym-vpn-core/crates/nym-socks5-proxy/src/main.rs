@@ -43,7 +43,7 @@ async fn main() -> Result<()> {
         }
     };
 
-    // Monitor `nym-routing` for default internet address changes (both IPv4 and IPv6).
+    // Get the default interface addresses and monitor for changes in the routing.
     let default_addrs_rx = default_addrs::start_monitor().await;
 
     // Shared VPN tunnel addressese

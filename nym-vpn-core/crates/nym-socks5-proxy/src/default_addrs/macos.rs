@@ -7,7 +7,7 @@ use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
 use nym_socks5_proxy_ipc::InterfaceAddresses;
 use tokio::sync::watch;
 
-pub async fn start() -> watch::Receiver<InterfaceAddresses> {
+pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
     let initial = match RouteManagerHandle::spawn().await {
         Ok(rm) => {
             let addrs = query_addrs(&rm).await;

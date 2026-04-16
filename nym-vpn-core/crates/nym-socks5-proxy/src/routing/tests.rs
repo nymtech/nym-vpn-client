@@ -347,4 +347,3 @@ async fn embedded_cn_ipv6_known_addresses() {
         "Google DNS should not be in CN IPv6 set"
     );
 }
-

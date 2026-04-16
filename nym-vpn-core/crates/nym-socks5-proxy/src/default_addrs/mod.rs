@@ -13,11 +13,11 @@ use tokio::sync::watch;
 
 pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
     #[cfg(target_os = "windows")]
-    return windows::start().await;
+    return windows::start_monitor().await;
 
     #[cfg(target_os = "macos")]
-    return macos::start().await;
+    return macos::start_monitor().await;
 
     #[cfg(target_os = "linux")]
-    return linux::start().await;
+    return linux::start_monitor().await;
 }
