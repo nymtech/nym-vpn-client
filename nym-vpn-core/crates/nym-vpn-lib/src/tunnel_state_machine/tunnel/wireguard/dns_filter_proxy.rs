@@ -362,7 +362,7 @@ fn build_udp_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8
         udp.set_destination(orig_udp.get_source());
         udp.set_length(udp_len);
         udp.set_payload(&dns);
-        udp.set_checksum(udp::ipv4_checksum(&udp.to_immutable(), &src, &dst));
+        udp.set_checksum(udp::ipv4_checksum(&udp.to_immutable(), &dst, &src));
     }
 
     ip.set_checksum(ipv4::checksum(&ip.to_immutable()));
@@ -390,7 +390,7 @@ fn build_udp_response_v6(orig_ip: &Ipv6Packet, orig_udp: &UdpPacket, dns: Vec<u8
         udp.set_destination(orig_udp.get_source());
         udp.set_length(udp_len);
         udp.set_payload(&dns);
-        udp.set_checksum(udp::ipv6_checksum(&udp.to_immutable(), &src, &dst));
+        udp.set_checksum(udp::ipv6_checksum(&udp.to_immutable(), &dst, &src));
     }
     buf
 }
@@ -419,7 +419,7 @@ fn build_tcp_rst_response_v4(orig_ip: &Ipv4Packet, orig_tcp: &TcpPacket) -> Vec<
         tcp.set_flags(TcpFlags::RST);
         tcp.set_sequence(orig_tcp.get_acknowledgement());
         tcp.set_acknowledgement(0);
-        tcp.set_checksum(tcp::ipv4_checksum(&tcp.to_immutable(), &src, &dst));
+        tcp.set_checksum(tcp::ipv4_checksum(&tcp.to_immutable(), &dst, &src));
     }
 
     ip.set_checksum(ipv4::checksum(&ip.to_immutable()));
@@ -450,7 +450,7 @@ fn build_tcp_rst_response_v6(orig_ip: &Ipv6Packet, orig_tcp: &TcpPacket) -> Vec<
         tcp.set_flags(TcpFlags::RST);
         tcp.set_sequence(orig_tcp.get_acknowledgement());
         tcp.set_acknowledgement(0);
-        tcp.set_checksum(tcp::ipv6_checksum(&tcp.to_immutable(), &src, &dst));
+        tcp.set_checksum(tcp::ipv6_checksum(&tcp.to_immutable(), &dst, &src));
     }
 
     buf
