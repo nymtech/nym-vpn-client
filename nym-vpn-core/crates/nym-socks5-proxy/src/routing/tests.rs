@@ -102,6 +102,58 @@ async fn embedded_cn_ipv6_parses() {
     );
 }
 
+// ---------------------------------------------------------------------------
+// IPv6 range-set tests
+// ---------------------------------------------------------------------------
+
+#[test]
+fn ipv6_boundary() {
+    let set = make_v6_set(&["2001:db8::/32"]);
+    assert!(!set.contains("2001:db7:ffff:ffff:ffff:ffff:ffff:ffff".parse().unwrap()));
+    assert!(set.contains("2001:db8::".parse().unwrap()));
+    assert!(set.contains("2001:db8::1".parse().unwrap()));
+    assert!(set.contains("2001:db8:ffff:ffff:ffff:ffff:ffff:ffff".parse().unwrap()));
+    assert!(!set.contains("2001:db9::".parse().unwrap()));
+}
+
+#[test]
+fn ipv6_merge_adjacent() {
+    // Two adjacent /33s should merge into a single range.
+    let set = make_v6_set(&["2001:db8::/33", "2001:db8:8000::/33"]);
+    assert_eq!(set.starts.len(), 1, "Adjacent IPv6 ranges must be merged");
+    assert!(set.contains("2001:db8::1".parse().unwrap()));
+    assert!(set.contains("2001:db8:ffff:ffff:ffff:ffff:ffff:ffff".parse().unwrap()));
+}
+
+#[test]
+fn ipv6_gap_between_ranges() {
+    let set = make_v6_set(&["2001:db8:1::/48", "2001:db8:3::/48"]);
+    assert!(set.contains("2001:db8:1::1".parse().unwrap()));
+    assert!(!set.contains("2001:db8:2::1".parse().unwrap())); // gap
+    assert!(set.contains("2001:db8:3::1".parse().unwrap()));
+}
+
+#[test]
+fn ipv6_multiple_prefixes() {
+    let set = make_v6_set(&["2001:250::/35", "240e::/16", "2400::/12"]);
+    assert!(set.contains("2001:250::1".parse().unwrap()));
+    assert!(set.contains("240e::1".parse().unwrap()));
+    assert!(set.contains("2400::1".parse().unwrap()));
+    assert!(!set.contains("2002::1".parse().unwrap()));
+    assert!(!set.contains("::1".parse().unwrap()));
+}
+
+#[test]
+fn ipv6_empty_set() {
+    let set = make_v6_set(&[]);
+    assert!(!set.contains("2001:db8::1".parse().unwrap()));
+    assert!(!set.contains("::1".parse().unwrap()));
+}
+
+// ---------------------------------------------------------------------------
+// decide_route IPv6 tests
+// ---------------------------------------------------------------------------
+
 #[test]
 fn decide_route_no_tunnel() {
     let db = GeoIpDatabase {
@@ -146,3 +198,153 @@ fn decide_route_excluded_country() {
         RoutingDecision::VpnTunnelInterface,
     );
 }
+
+#[test]
+fn decide_route_no_tunnel_ipv6() {
+    // With no tunnel addresses at all, all traffic must use the default interface.
+    let db = GeoIpDatabase {
+        excluded_countries: HashMap::new(),
+    };
+    assert_eq!(
+        decide_route(
+            "2001:db8::1".parse().unwrap(),
+            &InterfaceAddresses::default(),
+            &db
+        ),
+        RoutingDecision::DefaultInterface,
+    );
+}
+
+#[test]
+fn decide_route_ipv6_no_v6_tunnel() {
+    // Tunnel has only an IPv4 address — IPv6 destinations must use default interface.
+    let db = GeoIpDatabase {
+        excluded_countries: HashMap::new(),
+    };
+    let tunnel_addrs = InterfaceAddresses {
+        v4_addr: Some("10.0.0.1".parse().unwrap()),
+        v6_addr: None,
+    };
+    assert_eq!(
+        decide_route("2606:4700::1".parse().unwrap(), &tunnel_addrs, &db),
+        RoutingDecision::DefaultInterface,
+    );
+    // IPv4 destinations can still use the tunnel.
+    assert_eq!(
+        decide_route("1.1.1.1".parse().unwrap(), &tunnel_addrs, &db),
+        RoutingDecision::VpnTunnelInterface,
+    );
+}
+
+#[test]
+fn decide_route_excluded_country_ipv6() {
+    // CN IPv6 prefix should route via default interface; non-CN IPv6 via tunnel.
+    let mut countries = HashMap::new();
+    let set = CountryIpSet {
+        v4: Ipv4RangeSet::default(),
+        v6: make_v6_set(&["2001:250::/35", "240e::/16"]),
+    };
+    countries.insert("CN".to_string(), set);
+    let db = GeoIpDatabase {
+        excluded_countries: countries,
+    };
+
+    let tunnel_addrs = InterfaceAddresses {
+        v4_addr: Some("10.0.0.1".parse().unwrap()),
+        v6_addr: Some("fc00::1".parse().unwrap()),
+    };
+
+    // Chinese IPv6 → bypass tunnel.
+    assert_eq!(
+        decide_route("2001:250::1".parse().unwrap(), &tunnel_addrs, &db),
+        RoutingDecision::DefaultInterface,
+    );
+    assert_eq!(
+        decide_route("240e::1".parse().unwrap(), &tunnel_addrs, &db),
+        RoutingDecision::DefaultInterface,
+    );
+
+    // Non-Chinese IPv6 → use tunnel.
+    assert_eq!(
+        decide_route("2606:4700::1".parse().unwrap(), &tunnel_addrs, &db),
+        RoutingDecision::VpnTunnelInterface,
+    );
+    assert_eq!(
+        decide_route("2001:4860:4860::8888".parse().unwrap(), &tunnel_addrs, &db),
+        RoutingDecision::VpnTunnelInterface,
+    );
+}
+
+#[test]
+fn decide_route_dual_stack_tunnel() {
+    // With both v4 and v6 tunnel addresses, each family is independently routed.
+    let mut countries = HashMap::new();
+    let set = CountryIpSet {
+        v4: make_v4_set(&["1.0.1.0/24"]),
+        v6: make_v6_set(&["2001:250::/35"]),
+    };
+    countries.insert("CN".to_string(), set);
+    let db = GeoIpDatabase {
+        excluded_countries: countries,
+    };
+
+    let tunnel_addrs = InterfaceAddresses {
+        v4_addr: Some("10.0.0.1".parse().unwrap()),
+        v6_addr: Some("fc00::1".parse().unwrap()),
+    };
+
+    // CN IPv4 → default interface.
+    assert_eq!(
+        decide_route("1.0.1.1".parse().unwrap(), &tunnel_addrs, &db),
+        RoutingDecision::DefaultInterface,
+    );
+    // CN IPv6 → default interface.
+    assert_eq!(
+        decide_route("2001:250::1".parse().unwrap(), &tunnel_addrs, &db),
+        RoutingDecision::DefaultInterface,
+    );
+    // Non-CN IPv4 → tunnel.
+    assert_eq!(
+        decide_route("8.8.8.8".parse().unwrap(), &tunnel_addrs, &db),
+        RoutingDecision::VpnTunnelInterface,
+    );
+    // Non-CN IPv6 → tunnel.
+    assert_eq!(
+        decide_route("2606:4700::1".parse().unwrap(), &tunnel_addrs, &db),
+        RoutingDecision::VpnTunnelInterface,
+    );
+}
+
+#[tokio::test]
+async fn embedded_cn_ipv6_known_addresses() {
+    // Spot-check that known Chinese IPv6 allocations are in the embedded dataset.
+    let geo = embedded_country_data("CN").await;
+    let set = parse_ipv6_cidrs(&geo.ipv6).expect("CN IPv6 CIDRs should build");
+
+    // 2001:250::/35 — CERNET (China Education and Research Network)
+    assert!(
+        set.contains("2001:250::1".parse().unwrap()),
+        "CERNET prefix should be in CN IPv6 set"
+    );
+    // 240e::/16 — China Telecom
+    assert!(
+        set.contains("240e::1".parse().unwrap()),
+        "China Telecom prefix should be in CN IPv6 set"
+    );
+    // 2400:3200::/32 — Alibaba Cloud
+    assert!(
+        set.contains("2400:3200::1".parse().unwrap()),
+        "Alibaba Cloud prefix should be in CN IPv6 set"
+    );
+
+    // Non-Chinese allocations should not appear.
+    assert!(
+        !set.contains("2606:4700::1".parse().unwrap()),
+        "Cloudflare address should not be in CN IPv6 set"
+    );
+    assert!(
+        !set.contains("2001:4860:4860::8888".parse().unwrap()),
+        "Google DNS should not be in CN IPv6 set"
+    );
+}
+

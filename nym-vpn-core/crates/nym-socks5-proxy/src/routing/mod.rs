@@ -24,7 +24,6 @@ use std::{
     path::Path,
 };
 use tokio::io::AsyncReadExt;
-use tracing::{debug, info, warn};
 
 static EMBEDDED_GEOIP: &[(&str, &[u8])] = &[("CN", include_bytes!("../../builtin/CN.json.gz"))];
 
@@ -48,7 +47,7 @@ impl GeoIpDatabase {
             let upper = code.to_uppercase();
             match load_country_ip_set(&upper, data_dir).await {
                 Ok(set) => {
-                    info!(
+                    tracing::info!(
                         country = %upper,
                         v4_ranges = set.v4.len(),
                         v6_ranges = set.v6.len(),
@@ -87,7 +86,7 @@ pub fn decide_route(
     }
 
     if db.is_excluded(target_ip) {
-        debug!(%target_ip, "Routing via default interface (excluded country)");
+        tracing::debug!("Routing to IP {target_ip} via default interface (excluded country)");
         RoutingDecision::DefaultInterface
     } else {
         RoutingDecision::VpnTunnelInterface
@@ -227,21 +226,21 @@ async fn load_country_geo_data(country_code: &str, data_dir: &Path) -> Result<Co
 
     let gz_bytes: Vec<u8> = match std::fs::read(&path) {
         Ok(bytes) => {
-            debug!(path = %path.display(), "Loaded updated GeoIP data from disk");
+            tracing::debug!("Loaded updated GeoIP data from '{}'", path.display());
             bytes
         }
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => embedded_geoip_gz(country_code)
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => embedded_geoip_gz(country_code)
             .map(|b| b.to_vec())
             .ok_or_else(|| anyhow::anyhow!("No GeoIP data available for country {country_code}"))?,
-        Err(e) => {
-            warn!(
-                path = %path.display(),
-                "Could not read GeoIP file: {e} — using embedded data",
+        Err(err) => {
+            tracing::warn!(
+                "Could not read GeoIP from '{}': {err}; trying embedded data",
+                path.display(),
             );
             embedded_geoip_gz(country_code)
                 .map(|b| b.to_vec())
                 .ok_or_else(|| {
-                    anyhow::anyhow!("No GeoIP data available for country {country_code}")
+                    anyhow::anyhow!("No embedded GeoIP data available for country {country_code}")
                 })?
         }
     };
