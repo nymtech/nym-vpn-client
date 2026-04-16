@@ -31,8 +31,10 @@ pub trait DnsFilterT: Send + Sync + 'static {
 pub type DnsFilter = Arc<Mutex<Box<dyn DnsFilterT + Send + Sync>>>;
 
 /// Null DNS Filter (always passes).
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub struct NullDnsFilter;
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 impl DnsFilterT for NullDnsFilter {
     fn should_block(&self, _domain: &str) -> DnsFilterDecision {
         DnsFilterDecision::Pass
