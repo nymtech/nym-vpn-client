@@ -8,7 +8,7 @@ use nym_socks5_proxy_ipc::InterfaceAddresses;
 use nym_windows::net::{AddressFamily, get_ip_address_for_interface};
 use tokio::sync::watch;
 
-pub async fn start() -> watch::Receiver<InterfaceAddresses> {
+pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
     let initial = snapshot();
     let (tx, rx) = watch::channel(initial);
     tokio::spawn(monitor_task(tx));

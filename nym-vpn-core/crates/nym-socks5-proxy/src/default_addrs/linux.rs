@@ -7,7 +7,7 @@ use nym_routing::{CallbackMessage, RouteManagerHandle};
 use nym_socks5_proxy_ipc::InterfaceAddresses;
 use tokio::sync::watch;
 
-pub async fn start() -> watch::Receiver<InterfaceAddresses> {
+pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
     let initial = snapshot();
     let (tx, rx) = watch::channel(initial);
     tokio::spawn(monitor_task(tx));
