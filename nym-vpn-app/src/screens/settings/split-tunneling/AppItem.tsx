@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { convertFileSrc } from '@tauri-apps/api/core';
 import { type } from '@tauri-apps/plugin-os';
 import { useTranslation } from 'react-i18next';
+import { useMemo } from 'react';
 import MsIcon from '../../../ui/MsIcon';
 import { App } from '../../../types';
 import { PROBLEMATIC_APPS } from './utils/constants';
@@ -24,7 +25,11 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
   const { t } = useTranslation('settings');
   const os = type();
 
-  const isProblematic = PROBLEMATIC_APPS.includes(app.executable_path);
+  const isProblematic = useMemo(
+    () =>
+      PROBLEMATIC_APPS.DISABLED.has(app.executable_path.split('/').pop() || ''),
+    [app.executable_path],
+  );
 
   const handleClick = async () => {
     if (os === 'linux' && onLaunch) await onLaunch(app);

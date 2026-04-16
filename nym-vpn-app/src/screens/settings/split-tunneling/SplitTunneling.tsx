@@ -13,6 +13,7 @@ import InfoDialog from './InfoDialog';
 import LaunchConfirmDialog from './LaunchConfirmDialog';
 import AppItem, { AppEntry } from './AppItem';
 import { useSplitTunnel } from './utils';
+import { PROBLEMATIC_APPS } from './utils/constants';
 
 function SplitTunneling() {
   const os = type();
@@ -78,10 +79,14 @@ function SplitTunneling() {
   const handleLaunch = useCallback(
     async (app: AppEntry) => {
       const hasRunningPids = (runningApps[app.name]?.length ?? 0) > 0;
-      if (hasRunningPids) {
-        await spawnApp(app);
-      } else {
+      const isProblematic = PROBLEMATIC_APPS.WITH_WARNING.has(
+        app.executable_path.split('/').pop() || '',
+      );
+
+      if (isProblematic && !hasRunningPids) {
         setPendingLaunchApp(app);
+      } else {
+        await spawnApp(app);
       }
     },
     [runningApps, spawnApp],
@@ -183,7 +188,7 @@ function SplitTunneling() {
 
       {/* Apps section */}
       <AnimatePresence initial={false}>
-        {enabled && (
+        {!enabled && (
           <motion.div
             key="apps-section"
             initial={{ opacity: 0 }}
