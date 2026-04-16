@@ -213,36 +213,30 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
                 ip.get_destination(),
                 udp.get_destination()
             );
-            if udp.get_destination() != DNS_PORT {
-                return None;
+            if udp.get_destination() == DNS_PORT {
+                let domain = blocked_domain(udp.payload(), dns_filter).await?;
+                tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+                let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
+                Some(build_udp_response_v4(&ip, &udp, nxdomain_dns))
+            } else {
+                None
             }
-            tracing::debug!(
-                "Handle DNS query for udp/{}:{}",
-                ip.get_destination(),
-                udp.get_destination()
-            );
-            let domain = blocked_domain(udp.payload(), dns_filter).await?;
-            tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
-            let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
-            Some(build_udp_response_v4(&ip, &udp, nxdomain_dns))
         }
         IpNextHeaderProtocols::Tcp => {
             let Some(tcp) = TcpPacket::new(ip.payload()) else {
                 tracing::debug!("DNS filter proxy: failed to parse TCP packet from IPv4");
                 return None;
             };
-            let dst = tcp.get_destination();
-            match dst {
+            match tcp.get_destination() {
                 DOT_PORT => {
                     // Always RST DoT connections to force Android back to UDP/53.
                     tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv4");
-                    Some(build_tcp_rst_v4(&ip, &tcp))
+                    Some(build_tcp_rst_response_v4(&ip, &tcp))
                 }
                 DNS_PORT => {
-                    tracing::debug!("Handle DNS query for tcp/{}:{}", ip.get_destination(), dst);
-                    let domain = blocked_domain(tcp.payload(), dns_filter).await?;
-                    tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
-                    Some(build_tcp_rst_v4(&ip, &tcp))
+                    // Always RST TCP/53 since we don't support it
+                    tracing::trace!("DNS proxy: RST TCP/53 from IPv4");
+                    Some(build_tcp_rst_response_v4(&ip, &tcp))
                 }
                 _ => None,
             }
@@ -273,34 +267,29 @@ async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
                 ip.get_destination(),
                 udp.get_destination()
             );
-            if udp.get_destination() != DNS_PORT {
-                return None;
+
+            if udp.get_destination() == DNS_PORT {
+                let domain = blocked_domain(udp.payload(), dns_filter).await?;
+                tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+                let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
+                Some(build_udp_response_v6(&ip, &udp, nxdomain_dns))
+            } else {
+                None
             }
-            let domain = blocked_domain(udp.payload(), dns_filter).await?;
-            tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
-            let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
-            Some(build_response_v6(&ip, &udp, nxdomain_dns))
         }
         IpNextHeaderProtocols::Tcp => {
             let Some(tcp) = TcpPacket::new(ip.payload()) else {
                 tracing::debug!("DNS filter proxy: failed to parse TCP packet from IPv6");
                 return None;
             };
-            let dst = tcp.get_destination();
-            match dst {
+            match tcp.get_destination() {
                 DOT_PORT => {
-                    tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv6");
-                    Some(build_tcp_rst_v6(&ip, &tcp));
+                    tracing::debug!("DNS proxy: RST TCP/853 (DoT) from IPv6");
+                    Some(build_tcp_rst_response_v6(&ip, &tcp))
                 }
                 DNS_PORT => {
-                    tracing::debug!(
-                        "Handle DNS query for tcp/[{}]:{}",
-                        ip.get_destination(),
-                        dst
-                    );
-                    let domain = blocked_domain(tcp.payload(), dns_filter).await?;
-                    tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
-                    Some(build_tcp_rst_v6(&ip, &tcp))
+                    tracing::trace!("DNS proxy: RST TCP/53 from IPv6");
+                    Some(build_tcp_rst_response_v6(&ip, &tcp))
                 }
                 _ => None,
             }
@@ -333,25 +322,22 @@ async fn blocked_domain(dns_payload: &[u8], dns_filter: &DnsFilter) -> Option<St
 }
 
 fn build_nxdomain_dns(query: &[u8]) -> Option<Vec<u8>> {
-    let mut msg = match Message::from_vec(query) {
-        Ok(msg) => msg,
-        Err(e) => {
+    let mut msg = Message::from_vec(query)
+        .inspect_err(|e| {
             tracing::debug!("DNS filter proxy: failed to parse DNS message: {e}");
-            return None;
-        }
-    };
+        })
+        .ok()?;
     msg.set_message_type(MessageType::Response);
     msg.set_response_code(ResponseCode::NXDomain);
     msg.take_answers();
     msg.take_name_servers();
     msg.take_additionals();
-    match msg.to_vec() {
-        Ok(bytes) => Some(bytes),
-        Err(e) => {
-            tracing::debug!("DNS filter proxy: failed to serialize NXDOMAIN response: {e}");
-            None
-        }
-    }
+
+    msg.to_vec()
+        .inspect_err(|e| {
+            tracing::debug!("DNS filter proxy: failed to serialize NXDOMAIN response: {e}")
+        })
+        .ok()
 }
 
 fn build_udp_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
@@ -384,7 +370,32 @@ fn build_udp_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8
     buf
 }
 
-fn build_tcp_rst_v4(orig_ip: &Ipv4Packet, orig_tcp: &TcpPacket) -> Vec<u8> {
+fn build_udp_response_v6(orig_ip: &Ipv6Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
+    let udp_len = (UdpPacket::minimum_packet_size() + dns.len()) as u16;
+    let total_len = IPV6_HEADER_LEN + UdpPacket::minimum_packet_size() + dns.len();
+    let mut buf = vec![0u8; total_len];
+
+    buf[..IPV6_HEADER_LEN].copy_from_slice(&orig_ip.packet()[..IPV6_HEADER_LEN]);
+
+    let mut ip = MutableIpv6Packet::new(&mut buf).expect("buf is large enough");
+    ip.set_source(orig_ip.get_destination());
+    ip.set_destination(orig_ip.get_source());
+    ip.set_payload_length(udp_len);
+
+    {
+        let src = ip.get_source();
+        let dst = ip.get_destination();
+        let mut udp = MutableUdpPacket::new(ip.payload_mut()).expect("buf is large enough");
+        udp.set_source(orig_udp.get_destination());
+        udp.set_destination(orig_udp.get_source());
+        udp.set_length(udp_len);
+        udp.set_payload(&dns);
+        udp.set_checksum(udp::ipv6_checksum(&udp.to_immutable(), &src, &dst));
+    }
+    buf
+}
+
+fn build_tcp_rst_response_v4(orig_ip: &Ipv4Packet, orig_tcp: &TcpPacket) -> Vec<u8> {
     let ihl = orig_ip.get_header_length() as usize * 4;
     let total_len = ihl + TcpPacket::minimum_packet_size();
     let mut buf = vec![0u8; total_len];
@@ -416,9 +427,9 @@ fn build_tcp_rst_v4(orig_ip: &Ipv4Packet, orig_tcp: &TcpPacket) -> Vec<u8> {
     buf
 }
 
-fn build_tcp_rst_v6(orig_ip: &Ipv6Packet, orig_tcp: &TcpPacket) -> Vec<u8> {
-    let tcp_len = TcpPacket::minimum_packet_size() as u16;
-    let total_len = IPV6_HEADER_LEN + TcpPacket::minimum_packet_size();
+fn build_tcp_rst_response_v6(orig_ip: &Ipv6Packet, orig_tcp: &TcpPacket) -> Vec<u8> {
+    let tcp_len = TcpPacket::minimum_packet_size();
+    let total_len = IPV6_HEADER_LEN + tcp_len;
     let mut buf = vec![0u8; total_len];
 
     buf[..IPV6_HEADER_LEN].copy_from_slice(&orig_ip.packet()[..IPV6_HEADER_LEN]);
@@ -426,7 +437,7 @@ fn build_tcp_rst_v6(orig_ip: &Ipv6Packet, orig_tcp: &TcpPacket) -> Vec<u8> {
     let mut ip = MutableIpv6Packet::new(&mut buf).expect("buf is large enough");
     ip.set_source(orig_ip.get_destination());
     ip.set_destination(orig_ip.get_source());
-    ip.set_payload_length(tcp_len);
+    ip.set_payload_length(tcp_len as u16);
 
     {
         let src = ip.get_source();
@@ -442,30 +453,5 @@ fn build_tcp_rst_v6(orig_ip: &Ipv6Packet, orig_tcp: &TcpPacket) -> Vec<u8> {
         tcp.set_checksum(tcp::ipv6_checksum(&tcp.to_immutable(), &src, &dst));
     }
 
-    buf
-}
-
-fn build_response_v6(orig_ip: &Ipv6Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
-    let udp_len = (UdpPacket::minimum_packet_size() + dns.len()) as u16;
-    let total_len = IPV6_HEADER_LEN + UdpPacket::minimum_packet_size() + dns.len();
-    let mut buf = vec![0u8; total_len];
-
-    buf[..IPV6_HEADER_LEN].copy_from_slice(&orig_ip.packet()[..IPV6_HEADER_LEN]);
-
-    let mut ip = MutableIpv6Packet::new(&mut buf).expect("buf is large enough");
-    ip.set_source(orig_ip.get_destination());
-    ip.set_destination(orig_ip.get_source());
-    ip.set_payload_length(udp_len);
-
-    {
-        let src = ip.get_source();
-        let dst = ip.get_destination();
-        let mut udp = MutableUdpPacket::new(ip.payload_mut()).expect("buf is large enough");
-        udp.set_source(orig_udp.get_destination());
-        udp.set_destination(orig_udp.get_source());
-        udp.set_length(udp_len);
-        udp.set_payload(&dns);
-        udp.set_checksum(udp::ipv6_checksum(&udp.to_immutable(), &src, &dst));
-    }
     buf
 }

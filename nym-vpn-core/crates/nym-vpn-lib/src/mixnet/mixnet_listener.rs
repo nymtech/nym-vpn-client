@@ -47,7 +47,7 @@ impl MixnetListener {
 
     // we exit the loop if :
     // - Processor tells us to
-    // - Mixnect client crashed
+    // - Mixnet client crashed
     // - We received the disconnect ack
     // - Mixnet stream ended (it crashed)
     async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, Vec<u8>> {
