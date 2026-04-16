@@ -1,14 +1,15 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
-
 use nym_routing::{Callback, RouteManagerHandle, get_best_default_route};
 use nym_socks5_proxy_ipc::InterfaceAddresses;
-use nym_windows::net::{AddressFamily, get_ip_address_for_interface};
+use nym_windows::net::{
+    AddressFamily, get_best_ipv6_address_for_interface, get_ip_address_for_interface,
+};
+use std::net::IpAddr;
 use tokio::sync::watch;
 
-pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
+pub async fn start() -> watch::Receiver<InterfaceAddresses> {
     let initial = snapshot();
     let (tx, rx) = watch::channel(initial);
     tokio::spawn(monitor_task(tx));
@@ -16,39 +17,66 @@ pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
 }
 
 fn query_v4() -> Option<std::net::Ipv4Addr> {
-    get_best_default_route(AddressFamily::Ipv4)
-        .ok()
-        .flatten()
-        .and_then(|route| {
-            get_ip_address_for_interface(AddressFamily::Ipv4, route.iface)
-                .ok()
-                .flatten()
-        })
-        .and_then(|ip| {
-            if let IpAddr::V4(v4) = ip {
-                Some(v4)
-            } else {
-                None
-            }
-        })
+    let route = match get_best_default_route(AddressFamily::Ipv4) {
+        Ok(Some(r)) => r,
+        Ok(None) => {
+            tracing::debug!("No IPv4 default route found");
+            return None;
+        }
+        Err(err) => {
+            tracing::warn!("get_best_default_route(IPv4) failed: {err}");
+            return None;
+        }
+    };
+    match get_ip_address_for_interface(AddressFamily::Ipv4, route.iface) {
+        Ok(Some(IpAddr::V4(v4))) => Some(v4),
+        Ok(Some(other)) => {
+            tracing::warn!("Unexpected address family on IPv4 interface: {other}");
+            None
+        }
+        Ok(None) => {
+            tracing::debug!("IPv4 default interface has no address");
+            None
+        }
+        Err(err) => {
+            tracing::warn!("get_ip_address_for_interface(IPv4) failed: {err}");
+            None
+        }
+    }
 }
 
 fn query_v6() -> Option<std::net::Ipv6Addr> {
-    get_best_default_route(AddressFamily::Ipv6)
-        .ok()
-        .flatten()
-        .and_then(|route| {
-            get_ip_address_for_interface(AddressFamily::Ipv6, route.iface)
-                .ok()
-                .flatten()
-        })
-        .and_then(|ip| {
-            if let IpAddr::V6(v6) = ip {
-                Some(v6)
-            } else {
-                None
-            }
-        })
+    let route = match get_best_default_route(AddressFamily::Ipv6) {
+        Ok(Some(r)) => r,
+        Ok(None) => {
+            tracing::debug!(
+                "No IPv6 default route found — machine likely has link-local only (fe80::) \
+                 with no global IPv6 internet connectivity"
+            );
+            return None;
+        }
+        Err(err) => {
+            tracing::warn!("get_best_default_route(IPv6) failed: {err}");
+            return None;
+        }
+    };
+    match get_best_ipv6_address_for_interface(route.iface) {
+        Ok(Some(v6)) => {
+            tracing::debug!("Selected IPv6 default interface address: {v6}");
+            Some(v6)
+        }
+        Ok(None) => {
+            tracing::debug!(
+                "IPv6 default interface has no global unicast address \
+                 (only link-local fe80:: addresses present — no global IPv6 connectivity)"
+            );
+            None
+        }
+        Err(err) => {
+            tracing::warn!("get_best_ipv6_address_for_interface failed: {err}");
+            None
+        }
+    }
 }
 
 /// Re-query both address families synchronously.
