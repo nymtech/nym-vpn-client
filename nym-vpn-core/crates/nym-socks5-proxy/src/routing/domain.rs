@@ -1,9 +1,5 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
-// SPDX-License-Identifier: GPL-3.0-only
-
 use anyhow::{Context, Result};
-
-use super::ip::decompress_gz;
 
 static EMBEDDED_COUNTRY_DOMAINS: &[(&str, &[u8])] =
     &[("CN", include_bytes!("../../builtin/CN-domain.txt.gz"))];
@@ -26,7 +22,7 @@ impl DomainSet {
                 continue;
             };
 
-            let text = decompress_gz(gz)
+            let text = super::decompress_gz(gz)
                 .await
                 .with_context(|| format!("Failed to decompress domain list for {upper}"))?;
 

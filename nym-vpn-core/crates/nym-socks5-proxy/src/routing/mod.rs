@@ -8,12 +8,15 @@ pub mod ip;
 mod tests;
 
 use std::{
+    io::Cursor,
     net::{IpAddr, SocketAddr},
     path::Path,
 };
 
 use anyhow::{Context, Result};
+use async_compression::tokio::bufread::GzipDecoder;
 use nym_socks5_proxy_ipc::InterfaceAddresses;
+use tokio::io::AsyncReadExt;
 
 pub use domain::DomainSet;
 pub use ip::GeoIpDatabase;
@@ -62,4 +65,14 @@ pub fn decide_route_for_addrs(
     } else {
         RoutingDecision::DefaultInterface
     }
+}
+
+pub(crate) async fn decompress_gz(gz_bytes: &[u8]) -> anyhow::Result<String> {
+    let mut decoder = GzipDecoder::new(Cursor::new(gz_bytes));
+    let mut out = Vec::new();
+    decoder
+        .read_to_end(&mut out)
+        .await
+        .context("Gzip decompression failed")?;
+    String::from_utf8(out).context("Decompressed data is not valid UTF-8")
 }
