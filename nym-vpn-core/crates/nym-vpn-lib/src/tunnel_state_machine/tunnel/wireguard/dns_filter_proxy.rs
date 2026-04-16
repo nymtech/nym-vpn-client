@@ -27,7 +27,7 @@ use pnet_packet::{
     ip::IpNextHeaderProtocols,
     ipv4::{self, Ipv4Packet, MutableIpv4Packet},
     ipv6::{Ipv6Packet, MutableIpv6Packet},
-    tcp::TcpPacket,
+    tcp::{self, MutableTcpPacket, TcpFlags, TcpPacket},
     udp::{self, MutableUdpPacket, UdpPacket},
 };
 use tokio::{
@@ -46,7 +46,7 @@ const MAX_PACKET_SIZE: usize = 65536;
 /// UDP port used by DNS.
 const DNS_PORT: u16 = 53;
 
-/// DNS-over-TLS port (RFC 7858). Dropped to prevent Android from bypassing UDP/53 interception.
+/// Port for RST
 const DOT_PORT: u16 = 853;
 
 /// IPv4 version nibble.
@@ -140,19 +140,15 @@ async fn run_proxy(
                     Ok(n) => {
                         let packet = &tun_buf[..n];
                         tracing::trace!("DNS proxy: received {} bytes from tun (first byte: {:#04x})", n, packet.first().copied().unwrap_or(0));
-                        if should_drop(packet) {
-                            tracing::trace!("DNS proxy: dropping TCP/853 (DoT) packet");
-                        } else {
-                            match maybe_nxdomain(packet, &dns_filter).await {
-                                Some(response) => {
-                                    if let Err(e) = tun_device.write_all(&response).await {
-                                        tracing::debug!("DNS proxy: write NXDOMAIN to tun failed: {e}");
-                                    }
+                        match maybe_nxdomain(packet, &dns_filter).await {
+                            Some(response) => {
+                                if let Err(e) = tun_device.write_all(&response).await {
+                                    tracing::debug!("DNS proxy: write response to tun failed: {e}");
                                 }
-                                None => {
-                                    if let Err(e) = filter_socket.send(packet).await {
-                                        tracing::debug!("DNS proxy: send to wg socket failed: {e}");
-                                    }
+                            }
+                            None => {
+                                if let Err(e) = filter_socket.send(packet).await {
+                                    tracing::debug!("DNS proxy: send to wg socket failed: {e}");
                                 }
                             }
                         }
@@ -185,40 +181,6 @@ async fn run_proxy(
     }
 
     tracing::debug!("DNS filter proxy stopped");
-}
-
-fn should_drop(packet: &[u8]) -> bool {
-    match packet.first().map(|b| b >> 4) {
-        Some(IP_VERSION_4) => should_drop_v4(packet),
-        Some(IP_VERSION_6) => should_drop_v6(packet),
-        _ => false,
-    }
-}
-
-fn should_drop_v4(packet: &[u8]) -> bool {
-    let Some(ip) = Ipv4Packet::new(packet) else {
-        return false;
-    };
-    if ip.get_next_level_protocol() != IpNextHeaderProtocols::Tcp {
-        return false;
-    }
-    let Some(tcp) = TcpPacket::new(ip.payload()) else {
-        return false;
-    };
-    tcp.get_destination() == DOT_PORT
-}
-
-fn should_drop_v6(packet: &[u8]) -> bool {
-    let Some(ip) = Ipv6Packet::new(packet) else {
-        return false;
-    };
-    if ip.get_next_header() != IpNextHeaderProtocols::Tcp {
-        return false;
-    }
-    let Some(tcp) = TcpPacket::new(ip.payload()) else {
-        return false;
-    };
-    tcp.get_destination() == DOT_PORT
 }
 
 async fn maybe_nxdomain(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
@@ -254,10 +216,38 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
             if udp.get_destination() != DNS_PORT {
                 return None;
             }
+            tracing::debug!(
+                "Handle DNS query for udp/{}:{}",
+                ip.get_destination(),
+                udp.get_destination()
+            );
             let domain = blocked_domain(udp.payload(), dns_filter).await?;
             tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
             let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
-            Some(build_response_v4(&ip, &udp, nxdomain_dns))
+            Some(build_udp_response_v4(&ip, &udp, nxdomain_dns))
+        }
+        IpNextHeaderProtocols::Tcp => {
+            let Some(tcp) = TcpPacket::new(ip.payload()) else {
+                tracing::debug!("DNS filter proxy: failed to parse TCP packet from IPv4");
+                return None;
+            };
+            let dst = tcp.get_destination();
+            if dst == DOT_PORT {
+                // Always RST DoT connections to force Android back to UDP/53.
+                tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv4");
+                return Some(build_tcp_rst_v4(&ip, &tcp));
+            }
+            if dst != DNS_PORT {
+                return None;
+            }
+            tracing::debug!(
+                "Handle DNS query for tcp/{}:{}",
+                ip.get_destination(),
+                dst
+            );
+            let domain = blocked_domain(tcp.payload(), dns_filter).await?;
+            tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+            Some(build_tcp_rst_v4(&ip, &tcp))
         }
         _ => None,
     }
@@ -292,6 +282,28 @@ async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
             tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
             let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
             Some(build_response_v6(&ip, &udp, nxdomain_dns))
+        }
+        IpNextHeaderProtocols::Tcp => {
+            let Some(tcp) = TcpPacket::new(ip.payload()) else {
+                tracing::debug!("DNS filter proxy: failed to parse TCP packet from IPv6");
+                return None;
+            };
+            let dst = tcp.get_destination();
+            if dst == DOT_PORT {
+                tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv6");
+                return Some(build_tcp_rst_v6(&ip, &tcp));
+            }
+            if dst != DNS_PORT {
+                return None;
+            }
+            tracing::debug!(
+                "Handle DNS query for tcp/[{}]:{}",
+                ip.get_destination(),
+                dst
+            );
+            let domain = blocked_domain(tcp.payload(), dns_filter).await?;
+            tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+            Some(build_tcp_rst_v6(&ip, &tcp))
         }
         _ => None,
     }
@@ -342,7 +354,7 @@ fn build_nxdomain_dns(query: &[u8]) -> Option<Vec<u8>> {
     }
 }
 
-fn build_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
+fn build_udp_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -> Vec<u8> {
     let ihl = orig_ip.get_header_length() as usize * 4;
     let udp_len = (UdpPacket::minimum_packet_size() + dns.len()) as u16;
     let total_len = ihl + UdpPacket::minimum_packet_size() + dns.len();
@@ -368,6 +380,67 @@ fn build_response_v4(orig_ip: &Ipv4Packet, orig_udp: &UdpPacket, dns: Vec<u8>) -
     }
 
     ip.set_checksum(ipv4::checksum(&ip.to_immutable()));
+
+    buf
+}
+
+fn build_tcp_rst_v4(orig_ip: &Ipv4Packet, orig_tcp: &TcpPacket) -> Vec<u8> {
+    let ihl = orig_ip.get_header_length() as usize * 4;
+    let total_len = ihl + TcpPacket::minimum_packet_size();
+    let mut buf = vec![0u8; total_len];
+
+    buf[..ihl].copy_from_slice(&orig_ip.packet()[..ihl]);
+
+    let mut ip = MutableIpv4Packet::new(&mut buf).expect("buf is large enough");
+    ip.set_source(orig_ip.get_destination());
+    ip.set_destination(orig_ip.get_source());
+    ip.set_total_length(total_len as u16);
+    ip.set_checksum(0);
+
+    {
+        let src = ip.get_source();
+        let dst = ip.get_destination();
+        let mut tcp = MutableTcpPacket::new(ip.payload_mut()).expect("buf is large enough");
+        tcp.set_source(orig_tcp.get_destination());
+        tcp.set_destination(orig_tcp.get_source());
+        tcp.set_window(0);
+        tcp.set_data_offset(5);
+        tcp.set_flags(TcpFlags::RST);
+        tcp.set_sequence(orig_tcp.get_acknowledgement());
+        tcp.set_acknowledgement(0);
+        tcp.set_checksum(tcp::ipv4_checksum(&tcp.to_immutable(), &src, &dst));
+    }
+
+    ip.set_checksum(ipv4::checksum(&ip.to_immutable()));
+
+    buf
+}
+
+fn build_tcp_rst_v6(orig_ip: &Ipv6Packet, orig_tcp: &TcpPacket) -> Vec<u8> {
+    let tcp_len = TcpPacket::minimum_packet_size() as u16;
+    let total_len = IPV6_HEADER_LEN + TcpPacket::minimum_packet_size();
+    let mut buf = vec![0u8; total_len];
+
+    buf[..IPV6_HEADER_LEN].copy_from_slice(&orig_ip.packet()[..IPV6_HEADER_LEN]);
+
+    let mut ip = MutableIpv6Packet::new(&mut buf).expect("buf is large enough");
+    ip.set_source(orig_ip.get_destination());
+    ip.set_destination(orig_ip.get_source());
+    ip.set_payload_length(tcp_len);
+
+    {
+        let src = ip.get_source();
+        let dst = ip.get_destination();
+        let mut tcp = MutableTcpPacket::new(ip.payload_mut()).expect("buf is large enough");
+        tcp.set_source(orig_tcp.get_destination());
+        tcp.set_destination(orig_tcp.get_source());
+        tcp.set_window(0);
+        tcp.set_data_offset(5);
+        tcp.set_flags(TcpFlags::RST);
+        tcp.set_sequence(orig_tcp.get_acknowledgement());
+        tcp.set_acknowledgement(0);
+        tcp.set_checksum(tcp::ipv6_checksum(&tcp.to_immutable(), &src, &dst));
+    }
 
     buf
 }
