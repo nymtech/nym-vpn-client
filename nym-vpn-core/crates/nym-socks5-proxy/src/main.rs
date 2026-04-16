@@ -1,6 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod default_addrs;
 mod proxy;
 mod routing;
 
@@ -8,21 +9,22 @@ mod routing;
 mod windows_bind;
 
 use std::{
-    fs::{File, create_dir_all},
-    io::{Write, stdout},
+    fs::{create_dir_all, File},
+    io::{stdout, Write},
     mem::discriminant,
-    net::IpAddr,
     path::Path,
 };
 
 use anyhow::{Context, Result};
-use nym_socks5_proxy_ipc::{DaemonMessage, ErrorData, ProxyConfig, ProxyMessage};
+use nym_socks5_proxy_ipc::{
+    DaemonMessage, ErrorData, InterfaceAddresses, ProxyConfig, ProxyMessage,
+};
 use tokio::{
-    io::{AsyncBufReadExt, BufReader, stdin},
+    io::{stdin, AsyncBufReadExt, BufReader},
     sync::watch,
 };
 use tokio_util::sync::CancellationToken;
-use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -41,11 +43,11 @@ async fn main() -> Result<()> {
         }
     };
 
-    // Shared default interface address
-    let (default_addr_tx, default_addr_rx) = watch::channel::<Option<IpAddr>>(config.default_addr);
+    // Monitor `nym-routing` for default internet address changes.
+    let default_addr_rx = default_addrs::start_monitor().await;
 
-    // Shared VPN tunnel address
-    let (tunnel_addr_tx, tunnel_addr_rx) = watch::channel::<Option<IpAddr>>(None);
+    // Shared VPN tunnel addressese
+    let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());
 
     let proxy_dir = config.data_dir.join("nym-socks5-proxy");
     if let Err(err) = create_dir_all(&proxy_dir).with_context(|| {
@@ -70,7 +72,7 @@ async fn main() -> Result<()> {
         config,
         &proxy_dir,
         default_addr_rx,
-        tunnel_addr_rx,
+        tunnel_addrs_rx,
         shutdown_token.clone(),
     )
     .await
@@ -91,7 +93,7 @@ async fn main() -> Result<()> {
             result = lines.next_line() => {
                 match result {
                     Ok(Some(line)) if !line.trim().is_empty() => {
-                        handle_daemon_message(&line, &tunnel_addr_tx, &default_addr_tx, &shutdown_token);
+                        handle_daemon_message(&line, &tunnel_addrs_tx, &shutdown_token);
                     }
                     Ok(Some(_)) => {} // blank line — ignore
                     Ok(None) => {
@@ -147,8 +149,7 @@ async fn read_initial_config(
 
 fn handle_daemon_message(
     line: &str,
-    tunnel_addr_tx: &watch::Sender<Option<IpAddr>>,
-    default_iface_tx: &watch::Sender<Option<IpAddr>>,
+    tunnel_addrs_tx: &watch::Sender<InterfaceAddresses>,
     shutdown_token: &CancellationToken,
 ) {
     match line.parse::<DaemonMessage>() {
@@ -156,19 +157,9 @@ fn handle_daemon_message(
             tracing::warn!("Received unexpected duplicate Configure message; ignoring");
             send_error_message("Unexpected Configure message");
         }
-        Ok(DaemonMessage::VpnConnected(data)) => {
-            tracing::info!("VPN tunnel connected with address {}", data.tunnel_addr);
-            let _ = tunnel_addr_tx.send(Some(data.tunnel_addr));
-            send_message(&ProxyMessage::Ack);
-        }
-        Ok(DaemonMessage::VpnDisconnected) => {
-            tracing::info!("VPN tunnel disconnected; reverting to default routing");
-            let _ = tunnel_addr_tx.send(None);
-            send_message(&ProxyMessage::Ack);
-        }
-        Ok(DaemonMessage::DefaultAddrChanged(ip)) => {
-            tracing::info!("Default interface address changed to {ip:?}");
-            let _ = default_iface_tx.send(ip);
+        Ok(DaemonMessage::SetTunnelAddresses(tunnel_addrs)) => {
+            tracing::info!("VPN tunnel addresses changed: {tunnel_addrs:?}");
+            let _ = tunnel_addrs_tx.send(tunnel_addrs);
             send_message(&ProxyMessage::Ack);
         }
         Ok(DaemonMessage::Terminate) => {
@@ -195,7 +186,7 @@ fn send_error_message(msg: &str) {
 fn install_signal_handlers(shutdown_token: CancellationToken) {
     #[cfg(unix)]
     tokio::spawn(async move {
-        use tokio::signal::unix::{SignalKind, signal};
+        use tokio::signal::unix::{signal, SignalKind};
         let mut sigterm =
             signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
         let mut sigint = signal(SignalKind::interrupt()).expect("failed to install SIGINT handler");

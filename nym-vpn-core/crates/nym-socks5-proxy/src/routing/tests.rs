@@ -1,15 +1,15 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{collections::HashMap, net::IpAddr};
-
-use ipnet::{Ipv4Net, Ipv6Net};
+use std::collections::HashMap;
 
 use super::{
     CountryGeoData, CountryIpSet, GeoIpDatabase, Ipv4RangeSet, Ipv6RangeSet, RoutingDecision,
     decompress, embedded_geoip_gz, parse_ipv4_cidrs, parse_ipv6_cidrs,
 };
 use crate::routing::decide_route;
+use ipnet::{Ipv4Net, Ipv6Net};
+use nym_socks5_proxy_ipc::InterfaceAddresses;
 
 fn make_v4_set(cidrs: &[&str]) -> Ipv4RangeSet {
     let nets = cidrs.iter().map(|s| s.parse::<Ipv4Net>().unwrap());
@@ -108,7 +108,11 @@ fn decide_route_no_tunnel() {
         excluded_countries: HashMap::new(),
     };
     assert_eq!(
-        decide_route("1.0.1.1".parse().unwrap(), None, &db),
+        decide_route(
+            "1.0.1.1".parse().unwrap(),
+            &InterfaceAddresses::default(),
+            &db
+        ),
         RoutingDecision::DefaultInterface,
     );
 }
@@ -125,17 +129,20 @@ fn decide_route_excluded_country() {
         excluded_countries: countries,
     };
 
-    let tunnel: IpAddr = "10.0.0.1".parse().unwrap();
+    let tunnel_addrs = InterfaceAddresses {
+        v4_addr: Some("10.0.0.1".parse().unwrap()),
+        v6_addr: None,
+    };
 
     // Chinese IP → bypass tunnel.
     assert_eq!(
-        decide_route("1.0.1.1".parse().unwrap(), Some(tunnel), &db),
+        decide_route("1.0.1.1".parse().unwrap(), &tunnel_addrs, &db),
         RoutingDecision::DefaultInterface,
     );
 
     // Non-Chinese IP → use tunnel.
     assert_eq!(
-        decide_route("8.8.8.8".parse().unwrap(), Some(tunnel), &db),
+        decide_route("8.8.8.8".parse().unwrap(), &tunnel_addrs, &db),
         RoutingDecision::VpnTunnelInterface,
     );
 }

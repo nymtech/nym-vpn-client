@@ -39,11 +39,10 @@ impl DisconnectedState {
 
         shared_state.allow_networking().await;
 
-        // Notify the SOCKS5 proxy subprocess that the VPN tunnel is down so it can
-        // revert to default routing.
+        // Notify the SOCKS5 proxy subprocess that the VPN tunnel is down
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
-            shared_state.notify_socks5_proxy_disconnected();
+            shared_state.set_socks5_proxy_tunnel_addrs(None, None);
         }
 
         (Box::new(Self), PrivateTunnelState::Disconnected)

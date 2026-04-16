@@ -461,6 +461,13 @@ impl ConnectingState {
             return self.disconnect(after_disconnect, shared_state).await;
         }
 
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
+            let (tunnel_v4_addr, tunnel_v6_addr) =
+                tunnel_interface.exit_tunnel_metadata().get_addresses();
+            shared_state.set_socks5_proxy_tunnel_addrs(tunnel_v4_addr, tunnel_v6_addr);
+        }
+
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
         let _ = tunnel_interface; // Avoid "unused" warning
 

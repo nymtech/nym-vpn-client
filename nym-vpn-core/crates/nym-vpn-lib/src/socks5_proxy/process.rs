@@ -1,9 +1,9 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{env, net::IpAddr, path::PathBuf, process::Stdio, time::Duration};
+use std::{env, path::PathBuf, process::Stdio, time::Duration};
 
-use nym_socks5_proxy_ipc::{DaemonMessage, ProxyConfig, ProxyMessage, VpnConnectedData};
+use nym_socks5_proxy_ipc::{DaemonMessage, InterfaceAddresses, ProxyConfig, ProxyMessage};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
     process::{Child, Command},
@@ -27,30 +27,13 @@ pub struct Socks5ProcessHandle {
 }
 
 impl Socks5ProcessHandle {
-    pub fn notify_vpn_connected(&self, tunnel_addr: IpAddr) {
-        let msg = DaemonMessage::VpnConnected(VpnConnectedData { tunnel_addr });
+    pub fn set_tunnel_addrs(&self, tunnel_addrs: InterfaceAddresses) {
+        let msg = DaemonMessage::SetTunnelAddresses(tunnel_addrs);
         if self.msg_tx.send(msg).is_err() {
-            tracing::warn!("could not send VpnConnected to proxy: channel closed");
+            tracing::warn!("could not send SetTunnnelAddresses to proxy: channel closed");
         }
     }
 
-    pub fn notify_vpn_disconnected(&self) {
-        if self.msg_tx.send(DaemonMessage::VpnDisconnected).is_err() {
-            tracing::warn!("could not send VpnDisconnected to proxy: channel closed");
-        }
-    }
-
-    pub fn notify_default_addr_changed(&self, ip: Option<IpAddr>) {
-        if self
-            .msg_tx
-            .send(DaemonMessage::DefaultAddrChanged(ip))
-            .is_err()
-        {
-            tracing::warn!("could not send DefaultAddrChanged to proxy: channel closed");
-        }
-    }
-
-    /// Gracefully shut down the proxy process.
     pub fn shutdown(&self) {
         self.shutdown_token.cancel();
     }
