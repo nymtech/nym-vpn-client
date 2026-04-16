@@ -4,11 +4,11 @@
 use std::collections::HashMap;
 
 use super::{
-    RoutingDecision, decide_route_for_addrs,
+    RoutingDecision, decide_route_for_addrs, decompress_gz,
     domain::DomainSet,
     ip::{
-        CountryGeoData, CountryIpSet, GeoIpDatabase, Ipv4RangeSet, Ipv6RangeSet, decompress_gz,
-        embedded_geoip_gz, parse_ipv4_cidrs, parse_ipv6_cidrs,
+        CountryGeoData, CountryIpSet, GeoIpDatabase, Ipv4RangeSet, Ipv6RangeSet, embedded_geoip_gz,
+        parse_ipv4_cidrs, parse_ipv6_cidrs,
     },
 };
 use ipnet::{Ipv4Net, Ipv6Net};

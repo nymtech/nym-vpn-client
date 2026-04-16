@@ -9,22 +9,15 @@
 
 use std::{
     collections::HashMap,
-    io::Cursor,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     path::Path,
 };
 
 use anyhow::{Context, Result};
-use async_compression::tokio::bufread::GzipDecoder;
 use ipnet::{Ipv4Net, Ipv6Net};
 use serde::Deserialize;
-use tokio::io::AsyncReadExt;
 
 static EMBEDDED_GEOIP: &[(&str, &[u8])] = &[("CN", include_bytes!("../../builtin/CN-ip.json.gz"))];
-
-// ---------------------------------------------------------------------------
-// Public types
-// ---------------------------------------------------------------------------
 
 pub struct GeoIpDatabase {
     pub(super) excluded_countries: HashMap<String, CountryIpSet>,
@@ -66,10 +59,6 @@ impl GeoIpDatabase {
         self.excluded_countries.values().any(|set| set.contains(ip))
     }
 }
-
-// ---------------------------------------------------------------------------
-// Internal range sets (pub(super) so tests.rs can reach them)
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Default)]
 pub(super) struct Ipv4RangeSet {
@@ -152,10 +141,6 @@ impl CountryIpSet {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Merge helpers
-// ---------------------------------------------------------------------------
-
 fn merge_v4(sorted: Vec<(u32, u32)>) -> Vec<(u32, u32)> {
     let mut out: Vec<(u32, u32)> = Vec::with_capacity(sorted.len());
     for (start, end) in sorted {
@@ -177,10 +162,6 @@ fn merge_v6(sorted: Vec<(u128, u128)>) -> Vec<(u128, u128)> {
     }
     out
 }
-
-// ---------------------------------------------------------------------------
-// Loading
-// ---------------------------------------------------------------------------
 
 #[derive(Deserialize)]
 pub(super) struct CountryGeoData {
@@ -225,7 +206,7 @@ async fn load_country_geo_data(country_code: &str, data_dir: &Path) -> Result<Co
         }
     };
 
-    let json = decompress_gz(&gz_bytes)
+    let json = super::decompress_gz(&gz_bytes)
         .await
         .context("Failed to decompress GeoIP data")?;
     serde_json::from_str(&json)
@@ -237,16 +218,6 @@ pub(super) fn embedded_geoip_gz(country_code: &str) -> Option<&'static [u8]> {
         .iter()
         .find(|&&(cc, _)| cc == country_code)
         .map(|&(_, data)| data)
-}
-
-pub(super) async fn decompress_gz(gz_bytes: &[u8]) -> Result<String> {
-    let mut decoder = GzipDecoder::new(Cursor::new(gz_bytes));
-    let mut out = Vec::new();
-    decoder
-        .read_to_end(&mut out)
-        .await
-        .context("Gzip decompression failed")?;
-    String::from_utf8(out).context("Decompressed data is not valid UTF-8")
 }
 
 pub(super) fn parse_ipv4_cidrs(cidrs: &[String]) -> Result<Ipv4RangeSet> {
