@@ -71,7 +71,7 @@ else
 fi
 
 # 3) Build macOS (produces upload/mac/nym-vpnd if macOS.mk has vpnd targets)
-make -f macOS.mk libwg nym-setup nym-vpnd rpc-swift-package RELEASE="${RELEASE}"
+make -f macOS.mk libwg nym-setup nym-vpnd nym-socks5-proxy rpc-swift-package RELEASE="${RELEASE}"
 
 # 4) Copy NymVPNRpc (from nym-vpn-rpc-uniffi) → apple repo root
 RPC_SRC="${CORE_ROOT}/crates/nym-vpn-rpc-uniffi/NymVPNRpc"
@@ -93,8 +93,9 @@ else
   echo "[BuildCore] Skipping header flatten (Xcode ${XCODE_VER} < 26.4)"
 fi
 
-# 5) Copy the universal nym-vpnd → apple Daemon
+# 5) Copy the universal nym-vpnd and nym-socks5-proxy → apple Daemon
 VPND_SRC="${CORE_ROOT}/upload/mac/nym-vpnd"
+SOCKS5_PROXY_SRC="${CORE_ROOT}/upload/mac/nym-socks5-proxy"
 VPND_DEST_DIR="${APPLE_ROOT}/NymVPND"
 VPND_DEST="${VPND_DEST_DIR}/nym-vpnd"
 if [[ ! -f "${VPND_SRC}" ]]; then
@@ -102,9 +103,9 @@ if [[ ! -f "${VPND_SRC}" ]]; then
   exit 1
 fi
 mkdir -p "${VPND_DEST_DIR}"
-cp -f "${VPND_SRC}" "${VPND_DEST}"
+cp -f "${VPND_SRC}" "${SOCKS_PROXY_SRC}" "${VPND_DEST}"
 chmod +x "${VPND_DEST}"
-echo "[BuildCore] Copied nym-vpnd → ${VPND_DEST}"
+echo "[BuildCore] Copied nym-vpnd and nym-socks5-proxy → ${VPND_DEST}"
 
 # 6) Copy the universal nym-setup → apple Daemon
 NYM_SETUP_SRC="${CORE_ROOT}/upload/mac/nym-setup"
