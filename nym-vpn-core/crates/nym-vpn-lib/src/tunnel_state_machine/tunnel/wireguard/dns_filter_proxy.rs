@@ -139,7 +139,6 @@ async fn run_proxy(
                     Ok(0) => break,
                     Ok(n) => {
                         let packet = &tun_buf[..n];
-                        tracing::trace!("DNS proxy: received {} bytes from tun (first byte: {:#04x})", n, packet.first().copied().unwrap_or(0));
                         match maybe_nxdomain(packet, &dns_filter).await {
                             Some(response) => {
                                 if let Err(e) = tun_device.write_all(&response).await {
