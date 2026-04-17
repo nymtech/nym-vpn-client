@@ -49,7 +49,8 @@ extension HomeViewModel {
                             tunnelStatus: tunnel.status,
                             isOnline: self.networkMonitor.isAvailable,
                             retryAttempt: attempt,
-                            tunnelConnectingState: tunnel.tunnelConnectingState
+                            tunnelConnectingState: tunnel.tunnelConnectingState,
+                            subscriptionStatus: self.credentialsManager.accountSummary?.subscription?.status
                         )
                     )
                 }
@@ -66,7 +67,8 @@ extension HomeViewModel {
                             tunnelStatus: self.lastTunnelStatus,
                             isOnline: self.networkMonitor.isAvailable,
                             retryAttempt: self.connectionManager.connectionRetryAttempt,
-                            tunnelConnectingState: newState
+                            tunnelConnectingState: newState,
+                            subscriptionStatus: self.credentialsManager.accountSummary?.subscription?.status
                         )
                     )
                 }

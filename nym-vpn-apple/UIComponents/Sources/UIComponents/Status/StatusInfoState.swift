@@ -1,7 +1,9 @@
+import ConnectionTypes
 import Foundation
 import SwiftUI
 import Theme
 import TunnelStatus
+
 
 public enum StatusInfoState: Equatable {
     case initialising
@@ -17,7 +19,8 @@ public enum StatusInfoState: Equatable {
         tunnelStatus: TunnelStatus,
         isOnline: Bool,
         retryAttempt: Int?,
-        tunnelConnectingState: TunnelConnectingState?
+        tunnelConnectingState: TunnelConnectingState?,
+        subscriptionStatus: VpnSubscriptionStatus?
     ) {
         switch tunnelStatus {
         case .connected:
@@ -31,7 +34,7 @@ public enum StatusInfoState: Equatable {
         case .offlineReconnect:
             self = .noInternetReconnect
         case .error:
-            self = .error(message: " ")
+            self = .error(message: subscriptionStatus == .pending ? "confirmingPayment".localizedString : " ")
         }
     }
 

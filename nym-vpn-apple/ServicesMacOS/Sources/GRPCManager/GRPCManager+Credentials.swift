@@ -37,7 +37,7 @@ extension GRPCManager {
                 isLinked: summary.isLinked(),
                 isActive: summary.isSubscriptionActive(),
                 isAutoRenewEnabled: innerSub?.isRecurring ?? false,
-                subscriptionKind: innerSub.map { VpnSubscriptionKind(from: $0.kind) }
+                subscription: summary.subscription.map { Subscription(from: $0) }
             )
         }.value
     }

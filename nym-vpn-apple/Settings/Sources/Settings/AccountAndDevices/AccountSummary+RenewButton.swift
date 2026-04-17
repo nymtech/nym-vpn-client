@@ -2,7 +2,8 @@ import ConnectionTypes
 
 extension AccountSummary {
     func shouldShowRenewButton(isAutoRenew: Bool) -> Bool {
-        !isAutoRenew && (isExpiringSoon || !isActive)
+        let isPending = subscription?.status == .pending
+        return !isPending && !isAutoRenew && (isExpiringSoon || !isActive)
     }
 
     var renewButtonTitle: String {
