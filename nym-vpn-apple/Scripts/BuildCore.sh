@@ -103,7 +103,7 @@ if [[ ! -f "${VPND_SRC}" ]]; then
   exit 1
 fi
 mkdir -p "${VPND_DEST_DIR}"
-cp -f "${VPND_SRC}" "${SOCKS_PROXY_SRC}" "${VPND_DEST}"
+cp -f "${VPND_SRC}" "${SOCKS5_PROXY_SRC}" "${VPND_DEST}"
 chmod +x "${VPND_DEST}"
 echo "[BuildCore] Copied nym-vpnd and nym-socks5-proxy → ${VPND_DEST}"
 

@@ -32,20 +32,14 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use crate::socks5_proxy::find_proxy_binary;
 #[cfg(not(target_os = "ios"))]
 use crate::adblocker;
 #[cfg(target_os = "android")]
 use crate::dns_filter::DnsFilter;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::resolver;
-use crate::{
-    adblocker,
-    resolver::{self},
-    socks5_proxy::Socks5ProxyManager,
-};
-
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::socks5_proxy::Socks5ProxyManager;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::socks5_proxy::find_proxy_binary;
 
@@ -947,12 +941,6 @@ impl TunnelStateMachine {
         user_agent: UserAgent,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let Some(data_path) = nym_config.data_path.as_ref() else {
-            tracing::error!("Data path is required but not configured");
-            return Err(Error::DataPathUnavailable);
-        };
-
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let dns_handler_shutdown_token = CancellationToken::new();
 

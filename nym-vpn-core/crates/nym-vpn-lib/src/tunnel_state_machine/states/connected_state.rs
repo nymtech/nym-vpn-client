@@ -120,14 +120,14 @@ impl ConnectedState {
             .await;
         }
 
-        #[cfg(any(target_os = "android", target_os = "ios"))]
+        #[cfg(target_os = "android")]
+        shared_state
+            .enable_ad_blocking(shared_state.tunnel_settings.enable_ad_blocking)
+            .await;
+
+        #[cfg(target_os = "ios")]
         let _ = shared_state; // Avoid unused variable warning
 
-        
-        #[cfg(target_os = "android")]
-        _shared_state
-            .enable_ad_blocking(_shared_state.tunnel_settings.enable_ad_blocking)
-            .await;
         (
             Box::new(connected_state),
             PrivateTunnelState::Connected { connection_data },
