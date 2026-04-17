@@ -249,6 +249,7 @@
 	<string name="settings_lewes_title">Enable Lewes Protocol</string>
 	<string name="settings_lewes_on_description">Always prefer post-quantum gateways</string>
 	<string name="settings_lewes_off_description">No post-quantum gateway preference</string>
+	<string name="settings_ad_blocking_title">Ad blocking</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
 	<string name="shortcut_title">Confirm action</string>

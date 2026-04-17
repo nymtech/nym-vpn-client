@@ -78,6 +78,7 @@ fun SettingsScreen(appUiState: AppUiState, showVpnSettings: Boolean = false, vie
 			isMnemonicStored = appUiState.managerState.isMnemonicStored,
 			autoConnectEnabled = appUiState.settings.autoStartEnabled,
 			bypassLanEnabled = appUiState.vpnConfig.bypassLan,
+			adBlockingEnabled = appUiState.vpnConfig.adBlockingEnabled,
 			supportIPv6Enabled = false,
 			autoselectServerEnabled = false,
 			appShortcutsEnabled = appUiState.settings.isShortcutsEnabled,
@@ -121,6 +122,7 @@ fun SettingsScreen(appUiState: AppUiState, showVpnSettings: Boolean = false, vie
 			},
 			onAutoConnectEnable = { viewModel.onAutoConnectSelected(it) },
 			onBypassLanEnable = { viewModel.onBypassLanSelected(it) },
+			onAdBlockingEnable = { viewModel.onAdBlockingSelected(it) },
 			onSupportIPv6Enable = {
 			},
 			onAutoselectServerEnable = {

@@ -71,6 +71,14 @@ class SettingsViewModel @Inject constructor(
 		}
 	}
 
+	fun onAdBlockingSelected(selected: Boolean) = viewModelScope.launch {
+		runCatching {
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetAdBlockingEnabled(selected))
+		}.onFailure {
+			Timber.e(it, "Failed to update ad blocking setting")
+		}
+	}
+
 	private fun notifyReconnectIfConnected() {
 		val state = backendManager.getState()
 		val isConnected = state == Tunnel.State.Up || state == Tunnel.State.EstablishingConnection

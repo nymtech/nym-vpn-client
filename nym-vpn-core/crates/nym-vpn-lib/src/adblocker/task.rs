@@ -4,7 +4,7 @@
 use super::{AdBlocker, AdBlockerError, Result};
 use crate::{
     adblocker::files::{init_and_load_filter_set, update_and_load_filter_set},
-    resolver::DnsFilter,
+    dns_filter::DnsFilter,
 };
 use adblock::FilterSet;
 use std::{
@@ -218,6 +218,7 @@ impl AdBlockerTask {
             .downcast_mut::<AdBlocker>()
             .expect("Failed to downcast to AdBlocker");
         adblocker.use_filter_set(filter_set).await;
+        #[cfg(not(target_os = "android"))]
         crate::resolver::flush_system_cache();
     }
 
@@ -228,6 +229,7 @@ impl AdBlockerTask {
             .downcast_mut::<AdBlocker>()
             .expect("Failed to downcast to AdBlocker");
         adblocker.clear_filter_set().await;
+        #[cfg(not(target_os = "android"))]
         crate::resolver::flush_system_cache();
     }
 }

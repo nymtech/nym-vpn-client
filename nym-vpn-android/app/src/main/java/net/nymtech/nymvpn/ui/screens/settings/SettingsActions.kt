@@ -13,6 +13,7 @@ data class SettingsActions(
 	val onSplitTunnelingClick: () -> Unit = {},
 	val onAutoConnectEnable: (enabled: Boolean) -> Unit = {},
 	val onBypassLanEnable: (enabled: Boolean) -> Unit = {},
+	val onAdBlockingEnable: (enabled: Boolean) -> Unit = {},
 	val onSupportIPv6Enable: (enabled: Boolean) -> Unit = {},
 	val onAutoselectServerEnable: (enabled: Boolean) -> Unit = {},
 	val onLewesEnable: (enabled: Boolean) -> Unit = {},

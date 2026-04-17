@@ -33,9 +33,13 @@ use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
 #[cfg(target_os = "android")]
+use crate::dns_filter::DnsFilter;
+#[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(windows)]
 use crate::tunnel_state_machine::route_handler::RouteHandler;
+#[cfg(target_os = "android")]
+use crate::tunnel_state_machine::tunnel::wireguard::dns_filter_proxy::DnsFilterProxy;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution;
 #[cfg(unix)]
@@ -332,16 +336,46 @@ impl ConnectedTunnel {
             tunnel_constants.in_tunnel_bandwidth_metadata_endpoint,
         )?;
 
-        #[allow(unused_mut)]
-        let mut exit_tunnel = wireguard_go::Tunnel::start(
-            two_hop_config.exit.into_wireguard_config(),
-            #[cfg(unix)]
+        let shutdown_token = CancellationToken::new();
+
+        #[cfg(target_os = "android")]
+        let (wg_exit_fd, proxy_join_handle, android_tombstone_tun) = if let Some(dns_filter) =
+            options.dns_filter
+        {
+            let proxy =
+                DnsFilterProxy::start(options.exit_tun, dns_filter, shutdown_token.child_token())
+                    .map_err(Error::CreateDnsFilterProxy)?;
+            (proxy.wg_fd, Some(proxy.join_handle), None)
+        } else {
+            let fd = options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?;
+            (fd, None, Some(options.exit_tun))
+        };
+
+        #[cfg(all(unix, not(target_os = "android")))]
+        let (wg_exit_fd, tombstone_exit_tun) = (
             options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?,
-            #[cfg(windows)]
+            options.exit_tun,
+        );
+
+        let exit_wg_config = two_hop_config.exit.into_wireguard_config();
+
+        #[cfg(target_os = "android")]
+        #[allow(unused_mut)]
+        let mut exit_tunnel = if proxy_join_handle.is_some() {
+            wireguard_go::Tunnel::start_with_proxy_fd(exit_wg_config, wg_exit_fd)?
+        } else {
+            wireguard_go::Tunnel::start(exit_wg_config, wg_exit_fd)?
+        };
+
+        #[cfg(all(unix, not(target_os = "android")))]
+        #[allow(unused_mut)]
+        let mut exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, wg_exit_fd)?;
+
+        #[cfg(windows)]
+        let exit_tunnel = wireguard_go::Tunnel::start(
+            exit_wg_config,
             &options.exit_tun_name,
-            #[cfg(windows)]
             &options.exit_tun_guid,
-            #[cfg(windows)]
             &options.wintun_tunnel_type,
         )?;
 
@@ -353,12 +387,10 @@ impl ConnectedTunnel {
             tracing::warn!("Failed to send metadata proxy address")
         }
 
-        let shutdown_token = CancellationToken::new();
-        let child_shutdown_token = shutdown_token.child_token();
-
         #[cfg(windows)]
         let wintun_exit_interface = exit_tunnel.wintun_interface().clone();
 
+        let child_shutdown_token = shutdown_token.child_token();
         let event_handler_task = tokio::spawn(async move {
             #[cfg(windows)]
             {
@@ -451,11 +483,22 @@ impl ConnectedTunnel {
             entry_magic_bandwidth_tcp_proxy.close();
             exit_in_tunnel_udp_proxy.close();
 
+            #[cfg(target_os = "android")]
+            if let Some(handle) = proxy_join_handle {
+                if let Err(e) = handle.await {
+                    tracing::error!("DNS filter proxy task panicked: {e}");
+                }
+            }
+
+            #[cfg(all(not(windows), not(target_os = "android")))]
+            let tun_devices = vec![tombstone_exit_tun];
+            #[cfg(target_os = "android")]
+            let tun_devices: Vec<_> = android_tombstone_tun.into_iter().collect();
+            #[cfg(windows)]
+            let tun_devices = vec![];
+
             Tombstone {
-                tun_devices: vec![
-                    #[cfg(not(windows))]
-                    options.exit_tun,
-                ],
+                tun_devices,
                 #[cfg(windows)]
                 wg_instances: vec![exit_tunnel],
             }
@@ -585,6 +628,10 @@ pub struct NetstackTunnelOptions {
 
     /// In-tunnel DNS addresses
     pub dns: Vec<IpAddr>,
+
+    /// DNS filter for ad-blocking (Android only).
+    #[cfg(target_os = "android")]
+    pub dns_filter: Option<DnsFilter>,
 }
 
 pub struct TunnelHandle {

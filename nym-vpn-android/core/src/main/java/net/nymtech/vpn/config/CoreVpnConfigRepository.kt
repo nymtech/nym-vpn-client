@@ -30,6 +30,7 @@ class CoreVpnConfigRepository(context: Context) {
 					is CoreVpnConfigUpdate.SetDebugLog -> acc.copy(debugLog = update.value)
 					is CoreVpnConfigUpdate.SetSentry -> acc.copy(sentry = update.value)
 					is CoreVpnConfigUpdate.SetLewes -> acc.copy(lewes = update.value)
+					is CoreVpnConfigUpdate.SetAdBlockingEnabled -> acc.copy(adBlockingEnabled = update.value)
 				}
 			}
 		}
