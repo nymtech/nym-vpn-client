@@ -54,33 +54,40 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 @Composable
 fun SubscriptionSection(subscriptionState: SubscriptionUiState?, bandwidthState: BandwidthUiState?, onSelectPlanClick: () -> Unit, onRenewClick: () -> Unit, onContactSupportClick: () -> Unit) {
 	Column(modifier = Modifier.fillMaxWidth()) {
-		if (subscriptionState == null || subscriptionState?.expiryState == ExpiryState.EXPIRED) {
-			MainStyledButton(
-				onClick = onSelectPlanClick,
-				content = {
-					Text(
-						stringResource(R.string.select_plan_button),
-						style = CustomTypography.buttonMain,
-					)
-				},
-				color = MaterialTheme.colorScheme.primary,
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(56.dp.scaledHeight()),
-			)
-
-			Spacer(modifier = Modifier.height(16.dp))
-			ExpiredCard()
-		} else {
-			if (bandwidthState != null) {
-				SubscriptionCard(
-					subscription = subscriptionState,
-					bandwidth = bandwidthState,
-					onRenewClick = onRenewClick,
+		when {
+			subscriptionState == null || subscriptionState.expiryState == ExpiryState.EXPIRED -> {
+				MainStyledButton(
+					onClick = onSelectPlanClick,
+					content = {
+						Text(
+							stringResource(R.string.select_plan_button),
+							style = CustomTypography.buttonMain,
+						)
+					},
+					color = MaterialTheme.colorScheme.primary,
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(56.dp.scaledHeight()),
 				)
 
 				Spacer(modifier = Modifier.height(16.dp))
-				ContactSupportText(onClick = onContactSupportClick)
+				ExpiredCard()
+			}
+
+			subscriptionState?.expiryState == ExpiryState.PENDING -> {
+				ExpiredCard()
+			}
+			else -> {
+				if (bandwidthState != null) {
+					SubscriptionCard(
+						subscription = subscriptionState,
+						bandwidth = bandwidthState,
+						onRenewClick = onRenewClick,
+					)
+
+					Spacer(modifier = Modifier.height(16.dp))
+					ContactSupportText(onClick = onContactSupportClick)
+				}
 			}
 		}
 	}
@@ -280,7 +287,7 @@ private fun PreviewAccountStatusNormal() {
 					subscriptionState = SubscriptionUiState(
 						isRecurring = true,
 						validUntilDate = "December 24, 2026",
-						expiryState = ExpiryState.NORMAL,
+						expiryState = ExpiryState.PENDING,
 					),
 					bandwidthState = BandwidthUiState(
 						consumedGb = 800f,

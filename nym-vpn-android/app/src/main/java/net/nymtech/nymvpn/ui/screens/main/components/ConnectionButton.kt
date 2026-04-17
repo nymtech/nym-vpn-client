@@ -77,7 +77,7 @@ fun ConnectionButton(
 				val isSubscriptionError = connectionState.reason is ErrorStateReason.InactiveSubscription ||
 					connectionState.reason is ErrorStateReason.InactiveAccount
 
-				if (isSubscriptionError && accountState != AccountControllerState.Syncing) {
+				if (isSubscriptionError && accountState != AccountControllerState.Syncing && accountState != AccountControllerState.PendingSubscription) {
 					if (isVpnAlwaysOn(context)) {
 						MainStyledButton(
 							onClick = onStopKillSwitch,

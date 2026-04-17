@@ -35,6 +35,11 @@ fun SubscriptionStatusText(subscription: SubscriptionUiState?, modifier: Modifie
 			text = stringResource(R.string.account_info_no_plan)
 		}
 
+		ExpiryState.PENDING -> {
+			color = CustomColors.error
+			text = stringResource(R.string.account_info_confirming_payment)
+		}
+
 		else -> {
 			color = CustomColors.error
 			text = stringResource(R.string.account_info_no_plan)
@@ -53,6 +58,7 @@ enum class ExpiryState {
 	WARNING_YELLOW,
 	WARNING_AMBER,
 	EXPIRED,
+	PENDING,
 }
 
 data class SubscriptionUiState(val isRecurring: Boolean, val validUntilDate: String, val expiryState: ExpiryState = ExpiryState.NORMAL)
