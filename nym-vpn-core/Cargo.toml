@@ -48,6 +48,7 @@ default-members = [
     "crates/nym-diagnostic",
     "crates/nym-exclude",
     "crates/nym-setup",
+    "crates/nym-socks5-proxy",
     "crates/nym-vpnc",
     "crates/nym-vpnd",
     "crates/uniffi-bindgen",

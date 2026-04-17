@@ -219,7 +219,7 @@ cd nym-vpn-core/
 cargo build -p nym-vpnd -p nym-socks5-proxy --release
 
 # build all
-cargo build --all --release
+cargo build --release
 ```
 
 ### iOS (macOS host)
