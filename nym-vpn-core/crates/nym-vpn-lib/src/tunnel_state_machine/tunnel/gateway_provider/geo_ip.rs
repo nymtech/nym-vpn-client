@@ -66,7 +66,7 @@ impl GeoIpProvider {
                 .latest_geo_ip()
                 .await
                 .inspect_err(|err| tracing::warn!("Failed to query VPN API: {err:?}"))
-                .map(|ret| ret.location.into())
+                .map(|ret| ret.into())
                 .ok()
         } else {
             None
@@ -80,7 +80,7 @@ impl GeoIpProvider {
 
     pub(crate) async fn update(&mut self) -> Result<(), VpnApiClientError> {
         if self.active.load(std::sync::atomic::Ordering::SeqCst) {
-            self.latest_location = Some(self.client.latest_geo_ip().await?.location.into());
+            self.latest_location = Some(self.client.latest_geo_ip().await?.into());
         }
         Ok(())
     }
@@ -93,7 +93,6 @@ impl GeoIpProvider {
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use nym_vpn_api_client::response::Location as LocationResponse;
 
     #[derive(Clone)]
     pub struct MockGeoIpClient {}
@@ -109,19 +108,19 @@ pub mod tests {
         async fn latest_geo_ip(&self) -> Result<NymUserGeoIpLocationResponse, VpnApiClientError> {
             Ok(NymUserGeoIpLocationResponse {
                 ip: "127.0.0.1".to_string(),
-                // latitude: 0f64,
-                // longitude: 0f64,
-                // iso_country_code: "XX".to_string(),
-                // city: "Mixnode".to_string(),
-                // region: "Mixnet".to_string(),
-                location: LocationResponse {
-                    two_letter_iso_country_code: "XX".to_string(),
-                    latitude: 0f64,
-                    longitude: 0f64,
-                    city: "Mixnode".to_string(),
-                    region: "Mixnet".to_string(),
-                    asn: None,
-                },
+                latitude: 0f64,
+                longitude: 0f64,
+                iso_country_code: "XX".to_string(),
+                city: "Mixnode".to_string(),
+                region: "Mixnet".to_string(),
+                // location: LocationResponse {
+                //     two_letter_iso_country_code: "XX".to_string(),
+                //     latitude: 0f64,
+                //     longitude: 0f64,
+                //     city: "Mixnode".to_string(),
+                //     region: "Mixnet".to_string(),
+                //     asn: None,
+                // },
             })
         }
     }

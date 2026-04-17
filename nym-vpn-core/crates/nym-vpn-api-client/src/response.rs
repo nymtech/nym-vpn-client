@@ -828,13 +828,13 @@ pub struct NymWellknownDiscoveryItem {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymUserGeoIpLocationResponse {
     pub ip: String,
-    pub location: Location,
+    // pub location: Location,
     // Current format, but should be changed soon:
-    // pub latitude: f64,
-    // pub longitude: f64,
-    // pub iso_country_code: String,
-    // pub city: String,
-    // pub region: String,
+    pub latitude: f64,
+    pub longitude: f64,
+    pub iso_country_code: String,
+    pub city: String,
+    pub region: String,
 }
 
 pub type RegisteredNetworksResponse = HashSet<String>;

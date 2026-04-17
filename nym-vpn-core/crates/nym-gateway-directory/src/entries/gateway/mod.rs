@@ -482,6 +482,19 @@ impl From<nym_vpn_api_client::response::Location> for Location {
     }
 }
 
+impl From<nym_vpn_api_client::response::NymUserGeoIpLocationResponse> for Location {
+    fn from(response: nym_vpn_api_client::response::NymUserGeoIpLocationResponse) -> Self {
+        Location {
+            two_letter_iso_country_code: response.iso_country_code,
+            latitude: response.latitude,
+            longitude: response.longitude,
+            city: response.city,
+            region: response.region,
+            asn: None,
+        }
+    }
+}
+
 impl From<nym_vpn_api_client::response::ScoreValue> for ScoreValue {
     fn from(value: nym_vpn_api_client::response::ScoreValue) -> Self {
         match value {
