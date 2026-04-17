@@ -6257,6 +6257,8 @@ dependencies = [
  "fast-socks5",
  "ipnet",
  "iprange",
+ "libc",
+ "nym-firewall-config",
  "nym-routing",
  "nym-socks5-proxy-ipc",
  "nym-windows",
