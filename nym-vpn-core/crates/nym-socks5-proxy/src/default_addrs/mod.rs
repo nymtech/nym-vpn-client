@@ -19,6 +19,6 @@ pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
     #[cfg(target_os = "linux")]
     {
         let (_, rx) = watch::channel(InterfaceAddresses::default());
-        return rx;
+        rx
     }
 }

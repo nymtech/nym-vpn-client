@@ -44,3 +44,6 @@ windows-sys = { workspace = true, features = [
     "Win32_Networking_WinSock",
 ] }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+libc.workspace = true
+nym-firewall-config.workspace = true

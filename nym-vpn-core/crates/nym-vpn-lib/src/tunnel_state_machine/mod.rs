@@ -38,7 +38,7 @@ use crate::adblocker;
 use crate::dns_filter::DnsFilter;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::resolver;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::socks5_proxy::Socks5ProxyManager;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::socks5_proxy::find_proxy_binary;
@@ -725,7 +725,9 @@ impl SharedState {
 
     /// Set which applications matching the given paths should be excluded from the tunnel
     ///
-    /// Return whether a split tunnel interface was added or removed
+    /// On Linux paths aren't used to exclude applications from the tunnel.
+    ///
+    /// Return whether a split tunnel interface was added or removed.
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     pub async fn set_split_tunnel_exclude_paths(
         &mut self,

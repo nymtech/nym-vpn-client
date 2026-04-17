@@ -14,6 +14,9 @@ use crate::routing::{
 #[cfg(target_os = "windows")]
 use super::windows_bind::bind_by_interface_index;
 
+#[cfg(target_os = "linux")]
+use super::linux_bind::set_socket_mark;
+
 use nym_socks5_proxy_ipc::{InterfaceAddresses, ProxyConfig};
 
 use anyhow::{Context, Result};
@@ -234,6 +237,12 @@ fn bind_socket_for_routing(
     target: SocketAddr,
     bind_addrs: Option<&InterfaceAddresses>,
 ) {
+    #[cfg(target_os = "linux")]
+    if bind_addrs.is_some() {
+        // Caller wants us to use the default interface.
+        set_socket_mark(socket);
+    }
+
     // Resolve the per-family bind IP from the InterfaceAddresses (if any).
     let bind_addr: Option<IpAddr> = bind_addrs.and_then(|ia| match target {
         SocketAddr::V4(_) => ia.v4_addr.map(IpAddr::V4),
