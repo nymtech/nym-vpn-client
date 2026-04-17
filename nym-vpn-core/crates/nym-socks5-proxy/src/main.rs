@@ -5,6 +5,9 @@ mod default_addrs;
 mod proxy;
 mod routing;
 
+#[cfg(target_os = "linux")]
+mod linux_bind;
+
 #[cfg(target_os = "windows")]
 mod windows_bind;
 
