@@ -37,7 +37,7 @@ fun SubscriptionStatusText(subscription: SubscriptionUiState?, modifier: Modifie
 
 		ExpiryState.PENDING -> {
 			color = CustomColors.error
-			text = stringResource(R.string.confirming_payment)
+			text = stringResource(R.string.account_info_confirming_payment)
 		}
 
 		else -> {

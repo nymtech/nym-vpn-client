@@ -443,7 +443,7 @@
 	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*Auto-renews</string>
 	<string name="account_info_no_plan">No active plan</string>
-	<string name="confirming_payment">Confirming payment</string>
+	<string name="account_info_confirming_payment">Confirming payment</string>
 	<string name="account_info_updating">Updating account status…</string>
 	<string name="account_info_autologin_fetching">Fetching access code…</string>
 	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>

@@ -98,7 +98,7 @@ fun ConnectionStatus(
 
 		if (isPendingSubscription) {
 			StatusInfoLabel(
-				message = stringResource(R.string.confirming_payment),
+				message = stringResource(R.string.account_info_confirming_payment),
 				textColor = CustomColors.error,
 			)
 		} else {
