@@ -208,6 +208,7 @@
   },
   "faq": "FAQ",
   "display-theme": "Display mode",
+  "language-system": "System language",
   "logout-confirmation": {
     "title": "Log out of this device?",
     "description": "You’ll need your 24-word passphrase to sign in again.",
