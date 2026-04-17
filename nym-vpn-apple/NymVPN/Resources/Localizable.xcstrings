@@ -33694,7 +33694,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No post-quantum gateway preference"
+            "value" : "Always prefer post-quantum gateways"
           }
         }
       }
@@ -33705,7 +33705,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lewes protocol"
+            "value" : "Post-quantum"
           }
         }
       }
