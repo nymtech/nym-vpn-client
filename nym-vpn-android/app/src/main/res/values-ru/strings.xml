@@ -229,9 +229,7 @@
 	<string name="settings_language_help_description">Сделайте приложение лучше на вашем языке.</string>
 	<string name="settings_event_lan_reconnecting">Переподключение для применения настроек LAN…</string>
 	<string name="settings_lewes_title">Включить протокол Lewes</string>
-	<string name="settings_lewes_on_description">Всегда выбирать постквантовые шлюзы</string>
-	<string name="settings_lewes_off_description">Предпочтения постквантового шлюза не заданы</string>
-	<!-- Shortcuts activity -->
+    <!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Для использования горячих клавиш требуется блокировка экрана.</string>
 	<string name="shortcut_title">Подтвердите действие</string>
 	<string name="shortcut_subtitle_stop">Разблокируйте, чтобы отключить VPN</string>

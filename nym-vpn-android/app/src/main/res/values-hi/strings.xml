@@ -227,9 +227,7 @@
 	<string name="settings_language_help_description">अपनी भाषा में ऐप को बहतर बनाएँ।</string>
 	<string name="settings_event_lan_reconnecting">LAN सेटिंग्स लागू करने के लिए पुनः कनेक्ट किया जा रहा है…</string>
 	<string name="settings_lewes_title">Enable Lewes Protocol</string>
-	<string name="settings_lewes_on_description">Always prefer post-quantum gateways</string>
-	<string name="settings_lewes_off_description">No post-quantum gateway preference</string>
-	<!-- Shortcuts activity -->
+    <!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">शॉर्टकट का उपयोग करने के लिए स्क्रीन लॉक आवश्यक है।</string>
 	<string name="shortcut_title">कन्फ़र्म करें</string>
 	<string name="shortcut_subtitle_stop">VPN को डिस्कनेक्ट करने के लिए अनलॉक करें</string>
@@ -367,7 +365,7 @@
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है…</string>
 	<string name="account_payment_verifying">हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते</string>
-	<string name="account_payment_retrieving">आपके गुमनाम अकाउंट की प्रमाणीकरण 
+	<string name="account_payment_retrieving">आपके गुमनाम अकाउंट की प्रमाणीकरण
 जानकारी (zk-nyms) प्राप्त की जा रही है...</string>
 	<string name="account_payment_credentials">ये ज़ीरो-नॉलेज क्रेडेंशियल इस बात को साबित करते हैं कि आपके पास पहुँच है बिना यह बताये कि आप कौन हैं</string>
 	<string name="account_payment_saving">डिवाइस पर आपके zk-nyms सहेजे जा रहे हैं…</string>

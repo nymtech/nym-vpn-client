@@ -229,9 +229,7 @@
 	<string name="settings_language_help_description">Haz la aplicación mejor en tu idioma.</string>
 	<string name="settings_event_lan_reconnecting">Reconectando para aplicar los ajustes de LAN...</string>
 	<string name="settings_lewes_title">Habilitar Protocolo Lewes</string>
-	<string name="settings_lewes_on_description">Siempre prefiere pasarelas postcuánticas</string>
-	<string name="settings_lewes_off_description">Sin preferencia de puerta de enlace postcuántica</string>
-	<!-- Shortcuts activity -->
+    <!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bloqueo de pantalla necesario para usar accesos directos.</string>
 	<string name="shortcut_title">Confirmar acción</string>
 	<string name="shortcut_subtitle_stop">Desbloquear para desconectar VPN</string>

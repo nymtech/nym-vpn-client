@@ -227,9 +227,7 @@
 	<string name="settings_language_help_description">Tối ưu ứng dụng theo ngôn ngữ của bạn.</string>
 	<string name="settings_event_lan_reconnecting">Đang kết nối lại để áp dụng cài đặt mạng LAN...</string>
 	<string name="settings_lewes_title">Bật giao thức Lewes</string>
-	<string name="settings_lewes_on_description">Luôn ưu tiên các cổng hậu lượng tử</string>
-	<string name="settings_lewes_off_description">Không có ưu tiên cổng hậu lượng tử nào</string>
-	<!-- Shortcuts activity -->
+    <!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Cần khóa màn hình để sử dụng các phím tắt.</string>
 	<string name="shortcut_title">Xác nhận hành động</string>
 	<string name="shortcut_subtitle_stop">Mở khóa để ngắt kết nối VPN</string>

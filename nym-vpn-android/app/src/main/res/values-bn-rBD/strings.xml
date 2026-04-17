@@ -227,9 +227,7 @@
 	<string name="settings_language_help_description">আপনার ভাষায় অ্যাপটি আরও উন্নত করতে সাহায্য করুন.</string>
 	<string name="settings_event_lan_reconnecting">LAN সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
 	<string name="settings_lewes_title">Enable Lewes Protocol</string>
-	<string name="settings_lewes_on_description">Always prefer post-quantum gateways</string>
-	<string name="settings_lewes_off_description">No post-quantum gateway preference</string>
-	<!-- Shortcuts activity -->
+    <!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">শর্টকাট ব্যবহার করতে স্ক্রিন লক প্রয়োজন।</string>
 	<string name="shortcut_title">পদক্ষেপ নিশ্চিত করুন</string>
 	<string name="shortcut_subtitle_stop">VPN সংযোগ বিচ্ছিন্ন করতে আনলক করুন</string>

@@ -229,9 +229,7 @@
 	<string name="settings_language_help_description">Torne o app melhor em seu idioma.</string>
 	<string name="settings_event_lan_reconnecting">Reconectando para aplicar as configurações LAN...</string>
 	<string name="settings_lewes_title">Habilitar Protocolo de Lewes</string>
-	<string name="settings_lewes_on_description">Sempre preferir portais de post-quantum</string>
-	<string name="settings_lewes_off_description">Sem preferência de gateway post-quantum</string>
-	<!-- Shortcuts activity -->
+    <!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bloqueio de tela necessário para usar atalhos.</string>
 	<string name="shortcut_title">Confirmar ação</string>
 	<string name="shortcut_subtitle_stop">Desbloquear para desconectar a VPN</string>

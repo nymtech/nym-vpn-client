@@ -135,11 +135,10 @@ android {
 
 		create(Constants.PRERELEASE) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
-			applicationIdSuffix = ""
-			signingConfig = signingConfigs.getByName("debug")
+			applicationIdSuffix = ".prerelease"
 			versionNameSuffix = "-pre"
 			resValue("string", "app_name", "${Constants.APP_NAME} - Pre")
-			resValue("string", "provider", "\"${Constants.APP_NAME}.provider\"")
+			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.pre\"")
 			buildConfigField("Boolean", "IS_PRERELEASE", "true")
 		}
 

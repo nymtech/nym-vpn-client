@@ -149,7 +149,7 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 					},
 					description = {
 						Text(
-							stringResource(if (values.isLewesEnabled) R.string.settings_lewes_on_description else R.string.settings_lewes_off_description),
+							stringResource(R.string.settings_lewes_description),
 							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
 						)
 					},
