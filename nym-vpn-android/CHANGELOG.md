@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add Ad blocking (https://github.com/nymtech/nym-vpn-client/pull/5033)
+- Add Pending subscription status (https://github.com/nymtech/nym-vpn-client/pull/5111)
 
 ### Changed
 - Update the login/account creation flow for status checks (https://github.com/nymtech/nym-vpn-client/pull/5102)
