@@ -41,11 +41,11 @@ use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, AutologinResponse,
     DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
     DiagnosticReport, DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
-    MixnetTrafficConfig, NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails,
-    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, RegistrationReport,
-    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams, ListGatewaysOptions,
+    LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
+    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
+    ParsedAccountLinks, RegistrationReport, StoreAccountRequest, SystemMessage, TargetState,
+    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -98,6 +98,10 @@ pub enum VpnServiceCommand {
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
     SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
+    SetGatewaySelectionAlgorithm(
+        oneshot::Sender<Result<(), String>>,
+        GatewaySelectionAlgorithm,
+    ),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -980,6 +984,12 @@ impl NymVpnService {
                     .await;
                 let _ = tx.send(res);
             }
+            VpnServiceCommand::SetGatewaySelectionAlgorithm(tx, gateway_selection_algorithm) => {
+                let res = self
+                    .handle_set_gateway_selection_algorithm(gateway_selection_algorithm)
+                    .await;
+                let _ = tx.send(res);
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -1316,6 +1326,18 @@ impl NymVpnService {
     ) -> Result<(), String> {
         self.config_manager
             .set_mixnet_traffic_config(mixnet_traffic_config)
+            .await
+            .map_err(|err| err.to_string())?;
+        self.update_tunnel_settings_with_throttle();
+        Ok(())
+    }
+
+    async fn handle_set_gateway_selection_algorithm(
+        &mut self,
+        gateway_selection_algorithm: GatewaySelectionAlgorithm,
+    ) -> Result<(), String> {
+        self.config_manager
+            .set_gateway_selection_algorithm(gateway_selection_algorithm)
             .await
             .map_err(|err| err.to_string())?;
         self.update_tunnel_settings_with_throttle();

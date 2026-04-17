@@ -266,6 +266,17 @@ message SplitTunnelSettings {
   repeated SplitApp apps = 2;
 }
 
+message GatewaySelectionAlgorithm {
+  message Explicit {};
+  message AutoEntryExplicitExit {};
+  message Auto {};
+  oneof gateway_selection_algorithm {
+    Explicit explicit = 1;
+    AutoEntryExplicitExit auto_entry_explicit_exit = 2;
+    Auto auto = 3;
+  }
+}
+
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
@@ -283,6 +294,7 @@ message VpnServiceConfig {
   NetworkStatsConfig network_stats = 18;
   MixnetTrafficConfig mixnet_traffic = 25;
   SplitTunnelSettings split_tunnel = 28;
+  GatewaySelectionAlgorithm gateway_selection_algorithm = 29;
 }
 
 message NetworkStatsConfig {
@@ -1080,6 +1092,7 @@ service NymVpnService {
   rpc SetEnableCustomDns(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetCustomDns(IpAddrList) returns (google.protobuf.Empty) {}
   rpc SetMixnetTrafficConfig(MixnetTrafficConfig) returns (google.protobuf.Empty) {}
+  rpc SetGatewaySelectionAlgorithm(GatewaySelectionAlgorithm) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork(google.protobuf.StringValue) returns (google.protobuf.Empty) {}

@@ -86,6 +86,11 @@ impl fmt::Display for VpnServiceConfig {
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
         writeln!(f, "split tunnel settings: {}", self.split_tunnel)?;
+        writeln!(
+            f,
+            "gateway selection algorithm: {}",
+            self.gateway_selection_algorithm
+        )?;
 
         Ok(())
     }
@@ -168,7 +173,7 @@ impl fmt::Display for MixnetTrafficConfig {
             "disable_poisson_rate: {}, disable_background_cover_traffic: {}",
             self.disable_poisson_rate, self.disable_background_cover_traffic
         )?;
-        writeln!(
+        write!(
             f,
             "min_mixnode_performance: {:?}, min_gateway_mixnet_performance: {:?}",
             self.min_mixnode_performance, self.min_gateway_mixnet_performance
@@ -508,6 +513,17 @@ pub enum GatewaySelectionAlgorithm {
 
     /// Select gateways by automatically finding an entry and an exit gateways.
     Auto,
+}
+
+impl fmt::Display for GatewaySelectionAlgorithm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            Self::Explicit => "Explicit",
+            Self::AutoEntryExplicitExit => "Explicit for exit",
+            Self::Auto => "Auto",
+        };
+        write!(f, "{s}")
+    }
 }
 
 /// The target tunnel state.
