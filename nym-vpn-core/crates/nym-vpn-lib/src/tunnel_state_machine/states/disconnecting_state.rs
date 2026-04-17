@@ -120,7 +120,7 @@ impl TunnelStateHandler for DisconnectingState {
                                 let _ = shared_state.set_exclude_paths(tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await;
                             }
                         }
-                        shared_state.tunnel_settings = tunnel_settings;
+                        shared_state.set_tunnel_settings(tunnel_settings).await;
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::Block(reason) => {

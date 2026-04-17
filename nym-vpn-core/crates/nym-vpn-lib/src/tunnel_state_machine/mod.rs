@@ -747,6 +747,17 @@ impl SharedState {
             })
             .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))
     }
+
+    async fn set_tunnel_settings(&mut self, tunnel_settings: TunnelSettings) {
+        self.tunnel_settings = tunnel_settings.clone();
+        if let Err(err) = self
+            .gateway_provider
+            .set_tunnel_settings(tunnel_settings)
+            .await
+        {
+            tracing::error!("Could not update gateway provider with new tunnel settings: {err:?}");
+        }
+    }
 }
 
 #[cfg(target_os = "linux")]

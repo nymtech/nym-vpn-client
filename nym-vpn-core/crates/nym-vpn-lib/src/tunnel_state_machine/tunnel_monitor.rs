@@ -354,9 +354,6 @@ impl TunnelMonitor {
             } else {
                 self.send_event(TunnelMonitorEvent::SelectingGateways);
 
-                self.gateway_provider
-                    .set_tunnel_settings(self.tunnel_parameters.tunnel_settings.clone())
-                    .await?;
                 let new_gateways = self
                     .gateway_provider
                     .next()
