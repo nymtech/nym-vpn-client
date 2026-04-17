@@ -94,18 +94,18 @@ else
 fi
 
 # 5) Copy the universal nym-vpnd and nym-socks5-proxy → apple Daemon
-VPND_SRC="${CORE_ROOT}/upload/mac/nym-vpnd"
-SOCKS5_PROXY_SRC="${CORE_ROOT}/upload/mac/nym-socks5-proxy"
+VPND_SRC_DIR="${CORE_ROOT}/upload/mac"
 VPND_DEST_DIR="${APPLE_ROOT}/NymVPND"
-VPND_DEST="${VPND_DEST_DIR}/nym-vpnd"
-if [[ ! -f "${VPND_SRC}" ]]; then
-  echo "[BuildCore][ERROR] ${VPND_SRC} not found. Make sure macOS.mk builds vpnd-universal."
-  exit 1
-fi
 mkdir -p "${VPND_DEST_DIR}"
-cp -f "${VPND_SRC}" "${SOCKS5_PROXY_SRC}" "${VPND_DEST}"
-chmod +x "${VPND_DEST}"
-echo "[BuildCore] Copied nym-vpnd and nym-socks5-proxy → ${VPND_DEST}"
+for f in nym-vpnd nym-socks5-proxy; do
+  if [[ ! -f "${VPND_SRC_DIR}/${f}" ]]; then
+    echo "[BuildCore][ERROR] ${VPND_SRC_DIR}/${f} not found. Make sure macOS.mk builds vpnd-universal."
+    exit 1
+  fi
+  cp -f "${VPND_SRC_DIR}/${f}" "${VPND_DEST_DIR}"
+  chmod +x "${VPND_DEST_DIR}/${f}"
+  echo "[BuildCore] Copied ${f} → ${VPND_DEST_DIR}"
+done
 
 # 6) Copy the universal nym-setup → apple Daemon
 NYM_SETUP_SRC="${CORE_ROOT}/upload/mac/nym-setup"
