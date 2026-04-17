@@ -229,9 +229,7 @@
 	<string name="settings_language_help_description">ترجمه برنامه را به زبان خودتان بهتر کنید.</string>
 	<string name="settings_event_lan_reconnecting">در حال اتصال مجدد برای اعمال تنظیمات LAN…</string>
 	<string name="settings_lewes_title">Enable Lewes Protocol</string>
-	<string name="settings_lewes_on_description">Always prefer post-quantum gateways</string>
-	<string name="settings_lewes_off_description">No post-quantum gateway preference</string>
-	<!-- Shortcuts activity -->
+    <!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">برای استفاده از میانبرها ایجاد قفل صفحه لازم است.</string>
 	<string name="shortcut_title">تأیید عملیات</string>
 	<string name="shortcut_subtitle_stop">برای قطع VPN آنلاک کنید</string>

@@ -229,9 +229,7 @@
 	<string name="settings_language_help_description">Verbessere die App in deiner Sprache.</string>
 	<string name="settings_event_lan_reconnecting">Erneut verbinden, um die LAN-Einstellungen zu übernehmen…</string>
 	<string name="settings_lewes_title">Lewes-Protokoll aktivieren</string>
-	<string name="settings_lewes_on_description">Post-Quanten-Gateways immer bevorzugen</string>
-	<string name="settings_lewes_off_description">Keine Bevorzugung für Post-Quanten-Gateways</string>
-	<!-- Shortcuts activity -->
+    <!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bildschirmsperre erforderlich, um Verknüpfungen zu verwenden.</string>
 	<string name="shortcut_title">Vorgang bestätigen</string>
 	<string name="shortcut_subtitle_stop">Entsperren, um die VPN-Verbindung zu trennen</string>

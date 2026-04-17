@@ -227,9 +227,7 @@
 	<string name="settings_language_help_description">Uygulamayı kendi dilinizde daha iyi hâle getirin.</string>
 	<string name="settings_event_lan_reconnecting">Yerel Alan Ağı (LAN) ayarlarını uygulamak için yeniden bağlanılıyor…</string>
 	<string name="settings_lewes_title">Enable Lewes Protocol</string>
-	<string name="settings_lewes_on_description">Always prefer post-quantum gateways</string>
-	<string name="settings_lewes_off_description">No post-quantum gateway preference</string>
-	<!-- Shortcuts activity -->
+    <!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Kısayolları kullanabilmek için önce cihazınızın ekran kilidini açmanız gerekiyor.</string>
 	<string name="shortcut_title">İşlemi onaylayın</string>
 	<string name="shortcut_subtitle_stop">VPN bağlantısını kesmek için kilidi açın</string>
