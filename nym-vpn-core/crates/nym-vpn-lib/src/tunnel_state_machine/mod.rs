@@ -639,14 +639,16 @@ impl SharedState {
             .set_vpn_api_firewall_down()
             .await
             .ok();
+        self.gateway_provider.set_active_geolocating(true);
     }
 
-    /// Notify discovery and account controller when network is restricted.
+    /// Notify discovery, account controller and geo-location when network is restricted.
     async fn disallow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(true))
             .ok();
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
+        self.gateway_provider.set_active_geolocating(false);
     }
 
     #[cfg(not(target_os = "ios"))]
