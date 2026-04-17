@@ -403,7 +403,6 @@ private extension SettingsViewModel {
                 action: {}
             )
         )
-#if os(macOS)
         let adBlockSubtitle = appSettings.isAdBlockerEnabled
         ? "settings.adblock.subtitle.on".localizedString
         : "settings.adblock.subtitle.off".localizedString
@@ -432,6 +431,7 @@ private extension SettingsViewModel {
             }
             .store(in: &cancellables)
         viewModels.append(adBlockViewModel)
+#if os(macOS)
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .toggle(
