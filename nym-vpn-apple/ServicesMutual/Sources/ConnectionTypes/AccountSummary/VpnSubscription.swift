@@ -14,8 +14,28 @@ public struct VpnSubscription {
     public let status: String
     public let kind: VpnSubscriptionKind
     public let isRecurring: Bool
-    
-    init(from subscription: NymVpnSubscription) {
+
+    public init(
+        createdOnUtc: Date?,
+        lastUpdatedUtc: Date?,
+        id: String,
+        validUntilDate: Date,
+        validFromDate: Date,
+        status: String,
+        kind: VpnSubscriptionKind,
+        isRecurring: Bool
+    ) {
+        self.createdOnUtc = createdOnUtc
+        self.lastUpdatedUtc = lastUpdatedUtc
+        self.id = id
+        self.validUntilDate = validUntilDate
+        self.validFromDate = validFromDate
+        self.status = status
+        self.kind = kind
+        self.isRecurring = isRecurring
+    }
+
+    public init(from subscription: NymVpnSubscription) {
         self.createdOnUtc = ISO8601DateFormatter().date(from: subscription.createdOnUtc)
         self.lastUpdatedUtc = ISO8601DateFormatter().date(from: subscription.lastUpdatedUtc)
         self.id = subscription.id

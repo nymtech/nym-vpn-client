@@ -77,6 +77,7 @@ public struct AccountSummary {
     }
 
     public var planValidUntilAttributedString: AttributedString? {
+        guard subscription?.status != .pending else { return nil }
         if !isActive {
             var result = AttributedString("noActivePlan".localizedString)
             result.foregroundColor = NymColor.error
