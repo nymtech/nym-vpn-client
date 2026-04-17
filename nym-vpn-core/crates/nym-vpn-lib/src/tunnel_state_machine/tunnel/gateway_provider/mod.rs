@@ -79,9 +79,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_entry_gateways = BlacklistedGateways::new();
         let active_geolocating = Arc::new(AtomicBool::new(active_geolocating));
-        let geo_ip_provider = GeoIpProvider::new(geo_ip_client, active_geolocating.clone())
-            .await
-            .map_err(crate::tunnel_state_machine::Error::VpnApiClientError)?;
+        let geo_ip_provider = GeoIpProvider::new(geo_ip_client, active_geolocating.clone()).await;
         let selection_algorithm_handle = tokio::spawn(
             SelectionAlgorithm::new(
                 tunnel_settings_rx,

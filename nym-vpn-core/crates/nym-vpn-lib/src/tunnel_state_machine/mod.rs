@@ -1117,9 +1117,6 @@ pub enum Error {
 
     #[error("gateway provider shut down")]
     GatewayProviderDown,
-
-    #[error("failed to query VPN API")]
-    VpnApiClientError(#[source] nym_vpn_api_client::error::VpnApiClientError),
 }
 
 impl Error {
@@ -1168,7 +1165,6 @@ impl Error {
             Self::ProbeRequiresIPv4Addr => ErrorStateReason::Internal(self.to_string()),
             Self::InvalidTunnelType => ErrorStateReason::Internal(self.to_string()),
             Self::GatewayProviderDown => ErrorStateReason::Internal(self.to_string()),
-            Self::VpnApiClientError(e) => ErrorStateReason::Internal(e.to_string()),
         })
     }
 }

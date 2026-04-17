@@ -56,30 +56,36 @@ pub(crate) fn closest_gateway(reference: &Location, gw1: &Gateway, gw2: &Gateway
 pub(crate) struct GeoIpProvider {
     client: Box<dyn GeoIpClient>,
     active: Arc<AtomicBool>,
-    latest_location: Location,
+    latest_location: Option<Location>,
 }
 
 impl GeoIpProvider {
-    pub(crate) async fn new(
-        client: impl GeoIpClient,
-        active: Arc<AtomicBool>,
-    ) -> Result<Self, VpnApiClientError> {
-        let latest_location = client.latest_geo_ip().await?.location.into();
-        Ok(Self {
+    pub(crate) async fn new(client: impl GeoIpClient, active: Arc<AtomicBool>) -> Self {
+        let latest_location = if active.load(std::sync::atomic::Ordering::SeqCst) {
+            client
+                .latest_geo_ip()
+                .await
+                .inspect_err(|err| tracing::warn!("Failed to query VPN API: {err:?}"))
+                .map(|ret| ret.location.into())
+                .ok()
+        } else {
+            None
+        };
+        Self {
             client: Box::new(client),
             active,
             latest_location,
-        })
+        }
     }
 
     pub(crate) async fn update(&mut self) -> Result<(), VpnApiClientError> {
         if self.active.load(std::sync::atomic::Ordering::SeqCst) {
-            self.latest_location = self.client.latest_geo_ip().await?.location.into();
+            self.latest_location = Some(self.client.latest_geo_ip().await?.location.into());
         }
         Ok(())
     }
 
-    pub(crate) fn latest_location(&self) -> Location {
+    pub(crate) fn latest_location(&self) -> Option<Location> {
         self.latest_location.clone()
     }
 }

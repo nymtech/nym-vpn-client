@@ -171,7 +171,7 @@ pub async fn select_gateways(
     gateway_cache: impl GatewayCache,
     blacklisted_entry_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
-    device_location: Location,
+    device_location: Option<Location>,
     wg_keys_db: WireguardKeysDb,
 ) -> Result<SelectedGateways, GatewayDirectoryError> {
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
@@ -240,9 +240,15 @@ pub async fn select_gateways(
         )])
     };
 
-    let entry_ordering_criteria = match tunnel_settings.gateway_selection_algorithm {
-        GatewaySelectionAlgorithm::Explicit => OrderingCriteria::Random(entry_point),
-        GatewaySelectionAlgorithm::AutoEntryExplicitExit | GatewaySelectionAlgorithm::Auto => {
+    let entry_ordering_criteria = match (
+        device_location.clone(),
+        tunnel_settings.gateway_selection_algorithm,
+    ) {
+        (_, GatewaySelectionAlgorithm::Explicit) | (None, _) => {
+            OrderingCriteria::Random(entry_point)
+        }
+        (Some(device_location), GatewaySelectionAlgorithm::AutoEntryExplicitExit)
+        | (Some(device_location), GatewaySelectionAlgorithm::Auto) => {
             // Remove same jurisdiction as device from entry gateways
             entry_gateways.retain_gateways_by(|gateway| {
                 gateway
@@ -252,7 +258,7 @@ pub async fn select_gateways(
                         !same_jurisdiction(entry_gateway_location, &device_location)
                     })
             });
-            OrderingCriteria::ClosestTo(device_location.clone())
+            OrderingCriteria::ClosestTo(device_location)
         }
     };
 
@@ -263,11 +269,14 @@ pub async fn select_gateways(
     // Exclude the entry gateway from the list of exit gateways for privacy reasons
     exit_gateways.retain_gateways_by(|gateway| gateway.identity() != entry_gateway.identity());
 
-    let exit_ordering_criteria = match tunnel_settings.gateway_selection_algorithm {
-        GatewaySelectionAlgorithm::Explicit | GatewaySelectionAlgorithm::AutoEntryExplicitExit => {
-            OrderingCriteria::Random(exit_point)
-        }
-        GatewaySelectionAlgorithm::Auto => {
+    let exit_ordering_criteria = match (
+        device_location,
+        tunnel_settings.gateway_selection_algorithm,
+    ) {
+        (_, GatewaySelectionAlgorithm::Explicit)
+        | (_, GatewaySelectionAlgorithm::AutoEntryExplicitExit)
+        | (None, _) => OrderingCriteria::Random(exit_point),
+        (Some(device_location), GatewaySelectionAlgorithm::Auto) => {
             if let Some(entry_gateway_location) = entry_gateway.location.clone() {
                 // Remove same jurisdiction as device and as entry gateway from exit gateways
                 exit_gateways.retain_gateways_by(|gateway| {

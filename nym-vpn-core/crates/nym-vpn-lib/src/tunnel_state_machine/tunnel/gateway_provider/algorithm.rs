@@ -32,7 +32,7 @@ async fn continuous_select<C: GatewayCache>(
     select_and_send: Option<SelectAndSend>,
     gateway_cache: C,
     blacklisted_entry_gateways: &BlacklistedGateways,
-    device_location: Location,
+    device_location: Option<Location>,
     wg_keys_db: WireguardKeysDb,
 ) {
     let Some(SelectAndSend {
@@ -172,9 +172,7 @@ mod tests {
         let algo = SelectionAlgorithm::new(
             tunnel_settings_rx,
             MockGatewayCache::new(gateways.clone()),
-            GeoIpProvider::new(MockGeoIpClient::new(), Arc::new(AtomicBool::new(true)))
-                .await
-                .unwrap(),
+            GeoIpProvider::new(MockGeoIpClient::new(), Arc::new(AtomicBool::new(true))).await,
             BlacklistedGateways::new(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.clone(),
