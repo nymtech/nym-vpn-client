@@ -118,7 +118,8 @@ function Lang() {
                 ])}
                 data-testid={`language-selected-indicator-${lang.code}`}
               >
-                {!isSystemLang && i18n.language === lang.code &&
+                {!isSystemLang &&
+                  i18n.language === lang.code &&
                   t('selected', { ns: 'glossary' })}
               </div>
             </Button>
