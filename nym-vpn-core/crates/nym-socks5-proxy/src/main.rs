@@ -5,12 +5,6 @@ mod default_interface;
 mod proxy;
 mod routing;
 
-#[cfg(target_os = "linux")]
-mod linux_bind;
-
-#[cfg(target_os = "windows")]
-mod windows_bind;
-
 use std::{
     fs::{File, create_dir_all},
     io::{Write, stdout},
@@ -18,7 +12,7 @@ use std::{
     path::Path,
 };
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use nym_socks5_proxy_ipc::{
     DaemonMessage, ErrorData, InterfaceAddresses, ProxyConfig, ProxyMessage,
 };
@@ -134,7 +128,7 @@ async fn read_initial_config(
                 .context("Stdin closed before configuration was received")?
         }
         _ = shutdown_token.cancelled() => {
-            anyhow::bail!("Shutdown requested before configuration was received");
+            bail!("Shutdown requested before configuration was received");
         }
     };
 
@@ -143,7 +137,7 @@ async fn read_initial_config(
         .context("Failed to decode daemon message")?
     {
         DaemonMessage::Configure(cfg) => Ok(cfg),
-        other => anyhow::bail!(
+        other => bail!(
             "Expected Configure as first message, got variant {:?}",
             discriminant(&other)
         ),

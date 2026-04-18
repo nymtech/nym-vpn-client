@@ -13,19 +13,18 @@ use crate::{
 };
 
 #[cfg(target_os = "windows")]
-use super::windows_bind::bind_by_interface_index;
+use crate::default_interface::set_socket_interface_index;
 
 #[cfg(target_os = "linux")]
-use super::linux_bind::set_split_tunnel_mark;
+use crate::default_interface::set_socket_split_tunnel_mark;
 
-use nym_socks5_proxy_ipc::{InterfaceAddresses, ProxyConfig};
-
-use anyhow::{Context, Result};
+use anyhow::{Context, Error, Result, anyhow, bail};
 use fast_socks5::{
     ReplyError, Socks5Command,
     server::{Socks5ServerProtocol, transfer},
     util::target_addr::TargetAddr,
 };
+use nym_socks5_proxy_ipc::{InterfaceAddresses, ProxyConfig};
 use tokio::{
     net::{TcpListener, TcpSocket, TcpStream},
     sync::watch,
@@ -130,17 +129,17 @@ async fn serve_socks5(
 ) -> Result<()> {
     let (proto, cmd, target_addr) = Socks5ServerProtocol::accept_no_auth(stream)
         .await
-        .map_err(|err| anyhow::anyhow!("SOCKS5 handshake failed from {peer_addr}: {err}"))?
+        .map_err(|err| anyhow!("SOCKS5 handshake failed from {peer_addr}: {err}"))?
         .read_command()
         .await
-        .map_err(|err| anyhow::anyhow!("SOCKS5 command read failed from {peer_addr}: {err}"))?;
+        .map_err(|err| anyhow!("SOCKS5 command read failed from {peer_addr}: {err}"))?;
 
     tracing::debug!("SOCKS5 accept command: {cmd:#x?}, target_addr: {target_addr:#?}");
 
     // Only TCP CONNECT is supported; BIND and UDP ASSOCIATE are not
     if cmd != Socks5Command::TCPConnect {
         let _ = proto.reply_error(&ReplyError::CommandNotSupported).await;
-        anyhow::bail!("Unsupported SOCKS5 command {cmd:?} from {peer_addr}");
+        bail!("Unsupported SOCKS5 command {cmd:?} from {peer_addr}");
     }
 
     // Domain-based exclusion check (before DNS to avoid CDN masking of CN origin IPs).
@@ -154,13 +153,13 @@ async fn serve_socks5(
         TargetAddr::Ip(addr) => vec![*addr],
         TargetAddr::Domain(host, port) => tokio::net::lookup_host(format!("{host}:{port}"))
             .await
-            .map_err(|err| anyhow::anyhow!("DNS lookup failed for {host}:{port}: {err}"))?
+            .map_err(|err| anyhow!("DNS lookup failed for {host}:{port}: {err}"))?
             .collect(),
     };
 
     if target_addrs.is_empty() {
         let _ = proto.reply_error(&ReplyError::HostUnreachable).await;
-        anyhow::bail!("No addresses resolved for {target_addr} (from {peer_addr})");
+        bail!("No addresses resolved for {target_addr} (from {peer_addr})");
     }
 
     let routing_decision = if domain_excluded {
@@ -202,7 +201,7 @@ async fn serve_socks5(
     let inner = proto
         .reply_success(local_addr)
         .await
-        .map_err(|err| anyhow::anyhow!("SOCKS5 reply_success to {peer_addr} failed: {err}"))?;
+        .map_err(|err| anyhow!("SOCKS5 reply_success to {peer_addr} failed: {err}"))?;
 
     transfer(inner, outbound).await;
 
@@ -217,7 +216,7 @@ async fn connect_to_target(
     default_interface: Option<&DefaultInterface>,
     addrs: &[SocketAddr],
 ) -> Result<TcpStream> {
-    let mut last_err: Option<anyhow::Error> = None;
+    let mut last_err: Option<Error> = None;
 
     for &addr in addrs {
         let socket = match addr {
@@ -225,7 +224,21 @@ async fn connect_to_target(
             SocketAddr::V6(_) => TcpSocket::new_v6().context("Failed to create IPv6 socket")?,
         };
 
-        // bind_addr will always be None on Linux as we don't monitor the default interface at all,
+        // If the default interface needs to be used, then we set-up platform-specific stuff on the socket.
+        #[cfg(target_os = "linux")]
+        if default_interface.is_some()
+            && let Err(err) = set_socket_split_tunnel_mark(&socket)
+        {
+            tracing::warn!("Failed to set split tunnel mark on socket: {err}");
+        }
+        #[cfg(target_os = "windows")]
+        if let Some(default_interface) = default_interface
+            && let Err(err) = set_socket_interface_index(&socket, default_interface, addr)
+        {
+            tracing::warn!("Failed to set interface index on socket: {err:#}")
+        }
+
+        // bind_addr will always be None on Linux as we don't monitor the default interface at all.
         let bind_addr: Option<IpAddr> = if let Some(default_interface) = default_interface {
             match addr {
                 SocketAddr::V4(_) => default_interface.v4_addr.map(IpAddr::V4),
@@ -235,28 +248,6 @@ async fn connect_to_target(
             None
         };
 
-        // In order to force binding to the default interface, we need to do different
-        // things, depending on the platform
-        #[cfg(target_os = "linux")]
-        if default_interface.is_some() {
-            set_split_tunnel_mark(&socket);
-        }
-        #[cfg(target_os = "windows")]
-        if let Some(default_interface) = default_interface
-            && let Some(bind_addr) = bind_addr
-        {
-            match bind_by_interface_index(socket, default_interface.index, bind_addr, addr) {
-                Ok(()) => return, // Success!
-                Err(err) => {
-                    tracing::warn!(
-                        "IP_UNICAST_IF binding failed: {err:#}; falling back to bind-by-IP"
-                    )
-                }
-            }
-        }
-
-        // Bind to the chosen source address, or INADDR_ANY / IN6ADDR_ANY when
-        // there is no explicit bind (VPN tunnel path — kernel does the routing).
         let bind_ip = match (addr, bind_addr) {
             (SocketAddr::V4(_), Some(IpAddr::V4(v4))) => IpAddr::V4(v4),
             (SocketAddr::V6(_), Some(IpAddr::V6(v6))) => IpAddr::V6(v6),
@@ -272,10 +263,10 @@ async fn connect_to_target(
             Ok(stream) => return Ok(stream),
             Err(err) => {
                 tracing::debug!("Connect to {addr} failed: {err}");
-                last_err = Some(anyhow::Error::from(err));
+                last_err = Some(Error::from(err));
             }
         }
     }
 
-    Err(last_err.unwrap_or_else(|| anyhow::anyhow!("No addresses to try")))
+    Err(last_err.unwrap_or_else(|| anyhow!("Failed to connect to target")))
 }
