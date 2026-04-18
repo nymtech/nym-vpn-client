@@ -209,6 +209,7 @@ fn install_signal_handlers(shutdown_token: CancellationToken) {
         shutdown_token.cancel();
     });
 }
+
 fn init_tracing(proxy_dir: &Path, log_level: &str) -> Result<()> {
     let log_path = proxy_dir.join("nym-socks5-proxy.log");
     let file = File::create(&log_path)
