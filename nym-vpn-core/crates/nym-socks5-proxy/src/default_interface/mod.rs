@@ -8,9 +8,9 @@ mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
 
-// Re-export platform-specific bind helpers so callers don't need to know the module layout.
 #[cfg(target_os = "linux")]
-pub use linux::set_split_tunnel_mark;
+pub use linux::set_socket_split_tunnel_mark;
+
 #[cfg(target_os = "windows")]
 pub use windows::set_socket_interface_index;
 
