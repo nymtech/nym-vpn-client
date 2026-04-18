@@ -21,7 +21,6 @@ libc.workspace = true
 nix = { workspace = true, features = ["net"] }
 ipnetwork.workspace = true
 pnet_packet.workspace = true
-pcap = { workspace = true, features = ["capture-stream"] }
 tun = { workspace = true, features = ["async"] }
 thiserror.workspace = true
 tracing.workspace = true
@@ -70,3 +69,4 @@ nym-firewall = { workspace = true, optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 endpoint-sec = { workspace = true, features = ["macos_11_0_0"] }
+pcap = { workspace = true, features = ["capture-stream"] }
