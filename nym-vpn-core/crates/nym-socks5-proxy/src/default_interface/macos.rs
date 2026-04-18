@@ -1,13 +1,12 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
-use nym_socks5_proxy_ipc::InterfaceAddresses;
 use tokio::sync::watch;
 
-pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
+pub async fn start_monitor() -> watch::Receiver<DefaultInterface> {
     let initial = match RouteManagerHandle::spawn().await {
         Ok(rm) => {
             let addrs = query_addrs(&rm).await;
@@ -16,7 +15,7 @@ pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
         }
         Err(err) => {
             tracing::warn!("Failed to start route manager to get initial default addrs: {err}");
-            InterfaceAddresses::default()
+            DefaultInterface::default()
         }
     };
 
@@ -25,9 +24,9 @@ pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
     rx
 }
 
-async fn query_addrs(route_manager: &RouteManagerHandle) -> InterfaceAddresses {
+async fn query_addrs(route_manager: &RouteManagerHandle) -> DefaultInterface {
     match route_manager.get_default_routes().await {
-        Ok((v4, v6)) => InterfaceAddresses {
+        Ok((v4, v6)) => DefaultInterface {
             v4_addr: v4.and_then(|r| {
                 if let IpAddr::V4(a) = r.ip {
                     Some(a)
@@ -45,12 +44,12 @@ async fn query_addrs(route_manager: &RouteManagerHandle) -> InterfaceAddresses {
         },
         Err(err) => {
             tracing::warn!("Failed to query default routes: {err}");
-            InterfaceAddresses::default()
+            DefaultInterface::default()
         }
     }
 }
 
-async fn monitor_task(tx: watch::Sender<InterfaceAddresses>) {
+async fn monitor_task(tx: watch::Sender<DefaultInterface>) {
     let route_manager = match RouteManagerHandle::spawn().await {
         Ok(rm) => rm,
         Err(err) => {
