@@ -7,15 +7,16 @@ use std::{
     sync::Arc,
 };
 
-use crate::routing::{
-    RoutingDatabase, RoutingDecision, decide_route_for_addrs, is_excluded_domain,
+use crate::{
+    default_interface::DefaultInterface,
+    routing::{RoutingDatabase, RoutingDecision, decide_route_for_addrs, is_excluded_domain},
 };
 
 #[cfg(target_os = "windows")]
 use super::windows_bind::bind_by_interface_index;
 
 #[cfg(target_os = "linux")]
-use super::linux_bind::set_socket_mark;
+use super::linux_bind::set_split_tunnel_mark;
 
 use nym_socks5_proxy_ipc::{InterfaceAddresses, ProxyConfig};
 
@@ -34,7 +35,7 @@ use tokio_util::sync::CancellationToken;
 pub async fn run(
     config: ProxyConfig,
     data_dir: &Path,
-    default_addrs_rx: watch::Receiver<InterfaceAddresses>,
+    default_interface_rx: watch::Receiver<DefaultInterface>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
@@ -52,7 +53,7 @@ pub async fn run(
 
     tokio::spawn(accept_loop(
         listener,
-        default_addrs_rx,
+        default_interface_rx,
         tunnel_addrs_rx,
         db,
         shutdown_token,
@@ -63,7 +64,7 @@ pub async fn run(
 
 async fn accept_loop(
     listener: TcpListener,
-    default_addrs_rx: watch::Receiver<InterfaceAddresses>,
+    default_interface_rx: watch::Receiver<DefaultInterface>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
     db: Arc<RoutingDatabase>,
     shutdown_token: CancellationToken,
@@ -75,12 +76,12 @@ async fn accept_loop(
                     Ok((stream, peer_addr)) => {
                         tracing::debug!("Accepted SOCKS5 connection from peer address {peer_addr}");
                         let shutdown = shutdown_token.clone();
-                        let tunnel_addrs_rx = tunnel_addrs_rx.clone();
-                        let default_addrs_rx = default_addrs_rx.clone();
+                        let tunnel_addrs_rx_clone = tunnel_addrs_rx.clone();
+                        let default_interface_rx_clone = default_interface_rx.clone();
                         let db = db.clone();
                         tokio::spawn(async move {
                             if let Err(err) =
-                                handle_connection(stream, peer_addr, default_addrs_rx, tunnel_addrs_rx, db, shutdown).await
+                                handle_connection(stream, peer_addr, default_interface_rx_clone, tunnel_addrs_rx_clone, db, shutdown).await
                             {
                                 tracing::warn!("SOCKS5 connection error for peer address {peer_addr}: {err:#}");
                             }
@@ -102,17 +103,17 @@ async fn accept_loop(
 async fn handle_connection(
     stream: TcpStream,
     peer_addr: SocketAddr,
-    default_addrs_rx: watch::Receiver<InterfaceAddresses>,
+    default_interface_rx: watch::Receiver<DefaultInterface>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
     db: Arc<RoutingDatabase>,
     shutdown_token: CancellationToken,
 ) -> Result<()> {
     // Snapshot both address sets at connection time.
     let tunnel_addrs = tunnel_addrs_rx.borrow().clone();
-    let default_addrs = default_addrs_rx.borrow().clone();
+    let default_interface = default_interface_rx.borrow().clone();
 
     tokio::select! {
-        result = serve_socks5(stream, peer_addr, &default_addrs, &tunnel_addrs, db) => result,
+        result = serve_socks5(stream, peer_addr, &default_interface, &tunnel_addrs, db) => result,
         _ = shutdown_token.cancelled() => {
             tracing::debug!(%peer_addr, "Connection aborted due to shutdown");
             Ok(())
@@ -123,7 +124,7 @@ async fn handle_connection(
 async fn serve_socks5(
     stream: TcpStream,
     peer_addr: SocketAddr,
-    default_addrs: &InterfaceAddresses,
+    default_interface: &DefaultInterface,
     tunnel_addrs: &InterfaceAddresses,
     db: Arc<RoutingDatabase>,
 ) -> Result<()> {
@@ -168,19 +169,23 @@ async fn serve_socks5(
         decide_route_for_addrs(&target_addrs, tunnel_addrs, &db.geo_ip)
     };
 
-    let bind_addrs: Option<&InterfaceAddresses> = match routing_decision {
-        RoutingDecision::DefaultInterface => Some(default_addrs),
-        RoutingDecision::VpnTunnelInterface => None,
-    };
-
     tracing::info!("SOCKS5 CONNECT {peer_addr} -> {target_addr}");
     tracing::debug!(
         "domain_excluded={domain_excluded} target_addrs={target_addrs:?} \
-         routing_decision={routing_decision:?} bind_addrs={bind_addrs:?} \
-         default_addrs={default_addrs:?} tunnel_addrs={tunnel_addrs:?}"
+         routing_decision={routing_decision:?} \
+         default_interface={default_interface:?} tunnel_addrs={tunnel_addrs:?}"
     );
 
-    let outbound = match connect_to_target(routing_decision, &target_addrs, bind_addrs).await {
+    let outbound = match connect_to_target(
+        if routing_decision == RoutingDecision::DefaultInterface {
+            Some(default_interface)
+        } else {
+            None
+        },
+        &target_addrs,
+    )
+    .await
+    {
         Ok(s) => s,
         Err(err) => {
             let _ = proto.reply_error(&ReplyError::HostUnreachable).await;
@@ -206,10 +211,11 @@ async fn serve_socks5(
     Ok(())
 }
 
+// If default_interface is Some, then we attempt to bind to the default interface,
+// else we bind to the INADDR_ANY and allow routing to direct traffic through the VPN tunnel.
 async fn connect_to_target(
-    routing_decision: RoutingDecision,
+    default_interface: Option<&DefaultInterface>,
     addrs: &[SocketAddr],
-    bind_addrs: Option<&InterfaceAddresses>,
 ) -> Result<TcpStream> {
     let mut last_err: Option<anyhow::Error> = None;
 
@@ -219,26 +225,27 @@ async fn connect_to_target(
             SocketAddr::V6(_) => TcpSocket::new_v6().context("Failed to create IPv6 socket")?,
         };
 
-        // Resolve the per-family bind IP from the InterfaceAddresses (if any).
-        let bind_addr: Option<IpAddr> = bind_addrs.and_then(|ia| match addr {
-            SocketAddr::V4(_) => ia.v4_addr.map(IpAddr::V4),
-            SocketAddr::V6(_) => ia.v6_addr.map(IpAddr::V6),
-        });
+        // bind_addr will always be None on Linux as we don't monitor the default interface at all,
+        let bind_addr: Option<IpAddr> = if let Some(default_interface) = default_interface {
+            match addr {
+                SocketAddr::V4(_) => default_interface.v4_addr.map(IpAddr::V4),
+                SocketAddr::V6(_) => default_interface.v6_addr.map(IpAddr::V6),
+            }
+        } else {
+            None
+        };
 
         // In order to force binding to the default interface, we need to do different
         // things, depending on the platform
         #[cfg(target_os = "linux")]
-        if routing_decision == RoutingDecision::DefaultInterface {
-            set_socket_mark(&socket);
+        if default_interface.is_some() {
+            set_split_tunnel_mark(&socket);
         }
         #[cfg(target_os = "windows")]
-        if routing_decision == RoutingDecision::DefaultInterface
-            && let Some(ip) = bind_addr
+        if let Some(default_interface) = default_interface
+            && let Some(bind_addr) = bind_addr
         {
-            // Caller wants us to use the default interface, and we have an IP to bind to.
-            // Attempt bind-by-interface-index first, which is more robust to IP address
-            // changes on the adapter (e.g. DHCP lease renewal) than bind-by-IP.
-            match bind_by_interface_index(socket, ip, target) {
+            match bind_by_interface_index(socket, default_interface.index, bind_addr, addr) {
                 Ok(()) => return, // Success!
                 Err(err) => {
                     tracing::warn!(
@@ -247,8 +254,6 @@ async fn connect_to_target(
                 }
             }
         }
-        #[cfg(not(target_os = "macos"))]
-        let _ = routing_decision; // Avoid unused variable warning
 
         // Bind to the chosen source address, or INADDR_ANY / IN6ADDR_ANY when
         // there is no explicit bind (VPN tunnel path — kernel does the routing).

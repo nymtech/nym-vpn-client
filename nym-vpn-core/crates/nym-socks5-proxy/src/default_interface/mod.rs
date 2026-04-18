@@ -6,10 +6,18 @@ mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
 
-use nym_socks5_proxy_ipc::InterfaceAddresses;
+use std::net::{Ipv4Addr, Ipv6Addr};
 use tokio::sync::watch;
 
-pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
+#[derive(Clone, Debug, Default)]
+pub struct DefaultInterface {
+    #[cfg(target_os = "windows")]
+    index: Option<u32>,
+    pub v4_addr: Option<Ipv4Addr>,
+    pub v6_addr: Option<Ipv6Addr>,
+}
+
+pub async fn start_monitor() -> watch::Receiver<DefaultInterface> {
     #[cfg(target_os = "windows")]
     return windows::start_monitor().await;
 
@@ -18,7 +26,7 @@ pub async fn start_monitor() -> watch::Receiver<InterfaceAddresses> {
 
     #[cfg(target_os = "linux")]
     {
-        let (_, rx) = watch::channel(InterfaceAddresses::default());
+        let (_, rx) = watch::channel(DefaultInterface::default());
         rx
     }
 }
