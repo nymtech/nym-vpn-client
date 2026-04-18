@@ -3,11 +3,13 @@
 
 use std::{io::Error, mem::size_of_val, os::fd::AsRawFd};
 
+use anyhow::{Result, bail};
 use libc::{SO_MARK, SOL_SOCKET, c_int, c_void, socklen_t};
 use nym_firewall_config::SPLIT_TUNNEL_MARK;
 use tokio::net::TcpSocket;
 
-pub fn set_split_tunnel_mark(socket: &TcpSocket) {
+/// Set SPLIT_TUNNEL_MARK on the socket so the firewall routes packets through the default interface.
+pub fn set_socket_split_tunnel_mark(socket: &TcpSocket) -> Result<()> {
     let fd = socket.as_raw_fd();
     let mark: c_int = SPLIT_TUNNEL_MARK as c_int;
 
@@ -21,12 +23,10 @@ pub fn set_split_tunnel_mark(socket: &TcpSocket) {
         )
     };
 
-    if rc == 0 {
-        tracing::debug!("Set SO_MARK={SPLIT_TUNNEL_MARK:#x} on socket successfully");
-    } else {
+    if rc != 0 {
         let err = Error::last_os_error();
-        tracing::warn!(
-            "setsockopt(SO_MARK, {SPLIT_TUNNEL_MARK:#x}) failed: {err}; falling back to bind-based routing"
-        );
+        bail!("setsockopt(SO_MARK, {SPLIT_TUNNEL_MARK:#x}) failed: {err}");
     }
+
+    Ok(())
 }
