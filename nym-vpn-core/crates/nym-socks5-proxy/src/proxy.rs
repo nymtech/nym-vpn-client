@@ -224,19 +224,23 @@ async fn connect_to_target(
             SocketAddr::V6(_) => TcpSocket::new_v6().context("Failed to create IPv6 socket")?,
         };
 
-        // If the default interface needs to be used, then we set-up platform-specific stuff on the socket.
+        // On Linux, in order to force traffic via the default interface, set the SPLIT_TUNNEL_MARK on the socket.
         #[cfg(target_os = "linux")]
         if default_interface.is_some()
             && let Err(err) = set_socket_split_tunnel_mark(&socket)
         {
             tracing::warn!("Failed to set split tunnel mark on socket: {err}");
         }
+
+        // On Windows, in order to force the socket to bind to the default interface, set the interface index on the socket.
         #[cfg(target_os = "windows")]
         if let Some(default_interface) = default_interface
             && let Err(err) = set_socket_interface_index(&socket, default_interface, addr)
         {
             tracing::warn!("Failed to set interface index on socket: {err:#}")
         }
+
+        // On macOS, we only need to bind using the correct bind address.
 
         // bind_addr will always be None on Linux as we don't monitor the default interface at all.
         let bind_addr: Option<IpAddr> = if let Some(default_interface) = default_interface {
