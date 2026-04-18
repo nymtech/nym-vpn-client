@@ -1,7 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod default_addrs;
+mod default_interface;
 mod proxy;
 mod routing;
 
@@ -47,7 +47,7 @@ async fn main() -> Result<()> {
     };
 
     // Get the default interface addresses and monitor for changes in the routing.
-    let default_addrs_rx = default_addrs::start_monitor().await;
+    let default_interface_rx = default_interface::start_monitor().await;
 
     // Shared VPN tunnel addressese
     let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());
@@ -74,7 +74,7 @@ async fn main() -> Result<()> {
     if let Err(err) = proxy::run(
         config,
         &proxy_dir,
-        default_addrs_rx,
+        default_interface_rx,
         tunnel_addrs_rx,
         shutdown_token.clone(),
     )
