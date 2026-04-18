@@ -70,10 +70,9 @@ export const loadLocale = async (locale: LngTag) => {
       const acc = await accPromise;
       try {
         acc[namespace] = await loadLocaleNs(locale, namespace);
-      } catch (error) {
-        console.error(
-          `Failed to load namespace ${namespace} for locale ${locale}:`,
-          error,
+      } catch {
+        console.warn(
+          `Missing translations for namespace "${namespace}" in locale "${locale}", falling back to English.`,
         );
       }
       return acc;

@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { RouterProvider } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { type } from '@tauri-apps/plugin-os';
@@ -36,6 +36,7 @@ function App({ init }: { init: InitState }) {
   dayjs.extend(customParseFormat);
 
   const { set } = useLang();
+  const langInitialized = useRef(false);
   const intro =
     os === 'windows' ? (
       <IntroAnim theme={init.uiTheme} />
@@ -57,6 +58,9 @@ function App({ init }: { init: InitState }) {
   }, []);
 
   useEffect(() => {
+    if (langInitialized.current) return;
+    langInitialized.current = true;
+
     const setLng = async () => {
       const stored = await kvGet<string | undefined>('ui-language');
       if (stored) {
@@ -67,7 +71,8 @@ function App({ init }: { init: InitState }) {
       }
     };
     setLng();
-  }, [i18n, set]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
