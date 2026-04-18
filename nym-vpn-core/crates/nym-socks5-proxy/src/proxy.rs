@@ -180,7 +180,7 @@ async fn serve_socks5(
          default_addrs={default_addrs:?} tunnel_addrs={tunnel_addrs:?}"
     );
 
-    let outbound = match connect_to_target(&target_addrs, bind_addrs).await {
+    let outbound = match connect_to_target(routing_decision, &target_addrs, bind_addrs).await {
         Ok(s) => s,
         Err(err) => {
             let _ = proto.reply_error(&ReplyError::HostUnreachable).await;
@@ -207,6 +207,7 @@ async fn serve_socks5(
 }
 
 async fn connect_to_target(
+    routing_decision: RoutingDecision,
     addrs: &[SocketAddr],
     bind_addrs: Option<&InterfaceAddresses>,
 ) -> Result<TcpStream> {
@@ -218,7 +219,49 @@ async fn connect_to_target(
             SocketAddr::V6(_) => TcpSocket::new_v6().context("Failed to create IPv6 socket")?,
         };
 
-        bind_socket_for_routing(&socket, addr, bind_addrs);
+        // Resolve the per-family bind IP from the InterfaceAddresses (if any).
+        let bind_addr: Option<IpAddr> = bind_addrs.and_then(|ia| match addr {
+            SocketAddr::V4(_) => ia.v4_addr.map(IpAddr::V4),
+            SocketAddr::V6(_) => ia.v6_addr.map(IpAddr::V6),
+        });
+
+        // In order to force binding to the default interface, we need to do different
+        // things, depending on the platform
+        #[cfg(target_os = "linux")]
+        if routing_decision == RoutingDecision::DefaultInterface {
+            set_socket_mark(&socket);
+        }
+        #[cfg(target_os = "windows")]
+        if routing_decision == RoutingDecision::DefaultInterface
+            && let Some(ip) = bind_addr
+        {
+            // Caller wants us to use the default interface, and we have an IP to bind to.
+            // Attempt bind-by-interface-index first, which is more robust to IP address
+            // changes on the adapter (e.g. DHCP lease renewal) than bind-by-IP.
+            match bind_by_interface_index(socket, ip, target) {
+                Ok(()) => return, // Success!
+                Err(err) => {
+                    tracing::warn!(
+                        "IP_UNICAST_IF binding failed: {err:#}; falling back to bind-by-IP"
+                    )
+                }
+            }
+        }
+        #[cfg(not(target_os = "macos"))]
+        let _ = routing_decision; // Avoid unused variable warning
+
+        // Bind to the chosen source address, or INADDR_ANY / IN6ADDR_ANY when
+        // there is no explicit bind (VPN tunnel path — kernel does the routing).
+        let bind_ip = match (addr, bind_addr) {
+            (SocketAddr::V4(_), Some(IpAddr::V4(v4))) => IpAddr::V4(v4),
+            (SocketAddr::V6(_), Some(IpAddr::V6(v6))) => IpAddr::V6(v6),
+            (SocketAddr::V4(_), _) => IpAddr::V4(Ipv4Addr::UNSPECIFIED),
+            (SocketAddr::V6(_), _) => IpAddr::V6(Ipv6Addr::UNSPECIFIED),
+        };
+
+        if let Err(err) = socket.bind(SocketAddr::new(bind_ip, 0)) {
+            tracing::error!("Socket bind to {bind_ip} failed: {err}; using default route");
+        }
 
         match socket.connect(addr).await {
             Ok(stream) => return Ok(stream),
@@ -230,45 +273,4 @@ async fn connect_to_target(
     }
 
     Err(last_err.unwrap_or_else(|| anyhow::anyhow!("No addresses to try")))
-}
-
-fn bind_socket_for_routing(
-    socket: &TcpSocket,
-    target: SocketAddr,
-    bind_addrs: Option<&InterfaceAddresses>,
-) {
-    #[cfg(target_os = "linux")]
-    if bind_addrs.is_some() {
-        // Caller wants us to use the default interface.
-        set_socket_mark(socket);
-    }
-
-    // Resolve the per-family bind IP from the InterfaceAddresses (if any).
-    let bind_addr: Option<IpAddr> = bind_addrs.and_then(|ia| match target {
-        SocketAddr::V4(_) => ia.v4_addr.map(IpAddr::V4),
-        SocketAddr::V6(_) => ia.v6_addr.map(IpAddr::V6),
-    });
-
-    #[cfg(target_os = "windows")]
-    if let Some(ip) = bind_addr {
-        match bind_by_interface_index(socket, ip, target) {
-            Ok(()) => return,
-            Err(err) => {
-                tracing::warn!("IP_UNICAST_IF binding failed: {err:#}; falling back to bind-by-IP")
-            }
-        }
-    }
-
-    // Bind to the chosen source address, or INADDR_ANY / IN6ADDR_ANY when
-    // there is no explicit bind (VPN tunnel path — kernel does the routing).
-    let bind_ip = match (target, bind_addr) {
-        (SocketAddr::V4(_), Some(IpAddr::V4(v4))) => IpAddr::V4(v4),
-        (SocketAddr::V6(_), Some(IpAddr::V6(v6))) => IpAddr::V6(v6),
-        (SocketAddr::V4(_), _) => IpAddr::V4(Ipv4Addr::UNSPECIFIED),
-        (SocketAddr::V6(_), _) => IpAddr::V6(Ipv6Addr::UNSPECIFIED),
-    };
-
-    if let Err(err) = socket.bind(SocketAddr::new(bind_ip, 0)) {
-        tracing::error!("Socket bind to {bind_ip} failed: {err}; using default route");
-    }
 }
