@@ -1,12 +1,32 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::{
+    io::Error,
+    mem::size_of,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    os::windows::io::AsRawSocket,
+    ptr::addr_of,
+};
+
+use crate::default_interface::DefaultInterface;
+
+use anyhow::{Result, bail};
 use nym_routing::{Callback, RouteManagerHandle, get_best_default_route};
 use nym_windows::net::{
     AddressFamily, get_best_ipv6_address_for_interface, get_ip_address_for_interface,
 };
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-use tokio::sync::watch;
+use tokio::{net::TcpSocket, sync::watch};
+use windows_sys::Win32::{
+    NetworkManagement::{IpHelper::ConvertInterfaceLuidToIndex, Ndis::NET_LUID_LH},
+    Networking::WinSock::{SOCKET, SOCKET_ERROR, setsockopt},
+};
+
+// These aren't defined by windows-sys
+const IPPROTO_IP_LEVEL: i32 = 0; // IPPROTO_IP
+const IPPROTO_IPV6_LEVEL: i32 = 41; // IPPROTO_IPV6
+const IP_UNICAST_IF_OPT: i32 = 31; // IP_UNICAST_IF  — interface index in network byte order
+const IPV6_UNICAST_IF_OPT: i32 = 31; // IPV6_UNICAST_IF — interface index in host byte order
 
 pub async fn start_monitor() -> watch::Receiver<DefaultInterface> {
     let initial = snapshot();
@@ -15,7 +35,7 @@ pub async fn start_monitor() -> watch::Receiver<DefaultInterface> {
     rx
 }
 
-fn query_v4() -> (Option<u32>, Option<Ipv4Addr>) {
+fn query_v4() -> (Option<NET_LUID_LH>, Option<Ipv4Addr>) {
     let route = match get_best_default_route(AddressFamily::Ipv4) {
         Ok(Some(r)) => r,
         Ok(None) => {
@@ -27,8 +47,15 @@ fn query_v4() -> (Option<u32>, Option<Ipv4Addr>) {
             return (None, None);
         }
     };
+
     match get_ip_address_for_interface(AddressFamily::Ipv4, route.iface) {
-        Ok(Some(IpAddr::V4(v4))) => (Some(route.iface), Some(v4)),
+        Ok(Some(IpAddr::V4(v4))) => {
+            // Convert windows crate LUID to windows-sys crate LUID
+            let luid = NET_LUID_LH {
+                Value: unsafe { route.iface.Value },
+            };
+            (Some(luid), Some(v4))
+        }
         Ok(Some(other)) => {
             tracing::warn!("Unexpected address family on IPv4 interface: {other}");
             (None, None)
@@ -44,7 +71,7 @@ fn query_v4() -> (Option<u32>, Option<Ipv4Addr>) {
     }
 }
 
-fn query_v6() -> (Option<u32>, Option<Ipv6Addr>) {
+fn query_v6() -> (Option<NET_LUID_LH>, Option<Ipv6Addr>) {
     let route = match get_best_default_route(AddressFamily::Ipv6) {
         Ok(Some(r)) => r,
         Ok(None) => {
@@ -59,10 +86,14 @@ fn query_v6() -> (Option<u32>, Option<Ipv6Addr>) {
             return (None, None);
         }
     };
+
     match get_best_ipv6_address_for_interface(route.iface) {
         Ok(Some(v6)) => {
-            tracing::debug!("Selected IPv6 default interface address: {v6}");
-            (Some(route.iface), Some(v6))
+            // Convert windows crate LUID to windows-sys crate LUID
+            let luid = NET_LUID_LH {
+                Value: unsafe { route.iface.Value },
+            };
+            (Some(luid), Some(v6))
         }
         Ok(None) => {
             tracing::warn!(
@@ -78,27 +109,27 @@ fn query_v6() -> (Option<u32>, Option<Ipv6Addr>) {
     }
 }
 
-/// Re-query both address families synchronously.
 fn snapshot() -> DefaultInterface {
-    let (v4_index, v4_addr) = query_v4();
-    let (v6_index, v6_addr) = query_v6();
+    let (v4_luid, v4_addr) = query_v4();
+    let (v6_luid, v6_addr) = query_v6();
 
-    let index = if let (Some(v4_idx), Some(v6_idx)) = (v4_index, v6_index) {
-        if v4_idx == v6_idx {
-            Some(v4_idx)
-        } else {
-            tracing::warn!(
-                "Default IPv4 and IPv6 routes use different interfaces ({} vs {}); \
-                 interface index will not be set",
-                v4_idx,
-                v6_idx
-            );
-            None
+    // Complain, but continue, if the interface LUIDs are different.
+    if let (Some(v4_luid), Some(v6_luid)) = (v4_luid, v6_luid) {
+        unsafe {
+            if v4_luid.Value != v6_luid.Value {
+                tracing::warn!(
+                    "Default IPv4 and IPv6 routes use different LUIDs ({} vs {})!",
+                    v4_luid.Value,
+                    v6_luid.Value,
+                );
+            }
         }
     };
+
     DefaultInterface {
-        index,
+        v4_luid,
         v4_addr,
+        v6_luid,
         v6_addr,
     }
 }
@@ -126,4 +157,81 @@ async fn monitor_task(tx: watch::Sender<DefaultInterface>) {
         Ok(_handle) => std::future::pending::<()>().await,
         Err(err) => tracing::warn!("Failed to register default route change callback: {err}"),
     }
+}
+
+/// Set the interface index on the socket, so it will bind to the default interface.
+pub fn set_socket_interface_index(
+    socket: &TcpSocket,
+    default_interface: &DefaultInterface,
+    target_addr: SocketAddr,
+) -> Result<()> {
+    // Select the LUID that matches the target address family.
+    let luid = match target_addr {
+        SocketAddr::V4(_) => default_interface.v4_luid,
+        SocketAddr::V6(_) => default_interface.v6_luid,
+    };
+
+    let Some(luid) = luid else {
+        bail!(
+            "Cannot bind socket by interface index: no default interface LUID available for {}",
+            if target_addr.is_ipv4() {
+                "IPv4"
+            } else {
+                "IPv6"
+            }
+        );
+    };
+
+    let if_index = get_interface_index_for_luid(&luid)?;
+
+    let raw_socket = socket.as_raw_socket() as SOCKET;
+
+    // IP_UNICAST_IF expects the index in network byte order.
+    // IPV6_UNICAST_IF expects the index in host byte order.
+    // Lovely ??.
+    let (ret, opt_name) = match target_addr {
+        SocketAddr::V4(_) => {
+            let if_index_be = if_index.to_be() as i32;
+            let ret = unsafe {
+                setsockopt(
+                    raw_socket,
+                    IPPROTO_IP_LEVEL,
+                    IP_UNICAST_IF_OPT,
+                    addr_of!(if_index_be) as *const u8,
+                    size_of::<u32>() as i32,
+                )
+            };
+            (ret, "IP_UNICAST_IF")
+        }
+        SocketAddr::V6(_) => {
+            let ret = unsafe {
+                setsockopt(
+                    raw_socket,
+                    IPPROTO_IPV6_LEVEL,
+                    IPV6_UNICAST_IF_OPT,
+                    addr_of!(if_index) as *const u8,
+                    size_of::<u32>() as i32,
+                )
+            };
+            (ret, "IPV6_UNICAST_IF")
+        }
+    };
+
+    if ret == SOCKET_ERROR {
+        bail!("setsockopt({opt_name}) failed: {}", Error::last_os_error());
+    }
+
+    Ok(())
+}
+
+fn get_interface_index_for_luid(luid: &NET_LUID_LH) -> Result<u32> {
+    let mut index: u32 = 0;
+    let ret = unsafe { ConvertInterfaceLuidToIndex(luid, &mut index) };
+    if ret != 0 {
+        bail!(
+            "ConvertInterfaceLuidToIndex failed: {}",
+            Error::from_raw_os_error(ret as i32)
+        );
+    }
+    Ok(index)
 }
