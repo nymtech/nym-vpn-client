@@ -425,16 +425,22 @@ impl VpnServiceConfigManager {
             DnsOptions::default()
         };
 
-        let mut split_tunnel = self.config.split_tunnel.clone();
-
         // Temporary; we will add SOCKS5 proxy config shortly.
         let socks5_proxy_settings = Socks5ProxySettings::default();
 
-        // If the SOCKS5 proxy is enabled then Split Tunneling also needs to be enabled.
-        if socks5_proxy_settings.enabled && !self.config.split_tunnel.enabled {
-            tracing::warn!("Enabling Split Tunnel as SOCKS5 proxy is enabled");
-            split_tunnel.enabled = true;
-        }
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        let split_tunnel = {
+            let mut split_tunnel = self.config.split_tunnel.clone();
+            // If the SOCKS5 proxy is enabled then Split Tunneling also needs to be enabled.
+            if socks5_proxy_settings.enabled && !self.config.split_tunnel.enabled {
+                tracing::warn!("Enabling Split Tunnel as SOCKS5 proxy is enabled");
+                split_tunnel.enabled = true;
+            }
+            split_tunnel
+        };
+
+        #[cfg(target_os = "linux")]
+        let split_tunnel = self.config.split_tunnel.clone();
 
         TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,
