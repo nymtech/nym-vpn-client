@@ -307,6 +307,10 @@ impl ConnectingState {
             }
             Err(e) => {
                 trace_err_chain!(e, "Failed to resolve gateway config");
+                // Clear the static preresolve table so the next attempt
+                // performs a fresh DNS lookup instead of reusing IPs that
+                // may have caused the failure (e.g. a dead Fastly edge node).
+                HickoryDnsResolver::shared().clear_preresolve();
                 return self.reconnect(shared_state).await;
             }
         };
