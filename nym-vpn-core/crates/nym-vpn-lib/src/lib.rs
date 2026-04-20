@@ -76,7 +76,7 @@ pub const TUNNEL_TABLE_ID: u32 = 0x14d;
 
 /// Firewall mark used for marking traffic that should bypass the tunnel.
 #[cfg(target_os = "linux")]
-pub const TUNNEL_FWMARK: u32 = 0x14d;
+pub use nym_firewall_config::TUNNEL_FWMARK;
 
 pub fn log_software_and_os_version() {
     let build_info = nym_bin_common::bin_info_local_vergen!();
