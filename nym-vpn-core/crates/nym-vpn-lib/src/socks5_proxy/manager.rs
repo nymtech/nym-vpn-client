@@ -30,26 +30,23 @@ impl Socks5ProxyManager {
     }
 
     pub async fn start(&mut self, config: ProxyConfig, shutdown_token: CancellationToken) {
-        let previous = std::mem::replace(&mut self.state, Socks5ProxyState::Starting);
-
-        match previous {
-            Socks5ProxyState::Stopped => {}
+        match self.state {
             Socks5ProxyState::Starting => {
                 tracing::debug!("nym-socks5-proxy is already starting");
-                self.state = Socks5ProxyState::Starting;
                 return;
             }
-            Socks5ProxyState::Running(process) => {
+            Socks5ProxyState::Running(_) => {
                 tracing::debug!("nym-socks5-proxy is already running");
-                self.state = Socks5ProxyState::Running(process);
                 return;
             }
             Socks5ProxyState::Stopping => {
                 tracing::debug!("nym-socks5-proxy is already stopping");
-                self.state = Socks5ProxyState::Stopping;
                 return;
             }
+            Socks5ProxyState::Stopped => {}
         }
+
+        self.state = Socks5ProxyState::Starting;
 
         let (event_tx, event_rx) = mpsc::unbounded_channel::<Socks5ProcessEvent>();
 
