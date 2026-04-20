@@ -16,7 +16,7 @@ use crate::{
 use crate::default_interface::set_socket_interface_index;
 
 #[cfg(target_os = "linux")]
-use crate::default_interface::set_socket_split_tunnel_mark;
+use crate::default_interface::set_socket_tunnel_fwmark;
 
 use anyhow::{Context, Error, Result, anyhow, bail};
 use fast_socks5::{
@@ -227,7 +227,7 @@ async fn connect_to_target(
         // On Linux, in order to force traffic via the default interface, set the SPLIT_TUNNEL_MARK on the socket.
         #[cfg(target_os = "linux")]
         if default_interface.is_some()
-            && let Err(err) = set_socket_split_tunnel_mark(&socket)
+            && let Err(err) = set_socket_tunnel_fwmark(&socket)
         {
             tracing::warn!("Failed to set split tunnel mark on socket: {err}");
         }
