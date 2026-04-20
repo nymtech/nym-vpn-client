@@ -6,7 +6,7 @@ use std::{env, path::PathBuf, process::Stdio, time::Duration};
 use nym_socks5_proxy_ipc::{DaemonMessage, InterfaceAddresses, ProxyConfig, ProxyMessage};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
-    process::{Child, Command},
+    process::{Child, ChildStdin, ChildStdout, Command},
     sync::{mpsc, oneshot},
     task::JoinHandle,
 };
@@ -146,7 +146,7 @@ pub fn find_proxy_binary() -> Result<PathBuf> {
 }
 
 async fn stdin_writer(
-    mut stdin: tokio::process::ChildStdin,
+    mut stdin: ChildStdin,
     mut msg_rx: mpsc::UnboundedReceiver<DaemonMessage>,
     shutdown_token: CancellationToken,
 ) {
@@ -191,9 +191,9 @@ async fn stdin_writer(
 
 async fn supervisor(
     mut child: Child,
-    stdin: tokio::process::ChildStdin,
+    stdin: ChildStdin,
     msg_rx: mpsc::UnboundedReceiver<DaemonMessage>,
-    stdout: tokio::process::ChildStdout,
+    stdout: ChildStdout,
     ready_tx: oneshot::Sender<std::result::Result<(), String>>,
     event_tx: mpsc::UnboundedSender<Socks5ProcessEvent>,
     shutdown_token: CancellationToken,
