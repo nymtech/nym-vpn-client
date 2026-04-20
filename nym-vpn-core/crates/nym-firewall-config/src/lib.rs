@@ -10,6 +10,10 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 pub const SPLIT_TUNNEL_MARK: u32 = 0xf42;
 
+/// Firewall mark used for marking traffic that should bypass the tunnel.
+#[cfg(target_os = "linux")]
+pub const TUNNEL_FWMARK: u32 = 0x14d;
+
 /// When "allow local network" is enabled the app will allow traffic to and from these networks.
 pub const ALLOWED_LAN_NETS: [IpNetwork; 6] = [
     v4(Ipv4Addr::new(10, 0, 0, 0), 8),
