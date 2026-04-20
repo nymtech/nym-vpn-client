@@ -5,11 +5,8 @@ use std::{io::Error, mem::size_of_val, os::fd::AsRawFd};
 
 use anyhow::{Result, bail};
 use libc::{SO_MARK, SOL_SOCKET, c_int, c_void, socklen_t};
+use nym_firewall_config::TUNNEL_FWMARK;
 use tokio::net::TcpSocket;
-
-/// Firewall mark used for marking traffic that should bypass the tunnel.
-// Copied from nym-vpn-lib to avoid a dependency on the entire crate.
-pub const TUNNEL_FWMARK: u32 = 0x14d;
 
 /// Set TUNNEL_FWMARK on the socket so the firewall routes packets through the default interface.
 pub fn set_socket_tunnel_fwmark(socket: &TcpSocket) -> Result<()> {
