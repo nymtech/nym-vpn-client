@@ -222,7 +222,7 @@ pub mod tests {
     }
 
     #[tokio::test]
-    async fn empty_stream() {
+    async fn error_stream() {
         let shutdown_token = CancellationToken::new();
         let gateways = Arc::new(RwLock::new(None));
         let (mut gw_provider, handle) = GatewayProvider::new(
@@ -235,10 +235,12 @@ pub mod tests {
         )
         .await
         .unwrap();
-        // No gateways come out of the stream when there are no tunnel settings
+        // No gateways come out of the stream when there are no gateways to select from
         assert!(
             tokio::time::timeout(Duration::from_millis(100), gw_provider.next())
                 .await
+                .unwrap()
+                .unwrap()
                 .is_err()
         );
         shutdown_token.cancel();
