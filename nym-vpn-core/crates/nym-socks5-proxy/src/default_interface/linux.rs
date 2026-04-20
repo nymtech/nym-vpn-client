@@ -5,13 +5,16 @@ use std::{io::Error, mem::size_of_val, os::fd::AsRawFd};
 
 use anyhow::{Result, bail};
 use libc::{SO_MARK, SOL_SOCKET, c_int, c_void, socklen_t};
-use nym_firewall_config::SPLIT_TUNNEL_MARK;
 use tokio::net::TcpSocket;
 
-/// Set SPLIT_TUNNEL_MARK on the socket so the firewall routes packets through the default interface.
-pub fn set_socket_split_tunnel_mark(socket: &TcpSocket) -> Result<()> {
+/// Firewall mark used for marking traffic that should bypass the tunnel.
+// Copied from nym-vpn-lib to avoid a dependency on the entire crate.
+pub const TUNNEL_FWMARK: u32 = 0x14d;
+
+/// Set TUNNEL_FWMARK on the socket so the firewall routes packets through the default interface.
+pub fn set_socket_tunnel_fwmark(socket: &TcpSocket) -> Result<()> {
     let fd = socket.as_raw_fd();
-    let mark: c_int = SPLIT_TUNNEL_MARK as c_int;
+    let mark: c_int = TUNNEL_FWMARK as c_int;
 
     let rc = unsafe {
         libc::setsockopt(
@@ -25,7 +28,7 @@ pub fn set_socket_split_tunnel_mark(socket: &TcpSocket) -> Result<()> {
 
     if rc != 0 {
         let err = Error::last_os_error();
-        bail!("setsockopt(SO_MARK, {SPLIT_TUNNEL_MARK:#x}) failed: {err}");
+        bail!("setsockopt(SO_MARK, {TUNNEL_FWMARK:#x}) failed: {err}");
     }
 
     Ok(())

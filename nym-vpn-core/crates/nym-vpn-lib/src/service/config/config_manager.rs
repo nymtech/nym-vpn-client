@@ -439,7 +439,7 @@ impl VpnServiceConfigManager {
             split_tunnel
         };
 
-        #[cfg(target_os = "linux")]
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
         let split_tunnel = self.config.split_tunnel.clone();
 
         TunnelSettings {
