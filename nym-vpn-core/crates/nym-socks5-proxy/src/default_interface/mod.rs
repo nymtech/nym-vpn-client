@@ -9,7 +9,7 @@ mod macos;
 mod windows;
 
 #[cfg(target_os = "linux")]
-pub use linux::set_socket_split_tunnel_mark;
+pub use linux::set_socket_tunnel_fwmark;
 
 #[cfg(target_os = "windows")]
 pub use windows::set_socket_interface_index;
