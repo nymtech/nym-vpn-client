@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [Windows, Linux, macOS] Add SOCKS5 Proxy process to implement Airporting (https://github.com/nymtech/nym-vpn-client/pull/5078)
+
 ### Changed
 
 - [macOS] Use endpoint-security framework directly instead of parsing eslogger output (https://github.com/nymtech/nym-vpn-client/pull/4749)

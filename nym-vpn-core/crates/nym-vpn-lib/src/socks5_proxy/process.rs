@@ -155,9 +155,13 @@ async fn stdin_writer(
             msg = msg_rx.recv() => {
                 match msg {
                     Some(m) => {
-                        let line = format!("{m}\n");
+                        let line = format!("{m}");
                         if let Err(e) = stdin.write_all(line.as_bytes()).await {
                             tracing::warn!("failed to write to nym-socks5-proxy stdin: {e}");
+                            break;
+                        }
+                        if let Err(e) = stdin.write_all(b"\n").await {
+                            tracing::warn!("failed to write newline to nym-socks5-proxy stdin: {e}");
                             break;
                         }
                         if let Err(e) = stdin.flush().await {
@@ -174,8 +178,9 @@ async fn stdin_writer(
             _ = shutdown_token.cancelled() => {
                 tracing::debug!("stdin writer: shutdown requested, sending Terminate then closing stdin pipe");
                 // Best-effort: ask the proxy to stop cleanly before EOF.
-                let terminate = format!("{}\n", DaemonMessage::Terminate);
+                let terminate = format!("{}", DaemonMessage::Terminate);
                 let _ = stdin.write_all(terminate.as_bytes()).await;
+                let _ = stdin.write_all(b"\n").await;
                 let _ = stdin.flush().await;
                 break;
             }
