@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add TCP listener for local DNS resolver (https://github.com/nymtech/nym-vpn-client/pull/5113)
+
 ### Changed
 
 - [macOS] Use endpoint-security framework directly instead of parsing eslogger output (https://github.com/nymtech/nym-vpn-client/pull/4749)
