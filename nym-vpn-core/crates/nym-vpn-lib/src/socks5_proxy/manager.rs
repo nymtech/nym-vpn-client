@@ -1,7 +1,10 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::{Ipv4Addr, Ipv6Addr};
+use std::{
+    mem::replace,
+    net::{Ipv4Addr, Ipv6Addr},
+};
 
 use super::process::{Socks5ProcessEvent, Socks5ProcessTask, Socks5ProxyProcess};
 
@@ -11,7 +14,7 @@ use tokio_util::sync::CancellationToken;
 
 enum Socks5ProxyState {
     Stopped,
-    Starting,
+    Starting(CancellationToken),
     Running(Socks5ProxyProcess),
     Stopping,
 }
@@ -31,7 +34,7 @@ impl Socks5ProxyManager {
 
     pub async fn start(&mut self, config: ProxyConfig, shutdown_token: CancellationToken) {
         match self.state {
-            Socks5ProxyState::Starting => {
+            Socks5ProxyState::Starting(_) => {
                 tracing::debug!("nym-socks5-proxy is already starting");
                 return;
             }
@@ -46,11 +49,12 @@ impl Socks5ProxyManager {
             Socks5ProxyState::Stopped => {}
         }
 
-        self.state = Socks5ProxyState::Starting;
+        let child_token = shutdown_token.child_token();
+        self.state = Socks5ProxyState::Starting(child_token.clone());
 
         let (event_tx, event_rx) = mpsc::unbounded_channel::<Socks5ProcessEvent>();
 
-        match Socks5ProcessTask::spawn(config, event_tx, shutdown_token.child_token()).await {
+        match Socks5ProcessTask::spawn(config, event_tx, child_token).await {
             Ok((handle, join_handle)) => {
                 spawn_event_logger(event_rx);
 
@@ -69,34 +73,30 @@ impl Socks5ProxyManager {
     }
 
     pub async fn stop(&mut self) {
-        let previous = std::mem::replace(&mut self.state, Socks5ProxyState::Stopping);
-
-        let Socks5ProxyState::Running(process) = previous else {
-            match previous {
-                Socks5ProxyState::Stopped => {
-                    tracing::debug!("nym-socks5-proxy is already stopped");
-                    self.state = Socks5ProxyState::Stopped;
-                }
-                Socks5ProxyState::Starting => {
-                    tracing::debug!("nym-socks5-proxy is already starting");
-                    self.state = Socks5ProxyState::Starting;
-                }
-                Socks5ProxyState::Stopping => {
-                    tracing::debug!("nym-socks5-proxy is already stopping");
-                    self.state = Socks5ProxyState::Stopping;
-                }
-                Socks5ProxyState::Running(_) => unreachable!(),
+        match replace(&mut self.state, Socks5ProxyState::Stopping) {
+            Socks5ProxyState::Stopped => {
+                tracing::debug!("nym-socks5-proxy is already stopped");
+                self.state = Socks5ProxyState::Stopped;
             }
-            return;
-        };
-
-        process.handle.shutdown();
-
-        if let Err(err) = process.join_handle.await {
-            tracing::error!("Failed to join on socks5 process task: {err}");
+            Socks5ProxyState::Starting(token) => {
+                tracing::warn!(
+                    "stop() called while nym-socks5-proxy is still starting; cancelling startup"
+                );
+                token.cancel();
+                self.state = Socks5ProxyState::Stopped;
+            }
+            Socks5ProxyState::Stopping => {
+                tracing::debug!("nym-socks5-proxy is already stopping");
+                self.state = Socks5ProxyState::Stopping;
+            }
+            Socks5ProxyState::Running(process) => {
+                process.handle.shutdown();
+                if let Err(err) = process.join_handle.await {
+                    tracing::error!("Failed to join on socks5 process task: {err}");
+                }
+                self.state = Socks5ProxyState::Stopped;
+            }
         }
-
-        self.state = Socks5ProxyState::Stopped;
     }
 
     pub fn set_tunnel_addrs(&mut self, v4_addr: Option<Ipv4Addr>, v6_addr: Option<Ipv6Addr>) {
