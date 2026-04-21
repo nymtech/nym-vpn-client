@@ -67,7 +67,7 @@ pub async fn incoming(
     tracing::info!("Starting socket listener on: {}", socket_path.display());
 
     let listener = UnixListener::bind(&socket_path)?;
-    fs::set_permissions(&socket_path, PermissionsExt::from_mode(0o766))?;
+    fs::set_permissions(&socket_path, PermissionsExt::from_mode(0o666))?;
     let uds = Uds {
         socket_path,
         inner: UnixListenerStream::new(listener),
