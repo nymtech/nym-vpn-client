@@ -641,12 +641,6 @@ impl From<StoredAccountMode> for nym_vpn_store::types::StoredAccountMode {
 // 1. iOS/macOS clients silently swallowed any error returned by
 //    `VpnAccountSummary::try_from`, leaving `accountSummary == nil` and the UI
 //    stuck on "Requesting ZkNyms" / "Get Started".
-// 2. The v2.22.0 schema introduced `pending` as a required field on
-//    `NymVpnAccountSummarySubscription`. Older API responses that omit it
-//    (e.g. during a staged rollout) failed serde deserialization upstream.
-// 3. A single off-spec timestamp on `fair_usage.resetsOnUtc` or any
-//    `auth_methods.created` previously failed the entire summary fetch.
-//
 // These tests pin the lenient behaviour we now rely on so a future regression
 // is loud.
 #[cfg(all(test, feature = "nym-type-conversions"))]
