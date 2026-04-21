@@ -18,7 +18,7 @@ import {
   TrayProvider,
 } from './contexts';
 import { useLang } from './hooks';
-import { LngTag } from './i18n';
+import { LngTag, detectSystemLocale } from './i18n';
 import { kvGet } from './kvStore';
 import router from './router';
 import './i18n/config';
@@ -58,13 +58,16 @@ function App({ init }: { init: InitState }) {
 
   useEffect(() => {
     const setLng = async () => {
-      const lng = await kvGet<string | undefined>('ui-language');
-      if (lng) {
-        await set(lng as LngTag, false);
+      const stored = await kvGet<string | undefined>('ui-language');
+      if (stored) {
+        await set(stored as LngTag, false);
+      } else {
+        const lng = await detectSystemLocale();
+        await set(lng, false);
       }
     };
     setLng();
-  }, [i18n, set]);
+  }, [set]);
 
   return (
     <>

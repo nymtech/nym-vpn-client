@@ -496,6 +496,46 @@ impl fmt::Display for SplitTunnelSettings {
     }
 }
 
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct Socks5ProxySettings {
+    pub enabled: bool,
+    pub listen_port: u16,
+    pub excluded_countries: Vec<String>,
+}
+
+impl fmt::Display for Socks5ProxySettings {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "enabled: {}", self.enabled)?;
+        writeln!(f, "listen_port: {}", self.listen_port)?;
+        writeln!(
+            f,
+            "excluded_countries: {}",
+            self.excluded_countries.join(", ")
+        )?;
+        Ok(())
+    }
+}
+
+// Temporary
+impl Default for Socks5ProxySettings {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            listen_port: 1080,
+            excluded_countries: vec!["CN".to_string()],
+        }
+    }
+}
+
 /// The target tunnel state.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]

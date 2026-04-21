@@ -457,6 +457,18 @@ impl<'a> PolicyBatch<'a> {
         }
         self.batch.add(&rule, nftnl::MsgType::Add);
 
+        // Allow SO_MARK-marked sockets (e.g. nym-socks5-proxy) to also bypass the tunnel.
+        // Bridges meta mark (set by SO_MARK) into ct mark so the accept rules below fire.
+        let mut rule = Rule::new(&self.mangle_chain);
+        rule.add_expr(&nft_expr!(meta mark));
+        rule.add_expr(&nft_expr!(cmp == fwmark));
+        rule.add_expr(&nft_expr!(immediate data SPLIT_TUNNEL_MARK));
+        rule.add_expr(&nft_expr!(ct mark set));
+        if *ADD_COUNTERS {
+            rule.add_expr(&nft_expr!(counter));
+        }
+        self.batch.add(&rule, nftnl::MsgType::Add);
+
         for chain in &[&self.in_chain, &self.out_chain, &self.forward_chain] {
             let mut rule = Rule::new(chain);
             rule.add_expr(&nft_expr!(ct mark));

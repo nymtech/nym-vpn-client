@@ -78,6 +78,18 @@ else
     exit 1
 fi
 
+SOURCE_PATH="nym-vpn-core/target/release/nym-socks5-proxy"
+DESTINATION_PATH="nym-vpn-apple/Daemon/nym-socks5-proxy"
+
+if [ -e "$SOURCE_PATH" ]; then
+    cp "$SOURCE_PATH" "$DESTINATION_PATH"
+    chmod +x "$DESTINATION_PATH"
+    echo "✅ nym-socks5-proxy has been successfully copied to $DESTINATION_PATH"
+else
+    echo "❌ Error: $SOURCE_PATH does not exist. Copy operation failed." >&2
+    exit 1
+fi
+
 SOURCE_PATH="proto/nym/vpn.proto"
 DESTINATION_PATH="nym-vpn-apple/ServicesMacOS/Sources/GRPCManager/proto/nym/vpn.proto"
 

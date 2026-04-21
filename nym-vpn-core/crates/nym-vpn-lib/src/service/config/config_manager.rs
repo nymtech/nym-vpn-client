@@ -9,9 +9,9 @@ use std::{
 
 use nym_common::trace_err_chain;
 use nym_registration_client::MixnetClientConfig;
-use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
+use nym_vpn_lib_types::{MixnetTrafficConfigValidationError, Socks5ProxySettings};
 use tokio::{fs, sync::broadcast};
 
 use crate::{
@@ -461,6 +461,23 @@ impl VpnServiceConfigManager {
             DnsOptions::default()
         };
 
+        // Temporary; we will add SOCKS5 proxy config shortly.
+        let socks5_proxy_settings = Socks5ProxySettings::default();
+
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        let split_tunnel = {
+            let mut split_tunnel = self.config.split_tunnel.clone();
+            // If the SOCKS5 proxy is enabled then Split Tunneling also needs to be enabled.
+            if socks5_proxy_settings.enabled && !self.config.split_tunnel.enabled {
+                tracing::warn!("Enabling Split Tunnel as SOCKS5 proxy is enabled");
+                split_tunnel.enabled = true;
+            }
+            split_tunnel
+        };
+
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        let split_tunnel = self.config.split_tunnel.clone();
+
         TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,
             allow_lan: self.config.allow_lan,
@@ -485,7 +502,8 @@ impl VpnServiceConfigManager {
             entry_point: Box::new(self.config.entry_point.clone()),
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
-            split_tunnel: self.config.split_tunnel.clone(),
+            split_tunnel,
+            socks5_proxy_settings,
             gateway_selection_algorithm_config: self
                 .config
                 .gateway_selection_algorithm_config
