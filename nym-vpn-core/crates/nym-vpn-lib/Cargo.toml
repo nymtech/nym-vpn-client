@@ -143,13 +143,13 @@ nym-routing.workspace = true
 nym-dns.workspace = true
 nym-firewall.workspace = true
 nym-firewall-config.workspace = true
-socket2.workspace = true
 windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
 winreg.workspace = true
 
 # Desktop-specific dependencies
 [target.'cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))'.dependencies]
 hickory-server = { workspace = true, features = ["resolver"] }
+socket2.workspace = true
 nym-routing.workspace = true
 nym-dns.workspace = true
 nym-cgroup.workspace = true

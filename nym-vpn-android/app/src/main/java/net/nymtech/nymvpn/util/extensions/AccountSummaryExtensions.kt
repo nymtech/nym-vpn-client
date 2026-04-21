@@ -4,6 +4,7 @@ import net.nymtech.nymvpn.ui.screens.account.info.components.BandwidthUiState
 import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import nym_vpn_lib_types.NymVpnSubscriptionKind
+import nym_vpn_lib_types.NymVpnSubscriptionStatus
 import nym_vpn_lib_types.VpnAccountSummary
 import java.time.Instant
 import java.time.LocalDate
@@ -54,9 +55,18 @@ private fun calculateExpiryState(isRecurring: Boolean, isActive: Boolean, planTy
 }
 
 fun VpnAccountSummary.toSubscriptionUiState(): SubscriptionUiState {
-	val innerSubscription = this.subscription?.subscription
+	val subscriptionWrapper = this.subscription
+	val innerSubscription = subscriptionWrapper?.subscription
 	val isRecurring = innerSubscription?.isRecurring ?: false
 	val validUntilUtc = innerSubscription?.validUntilUtc
+
+	if (subscriptionWrapper?.status == NymVpnSubscriptionStatus.PENDING) {
+		return SubscriptionUiState(
+			isRecurring = isRecurring,
+			validUntilDate = "",
+			expiryState = ExpiryState.PENDING,
+		)
+	}
 
 	val expiryFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 	val expiryDateStr = validUntilUtc?.toZonedDateTime()?.format(expiryFormatter) ?: "Unknown"

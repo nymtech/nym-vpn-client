@@ -422,7 +422,8 @@ extension HomeViewModel {
                     tunnelStatus: newStatus,
                     isOnline: networkMonitor.isAvailable,
                     retryAttempt: connectionManager.connectionRetryAttempt,
-                    tunnelConnectingState: connectionManager.tunnelConnectingState
+                    tunnelConnectingState: connectionManager.tunnelConnectingState,
+                    subscriptionStatus: credentialsManager.accountSummary?.subscription?.status
                 )
             }
 

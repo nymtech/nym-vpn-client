@@ -27,6 +27,8 @@ import androidx.compose.ui.res.stringResource
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
 import net.nymtech.nymvpn.ui.model.ConnectionState
+import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
+import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -45,6 +47,7 @@ fun ConnectionStatus(
 	modifier: Modifier = Modifier,
 	isAppInForeground: Boolean,
 	isAccountInitializing: Boolean = false,
+	subscription: SubscriptionUiState? = null,
 ) {
 	val isDarkMode = isSystemInDarkTheme()
 	val surfaceAvailable by rememberSurfaceAvailability()
@@ -91,51 +94,58 @@ fun ConnectionStatus(
 
 		ConnectionStateDisplay(connectionState = connectionState, theme = theme)
 
-		when (connectionState) {
-			is ConnectionState.Connecting -> StatusInfoLabel(
-				message = connectionState.label.asString(context),
-				textColor = MaterialTheme.colorScheme.onSurfaceVariant,
-			)
+		val isPendingSubscription = subscription?.expiryState == ExpiryState.PENDING
 
-			is ConnectionState.Error -> {
-				val isKillSwitchError = connectionState.reason == ErrorStateReason.InactiveSubscription && isVpnAlwaysOn(context)
-
-				val msg = if (isKillSwitchError) {
-					context.getString(R.string.error_kill_switch)
-				} else {
-					connectionState.reason.toUserMessage(context)
-				}
-
-				StatusInfoLabel(
-					message = msg,
-					textColor = CustomColors.error,
-				)
-			}
-
-			is ConnectionState.StartFailure -> StatusInfoLabel(
-				message = connectionState.exception.localizedMessage ?: context.getString(R.string.unexpected_error, "Unknown"),
+		if (isPendingSubscription) {
+			StatusInfoLabel(
+				message = stringResource(R.string.account_info_confirming_payment),
 				textColor = CustomColors.error,
 			)
+		} else {
+			when (connectionState) {
+				is ConnectionState.Connecting -> StatusInfoLabel(
+					message = connectionState.label.asString(context),
+					textColor = MaterialTheme.colorScheme.onSurfaceVariant,
+				)
 
-			is ConnectionState.Offline, ConnectionState.WaitingForConnection -> StatusInfoLabel(
-				message = context.getString(R.string.no_internet),
-				textColor = MaterialTheme.colorScheme.onSurfaceVariant,
-			)
-
-			ConnectionState.Disconnected -> {
-				if (isAccountInitializing) {
+				is ConnectionState.Error -> {
+					val isKillSwitchError = connectionState.reason == ErrorStateReason.InactiveSubscription && isVpnAlwaysOn(context)
+					val msg = if (isKillSwitchError) {
+						stringResource(R.string.error_kill_switch)
+					} else {
+						connectionState.reason.toUserMessage(context)
+					}
 					StatusInfoLabel(
-						message = stringResource(R.string.account_info_updating),
-						textColor = MaterialTheme.colorScheme.onSurfaceVariant,
+						message = msg,
+						textColor = CustomColors.error,
 					)
 				}
-			}
 
-			is ConnectionState.Connected -> {
-				// Optional
-			}
+				is ConnectionState.StartFailure -> StatusInfoLabel(
+					message = connectionState.exception.localizedMessage ?: stringResource(R.string.unexpected_error, "Unknown"),
+					textColor = CustomColors.error,
+				)
 
-			else -> Unit
+				is ConnectionState.Offline, ConnectionState.WaitingForConnection -> StatusInfoLabel(
+					message = stringResource(R.string.no_internet),
+					textColor = MaterialTheme.colorScheme.onSurfaceVariant,
+				)
+
+				ConnectionState.Disconnected -> {
+					if (isAccountInitializing) {
+						StatusInfoLabel(
+							message = stringResource(R.string.account_info_updating),
+							textColor = MaterialTheme.colorScheme.onSurfaceVariant,
+						)
+					}
+				}
+
+				is ConnectionState.Connected -> {
+					// Optional
+				}
+
+				else -> Unit
+			}
 		}
 
 		AnimatedVisibility(visible = connectionTime != null) {
@@ -177,6 +187,11 @@ private fun ConnectionStatusPreview() {
 			null,
 			Theme.default(),
 			isAppInForeground = false,
+			subscription = SubscriptionUiState(
+				isRecurring = false,
+				validUntilDate = "",
+				expiryState = ExpiryState.PENDING,
+			),
 		)
 	}
 }

@@ -108,6 +108,7 @@ extension ConnectionManager {
                 isQuicEnabled: appSettings.isQuicEnabled,
                 isLanBypassEnabled: appSettings.isLanBypassEnabled,
                 isLewesEnabled: appSettings.isLewesEnabled,
+                isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
                 isTwoHopEnabled: false
             )
         case .wireguard:
@@ -123,6 +124,7 @@ extension ConnectionManager {
                 isQuicEnabled: appSettings.isQuicEnabled,
                 isLanBypassEnabled: appSettings.isLanBypassEnabled,
                 isLewesEnabled: appSettings.isLewesEnabled,
+                isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
                 isTwoHopEnabled: true
             )
         }

@@ -207,6 +207,6 @@ For example on Linux the full path would be
 `~/.config/nym-vpn-app/config.toml`.
 
 You can find the supported properties in the
-[config schema](https://github.com/nymtech/nym-vpn-client/blob/main/nym-vpn-app/src-tauri/src/fs/config.rs)
+[config schema](https://github.com/nymtech/nym-vpn-client/blob/develop/nym-vpn-app/src-tauri/src/fs/config.rs)
 
 **NOTE** The config file and all properties are optional

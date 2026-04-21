@@ -229,9 +229,7 @@
 	<string name="settings_language_help_description">جعل التطبيق أفضل بلغتك.</string>
 	<string name="settings_event_lan_reconnecting">إعادة الاتصال لتطبيق إعدادات الشبكة المحلية...</string>
 	<string name="settings_lewes_title">تمكين بروتوكول Lewes</string>
-	<string name="settings_lewes_on_description">يفضل دائماً بوابات ما بعد الكم</string>
-	<string name="settings_lewes_off_description">لا يوجد تفضيل لبوابة ما بعد الكمية</string>
-	<!-- Shortcuts activity -->
+    <!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">قفل الشاشة مطلوب لاستخدام الاختصار.</string>
 	<string name="shortcut_title">تأكيد الإجراء</string>
 	<string name="shortcut_subtitle_stop">فتح لقطع اتصال VPN</string>

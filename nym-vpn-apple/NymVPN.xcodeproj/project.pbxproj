@@ -182,13 +182,13 @@
 		};
 		58C9573C2F8E40A600FD0C81 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 8;
 			dstPath = Contents/Library/LaunchDaemons;
 			dstSubfolderSpec = 1;
 			files = (
 				58C957422F8E505C00FD0C81 /* NymVPND.app in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
+			runOnlyForDeploymentPostprocessing = 1;
 		};
 		D954C0B32B51C17200C6BAAC /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;

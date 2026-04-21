@@ -152,6 +152,7 @@ constructor(
 	private fun isSettledAccountState(state: AccountControllerState): Boolean = state is AccountControllerState.ReadyToConnect ||
 		state is AccountControllerState.Decentralised ||
 		state is AccountControllerState.UpgradeMode ||
+		state is AccountControllerState.PendingSubscription ||
 		state is AccountControllerState.Error
 
 	fun onConfigurationHandled() {

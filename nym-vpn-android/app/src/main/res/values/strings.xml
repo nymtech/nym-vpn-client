@@ -246,9 +246,8 @@
 	<string name="settings_language_help_title">Help with translation</string>
 	<string name="settings_language_help_description">Make the app better in your language.</string>
 	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings…</string>
-	<string name="settings_lewes_title">Enable Lewes Protocol</string>
-	<string name="settings_lewes_on_description">Always prefer post-quantum gateways</string>
-	<string name="settings_lewes_off_description">No post-quantum gateway preference</string>
+	<string name="settings_lewes_title">Post-quantum</string>
+	<string name="settings_lewes_description">Always prefer post-quantum gateways</string>
 	<string name="settings_ad_blocking_title">Ad blocking</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
@@ -443,6 +442,7 @@
 	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*Auto-renews</string>
 	<string name="account_info_no_plan">No active plan</string>
+	<string name="account_info_confirming_payment">Confirming payment</string>
 	<string name="account_info_updating">Updating account status…</string>
 	<string name="account_info_autologin_fetching">Fetching access code…</string>
 	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>

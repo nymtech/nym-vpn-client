@@ -5019,6 +5019,17 @@
         }
       }
     },
+    "confirmingPayment" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirming payment"
+          }
+        }
+      }
+    },
     "connect" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -33576,28 +33587,6 @@
         }
       }
     },
-    "settings.lewes.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No post-quantum gateway preference"
-          }
-        }
-      }
-    },
-    "settings.lewes.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lewes protocol"
-          }
-        }
-      }
-    },
     "settings.language" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -33695,6 +33684,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "语言"
+          }
+        }
+      }
+    },
+    "settings.lewes.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always prefer post-quantum gateways"
+          }
+        }
+      }
+    },
+    "settings.lewes.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Post-quantum"
           }
         }
       }

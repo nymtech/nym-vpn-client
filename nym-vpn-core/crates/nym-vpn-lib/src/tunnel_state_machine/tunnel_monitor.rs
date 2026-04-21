@@ -355,9 +355,10 @@ impl TunnelMonitor {
                 self.send_event(TunnelMonitorEvent::SelectingGateways);
 
                 let new_gateways = self
-                    .gateway_provider
-                    .next()
+                    .shutdown_token
+                    .run_until_cancelled(self.gateway_provider.next())
                     .await
+                    .ok_or(tunnel::Error::Cancelled)?
                     .ok_or(Error::GatewayProviderDown)??;
 
                 let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();

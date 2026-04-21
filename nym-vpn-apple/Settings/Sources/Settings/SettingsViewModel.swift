@@ -315,6 +315,10 @@ private extension SettingsViewModel {
                 } else {
                     subtitle = planText
                 }
+            } else if accountSummary.subscription?.status == .pending {
+                var confirmingPayment = AttributedString("confirmingPayment".localizedString)
+                confirmingPayment.foregroundColor = NymColor.error
+                subtitle = confirmingPayment
             } else {
                 var first = AttributedString("noActivePlan".localizedString)
                 first.foregroundColor = NymColor.error
