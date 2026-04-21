@@ -275,8 +275,12 @@ import PathManager
         }
 
         guard let summary else {
+            // Treat nil-without-throw as a failure for UI purposes: an authenticated
+            // user reaching this branch is the same UX as a thrown error (no plan
+            // info available). Avoids the third "indeterminate" state that
+            // produces an indefinite spinner.
             logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
-            accountSummaryLastFetchFailed = false
+            accountSummaryLastFetchFailed = true
             return
         }
 

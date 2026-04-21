@@ -330,6 +330,12 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             .filter_map(|m| VpnAccountAuthMethod::try_from(m).ok())
             .collect::<Vec<_>>();
 
+        // Subscription precedence: prefer `active` over `pending` when both are
+        // present (matches the wire-side semantics of `is_active`). We
+        // intentionally do NOT propagate the wire-side `value.subscription.is_active`
+        // boolean: `is_subscription_active()` re-derives the answer from
+        // `valid_until_utc > now` so the device clock is the source of truth and
+        // a malformed expiry surfaces as `false` (the safe answer).
         let subscription = value
             .subscription
             .active
@@ -352,6 +358,8 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             auth_methods,
             account_mode: None,
             subscription,
+            // `is_stacked` is independent of which subscription survived parsing,
+            // so we propagate it even if both `active` and `pending` were dropped.
             is_subscription_stacked: value.subscription.is_stacked,
         })
     }
