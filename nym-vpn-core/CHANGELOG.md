@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [macOS] Use endpoint-security framework directly instead of parsing eslogger output (https://github.com/nymtech/nym-vpn-client/pull/4749)
 
+### Fixed
+
+- Make `VpnAccountSummary::try_from` resilient to schema drift and malformed timestamps so a single off-spec field (`fair_usage.resetsOnUtc`, `auth_methods[].created`) or an API server response that omits the new `subscription.pending` key no longer takes the entire account-summary fetch to `Err`. This regression caused v2.22.0 iOS clients to silently lose `accountSummary` and hang on "Requesting ZkNyms" / "Get Started" despite a valid subscription.
+- [iOS/macOS] Stop swallowing errors from `fetchAccountSummary` with `try?` and log them via the `CredentialsManager` logger so future schema drift surfaces in device logs instead of an indefinite UI spinner.
+
 
 ## [1.28.0] - 2026-04-14
 

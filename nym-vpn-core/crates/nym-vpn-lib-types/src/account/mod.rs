@@ -311,25 +311,49 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
     fn try_from(
         value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
     ) -> Result<Self, Self::Error> {
-        let traffic_reset_time_str = value.fair_usage.resetsOnUtc.clone();
-        let traffic_reset_time = traffic_reset_time_str
-            .as_ref()
-            .map(|time| OffsetDateTime::parse(time, &time::format_description::well_known::Rfc3339))
-            .transpose()
-            .map_err(|_| {
-                nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
-                    "invalid fair_usage reset_time_utc time format: {}",
-                    traffic_reset_time_str.unwrap()
-                ))
-            })?;
+        // Soft-fail timestamp parsing: an off-spec `resetsOnUtc` (e.g. missing
+        // timezone offset, or a future server-side format change) must NOT take
+        // the entire account summary fetch to Err - that previously caused
+        // v2.22.0 clients to silently lose `accountSummary` and hang on
+        // "Requesting ZkNyms" / show "Get Started". Tolerate space-separated
+        // ISO 8601 (`T` vs ` `) and fall back to None on any parse failure.
+        let traffic_reset_time = value.fair_usage.resetsOnUtc.as_ref().and_then(|time| {
+            let normalized = time.replace(' ', "T");
+            match OffsetDateTime::parse(
+                &normalized,
+                &time::format_description::well_known::Rfc3339,
+            ) {
+                Ok(t) => Some(t),
+                Err(err) => {
+                    tracing::warn!(
+                        "failed to parse fair_usage.resetsOnUtc {time:?}: {err} - \
+                         continuing with traffic_reset_time = None"
+                    );
+                    None
+                }
+            }
+        });
 
+        // Soft-fail individual auth methods: a malformed `created` timestamp on
+        // one Privy/secp auth method must not destroy the entire summary fetch.
+        // Drop the offending entry (with a warning) and keep the rest.
         let auth_methods = value
             .account
             .auth_methods
             .iter()
             .cloned()
-            .map(TryInto::try_into)
-            .collect::<Result<Vec<_>, _>>()?;
+            .filter_map(|m| match VpnAccountAuthMethod::try_from(m.clone()) {
+                Ok(parsed) => Some(parsed),
+                Err(err) => {
+                    tracing::warn!(
+                        "skipping auth method {id:?} (kind={kind}): {err}",
+                        id = m.id,
+                        kind = m.kind,
+                    );
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
 
         let subscription = if let Some(active) = &value.subscription.active {
             Some(Subscription {
@@ -512,8 +536,11 @@ impl TryFrom<nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse>
     fn try_from(
         value: nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse,
     ) -> Result<Self, Self::Error> {
+        // Normalize space-separated ISO 8601 (`T` vs ` `) before parsing,
+        // matching the leniency we apply to subscription valid_until/from.
+        let normalized = value.created.replace(' ', "T");
         let created = OffsetDateTime::parse(
-            &value.created,
+            &normalized,
             &time::format_description::well_known::Rfc3339,
         )
         .map_err(|_| {
@@ -606,5 +633,126 @@ impl From<StoredAccountMode> for nym_vpn_store::types::StoredAccountMode {
             }
             StoredAccountMode::Privy => nym_vpn_store::types::StoredAccountMode::Privy,
         }
+    }
+}
+
+// Regression tests for the v2.22.0 silent-failure class:
+//
+// 1. iOS/macOS clients silently swallowed any error returned by
+//    `VpnAccountSummary::try_from`, leaving `accountSummary == nil` and the UI
+//    stuck on "Requesting ZkNyms" / "Get Started".
+// 2. The v2.22.0 schema introduced `pending` as a required field on
+//    `NymVpnAccountSummarySubscription`. Older API responses that omit it
+//    (e.g. during a staged rollout) failed serde deserialization upstream.
+// 3. A single off-spec timestamp on `fair_usage.resetsOnUtc` or any
+//    `auth_methods.created` previously failed the entire summary fetch.
+//
+// These tests pin the lenient behaviour we now rely on so a future regression
+// is loud.
+#[cfg(all(test, feature = "nym-type-conversions"))]
+mod tests {
+    use nym_vpn_api_client::response::{
+        NymVpnAccountAuthMethodResponse, NymVpnAccountResponse, NymVpnAccountStatusResponse,
+        NymVpnAccountSummaryDevices, NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse,
+        NymVpnAccountSummarySubscription,
+    };
+
+    use super::*;
+
+    fn base_summary() -> NymVpnAccountSummaryResponse {
+        NymVpnAccountSummaryResponse {
+            account: NymVpnAccountResponse {
+                created_on_utc: "2024-01-01T00:00:00Z".into(),
+                last_updated_utc: "2024-01-01T00:00:00Z".into(),
+                account_addr: "n1addr".into(),
+                status: NymVpnAccountStatusResponse::Active,
+                canonical_account_addr: None,
+                auth_methods: vec![],
+            },
+            subscription: NymVpnAccountSummarySubscription {
+                is_active: false,
+                active: None,
+                pending: None,
+                is_stacked: false,
+            },
+            devices: NymVpnAccountSummaryDevices {
+                active: 0,
+                max: 10,
+                remaining: 10,
+            },
+            fair_usage: NymVpnAccountSummaryFairUsage {
+                usedGB: 0,
+                limitGB: 2000,
+                resetsOnUtc: None,
+            },
+        }
+    }
+
+    #[test]
+    fn deserializes_when_pending_field_missing() {
+        // Older API server payloads pre-NYM-1034 omit `pending` entirely.
+        // With the `#[serde(default)]` fix, deserialization must succeed.
+        let json = r#"{
+            "isActive": true,
+            "active": null,
+            "isStacked": false
+        }"#;
+
+        let parsed: NymVpnAccountSummarySubscription =
+            serde_json::from_str(json).expect("must tolerate missing `pending`");
+        assert!(parsed.is_active);
+        assert!(parsed.pending.is_none());
+        assert!(parsed.active.is_none());
+    }
+
+    #[test]
+    fn try_from_succeeds_when_resets_on_utc_is_malformed() {
+        // A malformed (or future-format) traffic-reset timestamp must not take
+        // the entire summary to Err. `traffic_reset_time` should fall back to
+        // None so the rest of the summary still reaches the UI.
+        let mut summary = base_summary();
+        summary.fair_usage.resetsOnUtc = Some("not a date at all".into());
+
+        let parsed =
+            VpnAccountSummary::try_from(&summary).expect("must not fail on bad reset timestamp");
+        assert!(parsed.traffic_reset_time.is_none());
+    }
+
+    #[test]
+    fn try_from_accepts_space_separated_resets_on_utc() {
+        let mut summary = base_summary();
+        summary.fair_usage.resetsOnUtc = Some("2025-08-20 13:46:26.572Z".into());
+
+        let parsed = VpnAccountSummary::try_from(&summary).expect("space-separated must parse");
+        assert!(parsed.traffic_reset_time.is_some());
+    }
+
+    #[test]
+    fn try_from_drops_bad_auth_method_but_keeps_others() {
+        let mut summary = base_summary();
+        summary.account.auth_methods = vec![
+            NymVpnAccountAuthMethodResponse {
+                id: "good".into(),
+                pubkey: "pk".into(),
+                kind: "privy_secp256k1".into(),
+                label: "Privy".into(),
+                status: NymVpnAccountStatusResponse::Active,
+                created: "2025-08-20T13:46:26Z".into(),
+            },
+            NymVpnAccountAuthMethodResponse {
+                id: "bad".into(),
+                pubkey: "pk2".into(),
+                kind: "mnemonic".into(),
+                label: "Mnemonic".into(),
+                status: NymVpnAccountStatusResponse::Active,
+                created: "totally not a timestamp".into(),
+            },
+        ];
+
+        let parsed =
+            VpnAccountSummary::try_from(&summary).expect("must not fail on a single bad auth");
+        assert_eq!(parsed.auth_methods.len(), 1);
+        assert_eq!(parsed.auth_methods[0].id, "good");
+        assert!(parsed.is_linked());
     }
 }

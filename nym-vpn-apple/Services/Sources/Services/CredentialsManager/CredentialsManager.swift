@@ -256,13 +256,22 @@ import PathManager
 
     private func fetchAccountSummary() async {
 #if os(iOS)
-        guard let summary = try? await NymVpnAccountStorage(
-            dataDir: PathManager.dataFolderURL().path(),
-            environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
-        ).getAccountSummary()
-        else {
+        // Do NOT use `try?` here: silently swallowing the error is what caused
+        // the v2.22.0 hang where users saw "Get Started" / "Requesting ZkNyms"
+        // indefinitely because a single Rust-side parse failure left
+        // `accountSummary == nil` with no diagnostics.
+        let summary: VpnAccountSummary?
+        do {
+            summary = try await NymVpnAccountStorage(
+                dataDir: PathManager.dataFolderURL().path(),
+                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+            ).getAccountSummary()
+        } catch {
+            logger.error("fetchAccountSummary (iOS) failed: \(error)")
             return
         }
+
+        guard let summary else { return }
 
         let innerSub = summary.subscription?.subscription
         accountSummary = AccountSummary(
@@ -279,7 +288,11 @@ import PathManager
             subscription: summary.subscription.map { Subscription(from: $0) }
         )
 #elseif os(macOS)
-        accountSummary = try? await grpcManager.accountSummary()
+        do {
+            accountSummary = try await grpcManager.accountSummary()
+        } catch {
+            logger.error("fetchAccountSummary (macOS) failed: \(error)")
+        }
 #endif
     }
 
