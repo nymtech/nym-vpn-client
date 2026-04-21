@@ -31,7 +31,7 @@ They have to be placed in the `src-tauri` directory, and present during build
 time.\
 The required files are:
 
-- the daemon binary `nym-vpnd.exe`
+- the daemon binary `nym-vpnd.exe` and socks5 proxy `nym-socks5-proxy.exe`.
 - its dlls `libwg.dll`, `winfw.dll`, `wintun.dll`
 
 Depending on which version of vpnd you are targeting,\

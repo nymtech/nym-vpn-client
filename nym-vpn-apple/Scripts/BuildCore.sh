@@ -71,7 +71,7 @@ else
 fi
 
 # 3) Build macOS (produces upload/mac/nym-vpnd if macOS.mk has vpnd targets)
-make -f macOS.mk libwg nym-setup nym-vpnd rpc-swift-package RELEASE="${RELEASE}"
+make -f macOS.mk libwg nym-setup nym-vpnd nym-socks5-proxy rpc-swift-package RELEASE="${RELEASE}"
 
 # 4) Copy NymVPNRpc (from nym-vpn-rpc-uniffi) → apple repo root
 RPC_SRC="${CORE_ROOT}/crates/nym-vpn-rpc-uniffi/NymVPNRpc"
@@ -93,29 +93,19 @@ else
   echo "[BuildCore] Skipping header flatten (Xcode ${XCODE_VER} < 26.4)"
 fi
 
-# 5) Copy the universal nym-vpnd → apple Daemon
-VPND_SRC="${CORE_ROOT}/upload/mac/nym-vpnd"
+# 5) Copy binaries to apple Daemon folder
+VPND_SRC_DIR="${CORE_ROOT}/upload/mac"
 VPND_DEST_DIR="${APPLE_ROOT}/NymVPND"
-VPND_DEST="${VPND_DEST_DIR}/nym-vpnd"
-if [[ ! -f "${VPND_SRC}" ]]; then
-  echo "[BuildCore][ERROR] ${VPND_SRC} not found. Make sure macOS.mk builds vpnd-universal."
-  exit 1
-fi
 mkdir -p "${VPND_DEST_DIR}"
-cp -f "${VPND_SRC}" "${VPND_DEST}"
-chmod +x "${VPND_DEST}"
-echo "[BuildCore] Copied nym-vpnd → ${VPND_DEST}"
-
-# 6) Copy the universal nym-setup → apple Daemon
-NYM_SETUP_SRC="${CORE_ROOT}/upload/mac/nym-setup"
-NYM_SETUP_DEST="${VPND_DEST_DIR}/nym-setup"
-if [[ ! -f "${NYM_SETUP_SRC}" ]]; then
-  echo "[BuildCore][ERROR] ${NYM_SETUP_SRC} not found. Make sure macOS.mk builds nym-setup-universal."
-  exit 1
-fi
-cp -f "${NYM_SETUP_SRC}" "${NYM_SETUP_DEST}"
-chmod +x "${NYM_SETUP_DEST}"
-echo "[BuildCore] Copied nym-setup → ${VPND_DEST}"
+for f in nym-vpnd nym-socks5-proxy nym-setup; do
+  if [[ ! -f "${VPND_SRC_DIR}/${f}" ]]; then
+    echo "[BuildCore][ERROR] ${VPND_SRC_DIR}/${f} not found. Make sure macOS.mk builds vpnd-universal."
+    exit 1
+  fi
+  cp -f "${VPND_SRC_DIR}/${f}" "${VPND_DEST_DIR}"
+  chmod +x "${VPND_DEST_DIR}/${f}"
+  echo "[BuildCore] Copied ${f} → ${VPND_DEST_DIR}"
+done
 
 # Print sccache stats
 if command -v sccache &>/dev/null; then

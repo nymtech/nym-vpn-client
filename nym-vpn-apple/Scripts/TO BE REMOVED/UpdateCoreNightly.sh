@@ -172,6 +172,15 @@ else
     exit 1
 fi
 
+if [[ -f "${extracted_folder_name}/nym-socks5-proxy" ]]; then
+    cp "${extracted_folder_name}/nym-socks5-proxy" "../Daemon/nym-socks5-proxy"
+    chmod +x "../Daemon/nym-socks5-proxy"
+    echo "✅ nym-socks5-proxy copied successfully."
+else
+    echo "❌ Error: ${extracted_folder_name}/nym-socks5-proxy not found."
+    exit 1
+fi
+
 if [[ -d "${extracted_folder_name}/proto" ]]; then
     rm -rf "../ServicesMacOS/Sources/GRPCManager/proto"
     cp -a "${extracted_folder_name}/proto" "../ServicesMacOS/Sources/GRPCManager"

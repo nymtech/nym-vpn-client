@@ -1,7 +1,7 @@
 name: build-nym-vpn-core-linux
 on:
   pull_request:
-    types: [opened]
+    types: [ opened ]
     paths:
       - ".github/workflows/build-nym-vpn-core-linux.yml"
   workflow_dispatch:
@@ -70,7 +70,8 @@ jobs:
           subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Append timestamp if it's a dev version
-        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
+        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{
+          steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v8
@@ -98,6 +99,7 @@ jobs:
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd ${{ env.UPLOAD_DIR_LINUX }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-socks5-proxy ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-diagnostic ${{ env.UPLOAD_DIR_LINUX }}
 
       - name: Upload artifacts

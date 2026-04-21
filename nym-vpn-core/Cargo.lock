@@ -2603,6 +2603,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "fast-socks5"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9545787d8304a71e1bf1b711705070a4c400cce9b332c4a11800627b7c9a2067"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "log",
+ "socket2 0.5.10",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio-stream",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6234,6 +6249,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-socks5-proxy"
+version = "1.30.0-beta"
+dependencies = [
+ "anyhow",
+ "async-compression",
+ "fast-socks5",
+ "ipnet",
+ "iprange",
+ "libc",
+ "nym-firewall-config",
+ "nym-routing",
+ "nym-socks5-proxy-ipc",
+ "nym-windows",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "windows 0.62.2",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "nym-socks5-proxy-helpers"
 version = "1.20.4"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
@@ -6246,6 +6285,14 @@ dependencies = [
  "nym-task",
  "tokio",
  "tokio-util",
+]
+
+[[package]]
+name = "nym-socks5-proxy-ipc"
+version = "1.30.0-beta"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -6817,6 +6864,7 @@ dependencies = [
  "nym-registration-common",
  "nym-routing",
  "nym-sdk",
+ "nym-socks5-proxy-ipc",
  "nym-split-tunnel",
  "nym-statistics",
  "nym-statistics-api-client",
@@ -10373,7 +10421,6 @@ dependencies = [
  "nix 0.31.2",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
- "pcap",
  "pnet_packet 0.35.0",
  "regex",
  "serde",

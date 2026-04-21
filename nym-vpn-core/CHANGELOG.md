@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add TCP listener for local DNS resolver (https://github.com/nymtech/nym-vpn-client/pull/5113)
+- Add SOCKS5 Proxy process to implement Airporting (https://github.com/nymtech/nym-vpn-client/pull/5078)
 
 ### Changed
 
