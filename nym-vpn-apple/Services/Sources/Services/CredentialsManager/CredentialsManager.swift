@@ -256,10 +256,8 @@ import PathManager
 
     private func fetchAccountSummary() async {
 #if os(iOS)
-        // Do NOT use `try?` here: silently swallowing the error is what caused
-        // the v2.22.0 hang where users saw "Get Started" / "Requesting ZkNyms"
-        // indefinitely because a single Rust-side parse failure left
-        // `accountSummary == nil` with no diagnostics.
+        // Do not `try?` this: a swallowed error leaves `accountSummary == nil`
+        // with no log line, which surfaces as an indefinite "Requesting ZkNyms".
         let summary: VpnAccountSummary?
         do {
             summary = try await NymVpnAccountStorage(

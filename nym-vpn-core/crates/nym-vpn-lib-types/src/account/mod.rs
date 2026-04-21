@@ -311,12 +311,8 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
     fn try_from(
         value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
     ) -> Result<Self, Self::Error> {
-        // Soft-fail timestamp parsing: an off-spec `resetsOnUtc` (e.g. missing
-        // timezone offset, or a future server-side format change) must NOT take
-        // the entire account summary fetch to Err - that previously caused
-        // v2.22.0 clients to silently lose `accountSummary` and hang on
-        // "Requesting ZkNyms" / show "Get Started". Tolerate space-separated
-        // ISO 8601 (`T` vs ` `) and fall back to None on any parse failure.
+        // Tolerate space-separated ISO 8601 and fall back to None on any parse
+        // failure: a single bad timestamp must not fail the whole summary.
         let traffic_reset_time = value.fair_usage.resetsOnUtc.as_ref().and_then(|time| {
             let normalized = time.replace(' ', "T");
             match OffsetDateTime::parse(
@@ -325,18 +321,14 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             ) {
                 Ok(t) => Some(t),
                 Err(err) => {
-                    tracing::warn!(
-                        "failed to parse fair_usage.resetsOnUtc {time:?}: {err} - \
-                         continuing with traffic_reset_time = None"
-                    );
+                    tracing::warn!("failed to parse fair_usage.resetsOnUtc {time:?}: {err}");
                     None
                 }
             }
         });
 
-        // Soft-fail individual auth methods: a malformed `created` timestamp on
-        // one Privy/secp auth method must not destroy the entire summary fetch.
-        // Drop the offending entry (with a warning) and keep the rest.
+        // Drop individual auth methods that fail to parse (logged) rather than
+        // failing the whole summary on one off-spec entry.
         let auth_methods = value
             .account
             .auth_methods
@@ -536,8 +528,7 @@ impl TryFrom<nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse>
     fn try_from(
         value: nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse,
     ) -> Result<Self, Self::Error> {
-        // Normalize space-separated ISO 8601 (`T` vs ` `) before parsing,
-        // matching the leniency we apply to subscription valid_until/from.
+        // Tolerate space-separated ISO 8601, matching subscription valid_until/from.
         let normalized = value.created.replace(' ', "T");
         let created = OffsetDateTime::parse(
             &normalized,
@@ -636,13 +627,8 @@ impl From<StoredAccountMode> for nym_vpn_store::types::StoredAccountMode {
     }
 }
 
-// Regression tests for the v2.22.0 silent-failure class:
-//
-// 1. iOS/macOS clients silently swallowed any error returned by
-//    `VpnAccountSummary::try_from`, leaving `accountSummary == nil` and the UI
-//    stuck on "Requesting ZkNyms" / "Get Started".
-// These tests pin the lenient behaviour we now rely on so a future regression
-// is loud.
+// Pin the lenient deserialization of `VpnAccountSummary` so a schema or
+// timestamp regression fails loudly here instead of silently on the client.
 #[cfg(all(test, feature = "nym-type-conversions"))]
 mod tests {
     use nym_vpn_api_client::response::{
@@ -684,8 +670,7 @@ mod tests {
 
     #[test]
     fn deserializes_when_pending_field_missing() {
-        // Older API server payloads pre-NYM-1034 omit `pending` entirely.
-        // With the `#[serde(default)]` fix, deserialization must succeed.
+        // Older API payloads omit `pending`; #[serde(default)] must keep parsing.
         let json = r#"{
             "isActive": true,
             "active": null,
@@ -701,9 +686,7 @@ mod tests {
 
     #[test]
     fn try_from_succeeds_when_resets_on_utc_is_malformed() {
-        // A malformed (or future-format) traffic-reset timestamp must not take
-        // the entire summary to Err. `traffic_reset_time` should fall back to
-        // None so the rest of the summary still reaches the UI.
+        // A bad reset timestamp must fall back to None, not fail the summary.
         let mut summary = base_summary();
         summary.fair_usage.resetsOnUtc = Some("not a date at all".into());
 
