@@ -37,6 +37,7 @@ mod connection_data;
 mod device;
 mod diagnostic;
 mod gateway;
+mod gateway_selection_algorithm;
 mod log_path;
 mod network;
 mod network_stats;
@@ -81,6 +82,7 @@ pub use gateway::{
     LookupGatewayFilters, Lp, NodeIdentity, ParseRecipientError, Performance, Probe, ProbeOutcome,
     QuicClientOptions, Recipient, Score, Socks5,
 };
+pub use gateway_selection_algorithm::{GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig};
 pub use log_path::LogPath;
 pub use network::{
     ApiUrl, ChainDetails, DenomDetailsOwned, FeatureFlags, FlagValue, Network,
@@ -94,9 +96,9 @@ pub use rpc_requests::{
     ListGatewaysOptions, StoreAccountRequest,
 };
 pub use service::{
-    BackgroundCoverTrafficRate, ContinuousTrafficSendingRate, GatewaySelectionAlgorithm,
-    MixingDelay, MixnetTrafficConfig, MixnetTrafficConfigValidationError, MixnetTrafficDefaults,
-    SplitApp, SplitTunnelSettings, TargetState, VpnServiceConfig, VpnServiceInfo,
+    BackgroundCoverTrafficRate, ContinuousTrafficSendingRate, MixingDelay, MixnetTrafficConfig,
+    MixnetTrafficConfigValidationError, MixnetTrafficDefaults, SplitApp, SplitTunnelSettings,
+    TargetState, VpnServiceConfig, VpnServiceInfo,
 };
 pub use socks5::{EnableSocks5Request, HttpRpcSettings, Socks5Settings, Socks5State, Socks5Status};
 pub use split_tunnel::{SplitTunnelExcludedProcess, SplitTunnelExcludedProcessList};

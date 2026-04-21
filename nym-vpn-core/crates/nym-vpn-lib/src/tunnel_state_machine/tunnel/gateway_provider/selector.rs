@@ -240,10 +240,11 @@ pub async fn select_gateways(
         )])
     };
 
-    let entry_ordering_criteria = match (
-        device_location.clone(),
-        tunnel_settings.gateway_selection_algorithm,
-    ) {
+    let gateway_selection_algorithm = tunnel_settings
+        .gateway_selection_algorithm_config
+        .gateway_selection_algorithm;
+
+    let entry_ordering_criteria = match (device_location.clone(), gateway_selection_algorithm) {
         (_, GatewaySelectionAlgorithm::Explicit) | (None, _) => {
             OrderingCriteria::Random(entry_point)
         }
@@ -269,10 +270,7 @@ pub async fn select_gateways(
     // Exclude the entry gateway from the list of exit gateways for privacy reasons
     exit_gateways.retain_gateways_by(|gateway| gateway.identity() != entry_gateway.identity());
 
-    let exit_ordering_criteria = match (
-        device_location,
-        tunnel_settings.gateway_selection_algorithm,
-    ) {
+    let exit_ordering_criteria = match (device_location, gateway_selection_algorithm) {
         (_, GatewaySelectionAlgorithm::Explicit)
         | (_, GatewaySelectionAlgorithm::AutoEntryExplicitExit)
         | (None, _) => OrderingCriteria::Random(exit_point),

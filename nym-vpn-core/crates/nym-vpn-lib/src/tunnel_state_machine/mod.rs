@@ -63,7 +63,7 @@ use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    GatewaySelectionAlgorithm, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    GatewaySelectionAlgorithmConfig, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use crate::{
@@ -179,8 +179,8 @@ pub struct TunnelSettings {
     /// Split tunneling settings.
     pub split_tunnel: SplitTunnelSettings,
 
-    /// How the gateways should be selected
-    pub gateway_selection_algorithm: GatewaySelectionAlgorithm,
+    /// How the gateways should be selected.
+    pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 }
 
 impl TunnelSettings {

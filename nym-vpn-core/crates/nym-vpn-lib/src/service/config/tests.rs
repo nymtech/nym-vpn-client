@@ -1018,7 +1018,8 @@ async fn test_service_config_serialize_full() {
                 path: "/Applications/Firefox.app/Contents/MacOS/firefox".to_owned(),
             }],
         },
-        gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm::Auto,
+        gateway_selection_algorithm_config:
+            nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::default(),
     };
     run_serialize_test(config).await;
 }

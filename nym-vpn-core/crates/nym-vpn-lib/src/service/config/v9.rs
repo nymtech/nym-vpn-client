@@ -6,12 +6,12 @@ use crate::service::{
     config::{
         VpnServiceConfigExt,
         entry_exit::v2::{EntryPoint, ExitPoint},
+        gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
         mixnet_traffic::v5::MixnetTrafficConfig,
         network_stats::v1::NetworkStatisticsConfig,
         split_tunnel_settings::v8::SplitTunnelSettings,
     },
 };
-use nym_vpn_lib_types::GatewaySelectionAlgorithm;
 use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, str::FromStr};
 
@@ -33,7 +33,7 @@ pub struct VpnServiceConfig {
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
-    pub gateway_selection_algorithm: GatewaySelectionAlgorithm,
+    pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
@@ -63,6 +63,9 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
 
         let network_stats = nym_vpn_lib_types::NetworkStatisticsConfig::from(value.network_stats);
         let split_tunnel = nym_vpn_lib_types::SplitTunnelSettings::from(value.split_tunnel);
+        let gateway_selection_algorithm = nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::from(
+            value.gateway_selection_algorithm_config,
+        );
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -81,7 +84,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             custom_dns,
             network_stats,
             split_tunnel,
-            gateway_selection_algorithm: value.gateway_selection_algorithm,
+            gateway_selection_algorithm_config: gateway_selection_algorithm,
         };
 
         Ok(config)

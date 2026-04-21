@@ -116,7 +116,7 @@ impl Command {
                 println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
                 println!(
                     "Gateway selection algorithm: {}",
-                    config.gateway_selection_algorithm
+                    config.gateway_selection_algorithm_config
                 );
 
                 Ok(())

@@ -46,7 +46,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
 
         let gateway_selection_algorithm = value
             .gateway_selection_algorithm
-            .map(nym_vpn_lib_types::GatewaySelectionAlgorithm::try_from)
+            .map(nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::try_from)
             .ok_or(ConversionError::NoValueSet(
                 "VpnServiceConfig.gateway_selection_algorithm",
             ))??;
@@ -68,7 +68,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             mixnet_traffic,
             network_stats,
             split_tunnel,
-            gateway_selection_algorithm,
+            gateway_selection_algorithm_config: gateway_selection_algorithm,
         };
         Ok(config)
     }
@@ -83,7 +83,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
         let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
         let split_tunnel = Some(proto::SplitTunnelSettings::from(value.split_tunnel));
         let gateway_selection_algorithm =
-            proto::GatewaySelectionAlgorithm::from(value.gateway_selection_algorithm).into();
+            proto::GatewaySelectionAlgorithmConfig::from(value.gateway_selection_algorithm_config).into();
 
         proto::VpnServiceConfig {
             entry_point,
@@ -131,54 +131,6 @@ impl From<nym_vpn_lib_types::MixnetTrafficConfig> for proto::MixnetTrafficConfig
             disable_background_cover_traffic: value.disable_background_cover_traffic,
             min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u32),
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
-        }
-    }
-}
-
-impl From<nym_vpn_lib_types::GatewaySelectionAlgorithm> for proto::GatewaySelectionAlgorithm {
-    fn from(value: nym_vpn_lib_types::GatewaySelectionAlgorithm) -> Self {
-        let inner = match value {
-            nym_vpn_lib_types::GatewaySelectionAlgorithm::Explicit => {
-                proto::gateway_selection_algorithm::GatewaySelectionAlgorithm::Explicit(
-                    proto::gateway_selection_algorithm::Explicit {},
-                )
-            }
-            nym_vpn_lib_types::GatewaySelectionAlgorithm::AutoEntryExplicitExit => {
-                proto::gateway_selection_algorithm::GatewaySelectionAlgorithm::AutoEntryExplicitExit(
-                    proto::gateway_selection_algorithm::AutoEntryExplicitExit {},
-                )
-            }
-            nym_vpn_lib_types::GatewaySelectionAlgorithm::Auto => {
-                proto::gateway_selection_algorithm::GatewaySelectionAlgorithm::Auto(
-                    proto::gateway_selection_algorithm::Auto {},
-                )
-            }
-        };
-        proto::GatewaySelectionAlgorithm {
-            gateway_selection_algorithm: Some(inner),
-        }
-    }
-}
-
-impl TryFrom<proto::GatewaySelectionAlgorithm> for nym_vpn_lib_types::GatewaySelectionAlgorithm {
-    type Error = ConversionError;
-
-    fn try_from(value: proto::GatewaySelectionAlgorithm) -> Result<Self, Self::Error> {
-        match value.gateway_selection_algorithm {
-            None => {
-                Err(ConversionError::NoValueSet(
-                "GatewaySelectionAlgorithm.gateway_selection_algorithm",
-            ))
-            }
-            Some(proto::gateway_selection_algorithm::GatewaySelectionAlgorithm::Explicit(_)) => {
-                Ok(nym_vpn_lib_types::GatewaySelectionAlgorithm::Explicit)
-            }
-            Some(proto::gateway_selection_algorithm::GatewaySelectionAlgorithm::AutoEntryExplicitExit(_)) => {
-                Ok(nym_vpn_lib_types::GatewaySelectionAlgorithm::AutoEntryExplicitExit)
-            }
-            Some(proto::gateway_selection_algorithm::GatewaySelectionAlgorithm::Auto(_)) => {
-                Ok(nym_vpn_lib_types::GatewaySelectionAlgorithm::Auto)
-            }
         }
     }
 }

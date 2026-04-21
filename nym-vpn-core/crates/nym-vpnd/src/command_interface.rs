@@ -329,6 +329,28 @@ impl NymVpnService for CommandInterface {
         Ok(Response::new(()))
     }
 
+    async fn set_enable_geo_location(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> std::result::Result<Response<()>, Status> {
+        let enable_geo_location = request.into_inner();
+
+        self.send_and_wait(VpnServiceCommand::SetEnableGeoLocation, enable_geo_location)
+            .await
+            .map_err(|e| {
+                Status::internal(format!(
+                    "[set_enable gateway_selection_algorithm] transport error: {e}"
+                ))
+            })?
+            .map_err(|err| {
+                Status::invalid_argument(format!(
+                    "[set_enable gateway_selection_algorithm] validation failed: {err}"
+                ))
+            })?;
+
+        Ok(Response::new(()))
+    }
+
     async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
         let network = request.into_inner();
         let status = self

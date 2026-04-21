@@ -102,6 +102,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), String>>,
         GatewaySelectionAlgorithm,
     ),
+    SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -990,6 +991,12 @@ impl NymVpnService {
                     .await;
                 let _ = tx.send(res);
             }
+            VpnServiceCommand::SetEnableGeoLocation(tx, enable_geo_location) => {
+                let res = self
+                    .handle_set_enable_geo_location(enable_geo_location)
+                    .await;
+                let _ = tx.send(res);
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -1338,6 +1345,18 @@ impl NymVpnService {
     ) -> Result<(), String> {
         self.config_manager
             .set_gateway_selection_algorithm(gateway_selection_algorithm)
+            .await
+            .map_err(|err| err.to_string())?;
+        self.update_tunnel_settings_with_throttle();
+        Ok(())
+    }
+
+    async fn handle_set_enable_geo_location(
+        &mut self,
+        enable_geo_location: bool,
+    ) -> Result<(), String> {
+        self.config_manager
+            .set_enable_geo_location(enable_geo_location)
             .await
             .map_err(|err| err.to_string())?;
         self.update_tunnel_settings_with_throttle();

@@ -204,7 +204,7 @@ pub mod tests {
             exit_point: Box::new(ExitPoint::Random),
             dns: Default::default(),
             split_tunnel: Default::default(),
-            gateway_selection_algorithm: Default::default(),
+            gateway_selection_algorithm_config: Default::default(),
         }
     }
 

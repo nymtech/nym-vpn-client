@@ -241,6 +241,15 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_geo_location(&mut self, enable_geo_location: bool) -> Result<()> {
+        self.0
+            .set_enable_geo_location(enable_geo_location)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_network(&mut self, network: String) -> Result<()> {
         self.0
             .set_network(network)
