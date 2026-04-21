@@ -5,8 +5,9 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
 use tokio::sync::watch;
+use tokio_util::sync::CancellationToken;
 
-pub async fn start_monitor() -> watch::Receiver<DefaultInterface> {
+pub async fn start_monitor(shutdown_token: CancellationToken) -> watch::Receiver<DefaultInterface> {
     let initial = match RouteManagerHandle::spawn().await {
         Ok(rm) => {
             let addrs = query_addrs(&rm).await;
@@ -20,7 +21,7 @@ pub async fn start_monitor() -> watch::Receiver<DefaultInterface> {
     };
 
     let (tx, rx) = watch::channel(initial);
-    tokio::spawn(monitor_task(tx));
+    tokio::spawn(monitor_task(tx, shutdown_token));
     rx
 }
 
@@ -49,7 +50,7 @@ async fn query_addrs(route_manager: &RouteManagerHandle) -> DefaultInterface {
     }
 }
 
-async fn monitor_task(tx: watch::Sender<DefaultInterface>) {
+async fn monitor_task(tx: watch::Sender<DefaultInterface>, shutdown_token: CancellationToken) {
     let route_manager = match RouteManagerHandle::spawn().await {
         Ok(rm) => rm,
         Err(err) => {
@@ -67,16 +68,26 @@ async fn monitor_task(tx: watch::Sender<DefaultInterface>) {
         }
     };
 
-    while let Some(event) = listener.recv().await {
-        // Any change to either family — re-query both.
-        match event {
-            DefaultRouteEvent::AddedOrChangedV4
-            | DefaultRouteEvent::RemovedV4
-            | DefaultRouteEvent::AddedOrChangedV6
-            | DefaultRouteEvent::RemovedV6 => {
-                let addrs = query_addrs(&route_manager).await;
-                tracing::debug!("Default interface changed; new addrs: {addrs:?}");
-                let _ = tx.send(addrs);
+    loop {
+        tokio::select! {
+            event = listener.recv() => {
+                match event {
+                    Some(
+                        DefaultRouteEvent::AddedOrChangedV4
+                        | DefaultRouteEvent::RemovedV4
+                        | DefaultRouteEvent::AddedOrChangedV6
+                        | DefaultRouteEvent::RemovedV6,
+                    ) => {
+                        let addrs = query_addrs(&route_manager).await;
+                        tracing::debug!("Default interface changed; new addrs: {addrs:?}");
+                        let _ = tx.send(addrs);
+                    }
+                    None => break,
+                }
+            }
+            _ = shutdown_token.cancelled() => {
+                tracing::debug!("Default interface monitor shutting down");
+                break;
             }
         }
     }
