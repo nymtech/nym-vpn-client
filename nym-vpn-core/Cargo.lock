@@ -6250,7 +6250,7 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy"
-version = "1.29.0-beta"
+version = "1.30.0-beta"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -6288,7 +6288,7 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy-ipc"
-version = "1.29.0-beta"
+version = "1.30.0-beta"
 dependencies = [
  "serde",
  "serde_json",

@@ -1,7 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{env, path::PathBuf, process::Stdio, time::Duration};
+use std::{env, path::PathBuf, process::Stdio, result::Result, time::Duration};
 
 use nym_socks5_proxy_ipc::{DaemonMessage, InterfaceAddresses, ProxyConfig, ProxyMessage};
 use tokio::{
@@ -17,8 +17,6 @@ const PROXY_BINARY_NAME: &str = if cfg!(windows) {
 } else {
     "nym-socks5-proxy"
 };
-
-pub(super) type Result<T> = std::result::Result<T, Socks5ProcessError>;
 
 #[derive(Clone)]
 pub struct Socks5ProcessHandle {
@@ -46,7 +44,7 @@ impl Socks5ProcessTask {
         config: ProxyConfig,
         event_tx: mpsc::UnboundedSender<Socks5ProcessEvent>,
         shutdown_token: CancellationToken,
-    ) -> Result<(Socks5ProcessHandle, JoinHandle<()>)> {
+    ) -> Result<(Socks5ProcessHandle, JoinHandle<()>), Socks5ProcessError> {
         let binary_path = find_proxy_binary()?;
 
         tracing::info!(
@@ -85,7 +83,7 @@ impl Socks5ProcessTask {
             .expect("channel is open");
 
         // Channel to receive the ready signal from the supervisor.
-        let (ready_tx, ready_rx) = oneshot::channel::<std::result::Result<(), String>>();
+        let (ready_tx, ready_rx) = oneshot::channel::<Result<(), String>>();
 
         // Spawn the supervisor (reads stdout, tracks process exit).
         let supervisor_token = shutdown_token.clone();
@@ -125,7 +123,7 @@ pub enum Socks5ProcessEvent {
     Exited { success: bool },
 }
 
-pub fn find_proxy_binary() -> Result<PathBuf> {
+pub fn find_proxy_binary() -> Result<PathBuf, Socks5ProcessError> {
     let exe = env::current_exe().map_err(|e| {
         Socks5ProcessError::BinaryNotFound(format!(
             "Could not determine current executable path: {e}"
@@ -194,7 +192,7 @@ async fn supervisor(
     stdin: ChildStdin,
     msg_rx: mpsc::UnboundedReceiver<DaemonMessage>,
     stdout: ChildStdout,
-    ready_tx: oneshot::Sender<std::result::Result<(), String>>,
+    ready_tx: oneshot::Sender<Result<(), String>>,
     event_tx: mpsc::UnboundedSender<Socks5ProcessEvent>,
     shutdown_token: CancellationToken,
 ) {
@@ -254,7 +252,7 @@ async fn supervisor(
 
 fn handle_proxy_line(
     line: &str,
-    ready_tx: &mut Option<oneshot::Sender<std::result::Result<(), String>>>,
+    ready_tx: &mut Option<oneshot::Sender<Result<(), String>>>,
     event_tx: &mpsc::UnboundedSender<Socks5ProcessEvent>,
 ) {
     let msg = match line.parse::<ProxyMessage>() {
