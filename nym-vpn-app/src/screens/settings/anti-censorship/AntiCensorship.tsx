@@ -1,17 +1,14 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
-import {
-  useInAppNotify,
-  useMainDispatch,
-  useMainState,
-} from '../../../contexts';
+import { useMainDispatch, useMainState } from '../../../contexts';
 import { StateDispatch } from '../../../types';
 import { AmneziaWgUrl, DomainFrontingUrl, QuicUrl } from '../../../constants';
+import { useNewToast } from '../../../contexts/new-toast-provider/index';
 
 function AntiCensorship() {
   const { quic, backendFlags, state } = useMainState();
-  const { push } = useInAppNotify();
+  const { add } = useNewToast();
 
   const dispatch = useMainDispatch() as StateDispatch;
 
@@ -28,16 +25,14 @@ function AntiCensorship() {
     }
 
     if (state == 'connected' || state == 'connecting') {
-      push({
+      add({
         id: `quic-switch-${isChecked}`,
-        message: t(
+        title: t(
           isChecked
             ? 'anti-censorship.snackbar-switch-on'
             : 'anti-censorship.snackbar-switch-off',
         ),
-        throttle: 5,
-        duration: 5000,
-        close: true,
+        type: 'info',
       });
     }
   };

@@ -15,10 +15,11 @@ import {
 } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 import { CCache } from '../../../cache';
-import { useAutologin, useInAppNotify, useMainState } from '../../../contexts';
+import { useAutologin, useMainState } from '../../../contexts';
 import { routes } from '../../../router';
 import { useDeepLink, useLogout } from '../../../hooks';
 import { DeeplinkTimeout } from '../../../errors';
+import { useNewToast } from '../../../contexts/new-toast-provider/index';
 import { AccountStatus } from './account-status';
 import { AccountDescription } from './AccountDescription';
 
@@ -45,7 +46,7 @@ function Account() {
   const [accountId, setAccountId] = useState<string | null>(null);
 
   const { startListening } = useDeepLink();
-  const { push } = useInAppNotify();
+  const { add } = useNewToast();
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -105,18 +106,14 @@ function Account() {
     } catch (error) {
       console.error('Account login error: ', error);
       if (error instanceof DeeplinkTimeout) {
-        push({
-          message: t('account-linking-timeout', { ns: 'notifications' }),
+        add({
+          title: t('account-linking-timeout', { ns: 'notifications' }),
           type: 'error',
-          duration: 3000,
-          close: true,
         });
       } else {
-        push({
-          message: t('account-linking-error', { ns: 'notifications' }),
+        add({
+          title: t('account-linking-error', { ns: 'notifications' }),
           type: 'error',
-          duration: 3000,
-          close: true,
         });
       }
     } finally {

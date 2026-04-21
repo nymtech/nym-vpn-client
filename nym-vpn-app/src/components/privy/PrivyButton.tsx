@@ -4,17 +4,18 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
 import { Button, MsIcon } from '../../ui';
-import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
+import { useMainDispatch, useMainState } from '../../contexts';
 import { useDeepLink } from '../../hooks';
 import { routes } from '../../router';
 import { CCache } from '../../cache';
 import { StateDispatch, TAccountMode } from '../../types';
 import { DeeplinkTimeout } from '../../errors';
+import { useNewToast } from '../../contexts/new-toast-provider/index';
 
 function PrivyButton() {
   const { t, i18n } = useTranslation('login');
 
-  const { push } = useInAppNotify();
+  const { add } = useNewToast();
   const { startListening } = useDeepLink();
   const { welcomeChecked } = useMainState();
   const navigate = useNavigate();
@@ -57,18 +58,16 @@ function PrivyButton() {
     } catch (error) {
       console.error('Privy login error: ', error);
       if (error instanceof DeeplinkTimeout) {
-        push({
-          message: t('privy.error.timeout'),
+        add({
+          title: t('privy.error.timeout'),
+          description: t('privy.error.timeout'),
           type: 'error',
-          duration: 3000,
-          close: true,
         });
       } else {
-        push({
-          message: t('privy.error.login'),
+        add({
+          title: t('privy.error.login'),
+          description: t('privy.error.login'),
           type: 'error',
-          duration: 3000,
-          close: true,
         });
       }
     } finally {

@@ -6,9 +6,10 @@ import { invoke } from '@tauri-apps/api/core';
 import { CardNewFooter, MsIcon, Spinner } from '../../../../ui';
 import { TAccountSummary } from '../../../../types';
 import { getAccountStatus } from '../utils';
-import { useAutologin, useInAppNotify } from '../../../../contexts';
+import { useAutologin } from '../../../../contexts';
 import { useDeepLink } from '../../../../hooks';
 import { DeeplinkTimeout } from '../../../../errors';
+import { useNewToast } from '../../../../contexts/new-toast-provider/index';
 
 export function RenewButton({
   accountSummary,
@@ -20,7 +21,7 @@ export function RenewButton({
   const [autologinLoading, setAutologinLoading] = useState(false);
   const { autologin, closeDialog } = useAutologin();
   const { startListening } = useDeepLink();
-  const { push } = useInAppNotify();
+  const { add } = useNewToast();
 
   const status = useMemo(
     () => getAccountStatus(accountSummary),
@@ -39,10 +40,9 @@ export function RenewButton({
     } catch (error: unknown) {
       console.error('Renew button error: ', error);
       if (error instanceof DeeplinkTimeout) {
-        push({
-          message: t('autologin.timeout', { ns: 'errors' }),
+        add({
+          title: t('autologin.timeout', { ns: 'errors' }),
           type: 'error',
-          duration: 3000,
         });
       }
     } finally {

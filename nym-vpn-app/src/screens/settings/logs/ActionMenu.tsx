@@ -3,12 +3,13 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Menu } from '@base-ui-components/react';
 import { invoke } from '@tauri-apps/api/core';
-import { useInAppNotify, useMainState } from '../../../contexts';
+import { useMainState } from '../../../contexts';
 import {
   ConfirmationDialog,
   ConfirmationDialogProps,
   MsIcon,
 } from '../../../ui';
+import { useNewToast } from '../../../contexts/new-toast-provider/index';
 
 function Separator() {
   const { uiTheme } = useMainState();
@@ -71,32 +72,28 @@ function ActionMenu() {
   const [isLoading, setIsLoading] = useState(false);
 
   const { uiTheme } = useMainState();
-  const { push } = useInAppNotify();
+  const { add } = useNewToast();
 
   const handleDeleteLogs = useCallback(async () => {
     setIsLoading(true);
     try {
       await invoke('delete_logs');
       await invoke('delete_app_logs');
-      push({
-        message: t('logs.actions.delete.success'),
+      add({
+        title: t('logs.actions.delete.success'),
         type: 'info',
-        duration: 3000,
-        close: true,
       });
     } catch (error) {
       console.error('failed to delete logs', error);
-      push({
-        message: t('logs.actions.delete.error'),
+      add({
+        title: t('logs.actions.delete.error'),
         type: 'error',
-        duration: 3000,
-        close: true,
       });
     } finally {
       setActiveDialog(null);
       setIsLoading(false);
     }
-  }, [push, t]);
+  }, [add, t]);
 
   const handleExportLogs = useCallback(async () => {
     setIsLoading(true);
@@ -104,17 +101,15 @@ function ActionMenu() {
       await invoke('zip_logs');
     } catch (error) {
       console.error('failed to zip logs', error);
-      push({
-        message: t('logs.actions.export.error'),
+      add({
+        title: t('logs.actions.export.error'),
         type: 'error',
-        duration: 3000,
-        close: true,
       });
     } finally {
       setActiveDialog(null);
       setIsLoading(false);
     }
-  }, [push, t]);
+  }, [add, t]);
 
   const dialogConfig = useMemo<Record<string, DialogConfig>>(
     () => ({

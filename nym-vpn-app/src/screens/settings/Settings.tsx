@@ -3,10 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { routes } from '../../router';
-import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
+import { useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
 import { MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
+import { useNewToast } from '../../contexts/new-toast-provider/index';
 import { AccountSettingRow } from './account';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
@@ -27,7 +28,7 @@ function Settings() {
   const { exit } = useExit();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
-  const { push } = useInAppNotify();
+  const { add } = useNewToast();
 
   const handleAutostartChanged = async () => {
     await toggleAutostart();
@@ -40,9 +41,8 @@ function Settings() {
       dispatch({ type: 'set-ipv6-support', enabled: switched });
     } catch (error) {
       console.error('[settings] IPv6 support error', error);
-      push({
-        message: t('ipv6-support.errors.failed'),
-        close: true,
+      add({
+        title: t('ipv6-support.errors.failed'),
         type: 'error',
       });
     }
@@ -55,9 +55,8 @@ function Settings() {
       dispatch({ type: 'set-allow-lan', enabled: switched });
     } catch (error) {
       console.error('[settings] allow lan error', error);
-      push({
-        message: t('allow-lan.errors.failed'),
-        close: true,
+      add({
+        title: t('allow-lan.errors.failed'),
         type: 'error',
       });
     }
@@ -70,9 +69,8 @@ function Settings() {
       dispatch({ type: 'set-enable-lewes-protocol', enabled: switched });
     } catch (error) {
       console.error('[settings] lewes protocol error', error);
-      push({
-        message: t('lewes.errors.failed'),
-        close: true,
+      add({
+        title: t('lewes.errors.failed'),
         type: 'error',
       });
     }
@@ -85,9 +83,8 @@ function Settings() {
       dispatch({ type: 'set-enable-ad-blocking', enabled: switched });
     } catch (error) {
       console.error('[settings] ad block error', error);
-      push({
-        message: t('ad-block.errors.failed'),
-        close: true,
+      add({
+        title: t('ad-block.errors.failed'),
         type: 'error',
       });
     }

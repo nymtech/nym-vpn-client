@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router';
 import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
 import { CustomDnsHelpUrl } from '../../../constants';
 import useCustomDns from '../../../hooks/useCustomDns';
-import { useInAppNotify } from '../../../contexts';
 import { BackNavigationConfirmationDialog } from '../../../components';
+import { useNewToast } from '../../../contexts/new-toast-provider/index';
 import { CustomDnsServers } from './CustomDnsServers';
 import { DefaultDnsServers } from './DefaultDnsServers';
 import { DnsItem } from './DnsItemContent';
@@ -19,7 +19,7 @@ function CustomDNS() {
     setCustomDns,
     customDns,
   } = useCustomDns();
-  const { push } = useInAppNotify();
+  const { add } = useNewToast();
 
   const [customDnsList, setCustomDnsList] = useState<DnsItem[]>(() =>
     customDns.map((dns) => ({ id: dns, dns })),
@@ -36,9 +36,8 @@ function CustomDNS() {
       await toggleCustomDns(false);
     }
     await setCustomDns(customDnsList.map((item) => item.dns));
-    push({
-      message: t('dns.details.applied'),
-      close: true,
+    add({
+      title: t('dns.details.applied'),
       type: 'info',
     });
   };

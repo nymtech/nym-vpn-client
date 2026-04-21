@@ -4,9 +4,9 @@ import { InitState, SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { useAccountSummaryOnAccountState } from '../../state/useAccountSummaryOnAccountState';
-import { useInAppNotify } from '../in-app-notification';
 import { daemonStatusUpdate, networkEnvChanged } from '../../state/helper';
 import { CCache } from '../../cache';
+import { useNewToast } from '../new-toast-provider';
 import { MainDispatchContext, MainStateContext } from './context';
 import { initialState, reducer } from './reducer';
 
@@ -38,8 +38,8 @@ function MainStateProvider({ children, init }: Props) {
     splitTunnel: init.splitTunnel,
   });
 
-  const { push } = useInAppNotify();
-  useTauriEvents(dispatch, push);
+  const { add } = useNewToast();
+  useTauriEvents(dispatch, add);
   useAccountSummaryOnAccountState(
     state.accountState,
     state.accountSyncing,
@@ -49,7 +49,7 @@ function MainStateProvider({ children, init }: Props) {
 
   // initialize app state
   useEffect(() => {
-    daemonStatusUpdate(init.vpnd, dispatch, push);
+    daemonStatusUpdate(init.vpnd, dispatch, add);
     networkEnvChanged(init.vpnd).then(async (changed) => {
       if (changed) {
         console.info('network env changed, clearing cache');
@@ -106,19 +106,17 @@ function MainStateProvider({ children, init }: Props) {
         const messages = await invoke<SystemMessage[]>('system_messages');
         if (messages.length > 0) {
           console.info('system messages', messages);
-          push({
-            message: messages
+          add({
+            title: messages
               .map(({ name, message }) => `${name}: ${message}`)
               .join('\n'),
-            close: true,
-            duration: 10000,
             type: 'warn',
           });
         }
       } catch {}
     };
     querySystemMessages();
-  }, [init.vpnd, push, state.daemonStatus]);
+  }, [init.vpnd, add, state.daemonStatus]);
 
   return (
     <MainStateContext.Provider value={state}>

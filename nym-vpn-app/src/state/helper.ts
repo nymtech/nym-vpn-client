@@ -8,8 +8,8 @@ import {
   isVpndNonCompat,
   isVpndOk,
 } from '../types';
-import { Notification } from '../contexts';
 import { kvGet, kvSet } from '../kvStore';
+import { ToastAddData } from '../contexts/new-toast-provider/index';
 
 export type TauriReq<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,7 +39,7 @@ export async function fireRequests(requests: TauriReq<any>[]) {
 export function daemonStatusUpdate(
   status: VpndStatus,
   dispatch: StateDispatch,
-  push: (notification: Notification) => void,
+  add: (data: ToastAddData) => string,
 ) {
   console.log('daemonStatusUpdate', status);
   dispatch({
@@ -51,27 +51,22 @@ export function daemonStatusUpdate(
     dispatch({ type: 'set-daemon-info', info });
   }
   if (isVpndNonCompat(status)) {
-    push({
+    add({
       id: 'daemon-no-compat',
-      message: i18n.t('daemon-no-compat', {
+      title: i18n.t('daemon-no-compat', {
         ns: 'notifications',
         version: status.nonCompat.current.version,
         required: status.nonCompat.requirement,
       }),
-      close: true,
-      duration: 6000,
       type: 'warn',
-      throttle: 10,
     });
   }
   if (status === 'down') {
-    push({
+    add({
       id: 'daemon-not-connected',
-      message: i18n.t('daemon-not-connected', {
+      title: i18n.t('daemon-not-connected', {
         ns: 'notifications',
       }),
-      close: true,
-      duration: 6000,
       type: 'error',
     });
   }

@@ -7,8 +7,9 @@ import { Command } from '@tauri-apps/plugin-shell';
 import PageAnim from '../../../ui/PageAnim';
 import SettingsMenuCard from '../../../ui/SettingsMenuCard';
 import Switch from '../../../ui/Switch';
-import { useDialog, useInAppNotify } from '../../../contexts';
+import { useDialog } from '../../../contexts';
 import { Spinner } from '../../../ui';
+import { useNewToast } from '../../../contexts/new-toast-provider/index';
 import InfoDialog from './InfoDialog';
 import LaunchConfirmDialog from './LaunchConfirmDialog';
 import AppItem, { AppEntry } from './AppItem';
@@ -20,7 +21,7 @@ function SplitTunneling() {
 
   const { t } = useTranslation('settings');
   const { isOpen, close } = useDialog();
-  const { push } = useInAppNotify();
+  const { add: addToast } = useNewToast();
 
   const { apps, enabled, loading, setEnabled, add, remove, isSupported } =
     useSplitTunnel();
@@ -66,14 +67,13 @@ function SplitTunneling() {
         }));
       } catch (error) {
         console.error('[nym-exclude] Failed to execute command', error);
-        push({
-          message: 'Failed to open app',
-          close: true,
+        addToast({
+          title: 'Failed to open app',
           type: 'error',
         });
       }
     },
-    [push],
+    [addToast],
   );
 
   const handleLaunch = useCallback(

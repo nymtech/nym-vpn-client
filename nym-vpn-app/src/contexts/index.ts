@@ -1,5 +1,5 @@
 export * from './main';
-export * from './in-app-notification';
+export * from './new-toast-provider';
 export * from './dialog';
 export * from './node-list';
 export * from './node-list-state';

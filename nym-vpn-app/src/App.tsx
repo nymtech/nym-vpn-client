@@ -2,7 +2,6 @@ import { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { type } from '@tauri-apps/plugin-os';
-import * as Toast from '@radix-ui/react-toast';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +9,6 @@ import {
   AutologinProvider,
   DialogProvider,
   GatewaysProvider,
-  InAppNotificationProvider,
   MainStateProvider,
   NodeListStateProvider,
   Socks5Provider,
@@ -71,31 +69,27 @@ function App({ init }: { init: InitState }) {
     <>
       {!noSplash && intro}
       <NewToastProvider>
-        <InAppNotificationProvider>
-          <Toast.Provider>
-            <MainStateProvider init={init}>
-              <GatewaysProvider>
-                <TrayProvider>
-                  <NodeListStateProvider>
-                    <Socks5Provider>
-                      <ThemeSetter>
-                        <DialogProvider>
-                          <TopBarProvider>
-                            <AutologinProvider>
-                              <Suspense fallback={<RouteLoading />}>
-                                <RouterProvider router={router} />
-                              </Suspense>
-                            </AutologinProvider>
-                          </TopBarProvider>
-                        </DialogProvider>
-                      </ThemeSetter>
-                    </Socks5Provider>
-                  </NodeListStateProvider>
-                </TrayProvider>
-              </GatewaysProvider>
-            </MainStateProvider>
-          </Toast.Provider>
-        </InAppNotificationProvider>
+        <MainStateProvider init={init}>
+          <GatewaysProvider>
+            <TrayProvider>
+              <NodeListStateProvider>
+                <Socks5Provider>
+                  <ThemeSetter>
+                    <DialogProvider>
+                      <TopBarProvider>
+                        <AutologinProvider>
+                          <Suspense fallback={<RouteLoading />}>
+                            <RouterProvider router={router} />
+                          </Suspense>
+                        </AutologinProvider>
+                      </TopBarProvider>
+                    </DialogProvider>
+                  </ThemeSetter>
+                </Socks5Provider>
+              </NodeListStateProvider>
+            </TrayProvider>
+          </GatewaysProvider>
+        </MainStateProvider>
       </NewToastProvider>
     </>
   );

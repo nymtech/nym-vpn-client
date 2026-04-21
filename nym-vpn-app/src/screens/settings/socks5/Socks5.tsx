@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { CardSwitch, PageAnim, SettingsMenuCardBig } from '../../../ui';
-import { useInAppNotify, useMainState, useSocks5 } from '../../../contexts';
+import { useMainState, useSocks5 } from '../../../contexts';
+import { useNewToast } from '../../../contexts/new-toast-provider/index';
 import ProxyInfoCard from './ProxyInfoCard';
 import { ProxyInfo, ProxyPortInput, ProxyUrl } from './components';
 
@@ -15,7 +16,7 @@ function Socks5() {
   const { status, isLoading, enable, disable } = useSocks5();
   console.log('status', status);
   const { exitNode } = useMainState();
-  const { push } = useInAppNotify();
+  const { add } = useNewToast();
   const { t } = useTranslation('settings');
 
   const [socks5Address, setSocks5Address] = useState(DefaultSocks5Address);
@@ -50,14 +51,13 @@ function Socks5() {
 
   useEffect(() => {
     if (hasError) {
-      push({
+      add({
         id: 'socks5-error',
-        message: status?.errorMessage ?? t('app-proxy.error-unknown'),
-        close: true,
+        title: status?.errorMessage ?? t('app-proxy.error-unknown'),
         type: 'error',
       });
     }
-  }, [hasError, status?.errorMessage, push, t]);
+  }, [hasError, status?.errorMessage, add, t]);
 
   const getStatusString = () => {
     if (isLoading) {
@@ -97,11 +97,10 @@ function Socks5() {
     try {
       if (isEnabled) {
         await disable();
-        push({
+        add({
           id: 'socks5-disabled',
-          message: t('app-proxy.snackbar-disabled'),
-          duration: 3000,
-          close: true,
+          title: t('app-proxy.snackbar-disabled'),
+          type: 'info',
         });
       } else {
         await enable(
@@ -109,30 +108,25 @@ function Socks5() {
           { listenAddress: `${httpRpcAddress}:${httpRpcPort}` },
           exitNode,
         );
-        push({
+        add({
           id: 'socks5-enabled',
-          message: t('app-proxy.snackbar-enabled'),
-          duration: 3000,
-          close: true,
+          title: t('app-proxy.snackbar-enabled'),
+          type: 'info',
         });
       }
     } catch (error) {
       const explicitErrorMessage = String((error as Error)?.message) || '';
 
       if (explicitErrorMessage.includes('Gateway does not support')) {
-        push({
+        add({
           id: 'socks5-error',
-          message: t('app-proxy.error-gateway-not-supported'),
-          duration: 5000,
-          close: true,
+          title: t('app-proxy.error-gateway-not-supported'),
           type: 'error',
         });
       } else {
-        push({
+        add({
           id: 'socks5-error',
-          message: t('app-proxy.error-unknown'),
-          duration: 5000,
-          close: true,
+          title: t('app-proxy.error-unknown'),
           type: 'error',
         });
       }

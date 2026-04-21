@@ -24,14 +24,14 @@ import {
   TunnelStateEvent,
   VpnConfigEvent,
 } from '../constants';
-import { Notification } from '../contexts';
 import { CCache } from '../cache';
+import { ToastAddData } from '../contexts/new-toast-provider/index';
 import { daemonStatusUpdate, networkEnvChanged } from './helper';
 import { updateAccountState, updateTunnel } from './update';
 
 export function useTauriEvents(
   dispatch: StateDispatch,
-  push: (notification: Notification) => void,
+  add: (data: ToastAddData) => string,
 ) {
   const registerDaemonListener = useCallback(() => {
     return listen<VpndStatus>(
@@ -40,7 +40,7 @@ export function useTauriEvents(
         console.log(
           `received event [${event}], status: ${status === 'down' ? status : JSON.stringify(status)}`,
         );
-        daemonStatusUpdate(status, dispatch, push);
+        daemonStatusUpdate(status, dispatch, add);
         const changed = await networkEnvChanged(status);
         if (changed) {
           console.info('network env changed, clearing cache');
@@ -74,7 +74,7 @@ export function useTauriEvents(
         }
       },
     );
-  }, [dispatch, push]);
+  }, [dispatch, add]);
 
   const registerTunnelStateListener = useCallback(() => {
     return listen<TunnelStatePayload>(TunnelStateEvent, (event) => {

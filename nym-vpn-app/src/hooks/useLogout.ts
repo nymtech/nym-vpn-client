@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { useInAppNotify, useMainDispatch, useMainState } from '../contexts';
+import { useMainDispatch, useMainState } from '../contexts';
 import { BackendError, StateDispatch } from '../types';
 import { CCache } from '../cache';
+import { useNewToast } from '../contexts/new-toast-provider/index';
 import useI18nError from './useI18nError';
 
 function useLogout() {
@@ -14,7 +15,7 @@ function useLogout() {
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('notifications');
   const { tE } = useI18nError();
-  const { push } = useInAppNotify();
+  const { add } = useNewToast();
 
   const performLogout = useCallback(async () => {
     try {
@@ -26,19 +27,21 @@ function useLogout() {
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
 
-      push({
-        message: t('logout.success'),
+      add({
+        title: t('logout.success'),
+        type: 'success',
       });
     } catch (e) {
       console.error('[logout] error', e);
-      push({
-        message: `${t('logout.error')}: ${tE((e as BackendError).key || 'unknown')}`,
+      add({
+        title: `${t('logout.error')}: ${tE((e as BackendError).key || 'unknown')}`,
+        type: 'error',
       });
     } finally {
       setLoading(false);
       isLoggingOutRef.current = false;
     }
-  }, [dispatch, push, t, tE]);
+  }, [dispatch, add, t, tE]);
 
   // Handle logout completion after disconnect
   useEffect(() => {
@@ -79,12 +82,13 @@ function useLogout() {
         console.error('[logout] disconnect error', e);
         setLoading(false);
         isLoggingOutRef.current = false;
-        push({
-          message: `${t('logout.error')}: ${tE((e as BackendError).key || 'unknown')}`,
+        add({
+          title: `${t('logout.error')}: ${tE((e as BackendError).key || 'unknown')}`,
+          type: 'error',
         });
       }
     }
-  }, [loading, state, dispatch, push, t, tE, performLogout]);
+  }, [loading, state, dispatch, add, t, tE, performLogout]);
 
   return { logout, loading };
 }
