@@ -37,7 +37,7 @@ import PathManager
     @Published public var didReceiveAccountLinkCallback = false
     @Published public var didReceiveSubscriptionPayment = false
     @Published public var accountSummary: AccountSummary?
-    /// Set when the last `fetchAccountSummary` attempt threw; cleared on success.
+    /// True when the last `fetchAccountSummary` attempt failed (use for UI signal).
     @Published public private(set) var accountSummaryLastFetchFailed = false
 
     public var isValidCredentialImported: Bool {
@@ -258,8 +258,7 @@ import PathManager
 
     private func fetchAccountSummary() async {
 #if os(iOS)
-        // NYM-1156: do not `try?` here; a thrown error used to leave no log line
-        // and `accountSummary == nil`, which mapped to an indefinite spinner.
+        // NYM-1156: don't `try?` - swallowed errors hang the UI.
         let summary: VpnAccountSummary?
         do {
             summary = try await NymVpnAccountStorage(
@@ -275,10 +274,7 @@ import PathManager
         }
 
         guard let summary else {
-            // Treat nil-without-throw as a failure for UI purposes: an authenticated
-            // user reaching this branch is the same UX as a thrown error (no plan
-            // info available). Avoids the third "indeterminate" state that
-            // produces an indefinite spinner.
+            // nil-without-throw: same UX as a failure, surface it as one.
             logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
             accountSummaryLastFetchFailed = true
             return
@@ -300,8 +296,7 @@ import PathManager
             subscription: summary.subscription.map { Subscription(from: $0) }
         )
 #elseif os(macOS)
-        // On macOS the gRPC call may fail and we prefer to keep
-        // the previous `accountSummary` visible rather than reset to nil.
+        // On gRPC failure keep the last good summary; only flag the failure.
         do {
             accountSummary = try await grpcManager.accountSummary()
             accountSummaryLastFetchFailed = false

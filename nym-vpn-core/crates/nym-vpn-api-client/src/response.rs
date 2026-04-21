@@ -110,9 +110,7 @@ impl NymVpnAccountSummaryWithDeviceResponse {
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnAccountSummarySubscription {
     pub is_active: bool,
-    // Tolerate missing key and explicit JSON null for `active`/`pending` so
-    // payloads predating NYM-1034 deserialize. Both map to `None` (same as no
-    // subscription object); distinguish pending state via `is_active` and body.
+    // Tolerate missing key or null for `active`/`pending` (older API payloads).
     #[serde(default)]
     pub active: Option<NymVpnSubscription>,
     #[serde(default)]

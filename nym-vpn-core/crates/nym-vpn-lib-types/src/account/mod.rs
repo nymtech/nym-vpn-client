@@ -311,17 +311,13 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
     fn try_from(
         value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
     ) -> Result<Self, Self::Error> {
-        // Each soft-fail path below drops the smallest sensible owner of a
-        // bad field (the field itself, the auth method, or the subscription)
-        // rather than failing the whole summary fetch.
+        // Soft-fail policy: drop the smallest owner of a bad field, never the whole summary.
         let traffic_reset_time = value
             .fair_usage
             .resetsOnUtc
             .as_deref()
             .and_then(|t| parse_timestamp(t, "fair_usage.resetsOnUtc"));
 
-        // The parse failure (if any) is already logged by `parse_timestamp`
-        // inside `VpnAccountAuthMethod::try_from`; here we just drop the entry.
         let auth_methods = value
             .account
             .auth_methods
@@ -330,12 +326,8 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             .filter_map(|m| VpnAccountAuthMethod::try_from(m).ok())
             .collect::<Vec<_>>();
 
-        // Subscription precedence: prefer `active` over `pending` when both are
-        // present (matches the wire-side semantics of `is_active`). We
-        // intentionally do NOT propagate the wire-side `value.subscription.is_active`
-        // boolean: `is_subscription_active()` re-derives the answer from
-        // `valid_until_utc > now` so the device clock is the source of truth and
-        // a malformed expiry surfaces as `false` (the safe answer).
+        // Prefer active over pending. `is_subscription_active()` re-derives from
+        // valid_until_utc > now, so we ignore the wire-side `is_active` flag.
         let subscription = value
             .subscription
             .active
@@ -358,8 +350,6 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             auth_methods,
             account_mode: None,
             subscription,
-            // `is_stacked` is independent of which subscription survived parsing,
-            // so we propagate it even if both `active` and `pending` were dropped.
             is_subscription_stacked: value.subscription.is_stacked,
         })
     }
@@ -502,7 +492,6 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscr
     }
 }
 
-// Single soft-fail timestamp parser used by every field in the summary fetch.
 #[cfg(feature = "nym-type-conversions")]
 fn parse_timestamp(raw: &str, field: &'static str) -> Option<OffsetDateTime> {
     let normalized = raw.replace(' ', "T");
@@ -515,10 +504,7 @@ fn parse_timestamp(raw: &str, field: &'static str) -> Option<OffsetDateTime> {
     }
 }
 
-// Drop a subscription whose timestamps cannot be parsed. The error is already
-// logged by `parse_timestamp`; the caller then sees `subscription = None` and
-// `is_subscription_active() == false`, which is the only honest answer when
-// the expiry date is unreadable.
+// Drop the subscription on parse failure; warn is emitted by parse_timestamp.
 #[cfg(feature = "nym-type-conversions")]
 fn try_subscription(
     value: &nym_vpn_api_client::response::NymVpnSubscription,
@@ -806,9 +792,7 @@ mod tests {
 
     #[test]
     fn is_subscription_active_remains_true_when_traffic_reset_time_malformed() {
-        // The reported NYM-1156 symptom is the connect button reading
-        // "Get Started" / "no active plan" while a subscription is in fact
-        // valid.
+        // NYM-1156: bad reset timestamp must not flip a valid sub to inactive.
         let mut summary = base_summary();
         summary.fair_usage.resetsOnUtc = Some("not a date at all".into());
         summary.subscription = NymVpnAccountSummarySubscription {
