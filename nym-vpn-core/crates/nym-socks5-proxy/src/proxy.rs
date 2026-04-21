@@ -230,6 +230,8 @@ async fn connect_to_target(
             && let Err(err) = set_socket_tunnel_fwmark(&socket)
         {
             tracing::warn!("Failed to set split tunnel mark on socket: {err}");
+            last_err = Some(err);
+            continue;
         }
 
         // On Windows, in order to force the socket to bind to the default interface, set the interface index on the socket.
@@ -237,7 +239,9 @@ async fn connect_to_target(
         if let Some(default_interface) = default_interface
             && let Err(err) = set_socket_interface_index(&socket, default_interface, addr)
         {
-            tracing::warn!("Failed to set interface index on socket: {err:#}")
+            tracing::warn!("Failed to set interface index on socket: {err:#}");
+            last_err = Some(err);
+            continue;
         }
 
         // On macOS, we only need to bind using the correct bind address.
