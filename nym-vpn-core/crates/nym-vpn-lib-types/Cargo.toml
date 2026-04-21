@@ -64,3 +64,4 @@ uniffi = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
 serde_json = { workspace = true }
+tracing-test = { workspace = true }

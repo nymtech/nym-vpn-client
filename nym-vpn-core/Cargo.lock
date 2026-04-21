@@ -6896,6 +6896,7 @@ dependencies = [
  "thiserror 2.0.18",
  "time",
  "tracing",
+ "tracing-test",
  "ts-rs",
  "uniffi",
  "zeroize",

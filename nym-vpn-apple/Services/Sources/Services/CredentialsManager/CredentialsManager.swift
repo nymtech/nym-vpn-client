@@ -286,6 +286,8 @@ import PathManager
             subscription: summary.subscription.map { Subscription(from: $0) }
         )
 #elseif os(macOS)
+        // On macOS the gRPC call may fail and we prefer to keep
+        // the previous `accountSummary` visible rather than reset to nil.
         do {
             accountSummary = try await grpcManager.accountSummary()
         } catch {
