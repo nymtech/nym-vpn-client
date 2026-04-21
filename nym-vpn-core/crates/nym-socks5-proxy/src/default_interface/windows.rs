@@ -15,13 +15,12 @@ use anyhow::{Result, bail};
 use nym_routing::{Callback, RouteManagerHandle, get_best_default_route};
 use nym_windows::net::{
     AddressFamily, get_best_ipv6_address_for_interface, get_ip_address_for_interface,
+    index_from_luid,
 };
 use tokio::{net::TcpSocket, sync::watch};
 use tokio_util::sync::CancellationToken;
-use windows_sys::Win32::{
-    NetworkManagement::{IpHelper::ConvertInterfaceLuidToIndex, Ndis::NET_LUID_LH},
-    Networking::WinSock::{SOCKET, SOCKET_ERROR, setsockopt},
-};
+use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
+use windows_sys::Win32::Networking::WinSock::{SOCKET, SOCKET_ERROR, setsockopt};
 
 // These aren't defined by windows-sys
 const IPPROTO_IP_LEVEL: i32 = 0; // IPPROTO_IP
@@ -50,13 +49,7 @@ fn query_v4() -> (Option<NET_LUID_LH>, Option<Ipv4Addr>) {
     };
 
     match get_ip_address_for_interface(AddressFamily::Ipv4, route.iface) {
-        Ok(Some(IpAddr::V4(v4))) => {
-            // Convert windows crate LUID to windows-sys crate LUID
-            let luid = NET_LUID_LH {
-                Value: unsafe { route.iface.Value },
-            };
-            (Some(luid), Some(v4))
-        }
+        Ok(Some(IpAddr::V4(v4))) => (Some(route.iface), Some(v4)),
         Ok(Some(other)) => {
             tracing::warn!("Unexpected address family on IPv4 interface: {other}");
             (None, None)
@@ -89,13 +82,7 @@ fn query_v6() -> (Option<NET_LUID_LH>, Option<Ipv6Addr>) {
     };
 
     match get_best_ipv6_address_for_interface(route.iface) {
-        Ok(Some(v6)) => {
-            // Convert windows crate LUID to windows-sys crate LUID
-            let luid = NET_LUID_LH {
-                Value: unsafe { route.iface.Value },
-            };
-            (Some(luid), Some(v6))
-        }
+        Ok(Some(v6)) => (Some(route.iface), Some(v6)),
         Ok(None) => {
             tracing::warn!(
                 "IPv6 default interface has no global unicast address \
@@ -187,7 +174,7 @@ pub fn set_socket_interface_index(
         );
     };
 
-    let if_index = get_interface_index_for_luid(&luid)?;
+    let if_index = index_from_luid(&luid)?;
 
     let raw_socket = socket.as_raw_socket() as SOCKET;
 
@@ -226,16 +213,4 @@ pub fn set_socket_interface_index(
     }
 
     Ok(())
-}
-
-fn get_interface_index_for_luid(luid: &NET_LUID_LH) -> Result<u32> {
-    let mut index: u32 = 0;
-    let ret = unsafe { ConvertInterfaceLuidToIndex(luid, &mut index) };
-    if ret != 0 {
-        bail!(
-            "ConvertInterfaceLuidToIndex failed: {}",
-            Error::from_raw_os_error(ret as i32)
-        );
-    }
-    Ok(index)
 }

@@ -22,7 +22,7 @@ use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "windows")]
-use windows_sys::Win32::NetworkManagement::Ndis::NET_LUID_LH;
+use ::windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 #[derive(Clone, Default)]
 pub struct DefaultInterface {
