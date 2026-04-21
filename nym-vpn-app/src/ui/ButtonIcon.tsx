@@ -2,8 +2,36 @@ import { useTransition } from 'react';
 import { motion } from 'motion/react';
 import { Button as HuButton } from '@headlessui/react';
 import clsx from 'clsx';
+import { Button } from '@base-ui/react';
 import { sleep } from '../util';
 import { MsIcon } from './index';
+
+export type ButtonIconNewProps = {
+  onClick: () => void;
+  icon: string;
+  className?: string;
+};
+
+export function ButtonIconNew({
+  onClick,
+  icon,
+  className,
+}: ButtonIconNewProps) {
+  return (
+    <Button
+      className={clsx([
+        'flex items-center justify-center w-10 h-10 rounded-full transition-colors',
+        'text-baltic-sea hover:text-baltic-sea/70',
+        'dark:text-bombay dark:hover:text-white',
+        'hover:bg-baltic-sea',
+        className && className,
+      ])}
+      onClick={onClick}
+    >
+      <MsIcon icon={icon} className="leading-none w-[1em] h-[1em] text-3xl" />
+    </Button>
+  );
+}
 
 export type ButtonIconProps = {
   icon: string;

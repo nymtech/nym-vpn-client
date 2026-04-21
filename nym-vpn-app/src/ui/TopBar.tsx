@@ -1,22 +1,14 @@
-import {
-  ReactNode,
-  isValidElement,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { ReactNode, isValidElement, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { type } from '@tauri-apps/plugin-os';
 import { motion } from 'motion/react';
 import { NymVpnTextLogo } from '../assets';
 import { useDialog, useMainState, useTopBar } from '../contexts';
 import { routes } from '../router';
 import { Routes } from '../types';
 import { ActionMenu } from '../screens';
-import ButtonIcon from './ButtonIcon';
+import ButtonIcon, { ButtonIconNew } from './ButtonIcon';
 
 type NavLocation = {
   title?: string | ReactNode;
@@ -35,7 +27,6 @@ export default function TopBar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const os = type();
 
   const { uiTheme } = useMainState();
   const { show } = useDialog();
@@ -49,26 +40,22 @@ export default function TopBar() {
     },
   });
 
-  const getMainScreenTitle = useCallback(() => {
-    if (os === 'windows' || os === 'macos') {
-      // we don't show the logo since the native window-bar already shows it
-      return null;
-    }
-    return (
-      <NymVpnTextLogo
-        className={clsx(
-          'w-24 h-6',
-          uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
-        )}
-        data-testid="top-bar-logo"
-      />
-    );
-  }, [os, uiTheme]);
-
   const navBarData = useMemo<NavBarData>(() => {
     return {
       '/': {
-        title: getMainScreenTitle(),
+        title: (
+          <NymVpnTextLogo
+            className={clsx(
+              'w-24 h-6',
+              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+            )}
+          />
+        ),
+        leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
+        handleLeftNav: () => {
+          // TODO: implement theme toggle
+          console.log('toggle theme');
+        },
         rightIcon: 'settings',
         handleRightNav: () => {
           navigate(routes.settings);
@@ -76,14 +63,14 @@ export default function TopBar() {
         noBackground: true,
       },
       '/signup': {
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
         noBackground: true,
       },
       '/login': {
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
@@ -96,49 +83,49 @@ export default function TopBar() {
       },
       '/settings': {
         title: t('settings'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/account': {
         title: t('account.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/appearance': {
         title: t('appearance'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/appearance/lang': {
         title: t('language'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/appearance/display': {
         title: t('display-theme'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/data-privacy': {
         title: t('privacy.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/data-privacy/logs': {
         title: t('logs'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         rightComponent: <ActionMenu />,
         handleLeftNav: () => {
           navigate(-1);
@@ -146,28 +133,28 @@ export default function TopBar() {
       },
       '/settings/data-privacy/diagnostic': {
         title: t('diagnostic.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/dns': {
         title: t('dns.topbar-title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/mixnet-tuning': {
         title: t('mixnet-tuning.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/split-tunneling': {
         title: t('split-tunneling.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
@@ -178,77 +165,77 @@ export default function TopBar() {
       },
       '/settings/anti-censorship': {
         title: t('anti-censorship.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/socks5': {
         title: t('app-proxy.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/feedback': {
         title: t('feedback'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/feedback/send': {
         title: t('feedback'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/legal': {
         title: t('legal'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/legal/licenses-rust': {
         title: t('legal.licenses-rust', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/legal/licenses-js': {
         title: t('legal.licenses-js', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/legal/license-details': {
         title: t('legal.license', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/support': {
         title: t('support'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/dev': {
         title: 'dev',
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/entry-node-location': {
         title: t('first-hop-selection'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
@@ -261,7 +248,7 @@ export default function TopBar() {
       },
       '/exit-node-location': {
         title: t('last-hop-selection'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
@@ -274,7 +261,7 @@ export default function TopBar() {
       },
       '/node-details': {
         title: t('server-details'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
@@ -288,7 +275,7 @@ export default function TopBar() {
             )}
           />
         ),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
@@ -300,7 +287,7 @@ export default function TopBar() {
       // TODO
       '/account': {},
     };
-  }, [t, navigate, getMainScreenTitle, show, uiTheme]);
+  }, [t, navigate, show, uiTheme]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);
@@ -342,6 +329,7 @@ export default function TopBar() {
         'flex flex-row flex-nowrap justify-between items-center shrink-0',
         'text-baltic-sea dark:text-white',
         'h-16 text-xl z-30 select-none cursor-default',
+        'px-4 py-2',
         currentNavLocation.noBackground
           ? 'dark:bg-ash bg-faded-lavender'
           : 'dark:bg-charcoal bg-white',
@@ -359,7 +347,7 @@ export default function TopBar() {
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-left-button-container"
         >
-          <ButtonIcon
+          {/* <ButtonIcon
             icon={currentNavLocation.leftIcon}
             onClick={
               customLeftNavHandler ??
@@ -369,6 +357,14 @@ export default function TopBar() {
             color="chalk"
             className="mx-4"
             noDefaultSize
+          /> */}
+          <ButtonIconNew
+            icon={currentNavLocation.leftIcon}
+            onClick={
+              customLeftNavHandler ??
+              currentNavLocation.handleLeftNav ??
+              defaultLeftNavHandler
+            }
           />
         </motion.div>
       ) : (
@@ -387,12 +383,16 @@ export default function TopBar() {
           {currentNavLocation.rightComponent &&
             currentNavLocation.rightComponent}
           {currentNavLocation.rightIcon && (
-            <ButtonIcon
+            // <ButtonIcon
+            //   icon={currentNavLocation.rightIcon}
+            //   onClick={currentNavLocation.handleRightNav!}
+            //   color="chalk"
+            //   className="mx-4"
+            //   noDefaultSize
+            // />
+            <ButtonIconNew
               icon={currentNavLocation.rightIcon}
               onClick={currentNavLocation.handleRightNav!}
-              color="chalk"
-              className="mx-4"
-              noDefaultSize
             />
           )}
         </motion.div>
