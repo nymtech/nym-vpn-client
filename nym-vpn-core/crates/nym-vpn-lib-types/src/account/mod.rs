@@ -715,6 +715,22 @@ mod tests {
     }
 
     #[test]
+    fn deserializes_when_pending_is_explicit_null() {
+        let json = r#"{
+            "isActive": true,
+            "active": null,
+            "pending": null,
+            "isStacked": false
+        }"#;
+
+        let parsed: NymVpnAccountSummarySubscription =
+            serde_json::from_str(json).expect("must tolerate pending: null");
+        assert!(parsed.is_active);
+        assert!(parsed.pending.is_none());
+        assert!(parsed.active.is_none());
+    }
+
+    #[test]
     fn try_from_succeeds_when_resets_on_utc_is_malformed() {
         // A bad reset timestamp must fall back to None, not fail the summary.
         let mut summary = base_summary();

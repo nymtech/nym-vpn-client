@@ -37,6 +37,8 @@ import PathManager
     @Published public var didReceiveAccountLinkCallback = false
     @Published public var didReceiveSubscriptionPayment = false
     @Published public var accountSummary: AccountSummary?
+    /// Set when the last `fetchAccountSummary` attempt threw; cleared on success.
+    @Published public private(set) var accountSummaryLastFetchFailed = false
 
     public var isValidCredentialImported: Bool {
         appSettings.isCredentialImported
@@ -256,8 +258,8 @@ import PathManager
 
     private func fetchAccountSummary() async {
 #if os(iOS)
-        // Do not `try?` this: a swallowed error leaves `accountSummary == nil`
-        // with no log line, which surfaces as an indefinite "Requesting ZkNyms".
+        // NYM-1156: do not `try?` here; a thrown error used to leave no log line
+        // and `accountSummary == nil`, which mapped to an indefinite spinner.
         let summary: VpnAccountSummary?
         do {
             summary = try await NymVpnAccountStorage(
@@ -265,12 +267,20 @@ import PathManager
                 environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
             ).getAccountSummary()
         } catch {
-            logger.error("fetchAccountSummary (iOS) failed: \(error)")
+            accountSummaryLastFetchFailed = true
+            logger.error(
+                "fetchAccountSummary (iOS) failed operation=getAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
+            )
             return
         }
 
-        guard let summary else { return }
+        guard let summary else {
+            logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
+            accountSummaryLastFetchFailed = false
+            return
+        }
 
+        accountSummaryLastFetchFailed = false
         let innerSub = summary.subscription?.subscription
         accountSummary = AccountSummary(
             validUntilTimeInterval: innerSub?.validUntilUtc,
@@ -290,8 +300,12 @@ import PathManager
         // the previous `accountSummary` visible rather than reset to nil.
         do {
             accountSummary = try await grpcManager.accountSummary()
+            accountSummaryLastFetchFailed = false
         } catch {
-            logger.error("fetchAccountSummary (macOS) failed: \(error)")
+            accountSummaryLastFetchFailed = true
+            logger.error(
+                "fetchAccountSummary (macOS) failed operation=accountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
+            )
         }
 #endif
     }
@@ -310,6 +324,10 @@ import PathManager
 }
 
 private extension CredentialsManager {
+    static func sanitizedAccountSummaryErrorLog(_ error: Error) -> String {
+        "errorType=\(String(describing: Swift.type(of: error)))"
+    }
+
     func setupGRPCManagerObservers() {
 #if os(macOS)
         grpcManager.$errorReason.sink { [weak self] error in
