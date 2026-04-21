@@ -41,7 +41,7 @@ async fn main() -> Result<()> {
     };
 
     // Get the default interface addresses and monitor for changes in the routing.
-    let default_interface_rx = default_interface::start_monitor().await;
+    let default_interface_rx = default_interface::start_monitor(shutdown_token.child_token()).await;
 
     // Shared VPN tunnel addressese
     let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());

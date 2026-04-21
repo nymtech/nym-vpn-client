@@ -17,6 +17,7 @@ use nym_windows::net::{
     AddressFamily, get_best_ipv6_address_for_interface, get_ip_address_for_interface,
 };
 use tokio::{net::TcpSocket, sync::watch};
+use tokio_util::sync::CancellationToken;
 use windows_sys::Win32::{
     NetworkManagement::{IpHelper::ConvertInterfaceLuidToIndex, Ndis::NET_LUID_LH},
     Networking::WinSock::{SOCKET, SOCKET_ERROR, setsockopt},
@@ -28,10 +29,10 @@ const IPPROTO_IPV6_LEVEL: i32 = 41; // IPPROTO_IPV6
 const IP_UNICAST_IF_OPT: i32 = 31; // IP_UNICAST_IF  — interface index in network byte order
 const IPV6_UNICAST_IF_OPT: i32 = 31; // IPV6_UNICAST_IF — interface index in host byte order
 
-pub async fn start_monitor() -> watch::Receiver<DefaultInterface> {
+pub async fn start_monitor(shutdown_token: CancellationToken) -> watch::Receiver<DefaultInterface> {
     let initial = snapshot();
     let (tx, rx) = watch::channel(initial);
-    tokio::spawn(monitor_task(tx));
+    tokio::spawn(monitor_task(tx, shutdown_token));
     rx
 }
 
@@ -134,7 +135,7 @@ fn snapshot() -> DefaultInterface {
     }
 }
 
-async fn monitor_task(tx: watch::Sender<DefaultInterface>) {
+async fn monitor_task(tx: watch::Sender<DefaultInterface>, shutdown_token: CancellationToken) {
     let route_manager = match RouteManagerHandle::spawn().await {
         Ok(rm) => rm,
         Err(err) => {
@@ -154,7 +155,11 @@ async fn monitor_task(tx: watch::Sender<DefaultInterface>) {
         .add_default_route_change_callback(callback)
         .await
     {
-        Ok(_handle) => std::future::pending::<()>().await,
+        Ok(_handle) => {
+            // Keep `_handle` alive to maintain the callback registration.
+            shutdown_token.cancelled().await;
+            tracing::debug!("Default interface monitor shutting down");
+        }
         Err(err) => tracing::warn!("Failed to register default route change callback: {err}"),
     }
 }
@@ -188,7 +193,6 @@ pub fn set_socket_interface_index(
 
     // IP_UNICAST_IF expects the index in network byte order.
     // IPV6_UNICAST_IF expects the index in host byte order.
-    // Lovely ??.
     let (ret, opt_name) = match target_addr {
         SocketAddr::V4(_) => {
             let if_index_be = if_index.to_be() as i32;

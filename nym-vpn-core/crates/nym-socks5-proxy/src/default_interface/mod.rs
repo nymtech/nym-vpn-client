@@ -19,6 +19,7 @@ use std::{
     net::{Ipv4Addr, Ipv6Addr},
 };
 use tokio::sync::watch;
+use tokio_util::sync::CancellationToken;
 
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::NetworkManagement::Ndis::NET_LUID_LH;
@@ -49,15 +50,16 @@ impl Debug for DefaultInterface {
     }
 }
 
-pub async fn start_monitor() -> watch::Receiver<DefaultInterface> {
+pub async fn start_monitor(shutdown_token: CancellationToken) -> watch::Receiver<DefaultInterface> {
     #[cfg(target_os = "windows")]
-    return windows::start_monitor().await;
+    return windows::start_monitor(shutdown_token).await;
 
     #[cfg(target_os = "macos")]
-    return macos::start_monitor().await;
+    return macos::start_monitor(shutdown_token).await;
 
     #[cfg(target_os = "linux")]
     {
+        let _ = shutdown_token;
         let (_, rx) = watch::channel(DefaultInterface::default());
         rx
     }
