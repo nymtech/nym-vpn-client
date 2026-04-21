@@ -108,19 +108,14 @@ pub mod tests {
         async fn latest_geo_ip(&self) -> Result<NymUserGeoIpLocationResponse, VpnApiClientError> {
             Ok(NymUserGeoIpLocationResponse {
                 ip: "127.0.0.1".to_string(),
-                latitude: 0f64,
-                longitude: 0f64,
-                iso_country_code: "XX".to_string(),
-                city: "Mixnode".to_string(),
-                region: "Mixnet".to_string(),
-                // location: LocationResponse {
-                //     two_letter_iso_country_code: "XX".to_string(),
-                //     latitude: 0f64,
-                //     longitude: 0f64,
-                //     city: "Mixnode".to_string(),
-                //     region: "Mixnet".to_string(),
-                //     asn: None,
-                // },
+                location: nym_vpn_api_client::response::Location {
+                    two_letter_iso_country_code: "XX".to_string(),
+                    latitude: 0f64,
+                    longitude: 0f64,
+                    city: "Mixnode".to_string(),
+                    region: "Mixnet".to_string(),
+                    asn: None,
+                },
             })
         }
     }
