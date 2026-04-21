@@ -260,13 +260,15 @@ async fn connect_to_target(
         };
 
         if let Err(err) = socket.bind(SocketAddr::new(bind_ip, 0)) {
-            tracing::error!("Socket bind to {bind_ip} failed: {err}; using VPN route");
+            tracing::warn!("Socket bind to {bind_ip} failed: {err}");
+            last_err = Some(Error::from(err));
+            continue;
         }
 
         match socket.connect(addr).await {
             Ok(stream) => return Ok(stream),
             Err(err) => {
-                tracing::debug!("Connect to {addr} failed: {err}");
+                tracing::warn!("Connect to {addr} failed: {err}");
                 last_err = Some(Error::from(err));
             }
         }
