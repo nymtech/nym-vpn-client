@@ -1,0 +1,5 @@
+What's New:
+- Features: Added ad blocking.
+- Account & Login: Added pending subscription status and updated login flow.
+- UI Updates: Updated Lewes protocol text.
+- Bug Fixes: Fixed disappearing password manager dialog.
