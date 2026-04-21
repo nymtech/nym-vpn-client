@@ -56,7 +56,6 @@ fmt-check: ## Check rustfmt
 deb: build-deb-vpnd build-deb-vpnc  ## Build debian packages
 
 build-deb-vpnd:
-	cargo build --release -p nym-socks5-proxy
 	cargo deb -p nym-vpnd
 
 build-deb-vpnc:
