@@ -85,7 +85,6 @@ jobs:
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo build --release -p nym-socks5-proxy
           cargo deb -p nym-vpnd
           cargo deb -p nym-vpnc
           ls -la target/debian/ || true
