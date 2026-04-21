@@ -6,6 +6,7 @@ import { useMainState } from '../contexts';
 import { EventNotification } from '../layers';
 import { routes } from '../router';
 import { DaemonDot, Notifications, TopBar } from '../ui';
+import { ToastList } from '../contexts/new-toast-provider/components';
 import InitialNavigation from './InitialNavigation';
 import { SystemAuthentication } from './SystemAuthentication';
 
@@ -52,6 +53,7 @@ function MainLayout({
       {/* Responsible for displaying the system authentication modal when the daemon is not authenticated */}
       <SystemAuthentication />
       {!noNotifications && <Notifications />}
+      {!noNotifications && <ToastList />}
       {!noTopBar && <TopBar />}
       {!noDaemonDot && <DaemonDot status={daemonStatus} />}
       <div

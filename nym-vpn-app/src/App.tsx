@@ -25,6 +25,7 @@ import './i18n/config';
 import { RouteLoading, ThemeSetter } from './ui';
 import { IntroAnim, IntroSplash } from './screens';
 import { InitState } from './types';
+import { NewToastProvider } from './contexts/new-toast-provider';
 
 let initialized = false;
 const noSplash = window._APP.noSplash;
@@ -69,31 +70,33 @@ function App({ init }: { init: InitState }) {
   return (
     <>
       {!noSplash && intro}
-      <InAppNotificationProvider>
-        <Toast.Provider>
-          <MainStateProvider init={init}>
-            <GatewaysProvider>
-              <TrayProvider>
-                <NodeListStateProvider>
-                  <Socks5Provider>
-                    <ThemeSetter>
-                      <DialogProvider>
-                        <TopBarProvider>
-                          <AutologinProvider>
-                            <Suspense fallback={<RouteLoading />}>
-                              <RouterProvider router={router} />
-                            </Suspense>
-                          </AutologinProvider>
-                        </TopBarProvider>
-                      </DialogProvider>
-                    </ThemeSetter>
-                  </Socks5Provider>
-                </NodeListStateProvider>
-              </TrayProvider>
-            </GatewaysProvider>
-          </MainStateProvider>
-        </Toast.Provider>
-      </InAppNotificationProvider>
+      <NewToastProvider>
+        <InAppNotificationProvider>
+          <Toast.Provider>
+            <MainStateProvider init={init}>
+              <GatewaysProvider>
+                <TrayProvider>
+                  <NodeListStateProvider>
+                    <Socks5Provider>
+                      <ThemeSetter>
+                        <DialogProvider>
+                          <TopBarProvider>
+                            <AutologinProvider>
+                              <Suspense fallback={<RouteLoading />}>
+                                <RouterProvider router={router} />
+                              </Suspense>
+                            </AutologinProvider>
+                          </TopBarProvider>
+                        </DialogProvider>
+                      </ThemeSetter>
+                    </Socks5Provider>
+                  </NodeListStateProvider>
+                </TrayProvider>
+              </GatewaysProvider>
+            </MainStateProvider>
+          </Toast.Provider>
+        </InAppNotificationProvider>
+      </NewToastProvider>
     </>
   );
 }

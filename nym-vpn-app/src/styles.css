@@ -79,6 +79,14 @@
   animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+@utility animate-pulse-scale-even {
+  animation: pulse-scale-even 0.28s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@utility animate-pulse-scale-odd {
+  animation: pulse-scale-odd 0.28s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
 @utility loader {
   border: 5px solid;
   border-radius: 50%;
@@ -188,6 +196,26 @@
   @keyframes rotation {
     to {
       transform: rotate(1turn);
+    }
+  }
+
+  @keyframes pulse-scale-odd {
+    0%,
+    100% {
+      scale: 1;
+    }
+    50% {
+      scale: 1.04;
+    }
+  }
+
+  @keyframes pulse-scale-even {
+    0%,
+    100% {
+      scale: 1;
+    }
+    50% {
+      scale: 1.04;
     }
   }
 }
