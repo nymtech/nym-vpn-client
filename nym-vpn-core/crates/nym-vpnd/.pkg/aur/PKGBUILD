@@ -14,7 +14,7 @@ url='https://github.com/nymtech/nym-vpn-client'
 license=('GPL-3.0-only')
 depends=('glibc' 'gcc-libs' 'dbus' 'libmnl' 'libnftnl')
 makedepends=('rust' 'cargo' 'go' 'protobuf')
-provides=('nym-vpnd', 'nym-exclude')
+provides=('nym-vpnd' 'nym-exclude' 'nym-socks5-proxy')
 conflicts=('nym-vpnd')
 options=(!debug)
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$_release_tag.tar.gz"
@@ -52,13 +52,16 @@ build() {
   pushd nym-vpn-core/crates/nym-exclude
   cargo build --release --locked
   popd
-}
+  pushd nym-vpn-core/crates/nym-socks5-proxy
+  CFLAGS+" -ffat-lto-objects" cargo build --release --locked
+  popd}
 
 package() {
   pushd "$_srcdir/nym-vpn-core"
   install -Dm755 "target/release/nym-vpnd" "$pkgdir/usr/bin/nym-vpnd"
   install -Dm755 "target/release/nym-exclude" "$pkgdir/usr/bin/nym-exclude"
   chmod u+s "$pkgdir/usr/bin/nym-exclude"
+  install -Dm755 "target/release/nym-socks5-proxy" "$pkgdir/usr/bin/nym-socks5-proxy"
   popd
 
   install -Dm644 nym-vpnd.service "$pkgdir/usr/lib/systemd/system/nym-vpnd.service"
