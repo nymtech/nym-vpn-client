@@ -265,6 +265,7 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.route_handler.remove_routes().await;
 
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             shared_state.set_socks5_proxy_tunnel_addrs(None, None);
         }
