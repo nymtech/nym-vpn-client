@@ -110,10 +110,7 @@ impl NymVpnAccountSummaryWithDeviceResponse {
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnAccountSummarySubscription {
     pub is_active: bool,
-    // Tolerate missing key or null for `active`/`pending` (older API payloads).
-    #[serde(default)]
     pub active: Option<NymVpnSubscription>,
-    #[serde(default)]
     pub pending: Option<NymVpnSubscription>,
     #[serde(default)]
     pub is_stacked: bool,

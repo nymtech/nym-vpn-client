@@ -311,7 +311,6 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
     fn try_from(
         value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
     ) -> Result<Self, Self::Error> {
-        // Soft-fail policy: drop the smallest owner of a bad field, never the whole summary.
         let traffic_reset_time = value
             .fair_usage
             .resetsOnUtc
@@ -323,23 +322,23 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             .auth_methods
             .iter()
             .cloned()
-            .filter_map(|m| VpnAccountAuthMethod::try_from(m).ok())
-            .collect::<Vec<_>>();
+            .map(VpnAccountAuthMethod::try_from)
+            .collect::<Result<Vec<_>, _>>()?;
 
-        // Prefer active over pending. `is_subscription_active()` re-derives from
-        // valid_until_utc > now, so we ignore the wire-side `is_active` flag.
-        let subscription = value
-            .subscription
-            .active
-            .as_ref()
-            .and_then(|s| try_subscription(s, NymVpnSubscriptionStatus::Active))
-            .or_else(|| {
-                value
-                    .subscription
-                    .pending
-                    .as_ref()
-                    .and_then(|s| try_subscription(s, NymVpnSubscriptionStatus::Pending))
-            });
+        // Active wins over pending; `is_subscription_active()` ignores wire `is_active`.
+        let subscription = if let Some(active) = value.subscription.active.as_ref() {
+            Some(Subscription {
+                status: NymVpnSubscriptionStatus::Active,
+                subscription: NymVpnSubscription::try_from(active)?,
+            })
+        } else if let Some(pending) = value.subscription.pending.as_ref() {
+            Some(Subscription {
+                status: NymVpnSubscriptionStatus::Pending,
+                subscription: NymVpnSubscription::try_from(pending)?,
+            })
+        } else {
+            None
+        };
 
         Ok(Self {
             traffic_used_gb: value.fair_usage.usedGB,
@@ -504,20 +503,6 @@ fn parse_timestamp(raw: &str, field: &'static str) -> Option<OffsetDateTime> {
     }
 }
 
-// Drop the subscription on parse failure; warn is emitted by parse_timestamp.
-#[cfg(feature = "nym-type-conversions")]
-fn try_subscription(
-    value: &nym_vpn_api_client::response::NymVpnSubscription,
-    status: NymVpnSubscriptionStatus,
-) -> Option<Subscription> {
-    NymVpnSubscription::try_from(value)
-        .ok()
-        .map(|subscription| Subscription {
-            status,
-            subscription,
-        })
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(
@@ -635,13 +620,12 @@ impl From<StoredAccountMode> for nym_vpn_store::types::StoredAccountMode {
     }
 }
 
-// Pin the lenient deserialization of `VpnAccountSummary` so a schema or
-// timestamp regression fails loudly here instead of silently on the client.
+// Regression tests for `VpnAccountSummary::try_from` and subscription serde.
 #[cfg(all(test, feature = "nym-type-conversions"))]
 mod tests {
     use nym_vpn_api_client::response::{
-        NymVpnAccountAuthMethodResponse, NymVpnAccountResponse, NymVpnAccountStatusResponse,
-        NymVpnAccountSummaryDevices, NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse,
+        NymVpnAccountResponse, NymVpnAccountStatusResponse, NymVpnAccountSummaryDevices,
+        NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse,
         NymVpnAccountSummarySubscription, NymVpnSubscription as ApiNymVpnSubscription,
         NymVpnSubscriptionKind as ApiNymVpnSubscriptionKind,
         NymVpnSubscriptionStatus as ApiNymVpnSubscriptionStatus,
@@ -693,22 +677,6 @@ mod tests {
     }
 
     #[test]
-    fn deserializes_when_pending_field_missing() {
-        // Older API payloads omit `pending`; #[serde(default)] must keep parsing.
-        let json = r#"{
-            "isActive": true,
-            "active": null,
-            "isStacked": false
-        }"#;
-
-        let parsed: NymVpnAccountSummarySubscription =
-            serde_json::from_str(json).expect("must tolerate missing `pending`");
-        assert!(parsed.is_active);
-        assert!(parsed.pending.is_none());
-        assert!(parsed.active.is_none());
-    }
-
-    #[test]
     fn deserializes_when_pending_is_explicit_null() {
         let json = r#"{
             "isActive": true,
@@ -745,52 +713,6 @@ mod tests {
     }
 
     #[test]
-    fn try_from_drops_bad_auth_method_but_keeps_others() {
-        let mut summary = base_summary();
-        summary.account.auth_methods = vec![
-            NymVpnAccountAuthMethodResponse {
-                id: "good".into(),
-                pubkey: "pk".into(),
-                kind: "privy_secp256k1".into(),
-                label: "Privy".into(),
-                status: NymVpnAccountStatusResponse::Active,
-                created: "2025-08-20T13:46:26Z".into(),
-            },
-            NymVpnAccountAuthMethodResponse {
-                id: "bad".into(),
-                pubkey: "pk2".into(),
-                kind: "mnemonic".into(),
-                label: "Mnemonic".into(),
-                status: NymVpnAccountStatusResponse::Active,
-                created: "totally not a timestamp".into(),
-            },
-        ];
-
-        let parsed =
-            VpnAccountSummary::try_from(&summary).expect("must not fail on a single bad auth");
-        assert_eq!(parsed.auth_methods.len(), 1);
-        assert_eq!(parsed.auth_methods[0].id, "good");
-        assert!(parsed.is_linked());
-    }
-
-    #[test]
-    fn deserializes_when_active_field_missing() {
-        // Mirror of the `pending` test: #[serde(default)] must also keep
-        // `active` parsing when the API server omits the key entirely.
-        let json = r#"{
-            "isActive": false,
-            "pending": null,
-            "isStacked": false
-        }"#;
-
-        let parsed: NymVpnAccountSummarySubscription =
-            serde_json::from_str(json).expect("must tolerate missing `active`");
-        assert!(!parsed.is_active);
-        assert!(parsed.active.is_none());
-        assert!(parsed.pending.is_none());
-    }
-
-    #[test]
     fn is_subscription_active_remains_true_when_traffic_reset_time_malformed() {
         // NYM-1156: bad reset timestamp must not flip a valid sub to inactive.
         let mut summary = base_summary();
@@ -811,9 +733,7 @@ mod tests {
     }
 
     #[test]
-    fn malformed_valid_until_utc_drops_subscription_to_none() {
-        // The unified soft-fail policy: if a subscription's expiry timestamp
-        // cannot be parsed, drop the whole subscription.
+    fn malformed_valid_until_utc_fails_summary() {
         let mut summary = base_summary();
         let mut sub = far_future_active_subscription();
         sub.valid_until_utc = "not a date at all".into();
@@ -824,13 +744,13 @@ mod tests {
             is_stacked: false,
         };
 
-        let parsed = VpnAccountSummary::try_from(&summary)
-            .expect("malformed sub timestamp must not fail the whole summary");
+        let err = VpnAccountSummary::try_from(&summary)
+            .expect_err("malformed subscription.valid_until_utc must fail the whole summary");
         assert!(
-            parsed.subscription.is_none(),
-            "subscription must be dropped"
+            err.to_string()
+                .contains("invalid subscription.valid_until_utc"),
+            "expected PayloadError for bad valid_until_utc, got {err:?}"
         );
-        assert!(!parsed.is_subscription_active());
     }
 
     #[traced_test]
@@ -857,38 +777,15 @@ mod tests {
             pending: None,
             is_stacked: false,
         };
-        let _ = VpnAccountSummary::try_from(&summary).unwrap();
+        let _ = VpnAccountSummary::try_from(&summary).expect_err("malformed valid_until_utc");
         assert!(
             logs_contain("failed to parse subscription.valid_until_utc"),
-            "soft-fail of subscription.valid_until_utc must emit a tracing::warn!"
-        );
-    }
-
-    #[traced_test]
-    #[test]
-    fn warn_emitted_when_auth_method_dropped() {
-        // Logged by parse_timestamp inside VpnAccountAuthMethod::try_from -
-        // same layer as the other two soft-fail paths.
-        let mut summary = base_summary();
-        summary.account.auth_methods = vec![NymVpnAccountAuthMethodResponse {
-            id: "bad".into(),
-            pubkey: "pk".into(),
-            kind: "mnemonic".into(),
-            label: "Mnemonic".into(),
-            status: NymVpnAccountStatusResponse::Active,
-            created: "totally not a timestamp".into(),
-        }];
-        let _ = VpnAccountSummary::try_from(&summary).unwrap();
-        assert!(
-            logs_contain("failed to parse auth_method.created"),
-            "drop of malformed auth method must emit a tracing::warn!"
+            "parse attempt for subscription.valid_until_utc must emit a tracing::warn!"
         );
     }
 
     #[test]
-    fn malformed_pending_subscription_drops_to_none() {
-        // Mirror of the active-branch test but exercising the
-        // `value.subscription.pending` else-branch of try_subscription.
+    fn malformed_pending_subscription_fails_summary() {
         let mut summary = base_summary();
         let mut sub = far_future_active_subscription();
         sub.valid_until_utc = "not a date at all".into();
@@ -899,13 +796,14 @@ mod tests {
             is_stacked: false,
         };
 
-        let parsed = VpnAccountSummary::try_from(&summary)
-            .expect("malformed pending sub must not fail the whole summary");
-        assert!(
-            parsed.subscription.is_none(),
-            "pending subscription with bad timestamp must be dropped"
+        let err = VpnAccountSummary::try_from(&summary).expect_err(
+            "malformed pending subscription.valid_until_utc must fail the whole summary",
         );
-        assert!(!parsed.is_subscription_active());
+        assert!(
+            err.to_string()
+                .contains("invalid subscription.valid_until_utc"),
+            "expected PayloadError for bad valid_until_utc, got {err:?}"
+        );
     }
 
     #[test]
@@ -929,43 +827,5 @@ mod tests {
             .subscription
             .expect("pending subscription must be kept");
         assert!(matches!(sub.status, NymVpnSubscriptionStatus::Pending));
-    }
-
-    #[test]
-    fn is_subscription_active_remains_true_when_one_auth_method_is_malformed() {
-        // Same end-to-end pinning as above, but for the auth_methods soft-fail
-        // path. Dropping a bad auth method must not affect subscription state.
-        let mut summary = base_summary();
-        summary.subscription = NymVpnAccountSummarySubscription {
-            is_active: true,
-            active: Some(far_future_active_subscription()),
-            pending: None,
-            is_stacked: false,
-        };
-        summary.account.auth_methods = vec![
-            NymVpnAccountAuthMethodResponse {
-                id: "good".into(),
-                pubkey: "pk".into(),
-                kind: "privy_secp256k1".into(),
-                label: "Privy".into(),
-                status: NymVpnAccountStatusResponse::Active,
-                created: "2025-08-20T13:46:26Z".into(),
-            },
-            NymVpnAccountAuthMethodResponse {
-                id: "bad".into(),
-                pubkey: "pk2".into(),
-                kind: "mnemonic".into(),
-                label: "Mnemonic".into(),
-                status: NymVpnAccountStatusResponse::Active,
-                created: "totally not a timestamp".into(),
-            },
-        ];
-
-        let parsed =
-            VpnAccountSummary::try_from(&summary).expect("must not fail on a single bad auth");
-        assert!(
-            parsed.is_subscription_active(),
-            "valid subscription must remain active despite a malformed sibling auth method"
-        );
     }
 }
