@@ -83,7 +83,8 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
         let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
         let split_tunnel = Some(proto::SplitTunnelSettings::from(value.split_tunnel));
         let gateway_selection_algorithm =
-            proto::GatewaySelectionAlgorithmConfig::from(value.gateway_selection_algorithm_config).into();
+            proto::GatewaySelectionAlgorithmConfig::from(value.gateway_selection_algorithm_config)
+                .into();
 
         proto::VpnServiceConfig {
             entry_point,
