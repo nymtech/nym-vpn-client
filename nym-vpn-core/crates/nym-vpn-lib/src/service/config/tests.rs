@@ -174,7 +174,10 @@ location = "BE"
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Country {
@@ -238,7 +241,10 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
@@ -307,7 +313,10 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
@@ -365,7 +374,10 @@ exit_point = "Random"
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Random;
@@ -430,7 +442,10 @@ async fn test_service_config_migrate_from_v1() {
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     run_migrate_json_test(json_v1_content, json_latest_content).await;
@@ -504,7 +519,10 @@ async fn test_service_config_migrate_from_v2() {
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     run_migrate_json_test(json_v2_content, json_latest_content).await;
@@ -584,7 +602,10 @@ async fn test_service_config_migrate_from_v3() {
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     run_migrate_json_test(json_v3_content, json_latest_content).await;
@@ -673,7 +694,10 @@ async fn test_service_config_migrate_from_v4() {
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     run_migrate_json_test(json_v4_content, json_latest_content).await;
@@ -767,7 +791,10 @@ async fn test_service_config_migrate_from_v5() {
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     run_migrate_json_test(json_v5_content, json_latest_content).await;
@@ -858,7 +885,10 @@ async fn test_service_config_migrate_from_v6() {
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     run_migrate_json_test(json_v6_content, json_latest_content).await;
@@ -954,7 +984,10 @@ async fn test_service_config_migrate_from_v8() {
     "enabled": false,
     "apps": []
   },
-  "gateway_selection_algorithm": "Explicit"
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
+  }
 }"#;
 
     run_migrate_json_test(json_v8_content, json_latest_content).await;
