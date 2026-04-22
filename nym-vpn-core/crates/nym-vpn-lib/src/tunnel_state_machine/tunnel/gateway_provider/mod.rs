@@ -137,17 +137,12 @@ impl<C: GatewayCache> GatewayProvider<C> {
     /// preference
     fn set_enable_geo_location(&mut self, enable: bool) {
         self.enable_geo_location.store(enable, Ordering::SeqCst);
-        if !enable {
-            self.active_geo_location.store(false, Ordering::SeqCst);
-        }
     }
 
     /// Set the activation for geo-location based on connection status, to avoid
     /// false locations being used
     pub fn set_active_geo_location(&self, active: bool) {
-        if self.enable_geo_location.load(Ordering::SeqCst) {
-            self.active_geo_location.store(active, Ordering::SeqCst);
-        }
+        self.active_geo_location.store(active, Ordering::SeqCst);
     }
 
     pub async fn set_tunnel_settings(

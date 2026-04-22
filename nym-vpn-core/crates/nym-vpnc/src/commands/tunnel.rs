@@ -95,6 +95,10 @@ pub struct SetParams {
     })
     )]
     automatic_gateway_selection_level: Option<GatewaySelectionAlgorithm>,
+
+    /// Enable or disable geo-location data being used for determining gateway proximity
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
+    geo_location: Option<BooleanOption>,
 }
 
 impl Command {
@@ -180,6 +184,12 @@ impl Command {
                 {
                     rpc_client
                         .set_gateway_selection_algorithm(automatic_gateway_selection_level)
+                        .await?;
+                }
+
+                if let Some(enable_geo_location) = params.geo_location {
+                    rpc_client
+                        .set_enable_geo_location(*enable_geo_location)
                         .await?;
                 }
 

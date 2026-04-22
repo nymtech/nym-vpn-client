@@ -102,7 +102,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
                 }
                 _ = &mut update_timer => {
                     if let Err(err) = self.geo_ip_provider.update().await {
-                        tracing::warn!("Could not update the location for determining gateway proximity: {err}");
+                        tracing::warn!("Could not update the location on timer for determining gateway proximity: {err}");
                     }
                     update_timer.set(tokio::time::sleep(GEO_IP_UPDATE_INTERVAL));
                 }
@@ -113,6 +113,9 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
                         );
                         return;
                     };
+                    if let Err(err) = self.geo_ip_provider.update().await {
+                        tracing::warn!("Could not update the locationon new settings for determining gateway proximity: {err}");
+                    }
                     // store the received tunnel settings received for the next loop iteration
                     latest_tunnel_settings = settings;
                 }
