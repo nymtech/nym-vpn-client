@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use std::collections::HashSet;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::IpAddr;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -92,7 +94,7 @@ impl ConnectingState {
         shared_state.allow_networking().await;
 
         // Disallow geolocating while connected to prevent incorrect data from being queried
-        shared_state.gateway_provider.set_active_geolocating(false);
+        shared_state.gateway_provider.set_active_geo_location(false);
 
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
@@ -261,17 +263,9 @@ impl ConnectingState {
         )
     }
 
-    async fn handle_tunnel_close(tombstone: Tombstone, shared_state: &mut SharedState) {
+    async fn handle_tunnel_close(tombstone: Tombstone, _shared_state: &mut SharedState) {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        shared_state.route_handler.remove_routes().await;
-
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            shared_state.set_socks5_proxy_tunnel_addrs(None, None);
-        }
-
-        #[cfg(any(target_os = "android", target_os = "ios"))]
-        let _ = shared_state; // Avoid unused variable warning
+        _shared_state.route_handler.remove_routes().await;
 
         // drop tombstone to close tunnel devices
         let _ = tombstone;
@@ -410,7 +404,7 @@ impl ConnectingState {
     async fn handle_registered_with_gateways(
         &mut self,
         connection_data: Box<EstablishConnectionData>,
-        shared_state: &mut SharedState,
+        _shared_state: &mut SharedState,
     ) -> Result<()> {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
@@ -418,18 +412,15 @@ impl ConnectingState {
             // Because all bridges are already added to firewall exceptions.
             let wg_entry_endpoint = if let Some(TunnelConnectionData::Wireguard(ref wg)) =
                 connection_data.tunnel
-                && !shared_state.tunnel_settings.bridges_enabled()
+                && !_shared_state.tunnel_settings.bridges_enabled()
             {
                 Some(wg.entry.endpoint)
             } else {
                 None
             };
             self.firewall_policy_params.wg_entry_endpoint = wg_entry_endpoint;
-            Self::set_firewall_policy(shared_state, &self.firewall_policy_params)?;
+            Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)?;
         }
-
-        #[cfg(any(target_os = "android", target_os = "ios"))]
-        let _ = shared_state; // Avoid unused variable warning
 
         self.connection_data = Some(*connection_data);
 
@@ -469,13 +460,6 @@ impl ConnectingState {
             return self.disconnect(after_disconnect, shared_state).await;
         }
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            let (tunnel_v4_addr, tunnel_v6_addr) =
-                tunnel_interface.exit_tunnel_metadata().get_addresses();
-            shared_state.set_socks5_proxy_tunnel_addrs(tunnel_v4_addr, tunnel_v6_addr);
-        }
-
         #[cfg(not(any(target_os = "macos", target_os = "windows")))]
         let _ = tunnel_interface; // Avoid "unused" warning
 
@@ -504,7 +488,7 @@ impl ConnectingState {
     async fn handle_selected_gateways(
         &mut self,
         gateways: Box<SelectedGateways>,
-        shared_state: &mut SharedState,
+        _shared_state: &mut SharedState,
     ) -> Result<()> {
         let entry_gateway = gateways.entry_gateway();
         let exit_gateway = gateways.exit_gateway();
@@ -546,7 +530,7 @@ impl ConnectingState {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let set_policy_result = {
-            if shared_state.tunnel_settings.bridges_enabled()
+            if _shared_state.tunnel_settings.bridges_enabled()
                 && let Some(params) = &gateways.entry_gateway().bridge_params
             {
                 self.firewall_policy_params.bridge_endpoints = params.get_addrs()
@@ -555,7 +539,7 @@ impl ConnectingState {
             self.firewall_policy_params.ws_entry_endpoints = gateways.entry_gateway().endpoints();
             self.firewall_policy_params.lp_entry_endpoints =
                 gateways.entry_gateway().lp_endpoints();
-            Self::set_firewall_policy(shared_state, &self.firewall_policy_params)
+            Self::set_firewall_policy(_shared_state, &self.firewall_policy_params)
         };
         self.selected_gateways = Some(*gateways);
 
@@ -565,10 +549,7 @@ impl ConnectingState {
         }
 
         #[cfg(any(target_os = "ios", target_os = "android"))]
-        {
-            let _ = shared_state; // Avoid unused variable warning
-            Ok(())
-        }
+        Ok(())
     }
 
     fn make_connecting_tunnel_state(
@@ -726,8 +707,7 @@ impl TunnelStateHandler for ConnectingState {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
-
-                        shared_state.tunnel_settings = tunnel_settings;
+                        shared_state.set_tunnel_settings(tunnel_settings).await;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         let mut new_firewall_policy = self.firewall_policy_params.clone();
@@ -738,8 +718,8 @@ impl TunnelStateHandler for ConnectingState {
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         {
-                            if diff.split_tunnel_changed() || diff.socks5_proxy_enabled_changed() {
-                                match shared_state.set_split_tunnel_exclude_paths().await {
+                            if diff.split_tunnel_changed() {
+                                match shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await {
                                     Ok(interface_changed) => {
                                         if interface_changed {
                                             #[cfg(target_os = "macos")]
@@ -769,13 +749,6 @@ impl TunnelStateHandler for ConnectingState {
                                     }
                                 }
                             }
-                        }
-
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-                        if diff.socks5_proxy_enabled_changed() {
-                            shared_state
-                                .start_or_stop_socks5_proxy()
-                                .await;
                         }
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]

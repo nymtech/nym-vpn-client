@@ -48,7 +48,11 @@ pub struct GatewayProvider<C: GatewayCache> {
     tunnel_settings_tx: mpsc::Sender<SelectAndSend>,
     selected_gateways_stream: SelectedGatewaysStream,
     blacklisted_entry_gateways: BlacklistedGateways,
-    active_geolocating: Arc<AtomicBool>,
+    /// if geo location should ever be used by the algorithm, depending on user's preference
+    enable_geo_location: Arc<AtomicBool>,
+    /// if geo location is active, depending on connection status, so that false locations
+    /// don't get used
+    active_geo_location: Arc<AtomicBool>,
 }
 
 impl<C: GatewayCache> Stream for GatewayProvider<C> {
@@ -71,15 +75,21 @@ impl<C: GatewayCache> GatewayProvider<C> {
     pub async fn new(
         gateway_cache: C,
         geo_ip_client: impl GeoIpClient,
-        active_geolocating: bool,
+        enable_geo_location: bool,
         initial_tunnel_settings: TunnelSettings,
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
     ) -> Result<(Self, JoinHandle<()>), crate::tunnel_state_machine::Error> {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_entry_gateways = BlacklistedGateways::new();
-        let active_geolocating = Arc::new(AtomicBool::new(active_geolocating));
-        let geo_ip_provider = GeoIpProvider::new(geo_ip_client, active_geolocating.clone()).await;
+        let active_geo_location = Arc::new(AtomicBool::new(enable_geo_location));
+        let enable_geo_location = Arc::new(AtomicBool::new(enable_geo_location));
+        let geo_ip_provider = GeoIpProvider::new(
+            geo_ip_client,
+            enable_geo_location.clone(),
+            active_geo_location.clone(),
+        )
+        .await;
         let selection_algorithm_handle = tokio::spawn(
             SelectionAlgorithm::new(
                 tunnel_settings_rx,
@@ -100,7 +110,8 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 tunnel_settings_tx,
                 selected_gateways_stream,
                 blacklisted_entry_gateways,
-                active_geolocating,
+                enable_geo_location,
+                active_geo_location,
             },
             selection_algorithm_handle,
         ))
@@ -122,14 +133,32 @@ impl<C: GatewayCache> GatewayProvider<C> {
         Ok(Arc::new(Mutex::new(ReceiverStream::new(selection_rx))))
     }
 
-    pub fn set_active_geolocating(&self, active: bool) {
-        self.active_geolocating.store(active, Ordering::SeqCst);
+    /// Set if geo-location should be used by the algorithm, based on user's
+    /// preference
+    fn set_enable_geo_location(&mut self, enable: bool) {
+        self.enable_geo_location.store(enable, Ordering::SeqCst);
+        if !enable {
+            self.active_geo_location.store(false, Ordering::SeqCst);
+        }
+    }
+
+    /// Set the activation for geo-location based on connection status, to avoid
+    /// false locations being used
+    pub fn set_active_geo_location(&self, active: bool) {
+        if self.enable_geo_location.load(Ordering::SeqCst) {
+            self.active_geo_location.store(active, Ordering::SeqCst);
+        }
     }
 
     pub async fn set_tunnel_settings(
         &mut self,
         tunnel_settings: TunnelSettings,
     ) -> Result<(), crate::tunnel_state_machine::Error> {
+        self.set_enable_geo_location(
+            tunnel_settings
+                .gateway_selection_algorithm_config
+                .enable_geo_location,
+        );
         self.selected_gateways_stream =
             Self::inner_set_tunnel_settings(&self.tunnel_settings_tx, tunnel_settings).await?;
         Ok(())
