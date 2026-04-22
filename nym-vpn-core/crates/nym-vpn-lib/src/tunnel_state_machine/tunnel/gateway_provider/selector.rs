@@ -195,7 +195,7 @@ pub async fn select_gateways(
         });
     };
 
-    let (mut entry_gateways, mut exit_gateways) = match tunnel_settings.tunnel_type {
+    let (mut entry_gateways, mut exit_gateways) = match tunnel_settings.tunnel_type_used() {
         TunnelType::Wireguard => {
             let all_gateways = gateway_cache
                 .lookup_gateways(GatewayType::Wg)

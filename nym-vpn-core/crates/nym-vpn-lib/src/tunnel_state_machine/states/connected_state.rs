@@ -351,7 +351,7 @@ impl TunnelStateHandler for ConnectedState {
                         }
 
                         // Not all changes require the tunnel to be reconnected
-                        if diff.should_reconnect(shared_state.tunnel_settings.tunnel_type) {
+                        if diff.should_reconnect(shared_state.tunnel_settings.tunnel_type_used()) {
                             self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                         } else {
                             NextTunnelState::SameState(self)

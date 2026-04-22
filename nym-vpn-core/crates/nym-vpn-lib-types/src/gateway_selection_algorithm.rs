@@ -24,7 +24,8 @@ pub enum GatewaySelectionAlgorithm {
     /// Select gateways explicitly using the exit selector and automatically finding an entry gateway.
     AutoEntryExplicitExit,
 
-    /// Select gateways by automatically finding an entry and an exit gateways.
+    /// Select gateways by automatically finding an entry and an exit gateway.
+    /// The hop mode is also automatically set to 2-hop
     Auto,
 }
 

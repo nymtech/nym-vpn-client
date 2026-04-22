@@ -73,8 +73,8 @@ use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    GatewaySelectionAlgorithmConfig, Socks5ProxySettings, SplitTunnelSettings, TunnelEvent,
-    TunnelState, TunnelType,
+    GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig, Socks5ProxySettings,
+    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -146,7 +146,8 @@ pub struct TunnelSettings {
     /// Whether to enable support for IPv6.
     pub enable_ipv6: bool,
 
-    /// Type of tunnel.
+    /// Type of tunnel. This is persisted across different `GatewaySelectionAlgorithm`s,
+    /// but is disregarded for `GatewaySelectionAlgorithm::Auto` selection
     pub tunnel_type: TunnelType,
 
     /// Allow LAN connections outside of tunnel.
@@ -194,6 +195,22 @@ pub struct TunnelSettings {
 }
 
 impl TunnelSettings {
+    /// The tunnel type to be used
+    /// If the gateway selection algorithm is set to Auto, the tunnel_type is
+    /// disregarded and Wireguard mode is used, otherwise it's just the
+    /// configured tunnel_type
+    pub fn tunnel_type_used(&self) -> TunnelType {
+        if matches!(
+            self.gateway_selection_algorithm_config
+                .gateway_selection_algorithm,
+            GatewaySelectionAlgorithm::Auto
+        ) {
+            TunnelType::Wireguard
+        } else {
+            self.tunnel_type
+        }
+    }
+
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     /// Returns resolved DNS config resolved against default DNS IPs.
     pub fn resolved_dns_config(&self) -> ResolvedDnsConfig {
@@ -225,7 +242,7 @@ impl TunnelSettings {
     }
 
     pub fn bridges_enabled(&self) -> bool {
-        matches!(self.tunnel_type, TunnelType::Wireguard)
+        matches!(self.tunnel_type_used(), TunnelType::Wireguard)
             && self.wireguard_tunnel_options.enable_bridges
     }
 
