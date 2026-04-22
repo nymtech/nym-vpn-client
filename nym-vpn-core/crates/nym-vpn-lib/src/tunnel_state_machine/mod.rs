@@ -297,6 +297,9 @@ impl TunnelSettings {
                 diff.add(TunnelSettingsDiffFields::Socks5ProxyExcludedCountries);
             }
         }
+        if self.gateway_selection_algorithm_config != other.gateway_selection_algorithm_config {
+            diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
+        }
 
         if diff.is_empty() { None } else { Some(diff) }
     }
@@ -322,6 +325,7 @@ pub enum TunnelSettingsDiffFields {
     Socks5Proxy,
     Socks5ProxyEnabled,
     Socks5ProxyExcludedCountries,
+    GatewaySelectionAlgorithm,
 }
 
 impl TunnelSettingsDiffFields {
@@ -341,7 +345,8 @@ impl TunnelSettingsDiffFields {
             | Self::SplitTunnel
             | Self::Socks5Proxy
             | Self::Socks5ProxyEnabled
-            | Self::Socks5ProxyExcludedCountries => false,
+            | Self::Socks5ProxyExcludedCountries
+            | Self::GatewaySelectionAlgorithm => false,
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
             }
@@ -1026,7 +1031,9 @@ impl TunnelStateMachine {
         let (gateway_provider, gateway_provider_handle) = GatewayProvider::new(
             gateway_cache_handle,
             nym_vpn_api_client,
-            true,
+            tunnel_settings
+                .gateway_selection_algorithm_config
+                .enable_geo_location,
             tunnel_settings.clone(),
             wg_keys_db,
             shutdown_token.clone(),
