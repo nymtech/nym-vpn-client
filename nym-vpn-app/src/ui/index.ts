@@ -1,5 +1,6 @@
 export { default as Button } from './Button';
 export { default as ButtonIcon } from './ButtonIcon';
+export { default as ButtonNew } from './ButtonNew';
 export { default as ButtonText } from './ButtonText';
 export { default as Dialog } from './Dialog';
 export { default as DraggableList } from './DraggableList';
@@ -27,6 +28,7 @@ export { default as ConfirmationDialog } from './ConfirmationDialog';
 export { default as Spinner } from './Spinner';
 export * from './Button';
 export * from './ButtonIcon';
+export * from './ButtonNew';
 export * from './ButtonText';
 export * from './Dialog';
 export * from './DraggableList';

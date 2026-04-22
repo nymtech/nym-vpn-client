@@ -65,6 +65,25 @@
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-icon: Material Symbols Outlined;
   --font-icon--font-variation-settings: 'opsz' 24;
+
+  /* new colors */
+
+  --color-malachite-50: hsl(141 90.9% 91.4%);
+  --color-malachite-100: hsl(142.6 92.8% 83.7%);
+  --color-malachite-200: hsl(147.8 83.2% 64.9%); /* primary */
+  --color-malachite-300: hsl(147.9 57.3% 55.9%);
+  --color-malachite-400: hsl(147.6 46.4% 46.9%);
+  --color-malachite-500: hsl(147.4 47.4% 38%);
+  --color-malachite-600: hsl(147.6 49.4% 30.2%);
+  --color-malachite-700: hsl(147.5 52.2% 22.2%);
+  --color-malachite-800: hsl(147.1 56.8% 14.5%);
+  --color-malachite-900: hsl(147.9 70% 7.8%);
+  --color-malachite-950: hsl(144.7 73.9% 4.5%);
+
+  --color-secondary: #aeacb1;
+  --color-success: #28c96c;
+  --color-warning: #ffcc33;
+  --color-error: #e73e14;
 }
 
 @utility transition-noborder {
