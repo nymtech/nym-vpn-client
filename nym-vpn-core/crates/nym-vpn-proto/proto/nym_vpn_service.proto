@@ -108,6 +108,10 @@ message IpAddrList {
   repeated IpAddr ips = 1;
 }
 
+message StringList {
+  repeated string values = 1;
+}
+
 message ApiUrl {
   string url = 1;
   repeated string front_hosts = 2;
@@ -266,6 +270,16 @@ message SplitTunnelSettings {
   repeated SplitApp apps = 2;
 }
 
+message AirportingSettings {
+  bool enabled = 1;
+  uint32 listen_port = 2;
+  repeated string excluded_countries = 3;
+}
+
+message AirportingListenPortRequest {
+  uint32 listen_port = 1;
+}
+
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
@@ -283,6 +297,7 @@ message VpnServiceConfig {
   NetworkStatsConfig network_stats = 18;
   MixnetTrafficConfig mixnet_traffic = 25;
   SplitTunnelSettings split_tunnel = 28;
+  AirportingSettings airporting = 29;
 }
 
 message NetworkStatsConfig {
@@ -1080,6 +1095,9 @@ service NymVpnService {
   rpc SetEnableCustomDns(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetCustomDns(IpAddrList) returns (google.protobuf.Empty) {}
   rpc SetMixnetTrafficConfig(MixnetTrafficConfig) returns (google.protobuf.Empty) {}
+  rpc SetAirportingEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetAirportingListenPort(AirportingListenPortRequest) returns (google.protobuf.Empty) {}
+  rpc SetAirportingExcludedCountries(StringList) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork(google.protobuf.StringValue) returns (google.protobuf.Empty) {}

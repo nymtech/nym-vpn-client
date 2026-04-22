@@ -3,6 +3,7 @@
 
 pub mod account;
 pub mod ad_block;
+pub mod airporting;
 pub mod device;
 pub mod diagnostic;
 pub mod dns;
