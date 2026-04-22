@@ -21,9 +21,9 @@ export function ButtonIconNew({
     <Button
       className={clsx([
         'flex items-center justify-center w-10 h-10 rounded-full transition-colors',
-        'text-baltic-sea hover:text-baltic-sea/70',
+        'text-iron hover:text-baltic-sea',
         'dark:text-bombay dark:hover:text-white',
-        'hover:bg-baltic-sea',
+        'hover:bg-baltic-sea/20 dark:hover:bg-baltic-sea',
         className && className,
       ])}
       onClick={onClick}
