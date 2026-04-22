@@ -10,7 +10,7 @@ const variantStyles: Record<ButtonVariant, string[]> = {
     'bg-malachite-200 text-baltic-sea',
     'hover:bg-malachite-300',
     'data-active:bg-malachite-400',
-    'data-disabled:bg-[#353336] data-disabled:text-white/50 data-disabled:cursor-not-allowed',
+    'data-disabled:bg-secondary',
   ],
   outlined: [
     'border-1 border-black dark:border-white',
@@ -24,7 +24,7 @@ const variantStyles: Record<ButtonVariant, string[]> = {
 
 const loadingStyles: Record<ButtonVariant, string[]> = {
   primary: [
-    'group-data-disabled:border-white group-data-disabled:border-b-transparent',
+    'group-data-disabled:border-baltic-sea dark:group-data-disabled:border-baltic-sea group-data-disabled:border-b-transparent dark:group-data-disabled:border-b-transparent',
   ],
   outlined: [
     'group-data-disabled:border-black/50 group-data-disabled:border-b-transparent',
@@ -57,7 +57,7 @@ function ButtonNew({
       className={clsx([
         'group',
         'flex items-center justify-center',
-        'py-3 text-base',
+        'py-7 text-base',
         'h-12 w-full rounded-3xl',
         'font-medium text-base tracking-[0.01em] leading-6 whitespace-nowrap',
         'transition-colors cursor-default select-none',
