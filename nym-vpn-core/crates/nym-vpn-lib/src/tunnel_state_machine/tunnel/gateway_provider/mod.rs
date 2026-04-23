@@ -175,7 +175,7 @@ pub mod tests {
             exit_point: Box::new(ExitPoint::Random),
             dns: Default::default(),
             split_tunnel: Default::default(),
-            socks5_proxy_settings: Default::default(),
+            airporting_settings: Default::default(),
         }
     }
 

@@ -9,9 +9,9 @@ use std::{
 
 use nym_common::trace_err_chain;
 use nym_registration_client::MixnetClientConfig;
+use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
-use nym_vpn_lib_types::{MixnetTrafficConfigValidationError, Socks5ProxySettings};
 use tokio::{fs, sync::broadcast};
 
 use crate::{
@@ -21,7 +21,7 @@ use crate::{
             DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
             VpnServiceConfigVersion, legacy,
         },
-        error::{Error, Result},
+        error::{AirportingConfigError, Error, Result},
         read_json_config_file, read_toml_config_file, write_json_config_file,
     },
     tunnel_state_machine::{
@@ -178,9 +178,6 @@ impl VpnServiceConfigManager {
         }
     }
 
-    /// Enable or disable custom DNS servers
-    ///
-    /// Returns true if the setting has changed, otherwise false if it's the same
     pub async fn set_enable_custom_dns(&mut self, enable_custom_dns: bool) -> bool {
         if self.config.enable_custom_dns == enable_custom_dns {
             false
@@ -191,9 +188,6 @@ impl VpnServiceConfigManager {
         }
     }
 
-    /// Update custom DNS servers
-    ///
-    /// Returns true if custom DNS servers have changed, otherwise false if they're the same
     pub async fn set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) -> bool {
         if self.config.custom_dns == custom_dns {
             false
@@ -266,6 +260,42 @@ impl VpnServiceConfigManager {
     pub async fn clear_split_tunnel_apps(&mut self) {
         self.config.split_tunnel.clear_apps();
         self.save_config_and_send_event().await;
+    }
+
+    pub async fn set_airporting_enabled(&mut self, enabled: bool) {
+        if self.config.airporting.enabled != enabled {
+            self.config.airporting.enabled = enabled;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_airporting_listen_port(&mut self, listen_port: u16) {
+        if self.config.airporting.listen_port != listen_port {
+            self.config.airporting.listen_port = listen_port;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_airporting_excluded_countries(
+        &mut self,
+        excluded_countries: Vec<String>,
+    ) -> Result<(), AirportingConfigError> {
+        // Temporary:  At the moment Airporting is only supported for China
+        for country in &excluded_countries {
+            if country != "CN" {
+                return Err(AirportingConfigError::UnsupportedCountry(country.clone()));
+            }
+        }
+        if !excluded_countries.iter().any(|c| c == "CN") {
+            return Err(AirportingConfigError::CnRequired);
+        }
+
+        if self.config.airporting.excluded_countries != excluded_countries {
+            self.config.airporting.excluded_countries = excluded_countries;
+            self.save_config_and_send_event().await;
+        }
+
+        Ok(())
     }
 
     async fn save_config_and_send_event(&self) {
@@ -425,15 +455,14 @@ impl VpnServiceConfigManager {
             DnsOptions::default()
         };
 
-        // Temporary; we will add SOCKS5 proxy config shortly.
-        let socks5_proxy_settings = Socks5ProxySettings::default();
+        let airporting_settings = self.config.airporting.clone();
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         let split_tunnel = {
             let mut split_tunnel = self.config.split_tunnel.clone();
-            // If the SOCKS5 proxy is enabled then Split Tunneling also needs to be enabled.
-            if socks5_proxy_settings.enabled && !self.config.split_tunnel.enabled {
-                tracing::warn!("Enabling Split Tunnel as SOCKS5 proxy is enabled");
+            // If airporting is enabled then Split Tunneling also needs to be enabled.
+            if airporting_settings.enabled && !self.config.split_tunnel.enabled {
+                tracing::warn!("Enabling Split Tunnel as airporting is enabled");
                 split_tunnel.enabled = true;
             }
             split_tunnel
@@ -467,7 +496,7 @@ impl VpnServiceConfigManager {
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
             split_tunnel,
-            socks5_proxy_settings,
+            airporting_settings,
         }
     }
 }

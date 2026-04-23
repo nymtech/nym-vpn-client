@@ -201,8 +201,8 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use tokio::runtime::Runtime;
 
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, MixnetTrafficConfig, NetworkStatisticsConfig, PrivyDerivationMessage,
-    SplitTunnelSettings, UserAgent, VpnServiceConfig,
+    AirportingSettings, EntryPoint, ExitPoint, MixnetTrafficConfig, NetworkStatisticsConfig,
+    PrivyDerivationMessage, SplitTunnelSettings, UserAgent, VpnServiceConfig,
 };
 
 #[cfg(target_os = "android")]
@@ -298,6 +298,7 @@ impl VPNConfig {
 
             // Not available via vpn service on mobile platforms
             split_tunnel: SplitTunnelSettings::default(),
+            airporting: AirportingSettings::default(),
         })
     }
 }

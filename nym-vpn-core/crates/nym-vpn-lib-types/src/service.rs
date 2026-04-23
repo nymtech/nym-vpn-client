@@ -46,6 +46,7 @@ pub struct VpnServiceConfig {
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
+    pub airporting: AirportingSettings,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -85,6 +86,7 @@ impl fmt::Display for VpnServiceConfig {
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
         writeln!(f, "split tunnel settings: {}", self.split_tunnel)?;
+        writeln!(f, "airporting settings: {}", self.airporting)?;
 
         Ok(())
     }
@@ -113,6 +115,7 @@ impl Default for VpnServiceConfig {
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
             split_tunnel: SplitTunnelSettings::default(),
+            airporting: AirportingSettings::default(),
         }
     }
 }
@@ -496,13 +499,13 @@ impl fmt::Display for SplitTunnelSettings {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub struct Socks5ProxySettings {
+pub struct AirportingSettings {
     pub enabled: bool,
     pub listen_port: u16,
     pub excluded_countries: Vec<String>,
 }
 
-impl fmt::Display for Socks5ProxySettings {
+impl fmt::Display for AirportingSettings {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "enabled: {}", self.enabled)?;
         writeln!(f, "listen_port: {}", self.listen_port)?;
@@ -515,11 +518,10 @@ impl fmt::Display for Socks5ProxySettings {
     }
 }
 
-// Temporary
-impl Default for Socks5ProxySettings {
+impl Default for AirportingSettings {
     fn default() -> Self {
         Self {
-            enabled: true,
+            enabled: false,
             listen_port: 1080,
             excluded_countries: vec!["CN".to_string()],
         }

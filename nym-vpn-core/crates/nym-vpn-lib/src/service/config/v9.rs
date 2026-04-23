@@ -5,6 +5,7 @@ use crate::service::{
     ConfigSetupError,
     config::{
         VpnServiceConfigExt,
+        airporting_settings::v9::AirportingSettings,
         entry_exit::v2::{EntryPoint, ExitPoint},
         mixnet_traffic::v5::MixnetTrafficConfig,
         network_stats::v1::NetworkStatisticsConfig,
@@ -32,11 +33,12 @@ pub struct VpnServiceConfig {
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
+    pub airporting: AirportingSettings,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
-    fn from(v8: VpnServiceConfig) -> Self {
-        VpnServiceConfigExt::V8(v8)
+    fn from(v9: VpnServiceConfig) -> Self {
+        VpnServiceConfigExt::V9(v9)
     }
 }
 
@@ -58,11 +60,11 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .collect::<Result<_, _>>()?;
 
         let mixnet_traffic = nym_vpn_lib_types::MixnetTrafficConfig::from(value.mixnet_traffic);
-
         let network_stats = nym_vpn_lib_types::NetworkStatisticsConfig::from(value.network_stats);
         let split_tunnel = nym_vpn_lib_types::SplitTunnelSettings::from(value.split_tunnel);
+        let airporting = nym_vpn_lib_types::AirportingSettings::from(value.airporting);
 
-        let config = nym_vpn_lib_types::VpnServiceConfig {
+        Ok(nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -79,9 +81,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             custom_dns,
             network_stats,
             split_tunnel,
-            airporting: Default::default(),
-        };
-
-        Ok(config)
+            airporting,
+        })
     }
 }
