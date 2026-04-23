@@ -1,19 +1,30 @@
 import Foundation
 import Constants
+import ConnectionManager
 import CredentialsManager
 
 @Observable
 public final class DeeplinkManager {
     private let credentialsManager: CredentialsManager
+    private let connectionManager: ConnectionManager
 
-    public init (credentialsManager: CredentialsManager) {
+    public init(credentialsManager: CredentialsManager, connectionManager: ConnectionManager) {
         self.credentialsManager = credentialsManager
+        self.connectionManager = connectionManager
     }
 
     public func handle(url: URL) {
         guard url.scheme == Constants.appUrlScheme.rawValue,
               let components = URLComponents(url: url, resolvingAgainstBaseURL: true)
         else {
+            return
+        }
+
+        // VPN toggle from widget
+        if components.host == "vpn", components.path == "/toggle" {
+            Task { @MainActor in
+                try? await connectionManager.connectDisconnect()
+            }
             return
         }
 
