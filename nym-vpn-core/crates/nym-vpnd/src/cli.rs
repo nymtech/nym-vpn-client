@@ -43,11 +43,12 @@ impl CliArgs {
     }
 
     pub fn is_run_as_service(&self) -> bool {
-        matches!(self.command, Some(Command::RunAsService))
+        matches!(self.command, Some(Command::RunAsService(_)))
     }
 }
 
 #[derive(Debug, Copy, Clone, Default, Subcommand)]
+#[allow(clippy::enum_variant_names)]
 pub enum Command {
     #[cfg(windows)]
     /// Install windows service
@@ -62,12 +63,24 @@ pub enum Command {
     StartService,
 
     /// Run daemon as a system service
-    RunAsService,
+    RunAsService(RunArgs),
+
+    /// Run daemon standalone with some additional arguments
+    RunWithArgs(RunArgs),
 
     /// Run daemon standalone
     #[default]
     #[clap(skip)]
     RunStandalone,
+}
+
+#[derive(Debug, Default, Clone, Copy, clap::Args)]
+pub struct RunArgs {
+    /// WARNING this flag is UNSAFE and should only be used for debug purposes.
+    /// It disables the checks that the daemon does on the clients to ensure
+    /// they come from legitimate sources (Nym signed applications/authenticated users)
+    #[clap(long, default_value = "false", action = clap::ArgAction::SetTrue)]
+    pub disable_client_verification: bool,
 }
 
 fn parse_user_agent(user_agent: &str) -> Result<UserAgent, String> {
