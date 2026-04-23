@@ -1135,6 +1135,10 @@ async fn test_service_config_migrate_from_v7() {
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
