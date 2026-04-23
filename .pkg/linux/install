@@ -51,12 +51,31 @@ BUILD_CHANNEL=${BUILD_CHANNEL:-stable}
 APP_RELEASE=${APP_RELEASE:-"nym-vpn-app-nightly"}
 CORE_BUILD=${CORE_BUILD:-0}
 
+# detect CPU architecture
+_uname_arch=$(uname -m)
+case "$_uname_arch" in
+x86_64)
+  arch=x86_64
+  deb_arch=amd64
+  app_image_arch=amd64
+  ;;
+aarch64)
+  arch=aarch64
+  deb_arch=arm64
+  app_image_arch=aarch64
+  ;;
+*)
+  echo "Unsupported architecture: $_uname_arch" >&2
+  exit 1
+  ;;
+esac
+
 ## STABLE BUILDS #################################################
 # app artifacts
 app_tag=nym-vpn-app-v1.28.0
 app_version=1.28.0
-appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_amd64.AppImage"
-app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_amd64.deb"
+appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_${app_image_arch}.AppImage"
+app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_${deb_arch}.deb"
 desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/ac4153bb1/nym-vpn-app/.pkg/app.desktop"
 icon_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/icon.svg"
 
@@ -66,8 +85,8 @@ vpnd_tag=nym-vpn-core-v1.28.0
 vpnd_version=1.28.0
 vpnd_deb_ver=$vpnd_version
 vpnd_deb_ver_url=$vpnd_version
-vpnd_raw_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
-vpnd_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpnd_${vpnd_deb_ver_url}_amd64.deb"
+vpnd_raw_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_${arch}.tar.gz"
+vpnd_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpnd_${vpnd_deb_ver_url}_${deb_arch}.deb"
 unit_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service"
 ##################################################################
 
@@ -152,14 +171,14 @@ app_dir="nym-vpn-app"
 install_dir="/usr/bin"
 desktop_dir="/usr/share/applications"
 icons_dir="/usr/share/icons/hicolor/scalable/apps"
-appimage="NymVPN_${app_version}_x64.AppImage"
-app_deb="nym-vpn-app_${app_version}_amd64.deb"
+appimage="NymVPN_${app_version}_${app_image_arch}.AppImage"
+app_deb="nym-vpn-app_${app_version}_${deb_arch}.deb"
 target_appimage="NymVPN.AppImage"
-core_archive="nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
+core_archive="nym-vpn-core-v${vpnd_version}_linux_${arch}.tar.gz"
 vpnd_bin="nym-vpnd"
 socks5_proxy_bin="nym-socks5-proxy"
 vpnd_service="nym-vpnd.service"
-vpnd_deb="nym-vpnd_${vpnd_deb_ver}_amd64.deb"
+vpnd_deb="nym-vpnd_${vpnd_deb_ver}_${deb_arch}.deb"
 units_dir="/usr/lib/systemd/system"
 desktop_exec='env RUST_LOG=info,nym_vpn_app=debug NymVPN.AppImage -l %U'
 os=$(uname -a)
@@ -186,26 +205,26 @@ app_dev_setup() {
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/"$app_tag" |
-    grep -m1 -oP '(?<="name": "NymVPN_).+(?=_x64\.AppImage)')
-  appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
-  app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_amd64.deb"
-  appimage="NymVPN_${app_version}_x64.AppImage"
-  app_deb="nym-vpn-app_${app_version}_amd64.deb"
+    grep -m1 -oP "(?<=\"name\": \"NymVPN_).+(?=_${arch}\.AppImage)")
+  appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_${app_image_arch}.AppImage"
+  app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_${deb_arch}.deb"
+  appimage="NymVPN_${app_version}_${app_image_arch}.AppImage"
+  app_deb="nym-vpn-app_${app_version}_${deb_arch}.deb"
 }
 
 get_core_dev() {
   core_archive=$(curl -s "$1" |
-    grep -oP '(?<=^<a href=")nym-vpn-core-v.+_linux_x86_64\.tar\.gz(?=">)')
+    grep -oP "(?<=^<a href=\")nym-vpn-core-v.+_linux_${arch}\.tar\.gz(?=\">)")
   vpnd_raw_url="$1$core_archive"
   ver="${core_archive#nym-vpn-core-v}"
-  vpnd_version="${ver%_linux_x86_64.tar.gz}"
+  vpnd_version="${ver%_linux_${arch}.tar.gz}"
 }
 
 get_vpnd_dev_deb() {
   vpnd_deb=$(curl -s "$1" |
-    grep -oP '(?<=^<a href=")nym-vpnd_.+_amd64\.deb(?=">)')
+    grep -oP "(?<=^<a href=\")nym-vpnd_.+_${deb_arch}\.deb(?=\">)")
   ver="${vpnd_deb#nym-vpnd_}"
-  vpnd_deb_ver="${ver%_amd64.deb}"
+  vpnd_deb_ver="${ver%_${deb_arch}.deb}"
   vpnd_deb_url="$1$vpnd_deb"
 }
 
