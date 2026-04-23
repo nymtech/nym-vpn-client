@@ -442,8 +442,8 @@ jobs:
           # Get ONLY the latest commit
           LATEST_COMMIT="$(git log -1 --pretty=format:'%h, %ar, message: %s')"
 
-          # Build release notes
-          RELEASE_NOTES="Date: ${DATE_TIME}\nBranch: ${BRANCH_NAME}\nLatest commit:\n- ${LATEST_COMMIT}"
+          # Build release notes (real newlines so TestFlight renders line breaks)
+          RELEASE_NOTES="$(printf 'Date: %s\nBranch: %s\nLatest commit:\n- %s' "$DATE_TIME" "$BRANCH_NAME" "$LATEST_COMMIT")"
 
           # Build whats_new.json with proper JSON escaping
           export RELEASE_NOTES
