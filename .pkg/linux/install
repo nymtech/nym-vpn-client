@@ -152,7 +152,7 @@ app_dir="nym-vpn-app"
 install_dir="/usr/bin"
 desktop_dir="/usr/share/applications"
 icons_dir="/usr/share/icons/hicolor/scalable/apps"
-appimage="NymVPN_${app_version}_x64.AppImage"
+appimage="NymVPN_${app_version}_amd64.AppImage"
 app_deb="nym-vpn-app_${app_version}_amd64.deb"
 target_appimage="NymVPN.AppImage"
 core_archive="nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
@@ -186,10 +186,10 @@ app_dev_setup() {
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/"$app_tag" |
-    grep -m1 -oP '(?<="name": "NymVPN_).+(?=_x64\.AppImage)')
-  appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
+    grep -m1 -oP '(?<="name": "NymVPN_).+(?=_amd64\.AppImage)')
+  appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_amd64.AppImage"
   app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_amd64.deb"
-  appimage="NymVPN_${app_version}_x64.AppImage"
+  appimage="NymVPN_${app_version}_amd64.AppImage"
   app_deb="nym-vpn-app_${app_version}_amd64.deb"
 }
 
