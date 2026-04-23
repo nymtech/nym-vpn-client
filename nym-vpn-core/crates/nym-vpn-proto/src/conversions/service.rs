@@ -44,7 +44,12 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .map(nym_vpn_lib_types::SplitTunnelSettings::from)
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.split_tunnel"))?;
 
-        let gateway_selection_algorithm = value
+        let airporting = value
+            .airporting
+            .map(nym_vpn_lib_types::AirportingSettings::from)
+            .ok_or(ConversionError::NoValueSet("VpnServiceConfig.airporting"))?;
+
+        let gateway_selection_algorithm_config = value
             .gateway_selection_algorithm
             .map(nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::try_from)
             .ok_or(ConversionError::NoValueSet(
@@ -68,7 +73,8 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             mixnet_traffic,
             network_stats,
             split_tunnel,
-            gateway_selection_algorithm_config: gateway_selection_algorithm,
+            airporting,
+            gateway_selection_algorithm_config,
         };
         Ok(config)
     }
@@ -82,6 +88,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
         let mixnet_traffic = Some(proto::MixnetTrafficConfig::from(value.mixnet_traffic));
         let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
         let split_tunnel = Some(proto::SplitTunnelSettings::from(value.split_tunnel));
+        let airporting = Some(proto::AirportingSettings::from(value.airporting));
         let gateway_selection_algorithm =
             proto::GatewaySelectionAlgorithmConfig::from(value.gateway_selection_algorithm_config)
                 .into();
@@ -103,6 +110,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             mixnet_traffic,
             network_stats,
             split_tunnel,
+            airporting,
             gateway_selection_algorithm,
         }
     }
@@ -118,6 +126,26 @@ impl From<proto::MixnetTrafficConfig> for nym_vpn_lib_types::MixnetTrafficConfig
             disable_background_cover_traffic: value.disable_background_cover_traffic,
             min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u8),
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u8),
+        }
+    }
+}
+
+impl From<proto::AirportingSettings> for nym_vpn_lib_types::AirportingSettings {
+    fn from(value: proto::AirportingSettings) -> Self {
+        nym_vpn_lib_types::AirportingSettings {
+            enabled: value.enabled,
+            listen_port: value.listen_port as u16,
+            excluded_countries: value.excluded_countries,
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::AirportingSettings> for proto::AirportingSettings {
+    fn from(value: nym_vpn_lib_types::AirportingSettings) -> Self {
+        proto::AirportingSettings {
+            enabled: value.enabled,
+            listen_port: value.listen_port as u32,
+            excluded_countries: value.excluded_countries,
         }
     }
 }

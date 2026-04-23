@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod airporting_settings;
 mod config_manager;
 mod entry_exit;
 mod gateway_selection_algorithm;
@@ -34,6 +35,7 @@ use tokio::{
 };
 
 use crate::service::config::{
+    airporting_settings::v9::AirportingSettings,
     entry_exit::v2::{EntryPoint, ExitPoint},
     gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
     mixnet_traffic::v5::MixnetTrafficConfig,
@@ -195,8 +197,9 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
         let network_stats = NetworkStatisticsConfig::from(&value.network_stats);
 
         let split_tunnel = SplitTunnelSettings::from(&value.split_tunnel);
+        let airporting = AirportingSettings::from(&value.airporting);
 
-        let gateway_selection_algorithm =
+        let gateway_selection_algorithm_config =
             GatewaySelectionAlgorithmConfig::from(&value.gateway_selection_algorithm_config);
 
         let v9 = v9::VpnServiceConfig {
@@ -216,7 +219,8 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             mixnet_traffic,
             network_stats,
             split_tunnel,
-            gateway_selection_algorithm_config: gateway_selection_algorithm,
+            airporting,
+            gateway_selection_algorithm_config,
         };
 
         Ok(VpnServiceConfigExt::V9(v9))

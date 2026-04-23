@@ -229,7 +229,7 @@ pub mod tests {
             dns: Default::default(),
             split_tunnel: Default::default(),
             gateway_selection_algorithm_config: Default::default(),
-            socks5_proxy_settings: Default::default(),
+            airporting_settings: Default::default(),
         }
     }
 

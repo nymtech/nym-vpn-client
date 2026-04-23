@@ -5,6 +5,7 @@ use crate::service::{
     ConfigSetupError,
     config::{
         VpnServiceConfigExt,
+        airporting_settings::v9::AirportingSettings,
         entry_exit::v2::{EntryPoint, ExitPoint},
         gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
         mixnet_traffic::v5::MixnetTrafficConfig,
@@ -33,6 +34,7 @@ pub struct VpnServiceConfig {
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
+    pub airporting: AirportingSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 }
 
@@ -60,14 +62,15 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .collect::<Result<_, _>>()?;
 
         let mixnet_traffic = nym_vpn_lib_types::MixnetTrafficConfig::from(value.mixnet_traffic);
-
         let network_stats = nym_vpn_lib_types::NetworkStatisticsConfig::from(value.network_stats);
         let split_tunnel = nym_vpn_lib_types::SplitTunnelSettings::from(value.split_tunnel);
-        let gateway_selection_algorithm = nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::from(
-            value.gateway_selection_algorithm_config,
-        );
+        let airporting = nym_vpn_lib_types::AirportingSettings::from(value.airporting);
+        let gateway_selection_algorithm_config =
+            nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::from(
+                value.gateway_selection_algorithm_config,
+            );
 
-        let config = nym_vpn_lib_types::VpnServiceConfig {
+        Ok(nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -84,9 +87,8 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             custom_dns,
             network_stats,
             split_tunnel,
-            gateway_selection_algorithm_config: gateway_selection_algorithm,
-        };
-
-        Ok(config)
+            airporting,
+            gateway_selection_algorithm_config,
+        })
     }
 }

@@ -71,10 +71,10 @@ use nym_dns::DnsConfig;
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
-    ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig, Socks5ProxySettings,
-    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, AirportingSettings, ConnectionData,
+    EntryPoint, ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
+    GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig, SplitTunnelSettings, TunnelEvent,
+    TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -187,8 +187,8 @@ pub struct TunnelSettings {
     /// Split tunneling settings.
     pub split_tunnel: SplitTunnelSettings,
 
-    /// SOCKS5 Proxy settings.
-    pub socks5_proxy_settings: Socks5ProxySettings,
+    /// Airporting settings.
+    pub airporting_settings: AirportingSettings,
 
     /// How the gateways should be selected.
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
@@ -303,16 +303,19 @@ impl TunnelSettings {
         if self.split_tunnel != other.split_tunnel {
             diff.add(TunnelSettingsDiffFields::SplitTunnel);
         }
-        if self.socks5_proxy_settings != other.socks5_proxy_settings {
-            diff.add(TunnelSettingsDiffFields::Socks5Proxy);
-            if self.socks5_proxy_settings.enabled != other.socks5_proxy_settings.enabled {
-                diff.add(TunnelSettingsDiffFields::Socks5ProxyEnabled);
+        if self.airporting_settings != other.airporting_settings {
+            diff.add(TunnelSettingsDiffFields::Airporting);
+            if self.airporting_settings.enabled != other.airporting_settings.enabled {
+                diff.add(TunnelSettingsDiffFields::AirportingEnabled);
             }
-            if self.socks5_proxy_settings.excluded_countries
-                != other.socks5_proxy_settings.excluded_countries
+            if self.airporting_settings.excluded_countries
+                != other.airporting_settings.excluded_countries
             {
-                diff.add(TunnelSettingsDiffFields::Socks5ProxyExcludedCountries);
+                diff.add(TunnelSettingsDiffFields::AirportingExcludedCountries);
             }
+        }
+        if self.gateway_selection_algorithm_config != other.gateway_selection_algorithm_config {
+            diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
         }
         if self.gateway_selection_algorithm_config != other.gateway_selection_algorithm_config {
             diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
@@ -339,9 +342,9 @@ pub enum TunnelSettingsDiffFields {
     ExitPoint,
     Dns,
     SplitTunnel,
-    Socks5Proxy,
-    Socks5ProxyEnabled,
-    Socks5ProxyExcludedCountries,
+    Airporting,
+    AirportingEnabled,
+    AirportingExcludedCountries,
     GatewaySelectionAlgorithm,
 }
 
@@ -360,9 +363,9 @@ impl TunnelSettingsDiffFields {
             Self::AllowLan
             | Self::EnableAdBlocking
             | Self::SplitTunnel
-            | Self::Socks5Proxy
-            | Self::Socks5ProxyEnabled
-            | Self::Socks5ProxyExcludedCountries
+            | Self::Airporting
+            | Self::AirportingEnabled
+            | Self::AirportingExcludedCountries
             | Self::GatewaySelectionAlgorithm => false,
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
@@ -419,12 +422,12 @@ impl TunnelSettingsDiff {
         self.is_field_changed(&TunnelSettingsDiffFields::MixnetPerformanceOptions)
     }
 
-    pub fn socks5_proxy_enabled_changed(&self) -> bool {
-        self.is_field_changed(&TunnelSettingsDiffFields::Socks5ProxyEnabled)
+    pub fn airporting_enabled_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::AirportingEnabled)
     }
 
-    pub fn socks5_proxy_excluded_countries_changed(&self) -> bool {
-        self.is_field_changed(&TunnelSettingsDiffFields::Socks5ProxyExcludedCountries)
+    pub fn airporting_excluded_countries_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::AirportingExcludedCountries)
     }
 
     // Returns true if changed tunnel settings should lead to tunnel reconnect
@@ -762,7 +765,7 @@ impl SharedState {
         &mut self,
     ) -> Result<bool, nym_split_tunnel::SplitTunnelErrorCause> {
         let paths = self.tunnel_settings.split_tunnel.effective_app_paths();
-        let hybrid_paths = if self.tunnel_settings.socks5_proxy_settings.enabled {
+        let hybrid_paths = if self.tunnel_settings.airporting_settings.enabled {
             match find_proxy_binary() {
                 Ok(path) => HashSet::from([path]),
                 Err(err) => {
@@ -848,7 +851,7 @@ impl SharedState {
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn start_or_stop_socks5_proxy(&mut self) {
-        if self.tunnel_settings.socks5_proxy_settings.enabled {
+        if self.tunnel_settings.airporting_settings.enabled {
             self.start_socks5_proxy().await;
         } else {
             self.stop_socks5_proxy().await;
@@ -892,7 +895,7 @@ impl SharedState {
             return Err("Data path is required but not configured".to_string());
         };
 
-        let listen_port = self.tunnel_settings.socks5_proxy_settings.listen_port;
+        let listen_port = self.tunnel_settings.airporting_settings.listen_port;
 
         let data_dir = data_path.to_path_buf();
 
@@ -905,7 +908,7 @@ impl SharedState {
 
         let excluded_countries = self
             .tunnel_settings
-            .socks5_proxy_settings
+            .airporting_settings
             .excluded_countries
             .clone();
 
@@ -1096,7 +1099,7 @@ impl TunnelStateMachine {
         }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        if shared_state.tunnel_settings.socks5_proxy_settings.enabled {
+        if shared_state.tunnel_settings.airporting_settings.enabled {
             shared_state.start_socks5_proxy().await;
         }
 

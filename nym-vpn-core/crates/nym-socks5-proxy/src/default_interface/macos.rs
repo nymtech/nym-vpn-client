@@ -1,7 +1,9 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::IpAddr;
+
+use crate::default_interface::DefaultInterface;
 
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
 use tokio::sync::watch;
@@ -10,7 +12,7 @@ use tokio_util::sync::CancellationToken;
 pub async fn start_monitor(shutdown_token: CancellationToken) -> watch::Receiver<DefaultInterface> {
     let initial = match RouteManagerHandle::spawn().await {
         Ok(rm) => {
-            let addrs = query_addrs(&rm).await;
+            let addrs = snapshot(&rm).await;
             rm.stop().await;
             addrs
         }
@@ -25,7 +27,7 @@ pub async fn start_monitor(shutdown_token: CancellationToken) -> watch::Receiver
     rx
 }
 
-async fn query_addrs(route_manager: &RouteManagerHandle) -> DefaultInterface {
+async fn snapshot(route_manager: &RouteManagerHandle) -> DefaultInterface {
     match route_manager.get_default_routes().await {
         Ok((v4, v6)) => DefaultInterface {
             v4_addr: v4.and_then(|r| {
@@ -78,7 +80,7 @@ async fn monitor_task(tx: watch::Sender<DefaultInterface>, shutdown_token: Cance
                         | DefaultRouteEvent::AddedOrChangedV6
                         | DefaultRouteEvent::RemovedV6,
                     ) => {
-                        let addrs = query_addrs(&route_manager).await;
+                        let addrs = snapshot(&route_manager).await;
                         tracing::debug!("Default interface changed; new addrs: {addrs:?}");
                         let _ = tx.send(addrs);
                     }
