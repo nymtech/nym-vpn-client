@@ -115,7 +115,7 @@ pub enum TunnelFd {
     Tun(OwnedFd),
 
     /// Proxy device using unix domain socket
-    #[cfg(target_os = "android")]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
     Proxy(OwnedFd),
 }
 
@@ -154,7 +154,7 @@ impl Tunnel {
         {
             match tun_config.tun_fd {
                 TunnelFd::Tun(tun_fd) => Self::start_with_tun(wg_config, tun_fd),
-                #[cfg(target_os = "android")]
+                #[cfg(any(target_os = "android", target_os = "ios"))]
                 TunnelFd::Proxy(proxy_fd) => Self::start_with_proxy_fd(wg_config, proxy_fd),
             }
         }
@@ -262,11 +262,11 @@ impl Tunnel {
         }
     }
 
-    /// Start a new WireGuard tunnel backed by a raw proxy socket fd (Android only).
+    /// Start a new WireGuard tunnel backed by a raw proxy socket fd (Android, iOS only).
     ///
     /// Unlike [`start`], this calls `wgTurnOnWithProxyFd` which wraps the fd as a "dumb" I/O
     /// device without calling `TUNGETIFF`, making it safe to use with a Unix socket fd.
-    #[cfg(target_os = "android")]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
     fn start_with_proxy_fd(config: Config, proxy_fd: OwnedFd) -> Result<Self> {
         let mtu = config.interface.mtu;
         let settings = CString::new(config.into_uapi_config())
@@ -347,9 +347,9 @@ impl Drop for Tunnel {
 }
 
 unsafe extern "C" {
-    /// Start a WireGuard tunnel using a raw proxy socket fd (Android only).
+    /// Start a WireGuard tunnel using a raw proxy socket fd (Android, iOS only).
     /// Wraps the fd without calling TUNGETIFF so it works with Unix socket fds.
-    #[cfg(target_os = "android")]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
     unsafe fn wgTurnOnWithProxyFd(
         settings: *const c_char,
         fd: RawFd,

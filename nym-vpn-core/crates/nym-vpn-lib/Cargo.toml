@@ -171,6 +171,8 @@ tracing-android.workspace = true
 [target.'cfg(target_os = "ios")'.dependencies]
 debounced.workspace = true
 dispatch2.workspace = true
+hickory-proto.workspace = true
+pnet_packet.workspace = true
 
 [dev-dependencies]
 pretty_assertions.workspace = true

@@ -218,7 +218,7 @@ impl AdBlockerTask {
             .downcast_mut::<AdBlocker>()
             .expect("Failed to downcast to AdBlocker");
         adblocker.use_filter_set(filter_set).await;
-        #[cfg(not(target_os = "android"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         crate::resolver::flush_system_cache();
     }
 
@@ -229,7 +229,7 @@ impl AdBlockerTask {
             .downcast_mut::<AdBlocker>()
             .expect("Failed to downcast to AdBlocker");
         adblocker.clear_filter_set().await;
-        #[cfg(not(target_os = "android"))]
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         crate::resolver::flush_system_cache();
     }
 }

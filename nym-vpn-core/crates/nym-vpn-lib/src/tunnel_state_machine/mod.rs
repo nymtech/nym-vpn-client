@@ -29,12 +29,11 @@ use std::{
 
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
-#[cfg(target_os = "ios")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 use crate::tunnel_provider::OSTunProvider;
 
-#[cfg(not(target_os = "ios"))]
 use crate::adblocker;
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 use crate::dns_filter::DnsFilter;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::resolver;
@@ -663,7 +662,6 @@ pub struct SharedState {
     connectivity_handle: ConnectivityHandle,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     filtering_resolver: resolver::ResolverHandle,
-    #[cfg(not(target_os = "ios"))]
     adblocker: adblocker::AdBlockerTaskHandle,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     socks5_proxy_manager: Socks5ProxyManager,
@@ -708,7 +706,6 @@ impl SharedState {
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
     }
 
-    #[cfg(not(target_os = "ios"))]
     async fn enable_ad_blocking(&self, enable: bool) {
         if enable {
             self.adblocker.enable().await;
@@ -718,7 +715,7 @@ impl SharedState {
     }
 
     /// Get the current DNS filter from the adblocker (Android only).
-    #[cfg(target_os = "android")]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
     pub async fn get_dns_filter(&self) -> Option<DnsFilter> {
         self.adblocker.get_dns_filter().await
     }
@@ -912,7 +909,6 @@ pub struct TunnelStateMachine {
     dns_handler_shutdown_token: CancellationToken,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     filtering_resolver_handle: JoinHandle<()>,
-    #[cfg(not(target_os = "ios"))]
     adblocker_handle: JoinHandle<()>,
     gateway_provider_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
@@ -952,7 +948,6 @@ impl TunnelStateMachine {
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
-        #[cfg(not(target_os = "ios"))]
         let (adblocker, adblocker_handle) = {
             let Some(data_path) = nym_config.data_path.as_ref() else {
                 tracing::error!("Ad-blocking cannot be enabled without a data path configured");
@@ -961,9 +956,9 @@ impl TunnelStateMachine {
                 ));
             };
 
-            #[cfg(not(target_os = "android"))]
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
             let token = dns_handler_shutdown_token.child_token();
-            #[cfg(target_os = "android")]
+            #[cfg(any(target_os = "android", target_os = "ios"))]
             let token = shutdown_token.child_token();
 
             adblocker::AdBlockerTask::spawn(data_path, user_agent.to_string(), token)
@@ -1017,7 +1012,6 @@ impl TunnelStateMachine {
             connectivity_handle,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             filtering_resolver,
-            #[cfg(not(target_os = "ios"))]
             adblocker,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             socks5_proxy_manager: Socks5ProxyManager::new(),
@@ -1072,7 +1066,6 @@ impl TunnelStateMachine {
             dns_handler_shutdown_token,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             filtering_resolver_handle,
-            #[cfg(not(target_os = "ios"))]
             adblocker_handle,
             gateway_provider_handle,
             shutdown_token,
@@ -1126,17 +1119,12 @@ impl TunnelStateMachine {
             if let Err(e) = self.filtering_resolver_handle.await {
                 tracing::error!("Failed to join on filtering resolver task: {}", e)
             }
-
-            if let Err(e) = self.adblocker_handle.await {
-                tracing::error!("Failed to join on ad-blocker task: {}", e)
-            }
         }
 
         if let Err(e) = self.gateway_provider_handle.await {
             tracing::error!("Failed to join on gateway provider task: {}", e)
         }
 
-        #[cfg(target_os = "android")]
         if let Err(e) = self.adblocker_handle.await {
             tracing::error!("Failed to join on ad-blocker task: {}", e)
         }
@@ -1168,7 +1156,6 @@ pub enum Error {
     #[error("failed to start local dns resolver")]
     StartLocalDnsResolver(#[source] resolver::Error),
 
-    #[cfg(not(target_os = "ios"))]
     #[error("failed to start ad blocker task")]
     StartAdBlockerTask(#[source] adblocker::AdBlockerError),
 
@@ -1278,7 +1265,6 @@ impl Error {
             Self::ResolveApiHostnames(_) => None?,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             Self::StartLocalDnsResolver(_) => None?,
-            #[cfg(not(target_os = "ios"))]
             Self::StartAdBlockerTask(_) => None?,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             Self::DataPathUnavailable => None?,
@@ -1361,7 +1347,7 @@ impl tunnel::Error {
             Self::DupFd(_) => Some(ErrorStateReason::Internal(
                 "Failed to dup tunnel fd".to_owned(),
             )),
-            #[cfg(target_os = "android")]
+            #[cfg(any(target_os = "android", target_os = "ios"))]
             Self::CreateDnsFilterProxy(e) => Some(ErrorStateReason::Internal(
                 format!("Failed to create DNS filter proxy: {e}")
             )),

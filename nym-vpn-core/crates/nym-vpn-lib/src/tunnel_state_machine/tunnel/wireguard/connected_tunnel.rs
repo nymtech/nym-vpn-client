@@ -34,13 +34,13 @@ use tokio_util::sync::CancellationToken;
 #[cfg(unix)]
 use tun::AsyncDevice;
 
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 use crate::dns_filter::DnsFilter;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(windows)]
 use crate::tunnel_state_machine::route_handler::RouteHandler;
-#[cfg(target_os = "android")]
+#[cfg(any(target_os = "android", target_os = "ios"))]
 use crate::tunnel_state_machine::tunnel::wireguard::dns_filter_proxy::DnsFilterProxy;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution;
@@ -355,7 +355,7 @@ impl ConnectedTunnel {
 
         let builder = wireguard_go::TunnelConfig::builder();
 
-        #[cfg(target_os = "android")]
+        #[cfg(any(target_os = "android", target_os = "ios"))]
         let (builder, proxy_join_handle, android_exit_tun) = {
             if let Some(dns_filter) = options.dns_filter {
                 let proxy = DnsFilterProxy::start(
@@ -381,7 +381,7 @@ impl ConnectedTunnel {
             .requested_guid(options.exit_tun_guid)
             .wintun_tunnel_type(options.wintun_tunnel_type);
 
-        #[cfg(all(unix, not(target_os = "android")))]
+        #[cfg(all(unix, not(target_os = "android"), not(target_os = "ios")))]
         let builder = builder.tun_fd(TunnelFd::Tun(
             options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?,
         ));
@@ -495,7 +495,7 @@ impl ConnectedTunnel {
             entry_magic_bandwidth_tcp_proxy.close();
             exit_in_tunnel_udp_proxy.close();
 
-            #[cfg(target_os = "android")]
+            #[cfg(any(target_os = "android", target_os = "ios"))]
             {
                 if let Some(proxy_join_handle) = proxy_join_handle {
                     match proxy_join_handle.await {
@@ -517,7 +517,7 @@ impl ConnectedTunnel {
                 Tombstone::with_wg_instances(vec![exit_tunnel])
             }
 
-            #[cfg(not(any(windows, target_os = "android")))]
+            #[cfg(not(any(windows, target_os = "android", target_os = "ios")))]
             {
                 Tombstone::with_tun_device(options.exit_tun)
             }
@@ -649,7 +649,7 @@ pub struct NetstackTunnelOptions {
     pub dns: Vec<IpAddr>,
 
     /// DNS filter for ad-blocking (Android only).
-    #[cfg(target_os = "android")]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
     pub dns_filter: Option<DnsFilter>,
 }
 

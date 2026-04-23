@@ -43,7 +43,7 @@ pub enum Error {
     #[error("failed to dup tunnel file descriptor")]
     DupFd(#[source] std::io::Error),
 
-    #[cfg(target_os = "android")]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
     #[error("failed to create DNS filter proxy")]
     CreateDnsFilterProxy(#[source] std::io::Error),
 

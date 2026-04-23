@@ -229,7 +229,7 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
-    #[cfg(target_os = "android")]
+    #[cfg(any(target_os = "android", target_os = "ios"))]
     dns_filter: Option<crate::dns_filter::DnsFilter>,
     account_controller_state: AccountStateReceiver,
     account_command_tx: AccountCommandSender,
@@ -250,7 +250,9 @@ impl TunnelMonitor {
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
-        #[cfg(target_os = "android")] dns_filter: Option<crate::dns_filter::DnsFilter>,
+        #[cfg(any(target_os = "android", target_os = "ios"))] dns_filter: Option<
+            crate::dns_filter::DnsFilter,
+        >,
     ) -> TunnelMonitorHandle {
         let shutdown_token = CancellationToken::new();
         let tunnel_monitor = Self {
@@ -260,7 +262,7 @@ impl TunnelMonitor {
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
-            #[cfg(target_os = "android")]
+            #[cfg(any(target_os = "android", target_os = "ios"))]
             dns_filter,
             account_controller_state,
             account_command_tx,
@@ -1614,7 +1616,7 @@ impl TunnelMonitor {
             metadata_proxy_tx: entry_metadata_tx,
             exit_tun: tun_device,
             dns: dns_servers,
-            #[cfg(target_os = "android")]
+            #[cfg(any(target_os = "android", target_os = "ios"))]
             dns_filter: self.dns_filter.clone(),
         });
 

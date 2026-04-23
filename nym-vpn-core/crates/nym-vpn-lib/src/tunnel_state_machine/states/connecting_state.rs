@@ -377,7 +377,7 @@ impl ConnectingState {
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
         };
-        #[cfg(target_os = "android")]
+        #[cfg(any(target_os = "android", target_os = "ios"))]
         let dns_filter = if shared_state.tunnel_settings.enable_ad_blocking {
             shared_state.get_dns_filter().await
         } else {
@@ -395,7 +395,7 @@ impl ConnectingState {
             shared_state.route_handler.clone(),
             #[cfg(any(target_os = "ios", target_os = "android"))]
             shared_state.tun_provider.clone(),
-            #[cfg(target_os = "android")]
+            #[cfg(any(target_os = "android", target_os = "ios"))]
             dns_filter,
         );
 

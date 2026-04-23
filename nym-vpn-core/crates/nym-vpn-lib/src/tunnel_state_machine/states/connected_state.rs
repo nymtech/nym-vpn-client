@@ -334,7 +334,6 @@ impl TunnelStateHandler for ConnectedState {
                                 .await;
                         }
 
-                        #[cfg(not(target_os = "ios"))]
                         if diff.enable_ad_blocking_changed() {
                             shared_state.enable_ad_blocking(shared_state.tunnel_settings.enable_ad_blocking).await;
                         }
@@ -475,6 +474,7 @@ impl ConnectedPolicyParameters {
 }
 
 #[cfg(test)]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod tests {
     use super::*;
     use nym_dns::DnsConfig;
@@ -502,7 +502,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn test_firewall_policy_includes_exit_gateway_endpoints() {
         // Create mock entry gateway with WebSocket on port 9000 (WS) and 9001 (WSS)
         let entry_gateway =
