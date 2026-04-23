@@ -8,7 +8,7 @@ export function ToastList() {
   const { toasts } = Toast.useToastManager();
 
   return (
-    <Toast.Viewport className="fixed z-50 top-4 right-0 bottom-auto left-0 mx-auto flex w-full max-w-md">
+    <Toast.Viewport className="fixed z-50 top-16 right-0 bottom-auto left-0 mx-auto flex w-full max-w-md">
       {toasts.map((toast) => (
         <Toast.Root
           key={toast.id}
