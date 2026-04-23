@@ -39,6 +39,7 @@ si-scale = { workspace = true, features = ["lossy-conversions"] }
 strum.workspace = true
 strum_macros.workspace = true
 time = { workspace = true, features = ["serde", "parsing", "formatting"] }
+tracing = { workspace = true }
 serde = { workspace = true, features = ["derive", "rc"], optional = true }
 thiserror.workspace = true
 ts-rs = { workspace = true, optional = true }
@@ -60,3 +61,7 @@ nym-network-defaults = { workspace = true, optional = true }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+tracing-test = { workspace = true }
