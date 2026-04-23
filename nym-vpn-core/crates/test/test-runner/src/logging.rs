@@ -58,6 +58,7 @@ impl log::Log for StdOutBuffer {
                             .unwrap();
                     }
                 }
+                Level::Info => (),
                 _ => (),
             }
             println!("{}", record.args());
