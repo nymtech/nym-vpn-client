@@ -47,7 +47,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
         let airporting = value
             .airporting
             .map(nym_vpn_lib_types::AirportingSettings::from)
-            .unwrap_or_default();
+            .ok_or(ConversionError::NoValueSet("VpnServiceConfig.airporting"))?;
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
