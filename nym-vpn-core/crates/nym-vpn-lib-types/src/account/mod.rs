@@ -311,40 +311,33 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
     fn try_from(
         value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
     ) -> Result<Self, Self::Error> {
-        let traffic_reset_time_str = value.fair_usage.resetsOnUtc.clone();
-        let traffic_reset_time = traffic_reset_time_str
-            .as_ref()
-            .map(|time| OffsetDateTime::parse(time, &time::format_description::well_known::Rfc3339))
-            .transpose()
-            .map_err(|_| {
-                nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
-                    "invalid fair_usage reset_time_utc time format: {}",
-                    traffic_reset_time_str.unwrap()
-                ))
-            })?;
+        let traffic_reset_time = value
+            .fair_usage
+            .resetsOnUtc
+            .as_deref()
+            .and_then(|t| parse_timestamp(t, "fair_usage.resetsOnUtc"));
 
         let auth_methods = value
             .account
             .auth_methods
             .iter()
             .cloned()
-            .map(TryInto::try_into)
+            .map(VpnAccountAuthMethod::try_from)
             .collect::<Result<Vec<_>, _>>()?;
 
-        let subscription = if let Some(active) = &value.subscription.active {
+        // Active wins over pending; `is_subscription_active()` ignores wire `is_active`.
+        let subscription = if let Some(active) = value.subscription.active.as_ref() {
             Some(Subscription {
                 status: NymVpnSubscriptionStatus::Active,
-                subscription: NymVpnSubscription::from(active),
+                subscription: NymVpnSubscription::try_from(active)?,
+            })
+        } else if let Some(pending) = value.subscription.pending.as_ref() {
+            Some(Subscription {
+                status: NymVpnSubscriptionStatus::Pending,
+                subscription: NymVpnSubscription::try_from(pending)?,
             })
         } else {
-            value
-                .subscription
-                .pending
-                .as_ref()
-                .map(|pending| Subscription {
-                    status: NymVpnSubscriptionStatus::Pending,
-                    subscription: NymVpnSubscription::from(pending),
-                })
+            None
         };
 
         Ok(Self {
@@ -462,28 +455,50 @@ pub struct NymVpnSubscription {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscription {
-    fn from(value: &nym_vpn_api_client::response::NymVpnSubscription) -> Self {
-        let valid_until_utc = {
-            let s = value.valid_until_utc.replace(' ', "T");
-            OffsetDateTime::parse(&s, &time::format_description::well_known::Rfc3339)
+impl TryFrom<&nym_vpn_api_client::response::NymVpnSubscription> for NymVpnSubscription {
+    type Error = nym_vpn_api_client::error::VpnApiClientError;
+
+    fn try_from(
+        value: &nym_vpn_api_client::response::NymVpnSubscription,
+    ) -> Result<Self, Self::Error> {
+        let valid_until_utc =
+            parse_timestamp(&value.valid_until_utc, "subscription.valid_until_utc")
                 .map(|t| t.unix_timestamp())
-                .unwrap_or(0)
-        };
-        Self {
+                .ok_or_else(|| {
+                    nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
+                        "invalid subscription.valid_until_utc: {}",
+                        value.valid_until_utc
+                    ))
+                })?;
+        let valid_from_utc = parse_timestamp(&value.valid_from_utc, "subscription.valid_from_utc")
+            .map(|t| t.unix_timestamp())
+            .ok_or_else(|| {
+                nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
+                    "invalid subscription.valid_from_utc: {}",
+                    value.valid_from_utc
+                ))
+            })?;
+        Ok(Self {
             created_on_utc: value.created_on_utc.clone(),
             last_updated_utc: value.last_updated_utc.clone(),
             id: value.id.clone(),
             valid_until_utc,
-            valid_from_utc: {
-                let s = value.valid_from_utc.replace(' ', "T");
-                OffsetDateTime::parse(&s, &time::format_description::well_known::Rfc3339)
-                    .map(|t| t.unix_timestamp())
-                    .unwrap_or(0)
-            },
+            valid_from_utc,
             status: format!("{:?}", value.status).to_lowercase(),
             kind: value.kind.clone().into(),
             is_recurring: value.is_recurring,
+        })
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+fn parse_timestamp(raw: &str, field: &'static str) -> Option<OffsetDateTime> {
+    let normalized = raw.replace(' ', "T");
+    match OffsetDateTime::parse(&normalized, &time::format_description::well_known::Rfc3339) {
+        Ok(t) => Some(t),
+        Err(err) => {
+            tracing::warn!("failed to parse {field} {raw:?}: {err}");
+            None
         }
     }
 }
@@ -512,11 +527,7 @@ impl TryFrom<nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse>
     fn try_from(
         value: nym_vpn_api_client::response::NymVpnAccountAuthMethodResponse,
     ) -> Result<Self, Self::Error> {
-        let created = OffsetDateTime::parse(
-            &value.created,
-            &time::format_description::well_known::Rfc3339,
-        )
-        .map_err(|_| {
+        let created = parse_timestamp(&value.created, "auth_method.created").ok_or_else(|| {
             nym_vpn_api_client::error::VpnApiClientError::PayloadError(format!(
                 "invalid auth_method.created time format: {}",
                 value.created
@@ -606,5 +617,215 @@ impl From<StoredAccountMode> for nym_vpn_store::types::StoredAccountMode {
             }
             StoredAccountMode::Privy => nym_vpn_store::types::StoredAccountMode::Privy,
         }
+    }
+}
+
+// Regression tests for `VpnAccountSummary::try_from` and subscription serde.
+#[cfg(all(test, feature = "nym-type-conversions"))]
+mod tests {
+    use nym_vpn_api_client::response::{
+        NymVpnAccountResponse, NymVpnAccountStatusResponse, NymVpnAccountSummaryDevices,
+        NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse,
+        NymVpnAccountSummarySubscription, NymVpnSubscription as ApiNymVpnSubscription,
+        NymVpnSubscriptionKind as ApiNymVpnSubscriptionKind,
+        NymVpnSubscriptionStatus as ApiNymVpnSubscriptionStatus,
+    };
+    use tracing_test::traced_test;
+
+    use super::*;
+
+    fn far_future_active_subscription() -> ApiNymVpnSubscription {
+        ApiNymVpnSubscription {
+            created_on_utc: "2024-01-01T00:00:00Z".into(),
+            last_updated_utc: "2024-01-01T00:00:00Z".into(),
+            id: "sub_test".into(),
+            valid_from_utc: "2024-01-01T00:00:00Z".into(),
+            valid_until_utc: "2099-01-01T00:00:00Z".into(),
+            status: ApiNymVpnSubscriptionStatus::Active,
+            kind: ApiNymVpnSubscriptionKind::OneMonth,
+            is_recurring: false,
+        }
+    }
+
+    fn base_summary() -> NymVpnAccountSummaryResponse {
+        NymVpnAccountSummaryResponse {
+            account: NymVpnAccountResponse {
+                created_on_utc: "2024-01-01T00:00:00Z".into(),
+                last_updated_utc: "2024-01-01T00:00:00Z".into(),
+                account_addr: "n1addr".into(),
+                status: NymVpnAccountStatusResponse::Active,
+                canonical_account_addr: None,
+                auth_methods: vec![],
+            },
+            subscription: NymVpnAccountSummarySubscription {
+                is_active: false,
+                active: None,
+                pending: None,
+                is_stacked: false,
+            },
+            devices: NymVpnAccountSummaryDevices {
+                active: 0,
+                max: 10,
+                remaining: 10,
+            },
+            fair_usage: NymVpnAccountSummaryFairUsage {
+                usedGB: 0,
+                limitGB: 2000,
+                resetsOnUtc: None,
+            },
+        }
+    }
+
+    #[test]
+    fn deserializes_when_pending_is_explicit_null() {
+        let json = r#"{
+            "isActive": true,
+            "active": null,
+            "pending": null,
+            "isStacked": false
+        }"#;
+
+        let parsed: NymVpnAccountSummarySubscription =
+            serde_json::from_str(json).expect("must tolerate pending: null");
+        assert!(parsed.is_active);
+        assert!(parsed.pending.is_none());
+        assert!(parsed.active.is_none());
+    }
+
+    #[test]
+    fn try_from_succeeds_when_resets_on_utc_is_malformed() {
+        // A bad reset timestamp must fall back to None, not fail the summary.
+        let mut summary = base_summary();
+        summary.fair_usage.resetsOnUtc = Some("not a date at all".into());
+
+        let parsed =
+            VpnAccountSummary::try_from(&summary).expect("must not fail on bad reset timestamp");
+        assert!(parsed.traffic_reset_time.is_none());
+    }
+
+    #[test]
+    fn try_from_accepts_space_separated_resets_on_utc() {
+        let mut summary = base_summary();
+        summary.fair_usage.resetsOnUtc = Some("2025-08-20 13:46:26.572Z".into());
+
+        let parsed = VpnAccountSummary::try_from(&summary).expect("space-separated must parse");
+        assert!(parsed.traffic_reset_time.is_some());
+    }
+
+    #[test]
+    fn is_subscription_active_remains_true_when_traffic_reset_time_malformed() {
+        // NYM-1156: bad reset timestamp must not flip a valid sub to inactive.
+        let mut summary = base_summary();
+        summary.fair_usage.resetsOnUtc = Some("not a date at all".into());
+        summary.subscription = NymVpnAccountSummarySubscription {
+            is_active: true,
+            active: Some(far_future_active_subscription()),
+            pending: None,
+            is_stacked: false,
+        };
+
+        let parsed =
+            VpnAccountSummary::try_from(&summary).expect("must not fail on bad reset timestamp");
+        assert!(
+            parsed.is_subscription_active(),
+            "subscription active in 2099 must still report active"
+        );
+    }
+
+    #[test]
+    fn malformed_valid_until_utc_fails_summary() {
+        let mut summary = base_summary();
+        let mut sub = far_future_active_subscription();
+        sub.valid_until_utc = "not a date at all".into();
+        summary.subscription = NymVpnAccountSummarySubscription {
+            is_active: true,
+            active: Some(sub),
+            pending: None,
+            is_stacked: false,
+        };
+
+        let err = VpnAccountSummary::try_from(&summary)
+            .expect_err("malformed subscription.valid_until_utc must fail the whole summary");
+        assert!(
+            err.to_string()
+                .contains("invalid subscription.valid_until_utc"),
+            "expected PayloadError for bad valid_until_utc, got {err:?}"
+        );
+    }
+
+    #[traced_test]
+    #[test]
+    fn warn_emitted_when_resets_on_utc_malformed() {
+        let mut summary = base_summary();
+        summary.fair_usage.resetsOnUtc = Some("not a date".into());
+        let _ = VpnAccountSummary::try_from(&summary).unwrap();
+        assert!(
+            logs_contain("failed to parse fair_usage.resetsOnUtc"),
+            "soft-fail of resetsOnUtc must emit a tracing::warn!"
+        );
+    }
+
+    #[traced_test]
+    #[test]
+    fn warn_emitted_when_subscription_valid_until_malformed() {
+        let mut summary = base_summary();
+        let mut sub = far_future_active_subscription();
+        sub.valid_until_utc = "not a date".into();
+        summary.subscription = NymVpnAccountSummarySubscription {
+            is_active: true,
+            active: Some(sub),
+            pending: None,
+            is_stacked: false,
+        };
+        let _ = VpnAccountSummary::try_from(&summary).expect_err("malformed valid_until_utc");
+        assert!(
+            logs_contain("failed to parse subscription.valid_until_utc"),
+            "parse attempt for subscription.valid_until_utc must emit a tracing::warn!"
+        );
+    }
+
+    #[test]
+    fn malformed_pending_subscription_fails_summary() {
+        let mut summary = base_summary();
+        let mut sub = far_future_active_subscription();
+        sub.valid_until_utc = "not a date at all".into();
+        summary.subscription = NymVpnAccountSummarySubscription {
+            is_active: false,
+            active: None,
+            pending: Some(sub),
+            is_stacked: false,
+        };
+
+        let err = VpnAccountSummary::try_from(&summary).expect_err(
+            "malformed pending subscription.valid_until_utc must fail the whole summary",
+        );
+        assert!(
+            err.to_string()
+                .contains("invalid subscription.valid_until_utc"),
+            "expected PayloadError for bad valid_until_utc, got {err:?}"
+        );
+    }
+
+    #[test]
+    fn well_formed_pending_subscription_parses() {
+        // Counterpart that pins the happy path: a valid pending sub must
+        // round-trip and surface as Pending status (not Active).
+        let mut summary = base_summary();
+        summary.subscription = NymVpnAccountSummarySubscription {
+            is_active: false,
+            active: None,
+            pending: Some(far_future_active_subscription()),
+            is_stacked: false,
+        };
+
+        let parsed = VpnAccountSummary::try_from(&summary).expect("must parse");
+        assert!(
+            !parsed.is_subscription_active(),
+            "Pending status must not report as active"
+        );
+        let sub = parsed
+            .subscription
+            .expect("pending subscription must be kept");
+        assert!(matches!(sub.status, NymVpnSubscriptionStatus::Pending));
     }
 }
