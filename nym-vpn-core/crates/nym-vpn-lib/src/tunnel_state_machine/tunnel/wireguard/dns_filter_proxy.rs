@@ -63,7 +63,7 @@ pub struct DnsFilterProxy {
     /// File descriptor to hand to wireguard-go as its "tun device".
     pub wg_fd: OwnedFd,
     /// Background task handle — the proxy keeps running until `shutdown_token` is cancelled.
-    pub join_handle: JoinHandle<()>,
+    pub join_handle: JoinHandle<AsyncDevice>,
 }
 
 impl DnsFilterProxy {
@@ -125,7 +125,7 @@ async fn run_proxy(
     filter_socket: UnixDatagram,
     dns_filter: DnsFilter,
     shutdown_token: CancellationToken,
-) {
+) -> AsyncDevice {
     tracing::debug!("DNS filter proxy started");
 
     let mut tun_buf = vec![0u8; MAX_PACKET_SIZE];
@@ -180,6 +180,7 @@ async fn run_proxy(
     }
 
     tracing::debug!("DNS filter proxy stopped");
+    tun_device
 }
 
 async fn maybe_nxdomain(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<u8>> {
