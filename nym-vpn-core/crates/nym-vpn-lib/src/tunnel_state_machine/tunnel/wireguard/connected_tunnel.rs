@@ -18,6 +18,8 @@ use nym_apple_network::PathMonitor;
 use nym_crypto::asymmetric::x25519;
 #[cfg(windows)]
 use nym_routing::{Callback, CallbackHandle, EventType};
+#[cfg(not(windows))]
+use nym_wg_go::wireguard_go::TunnelFd;
 #[cfg(windows)]
 use nym_wg_go::wireguard_go::WintunInterface;
 use nym_wg_go::{amnezia::AmneziaConfig, netstack, wireguard_go};
@@ -167,32 +169,44 @@ impl ConnectedTunnel {
             None,
         );
 
+        let builder = wireguard_go::TunnelConfig::builder();
+        #[cfg(unix)]
+        let builder = builder.tun_fd(TunnelFd::Tun(
+            options.entry_tun.deref().dup_fd().map_err(Error::DupFd)?,
+        ));
+        #[cfg(windows)]
+        let builder = {
+            builder
+                .interface_name(options.entry_tun_name)
+                .requested_guid(options.entry_tun_guid)
+                .wintun_tunnel_type(options.wintun_tunnel_type.clone())
+        };
+        let entry_tunnel_config = builder.build();
+
         #[allow(unused_mut)]
         let mut entry_tunnel = wireguard_go::Tunnel::start(
             wg_entry_config.into_wireguard_config(),
-            #[cfg(unix)]
-            options.entry_tun.deref().dup_fd().map_err(Error::DupFd)?,
-            #[cfg(windows)]
-            &options.entry_tun_name,
-            #[cfg(windows)]
-            &options.entry_tun_guid,
-            #[cfg(windows)]
-            &options.wintun_tunnel_type,
+            entry_tunnel_config,
         )
         .map_err(Error::Wireguard)?;
 
-        let exit_tunnel = wireguard_go::Tunnel::start(
-            wg_exit_config.into_wireguard_config(),
-            #[cfg(unix)]
+        let builder = wireguard_go::TunnelConfig::builder();
+        #[cfg(unix)]
+        let builder = builder.tun_fd(TunnelFd::Tun(
             options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?,
-            #[cfg(windows)]
-            &options.exit_tun_name,
-            #[cfg(windows)]
-            &options.exit_tun_guid,
-            #[cfg(windows)]
-            &options.wintun_tunnel_type,
-        )
-        .map_err(Error::Wireguard)?;
+        ));
+        #[cfg(windows)]
+        let builder = {
+            builder
+                .interface_name(options.exit_tun_name)
+                .requested_guid(options.exit_tun_guid)
+                .wintun_tunnel_type(options.wintun_tunnel_type)
+        };
+        let exit_tunnel_config = builder.build();
+
+        let exit_tunnel =
+            wireguard_go::Tunnel::start(wg_exit_config.into_wireguard_config(), exit_tunnel_config)
+                .map_err(Error::Wireguard)?;
 
         let shutdown_token = CancellationToken::new();
         let child_shutdown_token = shutdown_token.child_token();
@@ -337,47 +351,45 @@ impl ConnectedTunnel {
         )?;
 
         let shutdown_token = CancellationToken::new();
-
-        #[cfg(target_os = "android")]
-        let (wg_exit_fd, proxy_join_handle, android_tombstone_tun) = if let Some(dns_filter) =
-            options.dns_filter
-        {
-            let proxy =
-                DnsFilterProxy::start(options.exit_tun, dns_filter, shutdown_token.child_token())
-                    .map_err(Error::CreateDnsFilterProxy)?;
-            (proxy.wg_fd, Some(proxy.join_handle), None)
-        } else {
-            let fd = options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?;
-            (fd, None, Some(options.exit_tun))
-        };
-
-        #[cfg(all(unix, not(target_os = "android")))]
-        let (wg_exit_fd, tombstone_exit_tun) = (
-            options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?,
-            options.exit_tun,
-        );
-
         let exit_wg_config = two_hop_config.exit.into_wireguard_config();
 
+        let builder = wireguard_go::TunnelConfig::builder();
+
         #[cfg(target_os = "android")]
-        #[allow(unused_mut)]
-        let mut exit_tunnel = if proxy_join_handle.is_some() {
-            wireguard_go::Tunnel::start_with_proxy_fd(exit_wg_config, wg_exit_fd)?
-        } else {
-            wireguard_go::Tunnel::start(exit_wg_config, wg_exit_fd)?
+        let (builder, proxy_join_handle, android_exit_tun) = {
+            if let Some(dns_filter) = options.dns_filter {
+                let proxy = DnsFilterProxy::start(
+                    options.exit_tun,
+                    dns_filter,
+                    shutdown_token.child_token(),
+                )
+                .map_err(Error::CreateDnsFilterProxy)?;
+
+                let builder = builder.tun_fd(TunnelFd::Proxy(proxy.wg_fd));
+                (builder, Some(proxy.join_handle), None)
+            } else {
+                let tun_fd = options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?;
+                let builder = builder.tun_fd(TunnelFd::Tun(tun_fd));
+
+                (builder, None, Some(options.exit_tun))
+            }
         };
 
-        #[cfg(all(unix, not(target_os = "android")))]
-        #[allow(unused_mut)]
-        let mut exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, wg_exit_fd)?;
-
         #[cfg(windows)]
-        let exit_tunnel = wireguard_go::Tunnel::start(
-            exit_wg_config,
-            &options.exit_tun_name,
-            &options.exit_tun_guid,
-            &options.wintun_tunnel_type,
-        )?;
+        let builder = builder
+            .interface_name(options.exit_tun_name)
+            .requested_guid(options.exit_tun_guid)
+            .wintun_tunnel_type(options.wintun_tunnel_type);
+
+        #[cfg(all(unix, not(target_os = "android")))]
+        let builder = builder.tun_fd(TunnelFd::Tun(
+            options.exit_tun.deref().dup_fd().map_err(Error::DupFd)?,
+        ));
+
+        let exit_tunnel_config = builder.build();
+
+        #[allow(unused_mut)]
+        let mut exit_tunnel = wireguard_go::Tunnel::start(exit_wg_config, exit_tunnel_config)?;
 
         if options
             .metadata_proxy_tx
@@ -413,12 +425,6 @@ impl ConnectedTunnel {
                         }
                     }
                 }
-            }
-
-            #[cfg(not(any(windows, target_os = "ios")))]
-            {
-                child_shutdown_token.cancelled().await;
-                tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
             }
 
             #[cfg(target_os = "ios")]
@@ -476,6 +482,12 @@ impl ConnectedTunnel {
                 }
             }
 
+            #[cfg(not(any(windows, target_os = "ios")))]
+            {
+                child_shutdown_token.cancelled().await;
+                tracing::debug!("Received tunnel shutdown event. Exiting event loop.");
+            }
+
             // Windows: do not drop exit tunnel as it owns the underlying tunnel device.
             #[cfg(not(windows))]
             exit_tunnel.stop();
@@ -484,23 +496,30 @@ impl ConnectedTunnel {
             exit_in_tunnel_udp_proxy.close();
 
             #[cfg(target_os = "android")]
-            if let Some(handle) = proxy_join_handle {
-                if let Err(e) = handle.await {
-                    tracing::error!("DNS filter proxy task panicked: {e}");
+            {
+                if let Some(proxy_join_handle) = proxy_join_handle {
+                    match proxy_join_handle.await {
+                        Ok(tun_device) => Tombstone::with_tun_device(tun_device),
+                        Err(err) => {
+                            tracing::error!("DNS filter proxy task panicked: {err}");
+                            Tombstone::default()
+                        }
+                    }
+                } else {
+                    android_exit_tun
+                        .map(Tombstone::with_tun_device)
+                        .unwrap_or_default()
                 }
             }
 
-            #[cfg(all(not(windows), not(target_os = "android")))]
-            let tun_devices = vec![tombstone_exit_tun];
-            #[cfg(target_os = "android")]
-            let tun_devices: Vec<_> = android_tombstone_tun.into_iter().collect();
             #[cfg(windows)]
-            let tun_devices = vec![];
+            {
+                Tombstone::with_wg_instances(vec![exit_tunnel])
+            }
 
-            Tombstone {
-                tun_devices,
-                #[cfg(windows)]
-                wg_instances: vec![exit_tunnel],
+            #[cfg(not(any(windows, target_os = "android")))]
+            {
+                Tombstone::with_tun_device(options.exit_tun)
             }
         });
 
