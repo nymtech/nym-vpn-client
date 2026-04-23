@@ -13,6 +13,8 @@ mkdir -p $GOPATH
 echo "GOPATH: $GOPATH"
 echo "GOROOT: $GOROOT"
 
+_platform="$(uname -s)"
+
 for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64}; do
     case "$arch" in
         "aarch64")
@@ -51,16 +53,25 @@ for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64}; do
     STRIPPED_LIB_PATH="../../nym-vpn-android/core/src/main/jniLibs/$ANDROID_ABI/libwg.so"
 
     # Create the directories with RWX permissions for all users so that the build server can clean
-    # the directories afterwards
-    mkdir -m 777 -p "$(dirname "$STRIPPED_LIB_PATH")"
+    # the directories afterwards. On Windows (MSYS2/Git Bash) the -m flag fails on existing
+    # directories because NTFS doesn't honour Unix permission bits, so skip it there.
+    if [[ "$_platform" == MINGW* ]] || [[ "$_platform" == MSYS* ]] || [[ "$_platform" == CYGWIN* ]]; then
+        mkdir -p "$(dirname "$STRIPPED_LIB_PATH")"
+    else
+        mkdir -m 777 -p "$(dirname "$STRIPPED_LIB_PATH")"
+    fi
 
     $ANDROID_STRIP_TOOL --strip-unneeded --strip-debug --remove-section=.comment -o "$STRIPPED_LIB_PATH" "$UNSTRIPPED_LIB_PATH"
 
-    # Set permissions so that the build server can clean the outputs afterwards
-    chmod 777 "$STRIPPED_LIB_PATH"
+    # Set permissions so that the build server can clean the outputs afterwards (no-op on Windows)
+    if [[ "$_platform" != MINGW* ]] && [[ "$_platform" != MSYS* ]] && [[ "$_platform" != CYGWIN* ]]; then
+        chmod 777 "$STRIPPED_LIB_PATH"
+    fi
 
     rm -rf build
 done
 
-# ensure `git clean -fd` does not require root permissions
-find $GOPATH -exec chmod +rw {} \;
+# ensure `git clean -fd` does not require root permissions (skip on Windows where chmod is a no-op)
+if [[ "$_platform" != MINGW* ]] && [[ "$_platform" != MSYS* ]] && [[ "$_platform" != CYGWIN* ]]; then
+    find $GOPATH -exec chmod +rw {} \;
+fi

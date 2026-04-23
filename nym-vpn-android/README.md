@@ -29,43 +29,33 @@ rustup target add \
 cargo install cargo-ndk cargo-license
 ```
 
-### Install Go
+### Install nym-vpn-core dependencies
+
+See the [nym-vpn-core README](../nym-vpn-core/README.md) for other dependencies which are required.
+
+If you are on Windows, you will need to add the following to MSYS2:
 
 ```sh
-brew install go
+pacman -S rsync patch
 ```
 
-### Install JDK 17
-
-```sh
-brew install openjdk@17
-```
-
-### Install protobuf
-
-```sh
-brew install protobuf
-```
-
-### Install Android SDK and/or Android Studio with NDK
+### Install Android Studio with NDK
 
 There are many ways to go about this, but using [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/) is a convenient way.
 
 Preferred NDK version is `r25c`.
 
-### Clone
+Set-up environment variables for Android SDK and NDK: `JAVA_HOME`, `ANDROID_HOME` and `ANDROID_NDK`.
 
-```sh
-git clone https://github.com/nymtech/nym-vpn-client
-```
+This will vary by operating system, however you can use Java from Android Studio.
 
-### Update uniffi bindings for nym-vpn-lib
+On Windows, for example:
 
-```sh
-cd nym-vpn-client/nym-vpn-core
-cargo ndk -t arm64-v8a build -p nym-vpn-lib --release
-make generate-uniffi-android
-cp crates/nym-vpn-lib/uniffi/nym_vpn_lib.kt ../nym-vpn-android/core/src/main/java/net/nymtech/vpn/nym_vpn_lib
+```pwsh
+ANDROID_HOME: %LOCALAPPDATA%\Android\Sdk
+ANDROID_NDK:  %ANDROID_HOME%\ndk\30.0.14904198
+JAVA_HOME:    C:\Program Files\Android\Android Studio\jbr
+PATH:         %PATH%;%JAVA_HOME%\bin
 ```
 
 ### Build
