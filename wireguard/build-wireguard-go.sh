@@ -154,8 +154,6 @@ function unix_target_triple {
 function build_unix {
     echo "Building wireguard-go for $1"
 
-    patch_go_runtime
-
     # Flags for cross compiling
     if [[ "$(unix_target_triple)" != "$1" ]]; then
         # Linux arm
@@ -282,7 +280,7 @@ function patch_go_runtime {
     mkdir -p "$GOROOT"
     rsync -aL --delete --exclude=pkg/obj/go-build "$REAL_GOROOT/" "$GOROOT/"
 
-    if $IS_ANDROID_BUILD || [[ "$(uname -s)" == "Linux" ]]; then
+    if $IS_ANDROID_BUILD; then
         local patch_file="$LIB_DIR/goruntime-boottime-over-monotonic.diff"
     else
         local patch_file="$LIB_DIR/goruntime-boottime-over-monotonic-darwin.diff"
