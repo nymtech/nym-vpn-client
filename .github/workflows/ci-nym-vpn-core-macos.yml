@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 
 env:
+  CI_TESTING: true
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
@@ -52,8 +53,7 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key:
-            ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
 
@@ -61,8 +61,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: nym-vpn-core/target/
-          key:
-            ${{ runner.os }}-cargo-build-${{
+          key: ${{ runner.os }}-cargo-build-${{
             hashFiles('nym-vpn-core/Cargo.lock') }}-${{
             hashFiles('nym-vpn-core/**/*.rs') }}
           restore-keys: |
