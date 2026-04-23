@@ -330,8 +330,18 @@ impl TunnelSettingsDiffFields {
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
             | Self::Dns => true,
+            Self::EnableAdBlocking => {
+                // The tunnel needs to be re-created when toggling ad-block, but only on iOS
+                if cfg!(target_os = "ios") {
+                    true
+                } else if cfg!(target_os = "android") {
+                    // todo: kotlin initiates reconnect for now, but it should happen here!
+                    false
+                } else {
+                    false
+                }
+            }
             Self::AllowLan
-            | Self::EnableAdBlocking
             | Self::SplitTunnel
             | Self::Airporting
             | Self::AirportingEnabled
