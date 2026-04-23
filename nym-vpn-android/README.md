@@ -4,23 +4,16 @@ The Android client application for [NymVPN](https://nym.com).
 
 ## Building
 
-These are primarily directions for macOS, but the same tooling can be installed \
-similarly for other operating systems.
+These are primarily directions for macOS, but the same tooling can be installed similarly for other operating systems.
 
-### Install Rustup
+### Install nym-vpn-core dependencies
 
-```sh
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
+See the [nym-vpn-core README](../nym-vpn-core/README.md) for information on installing required dependencies.
 
 ### Add android targets to Rust
 
 ```sh
-rustup target add \
-            aarch64-linux-android \
-            armv7-linux-androideabi \
-            x86_64-linux-android \
-            i686-linux-android
+rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
 ```
 
 ### Install cargo dependencies
@@ -29,9 +22,7 @@ rustup target add \
 cargo install cargo-ndk cargo-license
 ```
 
-### Install nym-vpn-core dependencies
-
-See the [nym-vpn-core README](../nym-vpn-core/README.md) for other dependencies which are required.
+### Additional MSYS2 dependencies for Windows
 
 If you are on Windows, you will need to add the following to MSYS2:
 
@@ -43,19 +34,27 @@ pacman -S rsync patch
 
 There are many ways to go about this, but using [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/) is a convenient way.
 
-Preferred NDK version is `r25c`.
+### Android Environment Variables
 
 Set-up environment variables for Android SDK and NDK: `JAVA_HOME`, `ANDROID_HOME` and `ANDROID_NDK`.
 
-This will vary by operating system, however you can use Java from Android Studio.
+This will vary by operating system, however you can use the Java bundled with Android Studio.
 
-On Windows, for example:
+#### Windows
 
-```pwsh
-ANDROID_HOME: %LOCALAPPDATA%\Android\Sdk
-ANDROID_NDK:  %ANDROID_HOME%\ndk\30.0.14904198
+```
 JAVA_HOME:    C:\Program Files\Android\Android Studio\jbr
-PATH:         %PATH%;%JAVA_HOME%\bin
+ANDROID_HOME: %LOCALAPPDATA%\Android\Sdk
+ANDROID_NDK:  %ANDROID_HOME%\ndk\30.0.14904198 (or whatever version you have installed)
+```
+
+Add to `%PATH%`:
+
+```
+%JAVA_HOME%\bin
+%ANDROID_HOME%\emulator
+%ANDROID_HOME%\cmdline-tools\bin
+%ANDROID_HOME%\platform-tools
 ```
 
 ### Build
