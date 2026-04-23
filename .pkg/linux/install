@@ -58,13 +58,11 @@ x86_64)
   arch=x86_64
   deb_arch=amd64
   app_image_arch=amd64
-  bin_arch=x64
   ;;
 aarch64)
   arch=aarch64
   deb_arch=arm64
   app_image_arch=aarch64
-  bin_arch=arm64
   ;;
 *)
   echo "Unsupported architecture: $_uname_arch" >&2
