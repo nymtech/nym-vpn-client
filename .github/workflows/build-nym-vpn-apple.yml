@@ -534,11 +534,6 @@ jobs:
               <string>NymVPN macOS + Daemon</string>
               <key>net.nymtech.vpn.daemon</key>
               <string>NymVPN daemon</string>
-            </dict>
-            <key>provisioningProfiles</key>
-            <dict>
-              <key>net.nymtech.vpn</key>
-              <string>NymVPN macOS + Daemon</string>
               <key>net.nymtech.vpn.macOSwidget</key>
               <string>NymVPN macOS Widget</string>
             </dict>
@@ -587,6 +582,11 @@ jobs:
             -configuration "Release" \
             -archivePath "$ARCHIVE_PATH" \
             -destination "generic/platform=macOS" \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
+            CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
+            MACOS_DAEMON_PROFILE_SPECIFIER="${DAEMON_PROFILE_SPEC}" \
+            MACOS_WIDGET_PROFILE_SPECIFIER="${WIDGET_PROFILE_SPEC}" \
             ENABLE_HARDENED_RUNTIME=YES \
             OTHER_CODE_SIGN_FLAGS="--timestamp" \
             | xcbeautify --renderer github-actions
