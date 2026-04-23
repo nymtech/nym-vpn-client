@@ -280,6 +280,12 @@ jobs:
             --name "NymVPN daemon" \
             --save
 
+          app-store-connect profiles list \
+            --type MAC_APP_DIRECT \
+            --state ACTIVE \
+            --name "NymVPN macOS Widget" \
+            --save
+
           keychain add-certificates
 
           echo "✅ Signing files successfully fetched and imported."
@@ -529,6 +535,13 @@ jobs:
               <key>net.nymtech.vpn.daemon</key>
               <string>NymVPN daemon</string>
             </dict>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>net.nymtech.vpn</key>
+              <string>NymVPN macOS + Daemon</string>
+              <key>net.nymtech.vpn.macOSwidget</key>
+              <string>NymVPN macOS Widget</string>
+            </dict>
           </dict>
           </plist>
           PLIST
@@ -542,6 +555,30 @@ jobs:
 
           echo "Available signing identities:"
           security find-identity -v -p codesigning
+
+          echo "🔐 Resolving macOS provisioning profile specifiers..."
+          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          DAEMON_PROFILE_SPEC=""
+          WIDGET_PROFILE_SPEC=""
+
+          for profile in "$PROFILE_DIR"/*.provisionprofile "$PROFILE_DIR"/*.mobileprovision; do
+            [[ -f "$profile" ]] || continue
+            name=$(security cms -D -i "$profile" 2>/dev/null | plutil -extract Name raw -o - -- -)
+            case "$name" in
+              "NymVPN macOS + Daemon") DAEMON_PROFILE_SPEC="$name" ;;
+              "NymVPN macOS Widget")   WIDGET_PROFILE_SPEC="$name" ;;
+            esac
+          done
+
+          if [[ -z "$DAEMON_PROFILE_SPEC" || -z "$WIDGET_PROFILE_SPEC" ]]; then
+            echo "❌ Could not resolve macOS profile specifiers"
+            echo "   Daemon: '${DAEMON_PROFILE_SPEC:-NOT FOUND}'"
+            echo "   Widget: '${WIDGET_PROFILE_SPEC:-NOT FOUND}'"
+            exit 1
+          fi
+
+          echo "✅ Daemon profile: $DAEMON_PROFILE_SPEC"
+          echo "✅ Widget profile: $WIDGET_PROFILE_SPEC"
 
           echo "Archiving macOS app..."
           xcodebuild archive \

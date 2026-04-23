@@ -15,7 +15,7 @@ platform :mac do
     project_path = '../NymVPN.xcodeproj'
     project = Xcodeproj::Project.open(project_path)
 
-    allowTargets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon", "NymVPND"]
+    allowTargets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon", "NymVPND", "NymVPNWidgetExtension", "NymVPNmacOSWidgetExtension"]
 
     project.targets.each do |projectTarget|
       if allowTargets.include?(projectTarget.name)
@@ -38,7 +38,7 @@ platform :mac do
     project_path = '../NymVPN.xcodeproj'
     project = Xcodeproj::Project.open(project_path)
 
-    allowTargets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon", "NymVPND"]
+    allowTargets = ["NymVPN", "NymMixnetTunnel", "NymVPNDaemon", "NymVPND", "NymVPNWidgetExtension", "NymVPNmacOSWidgetExtension"]
 
     project.targets.each do |projectTarget|
       next unless allowTargets.include?(projectTarget.name)
