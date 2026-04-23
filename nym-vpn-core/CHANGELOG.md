@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Use endpoint-security framework directly instead of parsing eslogger output (https://github.com/nymtech/nym-vpn-client/pull/4749)
 
 
+### Fixed
+
+- [Linux] Add Polkit as deb and arch dependency (https://github.com/nymtech/nym-vpn-client/pull/5143)
+
+
 ## [1.28.0] - 2026-04-14
 
 ### Added
