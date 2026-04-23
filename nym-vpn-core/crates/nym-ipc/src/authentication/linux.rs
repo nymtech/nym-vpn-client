@@ -196,8 +196,8 @@ async fn authenticate_with_prompt(
     }
 }
 
-fn skip_authentication_checks() -> bool {
-    cfg!(debug_assertions)
+fn skip_authentication_checks(disable_client_verification: bool) -> bool {
+    cfg!(debug_assertions) || disable_client_verification
 }
 
 pub(crate) fn incoming(
@@ -205,7 +205,7 @@ pub(crate) fn incoming(
     auth_material: AuthenticationMaterial,
 ) -> impl Stream<Item = std::io::Result<Transport>> {
     let shutdown_token = auth_material.shutdown_token.clone();
-    let auth_material = if skip_authentication_checks() {
+    let auth_material = if skip_authentication_checks(auth_material.disable_client_verification) {
         None
     } else {
         Some(auth_material)
@@ -415,6 +415,6 @@ mod tests {
     #[test]
     // Test builds are debug and are authorized
     fn unsigned_build_authorized() {
-        assert!(skip_authentication_checks());
+        assert!(skip_authentication_checks(false));
     }
 }

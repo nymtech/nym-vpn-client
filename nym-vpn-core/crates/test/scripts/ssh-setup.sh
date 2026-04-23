@@ -55,7 +55,7 @@ Description=Nym VPN daemon
 
 [Service]
 Type=simple
-ExecStart=$RUNNER_DIR/nym-vpnd run-as-service
+ExecStart=$RUNNER_DIR/nym-vpnd run-as-service --disable-client-verification
 Restart=on-failure
 Environment="RUST_LOG=debug"
 
