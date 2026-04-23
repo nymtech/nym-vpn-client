@@ -43,10 +43,11 @@ use crate::dns_filter::{DnsFilter, DnsFilterDecision};
 /// Maximum IP packet size we handle.
 const MAX_PACKET_SIZE: usize = 65536;
 
-/// UDP port used by DNS.
+/// UDP/TCP port used by DNS.
 const DNS_PORT: u16 = 53;
 
-/// Port for RST
+/// DNS-over-TLS port.
+#[cfg(target_os = "android")]
 const DOT_PORT: u16 = 853;
 
 /// IPv4 version nibble.
@@ -228,6 +229,7 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
                 return None;
             };
             match tcp.get_destination() {
+                #[cfg(target_os = "android")]
                 DOT_PORT => {
                     // Always RST DoT connections to force Android back to UDP/53.
                     tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv4");
@@ -283,6 +285,7 @@ async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
                 return None;
             };
             match tcp.get_destination() {
+                #[cfg(target_os = "android")]
                 DOT_PORT => {
                     tracing::trace!("DNS proxy: RST TCP/853 (DoT) from IPv6");
                     Some(build_tcp_rst_response_v6(&ip, &tcp))
