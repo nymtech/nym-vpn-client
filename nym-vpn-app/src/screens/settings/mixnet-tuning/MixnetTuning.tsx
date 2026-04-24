@@ -1,9 +1,8 @@
 import { Trans, useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { useMainDispatch } from '../../../contexts';
+import { dispatch } from '../../../store';
 import { Button, Link, PageAnim } from '../../../ui';
-import { StateDispatch } from '../../../types';
 import { MixnetParametersLearnMoreUrl } from '../../../constants';
 import { MixnetTrafficConfigProvider, useMixnetTrafficConfig } from './context';
 import { ContinuousTrafficCard } from './ContinuousTrafficCard';
@@ -21,13 +20,11 @@ function MixnetTuning() {
     hasUnsavedSettings,
     hasSettingsOtherThanDefaults,
   } = useMixnetTrafficConfig();
-  const mainDispatch = useMainDispatch() as StateDispatch;
-
   const handleSaveCustomSettings = async () => {
     setLoading(true);
     try {
       await invoke('set_mixnet_traffic_config', { config: state });
-      mainDispatch({
+      dispatch({
         type: 'set-mixnet-traffic-config',
         config: {
           ...state,

@@ -5,7 +5,7 @@ import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
 import { CustomDnsHelpUrl } from '../../../constants';
 import useCustomDns from '../../../hooks/useCustomDns';
 import { BackNavigationConfirmationDialog } from '../../../components';
-import { useNewToast } from '../../../contexts/new-toast-provider/index';
+import { useToast } from '../../../hooks';
 import { CustomDnsServers } from './CustomDnsServers';
 import { DefaultDnsServers } from './DefaultDnsServers';
 import { DnsItem } from './DnsItemContent';
@@ -19,7 +19,7 @@ function CustomDNS() {
     setCustomDns,
     customDns,
   } = useCustomDns();
-  const { add } = useNewToast();
+  const { add } = useToast();
 
   const [customDnsList, setCustomDnsList] = useState<DnsItem[]>(() =>
     customDns.map((dns) => ({ id: dns, dns })),

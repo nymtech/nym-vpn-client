@@ -9,7 +9,7 @@ import SettingsMenuCard from '../../../ui/SettingsMenuCard';
 import Switch from '../../../ui/Switch';
 import { useDialog } from '../../../contexts';
 import { Spinner } from '../../../ui';
-import { useNewToast } from '../../../contexts/new-toast-provider/index';
+import { useToast } from '../../../hooks/index';
 import InfoDialog from './InfoDialog';
 import LaunchConfirmDialog from './LaunchConfirmDialog';
 import AppItem, { AppEntry } from './AppItem';
@@ -21,7 +21,7 @@ function SplitTunneling() {
 
   const { t } = useTranslation('settings');
   const { isOpen, close } = useDialog();
-  const { add: addToast } = useNewToast();
+  const { add: addToast } = useToast();
 
   const { apps, enabled, loading, setEnabled, add, remove, isSupported } =
     useSplitTunnel();

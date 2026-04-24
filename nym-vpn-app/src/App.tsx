@@ -5,13 +5,11 @@ import { type } from '@tauri-apps/plugin-os';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
+import { Toast } from '@base-ui/react';
 import {
   AutologinProvider,
   DialogProvider,
-  GatewaysProvider,
   MainStateProvider,
-  NodeListStateProvider,
-  Socks5Provider,
   TopBarProvider,
   TrayProvider,
 } from './contexts';
@@ -23,7 +21,6 @@ import './i18n/config';
 import { RouteLoading, ThemeSetter } from './ui';
 import { IntroAnim, IntroSplash } from './screens';
 import { InitState } from './types';
-import { NewToastProvider } from './contexts/new-toast-provider';
 
 let initialized = false;
 const noSplash = window._APP.noSplash;
@@ -68,29 +65,23 @@ function App({ init }: { init: InitState }) {
   return (
     <>
       {!noSplash && intro}
-      <NewToastProvider>
+      <Toast.Provider timeout={100000}>
         <MainStateProvider init={init}>
-          <GatewaysProvider>
-            <TrayProvider>
-              <NodeListStateProvider>
-                <Socks5Provider>
-                  <ThemeSetter>
-                    <DialogProvider>
-                      <TopBarProvider>
-                        <AutologinProvider>
-                          <Suspense fallback={<RouteLoading />}>
-                            <RouterProvider router={router} />
-                          </Suspense>
-                        </AutologinProvider>
-                      </TopBarProvider>
-                    </DialogProvider>
-                  </ThemeSetter>
-                </Socks5Provider>
-              </NodeListStateProvider>
-            </TrayProvider>
-          </GatewaysProvider>
+          <TrayProvider>
+            <ThemeSetter>
+              <DialogProvider>
+                <TopBarProvider>
+                  <AutologinProvider>
+                    <Suspense fallback={<RouteLoading />}>
+                      <RouterProvider router={router} />
+                    </Suspense>
+                  </AutologinProvider>
+                </TopBarProvider>
+              </DialogProvider>
+            </ThemeSetter>
+          </TrayProvider>
         </MainStateProvider>
-      </NewToastProvider>
+      </Toast.Provider>
     </>
   );
 }

@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import * as _ from 'lodash-es';
-import { NodeListProvider, useGateways, useMainState } from '../../contexts';
+import { useShallow } from 'zustand/react/shallow';
+import { NodeListProvider, useFetchGateways } from '../../contexts';
+import { useAppStore } from '../../store';
 import { NodeHop, VpnMode } from '../../types';
 import Node from './Node';
 
@@ -9,15 +11,20 @@ export type NodeEntryProps = {
 };
 
 function NodeEntry({ node }: NodeEntryProps) {
-  const { daemonStatus, vpnMode } = useMainState();
-  const { fetch } = useGateways();
+  const { daemonStatus, vpnMode } = useAppStore(
+    useShallow((s) => ({
+      daemonStatus: s.daemonStatus,
+      vpnMode: s.vpnMode,
+    })),
+  );
+  const fetchGateways = useFetchGateways();
 
   const refresh = _.throttle(
     async (mode: VpnMode) => {
       if (mode === 'mixnet') {
-        await fetch(`mx-${node}`);
+        await fetchGateways(`mx-${node}`);
       } else {
-        await fetch('wg');
+        await fetchGateways('wg');
       }
     },
     5000,

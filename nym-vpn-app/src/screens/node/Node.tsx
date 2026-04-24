@@ -3,26 +3,31 @@ import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
+import { useShallow } from 'zustand/react/shallow';
 import {
   SelectedUiNode,
   UiGateway,
   useDialog,
-  useMainDispatch,
-  useMainState,
   useNodeList,
   useNodeListState,
 } from '../../contexts';
-import { NodeHop, StateDispatch, isGateway } from '../../types';
+import { NodeHop, isGateway } from '../../types';
 import { Link, PageAnim, TextInput } from '../../ui';
 import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
+import { dispatch, useAppStore } from '../../store';
 import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
 function Node({ node }: { node: NodeHop }) {
-  const { backendFlags, vpnMode, quic } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
+  const { backendFlags, vpnMode, quic } = useAppStore(
+    useShallow((s) => ({
+      backendFlags: s.backendFlags,
+      vpnMode: s.vpnMode,
+      quic: s.quic,
+    })),
+  );
 
   const { isOpen, close } = useDialog();
   const { loading, error } = useNodeList();

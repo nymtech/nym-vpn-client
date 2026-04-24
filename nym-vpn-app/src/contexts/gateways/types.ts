@@ -1,8 +1,4 @@
-import { AppError, Gateway, GatewayType, GatewaysByCountry } from '../../types';
-
-export type FetchGatewaysFn = (
-  nodeType: GatewayType,
-) => Promise<void> | undefined;
+import { AppError, GatewaysByCountry } from '../../types';
 
 export type GatewaysState = {
   mxEntry: GatewaysByCountry[];
@@ -11,13 +7,7 @@ export type GatewaysState = {
   mxEntryLoading: boolean;
   mxExitLoading: boolean;
   wgLoading: boolean;
-  mxEntryError?: AppError | null;
-  mxExitError?: AppError | null;
-  wgError?: AppError | null;
-  fetch: FetchGatewaysFn;
-  lookupGw: (
-    id: string,
-    type: 'entry' | 'exit',
-    countryCode?: string,
-  ) => Gateway | null;
+  mxEntryError: AppError | null;
+  mxExitError: AppError | null;
+  wgError: AppError | null;
 };

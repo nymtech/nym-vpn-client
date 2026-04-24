@@ -13,7 +13,8 @@ import {
 } from '../../types';
 import { MsIcon, countryCode } from '../../ui';
 import { useLang } from '../../hooks';
-import { useGateways, useMainState } from '../../contexts';
+import { useLookupGw } from '../../contexts';
+import { useAppStore } from '../../store';
 import { countriesWithRegions } from '../../constants';
 import { routes } from '../../router';
 import { isBridgeMode, regionToCountryCode, useActionToast } from './util';
@@ -21,6 +22,7 @@ import {
   SelectedNodeDisplay,
   SelectedNodeDisplayProps,
 } from './SelectedNodeDisplay';
+import { useShallow } from 'zustand/react/shallow';
 
 type HopSelectProps = {
   node: SelectedNode;
@@ -37,8 +39,15 @@ export default function HopSelect({
   onClick,
   disabled,
 }: HopSelectProps) {
-  const { backendFlags, vpnMode, tunnel, connectingState } = useMainState();
-  const { lookupGw } = useGateways();
+  const { backendFlags, vpnMode, tunnel, connectingState } = useAppStore(
+    useShallow((s) => ({
+      backendFlags: s.backendFlags,
+      vpnMode: s.vpnMode,
+      tunnel: s.tunnel,
+      connectingState: s.connectingState,
+    })),
+  );
+  const lookupGw = useLookupGw();
   const { t } = useTranslation('home');
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');

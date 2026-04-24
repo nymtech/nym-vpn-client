@@ -7,9 +7,8 @@ import { CardNewFooter, MsIcon, Spinner } from '../../../../ui';
 import { TAccountSummary } from '../../../../types';
 import { getAccountStatus } from '../utils';
 import { useAutologin } from '../../../../contexts';
-import { useDeepLink } from '../../../../hooks';
+import { useDeepLink, useToast } from '../../../../hooks';
 import { DeeplinkTimeout } from '../../../../errors';
-import { useNewToast } from '../../../../contexts/new-toast-provider/index';
 
 export function RenewButton({
   accountSummary,
@@ -21,7 +20,7 @@ export function RenewButton({
   const [autologinLoading, setAutologinLoading] = useState(false);
   const { autologin, closeDialog } = useAutologin();
   const { startListening } = useDeepLink();
-  const { add } = useNewToast();
+  const { add } = useToast();
 
   const status = useMemo(
     () => getAccountStatus(accountSummary),

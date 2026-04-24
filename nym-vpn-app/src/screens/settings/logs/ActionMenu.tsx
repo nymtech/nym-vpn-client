@@ -3,16 +3,16 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Menu } from '@base-ui-components/react';
 import { invoke } from '@tauri-apps/api/core';
-import { useMainState } from '../../../contexts';
 import {
   ConfirmationDialog,
   ConfirmationDialogProps,
   MsIcon,
 } from '../../../ui';
-import { useNewToast } from '../../../contexts/new-toast-provider/index';
+import { useToast } from '../../../hooks';
+import { useAppStore } from '../../../store';
 
 function Separator() {
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
 
   return (
     <Menu.Separator
@@ -34,7 +34,7 @@ function MenuItem({
   icon: string;
   onClick: () => void;
 }) {
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
 
   return (
     <Menu.Item
@@ -71,8 +71,8 @@ function ActionMenu() {
   >(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { uiTheme } = useMainState();
-  const { add } = useNewToast();
+  const uiTheme = useAppStore((s) => s.uiTheme);
+  const { add } = useToast();
 
   const handleDeleteLogs = useCallback(async () => {
     setIsLoading(true);

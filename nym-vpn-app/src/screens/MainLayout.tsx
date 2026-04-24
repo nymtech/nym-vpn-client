@@ -2,11 +2,11 @@ import * as H from 'history';
 import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router';
 import clsx from 'clsx';
-import { useMainState } from '../contexts';
 import { EventNotification } from '../layers';
 import { routes } from '../router';
 import { DaemonDot, TopBar } from '../ui';
-import { ToastList } from '../contexts/new-toast-provider/components';
+import { ToastList } from '../components/toast';
+import { useAppStore } from '../store';
 import InitialNavigation from './InitialNavigation';
 import { SystemAuthentication } from './SystemAuthentication';
 
@@ -25,7 +25,7 @@ function MainLayout({
   noNotifications,
   noDaemonDot,
 }: MainLayoutProps) {
-  const { daemonStatus } = useMainState();
+  const daemonStatus = useAppStore((s) => s.daemonStatus);
   const location = useLocation() as H.Location<RouteState | undefined>;
   const rootRef = useRef<HTMLDivElement>(null);
 

@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { allCountries } from 'country-region-data';
-import { useMainState } from '../../contexts';
+import { useAppStore } from '../../store';
 import { TunnelData, isWireguardData } from '../../types';
-import { useNewToast } from '../../contexts/new-toast-provider';
+import { useToast } from '../../hooks';
 
 // find country code (lowercase) for a given region name
 export function regionToCountryCode(region: string): string | null {
@@ -20,9 +20,9 @@ export function regionToCountryCode(region: string): string | null {
 }
 
 export function useActionToast(action: 'node-select' | 'mode-select') {
-  const { state } = useMainState();
+  const state = useAppStore((s) => s.state);
   const { t } = useTranslation('home');
-  const { add } = useNewToast();
+  const { add } = useToast();
 
   const toast = useCallback(() => {
     let text = null;

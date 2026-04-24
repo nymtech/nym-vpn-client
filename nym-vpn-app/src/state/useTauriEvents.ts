@@ -8,7 +8,6 @@ import {
   BackendError,
   FeatureFlags,
   MixnetEventPayload,
-  StateDispatch,
   TAccountState,
   TunnelStateEvent as TunnelStatePayload,
   VpndConfig,
@@ -25,14 +24,12 @@ import {
   VpnConfigEvent,
 } from '../constants';
 import { CCache } from '../cache';
-import { ToastAddData } from '../contexts/new-toast-provider/index';
+import { ToastAddData } from '../hooks';
+import { dispatch } from '../store';
 import { daemonStatusUpdate, networkEnvChanged } from './helper';
 import { updateAccountState, updateTunnel } from './update';
 
-export function useTauriEvents(
-  dispatch: StateDispatch,
-  add: (data: ToastAddData) => string,
-) {
+export function useTauriEvents(add: (data: ToastAddData) => string) {
   const registerDaemonListener = useCallback(() => {
     return listen<VpndStatus>(
       DaemonEvent,
@@ -40,7 +37,7 @@ export function useTauriEvents(
         console.log(
           `received event [${event}], status: ${status === 'down' ? status : JSON.stringify(status)}`,
         );
-        daemonStatusUpdate(status, dispatch, add);
+        daemonStatusUpdate(status, add);
         const changed = await networkEnvChanged(status);
         if (changed) {
           console.info('network env changed, clearing cache');
@@ -66,20 +63,17 @@ export function useTauriEvents(
           } catch {}
           try {
             const flags = await invoke<FeatureFlags>('feature_flags');
-            dispatch({
-              type: 'set-backend-flags',
-              flags,
-            });
+            dispatch({ type: 'set-backend-flags', flags });
           } catch {}
         }
       },
     );
-  }, [dispatch, add]);
+  }, [add]);
 
   const registerTunnelStateListener = useCallback(() => {
     return listen<TunnelStatePayload>(TunnelStateEvent, (event) => {
       console.log('tunnel state update', event);
-      updateTunnel(event.payload.state, dispatch);
+      updateTunnel(event.payload.state);
       if (event.payload.error) {
         console.log('tunnel error', event.payload.error);
         dispatch({
@@ -88,13 +82,13 @@ export function useTauriEvents(
         });
       }
     });
-  }, [dispatch]);
+  }, []);
 
   const registerAccountStateListener = useCallback(() => {
     return listen<TAccountState>(AccountStateEvent, ({ payload }) => {
-      updateAccountState(payload, dispatch);
+      updateAccountState(payload);
     });
-  }, [dispatch]);
+  }, []);
 
   const registerMixnetEventListener = useCallback(() => {
     return listen<MixnetEventPayload>(MixnetEvent, (event) => {
@@ -107,7 +101,7 @@ export function useTauriEvents(
         });
       }
     });
-  }, [dispatch]);
+  }, []);
 
   const registerThemeChangedListener = useCallback(() => {
     const window = getCurrentWebviewWindow();
@@ -118,18 +112,15 @@ export function useTauriEvents(
         theme: payload === 'dark' ? 'dark' : 'light',
       });
     });
-  }, [dispatch]);
+  }, []);
 
   const registerVpnConfigListener = useCallback(() => {
     return listen<VpndConfig>(VpnConfigEvent, ({ payload }) => {
-      dispatch({
-        type: 'update-tunnel-config',
-        config: payload,
-      });
+      dispatch({ type: 'update-tunnel-config', config: payload });
     });
-  }, [dispatch]);
+  }, []);
 
-  // register/unregister event listener
+  // register/unregister event listeners
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
     const unlistenTunnelState = registerTunnelStateListener();

@@ -1,5 +1,5 @@
 import { useTransition } from 'react';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Button as HuButton } from '@headlessui/react';
 import clsx from 'clsx';
 import { Button } from '@base-ui/react';
@@ -28,7 +28,22 @@ export function ButtonIconNew({
       ])}
       onClick={onClick}
     >
-      <MsIcon icon={icon} className="leading-none w-[1em] h-[1em] text-3xl" />
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={icon}
+          initial={{ opacity: 0, rotate: 90 }}
+          animate={{ opacity: 1, rotate: 0 }}
+          exit={{ opacity: 0, rotate: -90 }}
+          transition={{ duration: 0.1 }}
+          className={clsx([
+            'leading-none w-[1em] h-[1em] text-3xl',
+            'font-icon text-2xl select-none inline-block rtl:-scale-x-100',
+          ])}
+        >
+          {icon}
+        </motion.span>
+      </AnimatePresence>
+      {/* <MsIcon icon={icon} className="leading-none w-[1em] h-[1em] text-3xl" /> */}
     </Button>
   );
 }

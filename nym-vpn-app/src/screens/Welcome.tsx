@@ -4,10 +4,9 @@ import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
 import { SentryHomePage } from '../constants';
-import { useMainDispatch, useMainState } from '../contexts';
+import { dispatch, useMainState } from '../store';
 import { kvSet } from '../kvStore';
 import { routes } from '../router';
-import { StateDispatch } from '../types';
 import { Button, Link, PageAnim, Switch } from '../ui';
 import { NymSplash } from '../assets/index';
 import SettingsGroup from './settings/SettingsGroup';
@@ -19,7 +18,6 @@ function Welcome() {
   const [monitoring, setMonitoring] = useState<boolean>(defaultSentry);
   const [netstats, setNetstats] = useState<boolean>(defaultNetstats);
   const { uiTheme } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { t } = useTranslation('welcome');
 

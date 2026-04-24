@@ -8,8 +8,7 @@ import {
   PageAnim,
   SettingsMenuCardBig,
 } from '../../../ui';
-import { useMainDispatch, useMainState } from '../../../contexts';
-import { StateDispatch } from '../../../types';
+import { dispatch, useMainState } from '../../../store';
 import {
   AnonNetworkStatsUrl,
   SentryPrivacyPolicyUrl,
@@ -19,8 +18,6 @@ import { routes } from '../../../router';
 
 function DataAndPrivacy() {
   const { monitoring, networkStats } = useMainState();
-
-  const dispatch = useMainDispatch() as StateDispatch;
 
   const { t } = useTranslation('settings');
   const navigate = useNavigate();

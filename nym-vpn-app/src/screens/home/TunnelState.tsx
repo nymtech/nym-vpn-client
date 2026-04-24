@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
-import { useMainState } from '../../contexts';
+import { useShallow } from 'zustand/react/shallow';
+import { useAppStore } from '../../store';
 import { setToString } from '../../util';
 import {
   useI18nAccountState,
@@ -22,7 +23,17 @@ function TunnelState() {
     connectingState,
     accountState,
     accountError,
-  } = useMainState();
+  } = useAppStore(
+    useShallow((s) => ({
+      state: s.state,
+      error: s.error,
+      progressMessages: s.progressMessages,
+      tunnelError: s.tunnelError,
+      connectingState: s.connectingState,
+      accountState: s.accountState,
+      accountError: s.accountError,
+    })),
+  );
   const [showBadge, setShowBadge] = useState(true);
   const loading = state === 'connecting' || state === 'disconnecting';
   const isAccountError =

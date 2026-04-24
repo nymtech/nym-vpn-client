@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router';
-import { useMainDispatch, useMainState } from '../../contexts';
+import { useShallow } from 'zustand/react/shallow';
+import { dispatch, useAppStore } from '../../store';
 import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
-import { BackendError, StateDispatch, TAccountMode } from '../../types';
+import { BackendError, TAccountMode } from '../../types';
 import { Button, Link, PageAnim, TextArea } from '../../ui';
 import { CCache } from '../../cache';
 import { NymVpnPricingUrl, PrivacyPolicyUrl, ToSUrl } from '../../constants';
@@ -24,12 +25,18 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AddError | null>(null);
 
-  const { daemonStatus, state, welcomeChecked, uiTheme } = useMainState();
+  const { daemonStatus, state, welcomeChecked, uiTheme } = useAppStore(
+    useShallow((s) => ({
+      daemonStatus: s.daemonStatus,
+      state: s.state,
+      welcomeChecked: s.welcomeChecked,
+      uiTheme: s.uiTheme,
+    })),
+  );
 
   const navigate = useNavigate();
   const { t } = useTranslation('add-credential');
   const { tE } = useI18nError();
-  const dispatch = useMainDispatch() as StateDispatch;
 
   const onChange = (phrase: string) => {
     setPhrase(phrase);

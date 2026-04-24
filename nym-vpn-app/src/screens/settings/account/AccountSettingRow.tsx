@@ -2,8 +2,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect } from 'react';
-import { StateDispatch } from '../../../types';
-import { useMainDispatch, useMainState } from '../../../contexts';
+import { dispatch, useMainState } from '../../../store';
 import { Button, MsIcon } from '../../../ui';
 import { routes } from '../../../router';
 import SettingsGroup from '../SettingsGroup';
@@ -14,7 +13,6 @@ function AccountSettingRow() {
     useMainState();
 
   const navigate = useNavigate();
-  const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
   const needAPlan = account && accountState === 'no-subscription';
 
@@ -29,7 +27,7 @@ function AccountSettingRow() {
     if (daemonStatus !== 'down') {
       checkAccount();
     }
-  }, [daemonStatus, dispatch]);
+  }, [daemonStatus]);
 
   if (!account) {
     return (

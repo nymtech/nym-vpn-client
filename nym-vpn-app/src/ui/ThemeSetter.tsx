@@ -1,13 +1,13 @@
 import React from 'react';
 import clsx from 'clsx';
-import { useMainState } from '../contexts';
+import { useAppStore } from '../store';
 
 export default function ThemeSetter({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
 
   return (
     <div

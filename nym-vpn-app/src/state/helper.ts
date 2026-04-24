@@ -2,14 +2,14 @@ import i18n from 'i18next';
 import {
   DaemonStatus,
   NetworkEnv,
-  StateDispatch,
   VpndInfo,
   VpndStatus,
   isVpndNonCompat,
   isVpndOk,
 } from '../types';
 import { kvGet, kvSet } from '../kvStore';
-import { ToastAddData } from '../contexts/new-toast-provider/index';
+import { ToastAddData } from '../hooks';
+import { dispatch } from '../store';
 
 export type TauriReq<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,7 +38,6 @@ export async function fireRequests(requests: TauriReq<any>[]) {
 
 export function daemonStatusUpdate(
   status: VpndStatus,
-  dispatch: StateDispatch,
   add: (data: ToastAddData) => string,
 ) {
   console.log('daemonStatusUpdate', status);

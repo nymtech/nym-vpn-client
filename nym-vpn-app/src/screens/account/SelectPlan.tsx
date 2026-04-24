@@ -6,9 +6,8 @@ import { Button, MsIcon, PageAnim, Spinner } from '../../ui';
 import { routes } from '../../router';
 import { CheckCircleIcon } from '../../assets';
 import { useAutologin } from '../../contexts/autologin/context';
-import { useDeepLink } from '../../hooks';
+import { useDeepLink, useToast } from '../../hooks';
 import { DeeplinkTimeout } from '../../errors';
-import { useNewToast } from '../../contexts/new-toast-provider/index';
 
 function Feature({ icon, title }: { icon: string; title: string }) {
   return (
@@ -25,7 +24,7 @@ function SelectPlan() {
   const [autologinLoading, setAutologinLoading] = useState(false);
   const { autologin, closeDialog } = useAutologin();
   const { startListening } = useDeepLink();
-  const { add } = useNewToast();
+  const { add } = useToast();
 
   const handleClick = async () => {
     if (autologinLoading) return;

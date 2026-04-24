@@ -8,11 +8,11 @@ import {
   LightMediumIcon,
   LightOfflineIcon,
 } from '../../assets/icons';
-import { useMainState } from '../../contexts';
+import { useAppStore } from '../../store';
 import { Score } from '../../types';
 
 export const ScoreIndicator = ({ score }: { score: Score }) => {
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
 
   switch (score) {
     case 'offline':

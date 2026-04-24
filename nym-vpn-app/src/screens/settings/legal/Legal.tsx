@@ -5,11 +5,12 @@ import { PrivacyPolicyUrl, ToSUrl } from '../../../constants';
 import { routes } from '../../../router';
 import { PageAnim } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
-import { useMainState } from '../../../contexts';
+import { useMainState } from '../../../store';
 
 function Legal() {
   const { t } = useTranslation('settings');
   const { codeDepsJs, codeDepsRust } = useMainState();
+
   const navigate = useNavigate();
   const licensesAvailable = codeDepsJs.length > 0 || codeDepsRust.length > 0;
 

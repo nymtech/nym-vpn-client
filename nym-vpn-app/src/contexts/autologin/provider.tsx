@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { TAutologinResponse } from '../../types/tauri';
-import { useNewToast } from '../new-toast-provider';
+import { useToast } from '../../hooks';
 import { AutologinContext, AutologinKind } from './context';
 import { PincodeDialog } from './PincodeDialog';
 
@@ -13,7 +13,7 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
   const [url, setUrl] = useState('');
   const [open, setOpen] = useState(false);
 
-  const { add } = useNewToast();
+  const { add } = useToast();
 
   const autologin = useCallback(
     async (kind: AutologinKind) => {

@@ -1,13 +1,11 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { useAutostart, useDesktopNotifications } from '../../hooks';
+import { useAutostart, useDesktopNotifications, useToast } from '../../hooks';
 import { routes } from '../../router';
-import { useMainDispatch, useMainState } from '../../contexts';
+import { dispatch, useMainState } from '../../store';
 import { useExit } from '../../state';
-import { StateDispatch } from '../../types';
 import { MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
-import { useNewToast } from '../../contexts/new-toast-provider/index';
 import { AccountSettingRow } from './account';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
@@ -23,12 +21,11 @@ function Settings() {
   } = useMainState();
 
   const navigate = useNavigate();
-  const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
   const { exit } = useExit();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
-  const { add } = useNewToast();
+  const { add } = useToast();
 
   const handleAutostartChanged = async () => {
     await toggleAutostart();

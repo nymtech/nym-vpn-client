@@ -3,6 +3,7 @@ import { dequal } from 'dequal';
 import { Accordion } from '@base-ui-components/react';
 import { Trans, useTranslation } from 'react-i18next';
 import clsx from 'clsx';
+import { useShallow } from 'zustand/react/shallow';
 import {
   Focused,
   SelectedKind,
@@ -11,12 +12,12 @@ import {
   UiGateway,
   UiGatewaysByCountry,
   UiRegion,
-  useMainState,
   useNodeListState,
 } from '../../../contexts';
 import { NodeHop, VpnMode } from '../../../types';
 import { Link } from '../../../ui';
 import { ContactSupportUrl, DocsUrl } from '../../../constants';
+import { useAppStore } from '../../../store';
 import { NodeItem } from './NodeItem';
 import GatewayItem from './GatewayItem';
 import { PanelContent } from './NodeListPanelContent';
@@ -41,7 +42,12 @@ const NodeList = memo(function NodeList({
   onNodeDetails,
   expanded,
 }: NodeListProps) {
-  const { backendFlags, quic } = useMainState();
+  const { backendFlags, quic } = useAppStore(
+    useShallow((s) => ({
+      backendFlags: s.backendFlags,
+      quic: s.quic,
+    })),
+  );
   const { setExpanded } = useNodeListState();
   const { t } = useTranslation('node-location');
 

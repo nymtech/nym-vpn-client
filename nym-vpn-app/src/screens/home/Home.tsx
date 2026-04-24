@@ -5,29 +5,20 @@ import { type } from '@tauri-apps/plugin-os';
 import { useNavigate } from 'react-router';
 import clsx from 'clsx';
 import { motion } from 'motion/react';
-import {
-  Focused,
-  useGateways,
-  useMainDispatch,
-  useMainState,
-  useNodeListState,
-} from '../../contexts';
-import {
-  BackendError,
-  StateDispatch,
-  isCountry,
-  isGateway,
-  isRegion,
-} from '../../types';
+import { Focused, useLookupGw, useNodeListState } from '../../contexts';
+import { BackendError, isCountry, isGateway, isRegion } from '../../types';
 import { routes } from '../../router';
-import { Button } from '../../ui';
+import { Button, ButtonNew } from '../../ui';
 import { capFirst } from '../../util';
+import { useToast } from '../../hooks';
+import { dispatch, useMainState } from '../../store';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
 import { regionToCountryCode } from './util';
+import { NewBottomComponent } from './NewBottomComponent';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
@@ -47,9 +38,8 @@ function Home() {
     networkCompat,
   } = useMainState();
 
-  const dispatch = useMainDispatch() as StateDispatch;
   const { setFocused, setSearch, setExpanded } = useNodeListState();
-  const { lookupGw } = useGateways();
+  const lookupGw = useLookupGw();
   const navigate = useNavigate();
   const { t } = useTranslation('home');
   const loading = state === 'disconnecting';
@@ -231,6 +221,49 @@ function Home() {
     }
   };
 
+  // const toastManager = Toast.useToastManager();
+  const { add, close } = useToast();
+  function createToast() {
+    const id = add({
+      id: 'test-toast',
+      title: `Secure your secret passphrase`,
+      description: 'No passphrase no access to account',
+      type: 'warn',
+      actionProps: {
+        children: 'Back up now',
+        onClick: () => {
+          console.log('Back up now');
+          close(id);
+        },
+      },
+    });
+  }
+
+  const [count, setCount] = useState(0);
+  function createToast2() {
+    setCount(count + 1);
+    add({
+      id: `test-toast-${count}`,
+      title: `Toast created ${count}`,
+      description: 'This is a toast notification.',
+      type: 'error',
+    });
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: '-1rem' }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className="h-full flex flex-col"
+      data-testid="home-container"
+    >
+      <div className="flex flex-col justify-end grow">
+        <NewBottomComponent />
+      </div>
+    </motion.div>
+  );
+
   return (
     <>
       {updaterEnabled && <UpdateDialog />}
@@ -256,6 +289,16 @@ function Home() {
           className="flex flex-col justify-between gap-y-8 select-none"
           data-testid="home-controls-container"
         >
+          {/* <ButtonNew onClick={createToast}>Create Toast same id</ButtonNew>
+          <ButtonNew disabled onClick={createToast}>
+            Create Toast same id
+          </ButtonNew>
+          <ButtonNew variant="outlined" onClick={createToast2}>
+            Create Toast different id
+          </ButtonNew>
+          <ButtonNew variant="outlined" disabled onClick={createToast2}>
+            Create To ast different id
+          </ButtonNew> */}
           <div className="flex flex-col justify-between gap-y-4">
             <NetworkModeSelect />
             <div

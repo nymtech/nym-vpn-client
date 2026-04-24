@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import {
   Country,
   Gateway,
@@ -6,9 +7,9 @@ import {
   NodeHop,
   SelectedNode,
 } from '../../types';
-import { useMainState } from '../main';
 import { useGateways } from '../gateways';
 import { useLang } from '../../hooks';
+import { useAppStore } from '../../store';
 import { NodeListContext } from './context';
 import {
   GwSelectedKind,
@@ -25,7 +26,15 @@ export type NodesStateProviderProps = {
 };
 
 function NodeListProvider({ children, hop }: NodesStateProviderProps) {
-  const { vpnMode, entryNode, exitNode, quic, backendFlags } = useMainState();
+  const { vpnMode, entryNode, exitNode, quic, backendFlags } = useAppStore(
+    useShallow((s) => ({
+      vpnMode: s.vpnMode,
+      entryNode: s.entryNode,
+      exitNode: s.exitNode,
+      quic: s.quic,
+      backendFlags: s.backendFlags,
+    })),
+  );
   const {
     mxEntry: mxEntryGateways,
     mxExit: mxExitGateways,

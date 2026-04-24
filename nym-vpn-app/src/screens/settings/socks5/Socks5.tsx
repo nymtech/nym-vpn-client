@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { CardSwitch, PageAnim, SettingsMenuCardBig } from '../../../ui';
-import { useMainState, useSocks5 } from '../../../contexts';
-import { useNewToast } from '../../../contexts/new-toast-provider/index';
+import { useMainState, useSocks5 } from '../../../store';
+import { useToast } from '../../../hooks/index';
 import ProxyInfoCard from './ProxyInfoCard';
 import { ProxyInfo, ProxyPortInput, ProxyUrl } from './components';
 
@@ -14,9 +14,8 @@ const DefaultHttpRpcAddress = '127.0.0.1';
 
 function Socks5() {
   const { status, isLoading, enable, disable } = useSocks5();
-  console.log('status', status);
   const { exitNode } = useMainState();
-  const { add } = useNewToast();
+  const { add } = useToast();
   const { t } = useTranslation('settings');
 
   const [socks5Address, setSocks5Address] = useState(DefaultSocks5Address);

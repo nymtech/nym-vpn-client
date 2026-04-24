@@ -1,7 +1,7 @@
 import { Trans, useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 import { CardNew, CardNewHeader, Link, MsIcon } from '../../../../ui';
-import { useMainState } from '../../../../contexts';
+import { useMainState } from '../../../../store';
 import { ContactSupportUrl } from '../../../../constants';
 import { NoActivePlan } from './NoActivePlan';
 import { ActivePlan } from './ActivePlan';

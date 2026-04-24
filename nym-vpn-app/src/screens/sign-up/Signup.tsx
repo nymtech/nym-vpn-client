@@ -5,13 +5,12 @@ import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { NymSplash } from '../../assets';
 import { Button, ButtonText, Link, MsIcon, PageAnim } from '../../ui';
-import { useMainDispatch, useMainState } from '../../contexts';
+import { dispatch, useMainState } from '../../store';
 import { PrivacyPolicyUrl, ToSUrl } from '../../constants';
 import { routes } from '../../router';
 import { PrivyButton } from '../../components';
 import { useDeepLink } from '../../hooks';
 import { CCache } from '../../cache';
-import { StateDispatch } from '../../types';
 
 function Login() {
   const { uiTheme, welcomeChecked } = useMainState();
@@ -19,7 +18,6 @@ function Login() {
   const navigate = useNavigate();
 
   const { startListening } = useDeepLink();
-  const dispatch = useMainDispatch() as StateDispatch;
 
   const handleCreateAccount = async () => {
     const url = await invoke<string>('get_deep_link', {

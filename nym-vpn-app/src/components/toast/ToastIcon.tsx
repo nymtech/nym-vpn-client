@@ -1,5 +1,5 @@
-import { MsIcon } from '../../../ui';
-import { ToastAddData } from '../context';
+import { MsIcon } from '../../ui';
+import { ToastAddData } from '../../hooks';
 
 export function ToastIcon({ type }: { type?: ToastAddData['type'] }) {
   switch (type) {

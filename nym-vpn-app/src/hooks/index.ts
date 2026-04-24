@@ -11,3 +11,6 @@ export { default as useClickAway } from './useClickAway';
 export { default as useScore } from './useScore';
 export { default as useDeepLink } from './useDeepLink';
 export { default as useLogout } from './useLogout';
+export { default as useToast } from './useToast';
+
+export * from './useToast';

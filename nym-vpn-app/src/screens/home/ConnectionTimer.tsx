@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import dayjs from 'dayjs';
-import { useMainState } from '../../contexts';
+import { useAppStore } from '../../store';
 
 function ConnectionTimer() {
-  const { tunnelConnectedAt } = useMainState();
+  const tunnelConnectedAt = useAppStore((s) => s.tunnelConnectedAt);
   const [connectionTime, setConnectionTime] = useState('00:00:00');
   const { t } = useTranslation('home');
 

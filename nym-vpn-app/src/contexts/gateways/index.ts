@@ -1,3 +1,2 @@
-export { default as GatewaysProvider } from './provider';
-export { useGateways } from './context';
+export { useGatewaysStore, useGateways, useFetchGateways, useLookupGw } from './store';
 export * from './types';

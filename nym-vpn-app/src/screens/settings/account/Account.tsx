@@ -15,11 +15,11 @@ import {
 } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 import { CCache } from '../../../cache';
-import { useAutologin, useMainState } from '../../../contexts';
+import { useAutologin } from '../../../contexts';
+import { useMainState } from '../../../store';
 import { routes } from '../../../router';
-import { useDeepLink, useLogout } from '../../../hooks';
+import { useDeepLink, useLogout, useToast } from '../../../hooks';
 import { DeeplinkTimeout } from '../../../errors';
-import { useNewToast } from '../../../contexts/new-toast-provider/index';
 import { AccountStatus } from './account-status';
 import { AccountDescription } from './AccountDescription';
 
@@ -46,7 +46,7 @@ function Account() {
   const [accountId, setAccountId] = useState<string | null>(null);
 
   const { startListening } = useDeepLink();
-  const { add } = useNewToast();
+  const { add } = useToast();
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');

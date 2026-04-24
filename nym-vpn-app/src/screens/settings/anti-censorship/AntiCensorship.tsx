@@ -1,16 +1,13 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
-import { useMainDispatch, useMainState } from '../../../contexts';
-import { StateDispatch } from '../../../types';
+import { dispatch, useMainState } from '../../../store';
 import { AmneziaWgUrl, DomainFrontingUrl, QuicUrl } from '../../../constants';
-import { useNewToast } from '../../../contexts/new-toast-provider/index';
+import { useToast } from '../../../hooks';
 
 function AntiCensorship() {
   const { quic, backendFlags, state } = useMainState();
-  const { add } = useNewToast();
-
-  const dispatch = useMainDispatch() as StateDispatch;
+  const { add } = useToast();
 
   const { t } = useTranslation('settings');
 

@@ -1,14 +1,12 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { useMainDispatch, useMainState } from '../contexts/main/context';
-import { StateDispatch } from '../types';
-import { useNewToast } from '../contexts/new-toast-provider/index';
+import { dispatch, useMainState } from '../store';
+import { useToast } from './index';
 
 function useCustomDns() {
   const { t } = useTranslation('settings');
   const { customDnsEnabled, customDns, defaultDns } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
-  const { add } = useNewToast();
+  const { add } = useToast();
 
   const toggle = async (state: boolean) => {
     try {
@@ -16,10 +14,7 @@ function useCustomDns() {
       dispatch({ type: 'set-custom-dns-enabled', enabled: state });
     } catch (e) {
       console.error(e);
-      add({
-        title: t('dns.error.failed'),
-        type: 'error',
-      });
+      add({ title: t('dns.error.failed'), type: 'error' });
     }
   };
 
@@ -29,10 +24,7 @@ function useCustomDns() {
       dispatch({ type: 'set-custom-dns', dns });
     } catch (e) {
       console.error(e);
-      add({
-        title: t('dns.error.failed'),
-        type: 'error',
-      });
+      add({ title: t('dns.error.failed'), type: 'error' });
     }
   };
 

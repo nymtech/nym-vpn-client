@@ -1,10 +1,10 @@
 import { Toast } from '@base-ui/react';
 import clsx from 'clsx';
-import { MsIcon } from '../../../ui';
-import { ToastAddData } from '../context';
+import { MsIcon } from '../../ui';
+import { ToastAddData } from '../../hooks';
 import { ToastIcon } from './ToastIcon';
 
-export function ToastList() {
+function ToastList() {
   const { toasts } = Toast.useToastManager();
 
   return (
@@ -62,3 +62,4 @@ export function ToastList() {
     </Toast.Viewport>
   );
 }
+export default ToastList;

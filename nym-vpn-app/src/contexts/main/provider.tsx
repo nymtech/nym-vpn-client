@@ -1,17 +1,20 @@
 import { invoke } from '@tauri-apps/api/core';
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { InitState, SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { useAccountSummaryOnAccountState } from '../../state/useAccountSummaryOnAccountState';
 import { daemonStatusUpdate, networkEnvChanged } from '../../state/helper';
 import { CCache } from '../../cache';
-import { useNewToast } from '../new-toast-provider';
-import { MainDispatchContext, MainStateContext } from './context';
-import { initialState, reducer } from './reducer';
+import { useToast } from '../../hooks';
+import { dispatch, initMainStore, useAppStore } from '../../store';
 
 let batchesInitialized = false;
 let systemMessageInit = false;
+let gatewaysInit = false;
+
+const SOCKS5_POLL_INTERVAL = 5000;
 
 type Props = {
   children?: React.ReactNode;
@@ -19,49 +22,35 @@ type Props = {
 };
 
 function MainStateProvider({ children, init }: Props) {
-  const [state, dispatch] = useReducer(reducer, {
-    ...initialState,
-    vpnMode: init.vpnMode,
-    uiTheme: init.uiTheme,
-    welcomeChecked: init.welcomeChecked,
-    entryNode: init.entryNode,
-    exitNode: init.exitNode,
-    quic: init.quic,
-    enableAdBlocking: init.enableAdBlocking,
-    ipv6Support: !init.noIpv6,
-    allowLan: init.allowLan,
-    customDnsEnabled: init.customDnsEnabled,
-    customDns: init.customDns,
-    enableLewesProtocol: init.enableLewesProtocol,
-    mixnetTrafficConfig: init.mixnetTrafficConfig,
-    mixnetTrafficDefaults: init.mixnetTrafficDefaults,
-    splitTunnel: init.splitTunnel,
-  });
+  // Synchronously seed the store with init values before children render
+  initMainStore(init);
 
-  const { add } = useNewToast();
-  useTauriEvents(dispatch, add);
-  useAccountSummaryOnAccountState(
-    state.accountState,
-    state.accountSyncing,
-    state.initialized,
-    dispatch,
+  const { daemonStatus, initialized, vpnMode } = useAppStore(
+    useShallow((s) => ({
+      daemonStatus: s.daemonStatus,
+      initialized: s.initialized,
+      vpnMode: s.vpnMode,
+    })),
   );
+
+  const { add } = useToast();
+  useTauriEvents(add);
+  useAccountSummaryOnAccountState();
 
   // initialize app state
   useEffect(() => {
-    daemonStatusUpdate(init.vpnd, dispatch, add);
+    daemonStatusUpdate(init.vpnd, add);
     networkEnvChanged(init.vpnd).then(async (changed) => {
       if (changed) {
         console.info('network env changed, clearing cache');
         await CCache.clear();
       }
     });
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (state.daemonStatus === 'down' || state.daemonStatus === 'auth-denied') {
+    if (daemonStatus === 'down' || daemonStatus === 'auth-denied') {
       console.log(
         'daemonStatus is down or auth-denied, skipping initialization',
       );
@@ -75,20 +64,20 @@ function MainStateProvider({ children, init }: Props) {
     batchesInitialized = true;
 
     // this first batch is needed to ensure the app is fully initialized and ready
-    initFirstBatch(dispatch).then(() => {
+    initFirstBatch().then(() => {
       console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
     });
 
     // this second batch is not needed for the app to be fully
-    // functional, and continue loading in the background
-    initSecondBatch(dispatch).then(() => {
+    // functional, and continues loading in the background
+    initSecondBatch().then(() => {
       console.log('init of 2nd batch done');
     });
-  }, [state.daemonStatus]);
+  }, [daemonStatus]);
 
   useEffect(() => {
-    if (state.daemonStatus === 'down' || state.daemonStatus === 'auth-denied') {
+    if (daemonStatus === 'down' || daemonStatus === 'auth-denied') {
       systemMessageInit = false;
       return;
     }
@@ -116,15 +105,43 @@ function MainStateProvider({ children, init }: Props) {
       } catch {}
     };
     querySystemMessages();
-  }, [init.vpnd, add, state.daemonStatus]);
+  }, [init.vpnd, daemonStatus, add]);
 
-  return (
-    <MainStateContext.Provider value={state}>
-      <MainDispatchContext.Provider value={dispatch}>
-        {children}
-      </MainDispatchContext.Provider>
-    </MainStateContext.Provider>
-  );
+  // Initialize gateways on first successful connection to daemon
+  useEffect(() => {
+    if (!initialized || gatewaysInit || daemonStatus === 'down') {
+      return;
+    }
+    gatewaysInit = true;
+    const { fetchGateways } = useAppStore.getState();
+    if (vpnMode === 'wg') {
+      fetchGateways('wg').then(() => {
+        console.info('[wg] gateways initialized');
+      });
+    } else {
+      fetchGateways('mx-entry').then(() => {
+        console.info('[mx-entry] gateways initialized');
+      });
+      fetchGateways('mx-exit').then(() => {
+        console.info('[mx-exit] gateways initialized');
+      });
+    }
+  }, [initialized, daemonStatus, vpnMode]);
+
+  // Socks5 status polling
+  useEffect(() => {
+    const { refresh } = useAppStore.getState();
+    refresh();
+    const interval = setInterval(
+      () => useAppStore.getState().refresh(),
+      SOCKS5_POLL_INTERVAL,
+    );
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+
+  return <>{children}</>;
 }
 
 export default MainStateProvider;

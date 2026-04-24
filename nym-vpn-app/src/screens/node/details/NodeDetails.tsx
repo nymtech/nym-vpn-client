@@ -5,12 +5,8 @@ import * as H from 'history';
 import { Trans, useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useLocation, useNavigate } from 'react-router';
-import {
-  UiGateway,
-  useMainDispatch,
-  useMainState,
-  useNodeListState,
-} from '../../../contexts';
+import { useShallow } from 'zustand/react/shallow';
+import { UiGateway, useNodeListState } from '../../../contexts';
 import {
   Button,
   ButtonIcon,
@@ -21,7 +17,7 @@ import {
   countryCode,
 } from '../../../ui';
 import { useClipboard, useLang, useScore } from '../../../hooks';
-import { Score, StateDispatch } from '../../../types';
+import { Score } from '../../../types';
 import {
   IpInfoIoUrl,
   NetworkExplorerNodeUrl,
@@ -30,6 +26,7 @@ import {
 import { isSelectedNodeType } from '../../../contexts/node-list/util';
 import { routes } from '../../../router';
 import { ScoreIndicator } from '../ScoreIndicator';
+import { dispatch, useAppStore } from '../../../store';
 import DataCard from './DataCard';
 
 type RouteState = {
@@ -38,8 +35,13 @@ type RouteState = {
 };
 
 function NodeDetails() {
-  const { backendFlags, entryNode, exitNode } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
+  const { backendFlags, entryNode, exitNode } = useAppStore(
+    useShallow((s) => ({
+      backendFlags: s.backendFlags,
+      entryNode: s.entryNode,
+      exitNode: s.exitNode,
+    })),
+  );
   const location = useLocation() as H.Location<RouteState>;
   const { t } = useTranslation('node-location');
   const navigate = useNavigate();

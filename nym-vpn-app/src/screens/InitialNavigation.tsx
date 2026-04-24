@@ -1,12 +1,19 @@
 import { useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useNavigate } from 'react-router';
-import { useMainState } from '../contexts';
 import { routes } from '../router';
+import { useAppStore } from '../store';
 
 let navigationHandled = false;
 
 function InitialNavigation() {
-  const { account, initialized, daemonStatus } = useMainState();
+  const { account, initialized, daemonStatus } = useAppStore(
+    useShallow((s) => ({
+      account: s.account,
+      initialized: s.initialized,
+      daemonStatus: s.daemonStatus,
+    })),
+  );
   const navigate = useNavigate();
 
   useEffect(() => {

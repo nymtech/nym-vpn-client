@@ -11,7 +11,6 @@ import {
   CodeDependency,
   FeatureFlags,
   NetworkCompat,
-  StateDispatch,
   TAccountMode,
   TAccountState,
   TAccountSummary,
@@ -19,6 +18,7 @@ import {
   ThemeMode,
   UiTheme,
 } from '../types';
+import { dispatch } from '../store';
 import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
 
@@ -37,12 +37,12 @@ const getTheme = async () => {
   return { winTheme, themeMode };
 };
 
-export async function initFirstBatch(dispatch: StateDispatch) {
+export async function initFirstBatch() {
   const initStateRq: TauriReq<typeof getInitialTunnelState> = {
     name: 'get_tunnel_state',
     request: () => getInitialTunnelState(),
     onFulfilled: (state) => {
-      updateTunnel(state, dispatch);
+      updateTunnel(state);
     },
   };
 
@@ -52,7 +52,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
       request: () => invoke<TAccountState>('get_account_state'),
       onFulfilled: (state) => {
         if (state) {
-          updateAccountState(state, dispatch);
+          updateAccountState(state);
         }
       },
     };
@@ -71,10 +71,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     name: 'getStoredAccountRq',
     request: () => invoke<boolean>('is_account_stored'),
     onFulfilled: (stored) => {
-      dispatch({
-        type: 'set-account',
-        stored: stored || false,
-      });
+      dispatch({ type: 'set-account', stored: stored || false });
     },
   };
 
@@ -95,10 +92,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     request: () => invoke<FeatureFlags>('feature_flags'),
     onFulfilled: (flags) => {
       if (flags) {
-        dispatch({
-          type: 'set-backend-flags',
-          flags,
-        });
+        dispatch({ type: 'set-backend-flags', flags });
       }
     },
   };
@@ -225,16 +219,13 @@ export async function initFirstBatch(dispatch: StateDispatch) {
   ]);
 }
 
-export async function initSecondBatch(dispatch: StateDispatch) {
+export async function initSecondBatch() {
   const getAccountLinksRq: TauriReq<() => Promise<AccountLinks | undefined>> = {
     name: 'getAccountLinksRq',
     request: () =>
       invoke<AccountLinks>('account_links', { locale: i18n.language }),
     onFulfilled: (links) => {
-      dispatch({
-        type: 'set-account-links',
-        links: links || null,
-      });
+      dispatch({ type: 'set-account-links', links: links || null });
     },
   };
 
@@ -242,10 +233,7 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     name: 'getAutostart',
     request: () => isAutostartEnabled(),
     onFulfilled: (enabled) => {
-      dispatch({
-        type: 'set-autostart',
-        enabled,
-      });
+      dispatch({ type: 'set-autostart', enabled });
     },
   };
 
@@ -254,10 +242,7 @@ export async function initSecondBatch(dispatch: StateDispatch) {
       name: 'getNetworkCompatRq',
       request: () => invoke<NetworkCompat>('network_compat'),
       onFulfilled: (compat) => {
-        dispatch({
-          type: 'set-network-compat',
-          compat: compat || null,
-        });
+        dispatch({ type: 'set-network-compat', compat: compat || null });
       },
     };
 
@@ -265,10 +250,7 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     name: 'getDefaultDnsRq',
     request: () => invoke<string[]>('get_default_dns'),
     onFulfilled: (dns) => {
-      dispatch({
-        type: 'set-default-dns',
-        dns: dns || [],
-      });
+      dispatch({ type: 'set-default-dns', dns: dns || [] });
     },
   };
 

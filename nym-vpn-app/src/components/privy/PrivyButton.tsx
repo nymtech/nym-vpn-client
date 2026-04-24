@@ -4,22 +4,20 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
 import { Button, MsIcon } from '../../ui';
-import { useMainDispatch, useMainState } from '../../contexts';
-import { useDeepLink } from '../../hooks';
+import { dispatch, useMainState } from '../../store';
+import { useDeepLink, useToast } from '../../hooks';
 import { routes } from '../../router';
 import { CCache } from '../../cache';
-import { StateDispatch, TAccountMode } from '../../types';
+import { TAccountMode } from '../../types';
 import { DeeplinkTimeout } from '../../errors';
-import { useNewToast } from '../../contexts/new-toast-provider/index';
 
 function PrivyButton() {
   const { t, i18n } = useTranslation('login');
 
-  const { add } = useNewToast();
+  const { add } = useToast();
   const { startListening } = useDeepLink();
   const { welcomeChecked } = useMainState();
   const navigate = useNavigate();
-  const dispatch = useMainDispatch() as StateDispatch;
 
   const [loading, setLoading] = useState(false);
 

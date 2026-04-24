@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 import dayjs from 'dayjs';
 import clsx from 'clsx';
-import { useMainState } from '../../../contexts';
+import { useMainState } from '../../../store';
 import {
   getAccountDescriptionColor,
   getAccountStateDescription,

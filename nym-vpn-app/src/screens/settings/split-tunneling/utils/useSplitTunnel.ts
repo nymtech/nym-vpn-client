@@ -1,19 +1,16 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useMainDispatch, useMainState } from '../../../../contexts';
-import { StateDispatch } from '../../../../types';
+import { dispatch, useAppStore } from '../../../../store';
 import { App } from '../../../../types/tauri';
 import { AppEntry } from '../AppItem';
-import { useNewToast } from '../../../../contexts/new-toast-provider/index';
+import { useToast } from '../../../../hooks/index';
 
 export const useSplitTunnel = () => {
   const { t } = useTranslation('settings');
-  const {
-    splitTunnel: { enabled, apps: splitTunnelApps },
-  } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
-  const { add: addToast } = useNewToast();
+  const splitTunnel = useAppStore((s) => s.splitTunnel);
+  const { enabled, apps: splitTunnelApps } = splitTunnel;
+  const { add: addToast } = useToast();
 
   const [installedApps, setInstalledApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(false);

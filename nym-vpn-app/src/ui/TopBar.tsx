@@ -4,11 +4,13 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { motion } from 'motion/react';
 import { NymVpnTextLogo } from '../assets';
-import { useDialog, useMainState, useTopBar } from '../contexts';
+import { useDialog, useTopBar } from '../contexts';
 import { routes } from '../router';
 import { Routes } from '../types';
 import { ActionMenu } from '../screens';
-import ButtonIcon, { ButtonIconNew } from './ButtonIcon';
+import { useSystemTheme } from '../state';
+import { useAppStore } from '../store';
+import { ButtonIconNew } from './ButtonIcon';
 
 type NavLocation = {
   title?: string | ReactNode;
@@ -28,9 +30,11 @@ export default function TopBar() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
   const { show } = useDialog();
   const { customLeftNavHandler } = useTopBar();
+
+  const { handleThemeChange } = useSystemTheme();
 
   const [currentNavLocation, setCurrentNavLocation] = useState<NavLocation>({
     title: '',
@@ -53,8 +57,7 @@ export default function TopBar() {
         ),
         leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
         handleLeftNav: () => {
-          // TODO: implement theme toggle
-          console.log('toggle theme');
+          handleThemeChange(uiTheme === 'dark' ? 'light' : 'dark');
         },
         rightIcon: 'settings',
         handleRightNav: () => {
@@ -287,7 +290,7 @@ export default function TopBar() {
       // TODO
       '/account': {},
     };
-  }, [t, navigate, show, uiTheme]);
+  }, [t, navigate, show, uiTheme, handleThemeChange]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);

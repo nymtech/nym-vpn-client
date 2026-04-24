@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { type } from '@tauri-apps/plugin-os';
 import { List, type RowComponentProps } from 'react-window';
-import { useMainState } from '../../../../contexts';
+import { useMainState } from '../../../../store';
 import { routes } from '../../../../router';
 import { PageAnim, SettingsMenuCard } from '../../../../ui';
 import { CodeDependency } from '../../../../types';

@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Button, ButtonIcon, Dialog, MsIcon } from '../ui';
-import { useMainState } from '../contexts';
+import { useAppStore } from '../store';
 
 export function SystemAuthentication() {
-  const { daemonStatus } = useMainState();
+  const daemonStatus = useAppStore((s) => s.daemonStatus);
   console.log('[SystemAuthentication] daemonStatus', daemonStatus);
 
   const { t } = useTranslation('system-authentication');
