@@ -155,7 +155,7 @@ impl ConnectedState {
     #[cfg(not(target_os = "android"))]
     async fn set_dns(&self, shared_state: &mut SharedState) -> Result<()> {
         let dns_config = shared_state.tunnel_settings.resolved_dns_config();
-        #[cfg(not(any(target_os = "android", target_os = "ios",)))]
+        #[cfg(not(any(target_os = "android")))]
         let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
 
         // We do not want to forward DNS queries to *our* local resolver if we do not run a local
@@ -163,7 +163,14 @@ impl ConnectedState {
         if *LOCAL_DNS_RESOLVER {
             let ips = dns_config.addresses().collect::<Vec<_>>();
             tracing::debug!("Enabling local DNS forwarder to: {ips:?}");
-            shared_state.filtering_resolver.enable_forward(ips).await;
+            shared_state
+                .filtering_resolver
+                .enable_forward(
+                    ips,
+                    #[cfg(target_os = "ios")]
+                    Some(tunnel_metadata.interface.clone()),
+                )
+                .await;
 
             #[cfg(any(target_os = "linux", target_os = "windows"))]
             {
