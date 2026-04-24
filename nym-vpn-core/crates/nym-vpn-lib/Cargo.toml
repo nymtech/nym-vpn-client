@@ -164,6 +164,7 @@ tracing-oslog.workspace = true
 [target.'cfg(any(target_os = "ios"))'.dependencies]
 hickory-server = { workspace = true, features = ["resolver"] }
 socket2.workspace = true
+libc.workspace = true
 nym-dns.workspace = true
 nym-firewall-config.workspace = true
 
