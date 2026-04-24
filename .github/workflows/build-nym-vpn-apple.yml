@@ -63,6 +63,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
 
+        with:
+          fetch-depth: 1
       - name: Normalize release_type
         run: |
           set -euo pipefail
@@ -1171,6 +1173,7 @@ jobs:
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
         uses: actions/checkout@v6
         with:
+          fetch-depth: 1
           repository: nymtech/nym-websites
           token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
           path: nym-websites

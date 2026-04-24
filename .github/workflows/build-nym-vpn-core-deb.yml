@@ -36,6 +36,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
 
+        with:
+          fetch-depth: 1
       - name: Install system dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
