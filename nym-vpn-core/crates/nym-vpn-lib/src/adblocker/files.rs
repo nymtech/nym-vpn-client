@@ -86,7 +86,8 @@ pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
 pub(crate) async fn update_files(data_dir: &Path, user_agent: &str) -> Result<bool> {
     let ad_blocking_path = get_ad_blocking_path(data_dir);
     let mut updated = false;
-    let http_client = build_http_client().map_err(|error| AdBlockerError::BuildHttpClient { error })?;
+    let http_client = nym_http_api_client::registry::build_client()
+        .map_err(|error| AdBlockerError::BuildHttpClient { error })?;
 
     for source in SOURCES.iter() {
         if source
@@ -121,32 +122,6 @@ pub(crate) async fn load_filter_set(data_dir: &Path) -> Result<Box<FilterSet>> {
     }
 
     Ok(Box::new(filter_set))
-}
-
-fn build_http_client() -> reqwest::Result<reqwest::Client> {
-    let builder = reqwest::Client::builder();
-
-    // On Android, the default reqwest TLS backend uses rustls-platform-verifier which requires
-    // JVM initialization. Use webpki-roots directly instead, consistent with other HTTP clients
-    // in the app.
-    #[cfg(target_os = "android")]
-    let builder = {
-        use std::sync::Arc;
-        let root_store = rustls::RootCertStore {
-            roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
-        };
-        let crypto_provider = rustls::crypto::CryptoProvider::get_default()
-            .cloned()
-            .unwrap_or_else(|| Arc::new(rustls::crypto::ring::default_provider()));
-        let tls_config = rustls::ClientConfig::builder_with_provider(crypto_provider)
-            .with_safe_default_protocol_versions()
-            .expect("ring supports TLS 1.2 and 1.3")
-            .with_root_certificates(root_store)
-            .with_no_client_auth();
-        builder.use_preconfigured_tls(tls_config)
-    };
-
-    builder.build()
 }
 
 pub(crate) fn get_ad_blocking_path(data_dir: &Path) -> PathBuf {
