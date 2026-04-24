@@ -12,7 +12,7 @@
 //! Platform-specific responsibilities (binding sockets, adding loopback aliases, flushing system
 //! DNS caches) are delegated to `platform`.
 
-#[cfg(any(target_os = "macos", target_os = "linux"))]
+#[cfg(any(target_os = "macos", target_os = "ios", target_os = "linux"))]
 mod unix;
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
@@ -495,6 +495,7 @@ impl LocalResolver {
                     match request {
                         Some(ResolverMessage::SetConfig { new_config, response_tx }) => {
                             self.update_config(new_config);
+                            #[cfg(not(target_os = "ios"))]
                             flush_system_cache();
                             let _ = response_tx.send(());
                         }

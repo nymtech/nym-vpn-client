@@ -6,7 +6,7 @@ use std::net::{IpAddr, Ipv4Addr};
 use socket2::{Domain, Protocol, SockAddr, Socket, Type};
 use tokio::net::UdpSocket;
 
-#[cfg(unix)]
+#[cfg(any(target_os = "macos", target_os = "ios", target_os = "linux"))]
 use crate::resolver::unix::RandomLoopbackAlias;
 #[cfg(windows)]
 use crate::resolver::windows::RandomLoopbackAlias;

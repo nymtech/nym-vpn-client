@@ -14,8 +14,10 @@ use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(not(any(target_os = "android")))]
 use crate::resolver::LOCAL_DNS_RESOLVER;
+#[cfg(target_os = "ios")]
+use crate::tunnel_state_machine::Result;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
     TunnelCommand, TunnelInterface, TunnelStateHandler,
@@ -25,7 +27,7 @@ use crate::tunnel_state_machine::{
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(not(any(target_os = "android")))]
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
@@ -110,7 +112,10 @@ impl ConnectedState {
                 shared_state,
             )
             .await;
-        } else if let Err(e) = connected_state.set_dns(shared_state).await {
+        }
+
+        #[cfg(not(any(target_os = "android")))]
+        if let Err(e) = connected_state.set_dns(shared_state).await {
             trace_err_chain!(e, "failed to set dns");
             return DisconnectingState::enter(
                 PrivateActionAfterDisconnect::Error(ErrorStateReason::SetDns),
@@ -147,12 +152,12 @@ impl ConnectedState {
             .map_err(Error::SetFirewallPolicy)
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "android"))]
     async fn set_dns(&self, shared_state: &mut SharedState) -> Result<()> {
         let dns_config = shared_state.tunnel_settings.resolved_dns_config();
+        #[cfg(not(any(target_os = "android", target_os = "ios",)))]
         let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
         // We do not want to forward DNS queries to *our* local resolver if we do not run a local
         // DNS resolver *or* if the DNS config points to a loopback address.
         if *LOCAL_DNS_RESOLVER {
@@ -178,24 +183,30 @@ impl ConnectedState {
                 shared_state.enable_ad_blocking(true).await;
             }
         } else {
-            tracing::debug!("Not enabling local DNS resolver");
-            shared_state
-                .dns_handler
-                .set(&tunnel_metadata.interface, dns_config)
-                .await
-                .map_err(Error::SetDns)?;
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            {
+                tracing::debug!("Not enabling local DNS resolver");
+                shared_state
+                    .dns_handler
+                    .set(&tunnel_metadata.interface, dns_config)
+                    .await
+                    .map_err(Error::SetDns)?;
+            }
         }
 
         Ok(())
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "android"))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if *LOCAL_DNS_RESOLVER {
             shared_state.enable_ad_blocking(false).await;
             shared_state.filtering_resolver.disable_forward().await;
-        } else if let Err(error) = shared_state.dns_handler.reset().await {
-            trace_err_chain!(error, "Failed to reset DNS");
+        } else {
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            if let Err(error) = shared_state.dns_handler.reset().await {
+                trace_err_chain!(error, "Failed to reset DNS");
+            }
         }
 
         #[cfg(any(target_os = "linux", target_os = "windows"))]
@@ -218,9 +229,12 @@ impl ConnectedState {
         after_disconnect: PrivateActionAfterDisconnect,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "android"))]
         {
             Self::reset_dns(shared_state).await;
+        }
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
             Self::reset_routes(shared_state).await;
         }
 
@@ -474,6 +488,7 @@ impl ConnectedPolicyParameters {
 }
 
 #[cfg(test)]
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod tests {
     use super::*;
     use nym_dns::DnsConfig;
@@ -501,7 +516,6 @@ mod tests {
     }
 
     #[test]
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn test_firewall_policy_includes_exit_gateway_endpoints() {
         // Create mock entry gateway with WebSocket on port 9000 (WS) and 9001 (WSS)
         let entry_gateway =
