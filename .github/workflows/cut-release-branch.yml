@@ -60,6 +60,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
         with:
+          fetch-depth: 1
           ref: develop
           ssh-key: ${{ secrets.CI_RELEASE_DEPLOY_KEY }}
 
@@ -99,6 +100,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
         with:
+          fetch-depth: 1
           ref: develop
 
       - name: Install Node

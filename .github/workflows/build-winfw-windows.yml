@@ -29,6 +29,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
         with:
+          fetch-depth: 1
           submodules: true
 
       - name: Install cargo-get
