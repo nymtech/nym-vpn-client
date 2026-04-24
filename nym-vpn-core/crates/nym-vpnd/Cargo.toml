@@ -85,6 +85,7 @@ assets = [
     "$auto",
     { source = "target/release/nym-exclude", dest = "usr/bin/nym-exclude", mode = "755" },
     { source = "target/release/nym-socks5-proxy", dest = "usr/bin/nym-socks5-proxy", mode = "755" },
+    { source = "../nym-ipc/.pkg/com.nymvpn.vpnd.unix-access.policy", dest = "usr/share/polkit-1/actions/com.nymvpn.vpnd.unix-access.policy", mode = "644" },
 ]
 revision = ""
 

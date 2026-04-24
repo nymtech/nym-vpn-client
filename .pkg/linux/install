@@ -88,6 +88,7 @@ vpnd_deb_ver_url=$vpnd_version
 vpnd_raw_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_${arch}.tar.gz"
 vpnd_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpnd_${vpnd_deb_ver_url}_${deb_arch}.deb"
 unit_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service"
+polkit_policy_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/$vpnd_tag/nym-vpn-core/crates/nym-ipc/.pkg/com.nymvpn.vpnd.unix-access.policy"
 ##################################################################
 
 # function called when an error occurs, will print the exit
@@ -178,6 +179,9 @@ core_archive="nym-vpn-core-v${vpnd_version}_linux_${arch}.tar.gz"
 vpnd_bin="nym-vpnd"
 socks5_proxy_bin="nym-socks5-proxy"
 vpnd_service="nym-vpnd.service"
+polkit_policy_file="com.nymvpn.vpnd.unix-access.policy"
+polkit_policy_dir="/usr/share/polkit-1/actions"
+polkit_policy_fallback_dir="/etc/polkit-1/actions"
 vpnd_deb="nym-vpnd_${vpnd_deb_ver}_${deb_arch}.deb"
 units_dir="/usr/lib/systemd/system"
 desktop_exec='env RUST_LOG=info,nym_vpn_app=debug NymVPN.AppImage -l %U'
@@ -350,6 +354,8 @@ download_vpnd_raw() {
   log "   ${BI_MGT}ok$RS"
   log "  ${B_GRN}Downloading$RS unit file"
   curl -fL -# "$unit_url" -o nym-vpnd.service
+  log "  ${B_GRN}Downloading$RS polkit policy"
+  curl -fL -# "$polkit_policy_url" -o "$polkit_policy_file"
   log "  ${B_GRN}Unarchiving$RS nym-vpnd"
   tar -xzf "$core_archive"
   mv "${core_archive%.tar.gz}/$vpnd_bin" $vpnd_bin
@@ -532,10 +538,14 @@ install_vpnd_raw() {
   log "  ${B_GRN}Installing$RS systemd service"
   sudo install -Dm644 "$temp_dir/$vpnd_service" "$units_dir/$vpnd_service"
 
+  log "  ${B_GRN}Installing$RS polkit action policy"
+  sudo install -Dm644 "$temp_dir/$polkit_policy_file" "$polkit_policy_dir/$polkit_policy_file"
+
   log "  ${B_GRN}Installed$RS files"
   log "   ${I_YLW}$(tilded "$install_dir/$vpnd_bin")$RS"
   log "   ${I_YLW}$(tilded "$install_dir/$socks5_proxy_bin")$RS"
   log "   ${I_YLW}$(tilded "$units_dir/$vpnd_service")$RS"
+  log "   ${I_YLW}$(tilded "$polkit_policy_dir/$polkit_policy_file")$RS"
 }
 
 install_vpnd_deb() {
@@ -666,6 +676,8 @@ _uninstall_raw() {
       "/usr/bin/nym-socks5-proxy"
       "/usr/lib/systemd/system/nym-vpnd.service"
       "/etc/nym/nym-vpnd.toml"
+      "$polkit_policy_dir/$polkit_policy_file"
+      "$polkit_policy_fallback_dir/$polkit_policy_file"
     )
   fi
   if [ "$_app" == 0 ]; then

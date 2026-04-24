@@ -62,6 +62,8 @@ package() {
   install -Dm755 "target/release/nym-exclude" "$pkgdir/usr/bin/nym-exclude"
   chmod u+s "$pkgdir/usr/bin/nym-exclude"
   install -Dm755 "target/release/nym-socks5-proxy" "$pkgdir/usr/bin/nym-socks5-proxy"
+  install -Dm644 "crates/nym-ipc/.pkg/com.nymvpn.vpnd.unix-access.policy" \
+    "$pkgdir/usr/share/polkit-1/actions/com.nymvpn.vpnd.unix-access.policy"
   popd
 
   install -Dm644 nym-vpnd.service "$pkgdir/usr/lib/systemd/system/nym-vpnd.service"

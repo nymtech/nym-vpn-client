@@ -18,6 +18,7 @@ provides=('nym-vpnd' 'nym-exclude' 'nym-socks5-proxy')
 conflicts=('nym-vpnd')
 options=(!debug)
 source=("$url/releases/download/$_release_tag/nym-vpn-core-v${_pkgver}_linux_x86_64.tar.gz"
+    "$url/raw/$_release_tag/nym-vpn-core/crates/nym-ipc/.pkg/com.nymvpn.vpnd.unix-access.policy"
     'nym-vpnd.service')
 sha256sums=()
 
@@ -26,5 +27,7 @@ package() {
   install -Dm755 "nym-vpn-core-v${_pkgver}_linux_x86_64/nym-exclude" "$pkgdir/usr/bin/nym-exclude"
   chmod u+s "$pkgdir/usr/bin/nym-exclude"
   install -Dm755 "nym-vpn-core-v${_pkgver}_linux_x86_64/nym-socks5-proxy" "$pkgdir/usr/bin/nym-socks5-proxy"
+  install -Dm644 com.nymvpn.vpnd.unix-access.policy \
+    "$pkgdir/usr/share/polkit-1/actions/com.nymvpn.vpnd.unix-access.policy"
   install -Dm644 nym-vpnd.service "$pkgdir/usr/lib/systemd/system/nym-vpnd.service"
 }
