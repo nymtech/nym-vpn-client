@@ -21,6 +21,8 @@ jobs:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v6
 
+        with:
+          fetch-depth: 1
       - name: Cache libwg
         uses: actions/cache@v5
         id: cache

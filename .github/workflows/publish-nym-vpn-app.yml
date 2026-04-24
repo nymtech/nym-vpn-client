@@ -90,6 +90,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
 
+        with:
+          fetch-depth: 1
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
