@@ -520,8 +520,10 @@ impl fmt::Display for AirportingSettings {
 
 impl Default for AirportingSettings {
     fn default() -> Self {
+        // Temporary, until there is a way to turn on Airporting on Android
+        let enabled = cfg!(target_os = "android");
         Self {
-            enabled: false,
+            enabled,
             listen_port: 1080,
             excluded_countries: vec!["CN".to_string()],
         }

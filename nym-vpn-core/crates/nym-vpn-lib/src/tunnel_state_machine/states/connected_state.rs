@@ -327,7 +327,7 @@ impl TunnelStateHandler for ConnectedState {
                             }
                         }
 
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        #[cfg(not(target_os = "ios"))]
                         if diff.airporting_enabled_changed() {
                             shared_state
                                 .start_or_stop_socks5_proxy()

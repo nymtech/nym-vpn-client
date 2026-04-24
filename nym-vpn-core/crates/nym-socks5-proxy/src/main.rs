@@ -1,27 +1,25 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod default_interface;
-mod proxy;
-mod routing;
+use nym_socks5_proxy::{default_interface, proxy};
 
 use std::{
-    fs::{File, create_dir_all},
-    io::{Write, stdout},
+    fs::{create_dir_all, File},
+    io::{stdout, Write},
     mem::discriminant,
     path::Path,
 };
 
-use anyhow::{Context, Result, bail};
+use anyhow::{bail, Context, Result};
 use nym_socks5_proxy_ipc::{
     DaemonMessage, ErrorData, InterfaceAddresses, ProxyConfig, ProxyMessage,
 };
 use tokio::{
-    io::{AsyncBufReadExt, BufReader, stdin},
+    io::{stdin, AsyncBufReadExt, BufReader},
     sync::watch,
 };
 use tokio_util::sync::CancellationToken;
-use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -183,7 +181,7 @@ fn send_error_message(msg: &str) {
 fn install_signal_handlers(shutdown_token: CancellationToken) {
     #[cfg(unix)]
     tokio::spawn(async move {
-        use tokio::signal::unix::{SignalKind, signal};
+        use tokio::signal::unix::{signal, SignalKind};
         let mut sigterm =
             signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
         let mut sigint = signal(SignalKind::interrupt()).expect("failed to install SIGINT handler");

@@ -53,7 +53,7 @@ Add to `%PATH%`:
 ```
 %JAVA_HOME%\bin
 %ANDROID_HOME%\emulator
-%ANDROID_HOME%\cmdline-tools\bin
+%ANDROID_HOME%\cmdline-tools\bin  (or ...\cmdline-tools\latest\bin if you installed the latest version)
 %ANDROID_HOME%\platform-tools
 ```
 

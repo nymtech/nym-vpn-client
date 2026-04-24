@@ -38,7 +38,7 @@ use crate::adblocker;
 use crate::dns_filter::DnsFilter;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::resolver;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(not(target_os = "ios"))]
 use crate::socks5_proxy::Socks5ProxyManager;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::socks5_proxy::find_proxy_binary;
@@ -81,7 +81,7 @@ use wintun::SetupWintunAdapterError;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use dns_handler::DnsHandlerHandle;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(not(target_os = "ios"))]
 use nym_socks5_proxy_ipc::ProxyConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub use route_handler::RouteHandler;
@@ -604,7 +604,7 @@ pub struct TunnelMetadata {
 }
 
 impl TunnelMetadata {
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     fn get_addresses(&self) -> (Option<Ipv4Addr>, Option<Ipv6Addr>) {
         let v4_address = self
             .ips
@@ -665,7 +665,7 @@ pub struct SharedState {
     filtering_resolver: resolver::ResolverHandle,
     #[cfg(not(target_os = "ios"))]
     adblocker: adblocker::AdBlockerTaskHandle,
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     socks5_proxy_manager: Socks5ProxyManager,
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
@@ -684,7 +684,7 @@ pub struct SharedState {
     topology_service: VpnTopologyServiceHandle,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     user_agent: UserAgent,
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     shutdown_token: CancellationToken,
 }
 
@@ -806,7 +806,7 @@ impl SharedState {
             .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     async fn start_or_stop_socks5_proxy(&mut self) {
         if self.tunnel_settings.airporting_settings.enabled {
             self.start_socks5_proxy().await;
@@ -815,7 +815,7 @@ impl SharedState {
         }
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     async fn start_socks5_proxy(&mut self) {
         match self.build_proxy_config() {
             Ok(config) => {
@@ -831,12 +831,12 @@ impl SharedState {
         }
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     async fn stop_socks5_proxy(&mut self) {
         self.socks5_proxy_manager.stop().await;
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     fn set_socks5_proxy_tunnel_addrs(
         &mut self,
         tunnel_v4_addr: Option<Ipv4Addr>,
@@ -846,7 +846,7 @@ impl SharedState {
             .set_tunnel_addrs(tunnel_v4_addr, tunnel_v6_addr);
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     fn build_proxy_config(&self) -> Result<ProxyConfig, String> {
         let Some(data_path) = self.nym_config.data_path.as_ref() else {
             return Err("Data path is required but not configured".to_string());
@@ -1019,7 +1019,7 @@ impl TunnelStateMachine {
             filtering_resolver,
             #[cfg(not(target_os = "ios"))]
             adblocker,
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            #[cfg(not(target_os = "ios"))]
             socks5_proxy_manager: Socks5ProxyManager::new(),
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             split_tunnel,
@@ -1036,7 +1036,7 @@ impl TunnelStateMachine {
             topology_service,
             discovery_refresher_command_tx,
             user_agent,
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            #[cfg(not(target_os = "ios"))]
             shutdown_token: shutdown_token.clone(),
         };
 
@@ -1045,7 +1045,7 @@ impl TunnelStateMachine {
             tracing::error!("failed to set initial split tunnel paths: {err:?}");
         }
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "ios"))]
         if shared_state.tunnel_settings.airporting_settings.enabled {
             shared_state.start_socks5_proxy().await;
         }
@@ -1112,14 +1112,15 @@ impl TunnelStateMachine {
 
         tracing::debug!("Tunnel state machine is exiting...");
 
+        #[cfg(not(target_os = "ios"))]
+        self.shared_state.stop_socks5_proxy().await;
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             self.dns_handler_shutdown_token.cancel();
             if let Err(e) = self.dns_handler_task.await {
                 tracing::error!("Failed to join on dns handler task: {}", e)
             }
-
-            self.shared_state.stop_socks5_proxy().await;
 
             self.shared_state.route_handler.stop().await;
 

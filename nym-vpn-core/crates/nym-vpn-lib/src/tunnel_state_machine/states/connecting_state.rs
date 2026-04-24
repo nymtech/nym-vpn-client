@@ -262,7 +262,7 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.route_handler.remove_routes().await;
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "ios"))]
         {
             shared_state.set_socks5_proxy_tunnel_addrs(None, None);
         }
@@ -466,7 +466,7 @@ impl ConnectingState {
             return self.disconnect(after_disconnect, shared_state).await;
         }
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "ios"))]
         {
             let (tunnel_v4_addr, tunnel_v6_addr) =
                 tunnel_interface.exit_tunnel_metadata().get_addresses();
@@ -768,7 +768,7 @@ impl TunnelStateHandler for ConnectingState {
                             }
                         }
 
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        #[cfg(not(target_os = "ios"))]
                         if diff.airporting_enabled_changed() {
                             shared_state
                                 .start_or_stop_socks5_proxy()
