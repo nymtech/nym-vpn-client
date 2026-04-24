@@ -62,6 +62,7 @@ impl<T> AuthenticationLayer<T> {
 #[derive(Clone)]
 #[allow(unused)]
 pub struct AuthenticationMaterial {
+    pub(crate) disable_client_verification: bool,
     #[cfg(target_os = "windows")]
     pub(crate) nym_certificate_serial_number: String,
     #[cfg(target_os = "macos")]
@@ -72,11 +73,13 @@ pub struct AuthenticationMaterial {
 
 impl AuthenticationMaterial {
     pub fn new(
+        disable_client_verification: bool,
         #[cfg(target_os = "windows")] nym_certificate_serial_number: String,
         #[cfg(target_os = "macos")] signing_requirements: SigningRequirements,
         #[cfg(unix)] shutdown_token: tokio_util::sync::CancellationToken,
     ) -> Self {
         Self {
+            disable_client_verification,
             #[cfg(target_os = "windows")]
             nym_certificate_serial_number,
             #[cfg(target_os = "macos")]

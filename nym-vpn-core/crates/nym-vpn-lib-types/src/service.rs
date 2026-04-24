@@ -17,7 +17,10 @@ use time::OffsetDateTime;
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
-use crate::{EntryPoint, ExitPoint, NetworkStatisticsConfig, NymNetworkDetails, NymVpnNetwork};
+use crate::{
+    EntryPoint, ExitPoint, GatewaySelectionAlgorithmConfig, NetworkStatisticsConfig,
+    NymNetworkDetails, NymVpnNetwork,
+};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
@@ -46,6 +49,8 @@ pub struct VpnServiceConfig {
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
+    pub airporting: AirportingSettings,
+    pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -85,6 +90,12 @@ impl fmt::Display for VpnServiceConfig {
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
         writeln!(f, "split tunnel settings: {}", self.split_tunnel)?;
+        writeln!(f, "airporting settings: {}", self.airporting)?;
+        writeln!(
+            f,
+            "gateway selection algorithm: {}",
+            self.gateway_selection_algorithm_config
+        )?;
 
         Ok(())
     }
@@ -113,6 +124,8 @@ impl Default for VpnServiceConfig {
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
             split_tunnel: SplitTunnelSettings::default(),
+            airporting: AirportingSettings::default(),
+            gateway_selection_algorithm_config: Default::default(),
         }
     }
 }
@@ -166,7 +179,7 @@ impl fmt::Display for MixnetTrafficConfig {
             "disable_poisson_rate: {}, disable_background_cover_traffic: {}",
             self.disable_poisson_rate, self.disable_background_cover_traffic
         )?;
-        writeln!(
+        write!(
             f,
             "min_mixnode_performance: {:?}, min_gateway_mixnet_performance: {:?}",
             self.min_mixnode_performance, self.min_gateway_mixnet_performance
@@ -483,6 +496,45 @@ impl fmt::Display for SplitTunnelSettings {
             writeln!(f, "- {app}")?;
         }
         Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct AirportingSettings {
+    pub enabled: bool,
+    pub listen_port: u16,
+    pub excluded_countries: Vec<String>,
+}
+
+impl fmt::Display for AirportingSettings {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "enabled: {}", self.enabled)?;
+        writeln!(f, "listen_port: {}", self.listen_port)?;
+        writeln!(
+            f,
+            "excluded_countries: {}",
+            self.excluded_countries.join(", ")
+        )?;
+        Ok(())
+    }
+}
+
+impl Default for AirportingSettings {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            listen_port: 1080,
+            excluded_countries: vec!["CN".to_string()],
+        }
     }
 }
 

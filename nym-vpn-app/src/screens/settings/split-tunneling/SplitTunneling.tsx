@@ -13,7 +13,7 @@ import { useToast } from '../../../hooks/index';
 import InfoDialog from './InfoDialog';
 import LaunchConfirmDialog from './LaunchConfirmDialog';
 import AppItem, { AppEntry } from './AppItem';
-import { useSplitTunnel } from './utils';
+import { parseExecArgs, useSplitTunnel } from './utils';
 import { PROBLEMATIC_APPS } from './utils/constants';
 
 function SplitTunneling() {
@@ -36,7 +36,7 @@ function SplitTunneling() {
       try {
         const command = Command.create(
           'nym-exclude',
-          app.executable_path.split(' '),
+          parseExecArgs(app.executable_path),
         );
 
         command.on('close', (data) => {

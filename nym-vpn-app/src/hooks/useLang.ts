@@ -1,8 +1,8 @@
 import dayjs from 'dayjs';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LngTag, loadLocale } from '../i18n';
-import { kvSet } from '../kvStore';
+import { LngTag, detectSystemLocale, loadLocale } from '../i18n';
+import { kvDel, kvSet } from '../kvStore';
 
 /**
  * Hook to set the i18n language
@@ -82,7 +82,16 @@ function useLang() {
     [collator],
   );
 
-  return { compare, set, getCountryName };
+  /**
+   * Clears any stored language preference and applies the OS system language.
+   */
+  const setSystem = useCallback(async () => {
+    await kvDel('ui-language');
+    const lng = await detectSystemLocale();
+    await set(lng, false);
+  }, [set]);
+
+  return { compare, set, setSystem, getCountryName };
 }
 
 export default useLang;

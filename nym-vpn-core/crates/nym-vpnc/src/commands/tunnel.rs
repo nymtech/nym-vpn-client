@@ -3,6 +3,7 @@
 
 use anyhow::Result;
 
+use nym_vpn_lib_types::GatewaySelectionAlgorithm;
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
@@ -76,6 +77,28 @@ pub struct SetParams {
         value_parser = clap::value_parser!(BooleanOption),
     )]
     disable_real_traffic_poisson_rate: Option<BooleanOption>,
+
+    /// Set the level of automatic selection of gateway that the tunnel state machine should use
+    /// 0 means no automatic selection, everything is set by the user explicitly
+    /// 1 means automatic selection just for the entry gateway
+    /// anything else means automatic selection for both entry and exit gateway
+    #[arg(
+    long,
+    value_name = "LEVEL",
+    value_parser = ValueParser::from(|s: &str| -> Result<GatewaySelectionAlgorithm, String> {
+        let ret = match s.parse().map_err(|_| format!("Invalid integer: {}", s))? {
+            0 => GatewaySelectionAlgorithm::Explicit,
+            1 => GatewaySelectionAlgorithm::AutoEntryExplicitExit,
+            _ => GatewaySelectionAlgorithm::Auto,
+        };
+        Ok(ret)
+    })
+    )]
+    automatic_gateway_selection_level: Option<GatewaySelectionAlgorithm>,
+
+    /// Enable or disable geo-location data being used for determining gateway proximity
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
+    geo_location: Option<BooleanOption>,
 }
 
 impl Command {
@@ -95,6 +118,10 @@ impl Command {
                     display_on_off(config.enable_bridges)
                 );
                 println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
+                println!(
+                    "Gateway selection algorithm: {}",
+                    config.gateway_selection_algorithm_config
+                );
 
                 Ok(())
             }
@@ -149,6 +176,20 @@ impl Command {
 
                     rpc_client
                         .set_mixnet_traffic_config(config.mixnet_traffic)
+                        .await?;
+                }
+
+                if let Some(automatic_gateway_selection_level) =
+                    params.automatic_gateway_selection_level
+                {
+                    rpc_client
+                        .set_gateway_selection_algorithm(automatic_gateway_selection_level)
+                        .await?;
+                }
+
+                if let Some(enable_geo_location) = params.geo_location {
+                    rpc_client
+                        .set_enable_geo_location(*enable_geo_location)
                         .await?;
                 }
 

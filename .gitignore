@@ -38,8 +38,9 @@ nym-vpn-core/upload/mac
 *.vcxproj.user
 .vs/
 
-# GitHub Copilot
+# AI tools
 .github/copilot-instructions.md
+.claude/
 
 # Fastlane reports
 fastlane/report.xml

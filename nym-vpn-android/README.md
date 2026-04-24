@@ -4,23 +4,16 @@ The Android client application for [NymVPN](https://nym.com).
 
 ## Building
 
-These are primarily directions for macOS, but the same tooling can be installed \
-similarly for other operating systems.
+These are primarily directions for macOS, but the same tooling can be installed similarly for other operating systems.
 
-### Install Rustup
+### Install nym-vpn-core dependencies
 
-```sh
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
+See the [nym-vpn-core README](../nym-vpn-core/README.md) for information on installing required dependencies.
 
 ### Add android targets to Rust
 
 ```sh
-rustup target add \
-            aarch64-linux-android \
-            armv7-linux-androideabi \
-            x86_64-linux-android \
-            i686-linux-android
+rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android i686-linux-android
 ```
 
 ### Install cargo dependencies
@@ -29,43 +22,39 @@ rustup target add \
 cargo install cargo-ndk cargo-license
 ```
 
-### Install Go
+### Additional MSYS2 dependencies for Windows
+
+If you are on Windows, you will need to add the following to MSYS2:
 
 ```sh
-brew install go
+pacman -S rsync patch
 ```
 
-### Install JDK 17
-
-```sh
-brew install openjdk@17
-```
-
-### Install protobuf
-
-```sh
-brew install protobuf
-```
-
-### Install Android SDK and/or Android Studio with NDK
+### Install Android Studio with NDK
 
 There are many ways to go about this, but using [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/) is a convenient way.
 
-Preferred NDK version is `r25c`.
+### Android Environment Variables
 
-### Clone
+Set-up environment variables for Android SDK and NDK: `JAVA_HOME`, `ANDROID_HOME` and `ANDROID_NDK`.
 
-```sh
-git clone https://github.com/nymtech/nym-vpn-client
+This will vary by operating system, however you can use the Java bundled with Android Studio.
+
+#### Windows
+
+```
+JAVA_HOME:    C:\Program Files\Android\Android Studio\jbr
+ANDROID_HOME: %LOCALAPPDATA%\Android\Sdk
+ANDROID_NDK:  %ANDROID_HOME%\ndk\30.0.14904198 (or whatever version you have installed)
 ```
 
-### Update uniffi bindings for nym-vpn-lib
+Add to `%PATH%`:
 
-```sh
-cd nym-vpn-client/nym-vpn-core
-cargo ndk -t arm64-v8a build -p nym-vpn-lib --release
-make generate-uniffi-android
-cp crates/nym-vpn-lib/uniffi/nym_vpn_lib.kt ../nym-vpn-android/core/src/main/java/net/nymtech/vpn/nym_vpn_lib
+```
+%JAVA_HOME%\bin
+%ANDROID_HOME%\emulator
+%ANDROID_HOME%\cmdline-tools\bin
+%ANDROID_HOME%\platform-tools
 ```
 
 ### Build

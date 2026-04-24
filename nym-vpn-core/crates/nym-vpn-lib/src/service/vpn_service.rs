@@ -41,11 +41,11 @@ use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, AutologinResponse,
     DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
     DiagnosticReport, DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
-    MixnetTrafficConfig, NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails,
-    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, RegistrationReport,
-    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams, ListGatewaysOptions,
+    LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
+    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
+    ParsedAccountLinks, RegistrationReport, StoreAccountRequest, SystemMessage, TargetState,
+    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -56,7 +56,8 @@ use super::{
     Socks5Error, Socks5Service, Socks5Status,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
-        AccountLinksError, Error, GlobalConfigError, ListGatewaysError, Result, SetNetworkError,
+        AccountLinksError, AirportingConfigError, Error, GlobalConfigError, ListGatewaysError,
+        Result, SetNetworkError,
     },
     socks5::Socks5EnableConfig,
     socks5_idle_timeout, socks5_request_timeout,
@@ -98,6 +99,11 @@ pub enum VpnServiceCommand {
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
     SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
+    SetGatewaySelectionAlgorithm(
+        oneshot::Sender<Result<(), String>>,
+        GatewaySelectionAlgorithm,
+    ),
+    SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -110,6 +116,12 @@ pub enum VpnServiceCommand {
     ListFilteredGateways(
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         LookupGatewayFilters,
+    ),
+    SetAirportingEnabled(oneshot::Sender<()>, bool),
+    SetAirportingListenPort(oneshot::Sender<()>, u16),
+    SetAirportingExcludedCountries(
+        oneshot::Sender<Result<(), AirportingConfigError>>,
+        Vec<String>,
     ),
     EnableSocks5(
         oneshot::Sender<Result<(), Socks5Error>>,
@@ -473,7 +485,7 @@ impl NymVpnService {
         let nyxd_client = NyxdClient::new(&network_env);
 
         let account_controller = AccountController::new(
-            nym_vpn_api_client,
+            nym_vpn_api_client.clone(),
             nyxd_client,
             account_controller_config,
             storage,
@@ -640,6 +652,7 @@ impl NymVpnService {
             account_state_rx.clone(),
             statistics_event_sender.clone(),
             gateway_cache_handle.clone(),
+            nym_vpn_api_client,
             topology_service.clone(),
             connectivity_handle,
             discovery_refresher_command_tx,
@@ -979,6 +992,18 @@ impl NymVpnService {
                     .await;
                 let _ = tx.send(res);
             }
+            VpnServiceCommand::SetGatewaySelectionAlgorithm(tx, gateway_selection_algorithm) => {
+                let res = self
+                    .handle_set_gateway_selection_algorithm(gateway_selection_algorithm)
+                    .await;
+                let _ = tx.send(res);
+            }
+            VpnServiceCommand::SetEnableGeoLocation(tx, enable_geo_location) => {
+                let res = self
+                    .handle_set_enable_geo_location(enable_geo_location)
+                    .await;
+                let _ = tx.send(res);
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -1200,6 +1225,20 @@ impl NymVpnService {
                 let has_fda = nym_split_tunnel::has_full_disk_access();
                 let _ = tx.send(!has_fda);
             }
+            VpnServiceCommand::SetAirportingEnabled(tx, enabled) => {
+                self.handle_set_airporting_enabled(enabled).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetAirportingListenPort(tx, listen_port) => {
+                self.handle_set_airporting_listen_port(listen_port).await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetAirportingExcludedCountries(tx, excluded_countries) => {
+                let result = self
+                    .handle_set_airporting_excluded_countries(excluded_countries)
+                    .await;
+                let _ = tx.send(result);
+            }
         }
     }
 
@@ -1315,6 +1354,30 @@ impl NymVpnService {
     ) -> Result<(), String> {
         self.config_manager
             .set_mixnet_traffic_config(mixnet_traffic_config)
+            .await
+            .map_err(|err| err.to_string())?;
+        self.update_tunnel_settings_with_throttle();
+        Ok(())
+    }
+
+    async fn handle_set_gateway_selection_algorithm(
+        &mut self,
+        gateway_selection_algorithm: GatewaySelectionAlgorithm,
+    ) -> Result<(), String> {
+        self.config_manager
+            .set_gateway_selection_algorithm(gateway_selection_algorithm)
+            .await
+            .map_err(|err| err.to_string())?;
+        self.update_tunnel_settings_with_throttle();
+        Ok(())
+    }
+
+    async fn handle_set_enable_geo_location(
+        &mut self,
+        enable_geo_location: bool,
+    ) -> Result<(), String> {
+        self.config_manager
+            .set_enable_geo_location(enable_geo_location)
             .await
             .map_err(|err| err.to_string())?;
         self.update_tunnel_settings_with_throttle();
@@ -2217,5 +2280,28 @@ impl NymVpnService {
         if let Err(err) = self.split_tunnel_pid_manager.clear() {
             trace_err_chain!(err, "failed to remove all processes from exclusions");
         }
+    }
+
+    async fn handle_set_airporting_enabled(&mut self, enabled: bool) {
+        self.config_manager.set_airporting_enabled(enabled).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_airporting_listen_port(&mut self, listen_port: u16) {
+        self.config_manager
+            .set_airporting_listen_port(listen_port)
+            .await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_airporting_excluded_countries(
+        &mut self,
+        excluded_countries: Vec<String>,
+    ) -> Result<(), AirportingConfigError> {
+        self.config_manager
+            .set_airporting_excluded_countries(excluded_countries)
+            .await?;
+        self.update_tunnel_settings_with_throttle();
+        Ok(())
     }
 }

@@ -16,16 +16,22 @@
 mod unix;
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
-pub(crate) use unix::{flush_system_cache, new_random_socket};
+pub(crate) use unix::flush_system_cache;
 
 #[cfg(windows)]
 mod windows;
 
 #[cfg(windows)]
-pub(crate) use windows::{flush_system_cache, new_random_socket};
+pub(crate) use windows::flush_system_cache;
 
 #[cfg(test)]
 mod tests;
+
+mod tcp;
+use tcp::new_tcp_listener;
+
+mod udp;
+use udp::new_random_socket;
 
 use async_trait::async_trait;
 use hickory_server::{
@@ -55,7 +61,7 @@ use std::{
     time::{Duration, Instant},
 };
 use tokio::{
-    net::UdpSocket,
+    net::{TcpListener, UdpSocket},
     sync::{Mutex, mpsc, oneshot},
 };
 use tokio_util::{either::Either, sync::CancellationToken};
@@ -110,6 +116,10 @@ const TTL_SECONDS: u32 = 3;
 /// An IP address to be used in the DNS response to the captive domain query. The address itself
 /// belongs to the documentation range so should never be reachable.
 const RESOLVED_ADDR: Ipv4Addr = Ipv4Addr::new(198, 51, 100, 1);
+
+/// Timeout for TCP client connections.
+/// Any client that does not send any DNS requests within the given timeout will be dropped.
+pub const TCP_CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 
 /// Resolver errors
 #[derive(thiserror::Error, Debug)]
@@ -370,16 +380,27 @@ impl LocalResolver {
     ) -> Result<(ResolverHandle, tokio::task::JoinHandle<()>), Error> {
         let (tx, rx) = mpsc::unbounded_channel();
 
-        let (resolver_socket, loopback_alias) =
+        let (udp_socket, loopback_alias) =
             new_random_socket(DNS_LISTEN_PORT, use_random_loopback).await?;
-        let resolver_addr = resolver_socket.local_addr().map_err(Error::GetSocketAddr)?;
+        let resolver_addr = udp_socket.local_addr().map_err(Error::GetSocketAddr)?;
 
-        let mut server = Self::new_server(resolver_socket, tx.clone()).await?;
+        // Attempt to bind TCP listener to the same port as UDP, but don't fail if it's not possible.
+        let tcp_listener = new_tcp_listener(resolver_addr)
+            .inspect_err(|_err| {
+                tracing::warn!("Failed to bind TCP socket to {resolver_addr}");
+            })
+            .ok();
+        let is_tcp_available = tcp_listener.is_some();
+
+        let mut server = Self::new_server(udp_socket, tcp_listener, tx.clone()).await?;
 
         let cloned_shutdown_token = shutdown_token.child_token();
         let cloned_tx = tx.clone();
         let dns_server_task = tokio::spawn(async move {
-            tracing::info!("Running DNS resolver on {resolver_addr}");
+            tracing::info!(
+                "Running DNS resolver on {resolver_addr} ({})",
+                if is_tcp_available { "udp, tcp" } else { "udp" }
+            );
 
             loop {
                 tokio::select! {
@@ -405,15 +426,19 @@ impl LocalResolver {
                                 tracing::error!("DNS server unexpectedly stopped: {err}");
                                 tracing::debug!("Attempting to restart server");
 
-                                let socket = match UdpSocket::bind(resolver_addr).await {
+                                let udp_socket = match UdpSocket::bind(resolver_addr).await {
                                     Ok(socket) => socket,
                                     Err(e) => {
-                                        tracing::error!("Failed to bind DNS server to {resolver_addr}: {e}");
+                                        tracing::error!("Failed to bind UDP socket to {resolver_addr}: {e}");
                                         break;
                                     }
                                 };
 
-                                match Self::new_server(socket, cloned_tx.clone()).await {
+                                let tcp_listener = TcpListener::bind(resolver_addr).await.inspect_err(|err| {
+                                    tracing::warn!("Failed to bind TCP socket to {resolver_addr}: {err}");
+                                }).ok();
+
+                                match Self::new_server(udp_socket, tcp_listener, cloned_tx.clone()).await {
                                     Ok(new_server) => {
                                         server = new_server;
                                     }
@@ -452,10 +477,14 @@ impl LocalResolver {
 
     async fn new_server(
         server_socket: UdpSocket,
+        tcp_listener: Option<TcpListener>,
         tx: mpsc::UnboundedSender<ResolverMessage>,
     ) -> Result<ServerFuture<ResolverImpl>, Error> {
         let mut server = ServerFuture::new(ResolverImpl { tx });
         server.register_socket(server_socket);
+        if let Some(tcp_listener) = tcp_listener {
+            server.register_listener(tcp_listener, TCP_CLIENT_TIMEOUT);
+        }
         Ok(server)
     }
 

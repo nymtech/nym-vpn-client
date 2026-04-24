@@ -7,9 +7,6 @@ use std::{
     sync::Arc,
 };
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use std::collections::HashSet;
-
 #[cfg(target_os = "ios")]
 use ipnetwork::IpNetwork;
 #[cfg(target_os = "macos")]
@@ -92,6 +89,12 @@ impl ErrorState {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             firewall_policy_params,
         };
+
+        // Notify the SOCKS5 proxy subprocess that the VPN tunnel is down.
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
+            shared_state.set_socks5_proxy_tunnel_addrs(None, None)
+        }
 
         (Box::new(blocked_state), PrivateTunnelState::Error(reason))
     }
@@ -199,18 +202,23 @@ impl TunnelStateHandler for ErrorState {
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
-                            return NextTunnelState::SameState(self);
-                        };
-                        shared_state.tunnel_settings = tunnel_settings;
-
-                        #[cfg(any(target_os = "macos", target_os = "windows"))]
-                        if diff.split_tunnel_changed() {
-                            let _ = shared_state.set_exclude_paths(shared_state.tunnel_settings.split_tunnel.effective_app_paths(), HashSet::new()).await;
-                        }
-
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
+                            let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                                return NextTunnelState::SameState(self);
+                            };
+
+                            shared_state.set_tunnel_settings(tunnel_settings).await;
+
+                            #[cfg(any(target_os = "macos", target_os = "windows"))]
+                            if diff.split_tunnel_changed() || diff.airporting_enabled_changed() {
+                                let _ = shared_state.set_split_tunnel_exclude_paths().await;
+                            }
+
+                            if diff.airporting_enabled_changed() {
+                                shared_state.start_or_stop_socks5_proxy().await;
+                            }
+
                             if diff.allow_lan_changed() {
                                 self.firewall_policy_params.allow_lan = shared_state.tunnel_settings.allow_lan;
 
@@ -221,7 +229,9 @@ impl TunnelStateHandler for ErrorState {
                         }
 
                         #[cfg(any(target_os = "android", target_os = "ios"))]
-                        let _ = diff;
+                        {
+                            shared_state.set_tunnel_settings(tunnel_settings).await;
+                        }
 
                         NextTunnelState::SameState(self)
                     }

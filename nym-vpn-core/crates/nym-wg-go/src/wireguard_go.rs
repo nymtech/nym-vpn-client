@@ -12,6 +12,7 @@ use std::{
 use nym_crypto::asymmetric::x25519;
 #[cfg(windows)]
 use nym_windows::net::AddressFamily;
+use typed_builder::TypedBuilder;
 #[cfg(windows)]
 use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
@@ -106,6 +107,38 @@ impl WintunInterface {
     }
 }
 
+/// Tunnel file descriptor
+#[cfg(not(windows))]
+#[derive(Debug)]
+pub enum TunnelFd {
+    /// Tunnel device
+    Tun(OwnedFd),
+
+    /// Proxy device using unix domain socket
+    #[cfg(target_os = "android")]
+    Proxy(OwnedFd),
+}
+
+#[derive(Debug, TypedBuilder)]
+pub struct TunnelConfig {
+    /// Tunnel file descriptor
+    #[cfg(not(windows))]
+    tun_fd: TunnelFd,
+
+    /// Interface name
+    #[cfg(windows)]
+    interface_name: String,
+
+    /// Interface GUID
+    #[cfg(windows)]
+    requested_guid: String,
+
+    /// Tunnel type identifier
+    /// Passed during WinTun initialization
+    #[cfg(windows)]
+    wintun_tunnel_type: String,
+}
+
 /// Classic WireGuard tunnel.
 #[derive(Debug)]
 pub struct Tunnel {
@@ -116,8 +149,30 @@ pub struct Tunnel {
 
 impl Tunnel {
     /// Start new WireGuard tunnel
+    pub fn start(wg_config: Config, tun_config: TunnelConfig) -> Result<Self> {
+        #[cfg(not(windows))]
+        {
+            match tun_config.tun_fd {
+                TunnelFd::Tun(tun_fd) => Self::start_with_tun(wg_config, tun_fd),
+                #[cfg(target_os = "android")]
+                TunnelFd::Proxy(proxy_fd) => Self::start_with_proxy_fd(wg_config, proxy_fd),
+            }
+        }
+
+        #[cfg(windows)]
+        {
+            Self::start_inner(
+                wg_config,
+                &tun_config.interface_name,
+                &tun_config.requested_guid,
+                &tun_config.wintun_tunnel_type,
+            )
+        }
+    }
+
+    /// Start new WireGuard tunnel with TUN fd.
     #[cfg(not(windows))]
-    pub fn start(config: Config, tun_fd: OwnedFd) -> Result<Self> {
+    fn start_with_tun(config: Config, tun_fd: OwnedFd) -> Result<Self> {
         #[cfg(any(target_os = "linux", target_os = "macos"))]
         let interface_mtu = config.interface.mtu;
         let settings = CString::new(config.into_uapi_config())
@@ -142,36 +197,9 @@ impl Tunnel {
         }
     }
 
-    /// Start a new WireGuard tunnel backed by a raw proxy socket fd (Android only).
-    ///
-    /// Unlike [`start`], this calls `wgTurnOnWithProxyFd` which wraps the fd as a "dumb" I/O
-    /// device without calling `TUNGETIFF`, making it safe to use with a Unix socket fd.
-    #[cfg(target_os = "android")]
-    pub fn start_with_proxy_fd(config: Config, proxy_fd: OwnedFd) -> Result<Self> {
-        let mtu = config.interface.mtu;
-        let settings = CString::new(config.into_uapi_config())
-            .map_err(|_| Error::ConvertToCString("uapi config"))?;
-
-        let tunnel_handle = unsafe {
-            wgTurnOnWithProxyFd(
-                settings.as_ptr(),
-                proxy_fd.into_raw_fd(),
-                i32::from(mtu),
-                wg_logger_callback,
-                std::ptr::null_mut(),
-            )
-        };
-
-        if tunnel_handle >= 0 {
-            Ok(Self { tunnel_handle })
-        } else {
-            Err(Error::StartTunnel(tunnel_handle))
-        }
-    }
-
+    /// Start new WireGuard tunnel with wintun interface.
     #[cfg(windows)]
-    /// Start new WireGuard tunnel
-    pub fn start(
+    fn start_inner(
         config: Config,
         interface_name: &str,
         requested_guid: &str,
@@ -229,6 +257,33 @@ impl Tunnel {
                 tunnel_handle,
                 wintun_interface,
             })
+        } else {
+            Err(Error::StartTunnel(tunnel_handle))
+        }
+    }
+
+    /// Start a new WireGuard tunnel backed by a raw proxy socket fd (Android only).
+    ///
+    /// Unlike [`start`], this calls `wgTurnOnWithProxyFd` which wraps the fd as a "dumb" I/O
+    /// device without calling `TUNGETIFF`, making it safe to use with a Unix socket fd.
+    #[cfg(target_os = "android")]
+    fn start_with_proxy_fd(config: Config, proxy_fd: OwnedFd) -> Result<Self> {
+        let mtu = config.interface.mtu;
+        let settings = CString::new(config.into_uapi_config())
+            .map_err(|_| Error::ConvertToCString("uapi config"))?;
+
+        let tunnel_handle = unsafe {
+            wgTurnOnWithProxyFd(
+                settings.as_ptr(),
+                proxy_fd.into_raw_fd(),
+                i32::from(mtu),
+                wg_logger_callback,
+                std::ptr::null_mut(),
+            )
+        };
+
+        if tunnel_handle >= 0 {
+            Ok(Self { tunnel_handle })
         } else {
             Err(Error::StartTunnel(tunnel_handle))
         }

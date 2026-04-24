@@ -227,6 +227,29 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_gateway_selection_algorithm(
+        &mut self,
+        gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm,
+    ) -> Result<()> {
+        let request = proto::GatewaySelectionAlgorithm::from(gateway_selection_algorithm);
+
+        self.0
+            .set_gateway_selection_algorithm(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn set_enable_geo_location(&mut self, enable_geo_location: bool) -> Result<()> {
+        self.0
+            .set_enable_geo_location(enable_geo_location)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_network(&mut self, network: String) -> Result<()> {
         self.0
             .set_network(network)
@@ -777,6 +800,37 @@ impl RpcClient {
             .into_inner();
 
         Socks5Status::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn set_airporting_enabled(&mut self, enabled: bool) -> Result<()> {
+        self.0
+            .set_airporting_enabled(enabled)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn set_airporting_listen_port(&mut self, listen_port: u16) -> Result<()> {
+        self.0
+            .set_airporting_listen_port(proto::AirportingListenPortRequest {
+                listen_port: listen_port as u32,
+            })
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn set_airporting_excluded_countries(
+        &mut self,
+        excluded_countries: Vec<String>,
+    ) -> Result<()> {
+        self.0
+            .set_airporting_excluded_countries(proto::StringList {
+                values: excluded_countries,
+            })
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
     }
 
     pub async fn network_stats_get_seed(&mut self) -> Result<NetworkStatisticsIdentity> {

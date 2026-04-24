@@ -267,9 +267,18 @@ function patch_go_runtime {
 
     BUILDDIR="$(pwd)/../build"
     REAL_GOROOT=$(go env GOROOT 2>/dev/null)
+
+    # On Windows (MSYS2/Git Bash), go env GOROOT returns a Windows-style path
+    # (e.g. C:\Go) which rsync interprets as a remote host:path. Convert it to
+    # a Unix-style path (e.g. /c/Go) using cygpath.
+    local platform="$(uname -s)"
+    if [[ "$platform" == MINGW* ]] || [[ "$platform" == MSYS* ]] || [[ "$platform" == CYGWIN* ]]; then
+        REAL_GOROOT=$(cygpath -u "$REAL_GOROOT")
+    fi
+
     export GOROOT="$BUILDDIR/goroot"
     mkdir -p "$GOROOT"
-    rsync -a --delete --exclude=pkg/obj/go-build "$REAL_GOROOT/" "$GOROOT/"
+    rsync -aL --delete --exclude=pkg/obj/go-build "$REAL_GOROOT/" "$GOROOT/"
 
     if $IS_ANDROID_BUILD; then
         local patch_file="$LIB_DIR/goruntime-boottime-over-monotonic.diff"

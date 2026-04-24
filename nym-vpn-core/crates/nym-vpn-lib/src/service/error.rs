@@ -71,6 +71,15 @@ pub enum GlobalConfigError {
 }
 
 #[derive(Debug, thiserror::Error)]
+pub enum AirportingConfigError {
+    #[error("unsupported country code '{0}': only 'CN' is currently supported")]
+    UnsupportedCountry(String),
+
+    #[error("'CN' must be included in the excluded countries list")]
+    CnRequired,
+}
+
+#[derive(Debug, thiserror::Error)]
 pub enum ListGatewaysError {
     #[error("failed to get gateways ({gw_type:?})")]
     GetGateways {

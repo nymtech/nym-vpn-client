@@ -24,11 +24,13 @@ use nym_vpn_lib_types::{
 };
 
 use nym_vpn_proto::proto::{
-    self, MixnetTrafficConfig,
+    self, GatewaySelectionAlgorithm, MixnetTrafficConfig,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
-use nym_vpn_lib::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
+use nym_vpn_lib::service::{
+    AirportingConfigError, SetNetworkError, Socks5Error, VpnServiceCommand,
+};
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
 
@@ -297,6 +299,108 @@ impl NymVpnService for CommandInterface {
         })?;
 
         Ok(Response::new(()))
+    }
+
+    async fn set_gateway_selection_algorithm(
+        &self,
+        request: Request<GatewaySelectionAlgorithm>,
+    ) -> std::result::Result<Response<()>, Status> {
+        let gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm =
+            request.into_inner().try_into().map_err(|e| {
+                tonic::Status::invalid_argument(format!(
+                    "Invalid Gateway selection algorithm Request: {e}"
+                ))
+            })?;
+
+        self.send_and_wait(
+            VpnServiceCommand::SetGatewaySelectionAlgorithm,
+            gateway_selection_algorithm,
+        )
+        .await
+        .map_err(|e| {
+            Status::internal(format!(
+                "[set_gateway_selection_algorithm] transport error: {e}"
+            ))
+        })?
+        .map_err(|err| {
+            Status::invalid_argument(format!(
+                "[set_gateway_selection_algorithm] validation failed: {err}"
+            ))
+        })?;
+
+        Ok(Response::new(()))
+    }
+
+    async fn set_enable_geo_location(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> std::result::Result<Response<()>, Status> {
+        let enable_geo_location = request.into_inner();
+
+        self.send_and_wait(VpnServiceCommand::SetEnableGeoLocation, enable_geo_location)
+            .await
+            .map_err(|e| {
+                Status::internal(format!(
+                    "[set_enable gateway_selection_algorithm] transport error: {e}"
+                ))
+            })?
+            .map_err(|err| {
+                Status::invalid_argument(format!(
+                    "[set_enable gateway_selection_algorithm] validation failed: {err}"
+                ))
+            })?;
+
+        Ok(Response::new(()))
+    }
+
+    async fn set_airporting_enabled(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<tonic::Response<()>> {
+        let enabled = request.into_inner();
+        self.send_and_wait(VpnServiceCommand::SetAirportingEnabled, enabled)
+            .await?;
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_airporting_listen_port(
+        &self,
+        request: tonic::Request<proto::AirportingListenPortRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let port = request.into_inner().listen_port;
+        if port == 0 || port > u16::MAX as u32 {
+            return Err(tonic::Status::invalid_argument(format!(
+                "listen_port must be a valid non-zero port number (got {port})"
+            )));
+        }
+        self.send_and_wait(VpnServiceCommand::SetAirportingListenPort, port as u16)
+            .await?;
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn set_airporting_excluded_countries(
+        &self,
+        request: tonic::Request<proto::StringList>,
+    ) -> Result<tonic::Response<()>> {
+        let countries = request.into_inner().values;
+        for country in &countries {
+            if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
+                return Err(tonic::Status::invalid_argument(format!(
+                    "Invalid country code '{country}': must be a 2-letter uppercase ISO code"
+                )));
+            }
+        }
+        self.send_and_wait(VpnServiceCommand::SetAirportingExcludedCountries, countries)
+            .await?
+            .map_err(|err| match err {
+                AirportingConfigError::UnsupportedCountry(c) => tonic::Status::invalid_argument(
+                    format!("unsupported country code '{c}': only 'CN' is currently supported"),
+                ),
+                AirportingConfigError::CnRequired => tonic::Status::invalid_argument(
+                    "'CN' must be included in the excluded countries list",
+                ),
+            })?;
+        Ok(tonic::Response::new(()))
     }
 
     async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
@@ -1226,6 +1330,7 @@ impl NymVpnService for CommandInterface {
 }
 
 pub async fn start_command_interface(
+    disable_client_verification: bool,
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     shutdown_token: CancellationToken,
 ) -> std::io::Result<(JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>)> {
@@ -1237,6 +1342,7 @@ pub async fn start_command_interface(
     let incoming = nym_ipc::server::create_incoming(
         default_socket_path(),
         AuthenticationMaterial::new(
+            disable_client_verification,
             #[cfg(target_os = "windows")]
             NYM_CERTIFICATE_SERIAL_NUMBER.to_string(),
             #[cfg(target_os = "macos")]

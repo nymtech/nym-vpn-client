@@ -27,10 +27,15 @@ ARCH_X86_64 := x86_64
 STRIP_TOOL_BIN := llvm-strip
 
 ifneq ($(strip $(NDK_TOOLCHAIN_DIR)),)
-STRIP_TOOL := $(NDK_TOOLCHAIN_DIR)/$(STRIP_TOOL_BIN)
+# NDK_TOOLCHAIN_DIR may be a Windows-style path (e.g. C:\path\to\bin) when set
+# by the Android Gradle plugin on Windows. Use Make's $(subst) to convert
+# backslashes to forward slashes first (Make handles this reliably), then use
+# sed to rewrite the drive-letter prefix (C:/ -> /C/) for MSYS2/Git Bash.
+# On Linux/macOS neither transformation has any effect.
+STRIP_TOOL := $(shell echo '$(subst \,/,$(NDK_TOOLCHAIN_DIR))' | sed 's|^\([A-Za-z]\):/|/\1/|')/$(STRIP_TOOL_BIN)
 else
-# Infer location of llvm-strip
-STRIP_TOOL := $(dir $(shell cargo ndk-env --json -t $(ARCH_ARM64_V8) | jq -r .CLANG_PATH))/$(STRIP_TOOL_BIN)
+# Infer location of llvm-strip from cargo ndk using the same path conversion.
+STRIP_TOOL := $(shell p=$$(cargo ndk-env --json -t $(ARCH_ARM64_V8) | jq -r .CLANG_PATH | sed 's|\\|/|g; s|^\([A-Za-z]\):/|/\1/|') ; dirname "$$p")/$(STRIP_TOOL_BIN)
 endif
 
 ANDROID_DIR := $(CURDIR)/../nym-vpn-android

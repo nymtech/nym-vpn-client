@@ -13,6 +13,8 @@ mkdir -p $GOPATH
 echo "GOPATH: $GOPATH"
 echo "GOROOT: $GOROOT"
 
+_platform="$(uname -s)"
+
 for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64}; do
     case "$arch" in
         "aarch64")
@@ -50,17 +52,14 @@ for arch in ${ARCHITECTURES:-armv7 aarch64 x86_64}; do
     UNSTRIPPED_LIB_PATH="../../build/lib/$RUST_TARGET_TRIPLE/libwg.so"
     STRIPPED_LIB_PATH="../../nym-vpn-android/core/src/main/jniLibs/$ANDROID_ABI/libwg.so"
 
-    # Create the directories with RWX permissions for all users so that the build server can clean
-    # the directories afterwards
-    mkdir -m 777 -p "$(dirname "$STRIPPED_LIB_PATH")"
+    mkdir -p "$(dirname "$STRIPPED_LIB_PATH")"
 
     $ANDROID_STRIP_TOOL --strip-unneeded --strip-debug --remove-section=.comment -o "$STRIPPED_LIB_PATH" "$UNSTRIPPED_LIB_PATH"
-
-    # Set permissions so that the build server can clean the outputs afterwards
-    chmod 777 "$STRIPPED_LIB_PATH"
 
     rm -rf build
 done
 
-# ensure `git clean -fd` does not require root permissions
-find $GOPATH -exec chmod +rw {} \;
+# ensure `git clean -fd` does not require root permissions (skip on Windows where chmod is a no-op)
+if [[ "$_platform" != MINGW* ]] && [[ "$_platform" != MSYS* ]] && [[ "$_platform" != CYGWIN* ]]; then
+    find $GOPATH -exec chmod +rw {} \;
+fi

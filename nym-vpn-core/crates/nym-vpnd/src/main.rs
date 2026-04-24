@@ -31,13 +31,13 @@ use windows_service::{
     installation::{install_service, start_service, uninstall_service},
 };
 
-use crate::cli::{CliArgs, Command};
+use crate::cli::{CliArgs, Command, RunArgs};
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 10)]
 async fn main() -> anyhow::Result<()> {
-    let args = CliArgs::parse();
+    let cli_args = CliArgs::parse();
 
-    match args.command.unwrap_or_default() {
+    match cli_args.command.unwrap_or_default() {
         #[cfg(windows)]
         Command::InstallService => {
             install_service().context("Failed to install Windows service")?;
@@ -60,11 +60,14 @@ async fn main() -> anyhow::Result<()> {
             start_service().context("Failed to start Windows service")?;
             Ok(())
         }
-        Command::RunAsService | Command::RunStandalone => run_vpn_service(args).await,
+        Command::RunStandalone => run_vpn_service(cli_args, RunArgs::default()).await,
+        Command::RunAsService(run_args) | Command::RunWithArgs(run_args) => {
+            run_vpn_service(cli_args, run_args).await
+        }
     }
 }
 
-async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
+async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result<()> {
     let global_config = GlobalConfig::read_from_config_dir(&paths::config_dir())
         .await
         .unwrap_or_default();
@@ -77,12 +80,12 @@ async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
     let sentry_enabled = _sentry_guard.is_some();
 
     let shutdown_token = CancellationToken::new();
-    let run_as_service = args.is_run_as_service();
+    let run_as_service = cli_args.is_run_as_service();
     let options = nym_vpn_lib::logging::Options {
-        verbosity_level: args.verbosity_level(),
+        verbosity_level: cli_args.verbosity_level(),
         enable_file_log: run_as_service,
         enable_stdout_log: !run_as_service,
-        enable_json_log: args.json_output || run_as_service,
+        enable_json_log: cli_args.json_output || run_as_service,
         log_dir: Some(crate::paths::log_dir()),
         sentry: sentry_enabled,
     };
@@ -95,9 +98,10 @@ async fn run_vpn_service(args: CliArgs) -> anyhow::Result<()> {
         .as_ref()
         .map(|s| s.log_file_remover_handle.clone());
     let run_parameters = RunParameters {
-        user_agent: args.user_agent.unwrap_or_else(|| new_user_agent!()),
+        user_agent: cli_args.user_agent.unwrap_or_else(|| new_user_agent!()),
         log_path,
         sentry_enabled,
+        disable_client_verification: run_args.disable_client_verification,
     };
 
     nym_vpn_lib::log_software_and_os_version();
@@ -150,6 +154,7 @@ struct RunParameters {
     log_path: Option<LogPath>,
     sentry_enabled: bool,
     user_agent: UserAgent,
+    disable_client_verification: bool,
 }
 
 /// Run vpn service as a standalone process.
@@ -203,6 +208,7 @@ async fn spawn_vpn_service(
     let command_shutdown_token = CancellationToken::new();
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
+        parameters.disable_client_verification,
         tunnel_event_rx,
         command_shutdown_token.child_token(),
     )

@@ -79,6 +79,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             custom_dns,
             network_stats,
             split_tunnel,
+            ..Default::default()
         };
 
         Ok(config)

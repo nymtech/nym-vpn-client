@@ -1,7 +1,7 @@
 name: build-nym-vpn-core-deb
 on:
   pull_request:
-    types: [opened]
+    types: [ opened ]
     paths:
       - ".github/workflows/build-nym-vpn-core-deb.yml"
   workflow_dispatch:
@@ -71,7 +71,8 @@ jobs:
           cache-key: ${{ matrix.arch }}
 
       - name: Append timestamp if it's a dev version
-        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
+        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{
+          steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v8

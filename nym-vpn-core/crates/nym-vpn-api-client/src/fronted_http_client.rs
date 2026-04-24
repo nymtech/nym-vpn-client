@@ -30,6 +30,15 @@ pub fn fronted_http_client_builder(
         .map_err(Box::new)
         .map_err(VpnApiClientError::CreateVpnApiClient)?;
 
+    // By default, HTTP client uses a singleton instance of reqwest client and hickory resolver.
+    // This is not going to work in test environment since singletons are tied to single runtime and each test case uses a new runtime.
+    if option_env!("CI_TESTING")
+        .and_then(|s| <bool as std::str::FromStr>::from_str(s).ok())
+        .unwrap_or_default()
+    {
+        builder = builder.no_hickory_dns();
+    }
+
     if let Some(user_agent) = user_agent {
         builder = builder.with_user_agent(user_agent.clone());
     }

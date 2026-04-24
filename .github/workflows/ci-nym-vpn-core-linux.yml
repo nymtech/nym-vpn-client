@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 
 env:
+  CI_TESTING: true
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 

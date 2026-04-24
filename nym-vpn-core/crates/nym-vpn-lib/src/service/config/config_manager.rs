@@ -21,7 +21,7 @@ use crate::{
             DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
             VpnServiceConfigVersion, legacy,
         },
-        error::{Error, Result},
+        error::{AirportingConfigError, Error, Result},
         read_json_config_file, read_toml_config_file, write_json_config_file,
     },
     tunnel_state_machine::{
@@ -178,9 +178,6 @@ impl VpnServiceConfigManager {
         }
     }
 
-    /// Enable or disable custom DNS servers
-    ///
-    /// Returns true if the setting has changed, otherwise false if it's the same
     pub async fn set_enable_custom_dns(&mut self, enable_custom_dns: bool) -> bool {
         if self.config.enable_custom_dns == enable_custom_dns {
             false
@@ -191,9 +188,6 @@ impl VpnServiceConfigManager {
         }
     }
 
-    /// Update custom DNS servers
-    ///
-    /// Returns true if custom DNS servers have changed, otherwise false if they're the same
     pub async fn set_custom_dns(&mut self, custom_dns: Vec<IpAddr>) -> bool {
         if self.config.custom_dns == custom_dns {
             false
@@ -211,6 +205,42 @@ impl VpnServiceConfigManager {
         mixnet_traffic.validate()?;
         if self.config.mixnet_traffic != mixnet_traffic {
             self.config.mixnet_traffic = mixnet_traffic;
+            self.save_config_and_send_event().await;
+        }
+        Ok(())
+    }
+
+    pub async fn set_gateway_selection_algorithm(
+        &mut self,
+        gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm,
+    ) -> Result<(), MixnetTrafficConfigValidationError> {
+        if self
+            .config
+            .gateway_selection_algorithm_config
+            .gateway_selection_algorithm
+            != gateway_selection_algorithm
+        {
+            self.config
+                .gateway_selection_algorithm_config
+                .gateway_selection_algorithm = gateway_selection_algorithm;
+            self.save_config_and_send_event().await;
+        }
+        Ok(())
+    }
+
+    pub async fn set_enable_geo_location(
+        &mut self,
+        enable_geo_location: bool,
+    ) -> Result<(), MixnetTrafficConfigValidationError> {
+        if self
+            .config
+            .gateway_selection_algorithm_config
+            .enable_geo_location
+            != enable_geo_location
+        {
+            self.config
+                .gateway_selection_algorithm_config
+                .enable_geo_location = enable_geo_location;
             self.save_config_and_send_event().await;
         }
         Ok(())
@@ -266,6 +296,42 @@ impl VpnServiceConfigManager {
     pub async fn clear_split_tunnel_apps(&mut self) {
         self.config.split_tunnel.clear_apps();
         self.save_config_and_send_event().await;
+    }
+
+    pub async fn set_airporting_enabled(&mut self, enabled: bool) {
+        if self.config.airporting.enabled != enabled {
+            self.config.airporting.enabled = enabled;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_airporting_listen_port(&mut self, listen_port: u16) {
+        if self.config.airporting.listen_port != listen_port {
+            self.config.airporting.listen_port = listen_port;
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_airporting_excluded_countries(
+        &mut self,
+        excluded_countries: Vec<String>,
+    ) -> Result<(), AirportingConfigError> {
+        // Temporary:  At the moment Airporting is only supported for China
+        for country in &excluded_countries {
+            if country != "CN" {
+                return Err(AirportingConfigError::UnsupportedCountry(country.clone()));
+            }
+        }
+        if !excluded_countries.iter().any(|c| c == "CN") {
+            return Err(AirportingConfigError::CnRequired);
+        }
+
+        if self.config.airporting.excluded_countries != excluded_countries {
+            self.config.airporting.excluded_countries = excluded_countries;
+            self.save_config_and_send_event().await;
+        }
+
+        Ok(())
     }
 
     async fn save_config_and_send_event(&self) {
@@ -425,6 +491,22 @@ impl VpnServiceConfigManager {
             DnsOptions::default()
         };
 
+        let airporting_settings = self.config.airporting.clone();
+
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        let split_tunnel = {
+            let mut split_tunnel = self.config.split_tunnel.clone();
+            // If airporting is enabled then Split Tunneling also needs to be enabled.
+            if airporting_settings.enabled && !self.config.split_tunnel.enabled {
+                tracing::warn!("Enabling Split Tunnel as airporting is enabled");
+                split_tunnel.enabled = true;
+            }
+            split_tunnel
+        };
+
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        let split_tunnel = self.config.split_tunnel.clone();
+
         TunnelSettings {
             enable_ipv6: !self.config.disable_ipv6,
             allow_lan: self.config.allow_lan,
@@ -449,7 +531,12 @@ impl VpnServiceConfigManager {
             entry_point: Box::new(self.config.entry_point.clone()),
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
-            split_tunnel: self.config.split_tunnel.clone(),
+            split_tunnel,
+            airporting_settings,
+            gateway_selection_algorithm_config: self
+                .config
+                .gateway_selection_algorithm_config
+                .clone(),
         }
     }
 }

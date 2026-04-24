@@ -1,8 +1,10 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+mod airporting_settings;
 mod config_manager;
 mod entry_exit;
+mod gateway_selection_algorithm;
 mod legacy;
 mod mixnet_traffic;
 mod network_stats;
@@ -15,6 +17,7 @@ mod v5;
 mod v6;
 mod v7;
 mod v8;
+mod v9;
 
 #[cfg(test)]
 mod tests;
@@ -32,7 +35,9 @@ use tokio::{
 };
 
 use crate::service::config::{
+    airporting_settings::v9::AirportingSettings,
     entry_exit::v2::{EntryPoint, ExitPoint},
+    gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
     mixnet_traffic::v5::MixnetTrafficConfig,
     network_stats::v1::NetworkStatisticsConfig,
     split_tunnel_settings::v8::SplitTunnelSettings,
@@ -98,12 +103,13 @@ enum VpnServiceConfigVersion {
     V6,
     V7,
     V8,
+    V9,
 }
 
 impl VpnServiceConfigVersion {
     /// Returns the latest version of the config file.
     pub fn latest() -> Self {
-        VpnServiceConfigVersion::V8
+        VpnServiceConfigVersion::V9
     }
 }
 
@@ -118,6 +124,7 @@ impl fmt::Display for VpnServiceConfigVersion {
             VpnServiceConfigVersion::V6 => "v6",
             VpnServiceConfigVersion::V7 => "v7",
             VpnServiceConfigVersion::V8 => "v8",
+            VpnServiceConfigVersion::V9 => "v9",
         })
     }
 }
@@ -134,6 +141,7 @@ enum VpnServiceConfigExt {
     V6(v6::VpnServiceConfig),
     V7(v7::VpnServiceConfig),
     V8(v8::VpnServiceConfig),
+    V9(v9::VpnServiceConfig),
 }
 
 impl VpnServiceConfigExt {
@@ -147,6 +155,7 @@ impl VpnServiceConfigExt {
             VpnServiceConfigExt::V6(_) => VpnServiceConfigVersion::V6,
             VpnServiceConfigExt::V7(_) => VpnServiceConfigVersion::V7,
             VpnServiceConfigExt::V8(_) => VpnServiceConfigVersion::V8,
+            VpnServiceConfigExt::V9(_) => VpnServiceConfigVersion::V9,
         }
     }
 }
@@ -164,6 +173,7 @@ impl TryFrom<VpnServiceConfigExt> for nym_vpn_lib_types::VpnServiceConfig {
             VpnServiceConfigExt::V6(v6) => nym_vpn_lib_types::VpnServiceConfig::try_from(v6),
             VpnServiceConfigExt::V7(v7) => nym_vpn_lib_types::VpnServiceConfig::try_from(v7),
             VpnServiceConfigExt::V8(v8) => nym_vpn_lib_types::VpnServiceConfig::try_from(v8),
+            VpnServiceConfigExt::V9(v9) => nym_vpn_lib_types::VpnServiceConfig::try_from(v9),
         }
     }
 }
@@ -187,8 +197,12 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
         let network_stats = NetworkStatisticsConfig::from(&value.network_stats);
 
         let split_tunnel = SplitTunnelSettings::from(&value.split_tunnel);
+        let airporting = AirportingSettings::from(&value.airporting);
 
-        let v8 = v8::VpnServiceConfig {
+        let gateway_selection_algorithm_config =
+            GatewaySelectionAlgorithmConfig::from(&value.gateway_selection_algorithm_config);
+
+        let v9 = v9::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -205,9 +219,11 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             mixnet_traffic,
             network_stats,
             split_tunnel,
+            airporting,
+            gateway_selection_algorithm_config,
         };
 
-        Ok(VpnServiceConfigExt::V8(v8))
+        Ok(VpnServiceConfigExt::V9(v9))
     }
 }
 
