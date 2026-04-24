@@ -17,7 +17,7 @@ toml = "0.9.5"
 
 [dependencies]
 tauri = { version = "2.9.2", features = ["protocol-asset", "tray-icon", "image-png"] }
-tokio = { version = "1.47.1", features = [
+tokio = { version = "1.52.1", features = [
     "rt",
     "sync",
     "time",
