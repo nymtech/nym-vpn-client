@@ -1330,6 +1330,7 @@ impl NymVpnService for CommandInterface {
 }
 
 pub async fn start_command_interface(
+    disable_client_verification: bool,
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     shutdown_token: CancellationToken,
 ) -> std::io::Result<(JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>)> {
@@ -1341,6 +1342,7 @@ pub async fn start_command_interface(
     let incoming = nym_ipc::server::create_incoming(
         default_socket_path(),
         AuthenticationMaterial::new(
+            disable_client_verification,
             #[cfg(target_os = "windows")]
             NYM_CERTIFICATE_SERIAL_NUMBER.to_string(),
             #[cfg(target_os = "macos")]

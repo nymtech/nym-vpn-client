@@ -37,6 +37,8 @@ import PathManager
     @Published public var didReceiveAccountLinkCallback = false
     @Published public var didReceiveSubscriptionPayment = false
     @Published public var accountSummary: AccountSummary?
+    /// True when the last `fetchAccountSummary` attempt failed (use for UI signal).
+    @Published public private(set) var accountSummaryLastFetchFailed = false
 
     public var isValidCredentialImported: Bool {
         appSettings.isCredentialImported
@@ -256,14 +258,29 @@ import PathManager
 
     private func fetchAccountSummary() async {
 #if os(iOS)
-        guard let summary = try? await NymVpnAccountStorage(
-            dataDir: PathManager.dataFolderURL().path(),
-            environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
-        ).getAccountSummary()
-        else {
+        // NYM-1156: don't `try?` - swallowed errors hang the UI.
+        let summary: VpnAccountSummary?
+        do {
+            summary = try await NymVpnAccountStorage(
+                dataDir: PathManager.dataFolderURL().path(),
+                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+            ).getAccountSummary()
+        } catch {
+            accountSummaryLastFetchFailed = true
+            logger.error(
+                "fetchAccountSummary (iOS) failed operation=getAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
+            )
             return
         }
 
+        guard let summary else {
+            // nil-without-throw: same UX as a failure, surface it as one.
+            logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
+            accountSummaryLastFetchFailed = true
+            return
+        }
+
+        accountSummaryLastFetchFailed = false
         let innerSub = summary.subscription?.subscription
         accountSummary = AccountSummary(
             validUntilTimeInterval: innerSub?.validUntilUtc,
@@ -279,7 +296,16 @@ import PathManager
             subscription: summary.subscription.map { Subscription(from: $0) }
         )
 #elseif os(macOS)
-        accountSummary = try? await grpcManager.accountSummary()
+        // On gRPC failure keep the last good summary; only flag the failure.
+        do {
+            accountSummary = try await grpcManager.accountSummary()
+            accountSummaryLastFetchFailed = false
+        } catch {
+            accountSummaryLastFetchFailed = true
+            logger.error(
+                "fetchAccountSummary (macOS) failed operation=accountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
+            )
+        }
 #endif
     }
 
@@ -297,6 +323,10 @@ import PathManager
 }
 
 private extension CredentialsManager {
+    static func sanitizedAccountSummaryErrorLog(_ error: Error) -> String {
+        "errorType=\(String(describing: Swift.type(of: error)))"
+    }
+
     func setupGRPCManagerObservers() {
 #if os(macOS)
         grpcManager.$errorReason.sink { [weak self] error in

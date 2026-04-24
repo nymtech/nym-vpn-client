@@ -19,6 +19,7 @@ amnezia = []
 ipnetwork.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
+typed-builder.workspace = true
 hex.workspace = true
 rand.workspace = true
 nym-crypto.workspace = true

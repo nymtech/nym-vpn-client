@@ -11,6 +11,7 @@ on:
   workflow_dispatch:
 
 env:
+  CI_TESTING: true
   CARGO_TERM_COLOR: always
   LIBS_PATH: build/lib/x86_64-pc-windows-msvc
   WINFW_PATH: build/winfw/x64-Debug
