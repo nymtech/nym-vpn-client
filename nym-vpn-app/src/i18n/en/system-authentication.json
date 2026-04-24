@@ -6,6 +6,8 @@
   "modal": {
     "title": "Authentication required",
     "description": "You need to authenticate with your password to secure your connection.",
+    "troubleshooting": "If clicking Authenticate has no effect, check the GitHub issues for troubleshooting.",
+    "github-issues-link": "Open GitHub issues",
     "authenticate-button": "Authenticate"
   }
 }

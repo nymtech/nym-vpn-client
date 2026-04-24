@@ -2,18 +2,16 @@ import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Button, ButtonIcon, Dialog, MsIcon } from '../ui';
+import { Button, ButtonIcon, Dialog, Link, MsIcon } from '../ui';
 import { useMainState } from '../contexts';
+import { LinuxAuthTroubleshootingUrl } from '../constants';
 
 export function SystemAuthentication() {
   const { daemonStatus } = useMainState();
-  console.log('[SystemAuthentication] daemonStatus', daemonStatus);
-
   const { t } = useTranslation('system-authentication');
 
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-
   useEffect(() => {
     setIsOpen(daemonStatus === 'auth-denied');
   }, [daemonStatus]);
@@ -53,6 +51,14 @@ export function SystemAuthentication() {
         <div className="p-3 flex flex-row items-center gap-3 border border-cheddar dark:border-king-nacho rounded-lg text-cheddar dark:text-king-nacho bg-cheddar/10 dark:bg-king-nacho/10">
           <MsIcon icon="report" />
           <p>{t('modal.description')}</p>
+        </div>
+        <div className="flex flex-col items-start gap-2 text-sm text-iron dark:text-bombay">
+          <p>{t('modal.troubleshooting')}</p>
+          <Link
+            url={LinuxAuthTroubleshootingUrl}
+            text={t('modal.github-issues-link')}
+            icon
+          />
         </div>
         <Button
           onClick={handleAuthenticate}

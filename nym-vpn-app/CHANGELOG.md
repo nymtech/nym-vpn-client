@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- [Linux] Authentication-denied modal now includes troubleshooting copy and a link pointing to the daemon log file location, so users hitting a stuck "Authenticate" button can diagnose using the GitHub issues.
+
+### Fixed
+
+- Drop a stray `console.log` from `SystemAuthentication`.
+
 ## [1.28.0] - 2026-04-14
 
 ### Added

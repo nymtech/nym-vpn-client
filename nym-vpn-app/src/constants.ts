@@ -63,3 +63,6 @@ export const CustomDnsHelpUrl = 'https://nym.com/features/custom-dns';
 export const MixnetParametersLearnMoreUrl =
   'https://nym.com/features/mixnet-customization';
 export const DocsUrl = 'https://nym.com/docs';
+// TODO: replace with a dedicated support article once one exists.
+export const LinuxAuthTroubleshootingUrl =
+  'https://nym.com/go/github/nym-vpn-client/issues';
