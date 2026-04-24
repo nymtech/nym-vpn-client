@@ -11,7 +11,7 @@ use tokio_util::sync::{CancellationToken, DropGuard};
 use crate::resolver::{LoopbackAlias, random_loopback_ipv4};
 
 /// Loopback interface name.
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 const LOOPBACK: &str = "lo0";
 #[cfg(target_os = "linux")]
 const LOOPBACK: &str = "lo";
@@ -54,7 +54,7 @@ impl RandomLoopbackAlias {
     }
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 async fn assign_loopback_alias(addr: IpAddr) -> io::Result<()> {
     nym_macos::net::add_alias(LOOPBACK, addr).await
 }
@@ -78,7 +78,7 @@ async fn assign_loopback_alias(addr: IpAddr) -> io::Result<()> {
     )))
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
 async fn remove_loopback_alias(addr: IpAddr) -> io::Result<()> {
     nym_macos::net::remove_alias(LOOPBACK, addr).await
 }
@@ -135,7 +135,8 @@ impl LoopbackAlias for RandomLoopbackAlias {
     }
 }
 
-pub(crate) fn flush_system_cache() {
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+pub fn flush_system_cache() {
     #[cfg(target_os = "macos")]
     {
         if let Err(error) = kill_mdnsresponder() {

@@ -222,6 +222,8 @@ pub struct TunnelParameters {
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
     pub user_agent: UserAgent,
+    #[cfg(target_os = "ios")]
+    pub filtering_resolver_addr: SocketAddr,
 }
 
 pub struct TunnelMonitor {
@@ -862,13 +864,21 @@ impl TunnelMonitor {
                     assigned_addresses.interface_addresses.ipv6,
                 )));
             }
-            let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
-                dns_servers: self
-                    .tunnel_parameters
+
+            let dns_servers = if cfg!(target_os = "ios")
+                && self.tunnel_parameters.tunnel_settings.enable_ad_blocking
+            {
+                vec![self.tunnel_parameters.filtering_resolver_addr.ip()]
+            } else {
+                self.tunnel_parameters
                     .tunnel_settings
                     .dns
                     .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-                    .to_vec(),
+                    .to_vec()
+            };
+
+            let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
+                dns_servers,
                 interface_addresses,
                 remote_addresses: vec![assigned_addresses.entry_mixnet_gateway_ip],
                 mtu,
@@ -1570,13 +1580,20 @@ impl TunnelMonitor {
 
         let entry_endpoint = conn_data.effective_remote_entry_endpoint().ip();
 
-        let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
-            dns_servers: self
-                .tunnel_parameters
+        let dns_servers = if cfg!(target_os = "ios")
+            && self.tunnel_parameters.tunnel_settings.enable_ad_blocking
+        {
+            vec![self.tunnel_parameters.filtering_resolver_addr.ip()]
+        } else {
+            self.tunnel_parameters
                 .tunnel_settings
                 .dns
                 .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-                .to_vec(),
+                .to_vec()
+        };
+
+        let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
+            dns_servers,
             interface_addresses,
             remote_addresses: vec![entry_endpoint],
             mtu,
