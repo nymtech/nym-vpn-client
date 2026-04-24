@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 use nix::sys::socket::{UnixCredentials, getsockopt, sockopt::PeerCredentials};
-use tokio::{fs::File, io::AsyncWriteExt, net::UnixStream};
+use tokio::{io::AsyncWriteExt, net::UnixStream};
 use tokio_stream::Stream;
 use tokio_util::sync::CancellationToken;
 use zbus::Connection;
@@ -23,20 +23,18 @@ pub(crate) type Transport = tokio::net::UnixStream;
 const ACTION_ID: &str = "com.nymvpn.vpnd.unix-access";
 const CANCELLATION_ID: &str = "com.nymvpn.vpnd.cancel";
 const USER_INTERACTION_TIMEOUT: Duration = Duration::from_secs(60);
-const POLKIT_POLICY: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
-<policyconfig>
-  <action id="com.nymvpn.vpnd.unix-access">
-    <description>Connect via unix socket</description>
-    <message>Authentication is required to connect to the daemon</message>
 
-    <defaults>
-      <allow_any>auth_admin</allow_any>
-      <allow_inactive>auth_admin</allow_inactive>
-      <allow_active>auth_self</allow_active>
-    </defaults>
-  </action>
-</policyconfig>
-"#;
+// Single source of truth for the polkit action XML. The same file is shipped
+// by the deb / AUR / raw install packaging into /usr/share/polkit-1/actions/
+// so that on properly-packaged installs the runtime install path is a no-op.
+const POLKIT_POLICY: &str = include_str!("../../.pkg/com.nymvpn.vpnd.unix-access.policy");
+
+// Polkit's documented action search path is /usr/share/polkit-1/actions/.
+// Most distros also scan /etc/polkit-1/actions/, which we use as a fallback
+// when /usr/share is not writable (e.g. Fedora Silverblue, MicroOS, NixOS,
+// other ostree-based images) so a daemon installed by hand can still register
+// its action without root having to relayer the OS image.
+const POLICY_DIRS: &[&str] = &["/usr/share/polkit-1/actions", "/etc/polkit-1/actions"];
 
 #[async_trait::async_trait]
 trait AuthorizationChecker {
@@ -60,21 +58,21 @@ struct AuthProxy<'a> {
 #[async_trait::async_trait]
 impl AuthorizationChecker for AuthProxy<'_> {
     async fn check_authorization(&self) -> Result<AuthorizationResult, AuthenticationError> {
-        if !self
+        let already_registered = self
             .proxy
             .enumerate_actions("")
             .await
             .map_err(AuthenticationError::EnumerateActions)?
             .iter()
-            .any(|action| action.action_id == ACTION_ID)
-        {
-            let mut file =
-                File::create(format!("/usr/share/polkit-1/actions/{}.policy", ACTION_ID))
-                    .await
-                    .map_err(AuthenticationError::CreateActionPolicy)?;
-            file.write_all(POLKIT_POLICY.as_bytes())
-                .await
-                .map_err(AuthenticationError::WriteActionPolicy)?;
+            .any(|action| action.action_id == ACTION_ID);
+
+        if already_registered {
+            tracing::debug!(
+                action = ACTION_ID,
+                "polkit action already registered; skipping install",
+            );
+        } else {
+            install_polkit_policy(POLICY_DIRS).await?;
         }
 
         // details might be useful to set some locale-sensitive messages and icon images in the authentication dialog
@@ -96,6 +94,95 @@ impl AuthorizationChecker for AuthProxy<'_> {
             .await
             .map_err(AuthenticationError::CancelAuthorization)
     }
+}
+
+// Try each candidate directory in order and return the first one we managed
+// to write into. A successful install at /usr/share is the architecturally
+// correct outcome (polkit's documented path); /etc is the defensive fallback
+// for read-only-/usr systems.
+async fn install_polkit_policy(dirs: &[&str]) -> Result<String, AuthenticationError> {
+    let mut create_err: Option<std::io::Error> = None;
+    let mut write_err: Option<std::io::Error> = None;
+
+    for dir in dirs {
+        let path = format!("{dir}/{ACTION_ID}.policy");
+        match write_policy_file(&path).await {
+            Ok(()) => {
+                tracing::info!(
+                    path = %path,
+                    "installed polkit action policy",
+                );
+                return Ok(path);
+            }
+            Err(PolicyWriteError::Create(err)) => {
+                tracing::debug!(
+                    path = %path,
+                    error = %err,
+                    "polkit policy create failed, trying next candidate",
+                );
+                create_err = Some(err);
+            }
+            Err(PolicyWriteError::Write(err)) => {
+                tracing::debug!(
+                    path = %path,
+                    error = %err,
+                    "polkit policy write failed, trying next candidate",
+                );
+                write_err = Some(err);
+            }
+        }
+    }
+
+    // Prefer surfacing a Write error if we ever managed to create a file
+    // somewhere; otherwise the failure was always at file creation time.
+    let final_err = if let Some(err) = write_err {
+        tracing::error!(
+            error = %err,
+            candidates = ?dirs,
+            "failed to install polkit policy in any candidate directory; \
+             see the daemon log file at /var/log/nym-vpnd/nym-vpnd.log \
+             and the troubleshooting docs",
+        );
+        AuthenticationError::WriteActionPolicy(err)
+    } else {
+        let err = create_err.expect("at least one path attempted");
+        tracing::error!(
+            error = %err,
+            candidates = ?dirs,
+            "failed to create polkit policy file in any candidate directory; \
+             this typically means /usr/share is read-only \
+             AND /etc/polkit-1/actions/ is not writable.",
+        );
+        AuthenticationError::CreateActionPolicy(err)
+    };
+
+    Err(final_err)
+}
+
+enum PolicyWriteError {
+    Create(std::io::Error),
+    Write(std::io::Error),
+}
+
+async fn write_policy_file(path: &str) -> Result<(), PolicyWriteError> {
+    // Some distros (notably Fedora Silverblue) ship `/etc/polkit-1/rules.d/`
+    // but not `/etc/polkit-1/actions/` because no package installs there by
+    // default. Create the parent on demand so the fallback path works on a
+    // stock install. This is a no-op when the dir already exists.
+    if let Some(parent) = std::path::Path::new(path).parent() {
+        tokio::fs::create_dir_all(parent)
+            .await
+            .map_err(PolicyWriteError::Create)?;
+    }
+
+    let mut file = tokio::fs::File::create(path)
+        .await
+        .map_err(PolicyWriteError::Create)?;
+    file.write_all(POLKIT_POLICY.as_bytes())
+        .await
+        .map_err(PolicyWriteError::Write)?;
+    file.flush().await.map_err(PolicyWriteError::Write)?;
+    Ok(())
 }
 
 struct PolkitPrompter {
@@ -416,5 +503,77 @@ mod tests {
     // Test builds are debug and are authorized
     fn unsigned_build_authorized() {
         assert!(skip_authentication_checks(false));
+    }
+
+    #[test]
+    fn embedded_policy_matches_action_id() {
+        assert!(
+            POLKIT_POLICY.contains(ACTION_ID),
+            "the bundled policy XML must declare the action id used at runtime",
+        );
+    }
+
+    #[tokio::test]
+    async fn install_polkit_policy_writes_first_writable_dir() {
+        let primary = tempfile::tempdir().unwrap();
+        let fallback = tempfile::tempdir().unwrap();
+        let primary_path = primary.path().to_str().unwrap().to_owned();
+        let fallback_path = fallback.path().to_str().unwrap().to_owned();
+        let dirs: &[&str] = &[primary_path.as_str(), fallback_path.as_str()];
+
+        let written = install_polkit_policy(dirs).await.unwrap();
+
+        let expected = format!("{primary_path}/{ACTION_ID}.policy");
+        assert_eq!(written, expected);
+        assert!(std::fs::metadata(&expected).is_ok());
+        // Fallback directory must remain untouched when primary succeeds.
+        let fallback_file = format!("{fallback_path}/{ACTION_ID}.policy");
+        assert!(std::fs::metadata(&fallback_file).is_err());
+    }
+
+    #[tokio::test]
+    async fn install_polkit_policy_falls_back_when_primary_unwritable() {
+        let primary = "/nonexistent/nym-vpn-test-readonly-primary";
+        let fallback = tempfile::tempdir().unwrap();
+        let fallback_path = fallback.path().to_str().unwrap().to_owned();
+        let dirs: &[&str] = &[primary, fallback_path.as_str()];
+
+        let written = install_polkit_policy(dirs).await.unwrap();
+
+        let expected = format!("{fallback_path}/{ACTION_ID}.policy");
+        assert_eq!(written, expected);
+        let content = std::fs::read_to_string(&expected).unwrap();
+        assert!(content.contains(ACTION_ID));
+    }
+
+    #[tokio::test]
+    async fn install_polkit_policy_creates_missing_parent_dir() {
+        let parent = tempfile::tempdir().unwrap();
+        // Point at a yet-to-be-created subdirectory under the tempdir so we
+        // exercise the create_dir_all branch without hitting privileged paths.
+        let dir = parent
+            .path()
+            .join("polkit-1/actions")
+            .to_str()
+            .unwrap()
+            .to_owned();
+        let dirs: &[&str] = &[dir.as_str()];
+
+        let written = install_polkit_policy(dirs).await.unwrap();
+
+        let expected = format!("{dir}/{ACTION_ID}.policy");
+        assert_eq!(written, expected);
+        assert!(std::fs::metadata(&expected).is_ok());
+    }
+
+    #[tokio::test]
+    async fn install_polkit_policy_errors_when_no_dir_writable() {
+        let dirs: &[&str] = &[
+            "/nonexistent/nym-vpn-test-readonly-a",
+            "/nonexistent/nym-vpn-test-readonly-b",
+        ];
+
+        let err = install_polkit_policy(dirs).await.unwrap_err();
+        assert!(matches!(err, AuthenticationError::CreateActionPolicy(_)));
     }
 }

@@ -5733,6 +5733,7 @@ dependencies = [
  "objc2-foundation",
  "objc2-security",
  "strum",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
  "tokio-stream",

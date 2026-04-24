@@ -110,7 +110,10 @@ async fn authorized_stream(
         }
         Err(err) => {
             deny(stream).await;
-            tracing::debug!("Connection did not get authenticated: {err:?}");
+            // Surface auth failures at warn so they appear in the default
+            // log level. Without this the actual reason for a stuck
+            // "Authentication required" modal is hidden behind RUST_LOG=debug.
+            tracing::warn!("Connection did not get authenticated: {err:?}");
             false
         }
     }
