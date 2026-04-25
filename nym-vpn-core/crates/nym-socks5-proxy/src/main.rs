@@ -4,22 +4,22 @@
 use nym_socks5_proxy::{default_interface, proxy};
 
 use std::{
-    fs::{create_dir_all, File},
-    io::{stdout, Write},
+    fs::{File, create_dir_all},
+    io::{Write, stdout},
     mem::discriminant,
     path::Path,
 };
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use nym_socks5_proxy_ipc::{
     DaemonMessage, ErrorData, InterfaceAddresses, ProxyConfig, ProxyMessage,
 };
 use tokio::{
-    io::{stdin, AsyncBufReadExt, BufReader},
+    io::{AsyncBufReadExt, BufReader, stdin},
     sync::watch,
 };
 use tokio_util::sync::CancellationToken;
-use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -181,7 +181,7 @@ fn send_error_message(msg: &str) {
 fn install_signal_handlers(shutdown_token: CancellationToken) {
     #[cfg(unix)]
     tokio::spawn(async move {
-        use tokio::signal::unix::{signal, SignalKind};
+        use tokio::signal::unix::{SignalKind, signal};
         let mut sigterm =
             signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
         let mut sigint = signal(SignalKind::interrupt()).expect("failed to install SIGINT handler");
