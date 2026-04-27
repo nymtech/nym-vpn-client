@@ -36,9 +36,12 @@ import PathManager
     @Published public var accountIdentifier: String?
     @Published public var didReceiveAccountLinkCallback = false
     @Published public var didReceiveSubscriptionPayment = false
-    @Published public var accountSummary: AccountSummary?
     /// True when the last `fetchAccountSummary` attempt failed (use for UI signal).
     @Published public private(set) var accountSummaryLastFetchFailed = false
+
+    @Published public var accountSummary: AccountSummary? = AppSettings.shared.accountSummary {
+        didSet { appSettings.accountSummary = accountSummary }
+    }
 
     public var isValidCredentialImported: Bool {
         appSettings.isCredentialImported
@@ -193,7 +196,7 @@ import PathManager
         didReceiveSubscriptionPayment = true
         try await grpcManager.handleSubscriptionPayment()
         try? await Task.sleep(for: .seconds(2))
-        await updateAccountSummary()
+        await updateAccountSummary(force: true)
 #endif
     }
 
@@ -227,7 +230,7 @@ import PathManager
         if isAccountActive() {
             return true
         } else {
-            await updateAccountSummary()
+            await updateAccountSummary(force: true)
             return isAccountActive()
         }
     }
@@ -240,8 +243,11 @@ import PathManager
         return isAccountSubscriptionDateValid()
     }
 
-    public func updateAccountSummary() async {
+    public func updateAccountSummary(force: Bool = false) async {
         guard !isUpdatingAccountSummary else { return }
+        if !force && accountSummary != nil && isAccountSummaryCacheFresh() {
+            return
+        }
         isUpdatingAccountSummary = true
         defer { isUpdatingAccountSummary = false }
 
@@ -406,6 +412,13 @@ private extension CredentialsManager {
 #elseif os(macOS)
         deviceIdentifier = try? await grpcManager.deviceIdentifier()
 #endif
+    }
+
+    func isAccountSummaryCacheFresh() -> Bool {
+        let accountSummaryCacheTTL = TimeInterval(24 * 60 * 60)
+        let lastFetched = appSettings.accountSummaryLastFetchedAt
+        guard lastFetched > 0 else { return false }
+        return Date().timeIntervalSince1970 - lastFetched < accountSummaryCacheTTL
     }
 
     func updateAccountIdentifier() async {

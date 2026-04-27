@@ -4,7 +4,7 @@ import NymVPNLib
 import NymVPNRpc
 #endif
 
-public enum VpnSubscriptionStatus: Equatable, Hashable {
+public enum VpnSubscriptionStatus: Equatable, Hashable, Codable {
     case pending
     case active
 
