@@ -45,7 +45,10 @@ let package = Package(
                 .product(name: "Routes", package: "Routes"),
                 .product(name: "Theme", package: "Theme")
             ],
-            path: "Sources"
+            path: "Sources",
+            resources: [
+                .process("Servers/Map/Resources")
+            ]
         ),
         .testTarget(
             name: "HomeTests",

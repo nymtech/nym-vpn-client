@@ -81,8 +81,11 @@ struct NymVPNDaemonApp: App {
     var body: some Scene {
         Window(windowId, id: windowId) {
             NavigationStack {
-                HomeView(viewModel: homeViewModel)
-                    .transition(.slide)
+                GatewayMapView(nodes: gatewayManager.entry) { _, _, _ in
+                    print("hello")
+                }
+//                HomeView(viewModel: homeViewModel)
+//                    .transition(.slide)
             }
             .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
             .onAppear {

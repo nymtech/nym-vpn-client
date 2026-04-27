@@ -72,7 +72,10 @@ struct NymVPNApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HomeView(viewModel: homeViewModel)
+            GatewayMapView(nodes: gatewayManager.entry) { _, _, _ in
+                print("hello")
+            }
+//            HomeView(viewModel: homeViewModel)
                 .transition(.slide)
             .onChange(of: scenePhase) { _, newPhase in
                 configureSecureScreen(with: newPhase)
