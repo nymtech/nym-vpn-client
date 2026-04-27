@@ -130,11 +130,12 @@ private extension PinCodeView {
 #if os(iOS)
         UIPasteboard.general.string = pinCode
         ImpactGenerator.shared.impact()
+        try? externalLinkManager.openInAppBrowser(urlString: url)
 #elseif os(macOS)
         NSPasteboard.general.prepareForNewContents()
         NSPasteboard.general.setString(pinCode, forType: .string)
-#endif
         try? externalLinkManager.openExternalURL(urlString: url)
+#endif
         withAnimation(.easeInOut) {
             didCopy = true
         }
