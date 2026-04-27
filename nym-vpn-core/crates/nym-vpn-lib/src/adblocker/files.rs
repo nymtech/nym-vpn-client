@@ -86,7 +86,8 @@ pub(crate) async fn init_files(data_dir: &Path, force: bool) -> Result<()> {
 pub(crate) async fn update_files(data_dir: &Path, user_agent: &str) -> Result<bool> {
     let ad_blocking_path = get_ad_blocking_path(data_dir);
     let mut updated = false;
-    let http_client = reqwest::Client::new();
+    let http_client = nym_http_api_client::registry::build_client()
+        .map_err(|error| AdBlockerError::BuildHttpClient { error })?;
 
     for source in SOURCES.iter() {
         if source
