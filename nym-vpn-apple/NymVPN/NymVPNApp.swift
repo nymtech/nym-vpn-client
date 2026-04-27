@@ -3,6 +3,7 @@ import Logging
 import AppSettings
 import ConfigurationManager
 import ConnectionManager
+import Constants
 import CredentialsManager
 import DeeplinkManager
 import ExternalLinkManager
@@ -76,6 +77,7 @@ struct NymVPNApp: App {
             .onChange(of: scenePhase) { _, newPhase in
                 configureSecureScreen(with: newPhase)
             }
+            .inAppSafari(using: externalLinkManager)
             .overlay {
                 if isSecureScreenVisible {
                     LogoView()
@@ -87,6 +89,9 @@ struct NymVPNApp: App {
                 configureScreenSize()
             }
             .onOpenURL { incomingURL in
+                if incomingURL.scheme == Constants.appUrlScheme.rawValue {
+                    externalLinkManager.inAppSafariURL = nil
+                }
                 deeplinkManager.handle(url: incomingURL)
             }
             .environmentObject(appSettings)
