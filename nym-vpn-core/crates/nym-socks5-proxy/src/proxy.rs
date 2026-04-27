@@ -9,7 +9,7 @@ use std::{
 
 use crate::{
     default_interface::DefaultInterface,
-    routing::{RoutingDatabase, RoutingDecision, decide_route_for_addrs, is_excluded_domain},
+    routing::{decide_route_for_addrs, is_excluded_domain, RoutingDatabase, RoutingDecision},
 };
 
 #[cfg(target_os = "windows")]
@@ -21,11 +21,11 @@ use crate::default_interface::set_socket_tunnel_fwmark;
 #[cfg(target_os = "android")]
 use std::os::fd::AsRawFd;
 
-use anyhow::{Context, Error, Result, anyhow, bail};
+use anyhow::{anyhow, bail, Context, Error, Result};
 use fast_socks5::{
-    ReplyError, Socks5Command,
-    server::{Socks5ServerProtocol, transfer},
-    util::target_addr::TargetAddr,
+    server::{transfer, Socks5ServerProtocol}, util::target_addr::TargetAddr,
+    ReplyError,
+    Socks5Command,
 };
 use nym_socks5_proxy_ipc::{InterfaceAddresses, ProxyConfig};
 use tokio::{
@@ -238,12 +238,6 @@ async fn connect_to_target(
             SocketAddr::V6(_) => TcpSocket::new_v6().context("Failed to create IPv6 socket")?,
         };
 
-        // On Android, protect the socket from VPN routing so excluded traffic reaches the default interface.
-        #[cfg(target_os = "android")]
-        if default_interface.is_some() {
-            socket_protector(socket.as_raw_fd());
-        }
-
         // On Linux, in order to force traffic via the default interface, set the SPLIT_TUNNEL_MARK on the socket.
         #[cfg(target_os = "linux")]
         if default_interface.is_some()
@@ -264,8 +258,14 @@ async fn connect_to_target(
             continue;
         }
 
-        // On macOS, we only need to bind using the correct bind address.
+        // On Android, protect the socket from VPN routing so excluded traffic reaches the default interface.
+        #[cfg(target_os = "android")]
+        if default_interface.is_some() {
+            socket_protector(socket.as_raw_fd());
+        }
 
+        // On macOS, we only need to bind using the correct bind address.
+        
         // bind_addr will always be None on Linux as we don't monitor the default interface at all.
         let bind_addr: Option<IpAddr> = if let Some(default_interface) = default_interface {
             match addr {
