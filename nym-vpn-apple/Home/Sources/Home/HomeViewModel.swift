@@ -58,6 +58,7 @@ import GRPCManager
     var tunnelConnectingStateCancellable: AnyCancellable?
     var lastTunnelStatus = TunnelStatus.disconnected
     var lastError: Error?
+    var isConnectDisconnectInFlight = false
 
 #if os(macOS)
     public var isServing = false
