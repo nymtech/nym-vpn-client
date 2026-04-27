@@ -819,8 +819,18 @@ impl SharedState {
     async fn start_socks5_proxy(&mut self) {
         match self.build_proxy_config() {
             Ok(config) => {
+                #[cfg(target_os = "android")]
+                let socket_protector: nym_socks5_proxy::SocketProtector = {
+                    let provider = Arc::clone(&self.tun_provider);
+                    Arc::new(move |fd: i32| provider.bypass(fd))
+                };
                 self.socks5_proxy_manager
-                    .start(config, self.shutdown_token.clone())
+                    .start(
+                        config,
+                        #[cfg(target_os = "android")]
+                        socket_protector,
+                        self.shutdown_token.clone(),
+                    )
                     .await;
             }
             Err(err) => {

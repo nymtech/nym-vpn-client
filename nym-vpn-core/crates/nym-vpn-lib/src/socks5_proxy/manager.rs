@@ -6,6 +6,9 @@ use std::{
     net::{Ipv4Addr, Ipv6Addr},
 };
 
+#[cfg(target_os = "android")]
+use nym_socks5_proxy::SocketProtector;
+
 #[cfg(not(target_os = "android"))]
 use super::process;
 
@@ -40,7 +43,12 @@ impl Socks5ProxyManager {
         }
     }
 
-    pub async fn start(&mut self, config: ProxyConfig, shutdown_token: CancellationToken) {
+    pub async fn start(
+        &mut self,
+        config: ProxyConfig,
+        #[cfg(target_os = "android")] socket_protector: SocketProtector,
+        shutdown_token: CancellationToken,
+    ) {
         match self.state {
             Socks5ProxyState::Starting(_) => {
                 tracing::debug!("nym-socks5-proxy is already starting");
@@ -74,7 +82,7 @@ impl Socks5ProxyManager {
             .map_err(|e| e.to_string());
 
         #[cfg(target_os = "android")]
-        let spawn_result = task::spawn(config, event_tx, child_token)
+        let spawn_result = task::spawn(config, socket_protector, event_tx, child_token)
             .await
             .map_err(|e| e.to_string());
 

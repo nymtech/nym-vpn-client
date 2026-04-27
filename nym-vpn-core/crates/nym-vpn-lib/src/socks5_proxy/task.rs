@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
+#[cfg(target_os = "android")]
+use nym_socks5_proxy::SocketProtector;
 use nym_socks5_proxy::default_interface;
 use nym_socks5_proxy_ipc::{DaemonMessage, InterfaceAddresses, ProxyConfig};
 use tokio::{
@@ -39,6 +41,7 @@ impl RunningTask {
 
 pub async fn spawn(
     config: ProxyConfig,
+    #[cfg(target_os = "android")] socket_protector: SocketProtector,
     event_tx: mpsc::UnboundedSender<Socks5ProxyEvent>,
     shutdown_token: CancellationToken,
 ) -> Result<RunningTask> {
@@ -47,6 +50,8 @@ pub async fn spawn(
 
     let join_handle = tokio::spawn(supervisor(
         config,
+        #[cfg(target_os = "android")]
+        socket_protector,
         msg_rx,
         ready_tx,
         event_tx,
@@ -70,6 +75,7 @@ pub async fn spawn(
 
 async fn supervisor(
     config: ProxyConfig,
+    #[cfg(target_os = "android")] socket_protector: SocketProtector,
     mut msg_rx: mpsc::UnboundedReceiver<DaemonMessage>,
     ready_tx: oneshot::Sender<Result<(), String>>,
     event_tx: mpsc::UnboundedSender<Socks5ProxyEvent>,
@@ -96,6 +102,8 @@ async fn supervisor(
         default_interface_rx,
         tunnel_addrs_rx,
         shutdown_token.clone(),
+        #[cfg(target_os = "android")]
+        socket_protector,
     )
     .await
     {

@@ -7,3 +7,6 @@ pub mod routing;
 
 pub use nym_socks5_proxy_ipc::{InterfaceAddresses, ProxyConfig};
 pub use proxy::run;
+
+#[cfg(target_os = "android")]
+pub type SocketProtector = std::sync::Arc<dyn Fn(i32) + Send + Sync>;

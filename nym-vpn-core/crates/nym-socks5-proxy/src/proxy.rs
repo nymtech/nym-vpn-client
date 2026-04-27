@@ -18,6 +18,9 @@ use crate::default_interface::set_socket_interface_index;
 #[cfg(target_os = "linux")]
 use crate::default_interface::set_socket_tunnel_fwmark;
 
+#[cfg(target_os = "android")]
+use std::os::fd::AsRawFd;
+
 use anyhow::{Context, Error, Result, anyhow, bail};
 use fast_socks5::{
     ReplyError, Socks5Command,
@@ -37,13 +40,14 @@ pub async fn run(
     default_interface_rx: watch::Receiver<DefaultInterface>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
     shutdown_token: CancellationToken,
+    #[cfg(target_os = "android")] socket_protector: crate::SocketProtector,
 ) -> Result<()> {
     let listen_addr = SocketAddr::from(([127, 0, 0, 1], config.listen_port));
     let listener = TcpListener::bind(listen_addr)
         .await
         .with_context(|| format!("Failed to bind SOCKS5 listener on {listen_addr}"))?;
 
-    tracing::info!(%listen_addr, "SOCKS5 proxy listener bound");
+    tracing::info!("SOCKS5 proxy listener bound: {listen_addr}");
 
     let db = RoutingDatabase::load(&config.excluded_countries, data_dir)
         .await
@@ -56,6 +60,8 @@ pub async fn run(
         tunnel_addrs_rx,
         db,
         shutdown_token,
+        #[cfg(target_os = "android")]
+        socket_protector,
     ));
 
     Ok(())
@@ -67,6 +73,7 @@ async fn accept_loop(
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
     db: Arc<RoutingDatabase>,
     shutdown_token: CancellationToken,
+    #[cfg(target_os = "android")] socket_protector: crate::SocketProtector,
 ) {
     loop {
         tokio::select! {
@@ -78,9 +85,11 @@ async fn accept_loop(
                         let tunnel_addrs_rx_clone = tunnel_addrs_rx.clone();
                         let default_interface_rx_clone = default_interface_rx.clone();
                         let db = db.clone();
+                        #[cfg(target_os = "android")]
+                        let socket_protector = socket_protector.clone();
                         tokio::spawn(async move {
                             if let Err(err) =
-                                handle_connection(stream, peer_addr, default_interface_rx_clone, tunnel_addrs_rx_clone, db, shutdown).await
+                                handle_connection(stream, peer_addr, default_interface_rx_clone, tunnel_addrs_rx_clone, db, shutdown, #[cfg(target_os = "android")] socket_protector).await
                             {
                                 tracing::warn!("SOCKS5 connection error for peer address {peer_addr}: {err:#}");
                             }
@@ -106,13 +115,14 @@ async fn handle_connection(
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
     db: Arc<RoutingDatabase>,
     shutdown_token: CancellationToken,
+    #[cfg(target_os = "android")] socket_protector: crate::SocketProtector,
 ) -> Result<()> {
     // Snapshot both address sets at connection time.
     let tunnel_addrs = tunnel_addrs_rx.borrow().clone();
     let default_interface = default_interface_rx.borrow().clone();
 
     tokio::select! {
-        result = serve_socks5(stream, peer_addr, &default_interface, &tunnel_addrs, db) => result,
+        result = serve_socks5(stream, peer_addr, &default_interface, &tunnel_addrs, db, #[cfg(target_os = "android")] socket_protector) => result,
         _ = shutdown_token.cancelled() => {
             tracing::debug!(%peer_addr, "Connection aborted due to shutdown");
             Ok(())
@@ -126,6 +136,7 @@ async fn serve_socks5(
     default_interface: &DefaultInterface,
     tunnel_addrs: &InterfaceAddresses,
     db: Arc<RoutingDatabase>,
+    #[cfg(target_os = "android")] socket_protector: crate::SocketProtector,
 ) -> Result<()> {
     let (proto, cmd, target_addr) = Socks5ServerProtocol::accept_no_auth(stream)
         .await
@@ -182,6 +193,8 @@ async fn serve_socks5(
             None
         },
         &target_addrs,
+        #[cfg(target_os = "android")]
+        &socket_protector,
     )
     .await
     {
@@ -215,6 +228,7 @@ async fn serve_socks5(
 async fn connect_to_target(
     default_interface: Option<&DefaultInterface>,
     addrs: &[SocketAddr],
+    #[cfg(target_os = "android")] socket_protector: &crate::SocketProtector,
 ) -> Result<TcpStream> {
     let mut last_err: Option<Error> = None;
 
@@ -223,6 +237,12 @@ async fn connect_to_target(
             SocketAddr::V4(_) => TcpSocket::new_v4().context("Failed to create IPv4 socket")?,
             SocketAddr::V6(_) => TcpSocket::new_v6().context("Failed to create IPv6 socket")?,
         };
+
+        // On Android, protect the socket from VPN routing so excluded traffic reaches the default interface.
+        #[cfg(target_os = "android")]
+        if default_interface.is_some() {
+            socket_protector(socket.as_raw_fd());
+        }
 
         // On Linux, in order to force traffic via the default interface, set the SPLIT_TUNNEL_MARK on the socket.
         #[cfg(target_os = "linux")]

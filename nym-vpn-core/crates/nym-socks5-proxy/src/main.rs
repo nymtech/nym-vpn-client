@@ -69,6 +69,8 @@ async fn main() -> Result<()> {
         default_interface_rx,
         tunnel_addrs_rx,
         shutdown_token.clone(),
+        #[cfg(target_os = "android")]
+        std::sync::Arc::new(|_: i32| {}),
     )
     .await
     {
