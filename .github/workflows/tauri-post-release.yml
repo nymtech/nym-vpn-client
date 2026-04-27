@@ -40,6 +40,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
         with:
+          fetch-depth: 1
           ref: "develop"
 
       - name: Install deps

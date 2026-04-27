@@ -133,6 +133,12 @@ pub enum AdBlockerError {
         #[source]
         error: adblock::request::RequestError,
     },
+
+    #[error("failed to build ad-blocker HTTP client")]
+    BuildHttpClient {
+        #[source]
+        error: reqwest::Error,
+    },
 }
 
 pub(crate) type Result<T, E = AdBlockerError> = std::result::Result<T, E>;

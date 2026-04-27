@@ -44,6 +44,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
         with:
+          fetch-depth: 1
           ref: ${{ inputs.branch }}
 
       - name: Install Node
