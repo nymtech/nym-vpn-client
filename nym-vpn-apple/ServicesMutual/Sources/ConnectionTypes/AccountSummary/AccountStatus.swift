@@ -4,7 +4,7 @@ import NymVPNLib
 import NymVPNRpc
 #endif
 
-public enum AccountStatus: Equatable, Hashable {
+public enum AccountStatus: Equatable, Hashable, Codable {
     case active
     case inactive
     case deleteMe
