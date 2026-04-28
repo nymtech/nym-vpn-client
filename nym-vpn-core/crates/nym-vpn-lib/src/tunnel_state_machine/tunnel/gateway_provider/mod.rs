@@ -140,7 +140,9 @@ impl<C: GatewayCache> GatewayProvider<C> {
     }
 
     /// Set the activation for geo-location based on connection status, to avoid
-    /// false locations being used
+    /// false locations being used.
+    /// Being active means we try to query the location from the API. We want to
+    /// deactivate this in certain states of TSM, when the queries are proxied.
     pub fn set_active_geo_location(&self, active: bool) {
         self.active_geo_location.store(active, Ordering::SeqCst);
     }
