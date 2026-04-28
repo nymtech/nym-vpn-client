@@ -254,6 +254,7 @@ pub struct VPNConfig {
     pub enable_lewes_protocol: bool,
     pub residential_exit: bool,
     pub enable_ad_blocking: bool,
+    pub airporting: AirportingSettings,
 
     /// Custom DNS used when set.
     /// Leave empty to use default DNS servers.
@@ -298,7 +299,7 @@ impl VPNConfig {
 
             // Not available via vpn service on mobile platforms
             split_tunnel: SplitTunnelSettings::default(),
-            airporting: AirportingSettings::default(),
+            airporting: self.airporting.clone(),
         })
     }
 }
