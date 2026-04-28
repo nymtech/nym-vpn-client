@@ -31,15 +31,6 @@ if [ ! -f "$deb_file" ]; then
     exit 1
 fi
 
-echo "version: $version"
-# split version string on - | _
-IFS='-_' read -r base prerel <<<"$version"
-echo "base version: $base"
-if [ -n "$prerel" ]; then
-  echo "prerelease: $prerel"
-  # use ~dev suffix for anything that is not a stable release
-  version="${base}~dev"
-fi
 echo "deb version: $version"
 
 tmpdir=$(mktemp -d)
@@ -53,8 +44,7 @@ sed -i "s|^Version:.*|Version: $version|" "$control_file"
 cat "$control_file"
 
 # Repack the .deb package with the updated control file
-# replace ~ with - in the filename to avoid file renaming by GH
-dest="${pkgname}_${version//\~/-}_${arch}.deb"
+dest="${pkgname}_${version}_${arch}.deb"
 dpkg-deb -Zxz -b "$tmpdir" "$dest"
 
 # Clean up the temporary directory
