@@ -5,7 +5,7 @@ import NymVPNLib
 import NymVPNRpc
 #endif
 
-public struct AccountAuthMethod {
+public struct AccountAuthMethod: Codable {
     public var id: String
     public var pubkey: String
     public var kind: String

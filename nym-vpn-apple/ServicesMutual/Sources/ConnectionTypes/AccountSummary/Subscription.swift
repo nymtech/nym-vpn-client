@@ -10,7 +10,7 @@ public typealias OuterSubscription = NymVPNLib.Subscription
 public typealias OuterSubscription = NymVPNRpc.Subscription
 #endif
 
-public struct Subscription {
+public struct Subscription: Codable {
     public let status: VpnSubscriptionStatus
     public let subscription: VpnSubscription
 

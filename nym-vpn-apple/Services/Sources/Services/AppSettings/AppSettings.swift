@@ -128,6 +128,35 @@ import ConnectionTypes
     @AppStorage(AppSettingKey.expiryWarningSoonDismissedAt.rawValue)
     public var expirySoonDismissedAt: Double = 0
 
+    @AppStorage(AppSettingKey.accountSummaryCache.rawValue)
+    public var accountSummaryCache: String?
+
+    @AppStorage(AppSettingKey.accountSummaryLastFetchedAt.rawValue)
+    public var accountSummaryLastFetchedAt: Double = 0
+
+    public var accountSummary: AccountSummary? {
+        get {
+            guard let json = accountSummaryCache,
+                  let data = json.data(using: .utf8)
+            else {
+                return nil
+            }
+            return try? JSONDecoder().decode(AccountSummary.self, from: data)
+        }
+        set {
+            guard let newValue,
+                  let data = try? JSONEncoder().encode(newValue),
+                  let json = String(data: data, encoding: .utf8)
+            else {
+                accountSummaryCache = nil
+                accountSummaryLastFetchedAt = 0
+                return
+            }
+            accountSummaryCache = json
+            accountSummaryLastFetchedAt = Date().timeIntervalSince1970
+        }
+    }
+
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher: Bool
     @Published public var isCredentialImportedPublisher: Bool
@@ -220,6 +249,8 @@ public enum AppSettingKey: String {
     case isDebugLogsOn
     case expiryWarningDismissedAt
     case expiryWarningSoonDismissedAt
+    case accountSummaryCache
+    case accountSummaryLastFetchedAt
 }
 
 extension Array: @retroactive RawRepresentable where Element: Codable {
