@@ -354,9 +354,6 @@ impl TunnelMonitor {
             } else {
                 self.send_event(TunnelMonitorEvent::SelectingGateways);
 
-                self.gateway_provider
-                    .set_tunnel_settings(self.tunnel_parameters.tunnel_settings.clone())
-                    .await?;
                 let new_gateways = self
                     .shutdown_token
                     .run_until_cancelled(self.gateway_provider.next())
@@ -455,7 +452,7 @@ impl TunnelMonitor {
             .borrow()
             .clone();
         let nym_network = network_env.nym_network.clone();
-        let mode = match self.tunnel_parameters.tunnel_settings.tunnel_type {
+        let mode = match self.tunnel_parameters.tunnel_settings.tunnel_type_used() {
             TunnelType::Mixnet => RegistrationMode::Mixnet,
             TunnelType::Wireguard => RegistrationMode::Wireguard,
         };
@@ -1835,7 +1832,7 @@ impl TunnelMonitor {
         exit_tunnel_metadata: &TunnelMetadata,
         event_tx: mpsc::UnboundedSender<ConnectionEvent>,
     ) -> Result<JoinHandle<Result<(), nym_connection_monitor::Error>>> {
-        let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type {
+        let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type_used() {
             TunnelType::Mixnet => TimingConfig::mixnet(),
             TunnelType::Wireguard => TimingConfig::two_hop(),
         };

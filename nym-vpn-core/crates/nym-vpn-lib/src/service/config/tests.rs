@@ -182,6 +182,10 @@ location = "BE"
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -252,6 +256,10 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -327,6 +335,10 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -391,6 +403,10 @@ exit_point = "Random"
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -462,6 +478,10 @@ async fn test_service_config_migrate_from_v1() {
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -542,6 +562,10 @@ async fn test_service_config_migrate_from_v2() {
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -628,6 +652,10 @@ async fn test_service_config_migrate_from_v3() {
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -730,6 +758,10 @@ async fn test_service_config_migrate_from_v4() {
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -837,6 +869,10 @@ async fn test_service_config_migrate_from_v5() {
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -934,6 +970,10 @@ async fn test_service_config_migrate_from_v6() {
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -1003,6 +1043,8 @@ async fn test_service_config_serialize_full() {
             listen_port: 1080,
             excluded_countries: vec!["CN".to_string(), "RU".to_string()],
         },
+        gateway_selection_algorithm_config:
+            nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::default(),
     };
     run_serialize_test(config).await;
 }
@@ -1093,6 +1135,10 @@ async fn test_service_config_migrate_from_v7() {
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 
@@ -1189,6 +1235,10 @@ async fn test_service_config_migrate_from_v8() {
     "excluded_countries": [
       "CN"
     ]
+  },
+  "gateway_selection_algorithm_config": {
+    "enable_geo_location": true,
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 

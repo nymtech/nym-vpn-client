@@ -208,7 +208,7 @@ impl TunnelStateHandler for ErrorState {
                                 return NextTunnelState::SameState(self);
                             };
 
-                            shared_state.tunnel_settings = tunnel_settings;
+                            shared_state.set_tunnel_settings(tunnel_settings).await;
 
                             #[cfg(any(target_os = "macos", target_os = "windows"))]
                             if diff.split_tunnel_changed() || diff.airporting_enabled_changed() {
@@ -231,7 +231,7 @@ impl TunnelStateHandler for ErrorState {
 
                         #[cfg(target_os = "ios")]
                         {
-                            shared_state.tunnel_settings = tunnel_settings;
+                            shared_state.set_tunnel_settings(tunnel_settings).await;
                         }
 
                         NextTunnelState::SameState(self)

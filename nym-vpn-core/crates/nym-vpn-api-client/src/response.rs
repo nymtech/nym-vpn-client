@@ -825,6 +825,12 @@ pub struct NymWellknownDiscoveryItem {
     pub nym_vpn_api_url: String,
 }
 
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct NymUserGeoIpLocationResponse {
+    pub ip: String,
+    pub location: Location,
+}
+
 pub type RegisteredNetworksResponse = HashSet<String>;
 
 #[cfg(test)]

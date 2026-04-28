@@ -23,12 +23,13 @@ use crate::{
         UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
     },
     response::{
-        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
-        NymVpnAccountSummaryResponse, NymVpnAccountSummaryWithDeviceResponse,
-        NymVpnCanonicalAccountIdentityResponse, NymVpnDevice, NymVpnDevicesResponse,
-        NymVpnHealthResponse, NymVpnRegisterAccountResponse, NymVpnSubscription,
-        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym,
-        NymVpnZkNymPost, NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
+        NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse,
+        NymUserGeoIpLocationResponse, NymVpnAccountResponse, NymVpnAccountSummaryResponse,
+        NymVpnAccountSummaryWithDeviceResponse, NymVpnCanonicalAccountIdentityResponse,
+        NymVpnDevice, NymVpnDevicesResponse, NymVpnHealthResponse, NymVpnRegisterAccountResponse,
+        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
+        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
+        NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     skew_manager::{RemoteTimeProvider, SkewManager},
@@ -1345,6 +1346,18 @@ impl VpnApiClient {
             .await
             .map_err(Box::new)
             .map_err(VpnApiClientError::GetVpnNetworkDetails)
+    }
+
+    pub async fn get_geo_ip(&self) -> Result<NymUserGeoIpLocationResponse> {
+        tracing::debug!("Fetching user geolocation for determining gateway proximity");
+        self.inner
+            .get_json(
+                &[routes::PUBLIC, routes::V1, routes::GEO, routes::IP],
+                NO_PARAMS,
+            )
+            .await
+            .map_err(Box::new)
+            .map_err(VpnApiClientError::GetGeoIp)
     }
 }
 

@@ -56,6 +56,7 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
@@ -72,7 +73,8 @@ use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, AirportingSettings, ConnectionData,
     EntryPoint, ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig, SplitTunnelSettings, TunnelEvent,
+    TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -144,7 +146,8 @@ pub struct TunnelSettings {
     /// Whether to enable support for IPv6.
     pub enable_ipv6: bool,
 
-    /// Type of tunnel.
+    /// Type of tunnel. This is persisted across different `GatewaySelectionAlgorithm`s,
+    /// but is disregarded for `GatewaySelectionAlgorithm::Auto` selection
     pub tunnel_type: TunnelType,
 
     /// Allow LAN connections outside of tunnel.
@@ -186,9 +189,28 @@ pub struct TunnelSettings {
 
     /// Airporting settings.
     pub airporting_settings: AirportingSettings,
+
+    /// How the gateways should be selected.
+    pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 }
 
 impl TunnelSettings {
+    /// The tunnel type to be used
+    /// If the gateway selection algorithm is set to Auto, the tunnel_type is
+    /// disregarded and Wireguard mode is used, otherwise it's just the
+    /// configured tunnel_type
+    pub fn tunnel_type_used(&self) -> TunnelType {
+        if matches!(
+            self.gateway_selection_algorithm_config
+                .gateway_selection_algorithm,
+            GatewaySelectionAlgorithm::Auto
+        ) {
+            TunnelType::Wireguard
+        } else {
+            self.tunnel_type
+        }
+    }
+
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     /// Returns resolved DNS config resolved against default DNS IPs.
     pub fn resolved_dns_config(&self) -> ResolvedDnsConfig {
@@ -220,7 +242,7 @@ impl TunnelSettings {
     }
 
     pub fn bridges_enabled(&self) -> bool {
-        matches!(self.tunnel_type, TunnelType::Wireguard)
+        matches!(self.tunnel_type_used(), TunnelType::Wireguard)
             && self.wireguard_tunnel_options.enable_bridges
     }
 
@@ -292,6 +314,12 @@ impl TunnelSettings {
                 diff.add(TunnelSettingsDiffFields::AirportingExcludedCountries);
             }
         }
+        if self.gateway_selection_algorithm_config != other.gateway_selection_algorithm_config {
+            diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
+        }
+        if self.gateway_selection_algorithm_config != other.gateway_selection_algorithm_config {
+            diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
+        }
 
         if diff.is_empty() { None } else { Some(diff) }
     }
@@ -317,6 +345,7 @@ pub enum TunnelSettingsDiffFields {
     Airporting,
     AirportingEnabled,
     AirportingExcludedCountries,
+    GatewaySelectionAlgorithm,
 }
 
 impl TunnelSettingsDiffFields {
@@ -336,7 +365,8 @@ impl TunnelSettingsDiffFields {
             | Self::SplitTunnel
             | Self::Airporting
             | Self::AirportingEnabled
-            | Self::AirportingExcludedCountries => false,
+            | Self::AirportingExcludedCountries
+            | Self::GatewaySelectionAlgorithm => false,
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
             }
@@ -698,14 +728,16 @@ impl SharedState {
             .set_vpn_api_firewall_down()
             .await
             .ok();
+        self.gateway_provider.set_active_geo_location(true).await;
     }
 
-    /// Notify discovery and account controller when network is restricted.
+    /// Notify discovery, account controller and geo-location when network is restricted.
     async fn disallow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(true))
             .ok();
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
+        self.gateway_provider.set_active_geo_location(false).await;
     }
 
     #[cfg(not(target_os = "ios"))]
@@ -804,6 +836,17 @@ impl SharedState {
                 nym_common::trace_err_chain!(err, "failed to set VPN interface for split tunnel")
             })
             .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))
+    }
+
+    async fn set_tunnel_settings(&mut self, tunnel_settings: TunnelSettings) {
+        self.tunnel_settings = tunnel_settings.clone();
+        if let Err(err) = self
+            .gateway_provider
+            .set_tunnel_settings(tunnel_settings)
+            .await
+        {
+            tracing::error!("Could not update gateway provider with new tunnel settings: {err:?}");
+        }
     }
 
     #[cfg(not(target_os = "ios"))]
@@ -940,6 +983,7 @@ impl TunnelStateMachine {
         account_controller_state: AccountStateReceiver,
         statistics_event_sender: StatisticsSender,
         gateway_cache_handle: GatewayCacheHandle,
+        nym_vpn_api_client: VpnApiClient,
         topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
         discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
@@ -1014,8 +1058,17 @@ impl TunnelStateMachine {
         })
         .map_err(Error::CreateFirewall)?;
 
-        let (gateway_provider, gateway_provider_handle) =
-            GatewayProvider::new(gateway_cache_handle, wg_keys_db, shutdown_token.clone());
+        let (gateway_provider, gateway_provider_handle) = GatewayProvider::new(
+            gateway_cache_handle,
+            nym_vpn_api_client,
+            tunnel_settings
+                .gateway_selection_algorithm_config
+                .enable_geo_location,
+            tunnel_settings.clone(),
+            wg_keys_db,
+            shutdown_token.clone(),
+        )
+        .await?;
 
         let mut shared_state = SharedState {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1330,24 +1383,6 @@ impl tunnel::Error {
                 GatewayDirectoryError::ExitGatewayUnavailable { .. } => {
                     Some(ErrorStateReason::PerformantExitGatewayUnavailable)
                 }
-                GatewayDirectoryError::SelectEntryGateway(source) => match source {
-                    nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. } => {
-                        Some(ErrorStateReason::InvalidEntryGatewayCountry)
-                    }
-                    nym_gateway_directory::Error::NoMatchingGateway { .. } => {
-                        Some(ErrorStateReason::InvalidEntryGatewayIdentity)
-                    }
-                    _ => None,
-                },
-                GatewayDirectoryError::SelectExitGateway(source) => match source {
-                    nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. } => {
-                        Some(ErrorStateReason::InvalidExitGatewayCountry)
-                    }
-                    nym_gateway_directory::Error::NoMatchingGateway { .. } => {
-                        Some(ErrorStateReason::InvalidExitGatewayIdentity)
-                    }
-                    _ => None,
-                },
                 _ => None,
             },
             Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {

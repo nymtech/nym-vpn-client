@@ -282,8 +282,7 @@ impl TunnelStateHandler for ConnectedState {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
-
-                        shared_state.tunnel_settings = tunnel_settings;
+                        shared_state.set_tunnel_settings(tunnel_settings).await;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         let mut new_firewall_policy = self.firewall_policy_params.clone();
@@ -352,7 +351,7 @@ impl TunnelStateHandler for ConnectedState {
                         }
 
                         // Not all changes require the tunnel to be reconnected
-                        if diff.should_reconnect(shared_state.tunnel_settings.tunnel_type) {
+                        if diff.should_reconnect(shared_state.tunnel_settings.tunnel_type_used()) {
                             self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                         } else {
                             NextTunnelState::SameState(self)

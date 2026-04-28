@@ -37,6 +37,7 @@ mod connection_data;
 mod device;
 mod diagnostic;
 mod gateway;
+mod gateway_selection_algorithm;
 mod log_path;
 mod network;
 mod network_stats;
@@ -81,6 +82,7 @@ pub use gateway::{
     LookupGatewayFilters, Lp, NodeIdentity, ParseRecipientError, Performance, Probe, ProbeOutcome,
     QuicClientOptions, Recipient, Score, Socks5,
 };
+pub use gateway_selection_algorithm::{GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig};
 pub use log_path::LogPath;
 pub use network::{
     ApiUrl, ChainDetails, DenomDetailsOwned, FeatureFlags, FlagValue, Network,

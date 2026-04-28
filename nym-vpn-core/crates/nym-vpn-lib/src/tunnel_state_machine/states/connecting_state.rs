@@ -91,6 +91,12 @@ impl ConnectingState {
         #[cfg(any(target_os = "android", target_os = "ios"))]
         shared_state.allow_networking().await;
 
+        // Disallow geolocating while connected to prevent incorrect data from being queried
+        shared_state
+            .gateway_provider
+            .set_active_geo_location(false)
+            .await;
+
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
             trace_err_chain!(e, "Failed to configure system to use filtering resolver",);
@@ -576,7 +582,7 @@ impl ConnectingState {
         PrivateTunnelState::Connecting {
             retry_attempt: self.retry_attempt,
             state,
-            tunnel_type: shared_state.tunnel_settings.tunnel_type,
+            tunnel_type: shared_state.tunnel_settings.tunnel_type_used(),
             connection_data: self.connection_data.clone(),
         }
     }
@@ -723,8 +729,7 @@ impl TunnelStateHandler for ConnectingState {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
-
-                        shared_state.tunnel_settings = tunnel_settings;
+                        shared_state.set_tunnel_settings(tunnel_settings).await;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         let mut new_firewall_policy = self.firewall_policy_params.clone();
@@ -788,7 +793,7 @@ impl TunnelStateHandler for ConnectingState {
                         }
 
                         // Not all changes require the tunnel to be reconnected
-                        if diff.should_reconnect(shared_state.tunnel_settings.tunnel_type) {
+                        if diff.should_reconnect(shared_state.tunnel_settings.tunnel_type_used()) {
                             // Skip disconnecting state if tunnel monitor isn't running yet
                             if self.tunnel_monitor_handle.is_some() {
                                 self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
