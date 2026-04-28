@@ -92,7 +92,10 @@ impl ConnectingState {
         shared_state.allow_networking().await;
 
         // Disallow geolocating while connected to prevent incorrect data from being queried
-        shared_state.gateway_provider.set_active_geo_location(false);
+        shared_state
+            .gateway_provider
+            .set_active_geo_location(false)
+            .await;
 
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {

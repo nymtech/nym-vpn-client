@@ -728,7 +728,7 @@ impl SharedState {
             .set_vpn_api_firewall_down()
             .await
             .ok();
-        self.gateway_provider.set_active_geo_location(true);
+        self.gateway_provider.set_active_geo_location(true).await;
     }
 
     /// Notify discovery, account controller and geo-location when network is restricted.
@@ -737,7 +737,7 @@ impl SharedState {
             .send(DiscoveryRefresherCommand::Pause(true))
             .ok();
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
-        self.gateway_provider.set_active_geo_location(false);
+        self.gateway_provider.set_active_geo_location(false).await;
     }
 
     #[cfg(not(target_os = "ios"))]

@@ -6,13 +6,7 @@ mod gateway_cache;
 mod geo_ip;
 mod selector;
 
-use std::{
-    sync::{
-        Arc,
-        atomic::{AtomicBool, Ordering},
-    },
-    task::Poll,
-};
+use std::{sync::Arc, task::Poll};
 
 use futures::{FutureExt, Stream, StreamExt};
 use nym_gateway_directory::{BlacklistedGateways, GatewayClient, NodeIdentity};
@@ -31,7 +25,7 @@ use crate::tunnel_state_machine::{
         gateway_provider::{
             algorithm::{SelectAndSend, SelectionAlgorithm},
             gateway_cache::GatewayCache,
-            geo_ip::{GeoIpClient, GeoIpProvider},
+            geo_ip::{GeoIpClient, GeoIpProvider, QueryControl},
         },
     },
 };
@@ -48,11 +42,7 @@ pub struct GatewayProvider<C: GatewayCache> {
     tunnel_settings_tx: mpsc::Sender<SelectAndSend>,
     selected_gateways_stream: SelectedGatewaysStream,
     blacklisted_entry_gateways: BlacklistedGateways,
-    /// if geo location should ever be used by the algorithm, depending on user's preference
-    enable_geo_location: Arc<AtomicBool>,
-    /// if geo location is active, depending on connection status, so that false locations
-    /// don't get used
-    active_geo_location: Arc<AtomicBool>,
+    query_control: Arc<Mutex<QueryControl>>,
 }
 
 impl<C: GatewayCache> Stream for GatewayProvider<C> {
@@ -82,14 +72,8 @@ impl<C: GatewayCache> GatewayProvider<C> {
     ) -> Result<(Self, JoinHandle<()>), crate::tunnel_state_machine::Error> {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_entry_gateways = BlacklistedGateways::new();
-        let active_geo_location = Arc::new(AtomicBool::new(enable_geo_location));
-        let enable_geo_location = Arc::new(AtomicBool::new(enable_geo_location));
-        let geo_ip_provider = GeoIpProvider::new(
-            geo_ip_client,
-            enable_geo_location.clone(),
-            active_geo_location.clone(),
-        )
-        .await;
+        let query_control = Arc::new(Mutex::new(QueryControl::new(enable_geo_location)));
+        let geo_ip_provider = GeoIpProvider::new(geo_ip_client, query_control.clone()).await;
         let selection_algorithm_handle = tokio::spawn(
             SelectionAlgorithm::new(
                 tunnel_settings_rx,
@@ -110,8 +94,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 tunnel_settings_tx,
                 selected_gateways_stream,
                 blacklisted_entry_gateways,
-                enable_geo_location,
-                active_geo_location,
+                query_control,
             },
             selection_algorithm_handle,
         ))
@@ -135,27 +118,28 @@ impl<C: GatewayCache> GatewayProvider<C> {
 
     /// Set if geo-location should be used by the algorithm, based on user's
     /// preference
-    fn set_enable_geo_location(&mut self, enable: bool) {
-        self.enable_geo_location.store(enable, Ordering::SeqCst);
+    async fn set_enabled_geo_location(&self, enabled: bool) {
+        self.query_control.lock().await.set_enabled(enabled);
     }
 
     /// Set the activation for geo-location based on connection status, to avoid
     /// false locations being used.
     /// Being active means we try to query the location from the API. We want to
     /// deactivate this in certain states of TSM, when the queries are proxied.
-    pub fn set_active_geo_location(&self, active: bool) {
-        self.active_geo_location.store(active, Ordering::SeqCst);
+    pub async fn set_active_geo_location(&self, active: bool) {
+        self.query_control.lock().await.set_active(active);
     }
 
     pub async fn set_tunnel_settings(
         &mut self,
         tunnel_settings: TunnelSettings,
     ) -> Result<(), crate::tunnel_state_machine::Error> {
-        self.set_enable_geo_location(
+        self.set_enabled_geo_location(
             tunnel_settings
                 .gateway_selection_algorithm_config
                 .enable_geo_location,
-        );
+        )
+        .await;
         self.selected_gateways_stream =
             Self::inner_set_tunnel_settings(&self.tunnel_settings_tx, tunnel_settings).await?;
         Ok(())

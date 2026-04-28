@@ -134,7 +134,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, atomic::AtomicBool};
+    use std::sync::Arc;
 
     use tokio::sync::RwLock;
 
@@ -175,12 +175,7 @@ mod tests {
         let algo = SelectionAlgorithm::new(
             tunnel_settings_rx,
             MockGatewayCache::new(gateways.clone()),
-            GeoIpProvider::new(
-                MockGeoIpClient::new(),
-                Arc::new(AtomicBool::new(true)),
-                Arc::new(AtomicBool::new(true)),
-            )
-            .await,
+            GeoIpProvider::new(MockGeoIpClient::new(), Default::default()).await,
             BlacklistedGateways::new(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.clone(),
