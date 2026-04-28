@@ -1,11 +1,13 @@
 import SwiftUI
 import AppSettings
+import CredentialsManager
 import Routes
 import Theme
 import UIComponents
 
 public struct ProcessingAccountView: View {
     @EnvironmentObject private var appSettings: AppSettings
+    @EnvironmentObject private var credentialsManager: CredentialsManager
     @Binding private var path: NavigationPath
     @State private var didFinishAnimatingText = false
     @State private var currentStep = 1
@@ -33,6 +35,9 @@ public struct ProcessingAccountView: View {
         }
         .onChange(of: didFinishAnimatingText) { _, _ in
             navigateHomeOrTechnicalOptIns()
+        }
+        .task {
+            await credentialsManager.updateAccountSummary(force: true, untilActive: true)
         }
     }
 
@@ -73,6 +78,5 @@ private extension ProcessingAccountView {
         } else {
             path = .init([HomeLink.technicalOptIns])
         }
-
     }
 }

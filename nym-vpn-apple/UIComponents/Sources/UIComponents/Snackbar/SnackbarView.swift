@@ -54,8 +54,8 @@ extension SnackbarView {
         HStack(alignment: .center, spacing: 16) {
             messageStyleImage(message)
             messageText(message)
+            Spacer()
             if let ctaText = message.ctaText {
-                Spacer()
                 ctaButton(ctaText, action: message.ctaAction)
             }
             if message.style.showsCloseButton {
