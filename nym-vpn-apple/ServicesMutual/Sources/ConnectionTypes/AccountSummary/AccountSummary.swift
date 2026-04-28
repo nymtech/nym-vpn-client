@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import Theme
 
-public struct AccountSummary {
+public struct AccountSummary: Codable {
     public var validUntilDate: Date?
     public var trafficUsedGb: Int?
     public var trafficLimitGb: Int?

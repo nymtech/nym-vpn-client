@@ -1,9 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod default_interface;
-mod proxy;
-mod routing;
+use nym_socks5_proxy::{default_interface, proxy};
 
 use std::{
     fs::{File, create_dir_all},
@@ -71,6 +69,8 @@ async fn main() -> Result<()> {
         default_interface_rx,
         tunnel_addrs_rx,
         shutdown_token.clone(),
+        #[cfg(target_os = "android")]
+        std::sync::Arc::new(|_: i32| {}),
     )
     .await
     {

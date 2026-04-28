@@ -4,7 +4,7 @@ import NymVPNLib
 import NymVPNRpc
 #endif
 
-public enum VpnSubscriptionKind: Equatable, Hashable {
+public enum VpnSubscriptionKind: Equatable, Hashable, Codable {
     case oneMonth
     case oneYear
     case twoYears

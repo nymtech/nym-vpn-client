@@ -7014,6 +7014,7 @@ dependencies = [
  "nym-registration-common",
  "nym-routing",
  "nym-sdk",
+ "nym-socks5-proxy",
  "nym-socks5-proxy-ipc",
  "nym-split-tunnel",
  "nym-statistics",

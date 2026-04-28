@@ -40,7 +40,7 @@ impl DisconnectedState {
         shared_state.allow_networking().await;
 
         // Notify the SOCKS5 proxy subprocess that the VPN tunnel is down
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "ios"))]
         {
             shared_state.set_socks5_proxy_tunnel_addrs(None, None);
         }
@@ -80,7 +80,7 @@ impl TunnelStateHandler for DisconnectedState {
                     },
                     TunnelCommand::Disconnect => NextTunnelState::SameState(self),
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        #[cfg(not(target_os = "ios"))]
                         {
                             let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                                 return NextTunnelState::SameState(self);
@@ -98,7 +98,7 @@ impl TunnelStateHandler for DisconnectedState {
                             }
                         }
 
-                        #[cfg(any(target_os = "android", target_os = "ios"))]
+                        #[cfg(target_os = "ios")]
                         {
                             shared_state.set_tunnel_settings(tunnel_settings).await;
                         }
