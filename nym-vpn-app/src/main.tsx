@@ -156,6 +156,7 @@ dayjs.extend(localizedFormat);
     frontingMode: config?.frontingMode || 'onRetry',
     gatewayIndependenceNotifications:
       config?.gatewayIndependenceNotifications ?? true,
+    mtu: config?.mtu ?? null,
   };
   console.log('initial state:', initState);
 

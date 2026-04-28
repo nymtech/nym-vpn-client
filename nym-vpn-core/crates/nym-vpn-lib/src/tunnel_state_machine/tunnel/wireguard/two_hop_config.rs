@@ -53,8 +53,10 @@ impl TwoHopConfig {
             .unwrap_or(default_port)
     }
 
-    /// Create new two-hop configuration given two individual WireGuard configurations.
-    pub fn new(entry: WgNodeConfig, exit: WgNodeConfig) -> Self {
+    /// Create new two-hop configuration given two individual WireGuard configurations
+    /// and an optional user MTU override applied to the exit (user-facing) interface.
+    /// When `mtu_override` is `Some(x)`, the entry interface MTU is `x + WG_TUNNEL_OVERHEAD`.
+    pub fn new(entry: WgNodeConfig, exit: WgNodeConfig, mtu_override: Option<u16>) -> Self {
         // Ensure that exit instance of wg attached on tun interface, uses a fixed port number
         // to initiate connection to the udp forwarder, because it ignores traffic from other ports.
         let client_port = exit
@@ -77,8 +79,10 @@ impl TwoHopConfig {
         };
 
         // Since we collect the exit traffic on tun, the tun's mtu must be lesser than entry mtu.
-        let exit_mtu = EXIT_MTU;
-        let entry_mtu = ENTRY_MTU;
+        let exit_mtu = mtu_override.unwrap_or(EXIT_MTU);
+        let entry_mtu = mtu_override
+            .map(|x| x.saturating_add(WG_TUNNEL_OVERHEAD))
+            .unwrap_or(ENTRY_MTU);
 
         let tun_config = TunConfig {
             addresses: exit.interface.addresses.clone(),

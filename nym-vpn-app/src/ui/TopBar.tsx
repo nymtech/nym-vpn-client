@@ -205,6 +205,13 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/advanced-networking': {
+        title: t('advanced-networking.title', { ns: 'settings' }),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/settings/socks5': {
         title: t('app-proxy.title', { ns: 'settings' }),
         leftIcon: 'keyboard_arrow_left',

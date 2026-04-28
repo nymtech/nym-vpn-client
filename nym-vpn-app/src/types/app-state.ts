@@ -55,6 +55,8 @@ export type InitState = {
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   frontingMode: FrontingMode;
   gatewayIndependenceNotifications: boolean;
+  /// User-defined MTU override; `null` = use platform defaults (toggle off).
+  mtu: number | null;
 };
 
 export type AppState = {
@@ -122,4 +124,6 @@ export type AppState = {
   frontingMode: FrontingMode;
   // gateway-independence reminder toggle ("Server family reminders"); daemon-backed
   gatewayIndependenceNotifications: boolean;
+  /// User-defined MTU override; `null` = use platform defaults (toggle off).
+  mtu: number | null;
 };

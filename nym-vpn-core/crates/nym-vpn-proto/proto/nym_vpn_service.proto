@@ -323,6 +323,15 @@ message VpnServiceConfig {
   GatewaySelectionAlgorithmConfig gateway_selection_algorithm = 30;
   FrontingModes fronting_mode = 31;
   GatewayIndependence gateway_independence = 32;
+  // User-defined MTU override for the user-facing tunnel interface.
+  // Absent = use platform defaults.
+  optional uint32 mtu = 33;
+}
+
+// Set the MTU override for the user-facing tunnel interface.
+// `mtu` absent = clear override (use platform defaults).
+message SetMtuRequest {
+  optional uint32 mtu = 1;
 }
 
 message NetworkStatsConfig {
@@ -1165,6 +1174,7 @@ service NymVpnService {
   rpc SetEnableGatewayIndependence(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetGatewayIndependenceNotifications(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetFrontingMode(FrontingModeRequest) returns (google.protobuf.Empty) {}
+  rpc SetMtu(SetMtuRequest) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork(google.protobuf.StringValue) returns (google.protobuf.Empty) {}

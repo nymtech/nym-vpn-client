@@ -192,7 +192,8 @@ location = "BE"
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Country {
@@ -272,7 +273,8 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
@@ -357,7 +359,8 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Gateway {
@@ -431,7 +434,8 @@ exit_point = "Random"
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     let entry_point = nym_vpn_lib_types::EntryPoint::Random;
@@ -512,7 +516,8 @@ async fn test_service_config_migrate_from_v1() {
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     run_migrate_json_test(json_v1_content, json_latest_content).await;
@@ -602,7 +607,8 @@ async fn test_service_config_migrate_from_v2() {
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     run_migrate_json_test(json_v2_content, json_latest_content).await;
@@ -698,7 +704,8 @@ async fn test_service_config_migrate_from_v3() {
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     run_migrate_json_test(json_v3_content, json_latest_content).await;
@@ -810,7 +817,8 @@ async fn test_service_config_migrate_from_v4() {
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     run_migrate_json_test(json_v4_content, json_latest_content).await;
@@ -927,7 +935,8 @@ async fn test_service_config_migrate_from_v5() {
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     run_migrate_json_test(json_v5_content, json_latest_content).await;
@@ -1034,7 +1043,8 @@ async fn test_service_config_migrate_from_v6() {
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     run_migrate_json_test(json_v6_content, json_latest_content).await;
@@ -1111,6 +1121,7 @@ async fn test_service_config_serialize_full() {
             different_subnet: true,
             ..Default::default()
         },
+        mtu: Some(1340),
     };
     run_serialize_test(config).await;
 }
@@ -1211,7 +1222,8 @@ async fn test_service_config_migrate_from_v7() {
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     run_migrate_json_test(json_v7_content, json_latest_content).await;
@@ -1317,7 +1329,8 @@ async fn test_service_config_migrate_from_v8() {
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     run_migrate_json_test(json_v8_content, json_latest_content).await;
@@ -1376,7 +1389,8 @@ async fn test_service_config_migrate_from_v9() {
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
     "gateway_selection_algorithm": "explicit"
-  }
+  },
+  "mtu": null
 }"#;
 
     let json_latest_content = r#"{
@@ -1435,7 +1449,8 @@ async fn test_service_config_migrate_from_v9() {
     "different_node_family": true,
     "different_asn": true,
     "different_subnet": true
-  }
+  },
+  "mtu": null
 }"#;
 
     run_migrate_json_test(json_v9_content, json_latest_content).await;

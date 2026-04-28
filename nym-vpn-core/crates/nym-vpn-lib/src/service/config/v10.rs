@@ -96,6 +96,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             geo_exclusion,
             gateway_selection_algorithm_config,
             gateway_independence,
+            mtu: None,
         })
     }
 }

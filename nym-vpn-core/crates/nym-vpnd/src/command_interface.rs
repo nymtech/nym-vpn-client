@@ -428,6 +428,32 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_mtu(
+        &self,
+        request: tonic::Request<proto::SetMtuRequest>,
+    ) -> Result<tonic::Response<()>> {
+        // Bounds match nym-vpn-lib's `MIN_IPV6_MTU` (1280) and `ETHERNET_V2_MTU` (1500).
+        // The UI clamps further per (mode, OS); these are the absolute backend bounds.
+        const MIN_MTU: u32 = 1280;
+        const MAX_MTU: u32 = 1500;
+
+        let raw = request.into_inner().mtu;
+        if let Some(value) = raw
+            && !(MIN_MTU..=MAX_MTU).contains(&value)
+        {
+            return Err(tonic::Status::invalid_argument(format!(
+                "MTU must be between {MIN_MTU} and {MAX_MTU} (got {value})"
+            )));
+        }
+        let mtu = raw.map(|u| u as u16);
+
+        self.send_and_wait(VpnServiceCommand::SetMtu, mtu)
+            .await
+            .map_err(|e| tonic::Status::internal(format!("Failed to set MTU: {e}")))?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
         let network = request.into_inner();
         let status = self

@@ -53,7 +53,7 @@ use crate::{
             Error, Result, Tombstone,
             wireguard::{
                 ConnectionData,
-                two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
+                two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig, WG_TUNNEL_OVERHEAD},
             },
         },
     },
@@ -68,6 +68,7 @@ pub struct ConnectedTunnel {
     entry_wg_keypair: Arc<x25519::KeyPair>,
     exit_wg_keypair: Arc<x25519::KeyPair>,
     connection_data: ConnectionData,
+    mtu_override: Option<u16>,
 }
 
 impl ConnectedTunnel {
@@ -75,11 +76,13 @@ impl ConnectedTunnel {
         entry_wg_keypair: Arc<x25519::KeyPair>,
         exit_wg_keypair: Arc<x25519::KeyPair>,
         connection_data: ConnectionData,
+        mtu_override: Option<u16>,
     ) -> Self {
         Self {
             entry_wg_keypair,
             exit_wg_keypair,
             connection_data,
+            mtu_override,
         }
     }
 
@@ -92,11 +95,13 @@ impl ConnectedTunnel {
     }
 
     pub fn entry_mtu(&self) -> u16 {
-        ENTRY_MTU
+        self.mtu_override
+            .map(|exit| exit.saturating_add(WG_TUNNEL_OVERHEAD))
+            .unwrap_or(ENTRY_MTU)
     }
 
     pub fn exit_mtu(&self) -> u16 {
-        EXIT_MTU
+        self.mtu_override.unwrap_or(EXIT_MTU)
     }
 
     pub async fn run(
@@ -316,7 +321,8 @@ impl ConnectedTunnel {
         #[cfg(target_os = "ios")]
         let entry_peer_update = wg_entry_config.peer.as_peer_endpoint_update();
 
-        let mut two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
+        let mut two_hop_config =
+            TwoHopConfig::new(wg_entry_config, wg_exit_config, self.mtu_override);
 
         // iOS does not perform dns64 resolution by default. Do that manually.
         #[cfg(target_os = "ios")]

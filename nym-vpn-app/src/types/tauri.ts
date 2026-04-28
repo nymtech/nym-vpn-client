@@ -588,6 +588,10 @@ export type VpndConfig = {
   geoExclusion: GeoExclusionSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   gatewayIndependenceNotifications: boolean;
+  /**
+   * User-defined MTU override; `None` = use platform defaults.
+   */
+  mtu: number | null;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

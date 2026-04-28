@@ -39,6 +39,7 @@ pub struct VpnServiceConfig {
     pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
     pub gateway_independence: GatewayIndependence,
+    pub mtu: Option<u16>,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
@@ -96,6 +97,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             geo_exclusion,
             gateway_selection_algorithm_config,
             gateway_independence,
+            mtu: value.mtu,
         })
     }
 }

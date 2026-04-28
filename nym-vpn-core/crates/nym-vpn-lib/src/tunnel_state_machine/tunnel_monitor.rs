@@ -662,6 +662,10 @@ impl TunnelMonitor {
                     selected_gateways.entry_keypair().clone(),
                     selected_gateways.exit_keypair().clone(),
                     connection_data,
+                    self.tunnel_parameters
+                        .tunnel_settings
+                        .wireguard_tunnel_options
+                        .mtu,
                 );
 
                 let start_tunnel_result = match self

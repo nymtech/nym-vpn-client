@@ -56,6 +56,10 @@ pub struct VpnServiceConfig {
     pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
     pub gateway_independence: GatewayIndependence,
+    /// User-defined MTU override for the user-facing tunnel interface.
+    /// `None` means use platform defaults; `Some(x)` overrides the exit-side MTU
+    /// (entry-side is derived as `x + WG_TUNNEL_OVERHEAD` for WireGuard mode).
+    pub mtu: Option<u16>,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -102,6 +106,10 @@ impl fmt::Display for VpnServiceConfig {
             self.gateway_selection_algorithm_config
         )?;
         writeln!(f, "gateway independence: {}", self.gateway_independence)?;
+        match self.mtu {
+            Some(mtu) => writeln!(f, "mtu: {mtu}")?,
+            None => writeln!(f, "mtu: default")?,
+        };
 
         Ok(())
     }
@@ -129,6 +137,7 @@ impl Default for VpnServiceConfig {
             geo_exclusion: GeoExclusionSettings::default(),
             gateway_selection_algorithm_config: Default::default(),
             gateway_independence: Default::default(),
+            mtu: None,
         }
     }
 }

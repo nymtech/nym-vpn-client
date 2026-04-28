@@ -561,6 +561,9 @@ pub enum WireguardMultihopMode {
 pub struct WireguardTunnelOptions {
     pub multihop_mode: WireguardMultihopMode,
     pub enable_bridges: bool,
+    /// Overrides the user-facing (exit) tunnel MTU. Entry MTU is derived as
+    /// `mtu + WG_TUNNEL_OVERHEAD`.
+    pub mtu: Option<u16>,
 }
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]

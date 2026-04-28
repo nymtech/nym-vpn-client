@@ -187,6 +187,13 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_mtu(&mut self, mtu: Option<u16>) {
+        if self.config.mtu != mtu {
+            self.config.mtu = mtu;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     pub async fn set_enable_custom_dns(&mut self, enable_custom_dns: bool) -> bool {
         if self.config.enable_custom_dns == enable_custom_dns {
             false
@@ -558,7 +565,13 @@ impl VpnServiceConfigManager {
             enable_ad_blocking: self.config.enable_ad_blocking,
             residential_exit: self.config.residential_exit,
             tunnel_type,
-            mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },
+            // Clamp the persisted MTU to the per-mode ceiling so that a value
+            // valid in one mode (e.g. 1500 in mixnet) doesn't push the WG entry
+            // interface above ETHERNET_V2_MTU after a mode switch.
+            // Mirrors the constants in `tunnel/wireguard/two_hop_config.rs`.
+            mixnet_tunnel_options: MixnetTunnelOptions {
+                mtu: clamp_mixnet_mtu(self.config.mtu),
+            },
             wireguard_tunnel_options: WireguardTunnelOptions {
                 #[cfg(not(any(target_os = "android", target_os = "ios")))]
                 multihop_mode: if self.config.netstack {
@@ -569,6 +582,7 @@ impl VpnServiceConfigManager {
                 #[cfg(any(target_os = "android", target_os = "ios"))]
                 multihop_mode: WireguardMultihopMode::Netstack,
                 enable_bridges: self.config.enable_bridges,
+                mtu: clamp_wg_exit_mtu(self.config.mtu),
             },
             gateway_performance_options: gateway_options,
             mixnet_client_config: Some(mixnet_client_config),
@@ -584,4 +598,38 @@ impl VpnServiceConfigManager {
             gateway_independence: self.config.gateway_independence,
         }
     }
+}
+
+/// Per-mode MTU ceilings, mirrored from `tunnel/wireguard/two_hop_config.rs`.
+/// Mobile platforms (iOS/Android) cap at MIN_IPV6_MTU because the WG overhead
+/// stack already brings the effective ceiling down to v6 minimum.
+const MIN_IPV6_MTU: u16 = 1280;
+const ETHERNET_V2_MTU: u16 = 1500;
+const WG_TUNNEL_OVERHEAD: u16 = 80;
+
+const MIXNET_MAX_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
+    MIN_IPV6_MTU
+} else {
+    ETHERNET_V2_MTU
+};
+
+const WG_MAX_EXIT_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
+    MIN_IPV6_MTU
+} else {
+    ETHERNET_V2_MTU - 2 * WG_TUNNEL_OVERHEAD
+};
+
+// Per-mode bounds-clamping. We deliberately do NOT collapse `Some(MAX)` to
+// `None` — they look identical here but produce different effective MTUs on
+// platforms where `None` triggers route-based detection (Linux/Windows mixnet,
+// see `tunnel_monitor.rs::start_mixnet_tunnel`). Keeping the user's chosen
+// value `Some(_)` means "Current: 1500" in the UI matches what the tunnel
+// actually uses, at the cost of one reconnect when the toggle is enabled at
+// the platform default.
+fn clamp_mixnet_mtu(mtu: Option<u16>) -> Option<u16> {
+    mtu.map(|m| m.clamp(MIN_IPV6_MTU, MIXNET_MAX_MTU))
+}
+
+fn clamp_wg_exit_mtu(mtu: Option<u16>) -> Option<u16> {
+    mtu.map(|m| m.clamp(MIN_IPV6_MTU, WG_MAX_EXIT_MTU))
 }

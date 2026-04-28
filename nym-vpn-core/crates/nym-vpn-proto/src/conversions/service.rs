@@ -87,6 +87,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             geo_exclusion,
             gateway_selection_algorithm_config,
             gateway_independence,
+            mtu: value.mtu.map(|u| u as u16),
         };
         Ok(config)
     }
@@ -127,6 +128,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             geo_exclusion,
             gateway_selection_algorithm,
             gateway_independence,
+            mtu: value.mtu.map(|u| u as u32),
         }
     }
 }

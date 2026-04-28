@@ -34,6 +34,8 @@ pub struct VpndConfig {
     pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
     pub gateway_independence_notifications: bool,
+    /// User-defined MTU override; `None` = use platform defaults.
+    pub mtu: Option<u16>,
 }
 
 impl VpndConfig {
@@ -64,6 +66,7 @@ impl VpndConfig {
             geo_exclusion: config.geo_exclusion.into(),
             gateway_selection_algorithm_config: config.gateway_selection_algorithm_config.into(),
             gateway_independence_notifications: config.gateway_independence.enable_notifications,
+            mtu: config.mtu,
         })
     }
 }

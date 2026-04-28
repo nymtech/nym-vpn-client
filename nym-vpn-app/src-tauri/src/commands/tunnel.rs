@@ -154,6 +154,18 @@ pub async fn set_quic(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), 
     Ok(())
 }
 
+/// Set the user-defined MTU override.
+/// `mtu = None` clears the override (use platform defaults), `Some(x)` sets it.
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_mtu(
+    vpnd: State<'_, VpndClient>,
+    mtu: Option<u16>,
+) -> Result<(), BackendError> {
+    vpnd.set_mtu(mtu).await?;
+    Ok(())
+}
+
 #[instrument(skip(vpnd))]
 #[tauri::command]
 pub async fn set_fronting_mode(

@@ -38,6 +38,7 @@ pub struct VpnServiceConfig {
     pub split_tunnel: SplitTunnelSettings,
     pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    pub mtu: Option<u16>,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {

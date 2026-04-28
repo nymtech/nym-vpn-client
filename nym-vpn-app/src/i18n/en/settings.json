@@ -203,6 +203,23 @@
     "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
     "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
   },
+  "advanced-networking": {
+    "title": "Advanced networking",
+    "menu-desc": "Tune MTU and other network settings",
+    "intro": "Advanced settings for users who want fine-grained control over how packets travel through the tunnel. Misconfigured values can degrade performance or break connectivity — change with care.",
+    "mtu": {
+      "label": "MTU override",
+      "warning": "Changes will apply after reconnect",
+      "content": "Sets the Maximum Transmission Unit (MTU) for the user-facing tunnel interface. Lower values can help on networks that drop fragmented packets at the cost of slightly less throughput. The default is computed from your platform and current VPN mode.",
+      "current": "Current",
+      "platform-default": "Using platform default",
+      "snackbar-switch-on": "MTU override will apply when you reconnect.",
+      "snackbar-switch-off": "MTU override will be removed when you reconnect.",
+      "errors": {
+        "failed": "Failed to update MTU"
+      }
+    }
+  },
   "display-theme": "Display mode",
   "language-system": "System language",
   "quit": "Quit NymVPN",

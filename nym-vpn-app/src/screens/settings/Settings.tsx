@@ -157,6 +157,13 @@ function Settings() {
             ),
           },
           {
+            title: t('advanced-networking.title'),
+            desc: t('advanced-networking.menu-desc'),
+            leadingIcon: 'tune',
+            onClick: () => navigate(routes.advancedNetworking),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+          },
+          {
             title: t('app-proxy.title'),
             desc: t('app-proxy.menu-desc'),
             leadingIcon: 'lan',

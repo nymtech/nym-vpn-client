@@ -173,6 +173,18 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_mtu(&mut self, mtu: Option<u16>) -> Result<()> {
+        let request = proto::SetMtuRequest {
+            mtu: mtu.map(|u| u as u32),
+        };
+        self.0
+            .set_mtu(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_residential_exit(&mut self, residential_exit: bool) -> Result<()> {
         self.0
             .set_residential_exit(residential_exit)

@@ -410,6 +410,17 @@ impl VpndClient {
             .await
     }
 
+    /// Set the user-defined MTU override.
+    /// `mtu = None` clears the override (use platform defaults).
+    #[instrument(skip_all)]
+    pub async fn set_mtu(&self, mtu: Option<u16>) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_mtu(mtu)
+            .or_else(async |e| self.handle_rpc_error("set_mtu", e).await)
+            .await
+    }
+
     /// Enable or disable no-IPv6 mode
     #[instrument(skip_all)]
     pub async fn set_no_ipv6(&self, enabled: bool) -> Result<(), VpndError> {

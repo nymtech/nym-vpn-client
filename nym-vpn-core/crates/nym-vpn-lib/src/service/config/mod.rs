@@ -239,6 +239,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             geo_exclusion,
             gateway_selection_algorithm_config,
             gateway_independence,
+            mtu: value.mtu,
         };
 
         Ok(VpnServiceConfigExt::V11(v11))

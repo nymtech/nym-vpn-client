@@ -85,6 +85,7 @@ export type StateAction =
   | { type: 'set-account-error'; error: AppError | null }
   | { type: 'set-backend-flags'; flags: FeatureFlags }
   | { type: 'set-quic'; enabled: boolean }
+  | { type: 'set-mtu'; mtu: number | null }
   | { type: 'set-fronting-mode'; mode: FrontingMode }
   | { type: 'set-custom-dns-enabled'; enabled: boolean }
   | { type: 'set-custom-dns'; dns: string[] }
@@ -134,6 +135,7 @@ export const initialState: AppState = {
   networkStats: false,
   technicalOptinSeen: false,
   quic: false,
+  mtu: null,
   allowLan: false,
   frontingMode: 'onRetry',
   enableAdBlocking: false,
@@ -244,6 +246,7 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
           geoExclusion: action.config.geoExclusion,
           gatewaySelectionAlgorithmConfig:
             action.config.gatewaySelectionAlgorithmConfig,
+          mtu: action.config.mtu ?? null,
         });
         break;
 
@@ -469,6 +472,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-quic':
         set({ quic: action.enabled });
+        break;
+
+      case 'set-mtu':
+        set({ mtu: action.mtu });
         break;
 
       case 'set-fronting-mode':
