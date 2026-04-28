@@ -91,7 +91,7 @@ impl ErrorState {
         };
 
         // Notify the SOCKS5 proxy subprocess that the VPN tunnel is down.
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "ios"))]
         {
             shared_state.set_socks5_proxy_tunnel_addrs(None, None)
         }
@@ -202,7 +202,7 @@ impl TunnelStateHandler for ErrorState {
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        #[cfg(not(target_os = "ios"))]
                         {
                             let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                                 return NextTunnelState::SameState(self);
@@ -219,6 +219,7 @@ impl TunnelStateHandler for ErrorState {
                                 shared_state.start_or_stop_socks5_proxy().await;
                             }
 
+                            #[cfg(not(any(target_os = "android", target_os = "ios")))]
                             if diff.allow_lan_changed() {
                                 self.firewall_policy_params.allow_lan = shared_state.tunnel_settings.allow_lan;
 
@@ -228,7 +229,7 @@ impl TunnelStateHandler for ErrorState {
                             }
                         }
 
-                        #[cfg(any(target_os = "android", target_os = "ios"))]
+                        #[cfg(target_os = "ios")]
                         {
                             shared_state.tunnel_settings = tunnel_settings;
                         }

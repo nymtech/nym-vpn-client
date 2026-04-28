@@ -34,6 +34,8 @@ pacman -S rsync patch
 
 There are many ways to go about this, but using [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/) is a convenient way.
 
+When installing the NDK, Click the `SDK Tools` tab and select the `Show Package Details` checkbox.  Do not install a pre-release (rc) version of the NDK as there could be compiler bugs.
+
 ### Android Environment Variables
 
 Set-up environment variables for Android SDK and NDK: `JAVA_HOME`, `ANDROID_HOME` and `ANDROID_NDK`.
@@ -45,7 +47,7 @@ This will vary by operating system, however you can use the Java bundled with An
 ```
 JAVA_HOME:    C:\Program Files\Android\Android Studio\jbr
 ANDROID_HOME: %LOCALAPPDATA%\Android\Sdk
-ANDROID_NDK:  %ANDROID_HOME%\ndk\30.0.14904198 (or whatever version you have installed)
+ANDROID_NDK:  %ANDROID_HOME%\ndk\29.0.14206865 (or whatever version you have installed)
 ```
 
 Add to `%PATH%`:
@@ -53,7 +55,7 @@ Add to `%PATH%`:
 ```
 %JAVA_HOME%\bin
 %ANDROID_HOME%\emulator
-%ANDROID_HOME%\cmdline-tools\bin
+%ANDROID_HOME%\cmdline-tools\bin  (or ...\cmdline-tools\latest\bin if you installed the latest version)
 %ANDROID_HOME%\platform-tools
 ```
 

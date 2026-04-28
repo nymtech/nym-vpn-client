@@ -252,6 +252,7 @@ nym-gateway-directory = { path = "crates/nym-gateway-directory" }
 nym-ipc = { path = "crates/nym-ipc" }
 nym-ifconfig = { path = "crates/nym-ifconfig" }
 nym-split-tunnel = { path = "crates/nym-split-tunnel" }
+nym-socks5-proxy = { path = "crates/nym-socks5-proxy" }
 nym-socks5-proxy-ipc = { path = "crates/nym-socks5-proxy-ipc" }
 nym-macos = { path = "crates/nym-macos" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }

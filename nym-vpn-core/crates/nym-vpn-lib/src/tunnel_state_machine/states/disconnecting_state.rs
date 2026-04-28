@@ -111,7 +111,7 @@ impl TunnelStateHandler for DisconnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        #[cfg(not(target_os = "ios"))]
                         {
                             let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                                 return NextTunnelState::SameState(self);
@@ -129,7 +129,7 @@ impl TunnelStateHandler for DisconnectingState {
                             }
                         }
 
-                        #[cfg(any(target_os = "android", target_os = "ios"))]
+                        #[cfg(target_os = "ios")]
                         {
                             shared_state.tunnel_settings = tunnel_settings;
                         }
