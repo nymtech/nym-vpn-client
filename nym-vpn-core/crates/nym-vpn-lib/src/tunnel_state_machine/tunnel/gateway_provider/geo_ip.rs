@@ -32,7 +32,7 @@ fn geo_distance(x: &Location, y: &Location) -> f64 {
 
 pub(crate) fn same_jurisdiction(x: &Location, y: &Location) -> bool {
     if x.two_letter_iso_country_code == y.two_letter_iso_country_code
-        && (x.two_letter_iso_country_code == "US" || x.two_letter_iso_country_code == "USA")
+        && x.two_letter_iso_country_code == "US"
     {
         return x.region == y.region;
     }
