@@ -401,12 +401,8 @@ impl InitializedSplitTunnel {
                             },
                         );
                     }
-                    EventId::StopSplittingProcess => {
-                        if pids.remove(&process_id).is_none() {
-                            tracing::error!(
-                                "Inconsistent process tree: {process_id} was not found"
-                            );
-                        }
+                    EventId::StopSplittingProcess if pids.remove(&process_id).is_none() => {
+                        tracing::error!("Inconsistent process tree: {process_id} was not found");
                     }
                     _ => (),
                 }
