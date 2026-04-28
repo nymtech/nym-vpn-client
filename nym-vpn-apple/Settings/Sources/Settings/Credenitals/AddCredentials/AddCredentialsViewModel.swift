@@ -97,6 +97,7 @@ import Theme
         Task {
             do {
                 try await credentialsManager.add(credential: trimmedCredential)
+                try await credentialsManager.registerAccount()
                 error = CredentialsManagerError.noError
                 credentialsDidAdd()
             } catch let newError {
