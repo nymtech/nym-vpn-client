@@ -276,7 +276,6 @@ import PathManager
                 dataDir: PathManager.dataFolderURL().path(),
                 environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
             ).getAccountSummary()
-            print("🔥🔥🔥 summary : \(String(describing: summary)) ")
         } catch {
             accountSummaryLastFetchFailed = true
             logger.error(
