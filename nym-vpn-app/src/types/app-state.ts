@@ -32,7 +32,7 @@ import type { GatewaySelectionAlgorithm } from './bindings';
 
 export type StateDispatch = Dispatch<StateAction>;
 
-export type { GatewaySelectionAlgorithm };
+export type { GatewaySelectionAlgorithm } from './bindings';
 
 // early stage state used to initialize the main app-state
 export type InitState = {
