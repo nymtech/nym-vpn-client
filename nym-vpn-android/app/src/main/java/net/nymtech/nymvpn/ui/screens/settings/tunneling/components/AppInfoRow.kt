@@ -31,14 +31,16 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmapOrNull
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppInfo
-import net.nymtech.nymvpn.ui.theme.CustomColorsPalette
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableInteraction: MutableInteractionSource = MutableInteractionSource()) {
+fun AppInfoRow(appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableInteraction: MutableInteractionSource = MutableInteractionSource()) {
+	val colors = LocalNymColors.current
+	val scheme = MaterialTheme.colorScheme
 	Row(
 		modifier = Modifier.fillMaxWidth(),
 		verticalAlignment = Alignment.CenterVertically,
@@ -72,7 +74,7 @@ fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onTogg
 				modifier = Modifier
 					.size(50.dp.scaledHeight(), 24.dp.scaledHeight())
 					.background(
-						color = if (!appInfo.passThroughVpn) customColorPalette.redIconBackground else customColorPalette.greyIconBackground,
+						color = if (!appInfo.passThroughVpn) scheme.errorContainer else colors.greyIconBackground,
 						shape = RoundedCornerShape(24.dp.scaledHeight()),
 					),
 				contentAlignment = Alignment.Center,
@@ -81,7 +83,7 @@ fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onTogg
 					painter = painterResource(R.drawable.split),
 					contentDescription = null,
 					modifier = Modifier.size(16.dp.scaledHeight()),
-					tint = if (!appInfo.passThroughVpn) customColorPalette.redIcon else customColorPalette.greyIcon,
+					tint = if (!appInfo.passThroughVpn) scheme.error else colors.greyIcon,
 				)
 			}
 			Spacer(modifier = Modifier.width(8.dp.scaledWidth()))
@@ -89,7 +91,7 @@ fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onTogg
 				modifier = Modifier
 					.size(50.dp.scaledHeight(), 24.dp.scaledHeight())
 					.background(
-						color = if (appInfo.passThroughVpn) customColorPalette.greenIconBackground else customColorPalette.greyIconBackground,
+						color = if (appInfo.passThroughVpn) scheme.primaryContainer else colors.greyIconBackground,
 						shape = RoundedCornerShape(24.dp.scaledHeight()),
 					),
 				contentAlignment = Alignment.Center,
@@ -98,7 +100,7 @@ fun AppInfoRow(customColorPalette: CustomColorsPalette, appInfo: AppInfo, onTogg
 					imageVector = Icons.Filled.Shield,
 					contentDescription = null,
 					modifier = Modifier.size(16.dp.scaledHeight()),
-					tint = if (appInfo.passThroughVpn) customColorPalette.greenIcon else customColorPalette.greyIcon,
+					tint = if (appInfo.passThroughVpn) colors.greenIcon else colors.greyIcon,
 				)
 			}
 		}

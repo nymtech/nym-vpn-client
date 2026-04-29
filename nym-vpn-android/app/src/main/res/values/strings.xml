@@ -106,6 +106,8 @@
 	<string name="mnemonic_example">e.g. smoke artefact velvet skull pop palace tortoise damage rough...</string>
 	<string name="dynamic">Dynamic</string>
 	<string name="system_wallpaper">System wallpaper theme</string>
+	<string name="nym_v2_theme">Nym 2.0</string>
+	<string name="nym_v2_theme_desc">New design preview</string>
 	<string name="initializing">Initializing</string>
 	<string name="stop">Stop</string>
 	<string name="version">Version</string>

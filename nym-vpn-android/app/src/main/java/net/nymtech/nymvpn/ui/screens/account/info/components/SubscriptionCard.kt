@@ -47,6 +47,7 @@ import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -190,7 +191,7 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 		if (subscription.expiryState == ExpiryState.WARNING_YELLOW || subscription.expiryState == ExpiryState.WARNING_AMBER) {
 			val isAmber = subscription.expiryState == ExpiryState.WARNING_AMBER
 			val contentColor = if (isAmber) CustomColors.warning else MaterialTheme.colorScheme.primary
-			val bgColor = if (isAmber) CustomColors.warning.copy(alpha = 0.1f) else CustomColors.statusGreen
+			val bgColor = if (isAmber) CustomColors.warning.copy(alpha = 0.1f) else LocalNymColors.current.statusConnectedBg
 
 			Row(
 				modifier = Modifier

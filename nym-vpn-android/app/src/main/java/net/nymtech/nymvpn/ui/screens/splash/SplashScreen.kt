@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,7 +26,6 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.theme.ThemeColors
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 
 @Composable
@@ -54,7 +54,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	Box(
 		modifier = Modifier
 			.fillMaxSize()
-			.background(ThemeColors.Dark.background),
+			.background(MaterialTheme.colorScheme.background),
 	) {
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,

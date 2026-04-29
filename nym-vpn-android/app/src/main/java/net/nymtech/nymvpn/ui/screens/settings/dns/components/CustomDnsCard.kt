@@ -221,7 +221,7 @@ fun CustomDnsCard(
 					Spacer(Modifier.height(8.dp))
 					Text(
 						text = stringResource(R.string.dns_custom_list_error),
-						color = CustomColors.error,
+						color = MaterialTheme.colorScheme.error,
 						style = MaterialTheme.typography.bodyMedium,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)

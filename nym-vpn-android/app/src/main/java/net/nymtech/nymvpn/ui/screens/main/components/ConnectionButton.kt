@@ -88,7 +88,7 @@ fun ConnectionButton(
 									color = MaterialTheme.colorScheme.background,
 								)
 							},
-							color = CustomColors.disconnect,
+							color = MaterialTheme.colorScheme.error,
 							modifier = Modifier
 								.fillMaxWidth()
 								.height(56.dp.scaledHeight()),
@@ -140,7 +140,7 @@ fun ConnectionButton(
 							color = MaterialTheme.colorScheme.background,
 						)
 					},
-					color = CustomColors.disconnect,
+					color = MaterialTheme.colorScheme.error,
 					modifier = Modifier
 						.fillMaxWidth()
 						.height(56.dp.scaledHeight()),
@@ -166,7 +166,7 @@ fun ConnectionButton(
 						style = CustomTypography.buttonMain,
 					)
 				},
-				color = CustomColors.disconnect,
+				color = MaterialTheme.colorScheme.error,
 				modifier = Modifier
 					.fillMaxWidth()
 					.height(56.dp.scaledHeight()),

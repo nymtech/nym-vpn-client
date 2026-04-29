@@ -25,11 +25,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 
 @Composable
 internal fun InfoBanner(showBanner: Boolean, config: BannerConfig, modifier: Modifier = Modifier) {
-	val background = config.backgroundColor ?: CustomColors.snackBarBackgroundColor
+	val nymColors = LocalNymColors.current
+	val background = config.backgroundColor ?: nymColors.snackBarBackground
 	AnimatedVisibility(showBanner) {
 		Row(
 			modifier = modifier
@@ -41,7 +42,7 @@ internal fun InfoBanner(showBanner: Boolean, config: BannerConfig, modifier: Mod
 		) {
 			Text(
 				text = config.message,
-				color = CustomColors.snackbarTextColor,
+				color = nymColors.snackbarText,
 				style = MaterialTheme.typography.bodyMedium,
 			)
 			config.action?.let { action ->

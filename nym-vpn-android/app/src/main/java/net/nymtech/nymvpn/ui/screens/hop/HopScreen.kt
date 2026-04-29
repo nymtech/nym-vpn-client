@@ -310,7 +310,7 @@ internal fun HopScreenContent(
 						if (uiState.error) {
 							Text(
 								stringResource(R.string.country_load_failure),
-								style = MaterialTheme.typography.bodyMedium.copy(color = CustomColors.error),
+								style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.error),
 								textAlign = TextAlign.Center,
 							)
 						} else {

@@ -47,7 +47,6 @@ import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.LoadingDialog
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.SplitTunnelingInfoModal
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.StaticContent
 import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.ui.theme.LocalCustomColorsPalette
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -173,7 +172,6 @@ private fun SplitTunnelingContent(
 	onChangeSelection: (String) -> Unit,
 	onSave: () -> Unit,
 ) {
-	val customColorPalette = LocalCustomColorsPalette.current
 	val interactionSource = remember { MutableInteractionSource() }
 
 	val saveTextRes = if (connectedForUi) R.string.dns_custom_button_save_reconnect else R.string.dns_custom_button_save
@@ -206,7 +204,6 @@ private fun SplitTunnelingContent(
 			) { app ->
 				Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
 				AppInfoRow(
-					customColorPalette = customColorPalette,
 					appInfo = app,
 					onTogglePassThrough = onChangeSelection,
 					mutableInteraction = interactionSource,
@@ -231,7 +228,6 @@ private fun SplitTunnelingContent(
 				) { app ->
 					Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
 					AppInfoRow(
-						customColorPalette = customColorPalette,
 						appInfo = app,
 						onTogglePassThrough = onChangeSelection,
 						mutableInteraction = interactionSource,

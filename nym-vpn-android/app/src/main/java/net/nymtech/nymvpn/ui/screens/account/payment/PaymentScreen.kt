@@ -42,7 +42,7 @@ import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.animations.PulsingDotsWave
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -194,16 +194,17 @@ fun PaymentScreen(accountState: AccountControllerState?, start: Boolean, onAnima
 			horizontalAlignment = Alignment.CenterHorizontally,
 			modifier = Modifier.padding(top = 200.dp),
 		) {
+		val nymColors = LocalNymColors.current
 			Box(
 				modifier = Modifier
 					.size(56.dp)
 					.background(
-						color = CustomColors.iconBackground,
+						color = nymColors.iconBackground,
 						shape = RoundedCornerShape(size = 8.dp),
 					)
 					.border(
 						width = 1.dp,
-						color = CustomColors.iconBorder,
+						color = nymColors.iconBorder,
 						shape = RoundedCornerShape(size = 8.dp),
 					),
 			) {

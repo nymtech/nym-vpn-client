@@ -58,8 +58,8 @@ import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
 import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.account.plan.components.SubscriptionBottomSheet
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
@@ -156,10 +156,11 @@ fun SelectPlanScreen(
 				.padding(vertical = 24.dp.scaledHeight())
 				.weight(1f),
 		) {
+		val nymColors = LocalNymColors.current
 			Box(
 				modifier = Modifier
-					.border(width = 1.dp, color = CustomColors.iconBorder, shape = RoundedCornerShape(size = 8.dp))
-					.background(color = CustomColors.iconBackground, shape = RoundedCornerShape(size = 8.dp))
+					.border(width = 1.dp, color = nymColors.iconBorder, shape = RoundedCornerShape(size = 8.dp))
+					.background(color = nymColors.iconBackground, shape = RoundedCornerShape(size = 8.dp))
 					.padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
 				contentAlignment = Alignment.Center,
 			) {

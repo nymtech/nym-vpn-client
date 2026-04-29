@@ -64,7 +64,6 @@ fun ConnectionStatus(
 			} else {
 				R.raw.noise_5hop_light
 			}
-
 			Theme.DARK_MODE -> if (vpnMode.isTwoHop()) R.raw.noise_2hop_dark else R.raw.noise_5hop_dark
 			Theme.LIGHT_MODE -> if (vpnMode.isTwoHop()) R.raw.noise_2hop_light else R.raw.noise_5hop_light
 		}
@@ -92,14 +91,14 @@ fun ConnectionStatus(
 			)
 		}
 
-		ConnectionStateDisplay(connectionState = connectionState, theme = theme)
+		ConnectionStateDisplay(connectionState = connectionState)
 
 		val isPendingSubscription = subscription?.expiryState == ExpiryState.PENDING
 
 		if (isPendingSubscription) {
 			StatusInfoLabel(
 				message = stringResource(R.string.account_info_confirming_payment),
-				textColor = CustomColors.error,
+				textColor = MaterialTheme.colorScheme.error,
 			)
 		} else {
 			when (connectionState) {
@@ -117,13 +116,13 @@ fun ConnectionStatus(
 					}
 					StatusInfoLabel(
 						message = msg,
-						textColor = CustomColors.error,
+						textColor = MaterialTheme.colorScheme.error,
 					)
 				}
 
 				is ConnectionState.StartFailure -> StatusInfoLabel(
 					message = connectionState.exception.localizedMessage ?: stringResource(R.string.unexpected_error, "Unknown"),
-					textColor = CustomColors.error,
+					textColor = MaterialTheme.colorScheme.error,
 				)
 
 				is ConnectionState.Offline, ConnectionState.WaitingForConnection -> StatusInfoLabel(

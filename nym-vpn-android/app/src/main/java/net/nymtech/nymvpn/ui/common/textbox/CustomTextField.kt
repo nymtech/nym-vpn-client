@@ -29,7 +29,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.ui.theme.CustomColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,9 +119,9 @@ fun CustomTextField(
 			colors = TextFieldDefaults.colors().copy(
 				disabledLabelColor = MaterialTheme.colorScheme.onSurface,
 				disabledContainerColor = MaterialTheme.colorScheme.background,
-				focusedIndicatorColor = CustomColors.outlineVariant,
-				disabledIndicatorColor = CustomColors.outlineVariant,
-				unfocusedIndicatorColor = CustomColors.outlineVariant,
+				focusedIndicatorColor = MaterialTheme.colorScheme.outlineVariant,
+				disabledIndicatorColor = MaterialTheme.colorScheme.outlineVariant,
+				unfocusedIndicatorColor = MaterialTheme.colorScheme.outlineVariant,
 				focusedLabelColor = MaterialTheme.colorScheme.onSurface,
 				focusedContainerColor = MaterialTheme.colorScheme.background,
 				unfocusedContainerColor = MaterialTheme.colorScheme.background,
@@ -144,8 +143,8 @@ fun CustomTextField(
 						disabledLabelColor = MaterialTheme.colorScheme.onSurface,
 						disabledContainerColor = MaterialTheme.colorScheme.background,
 						focusedIndicatorColor = MaterialTheme.colorScheme.onSurface,
-						disabledIndicatorColor = CustomColors.outlineVariant,
-						unfocusedIndicatorColor = CustomColors.outlineVariant,
+						disabledIndicatorColor = MaterialTheme.colorScheme.outlineVariant,
+						unfocusedIndicatorColor = MaterialTheme.colorScheme.outlineVariant,
 						focusedLabelColor = MaterialTheme.colorScheme.onSurface,
 						focusedContainerColor = MaterialTheme.colorScheme.background,
 						unfocusedContainerColor = MaterialTheme.colorScheme.background,

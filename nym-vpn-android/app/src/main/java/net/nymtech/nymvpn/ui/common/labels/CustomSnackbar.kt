@@ -25,11 +25,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.common.snackbar.CustomSnackbarContent
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun CustomSnackBar(data: SnackbarData, paddingTop: Dp, isRtl: Boolean = false, containerColor: Color = CustomColors.snackBarBackgroundColor, content: MutableState<CustomSnackbarContent?>) {
+fun CustomSnackBar(data: SnackbarData, paddingTop: Dp, isRtl: Boolean = false, containerColor: Color = Color.Unspecified, content: MutableState<CustomSnackbarContent?>) {
+	val nymColors = LocalNymColors.current
+	val resolvedContainerColor = if (containerColor == Color.Unspecified) nymColors.snackBarBackground else containerColor
 	if (content.value != null) {
 		content.value?.let { info ->
 			Box(
@@ -39,7 +41,7 @@ fun CustomSnackBar(data: SnackbarData, paddingTop: Dp, isRtl: Boolean = false, c
 					.padding(top = paddingTop),
 				contentAlignment = Alignment.TopCenter,
 			) {
-				Snackbar(containerColor = containerColor) {
+				Snackbar(containerColor = resolvedContainerColor) {
 					CompositionLocalProvider(
 						LocalLayoutDirection provides if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
 					) {
@@ -51,7 +53,7 @@ fun CustomSnackBar(data: SnackbarData, paddingTop: Dp, isRtl: Boolean = false, c
 						) {
 							Text(
 								text = info.message,
-								color = CustomColors.snackbarTextColor,
+								color = nymColors.snackbarText,
 								modifier = Modifier
 									.weight(1f)
 									.padding(end = 8.dp),
@@ -102,14 +104,14 @@ fun CustomSnackBar(data: SnackbarData, paddingTop: Dp, isRtl: Boolean = false, c
 					LocalLayoutDirection provides if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
 				) {
 					Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.Center) {
-						Text(data.visuals.message, color = CustomColors.snackbarTextColor)
+						Text(data.visuals.message, color = nymColors.snackbarText)
 						data.visuals.actionLabel?.let {
 							Box(
 								Modifier.clickable {
 									data.performAction()
 								},
 							) {
-								Text(it, color = CustomColors.snackbarTextColor)
+								Text(it, color = nymColors.snackbarText)
 							}
 						}
 					}

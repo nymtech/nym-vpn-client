@@ -31,17 +31,17 @@ fun SubscriptionStatusText(subscription: SubscriptionUiState?, modifier: Modifie
 		}
 
 		ExpiryState.EXPIRED -> {
-			color = CustomColors.error
+			color = MaterialTheme.colorScheme.error
 			text = stringResource(R.string.account_info_no_plan)
 		}
 
 		ExpiryState.PENDING -> {
-			color = CustomColors.error
+			color = MaterialTheme.colorScheme.error
 			text = stringResource(R.string.account_info_confirming_payment)
 		}
 
 		else -> {
-			color = CustomColors.error
+			color = MaterialTheme.colorScheme.error
 			text = stringResource(R.string.account_info_no_plan)
 		}
 	}

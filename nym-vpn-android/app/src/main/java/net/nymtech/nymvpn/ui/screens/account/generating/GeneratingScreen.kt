@@ -106,10 +106,11 @@ private fun GeneratingBaseLayout(title: String, description: String, topContent:
 			horizontalAlignment = Alignment.CenterHorizontally,
 			modifier = Modifier.padding(top = 200.dp),
 		) {
+			val nymColors = LocalNymColors.current
 			Box(
 				modifier = Modifier.size(56.dp)
-					.background(CustomColors.iconBackground, RoundedCornerShape(8.dp))
-					.border(1.dp, CustomColors.iconBorder, RoundedCornerShape(8.dp)),
+					.background(nymColors.iconBackground, RoundedCornerShape(8.dp))
+					.border(1.dp, nymColors.iconBorder, RoundedCornerShape(8.dp)),
 				contentAlignment = Alignment.Center,
 			) {
 				PulsingDotsWave(modifier = Modifier.padding(8.dp))
