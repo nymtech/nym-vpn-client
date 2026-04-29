@@ -80,6 +80,10 @@ extension MixnetConfig {
             customDns: customDns,
             mixnetTraffic: mixnetTuning.mixnetTrafficConfig(),
             networkStats: nil,
+            gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig(
+                enableGeoLocation: false,
+                gatewaySelectionAlgorithm: .auto
+            ),
             userAgent: .appUserAgent,
             tunProvider: tunProvider
         )
