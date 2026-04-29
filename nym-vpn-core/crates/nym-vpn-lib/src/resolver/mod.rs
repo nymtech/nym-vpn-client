@@ -69,7 +69,7 @@ use hickory_server::{
 use rand::Rng;
 use tokio::{
     net::{TcpListener, UdpSocket},
-    sync::{Mutex, mpsc, oneshot},
+    sync::{mpsc, oneshot},
 };
 use tokio_util::{either::Either, sync::CancellationToken};
 
@@ -279,10 +279,7 @@ impl Resolver {
         let return_query = query.original().clone();
         let qname = return_query.name().to_ascii();
 
-        let decision = {
-            let guard = dns_filter.lock().await;
-            guard.should_block(&qname)
-        };
+        let decision = dns_filter.should_block(&qname).await;
 
         if decision != DnsFilterDecision::Pass {
             tracing::trace!("Blocking DNS query for {qname} with strategy {decision:?}");
@@ -483,7 +480,7 @@ impl LocalResolver {
             }
         });
 
-        let dns_filter: DnsFilter = Arc::new(Mutex::new(Box::new(NullDnsFilter)));
+        let dns_filter: DnsFilter = Arc::new(NullDnsFilter);
 
         let resolver = Self {
             rx,

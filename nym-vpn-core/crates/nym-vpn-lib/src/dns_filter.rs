@@ -3,8 +3,7 @@
 
 //! DNS filter types used by the ad-blocker on all platforms.
 
-use std::{any::Any, sync::Arc};
-use tokio::sync::Mutex;
+use std::sync::Arc;
 
 /// How to handle a DNS-filtered blocking decision.
 #[allow(dead_code)]
@@ -22,24 +21,22 @@ pub enum DnsFilterDecision {
 }
 
 /// DNS filter trait.
-pub trait DnsFilterT: Send + Sync + 'static {
-    fn should_block(&self, domain: &str) -> DnsFilterDecision;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
+#[async_trait::async_trait]
+pub trait DnsFilterT {
+    async fn should_block(&self, domain: &str) -> DnsFilterDecision;
 }
 
 /// DNS filter type — a shared, dynamically-dispatched filter.
-pub type DnsFilter = Arc<Mutex<Box<dyn DnsFilterT + Send + Sync>>>;
+pub type DnsFilter = Arc<dyn DnsFilterT + Send + Sync + 'static>;
 
 /// Null DNS Filter (always passes).
 #[cfg(not(target_os = "android"))]
 pub struct NullDnsFilter;
 
 #[cfg(not(target_os = "android"))]
+#[async_trait::async_trait]
 impl DnsFilterT for NullDnsFilter {
-    fn should_block(&self, _domain: &str) -> DnsFilterDecision {
+    async fn should_block(&self, _domain: &str) -> DnsFilterDecision {
         DnsFilterDecision::Pass
-    }
-    fn as_any_mut(&mut self) -> &mut dyn Any {
-        self
     }
 }
