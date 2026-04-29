@@ -201,7 +201,7 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use tokio::runtime::Runtime;
 
 use nym_vpn_lib_types::{
-    AirportingSettings, EntryPoint, ExitPoint,FrontingMode, GatewaySelectionAlgorithmConfig,
+    AirportingSettings, EntryPoint, ExitPoint, FrontingMode, GatewaySelectionAlgorithmConfig,
     MixnetTrafficConfig, NetworkStatisticsConfig, PrivyDerivationMessage, SplitTunnelSettings,
     UserAgent, VpnServiceConfig,
 };
@@ -288,14 +288,8 @@ impl VPNConfig {
             enable_bridges: self.enable_bridges,
             enable_lewes_protocol: self.enable_lewes_protocol,
 
-<<<<<<< HEAD
             enable_ad_blocking: self.enable_ad_blocking,
-=======
             fronting_mode: self.fronting_mode,
-
-            // Only currently supported on desktop platforms
-            enable_ad_blocking: false,
->>>>>>> 2a21e5f9d (finding compile issues)
 
             // Always true on mobile platforms
             netstack: true,

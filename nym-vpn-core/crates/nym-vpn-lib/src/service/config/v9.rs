@@ -13,6 +13,7 @@ use crate::service::{
         split_tunnel_settings::v8::SplitTunnelSettings,
     },
 };
+use nym_vpn_lib_types::FrontingMode;
 use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, str::FromStr};
 
@@ -26,6 +27,7 @@ pub struct VpnServiceConfig {
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
     pub enable_ad_blocking: bool,
+    pub fronting_mode: FrontingMode,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -79,6 +81,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
+            fronting_mode: value.fronting_mode,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
