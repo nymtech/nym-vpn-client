@@ -706,7 +706,7 @@ pub struct SharedState {
     connectivity_handle: ConnectivityHandle,
     #[cfg(not(target_os = "android"))]
     filtering_resolver: resolver::ResolverHandle,
-    adblocker: adblocker::AdBlockerTaskHandle,
+    adblocker: adblocker::AdBlocker,
     #[cfg(not(target_os = "ios"))]
     socks5_proxy_manager: Socks5ProxyManager,
     #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -975,7 +975,6 @@ pub struct TunnelStateMachine {
     dns_handler_shutdown_token: CancellationToken,
     #[cfg(not(target_os = "android"))]
     filtering_resolver_handle: JoinHandle<()>,
-    adblocker_handle: JoinHandle<()>,
     gateway_provider_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
@@ -1015,32 +1014,19 @@ impl TunnelStateMachine {
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
-        let (adblocker, adblocker_handle) = {
+        let adblocker = {
             let Some(data_path) = nym_config.data_path.as_ref() else {
                 tracing::error!("Ad-blocking cannot be enabled without a data path configured");
-                return Err(Error::StartAdBlockerTask(
-                    adblocker::AdBlockerError::DataPathUnavailable,
-                ));
+                todo!("FIXME");
             };
 
-            #[cfg(not(target_os = "android"))]
-            let token = dns_handler_shutdown_token.child_token();
-            #[cfg(target_os = "android")]
-            let token = shutdown_token.child_token();
-
-            adblocker::AdBlockerTask::spawn(data_path, user_agent.to_string(), token)
-                .await
-                .map_err(Error::StartAdBlockerTask)?
+            adblocker::AdBlocker::new(data_path.join("ad-blocking"), user_agent.to_string())
         };
 
         #[cfg(not(target_os = "android"))]
-        if let Some(dns_filter) = adblocker.get_dns_filter().await {
-            // Note that once Ad-blocker is set as the DNS filter, it won't be reset, but
-            // instead the AdBlocker filter-set will change internally in response to it
-            // being enabled/disabled.
+        {
+            let dns_filter = adblocker.get_dns_filter().await;
             filtering_resolver.set_dns_filter(dns_filter).await;
-        } else {
-            tracing::error!("Failed to get DNS Filter from Ad-blocker");
         }
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1142,7 +1128,6 @@ impl TunnelStateMachine {
             dns_handler_shutdown_token,
             #[cfg(not(target_os = "android"))]
             filtering_resolver_handle,
-            adblocker_handle,
             gateway_provider_handle,
             shutdown_token,
         };
@@ -1207,9 +1192,7 @@ impl TunnelStateMachine {
             tracing::error!("Failed to join on gateway provider task: {}", e)
         }
 
-        if let Err(e) = self.adblocker_handle.await {
-            tracing::error!("Failed to join on ad-blocker task: {}", e)
-        }
+        self.shared_state.adblocker.stop().await;
     }
 }
 
@@ -1237,13 +1220,6 @@ pub enum Error {
     #[cfg(not(target_os = "android"))]
     #[error("failed to start local dns resolver")]
     StartLocalDnsResolver(#[source] resolver::Error),
-
-    #[error("failed to start ad blocker task")]
-    StartAdBlockerTask(#[source] adblocker::AdBlockerError),
-
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    #[error("data path is required but not configured")]
-    DataPathUnavailable,
 
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     #[error("failed to start split tunnel task")]
@@ -1347,9 +1323,6 @@ impl Error {
             Self::ResolveApiHostnames(_) => None?,
             #[cfg(not(target_os = "android"))]
             Self::StartLocalDnsResolver(_) => None?,
-            Self::StartAdBlockerTask(_) => None?,
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            Self::DataPathUnavailable => None?,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             Self::StartSplitTunnelTask(_) => None?,
             #[cfg(windows)]

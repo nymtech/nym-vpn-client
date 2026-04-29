@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "adblock"
-version = "0.12.1"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "698c1e831aaee3d583efe775790acc7d59fd99d8060e7385b99d2d369a5cdca8"
+checksum = "748aff5b2e2be717eaaf63b74c5cf75227941614f058db53dcdb65936ba70fd5"
 dependencies = [
  "addr",
  "arrayvec",
@@ -16,7 +16,6 @@ dependencies = [
  "idna",
  "itertools 0.13.0",
  "memchr",
- "once_cell",
  "percent-encoding",
  "precomputed-hash",
  "regex",
@@ -6966,6 +6965,7 @@ dependencies = [
  "adblock",
  "anyhow",
  "async-compression",
+ "async-stream",
  "async-trait",
  "base64 0.22.1",
  "bincode",
@@ -8804,12 +8804,14 @@ dependencies = [
  "sync_wrapper 1.0.2",
  "tokio",
  "tokio-rustls 0.26.4",
+ "tokio-util",
  "tower",
  "tower-http",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-streams",
  "web-sys",
 ]
 
@@ -12126,6 +12128,19 @@ dependencies = [
  "indexmap 2.13.0",
  "wasm-encoder",
  "wasmparser",
+]
+
+[[package]]
+name = "wasm-streams"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9d1ec4f6517c9e11ae630e200b2b65d193279042e28edd4a2cda233e46670bbb"
+dependencies = [
+ "futures-util",
+ "js-sys",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

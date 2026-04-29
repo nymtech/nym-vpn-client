@@ -187,7 +187,7 @@ impl ConnectedState {
             }
 
             if shared_state.tunnel_settings.enable_ad_blocking {
-                //shared_state.enable_ad_blocking(true).await;
+                shared_state.enable_ad_blocking(true).await;
             }
         } else {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
