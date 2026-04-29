@@ -28,14 +28,18 @@ import {
   ProgressMsg,
   TunnelState,
 } from './util';
+import type { GatewaySelectionAlgorithm } from './bindings';
 
 export type StateDispatch = Dispatch<StateAction>;
+
+export type { GatewaySelectionAlgorithm };
 
 // early stage state used to initialize the main app-state
 export type InitState = {
   uiTheme: UiTheme;
   welcomeChecked: boolean;
   vpnMode: VpnMode;
+  gatewaySelectionAlgorithm: GatewaySelectionAlgorithm;
   vpnd: VpndStatus;
   entryNode: SelectedNode;
   exitNode: SelectedNode;
@@ -74,6 +78,7 @@ export type AppState = {
   progressMessages: ProgressMsg[];
   tunnelConnectedAt?: Dayjs | null;
   vpnMode: VpnMode;
+  gatewaySelectionAlgorithm: GatewaySelectionAlgorithm;
   // `UiTheme` is the current applied theme to the UI, that is either `dark` or `light`
   uiTheme: UiTheme;
   // `themeMode` is the current user selected mode, could be `system`, `dark` or `light`

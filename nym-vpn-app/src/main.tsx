@@ -122,6 +122,9 @@ dayjs.extend(localizedFormat);
   const initState: InitState = {
     vpnd: (await invoke<VpndStatus | undefined>('daemon_status')) || 'down',
     vpnMode: config?.vpnMode || defaultVpnMode,
+    gatewaySelectionAlgorithm:
+      config?.gatewaySelectionAlgorithmConfig?.gatewaySelectionAlgorithm ||
+      'explicit',
     uiTheme: await getTheme(),
     welcomeChecked: (await kvGet<boolean>('welcome-screen-seen')) || false,
     entryNode: config?.entryNode || DefaultNode,

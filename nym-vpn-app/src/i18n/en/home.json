@@ -29,6 +29,13 @@
     "label": "Last hop",
     "text": "Quick connect ({{country}})"
   },
+  "quick-connect": {
+    "title": "Quick connect",
+    "desc": "Automatically choose the best available entry and exit",
+    "auto": "Auto",
+    "auto-subinfo": "Quick connect selects this when you connect",
+    "disabled-in-anonymous": "Quick connect disabled - manual gateway selection in Anonymous mode."
+  },
   "snackbar-disabled-message": {
     "connected": "Disabled while connected to VPN",
     "connecting": "Disabled while connecting to VPN",

@@ -13,6 +13,7 @@ import {
   ConnectingState,
   DaemonStatus,
   FeatureFlags,
+  GatewaySelectionAlgorithm,
   MixnetTrafficConfig,
   MixnetTrafficDefaults,
   NetworkCompat,
@@ -41,6 +42,10 @@ export type StateAction =
   | { type: 'set-daemon-info'; info: VpndInfo }
   | { type: 'update-tunnel-config'; config: VpndConfig }
   | { type: 'set-vpn-mode'; mode: VpnMode }
+  | {
+      type: 'set-gateway-selection-algorithm';
+      algorithm: GatewaySelectionAlgorithm;
+    }
   | { type: 'set-error'; error: AppError | null }
   | { type: 'reset-error' }
   | { type: 'new-progress-message'; message: ProgressMsg }
@@ -106,6 +111,7 @@ export const initialState: AppState = {
   networkEnv: 'mainnet',
   version: null,
   vpnMode: 'wg',
+  gatewaySelectionAlgorithm: 'explicit',
   uiTheme: 'light',
   themeMode: DefaultThemeMode,
   progressMessages: [],
@@ -228,6 +234,9 @@ export function reducer(state: AppState, action: StateAction): AppState {
         entryNode: action.config.entryNode,
         exitNode: action.config.exitNode,
         vpnMode: action.config.vpnMode,
+        gatewaySelectionAlgorithm:
+          action.config.gatewaySelectionAlgorithmConfig
+            ?.gatewaySelectionAlgorithm || 'explicit',
         quic: action.config.bridges,
         ipv6Support: !action.config.disableIpv6,
         allowLan: action.config.allowLan,
@@ -261,6 +270,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         vpnMode: action.mode,
+      };
+    case 'set-gateway-selection-algorithm':
+      return {
+        ...state,
+        gatewaySelectionAlgorithm: action.algorithm,
       };
     case 'set-auto-connect':
       return {

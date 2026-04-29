@@ -22,6 +22,7 @@ function MainStateProvider({ children, init }: Props) {
   const [state, dispatch] = useReducer(reducer, {
     ...initialState,
     vpnMode: init.vpnMode,
+    gatewaySelectionAlgorithm: init.gatewaySelectionAlgorithm,
     uiTheme: init.uiTheme,
     welcomeChecked: init.welcomeChecked,
     entryNode: init.entryNode,

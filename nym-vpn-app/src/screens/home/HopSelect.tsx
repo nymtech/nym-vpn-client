@@ -28,6 +28,7 @@ type HopSelectProps = {
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
+  forceAuto?: boolean;
 };
 
 export default function HopSelect({
@@ -36,6 +37,7 @@ export default function HopSelect({
   gatewayId,
   onClick,
   disabled,
+  forceAuto,
 }: HopSelectProps) {
   const { backendFlags, vpnMode, tunnel, connectingState } = useMainState();
   const { lookupGw } = useGateways();
@@ -71,6 +73,17 @@ export default function HopSelect({
     selected: SelectedNode,
     gateway: Gateway | null,
   ): SelectedNodeDisplayProps => {
+    if (forceAuto) {
+      if (gateway) {
+        return getGatewayInfo(gateway.id, gateway);
+      }
+      return {
+        name: t('quick-connect.auto'),
+        subInfo: t('quick-connect.auto-subinfo'),
+        animate: false,
+        showFastest: true,
+      };
+    }
     if (selected === 'random') {
       return {
         name: t('random', { ns: 'common' }),
@@ -163,6 +176,9 @@ export default function HopSelect({
   };
 
   const gateway = useMemo(() => {
+    if (forceAuto) {
+      return gatewayId ? lookupGw(gatewayId, nodeHop) : null;
+    }
     if (node === 'random') {
       return null;
     }
@@ -172,7 +188,7 @@ export default function HopSelect({
       return lookupGw(gatewayId, nodeHop);
     }
     return null;
-  }, [gatewayId, lookupGw, nodeHop, node]);
+  }, [forceAuto, gatewayId, lookupGw, nodeHop, node]);
 
   return (
     <div
@@ -205,7 +221,7 @@ export default function HopSelect({
       >
         <SelectedNodeDisplay {...nodeData(node, gateway)} disabled={disabled} />
       </Button>
-      {!!gateway && (
+      {!!gateway && !forceAuto && (
         <Button
           className={clsx(
             'h-11 w-11 my-2 me-2 flex items-center justify-center rounded-full',

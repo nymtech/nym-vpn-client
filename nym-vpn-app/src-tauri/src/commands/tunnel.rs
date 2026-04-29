@@ -10,6 +10,7 @@ use crate::{
         tunnel::{ConnectingState, SplitApp, TunnelState},
     },
 };
+use nym_vpn_lib_types::GatewaySelectionAlgorithm;
 use std::net::IpAddr;
 use tauri::{Manager, State};
 use tracing::{debug, info, instrument, warn};
@@ -140,6 +141,16 @@ pub async fn set_node(
 #[tauri::command]
 pub async fn set_quic(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
     vpnd.set_quic(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_gateway_selection_algorithm(
+    vpnd: State<'_, VpndClient>,
+    algorithm: GatewaySelectionAlgorithm,
+) -> Result<(), BackendError> {
+    vpnd.set_gateway_selection_algorithm(algorithm).await?;
     Ok(())
 }
 

@@ -389,6 +389,19 @@ impl VpndClient {
             .await
     }
 
+    /// Set the gateway selection algorithm (Explicit / AutoEntryExplicitExit / Auto)
+    #[instrument(skip_all)]
+    pub async fn set_gateway_selection_algorithm(
+        &self,
+        algorithm: lib::GatewaySelectionAlgorithm,
+    ) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_gateway_selection_algorithm(algorithm)
+            .or_else(async |e| self.handle_rpc_error("set_gateway_selection_algorithm", e).await)
+            .await
+    }
+
     /// Enable or disable QUIC mode (aka bridges)
     #[instrument(skip_all)]
     pub async fn set_quic(&self, enabled: bool) -> Result<(), VpndError> {

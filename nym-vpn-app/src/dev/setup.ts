@@ -6,6 +6,7 @@ import {
   Cli,
   DbKey,
   FeatureFlags,
+  GatewaySelectionAlgorithm,
   GatewayType,
   GatewaysByCountry,
   NetworkCompat,
@@ -48,6 +49,7 @@ const tunnelState: TTunnelState = 'disconnected';
 // const tunnelState: TTunnelState = { error: { key: 'internal', data: 'Oupsy something went wrong' } };
 const isLoggedIn = true;
 let autostart = true;
+let gatewaySelectionAlgorithm: GatewaySelectionAlgorithm = 'explicit';
 // note: compat check is skipped if DEV_MODE=true
 const networkCompat: NetworkCompat = {
   tauri: true,
@@ -102,6 +104,15 @@ export function mockTauriIPC() {
     }
     if (cmd === 'get_tunnel_state') {
       return new Promise<unknown>((resolve) => resolve(tunnelState));
+    }
+
+    if (cmd === 'set_gateway_selection_algorithm') {
+      gatewaySelectionAlgorithm = (args as ArgsObj<GatewaySelectionAlgorithm>)
+        .algorithm;
+      console.debug(
+        `gateway selection algorithm set to [${gatewaySelectionAlgorithm}]`,
+      );
+      return new Promise<void>((resolve) => resolve());
     }
 
     if (cmd === 'get_gateways') {
