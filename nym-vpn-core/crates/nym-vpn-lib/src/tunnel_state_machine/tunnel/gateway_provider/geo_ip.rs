@@ -104,7 +104,8 @@ impl GeoIpProvider {
         client: impl GeoIpClient,
         query_control: Arc<Mutex<QueryControl>>,
     ) -> Self {
-        let latest_location = if query_control.lock().await.can_query() {
+        let can_query = query_control.lock().await.can_query();
+        let latest_location = if can_query {
             client
                 .latest_geo_ip()
                 .await
@@ -122,10 +123,13 @@ impl GeoIpProvider {
     }
 
     pub(crate) async fn update(&mut self) -> Result<(), VpnApiClientError> {
-        let control = self.query_control.lock().await;
-        if control.should_clear_location() {
+        let (should_clear_location, can_query) = {
+            let control = self.query_control.lock().await;
+            (control.should_clear_location(), control.can_query())
+        };
+        if should_clear_location {
             self.latest_location = None;
-        } else if control.can_query() {
+        } else if can_query {
             self.latest_location = Some(self.client.latest_geo_ip().await?.into());
         }
         Ok(())
