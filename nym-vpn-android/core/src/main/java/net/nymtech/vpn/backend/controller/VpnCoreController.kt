@@ -26,6 +26,8 @@ import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.initLogger
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.GatewaySelectionAlgorithm
+import nym_vpn_lib_types.GatewaySelectionAlgorithmConfig
 import nym_vpn_lib_types.MixnetTrafficConfig
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.UserAgent
@@ -348,6 +350,7 @@ class VpnCoreController(
 			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,
+			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false, GatewaySelectionAlgorithm.AUTO),
 		)
 
 		val svc = NymVpnService.newService(initialConfig, env, service)
