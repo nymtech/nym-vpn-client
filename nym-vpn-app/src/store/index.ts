@@ -45,6 +45,7 @@ export function initMainStore(init: InitState): void {
     mixnetTrafficConfig: init.mixnetTrafficConfig,
     mixnetTrafficDefaults: init.mixnetTrafficDefaults,
     splitTunnel: init.splitTunnel,
+    gatewaySelectionAlgorithmConfig: init.gatewaySelectionAlgorithmConfig,
   });
 }
 
@@ -99,6 +100,7 @@ export const useMainState = (): AppState =>
       mixnetTrafficConfig: s.mixnetTrafficConfig,
       mixnetTrafficDefaults: s.mixnetTrafficDefaults,
       splitTunnel: s.splitTunnel,
+      gatewaySelectionAlgorithmConfig: s.gatewaySelectionAlgorithmConfig,
     })),
   );
 

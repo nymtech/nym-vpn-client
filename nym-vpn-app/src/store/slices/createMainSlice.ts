@@ -14,6 +14,7 @@ import {
   ConnectingState,
   DaemonStatus,
   FeatureFlags,
+  GatewaySelectionAlgorithmConfig,
   MixnetTrafficConfig,
   MixnetTrafficDefaults,
   NetworkCompat,
@@ -89,7 +90,11 @@ export type StateAction =
   | { type: 'set-mixnet-traffic-config'; config: MixnetTrafficConfig }
   | { type: 'set-account-summary'; summary: TAccountSummary | null }
   | { type: 'set-enable-split-tunnel'; enabled: boolean }
-  | { type: 'set-split-tunnel-apps'; apps: SplitApp[] };
+  | { type: 'set-split-tunnel-apps'; apps: SplitApp[] }
+  | {
+      type: 'set-gateway-selection-algorithm-config';
+      config: GatewaySelectionAlgorithmConfig;
+    };
 
 export const initialState: AppState = {
   initialized: false,
@@ -153,6 +158,10 @@ export const initialState: AppState = {
     allContinuousTraffic: [],
   } as MixnetTrafficDefaults,
   splitTunnel: { enabled: false, apps: [] },
+  gatewaySelectionAlgorithmConfig: {
+    enableGeoLocation: true,
+    gatewaySelectionAlgorithm: 'auto',
+  },
 };
 
 export type MainSlice = AppState & {
@@ -474,6 +483,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-split-tunnel-apps':
         set((s) => ({ splitTunnel: { ...s.splitTunnel, apps: action.apps } }));
+        break;
+
+      case 'set-gateway-selection-algorithm-config':
+        set({ gatewaySelectionAlgorithmConfig: action.config });
         break;
 
       case 'reset':

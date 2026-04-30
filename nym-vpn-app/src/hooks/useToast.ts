@@ -6,20 +6,20 @@ export type ToastAddData = ToastManagerAddOptions<object> & {
 };
 
 const useToast = () => {
-  const toastManager = Toast.useToastManager();
+  const { add: addToast, close: closeToast } = Toast.useToastManager();
 
   const add = useCallback(
     (data: ToastAddData) => {
-      return toastManager.add(data as ToastManagerAddOptions<object>);
+      return addToast(data as ToastManagerAddOptions<object>);
     },
-    [toastManager],
+    [addToast],
   );
 
   const close = useCallback(
     (id: string) => {
-      toastManager.close(id);
+      closeToast(id);
     },
-    [toastManager],
+    [closeToast],
   );
 
   return { add, close };

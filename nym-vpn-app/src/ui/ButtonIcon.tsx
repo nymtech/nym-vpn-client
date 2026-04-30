@@ -10,12 +10,14 @@ export type ButtonIconNewProps = {
   onClick: () => void;
   icon: string;
   className?: string;
+  initialAnimation?: boolean;
 };
 
 export function ButtonIconNew({
   onClick,
   icon,
   className,
+  initialAnimation = false,
 }: ButtonIconNewProps) {
   return (
     <Button
@@ -28,7 +30,7 @@ export function ButtonIconNew({
       ])}
       onClick={onClick}
     >
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="wait" initial={initialAnimation}>
         <motion.span
           key={icon}
           initial={{ opacity: 0, rotate: 90 }}

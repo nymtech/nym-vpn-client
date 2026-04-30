@@ -158,6 +158,16 @@ export type Gateway = {
   quic: boolean;
 };
 
+export type GatewaySelectionAlgorithm =
+  | 'explicit'
+  | 'autoEntryExplicitExit'
+  | 'auto';
+
+export type GatewaySelectionAlgorithmConfig = {
+  enableGeoLocation: boolean;
+  gatewaySelectionAlgorithm: GatewaySelectionAlgorithm;
+};
+
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
 
 export type GatewaysByCountry = {
@@ -540,6 +550,7 @@ export type VpndConfig = {
   mixnetTraffic: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

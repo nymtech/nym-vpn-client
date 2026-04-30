@@ -46,6 +46,14 @@ export default function TopBar() {
 
   const navBarData = useMemo<NavBarData>(() => {
     return {
+      '/welcome-screen2': {
+        title: 'Welcome Screen 2',
+        leftIcon: 'keyboard_arrow_left',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+        noBackground: true,
+      },
       '/': {
         title: (
           <NymVpnTextLogo

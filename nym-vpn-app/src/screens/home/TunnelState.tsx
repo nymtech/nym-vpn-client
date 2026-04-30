@@ -16,16 +16,14 @@ import ConnectionTimer from './ConnectionTimer';
 
 function TunnelState() {
   const {
-    state,
-    error,
+    // error,
     progressMessages,
-    tunnelError,
-    connectingState,
+    // tunnelError,
+    // connectingState,
     accountState,
     accountError,
   } = useAppStore(
     useShallow((s) => ({
-      state: s.state,
       error: s.error,
       progressMessages: s.progressMessages,
       tunnelError: s.tunnelError,
@@ -34,6 +32,21 @@ function TunnelState() {
       accountError: s.accountError,
     })),
   );
+  const state = useAppStore((s) => s.state);
+  const tunnelError = useAppStore((s) => s.tunnelError);
+  const connectingState = useAppStore((s) => s.connectingState);
+  const error = useAppStore((s) => s.error);
+
+  // console.log('[TunnelState] state', state);
+  // console.log('[TunnelState] tunnelError', tunnelError);
+  // console.log('[TunnelState] error', error);
+  // console.log('[TunnelState] accountState', accountState);
+  // console.log('[TunnelState] accountError', accountError);
+  // console.log('[TunnelState] connectingState', connectingState);
+  // console.log('[TunnelState] progressMessages', progressMessages);
+  // console.log('[TunnelState] accountState', accountState);
+  // console.log('[TunnelState] accountError', accountError);
+
   const [showBadge, setShowBadge] = useState(true);
   const loading = state === 'connecting' || state === 'disconnecting';
   const isAccountError =

@@ -313,6 +313,8 @@ async fn main() -> Result<()> {
             tunnel::add_app_to_split_tunnel,
             tunnel::remove_app_from_split_tunnel,
             tunnel::is_split_tunnel_supported,
+            tunnel::set_gateway_selection_algorithm,
+            tunnel::set_enable_geo_location,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_del,

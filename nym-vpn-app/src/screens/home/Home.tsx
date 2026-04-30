@@ -35,8 +35,15 @@ function Home() {
     exitNode,
     daemonStatus,
     account,
+    tunnelError,
     networkCompat,
   } = useMainState();
+
+  console.log('state', state);
+  console.log('tunnel', tunnel);
+  console.log('connectingState', connectingState);
+  console.log('entryNode', entryNode);
+  console.log('exitNode', exitNode);
 
   const { setFocused, setSearch, setExpanded } = useNodeListState();
   const lookupGw = useLookupGw();
@@ -258,6 +265,13 @@ function Home() {
       className="h-full flex flex-col"
       data-testid="home-container"
     >
+      <TunnelState />
+      <p>state: {state}</p>
+      <p>error: {tunnelError}</p>
+      <button onClick={() => navigate(routes.welcomeScreen)}>
+        go to new login
+      </button>
+
       <div className="flex flex-col justify-end grow">
         <NewBottomComponent />
       </div>

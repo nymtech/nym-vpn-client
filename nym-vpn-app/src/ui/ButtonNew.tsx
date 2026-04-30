@@ -67,7 +67,7 @@ function ButtonNew({
         className,
       ])}
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || loading}
     >
       {content}
     </Button>
