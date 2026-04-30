@@ -176,7 +176,6 @@ app_deb="nym-vpn-app_${app_version}_${deb_arch}.deb"
 target_appimage="NymVPN.AppImage"
 core_archive="nym-vpn-core-v${vpnd_version}_linux_${arch}.tar.gz"
 vpnd_bin="nym-vpnd"
-socks5_proxy_bin="nym-socks5-proxy"
 vpnd_service="nym-vpnd.service"
 vpnd_deb="nym-vpnd_${vpnd_deb_ver}_${deb_arch}.deb"
 units_dir="/usr/lib/systemd/system"
@@ -353,7 +352,6 @@ download_vpnd_raw() {
   log "  ${B_GRN}Unarchiving$RS nym-vpnd"
   tar -xzf "$core_archive"
   mv "${core_archive%.tar.gz}/$vpnd_bin" $vpnd_bin
-  mv "${core_archive%.tar.gz}/$socks5_proxy_bin" $socks5_proxy_bin
   _popd
 }
 
@@ -410,7 +408,7 @@ sanity_check() {
 
   files_check=()
   if [ "$_vpnd" == 0 ]; then
-    files_check+=("$install_dir/$vpnd_bin" "$install_dir/$socks5_proxy_bin" "$units_dir/$vpnd_service")
+    files_check+=("$install_dir/$vpnd_bin" "$units_dir/$vpnd_service")
   fi
   if [ "$_app" == 0 ]; then
     files_check+=("$install_dir/$target_appimage" "$desktop_dir/nym-vpn.desktop" "$icons_dir/nym-vpn.svg")
@@ -527,14 +525,12 @@ install_app_deb() {
 install_vpnd_raw() {
   log "  ${B_GRN}Installing$RS nym-vpnd"
   sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$vpnd_bin" "$install_dir/$vpnd_bin"
-  sudo install -o "$(id -u)" -g "$(id -g)" -Dm755 "$temp_dir/$socks5_proxy_bin" "$install_dir/$socks5_proxy_bin"
 
   log "  ${B_GRN}Installing$RS systemd service"
   sudo install -Dm644 "$temp_dir/$vpnd_service" "$units_dir/$vpnd_service"
 
   log "  ${B_GRN}Installed$RS files"
   log "   ${I_YLW}$(tilded "$install_dir/$vpnd_bin")$RS"
-  log "   ${I_YLW}$(tilded "$install_dir/$socks5_proxy_bin")$RS"
   log "   ${I_YLW}$(tilded "$units_dir/$vpnd_service")$RS"
 }
 
