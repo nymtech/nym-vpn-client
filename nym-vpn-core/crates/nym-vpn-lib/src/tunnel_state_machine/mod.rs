@@ -742,7 +742,6 @@ impl SharedState {
             .set_vpn_api_firewall_down()
             .await
             .ok();
-        self.gateway_provider.set_active_geo_location(true).await;
     }
 
     /// Notify discovery, account controller and geo-location when network is restricted.
