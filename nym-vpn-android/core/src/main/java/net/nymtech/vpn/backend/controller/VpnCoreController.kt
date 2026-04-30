@@ -350,7 +350,7 @@ class VpnCoreController(
 			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,
-			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false, GatewaySelectionAlgorithm.AUTO),
+			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false, GatewaySelectionAlgorithm.EXPLICIT),
 		)
 
 		val svc = NymVpnService.newService(initialConfig, env, service)
