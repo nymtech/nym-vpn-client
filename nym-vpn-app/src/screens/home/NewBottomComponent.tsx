@@ -23,6 +23,7 @@ import { ScoreIndicator } from '../node/ScoreIndicator';
 import { Button } from '@base-ui/react';
 import { useNavigate } from 'react-router';
 import { routes } from '../../router';
+import { InteractiveCard } from './InteractiveCard';
 
 type FoldState = 0 | 1 | 2;
 
@@ -598,44 +599,39 @@ export function NewBottomComponent() {
   };
 
   return (
-    // No layout on the root — layout animation was FLIP-scaling the whole column on
-    // the first big height change (0→1), which looked like a "squeeze". Enter/height
-    // animations on children are enough for motion here.
     <div className="flex flex-col">
       <p>fold state: {foldState}</p>
       <p>
         gateway selection algorithm:{' '}
         {gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm}
       </p>
-      {/* ── Toggle section ────────────────────────────────────────────────── */}
-      {/* Slides up from below when entering states 1/2 */}
-      <AnimatePresence initial={false}>
-        {foldState > 0 && (
-          <motion.div
-            key="toggle-header"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ duration: DURATION, ease: easeOutQuart }}
-            className="z-10 bg-white dark:bg-[#1d1d1f] rounded-t-2xl pt-4 px-4"
-          >
-            <ModeToggle />
-            <div className="h-px bg-[#3b3b3b] rounded-full w-full mt-4" />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {/* ── Toggle section ────────────────────────────────────────────────── */}
-
       {/* ── Main card ─────────────────────────────────────────────────────── */}
-      {/* layout so card height change is animated, not instant */}
-      <div
-        // layout
+      {/* <div
         className={clsx(
-          'z-20 bg-white dark:bg-[#1d1d1f] rounded-2xl px-4 py-4 flex flex-col transition-all duration-300',
+          'bg-white dark:bg-[#1d1d1f] rounded-2xl px-4 py-4 flex flex-col transition-all duration-300',
           foldState > 0 && 'rounded-t-none',
         )}
-      >
-        <div className="relative flex flex-col mb-4">
+      > */}
+      <InteractiveCard>
+        {/* ── Toggle section ────────────────────────────────────────────────── */}
+        {/* Slides up from below when entering states 1/2 */}
+        <AnimatePresence initial={false}>
+          {foldState > 0 && (
+            <motion.div
+              key="toggle-header"
+              initial={{ y: '100%', height: 0 }}
+              animate={{ y: 0, height: 'auto' }}
+              exit={{ y: '100%', height: 0 }}
+              transition={{ duration: DURATION, ease: easeOutQuart }}
+              className="z-10 bg-white dark:bg-[#1d1d1f] rounded-t-2xl px-4"
+            >
+              <ModeToggle />
+              <div className="h-px bg-[#3b3b3b] rounded-full w-full mt-4" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {/* ── Toggle section ────────────────────────────────────────────────── */}
+        <div className="relative flex flex-col mb-4 z-20 bg-white dark:bg-[#1d1d1f] ">
           <div className="flex flex-row gap-2 items-center">
             <motion.div
               className={clsx(
@@ -689,7 +685,7 @@ export function NewBottomComponent() {
           </ButtonNew>
         </div>
         {/* Button ───────────────────────────────────────────────────────── */}
-      </div>
+      </InteractiveCard>
     </div>
   );
 }

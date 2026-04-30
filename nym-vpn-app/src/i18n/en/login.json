@@ -37,6 +37,13 @@
     "login-social-button": "Login using linked socials*",
     "login-social-button-disclaimer": "*You need to connect socials to an existing account first before you can use them for login."
   },
+  "welcome": {
+    "title": "Welcome!",
+    "description": "To the next generation of privacy infrastructure.",
+    "signup-button": "Sign up",
+    "login-button": "Login to my account",
+    "terms-of-service": "By continuing, you agree to our Terms of Service and acknowledge our Privacy "
+  },
   "passphrase": {
     "title": "Log in",
     "description": "Enter your 24-word passphrase...",
