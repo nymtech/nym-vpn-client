@@ -209,7 +209,7 @@
 	<string name="settings_censorship_title">Zensurumgehung</string>
 	<string name="settings_passphrase_title">Passphrase</string>
 	<string name="settings_dns_title">DNS-Anpassung</string>
-	<string name="settings_ipv6_title">IPv6 unterstützen</string>
+	<string name="settings_ipv6_title">IPv6-Unterstützung</string>
 	<string name="settings_ipv6_description">IPv6-Verbindungen erlauben</string>
 	<string name="settings_bypass_description">Direktzugriff auf lokales Netzwerk erlauben</string>
 	<string name="settings_auto_select_title">Eintrittsserver automatisch wählen</string>
@@ -228,8 +228,10 @@
 	<string name="settings_language_help_title">Hilf bei der Übersetzung</string>
 	<string name="settings_language_help_description">Verbessere die App in deiner Sprache.</string>
 	<string name="settings_event_lan_reconnecting">Erneut verbinden, um die LAN-Einstellungen zu übernehmen…</string>
-	<string name="settings_lewes_title">Lewes-Protokoll aktivieren</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">Post-Quanten</string>
+	<string name="settings_lewes_description">Bevorzuge immer Post-Quanten-Gateways</string>
+	<string name="settings_ad_blocking_title">Werbeblockierung</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bildschirmsperre erforderlich, um Verknüpfungen zu verwenden.</string>
 	<string name="shortcut_title">Vorgang bestätigen</string>
 	<string name="shortcut_subtitle_stop">Entsperren, um die VPN-Verbindung zu trennen</string>
@@ -420,6 +422,8 @@
 	<string name="banner_renew_text">Jetzt erneuern\num geschützt zu bleiben</string>
 	<string name="account_info_auto_renew_text">*Auto-Erneuerung</string>
 	<string name="account_info_no_plan">Du hast kein aktives Abonnement</string>
+	<string name="account_info_confirming_payment">Zahlung wird bestätigt</string>
+	<string name="account_info_updating">Aktualisiere Kontostatus…</string>
 	<string name="account_info_autologin_fetching">Zugriffscode abrufen…</string>
 	<string name="account_info_autologin_error">Der Zugangscode konnte nicht abgeholt werden. Bitte versuche es erneut.</string>
 	<string name="pin_code_title">Pin Code</string>

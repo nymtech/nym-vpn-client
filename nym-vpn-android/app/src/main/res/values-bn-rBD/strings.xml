@@ -226,8 +226,10 @@
 	<string name="settings_language_help_title">অনুবাদে সহায়তা করুন</string>
 	<string name="settings_language_help_description">আপনার ভাষায় অ্যাপটি আরও উন্নত করতে সাহায্য করুন.</string>
 	<string name="settings_event_lan_reconnecting">LAN সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
-	<string name="settings_lewes_title">Enable Lewes Protocol</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">Post-quantum</string>
+	<string name="settings_lewes_description">Always prefer post-quantum gateways</string>
+	<string name="settings_ad_blocking_title">Ad blocking</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">শর্টকাট ব্যবহার করতে স্ক্রিন লক প্রয়োজন।</string>
 	<string name="shortcut_title">পদক্ষেপ নিশ্চিত করুন</string>
 	<string name="shortcut_subtitle_stop">VPN সংযোগ বিচ্ছিন্ন করতে আনলক করুন</string>
@@ -420,6 +422,8 @@
 	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*স্বয়ংক্রিয়ভাবে নবায়ন হয়</string>
 	<string name="account_info_no_plan">কোনো সক্রিয় প্ল্যান নেই</string>
+	<string name="account_info_confirming_payment">Confirming payment</string>
+	<string name="account_info_updating">Updating account status…</string>
 	<string name="account_info_autologin_fetching">Fetching access code…</string>
 	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>
 	<string name="pin_code_title">Pin code</string>

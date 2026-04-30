@@ -228,8 +228,10 @@
 	<string name="settings_language_help_title">Помощь с переводом</string>
 	<string name="settings_language_help_description">Сделайте приложение лучше на вашем языке.</string>
 	<string name="settings_event_lan_reconnecting">Переподключение для применения настроек LAN…</string>
-	<string name="settings_lewes_title">Включить протокол Lewes</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">Постквантовый режим</string>
+	<string name="settings_lewes_description">Всегда выбирать постквантовые шлюзы</string>
+	<string name="settings_ad_blocking_title">Блокировка рекламы</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Для использования горячих клавиш требуется блокировка экрана.</string>
 	<string name="shortcut_title">Подтвердите действие</string>
 	<string name="shortcut_subtitle_stop">Разблокируйте, чтобы отключить VPN</string>
@@ -420,6 +422,8 @@
 	<string name="banner_renew_text">Продлите сейчас,\nчтобы оставаться под защитой</string>
 	<string name="account_info_auto_renew_text">*Автопродление</string>
 	<string name="account_info_no_plan">Нет активного плана</string>
+	<string name="account_info_confirming_payment">Подтверждение платежа</string>
+	<string name="account_info_updating">Обновление статуса учетной записи…</string>
 	<string name="account_info_autologin_fetching">Получение кода доступа…</string>
 	<string name="account_info_autologin_error">Не удалось получить код доступа. Пожалуйста, попробуйте еще раз.</string>
 	<string name="pin_code_title">PIN-код</string>
