@@ -4,7 +4,7 @@ Le seul VPN qui ne peut pas vous espionner. Fabriqué en Suisse. Construit par d
 
 - Inscription sans nom : aucune adresse e-mail requise. Comptes sans connaissances. Le plus de cryptomonnaies acceptées par n'importe quel VPN. Paiements en espèces acceptés pour un anonymat complet.
 - Technologie VPN décentralisée
-NAVIGUEZ SANS LAISSER DE TRACE
+- Connexions rapides dans plus de 65 pays
 - Plus de 65 pays avec des centaines de serveurs indépendants
 - Jusqu’à 10 appareils avec un seul code anonyme
 
@@ -20,7 +20,7 @@ Mode rapide
 
 - Navigation et streaming à haute vitesse
 - VPN décentralisé à 2 sauts
-- Connexions rapides dans plus de 65 pays
+Aucun point du réseau décentralisé ne peut relier votre adresse IP à votre activité en ligne.
 
 Mode anonyme
 

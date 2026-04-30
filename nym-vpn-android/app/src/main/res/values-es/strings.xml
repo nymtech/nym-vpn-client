@@ -228,8 +228,10 @@
 	<string name="settings_language_help_title">Ayuda con la traducción</string>
 	<string name="settings_language_help_description">Haz la aplicación mejor en tu idioma.</string>
 	<string name="settings_event_lan_reconnecting">Reconectando para aplicar los ajustes de LAN...</string>
-	<string name="settings_lewes_title">Habilitar Protocolo Lewes</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">Post-cuántico</string>
+	<string name="settings_lewes_description">Siempre prefiere pasarelas postcuánticas</string>
+	<string name="settings_ad_blocking_title">Bloqueo de anuncios</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bloqueo de pantalla necesario para usar accesos directos.</string>
 	<string name="shortcut_title">Confirmar acción</string>
 	<string name="shortcut_subtitle_stop">Desbloquear para desconectar VPN</string>
@@ -412,14 +414,16 @@
 	<string name="account_info_limit_text">Límite</string>
 	<string name="account_info_reset_text">Restablecer en</string>
 	<string name="account_info_contact_support_action">Póngase en contacto con nuestro soporte</string>
-	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
+	<string name="account_info_contact_support_suffix">\u0020equipo para ancho de banda extra.</string>
 	<string name="account_info_valid_text">Plan válido hasta %s</string>
 	<string name="account_info_expires_text">El plan expira el %s</string>
-	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
+	<string name="banner_plan_expires_text">Plan expira en:\n%s</string>
 	<string name="account_info_renew_text">Renovar ahora para estar protegido</string>
 	<string name="banner_renew_text">Renovar ahora\npara estar protegido</string>
 	<string name="account_info_auto_renew_text">* Auto-renovación</string>
 	<string name="account_info_no_plan">Ningún plan activo</string>
+	<string name="account_info_confirming_payment">Confirmando pago</string>
+	<string name="account_info_updating">Actualizando estado de cuenta…</string>
 	<string name="account_info_autologin_fetching">Recuperando el código de acceso…</string>
 	<string name="account_info_autologin_error">No se pudo obtener el código de acceso. Vuelve a intentarlo.</string>
 	<string name="pin_code_title">Código pin</string>

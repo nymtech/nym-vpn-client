@@ -226,8 +226,10 @@
 	<string name="settings_language_help_title">Çeviriye yardım et</string>
 	<string name="settings_language_help_description">Uygulamayı kendi dilinizde daha iyi hâle getirin.</string>
 	<string name="settings_event_lan_reconnecting">Yerel Alan Ağı (LAN) ayarlarını uygulamak için yeniden bağlanılıyor…</string>
-	<string name="settings_lewes_title">Enable Lewes Protocol</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">Post-quantum</string>
+	<string name="settings_lewes_description">Always prefer post-quantum gateways</string>
+	<string name="settings_ad_blocking_title">Ad blocking</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Kısayolları kullanabilmek için önce cihazınızın ekran kilidini açmanız gerekiyor.</string>
 	<string name="shortcut_title">İşlemi onaylayın</string>
 	<string name="shortcut_subtitle_stop">VPN bağlantısını kesmek için kilidi açın</string>
@@ -419,6 +421,8 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*Otomatik yenilenir</string>
 	<string name="account_info_no_plan">Aktif plan yok</string>
+	<string name="account_info_confirming_payment">Confirming payment</string>
+	<string name="account_info_updating">Updating account status…</string>
 	<string name="account_info_autologin_fetching">Erişim kodu alınıyor…</string>
 	<string name="account_info_autologin_error">Erişim kodu alınamadı. Lütfen tekrar deneyin.</string>
 	<string name="pin_code_title">Pin kodu</string>

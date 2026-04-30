@@ -228,8 +228,10 @@
 	<string name="settings_language_help_title">Ajuda com tradução</string>
 	<string name="settings_language_help_description">Torne o app melhor em seu idioma.</string>
 	<string name="settings_event_lan_reconnecting">Reconectando para aplicar as configurações LAN...</string>
-	<string name="settings_lewes_title">Habilitar Protocolo de Lewes</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">Pós-quântico</string>
+	<string name="settings_lewes_description">Sempre preferir portais de post-quantum</string>
+	<string name="settings_ad_blocking_title">Bloqueio de anúncios</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bloqueio de tela necessário para usar atalhos.</string>
 	<string name="shortcut_title">Confirmar ação</string>
 	<string name="shortcut_subtitle_stop">Desbloquear para desconectar a VPN</string>
@@ -420,6 +422,8 @@
 	<string name="banner_renew_text">Renove agora\npara ficar protegido</string>
 	<string name="account_info_auto_renew_text">*Renovação automática</string>
 	<string name="account_info_no_plan">Nenhum plano ativo</string>
+	<string name="account_info_confirming_payment">Confirmando pagamento</string>
+	<string name="account_info_updating">Atualizando o status da conta…</string>
 	<string name="account_info_autologin_fetching">Obtendo código de acesso…</string>
 	<string name="account_info_autologin_error">Falha ao obter o código de acesso. Por favor, tente novamente.</string>
 	<string name="pin_code_title">Código PIN</string>

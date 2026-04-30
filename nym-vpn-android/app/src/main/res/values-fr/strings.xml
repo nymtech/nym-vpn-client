@@ -226,8 +226,10 @@
 	<string name="settings_language_help_title">Aidez-nous à améliorer les traductions</string>
 	<string name="settings_language_help_description">Traduisez l\'application dans votre langue maternelle.</string>
 	<string name="settings_event_lan_reconnecting">Reconnexion aux paramètres du LAN...</string>
-	<string name="settings_lewes_title">Activer le protocole Lewes</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">Post-quantique</string>
+	<string name="settings_lewes_description">Toujours préférer les passerelles post-quantique</string>
+	<string name="settings_ad_blocking_title">Blocage de publicités</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Verrouillage de l\'écran requis pour utiliser des raccourcis.</string>
 	<string name="shortcut_title">Confirmer l\'action</string>
 	<string name="shortcut_subtitle_stop">Déverrouiller pour déconnecter le VPN</string>
@@ -418,6 +420,8 @@
 	<string name="banner_renew_text">Renouveler maintenant\npour rester protégé</string>
 	<string name="account_info_auto_renew_text">*Renouvellement automatique</string>
 	<string name="account_info_no_plan">Aucun abonnement actif</string>
+	<string name="account_info_confirming_payment">Confirmation du paiement</string>
+	<string name="account_info_updating">Mise à jour du statut du compte…</string>
 	<string name="account_info_autologin_fetching">Récupération du code d\'accès…</string>
 	<string name="account_info_autologin_error">Impossible de récupérer le code d\'accès. Veuillez réessayer.</string>
 	<string name="pin_code_title">Code PIN</string>
