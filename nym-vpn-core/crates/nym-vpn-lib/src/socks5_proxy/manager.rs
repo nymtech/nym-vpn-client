@@ -6,8 +6,16 @@ use std::{
     net::{Ipv4Addr, Ipv6Addr},
 };
 
-use super::process::{Socks5ProcessEvent, Socks5ProcessTask, Socks5ProxyProcess};
+#[cfg(target_os = "android")]
+use nym_socks5_proxy::SocketProtector;
 
+#[cfg(not(target_os = "android"))]
+use super::process;
+
+#[cfg(target_os = "android")]
+use super::task;
+
+use super::Socks5ProxyEvent;
 use nym_socks5_proxy_ipc::{InterfaceAddresses, ProxyConfig};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -15,7 +23,10 @@ use tokio_util::sync::CancellationToken;
 enum Socks5ProxyState {
     Stopped,
     Starting(CancellationToken),
-    Running(Socks5ProxyProcess),
+    #[cfg(not(target_os = "android"))]
+    RunningProcess(process::RunningProcess),
+    #[cfg(target_os = "android")]
+    RunningTask(task::RunningTask),
     Stopping,
 }
 
@@ -32,13 +43,24 @@ impl Socks5ProxyManager {
         }
     }
 
-    pub async fn start(&mut self, config: ProxyConfig, shutdown_token: CancellationToken) {
+    pub async fn start(
+        &mut self,
+        config: ProxyConfig,
+        #[cfg(target_os = "android")] socket_protector: SocketProtector,
+        shutdown_token: CancellationToken,
+    ) {
         match self.state {
             Socks5ProxyState::Starting(_) => {
                 tracing::debug!("nym-socks5-proxy is already starting");
                 return;
             }
-            Socks5ProxyState::Running(_) => {
+            #[cfg(not(target_os = "android"))]
+            Socks5ProxyState::RunningProcess(_) => {
+                tracing::debug!("nym-socks5-proxy is already running");
+                return;
+            }
+            #[cfg(target_os = "android")]
+            Socks5ProxyState::RunningTask(_) => {
                 tracing::debug!("nym-socks5-proxy is already running");
                 return;
             }
@@ -52,18 +74,30 @@ impl Socks5ProxyManager {
         let child_token = shutdown_token.child_token();
         self.state = Socks5ProxyState::Starting(child_token.clone());
 
-        let (event_tx, event_rx) = mpsc::unbounded_channel::<Socks5ProcessEvent>();
+        let (event_tx, event_rx) = mpsc::unbounded_channel::<Socks5ProxyEvent>();
 
-        match Socks5ProcessTask::spawn(config, event_tx, child_token).await {
-            Ok((handle, join_handle)) => {
+        #[cfg(not(target_os = "android"))]
+        let spawn_result = process::spawn(config, event_tx, child_token)
+            .await
+            .map_err(|e| e.to_string());
+
+        #[cfg(target_os = "android")]
+        let spawn_result = task::spawn(config, socket_protector, event_tx, child_token)
+            .await
+            .map_err(|e| e.to_string());
+
+        match spawn_result {
+            Ok(running) => {
                 spawn_event_logger(event_rx);
-
-                handle.set_tunnel_addrs(self.tunnel_addrs.clone());
-
-                self.state = Socks5ProxyState::Running(Socks5ProxyProcess {
-                    handle,
-                    join_handle,
-                });
+                running.set_tunnel_addrs(self.tunnel_addrs.clone());
+                #[cfg(not(target_os = "android"))]
+                {
+                    self.state = Socks5ProxyState::RunningProcess(running);
+                }
+                #[cfg(target_os = "android")]
+                {
+                    self.state = Socks5ProxyState::RunningTask(running);
+                }
             }
             Err(err) => {
                 tracing::warn!("Failed to start nym-socks5-proxy (continuing without it): {err}");
@@ -89,11 +123,16 @@ impl Socks5ProxyManager {
                 tracing::debug!("nym-socks5-proxy is already stopping");
                 self.state = Socks5ProxyState::Stopping;
             }
-            Socks5ProxyState::Running(process) => {
-                process.handle.shutdown();
-                if let Err(err) = process.join_handle.await {
-                    tracing::error!("Failed to join on socks5 process task: {err}");
-                }
+            #[cfg(not(target_os = "android"))]
+            Socks5ProxyState::RunningProcess(running) => {
+                running.shutdown();
+                running.join().await;
+                self.state = Socks5ProxyState::Stopped;
+            }
+            #[cfg(target_os = "android")]
+            Socks5ProxyState::RunningTask(running) => {
+                running.shutdown();
+                running.join().await;
                 self.state = Socks5ProxyState::Stopped;
             }
         }
@@ -103,30 +142,37 @@ impl Socks5ProxyManager {
         self.tunnel_addrs.v4_addr = v4_addr;
         self.tunnel_addrs.v6_addr = v6_addr;
 
-        if let Socks5ProxyState::Running(process) = &self.state {
+        #[cfg(not(target_os = "android"))]
+        if let Socks5ProxyState::RunningProcess(running) = &self.state {
             tracing::debug!(
                 "Notifying nym-socks5-proxy of new tunnel addresses: {:?}",
                 self.tunnel_addrs
             );
-            process.handle.set_tunnel_addrs(self.tunnel_addrs.clone());
+            running.set_tunnel_addrs(self.tunnel_addrs.clone());
+        }
+
+        #[cfg(target_os = "android")]
+        if let Socks5ProxyState::RunningTask(running) = &self.state {
+            tracing::debug!(
+                "Notifying nym-socks5-proxy of new tunnel addresses: {:?}",
+                self.tunnel_addrs
+            );
+            running.set_tunnel_addrs(self.tunnel_addrs.clone());
         }
     }
 }
 
-fn spawn_event_logger(mut event_rx: mpsc::UnboundedReceiver<Socks5ProcessEvent>) {
+fn spawn_event_logger(mut event_rx: mpsc::UnboundedReceiver<Socks5ProxyEvent>) {
     tokio::spawn(async move {
         while let Some(event) = event_rx.recv().await {
             match event {
-                Socks5ProcessEvent::Ready => {
+                Socks5ProxyEvent::Ready => {
                     tracing::info!("nym-socks5-proxy ready");
                 }
-                Socks5ProcessEvent::StatusUpdate { active_connections } => {
-                    tracing::info!("nym-socks5-proxy active connections: {active_connections}");
-                }
-                Socks5ProcessEvent::Error { message } => {
+                Socks5ProxyEvent::Error { message } => {
                     tracing::error!("nym-socks5-proxy reported an error: {message}");
                 }
-                Socks5ProcessEvent::Exited { success } => {
+                Socks5ProxyEvent::Exited { success } => {
                     tracing::info!("nym-socks5-proxy exited: success={success}");
                 }
             }

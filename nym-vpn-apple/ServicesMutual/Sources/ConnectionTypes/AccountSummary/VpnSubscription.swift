@@ -5,7 +5,7 @@ import NymVPNLib
 import NymVPNRpc
 #endif
 
-public struct VpnSubscription {
+public struct VpnSubscription: Codable {
     public let createdOnUtc: Date?
     public let lastUpdatedUtc: Date?
     public let id: String

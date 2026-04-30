@@ -1,16 +1,14 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    cmp,
-    sync::{Arc, atomic::AtomicBool},
-};
+use std::{cmp, sync::Arc};
 
 use geo::{Distance, Haversine, Point};
 use nym_gateway_directory::{Gateway, Location};
 use nym_vpn_api_client::{
     VpnApiClient, error::VpnApiClientError, response::NymUserGeoIpLocationResponse,
 };
+use tokio::sync::Mutex;
 
 #[async_trait::async_trait]
 pub trait GeoIpClient: Send + Sync + 'static {
@@ -32,7 +30,7 @@ fn geo_distance(x: &Location, y: &Location) -> f64 {
 
 pub(crate) fn same_jurisdiction(x: &Location, y: &Location) -> bool {
     if x.two_letter_iso_country_code == y.two_letter_iso_country_code
-        && (x.two_letter_iso_country_code == "US" || x.two_letter_iso_country_code == "USA")
+        && x.two_letter_iso_country_code == "US"
     {
         return x.region == y.region;
     }
@@ -53,20 +51,61 @@ pub(crate) fn closest_gateway(reference: &Location, gw1: &Gateway, gw2: &Gateway
     }
 }
 
+pub(crate) struct QueryControl {
+    /// if geo location should ever be used by the algorithm, depending on user's preference
+    enabled: bool,
+    /// if geo location is active, depending on connection status, so that false locations
+    /// don't get used
+    active: bool,
+}
+
+impl Default for QueryControl {
+    fn default() -> Self {
+        Self {
+            enabled: true,
+            active: true,
+        }
+    }
+}
+
+impl QueryControl {
+    pub(crate) fn new(enabled: bool) -> Self {
+        Self {
+            enabled,
+            active: enabled,
+        }
+    }
+
+    pub(crate) fn set_enabled(&mut self, enabled: bool) {
+        self.enabled = enabled;
+    }
+
+    pub(crate) fn set_active(&mut self, active: bool) {
+        self.active = active;
+    }
+
+    fn can_query(&self) -> bool {
+        self.enabled && self.active
+    }
+
+    fn should_clear_location(&self) -> bool {
+        !self.enabled
+    }
+}
+
 pub(crate) struct GeoIpProvider {
     client: Box<dyn GeoIpClient>,
-    enabled: Arc<AtomicBool>,
-    active: Arc<AtomicBool>,
+    query_control: Arc<Mutex<QueryControl>>,
     latest_location: Option<Location>,
 }
 
 impl GeoIpProvider {
     pub(crate) async fn new(
         client: impl GeoIpClient,
-        enabled: Arc<AtomicBool>,
-        active: Arc<AtomicBool>,
+        query_control: Arc<Mutex<QueryControl>>,
     ) -> Self {
-        let latest_location = if active.load(std::sync::atomic::Ordering::SeqCst) {
+        let can_query = query_control.lock().await.can_query();
+        let latest_location = if can_query {
             client
                 .latest_geo_ip()
                 .await
@@ -78,25 +117,25 @@ impl GeoIpProvider {
         };
         Self {
             client: Box::new(client),
-            enabled,
-            active,
+            query_control,
             latest_location,
         }
     }
 
     pub(crate) async fn update(&mut self) -> Result<(), VpnApiClientError> {
-        if !self.enabled.load(std::sync::atomic::Ordering::SeqCst) {
+        let (should_clear_location, can_query) = {
+            let control = self.query_control.lock().await;
+            (control.should_clear_location(), control.can_query())
+        };
+        if should_clear_location {
             self.latest_location = None;
-        } else if self.active.load(std::sync::atomic::Ordering::SeqCst) {
+        } else if can_query {
             self.latest_location = Some(self.client.latest_geo_ip().await?.into());
         }
         Ok(())
     }
 
     pub(crate) fn latest_location(&mut self) -> Option<Location> {
-        if !self.enabled.load(std::sync::atomic::Ordering::SeqCst) {
-            self.latest_location = None;
-        }
         self.latest_location.clone()
     }
 }

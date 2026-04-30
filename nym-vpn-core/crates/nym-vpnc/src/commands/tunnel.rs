@@ -6,7 +6,10 @@ use anyhow::Result;
 use nym_vpn_lib_types::GatewaySelectionAlgorithm;
 use nym_vpn_proto::rpc_client::RpcClient;
 
-use crate::{boolean_option::BooleanOption, display_helpers::display_on_off};
+use crate::{
+    boolean_option::BooleanOption, display_helpers::display_on_off,
+    gateway_selection_algorithm::GatewaySelectionAlgorithmParser,
+};
 use clap::builder::ValueParser;
 
 #[derive(Debug, Clone, clap::Subcommand)]
@@ -85,16 +88,9 @@ pub struct SetParams {
     #[arg(
     long,
     value_name = "LEVEL",
-    value_parser = ValueParser::from(|s: &str| -> Result<GatewaySelectionAlgorithm, String> {
-        let ret = match s.parse().map_err(|_| format!("Invalid integer: {}", s))? {
-            0 => GatewaySelectionAlgorithm::Explicit,
-            1 => GatewaySelectionAlgorithm::AutoEntryExplicitExit,
-            _ => GatewaySelectionAlgorithm::Auto,
-        };
-        Ok(ret)
-    })
+    value_parser = clap::value_parser!(GatewaySelectionAlgorithmParser)
     )]
-    automatic_gateway_selection_level: Option<GatewaySelectionAlgorithm>,
+    gateway_selection_algorithm: Option<GatewaySelectionAlgorithmParser>,
 
     /// Enable or disable geo-location data being used for determining gateway proximity
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
@@ -119,7 +115,7 @@ impl Command {
                 );
                 println!("Mixnet traffic configuration: {}", config.mixnet_traffic);
                 println!(
-                    "Gateway selection algorithm: {}",
+                    "Gateway selection algorithm configuration: {}",
                     config.gateway_selection_algorithm_config
                 );
 
@@ -179,11 +175,9 @@ impl Command {
                         .await?;
                 }
 
-                if let Some(automatic_gateway_selection_level) =
-                    params.automatic_gateway_selection_level
-                {
+                if let Some(gateway_selection_algorithm) = params.gateway_selection_algorithm {
                     rpc_client
-                        .set_gateway_selection_algorithm(automatic_gateway_selection_level)
+                        .set_gateway_selection_algorithm(*gateway_selection_algorithm)
                         .await?;
                 }
 

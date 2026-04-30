@@ -69,10 +69,11 @@ public struct AccountWelcomeView: View {
             guard newValue else { return }
             if isLoggingInWithPrivy {
                 isLoggingInWithPrivy = false
+                navigateHome()
             } else if isCreateAccount {
                 isCreateAccount = false
+                navigateHome()
             }
-            navigateHome()
         }
     }
 
@@ -288,7 +289,11 @@ private extension AccountWelcomeView {
         Task {
             do {
                 let loginURL = try await credentialsManager.privyLogin(kind: .privy)
+#if os(iOS)
+                try externalLinkManager.openInAppBrowser(urlString: loginURL)
+#else
                 try externalLinkManager.openExternalURL(urlString: loginURL)
+#endif
             } catch {
                 alertTitle = error.localizedDescription
                 isDisplayingAlert = true

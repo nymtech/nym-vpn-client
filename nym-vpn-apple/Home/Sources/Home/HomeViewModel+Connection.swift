@@ -1,5 +1,9 @@
 public extension HomeViewModel {
     @MainActor func connectDisconnect() async {
+        guard !isConnectDisconnectInFlight else { return }
+        isConnectDisconnectInFlight = true
+        defer { isConnectDisconnectInFlight = false }
+
         guard connectionManager.currentTunnelStatus != .disconnecting
         else {
             return

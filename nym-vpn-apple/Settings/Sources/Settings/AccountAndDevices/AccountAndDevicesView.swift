@@ -31,41 +31,44 @@ import Theme
     @Binding private var path: NavigationPath
 
     public var body: some View {
-        VStack(spacing: 0) {
-            navbar()
-            Spacer()
-                .frame(height: 24)
-            ScrollView {
-                VStack(spacing: 24) {
-                    if credentialsManager.isValidCredentialImported {
-                        renewButton()
-                        accountStatusSection()
-                        contactSupportText()
-                        nymAccountSection()
-                        nymLinkingText()
-                        accountIdentifier()
-                        accountIdText()
-                        deviceIdentifier()
-                        deviceIdText()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                navbar()
+                Spacer()
+                    .frame(height: 24)
+                ScrollView {
+                    VStack(spacing: 24) {
+                        if credentialsManager.isValidCredentialImported {
+                            renewButton()
+                            accountStatusSection()
+                            contactSupportText()
+                            nymAccountSection()
+                            nymLinkingText()
+                            accountIdentifier()
+                            accountIdText()
+                            deviceIdentifier()
+                            deviceIdText()
 #if os(iOS)
-                        if !configurationManager.isTestFlight {
-                            manageSubscription()
-                        }
+                            if !configurationManager.isTestFlight {
+                                manageSubscription()
+                            }
 #endif
-                        if appSettings.isCredentialImported {
-                            logoutButton()
+                            if appSettings.isCredentialImported {
+                                logoutButton()
+                            }
                         }
                     }
+                    .frame(maxWidth: MagicNumbers.maxWidth)
+                    .padding(.horizontal, 16)
+                    Spacer()
+                        .frame(height: max(geometry.safeAreaInsets.bottom, 24))
                 }
-                .frame(maxWidth: MagicNumbers.maxWidth)
-                .padding(.horizontal, 16)
-                Spacer()
+                .scrollIndicators(.never)
             }
-            .scrollIndicators(.never)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea(edges: [.bottom])
         }
         .navigationBarBackButtonHidden(true)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(edges: [.bottom])
 #if os(iOS)
         .manageSubscriptionsSheet(isPresented: $isPresentedManageSubscription)
 #endif
@@ -323,7 +326,11 @@ extension AccountAndDevicesView {
     func linkAccount() async {
         impactGenerator.softImpact()
         let link = try? await credentialsManager.privyLogin(kind: .privyLink)
+#if os(iOS)
+        try? externalLinkManager.openInAppBrowser(urlString: link)
+#else
         try? externalLinkManager.openExternalURL(urlString: link)
+#endif
     }
 
     func logout() async {

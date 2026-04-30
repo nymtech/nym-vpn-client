@@ -68,7 +68,7 @@ impl Default for GatewaySelectionAlgorithmConfig {
 
 impl fmt::Display for GatewaySelectionAlgorithmConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "geo location enabled: {}", self.enable_geo_location)?;
+        write!(f, "geo location enabled: {}; ", self.enable_geo_location)?;
         write!(
             f,
             "gateway selection algorithm: {}",

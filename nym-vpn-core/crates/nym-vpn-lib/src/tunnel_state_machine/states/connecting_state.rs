@@ -92,7 +92,10 @@ impl ConnectingState {
         shared_state.allow_networking().await;
 
         // Disallow geolocating while connected to prevent incorrect data from being queried
-        shared_state.gateway_provider.set_active_geo_location(false);
+        shared_state
+            .gateway_provider
+            .set_active_geo_location(false)
+            .await;
 
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
@@ -265,7 +268,7 @@ impl ConnectingState {
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         shared_state.route_handler.remove_routes().await;
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "ios"))]
         {
             shared_state.set_socks5_proxy_tunnel_addrs(None, None);
         }
@@ -469,7 +472,7 @@ impl ConnectingState {
             return self.disconnect(after_disconnect, shared_state).await;
         }
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "ios"))]
         {
             let (tunnel_v4_addr, tunnel_v6_addr) =
                 tunnel_interface.exit_tunnel_metadata().get_addresses();
@@ -770,7 +773,7 @@ impl TunnelStateHandler for ConnectingState {
                             }
                         }
 
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        #[cfg(not(target_os = "ios"))]
                         if diff.airporting_enabled_changed() {
                             shared_state
                                 .start_or_stop_socks5_proxy()
