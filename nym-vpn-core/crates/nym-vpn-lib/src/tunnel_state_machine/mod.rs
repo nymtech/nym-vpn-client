@@ -314,10 +314,18 @@ impl TunnelSettings {
                 diff.add(TunnelSettingsDiffFields::AirportingExcludedCountries);
             }
         }
-        if self.gateway_selection_algorithm_config != other.gateway_selection_algorithm_config {
-            diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
+        if self.gateway_selection_algorithm_config.enable_geo_location
+            != other.gateway_selection_algorithm_config.enable_geo_location
+        {
+            diff.add(TunnelSettingsDiffFields::GeoLocationEnabled);
         }
-        if self.gateway_selection_algorithm_config != other.gateway_selection_algorithm_config {
+        if self
+            .gateway_selection_algorithm_config
+            .gateway_selection_algorithm
+            != other
+                .gateway_selection_algorithm_config
+                .gateway_selection_algorithm
+        {
             diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
         }
 
@@ -345,6 +353,7 @@ pub enum TunnelSettingsDiffFields {
     Airporting,
     AirportingEnabled,
     AirportingExcludedCountries,
+    GeoLocationEnabled,
     GatewaySelectionAlgorithm,
 }
 
@@ -366,6 +375,7 @@ impl TunnelSettingsDiffFields {
             | Self::Airporting
             | Self::AirportingEnabled
             | Self::AirportingExcludedCountries
+            | Self::GeoLocationEnabled
             | Self::GatewaySelectionAlgorithm => false,
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
@@ -428,6 +438,10 @@ impl TunnelSettingsDiff {
 
     pub fn airporting_excluded_countries_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::AirportingExcludedCountries)
+    }
+
+    pub fn geo_location_enabled_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::GeoLocationEnabled)
     }
 
     // Returns true if changed tunnel settings should lead to tunnel reconnect
@@ -728,7 +742,6 @@ impl SharedState {
             .set_vpn_api_firewall_down()
             .await
             .ok();
-        self.gateway_provider.set_active_geo_location(true).await;
     }
 
     /// Notify discovery, account controller and geo-location when network is restricted.
