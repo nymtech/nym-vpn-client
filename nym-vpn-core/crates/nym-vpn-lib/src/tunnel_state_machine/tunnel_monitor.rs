@@ -1669,13 +1669,12 @@ impl TunnelMonitor {
             tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?
         };
 
-        let tun_name = tun_device
-            .deref()
-            .tun_name()
-            .map_err(Error::GetTunDeviceName)?;
-
         #[cfg(any(target_os = "linux", target_os = "macos"))]
         if let Some(interface_ipv6) = interface_ipv6 {
+            let tun_name = tun_device
+                .deref()
+                .tun_name()
+                .map_err(Error::GetTunDeviceName)?;
             tun_ipv6::set_ipv6_addr(&tun_name, interface_ipv6)
                 .map_err(Error::SetTunDeviceIpv6Addr)?;
         }
