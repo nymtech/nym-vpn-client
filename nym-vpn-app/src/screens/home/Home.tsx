@@ -19,6 +19,7 @@ import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
 import { regionToCountryCode } from './util';
 import { NewBottomComponent } from './NewBottomComponent';
+import { TunnelState2 } from './TunnelState2';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
@@ -266,6 +267,7 @@ function Home() {
       data-testid="home-container"
     >
       <TunnelState />
+      <TunnelState2 />
       <p>state: {state}</p>
       <p>error: {tunnelError}</p>
       <button onClick={() => navigate(routes.welcomeScreen)}>
