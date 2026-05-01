@@ -130,6 +130,35 @@ const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
 /// Timeout for starting the registration client
 const REGISTRATION_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(8);
 
+/// After Wintun bring-up, binding probe sockets to the tunnel IPv4 can fail with WSAEADDRNOTAVAIL
+/// (10049) until the stack fully accepts the address.
+#[cfg(windows)]
+const WINDOWS_PROBE_BIND_RETRY_TIMEOUT: Duration = Duration::from_secs(15);
+
+#[cfg(windows)]
+const WINDOWS_PROBE_BIND_RETRY_INTERVAL: Duration = Duration::from_millis(100);
+
+/// Windows `WSAEADDRNOTAVAIL`.
+#[cfg(windows)]
+const WSAEADDRNOTAVAIL: i32 = 10049;
+
+#[cfg(any(windows, test))]
+fn io_error_chain_contains_raw_os_error(
+    err: &(dyn std::error::Error + 'static),
+    code: i32,
+) -> bool {
+    let mut cur: Option<&(dyn std::error::Error + 'static)> = Some(err);
+    while let Some(e) = cur {
+        if let Some(io) = e.downcast_ref::<std::io::Error>() {
+            if io.raw_os_error() == Some(code) {
+                return true;
+            }
+        }
+        cur = e.source();
+    }
+    false
+}
+
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
     /// Checking account
@@ -236,6 +265,15 @@ pub struct TunnelMonitor {
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     custom_topology_provider: VpnTopologyServiceHandle,
     shutdown_token: CancellationToken,
+}
+
+#[cfg(windows)]
+fn tunnel_monitor_error_is_transient_wsa_probe_bind(err: &Error) -> bool {
+    match err {
+        Error::CreateIcmpProbe(e) => io_error_chain_contains_raw_os_error(e, WSAEADDRNOTAVAIL),
+        Error::CreateTcpProbe(e) => io_error_chain_contains_raw_os_error(e, WSAEADDRNOTAVAIL),
+        _ => false,
+    }
 }
 
 impl TunnelMonitor {
@@ -666,10 +704,12 @@ impl TunnelMonitor {
 
         let (tunnel_connection_monitor_tx, mut tunnel_connection_monitor_rx) =
             mpsc::unbounded_channel();
-        let tunnel_connection_monitor_handle = self.create_tunnel_connection_monitor(
-            tunnel_interface.exit_tunnel_metadata(),
-            tunnel_connection_monitor_tx,
-        )?;
+        let tunnel_connection_monitor_handle = self
+            .create_tunnel_connection_monitor(
+                tunnel_interface.exit_tunnel_metadata(),
+                tunnel_connection_monitor_tx,
+            )
+            .await?;
 
         let mut last_connection_status = None;
         let mut has_sent_up_event = false;
@@ -1829,7 +1869,7 @@ impl TunnelMonitor {
         TcpProbe::new(tcp_probe_config).map_err(Error::CreateTcpProbe)
     }
 
-    fn create_tunnel_connection_monitor(
+    fn try_create_tunnel_connection_monitor(
         &self,
         exit_tunnel_metadata: &TunnelMetadata,
         event_tx: mpsc::UnboundedSender<ConnectionEvent>,
@@ -1861,6 +1901,44 @@ impl TunnelMonitor {
             }
         }
     }
+
+    async fn create_tunnel_connection_monitor(
+        &self,
+        exit_tunnel_metadata: &TunnelMetadata,
+        event_tx: mpsc::UnboundedSender<ConnectionEvent>,
+    ) -> Result<JoinHandle<Result<(), nym_connection_monitor::Error>>> {
+        #[cfg(windows)]
+        {
+            let deadline = tokio::time::Instant::now() + WINDOWS_PROBE_BIND_RETRY_TIMEOUT;
+            loop {
+                match self
+                    .try_create_tunnel_connection_monitor(exit_tunnel_metadata, event_tx.clone())
+                {
+                    Ok(handle) => return Ok(handle),
+                    Err(e) if tunnel_monitor_error_is_transient_wsa_probe_bind(&e) => {
+                        if tokio::time::Instant::now() >= deadline {
+                            return Err(e);
+                        }
+                        tracing::debug!(
+                            "connection monitor probe bind not ready yet (WSAEADDRNOTAVAIL); retrying"
+                        );
+                        tokio::select! {
+                            biased;
+                            () = self.shutdown_token.cancelled() => {
+                                return Err(tunnel::Error::Cancelled.into());
+                            }
+                            () = tokio::time::sleep(WINDOWS_PROBE_BIND_RETRY_INTERVAL) => {}
+                        }
+                    }
+                    Err(e) => return Err(e),
+                }
+            }
+        }
+        #[cfg(not(windows))]
+        {
+            self.try_create_tunnel_connection_monitor(exit_tunnel_metadata, event_tx)
+        }
+    }
 }
 
 struct StartTunnelResult {
@@ -1882,5 +1960,45 @@ impl WgTunnelRuntime {
         self.authenticator_listener_handle
             .as_ref()
             .map(|handle| handle.mixnet_cancel_token())
+    }
+}
+
+#[cfg(test)]
+mod io_error_chain_tests {
+    use std::error::Error;
+    use std::fmt;
+    use std::io;
+
+    use super::io_error_chain_contains_raw_os_error;
+
+    #[derive(Debug)]
+    struct Wrap {
+        source: io::Error,
+    }
+
+    impl fmt::Display for Wrap {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            f.write_str("wrap")
+        }
+    }
+
+    impl Error for Wrap {
+        fn source(&self) -> Option<&(dyn Error + 'static)> {
+            Some(&self.source)
+        }
+    }
+
+    #[test]
+    fn finds_io_error_raw_code_at_root() {
+        let io = io::Error::from_raw_os_error(12_345);
+        assert!(io_error_chain_contains_raw_os_error(&io, 12_345));
+        assert!(!io_error_chain_contains_raw_os_error(&io, 999));
+    }
+
+    #[test]
+    fn finds_io_error_raw_code_under_source() {
+        let io = io::Error::from_raw_os_error(777);
+        let wrap = Wrap { source: io };
+        assert!(io_error_chain_contains_raw_os_error(&wrap, 777));
     }
 }
