@@ -29,7 +29,11 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tun::AbstractDevice;
+#[cfg(windows)]
+use tun::AbstractDeviceExt;
 use tun::AsyncDevice;
+#[cfg(windows)]
+use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 use nym_common::{ErrorExt, trace_err_chain};
@@ -1678,7 +1682,9 @@ impl TunnelMonitor {
 
         #[cfg(windows)]
         {
-            let interface_luid = wintun::get_interface_luid_for_alias(&tun_name)?;
+            let interface_luid = NET_LUID_LH {
+                Value: tun_device.tun_luid(),
+            };
 
             if let Some(interface_ipv6) = interface_ipv6 {
                 wintun::add_ipv6_address(interface_luid, interface_ipv6)?;
