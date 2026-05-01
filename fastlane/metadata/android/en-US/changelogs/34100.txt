@@ -1,0 +1,2 @@
+What's New:
+- Hotfix for mixnet connectivity issues
