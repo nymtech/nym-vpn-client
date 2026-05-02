@@ -15,7 +15,6 @@ use std::path::PathBuf;
 
 mod lp_client;
 mod mixnet_client;
-mod wireguard;
 
 pub struct RegistrationDiagnostic;
 
@@ -53,17 +52,19 @@ impl RegistrationDiagnostic {
                 .await
             }
         };
-        let Some((wireguard_configuration, keypair)) = registration_result else {
+        let Some((_wireguard_configuration, _keypair)) = registration_result else {
             return registration_report;
         };
 
-        if !parameters.skip_wireguard {
-            tracing::info!("Pinging over wireguard...");
-            registration_report.wireguard_pings = Some(DiagnosticResult::from(
-                wireguard::WireguardDiagnostic::run_diagnostic(wireguard_configuration, keypair)
-                    .await,
-            ));
-        }
+        // TODO - troubleshoot fdroid build with boringtun
+        //        disabling the wireguard diagnostic to unblock fdroid builds
+        // if !parameters.skip_wireguard {
+        //     tracing::info!("Pinging over wireguard...");
+        //     registration_report.wireguard_pings = Some(DiagnosticResult::from(
+        //         wireguard::WireguardDiagnostic::run_diagnostic(wireguard_configuration, keypair)
+        //             .await,
+        //     ));
+        // }
 
         tracing::info!("Registration diagnostic complete");
         registration_report

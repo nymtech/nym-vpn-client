@@ -39,7 +39,6 @@ nym-vpn-network-config.workspace = true
 
 anyhow.workspace = true
 async-trait.workspace = true
-boringtun.workspace = true
 clap.workspace = true
 futures.workspace = true
 hickory-resolver.workspace = true
