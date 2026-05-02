@@ -1657,7 +1657,11 @@ impl TunnelMonitor {
             #[cfg(windows)]
             tun_config.tun_name(MIXNET_WINTUN_NAME);
 
-            tun_config.address(interface_ipv4).mtu(mtu).up();
+            tun_config
+                .address(interface_ipv4)
+                .netmask(Ipv4Addr::BROADCAST)
+                .mtu(mtu)
+                .up();
 
             #[cfg(target_os = "macos")]
             tun_config.platform_config(|platform_config| {
