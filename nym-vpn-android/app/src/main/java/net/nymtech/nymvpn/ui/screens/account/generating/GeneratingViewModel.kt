@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue
@@ -17,9 +18,9 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class GeneratingViewModel
-@Inject
-constructor(private val backendManager: BackendManager, savedStateHandle: SavedStateHandle) : ViewModel() {
+class GeneratingViewModel @Inject constructor(private val backendManager: BackendManager, private val billingManager: BillingManager, savedStateHandle: SavedStateHandle) : ViewModel() {
+
+	val isBillingAvailable: Boolean get() = billingManager.isAvailable()
 
 	companion object {
 		private const val TAG = "ui-generate-account-vm"

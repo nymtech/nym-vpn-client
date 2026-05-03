@@ -81,6 +81,8 @@ fun ConnectPanel(
 	connectionState: ConnectionState,
 	accountState: AccountControllerState,
 	isMnemonicStored: Boolean,
+	hasActiveSubscription: Boolean,
+	isAccountInitializing: Boolean,
 	vpnMode: Tunnel.Mode,
 	exitNode: ServerNode,
 	entryNode: ServerNode,
@@ -246,6 +248,8 @@ fun ConnectPanel(
 			connectionState = connectionState,
 			accountState = accountState,
 			isMnemonicStored = isMnemonicStored,
+			hasActiveSubscription = hasActiveSubscription,
+			isAccountInitializing = isAccountInitializing,
 			onConnect = onConnect,
 			onDisconnect = onDisconnect,
 			onStopKillSwitch = onStopKillSwitch,
@@ -470,6 +474,8 @@ private fun ActionButton(
 	connectionState: ConnectionState,
 	accountState: AccountControllerState,
 	isMnemonicStored: Boolean,
+	hasActiveSubscription: Boolean,
+	isAccountInitializing: Boolean,
 	onConnect: () -> Unit,
 	onDisconnect: () -> Unit,
 	onStopKillSwitch: () -> Unit,
@@ -481,15 +487,22 @@ private fun ActionButton(
 		.fillMaxWidth()
 		.height(48.dp.scaledHeight())
 
+	val needsSubscription = isMnemonicStored &&
+		!hasActiveSubscription &&
+		!isAccountInitializing &&
+		accountState != AccountControllerState.Syncing &&
+		accountState != AccountControllerState.PendingSubscription
+	val canConnect = isMnemonicStored && !needsSubscription
+
 	when (connectionState) {
 		ConnectionState.Disconnected,
 		ConnectionState.Offline,
 		ConnectionState.WaitingForConnection,
 		-> MainStyledButton(
-			onClick = if (isMnemonicStored) onConnect else onGetStartedClick,
+			onClick = if (canConnect) onConnect else onGetStartedClick,
 			content = {
 				Text(
-					stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started),
+					stringResource(if (canConnect) R.string.connect else R.string.get_started),
 					style = CustomTypography.buttonMain,
 				)
 			},
@@ -612,6 +625,8 @@ private fun PreviewDisconnectedDark() {
 			connectionState = ConnectionState.Disconnected,
 			accountState = AccountControllerState.ReadyToConnect,
 			isMnemonicStored = true,
+			hasActiveSubscription = true,
+			isAccountInitializing = false,
 			vpnMode = Tunnel.Mode.FIVE_HOP_MIXNET,
 			exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France"),
 			entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France"),
@@ -637,6 +652,8 @@ private fun PreviewDisconnectedLight() {
 			connectionState = ConnectionState.Disconnected,
 			accountState = AccountControllerState.ReadyToConnect,
 			isMnemonicStored = true,
+			hasActiveSubscription = true,
+			isAccountInitializing = false,
 			vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
 			exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France"),
 			entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France"),

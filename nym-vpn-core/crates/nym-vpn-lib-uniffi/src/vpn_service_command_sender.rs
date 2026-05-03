@@ -208,6 +208,13 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
+    pub async fn register_anonymous_account(&self) -> Result<RegisterAccountResponse> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::RegisterAnonymousAccount, ())
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?)
+    }
+
     pub async fn create_account(&self) -> Result<()> {
         Ok(self
             .send_and_wait(VpnServiceCommand::CreateAccount, ())

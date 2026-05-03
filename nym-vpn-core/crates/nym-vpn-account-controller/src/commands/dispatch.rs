@@ -31,6 +31,14 @@ pub enum AccountCommand {
         Platform,
     ),
 
+    /// Register the locally-stored account with the backend without a purchase token.
+    /// Used by F-Droid where in-app billing is unavailable; the account is later tied to a
+    /// subscription via the website checkout.
+    RegisterAnonymousAccount(
+        ReturnSender<RegisterAccountResponse, AccountCommandError>,
+        StorableAccount,
+    ),
+
     /// Delete the stored account and every associated data
     ForgetAccount(ReturnSender<(), AccountCommandError>),
 
@@ -71,6 +79,9 @@ impl AccountCommand {
             AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(error)),
+            AccountCommand::RegisterAnonymousAccount(return_sender, _) => {
+                return_sender.send(Err(error))
+            }
             AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(error)),
             AccountCommand::LinkAccount(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),

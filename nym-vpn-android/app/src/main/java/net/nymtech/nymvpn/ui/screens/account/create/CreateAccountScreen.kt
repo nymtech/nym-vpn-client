@@ -69,15 +69,10 @@ fun CreateAccountScreen(appUiState: AppUiState, viewModel: CreateAccountViewMode
 		onCreateAccountClick = {
 			if (ui.isLoading) return@CreateAccountScreen
 
-			if (ui.isBillingAvailable) {
-				if (ui.hasActiveSubscription) {
-					showSubscriptionDialog = true
-				} else {
-					navController.replaceCurrentWith(Route.Generating())
-				}
+			if (ui.hasActiveSubscription) {
+				showSubscriptionDialog = true
 			} else {
-				ui.signUpLink?.let { context.openWebUrl(it) }
-				navController.replaceCurrentWith(Route.Login)
+				navController.replaceCurrentWith(Route.Generating())
 			}
 		},
 		onSocialClick = {

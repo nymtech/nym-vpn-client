@@ -599,6 +599,31 @@ impl VpnApiClient {
         }
     }
 
+    pub async fn register_anonymous_account(
+        &self,
+        account: &VpnAccount,
+    ) -> Result<NymVpnAccountResponse> {
+        let kind = if account.mode().is_privy() {
+            AccountKind::PrivySecp256k1
+        } else {
+            AccountKind::UserGeneratedSecp256k1
+        };
+        let body = CreateAppleAccountRequestBody {
+            account_addr: account.id().to_string(),
+            pub_key: account.pub_key().to_string(),
+            signature_base64: account.signature_base64().to_string(),
+            kind,
+        };
+        self.post_json_with_retry(
+            &[routes::PUBLIC, routes::V1, routes::ACCOUNT],
+            NO_PARAMS,
+            &body,
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::PostAccount)
+    }
+
     pub async fn get_health(&self) -> Result<NymVpnHealthResponse> {
         self.get_json_with_retry(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
             .await

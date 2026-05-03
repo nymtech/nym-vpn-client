@@ -73,6 +73,11 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 		return core.requireCoreSender { it.registerAccount(RegisterAccountRequest(token)).accountToken }
 	}
 
+	override suspend fun registerAnonymousAccount(): String {
+		Timber.tag(TAG).d("registerAnonymousAccount requested")
+		return core.requireCoreSender { it.registerAnonymousAccount().accountToken }
+	}
+
 	override suspend fun refreshAccount() {
 		Timber.tag(TAG).d("refreshAccount requested")
 		core.requireCoreSender { it.refreshAccount() }

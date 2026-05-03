@@ -261,8 +261,12 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	}
 
 	fun onGetStartedPressed() {
-		initialAuthRoute = AuthRoute.Welcome
-		showAuthSheet = true
+		if (appUiState.managerState.isMnemonicStored) {
+			navController.goFromRoot(Route.SelectPlan)
+		} else {
+			initialAuthRoute = AuthRoute.Welcome
+			showAuthSheet = true
+		}
 	}
 
 	val entryAlertTitle = stringResource(R.string.disabled_while_connecting)
@@ -520,6 +524,10 @@ private fun MainScreenContent(
 				connectionState = connectionState,
 				accountState = appUiState.managerState.accountState,
 				isMnemonicStored = appUiState.managerState.isMnemonicStored,
+				hasActiveSubscription = appUiState.subscription?.expiryState == ExpiryState.NORMAL ||
+					appUiState.subscription?.expiryState == ExpiryState.WARNING_YELLOW ||
+					appUiState.subscription?.expiryState == ExpiryState.WARNING_AMBER,
+				isAccountInitializing = appUiState.isAccountInitializing,
 				vpnMode = appUiState.vpnConfig.mode,
 				exitNode = ServerNode(
 					name = appUiState.exitPointName,

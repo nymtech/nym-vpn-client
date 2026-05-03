@@ -26,6 +26,7 @@ import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
@@ -50,6 +51,7 @@ constructor(
 	gatewayRepository: GatewayRepository,
 	private val gatewayCacheService: GatewayCacheService,
 	private val backendManager: BackendManager,
+	private val billingManager: BillingManager,
 	networkService: NetworkService,
 ) : ViewModel() {
 
@@ -111,6 +113,10 @@ constructor(
 		autologinJob?.cancel()
 		autologinJob = viewModelScope.launch {
 			_autologinState.value = AutologinState.Loading
+			if (!billingManager.isAvailable()) {
+				runCatching { backendManager.registerAnonymousAccount() }
+					.onFailure { Timber.tag(TAG).w(it, "registerAnonymousAccount failed (likely already registered)") }
+			}
 			runCatching { backendManager.getAutologinDeeplink(kind) }
 				.onSuccess { response ->
 					if (response != null) {

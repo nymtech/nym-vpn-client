@@ -30,6 +30,7 @@ interface BackendManager {
 	suspend fun getGateways(gatewayType: GatewayType): List<NymGateway>
 	suspend fun createAccount()
 	suspend fun registerAccount(purchaseToken: String): String
+	suspend fun registerAnonymousAccount(): String
 	suspend fun refreshAccount()
 	suspend fun getMnemonic(): List<String>
 	suspend fun getAccountState(): AccountControllerState

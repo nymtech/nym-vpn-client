@@ -425,6 +425,10 @@ class MainActivity : AppCompatActivity() {
 		} else if (host == "account" && path?.startsWith("/response") == true) {
 			lifecycleScope.launch {
 				val fullUrl = uri.toString()
+				val isLoggedIn = appViewModel.isUserLoggedIn()
+				if (!isLoggedIn) {
+					navControllerRef?.navigate(Route.Generating(mode = GeneratingMode.DeepLinkLogin.name))
+				}
 				val destination = appViewModel.handleDeepLinkAuth(fullUrl)
 				navControllerRef?.navigate(destination) {
 					popUpTo(Route.Splash) { inclusive = true }

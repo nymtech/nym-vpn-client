@@ -28,7 +28,6 @@ data class AuthUiState(
 	val mnemonic: String = "",
 	val mnemonicError: MnemonicError? = null,
 	val socialLink: String? = null,
-	val signUpLink: String? = null,
 	val isBillingAvailable: Boolean = true,
 	val hasActiveSubscription: Boolean = false,
 	val showExistingSubscriptionModal: Boolean = false,
@@ -61,8 +60,7 @@ class AuthViewModel @Inject constructor(private val billingManager: BillingManag
 	private fun loadInitialData() = viewModelScope.launch {
 		runCatching {
 			val link = backendManager.getDeeplink(DeeplinkKind.PRIVY)
-			val accountLinks = backendManager.getAccountLinks()
-			_uiState.update { it.copy(socialLink = link, signUpLink = accountLinks?.signUp) }
+			_uiState.update { it.copy(socialLink = link) }
 		}.onFailure { t ->
 			Timber.tag(TAG).w(t, "SocialDeeplinkLoadFailed")
 		}

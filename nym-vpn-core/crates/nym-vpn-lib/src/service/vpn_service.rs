@@ -135,6 +135,11 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<RegisterAccountResponse, AccountCommandError>>,
         RegisterAccountRequest,
     ),
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    RegisterAnonymousAccount(
+        oneshot::Sender<Result<RegisterAccountResponse, AccountCommandError>>,
+        (),
+    ),
     CreateAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     StoreAccount(
         oneshot::Sender<Result<(), AccountCommandError>>,
@@ -1047,6 +1052,10 @@ impl NymVpnService {
             VpnServiceCommand::RegisterAccount(tx, request) => {
                 let _ = tx.send(self.handle_register_account(request).await);
             }
+            #[cfg(any(target_os = "android", target_os = "ios"))]
+            VpnServiceCommand::RegisterAnonymousAccount(tx, ()) => {
+                let _ = tx.send(self.handle_register_anonymous_account().await);
+            }
             VpnServiceCommand::CreateAccount(tx, ()) => {
                 let _ = tx.send(self.handle_create_account().await);
             }
@@ -1791,6 +1800,21 @@ impl NymVpnService {
                 stored_account,
                 nym_vpn_api_client::types::Platform::from(request),
             )
+            .await
+    }
+
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    async fn handle_register_anonymous_account(
+        &self,
+    ) -> Result<RegisterAccountResponse, AccountCommandError> {
+        let stored_account = self
+            .account_command_tx
+            .get_stored_account()
+            .await?
+            .ok_or(AccountCommandError::NoAccountStored)?;
+
+        self.account_command_tx
+            .register_anonymous_account(stored_account)
             .await
     }
 

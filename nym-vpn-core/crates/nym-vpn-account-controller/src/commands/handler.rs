@@ -118,6 +118,24 @@ pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
     Ok(RegisterAccountResponse { account_token })
 }
 
+pub(crate) async fn handle_register_anonymous_account<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    account: StorableAccount,
+) -> Result<RegisterAccountResponse, AccountCommandError> {
+    let vpn_account = VpnAccount::try_from(account.clone())
+        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
+    let _ = shared_state
+        .vpn_api_client
+        .register_anonymous_account(&vpn_account)
+        .await?;
+
+    tracing::debug!("Anonymous account registered with API");
+
+    Ok(RegisterAccountResponse {
+        account_token: String::new(),
+    })
+}
+
 pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {

@@ -50,6 +50,7 @@ interface VpnServiceApi {
 	suspend fun createAccount()
 
 	suspend fun registerAccount(token: String): String
+	suspend fun registerAnonymousAccount(): String
 	suspend fun refreshAccount()
 	suspend fun getAccountState(): AccountControllerState
 	suspend fun getAccountLinks(locale: String): ParsedAccountLinks?

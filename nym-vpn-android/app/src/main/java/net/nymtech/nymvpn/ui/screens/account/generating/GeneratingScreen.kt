@@ -47,7 +47,11 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 		mode = mode,
 		onAnimationEnd = {
 			if (mode == GeneratingMode.CreateAccount && success == true) {
-				navController.replaceCurrentWith(Route.SelectPlan)
+				if (viewModel.isBillingAvailable) {
+					navController.replaceCurrentWith(Route.SelectPlan)
+				} else {
+					navController.replaceCurrentWith(Route.Main())
+				}
 			}
 		},
 	)
