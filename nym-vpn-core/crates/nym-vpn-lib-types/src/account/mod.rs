@@ -294,8 +294,10 @@ impl VpnAccountSummary {
     }
 
     pub fn fair_usage_left(&self) -> bool {
-        // limitGB == 0 is the API flag for "unknown / error default".
-        // Genuinely exhausted accounts have limitGB > 0 (e.g. 2000) with usedGB == limitGB.
+        if !self.is_subscription_active() {
+            return false;
+        }
+        // Exhausted only when limit>0 && used==limit; limit==0 is treated as unknown (fail-open).
         self.traffic_limit_gb == 0 || self.traffic_used_gb < self.traffic_limit_gb
     }
 
@@ -829,5 +831,95 @@ mod tests {
             .subscription
             .expect("pending subscription must be kept");
         assert!(matches!(sub.status, NymVpnSubscriptionStatus::Pending));
+    }
+}
+
+#[cfg(test)]
+mod fair_usage_left_semantics_tests {
+    use super::*;
+
+    fn active_subscription_valid_for_days(days: i64) -> Subscription {
+        let now = OffsetDateTime::now_utc().unix_timestamp();
+        Subscription {
+            status: NymVpnSubscriptionStatus::Active,
+            subscription: NymVpnSubscription {
+                created_on_utc: "2024-01-01T00:00:00Z".into(),
+                last_updated_utc: "2024-01-01T00:00:00Z".into(),
+                id: "sub_test".into(),
+                valid_from_utc: now - 86_400,
+                valid_until_utc: now + days * 86_400,
+                status: "active".into(),
+                kind: NymVpnSubscriptionKind::OneMonth,
+                is_recurring: false,
+            },
+        }
+    }
+
+    fn pending_subscription() -> Subscription {
+        let now = OffsetDateTime::now_utc().unix_timestamp();
+        Subscription {
+            status: NymVpnSubscriptionStatus::Pending,
+            subscription: NymVpnSubscription {
+                created_on_utc: "2024-01-01T00:00:00Z".into(),
+                last_updated_utc: "2024-01-01T00:00:00Z".into(),
+                id: "sub_pending".into(),
+                valid_from_utc: now - 86_400,
+                valid_until_utc: now + 365 * 86_400,
+                status: "pending".into(),
+                kind: NymVpnSubscriptionKind::OneMonth,
+                is_recurring: false,
+            },
+        }
+    }
+
+    fn bare_summary(
+        subscription: Option<Subscription>,
+        traffic_limit_gb: u64,
+        traffic_used_gb: u64,
+    ) -> VpnAccountSummary {
+        VpnAccountSummary {
+            traffic_used_gb,
+            traffic_limit_gb,
+            traffic_reset_time: None,
+            account_addr: "n1test".into(),
+            canonical_account_addr: None,
+            auth_methods: vec![],
+            account_mode: None,
+            subscription,
+            is_subscription_stacked: false,
+        }
+    }
+
+    #[test]
+    fn fair_usage_left_false_without_active_subscription_even_when_zeros() {
+        let s = bare_summary(None, 0, 0);
+        assert!(
+            !s.fair_usage_left(),
+            "no subscription: ambiguous zeros must not mean quota available"
+        );
+    }
+
+    #[test]
+    fn fair_usage_left_false_when_subscription_pending_even_with_positive_limits() {
+        let s = bare_summary(Some(pending_subscription()), 2000, 0);
+        assert!(!s.fair_usage_left());
+    }
+
+    #[test]
+    fn fair_usage_left_true_when_active_and_limit_zero_unassigned_cap() {
+        let s = bare_summary(Some(active_subscription_valid_for_days(30)), 0, 0);
+        assert!(s.fair_usage_left());
+    }
+
+    #[test]
+    fn fair_usage_left_false_when_active_and_exhausted() {
+        let s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2000);
+        assert!(!s.fair_usage_left());
+    }
+
+    #[test]
+    fn fair_usage_left_true_when_active_and_under_cap() {
+        let s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 100);
+        assert!(s.fair_usage_left());
     }
 }
