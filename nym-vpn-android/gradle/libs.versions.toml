@@ -33,7 +33,7 @@ desugar = "2.1.5"
 zxingAndroidEmbedded = "4.3.0"
 sentry = "8.36.0"
 billing-client = "8.3.0"
-biometric = "1.4.0-alpha05"
+biometric = "1.4.0-alpha06"
 credentials = "1.6.0-rc02"
 
 gradlePlugins-licensee = "1.14.1"
