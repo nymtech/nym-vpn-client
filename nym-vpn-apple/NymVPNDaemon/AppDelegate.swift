@@ -10,6 +10,7 @@ import Logging
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(appSettings.appMode.activationPolicy)
+        NSApp.appearance = appSettings.currentAppearance.nsAppearance
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
