@@ -266,9 +266,7 @@ async fn data_unavailable_skips_fair_usage_depleted_test() -> anyhow::Result<()>
 
     let mocks = vec![
         endpoints::synced_health(),
-        endpoints::account_summary_with_device_200(
-            account_data_unavailable_exhausted_quota(),
-        ),
+        endpoints::account_summary_with_device_200(account_data_unavailable_exhausted_quota()),
         endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)),
         endpoints::zknym_available_200(credential_proxy.clone()),
         endpoints::zknym_post(credential_proxy.clone()),

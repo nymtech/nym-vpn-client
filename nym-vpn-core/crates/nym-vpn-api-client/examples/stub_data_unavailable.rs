@@ -42,7 +42,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     let account = VpnAccount::new(
         // this is a non valid mnemonic, but it's used to test the stub data unavailable case
-        Mnemonic::parse("range mystery picture decline olympic acoustic lesson quick rebuild panda royal fold start leader egg hammer width olympic worry length crawl couch link mobile")?,
+        Mnemonic::parse(
+            "range mystery picture decline olympic acoustic lesson quick rebuild panda royal fold start leader egg hammer width olympic worry length crawl couch link mobile",
+        )?,
         VpnAccountMode::Api,
     )?;
 
