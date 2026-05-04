@@ -946,6 +946,12 @@ mod fair_usage_left_semantics_tests {
     }
 
     #[test]
+    fn fair_usage_left_false_when_active_and_over_limit() {
+        let s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2100);
+        assert!(!s.fair_usage_left());
+    }
+
+    #[test]
     fn fair_usage_left_true_when_active_and_under_cap() {
         let s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 100);
         assert!(s.fair_usage_left());
