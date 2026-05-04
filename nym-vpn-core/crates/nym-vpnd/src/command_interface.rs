@@ -208,6 +208,26 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn set_fronting_mode(
+        &self,
+        request: tonic::Request<proto::FrontingModeRequest>,
+    ) -> Result<tonic::Response<()>> {
+        let fronting_mode_request = request.into_inner();
+        let fronting_mode = proto::FrontingModes::try_from(fronting_mode_request.mode)
+            .map_err(|e| tonic::Status::invalid_argument(format!("Invalid fronting mode: {e}")))?;
+
+        let fronting_mode = fronting_mode.into();
+
+        let _ = self
+            .send_and_wait(VpnServiceCommand::SetFrontingMode, fronting_mode)
+            .await
+            .map_err(|e| {
+                tonic::Status::internal(format!("Failed to set fronting mode config: {e}"))
+            })?;
+
+        Ok(tonic::Response::new(()))
+    }
+
     async fn set_netstack(&self, request: tonic::Request<bool>) -> Result<tonic::Response<()>> {
         let netstack = request.into_inner();
 

@@ -201,7 +201,7 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use tokio::runtime::Runtime;
 
 use nym_vpn_lib_types::{
-    AirportingSettings, EntryPoint, ExitPoint, GatewaySelectionAlgorithmConfig,
+    AirportingSettings, EntryPoint, ExitPoint, FrontingMode, GatewaySelectionAlgorithmConfig,
     MixnetTrafficConfig, NetworkStatisticsConfig, PrivyDerivationMessage, SplitTunnelSettings,
     UserAgent, VpnServiceConfig,
 };
@@ -256,6 +256,8 @@ pub struct VPNConfig {
     pub residential_exit: bool,
     pub enable_ad_blocking: bool,
 
+    pub fronting_mode: FrontingMode,
+
     /// Custom DNS used when set.
     /// Leave empty to use default DNS servers.
     pub custom_dns: Vec<IpAddr>,
@@ -287,6 +289,7 @@ impl VPNConfig {
             enable_lewes_protocol: self.enable_lewes_protocol,
 
             enable_ad_blocking: self.enable_ad_blocking,
+            fronting_mode: self.fronting_mode,
 
             // Always true on mobile platforms
             netstack: true,

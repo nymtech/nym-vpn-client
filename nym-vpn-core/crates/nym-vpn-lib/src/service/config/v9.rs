@@ -6,6 +6,7 @@ use crate::service::{
     config::{
         VpnServiceConfigExt,
         airporting_settings::v9::AirportingSettings,
+        circumvention::v9::FrontingMode,
         entry_exit::v2::{EntryPoint, ExitPoint},
         gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
         mixnet_traffic::v5::MixnetTrafficConfig,
@@ -26,6 +27,7 @@ pub struct VpnServiceConfig {
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
     pub enable_ad_blocking: bool,
+    pub fronting_mode: FrontingMode,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -69,6 +71,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::from(
                 value.gateway_selection_algorithm_config,
             );
+        let fronting_mode = nym_vpn_lib_types::FrontingMode::from(value.fronting_mode);
 
         Ok(nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -79,6 +82,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
+            fronting_mode,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
