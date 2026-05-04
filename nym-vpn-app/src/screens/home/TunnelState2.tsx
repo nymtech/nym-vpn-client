@@ -3,8 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../../store';
-import { useI18nProgressMsg } from '../../hooks';
+import {
+  useI18nAccountState,
+  useI18nError,
+  useI18nProgressMsg,
+  useI18nTunnelError,
+} from '../../hooks';
 import { ScrambleIn } from '../../ui/ScrambleIn';
+import { setToString } from '../../util';
 
 // ---
 
@@ -26,10 +32,27 @@ export function TunnelState2() {
     })),
   );
 
+  const tunnelError = useAppStore((s) => s.tunnelError);
+  const accountState = useAppStore((s) => s.accountState);
+  const accountError = useAppStore((s) => s.accountError);
+  const error = useAppStore((s) => s.error);
+
+  const { tE } = useI18nError();
+  const { tTE } = useI18nTunnelError();
+  const { t: tA } = useI18nAccountState();
+
   const { t: tP } = useI18nProgressMsg();
   const { t } = useTranslation('home');
 
   const [animPhase, setAnimPhase] = useState(0);
+
+  const isAccountError =
+    accountState === 'max-device-reached' ||
+    accountState === 'no-subscription' ||
+    accountState === 'bandwidth-exceeded' ||
+    accountState === 'pending-subscription' ||
+    accountState === 'status-not-active' ||
+    accountState === 'error';
 
   // Reset the chase phase whenever the connection state changes
   useEffect(() => {
@@ -82,6 +105,31 @@ export function TunnelState2() {
     }
   }, [state, connectingState, progressMessages, tP, t]);
 
+  const getError = () => {
+    // prioritize tunnel error first, then account error and finally any general error
+    if (tunnelError) {
+      return <p data-testid="tunnel-specific-error">{tTE(tunnelError)}</p>;
+    }
+    if (isAccountError) {
+      const error = accountError ? tE(accountError.key) : tA(accountState);
+      return <p data-testid="account-specific-error">{error}</p>;
+    }
+    if (error) {
+      return (
+        <>
+          <p data-testid="tunnel-error-key">
+            {error.key ? tE(error.key) : error.message}
+          </p>
+          {error.data && (
+            <p className="text-left" data-testid="tunnel-error-data">
+              {setToString(error.data)}
+            </p>
+          )}
+        </>
+      );
+    }
+  };
+
   return (
     <div className="inline-flex flex-col items-center gap-2 rounded-lg bg- p-3.5 h-full justify-center">
       {/* Ring visualization */}
@@ -115,6 +163,7 @@ export function TunnelState2() {
             </motion.div>
           )}
         </AnimatePresence>
+        {getError()}
       </div>
     </div>
   );

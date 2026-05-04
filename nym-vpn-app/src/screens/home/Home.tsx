@@ -11,7 +11,7 @@ import { routes } from '../../router';
 import { Button, ButtonNew } from '../../ui';
 import { capFirst } from '../../util';
 import { useToast } from '../../hooks';
-import { dispatch, useMainState } from '../../store';
+import { dispatch, useAppStore, useMainState } from '../../store';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
@@ -40,11 +40,17 @@ function Home() {
     networkCompat,
   } = useMainState();
 
-  console.log('state', state);
-  console.log('tunnel', tunnel);
-  console.log('connectingState', connectingState);
-  console.log('entryNode', entryNode);
-  console.log('exitNode', exitNode);
+  const mxentry = useAppStore((s) => s.mxEntry);
+  const wg = useAppStore((s) => s.wg);
+
+  // console.log('[home] mxentry', mxentry);
+  // console.log('[home] wg', wg);
+
+  // console.log('state', state);
+  // console.log('tunnel', tunnel);
+  // console.log('connectingState', connectingState);
+  // console.log('entryNode', entryNode);
+  // console.log('exitNode', exitNode);
 
   const { setFocused, setSearch, setExpanded } = useNodeListState();
   const lookupGw = useLookupGw();
@@ -268,7 +274,7 @@ function Home() {
       {/* <TunnelState /> */}
       <TunnelState2 />
       <p>state: {state}</p>
-      <p>error: {tunnelError}</p>
+      <p>error: {JSON.stringify(tunnelError)}</p>
       <button onClick={() => navigate(routes.loginScreen2)}>
         go to new login
       </button>

@@ -26,6 +26,7 @@ function findGateway(
     if (byCountry) return byCountry.gateways.find((gw) => gw.id === id) ?? null;
     return null;
   }
+  console.log('[findGateway] gateways', gateways);
   for (const byCountry of gateways) {
     const gw = byCountry.gateways.find((g) => g.id === id);
     if (gw) return gw;
@@ -50,6 +51,7 @@ export const createGatewaysSlice: StateCreator<
   wgError: null,
 
   fetchGateways: async (nodeType) => {
+    console.log('[fetchGateways] nodeType', nodeType);
     const {
       gateways: gwKey,
       loading: loadingKey,
@@ -61,6 +63,7 @@ export const createGatewaysSlice: StateCreator<
     set({ [loadingKey]: true } as Partial<BoundStore>);
     const cacheKey = gwTypeToCacheKey(nodeType);
     let gateways = await CCache.get<GatewaysByCountry[]>(cacheKey);
+    console.log('[fetchGateways] gateways', gateways);
 
     if (!gateways || state.daemonStatus === 'down') {
       console.info(`fetching gateways for ${nodeType}`);
@@ -68,6 +71,7 @@ export const createGatewaysSlice: StateCreator<
         gateways = await invoke<GatewaysByCountry[]>('get_gateways', {
           nodeType,
         });
+        console.log('[fetchGateways] gateways (invoked)', gateways);
         await CCache.set(cacheKey, gateways, GatewaysCacheDuration);
       } catch (e) {
         if (nodeType === 'mx-entry') {
@@ -82,6 +86,10 @@ export const createGatewaysSlice: StateCreator<
       console.info(`no gateways found for ${nodeType}`);
       gateways = [];
     }
+    console.log(
+      '[fetchGateways] gateways (dequal)',
+      dequal(gateways, get()[gwKey]),
+    );
     if (!dequal(gateways, get()[gwKey])) {
       set({ [gwKey]: gateways } as Partial<BoundStore>);
     }
@@ -90,6 +98,13 @@ export const createGatewaysSlice: StateCreator<
 
   lookupGw: (id, type, countryCode) => {
     const { mxEntry, mxExit, wg, vpnMode } = get();
+    console.log('[lookupGw] id', id);
+    console.log('[lookupGw] type', type);
+    console.log('[lookupGw] countryCode', countryCode);
+    console.log('[lookupGw] mxEntry', mxEntry);
+    console.log('[lookupGw] mxExit', mxExit);
+    console.log('[lookupGw] wg', wg);
+    console.log('[lookupGw] vpnMode', vpnMode);
     if (vpnMode === 'wg') return findGateway(id, wg, countryCode);
     return type === 'entry'
       ? findGateway(id, mxEntry, countryCode)

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
@@ -97,7 +97,7 @@ function Chevrons({ onUp, onDown }: ChevronProps) {
 }
 
 type NodeRowProps = {
-  label?: string;
+  // label?: string;
   type: 'entry' | 'exit';
   foldState: FoldState;
 };
@@ -114,23 +114,25 @@ export type SelectedNodeDisplayProps = {
   score?: Score;
 };
 
-function NodeRow({ label, type, foldState }: NodeRowProps) {
+function NodeRow({ type, foldState }: NodeRowProps) {
+  const gatewaySelectionAlgorithmConfig = useAppStore(
+    (s) => s.gatewaySelectionAlgorithmConfig,
+  );
+
+  const state = useAppStore((s) => s.state);
+
   const navigate = useNavigate();
-  const node = useAppStore((s) =>
+  const userSelectedNode = useAppStore((s) =>
     type === 'entry' ? s.entryNode : s.exitNode,
   );
-  console.log('[NodeRow] node', node);
   const tunnel = useAppStore((s) => s.tunnel);
-  console.log('[NodeRow] tunnel', tunnel);
   const connectingState = useAppStore((s) => s.connectingState);
+  const wg = useAppStore((s) => s.wg);
+
+  console.log('[NodeRow] type', type);
+  console.log('[NodeRow] userSelectedNode', userSelectedNode);
+  console.log('[NodeRow] tunnel', tunnel);
   console.log('[NodeRow] connectingState', connectingState);
-
-  const { getCountryName } = useLang();
-  const { t } = useTranslation('home');
-
-  const quicConnection =
-    isBridgeMode(tunnel?.data) || isBridgeMode(connectingState?.tunnel);
-  const quicTag = type === 'entry' && quicConnection;
 
   const lookupGw = useLookupGw();
 
@@ -141,151 +143,249 @@ function NodeRow({ label, type, foldState }: NodeRowProps) {
     } else {
       gw = tunnel?.exitGwId || connectingState?.exitGwId;
     }
-    console.log('[NodeRow] gw', gw);
+    console.log('[memo][NodeRow] gw', gw);
 
     let result: Gateway | null = null;
 
-    if (isGateway(node)) {
-      result = lookupGw(node.gateway.id, type);
+    if (isGateway(userSelectedNode)) {
+      result = lookupGw(userSelectedNode.gateway.id, type);
     } else if (gw) {
       result = lookupGw(gw, type);
     }
+    console.log('[NodeRow] result', result);
     return result;
   }, [
     connectingState?.entryGwId,
     connectingState?.exitGwId,
     lookupGw,
-    node,
+    userSelectedNode,
     tunnel?.entryGwId,
     tunnel?.exitGwId,
     type,
   ]);
 
-  const nodeData = (
-    selected: SelectedNode,
-    gateway: Gateway | null,
-  ): SelectedNodeDisplayProps => {
-    if (selected === 'random') {
+  console.log('[NodeRow] global gateway', gateway);
+
+  useEffect(() => {
+    console.log('[NodeRow] wg', wg);
+    console.log('[NodeRow] gateway', gateway);
+    for (const country of wg) {
+      // console.log('[NodeRow] country', country);
+      const gwsearch = country.gateways.find((cg) => cg.id === gateway?.id);
+      if (gwsearch) {
+        console.log('[NodeRow] gwsearch', gwsearch);
+      }
+    }
+  }, [wg, gateway]);
+
+  const label = useMemo(
+    () => (type === 'entry' ? 'Nym entry node' : 'Nym exit node'),
+    [type],
+  );
+
+  const { getCountryName } = useLang();
+  const { t } = useTranslation('home');
+
+  const quicConnection =
+    isBridgeMode(tunnel?.data) || isBridgeMode(connectingState?.tunnel);
+  const quicTag = type === 'entry' && quicConnection;
+
+  // const lookupGw = useLookupGw();
+
+  // const gateway = useMemo(() => {
+  //   let gw: string | null | undefined = undefined;
+  //   if (type === 'entry') {
+  //     gw = tunnel?.entryGwId || connectingState?.entryGwId;
+  //   } else {
+  //     gw = tunnel?.exitGwId || connectingState?.exitGwId;
+  //   }
+  //   // console.log('[NodeRow] gw', gw);
+
+  //   let result: Gateway | null = null;
+
+  //   if (isGateway(userSelectedNode)) {
+  //     result = lookupGw(userSelectedNode.gateway.id, type);
+  //   } else if (gw) {
+  //     result = lookupGw(gw, type);
+  //   }
+  //   return result;
+  // }, [
+  //   connectingState?.entryGwId,
+  //   connectingState?.exitGwId,
+  //   lookupGw,
+  //   userSelectedNode,
+  //   tunnel?.entryGwId,
+  //   tunnel?.exitGwId,
+  //   type,
+  // ]);
+
+  const getLocationInfo = useCallback(
+    (
+      countryCode: string,
+      gateway: Gateway | null,
+      region?: string,
+    ): SelectedNodeDisplayProps => {
+      let location = getCountryName(countryCode) || countryCode;
+      let subInfo = null;
+      if (region && region.length > 0) {
+        location = `${location}, ${region}`;
+      }
+      if (gateway) {
+        const components = [];
+        if (gateway.location.city.length > 0) {
+          components.push(gateway.location.city);
+        }
+        if (!region && countriesWithRegions.includes(countryCode)) {
+          components.push(gateway.location.region);
+        }
+        subInfo = `${components.join(', ')} (${gateway.name})`;
+      }
+
+      console.log('[NodeRow] getLocationInfo', {
+        countryCode,
+        location,
+        subInfo,
+        quicTag,
+        gateway,
+      });
+
       return {
-        name: t('random', { ns: 'common' }),
-        location: 'Random server',
-        ip: '',
+        countryCode: countryCode.toLowerCase() as countryCode,
+        name: gateway?.name || '',
+        location,
+        ip: gateway?.exitIpv4 || gateway?.exitIpv6 || '',
         showQuic: Boolean(quicTag && gateway?.quic),
         showStreamOptimized:
           type === 'exit' && gateway?.asn?.type === 'residential',
-        showFastest: node === 'random' && !gateway?.country?.code,
+        showFastest: userSelectedNode === 'random' && !gateway?.country?.code,
         score: gateway?.type === 'wg' ? gateway?.wgScore : gateway?.mxScore,
       };
-    }
-    if (isCountry(selected)) {
-      return getLocationInfo(selected.country.code, gateway);
-    }
-    if (isRegion(selected)) {
-      return getLocationInfo(
-        // TODO handle this better, ie. vpnd should provide country code along with region
-        regionToCountryCode(selected.region) || 'US',
-        gateway,
-        selected.region,
-      );
-    }
-    return getGatewayInfo(selected.gateway.id, gateway);
-  };
+    },
+    [getCountryName, userSelectedNode, quicTag, type],
+  );
 
-  const getLocationInfo = (
-    countryCode: string,
-    gateway: Gateway | null,
-    region?: string,
-  ): SelectedNodeDisplayProps => {
-    let location = getCountryName(countryCode) || countryCode;
-    let subInfo = null;
-    if (region && region.length > 0) {
-      location = `${location}, ${region}`;
-    }
-    if (gateway) {
+  const getGatewayInfo = useCallback(
+    (id: string, gateway: Gateway | null): SelectedNodeDisplayProps => {
+      if (!gateway) {
+        return {
+          name: id,
+        };
+      }
+
+      const { country, location, name } = gateway;
       const components = [];
-      if (gateway.location.city.length > 0) {
-        components.push(gateway.location.city);
+      if (location.city.length > 0) {
+        components.push(location.city);
       }
-      if (!region && countriesWithRegions.includes(countryCode)) {
-        components.push(gateway.location.region);
+      if (
+        countriesWithRegions.includes(country.code) &&
+        location.region.length > 0
+      ) {
+        components.push(location.region);
       }
-      subInfo = `${components.join(', ')} (${gateway.name})`;
-    }
+      components.push(getCountryName(country.code) || country.name);
 
-    console.log('[NodeRow] getLocationInfo', {
-      countryCode,
-      location,
-      subInfo,
-      quicTag,
-      gateway,
-    });
-
-    return {
-      countryCode: countryCode.toLowerCase() as countryCode,
-      name: gateway?.name || '',
-      location,
-      ip: gateway?.exitIpv4 || gateway?.exitIpv6 || '',
-      showQuic: Boolean(quicTag && gateway?.quic),
-      showStreamOptimized:
-        type === 'exit' && gateway?.asn?.type === 'residential',
-      showFastest: node === 'random' && !gateway?.country?.code,
-      score: gateway?.type === 'wg' ? gateway?.wgScore : gateway?.mxScore,
-    };
-  };
-
-  const getGatewayInfo = (
-    id: string,
-    gateway: Gateway | null,
-  ): SelectedNodeDisplayProps => {
-    if (!gateway) {
       return {
-        name: id,
+        countryCode: country.code.toLowerCase() as countryCode,
+        name,
+        location: components.join(', '),
+        ip: gateway?.exitIpv4 || gateway?.exitIpv6 || '',
+        showQuic: Boolean(quicTag && gateway?.quic),
+        showStreamOptimized:
+          type === 'exit' && gateway?.asn?.type === 'residential',
+        showFastest: userSelectedNode === 'random' && !gateway?.country?.code,
+        score: gateway?.type === 'wg' ? gateway?.wgScore : gateway?.mxScore,
       };
-    }
+    },
+    [getCountryName, userSelectedNode, quicTag, type],
+  );
 
-    const { country, location, name } = gateway;
-    const components = [];
-    if (location.city.length > 0) {
-      components.push(location.city);
-    }
-    if (
-      countriesWithRegions.includes(country.code) &&
-      location.region.length > 0
-    ) {
-      components.push(location.region);
-    }
-    components.push(getCountryName(country.code) || country.name);
+  const nodeData = useCallback(
+    (
+      selected: SelectedNode,
+      gateway: Gateway | null,
+    ): SelectedNodeDisplayProps => {
+      if (selected === 'random') {
+        return {
+          name: t('random', { ns: 'common' }),
+          location: 'Random server',
+          ip: '',
+          showQuic: Boolean(quicTag && gateway?.quic),
+          showStreamOptimized:
+            type === 'exit' && gateway?.asn?.type === 'residential',
+          showFastest: userSelectedNode === 'random' && !gateway?.country?.code,
+          score: gateway?.type === 'wg' ? gateway?.wgScore : gateway?.mxScore,
+        };
+      }
+      if (isCountry(selected)) {
+        return getLocationInfo(selected.country.code, gateway);
+      }
+      if (isRegion(selected)) {
+        return getLocationInfo(
+          // TODO handle this better, ie. vpnd should provide country code along with region
+          regionToCountryCode(selected.region) || 'US',
+          gateway,
+          selected.region,
+        );
+      }
+      return getGatewayInfo(selected.gateway.id, gateway);
+    },
+    [getGatewayInfo, getLocationInfo, userSelectedNode, quicTag, t, type],
+  );
 
-    return {
-      countryCode: country.code.toLowerCase() as countryCode,
-      name,
-      location: components.join(', '),
-      ip: gateway?.exitIpv4 || gateway?.exitIpv6 || '',
-      showQuic: Boolean(quicTag && gateway?.quic),
-      showStreamOptimized:
-        type === 'exit' && gateway?.asn?.type === 'residential',
-      showFastest: node === 'random' && !gateway?.country?.code,
-      score: gateway?.type === 'wg' ? gateway?.wgScore : gateway?.mxScore,
-    };
-  };
-
-  console.log('[NodeRow] gateway', gateway);
-  console.log('[NodeRow] nodeData', nodeData(node, gateway));
+  // console.log('[NodeRow] gateway', gateway);
+  // console.log('[NodeRow] nodeData', nodeData(node, gateway));
 
   const nodeDetails = useMemo(() => {
-    return nodeData(node, gateway);
-  }, [nodeData, node, gateway]);
+    return nodeData(userSelectedNode, gateway);
+  }, [nodeData, userSelectedNode, gateway]);
 
-  console.log('[NodeRow] foldState', foldState);
-  console.log('[NodeRow] nodeDetails', nodeDetails);
+  // console.log('[NodeRow] foldState', foldState);
+  // console.log('[NodeRow] nodeDetails', nodeDetails);
+
+  const getTextLabel = () => {
+    switch (gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm) {
+      case 'auto':
+        if (state === 'connected') {
+          return nodeDetails.ip;
+        } else {
+          return 'Best server for my location';
+        }
+      case 'autoEntryExplicitExit':
+        return nodeDetails.ip ?? 'default ip';
+      case 'explicit':
+        return nodeDetails.name ?? 'default name';
+    }
+  };
+
+  // console.log('[NodeRow] getTextLabel', getTextLabel());
+
+  const getTextDescriptionLabel = () => {
+    switch (gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm) {
+      case 'auto':
+        if (state === 'connected') {
+          return nodeDetails.location;
+        }
+        return 'Searching for best location';
+      case 'autoEntryExplicitExit':
+        return 'Nym exit node';
+      case 'explicit':
+        return 'Nym entry node';
+    }
+  };
+
+  // console.log('[NodeRow] getTextDescriptionLabel', getTextDescriptionLabel());
 
   return (
     <>
-      {label && (
-        <p className="text-secondary text-xs leading-5 tracking-[0.18px]">
-          {label}
-        </p>
-      )}
+      {label &&
+        gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm !==
+          'auto' && (
+          <p className="text-secondary text-xs leading-5 tracking-[0.18px]">
+            {label}
+          </p>
+        )}
+      <p>noderow type: {type}</p>
       <Button
         onClick={() =>
           navigate(
@@ -326,12 +426,15 @@ function NodeRow({ label, type, foldState }: NodeRowProps) {
                 <ScoreIndicator score={nodeDetails.score} />
               )}
 
-              {nodeDetails.countryCode && (
-                <FlagIcon
-                  code={nodeDetails.countryCode}
-                  alt={nodeDetails.name}
-                />
-              )}
+              {nodeDetails.countryCode &&
+                (state === 'connected' ||
+                  gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm !==
+                    'auto') && (
+                  <FlagIcon
+                    code={nodeDetails.countryCode}
+                    alt={nodeDetails.name}
+                  />
+                )}
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
                   key={foldState === 2 ? 'name' : 'ip'}
@@ -353,7 +456,8 @@ function NodeRow({ label, type, foldState }: NodeRowProps) {
                   transition={{ duration: DURATION, ease: [0.32, 0.72, 0, 1] }}
                   className="block truncate flex-1 text-start min-w-0 text-baltic-sea dark:text-white text-base leading-6 tracking-[-0.08px] overflow-hidden"
                 >
-                  {foldState === 2 ? nodeDetails.name : nodeDetails.ip}
+                  {/* {foldState === 2 ? nodeDetails.name : nodeDetails.ip} */}
+                  {getTextLabel()}
                 </motion.span>
               </AnimatePresence>
             </div>
@@ -365,7 +469,9 @@ function NodeRow({ label, type, foldState }: NodeRowProps) {
             </div>
           </div>
           <p className="ml-10 text-secondary text-xs leading-5 tracking-[0.18px]">
-            {nodeDetails.location}
+            {/* {nodeDetails.location} */}
+            {getTextDescriptionLabel()}
+            {/* {getTextLabel()} */}
           </p>
         </div>
       </Button>
@@ -478,10 +584,10 @@ export function NewBottomComponent() {
   const gatewaySelectionAlgorithmConfig = useAppStore(
     (s) => s.gatewaySelectionAlgorithmConfig,
   );
-  console.log(
-    '[NewBottomComponent] gatewaySelectionAlgorithmConfig',
-    gatewaySelectionAlgorithmConfig,
-  );
+  // console.log(
+  //   '[NewBottomComponent] gatewaySelectionAlgorithmConfig',
+  //   gatewaySelectionAlgorithmConfig,
+  // );
   const [foldState, setFoldState] = useState<FoldState>(() => {
     switch (gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm) {
       case 'auto':
@@ -626,7 +732,7 @@ export function NewBottomComponent() {
               className="z-10 bg-white dark:bg-[#1d1d1f] rounded-t-2xl px-4"
             >
               <ModeToggle />
-              <div className="h-px bg-[#3b3b3b] rounded-full w-full mt-4" />
+              <div className="h-px bg-[#3b3b3b] rounded-full w-full my-4" />
             </motion.div>
           )}
         </AnimatePresence>
@@ -641,18 +747,24 @@ export function NewBottomComponent() {
             >
               <div>
                 <NodeRow
-                  type="entry"
-                  {...ENTRY_NODE}
+                  type={
+                    gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm ===
+                    'explicit'
+                      ? 'entry'
+                      : 'exit'
+                  }
+                  // {...ENTRY_NODE}
                   // {...DEMO_NODE}
                   // {...INITIAL_NODE}
                   // label={foldState > 0 ? 'Nym entry node' : undefined}
-                  label="Nym entry node"
+                  // label="Nym entry node"
                   // onUp={foldState === 0 ? expand : undefined}
                   foldState={foldState}
                 />
               </div>
               <AnimatePresence initial={false}>
-                {foldState === 2 && (
+                {gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm ===
+                  'explicit' && (
                   <motion.div
                     key="exit-node"
                     initial={{ opacity: 0, y: '100%', height: 0 }}
@@ -662,8 +774,8 @@ export function NewBottomComponent() {
                   >
                     <NodeRow
                       type="exit"
-                      {...EXIT_NODE}
-                      label="Nym exit node"
+                      // {...EXIT_NODE}
+                      // label="Nym exit node"
                       foldState={foldState}
                     />
                   </motion.div>
