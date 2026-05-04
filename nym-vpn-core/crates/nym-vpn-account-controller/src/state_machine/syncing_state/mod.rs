@@ -208,7 +208,10 @@ impl SyncingState {
             // that the device is registered or there is a spot left for it with fair usage
             if summary.remaining_devices() == 0 {
                 Err(SyncError::MaxDeviceReached) // Early detection of max device reached
-            } else if !vpn_account_summary.fair_usage_left() {
+            } else if !summary.account_summary.fair_usage.data_unavailable
+                && summary.bandwidth_limit() > 0
+                && summary.used_bandwidth() >= summary.bandwidth_limit()
+            {
                 Err(SyncError::FairUsageDepleted)
             } else {
                 SyncingState::register_device(&vpn_api_client, vpn_api_account, device).await

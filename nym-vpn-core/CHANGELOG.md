@@ -19,9 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [macOS] Use endpoint-security framework directly instead of parsing eslogger output (https://github.com/nymtech/nym-vpn-client/pull/4749)
 
+### Added
+
+- `VpnAccountSummary::fair_usage_data_unavailable`: new field propagated from `fairUsage.dataUnavailable` in the API response, through serde, `VpnAccountSummary`, and gRPC proto field 14. Clients should treat `true` as fail-open (infrastructure gap) rather than blocking the user.
+
 ### Fixed
 
 - `VpnAccountSummary::fair_usage_left`: require `is_subscription_active()` first so `{limitGB: 0, usedGB: 0}` is never treated as usable quota without a paid-active subscription; when active, treat `traffic_limit_gb == 0` as unknown or API error default (not exhausted). The previous `used != limit` check treated `{0, 0}` as depleted and could surface `BandwidthExceeded` on transient API failures; genuine exhaustion remains `limit > 0` and `used == limit`.
+
+- `fair_usage_left` and the device-registration depletion check in `SyncingState` now both fail-open when `dataUnavailable: true` is set, preventing `BandwidthExceeded` / `FairUsageDepleted` errors during API database outages.
 
 - Unify `VpnAccountSummary` timestamp parsing through a single `parse_timestamp` helper that warns on malformed input. Only `fair_usage.resetsOnUtc` soft-fails to `None`; subscription and auth-method timestamps now propagate `PayloadError` so a bad payload fails loudly instead of silently flipping subscriptions to inactive (root cause of NYM-1156 "Requesting ZkNyms" / "Get Started" hangs on v2.22.0 iOS).
 - [iOS/macOS] Stop swallowing errors from `fetchAccountSummary` with `try?`; log a sanitized line (error type only, no raw payload string) and set `accountSummaryLastFetchFailed` so the UI can observe failure without parsing device logs.

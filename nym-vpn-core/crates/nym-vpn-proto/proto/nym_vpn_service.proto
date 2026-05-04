@@ -923,6 +923,7 @@ message VpnAccountSummary {
   optional StoredAccountMode account_mode = 8;
   optional Subscription subscription = 12;
   bool is_subscription_stacked = 13;
+  bool fair_usage_data_unavailable = 14;
 }
 
 message NymVpnSubscription {
