@@ -3,7 +3,11 @@ import clsx from 'clsx';
 import { ReactNode } from 'react';
 import Spinner from './Spinner';
 
-export type ButtonVariant = 'primary' | 'outlined';
+export type ButtonVariant =
+  | 'primary'
+  | 'outlined'
+  | 'destructive'
+  | 'destructive-outlined';
 
 const variantStyles: Record<ButtonVariant, string[]> = {
   primary: [
@@ -20,6 +24,18 @@ const variantStyles: Record<ButtonVariant, string[]> = {
     'data-disabled:border-black/50 data-disabled:text-black/50 data-disabled:cursor-not-allowed',
     'dark:data-disabled:border-white/50 dark:data-disabled:text-white/50',
   ],
+  destructive: [
+    'bg-aphrodisiac text-white',
+    'hover:bg-aphrodisiac/80',
+    'data-active:bg-aphrodisiac/90',
+    'data-disabled:bg-secondary',
+  ],
+  'destructive-outlined': [
+    'border-1 border-aphrodisiac text-aphrodisiac',
+    'hover:bg-aphrodisiac/10',
+    'data-active:bg-aphrodisiac/20',
+    'data-disabled:border-aphrodisiac/50 data-disabled:text-aphrodisiac/50',
+  ],
 };
 
 const loadingStyles: Record<ButtonVariant, string[]> = {
@@ -28,6 +44,12 @@ const loadingStyles: Record<ButtonVariant, string[]> = {
   ],
   outlined: [
     'group-data-disabled:border-black/50 group-data-disabled:border-b-transparent',
+  ],
+  destructive: [
+    'group-data-disabled:border-aphrodisiac/50 group-data-disabled:border-b-transparent',
+  ],
+  'destructive-outlined': [
+    'group-data-disabled:border-aphrodisiac/50 group-data-disabled:border-b-transparent',
   ],
 };
 export type ButtonNewProps = {
@@ -57,7 +79,7 @@ function ButtonNew({
       className={clsx([
         'group',
         'flex items-center justify-center',
-        'py-7 text-base',
+        'px-4 py-6 text-base',
         'h-12 w-full rounded-3xl',
         'font-medium text-base tracking-[0.01em] leading-6 whitespace-nowrap',
         'transition-colors cursor-default select-none',

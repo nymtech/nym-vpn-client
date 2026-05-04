@@ -1,8 +1,7 @@
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
-import { CardNew, CardNewHeader, Link, MsIcon } from '../../../../ui';
+import { CardNew, CardNewHeader, MsIcon } from '../../../../ui';
 import { useMainState } from '../../../../store';
-import { ContactSupportUrl } from '../../../../constants';
 import { NoActivePlan } from './NoActivePlan';
 import { ActivePlan } from './ActivePlan';
 
@@ -42,17 +41,6 @@ export function AccountStatus() {
           <ActivePlan accountSummary={accountSummary} />
         )}
       </CardNew>
-      {!needsSubscription && !!accountSummary && (
-        <p className="text-sm text-iron dark:text-bombay">
-          <Trans
-            i18nKey="account-status.contact-support"
-            ns="account"
-            components={{
-              1: <Link color="primary" url={ContactSupportUrl} />,
-            }}
-          />
-        </p>
-      )}
     </>
   );
 }

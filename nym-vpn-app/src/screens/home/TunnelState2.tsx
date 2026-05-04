@@ -1,131 +1,10 @@
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useState,
-} from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../../store';
 import { useI18nProgressMsg } from '../../hooks';
-
-// Inlined from fancycomponents.dev/docs/components/text/scramble-in
-
-type ScrambleInProps = {
-  text: string;
-  scrambleSpeed?: number;
-  scrambledLetterCount?: number;
-  characters?: string;
-  className?: string;
-  scrambledClassName?: string;
-  autoStart?: boolean;
-  onStart?: () => void;
-  onComplete?: () => void;
-};
-
-type ScrambleInHandle = {
-  start: () => void;
-  reset: () => void;
-};
-
-const ScrambleIn = forwardRef<ScrambleInHandle, ScrambleInProps>(
-  (
-    {
-      text,
-      scrambleSpeed = 50,
-      scrambledLetterCount = 2,
-      characters = 'abcdefghijklmnopqrstuvwxyz!@#$%^&*()_+',
-      className = '',
-      scrambledClassName = '',
-      autoStart = true,
-      onStart,
-      onComplete,
-    },
-    ref,
-  ) => {
-    const [displayText, setDisplayText] = useState('');
-    const [isAnimating, setIsAnimating] = useState(false);
-    const [visibleLetterCount, setVisibleLetterCount] = useState(0);
-    const [scrambleOffset, setScrambleOffset] = useState(0);
-
-    const startAnimation = useCallback(() => {
-      setIsAnimating(true);
-      setVisibleLetterCount(0);
-      setScrambleOffset(0);
-      onStart?.();
-    }, [onStart]);
-
-    const reset = useCallback(() => {
-      setIsAnimating(false);
-      setVisibleLetterCount(0);
-      setScrambleOffset(0);
-      setDisplayText('');
-    }, []);
-
-    useImperativeHandle(ref, () => ({ start: startAnimation, reset }));
-
-    useEffect(() => {
-      if (autoStart) startAnimation();
-    }, [autoStart, startAnimation]);
-
-    useEffect(() => {
-      let interval: ReturnType<typeof setInterval>;
-      if (isAnimating) {
-        interval = setInterval(() => {
-          if (visibleLetterCount < text.length) {
-            setVisibleLetterCount((prev) => prev + 1);
-          } else if (scrambleOffset < scrambledLetterCount) {
-            setScrambleOffset((prev) => prev + 1);
-          } else {
-            clearInterval(interval);
-            setIsAnimating(false);
-            onComplete?.();
-          }
-
-          const remaining = Math.max(0, text.length - visibleLetterCount);
-          const scrambleCount = Math.min(remaining, scrambledLetterCount);
-          const scrambled = Array(scrambleCount)
-            .fill(0)
-            .map(
-              () => characters[Math.floor(Math.random() * characters.length)],
-            )
-            .join('');
-          setDisplayText(text.slice(0, visibleLetterCount) + scrambled);
-        }, scrambleSpeed);
-      }
-      return () => {
-        if (interval) clearInterval(interval);
-      };
-    }, [
-      isAnimating,
-      text,
-      visibleLetterCount,
-      scrambleOffset,
-      scrambledLetterCount,
-      characters,
-      scrambleSpeed,
-      onComplete,
-    ]);
-
-    return (
-      <>
-        <span className="sr-only">{text}</span>
-        <span className="inline-block whitespace-pre-wrap" aria-hidden="true">
-          <span className={className}>
-            {displayText.slice(0, visibleLetterCount)}
-          </span>
-          <span className={scrambledClassName}>
-            {displayText.slice(visibleLetterCount)}
-          </span>
-        </span>
-      </>
-    );
-  },
-);
-ScrambleIn.displayName = 'ScrambleIn';
+import { ScrambleIn } from '../../ui/ScrambleIn';
 
 // ---
 
@@ -231,8 +110,7 @@ export function TunnelState2() {
                 text={label}
                 className={`text-[9px] ${isError ? 'text-error' : 'text-[#8b8b90]'}`}
                 scrambledClassName={`text-[9px] ${isError ? 'text-error/50' : 'text-[#8b8b90]/50'}`}
-                scrambleSpeed={35}
-                scrambledLetterCount={3}
+                scrambleSpeed={20}
               />
             </motion.div>
           )}

@@ -55,9 +55,11 @@ function AccountSettingRow() {
           {
             title: 'Account',
             desc: <AccountDescription />,
-            leadingIcon: 'account_circle',
+            leadingIcon: 'person',
             onClick: () => navigate(routes.accountSettings),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
         ]}
       />

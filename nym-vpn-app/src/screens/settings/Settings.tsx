@@ -87,15 +87,17 @@ function Settings() {
     }
   };
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6">
+    <PageAnim className="h-full flex flex-col gap-4">
       <AccountSettingRow />
       <SettingsGroup
         settings={[
           {
             title: t('support.title'),
-            leadingIcon: 'question_answer',
+            leadingIcon: 'chat_bubble',
             onClick: () => navigate(routes.support),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
         ]}
       />
@@ -104,7 +106,7 @@ function Settings() {
           {
             title: t('killswitch.title'),
             desc: t('killswitch.desc'),
-            leadingIcon: 'power',
+            leadingIcon: 'remove_moderator',
           },
           {
             title: t('ad-block.title'),
@@ -118,7 +120,7 @@ function Settings() {
           {
             title: t('ipv6-support.title'),
             desc: t('ipv6-support.desc'),
-            leadingIcon: 'add_moderator',
+            leadingIcon: 'language',
             onClick: handleIpv6Support,
             trailing: (
               <Switch checked={ipv6Support} onChange={handleIpv6Support} />
@@ -147,14 +149,18 @@ function Settings() {
             title: t('dns.title'),
             leadingIcon: 'dns',
             onClick: () => navigate(routes.dns),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
           backendFlags.mixnetTuning && {
             title: t('mixnet-tuning.title'),
             desc: t('mixnet-tuning.desc'),
             leadingIcon: 'visibility_off',
             onClick: () => navigate(routes.mixnetTuning),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
           {
             title: t('split-tunneling.title'),
@@ -163,20 +169,26 @@ function Settings() {
               navigate(routes.splitTunneling, {
                 state: { resetScroll: true },
               }),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
           {
             title: t('anti-censorship.title', { ns: 'settings' }),
             leadingIcon: 'campaign',
             onClick: () => navigate(routes.antiCensorship),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
           {
             title: t('app-proxy.title'),
             desc: t('app-proxy.menu-desc'),
             leadingIcon: 'lan',
             onClick: () => navigate(routes.socks5),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
         ]}
       />
@@ -198,7 +210,9 @@ function Settings() {
             title: t('appearance', { ns: 'common' }),
             leadingIcon: 'view_comfy',
             onClick: () => navigate(routes.appearance),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
           {
             title: t('notifications.title'),
@@ -220,7 +234,9 @@ function Settings() {
             leadingIcon: 'privacy_tip',
             onClick: () =>
               navigate(routes.dataPrivacy, { state: { resetScroll: true } }),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
         ]}
       />
@@ -229,7 +245,9 @@ function Settings() {
           {
             title: t('legal.title'),
             onClick: () => navigate(routes.legal),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
         ]}
       />

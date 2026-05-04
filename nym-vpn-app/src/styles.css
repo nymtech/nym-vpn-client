@@ -84,6 +84,10 @@
   --color-success: #28c96c;
   --color-warning: #ffcc33;
   --color-error: #e73e14;
+
+  --color-aph: #090909;
+  --color-aph-light: #2e2e2e;
+  --color-gray: #d5d5d5;
 }
 
 @utility transition-noborder {

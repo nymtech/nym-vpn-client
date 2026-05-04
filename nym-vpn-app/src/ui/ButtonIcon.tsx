@@ -11,6 +11,8 @@ export type ButtonIconNewProps = {
   icon: string;
   className?: string;
   initialAnimation?: boolean;
+  noDefaultSize?: boolean;
+  clickFeedback?: boolean;
 };
 
 export function ButtonIconNew({
@@ -18,34 +20,68 @@ export function ButtonIconNew({
   icon,
   className,
   initialAnimation = false,
+  noDefaultSize = false,
+  clickFeedback = false,
 }: ButtonIconNewProps) {
+  const [isClicked, click] = useTransition();
+
+  const clickAnim = () => {
+    click(async () => {
+      await sleep(500);
+    });
+  };
   return (
     <Button
       className={clsx([
-        'flex items-center justify-center w-10 h-10 rounded-full transition-colors',
+        'flex items-center justify-center rounded-full transition-colors',
         'text-iron hover:text-baltic-sea',
         'dark:text-bombay dark:hover:text-white',
-        'hover:bg-baltic-sea/20 dark:hover:bg-baltic-sea',
+        !noDefaultSize && 'hover:bg-baltic-sea/20 dark:hover:bg-baltic-sea',
+        !noDefaultSize && 'w-10 h-10',
         className && className,
       ])}
-      onClick={onClick}
+      onClick={() => {
+        if (clickFeedback) {
+          clickAnim();
+        }
+        onClick();
+      }}
     >
       <AnimatePresence mode="wait" initial={initialAnimation}>
-        <motion.span
-          key={icon}
-          initial={{ opacity: 0, rotate: 90 }}
-          animate={{ opacity: 1, rotate: 0 }}
-          exit={{ opacity: 0, rotate: -90 }}
-          transition={{ duration: 0.1 }}
-          className={clsx([
-            'leading-none w-[1em] h-[1em] text-3xl',
-            'font-icon text-2xl select-none inline-block rtl:-scale-x-100',
-          ])}
-        >
-          {icon}
-        </motion.span>
+        {isClicked ? (
+          <motion.div
+            className="flex"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              duration: 0.15,
+              scale: { type: 'spring', visualDuration: 0.2, bounce: 0.5 },
+            }}
+          >
+            <MsIcon
+              icon="check"
+              className={clsx([
+                'text-3xl leading-none text-malachite-moss dark:text-malachite',
+                !noDefaultSize && 'w-10 h-10 ',
+              ])}
+            />
+          </motion.div>
+        ) : (
+          <motion.span
+            key={icon}
+            initial={{ opacity: 0, rotate: 90 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            exit={{ opacity: 0, rotate: -90 }}
+            transition={{ duration: 0.1 }}
+            className={clsx([
+              'leading-none w-[1em] h-[1em] text-3xl',
+              'font-icon select-none inline-block rtl:-scale-x-100',
+            ])}
+          >
+            {icon}
+          </motion.span>
+        )}
       </AnimatePresence>
-      {/* <MsIcon icon={icon} className="leading-none w-[1em] h-[1em] text-3xl" /> */}
     </Button>
   );
 }

@@ -11,6 +11,7 @@ import { ActionMenu } from '../screens';
 import { useSystemTheme } from '../state';
 import { useAppStore } from '../store';
 import { ButtonIconNew } from './ButtonIcon';
+import { StaggeredText } from './StaggeredText';
 
 type NavLocation = {
   title?: string | ReactNode;
@@ -46,11 +47,23 @@ export default function TopBar() {
 
   const navBarData = useMemo<NavBarData>(() => {
     return {
-      '/welcome-screen2': {
-        title: 'Welcome Screen 2',
-        leftIcon: 'keyboard_arrow_left',
+      '/login-screen2': {
+        title: (
+          <NymVpnTextLogo
+            className={clsx(
+              'w-24 h-6',
+              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+            )}
+          />
+        ),
+        leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
         handleLeftNav: () => {
+          // handleThemeChange(uiTheme === 'dark' ? 'light' : 'dark');
           navigate(-1);
+        },
+        rightIcon: 'settings',
+        handleRightNav: () => {
+          navigate(routes.settings);
         },
         noBackground: true,
       },
@@ -311,12 +324,11 @@ export default function TopBar() {
   const renderTitle = (title?: string | ReactNode) => {
     if (typeof title === 'string') {
       return (
-        <p
+        <StaggeredText
+          text={title}
           className="truncate justify-self-center tracking-normal"
           data-testid="top-bar-title-text"
-        >
-          {currentNavLocation.title}
-        </p>
+        />
       );
     }
     if (isValidElement(title)) {
@@ -342,8 +354,8 @@ export default function TopBar() {
         'h-16 text-xl z-30 select-none cursor-default',
         'px-4 py-2',
         currentNavLocation.noBackground
-          ? 'dark:bg-ash bg-faded-lavender'
-          : 'dark:bg-charcoal bg-white',
+          ? 'dark:bg-aph bg-gray'
+          : 'dark:bg-[#1E1E1E] bg-white',
       ])}
       data-testid="top-bar"
       data-test-route={location.pathname}
@@ -358,17 +370,6 @@ export default function TopBar() {
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-left-button-container"
         >
-          {/* <ButtonIcon
-            icon={currentNavLocation.leftIcon}
-            onClick={
-              customLeftNavHandler ??
-              currentNavLocation.handleLeftNav ??
-              defaultLeftNavHandler
-            }
-            color="chalk"
-            className="mx-4"
-            noDefaultSize
-          /> */}
           <ButtonIconNew
             icon={currentNavLocation.leftIcon}
             onClick={
@@ -394,13 +395,6 @@ export default function TopBar() {
           {currentNavLocation.rightComponent &&
             currentNavLocation.rightComponent}
           {currentNavLocation.rightIcon && (
-            // <ButtonIcon
-            //   icon={currentNavLocation.rightIcon}
-            //   onClick={currentNavLocation.handleRightNav!}
-            //   color="chalk"
-            //   className="mx-4"
-            //   noDefaultSize
-            // />
             <ButtonIconNew
               icon={currentNavLocation.rightIcon}
               onClick={currentNavLocation.handleRightNav!}

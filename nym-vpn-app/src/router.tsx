@@ -18,7 +18,7 @@ import {
   LicenseDetails,
   LicenseList,
   Login,
-  WelcomeScreenContainer,
+  LoginScreen,
   Logs,
   MainLayout,
   MixnetTuning,
@@ -70,7 +70,7 @@ export const routes = {
   mixnetTuning: '/settings/mixnet-tuning',
   accountSettings: '/settings/account',
 
-  welcomeScreen: '/welcome-screen2',
+  loginScreen2: '/login-screen2',
 } as const;
 
 // ⚠ router instance creation must remain outside of React
@@ -81,8 +81,8 @@ const router = createBrowserRouter([
     Component: MainLayout,
     children: [
       {
-        path: routes.welcomeScreen,
-        Component: WelcomeScreenContainer,
+        path: routes.loginScreen2,
+        Component: LoginScreen,
         errorElement: <Error />,
       },
       {

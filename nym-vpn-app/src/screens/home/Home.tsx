@@ -264,13 +264,12 @@ function Home() {
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className="h-full flex flex-col"
-      data-testid="home-container"
     >
-      <TunnelState />
+      {/* <TunnelState /> */}
       <TunnelState2 />
       <p>state: {state}</p>
       <p>error: {tunnelError}</p>
-      <button onClick={() => navigate(routes.welcomeScreen)}>
+      <button onClick={() => navigate(routes.loginScreen2)}>
         go to new login
       </button>
 

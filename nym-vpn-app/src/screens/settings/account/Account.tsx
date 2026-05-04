@@ -1,10 +1,12 @@
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
 import {
   Button,
+  ButtonNew,
+  ButtonText,
   CardNew,
   CardNewBody,
   CardNewCopyableRow,
@@ -84,9 +86,9 @@ function Account() {
   }, []);
 
   // When logged out, navigate to settings
-  useEffect(() => {
-    if (!account) navigate(routes.settings, { replace: true });
-  }, [account, navigate]);
+  // useEffect(() => {
+  //   if (!account) navigate(routes.settings, { replace: true });
+  // }, [account, navigate]);
 
   const handleAccountLink = async () => {
     setIsAccountLinking(true);
@@ -161,26 +163,43 @@ function Account() {
             trailing: autologinLoading ? <Spinner /> : undefined,
             onClick: handleManageSubscription,
           },
-          ...(!accountSummary?.isLinked
-            ? [
-                {
-                  title: t('account.account-on-nym'),
-                  desc: t('account.account-link-social-description'),
-                  leadingIcon: isAccountLinking ? undefined : 'person',
-                  leadingComponent: isAccountLinking ? <Spinner /> : undefined,
-                  trailingIcon: 'open_in_new',
-                  onClick: handleAccountLink,
-                },
-              ]
-            : []),
+          // ...(!accountSummary?.isLinked
+          //   ? [
+          //       {
+          //         title: t('account.account-on-nym'),
+          //         desc: t('account.account-link-social-description'),
+          //         leadingIcon: isAccountLinking ? undefined : 'person',
+          //         leadingComponent: isAccountLinking ? <Spinner /> : undefined,
+          //         trailingIcon: 'open_in_new',
+          //         onClick: handleAccountLink,
+          //       },
+          //     ]
+          //   : []),
         ]}
       />
 
-      <p className="text-sm text-iron dark:text-bombay">
-        {accountSummary?.isLinked
-          ? t('account.account-linked')
-          : t('account.account-not-linked')}
-      </p>
+      <div className="flex flex-row items-center gap-2">
+        <div className="h-4 w-4 bg-warning rounded-full"></div>
+        <span className="text-sm text-iron dark:text-bombay">
+          {accountSummary?.isLinked ? (
+            t('account.account-linked')
+          ) : (
+            <Trans
+              i18nKey="account.account-not-linked"
+              ns="settings"
+              components={{
+                button: (
+                  <button
+                    className="underline hover:text-shadow-baltic-sea dark:hover:text-white"
+                    onClick={handleAccountLink}
+                  />
+                ),
+              }}
+            />
+          )}
+        </span>
+        {isAccountLinking && <Spinner className="h-4! w-4! border-2!" />}
+      </div>
 
       <CardNew>
         <CardNewHeader>
@@ -208,7 +227,7 @@ function Account() {
       <CardNew>
         <CardNewHeader>
           <div className="flex flex-row items-center gap-2">
-            <MsIcon icon="devices" className="text-iron dark:text-bombay" />
+            <MsIcon icon="monitor" className="text-iron dark:text-bombay" />
             <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
               {t('account.device-id')}
             </p>
@@ -228,15 +247,14 @@ function Account() {
       </p>
 
       <div className="flex flex-col gap-2">
-        <Button
-          color="red"
-          outline
+        <ButtonNew
+          variant="destructive-outlined"
           onClick={() => logout()}
           disabled={loading}
-          spinner={loading}
+          loading={loading}
         >
           {t('account.logout')}
-        </Button>
+        </ButtonNew>
       </div>
     </PageAnim>
   );
