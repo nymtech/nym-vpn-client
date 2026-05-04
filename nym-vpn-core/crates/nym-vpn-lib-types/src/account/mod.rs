@@ -294,7 +294,9 @@ impl VpnAccountSummary {
     }
 
     pub fn fair_usage_left(&self) -> bool {
-        self.traffic_used_gb != self.traffic_limit_gb
+        // limitGB == 0 is the API flag for "unknown / error default".
+        // Genuinely exhausted accounts have limitGB > 0 (e.g. 2000) with usedGB == limitGB.
+        self.traffic_limit_gb == 0 || self.traffic_used_gb < self.traffic_limit_gb
     }
 
     pub fn is_linked(&self) -> bool {
