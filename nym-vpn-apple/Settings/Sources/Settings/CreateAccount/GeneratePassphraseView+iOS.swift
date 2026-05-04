@@ -75,7 +75,6 @@ extension GeneratePassphraseView {
             navigateToPaymentSuccessView()
         } catch {
             Task { @MainActor in
-
                 if let lastVPNError = error as? VpnError {
                     alertTitle = VPNErrorReason(with: lastVPNError).errorDescription ?? ""
                 } else {

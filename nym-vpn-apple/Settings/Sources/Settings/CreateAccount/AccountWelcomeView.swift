@@ -69,10 +69,11 @@ public struct AccountWelcomeView: View {
             guard newValue else { return }
             if isLoggingInWithPrivy {
                 isLoggingInWithPrivy = false
+                navigateHome()
             } else if isCreateAccount {
                 isCreateAccount = false
+                navigateHome()
             }
-            navigateHome()
         }
     }
 

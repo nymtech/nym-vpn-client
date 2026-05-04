@@ -7,6 +7,7 @@ use crate::service::{
         VpnServiceConfigExt,
         airporting_settings::v9::AirportingSettings,
         entry_exit::v2::{EntryPoint, ExitPoint},
+        gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
         mixnet_traffic::v5::MixnetTrafficConfig,
         network_stats::v1::NetworkStatisticsConfig,
         split_tunnel_settings::v8::SplitTunnelSettings,
@@ -34,6 +35,7 @@ pub struct VpnServiceConfig {
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
     pub airporting: AirportingSettings,
+    pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
@@ -63,6 +65,10 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
         let network_stats = nym_vpn_lib_types::NetworkStatisticsConfig::from(value.network_stats);
         let split_tunnel = nym_vpn_lib_types::SplitTunnelSettings::from(value.split_tunnel);
         let airporting = nym_vpn_lib_types::AirportingSettings::from(value.airporting);
+        let gateway_selection_algorithm_config =
+            nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::from(
+                value.gateway_selection_algorithm_config,
+            );
 
         Ok(nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -82,6 +88,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             network_stats,
             split_tunnel,
             airporting,
+            gateway_selection_algorithm_config,
         })
     }
 }

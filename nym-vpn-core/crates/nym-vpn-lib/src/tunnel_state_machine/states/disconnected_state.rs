@@ -38,9 +38,13 @@ impl DisconnectedState {
         HickoryDnsResolver::shared().clear_preresolve();
 
         shared_state.allow_networking().await;
+        shared_state
+            .gateway_provider
+            .set_active_geo_location(true)
+            .await;
 
         // Notify the SOCKS5 proxy subprocess that the VPN tunnel is down
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "ios"))]
         {
             shared_state.set_socks5_proxy_tunnel_addrs(None, None);
         }
@@ -80,13 +84,13 @@ impl TunnelStateHandler for DisconnectedState {
                     },
                     TunnelCommand::Disconnect => NextTunnelState::SameState(self),
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        #[cfg(not(target_os = "ios"))]
                         {
                             let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                                 return NextTunnelState::SameState(self);
                             };
 
-                            shared_state.tunnel_settings = tunnel_settings;
+                            shared_state.set_tunnel_settings(tunnel_settings).await;
 
                             #[cfg(any(target_os = "macos", target_os = "windows"))]
                             if diff.split_tunnel_changed() || diff.airporting_enabled_changed() {
@@ -98,9 +102,9 @@ impl TunnelStateHandler for DisconnectedState {
                             }
                         }
 
-                        #[cfg(any(target_os = "android", target_os = "ios"))]
+                        #[cfg(target_os = "ios")]
                         {
-                            shared_state.tunnel_settings = tunnel_settings;
+                            shared_state.set_tunnel_settings(tunnel_settings).await;
                         }
 
                         NextTunnelState::SameState(self)

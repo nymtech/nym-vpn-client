@@ -27,6 +27,7 @@ ed25519-dalek = { workspace = true, features = [
     "rand_core",
 ] }
 futures.workspace = true
+geo.workspace = true
 hex.workspace = true
 hickory-resolver = { workspace = true, features = [
     "tokio",
@@ -163,6 +164,7 @@ tracing-oslog.workspace = true
 # Android-specific dependencies
 [target.'cfg(target_os = "android")'.dependencies]
 hickory-proto.workspace = true
+nym-socks5-proxy.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
 tracing-android.workspace = true

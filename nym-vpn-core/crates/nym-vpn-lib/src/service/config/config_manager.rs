@@ -210,6 +210,42 @@ impl VpnServiceConfigManager {
         Ok(())
     }
 
+    pub async fn set_gateway_selection_algorithm(
+        &mut self,
+        gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm,
+    ) -> Result<(), MixnetTrafficConfigValidationError> {
+        if self
+            .config
+            .gateway_selection_algorithm_config
+            .gateway_selection_algorithm
+            != gateway_selection_algorithm
+        {
+            self.config
+                .gateway_selection_algorithm_config
+                .gateway_selection_algorithm = gateway_selection_algorithm;
+            self.save_config_and_send_event().await;
+        }
+        Ok(())
+    }
+
+    pub async fn set_enable_geo_location(
+        &mut self,
+        enable_geo_location: bool,
+    ) -> Result<(), MixnetTrafficConfigValidationError> {
+        if self
+            .config
+            .gateway_selection_algorithm_config
+            .enable_geo_location
+            != enable_geo_location
+        {
+            self.config
+                .gateway_selection_algorithm_config
+                .enable_geo_location = enable_geo_location;
+            self.save_config_and_send_event().await;
+        }
+        Ok(())
+    }
+
     #[allow(unused)]
     pub async fn set_min_gateway_vpn_performance(
         &mut self,
@@ -497,6 +533,10 @@ impl VpnServiceConfigManager {
             dns,
             split_tunnel,
             airporting_settings,
+            gateway_selection_algorithm_config: self
+                .config
+                .gateway_selection_algorithm_config
+                .clone(),
         }
     }
 }

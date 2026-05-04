@@ -38,7 +38,7 @@ use crate::adblocker;
 use crate::dns_filter::DnsFilter;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::resolver;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(not(target_os = "ios"))]
 use crate::socks5_proxy::Socks5ProxyManager;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::socks5_proxy::find_proxy_binary;
@@ -56,6 +56,7 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
@@ -72,7 +73,8 @@ use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, AirportingSettings, ConnectionData,
     EntryPoint, ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig, SplitTunnelSettings, TunnelEvent,
+    TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -81,7 +83,7 @@ use wintun::SetupWintunAdapterError;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use dns_handler::DnsHandlerHandle;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(not(target_os = "ios"))]
 use nym_socks5_proxy_ipc::ProxyConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub use route_handler::RouteHandler;
@@ -144,7 +146,8 @@ pub struct TunnelSettings {
     /// Whether to enable support for IPv6.
     pub enable_ipv6: bool,
 
-    /// Type of tunnel.
+    /// Type of tunnel. This is persisted across different `GatewaySelectionAlgorithm`s,
+    /// but is disregarded for `GatewaySelectionAlgorithm::Auto` selection
     pub tunnel_type: TunnelType,
 
     /// Allow LAN connections outside of tunnel.
@@ -186,9 +189,28 @@ pub struct TunnelSettings {
 
     /// Airporting settings.
     pub airporting_settings: AirportingSettings,
+
+    /// How the gateways should be selected.
+    pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 }
 
 impl TunnelSettings {
+    /// The tunnel type to be used
+    /// If the gateway selection algorithm is set to Auto, the tunnel_type is
+    /// disregarded and Wireguard mode is used, otherwise it's just the
+    /// configured tunnel_type
+    pub fn tunnel_type_used(&self) -> TunnelType {
+        if matches!(
+            self.gateway_selection_algorithm_config
+                .gateway_selection_algorithm,
+            GatewaySelectionAlgorithm::Auto
+        ) {
+            TunnelType::Wireguard
+        } else {
+            self.tunnel_type
+        }
+    }
+
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     /// Returns resolved DNS config resolved against default DNS IPs.
     pub fn resolved_dns_config(&self) -> ResolvedDnsConfig {
@@ -220,7 +242,7 @@ impl TunnelSettings {
     }
 
     pub fn bridges_enabled(&self) -> bool {
-        matches!(self.tunnel_type, TunnelType::Wireguard)
+        matches!(self.tunnel_type_used(), TunnelType::Wireguard)
             && self.wireguard_tunnel_options.enable_bridges
     }
 
@@ -292,6 +314,20 @@ impl TunnelSettings {
                 diff.add(TunnelSettingsDiffFields::AirportingExcludedCountries);
             }
         }
+        if self.gateway_selection_algorithm_config.enable_geo_location
+            != other.gateway_selection_algorithm_config.enable_geo_location
+        {
+            diff.add(TunnelSettingsDiffFields::GeoLocationEnabled);
+        }
+        if self
+            .gateway_selection_algorithm_config
+            .gateway_selection_algorithm
+            != other
+                .gateway_selection_algorithm_config
+                .gateway_selection_algorithm
+        {
+            diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
+        }
 
         if diff.is_empty() { None } else { Some(diff) }
     }
@@ -317,6 +353,8 @@ pub enum TunnelSettingsDiffFields {
     Airporting,
     AirportingEnabled,
     AirportingExcludedCountries,
+    GeoLocationEnabled,
+    GatewaySelectionAlgorithm,
 }
 
 impl TunnelSettingsDiffFields {
@@ -336,7 +374,9 @@ impl TunnelSettingsDiffFields {
             | Self::SplitTunnel
             | Self::Airporting
             | Self::AirportingEnabled
-            | Self::AirportingExcludedCountries => false,
+            | Self::AirportingExcludedCountries
+            | Self::GeoLocationEnabled
+            | Self::GatewaySelectionAlgorithm => false,
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
             }
@@ -398,6 +438,10 @@ impl TunnelSettingsDiff {
 
     pub fn airporting_excluded_countries_changed(&self) -> bool {
         self.is_field_changed(&TunnelSettingsDiffFields::AirportingExcludedCountries)
+    }
+
+    pub fn geo_location_enabled_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::GeoLocationEnabled)
     }
 
     // Returns true if changed tunnel settings should lead to tunnel reconnect
@@ -604,7 +648,7 @@ pub struct TunnelMetadata {
 }
 
 impl TunnelMetadata {
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     fn get_addresses(&self) -> (Option<Ipv4Addr>, Option<Ipv6Addr>) {
         let v4_address = self
             .ips
@@ -665,7 +709,7 @@ pub struct SharedState {
     filtering_resolver: resolver::ResolverHandle,
     #[cfg(not(target_os = "ios"))]
     adblocker: adblocker::AdBlockerTaskHandle,
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     socks5_proxy_manager: Socks5ProxyManager,
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     split_tunnel: nym_split_tunnel::SplitTunnelHandle,
@@ -684,7 +728,7 @@ pub struct SharedState {
     topology_service: VpnTopologyServiceHandle,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     user_agent: UserAgent,
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     shutdown_token: CancellationToken,
 }
 
@@ -700,12 +744,13 @@ impl SharedState {
             .ok();
     }
 
-    /// Notify discovery and account controller when network is restricted.
+    /// Notify discovery, account controller and geo-location when network is restricted.
     async fn disallow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(true))
             .ok();
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
+        self.gateway_provider.set_active_geo_location(false).await;
     }
 
     #[cfg(not(target_os = "ios"))]
@@ -806,7 +851,18 @@ impl SharedState {
             .map_err(|err| nym_split_tunnel::SplitTunnelErrorCause::from(&err))
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    async fn set_tunnel_settings(&mut self, tunnel_settings: TunnelSettings) {
+        self.tunnel_settings = tunnel_settings.clone();
+        if let Err(err) = self
+            .gateway_provider
+            .set_tunnel_settings(tunnel_settings)
+            .await
+        {
+            tracing::error!("Could not update gateway provider with new tunnel settings: {err:?}");
+        }
+    }
+
+    #[cfg(not(target_os = "ios"))]
     async fn start_or_stop_socks5_proxy(&mut self) {
         if self.tunnel_settings.airporting_settings.enabled {
             self.start_socks5_proxy().await;
@@ -815,12 +871,22 @@ impl SharedState {
         }
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     async fn start_socks5_proxy(&mut self) {
         match self.build_proxy_config() {
             Ok(config) => {
+                #[cfg(target_os = "android")]
+                let socket_protector: nym_socks5_proxy::SocketProtector = {
+                    let provider = Arc::clone(&self.tun_provider);
+                    Arc::new(move |fd: i32| provider.bypass(fd))
+                };
                 self.socks5_proxy_manager
-                    .start(config, self.shutdown_token.clone())
+                    .start(
+                        config,
+                        #[cfg(target_os = "android")]
+                        socket_protector,
+                        self.shutdown_token.clone(),
+                    )
                     .await;
             }
             Err(err) => {
@@ -831,12 +897,12 @@ impl SharedState {
         }
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     async fn stop_socks5_proxy(&mut self) {
         self.socks5_proxy_manager.stop().await;
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     fn set_socks5_proxy_tunnel_addrs(
         &mut self,
         tunnel_v4_addr: Option<Ipv4Addr>,
@@ -846,7 +912,7 @@ impl SharedState {
             .set_tunnel_addrs(tunnel_v4_addr, tunnel_v6_addr);
     }
 
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[cfg(not(target_os = "ios"))]
     fn build_proxy_config(&self) -> Result<ProxyConfig, String> {
         let Some(data_path) = self.nym_config.data_path.as_ref() else {
             return Err("Data path is required but not configured".to_string());
@@ -930,6 +996,7 @@ impl TunnelStateMachine {
         account_controller_state: AccountStateReceiver,
         statistics_event_sender: StatisticsSender,
         gateway_cache_handle: GatewayCacheHandle,
+        nym_vpn_api_client: VpnApiClient,
         topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
         discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
@@ -1004,8 +1071,17 @@ impl TunnelStateMachine {
         })
         .map_err(Error::CreateFirewall)?;
 
-        let (gateway_provider, gateway_provider_handle) =
-            GatewayProvider::new(gateway_cache_handle, wg_keys_db, shutdown_token.clone());
+        let (gateway_provider, gateway_provider_handle) = GatewayProvider::new(
+            gateway_cache_handle,
+            nym_vpn_api_client,
+            tunnel_settings
+                .gateway_selection_algorithm_config
+                .enable_geo_location,
+            tunnel_settings.clone(),
+            wg_keys_db,
+            shutdown_token.clone(),
+        )
+        .await?;
 
         let mut shared_state = SharedState {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1019,7 +1095,7 @@ impl TunnelStateMachine {
             filtering_resolver,
             #[cfg(not(target_os = "ios"))]
             adblocker,
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            #[cfg(not(target_os = "ios"))]
             socks5_proxy_manager: Socks5ProxyManager::new(),
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             split_tunnel,
@@ -1036,7 +1112,7 @@ impl TunnelStateMachine {
             topology_service,
             discovery_refresher_command_tx,
             user_agent,
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            #[cfg(not(target_os = "ios"))]
             shutdown_token: shutdown_token.clone(),
         };
 
@@ -1045,7 +1121,7 @@ impl TunnelStateMachine {
             tracing::error!("failed to set initial split tunnel paths: {err:?}");
         }
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "ios"))]
         if shared_state.tunnel_settings.airporting_settings.enabled {
             shared_state.start_socks5_proxy().await;
         }
@@ -1112,14 +1188,15 @@ impl TunnelStateMachine {
 
         tracing::debug!("Tunnel state machine is exiting...");
 
+        #[cfg(not(target_os = "ios"))]
+        self.shared_state.stop_socks5_proxy().await;
+
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         {
             self.dns_handler_shutdown_token.cancel();
             if let Err(e) = self.dns_handler_task.await {
                 tracing::error!("Failed to join on dns handler task: {}", e)
             }
-
-            self.shared_state.stop_socks5_proxy().await;
 
             self.shared_state.route_handler.stop().await;
 
@@ -1319,24 +1396,6 @@ impl tunnel::Error {
                 GatewayDirectoryError::ExitGatewayUnavailable { .. } => {
                     Some(ErrorStateReason::PerformantExitGatewayUnavailable)
                 }
-                GatewayDirectoryError::SelectEntryGateway(source) => match source {
-                    nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. } => {
-                        Some(ErrorStateReason::InvalidEntryGatewayCountry)
-                    }
-                    nym_gateway_directory::Error::NoMatchingGateway { .. } => {
-                        Some(ErrorStateReason::InvalidEntryGatewayIdentity)
-                    }
-                    _ => None,
-                },
-                GatewayDirectoryError::SelectExitGateway(source) => match source {
-                    nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. } => {
-                        Some(ErrorStateReason::InvalidExitGatewayCountry)
-                    }
-                    nym_gateway_directory::Error::NoMatchingGateway { .. } => {
-                        Some(ErrorStateReason::InvalidExitGatewayIdentity)
-                    }
-                    _ => None,
-                },
                 _ => None,
             },
             Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {

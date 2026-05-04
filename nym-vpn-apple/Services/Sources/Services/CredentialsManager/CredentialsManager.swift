@@ -243,21 +243,26 @@ import PathManager
         return isAccountSubscriptionDateValid()
     }
 
-    public func updateAccountSummary(force: Bool = false) async {
+    public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
         guard !isUpdatingAccountSummary else { return }
-        if !force && accountSummary != nil && isAccountSummaryCacheFresh() {
+        if !force && accountSummary != nil && isAccountSummaryCacheFresh() && isAccountActive() {
             return
         }
         isUpdatingAccountSummary = true
         defer { isUpdatingAccountSummary = false }
 
-        let delays: [Duration] = [.zero, .seconds(2), .seconds(6), .seconds(8), .seconds(10)]
+        let delays: [Duration] = [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
+
         for delay in delays {
             if delay != .zero {
                 try? await Task.sleep(for: delay)
             }
             await fetchAccountSummary()
-            if accountSummary != nil { break }
+            if untilActive {
+                if accountSummary?.isActive == true { break }
+            } else {
+                if accountSummary != nil { break }
+            }
         }
         resetExpiryDismissalsIfNeeded()
     }

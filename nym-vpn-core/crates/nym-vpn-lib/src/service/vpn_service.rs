@@ -41,11 +41,11 @@ use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, AutologinResponse,
     DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
     DiagnosticReport, DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters,
-    MixnetTrafficConfig, NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails,
-    NymVpnDevice, NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, RegistrationReport,
-    StoreAccountRequest, SystemMessage, TargetState, TunnelEvent, TunnelState, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams, ListGatewaysOptions,
+    LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
+    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
+    ParsedAccountLinks, RegistrationReport, StoreAccountRequest, SystemMessage, TargetState,
+    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -99,6 +99,11 @@ pub enum VpnServiceCommand {
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
     SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
+    SetGatewaySelectionAlgorithm(
+        oneshot::Sender<Result<(), String>>,
+        GatewaySelectionAlgorithm,
+    ),
+    SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -480,7 +485,7 @@ impl NymVpnService {
         let nyxd_client = NyxdClient::new(&network_env);
 
         let account_controller = AccountController::new(
-            nym_vpn_api_client,
+            nym_vpn_api_client.clone(),
             nyxd_client,
             account_controller_config,
             storage,
@@ -647,6 +652,7 @@ impl NymVpnService {
             account_state_rx.clone(),
             statistics_event_sender.clone(),
             gateway_cache_handle.clone(),
+            nym_vpn_api_client,
             topology_service.clone(),
             connectivity_handle,
             discovery_refresher_command_tx,
@@ -983,6 +989,18 @@ impl NymVpnService {
             VpnServiceCommand::SetMixnetTrafficConfig(tx, mixnet_traffic_config) => {
                 let res = self
                     .handle_set_mixnet_traffic_config(mixnet_traffic_config)
+                    .await;
+                let _ = tx.send(res);
+            }
+            VpnServiceCommand::SetGatewaySelectionAlgorithm(tx, gateway_selection_algorithm) => {
+                let res = self
+                    .handle_set_gateway_selection_algorithm(gateway_selection_algorithm)
+                    .await;
+                let _ = tx.send(res);
+            }
+            VpnServiceCommand::SetEnableGeoLocation(tx, enable_geo_location) => {
+                let res = self
+                    .handle_set_enable_geo_location(enable_geo_location)
                     .await;
                 let _ = tx.send(res);
             }
@@ -1336,6 +1354,30 @@ impl NymVpnService {
     ) -> Result<(), String> {
         self.config_manager
             .set_mixnet_traffic_config(mixnet_traffic_config)
+            .await
+            .map_err(|err| err.to_string())?;
+        self.update_tunnel_settings_with_throttle();
+        Ok(())
+    }
+
+    async fn handle_set_gateway_selection_algorithm(
+        &mut self,
+        gateway_selection_algorithm: GatewaySelectionAlgorithm,
+    ) -> Result<(), String> {
+        self.config_manager
+            .set_gateway_selection_algorithm(gateway_selection_algorithm)
+            .await
+            .map_err(|err| err.to_string())?;
+        self.update_tunnel_settings_with_throttle();
+        Ok(())
+    }
+
+    async fn handle_set_enable_geo_location(
+        &mut self,
+        enable_geo_location: bool,
+    ) -> Result<(), String> {
+        self.config_manager
+            .set_enable_geo_location(enable_geo_location)
             .await
             .map_err(|err| err.to_string())?;
         self.update_tunnel_settings_with_throttle();

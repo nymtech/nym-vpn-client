@@ -1,8 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::future::pending;
-use nym_gateway_directory::BlacklistedGateways;
+use nym_gateway_directory::{BlacklistedGateways, Location};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -12,7 +11,8 @@ use crate::tunnel_state_machine::{
     tunnel::{
         self,
         gateway_provider::{
-            SelectionResultSender, gateway_cache::GatewayCache, selector::select_gateways,
+            SelectionResultSender, gateway_cache::GatewayCache, geo_ip::GeoIpProvider,
+            selector::select_gateways,
         },
     },
 };
@@ -24,41 +24,35 @@ pub struct SelectAndSend {
 }
 
 async fn continuous_select<C: GatewayCache>(
-    select_and_send: Option<SelectAndSend>,
+    select_and_send: SelectAndSend,
     gateway_cache: C,
     blacklisted_entry_gateways: &BlacklistedGateways,
+    device_location: Option<Location>,
     wg_keys_db: WireguardKeysDb,
 ) {
-    let Some(SelectAndSend {
-        tunnel_settings,
-        selection_tx,
-    }) = select_and_send
-    else {
-        // not settings so nothing to send yet
-        return pending().await;
-    };
     loop {
         // make sure the buffer is not full before deciding on other possible selections
-        let Ok(selection_tx) = selection_tx.reserve().await else {
+        let Ok(selection_tx) = select_and_send.selection_tx.reserve().await else {
             tracing::debug!("GatewayProvider shut down during selection algorithm");
             return;
         };
-        selection_tx.send(
-            select_gateways(
-                gateway_cache.clone(),
-                blacklisted_entry_gateways,
-                &tunnel_settings,
-                wg_keys_db.clone(),
-            )
-            .await
-            .map_err(|err| tunnel::Error::SelectGateways(Box::new(err))),
-        );
+        let selection = select_gateways(
+            gateway_cache.clone(),
+            blacklisted_entry_gateways,
+            &select_and_send.tunnel_settings,
+            device_location.clone(),
+            wg_keys_db.clone(),
+        )
+        .await
+        .map_err(|err| tunnel::Error::SelectGateways(Box::new(err)));
+        selection_tx.send(selection);
     }
 }
 
 pub struct SelectionAlgorithm<C: GatewayCache> {
     tunnel_settings_rx: mpsc::Receiver<SelectAndSend>,
     gateway_cache: C,
+    geo_ip_provider: GeoIpProvider,
     blacklisted_entry_gateways: BlacklistedGateways,
     wg_keys_db: WireguardKeysDb,
     shutdown_token: CancellationToken,
@@ -68,6 +62,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
     pub fn new(
         tunnel_settings_rx: mpsc::Receiver<SelectAndSend>,
         gateway_cache: C,
+        geo_ip_provider: GeoIpProvider,
         blacklisted_entry_gateways: BlacklistedGateways,
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
@@ -75,32 +70,34 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
         Self {
             tunnel_settings_rx,
             gateway_cache,
+            geo_ip_provider,
             blacklisted_entry_gateways,
             wg_keys_db,
             shutdown_token,
         }
     }
 
-    pub async fn run(mut self) {
-        let mut latest_tunnel_settings = None;
+    pub async fn run(mut self, mut latest_tunnel_settings: SelectAndSend) {
+        let mut latest_location = None;
         loop {
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {
                     tracing::info!("SelectionAlgorithm shut down");
                     return;
                 }
-                settings = self.tunnel_settings_rx.recv() => {
-                    if settings.is_none() {
-                        tracing::debug!(
-                            "GatewayProvider shut down before starting the selection algorithm"
-                        );
-                        return;
-                    };
-                    // store the received tunnel settings received for the next loop iteration
-                    latest_tunnel_settings = settings;
+                Some(new_settings) = self.tunnel_settings_rx.recv() => {
+                    latest_tunnel_settings = new_settings;
                 }
-                // consume the tunnel settings received in the previous loop iteration
-                _ = continuous_select(latest_tunnel_settings.take(), self.gateway_cache.clone(), &self.blacklisted_entry_gateways, self.wg_keys_db.clone()) => {},
+                new_location = self.geo_ip_provider.new_location() => {
+                    latest_location = new_location;
+                }
+                _ = continuous_select(
+                        latest_tunnel_settings.clone(),
+                        self.gateway_cache.clone(),
+                        &self.blacklisted_entry_gateways,
+                        latest_location.clone(),
+                        self.wg_keys_db.clone(),
+                    ) => {},
             }
         }
     }
@@ -137,6 +134,8 @@ mod tests {
     #[tokio::test]
     async fn run_algo() {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
+        let (_update_location_tx, update_location_rx) = mpsc::unbounded_channel();
+        let (selection_tx, _selection_rx) = mpsc::channel(10);
         let shutdown_token = CancellationToken::new();
         let possible_gateways_ids = [
             "2zHiExNRKiCXVKS35SNKtK4apGfZELMpA1jJ2gVevJoz",
@@ -148,11 +147,15 @@ mod tests {
         let algo = SelectionAlgorithm::new(
             tunnel_settings_rx,
             MockGatewayCache::new(gateways.clone()),
+            GeoIpProvider::new(update_location_rx),
             BlacklistedGateways::new(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.clone(),
         );
-        let handle = tokio::spawn(algo.run());
+        let handle = tokio::spawn(algo.run(SelectAndSend {
+            tunnel_settings: default_tunnel_settings(),
+            selection_tx,
+        }));
 
         // set some default settings
         let mut selection_rx = reset_default_settings(&tunnel_settings_tx).await;

@@ -280,6 +280,22 @@ message AirportingListenPortRequest {
   uint32 listen_port = 1;
 }
 
+message GatewaySelectionAlgorithm {
+  message Explicit {};
+  message AutoEntryExplicitExit {};
+  message Auto {};
+  oneof gateway_selection_algorithm {
+    Explicit explicit = 1;
+    AutoEntryExplicitExit auto_entry_explicit_exit = 2;
+    Auto auto = 3;
+  }
+}
+
+message GatewaySelectionAlgorithmConfig {
+  bool enable_geo_location = 1;
+  GatewaySelectionAlgorithm gateway_selection_algorithm = 2;
+}
+
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
@@ -298,6 +314,7 @@ message VpnServiceConfig {
   MixnetTrafficConfig mixnet_traffic = 25;
   SplitTunnelSettings split_tunnel = 28;
   AirportingSettings airporting = 29;
+  GatewaySelectionAlgorithmConfig gateway_selection_algorithm = 30;
 }
 
 message NetworkStatsConfig {
@@ -1098,6 +1115,8 @@ service NymVpnService {
   rpc SetAirportingEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAirportingListenPort(AirportingListenPortRequest) returns (google.protobuf.Empty) {}
   rpc SetAirportingExcludedCountries(StringList) returns (google.protobuf.Empty) {}
+  rpc SetGatewaySelectionAlgorithm(GatewaySelectionAlgorithm) returns (google.protobuf.Empty) {}
+  rpc SetEnableGeoLocation(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect
   rpc SetNetwork(google.protobuf.StringValue) returns (google.protobuf.Empty) {}

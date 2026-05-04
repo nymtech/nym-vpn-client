@@ -1,0 +1,4 @@
+What's New:
+- New ad blocker (beta) feature to block ads, trackers, and malware
+- New notification for pending subscriptions
+- Improvements to login times

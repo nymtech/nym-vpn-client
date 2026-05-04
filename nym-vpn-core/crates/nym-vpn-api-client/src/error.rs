@@ -126,6 +126,9 @@ pub enum VpnApiClientError {
     #[error("failed to get vpn network Details")]
     GetVpnNetworkDetails(#[source] Box<HttpClientError>),
 
+    #[error("failed to get user geolocation")]
+    GetGeoIp(#[source] Box<HttpClientError>),
+
     #[error("failed to post account")]
     PostAccount(#[source] Box<HttpClientError>),
 

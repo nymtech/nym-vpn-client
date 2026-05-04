@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0]
+
 ### Added
 - Add Ad blocking (https://github.com/nymtech/nym-vpn-client/pull/5033)
 - Add Pending subscription status (https://github.com/nymtech/nym-vpn-client/pull/5111)
@@ -18,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix issue with disappearing password manager dialog (https://github.com/nymtech/nym-vpn-client/pull/5102)
 
-## [3.3.0]
+## [3.3.0] - 15.04.2026
 
 ### Added
 - Add Lewes protocol toggle to SettingsScreen.kt (https://github.com/nymtech/nym-vpn-client/pull/5049)

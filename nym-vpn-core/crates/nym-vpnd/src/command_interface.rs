@@ -24,7 +24,7 @@ use nym_vpn_lib_types::{
 };
 
 use nym_vpn_proto::proto::{
-    self, MixnetTrafficConfig,
+    self, GatewaySelectionAlgorithm, MixnetTrafficConfig,
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
@@ -297,6 +297,58 @@ impl NymVpnService for CommandInterface {
                 "[set_mixnet_traffic_config] validation failed: {err}"
             ))
         })?;
+
+        Ok(Response::new(()))
+    }
+
+    async fn set_gateway_selection_algorithm(
+        &self,
+        request: Request<GatewaySelectionAlgorithm>,
+    ) -> std::result::Result<Response<()>, Status> {
+        let gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm =
+            request.into_inner().try_into().map_err(|e| {
+                tonic::Status::invalid_argument(format!(
+                    "Invalid Gateway selection algorithm Request: {e}"
+                ))
+            })?;
+
+        self.send_and_wait(
+            VpnServiceCommand::SetGatewaySelectionAlgorithm,
+            gateway_selection_algorithm,
+        )
+        .await
+        .map_err(|e| {
+            Status::internal(format!(
+                "[set_gateway_selection_algorithm] transport error: {e}"
+            ))
+        })?
+        .map_err(|err| {
+            Status::invalid_argument(format!(
+                "[set_gateway_selection_algorithm] validation failed: {err}"
+            ))
+        })?;
+
+        Ok(Response::new(()))
+    }
+
+    async fn set_enable_geo_location(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> std::result::Result<Response<()>, Status> {
+        let enable_geo_location = request.into_inner();
+
+        self.send_and_wait(VpnServiceCommand::SetEnableGeoLocation, enable_geo_location)
+            .await
+            .map_err(|e| {
+                Status::internal(format!(
+                    "[set_enable gateway_selection_algorithm] transport error: {e}"
+                ))
+            })?
+            .map_err(|err| {
+                Status::invalid_argument(format!(
+                    "[set_enable gateway_selection_algorithm] validation failed: {err}"
+                ))
+            })?;
 
         Ok(Response::new(()))
     }

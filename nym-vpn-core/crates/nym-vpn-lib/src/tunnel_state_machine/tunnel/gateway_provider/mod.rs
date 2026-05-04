@@ -3,6 +3,7 @@
 
 mod algorithm;
 mod gateway_cache;
+mod geo_ip;
 mod selector;
 
 use std::{sync::Arc, task::Poll};
@@ -11,7 +12,7 @@ use futures::{FutureExt, Stream, StreamExt};
 use nym_gateway_directory::{BlacklistedGateways, GatewayClient, NodeIdentity};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
-    sync::{Mutex, mpsc},
+    sync::{Mutex, RwLock, mpsc, oneshot},
     task::JoinHandle,
 };
 use tokio_stream::wrappers::ReceiverStream;
@@ -24,6 +25,7 @@ use crate::tunnel_state_machine::{
         gateway_provider::{
             algorithm::{SelectAndSend, SelectionAlgorithm},
             gateway_cache::GatewayCache,
+            geo_ip::{FetcherCommand, GeoIpClient, GeoIpFetcher, GeoIpProvider, QueryControl},
         },
     },
 };
@@ -38,8 +40,10 @@ type SelectedGatewaysStream = Arc<Mutex<ReceiverStream<Result<SelectedGateways, 
 pub struct GatewayProvider<C: GatewayCache> {
     gateway_cache: C,
     tunnel_settings_tx: mpsc::Sender<SelectAndSend>,
-    selected_gateways_stream: Option<SelectedGatewaysStream>,
+    selected_gateways_stream: SelectedGatewaysStream,
     blacklisted_entry_gateways: BlacklistedGateways,
+    query_control: Arc<RwLock<QueryControl>>,
+    query_control_tx: mpsc::UnboundedSender<FetcherCommand>,
 }
 
 impl<C: GatewayCache> Stream for GatewayProvider<C> {
@@ -49,11 +53,8 @@ impl<C: GatewayCache> Stream for GatewayProvider<C> {
         self: std::pin::Pin<&mut Self>,
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Option<Self::Item>> {
-        let Some(selected_gateways_stream) = self.selected_gateways_stream.as_ref() else {
-            return Poll::Pending;
-        };
         let Poll::Ready(mut selected_gateways_stream) =
-            Box::pin(selected_gateways_stream.lock()).poll_unpin(cx)
+            Box::pin(self.selected_gateways_stream.lock()).poll_unpin(cx)
         else {
             return Poll::Pending;
         };
@@ -62,50 +63,148 @@ impl<C: GatewayCache> Stream for GatewayProvider<C> {
 }
 
 impl<C: GatewayCache> GatewayProvider<C> {
-    pub fn new(
+    pub async fn new(
         gateway_cache: C,
+        geo_ip_client: impl GeoIpClient,
+        enable_geo_location: bool,
+        tunnel_settings: TunnelSettings,
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
-    ) -> (Self, JoinHandle<()>) {
+    ) -> Result<(Self, JoinHandle<()>), crate::tunnel_state_machine::Error> {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_entry_gateways = BlacklistedGateways::new();
+        let (query_control_tx, query_control_rx) = mpsc::unbounded_channel();
+        let (update_location_tx, update_location_rx) = mpsc::unbounded_channel();
+
+        let geo_ip_provider = GeoIpProvider::new(update_location_rx);
+        let geo_ip_fetcher = GeoIpFetcher::new(
+            enable_geo_location,
+            Box::new(geo_ip_client),
+            query_control_rx,
+            update_location_tx,
+            shutdown_token.child_token(),
+        );
+        let query_control = geo_ip_fetcher.query_control();
+        let geo_ip_fetcher_handle = tokio::spawn(geo_ip_fetcher.run());
+
+        // Pre-compute at most 10 different possibilities of selected gateways
+        let (selection_tx, selection_rx) = mpsc::channel(10);
         let selection_algorithm_handle = tokio::spawn(
             SelectionAlgorithm::new(
                 tunnel_settings_rx,
                 gateway_cache.clone(),
+                geo_ip_provider,
                 blacklisted_entry_gateways.clone(),
                 wg_keys_db,
                 shutdown_token,
             )
-            .run(),
+            .run(SelectAndSend {
+                tunnel_settings,
+                selection_tx,
+            }),
         );
+        let selected_gateways_stream = Arc::new(Mutex::new(ReceiverStream::new(selection_rx)));
 
-        (
+        // unify the two local handles into one
+        let gateway_provider_handle = tokio::spawn(async {
+            let _ = geo_ip_fetcher_handle.await;
+            let _ = selection_algorithm_handle.await;
+        });
+
+        Ok((
             Self {
                 gateway_cache,
                 tunnel_settings_tx,
-                selected_gateways_stream: None,
+                selected_gateways_stream,
                 blacklisted_entry_gateways,
+                query_control_tx,
+                query_control,
             },
-            selection_algorithm_handle,
-        )
+            gateway_provider_handle,
+        ))
+    }
+
+    async fn inner_set_tunnel_settings(
+        tunnel_settings_tx: &mpsc::Sender<SelectAndSend>,
+        tunnel_settings: TunnelSettings,
+    ) -> Result<SelectedGatewaysStream, crate::tunnel_state_machine::Error> {
+        // Pre-compute at most 10 different possibilities of selected gateways
+        let (selection_tx, selection_rx) = mpsc::channel(10);
+        tunnel_settings_tx
+            .send(SelectAndSend {
+                tunnel_settings,
+                selection_tx,
+            })
+            .await
+            .map_err(|_| crate::tunnel_state_machine::Error::GatewayProviderDown)?;
+        Ok(Arc::new(Mutex::new(ReceiverStream::new(selection_rx))))
+    }
+
+    async fn start_fetching_again(&self) {
+        if self.query_control_tx.send(FetcherCommand::Fetch).is_err() {
+            tracing::warn!("Could send fetch control message to geo ip fetcher");
+        }
+    }
+
+    async fn abort_any_fetch(&self) {
+        let (done_tx, done_rx) = oneshot::channel();
+        if self
+            .query_control_tx
+            .send(FetcherCommand::Abort(done_tx))
+            .is_err()
+        {
+            tracing::warn!("Could send abort control message to geo ip fetcher");
+        }
+        if done_rx.await.is_err() {
+            tracing::warn!("Geo ip fetcher did not respond to abort command");
+        }
+    }
+
+    /// Set if geo-location should be used by the algorithm, based on user's
+    /// preference
+    async fn set_enabled_geo_location(&self, enabled: bool) {
+        let do_not_query = {
+            let mut query_control = self.query_control.write().await;
+            query_control.set_enabled(enabled);
+            query_control.do_not_query()
+        };
+        if do_not_query {
+            self.abort_any_fetch().await;
+        } else {
+            self.start_fetching_again().await;
+        }
+    }
+
+    /// Set the activation for geo-location based on connection status, to avoid
+    /// false locations being used.
+    /// Being active means we try to query the location from the API. We want to
+    /// deactivate this in certain states of TSM, when the queries are proxied.
+    pub async fn set_active_geo_location(&self, active: bool) {
+        let do_not_query = {
+            let mut query_control = self.query_control.write().await;
+            query_control.set_active(active);
+            query_control.do_not_query()
+        };
+        if do_not_query {
+            self.abort_any_fetch().await;
+        } else {
+            self.start_fetching_again().await;
+        }
     }
 
     pub async fn set_tunnel_settings(
         &mut self,
         tunnel_settings: TunnelSettings,
     ) -> Result<(), crate::tunnel_state_machine::Error> {
-        // Pre-compute at most 10 different possibilities of selected gateways
-        let (selection_tx, selection_rx) = mpsc::channel(10);
+        self.set_enabled_geo_location(
+            tunnel_settings
+                .gateway_selection_algorithm_config
+                .enable_geo_location,
+        )
+        .await;
         self.selected_gateways_stream =
-            Some(Arc::new(Mutex::new(ReceiverStream::new(selection_rx))));
-        self.tunnel_settings_tx
-            .send(SelectAndSend {
-                tunnel_settings,
-                selection_tx,
-            })
-            .await
-            .map_err(|_| crate::tunnel_state_machine::Error::GatewayProviderDown)
+            Self::inner_set_tunnel_settings(&self.tunnel_settings_tx, tunnel_settings).await?;
+        Ok(())
     }
 
     pub async fn replace_gateway_client(&self, gateway_client: GatewayClient) {
@@ -155,7 +254,9 @@ pub mod tests {
     use nym_vpn_lib_types::{EntryPoint, ExitPoint, TunnelType};
     use tokio::sync::RwLock;
 
-    use crate::tunnel_state_machine::tunnel::gateway_provider::gateway_cache::tests::MockGatewayCache;
+    use crate::tunnel_state_machine::tunnel::gateway_provider::{
+        gateway_cache::tests::MockGatewayCache, geo_ip::tests::MockGeoIpClient,
+    };
 
     use super::*;
 
@@ -175,6 +276,7 @@ pub mod tests {
             exit_point: Box::new(ExitPoint::Random),
             dns: Default::default(),
             split_tunnel: Default::default(),
+            gateway_selection_algorithm_config: Default::default(),
             airporting_settings: Default::default(),
         }
     }
@@ -193,18 +295,25 @@ pub mod tests {
     }
 
     #[tokio::test]
-    async fn empty_stream() {
+    async fn error_stream() {
         let shutdown_token = CancellationToken::new();
         let gateways = Arc::new(RwLock::new(None));
         let (mut gw_provider, handle) = GatewayProvider::new(
             MockGatewayCache::new(gateways),
+            MockGeoIpClient::new(),
+            false,
+            default_tunnel_settings(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.child_token(),
-        );
-        // No gateways come out of the stream when there are no tunnel settings
+        )
+        .await
+        .unwrap();
+        // No gateways come out of the stream when there are no gateways to select from
         assert!(
             tokio::time::timeout(Duration::from_millis(100), gw_provider.next())
                 .await
+                .unwrap()
+                .unwrap()
                 .is_err()
         );
         shutdown_token.cancel();
@@ -222,9 +331,14 @@ pub mod tests {
         let gateways = Arc::new(RwLock::new(Some(possible_gateways.to_vec())));
         let (mut gw_provider, handle) = GatewayProvider::new(
             MockGatewayCache::new(gateways),
+            MockGeoIpClient::new(),
+            false,
+            default_tunnel_settings(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.child_token(),
-        );
+        )
+        .await
+        .unwrap();
         gw_provider
             .set_tunnel_settings(default_tunnel_settings())
             .await

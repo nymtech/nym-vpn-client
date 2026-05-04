@@ -49,6 +49,13 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .map(nym_vpn_lib_types::AirportingSettings::from)
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.airporting"))?;
 
+        let gateway_selection_algorithm_config = value
+            .gateway_selection_algorithm
+            .map(nym_vpn_lib_types::GatewaySelectionAlgorithmConfig::try_from)
+            .ok_or(ConversionError::NoValueSet(
+                "VpnServiceConfig.gateway_selection_algorithm",
+            ))??;
+
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
             exit_point,
@@ -67,6 +74,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             network_stats,
             split_tunnel,
             airporting,
+            gateway_selection_algorithm_config,
         };
         Ok(config)
     }
@@ -81,6 +89,9 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
         let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
         let split_tunnel = Some(proto::SplitTunnelSettings::from(value.split_tunnel));
         let airporting = Some(proto::AirportingSettings::from(value.airporting));
+        let gateway_selection_algorithm =
+            proto::GatewaySelectionAlgorithmConfig::from(value.gateway_selection_algorithm_config)
+                .into();
 
         proto::VpnServiceConfig {
             entry_point,
@@ -100,6 +111,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             network_stats,
             split_tunnel,
             airporting,
+            gateway_selection_algorithm,
         }
     }
 }

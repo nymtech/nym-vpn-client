@@ -144,15 +144,14 @@ impl TunnelStateHandler for OfflineState {
                         let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
                             return NextTunnelState::SameState(self);
                         };
-
-                        shared_state.tunnel_settings = tunnel_settings;
+                        shared_state.set_tunnel_settings(tunnel_settings).await;
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         if diff.split_tunnel_changed() || diff.airporting_enabled_changed() {
                             let _ = shared_state.set_split_tunnel_exclude_paths().await;
                         }
 
-                        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+                        #[cfg(not(target_os = "ios"))]
                         if diff.airporting_enabled_changed() {
                             shared_state
                                 .start_or_stop_socks5_proxy()

@@ -18,7 +18,7 @@ pub mod privy;
 mod resolver;
 pub mod sentry;
 pub mod service;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(not(target_os = "ios"))]
 pub(crate) mod socks5_proxy;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 pub mod tunnel_provider;
