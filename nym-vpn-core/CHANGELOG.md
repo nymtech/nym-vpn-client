@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `VpnAccountSummary::fair_usage_left`: treat `traffic_limit_gb == 0` as unknown or API error default, not exhausted quota. The previous `used != limit` check treated `{limitGB: 0, usedGB: 0}` as depleted and could surface `BandwidthExceeded` when the VPN API returned zeroed fair usage during PocketBase failures; genuine exhaustion remains `used == limit` with `limit > 0`.
+
 - Unify `VpnAccountSummary` timestamp parsing through a single `parse_timestamp` helper that warns on malformed input. Only `fair_usage.resetsOnUtc` soft-fails to `None`; subscription and auth-method timestamps now propagate `PayloadError` so a bad payload fails loudly instead of silently flipping subscriptions to inactive (root cause of NYM-1156 "Requesting ZkNyms" / "Get Started" hangs on v2.22.0 iOS).
 - [iOS/macOS] Stop swallowing errors from `fetchAccountSummary` with `try?`; log a sanitized line (error type only, no raw payload string) and set `accountSummaryLastFetchFailed` so the UI can observe failure without parsing device logs.
 
