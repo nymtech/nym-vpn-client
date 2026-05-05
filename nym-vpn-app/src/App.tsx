@@ -33,7 +33,7 @@ function App({ init }: { init: InitState }) {
 
   const { set } = useLang();
   const intro =
-    os === 'windows' ? (
+    os === 'windows' || os === 'macos' ? (
       <IntroAnim theme={init.uiTheme} />
     ) : (
       <IntroSplash theme={init.uiTheme} />
@@ -67,7 +67,7 @@ function App({ init }: { init: InitState }) {
 
   return (
     <>
-      {!noSplash && intro}
+      {/* {!noSplash && intro} */}
       <Toast.Provider timeout={100000}>
         <MainStateProvider init={init}>
           <TrayProvider>

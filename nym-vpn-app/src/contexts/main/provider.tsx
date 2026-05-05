@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { InitState, SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
@@ -9,6 +9,7 @@ import { daemonStatusUpdate, networkEnvChanged } from '../../state/helper';
 import { CCache } from '../../cache';
 import { useToast } from '../../hooks';
 import { dispatch, initMainStore, useAppStore } from '../../store';
+import IntroSplash from '../../screens/IntroSplash';
 
 let batchesInitialized = false;
 let systemMessageInit = false;
@@ -64,7 +65,11 @@ function MainStateProvider({ children, init }: Props) {
     batchesInitialized = true;
 
     // this first batch is needed to ensure the app is fully initialized and ready
-    initFirstBatch().then(() => {
+    // initFirstBatch().then(() => {
+    //   console.log('init of 1st batch done');
+    //   dispatch({ type: 'init-done' });
+    // });
+    Promise.all([initFirstBatch(), initGateways()]).then(() => {
       console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
     });
@@ -107,26 +112,50 @@ function MainStateProvider({ children, init }: Props) {
     querySystemMessages();
   }, [init.vpnd, daemonStatus, add]);
 
-  // Initialize gateways on first successful connection to daemon
-  useEffect(() => {
-    if (!initialized || gatewaysInit || daemonStatus === 'down') {
+  const initGateways = useCallback(async () => {
+    console.log('[initGateways] initialized', initialized);
+    console.log('[initGateways] gatewaysInit', gatewaysInit);
+    console.log('[initGateways] daemonStatus', daemonStatus);
+    if (gatewaysInit || daemonStatus === 'down') {
       return;
     }
     gatewaysInit = true;
     const { fetchGateways } = useAppStore.getState();
     if (vpnMode === 'wg') {
-      fetchGateways('wg').then(() => {
-        console.info('[wg] gateways initialized');
-      });
+      await fetchGateways('wg');
+      console.info('[wg] gateways initialized');
     } else {
-      fetchGateways('mx-entry').then(() => {
-        console.info('[mx-entry] gateways initialized');
-      });
-      fetchGateways('mx-exit').then(() => {
-        console.info('[mx-exit] gateways initialized');
-      });
+      await fetchGateways('mx-entry');
+      console.info('[mx-entry] gateways initialized');
+      await fetchGateways('mx-exit');
+      console.info('[mx-exit] gateways initialized');
     }
   }, [initialized, daemonStatus, vpnMode]);
+
+  useEffect(() => {
+    initGateways();
+  }, [initGateways]);
+
+  // Initialize gateways on first successful connection to daemon
+  // useEffect(() => {
+  //   if (!initialized || gatewaysInit || daemonStatus === 'down') {
+  //     return;
+  //   }
+  //   gatewaysInit = true;
+  //   const { fetchGateways } = useAppStore.getState();
+  //   if (vpnMode === 'wg') {
+  //     fetchGateways('wg').then(() => {
+  //       console.info('[wg] gateways initialized');
+  //     });
+  //   } else {
+  //     fetchGateways('mx-entry').then(() => {
+  //       console.info('[mx-entry] gateways initialized');
+  //     });
+  //     fetchGateways('mx-exit').then(() => {
+  //       console.info('[mx-exit] gateways initialized');
+  //     });
+  //   }
+  // }, [initialized, daemonStatus, vpnMode]);
 
   // Socks5 status polling
   useEffect(() => {
@@ -140,6 +169,10 @@ function MainStateProvider({ children, init }: Props) {
       clearInterval(interval);
     };
   }, []);
+
+  if (!initialized) {
+    return <IntroSplash theme={init.uiTheme} />;
+  }
 
   return <>{children}</>;
 }
