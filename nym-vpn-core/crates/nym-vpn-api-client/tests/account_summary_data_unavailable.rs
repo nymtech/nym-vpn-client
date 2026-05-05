@@ -1,5 +1,3 @@
-//! HTTP round-trip for `fairUsage.dataUnavailable` via wiremock (authoritative coverage for this contract).
-
 use std::str::FromStr;
 
 use bip39::Mnemonic;
