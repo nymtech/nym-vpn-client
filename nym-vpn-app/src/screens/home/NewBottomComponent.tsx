@@ -799,7 +799,13 @@ export function NewBottomComponent() {
               className="z-10 bg-white dark:bg-[#1d1d1f] rounded-t-2xl px-4"
             >
               <ModeToggle />
-              <div className="h-px bg-[#3b3b3b] rounded-full w-full my-4" />
+              <motion.div
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: '100%' }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: DURATION, ease: easeOutQuart }}
+                className="h-px bg-[#3b3b3b] rounded-full w-full mx-auto my-4"
+              />
             </motion.div>
           )}
         </AnimatePresence>
