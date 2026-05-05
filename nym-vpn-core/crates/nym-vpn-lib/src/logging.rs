@@ -35,10 +35,11 @@ pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
 
-/// Targets which we do not want any logs from under any circumstances. For example the hickory
-/// resolver when configured for use with client traffic can log DNS lookups at the DEBUG level. We
-/// never want information related to client traffic logged.
-static NO_LOGGING: [&str; 2] = [
+/// Targets which we do not want any logs under normal (up to debug) circumstances. For example the
+/// hickory resolver when configured for use with client traffic can log DNS lookups at the DEBUG
+/// level. We do not want information related to client traffic logged except in controlled trace
+/// situations (away from platform apps).
+static TRACE_ONLY_LOGGING: [&str; 2] = [
     "hickory_resolver",
     // proto is probably okay, but disabling for now.
     "hickory_proto",
@@ -313,9 +314,14 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         );
     }
 
-    for crate_name in NO_LOGGING {
+    let level = if options.verbosity_level == Level::TRACE {
+        "trace"
+    } else {
+        "off"
+    };
+    for crate_name in TRACE_ONLY_LOGGING {
         env_filter = env_filter.add_directive(
-            format!("{crate_name}=off")
+            format!("{crate_name}={level}")
                 .parse()
                 .expect("failed to parse directive"),
         );
