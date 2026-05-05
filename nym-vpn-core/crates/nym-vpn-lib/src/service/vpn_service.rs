@@ -100,10 +100,7 @@ pub enum VpnServiceCommand {
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
     SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
-    SetGatewaySelectionAlgorithm(
-        oneshot::Sender<Result<(), String>>,
-        GatewaySelectionAlgorithm,
-    ),
+    SetGatewaySelectionAlgorithm(oneshot::Sender<()>, GatewaySelectionAlgorithm),
     SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
@@ -998,10 +995,9 @@ impl NymVpnService {
                 let _ = tx.send(res);
             }
             VpnServiceCommand::SetGatewaySelectionAlgorithm(tx, gateway_selection_algorithm) => {
-                let res = self
-                    .handle_set_gateway_selection_algorithm(gateway_selection_algorithm)
+                self.handle_set_gateway_selection_algorithm(gateway_selection_algorithm)
                     .await;
-                let _ = tx.send(res);
+                let _ = tx.send(());
             }
             VpnServiceCommand::SetEnableGeoLocation(tx, enable_geo_location) => {
                 let res = self
@@ -1373,13 +1369,11 @@ impl NymVpnService {
     async fn handle_set_gateway_selection_algorithm(
         &mut self,
         gateway_selection_algorithm: GatewaySelectionAlgorithm,
-    ) -> Result<(), String> {
+    ) {
         self.config_manager
             .set_gateway_selection_algorithm(gateway_selection_algorithm)
-            .await
-            .map_err(|err| err.to_string())?;
+            .await;
         self.update_tunnel_settings_with_throttle();
-        Ok(())
     }
 
     async fn handle_set_enable_geo_location(

@@ -341,11 +341,6 @@ impl NymVpnService for CommandInterface {
             Status::internal(format!(
                 "[set_gateway_selection_algorithm] transport error: {e}"
             ))
-        })?
-        .map_err(|err| {
-            Status::invalid_argument(format!(
-                "[set_gateway_selection_algorithm] validation failed: {err}"
-            ))
         })?;
 
         Ok(Response::new(()))

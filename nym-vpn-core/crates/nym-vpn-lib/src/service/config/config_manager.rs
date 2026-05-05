@@ -229,7 +229,7 @@ impl VpnServiceConfigManager {
     pub async fn set_gateway_selection_algorithm(
         &mut self,
         gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm,
-    ) -> Result<(), MixnetTrafficConfigValidationError> {
+    ) {
         if self
             .config
             .gateway_selection_algorithm_config
@@ -241,7 +241,6 @@ impl VpnServiceConfigManager {
                 .gateway_selection_algorithm = gateway_selection_algorithm;
             self.save_config_and_send_event().await;
         }
-        Ok(())
     }
 
     pub async fn set_enable_geo_location(
