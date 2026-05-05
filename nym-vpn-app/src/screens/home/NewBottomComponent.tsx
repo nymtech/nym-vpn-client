@@ -645,7 +645,18 @@ function ModeToggle() {
 const easeOutQuart = [0.22, 1, 0.36, 1] as const;
 
 export function NewBottomComponent() {
-  const { state } = useMainState();
+  const navigate = useNavigate();
+  const { t } = useTranslation('home');
+  const { state, daemonStatus, accountState, account } = useMainState();
+
+  const daemonUnavailable =
+    daemonStatus === 'auth-denied' || daemonStatus === 'down';
+  const needAPlan =
+    !daemonUnavailable &&
+    state === 'disconnected' &&
+    account &&
+    (accountState === 'no-subscription' ||
+      accountState === 'bandwidth-exceeded');
 
   const { add } = useToast();
   const gatewaySelectionAlgorithmConfig = useAppStore(
@@ -720,6 +731,23 @@ export function NewBottomComponent() {
   const handleConnect = async () => {
     console.log('handleConnect');
 
+    if (daemonStatus === 'auth-denied') {
+      invoke('retry_authentication').catch((e: unknown) => {
+        console.error('retry_authentication failed', e);
+      });
+      return;
+    }
+
+    if (state === 'disconnected' && !account) {
+      navigate(routes.onboarding);
+      return;
+    }
+
+    if (needAPlan) {
+      navigate(routes.selectPlan);
+      return;
+    }
+
     if (
       state === 'connected' ||
       state === 'connecting' ||
@@ -757,6 +785,18 @@ export function NewBottomComponent() {
   };
 
   const getButtonText = () => {
+    if (daemonStatus === 'auth-denied') {
+      return t('authenticate');
+    }
+
+    if (!account) {
+      return t('get-started');
+    }
+
+    if (needAPlan) {
+      return t('choose-plan');
+    }
+
     switch (state) {
       case 'connected':
         return 'Tap to disconnect';
@@ -832,7 +872,6 @@ export function NewBottomComponent() {
                   // label={foldState > 0 ? 'Nym entry node' : undefined}
                   // label="Nym entry node"
                   // onUp={foldState === 0 ? expand : undefined}
-                  foldState={foldState}
                 />
               </div>
               <AnimatePresence initial={false}>
@@ -849,7 +888,6 @@ export function NewBottomComponent() {
                       type="exit"
                       // {...EXIT_NODE}
                       // label="Nym exit node"
-                      foldState={foldState}
                     />
                   </motion.div>
                 )}
