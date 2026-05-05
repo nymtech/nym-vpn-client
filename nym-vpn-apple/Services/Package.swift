@@ -196,7 +196,8 @@ let package = Package(
         .target(
             name: "PathManager",
             dependencies: [
-                .product(name: "Constants", package: "ServicesMutual")
+                .product(name: "Constants", package: "ServicesMutual"),
+                .product(name: "Logging", package: "swift-log")
             ],
             path: "Sources/Services/PathManager"
         ),
