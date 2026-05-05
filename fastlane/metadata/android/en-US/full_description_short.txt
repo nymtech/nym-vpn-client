@@ -1,0 +1,70 @@
+NymVPN: the world's most private VPN. A secure, decentralized, anonymous Swiss dVPN with no logs. WireGuard speed, Noise Generating Mixnet anonymity. No email signup. No ads.
+
+🎁 7-DAY FREE VPN TRIAL & PLANS FROM $2.39/MONTH
+
+Try free for 7 days, no commitment. Pay in crypto, card, or cash: your choice.
+
+🛡 PRIVACY BY DESIGN
+
+Most VPNs say 'no logs' as policy — they can log, they promise not to. Free VPNs track you to sell your data. NymVPN's architecture makes meaningful traffic logs impossible: no single server sees who you are AND what you do.
+
+⚡ TWO VPN MODES, ONE APP
+
+• Fast Mode: AmneziaWG (WireGuard)-based 2-hop dVPN. Fast streaming and browsing.
+• Anonymous Mode: 5-hop Noise Generating Mixnet, a more private successor to Tor. The most anonymous consumer VPN. Perfect for crypto, email, and private messaging like Signal.
+
+💰 PAY ANONYMOUSLY WITH CRYPTO OR CASH
+
+NymVPN accepts more cryptocurrencies than any other VPN, plus cash payments. Pay with Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM, and more. Zero-knowledge credentials delink your payment from your VPN use: pay anonymously, use anonymously.
+
+💎 WHY NYMVPN IS DIFFERENT
+
+• Zero-knowledge architecture: identity invisible to Nym
+• No logs by architecture: the network can't keep meaningful traffic logs
+• Decentralized proxy network: no central server
+• Swiss jurisdiction: outside 14 Eyes
+• WireGuard and mixnet protocols
+• No email signup: anonymous account creation
+• Fully open source, audited by independent security researchers
+• 70+ countries: global server network worldwide
+• Up to 10 devices on one account
+
+🔒 PRIVACY & SECURITY FEATURES
+
+• Built-in kill switch
+• Censorship resistance: QUIC, AmneziaWG, and more prevent VPN blocking
+• Multi-layer onion encryption
+• Entry & exit server selection
+• Split tunneling: route only chosen apps through the VPN
+• Custom DNS: use any DNS server you trust
+• Ad and tracker blocker
+
+🌍 WHAT YOU CAN DO WITH NYMVPN
+
+• Browse anonymously without leaving a trace
+• Stream content from servers worldwide
+• Encrypt your traffic on public wifi
+• Bypass internet censorship in restrictive regions
+• Protect sensitive communications for journalism and activism
+• Stop ISPs from profiling your browsing
+• Block malicious sites, trackers, and ads
+
+🇨🇭 SWISS PRIVACY, BY DESIGN
+
+NymVPN operates under Swiss law: outside the 14 Eyes surveillance alliance, with constitutionally protected privacy rights and no mandatory data retention. Your data is protected by law and design.
+
+🎓 BUILT BY ACADEMIC CRYPTOGRAPHERS
+
+Built by Nym. Trusted by journalists, activists, and privacy-conscious users worldwide.
+
+🚫 WHAT WE DON'T DO
+
+• We don't ask for your email or your name
+• We can't track which sites you visit
+• We can't sell, share, or rent your data
+
+📲 GET STARTED
+
+Download NymVPN, create an anonymous account without an email or even a name, and start browsing privately.
+
+Try NymVPN today.
