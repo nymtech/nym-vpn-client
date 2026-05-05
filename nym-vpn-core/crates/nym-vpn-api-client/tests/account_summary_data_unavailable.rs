@@ -107,4 +107,14 @@ async fn account_summary_with_device_round_trips_data_unavailable() {
     assert!(fu.data_unavailable, "expected dataUnavailable round-trip");
     assert_eq!(fu.usedGB, 0);
     assert_eq!(fu.limitGB, 0);
+
+    let active = summary
+        .active_device
+        .as_ref()
+        .expect("stub returns activeDevice");
+    assert_eq!(
+        active.device_identity_key.as_str(),
+        device.identity_key().to_string(),
+        "mock body device key must match URL segment device"
+    );
 }
