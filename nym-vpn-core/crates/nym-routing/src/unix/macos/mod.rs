@@ -208,6 +208,7 @@ impl RouteManagerImpl {
                     nym_common::detect_flood!();
 
                     if self.check_default_routes_restored.is_terminated() {
+                        self.check_default_routes_restored = Box::pin(futures::stream::pending());
                         continue;
                     }
 
