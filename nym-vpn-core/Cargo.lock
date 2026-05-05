@@ -6955,6 +6955,7 @@ dependencies = [
  "tracing",
  "tracing-test",
  "url",
+ "wiremock",
  "zeroize",
 ]
 

@@ -6,7 +6,6 @@ on:
     paths:
       - "nym-vpn-core/crates/**"
       - "nym-vpn-core/Cargo.toml"
-      - "nym-vpn-core/scripts/**"
       - ".github/workflows/ci-nym-vpn-core-linux.yml"
   workflow_dispatch:
 
@@ -107,18 +106,3 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo test --verbose --workspace --locked --exclude nym-ifconfig
-
-      - name: Fair usage stub serde round-trip
-        working-directory: nym-vpn-core
-        run: |
-          set -euo pipefail
-          PORT=18081
-          python3 scripts/dev_mock_vpn_api_data_unavailable.py "${PORT}" &
-          STUB_PID=$!
-          trap 'kill "${STUB_PID}" 2>/dev/null || true' EXIT
-          for i in $(seq 1 10); do
-            curl -sf "http://127.0.0.1:${PORT}/api/public/v1/health" && break
-            sleep 1
-          done
-          MOCK_VPN_API_BASE="http://127.0.0.1:${PORT}/api/" \
-            cargo run --locked -p nym-vpn-api-client --example stub_data_unavailable

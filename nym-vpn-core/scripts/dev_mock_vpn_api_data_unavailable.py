@@ -6,8 +6,7 @@ Serves plain HTTP (no TLS) so the client does not need mitmproxy CA trust.
 Usage:
   python3 dev_mock_vpn_api_data_unavailable.py [port]
 
-Then (separate terminal):
-  cd nym-vpn-core && cargo run -p nym-vpn-api-client --example stub_data_unavailable
+Automated coverage lives in `nym-vpn-api-client/tests/account_summary_data_unavailable.rs` (wiremock). Use this script only for manual debugging against a real HTTP client.
 
 Default port 18080. Override with STUB_PORT or first CLI arg.
 
