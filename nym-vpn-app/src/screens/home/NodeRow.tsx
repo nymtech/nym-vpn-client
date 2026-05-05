@@ -291,8 +291,8 @@ export function NodeRow({ type }: NodeRowProps) {
               </AnimatePresence>
             </div>
             <div className="flex flex-row items-center justify-center gap-3">
-              {!nodeDetails.showQuic && <QuicTag />}
-              {!nodeDetails.showStreamOptimized && (
+              {nodeDetails.showQuic && <QuicTag />}
+              {nodeDetails.showStreamOptimized && (
                 <MsIcon icon="smart_display" className="text-cornflower" />
               )}
             </div>
