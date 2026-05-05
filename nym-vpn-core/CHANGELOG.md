@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add SOCKS5 Proxy process to implement Airporting (https://github.com/nymtech/nym-vpn-client/pull/5078)
 - Disable client verifications on daemon flag for debug purposes (https://github.com/nymtech/nym-vpn-client/pull/5148)
 - [Android] Add Airporting support via SOCKS5 Proxy (https://github.com/nymtech/nym-vpn-client/pull/5160)
-- `VpnAccountSummary::fair_usage_data_unavailable` from `fairUsage.dataUnavailable` (HTTP), through `VpnAccountSummary` and gRPC field 14; `true` means fail-open (infrastructure gap), not hard block (https://github.com/nymtech/nym-vpn-client/pull/5217)
+- Propagate `fairUsage.dataUnavailable` from API through to clients so a database outage no longer surfaces as a bandwidth-exceeded error (https://github.com/nymtech/nym-vpn-client/pull/5217)
 
 ### Changed
 
@@ -22,10 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fair usage: `fair_usage_left` requires an active subscription; with `fair_usage_data_unavailable == true`, fail-open; when usage numbers are reliable, treat `traffic_limit_gb == 0` as no quota remaining and exhaustion as `traffic_used_gb >= traffic_limit_gb` when `traffic_limit_gb > 0` (https://github.com/nymtech/nym-vpn-client/pull/5217)
-- `fair_usage_left` and the device-registration depletion path in `SyncingState` fail-open when `dataUnavailable: true` (https://github.com/nymtech/nym-vpn-client/pull/5217)
-- Unify `VpnAccountSummary` timestamp parsing through a single `parse_timestamp` helper that warns on malformed input. Only `fair_usage.resetsOnUtc` soft-fails to `None`; subscription and auth-method timestamps propagate `PayloadError` so bad payloads fail loudly instead of silently marking subscriptions inactive (NYM-1156) (https://github.com/nymtech/nym-vpn-client/pull/5217)
-- [iOS/macOS] Stop swallowing errors from `fetchAccountSummary` with `try?`; log a sanitized line (error type only) and set `accountSummaryLastFetchFailed` for the UI (https://github.com/nymtech/nym-vpn-client/pull/5217)
+- Fix false bandwidth-exceeded errors when the VPN API fair-usage database is temporarily unavailable (https://github.com/nymtech/nym-vpn-client/pull/5217)
+- Fix accounts incorrectly appearing inactive due to malformed API timestamp fields (https://github.com/nymtech/nym-vpn-client/pull/5217)
+- [iOS/macOS] Fix account summary fetch errors being silently swallowed, leaving the UI in an unresponsive state (https://github.com/nymtech/nym-vpn-client/pull/5217)
 - [Linux] Add Polkit as deb and arch dependency (https://github.com/nymtech/nym-vpn-client/pull/5143)
 
 ## [1.28.0] - 2026-04-14
