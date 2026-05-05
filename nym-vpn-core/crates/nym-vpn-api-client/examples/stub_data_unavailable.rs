@@ -3,6 +3,8 @@
 //! 1. Start the stub: `python3 nym-vpn-core/scripts/dev_mock_vpn_api_data_unavailable.py`
 //! 2. Run: `cargo run -p nym-vpn-api-client --example stub_data_unavailable`
 //!
+//! CI: `ci-nym-vpn-core-linux.yml` runs the stub on `127.0.0.1:18081` and this example against it.
+//!
 //! Optional: `MOCK_VPN_API_BASE=http://127.0.0.1:PORT/api/` (must end with `/api/`).
 //! `UserAgent::from_str` requires four segments: `app/version/platform/git_commit`.
 

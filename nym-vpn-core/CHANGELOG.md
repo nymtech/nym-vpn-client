@@ -14,29 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add SOCKS5 Proxy process to implement Airporting (https://github.com/nymtech/nym-vpn-client/pull/5078)
 - Disable client verifications on daemon flag for debug purposes (https://github.com/nymtech/nym-vpn-client/pull/5148)
 - [Android] Add Airporting support via SOCKS5 Proxy (https://github.com/nymtech/nym-vpn-client/pull/5160)
+- `VpnAccountSummary::fair_usage_data_unavailable` from `fairUsage.dataUnavailable` (HTTP), through `VpnAccountSummary` and gRPC field 14; `true` means fail-open (infrastructure gap), not hard block (https://github.com/nymtech/nym-vpn-client/pull/5217)
 
 ### Changed
 
 - [macOS] Use endpoint-security framework directly instead of parsing eslogger output (https://github.com/nymtech/nym-vpn-client/pull/4749)
 
-### Added
-
-- `VpnAccountSummary::fair_usage_data_unavailable`: new field propagated from `fairUsage.dataUnavailable` in the API response, through serde, `VpnAccountSummary`, and gRPC proto field 14. Clients should treat `true` as fail-open (infrastructure gap) rather than blocking the user.
-
 ### Fixed
 
-- `VpnAccountSummary::fair_usage_left`: require `is_subscription_active()` first so `{limitGB: 0, usedGB: 0}` is never treated as usable quota without a paid-active subscription; when active, treat `traffic_limit_gb == 0` as unknown or API error default (not exhausted). The previous `used != limit` check treated `{0, 0}` as depleted and could surface `BandwidthExceeded` on transient API failures; genuine exhaustion remains `limit > 0` and `used == limit`.
-
-- `fair_usage_left` and the device-registration depletion check in `SyncingState` now both fail-open when `dataUnavailable: true` is set, preventing `BandwidthExceeded` / `FairUsageDepleted` errors during API database outages.
-
-- Unify `VpnAccountSummary` timestamp parsing through a single `parse_timestamp` helper that warns on malformed input. Only `fair_usage.resetsOnUtc` soft-fails to `None`; subscription and auth-method timestamps now propagate `PayloadError` so a bad payload fails loudly instead of silently flipping subscriptions to inactive (root cause of NYM-1156 "Requesting ZkNyms" / "Get Started" hangs on v2.22.0 iOS).
-- [iOS/macOS] Stop swallowing errors from `fetchAccountSummary` with `try?`; log a sanitized line (error type only, no raw payload string) and set `accountSummaryLastFetchFailed` so the UI can observe failure without parsing device logs.
-
-
-### Fixed
-
+- Fair usage: `fair_usage_left` requires an active subscription; with `fair_usage_data_unavailable == true`, fail-open; when usage numbers are reliable, treat `traffic_limit_gb == 0` as no quota remaining and exhaustion as `traffic_used_gb >= traffic_limit_gb` when `traffic_limit_gb > 0` (https://github.com/nymtech/nym-vpn-client/pull/5217)
+- `fair_usage_left` and the device-registration depletion path in `SyncingState` fail-open when `dataUnavailable: true` (https://github.com/nymtech/nym-vpn-client/pull/5217)
+- Unify `VpnAccountSummary` timestamp parsing through a single `parse_timestamp` helper that warns on malformed input. Only `fair_usage.resetsOnUtc` soft-fails to `None`; subscription and auth-method timestamps propagate `PayloadError` so bad payloads fail loudly instead of silently marking subscriptions inactive (NYM-1156) (https://github.com/nymtech/nym-vpn-client/pull/5217)
+- [iOS/macOS] Stop swallowing errors from `fetchAccountSummary` with `try?`; log a sanitized line (error type only) and set `accountSummaryLastFetchFailed` for the UI (https://github.com/nymtech/nym-vpn-client/pull/5217)
 - [Linux] Add Polkit as deb and arch dependency (https://github.com/nymtech/nym-vpn-client/pull/5143)
-
 
 ## [1.28.0] - 2026-04-14
 

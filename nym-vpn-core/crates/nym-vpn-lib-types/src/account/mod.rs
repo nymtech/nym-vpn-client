@@ -305,8 +305,7 @@ impl VpnAccountSummary {
             // Data gap from the API - fail-open so users are not blocked by infrastructure errors.
             return true;
         }
-        // Exhausted only when limit>0 && used>=limit; limit==0 is treated as unknown (fail-open).
-        self.traffic_limit_gb == 0 || self.traffic_used_gb < self.traffic_limit_gb
+        self.traffic_limit_gb > 0 && self.traffic_used_gb < self.traffic_limit_gb
     }
 
     pub fn is_linked(&self) -> bool {
@@ -934,9 +933,12 @@ mod fair_usage_left_semantics_tests {
     }
 
     #[test]
-    fn fair_usage_left_true_when_active_and_limit_zero_unassigned_cap() {
+    fn fair_usage_left_false_when_active_and_limit_zero_with_reliable_usage() {
         let s = bare_summary(Some(active_subscription_valid_for_days(30)), 0, 0);
-        assert!(s.fair_usage_left());
+        assert!(
+            !s.fair_usage_left(),
+            "limit 0 with reliable fair-usage data means no quota remaining"
+        );
     }
 
     #[test]

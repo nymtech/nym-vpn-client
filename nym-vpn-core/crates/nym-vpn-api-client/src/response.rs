@@ -132,8 +132,8 @@ pub struct NymVpnAccountSummaryFairUsage {
     pub usedGB: u64,
     pub limitGB: u64,
     pub resetsOnUtc: Option<String>,
+    // Absent in older API responses - treat as false (data available) during rollout.
     #[serde(default, rename = "dataUnavailable")]
-    // Absent or false means healthy data; true means fair-usage numbers are unreliable.
     pub data_unavailable: bool,
 }
 

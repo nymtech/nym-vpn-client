@@ -31,11 +31,15 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 def summary_body() -> dict:
-    """Shape matches NymVpnAccountSummaryWithDeviceResponse (flattened fields)."""
+    """Shape matches NymVpnAccountSummaryWithDeviceResponse (flattened fields).
+
+    Nested subscription uses snake_case keys to match serde on ``NymVpnSubscription``.
+    Omit optional ``pending`` entirely when absent (same as typical API payloads).
+    """
     return {
         "account": {
-            "created_on_utc": "2026-05-04 11:15:14.681Z",
-            "last_updated_utc": "2026-05-04 11:15:14.681Z",
+            "created_on_utc": "2026-05-04T11:15:14.681Z",
+            "last_updated_utc": "2026-05-04T11:15:14.681Z",
             "account_addr": "n1stubstubstubstubstubstubstubstubst",
             "status": "active",
             "canonical_account_addr": "n1stubstubstubstubstubstubstubstubst",
@@ -46,7 +50,7 @@ def summary_body() -> dict:
                     "kind": "user_generated_secp256k1",
                     "label": "Stub",
                     "status": "active",
-                    "created": "2026-05-04 11:15:14.727Z",
+                    "created": "2026-05-04T11:15:14.727Z",
                 }
             ],
         },
@@ -54,16 +58,15 @@ def summary_body() -> dict:
             "isActive": True,
             "isStacked": False,
             "active": {
-                "created_on_utc": "2026-05-04 11:15:51.388Z",
-                "last_updated_utc": "2026-05-04 11:15:58.581Z",
+                "created_on_utc": "2026-05-04T11:15:51.388Z",
+                "last_updated_utc": "2026-05-04T11:15:58.581Z",
                 "id": "stub-sub",
-                "valid_until_utc": "2026-06-04 11:15:51.000Z",
-                "valid_from_utc": "2026-05-04 11:15:51.000Z",
+                "valid_until_utc": "2026-06-04T11:15:51.000Z",
+                "valid_from_utc": "2026-05-04T11:15:51.000Z",
                 "status": "active",
                 "kind": "one_month",
                 "isRecurring": True,
             },
-            "pending": None,
         },
         "devices": {"active": 1, "max": 10, "remaining": 9},
         "fairUsage": {
@@ -72,8 +75,8 @@ def summary_body() -> dict:
             "dataUnavailable": True,
         },
         "activeDevice": {
-            "created_on_utc": "2026-05-04 15:11:56.013Z",
-            "last_updated_utc": "2026-05-04 15:11:56.013Z",
+            "created_on_utc": "2026-05-04T15:11:56.013Z",
+            "last_updated_utc": "2026-05-04T15:11:56.013Z",
             "device_identity_key": "FJDUECYAeosXhNGjxf8w5MJM7N2DfDwQznvWwTxJz6ft",
             "status": "active",
         },
