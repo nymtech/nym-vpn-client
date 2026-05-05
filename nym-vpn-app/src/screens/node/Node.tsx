@@ -3,34 +3,36 @@ import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
-import { useShallow } from 'zustand/react/shallow';
+import { useDialog } from '../../contexts';
+import { NodeHop, isGateway } from '../../types';
 import {
   SelectedUiNode,
   UiGateway,
-  useDialog,
-  useNodeList,
-  useNodeListState,
-} from '../../contexts';
-import { NodeHop, isGateway } from '../../types';
+  uiNodeToSelectedNode,
+} from '../../types/node';
 import { Link, PageAnim, TextInput } from '../../ui';
-import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
+import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
-import { dispatch, useAppStore } from '../../store';
+import { dispatch, useAppStore, useFetchGateways } from '../../store';
+import { useNodeListState } from '../../store/nodeListState';
 import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
 function Node({ node }: { node: NodeHop }) {
-  const { backendFlags, vpnMode, quic } = useAppStore(
-    useShallow((s) => ({
-      backendFlags: s.backendFlags,
-      vpnMode: s.vpnMode,
-      quic: s.quic,
-    })),
-  );
+  const daemonStatus = useAppStore((s) => s.daemonStatus);
+  const fetchGateways = useFetchGateways();
+
+  const {
+    loading,
+    error,
+    vpnMode,
+    quicFilter,
+    nodes: rawNodes,
+    gateways: rawGateways,
+  } = useNodeListData(node);
 
   const { isOpen, close } = useDialog();
-  const { loading, error } = useNodeList();
   const {
     setFocused,
     exit: exitNodeList,
@@ -39,6 +41,7 @@ function Node({ node }: { node: NodeHop }) {
     addToExpanded,
     setSearch,
   } = useNodeListState();
+
   const expanded =
     node === 'entry' ? entryNodeList.expanded : exitNodeList.expanded;
   const focused =
@@ -46,17 +49,23 @@ function Node({ node }: { node: NodeHop }) {
   const search = node === 'entry' ? entryNodeList.search : exitNodeList.search;
 
   const { tE } = useI18nError();
-
-  const quicFilter =
-    vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
-
   const navigate = useNavigate();
   const { t } = useTranslation('node-location');
 
-  const { filter, nodes, gateways } = useFilterList(node);
+  const { filter, nodes, gateways } = useFilterList(
+    node,
+    rawNodes,
+    rawGateways,
+    vpnMode,
+  );
   const deferredNodes = useDeferredValue(nodes);
   const deferredGateways = useDeferredValue(gateways);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (daemonStatus === 'down') return;
+    fetchGateways(vpnMode === 'mixnet' ? `mx-${node}` : 'wg');
+  }, [node, vpnMode, daemonStatus]);
 
   useEffect(() => {
     if (searchRef.current) searchRef.current.focus();
@@ -92,9 +101,6 @@ function Node({ node }: { node: NodeHop }) {
       state: { gateway, hop: node, resetScroll: true },
     });
     setFocused(node, { type: 'gateway', key: gateway.id });
-    // if the picked gateway's country node is not expanded, ie; while filtering
-    // expand it, so it can be restored and scrolled to when navigating back
-    // to the node list
     addToExpanded(node, gateway.country.code);
   };
 
@@ -190,6 +196,7 @@ function Node({ node }: { node: NodeHop }) {
             onNodeDetails={handleNodeDetails}
             hop={node}
             vpnMode={vpnMode}
+            quicFilter={quicFilter}
             expanded={expanded}
             focused={focused}
           />

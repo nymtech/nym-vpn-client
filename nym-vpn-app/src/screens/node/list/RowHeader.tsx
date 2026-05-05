@@ -1,12 +1,8 @@
 import { useCallback } from 'react';
 import clsx from 'clsx';
 import { Accordion } from '@base-ui-components/react';
-import {
-  SelectedKind,
-  UiCountry,
-  UiRegion,
-  useNodeListState,
-} from '../../../contexts';
+import { SelectedKind, UiCountry, UiRegion } from '../../../types/node';
+import { useNodeListState } from '../../../store/nodeListState';
 import LocationInfo from './LocationInfo';
 import FoldButton from './FoldButton';
 

@@ -58,12 +58,7 @@ function TextInput({
   };
 
   return (
-    <Field
-      className={clsx([
-        'w-full flex flex-row items-center',
-        label && 'relative',
-      ])}
-    >
+    <Field className={clsx(['w-full flex flex-row items-center relative'])}>
       <Input
         id="passphrase"
         name="passphrase"
@@ -73,7 +68,7 @@ function TextInput({
         value={value}
         aria-multiline={true}
         className={clsx([
-          'text-base transition',
+          'text-base transition relative',
           'w-full flex flex-row justify-between items-center py-3 px-4',
           !disabled && 'text-baltic-sea dark:text-white',
           disabled && 'text-iron dark:text-bombay',
@@ -81,7 +76,6 @@ function TextInput({
           ...inputStates,
           getColorClass(),
           className,
-          label && 'relative',
           leftIcon && 'pl-11',
           clearable && 'pr-11',
         ])}
@@ -92,7 +86,7 @@ function TextInput({
         data-test-has-left-icon={leftIcon ? 'true' : 'false'}
         disabled={disabled}
       />
-      {label && (
+      {/* {label && (
         <Label
           className={clsx([
             'select-none absolute left-3 -top-2 px-1',
@@ -103,7 +97,7 @@ function TextInput({
         >
           {label}
         </Label>
-      )}
+      )} */}
       {leftIcon && (
         <MsIcon
           icon={leftIcon}

@@ -7,7 +7,7 @@ import {
   UiGateway,
   UiGatewaysByCountry,
   UiRegion,
-} from '../../../contexts';
+} from '../../../types/node';
 import { NodeHop, VpnMode } from '../../../types';
 import GatewayItem from './GatewayItem';
 import RowHeader from './RowHeader';
@@ -49,8 +49,9 @@ export const NodeItem = memo(function NodeItem({
         gwCount={gateways.length}
       />
       <Accordion.Panel
+        keepMounted={false}
         data-testid={`country-accordion-content-${country.code}`}
-        className="w-full flex flex-col gap-3"
+        className="accordion-panel w-full flex flex-col gap-3"
       >
         {country.code.toLowerCase() === 'us' ? (
           regions.map((region) => (
@@ -75,7 +76,7 @@ export const NodeItem = memo(function NodeItem({
                     gwCount={region.gateways.length}
                     sub
                   />
-                  <Accordion.Panel>
+                  <Accordion.Panel keepMounted={false} className="accordion-panel">
                     <PanelContent>
                       {region.gateways.map((gateway) => (
                         <GatewayItem

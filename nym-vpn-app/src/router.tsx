@@ -22,8 +22,8 @@ import {
   Logs,
   MainLayout,
   MixnetTuning,
+  Node,
   NodeDetails,
-  NodeEntry,
   Onboarding,
   SelectPlan,
   Settings,
@@ -241,12 +241,12 @@ const router = createBrowserRouter([
       },
       {
         path: routes.entryNodeLocation,
-        element: <NodeEntry node="entry" />,
+        element: <Node node="entry" />,
         errorElement: <Error />,
       },
       {
         path: routes.exitNodeLocation,
-        element: <NodeEntry node="exit" />,
+        element: <Node node="exit" />,
         errorElement: <Error />,
       },
       {

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { UiCountry, UiRegion } from '../../../contexts';
+import { UiCountry, UiRegion } from '../../../types/node';
 import { FlagIcon, countryCode } from '../../../ui';
 
 type LocationInfoProps = {

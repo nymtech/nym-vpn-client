@@ -3,21 +3,18 @@ import { dequal } from 'dequal';
 import { Accordion } from '@base-ui-components/react';
 import { Trans, useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { useShallow } from 'zustand/react/shallow';
+import { NodeHop, VpnMode } from '../../../types';
+import { Focused, useNodeListState } from '../../../store/nodeListState';
 import {
-  Focused,
   SelectedKind,
   SelectedUiNode,
   UiCountry,
   UiGateway,
   UiGatewaysByCountry,
   UiRegion,
-  useNodeListState,
-} from '../../../contexts';
-import { NodeHop, VpnMode } from '../../../types';
+} from '../../../types/node';
 import { Link } from '../../../ui';
 import { ContactSupportUrl, DocsUrl } from '../../../constants';
-import { useAppStore } from '../../../store';
 import { NodeItem } from './NodeItem';
 import GatewayItem from './GatewayItem';
 import { PanelContent } from './NodeListPanelContent';
@@ -29,6 +26,7 @@ export type NodeListProps = {
   onNodeDetails: (node: UiGateway) => void;
   hop: NodeHop;
   vpnMode: VpnMode;
+  quicFilter: boolean;
   expanded: string[];
   focused: Focused | null;
 };
@@ -39,20 +37,12 @@ const NodeList = memo(function NodeList({
   onSelect,
   hop,
   vpnMode,
+  quicFilter,
   onNodeDetails,
   expanded,
 }: NodeListProps) {
-  const { backendFlags, quic } = useAppStore(
-    useShallow((s) => ({
-      backendFlags: s.backendFlags,
-      quic: s.quic,
-    })),
-  );
   const { setExpanded } = useNodeListState();
   const { t } = useTranslation('node-location');
-
-  const quicFilter =
-    vpnMode === 'wg' && hop === 'entry' && backendFlags.quic && quic;
 
   const handleLocationSelect = (
     location: UiCountry | UiRegion,
@@ -60,8 +50,6 @@ const NodeList = memo(function NodeList({
     gwCount: number,
   ) => {
     if (isSelected && isSelected !== hop && gwCount <= 1) {
-      // don't allow selecting a country if it has only one gateway,
-      // and it's already selected by the other hop
       return;
     }
     if (isSelected !== hop && isSelected !== 'entry-and-exit') {
@@ -157,6 +145,7 @@ function arePropsEqual(
 ): boolean {
   if (oldProps.hop !== newProps.hop) return false;
   if (oldProps.vpnMode !== newProps.vpnMode) return false;
+  if (oldProps.quicFilter !== newProps.quicFilter) return false;
   if (oldProps.gateways.length !== newProps.gateways.length) return false;
   if (oldProps.nodes.length !== newProps.nodes.length) return false;
   if (!dequal(oldProps.expanded, newProps.expanded)) return false;

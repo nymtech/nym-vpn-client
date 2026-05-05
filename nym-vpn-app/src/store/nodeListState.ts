@@ -1,8 +1,13 @@
 import { create } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
-import { Focused } from './types';
 
 export type Hop = 'entry' | 'exit';
+
+export type Focused = {
+  type: 'gateway' | 'region' | 'country';
+  // country 2-letter code | region name | gateway ID
+  key: string;
+};
 
 type HopState = {
   expanded: string[];
@@ -49,4 +54,5 @@ export const useNodeListStateStore = create<NodeListStore>((set, get) => ({
   },
 }));
 
-export const useNodeListState = () => useNodeListStateStore(useShallow((s) => s));
+export const useNodeListState = () =>
+  useNodeListStateStore(useShallow((s) => s));

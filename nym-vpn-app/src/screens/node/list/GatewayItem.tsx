@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
-import { UiGateway, useNodeListState } from '../../../contexts';
+import { UiGateway } from '../../../types/node';
+import { useNodeListState } from '../../../store/nodeListState';
 import { MsIcon } from '../../../ui';
 import { NodeHop, VpnMode } from '../../../types';
 import { useLang } from '../../../hooks';

@@ -6,7 +6,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useLocation, useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
-import { UiGateway, useNodeListState } from '../../../contexts';
+import { UiGateway } from '../../../types/node';
+import { useNodeListState } from '../../../store/nodeListState';
 import {
   Button,
   ButtonIcon,
@@ -23,7 +24,7 @@ import {
   NetworkExplorerNodeUrl,
   SupportServerLocationUrl,
 } from '../../../constants';
-import { isSelectedNodeType } from '../../../contexts/node-list/util';
+import { isSelectedNodeType } from '../../../types/node';
 import { routes } from '../../../router';
 import { ScoreIndicator } from '../ScoreIndicator';
 import { dispatch, useAppStore } from '../../../store';
