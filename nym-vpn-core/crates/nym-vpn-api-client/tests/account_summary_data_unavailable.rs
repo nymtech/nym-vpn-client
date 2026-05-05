@@ -1,4 +1,4 @@
-//! HTTP round-trip for `fairUsage.dataUnavailable` via wiremock (replaces the removed example binary).
+//! HTTP round-trip for `fairUsage.dataUnavailable` via wiremock (authoritative coverage for this contract).
 
 use std::str::FromStr;
 
