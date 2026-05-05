@@ -75,7 +75,7 @@ const GatewayItem = ({
     <div
       ref={scrollToGatewayRef}
       className={clsx(
-        'flex flex-row justify-between items-center select-none',
+        'flex flex-row justify-between items-center select-none rounded-2xl',
         'hover:bg-mercury hover:dark:bg-mine-shaft',
       )}
     >

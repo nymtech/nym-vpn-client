@@ -11,6 +11,7 @@ import { useNodeListState } from '../../../store/nodeListState';
 import {
   Button,
   ButtonIcon,
+  ButtonNew,
   FlagIcon,
   Link,
   MsIcon,
@@ -374,9 +375,9 @@ function NodeDetails() {
       </div>
       {!isSelected && (
         <div className="p-4 bg-white dark:bg-charcoal border-t border-bombay dark:border-iron">
-          <Button onClick={handleSelect}>
+          <ButtonNew onClick={handleSelect}>
             {t('node-details.select-button')}
-          </Button>
+          </ButtonNew>
         </div>
       )}
     </PageAnim>
