@@ -4,7 +4,9 @@
 use std::{net::IpAddr, sync::Arc};
 
 use nym_common::ErrorExt;
-use nym_vpn_lib::service::{AccountLinksError, ListGatewaysError, VpnServiceCommand};
+use nym_vpn_lib::service::{
+    AccountLinksError, AirportingConfigError, ListGatewaysError, VpnServiceCommand,
+};
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
@@ -21,6 +23,7 @@ enum NymVpnServiceCommandInnerError {
     ListGateway(#[source] ListGatewaysError),
     Account(#[source] AccountCommandError),
     AccountLinks(#[source] AccountLinksError),
+    AirportingConfig(#[source] AirportingConfigError),
 }
 
 impl std::fmt::Display for NymVpnServiceCommandInnerError {
@@ -30,6 +33,7 @@ impl std::fmt::Display for NymVpnServiceCommandInnerError {
             Self::ListGateway(err) => write!(f, "{}", err.display_chain()),
             Self::Account(err) => write!(f, "{}", err.display_chain()),
             Self::AccountLinks(err) => write!(f, "{}", err.display_chain()),
+            Self::AirportingConfig(err) => write!(f, "{}", err.display_chain()),
         }
     }
 }
@@ -337,5 +341,22 @@ impl NymVpnServiceCommandSender {
         .map_err(|_| {
             NymVpnServiceCommandInnerError::Internal("Failed to serialize DiagnosticReport")
         })?)
+    }
+
+    pub async fn set_airporting_enabled(&self, enabled: bool) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetAirportingEnabled, enabled)
+            .await
+    }
+
+    pub async fn set_airporting_listen_port(&self, listen_port: u16) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetAirportingListenPort, listen_port)
+            .await
+    }
+
+    pub async fn set_airporting_excluded_countries(&self, countries: Vec<String>) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetAirportingExcludedCountries, countries)
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::AirportingConfig)?;
+        Ok(())
     }
 }

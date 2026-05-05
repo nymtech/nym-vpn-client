@@ -24,6 +24,7 @@ import nym_vpn_lib.NymVpnServiceCommandException
 import nym_vpn_lib.NymVpnServiceCommandSender
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.initLogger
+import nym_vpn_lib_types.AirportingSettings
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
@@ -347,6 +348,7 @@ class VpnCoreController(
 			customDns = emptyList(),
 			residentialExit = false,
 			enableAdBlocking = adBlockingEnabled,
+			airporting = AirportingSettings(enabled = true, listenPort = 1080u, excludedCountries = listOf("CN")),
 			mixnetTraffic = mixnetParamConfig,
 			networkStats = null,
 			userAgent = userAgent,
