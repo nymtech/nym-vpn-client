@@ -151,6 +151,18 @@ pub enum AdBlockerError {
     #[error("unknown line reader error")]
     UnknownLineReadError(#[source] std::io::Error),
 
+    #[error("failed to open database")]
+    OpenDb(#[source] sqlx::Error),
+
+    #[error("failed to open database")]
+    MigrateDb(#[source] sqlx::migrate::MigrateError),
+
+    #[error("failed to acquire connection to database")]
+    AcquireDbConnection(#[source] sqlx::Error),
+
+    #[error("failed to populate database")]
+    PopulateDb(#[source] sqlx::Error),
+
     #[error("cancelled")]
     Cancelled,
 }

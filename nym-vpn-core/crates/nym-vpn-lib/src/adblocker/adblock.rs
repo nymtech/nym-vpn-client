@@ -49,7 +49,8 @@ impl AdBlocker {
         #[cfg(not(target_os = "ios"))]
         let engine = AdBlockEngineWrap::Brave(BraveAdblockEngine::default());
         #[cfg(target_os = "ios")]
-        let engine = AdBlockEngineWrap::Simple(SimpleAdBlockEngine::default());
+        let engine =
+            AdBlockEngineWrap::Simple(SimpleAdBlockEngine::new(cache_dir.join("adblock.db")));
 
         let file_manager =
             AdBlockFileManagerWrap::Real(RealFileManager::new(user_agent, cache_dir.clone()));
