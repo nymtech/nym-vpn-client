@@ -358,10 +358,10 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     #[traced_test]
-    async fn test_states() {
+    async fn test_state_transitions() {
         let cache_dir = std::env::temp_dir();
 
-        let engine = MockEngine;
+        let engine = MockEngine::default();
         let file_manager = MockFileManager;
 
         let (state_tx, mut state_rx) = tokio::sync::mpsc::unbounded_channel();
@@ -410,6 +410,37 @@ mod tests {
             wait_state(&mut state_rx).await.unwrap(),
             PrimitiveState::Disabled
         ));
+    }
+
+    #[tokio::test(start_paused = true)]
+    #[traced_test]
+    async fn test_reset_store_on_load_filters_failure() {
+        let cache_dir = std::env::temp_dir();
+
+        let (engine, promise) = MockEngine::fail_once();
+        let file_manager = MockFileManager;
+
+        let (state_tx, mut state_rx) = tokio::sync::mpsc::unbounded_channel();
+
+        let adblocker = AdBlocker::create(
+            cache_dir,
+            ObservableState::new_with_observer(state_tx),
+            Arc::new(AdBlockEngineWrap::Mock(engine)),
+            Arc::new(AdBlockFileManagerWrap::Mock(file_manager)),
+        );
+        adblocker.enable().await;
+
+        assert!(matches!(
+            wait_state(&mut state_rx).await.unwrap(),
+            PrimitiveState::Initializing
+        ));
+
+        assert!(matches!(
+            wait_state(&mut state_rx).await.unwrap(),
+            PrimitiveState::Enabled
+        ));
+
+        assert!(promise.is_fulfilled());
     }
 
     async fn wait_state(
