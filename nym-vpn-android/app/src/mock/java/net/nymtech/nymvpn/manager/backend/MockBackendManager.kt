@@ -34,10 +34,7 @@ import javax.inject.Singleton
  * Returns canned responses without requiring the real nym-vpnd daemon.
  */
 @Singleton
-class MockBackendManager @Inject constructor(
-	@ApplicationScope private val applicationScope: CoroutineScope,
-	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
-) : BackendManager {
+class MockBackendManager @Inject constructor(@ApplicationScope private val applicationScope: CoroutineScope, @IoDispatcher private val ioDispatcher: CoroutineDispatcher) : BackendManager {
 
 	companion object {
 		private const val CONNECT_DELAY_MS = 1500L
@@ -245,11 +242,9 @@ class MockBackendManager @Inject constructor(
 
 	override suspend fun refreshAccount() {}
 
-	override suspend fun getMnemonic(): List<String> =
-		listOf("mock", "seed", "phrase", "for", "ui", "testing", "only", "not", "real", "words", "at", "all")
+	override suspend fun getMnemonic(): List<String> = listOf("mock", "seed", "phrase", "for", "ui", "testing", "only", "not", "real", "words", "at", "all")
 
-	override suspend fun getAccountState(): AccountControllerState =
-		AccountControllerState.ReadyToConnect
+	override suspend fun getAccountState(): AccountControllerState = AccountControllerState.ReadyToConnect
 
 	override suspend fun getDaemonVersion(): String = "mock-1.0.0"
 
