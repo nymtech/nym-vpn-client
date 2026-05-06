@@ -33,8 +33,6 @@ use crate::tunnel_provider::AndroidTunProvider;
 use crate::tunnel_provider::OSTunProvider;
 
 use crate::adblocker;
-#[cfg(target_os = "android")]
-use crate::dns_filter::DnsFilter;
 #[cfg(not(target_os = "android"))]
 use crate::resolver;
 #[cfg(not(target_os = "ios"))]
@@ -757,12 +755,6 @@ impl SharedState {
         } else {
             self.adblocker.disable().await;
         }
-    }
-
-    /// Get the current DNS filter from the adblocker (Android only).
-    #[cfg(target_os = "android")]
-    pub async fn get_dns_filter(&self) -> Option<DnsFilter> {
-        self.adblocker.get_dns_filter().await
     }
 
     /// Set which applications matching the given paths should be excluded from the tunnel

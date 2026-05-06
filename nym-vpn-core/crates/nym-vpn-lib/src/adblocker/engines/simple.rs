@@ -24,8 +24,7 @@ use crate::{
         engines::AdBlockEngine,
         file_manager::{SOURCES, Source, SourceMetaData},
     },
-    dns_filter::{DnsFilterDecision, DnsFilterT},
-    resolver::DnsFilterStrategy,
+    dns_filter::{DnsFilterDecision, DnsFilterStrategy, DnsFilterT},
 };
 
 /// Soft heap limit that advises SQLite to free up memory
