@@ -66,7 +66,7 @@ export const routes = {
   nodeDetails: '/node-details',
   hideout: '/hideout',
   welcome: '/hideout/welcome',
-  onboarding: '/onboarding',
+  onboarding: '/hideout/onboarding',
   mixnetTuning: '/settings/mixnet-tuning',
   accountSettings: '/settings/account',
 
@@ -100,11 +100,11 @@ const router = createBrowserRouter([
         Component: Signup,
         errorElement: <Error />,
       },
-      {
-        path: routes.onboarding,
-        Component: Onboarding,
-        errorElement: <Error />,
-      },
+      // {
+      //   path: routes.onboarding,
+      //   Component: Onboarding,
+      //   errorElement: <Error />,
+      // },
       {
         path: routes.account,
         Component: AccountRouteIndex,
@@ -263,6 +263,11 @@ const router = createBrowserRouter([
       {
         path: routes.welcome,
         Component: Welcome,
+        errorElement: <Error />,
+      },
+      {
+        path: routes.onboarding,
+        Component: Onboarding,
         errorElement: <Error />,
       },
     ],

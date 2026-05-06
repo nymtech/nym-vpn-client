@@ -1,13 +1,15 @@
 import clsx from 'clsx';
-import { useNavigate } from 'react-router';
+import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { useTranslation } from 'react-i18next';
 import { Button as HuButton } from '@headlessui/react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { Button, MsIcon, PageAnim } from '../../ui';
+import { Button, ButtonIconNew, ButtonNew, MsIcon, PageAnim } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import { routes } from '../../router';
 import { Speed, Tracking, Welcome, ZeroKnowledge } from './slides';
 import { DotButton, useDotButton } from './CarouselDotButton';
+import { InteractiveCard } from '../home/InteractiveCard';
+import { useAppStore } from '../../store/index';
 
 const slides = [Welcome, Speed, Tracking, ZeroKnowledge];
 
@@ -40,7 +42,9 @@ const ArrowButton = ({
 };
 
 function Onboarding() {
-  const navigate = useNavigate();
+  const uiTheme = useAppStore((s) => s.uiTheme);
+
+  const navigate = useAnimatedNavigate();
   const { t } = useTranslation('onboarding');
   const [emblaRef, emblaApi] = useEmblaCarousel({
     duration: 20,
@@ -49,15 +53,29 @@ function Onboarding() {
   const { selectedIndex, scrollSnaps, onDotButtonClick } =
     useDotButton(emblaApi);
 
-  const handleNavigate = (route: string) => {
-    navigate(route);
-  };
+  const handleNavigate = (route: string) => navigate(route);
 
   return (
-    <PageAnim className="h-full flex flex-col justify-end items-center gap-8 select-none cursor-default">
+    <InteractiveCard className="h-full">
+      <div className="mb-12">
+        <div className="flex items-center justify-center relative h-[27px]">
+          <NymVpnTextLogo
+            className={clsx(
+              'w-[100px] h-[27px]',
+              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+            )}
+          />
+          <ButtonIconNew
+            initialAnimation={true}
+            icon="close"
+            onClick={() => navigate(routes.root)}
+            className="absolute right-0 text-bombay hover:text-baltic-sea dark:hover:text-white transition-noborder cursor-default"
+          />
+        </div>
+      </div>
       <section className="embla w-full h-full flex flex-col justify-between">
         <div className="flex flex-1 justify-center flex-col gap-6 items-center">
-          <NymVpnTextLogo className="w-32" />
+          {/* <NymVpnTextLogo className="w-32" /> */}
           <div className="overflow-hidden w-full" ref={emblaRef}>
             <div className="flex touch-pinch-zoom">
               {slides.map((Slide, index) => (
@@ -97,22 +115,12 @@ function Onboarding() {
         </div>
 
         <div className="flex flex-col items-center gap-4 w-full">
-          <Button onClick={() => handleNavigate(routes.signup)}>
-            {t('controls.create-account')}
-          </Button>
-          <Button
-            outline
-            color="gray"
-            onClick={() => handleNavigate(routes.login)}
-            className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
-          >
-            <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-              {t('controls.login')}
-            </span>
-          </Button>
+          <ButtonNew onClick={() => handleNavigate(routes.loginScreen2)}>
+            Get Started
+          </ButtonNew>
         </div>
       </section>
-    </PageAnim>
+    </InteractiveCard>
   );
 }
 

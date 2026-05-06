@@ -100,7 +100,7 @@ export default function TopBar() {
         },
         noBackground: true,
       },
-      '/onboarding': {
+      '/hideout/onboarding': {
         rightIcon: 'close',
         handleRightNav: () => navigate(routes.root),
         noBackground: true,
