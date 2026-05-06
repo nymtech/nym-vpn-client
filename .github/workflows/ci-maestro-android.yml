@@ -68,8 +68,7 @@ jobs:
             nym-vpn-core/target
             ~/.cargo/registry
             ~/.cargo/git
-          key: android-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
-          restore-keys: android-cargo-
+          key: android-cargo-v2-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
 
       - name: Log tool versions
         run: |
@@ -105,7 +104,7 @@ jobs:
           "$HOME/.maestro/bin/maestro" --version
 
       - name: Run Maestro UI tests
-        uses: reactivecircus/android-emulator-runner@e93c997dcab69054e999e3924af3d21c4a736e13 # v2.9.0
+        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a # v2.37.0
         with:
           api-level: 34
           arch: x86_64
@@ -113,7 +112,7 @@ jobs:
           disable-animations: true
           script: |
             adb install nym-vpn-android/app/build/outputs/apk/mock/debug/*.apk
-            maestro test nym-vpn-android/maestro/flows/ --format junit --output maestro-report.xml
+            maestro test nym-vpn-android/maestro --format junit --output maestro-report.xml
 
       - name: Upload Maestro report
         if: always()
