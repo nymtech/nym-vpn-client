@@ -6,6 +6,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.plus
@@ -16,13 +17,18 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.AsnKind
+import nym_vpn_lib_types.AutologinResponse
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
+import nym_vpn_lib_types.NymVpnSubscription
+import nym_vpn_lib_types.NymVpnSubscriptionKind
+import nym_vpn_lib_types.NymVpnSubscriptionStatus
 import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.NoHandle
 import nym_vpn_lib_types.Score
 import nym_vpn_lib_types.StoredAccountMode
+import nym_vpn_lib_types.Subscription
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.FeatureFlags as SdkFeatureFlags
 import nym_vpn_lib_types.VpnAccountSummary
@@ -169,18 +175,38 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		emptyList()
 	}
 
+	private val mockSubscription = Subscription(
+		status = NymVpnSubscriptionStatus.ACTIVE,
+		subscription = NymVpnSubscription(
+			createdOnUtc = "2026-01-01T00:00:00Z",
+			lastUpdatedUtc = "2026-01-01T00:00:00Z",
+			id = "mock-subscription-id",
+			validUntilUtc = 1798761600L, // 2027-01-01
+			validFromUtc = 1767225600L, // 2026-01-01
+			status = "active",
+			kind = NymVpnSubscriptionKind.OneYear,
+			isRecurring = true,
+		),
+	)
+
 	private val mockAccountSummary = VpnAccountSummary(
-		subscriptionValidUntil = null,
 		trafficUsedGb = 12uL,
 		trafficLimitGb = 50uL,
 		trafficResetTime = null,
 		accountAddr = "mock-account-address",
 		canonicalAccountAddr = "mock-canonical-address",
 		authMethods = emptyList(),
+		accountMode = StoredAccountMode.PRIVY,
+		subscription = mockSubscription,
+		isSubscriptionStacked = false,
+		fairUsageDataUnavailable = false,
 	)
 
 	override val stateFlow: StateFlow<TunnelManagerState> =
 		_state.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.Eagerly, _state.value)
+
+	private val _accountSummaryFlow = MutableStateFlow<VpnAccountSummary?>(mockAccountSummary)
+	override val accountSummaryFlow: StateFlow<VpnAccountSummary?> = _accountSummaryFlow.asStateFlow()
 
 	override fun initialize() {
 		_state.update { it.copy(isInitialized = true) }
@@ -257,11 +283,18 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 	override suspend fun getDeeplink(kind: DeeplinkKind): String = when (kind) {
 		DeeplinkKind.PRIVY -> "https://nym.com/privy/auth"
 		DeeplinkKind.PRIVY_LINK -> "https://nym.com/privy/link-account"
+		DeeplinkKind.AUTOLOGIN_RENEW -> "https://nym.com/autologin/renew"
+		DeeplinkKind.AUTOLOGIN_VIEW -> "https://nym.com/autologin/view"
+		DeeplinkKind.CREATE_ACCOUNT -> "https://nym.com/create-account"
 	}
+
+	override suspend fun getAutologinDeeplink(kind: DeeplinkKind): AutologinResponse = AutologinResponse(url = "https://nym.com/autologin/mock", pinCode = "000000")
 
 	override suspend fun storeDeeplinkAccount(url: String) {}
 
 	override suspend fun getAccountMode(): StoredAccountMode = StoredAccountMode.PRIVY
 
 	override suspend fun getAccountSummary(): VpnAccountSummary = mockAccountSummary
+
+	override suspend fun runDiagnostic(): String? = null
 }
