@@ -14,6 +14,7 @@ use crate::service::{
         split_tunnel_settings::v8::SplitTunnelSettings,
     },
 };
+use nym_vpn_lib_types::GatewayIndependence;
 use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, str::FromStr};
 
@@ -38,11 +39,12 @@ pub struct VpnServiceConfig {
     pub split_tunnel: SplitTunnelSettings,
     pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    pub gateway_independence: GatewayIndependence,
 }
 
 impl From<VpnServiceConfig> for VpnServiceConfigExt {
-    fn from(v9: VpnServiceConfig) -> Self {
-        VpnServiceConfigExt::V9(v9)
+    fn from(v10: VpnServiceConfig) -> Self {
+        VpnServiceConfigExt::V10(v10)
     }
 }
 
@@ -72,6 +74,8 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
                 value.gateway_selection_algorithm_config,
             );
         let fronting_mode = nym_vpn_lib_types::FrontingMode::from(value.fronting_mode);
+        let gateway_independence =
+            nym_vpn_lib_types::GatewayIndependence::from(value.gateway_independence);
 
         Ok(nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -93,7 +97,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             split_tunnel,
             geo_exclusion,
             gateway_selection_algorithm_config,
-            ..Default::default()
+            gateway_independence,
         })
     }
 }

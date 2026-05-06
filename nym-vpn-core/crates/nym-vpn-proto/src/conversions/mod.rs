@@ -6,6 +6,7 @@ pub mod account_controller_state;
 pub mod diagnostic;
 pub mod error;
 pub mod gateway_directory;
+pub mod gateway_independence;
 pub mod gateway_selection_algorithm;
 pub mod network_config;
 pub mod network_stats;

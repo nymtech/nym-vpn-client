@@ -552,6 +552,7 @@ impl VpnServiceConfigManager {
                 .config
                 .gateway_selection_algorithm_config
                 .clone(),
+            gateway_independence: self.config.gateway_independence,
         }
     }
 }
