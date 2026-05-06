@@ -70,8 +70,8 @@ use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
-    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    GatewayIndependence, GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig,
+    GeoExclusionSettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -189,6 +189,9 @@ pub struct TunnelSettings {
 
     /// How the gateways should be selected.
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+
+    /// Heuristics for what is accepted as independent entry and exit gateways
+    pub gateway_independence: GatewayIndependence,
 }
 
 impl TunnelSettings {

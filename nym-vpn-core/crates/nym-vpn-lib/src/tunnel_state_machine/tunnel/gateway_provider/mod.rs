@@ -278,6 +278,7 @@ pub mod tests {
             split_tunnel: Default::default(),
             gateway_selection_algorithm_config: Default::default(),
             geo_exclusion_settings: Default::default(),
+            gateway_independence: Default::default(),
         }
     }
 
