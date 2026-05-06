@@ -15,7 +15,7 @@ pub use simple::SimpleAdBlockEngine;
 
 use crate::{
     adblocker::Result,
-    resolver::{DnsFilterDecision, DnsFilterT},
+    dns_filter::{DnsFilterDecision, DnsFilterT},
 };
 
 /// Type describing adblock engine.
