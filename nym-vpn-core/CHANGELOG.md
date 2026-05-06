@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- [iOS] Introduce ad-blocker. (https://github.com/nymtech/nym-vpn-client/pull/5227)
+
 ### Fixed
 
 - Fix panic when restoring default routes (https://github.com/nymtech/nym-vpn-client/pull/5225)
