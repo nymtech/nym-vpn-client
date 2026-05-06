@@ -25,7 +25,7 @@ pub fn mock_subscription_summary_with_device(
             created_on_utc: "whatever".to_string(),
             last_updated_utc: "whatever".to_string(),
             id: "whatever".to_string(),
-            valid_until_utc: "2025-08-20 13:46:26.572Z".to_string(),
+            valid_until_utc: "2099-08-20 13:46:26.572Z".to_string(),
             valid_from_utc: "2025-07-21 13:46:26.572Z".to_string(),
             status: NymVpnSubscriptionStatus::Active,
             kind: NymVpnSubscriptionKind::Freepass,
@@ -40,7 +40,7 @@ pub fn mock_subscription_summary_with_device(
             created_on_utc: "whatever".to_string(),
             last_updated_utc: "whatever".to_string(),
             id: "whatever".to_string(),
-            valid_until_utc: "2025-08-20 13:46:26.572Z".to_string(),
+            valid_until_utc: "2099-08-20 13:46:26.572Z".to_string(),
             valid_from_utc: "2025-07-21 13:46:26.572Z".to_string(),
             status: NymVpnSubscriptionStatus::Pending,
             kind: NymVpnSubscriptionKind::Freepass,
@@ -81,6 +81,7 @@ pub fn mock_subscription_summary_with_device(
                 usedGB: fair_usage,
                 limitGB: MAX_FAIR_USAGE,
                 resetsOnUtc: Some("2025-08-20 13:46:26.572Z".to_string()),
+                data_unavailable: false,
             },
         },
         active_device,
@@ -125,6 +126,13 @@ pub fn account_ready_to_connect() -> NymVpnAccountSummaryWithDeviceResponse {
 // Special cases
 pub fn account_no_fair_usage() -> NymVpnAccountSummaryWithDeviceResponse {
     mock_subscription_summary_with_device(true, true, false, 0, MAX_FAIR_USAGE, None)
+}
+
+pub fn account_data_unavailable_exhausted_quota() -> NymVpnAccountSummaryWithDeviceResponse {
+    let mut resp =
+        mock_subscription_summary_with_device(true, true, false, 0, MAX_FAIR_USAGE, None);
+    resp.account_summary.fair_usage.data_unavailable = true;
+    resp
 }
 
 pub fn account_max_devices() -> NymVpnAccountSummaryWithDeviceResponse {
