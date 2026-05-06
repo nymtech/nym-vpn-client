@@ -12,7 +12,7 @@
 //! Platform-specific responsibilities (binding sockets, adding loopback aliases, flushing system
 //! DNS caches) are delegated to `platform`.
 
-#[cfg(any(target_os = "macos", target_os = "ios", target_os = "linux"))]
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 mod unix;
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
@@ -66,7 +66,6 @@ use hickory_server::{
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
 };
-use rand::Rng;
 use tokio::{
     net::{TcpListener, UdpSocket},
     sync::{mpsc, oneshot},
@@ -79,13 +78,14 @@ use apple_connection_provider::{AppleConnectionProvider, TokioResolver};
 use hickory_server::resolver::TokioResolver;
 
 #[async_trait]
-pub(crate) trait LoopbackAlias: Send {
+#[cfg_attr(target_os = "ios", allow(unused))]
+pub trait LoopbackAlias: Send {
     fn addr(&self) -> IpAddr;
 
     async fn unassign(self: Box<Self>);
 }
 
-pub(crate) type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
+pub type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
 
 pub use crate::dns_filter::{
     DnsFilter, DnsFilterDecision, DnsFilterStrategy, DnsFilterT, NullDnsFilter,
@@ -762,7 +762,10 @@ impl LookupObject for ForwardLookup {
     }
 }
 
-pub(crate) fn random_loopback_ipv4() -> IpAddr {
+#[cfg(not(target_os = "ios"))]
+pub fn random_loopback_ipv4() -> IpAddr {
+    use rand::Rng;
+
     IpAddr::from(Ipv4Addr::new(
         127,
         rand::thread_rng().gen_range(1..=255),
