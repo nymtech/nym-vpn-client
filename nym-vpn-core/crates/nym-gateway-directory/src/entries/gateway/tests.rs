@@ -482,6 +482,8 @@ fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
                 }),
                 version: None,
                 lewes_protocol_details: None,
+                node_staking: None,
+                node_family: None,
             }
         })
         .collect();
@@ -516,6 +518,8 @@ fn create_test_gateway(identity: &str, country: &str, score: ScoreValue) -> Gate
         }),
         version: None,
         lewes_protocol_details: None,
+        node_staking: None,
+        node_family: None,
     }
 }
 
@@ -576,5 +580,7 @@ fn create_response_nym_gateway(
         }),
         build_information: None,
         lewes_protocol_details: None,
+        node_staking: None,
+        node_family: None,
     }
 }
