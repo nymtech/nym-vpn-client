@@ -43,7 +43,10 @@ pub(crate) static SOURCES: &[Source] = &[
 
 #[async_trait::async_trait]
 pub trait AdBlockFileManager: Send + Sync {
+    /// Initialize the ad-blocker domain lists using the ones built-into the binary.
     async fn init_files(&self, force: bool) -> Result<()>;
+
+    /// Update the ad-blocker domain lists by downloading the latest versions
     async fn update_files(&self, cancel_token: CancellationToken) -> Result<bool>;
 }
 
@@ -77,7 +80,6 @@ impl AdBlockFileManager for RealFileManager {
     }
 }
 
-/// Initialize the ad-blocker domain lists using the ones built-into the binary.
 async fn init_files(cache_dir: &Path, force: bool) -> Result<()> {
     fs::create_dir_all(&cache_dir)
         .await
@@ -93,7 +95,6 @@ async fn init_files(cache_dir: &Path, force: bool) -> Result<()> {
     Ok(())
 }
 
-/// Update the ad-blocker domain lists by downloading the latest versions
 async fn update_files(
     cache_dir: &Path,
     user_agent: &str,
