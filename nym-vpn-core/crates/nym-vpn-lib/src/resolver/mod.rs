@@ -286,7 +286,7 @@ impl Resolver {
                     RecordType::AAAA => RData::AAAA(rdata::AAAA(Ipv6Addr::LOCALHOST)),
                     RecordType::CNAME => RData::CNAME(rdata::CNAME(Name::from_str("localhost.")?)),
                     other => {
-                        tracing::warn!("Unsupported query type {other} for domain {qname}");
+                        tracing::trace!("Unsupported query type {other} for domain {qname}");
                         return Ok(Box::new(EmptyLookup) as Box<dyn LookupObject>);
                     }
                 };
