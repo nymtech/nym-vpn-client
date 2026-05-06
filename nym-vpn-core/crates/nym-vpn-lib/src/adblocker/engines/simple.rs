@@ -103,12 +103,6 @@ impl DnsFilterT for SimpleAdBlockEngine {
         const PASS: DnsFilterDecision = DnsFilterDecision::Pass;
         const BLOCK: DnsFilterDecision = DnsFilterDecision::Block(DnsFilterStrategy::Localhost);
 
-        // Always pass if database is not loaded
-        let db_guard = self.db.read().await;
-        let Some(db) = &*db_guard else {
-            return PASS;
-        };
-
         let mut domain = domain.trim();
 
         // Treat empty / root as non-blockable.
@@ -125,6 +119,12 @@ impl DnsFilterT for SimpleAdBlockEngine {
         if domain.is_empty() {
             return BLOCK;
         }
+
+        // Always pass if database is not loaded
+        let db_guard = self.db.read().await;
+        let Some(db) = &*db_guard else {
+            return PASS;
+        };
 
         // Lowercase for case-insensitive lookup
         let domain = domain.to_lowercase();
