@@ -11,6 +11,7 @@ mod mixnet_traffic;
 mod network_stats;
 mod split_tunnel_settings;
 mod v1;
+mod v10;
 mod v2;
 mod v3;
 mod v4;
@@ -25,6 +26,7 @@ mod tests;
 
 pub use config_manager::VpnServiceConfigManager;
 
+use nym_vpn_lib_types::GatewayIndependence;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     fmt,
@@ -106,12 +108,13 @@ enum VpnServiceConfigVersion {
     V7,
     V8,
     V9,
+    V10,
 }
 
 impl VpnServiceConfigVersion {
     /// Returns the latest version of the config file.
     pub fn latest() -> Self {
-        VpnServiceConfigVersion::V9
+        VpnServiceConfigVersion::V10
     }
 }
 
@@ -127,6 +130,7 @@ impl fmt::Display for VpnServiceConfigVersion {
             VpnServiceConfigVersion::V7 => "v7",
             VpnServiceConfigVersion::V8 => "v8",
             VpnServiceConfigVersion::V9 => "v9",
+            VpnServiceConfigVersion::V10 => "v10",
         })
     }
 }
@@ -144,6 +148,7 @@ enum VpnServiceConfigExt {
     V7(v7::VpnServiceConfig),
     V8(v8::VpnServiceConfig),
     V9(v9::VpnServiceConfig),
+    V10(v10::VpnServiceConfig),
 }
 
 impl VpnServiceConfigExt {
@@ -158,6 +163,7 @@ impl VpnServiceConfigExt {
             VpnServiceConfigExt::V7(_) => VpnServiceConfigVersion::V7,
             VpnServiceConfigExt::V8(_) => VpnServiceConfigVersion::V8,
             VpnServiceConfigExt::V9(_) => VpnServiceConfigVersion::V9,
+            VpnServiceConfigExt::V10(_) => VpnServiceConfigVersion::V10,
         }
     }
 }
@@ -176,6 +182,7 @@ impl TryFrom<VpnServiceConfigExt> for nym_vpn_lib_types::VpnServiceConfig {
             VpnServiceConfigExt::V7(v7) => nym_vpn_lib_types::VpnServiceConfig::try_from(v7),
             VpnServiceConfigExt::V8(v8) => nym_vpn_lib_types::VpnServiceConfig::try_from(v8),
             VpnServiceConfigExt::V9(v9) => nym_vpn_lib_types::VpnServiceConfig::try_from(v9),
+            VpnServiceConfigExt::V10(v10) => nym_vpn_lib_types::VpnServiceConfig::try_from(v10),
         }
     }
 }
@@ -206,7 +213,9 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let fronting_mode = FrontingMode::from(&value.fronting_mode);
 
-        let v9 = v9::VpnServiceConfig {
+        let gateway_independence = GatewayIndependence::from(value.gateway_independence);
+
+        let v10 = v10::VpnServiceConfig {
             entry_point,
             exit_point,
             allow_lan: value.allow_lan,
@@ -226,9 +235,10 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             split_tunnel,
             geo_exclusion,
             gateway_selection_algorithm_config,
+            gateway_independence,
         };
 
-        Ok(VpnServiceConfigExt::V9(v9))
+        Ok(VpnServiceConfigExt::V10(v10))
     }
 }
 

@@ -296,6 +296,11 @@ message GatewaySelectionAlgorithmConfig {
   GatewaySelectionAlgorithm gateway_selection_algorithm = 2;
 }
 
+message GatewayIndependence {
+  bool different_node_family = 1;
+  bool different_asn = 2;
+}
+
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
@@ -316,6 +321,7 @@ message VpnServiceConfig {
   GeoExclusionSettings geo_exclusion = 29;
   GatewaySelectionAlgorithmConfig gateway_selection_algorithm = 30;
   FrontingModes fronting_mode = 31;
+  GatewayIndependence gateway_independence = 32;
 }
 
 message NetworkStatsConfig {
