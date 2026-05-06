@@ -68,8 +68,7 @@ jobs:
             nym-vpn-core/target
             ~/.cargo/registry
             ~/.cargo/git
-          key: android-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
-          restore-keys: android-cargo-
+          key: android-cargo-v2-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
 
       - name: Log tool versions
         run: |
