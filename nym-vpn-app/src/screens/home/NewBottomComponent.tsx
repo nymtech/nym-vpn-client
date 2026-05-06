@@ -2,7 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
-import { ButtonNew, FlagIcon, MsIcon, type countryCode } from '../../ui';
+import {
+  ButtonNew,
+  ButtonVariant,
+  FlagIcon,
+  MsIcon,
+  type countryCode,
+} from '../../ui';
 import {
   dispatch,
   useAppStore,
@@ -26,7 +32,7 @@ import { isBridgeMode, regionToCountryCode } from './util';
 import { countriesWithRegions, GatewaysCacheDuration } from '../../constants';
 import { QuicTag } from '../index';
 import { Button } from '@base-ui/react';
-import { useNavigate } from 'react-router';
+import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { routes } from '../../router';
 import { InteractiveCard } from './InteractiveCard';
 import { NodeRow } from './NodeRow';
@@ -645,7 +651,7 @@ function ModeToggle() {
 const easeOutQuart = [0.22, 1, 0.36, 1] as const;
 
 export function NewBottomComponent() {
-  const navigate = useNavigate();
+  const navigate = useAnimatedNavigate();
   const { t } = useTranslation('home');
   const { state, daemonStatus, accountState, account } = useMainState();
 
@@ -811,6 +817,31 @@ export function NewBottomComponent() {
     }
   };
 
+  const getButtonVariant = (): ButtonVariant => {
+    if (!account) {
+      return 'primary';
+    }
+
+    if (needAPlan) {
+      return 'primary';
+    }
+
+    switch (state) {
+      case 'disconnected':
+      case 'offline':
+        return 'primary';
+      case 'connected':
+      case 'connecting':
+        return 'outlined';
+      case 'offline-auto-reconnect':
+      case 'disconnecting':
+      case 'error':
+        return 'destructive';
+      case 'unknown':
+        return 'outlined';
+    }
+  };
+
   return (
     <div className="flex flex-col">
       <p>fold state: {foldState}</p>
@@ -903,7 +934,7 @@ export function NewBottomComponent() {
 
         {/* Button ───────────────────────────────────────────────────────── */}
         <div className="z-10">
-          <ButtonNew variant="outlined" onClick={handleConnect}>
+          <ButtonNew variant={getButtonVariant()} onClick={handleConnect}>
             {getButtonText()}
           </ButtonNew>
         </div>

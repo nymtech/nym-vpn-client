@@ -1,8 +1,10 @@
 import * as H from 'history';
 import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router';
+import { useShallow } from 'zustand/react/shallow';
 import clsx from 'clsx';
 import { EventNotification } from '../layers';
+import { CardAnimationProvider } from '../contexts/CardAnimationContext';
 import { routes } from '../router';
 import { DaemonDot, TopBar } from '../ui';
 import { ToastList } from '../components/toast';
@@ -66,18 +68,20 @@ function MainLayout({
             'p-0!',
         ])}
       >
-        <div
-          ref={rootRef}
-          className={clsx([
-            'grow',
-            location.pathname === routes.nodeDetails && 'h-full',
-            location.pathname === routes.diagnostic && 'h-full',
-          ])}
-        >
-          <EventNotification>
-            <Outlet />
-          </EventNotification>
-        </div>
+        <CardAnimationProvider>
+          <div
+            ref={rootRef}
+            className={clsx([
+              'grow',
+              location.pathname === routes.nodeDetails && 'h-full',
+              location.pathname === routes.diagnostic && 'h-full',
+            ])}
+          >
+            <EventNotification>
+              <Outlet />
+            </EventNotification>
+          </div>
+        </CardAnimationProvider>
       </div>
     </div>
   );

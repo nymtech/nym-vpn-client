@@ -4,11 +4,11 @@ import { useRef, useState } from 'react';
 import { NymVpnTextLogo } from '../../assets';
 import { ButtonIconNew, MsIcon } from '../../ui';
 import { useAppStore } from '../../store';
+import { InteractiveCard } from '../home/InteractiveCard';
 import { Welcome } from './components/Welcome';
 import { Signup } from './components/Signup';
 import { Login } from './components/Login';
 import { PassphraseEnter } from './components/PassphraseEnter';
-import { InteractiveCard } from '../home/InteractiveCard';
 
 type View = 'welcome' | 'signup' | 'login' | 'passphrase';
 
