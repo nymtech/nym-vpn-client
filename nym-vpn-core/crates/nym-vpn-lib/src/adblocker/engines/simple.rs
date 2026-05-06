@@ -140,23 +140,19 @@ impl DnsFilterT for SimpleAdBlockEngine {
 }
 
 #[derive(Clone)]
-struct DbRequest<'a, T>
+struct DbRequest<T>
 where
     T: AsMut<SqliteConnection>,
 {
     executor: T,
-    _data: std::marker::PhantomData<&'a T>,
 }
 
-impl<'a, T> DbRequest<'a, T>
+impl<T> DbRequest<T>
 where
     T: AsMut<SqliteConnection>,
 {
     fn new(executor: T) -> Self {
-        Self {
-            executor,
-            _data: std::marker::PhantomData,
-        }
+        Self { executor }
     }
 
     fn into_inner(self) -> T {
@@ -164,7 +160,7 @@ where
     }
 }
 
-impl<'a, T> DbRequest<'a, T>
+impl<T> DbRequest<T>
 where
     T: AsMut<SqliteConnection>,
 {
@@ -226,7 +222,8 @@ where
         Ok(())
     }
 
-    pub async fn has_domain(&mut self, domain: &'a str) -> sqlx::Result<bool> {
+    /// Returns true if the given domain is blocked.
+    pub async fn has_domain(&mut self, domain: &str) -> sqlx::Result<bool> {
         sqlx::query_scalar!(
             r#"SELECT EXISTS(SELECT 1 FROM blocked_domains WHERE domain_name = $1 LIMIT 1)"#,
             domain
@@ -237,6 +234,7 @@ where
     }
 }
 
+/// Open the SQLite database at the given path and perform migrations.
 async fn open_db(db_path: &Path) -> Result<SqlitePoolGuard> {
     let opts = SqliteConnectOptions::new()
         .filename(db_path)
@@ -264,6 +262,8 @@ async fn open_db(db_path: &Path) -> Result<SqlitePoolGuard> {
     }
 }
 
+/// Populate the database from compressed blocklists on disk.
+/// It does nothing if the database is already populated.
 async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Result<()> {
     for source in SOURCES.iter() {
         let data_path = cache_dir.join(source.file_name);
@@ -326,6 +326,7 @@ async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Resu
     Ok(())
 }
 
+/// Remove the database file and associated WAL/SHM files.
 async fn remove_db(db_path: &Path) -> std::io::Result<()> {
     fs::remove_file(&db_path).await?;
 
