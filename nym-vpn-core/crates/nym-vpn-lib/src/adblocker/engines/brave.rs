@@ -19,7 +19,7 @@ use crate::{
     dns_filter::{DnsFilterDecision, DnsFilterStrategy, DnsFilterT},
 };
 
-/// Ad-block engine backend by the Brave ad-block engine.
+/// Ad-block engine based on Brave ad-engine.
 #[derive(Default, Clone)]
 pub struct BraveAdblockEngine {
     engine: Arc<RwLock<Option<Engine>>>,
