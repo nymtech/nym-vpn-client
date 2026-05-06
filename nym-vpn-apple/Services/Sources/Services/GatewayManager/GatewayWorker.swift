@@ -1,7 +1,6 @@
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
-import ConnectionTypes
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
@@ -71,7 +70,7 @@ actor GatewayWorker {
         case .initial:
             let task = Task {
                 let networkName = await configurationManager.networkEnv?.networkName()
-                logger.info("Setup gateway cache with \(networkName)")
+                logger.info("Setup gateway cache with \(String(describing: networkName))")
 
                 let offlineMonitor = await NymOfflineMonitor()
                 let gatewayCache = try await NymGatewayCache(

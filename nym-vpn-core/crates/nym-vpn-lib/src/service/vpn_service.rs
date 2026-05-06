@@ -95,14 +95,12 @@ pub enum VpnServiceCommand {
     SetEnableBridges(oneshot::Sender<()>, bool),
     SetEnableLewesProtocol(oneshot::Sender<()>, bool),
     SetEnableAdBlocking(oneshot::Sender<()>, bool),
+    SetFrontingMode(oneshot::Sender<()>, nym_vpn_lib_types::FrontingMode),
     SetResidentialExit(oneshot::Sender<()>, bool),
     SetEnableCustomDns(oneshot::Sender<()>, bool),
     SetCustomDns(oneshot::Sender<()>, Vec<IpAddr>),
     SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
-    SetGatewaySelectionAlgorithm(
-        oneshot::Sender<Result<(), String>>,
-        GatewaySelectionAlgorithm,
-    ),
+    SetGatewaySelectionAlgorithm(oneshot::Sender<()>, GatewaySelectionAlgorithm),
     SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
@@ -962,6 +960,10 @@ impl NymVpnService {
                 self.handle_set_enable_ad_blocking(enable_ad_blocking).await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetFrontingMode(tx, fronting_mode) => {
+                self.handle_set_fronting_mode(fronting_mode).await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetstack(tx, netstack) => {
                 self.handle_set_netstack(netstack).await;
                 let _ = tx.send(());
@@ -993,10 +995,9 @@ impl NymVpnService {
                 let _ = tx.send(res);
             }
             VpnServiceCommand::SetGatewaySelectionAlgorithm(tx, gateway_selection_algorithm) => {
-                let res = self
-                    .handle_set_gateway_selection_algorithm(gateway_selection_algorithm)
+                self.handle_set_gateway_selection_algorithm(gateway_selection_algorithm)
                     .await;
-                let _ = tx.send(res);
+                let _ = tx.send(());
             }
             VpnServiceCommand::SetEnableGeoLocation(tx, enable_geo_location) => {
                 let res = self
@@ -1310,6 +1311,11 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
+    async fn handle_set_fronting_mode(&mut self, fronting_mode: nym_vpn_lib_types::FrontingMode) {
+        self.config_manager.set_fronting_mode(fronting_mode).await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
     async fn handle_set_residential_exit(&mut self, residential_exit: bool) {
         self.config_manager
             .set_residential_exit(residential_exit)
@@ -1363,13 +1369,11 @@ impl NymVpnService {
     async fn handle_set_gateway_selection_algorithm(
         &mut self,
         gateway_selection_algorithm: GatewaySelectionAlgorithm,
-    ) -> Result<(), String> {
+    ) {
         self.config_manager
             .set_gateway_selection_algorithm(gateway_selection_algorithm)
-            .await
-            .map_err(|err| err.to_string())?;
+            .await;
         self.update_tunnel_settings_with_throttle();
-        Ok(())
     }
 
     async fn handle_set_enable_geo_location(

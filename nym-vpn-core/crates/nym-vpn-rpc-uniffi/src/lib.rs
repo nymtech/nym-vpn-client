@@ -14,7 +14,7 @@ use tokio_util::sync::CancellationToken;
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath,
+    FeatureFlags, FrontingMode, Gateway, GatewayType, GetDeeplinkParams, HttpRpcSettings, LogPath,
     MixnetTrafficConfig, NetworkCompatibility, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, Socks5Settings, Socks5Status, StoreAccountRequest, StoredAccountMode,
     SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
@@ -126,6 +126,11 @@ impl RpcClient {
 
     pub async fn set_network(&self, network: String) -> Result<()> {
         self.inner.clone().set_network(network).await?;
+        Ok(())
+    }
+
+    pub async fn set_fronting_mode(&self, fronting_mode: FrontingMode) -> Result<()> {
+        self.inner.clone().set_fronting_mode(fronting_mode).await?;
         Ok(())
     }
 

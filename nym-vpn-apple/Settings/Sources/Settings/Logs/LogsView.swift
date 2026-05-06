@@ -5,12 +5,12 @@ import Theme
 import UIComponents
 
 public struct LogsView: View {
-    @ObservedObject private var viewModel: LogsViewModel
+    @StateObject private var viewModel: LogsViewModel
     @State var isExportButtonHovered = false
     @State var isDeleteButtonHovered = false
 
-    public init(viewModel: LogsViewModel) {
-        self.viewModel = viewModel
+    public init(viewModel: @autoclosure @escaping () -> LogsViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel())
     }
 
     public var body: some View {
@@ -48,12 +48,7 @@ public struct LogsView: View {
                 )
             }
         }
-        .fileExporter(
-            isPresented: $viewModel.isFileExporterPresented,
-            document: viewModel.logFileURL().map { ZipFile(url: $0) },
-            contentType: .zip,
-            defaultFilename: "nym-vpn-logs.zip"
-        ) { _ in }
+        .modifier(LogsExportModifier(viewModel: viewModel))
     }
 }
 
@@ -81,33 +76,21 @@ private extension LogsView {
         .padding(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
     }
 
-    @ViewBuilder
     func exportButton() -> some View {
-        if let url = viewModel.logFileURL() {
+        button(systemImageName: "square.and.arrow.up", title: viewModel.exportLocalizedString)
+            .background(
+                isExportButtonHovered ? NymColor.elevationHover : NymColor.elevation,
+                in: RoundedRectangle(cornerRadius: 8)
+            )
+            .opacity(viewModel.isPreparingExport ? 0.5 : 1.0)
+            .disabled(viewModel.logLines.isEmpty || viewModel.isPreparingExport)
+            .onTapGesture {
 #if os(iOS)
-                ShareLink(item: url) {
-                    button(systemImageName: "square.and.arrow.up", title: viewModel.exportLocalizedString)
-                        .background(
-                            isExportButtonHovered ? NymColor.elevationHover : NymColor.elevation,
-                            in: RoundedRectangle(cornerRadius: 8)
-                        )
-                }
-                .disabled(viewModel.logLines.isEmpty)
-                .simultaneousGesture(
-                    TapGesture().onEnded { viewModel.impactGenerator.impact() }
-                )
-#elseif os(macOS)
-            button(systemImageName: "square.and.arrow.up", title: viewModel.exportLocalizedString)
-                .background(
-                    isExportButtonHovered ? NymColor.elevationHover : NymColor.elevation,
-                    in: RoundedRectangle(cornerRadius: 8)
-                )
-                .onTapGesture {
-                    guard !viewModel.logLines.isEmpty else { return }
-                    viewModel.isFileExporterPresented.toggle()
-                }
+                viewModel.impactGenerator.impact()
 #endif
-        }
+                guard !viewModel.logLines.isEmpty, !viewModel.isPreparingExport else { return }
+                viewModel.prepareExport()
+            }
     }
 
     func deleteButton() -> some View {
@@ -171,24 +154,49 @@ private extension LogsView {
 
     @ViewBuilder
     func logsView() -> some View {
-        ScrollView(.vertical) {
-            LazyVStack(alignment: .leading) {
-                ForEach(viewModel.logLines.indices.reversed(), id: \.self) { index in
-                    Text(viewModel.logLines[index])
-                        .onTapGesture(count: 2) {
-                            viewModel.copyToPasteboard(index: index)
-                        }
+        VStack(spacing: 0) {
+            if viewModel.hasReachedLimit {
+                Button {
+                    viewModel.loadOlder()
+                } label: {
+                    Text("Load older entries")
+                        .textStyle(NymTextStyle.Body.Medium.regular)
+                        .foregroundStyle(NymColor.info)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
                 }
+                .buttonStyle(.plain)
+                .background(NymColor.elevation)
             }
-            .padding()
 
-            if viewModel.logLines.count >= viewModel.lineLimit {
-                Text("logs.limitReached".localizedString)
-                    .textStyle(NymTextStyle.Body.Medium.regular)
-                    .foregroundStyle(NymColor.info)
-                    .padding(8)
+            LogTextView(
+                text: viewModel.logText,
+                scrollIntent: viewModel.scrollIntent
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+}
+
+private struct LogsExportModifier: ViewModifier {
+    @ObservedObject var viewModel: LogsViewModel
+
+    func body(content: Content) -> some View {
+#if os(iOS)
+        content.sheet(isPresented: $viewModel.isShareSheetPresented) {
+            if let url = viewModel.exportZipURL {
+                LogShareSheet(items: [url])
             }
         }
-        .scrollIndicators(.never)
+#elseif os(macOS)
+        content.fileExporter(
+            isPresented: $viewModel.isFileExporterPresented,
+            document: viewModel.exportZipURL.map { ZipFile(url: $0) },
+            contentType: .zip,
+            defaultFilename: "nym-vpn-logs.zip"
+        ) { _ in }
+#else
+        content
+#endif
     }
 }

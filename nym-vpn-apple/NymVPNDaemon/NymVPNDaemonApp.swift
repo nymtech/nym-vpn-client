@@ -50,7 +50,10 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var gatewayManager = GatewayManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
     @ObservedObject private var impactGenerator = ImpactGenerator.shared
-    @State private var deeplinkManager = DeeplinkManager(credentialsManager: CredentialsManager.shared)
+    @State private var deeplinkManager = DeeplinkManager(
+        credentialsManager: CredentialsManager.shared,
+        connectionManager: ConnectionManager.shared
+    )
 
     @State private var homeViewModel = HomeViewModel(
         appSettings: .shared,

@@ -106,6 +106,7 @@ let package = Package(
             name: "DeeplinkManager",
             dependencies: [
                 "CredentialsManager",
+                "ConnectionManager",
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual")
             ],
@@ -195,7 +196,8 @@ let package = Package(
         .target(
             name: "PathManager",
             dependencies: [
-                .product(name: "Constants", package: "ServicesMutual")
+                .product(name: "Constants", package: "ServicesMutual"),
+                .product(name: "Logging", package: "swift-log")
             ],
             path: "Sources/Services/PathManager"
         ),

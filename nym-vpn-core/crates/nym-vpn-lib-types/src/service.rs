@@ -41,6 +41,7 @@ pub struct VpnServiceConfig {
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
     pub enable_ad_blocking: bool,
+    pub fronting_mode: FrontingMode,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -116,6 +117,7 @@ impl Default for VpnServiceConfig {
             enable_bridges: false,
             enable_lewes_protocol: false,
             enable_ad_blocking: false,
+            fronting_mode: FrontingMode::default(),
             netstack: false,
             min_gateway_vpn_performance: None,
             residential_exit: false,
@@ -407,6 +409,23 @@ impl ContinuousTrafficSendingRate {
         }
         .to_owned()
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum FrontingMode {
+    Off,
+    #[default]
+    OnRetry,
+    Always,
 }
 
 /// Single application participating in split tunneling.

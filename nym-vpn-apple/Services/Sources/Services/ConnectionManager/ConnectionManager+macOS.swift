@@ -1,8 +1,11 @@
 #if os(macOS)
 import Foundation
 import ConnectionTypes
+import Constants
 import NotificationMessages
 import TunnelMixnet
+import TunnelStatus
+import WidgetKit
 
 extension ConnectionManager {
     @MainActor func connect() async throws {
@@ -32,12 +35,15 @@ extension ConnectionManager {
 // MARK: - Setup -
 extension ConnectionManager {
     func setupGRPCManagerObservers() {
+        updateWidgetState(for: currentTunnelStatus)
+
         grpcManager.$tunnelStatus.sink { [weak self] status in
             Task { @MainActor [weak self] in
                 guard self?.currentTunnelStatus != status else { return }
                 self?.currentTunnelStatus = status
                 self?.scheduleNotificationIfNeeded()
                 self?.updateTimeConnected()
+                self?.updateWidgetState(for: status)
             }
         }
         .store(in: &cancellables)
@@ -108,6 +114,25 @@ private extension ConnectionManager {
         Task {
             await NotificationMessages.scheduleDisconnectNotification()
         }
+    }
+}
+
+// MARK: - Widget -
+extension ConnectionManager {
+    func updateWidgetState(for status: TunnelStatus) {
+        let defaults = UserDefaults(suiteName: Constants.groupID.rawValue)
+        if status == .connected {
+            if let code = connectionStorage.entryGateway.countryCode {
+                let name = Locale.current.localizedString(forRegionCode: code) ?? code
+                defaults?.set(name, forKey: "macos_widgetEntryLocation")
+            }
+            if let code = connectionStorage.exitRouter.countryCode {
+                let name = Locale.current.localizedString(forRegionCode: code) ?? code
+                defaults?.set(name, forKey: "macos_widgetExitLocation")
+            }
+        }
+        defaults?.set(status.rawValue, forKey: "macos_widgetTunnelStatus")
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 #endif

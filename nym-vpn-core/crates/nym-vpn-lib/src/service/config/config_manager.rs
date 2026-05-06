@@ -8,6 +8,7 @@ use std::{
 };
 
 use nym_common::trace_err_chain;
+use nym_http_api_client::{Client, FrontPolicy};
 use nym_registration_client::MixnetClientConfig;
 use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -171,6 +172,21 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_fronting_mode(&mut self, fronting_mode: nym_vpn_lib_types::FrontingMode) {
+        if self.config.fronting_mode != fronting_mode {
+            // Change the shared fronting policy
+            let front_policy = match fronting_mode {
+                nym_vpn_lib_types::FrontingMode::Off => FrontPolicy::Off,
+                nym_vpn_lib_types::FrontingMode::OnRetry => FrontPolicy::OnRetry,
+                nym_vpn_lib_types::FrontingMode::Always => FrontPolicy::Always,
+            };
+            Client::set_shared_front_policy(front_policy);
+
+            self.config.fronting_mode = fronting_mode;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     pub async fn set_residential_exit(&mut self, residential_only: bool) {
         if self.config.residential_exit != residential_only {
             self.config.residential_exit = residential_only;
@@ -213,7 +229,7 @@ impl VpnServiceConfigManager {
     pub async fn set_gateway_selection_algorithm(
         &mut self,
         gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm,
-    ) -> Result<(), MixnetTrafficConfigValidationError> {
+    ) {
         if self
             .config
             .gateway_selection_algorithm_config
@@ -225,7 +241,6 @@ impl VpnServiceConfigManager {
                 .gateway_selection_algorithm = gateway_selection_algorithm;
             self.save_config_and_send_event().await;
         }
-        Ok(())
     }
 
     pub async fn set_enable_geo_location(

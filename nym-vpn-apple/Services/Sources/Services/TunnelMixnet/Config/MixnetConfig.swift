@@ -77,6 +77,7 @@ extension MixnetConfig {
             enableLewesProtocol: isLewesEnabled,
             residentialExit: false,
             enableAdBlocking: isAdBlockingEnabled,
+            frontingMode: .onRetry,
             customDns: customDns,
             mixnetTraffic: mixnetTuning.mixnetTrafficConfig(),
             networkStats: nil,
