@@ -156,7 +156,7 @@ fun SelectPlanScreen(
 				.padding(vertical = 24.dp.scaledHeight())
 				.weight(1f),
 		) {
-		val nymColors = LocalNymColors.current
+			val nymColors = LocalNymColors.current
 			Box(
 				modifier = Modifier
 					.border(width = 1.dp, color = nymColors.iconBorder, shape = RoundedCornerShape(size = 8.dp))

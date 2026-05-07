@@ -10,6 +10,7 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
@@ -20,8 +21,9 @@ fun OutlineStyledButton(
 	content: @Composable () -> Unit,
 	enabled: Boolean = true,
 	modifier: Modifier = Modifier,
-	borderColor: Color = MaterialTheme.colorScheme.primary,
-	backgroundColor: Color = MaterialTheme.colorScheme.background,
+	borderColor: Color = MaterialTheme.colorScheme.onBackground,
+	backgroundColor: Color = Color.Transparent,
+	shape: Shape = ShapeDefaults.Small,
 ) {
 	Button(
 		onClick = { onClick() },
@@ -37,9 +39,9 @@ fun OutlineStyledButton(
 			.border(
 				width = 1.dp,
 				color = borderColor,
-				shape = ShapeDefaults.Small,
+				shape = shape,
 			),
-		shape = ShapeDefaults.Small,
+		shape = shape,
 	) {
 		content()
 	}

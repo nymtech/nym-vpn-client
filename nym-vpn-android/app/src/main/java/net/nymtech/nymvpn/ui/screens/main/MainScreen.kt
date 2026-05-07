@@ -36,11 +36,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
@@ -52,6 +55,8 @@ import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
 import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
+import net.nymtech.nymvpn.ui.screens.auth.AuthBottomSheet
+import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectPanel
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
 import net.nymtech.nymvpn.ui.screens.main.components.PanelState
@@ -67,18 +72,15 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.nymvpn.util.extensions.toPanelState
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
+import androidx.compose.ui.res.stringResource
 
 @Composable
-fun MainScreen(
-	appViewModel: AppViewModel,
-	appUiState: AppUiState,
-	autoStart: Boolean,
-	viewModel: MainViewModel = hiltViewModel(),
-) {
+fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState = remember(appUiState.managerState, appUiState.networkStatus) {
 		with(appUiState) {
 			val baseState = when {
@@ -89,11 +91,13 @@ fun MainScreen(
 						managerState.tunnelState,
 						managerState.establishConnectionState,
 					)
+
 				managerState.isRestarting ->
 					ConnectionState.from(
 						managerState.tunnelState,
 						managerState.establishConnectionState,
 					)
+
 				managerState.tunnelState !is Tunnel.State.Down && managerState.tunnelState !is Tunnel.State.Error && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
 				managerState.tunnelState == Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
 				else ->
@@ -117,6 +121,7 @@ fun MainScreen(
 						ConnectionState.Error(event.reason)
 					}
 				}
+
 				is BackendUiEvent.StartFailure -> ConnectionState.StartFailure(event.exception)
 			}
 
@@ -140,6 +145,11 @@ fun MainScreen(
 	val autologinState by appViewModel.autologinState.collectAsState()
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsState()
 
+	var showAuthSheet by remember { mutableStateOf(false) }
+	var initialAuthRoute by remember { mutableStateOf<AuthRoute>(AuthRoute.Welcome) }
+	var authSheetChecked by rememberSaveable { mutableStateOf(false) }
+	val activity = context as? MainActivity
+
 	val connectionTime = remember(connectionSeconds) {
 		connectionSeconds?.convertSecondsToTimeString()
 	}
@@ -147,6 +157,13 @@ fun MainScreen(
 	with(appUiState.managerState) {
 		LaunchedEffect(tunnelState, connectionData?.connectedAt, appUiState.networkStatus) {
 			viewModel.onTunnelStateChanged(tunnelState, connectionData?.connectedAt, appUiState.networkStatus)
+		}
+	}
+
+	LaunchedEffect(appUiState.managerState.isInitialized) {
+		if (appUiState.managerState.isInitialized && !authSheetChecked) {
+			authSheetChecked = true
+			showAuthSheet = !appUiState.managerState.isMnemonicStored
 		}
 	}
 
@@ -160,13 +177,16 @@ fun MainScreen(
 		}
 	}
 
+	val alertTitle = stringResource(R.string.notification_improve_title)
+	val alertAction = stringResource(R.string.notification_improve_button)
+
 	fun checkStatsEnabled() {
 		if (!appUiState.settings.statsEnabled && !appUiState.settings.statsDialogSkip) {
 			NymAlertController.show(
 				NymAlertMessage(
 					type = AlertType.Neutral,
-					title = context.getString(R.string.notification_improve_title),
-					action = NymAlertAction(context.getString(R.string.notification_improve_button)) {
+					title = alertTitle,
+					action = NymAlertAction(alertAction) {
 						showNetworkStatsDialog = true
 					},
 					duration = 7_000L,
@@ -188,25 +208,29 @@ fun MainScreen(
 		},
 	)
 
+	val batteryOptSettingsTitle = stringResource(R.string.battery_opt_settings_text)
 	val batteryOptResultState = rememberLauncherForActivityResult(
 		ActivityResultContracts.StartActivityForResult(),
 		onResult = {
 			val accepted = (it.resultCode == RESULT_OK)
 			if (!accepted) viewModel.onBatteryOptSkipped()
-			NymAlertController.show(NymAlertMessage(title = context.getString(R.string.battery_opt_settings_text)))
+			NymAlertController.show(NymAlertMessage(title = batteryOptSettingsTitle))
 			viewModel.onDisconnect()
 		},
 	)
 
+	val permissionAlertTitle = stringResource(R.string.notification_permission_required)
 	val requestPermissionLauncher = rememberLauncherForActivityResult(
 		ActivityResultContracts.RequestPermission(),
 	) { isGranted ->
-		if (!isGranted) NymAlertController.show(
-			NymAlertMessage(
-				type = AlertType.Warning,
-				title = context.getString(R.string.notification_permission_required),
-			),
-		)
+		if (!isGranted) {
+			NymAlertController.show(
+				NymAlertMessage(
+					type = AlertType.Warning,
+					title = permissionAlertTitle,
+				),
+			)
+		}
 	}
 
 	fun onConnectPressed() {
@@ -228,23 +252,28 @@ fun MainScreen(
 	}
 
 	fun onGetStartedPressed() {
-		navController.goFromRoot(Route.SelectPlan)
+		initialAuthRoute = AuthRoute.Welcome
+		showAuthSheet = true
 	}
 
+	val entryAlertTitle = stringResource(R.string.disabled_while_connecting)
 	fun onEntryClick() {
 		when (uiState.connectionState) {
 			ConnectionState.WaitingForConnection -> NymAlertController.show(
-				NymAlertMessage(title = context.getString(R.string.disabled_while_connecting)),
+				NymAlertMessage(title = entryAlertTitle),
 			)
+
 			else -> navController.goFromRoot(Route.EntryLocation)
 		}
 	}
 
+	val exitAlertTitle = stringResource(R.string.disabled_while_connecting)
 	fun onExitClick() {
 		when (uiState.connectionState) {
 			ConnectionState.WaitingForConnection -> NymAlertController.show(
-				NymAlertMessage(title = context.getString(R.string.disabled_while_connecting)),
+				NymAlertMessage(title = exitAlertTitle),
 			)
+
 			else -> navController.goFromRoot(Route.ExitLocation)
 		}
 	}
@@ -262,25 +291,28 @@ fun MainScreen(
 		}
 	}
 
+	val autologinAlertTitle = stringResource(R.string.account_info_autologin_error)
 	LaunchedEffect(autologinState) {
 		if (autologinState is AutologinState.Error) {
 			NymAlertController.show(
 				NymAlertMessage(
 					type = AlertType.Negative,
-					title = context.getString(R.string.account_info_autologin_error),
+					title = autologinAlertTitle,
 				),
 			)
 		}
 	}
 
+	val expiryAlertTitle = stringResource(R.string.banner_plan_expires_text, appUiState.subscription!!.validUntilDate)
+	val expiryAlertAction = stringResource(R.string.banner_renew_text)
 	val expiryState = appUiState.subscription?.expiryState
 	LaunchedEffect(expiryState, expiryBannerDismissed) {
 		if (!expiryBannerDismissed && (expiryState == ExpiryState.WARNING_YELLOW || expiryState == ExpiryState.WARNING_AMBER)) {
 			NymAlertController.show(
 				NymAlertMessage(
 					type = AlertType.Warning,
-					title = context.getString(R.string.banner_plan_expires_text, appUiState.subscription!!.validUntilDate),
-					action = NymAlertAction(context.getString(R.string.banner_renew_text)) {
+					title = expiryAlertTitle,
+					action = NymAlertAction(expiryAlertAction) {
 						viewModel.dismissExpiryBanner()
 						appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
 					},
@@ -298,6 +330,7 @@ fun MainScreen(
 			url = autologin.url,
 			onDismiss = appViewModel::dismissAutologin,
 		)
+
 		else -> Unit
 	}
 
@@ -309,13 +342,13 @@ fun MainScreen(
 		onConnect = ::onConnectPressed,
 		onDisconnect = ::onDisconnectPressed,
 		onStopKillSwitch = ::onStopKillSwitchPressed,
-		onGetStarted = ::onGetStartedPressed,
+		onGetStartedClick = ::onGetStartedPressed,
 		onFastModeClick = { viewModel.onTwoHopSelected() },
 		onAnonModeClick = { viewModel.onFiveHopSelected() },
 		onPanelStateChange = { viewModel.onPanelStateChanged(it) },
 		contentPadding = padding,
-		onExitNodeClick = {onExitClick()},
-		onEntryNodeClick = {onEntryClick()}
+		onExitNodeClick = { onExitClick() },
+		onEntryNodeClick = { onEntryClick() },
 	)
 
 	ShowInfoModal(
@@ -324,15 +357,17 @@ fun MainScreen(
 		onDismiss = { showInfoDialog = false },
 	)
 
+	val downloadUrl = stringResource(R.string.download_url)
 	CompatibilityModal(
 		showCompatibilityDialog = showCompatibilityDialog,
 		onDismiss = { showCompatibilityDialog = false },
 		onConfirmClick = {
 			showCompatibilityDialog = false
-			context.openWebUrl(context.getString(R.string.download_url))
+			context.openWebUrl(downloadUrl)
 		},
 	)
 
+	val batteryOptTitle = stringResource(R.string.battery_opt_settings_text)
 	BatteryModal(
 		showBatteryDialog = showBatteryDialog,
 		onClickSettings = {
@@ -349,13 +384,14 @@ fun MainScreen(
 			NymAlertController.show(
 				NymAlertMessage(
 					type = AlertType.Neutral,
-					title = context.getString(R.string.battery_opt_settings_text),
+					title = batteryOptTitle,
 				),
 			)
 			viewModel.onDisconnect()
 		},
 	)
 
+	val statsAlertTitle = stringResource(R.string.notification_stats_enabled)
 	NetworkStatsModal(
 		showNetworkStatsDialog = showNetworkStatsDialog,
 		onConfirm = {
@@ -364,13 +400,27 @@ fun MainScreen(
 			NymAlertController.show(
 				NymAlertMessage(
 					type = AlertType.Confirmation,
-					title = context.getString(R.string.notification_stats_enabled),
+					title = statsAlertTitle,
 				),
 			)
 		},
 		onDismiss = {
 			viewModel.onNetworkStatsSkipped()
 			showNetworkStatsDialog = false
+		},
+	)
+
+	AuthBottomSheet(
+		isVisible = showAuthSheet,
+		initialRoute = initialAuthRoute,
+		onDismissRequest = { showAuthSheet = false },
+		onAuthSuccess = {
+			showAuthSheet = false
+		},
+		onSaveToPasswordManager = {
+			activity?.lifecycleScope?.launch {
+				savePasswordToManager(context = context, password = it)
+			}
 		},
 	)
 }
@@ -384,7 +434,7 @@ private fun MainScreenContent(
 	onConnect: () -> Unit,
 	onDisconnect: () -> Unit,
 	onStopKillSwitch: () -> Unit,
-	onGetStarted: () -> Unit,
+	onGetStartedClick: () -> Unit,
 	onFastModeClick: () -> Unit,
 	onAnonModeClick: () -> Unit,
 	onExitNodeClick: () -> Unit,
@@ -445,7 +495,7 @@ private fun MainScreenContent(
 				onConnect = onConnect,
 				onDisconnect = onDisconnect,
 				onStopKillSwitch = onStopKillSwitch,
-				onGetStarted = onGetStarted,
+				onGetStartedClick = onGetStartedClick,
 				onPanelStateChange = onPanelStateChange,
 				onEntryNodeClick = onEntryNodeClick,
 				onExitNodeClick = onExitNodeClick,
@@ -473,12 +523,12 @@ private fun MainScreenPreviewDisconnected() {
 			onConnect = {},
 			onDisconnect = {},
 			onStopKillSwitch = {},
-			onGetStarted = {},
+			onGetStartedClick = {},
 			onFastModeClick = {},
 			onAnonModeClick = {},
 			onPanelStateChange = {},
 			onExitNodeClick = {},
-			onEntryNodeClick = {}
+			onEntryNodeClick = {},
 		)
 	}
 }
@@ -495,12 +545,12 @@ private fun MainScreenPreviewConnected() {
 			onConnect = {},
 			onDisconnect = {},
 			onStopKillSwitch = {},
-			onGetStarted = {},
+			onGetStartedClick = {},
 			onFastModeClick = {},
 			onAnonModeClick = {},
 			onPanelStateChange = {},
 			onExitNodeClick = {},
-			onEntryNodeClick = {}
+			onEntryNodeClick = {},
 		)
 	}
 }

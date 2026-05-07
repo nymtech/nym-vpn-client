@@ -27,11 +27,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 
 	LaunchedEffect(appUiState.managerState.isInitialized, isAppReady) {
 		if (appUiState.managerState.isInitialized && isAppReady) {
-			if (appUiState.managerState.isMnemonicStored) {
-				navController.navigateAndForget(Route.Main())
-			} else {
-				navController.navigateAndForget(Route.Welcome)
-			}
+			navController.navigateAndForget(Route.Main())
 		}
 	}
 

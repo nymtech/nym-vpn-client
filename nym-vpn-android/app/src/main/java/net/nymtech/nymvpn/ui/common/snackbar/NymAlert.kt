@@ -66,11 +66,7 @@ fun NymAlertHost(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun NymAlert(
-	message: NymAlertMessage,
-	onDismiss: () -> Unit,
-	modifier: Modifier = Modifier,
-) {
+private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
 	val iconTint = when (message.type) {
 		AlertType.Confirmation -> MaterialTheme.colorScheme.primary
 		AlertType.Neutral -> MaterialTheme.colorScheme.onSurface

@@ -194,7 +194,7 @@ fun PaymentScreen(accountState: AccountControllerState?, start: Boolean, onAnima
 			horizontalAlignment = Alignment.CenterHorizontally,
 			modifier = Modifier.padding(top = 200.dp),
 		) {
-		val nymColors = LocalNymColors.current
+			val nymColors = LocalNymColors.current
 			Box(
 				modifier = Modifier
 					.size(56.dp)

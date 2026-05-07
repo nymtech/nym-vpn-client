@@ -66,7 +66,6 @@ import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
 import net.nymtech.nymvpn.ui.screens.hop.components.QuicInfoMessage
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsTrailingContent
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize

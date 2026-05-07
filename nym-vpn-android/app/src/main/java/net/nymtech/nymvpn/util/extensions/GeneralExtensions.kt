@@ -37,18 +37,14 @@ fun isVpnAlwaysOn(context: Context): Boolean = try {
 	false
 }
 
-fun PanelState.toAlgorithm(): GatewaySelectionAlgorithm {
-	return when(this) {
-		PanelState.COLLAPSED -> GatewaySelectionAlgorithm.AUTO
-		PanelState.MODE -> GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT
-		PanelState.FULL -> GatewaySelectionAlgorithm.EXPLICIT
-	}
+fun PanelState.toAlgorithm(): GatewaySelectionAlgorithm = when (this) {
+	PanelState.COLLAPSED -> GatewaySelectionAlgorithm.AUTO
+	PanelState.MODE -> GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT
+	PanelState.FULL -> GatewaySelectionAlgorithm.EXPLICIT
 }
 
-fun GatewaySelectionAlgorithm.toPanelState(): PanelState {
-	return when(this) {
-		GatewaySelectionAlgorithm.AUTO -> PanelState.COLLAPSED
-		GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT -> PanelState.MODE
-		GatewaySelectionAlgorithm.EXPLICIT -> PanelState.FULL
-	}
+fun GatewaySelectionAlgorithm.toPanelState(): PanelState = when (this) {
+	GatewaySelectionAlgorithm.AUTO -> PanelState.COLLAPSED
+	GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT -> PanelState.MODE
+	GatewaySelectionAlgorithm.EXPLICIT -> PanelState.FULL
 }

@@ -102,8 +102,11 @@ fun ConnectionButton(
 				} else {
 					MainStyledButton(
 						onClick = {
-							if (!isMnemonicStored) navController.goFromRoot(Route.Welcome)
-							else onConnect()
+							if (!isMnemonicStored) {
+								navController.goFromRoot(Route.Welcome)
+							} else {
+								onConnect()
+							}
 						},
 						content = {
 							Text(

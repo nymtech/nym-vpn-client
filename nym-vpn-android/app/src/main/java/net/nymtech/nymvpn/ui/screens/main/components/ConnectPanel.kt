@@ -73,14 +73,7 @@ import nym_vpn_lib_types.ErrorStateReason
 
 enum class PanelState { COLLAPSED, MODE, FULL }
 
-data class ServerNode(
-	val name: String?,
-	val countryCode: String?,
-	val location: String?,
-	val showQuicIcon: Boolean = false,
-	val showQuicLewesIcon: Boolean = false,
-	val isRandom: Boolean = false
-)
+data class ServerNode(val name: String?, val countryCode: String?, val location: String?, val showQuicIcon: Boolean = false, val showQuicLewesIcon: Boolean = false, val isRandom: Boolean = false)
 
 @Composable
 fun ConnectPanel(
@@ -98,7 +91,7 @@ fun ConnectPanel(
 	onConnect: () -> Unit,
 	onDisconnect: () -> Unit,
 	onStopKillSwitch: () -> Unit,
-	onGetStarted: () -> Unit,
+	onGetStartedClick: () -> Unit,
 	onPanelStateChange: (state: PanelState) -> Unit,
 	modifier: Modifier = Modifier,
 ) {
@@ -123,19 +116,21 @@ fun ConnectPanel(
 					onDragStart = { dragAccum = 0f },
 					onDragEnd = {
 						if (canToggle) {
-							changePanelState(when {
-								dragAccum < -dragThresholdPx -> when (panelState) {
-									PanelState.COLLAPSED -> PanelState.MODE
-									PanelState.MODE -> PanelState.FULL
-									PanelState.FULL -> PanelState.FULL
-								}
-								dragAccum > dragThresholdPx -> when (panelState) {
-									PanelState.COLLAPSED -> PanelState.COLLAPSED
-									PanelState.MODE -> PanelState.COLLAPSED
-									PanelState.FULL -> PanelState.MODE
-								}
-								else -> panelState
-							})
+							changePanelState(
+								when {
+									dragAccum < -dragThresholdPx -> when (panelState) {
+										PanelState.COLLAPSED -> PanelState.MODE
+										PanelState.MODE -> PanelState.FULL
+										PanelState.FULL -> PanelState.FULL
+									}
+									dragAccum > dragThresholdPx -> when (panelState) {
+										PanelState.COLLAPSED -> PanelState.COLLAPSED
+										PanelState.MODE -> PanelState.COLLAPSED
+										PanelState.FULL -> PanelState.MODE
+									}
+									else -> panelState
+								},
+							)
 						}
 						dragAccum = 0f
 					},
@@ -199,12 +194,24 @@ fun ConnectPanel(
 
 		ServerRow(
 			node = exitNode,
-			onExpand = if (canToggle) ({
-				changePanelState(if (panelState == PanelState.COLLAPSED) PanelState.MODE else PanelState.COLLAPSED)
-			}) else null,
-			onCollapse = if (canToggle && panelState != PanelState.COLLAPSED) ({
-				changePanelState(if (panelState == PanelState.FULL) PanelState.MODE else PanelState.FULL)
-			}) else null,
+			onExpand = if (canToggle) {
+				(
+					{
+						changePanelState(if (panelState == PanelState.COLLAPSED) PanelState.MODE else PanelState.COLLAPSED)
+					}
+					)
+			} else {
+				null
+			},
+			onCollapse = if (canToggle && panelState != PanelState.COLLAPSED) {
+				(
+					{
+						changePanelState(if (panelState == PanelState.FULL) PanelState.MODE else PanelState.FULL)
+					}
+					)
+			} else {
+				null
+			},
 			modifier = Modifier.padding(bottom = 16.dp),
 			currentState = panelState,
 			connectionState = connectionState,
@@ -241,18 +248,13 @@ fun ConnectPanel(
 			onConnect = onConnect,
 			onDisconnect = onDisconnect,
 			onStopKillSwitch = onStopKillSwitch,
-			onGetStarted = onGetStarted,
+			onGetStartedClick = onGetStartedClick,
 		)
 	}
 }
 
 @Composable
-private fun ModeToggle(
-	vpnMode: Tunnel.Mode,
-	onFastClick: () -> Unit,
-	onAnonClick: () -> Unit,
-	modifier: Modifier = Modifier,
-) {
+private fun ModeToggle(vpnMode: Tunnel.Mode, onFastClick: () -> Unit, onAnonClick: () -> Unit, modifier: Modifier = Modifier) {
 	val isFast = vpnMode == Tunnel.Mode.TWO_HOP_MIXNET
 	val indicatorX by animateDpAsState(
 		targetValue = if (isFast) 6.dp else 46.dp,
@@ -273,9 +275,11 @@ private fun ModeToggle(
 			textAlign = TextAlign.End,
 			modifier = Modifier
 				.weight(1f)
-				.clickable(onClick = onFastClick,
+				.clickable(
+					onClick = onFastClick,
 					interactionSource = remember { MutableInteractionSource() },
-					indication = null),
+					indication = null,
+				),
 		)
 
 		Box(
@@ -310,9 +314,11 @@ private fun ModeToggle(
 			color = if (!isFast) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
 			modifier = Modifier
 				.weight(1f)
-				.clickable(interactionSource = remember { MutableInteractionSource() },
+				.clickable(
+					interactionSource = remember { MutableInteractionSource() },
 					indication = null,
-					onClick = onAnonClick),
+					onClick = onAnonClick,
+				),
 		)
 	}
 }
@@ -348,20 +354,19 @@ private fun ServerRow(
 				verticalArrangement = Arrangement.spacedBy(2.dp),
 				modifier = Modifier.weight(1f)
 					.clickable(
-					interactionSource = remember { MutableInteractionSource() },
+						interactionSource = remember { MutableInteractionSource() },
 						indication = indication,
-				) {
-						if(!isAutoMode) {
+					) {
+						if (!isAutoMode) {
 							onServerClick()
 						}
-				}
+					},
 			) {
 				Row(
 					verticalAlignment = Alignment.CenterVertically,
 					horizontalArrangement = Arrangement.spacedBy(4.dp),
 				) {
-
-					if(!isAutoMode) {
+					if (!isAutoMode) {
 						val (image, description) = node.countryCode?.let {
 							Pair(
 								ImageVector.vectorResource(context.getFlagImageVectorByName(it)),
@@ -380,7 +385,7 @@ private fun ServerRow(
 						)
 					}
 
-					val title = if(isAutoMode) {
+					val title = if (isAutoMode) {
 						stringResource(R.string.one_click_auto_server)
 					} else {
 						node.name ?: stringResource(R.string.one_click_auto_server)
@@ -409,7 +414,6 @@ private fun ServerRow(
 						overflow = TextOverflow.Ellipsis,
 					)
 				}
-
 			}
 
 			if (node.showQuicIcon) {
@@ -421,7 +425,7 @@ private fun ServerRow(
 				)
 			}
 
-			if(!isAutoMode) {
+			if (!isAutoMode) {
 				Icon(
 					imageVector = ImageVector.vectorResource(R.drawable.ic_lewes),
 					contentDescription = null,
@@ -468,7 +472,7 @@ private fun ActionButton(
 	onConnect: () -> Unit,
 	onDisconnect: () -> Unit,
 	onStopKillSwitch: () -> Unit,
-	onGetStarted: () -> Unit,
+	onGetStartedClick: () -> Unit,
 	modifier: Modifier = Modifier,
 ) {
 	val context = LocalContext.current
@@ -479,8 +483,9 @@ private fun ActionButton(
 	when (connectionState) {
 		ConnectionState.Disconnected,
 		ConnectionState.Offline,
-		ConnectionState.WaitingForConnection -> MainStyledButton(
-			onClick = if (isMnemonicStored) onConnect else onGetStarted,
+		ConnectionState.WaitingForConnection,
+		-> MainStyledButton(
+			onClick = if (isMnemonicStored) onConnect else onGetStartedClick,
 			content = {
 				Text(
 					stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started),
@@ -559,7 +564,7 @@ private fun ActionButton(
 					)
 				isSubscriptionError && !isAccountActionPending ->
 					MainStyledButton(
-						onClick = onGetStarted,
+						onClick = onGetStartedClick,
 						content = {
 							Text(
 								stringResource(R.string.get_started),
@@ -571,7 +576,7 @@ private fun ActionButton(
 					)
 				else ->
 					MainStyledButton(
-						onClick = if (isMnemonicStored) onConnect else onGetStarted,
+						onClick = if (isMnemonicStored) onConnect else onGetStartedClick,
 						content = {
 							Text(
 								stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started),
@@ -614,7 +619,7 @@ private fun PreviewDisconnectedDark() {
 			onConnect = {},
 			onDisconnect = {},
 			onStopKillSwitch = {},
-			onGetStarted = {},
+			onGetStartedClick = {},
 			onPanelStateChange = {},
 			initialPanelState = PanelState.COLLAPSED,
 			onExitNodeClick = {},

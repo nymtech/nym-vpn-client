@@ -185,6 +185,7 @@
 	<string name="get_started">Get started</string>
 	<string name="random_text">Random</string>
     <string name="title_retry">Retry</string>
+	<string name="button_back">Back</string>
     <!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
 	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
@@ -234,6 +235,20 @@
 	<string name="connection_status_not_protected">Not protected</string>
 	<string name="connection_status_fast_mode">Fast mode protection</string>
 	<string name="connection_status_anonymous">Anonymous protection</string>
+	<!-- Auth component -->
+	<string name="auth_welcome_title">Welcome!</string>
+	<string name="auth_welcome_description">To the next generation of privacy \ninfrastructure.</string>
+	<string name="auth_welcome_login_button">Login to my account</string>
+	<string name="auth_sign_up_title">Sign Up</string>
+	<string name="auth_sign_up_account_button">Anonymous account</string>
+	<string name="auth_sign_up_social_button">Sign up with socials *</string>
+	<string name="auth_sign_up_info">* Signing up with an existing social account \ndecreases your anonymity.</string>
+	<string name="auth_log_in_title">Log in</string>
+	<string name="auth_log_in_passphrase_button">Log in with 24 words</string>
+	<string name="auth_log_in_social_button">Log in using socials *</string>
+	<string name="auth_log_in_info">* You need to connect socials to an existing account \nfirst before you can use them for login. </string>
+	<string name="auth_passphrase_login_button">Login</string>
+	<string name="auth_passphrase_input_placeholder">24 word-passphrase</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censorship</string>
 	<string name="settings_passphrase_title">Passphrase</string>

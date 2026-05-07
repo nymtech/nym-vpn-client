@@ -165,7 +165,7 @@ fun ConnectionStatus(
 		else -> nymColors.anonFill
 	}
 
-	val connectedLabel = if(vpnMode.isTwoHop()) stringResource(R.string.connection_status_fast_mode) else stringResource(R.string.connection_status_anonymous)
+	val connectedLabel = if (vpnMode.isTwoHop()) stringResource(R.string.connection_status_fast_mode) else stringResource(R.string.connection_status_anonymous)
 	val failedLabel = stringResource(R.string.connection_failed)
 	val disconnectingLabel = stringResource(R.string.disconnecting)
 	val notProtectedLabel = stringResource(R.string.connection_status_not_protected)
@@ -305,36 +305,32 @@ fun ConnectionStatus(
 }
 
 // Layered stroke glow
-private fun DrawScope.drawArcGlow(
-	color: Color,
-	sweepAngle: Float,
-	topLeft: Offset,
-	size: Size,
-	strokePx: Float,
-	glowIntensity: Float,
-) {
+private fun DrawScope.drawArcGlow(color: Color, sweepAngle: Float, topLeft: Offset, size: Size, strokePx: Float, glowIntensity: Float) {
 	if (sweepAngle <= 0.5f || glowIntensity <= 0.01f) return
 	val base = color.alpha
 	drawArc(
 		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.18f)),
-		startAngle = -90f, sweepAngle = sweepAngle, useCenter = false,
-		topLeft = topLeft, size = size,
+		startAngle = -90f,
+		sweepAngle = sweepAngle,
+		useCenter = false,
+		topLeft = topLeft,
+		size = size,
 		style = Stroke(width = strokePx * 5f),
 	)
 	drawArc(
 		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.40f)),
-		startAngle = -90f, sweepAngle = sweepAngle, useCenter = false,
-		topLeft = topLeft, size = size,
+		startAngle = -90f,
+		sweepAngle = sweepAngle,
+		useCenter = false,
+		topLeft = topLeft,
+		size = size,
 		style = Stroke(width = strokePx * 2.5f),
 	)
 }
 
 private data class RingFillTargets(val outer: Float, val middle: Float, val inner: Float)
 
-private fun ringFillTargets(
-	connectionState: ConnectionState,
-	establishConnectionState: EstablishConnectionState?,
-): RingFillTargets = when (connectionState) {
+private fun ringFillTargets(connectionState: ConnectionState, establishConnectionState: EstablishConnectionState?): RingFillTargets = when (connectionState) {
 	ConnectionState.Connected -> RingFillTargets(360f, 360f, 360f)
 	is ConnectionState.Error, is ConnectionState.StartFailure -> RingFillTargets(360f, 360f, 0f)
 	ConnectionState.Disconnecting -> RingFillTargets(0f, 0f, 0f)
@@ -356,7 +352,7 @@ private fun ArcPreviewConnected() {
 		ConnectionStatus(
 			connectionState = ConnectionState.Connected,
 			vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
-			connectionTime = "2.2.2.2"
+			connectionTime = "2.2.2.2",
 		)
 	}
 }

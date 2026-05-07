@@ -31,14 +31,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-fun ModeSelector(
-	vpnMode: Tunnel.Mode,
-	connectionState: ConnectionState,
-	onTwoHopClick: () -> Unit,
-	onFiveHopClick: () -> Unit,
-	onInfoClick: () -> Unit,
-	modifier: Modifier = Modifier,
-) {
+fun ModeSelector(vpnMode: Tunnel.Mode, connectionState: ConnectionState, onTwoHopClick: () -> Unit, onFiveHopClick: () -> Unit, onInfoClick: () -> Unit, modifier: Modifier = Modifier) {
 	// Mode switches while connected trigger a tunnel restart; only block during active connecting.
 	val disabledWhileConnecting = stringResource(R.string.disabled_while_connecting)
 	fun handleModeClick(callback: () -> Unit) {
