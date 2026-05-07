@@ -1,23 +1,17 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod blocker;
-mod files;
-pub use blocker::AdBlocker;
+mod engines;
+mod file_manager;
+mod state;
 
-mod task;
-pub use task::{AdBlockerTask, AdBlockerTaskHandle};
-
-#[cfg(test)]
-mod tests;
+mod adblock;
+pub use adblock::AdBlocker;
 
 use std::path::PathBuf;
 
 #[derive(thiserror::Error, Debug)]
 pub enum AdBlockerError {
-    #[error("data path is not available")]
-    DataPathUnavailable,
-
     #[error("failed to set up ad-blocker data directory {dir}")]
     CreateDirectory {
         dir: PathBuf,
@@ -25,8 +19,22 @@ pub enum AdBlockerError {
         error: std::io::Error,
     },
 
+    #[error("failed to open ad-blocker file for writing {file_path}")]
+    OpenFile {
+        file_path: PathBuf,
+        #[source]
+        error: std::io::Error,
+    },
+
     #[error("failed to write ad-blocker file {file_path}")]
     WriteFile {
+        file_path: PathBuf,
+        #[source]
+        error: std::io::Error,
+    },
+
+    #[error("failed to flush ad-blocker file {file_path}")]
+    FlushFile {
         file_path: PathBuf,
         #[source]
         error: std::io::Error,
@@ -131,7 +139,7 @@ pub enum AdBlockerError {
     CreateRequest {
         url: String,
         #[source]
-        error: adblock::request::RequestError,
+        error: ::adblock::request::RequestError,
     },
 
     #[error("failed to build ad-blocker HTTP client")]
@@ -139,6 +147,30 @@ pub enum AdBlockerError {
         #[source]
         error: reqwest::Error,
     },
+
+    #[error("unknown line reader error")]
+    UnknownLineReadError(#[source] std::io::Error),
+
+    #[error("failed to open database")]
+    OpenDb(#[source] sqlx::Error),
+
+    #[error("failed to migrate database")]
+    MigrateDb(#[source] sqlx::migrate::MigrateError),
+
+    #[error("failed to acquire connection to database")]
+    AcquireDbConnection(#[source] sqlx::Error),
+
+    #[error("failed to populate database")]
+    PopulateDb(#[source] sqlx::Error),
+
+    #[error("cancelled")]
+    Cancelled,
 }
 
-pub(crate) type Result<T, E = AdBlockerError> = std::result::Result<T, E>;
+impl AdBlockerError {
+    pub fn is_cancelled(&self) -> bool {
+        matches!(self, AdBlockerError::Cancelled)
+    }
+}
+
+pub type Result<T, E = AdBlockerError> = std::result::Result<T, E>;

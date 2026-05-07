@@ -1,9 +1,9 @@
 {
-  "version": "1.29.3",
+  "version": "1.29.4",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5Vng2bTVoNzkvdmFmQURJOGlweDZYMDgwTkt5QnBPRzFyZ1g1cHYyR2w3OWhhZm1ubXJ5R0JSdjl2VGZ0bmp3TFREK1ZqSFJhWTlua1JDRm1GdTg1dUEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc3ODg3MTkzCWZpbGU6TnltVlBOXzEuMjkuM194NjQtc2V0dXAuZXhlCmhnYXRYSUEvU0NHaWtabTFjL3VzaGpPVE9VQ3MyZ1lNeGJERWZrbW5zMEtWL1hDMVVVb0gwRndvOXdDa0JNcWNQMysvTXdWaW1YYmhuczhMdmJBWkFnPT0K",
-      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.29.3/NymVPN_1.29.3_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjFpaUR5eWFBNlhCTTFlQ1cxU3hXSFBJbXZSRXRkMW9nLzNpZS9Ja0ppM3krRTFScjkxd0tNeUdrUzdyYnh5L2tOR29XVFlHQzM4ZitmVjB1QVcvS1FrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc4MTUyMTYzCWZpbGU6TnltVlBOXzEuMjkuNF94NjQtc2V0dXAuZXhlCjhIeWdwcXBHYnlsTGRTaVFMeDBDU0JYTnhHU2RTUk9MN0lmemFuakN1Q0dFQWxhb3RCMEw0MnlIQnVaa1VXcEdXNitldmsvaTBtZVJoT1VVQVFrL0RnPT0K",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.29.4/NymVPN_1.29.4_x64-setup.exe"
     }
   }
 }

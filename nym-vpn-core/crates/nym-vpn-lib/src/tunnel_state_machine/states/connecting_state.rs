@@ -382,10 +382,12 @@ impl ConnectingState {
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
+            #[cfg(target_os = "ios")]
+            filtering_resolver_addr: shared_state.filtering_resolver.listen_addr(),
         };
         #[cfg(target_os = "android")]
         let dns_filter = if shared_state.tunnel_settings.enable_ad_blocking {
-            shared_state.get_dns_filter().await
+            Some(shared_state.adblocker.get_dns_filter())
         } else {
             None
         };
@@ -740,7 +742,7 @@ impl TunnelStateHandler for ConnectingState {
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         {
-                            if diff.split_tunnel_changed() || diff.airporting_enabled_changed() {
+                            if diff.split_tunnel_changed() || diff.geo_exclusion_enabled_changed() {
                                 match shared_state.set_split_tunnel_exclude_paths().await {
                                     Ok(interface_changed) => {
                                         if interface_changed {
@@ -774,7 +776,7 @@ impl TunnelStateHandler for ConnectingState {
                         }
 
                         #[cfg(not(target_os = "ios"))]
-                        if diff.airporting_enabled_changed() {
+                        if diff.geo_exclusion_enabled_changed() {
                             shared_state
                                 .start_or_stop_socks5_proxy()
                                 .await;

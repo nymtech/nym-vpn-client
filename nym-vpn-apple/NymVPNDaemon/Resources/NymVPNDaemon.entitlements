@@ -4,5 +4,9 @@
 <dict>
 	<key>com.apple.developer.endpoint-security.client</key>
 	<true/>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.net.nymtech.vpn</string>
+	</array>
 </dict>
 </plist>

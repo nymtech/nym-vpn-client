@@ -5,6 +5,8 @@ use std::fmt;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
@@ -17,13 +19,13 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum GatewaySelectionAlgorithm {
-    #[default]
     /// Select gateways explicitly using the entry and exit selectors.
     Explicit,
 
     /// Select gateways explicitly using the exit selector and automatically finding an entry gateway.
     AutoEntryExplicitExit,
 
+    #[default]
     /// Select gateways by automatically finding an entry and an exit gateway.
     /// The hop mode is also automatically set to 2-hop
     Auto,

@@ -8,6 +8,7 @@ use std::{
 };
 
 use nym_common::trace_err_chain;
+use nym_http_api_client::{Client, FrontPolicy};
 use nym_registration_client::MixnetClientConfig;
 use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -21,7 +22,7 @@ use crate::{
             DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
             VpnServiceConfigVersion, legacy,
         },
-        error::{AirportingConfigError, Error, Result},
+        error::{Error, GeoExclusionConfigError, Result},
         read_json_config_file, read_toml_config_file, write_json_config_file,
     },
     tunnel_state_machine::{
@@ -171,6 +172,21 @@ impl VpnServiceConfigManager {
         }
     }
 
+    pub async fn set_fronting_mode(&mut self, fronting_mode: nym_vpn_lib_types::FrontingMode) {
+        if self.config.fronting_mode != fronting_mode {
+            // Change the shared fronting policy
+            let front_policy = match fronting_mode {
+                nym_vpn_lib_types::FrontingMode::Off => FrontPolicy::Off,
+                nym_vpn_lib_types::FrontingMode::OnRetry => FrontPolicy::OnRetry,
+                nym_vpn_lib_types::FrontingMode::Always => FrontPolicy::Always,
+            };
+            Client::set_shared_front_policy(front_policy);
+
+            self.config.fronting_mode = fronting_mode;
+            self.save_config_and_send_event().await;
+        }
+    }
+
     pub async fn set_residential_exit(&mut self, residential_only: bool) {
         if self.config.residential_exit != residential_only {
             self.config.residential_exit = residential_only;
@@ -213,7 +229,7 @@ impl VpnServiceConfigManager {
     pub async fn set_gateway_selection_algorithm(
         &mut self,
         gateway_selection_algorithm: nym_vpn_lib_types::GatewaySelectionAlgorithm,
-    ) -> Result<(), MixnetTrafficConfigValidationError> {
+    ) {
         if self
             .config
             .gateway_selection_algorithm_config
@@ -225,7 +241,6 @@ impl VpnServiceConfigManager {
                 .gateway_selection_algorithm = gateway_selection_algorithm;
             self.save_config_and_send_event().await;
         }
-        Ok(())
     }
 
     pub async fn set_enable_geo_location(
@@ -298,36 +313,36 @@ impl VpnServiceConfigManager {
         self.save_config_and_send_event().await;
     }
 
-    pub async fn set_airporting_enabled(&mut self, enabled: bool) {
-        if self.config.airporting.enabled != enabled {
-            self.config.airporting.enabled = enabled;
+    pub async fn set_geo_exclusion_enabled(&mut self, enabled: bool) {
+        if self.config.geo_exclusion.enabled != enabled {
+            self.config.geo_exclusion.enabled = enabled;
             self.save_config_and_send_event().await;
         }
     }
 
-    pub async fn set_airporting_listen_port(&mut self, listen_port: u16) {
-        if self.config.airporting.listen_port != listen_port {
-            self.config.airporting.listen_port = listen_port;
+    pub async fn set_geo_exclusion_listen_port(&mut self, listen_port: u16) {
+        if self.config.geo_exclusion.listen_port != listen_port {
+            self.config.geo_exclusion.listen_port = listen_port;
             self.save_config_and_send_event().await;
         }
     }
 
-    pub async fn set_airporting_excluded_countries(
+    pub async fn set_geo_exclusion_excluded_countries(
         &mut self,
         excluded_countries: Vec<String>,
-    ) -> Result<(), AirportingConfigError> {
-        // Temporary:  At the moment Airporting is only supported for China
+    ) -> Result<(), GeoExclusionConfigError> {
+        // Temporary:  At the moment Geo Exclusion is only supported for China
         for country in &excluded_countries {
             if country != "CN" {
-                return Err(AirportingConfigError::UnsupportedCountry(country.clone()));
+                return Err(GeoExclusionConfigError::UnsupportedCountry(country.clone()));
             }
         }
         if !excluded_countries.iter().any(|c| c == "CN") {
-            return Err(AirportingConfigError::CnRequired);
+            return Err(GeoExclusionConfigError::CnRequired);
         }
 
-        if self.config.airporting.excluded_countries != excluded_countries {
-            self.config.airporting.excluded_countries = excluded_countries;
+        if self.config.geo_exclusion.excluded_countries != excluded_countries {
+            self.config.geo_exclusion.excluded_countries = excluded_countries;
             self.save_config_and_send_event().await;
         }
 
@@ -491,14 +506,14 @@ impl VpnServiceConfigManager {
             DnsOptions::default()
         };
 
-        let airporting_settings = self.config.airporting.clone();
+        let geo_exclusion_settings = self.config.geo_exclusion.clone();
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         let split_tunnel = {
             let mut split_tunnel = self.config.split_tunnel.clone();
-            // If airporting is enabled then Split Tunneling also needs to be enabled.
-            if airporting_settings.enabled && !self.config.split_tunnel.enabled {
-                tracing::warn!("Enabling Split Tunnel as airporting is enabled");
+            // If geo exclusion is enabled then Split Tunneling also needs to be enabled.
+            if geo_exclusion_settings.enabled && !self.config.split_tunnel.enabled {
+                tracing::warn!("Enabling Split Tunnel as Geo Exclusion is enabled");
                 split_tunnel.enabled = true;
             }
             split_tunnel
@@ -532,7 +547,7 @@ impl VpnServiceConfigManager {
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
             split_tunnel,
-            airporting_settings,
+            geo_exclusion_settings,
             gateway_selection_algorithm_config: self
                 .config
                 .gateway_selection_algorithm_config

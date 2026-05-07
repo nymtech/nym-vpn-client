@@ -28,6 +28,7 @@ import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewaySelectionAlgorithmConfig
+import nym_vpn_lib_types.FrontingMode
 import nym_vpn_lib_types.MixnetTrafficConfig
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.UserAgent
@@ -341,6 +342,7 @@ class VpnCoreController(
 			exitRouter = ExitPoint.Random,
 			enableTwoHop = false,
 			enableBridges = false,
+			frontingMode = FrontingMode.ON_RETRY,
 			enableLewesProtocol = enableLewesProtocol,
 			customDns = emptyList(),
 			residentialExit = false,
