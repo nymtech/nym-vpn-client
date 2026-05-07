@@ -86,7 +86,7 @@ constructor(
 		runCatching {
 			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetAlgorithm(state.toAlgorithm()))
 		}.onFailure { t ->
-			Timber.tag(TAG).e(t, "VpnAlgorithmChangeFailed mode=$state")
+			Timber.tag(TAG).e(t, "VpnAlgorithmChangeFailed state=$state")
 		}
 	}
 

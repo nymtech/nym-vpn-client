@@ -81,7 +81,7 @@ fun ConnectionButton(
 								Text(
 									stringResource(R.string.stop),
 									style = CustomTypography.buttonMain,
-									color = MaterialTheme.colorScheme.background,
+									color = MaterialTheme.colorScheme.onError,
 								)
 							},
 							color = MaterialTheme.colorScheme.error,
@@ -127,7 +127,7 @@ fun ConnectionButton(
 					Text(
 						stringResource(R.string.stop),
 						style = CustomTypography.buttonMain,
-						color = MaterialTheme.colorScheme.background,
+						color = MaterialTheme.colorScheme.onError,
 					)
 				},
 				color = MaterialTheme.colorScheme.error,
@@ -149,6 +149,7 @@ fun ConnectionButton(
 					Text(
 						stringResource(R.string.disconnect),
 						style = CustomTypography.buttonMain,
+						color = MaterialTheme.colorScheme.onError,
 					)
 				},
 				color = MaterialTheme.colorScheme.error,

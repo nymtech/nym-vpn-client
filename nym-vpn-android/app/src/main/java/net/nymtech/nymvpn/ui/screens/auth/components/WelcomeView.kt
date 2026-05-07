@@ -63,7 +63,7 @@ fun WelcomeView(onLoginClick: () -> Unit, onSignUpClick: () -> Unit, modifier: M
 					style = CustomTypography.buttonMain,
 				)
 			},
-			modifier = modifier
+			modifier = Modifier
 				.fillMaxWidth()
 				.height(48.dp.scaledHeight()),
 			shape = RoundedCornerShape(12.dp),
@@ -77,7 +77,7 @@ fun WelcomeView(onLoginClick: () -> Unit, onSignUpClick: () -> Unit, modifier: M
 					style = CustomTypography.buttonMain,
 				)
 			},
-			modifier = modifier
+			modifier = Modifier
 				.fillMaxWidth()
 				.height(48.dp.scaledHeight()),
 			shape = RoundedCornerShape(12.dp),

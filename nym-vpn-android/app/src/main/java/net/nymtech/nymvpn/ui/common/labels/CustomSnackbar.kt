@@ -99,7 +99,7 @@ fun CustomSnackBar(data: SnackbarData, paddingTop: Dp, isRtl: Boolean = false, c
 				.padding(top = paddingTop),
 			contentAlignment = Alignment.TopCenter,
 		) {
-			Snackbar(containerColor = containerColor) {
+			Snackbar(containerColor = resolvedContainerColor) {
 				CompositionLocalProvider(
 					LocalLayoutDirection provides if (isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
 				) {

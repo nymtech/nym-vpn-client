@@ -87,7 +87,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		val sentry = this[KEY_ENV_SENTRY] ?: false
 		val lewes = this[KEY_LEWES] ?: false
 		val adBlockingEnabled = this[KEY_AD_BLOCKING] ?: false
-		val algorithm: GatewaySelectionAlgorithm = this[KEY_ALGORITHM]?.asAlgorithm() ?: GatewaySelectionAlgorithm.AUTO
+		val algorithm: GatewaySelectionAlgorithm = this[KEY_ALGORITHM]?.let { runCatching { it.asAlgorithm() }.getOrNull() } ?: GatewaySelectionAlgorithm.AUTO
 
 		return CoreVpnConfig(
 			entryPoint = entry,

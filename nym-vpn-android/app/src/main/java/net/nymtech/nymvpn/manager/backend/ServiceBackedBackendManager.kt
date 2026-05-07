@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -177,6 +178,7 @@ class ServiceBackedBackendManager @Inject constructor(
 			serviceConnectionManager.apiFlow
 				.filterNotNull()
 				.flatMapLatest { it.events }
+				.catch { t -> Timber.tag(TAG).e(t, "Error in VPN events stream") }
 				.collect { event ->
 					if (event is VpnServiceEvent.AccountStateChanged) {
 						refreshAccountSummary()

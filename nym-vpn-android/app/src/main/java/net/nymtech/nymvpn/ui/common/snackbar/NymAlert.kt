@@ -32,8 +32,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.ui.theme.CustomColors
@@ -117,7 +119,7 @@ private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: 
 				IconButton(onClick = onDismiss) {
 					Icon(
 						imageVector = Icons.Filled.Close,
-						contentDescription = null,
+						contentDescription = stringResource(R.string.close),
 						tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						modifier = Modifier.size(24.dp),
 					)

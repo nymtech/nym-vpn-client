@@ -186,4 +186,4 @@ val LightNymColors = NymColors(
 	trackIdle = Color(0x1F0A0A0A),
 )
 
-val LocalNymColors = staticCompositionLocalOf { NymColors() }
+val LocalNymColors = staticCompositionLocalOf { DarkNymColors }

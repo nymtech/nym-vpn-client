@@ -31,6 +31,7 @@ import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.SignalCellularAlt
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -257,7 +258,7 @@ fun ConnectPanel(
 private fun ModeToggle(vpnMode: Tunnel.Mode, onFastClick: () -> Unit, onAnonClick: () -> Unit, modifier: Modifier = Modifier) {
 	val isFast = vpnMode == Tunnel.Mode.TWO_HOP_MIXNET
 	val indicatorX by animateDpAsState(
-		targetValue = if (isFast) 6.dp else 46.dp,
+		targetValue = if (isFast) 6.dp else 44.dp,
 		label = "toggle_indicator",
 	)
 
@@ -286,21 +287,21 @@ private fun ModeToggle(vpnMode: Tunnel.Mode, onFastClick: () -> Unit, onAnonClic
 			modifier = Modifier
 				.size(width = 80.dp, height = 40.dp)
 				.clip(RoundedCornerShape(50))
-				.background(Color(0xFF090909))
+				.background(MaterialTheme.colorScheme.secondary)
 				.clickable { if (isFast) onAnonClick() else onFastClick() },
 		) {
 			Box(
 				modifier = Modifier
-					.offset(x = indicatorX, y = 6.dp)
-					.size(28.dp)
+					.offset(x = indicatorX, y = 4.dp)
+					.size(32.dp)
 					.clip(CircleShape)
-					.background(Color.White),
+					.background(MaterialTheme.colorScheme.surfaceVariant),
 				contentAlignment = Alignment.Center,
 			) {
 				Icon(
-					imageVector = Icons.Outlined.Bolt,
+					imageVector = if(isFast) Icons.Outlined.Bolt else Icons.Outlined.VisibilityOff,
 					contentDescription = null,
-					tint = Color.Black,
+					tint = MaterialTheme.colorScheme.surfaceTint,
 					modifier = Modifier.size(20.dp),
 				)
 			}
@@ -621,7 +622,31 @@ private fun PreviewDisconnectedDark() {
 			onStopKillSwitch = {},
 			onGetStartedClick = {},
 			onPanelStateChange = {},
-			initialPanelState = PanelState.COLLAPSED,
+			initialPanelState = PanelState.MODE,
+			onExitNodeClick = {},
+			onEntryNodeClick = {},
+		)
+	}
+}
+@Preview(name = "Disconnected – light", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun PreviewDisconnectedLight() {
+	NymVPNTheme(Theme.LIGHT_MODE) {
+		ConnectPanel(
+			connectionState = ConnectionState.Disconnected,
+			accountState = AccountControllerState.ReadyToConnect,
+			isMnemonicStored = true,
+			vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
+			exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France"),
+			entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France"),
+			onFastModeClick = {},
+			onAnonModeClick = {},
+			onConnect = {},
+			onDisconnect = {},
+			onStopKillSwitch = {},
+			onGetStartedClick = {},
+			onPanelStateChange = {},
+			initialPanelState = PanelState.MODE,
 			onExitNodeClick = {},
 			onEntryNodeClick = {},
 		)

@@ -28,6 +28,7 @@ object NymAlertController {
 	val message: StateFlow<NymAlertMessage?> = _message.asStateFlow()
 
 	fun show(message: NymAlertMessage) {
+		_message.value?.onDismiss?.invoke()
 		_message.value = message
 	}
 

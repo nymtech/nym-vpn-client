@@ -303,7 +303,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
-	val expiryAlertTitle = stringResource(R.string.banner_plan_expires_text, appUiState.subscription!!.validUntilDate)
+	val expiryAlertTitle = stringResource(R.string.banner_plan_expires_text, appUiState.subscription?.validUntilDate ?: "")
 	val expiryAlertAction = stringResource(R.string.banner_renew_text)
 	val expiryState = appUiState.subscription?.expiryState
 	LaunchedEffect(expiryState, expiryBannerDismissed) {
