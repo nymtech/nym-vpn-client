@@ -199,7 +199,6 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		accountMode = StoredAccountMode.PRIVY,
 		subscription = mockSubscription,
 		isSubscriptionStacked = false,
-		fairUsageDataUnavailable = false,
 	)
 
 	override val stateFlow: StateFlow<TunnelManagerState> =
