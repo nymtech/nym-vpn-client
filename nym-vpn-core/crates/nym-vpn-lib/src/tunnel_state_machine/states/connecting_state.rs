@@ -387,7 +387,7 @@ impl ConnectingState {
         };
         #[cfg(target_os = "android")]
         let dns_filter = if shared_state.tunnel_settings.enable_ad_blocking {
-            Some(shared_state.adblocker.get_dns_filter().await)
+            Some(shared_state.adblocker.get_dns_filter())
         } else {
             None
         };

@@ -153,7 +153,7 @@ impl AdBlocker {
         tracing::debug!("Ad-blocker disabled");
     }
 
-    pub async fn get_dns_filter(&self) -> DnsFilter {
+    pub fn get_dns_filter(&self) -> DnsFilter {
         self.engine.clone()
     }
 }

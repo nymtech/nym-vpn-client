@@ -1008,7 +1008,7 @@ impl TunnelStateMachine {
 
         #[cfg(not(target_os = "android"))]
         {
-            let dns_filter = adblocker.get_dns_filter().await;
+            let dns_filter = adblocker.get_dns_filter();
             filtering_resolver.set_dns_filter(dns_filter).await;
         }
 
