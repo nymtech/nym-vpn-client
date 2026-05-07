@@ -76,21 +76,11 @@ impl DnsFilterT for BraveAdblockEngine {
         const BLOCK: DnsFilterDecision = DnsFilterDecision::Block(DnsFilterStrategy::Localhost);
 
         // Some DNS qname strings can crash `Request::new()`, so clean them up before parsing.
-        let mut domain = domain.trim();
+        let domain = super::qname_to_domain_name(domain);
 
         // Treat empty / root as non-blockable.
-        if domain.is_empty() || domain == "." || domain == "./" {
-            return PASS;
-        }
-
-        // Remove any trailing "/"
-        domain = domain.trim_end_matches('/');
-
-        // Remove any trailing "." (including cases like "example.com./")
-        domain = domain.trim_end_matches('.');
-
         if domain.is_empty() {
-            return BLOCK;
+            return PASS;
         }
 
         let domain_url = format!("https://{domain}");
