@@ -215,7 +215,7 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
             );
             if udp.get_destination() == DNS_PORT {
                 let domain = blocked_domain(udp.payload(), dns_filter).await?;
-                tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+                tracing::trace!("Ad-blocker: blocking DNS query for {domain}");
                 let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
                 Some(build_udp_response_v4(&ip, &udp, nxdomain_dns))
             } else {
@@ -270,7 +270,7 @@ async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
 
             if udp.get_destination() == DNS_PORT {
                 let domain = blocked_domain(udp.payload(), dns_filter).await?;
-                tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+                tracing::trace!("Ad-blocker: blocking DNS query for {domain}");
                 let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
                 Some(build_udp_response_v6(&ip, &udp, nxdomain_dns))
             } else {
