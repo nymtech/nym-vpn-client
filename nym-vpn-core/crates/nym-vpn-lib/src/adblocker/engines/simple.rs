@@ -28,9 +28,9 @@ use crate::{
 };
 
 /// Soft heap limit that advises SQLite to free up memory
-const SQL_SOFT_HEAP_LIMIT: usize = 4 * 1024 * 1024;
+const SQL_SOFT_HEAP_LIMIT: usize = 7 * 1024 * 1024;
 /// Hard heap limit that enforces a strict ceiling on total heap memory usage
-const SQL_HARD_HEAP_LIMIT: usize = 5 * 1024 * 1024;
+const SQL_HARD_HEAP_LIMIT: usize = 8 * 1024 * 1024;
 /// Number of domains to insert in a single batch
 const DOMAIN_BATCH_SIZE: usize = 999;
 
