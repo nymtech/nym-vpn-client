@@ -70,6 +70,6 @@ impl DnsFilterT for AdBlockEngineWrap {
     }
 }
 
-fn qname_to_domain_name<'a>(domain: &'a str) -> &'a str {
-    domain.trim().trim_end_matches(|c| c == '/' || c == '.')
+fn qname_to_domain_name(domain: &str) -> &str {
+    domain.trim().trim_end_matches(['/', '.'])
 }
