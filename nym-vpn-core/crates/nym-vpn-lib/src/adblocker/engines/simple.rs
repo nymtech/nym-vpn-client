@@ -327,16 +327,34 @@ async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Resu
 
 /// Remove the database file and associated WAL/SHM files.
 async fn remove_db(db_path: &Path) -> std::io::Result<()> {
-    fs::remove_file(&db_path).await?;
+    let paths = vec![
+        db_path.to_path_buf(),
+        add_path_suffix(db_path, "-wal"),
+        add_path_suffix(db_path, "-shm"),
+    ];
 
-    for suffix in ["-wal", "-shm"] {
-        let mut new_path = db_path.to_path_buf();
-        new_path.as_mut_os_string().push(suffix);
+    let results = futures::stream::iter(paths)
+        .then(|path| async move {
+            fs::remove_file(&path).await.or_else(|err| {
+                if err.kind() == std::io::ErrorKind::NotFound {
+                    Ok(())
+                } else {
+                    Err(err)
+                }
+            })
+        })
+        .collect::<Vec<Result<(), std::io::Error>>>()
+        .await;
 
-        fs::remove_file(&new_path).await?;
-    }
+    let first_err = results.into_iter().find(|r| r.is_err());
 
-    Ok(())
+    first_err.unwrap_or(Ok(()))
+}
+
+fn add_path_suffix(path: &Path, suffix: &str) -> PathBuf {
+    let mut new_path = path.to_path_buf();
+    new_path.as_mut_os_string().push(suffix);
+    new_path
 }
 
 #[cfg(test)]
@@ -372,5 +390,32 @@ mod tests {
         let engine = SimpleAdBlockEngine::new(temp_dir.path().join("adblock.db"));
         let decision = engine.should_block(SHOULD_BE_BLOCKED_DOMAIN).await;
         assert!(matches!(decision, DnsFilterDecision::Pass));
+    }
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_remove_db_files() {
+        let temp_dir = TempDir::new().unwrap();
+
+        let files = ["adblock.db", "adblock.db-wal", "adblock.db-shm"]
+            .into_iter()
+            .map(|f| temp_dir.path().join(f))
+            .collect::<Vec<_>>();
+
+        tracing::debug!("creating db files: {:?}", files);
+
+        for f in files.iter() {
+            fs::File::create(f).await.unwrap();
+        }
+
+        remove_db(&temp_dir.path().join("adblock.db"))
+            .await
+            .unwrap();
+
+        for f in files {
+            assert!(
+                matches!(fs::metadata(f).await, Err(err) if err.kind() == std::io::ErrorKind::NotFound)
+            )
+        }
     }
 }
