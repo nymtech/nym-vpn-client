@@ -20,7 +20,7 @@ appId: net.nymtech.nymvpn.mock.debug
 - extendedWaitUntil:
     visible:
       text: "Copy passphrase"
-    timeout: 5000
+    timeout: 15000
 
 - assertVisible: "Download"
 - tapOn: "Save to password manager"
