@@ -9,6 +9,7 @@ import { MsIcon } from './index';
 export type ButtonIconNewProps = {
   onClick: () => void;
   icon: string;
+  size?: 'small' | 'base';
   className?: string;
   initialAnimation?: boolean;
   noDefaultSize?: boolean;
@@ -19,6 +20,7 @@ export function ButtonIconNew({
   onClick,
   icon,
   className,
+  size = 'base',
   initialAnimation = false,
   noDefaultSize = false,
   clickFeedback = false,
@@ -61,8 +63,9 @@ export function ButtonIconNew({
             <MsIcon
               icon="check"
               className={clsx([
-                'text-3xl leading-none text-malachite-moss dark:text-malachite',
-                !noDefaultSize && 'w-10 h-10 ',
+                'leading-none text-malachite-moss dark:text-malachite',
+                size === 'small' && 'text-2xl',
+                size === 'base' && 'text-3xl',
               ])}
             />
           </motion.div>
@@ -74,8 +77,10 @@ export function ButtonIconNew({
             exit={{ opacity: 0, rotate: -90 }}
             transition={{ duration: 0.1 }}
             className={clsx([
-              'leading-none w-[1em] h-[1em] text-3xl',
+              'leading-none w-[1em] h-[1em]',
               'font-icon select-none inline-block rtl:-scale-x-100',
+              !noDefaultSize && size === 'small' && 'text-2xl',
+              !noDefaultSize && size === 'base' && 'text-3xl',
             ])}
           >
             {icon}

@@ -30,12 +30,14 @@
     "id-label": "Identity key:",
     "data": {
       "advanced-privacy": "Advanced privacy",
-      "with-mixnet": "With mixnet (5-hop)",
-      "ip-type": "Streaming & content",
-      "ip-residential": "Residential IP",
-      "ip-datacenter": "Datacenter IP",
+      "with-mixnet": "Mixnet",
+      "ip-type": "Streaming & IP",
+      "ip-residential": "Residential",
+      "ip-datacenter": "Datacenter",
       "anti-censorship": "Anti-censorship",
       "quic-protocol": "QUIC protocol",
+      "lewes-protocol-label": "Post-quantum secure keys",
+      "lewes-protocol": "Lewes protocol",
       "standard-protocol": "Standard protocol",
       "overall-performance": "Overall performance",
       "server-load": "Server load",
@@ -69,7 +71,11 @@
       "missing-info": "Why is there missing or incorrect info",
       "explorer": "More details in the Nym <networkExplorerLink />"
     },
-    "select-button": "Select server"
+    "select-button": "Select server",
+    "error": {
+      "title": "Failed to select server",
+      "description": "Something went wrong. Please try different server."
+    }
   },
   "search-other-nodes": "Other search results",
   "no-results-found": {

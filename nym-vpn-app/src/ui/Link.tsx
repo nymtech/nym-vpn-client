@@ -12,7 +12,7 @@ type LinkProps = {
   url?: string;
   to?: Routes;
   icon?: boolean | string;
-  color?: 'primary' | 'malachite' | 'iron';
+  color?: 'primary' | 'malachite' | 'iron' | 'cornflower';
   className?: string;
   textClassName?: string;
   iconClassName?: string;
@@ -55,6 +55,7 @@ function Link({
         color === 'malachite' && 'text-malachite-moss dark:text-malachite',
         color === 'iron' && 'text-iron dark:text-bombay',
         color === 'primary' && 'text-baltic-sea dark:text-white',
+        color === 'cornflower' && 'text-cornflower',
         className && className,
         selectable && '!select-text',
       ])}
@@ -77,7 +78,7 @@ function Link({
           {icon && (
             <MsIcon
               className={clsx(
-                'no-underline! hover:no-underline!',
+                'no-underline! hover:no-underline! text-xl',
                 iconClassName,
               )}
               icon={typeof icon === 'string' ? icon : 'open_in_new'}
