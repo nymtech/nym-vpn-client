@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { InitState, SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
@@ -65,10 +65,6 @@ function MainStateProvider({ children, init }: Props) {
     batchesInitialized = true;
 
     // this first batch is needed to ensure the app is fully initialized and ready
-    // initFirstBatch().then(() => {
-    //   console.log('init of 1st batch done');
-    //   dispatch({ type: 'init-done' });
-    // });
     Promise.all([initFirstBatch(), initGateways()]).then(() => {
       console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
@@ -79,6 +75,7 @@ function MainStateProvider({ children, init }: Props) {
     initSecondBatch().then(() => {
       console.log('init of 2nd batch done');
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [daemonStatus]);
 
   useEffect(() => {
@@ -135,27 +132,6 @@ function MainStateProvider({ children, init }: Props) {
   useEffect(() => {
     initGateways();
   }, [initGateways]);
-
-  // Initialize gateways on first successful connection to daemon
-  // useEffect(() => {
-  //   if (!initialized || gatewaysInit || daemonStatus === 'down') {
-  //     return;
-  //   }
-  //   gatewaysInit = true;
-  //   const { fetchGateways } = useAppStore.getState();
-  //   if (vpnMode === 'wg') {
-  //     fetchGateways('wg').then(() => {
-  //       console.info('[wg] gateways initialized');
-  //     });
-  //   } else {
-  //     fetchGateways('mx-entry').then(() => {
-  //       console.info('[mx-entry] gateways initialized');
-  //     });
-  //     fetchGateways('mx-exit').then(() => {
-  //       console.info('[mx-exit] gateways initialized');
-  //     });
-  //   }
-  // }, [initialized, daemonStatus, vpnMode]);
 
   // Socks5 status polling
   useEffect(() => {

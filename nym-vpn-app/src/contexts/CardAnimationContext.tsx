@@ -6,7 +6,9 @@ const CardAnimationContext = createContext<{
   registerExit: (fn: ExitFn | null) => void;
   triggerExit: () => Promise<void>;
 }>({
-  registerExit: () => {},
+  registerExit: () => {
+    /* SCARECROW */
+  },
   triggerExit: () => Promise.resolve(),
 });
 

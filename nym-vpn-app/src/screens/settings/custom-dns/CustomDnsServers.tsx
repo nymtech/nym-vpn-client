@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import clsx from 'clsx';
-import { Button, ButtonNew, TextInput } from '../../../ui';
+import { ButtonNew, TextInput } from '../../../ui';
 import DraggableList from '../../../ui/DraggableList';
 import { ipv4Regex, ipv6Regex } from '../../../utils';
 import { DnsItem, DnsItemContent } from './DnsItemContent';

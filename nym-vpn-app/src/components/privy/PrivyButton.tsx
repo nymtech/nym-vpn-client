@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
-import { Button, ButtonNew, MsIcon } from '../../ui';
+import { ButtonNew, MsIcon } from '../../ui';
 import { dispatch, useMainState } from '../../store';
 import { useDeepLink, useToast } from '../../hooks';
 import { routes } from '../../router';

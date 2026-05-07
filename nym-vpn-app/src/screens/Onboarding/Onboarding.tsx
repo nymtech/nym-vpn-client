@@ -1,15 +1,15 @@
 import clsx from 'clsx';
-import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { useTranslation } from 'react-i18next';
 import { Button as HuButton } from '@headlessui/react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { Button, ButtonIconNew, ButtonNew, MsIcon, PageAnim } from '../../ui';
+import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
+import { ButtonIconNew, ButtonNew, MsIcon } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import { routes } from '../../router';
-import { Speed, Tracking, Welcome, ZeroKnowledge } from './slides';
-import { DotButton, useDotButton } from './CarouselDotButton';
 import { InteractiveCard } from '../home/InteractiveCard';
 import { useAppStore } from '../../store/index';
+import { Speed, Tracking, Welcome, ZeroKnowledge } from './slides';
+import { DotButton, useDotButton } from './CarouselDotButton';
 
 const slides = [Welcome, Speed, Tracking, ZeroKnowledge];
 

@@ -65,6 +65,7 @@ function Node({ node }: { node: NodeHop }) {
   useEffect(() => {
     if (daemonStatus === 'down') return;
     fetchGateways(vpnMode === 'mixnet' ? `mx-${node}` : 'wg');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [node, vpnMode, daemonStatus]);
 
   useEffect(() => {

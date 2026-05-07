@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NodeHop, VpnMode } from '../../../types';
-import { UiGateway, UiGatewaysByCountry, UiRegion } from '../../../types/node';
+import { UiGateway, UiGatewaysByCountry } from '../../../types/node';
 import { useNodeListState } from '../../../store/nodeListState';
 import { sortByScore } from './util';
 

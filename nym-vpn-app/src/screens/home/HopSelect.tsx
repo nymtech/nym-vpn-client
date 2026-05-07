@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 import { Button } from '@headlessui/react';
+import { useShallow } from 'zustand/react/shallow';
 import {
   Gateway,
   NodeHop,
@@ -22,7 +23,6 @@ import {
   SelectedNodeDisplay,
   SelectedNodeDisplayProps,
 } from './SelectedNodeDisplay';
-import { useShallow } from 'zustand/react/shallow';
 
 type HopSelectProps = {
   node: SelectedNode;

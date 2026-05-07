@@ -1,7 +1,6 @@
-import { Suspense, useEffect } from 'react';
+import { useEffect } from 'react';
 import { RouterProvider } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
-import { type } from '@tauri-apps/plugin-os';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
@@ -19,12 +18,9 @@ import { kvGet } from './kvStore';
 import router from './router';
 import './i18n/config';
 import { ThemeSetter } from './ui';
-import { IntroAnim, IntroSplash } from './screens';
 import { InitState } from './types';
 
 let initialized = false;
-const noSplash = window._APP.noSplash;
-const os = type();
 
 function App({ init }: { init: InitState }) {
   const { i18n } = useTranslation();
@@ -32,12 +28,6 @@ function App({ init }: { init: InitState }) {
   dayjs.extend(customParseFormat);
 
   const { set } = useLang();
-  const intro =
-    os === 'windows' || os === 'macos' ? (
-      <IntroAnim theme={init.uiTheme} />
-    ) : (
-      <IntroSplash theme={init.uiTheme} />
-    );
 
   useEffect(() => {
     if (initialized) {
@@ -66,24 +56,21 @@ function App({ init }: { init: InitState }) {
   }, [set]);
 
   return (
-    <>
-      {/* {!noSplash && intro} */}
-      <Toast.Provider timeout={100000}>
-        <MainStateProvider init={init}>
-          <TrayProvider>
-            <ThemeSetter>
-              <DialogProvider>
-                <TopBarProvider>
-                  <AutologinProvider>
-                    <RouterProvider router={router} />
-                  </AutologinProvider>
-                </TopBarProvider>
-              </DialogProvider>
-            </ThemeSetter>
-          </TrayProvider>
-        </MainStateProvider>
-      </Toast.Provider>
-    </>
+    <Toast.Provider timeout={5000}>
+      <MainStateProvider init={init}>
+        <TrayProvider>
+          <ThemeSetter>
+            <DialogProvider>
+              <TopBarProvider>
+                <AutologinProvider>
+                  <RouterProvider router={router} />
+                </AutologinProvider>
+              </TopBarProvider>
+            </DialogProvider>
+          </ThemeSetter>
+        </TrayProvider>
+      </MainStateProvider>
+    </Toast.Provider>
   );
 }
 

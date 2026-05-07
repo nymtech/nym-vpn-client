@@ -2,13 +2,7 @@ import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { Separator } from '@base-ui-components/react';
-import {
-  Button,
-  ButtonIcon,
-  ButtonIconNew,
-  ButtonNew,
-  PageAnim,
-} from '../../../ui';
+import { ButtonIconNew, ButtonNew, PageAnim } from '../../../ui';
 import { useClipboard } from '../../../hooks';
 
 function Diagnostic() {

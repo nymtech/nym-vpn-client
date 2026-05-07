@@ -1,6 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
-import { Field, Input, Label } from '@headlessui/react';
+import { Field, Input } from '@headlessui/react';
 import { inputStates } from './common-styles';
 import MsIcon from './MsIcon';
 import ButtonIcon from './ButtonIcon';
@@ -12,7 +12,6 @@ export type TextInputProps = {
   // value for controlled input
   value?: string;
   onChange: (value: string) => void;
-  label?: string;
   placeholder?: string;
   spellCheck?: boolean;
   autoFocus?: boolean;
@@ -31,7 +30,6 @@ function TextInput({
   value,
   onChange,
   spellCheck,
-  label,
   placeholder,
   leftIcon,
   autoFocus,
@@ -86,18 +84,6 @@ function TextInput({
         data-test-has-left-icon={leftIcon ? 'true' : 'false'}
         disabled={disabled}
       />
-      {/* {label && (
-        <Label
-          className={clsx([
-            'select-none absolute left-3 -top-2 px-1',
-            'dark:text-white',
-            getColorClass(),
-            'text-xs',
-          ])}
-        >
-          {label}
-        </Label>
-      )} */}
       {leftIcon && (
         <MsIcon
           icon={leftIcon}
