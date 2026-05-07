@@ -122,6 +122,6 @@ fn bind_to_iface(socket: &Socket, server_addr: SocketAddr, ifname: &str) -> io::
             SocketAddr::V4(_) => socket.bind_device_by_index_v4(Some(if_index)),
             SocketAddr::V6(_) => socket.bind_device_by_index_v6(Some(if_index)),
         },
-        None => return Err(io::Error::last_os_error()),
+        None => Err(io::Error::last_os_error()),
     }
 }
