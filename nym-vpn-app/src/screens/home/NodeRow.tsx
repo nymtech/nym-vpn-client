@@ -67,6 +67,8 @@ export function NodeRow({ type }: NodeRowProps) {
   const label = type === 'entry' ? 'Nym entry node' : 'Nym exit node';
 
   const handleClick = () => {
+    if (algo === 'auto') return;
+
     const route =
       type === 'entry' ? routes.entryNodeLocation : routes.exitNodeLocation;
 
