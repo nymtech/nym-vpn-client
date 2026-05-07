@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { Accordion } from '@base-ui-components/react';
+import { Collapsible } from '@base-ui-components/react';
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
 import { MsIcon } from '../../../ui';
 
 type FoldButtonProps = {
   html: React.HTMLAttributes<unknown>;
-  state: Accordion.Item.State;
+  state: Collapsible.Root.State;
 };
 
 const FoldButton = ({ html, state }: FoldButtonProps) => {

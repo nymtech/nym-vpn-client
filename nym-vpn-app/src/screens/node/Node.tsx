@@ -68,7 +68,7 @@ function Node({ node }: { node: NodeHop }) {
   }, [node, vpnMode, daemonStatus]);
 
   useEffect(() => {
-    if (searchRef.current) searchRef.current.focus();
+    if (searchRef.current) searchRef.current.focus({ preventScroll: true });
   }, []);
 
   const handleSelect = async (selected: SelectedUiNode) => {

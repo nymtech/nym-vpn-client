@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Accordion } from '@base-ui-components/react';
+import { Collapsible } from '@base-ui-components/react';
 import {
   SelectedKind,
   SelectedUiNode,
@@ -21,11 +21,15 @@ export const NodeItem = memo(function NodeItem({
   handleLocationSelect,
   onGatewaySelect,
   onNodeDetails,
+  expanded,
+  onExpandChange,
 }: {
   node: UiGatewaysByCountry;
   hop: NodeHop;
   vpnMode: VpnMode;
   quicFilter: boolean;
+  expanded: string[];
+  onExpandChange: (key: string, open: boolean) => void;
   handleLocationSelect: (
     location: UiCountry | UiRegion,
     isSelected: SelectedKind,
@@ -48,52 +52,53 @@ export const NodeItem = memo(function NodeItem({
         }
         gwCount={gateways.length}
       />
-      <Accordion.Panel
+      <Collapsible.Panel
         keepMounted={false}
         data-testid={`country-accordion-content-${country.code}`}
-        className="accordion-panel w-full flex flex-col gap-3"
+        className="collapsible-panel w-full flex flex-col gap-3"
       >
         {country.code.toLowerCase() === 'us' ? (
           regions.map((region) => (
-            <Accordion.Item
+            <Collapsible.Root
               className="first:pt-3"
               key={region.name}
-              value={region.name}
-              render={() => (
-                <>
-                  <RowHeader
-                    hop={hop}
-                    isSelected={region.isSelected}
-                    node={region}
-                    i18n={i18n}
-                    onClick={() => {
-                      handleLocationSelect(
-                        region,
-                        region.isSelected,
-                        region.gateways.length,
-                      );
-                    }}
-                    gwCount={region.gateways.length}
-                    sub
-                  />
-                  <Accordion.Panel keepMounted={false} className="accordion-panel">
-                    <PanelContent>
-                      {region.gateways.map((gateway) => (
-                        <GatewayItem
-                          key={gateway.id}
-                          node={hop}
-                          gateway={gateway}
-                          vpnMode={vpnMode}
-                          quicLabel={quicFilter}
-                          onSelect={onGatewaySelect}
-                          onNodeDetails={onNodeDetails}
-                        />
-                      ))}
-                    </PanelContent>
-                  </Accordion.Panel>
-                </>
-              )}
-            ></Accordion.Item>
+              open={expanded.includes(region.name)}
+              onOpenChange={(open) => onExpandChange(region.name, open)}
+            >
+              <RowHeader
+                hop={hop}
+                isSelected={region.isSelected}
+                node={region}
+                i18n={i18n}
+                onClick={() => {
+                  handleLocationSelect(
+                    region,
+                    region.isSelected,
+                    region.gateways.length,
+                  );
+                }}
+                gwCount={region.gateways.length}
+                sub
+              />
+              <Collapsible.Panel
+                keepMounted={false}
+                className="collapsible-panel"
+              >
+                <PanelContent>
+                  {region.gateways.map((gateway) => (
+                    <GatewayItem
+                      key={gateway.id}
+                      node={hop}
+                      gateway={gateway}
+                      vpnMode={vpnMode}
+                      quicLabel={quicFilter}
+                      onSelect={onGatewaySelect}
+                      onNodeDetails={onNodeDetails}
+                    />
+                  ))}
+                </PanelContent>
+              </Collapsible.Panel>
+            </Collapsible.Root>
           ))
         ) : (
           <PanelContent>
@@ -110,7 +115,7 @@ export const NodeItem = memo(function NodeItem({
             ))}
           </PanelContent>
         )}
-      </Accordion.Panel>
+      </Collapsible.Panel>
     </>
   );
 });

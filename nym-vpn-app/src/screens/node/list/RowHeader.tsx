@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import clsx from 'clsx';
-import { Accordion } from '@base-ui-components/react';
+import { Collapsible } from '@base-ui-components/react';
 import { SelectedKind, UiCountry, UiRegion } from '../../../types/node';
 import { useNodeListState } from '../../../store/nodeListState';
 import LocationInfo from './LocationInfo';
@@ -80,11 +80,9 @@ function RowHeader({
           <LocationInfo node={node} name={node.name} gwCount={gwCount} />
         )}
       </div>
-      <Accordion.Header className="flex p-2 items-center justify-center">
-        <Accordion.Trigger
-          render={(props, state) => <FoldButton html={props} state={state} />}
-        />
-      </Accordion.Header>
+      <Collapsible.Trigger
+        render={(props, state) => <FoldButton html={props} state={state} />}
+      />
     </div>
   );
 }

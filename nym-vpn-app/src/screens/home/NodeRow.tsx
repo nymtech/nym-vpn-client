@@ -18,6 +18,7 @@ import {
 import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
+import { useNodeListState } from '../../store/nodeListState';
 import { isBridgeMode, regionToCountryCode } from './util';
 import { ScoreIndicatorContainer } from './ScoreIndicatorContainer';
 
@@ -46,6 +47,8 @@ export type SelectedNodeDisplayProps = {
 };
 
 export function NodeRow({ type }: NodeRowProps) {
+  const { setFocused, addToExpanded, reset } = useNodeListState();
+
   const algo = useAppStore(
     (s) => s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
   );
@@ -62,8 +65,39 @@ export function NodeRow({ type }: NodeRowProps) {
   const { t } = useTranslation('home');
 
   const label = type === 'entry' ? 'Nym entry node' : 'Nym exit node';
-  const route =
-    type === 'entry' ? routes.entryNodeLocation : routes.exitNodeLocation;
+
+  const handleClick = () => {
+    const route =
+      type === 'entry' ? routes.entryNodeLocation : routes.exitNodeLocation;
+
+    reset(type);
+
+    if (isCountry(userSelectedNode)) {
+      setFocused(type, {
+        type: 'country',
+        key: userSelectedNode.country.code,
+      });
+      // return;
+    } else if (isRegion(userSelectedNode)) {
+      const code = regionToCountryCode(userSelectedNode.region);
+      if (code) {
+        addToExpanded(type, code.toUpperCase());
+        setFocused(type, { type: 'region', key: userSelectedNode.region });
+      }
+    } else if (isGateway(userSelectedNode)) {
+      setFocused(type, { type: 'gateway', key: userSelectedNode.gateway.id });
+      const gw = lookupGw(userSelectedNode.gateway.id, type);
+      if (gw) {
+        addToExpanded(type, gw.country.code.toUpperCase());
+        if (gw.country.code.toLowerCase() === 'us') {
+          addToExpanded(type, gw.location.region);
+        }
+      }
+      addToExpanded(type, userSelectedNode.gateway.id);
+    }
+
+    navigate(route);
+  };
 
   const quicTag =
     type === 'entry' &&
@@ -213,8 +247,6 @@ export function NodeRow({ type }: NodeRowProps) {
     }
   }, [algo, nodeDetails, state, userSelectedNode]);
 
-  console.log('[NodeRow] textLabel', textLabel);
-
   return (
     <>
       {algo !== 'auto' && (
@@ -223,7 +255,7 @@ export function NodeRow({ type }: NodeRowProps) {
         </p>
       )}
       <Button
-        onClick={() => navigate(route)}
+        onClick={handleClick}
         className="group relative isolate rounded-xl p-2 w-full"
       >
         {/* Rotating gradient ring on hover — mask center with card bg so only border shows */}

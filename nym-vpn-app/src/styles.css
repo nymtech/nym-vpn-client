@@ -256,3 +256,14 @@
 .accordion-panel[data-ending-style] {
   height: 0;
 }
+
+.collapsible-panel {
+  overflow: hidden;
+  height: var(--collapsible-panel-height);
+  transition: height 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapsible-panel[data-starting-style],
+.collapsible-panel[data-ending-style] {
+  height: 0;
+}

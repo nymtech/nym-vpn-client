@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { dequal } from 'dequal';
-import { Accordion } from '@base-ui-components/react';
+import { Collapsible } from '@base-ui-components/react';
 import { Trans, useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { NodeHop, VpnMode } from '../../../types';
@@ -57,8 +57,11 @@ const NodeList = memo(function NodeList({
     }
   };
 
-  const onValueChange = (value: string[]) => {
-    setExpanded(hop, value);
+  const onExpandChange = (key: string, open: boolean) => {
+    const next = open
+      ? [...expanded, key]
+      : expanded.filter((k) => k !== key);
+    setExpanded(hop, next);
   };
 
   if (nodes.length === 0 && gateways.length === 0) {
@@ -83,32 +86,31 @@ const NodeList = memo(function NodeList({
 
   return (
     <div className="mr-0">
-      <Accordion.Root
+      <div
         className="w-full flex flex-col gap-3"
         data-testid="node-list-accordion"
-        value={expanded}
-        onValueChange={onValueChange}
-        multiple
       >
         {nodes.map((node) => (
-          <Accordion.Item
+          <Collapsible.Root
             key={node.country.code}
-            value={node.country.code}
-            render={() => (
-              <NodeItem
-                key={node.country.code}
-                node={node}
-                hop={hop}
-                vpnMode={vpnMode}
-                quicFilter={quicFilter}
-                handleLocationSelect={handleLocationSelect}
-                onGatewaySelect={onSelect}
-                onNodeDetails={onNodeDetails}
-              />
-            )}
-          ></Accordion.Item>
+            open={expanded.includes(node.country.code)}
+            onOpenChange={(open) => onExpandChange(node.country.code, open)}
+          >
+            <NodeItem
+              key={node.country.code}
+              node={node}
+              hop={hop}
+              vpnMode={vpnMode}
+              quicFilter={quicFilter}
+              handleLocationSelect={handleLocationSelect}
+              onGatewaySelect={onSelect}
+              onNodeDetails={onNodeDetails}
+              expanded={expanded}
+              onExpandChange={onExpandChange}
+            />
+          </Collapsible.Root>
         ))}
-      </Accordion.Root>
+      </div>
       {gateways.length > 0 && (
         <div className="mt-2" data-testid="standalone-gateways-container">
           <h3
