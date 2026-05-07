@@ -110,9 +110,6 @@ function MainStateProvider({ children, init }: Props) {
   }, [init.vpnd, daemonStatus, add]);
 
   const initGateways = useCallback(async () => {
-    console.log('[initGateways] initialized', initialized);
-    console.log('[initGateways] gatewaysInit', gatewaysInit);
-    console.log('[initGateways] daemonStatus', daemonStatus);
     if (gatewaysInit || daemonStatus === 'down') {
       return;
     }

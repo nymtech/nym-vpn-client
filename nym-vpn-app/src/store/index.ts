@@ -8,10 +8,6 @@ import type { MainSlice, StateAction } from './slices/createMainSlice';
 import { createSocks5Slice } from './slices/createSocks5Slice';
 import type { Socks5Slice } from './slices/createSocks5Slice';
 
-// export type { StateAction } from './slices/createMainSlice';
-// export { initialState } from './slices/createMainSlice';
-// export type { GatewaysSlice, MainSlice, Socks5Slice };
-
 export type AppStore = MainSlice & GatewaysSlice & Socks5Slice;
 
 export const useAppStore = create<AppStore>()((...args) => ({

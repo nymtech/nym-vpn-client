@@ -75,7 +75,6 @@ function Onboarding() {
       </div>
       <section className="embla w-full h-full flex flex-col justify-between">
         <div className="flex flex-1 justify-center flex-col gap-6 items-center">
-          {/* <NymVpnTextLogo className="w-32" /> */}
           <div className="overflow-hidden w-full" ref={emblaRef}>
             <div className="flex touch-pinch-zoom">
               {slides.map((Slide, index) => (

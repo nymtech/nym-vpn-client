@@ -370,13 +370,9 @@ function NodeDetails() {
                   </p>
                   <ButtonIconNew
                     size="small"
-                    // className="self-start shrink-0"
-                    // iconClassName="!text-xl"
-                    // clickedIconClassName="!text-xl"
                     icon="content_copy"
                     onClick={() => copy(gateway.id, false)}
                     clickFeedback
-                    // noDefaultSize
                   />
                 </div>
               </div>

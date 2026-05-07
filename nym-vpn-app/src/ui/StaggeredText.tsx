@@ -31,10 +31,7 @@ export const StaggeredText: FC<TextStaggeredFadeProps> = ({
       animate={isInView ? 'show' : ''}
       variants={variants}
       viewport={{ once: true }}
-      className={clsx(
-        // 'text-xl text-center sm:text-4xl font-bold tracking-tighter md:text-6xl md:leading-[4rem]',
-        className,
-      )}
+      className={clsx(className)}
     >
       {letters.map((word, i) => (
         <motion.span key={`${word}-${i}`} variants={variants} custom={i}>

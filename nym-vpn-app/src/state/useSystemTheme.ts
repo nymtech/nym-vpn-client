@@ -43,7 +43,7 @@ export function useSystemTheme() {
         await invoke('set_background_color', {
           hexColor: theme === 'dark' ? ColorMainBgDark : ColorMainBgLight,
         });
-        console.log('updated webview window background color');
+        console.info('updated webview window background color');
       } catch {
         console.error('Failed to update UI theme');
       }

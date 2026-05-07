@@ -40,8 +40,6 @@ function MainLayout({
     });
   }, [location]);
 
-  console.log('[MainLayout] current route', location.pathname);
-
   return (
     <div
       className={clsx([

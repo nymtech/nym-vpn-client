@@ -79,7 +79,6 @@ export function NodeRow({ type }: NodeRowProps) {
         type: 'country',
         key: userSelectedNode.country.code,
       });
-      // return;
     } else if (isRegion(userSelectedNode)) {
       const code = regionToCountryCode(userSelectedNode.region);
       if (code) {
