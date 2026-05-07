@@ -11,9 +11,9 @@ use futures::{StreamExt, TryFutureExt, TryStreamExt, pin_mut};
 use nym_common::trace_err_chain;
 use nym_sqlx_pool_guard::SqlitePoolGuard;
 use sqlx::{
-    Connection, QueryBuilder, Sqlite, SqliteConnection, SqlitePool,
+    Connection, QueryBuilder, Sqlite, SqliteConnection,
     pool::PoolConnection,
-    sqlite::{SqliteConnectOptions, SqliteJournalMode},
+    sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions},
 };
 use time::OffsetDateTime;
 use tokio::{fs, sync::RwLock};
@@ -31,6 +31,10 @@ use crate::{
 const SQL_SOFT_HEAP_LIMIT: usize = 7 * 1024 * 1024;
 /// Hard heap limit that enforces a strict ceiling on total heap memory usage
 const SQL_HARD_HEAP_LIMIT: usize = 8 * 1024 * 1024;
+/// Minimum number of idle connections to the database
+const SQL_MIN_CONNECTIONS: u32 = 10;
+/// Maximum number of concurrent connections to the database
+const SQL_MAX_CONNECTIONS: u32 = 20;
 /// Number of domains to insert in a single batch
 const DOMAIN_BATCH_SIZE: usize = 999;
 
@@ -242,11 +246,13 @@ async fn open_db(db_path: &Path) -> Result<SqlitePoolGuard> {
         .filename(db_path)
         .create_if_missing(true)
         .journal_mode(SqliteJournalMode::Wal)
-        .statement_cache_capacity(100)
         .pragma("soft_heap_limit", SQL_SOFT_HEAP_LIMIT.to_string())
         .pragma("hard_heap_limit", SQL_HARD_HEAP_LIMIT.to_string());
 
-    let pool = SqlitePool::connect_with(opts)
+    let pool = SqlitePoolOptions::new()
+        .max_connections(SQL_MAX_CONNECTIONS)
+        .min_connections(SQL_MIN_CONNECTIONS)
+        .connect_with(opts)
         .await
         .map_err(AdBlockerError::OpenDb)?;
     let pool = SqlitePoolGuard::new(pool);
