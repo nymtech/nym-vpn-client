@@ -3,78 +3,84 @@ appId: net.nymtech.nymvpn.mock.debug
 - launchApp
 
 - extendedWaitUntil:
-    visible:
-      text: "Connect"
-    timeout: 15000
+      visible:
+          text: "Connect"
+      timeout: 15000
 
 - tapOn: "Settings"
 
 - assertVisible:
-    text: "Account"
-    index: 1
+      text: "Account"
+      index: 1
 
 - assertVisible:
-    text: "Passphrase"
-    index: 1
+      text: "Passphrase"
+      index: 1
 
 - assertVisible: "Support & feedback"
 
 - assertVisible:
-    text: "Auto-connect"
-    index: 0
+      text: "Auto-connect"
+      index: 0
 
 - assertVisible:
-    text: "Bypass LAN"
-    index: 0
+      text: "Bypass LAN"
+      index: 0
 
 - assertVisible:
-    text: "Kill switch"
-    index: 1
+      text: "Kill switch"
+      index: 1
 
 - assertVisible:
-    text: "Split tunneling"
-    index: 1
+      text: "Split tunneling"
+      index: 1
 
 - assertVisible:
-    text: "Customize DNS"
-    index: 1
-
-- assertVisible:
-    text: "Anti-censorship"
-    index: 1
+      text: "Customize DNS"
+      index: 1
 
 - scrollUntilVisible:
-    element:
-      text: "Daemon version: mock-1.0.0"
-    direction: DOWN
+      element:
+          text: "Anti-censorship"
+      direction: DOWN
 
 - assertVisible:
-    text: "Appearance"
-    index: 1
+      text: "Anti-censorship"
+      index: 1
+
+- scrollUntilVisible:
+      element:
+          text: "Daemon version: mock-1.0.0"
+      direction: DOWN
 
 - assertVisible:
-    text: "Notifications"
-    index: 1
-  
-- assertVisible:
-    text: "Battery optimization"
-    index: 1
+      text: "Appearance"
+      index: 1
 
 - assertVisible:
-    text: "App shortcuts"
-    index: 0
+      text: "Notifications"
+      index: 1
 
 - assertVisible:
-    text: "Logs (stored locally)"
-    index: 1
+      text: "Battery optimization"
+      index: 1
 
 - assertVisible:
-    text: "Data & Privacy"
-    index: 1
+      text: "App shortcuts"
+      index: 0
+
+- assertVisible:
+      text: "Data, privacy & logs"
+      index: 1
 
 - assertVisible: "Legal"
 
+- scrollUntilVisible:
+      element:
+          text: "Quit NymVPN"
+      direction: DOWN
+
 - assertVisible: "Quit NymVPN"
 
-- assertVisible: "App version: v2.9.1-debug"
+- assertVisible: "App version: v3.4.0-debug"
 - assertVisible: "Daemon version: mock-1.0.0"
