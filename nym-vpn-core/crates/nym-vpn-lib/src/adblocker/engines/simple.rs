@@ -67,7 +67,7 @@ impl AdBlockEngine for SimpleAdBlockEngine {
                     let db = open_db(&self.db_path)
                         .or_else(|err| async move {
                             trace_err_chain!(err, "failed to open adblock db");
-                            tracing::info!("Rebuild adblock db from seed");
+                            tracing::info!("Recreate adblock db");
 
                             if let Err(err) = remove_db(&self.db_path).await {
                                 trace_err_chain!(err, "failed to remove database");
