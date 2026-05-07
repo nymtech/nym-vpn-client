@@ -76,7 +76,5 @@ async fn bind_socket(addr: SocketAddr) -> std::io::Result<UdpSocket> {
         tracing::warn!("Failed to bind UDP socket to {addr}: {err}");
     })?;
 
-    let socket =
-        UdpSocket::from_std(std::net::UdpSocket::from(sock)).expect("socket is non-blocking");
-    Ok(socket)
+    UdpSocket::from_std(std::net::UdpSocket::from(sock))
 }
