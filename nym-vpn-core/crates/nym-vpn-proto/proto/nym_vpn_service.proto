@@ -270,13 +270,13 @@ message SplitTunnelSettings {
   repeated SplitApp apps = 2;
 }
 
-message AirportingSettings {
+message GeoExclusionSettings {
   bool enabled = 1;
   uint32 listen_port = 2;
   repeated string excluded_countries = 3;
 }
 
-message AirportingListenPortRequest {
+message GeoExclusionListenPortRequest {
   uint32 listen_port = 1;
 }
 
@@ -313,7 +313,7 @@ message VpnServiceConfig {
   NetworkStatsConfig network_stats = 18;
   MixnetTrafficConfig mixnet_traffic = 25;
   SplitTunnelSettings split_tunnel = 28;
-  AirportingSettings airporting = 29;
+  GeoExclusionSettings geo_exclusion = 29;
   GatewaySelectionAlgorithmConfig gateway_selection_algorithm = 30;
   FrontingModes fronting_mode = 31;
 }
@@ -1124,9 +1124,9 @@ service NymVpnService {
   rpc SetEnableCustomDns(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetCustomDns(IpAddrList) returns (google.protobuf.Empty) {}
   rpc SetMixnetTrafficConfig(MixnetTrafficConfig) returns (google.protobuf.Empty) {}
-  rpc SetAirportingEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetAirportingListenPort(AirportingListenPortRequest) returns (google.protobuf.Empty) {}
-  rpc SetAirportingExcludedCountries(StringList) returns (google.protobuf.Empty) {}
+  rpc SetGeoExclusionEnabled(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetGeoExclusionListenPort(GeoExclusionListenPortRequest) returns (google.protobuf.Empty) {}
+  rpc SetGeoExclusionExcludedCountries(StringList) returns (google.protobuf.Empty) {}
   rpc SetGatewaySelectionAlgorithm(GatewaySelectionAlgorithm) returns (google.protobuf.Empty) {}
   rpc SetEnableGeoLocation(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetFrontingMode(FrontingModeRequest) returns (google.protobuf.Empty) {}

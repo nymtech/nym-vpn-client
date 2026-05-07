@@ -293,7 +293,7 @@ impl TunnelStateHandler for ConnectedState {
 
                         #[cfg(any(target_os = "macos", target_os = "windows"))]
                         {
-                            if diff.split_tunnel_changed() || diff.airporting_enabled_changed() {
+                            if diff.split_tunnel_changed() || diff.geo_exclusion_enabled_changed() {
                                 match shared_state.set_split_tunnel_exclude_paths().await {
                                     Ok(interface_changed) => {
                                         if interface_changed {
@@ -327,7 +327,7 @@ impl TunnelStateHandler for ConnectedState {
                         }
 
                         #[cfg(not(target_os = "ios"))]
-                        if diff.airporting_enabled_changed() {
+                        if diff.geo_exclusion_enabled_changed() {
                             shared_state
                                 .start_or_stop_socks5_proxy()
                                 .await;

@@ -71,10 +71,10 @@ use nym_dns::DnsConfig;
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
 use nym_vpn_lib_types::{
-    AccountControllerErrorStateReason, ActionAfterDisconnect, AirportingSettings, ConnectionData,
-    EntryPoint, ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig, SplitTunnelSettings, TunnelEvent,
-    TunnelState, TunnelType,
+    AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
+    ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
+    GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
+    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -187,8 +187,8 @@ pub struct TunnelSettings {
     /// Split tunneling settings.
     pub split_tunnel: SplitTunnelSettings,
 
-    /// Airporting settings.
-    pub airporting_settings: AirportingSettings,
+    /// Geo exclusion settings.
+    pub geo_exclusion_settings: GeoExclusionSettings,
 
     /// How the gateways should be selected.
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
@@ -303,15 +303,15 @@ impl TunnelSettings {
         if self.split_tunnel != other.split_tunnel {
             diff.add(TunnelSettingsDiffFields::SplitTunnel);
         }
-        if self.airporting_settings != other.airporting_settings {
-            diff.add(TunnelSettingsDiffFields::Airporting);
-            if self.airporting_settings.enabled != other.airporting_settings.enabled {
-                diff.add(TunnelSettingsDiffFields::AirportingEnabled);
+        if self.geo_exclusion_settings != other.geo_exclusion_settings {
+            diff.add(TunnelSettingsDiffFields::GeoExclusion);
+            if self.geo_exclusion_settings.enabled != other.geo_exclusion_settings.enabled {
+                diff.add(TunnelSettingsDiffFields::GeoExclusionEnabled);
             }
-            if self.airporting_settings.excluded_countries
-                != other.airporting_settings.excluded_countries
+            if self.geo_exclusion_settings.excluded_countries
+                != other.geo_exclusion_settings.excluded_countries
             {
-                diff.add(TunnelSettingsDiffFields::AirportingExcludedCountries);
+                diff.add(TunnelSettingsDiffFields::GeoExclusionExcludedCountries);
             }
         }
         if self.gateway_selection_algorithm_config.enable_geo_location
@@ -350,9 +350,9 @@ pub enum TunnelSettingsDiffFields {
     ExitPoint,
     Dns,
     SplitTunnel,
-    Airporting,
-    AirportingEnabled,
-    AirportingExcludedCountries,
+    GeoExclusion,
+    GeoExclusionEnabled,
+    GeoExclusionExcludedCountries,
     GeoLocationEnabled,
     GatewaySelectionAlgorithm,
 }
@@ -372,9 +372,9 @@ impl TunnelSettingsDiffFields {
             Self::AllowLan
             | Self::EnableAdBlocking
             | Self::SplitTunnel
-            | Self::Airporting
-            | Self::AirportingEnabled
-            | Self::AirportingExcludedCountries
+            | Self::GeoExclusion
+            | Self::GeoExclusionEnabled
+            | Self::GeoExclusionExcludedCountries
             | Self::GeoLocationEnabled
             | Self::GatewaySelectionAlgorithm => false,
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
@@ -432,12 +432,12 @@ impl TunnelSettingsDiff {
         self.is_field_changed(&TunnelSettingsDiffFields::MixnetPerformanceOptions)
     }
 
-    pub fn airporting_enabled_changed(&self) -> bool {
-        self.is_field_changed(&TunnelSettingsDiffFields::AirportingEnabled)
+    pub fn geo_exclusion_enabled_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::GeoExclusionEnabled)
     }
 
-    pub fn airporting_excluded_countries_changed(&self) -> bool {
-        self.is_field_changed(&TunnelSettingsDiffFields::AirportingExcludedCountries)
+    pub fn geo_exclusion_excluded_countries_changed(&self) -> bool {
+        self.is_field_changed(&TunnelSettingsDiffFields::GeoExclusionExcludedCountries)
     }
 
     pub fn geo_location_enabled_changed(&self) -> bool {
@@ -778,7 +778,7 @@ impl SharedState {
         &mut self,
     ) -> Result<bool, nym_split_tunnel::SplitTunnelErrorCause> {
         let paths = self.tunnel_settings.split_tunnel.effective_app_paths();
-        let hybrid_paths = if self.tunnel_settings.airporting_settings.enabled {
+        let hybrid_paths = if self.tunnel_settings.geo_exclusion_settings.enabled {
             match find_proxy_binary() {
                 Ok(path) => HashSet::from([path]),
                 Err(err) => {
@@ -864,7 +864,7 @@ impl SharedState {
 
     #[cfg(not(target_os = "ios"))]
     async fn start_or_stop_socks5_proxy(&mut self) {
-        if self.tunnel_settings.airporting_settings.enabled {
+        if self.tunnel_settings.geo_exclusion_settings.enabled {
             self.start_socks5_proxy().await;
         } else {
             self.stop_socks5_proxy().await;
@@ -918,7 +918,7 @@ impl SharedState {
             return Err("Data path is required but not configured".to_string());
         };
 
-        let listen_port = self.tunnel_settings.airporting_settings.listen_port;
+        let listen_port = self.tunnel_settings.geo_exclusion_settings.listen_port;
 
         let data_dir = data_path.to_path_buf();
 
@@ -931,7 +931,7 @@ impl SharedState {
 
         let excluded_countries = self
             .tunnel_settings
-            .airporting_settings
+            .geo_exclusion_settings
             .excluded_countries
             .clone();
 
@@ -1122,7 +1122,7 @@ impl TunnelStateMachine {
         }
 
         #[cfg(not(target_os = "ios"))]
-        if shared_state.tunnel_settings.airporting_settings.enabled {
+        if shared_state.tunnel_settings.geo_exclusion_settings.enabled {
             shared_state.start_socks5_proxy().await;
         }
 

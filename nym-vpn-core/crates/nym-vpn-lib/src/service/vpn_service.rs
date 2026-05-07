@@ -56,7 +56,7 @@ use super::{
     Socks5Error, Socks5Service, Socks5Status,
     config::{NetworkEnvironments, VpnServiceConfigManager},
     error::{
-        AccountLinksError, AirportingConfigError, Error, GlobalConfigError, ListGatewaysError,
+        AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
     },
     socks5::Socks5EnableConfig,
@@ -115,10 +115,10 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
         LookupGatewayFilters,
     ),
-    SetAirportingEnabled(oneshot::Sender<()>, bool),
-    SetAirportingListenPort(oneshot::Sender<()>, u16),
-    SetAirportingExcludedCountries(
-        oneshot::Sender<Result<(), AirportingConfigError>>,
+    SetGeoExclusionEnabled(oneshot::Sender<()>, bool),
+    SetGeoExclusionListenPort(oneshot::Sender<()>, u16),
+    SetGeoExclusionExcludedCountries(
+        oneshot::Sender<Result<(), GeoExclusionConfigError>>,
         Vec<String>,
     ),
     EnableSocks5(
@@ -1226,17 +1226,17 @@ impl NymVpnService {
                 let has_fda = nym_split_tunnel::has_full_disk_access();
                 let _ = tx.send(!has_fda);
             }
-            VpnServiceCommand::SetAirportingEnabled(tx, enabled) => {
-                self.handle_set_airporting_enabled(enabled).await;
+            VpnServiceCommand::SetGeoExclusionEnabled(tx, enabled) => {
+                self.handle_set_geo_exclusion_enabled(enabled).await;
                 let _ = tx.send(());
             }
-            VpnServiceCommand::SetAirportingListenPort(tx, listen_port) => {
-                self.handle_set_airporting_listen_port(listen_port).await;
+            VpnServiceCommand::SetGeoExclusionListenPort(tx, listen_port) => {
+                self.handle_set_geo_exclusion_listen_port(listen_port).await;
                 let _ = tx.send(());
             }
-            VpnServiceCommand::SetAirportingExcludedCountries(tx, excluded_countries) => {
+            VpnServiceCommand::SetGeoExclusionExcludedCountries(tx, excluded_countries) => {
                 let result = self
-                    .handle_set_airporting_excluded_countries(excluded_countries)
+                    .handle_set_geo_exclusion_excluded_countries(excluded_countries)
                     .await;
                 let _ = tx.send(result);
             }
@@ -2286,24 +2286,24 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_set_airporting_enabled(&mut self, enabled: bool) {
-        self.config_manager.set_airporting_enabled(enabled).await;
+    async fn handle_set_geo_exclusion_enabled(&mut self, enabled: bool) {
+        self.config_manager.set_geo_exclusion_enabled(enabled).await;
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_airporting_listen_port(&mut self, listen_port: u16) {
+    async fn handle_set_geo_exclusion_listen_port(&mut self, listen_port: u16) {
         self.config_manager
-            .set_airporting_listen_port(listen_port)
+            .set_geo_exclusion_listen_port(listen_port)
             .await;
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_airporting_excluded_countries(
+    async fn handle_set_geo_exclusion_excluded_countries(
         &mut self,
         excluded_countries: Vec<String>,
-    ) -> Result<(), AirportingConfigError> {
+    ) -> Result<(), GeoExclusionConfigError> {
         self.config_manager
-            .set_airporting_excluded_countries(excluded_countries)
+            .set_geo_exclusion_excluded_countries(excluded_countries)
             .await?;
         self.update_tunnel_settings_with_throttle();
         Ok(())
