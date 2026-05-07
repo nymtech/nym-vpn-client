@@ -5,6 +5,8 @@ use std::fmt;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "typescript-bindings")]
+use ts_rs::TS;
 
 #[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
