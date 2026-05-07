@@ -78,7 +78,7 @@ async fn assign_loopback_alias(addr: IpAddr) -> io::Result<()> {
     )))
 }
 
-#[cfg(any(target_os = "macos", target_os = "ios"))]
+#[cfg(target_os = "macos")]
 async fn remove_loopback_alias(addr: IpAddr) -> io::Result<()> {
     nym_macos::net::remove_alias(LOOPBACK, addr).await
 }
