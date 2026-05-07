@@ -8,8 +8,10 @@ use nym_vpn_api_client::{
     response::NymVpnAccountSummaryWithDeviceResponse,
     types::{Device, VpnAccount, VpnAccountMode},
 };
-use wiremock::matchers::{method, path_regex};
-use wiremock::{Mock, MockServer, ResponseTemplate};
+use wiremock::{
+    Mock, MockServer, ResponseTemplate,
+    matchers::{method, path_regex},
+};
 
 fn device_from_mnemonic(phrase: &str) -> Device {
     let mnemonic = Mnemonic::parse(phrase).expect("device mnemonic");

@@ -22,7 +22,7 @@ use crate::{
             DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
             VpnServiceConfigVersion, legacy,
         },
-        error::{AirportingConfigError, Error, Result},
+        error::{Error, GeoexclusionConfigError, Result},
         read_json_config_file, read_toml_config_file, write_json_config_file,
     },
     tunnel_state_machine::{
@@ -313,36 +313,36 @@ impl VpnServiceConfigManager {
         self.save_config_and_send_event().await;
     }
 
-    pub async fn set_airporting_enabled(&mut self, enabled: bool) {
-        if self.config.airporting.enabled != enabled {
-            self.config.airporting.enabled = enabled;
+    pub async fn set_geoexclusion_enabled(&mut self, enabled: bool) {
+        if self.config.geoexclusion.enabled != enabled {
+            self.config.geoexclusion.enabled = enabled;
             self.save_config_and_send_event().await;
         }
     }
 
-    pub async fn set_airporting_listen_port(&mut self, listen_port: u16) {
-        if self.config.airporting.listen_port != listen_port {
-            self.config.airporting.listen_port = listen_port;
+    pub async fn set_geoexclusion_listen_port(&mut self, listen_port: u16) {
+        if self.config.geoexclusion.listen_port != listen_port {
+            self.config.geoexclusion.listen_port = listen_port;
             self.save_config_and_send_event().await;
         }
     }
 
-    pub async fn set_airporting_excluded_countries(
+    pub async fn set_geoexclusion_excluded_countries(
         &mut self,
         excluded_countries: Vec<String>,
-    ) -> Result<(), AirportingConfigError> {
-        // Temporary:  At the moment Airporting is only supported for China
+    ) -> Result<(), GeoexclusionConfigError> {
+        // Temporary:  At the moment Geoexclusion is only supported for China
         for country in &excluded_countries {
             if country != "CN" {
-                return Err(AirportingConfigError::UnsupportedCountry(country.clone()));
+                return Err(GeoexclusionConfigError::UnsupportedCountry(country.clone()));
             }
         }
         if !excluded_countries.iter().any(|c| c == "CN") {
-            return Err(AirportingConfigError::CnRequired);
+            return Err(GeoexclusionConfigError::CnRequired);
         }
 
-        if self.config.airporting.excluded_countries != excluded_countries {
-            self.config.airporting.excluded_countries = excluded_countries;
+        if self.config.geoexclusion.excluded_countries != excluded_countries {
+            self.config.geoexclusion.excluded_countries = excluded_countries;
             self.save_config_and_send_event().await;
         }
 
@@ -506,14 +506,14 @@ impl VpnServiceConfigManager {
             DnsOptions::default()
         };
 
-        let airporting_settings = self.config.airporting.clone();
+        let geoexclusion_settings = self.config.geoexclusion.clone();
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         let split_tunnel = {
             let mut split_tunnel = self.config.split_tunnel.clone();
-            // If airporting is enabled then Split Tunneling also needs to be enabled.
-            if airporting_settings.enabled && !self.config.split_tunnel.enabled {
-                tracing::warn!("Enabling Split Tunnel as airporting is enabled");
+            // If geoexclusion is enabled then Split Tunneling also needs to be enabled.
+            if geoexclusion_settings.enabled && !self.config.split_tunnel.enabled {
+                tracing::warn!("Enabling Split Tunnel as Geo Exclusion is enabled");
                 split_tunnel.enabled = true;
             }
             split_tunnel
@@ -547,7 +547,7 @@ impl VpnServiceConfigManager {
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
             split_tunnel,
-            airporting_settings,
+            geoexclusion_settings,
             gateway_selection_algorithm_config: self
                 .config
                 .gateway_selection_algorithm_config

@@ -3,11 +3,11 @@
 
 pub mod account;
 pub mod ad_block;
-pub mod airporting;
 pub mod device;
 pub mod diagnostic;
 pub mod dns;
 pub mod gateway;
+pub mod geoexclusion;
 pub mod lan;
 pub mod network;
 pub mod network_stats;

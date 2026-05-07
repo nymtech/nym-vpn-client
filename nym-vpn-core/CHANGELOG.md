@@ -32,9 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Quick connect algorithm (https://github.com/nymtech/nym-vpn-client/pull/5112)
 - Add TCP listener for local DNS resolver (https://github.com/nymtech/nym-vpn-client/pull/5113)
-- Add SOCKS5 Proxy process to implement Airporting (https://github.com/nymtech/nym-vpn-client/pull/5078)
+- Add SOCKS5 Proxy process to implement Geo Exclusion (https://github.com/nymtech/nym-vpn-client/pull/5078)
 - Disable client verifications on daemon flag for debug purposes (https://github.com/nymtech/nym-vpn-client/pull/5148)
-- [Android] Add Airporting support via SOCKS5 Proxy (https://github.com/nymtech/nym-vpn-client/pull/5160)
+- [Android] Add Geo Exclusion support via SOCKS5 Proxy (https://github.com/nymtech/nym-vpn-client/pull/5160)
 - Propagate `fairUsage.dataUnavailable` from API through to clients so a database outage no longer surfaces as a bandwidth-exceeded error (https://github.com/nymtech/nym-vpn-client/pull/5217)
 
 ### Changed

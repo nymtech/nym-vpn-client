@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib_types::{
-    AirportingSettings, NetworkStatisticsConfig, SplitApp, SplitTunnelSettings,
+    GeoexclusionSettings, NetworkStatisticsConfig, SplitApp, SplitTunnelSettings,
 };
 use std::{net::IpAddr, str::FromStr};
 
@@ -177,7 +177,7 @@ location = "BE"
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -252,7 +252,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -332,7 +332,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -401,7 +401,7 @@ exit_point = "Random"
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -477,7 +477,7 @@ async fn test_service_config_migrate_from_v1() {
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -562,7 +562,7 @@ async fn test_service_config_migrate_from_v2() {
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -653,7 +653,7 @@ async fn test_service_config_migrate_from_v3() {
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -707,7 +707,7 @@ async fn test_service_config_migrate_from_v4() {
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -760,7 +760,7 @@ async fn test_service_config_migrate_from_v4() {
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -819,7 +819,7 @@ async fn test_service_config_migrate_from_v5() {
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -872,7 +872,7 @@ async fn test_service_config_migrate_from_v5() {
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -974,7 +974,7 @@ async fn test_service_config_migrate_from_v6() {
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -1049,7 +1049,7 @@ async fn test_service_config_serialize_full() {
                 path: "/Applications/Firefox.app/Contents/MacOS/firefox".to_owned(),
             }],
         },
-        airporting: AirportingSettings {
+        geoexclusion: GeoexclusionSettings {
             enabled: true,
             listen_port: 1080,
             excluded_countries: vec!["CN".to_string(), "RU".to_string()],
@@ -1141,7 +1141,7 @@ async fn test_service_config_migrate_from_v7() {
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [
@@ -1242,7 +1242,7 @@ async fn test_service_config_migrate_from_v8() {
     "enabled": false,
     "apps": []
   },
-  "airporting": {
+  "geoexclusion": {
     "enabled": true,
     "listen_port": 1080,
     "excluded_countries": [

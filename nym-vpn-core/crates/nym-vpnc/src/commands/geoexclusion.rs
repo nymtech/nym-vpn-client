@@ -8,10 +8,10 @@ use crate::boolean_option::BooleanOption;
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum Command {
-    /// Get the airporting configuration
+    /// Get the Geo Exclusion configuration
     Get,
 
-    /// Set airporting configuration
+    /// Set Geo Exclusion configuration
     Set {
         #[command(subcommand)]
         subcommand: SetCommand,
@@ -20,26 +20,26 @@ pub enum Command {
 
 #[derive(Debug, Clone, clap::Subcommand)]
 pub enum SetCommand {
-    /// Enable or disable airporting
+    /// Enable or disable Geo Exclusion
     Enabled {
-        /// Enable or disable airporting
+        /// Enable or disable Geo Exclusion
         #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
         enable: BooleanOption,
     },
 
-    /// Set the listen port for airporting
+    /// Set the listen port for Geo Exclusion
     ListenPort {
         /// Port number (1–65535)
         port: u16,
     },
 
-    /// Set the list of excluded country codes for airporting
+    /// Set the list of excluded country codes for Geo Exclusion
     ///
     /// Traffic destined for these countries will bypass the proxy.
     /// Provide zero or more two-letter uppercase ISO 3166-1 alpha-2 codes.
     /// Passing no codes clears the list.
     ///
-    /// Example: nym-vpnc airporting set excluded-countries CN RU
+    /// Example: nym-vpnc geoexclusion set excluded-countries CN RU
     ExcludedCountries {
         /// Two-letter uppercase ISO country codes (e.g. CN RU US)
         countries: Vec<String>,
@@ -51,9 +51,9 @@ impl Command {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                let a = &config.airporting;
+                let a = &config.geoexclusion;
                 println!(
-                    "Airporting enabled:    {}",
+                    "Geo Exclusion enabled:    {}",
                     if a.enabled { "yes" } else { "no" }
                 );
                 println!("Listen port:      {}", a.listen_port);
@@ -73,16 +73,16 @@ impl SetCommand {
     pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
         match self {
             SetCommand::Enabled { enable } => {
-                rpc_client.set_airporting_enabled(*enable).await?;
+                rpc_client.set_geoexclusion_enabled(*enable).await?;
                 Ok(())
             }
             SetCommand::ListenPort { port } => {
-                rpc_client.set_airporting_listen_port(port).await?;
+                rpc_client.set_geoexclusion_listen_port(port).await?;
                 Ok(())
             }
             SetCommand::ExcludedCountries { countries } => {
                 rpc_client
-                    .set_airporting_excluded_countries(countries)
+                    .set_geoexclusion_excluded_countries(countries)
                     .await?;
                 Ok(())
             }

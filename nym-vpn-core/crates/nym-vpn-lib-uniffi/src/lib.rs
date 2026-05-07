@@ -201,7 +201,7 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use tokio::runtime::Runtime;
 
 use nym_vpn_lib_types::{
-    AirportingSettings, EntryPoint, ExitPoint, FrontingMode, GatewaySelectionAlgorithmConfig,
+    EntryPoint, ExitPoint, FrontingMode, GatewaySelectionAlgorithmConfig, GeoexclusionSettings,
     MixnetTrafficConfig, NetworkStatisticsConfig, PrivyDerivationMessage, SplitTunnelSettings,
     UserAgent, VpnServiceConfig,
 };
@@ -304,7 +304,7 @@ impl VPNConfig {
 
             // Not available via vpn service on mobile platforms
             split_tunnel: SplitTunnelSettings::default(),
-            airporting: AirportingSettings::default(),
+            geoexclusion: GeoexclusionSettings::default(),
         })
     }
 }

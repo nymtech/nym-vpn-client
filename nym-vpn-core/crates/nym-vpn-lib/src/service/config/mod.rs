@@ -1,11 +1,11 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod airporting_settings;
 mod circumvention;
 mod config_manager;
 mod entry_exit;
 mod gateway_selection_algorithm;
+mod geoexclusion_settings;
 mod legacy;
 mod mixnet_traffic;
 mod network_stats;
@@ -36,10 +36,10 @@ use tokio::{
 };
 
 use crate::service::config::{
-    airporting_settings::v9::AirportingSettings,
     circumvention::v9::FrontingMode,
     entry_exit::v2::{EntryPoint, ExitPoint},
     gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
+    geoexclusion_settings::v9::GeoexclusionSettings,
     mixnet_traffic::v5::MixnetTrafficConfig,
     network_stats::v1::NetworkStatisticsConfig,
     split_tunnel_settings::v8::SplitTunnelSettings,
@@ -199,7 +199,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
         let network_stats = NetworkStatisticsConfig::from(&value.network_stats);
 
         let split_tunnel = SplitTunnelSettings::from(&value.split_tunnel);
-        let airporting = AirportingSettings::from(&value.airporting);
+        let geoexclusion = GeoexclusionSettings::from(&value.geoexclusion);
 
         let gateway_selection_algorithm_config =
             GatewaySelectionAlgorithmConfig::from(&value.gateway_selection_algorithm_config);
@@ -224,7 +224,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             mixnet_traffic,
             network_stats,
             split_tunnel,
-            airporting,
+            geoexclusion,
             gateway_selection_algorithm_config,
         };
 
