@@ -193,6 +193,7 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		trafficUsedGb = 12uL,
 		trafficLimitGb = 50uL,
 		trafficResetTime = null,
+		fairUsageDataUnavailable = false,
 		accountAddr = "mock-account-address",
 		canonicalAccountAddr = "mock-canonical-address",
 		authMethods = emptyList(),
