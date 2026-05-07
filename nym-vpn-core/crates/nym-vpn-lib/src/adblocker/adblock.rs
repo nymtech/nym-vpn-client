@@ -338,7 +338,7 @@ async fn reload_filters(adblocker: &AdBlockEngineRef, cache_dir: &Path) -> Resul
     adblocker.load_filters(cache_dir).await?;
 
     #[cfg(not(any(target_os = "android", target_os = "ios", test)))]
-    crate::resolver::flush_system_cache();
+    crate::resolver::flush_system_cache().await;
 
     Ok(())
 }
@@ -347,7 +347,7 @@ async fn unload_filters(adblocker: &AdBlockEngineRef) {
     adblocker.unload_filters().await;
 
     #[cfg(not(any(target_os = "android", target_os = "ios", test)))]
-    crate::resolver::flush_system_cache();
+    crate::resolver::flush_system_cache().await;
 }
 
 #[cfg(test)]

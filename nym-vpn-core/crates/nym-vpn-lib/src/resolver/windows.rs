@@ -66,7 +66,7 @@ impl LoopbackAlias for RandomLoopbackAlias {
     }
 }
 
-pub(crate) fn flush_system_cache() {
+pub async fn flush_system_cache() {
     // Best-effort. If this fails we still keep running.
     if let Err(err) = nym_dns::flush_resolver_cache() {
         tracing::warn!("Failed to flush dns: {err}");

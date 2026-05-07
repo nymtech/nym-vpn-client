@@ -518,7 +518,7 @@ impl LocalResolver {
                         Some(ResolverMessage::SetConfig { new_config, response_tx }) => {
                             self.update_config(new_config);
                             #[cfg(not(target_os = "ios"))]
-                            flush_system_cache();
+                            flush_system_cache().await;
                             let _ = response_tx.send(());
                         }
                         Some(ResolverMessage::SetDnsFilter { dns_filter, response_tx }) => {
