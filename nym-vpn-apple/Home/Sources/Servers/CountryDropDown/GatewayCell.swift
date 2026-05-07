@@ -83,7 +83,7 @@ public struct GatewayCell: View {
                     infoButtonTapAction()
                 }
         }
-        .background(isButtonHovered ? NymColor.backgroundHover : NymColor.background)
+        .background(isButtonHovered ? Color.Nym.backgroundHover : Color.Nym.background)
     }
 }
 
@@ -153,8 +153,8 @@ private extension GatewayCell {
     func serverTitle() -> some View {
         Text(server.name ?? server.id)
             .lineLimit(1)
-            .foregroundStyle(NymColor.primary)
-            .textStyle(.Body.Large.regular)
+            .foregroundStyle(Color.Nym.textPrimary)
+            .nymTextStyle(.bodyLarge)
     }
 
     func serverSubtitleString() -> String {
@@ -172,15 +172,15 @@ private extension GatewayCell {
         Text(serverSubtitleString())
             .lineLimit(1)
             .truncationMode(.middle)
-            .foregroundStyle(NymColor.gray1)
-            .textStyle(.Body.Small.regular)
+            .foregroundStyle(Color.Nym.textSecondary)
+            .nymTextStyle(.bodySmall)
     }
 
     func infoButton() -> some View {
         ZStack {
             if isAccessoryHovered {
                 Circle()
-                    .fill(NymColor.backgroundHover)
+                    .fill(Color.Nym.backgroundHover)
                     .frame(width: 40, height: 40)
             }
 

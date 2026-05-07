@@ -74,7 +74,7 @@ import Theme
 #endif
         .autologinOverlay(state: autologinState, onRetry: { navigateToAccount() })
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .overlay {
@@ -181,7 +181,7 @@ extension AccountAndDevicesView {
         let accountSummary = credentialsManager.accountSummary
         if accountSummary?.subscription?.status == .pending {
             var confirmingPayment = AttributedString("confirmingPayment".localizedString)
-            confirmingPayment.foregroundColor = NymColor.error
+            confirmingPayment.foregroundColor = Color.Nym.error
             return confirmingPayment
         } else {
             return credentialsManager.accountSummary?.planValidUntilAttributedString
@@ -191,8 +191,8 @@ extension AccountAndDevicesView {
     func nymLinkingText() -> some View {
         HStack(spacing: 0) {
             Text(linkingTitle())
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
             Spacer()
         }
     }
@@ -219,8 +219,8 @@ extension AccountAndDevicesView {
     func accountIdText() -> some View {
         HStack(spacing: 0) {
             Text("settings.account.accountId".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
             Spacer()
         }
     }
@@ -240,8 +240,8 @@ extension AccountAndDevicesView {
     func deviceIdText() -> some View {
         HStack(spacing: 0) {
             Text("settings.account.deviceId".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
             Spacer()
         }
     }

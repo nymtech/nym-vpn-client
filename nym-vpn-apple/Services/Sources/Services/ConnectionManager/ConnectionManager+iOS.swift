@@ -96,41 +96,24 @@ extension ConnectionManager {
         let isErrorReportingEnabled = appSettings.currentEnv == "sandbox" ? true : appSettings.isErrorReportingOn
         let dataURL = try PathManager.dataFolderURL()
         let configURL = try PathManager.configFolderURL()
+        let algorithmConfig = connectionConfig.gatewaySelectionAlgorithmConfig
 
-        switch connectionType {
-        case .mixnet5hop:
-            return MixnetConfig(
-                entryGateway: entryGateway,
-                exitRouter: exitRouter,
-                configPath: configURL.path(),
-                dataPath: dataURL.path(),
-                customDns: appSettings.isCustomDnsEnabled ? appSettings.customDns : [],
-                mixnetTuning: connectionConfig.mixnetTuningConfig,
-                isErrorReportingEnabled: isErrorReportingEnabled,
-                isStatisticsEnabled: appSettings.isStatisticsEnabled,
-                isQuicEnabled: appSettings.isQuicEnabled,
-                isLanBypassEnabled: appSettings.isLanBypassEnabled,
-                isLewesEnabled: appSettings.isLewesEnabled,
-                isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
-                isTwoHopEnabled: false
-            )
-        case .wireguard:
-            return MixnetConfig(
-                entryGateway: entryGateway,
-                exitRouter: exitRouter,
-                configPath: configURL.path(),
-                dataPath: dataURL.path(),
-                customDns: appSettings.isCustomDnsEnabled ? appSettings.customDns : [],
-                mixnetTuning: connectionConfig.mixnetTuningConfig,
-                isErrorReportingEnabled: isErrorReportingEnabled,
-                isStatisticsEnabled: appSettings.isStatisticsEnabled,
-                isQuicEnabled: appSettings.isQuicEnabled,
-                isLanBypassEnabled: appSettings.isLanBypassEnabled,
-                isLewesEnabled: appSettings.isLewesEnabled,
-                isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
-                isTwoHopEnabled: true
-            )
-        }
+        return MixnetConfig(
+            entryGateway: entryGateway,
+            exitRouter: exitRouter,
+            configPath: configURL.path(),
+            dataPath: dataURL.path(),
+            customDns: appSettings.isCustomDnsEnabled ? appSettings.customDns : [],
+            mixnetTuning: connectionConfig.mixnetTuningConfig,
+            isErrorReportingEnabled: isErrorReportingEnabled,
+            isStatisticsEnabled: appSettings.isStatisticsEnabled,
+            isQuicEnabled: appSettings.isQuicEnabled,
+            isLanBypassEnabled: appSettings.isLanBypassEnabled,
+            isLewesEnabled: appSettings.isLewesEnabled,
+            isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
+            isTwoHopEnabled: connectionType == .wireguard,
+            gatewaySelectionAlgorithmConfig: algorithmConfig
+        )
     }
 
     @MainActor func connect(with config: MixnetConfig) async throws {

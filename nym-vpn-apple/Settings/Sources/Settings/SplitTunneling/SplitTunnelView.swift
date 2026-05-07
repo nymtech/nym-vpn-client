@@ -45,7 +45,7 @@ public struct SplitTunnelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .overlay {
@@ -105,8 +105,8 @@ private extension SplitTunnelView {
     var changesText: some View {
         HStack {
             Text("⚠️ \("splitTunnel.betaFeature".localizedString)\n\("splitTunel.apps.exclude".localizedString) \n\("splitTunnel.apps.unprotected".localizedString)")
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
         }
     }
@@ -114,8 +114,8 @@ private extension SplitTunnelView {
     var appsText: some View {
         HStack {
             Text("splitTunnel.apps".localizedString)
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Headline.Small.regular)
+                .foregroundStyle(Color.Nym.textPrimary)
+                .nymTextStyle(.bodyLarge)
             Spacer()
         }
     }
@@ -173,8 +173,8 @@ private extension SplitTunnelView {
     func fullDiskAccessSection() -> some View {
         HStack(spacing: 0) {
             Text(fullDiskAccessAttributtedString())
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
         }
     }
@@ -185,7 +185,7 @@ private extension SplitTunnelView {
         let third = AttributedString("splitTunnel.systemSettings".localizedString)
         let forth = AttributedString("splitTunnel.enableSystemSettings".localizedString)
         second.underlineStyle = .single
-        second.foregroundColor = NymColor.accent
+        second.foregroundColor = Color.Nym.primary
         second.link = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
         return first + AttributedString("\n") + second + AttributedString(" ") + third + AttributedString(" ") + forth
     }
@@ -198,14 +198,14 @@ private extension SplitTunnelView {
                         Spacer()
                             .frame(width: 8)
                         Text(section.title)
-                            .foregroundStyle(NymColor.gray1)
-                            .textStyle(.Body.Medium.regular)
+                            .foregroundStyle(Color.Nym.textSecondary)
+                            .nymTextStyle(.bodyDefault)
                         Spacer()
                     }
                     .padding(.vertical, 8)
                     .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(NymColor.elevation)
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.Nym.backgroundCard)
                     )
                     .id(section.id)
 
@@ -213,7 +213,7 @@ private extension SplitTunnelView {
                         appCell(for: app)
                     }
                 }
-                .background(NymColor.background)
+                .background(Color.Nym.background)
             }
         }
     }
@@ -238,14 +238,14 @@ private extension SplitTunnelView {
                         .resizable()
                         .scaledToFit()
                         .padding(6)
-                        .foregroundStyle(NymColor.gray1)
+                        .foregroundStyle(Color.Nym.textSecondary)
                         .frame(width: 24, height: 24)
                 }
                 Spacer()
                     .frame(width: 16)
                 Text(app.name)
-                    .foregroundStyle(NymColor.primary)
-                    .textStyle(.Body.Medium.regular)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .nymTextStyle(.bodyDefault)
                 Spacer()
                 appEnabledButton(isEnabled: !isAppExcluded(app)) {
                     toggleAppState(app: app)
@@ -254,7 +254,7 @@ private extension SplitTunnelView {
             Spacer()
                 .frame(height: 12)
         }
-        .background(NymColor.background)
+        .background(Color.Nym.background)
         .clipShape(Rectangle())
     }
 
@@ -265,36 +265,36 @@ private extension SplitTunnelView {
                     if isEnabled {
                         Color.clear
                     } else {
-                        NymColor.error.opacity(0.10)
+                        Color.Nym.error.opacity(0.10)
                     }
                     Image(systemName: "slash.circle.fill")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isEnabled ? NymColor.gray1 : Color.red)
+                        .foregroundStyle(isEnabled ? Color.Nym.textSecondary : Color.Nym.error)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 Rectangle()
-                    .fill(NymColor.gray2)
+                    .fill(Color.Nym.gray2)
                     .frame(width: 1)
 
                 ZStack {
                     if isEnabled {
-                        NymColor.action.opacity(0.10)
+                        Color.Nym.primary.opacity(0.10)
                     } else {
                         Color.clear
                     }
                     Image(systemName: "shield.fill")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isEnabled ? NymColor.action : NymColor.gray1)
+                        .foregroundStyle(isEnabled ? Color.Nym.primary : Color.Nym.textSecondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(width: 84, height: 24)
-            .background(NymColor.elevation)
-            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(Color.Nym.backgroundCard)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(NymColor.gray2, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color.Nym.gray2, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -390,7 +390,7 @@ private struct SectionIndexOverlay: View {
         VStack(spacing: letterSpacing) {
             ForEach(alphabet, id: \.self) { letter in
                 Text(letter)
-                    .textStyle(.Body.Small.bold)
+                    .nymTextStyle(.bodySmallBold)
                     .foregroundStyle(letterColor(for: letter))
                     .frame(width: 16, height: letterHeight)
             }
@@ -418,11 +418,11 @@ private struct SectionIndexOverlay: View {
 
     private func letterColor(for letter: String) -> Color {
         if letter == draggedLetter {
-            return NymColor.primary
+            return Color.Nym.textPrimary
         }
         return sections.contains(where: { $0.title == letter })
-            ? NymColor.gray1
-            : NymColor.gray2
+            ? Color.Nym.textSecondary
+            : Color.Nym.gray2
     }
 
     private func letterAtLocation(_ location: CGPoint) -> String {

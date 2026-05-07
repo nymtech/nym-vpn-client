@@ -3,7 +3,6 @@ import Foundation
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
-import ConnectionTypes
 import Logging
 #if os(iOS)
 import NymVPNLib
@@ -136,7 +135,7 @@ import GRPCManager
 
     public func countryCode(with gateway: EntryGateway) -> String? {
         switch gateway {
-        case let .country(code), let .lowLatencyCountry(code):
+        case let .country(code):
             return code
         case let .region(countryCode: code, region: _):
             return localizedCountry(with: code)?.code
@@ -150,8 +149,6 @@ import GRPCManager
 
     public func countryCode(with router: ExitRouter) -> String? {
         switch router {
-        case .address:
-            return nil
         case let .country(code):
             return code
         case let .gateway(identifier):
@@ -166,7 +163,7 @@ import GRPCManager
 
     public func userFriendlyTitle(with gateway: EntryGateway) -> String? {
         switch gateway {
-        case let .country(code), let .lowLatencyCountry(code):
+        case let .country(code):
             return localizedCountry(with: code)?.name
         case let .region(countryCode: code, region: region):
             if let country = localizedCountry(with: code) {
@@ -183,8 +180,6 @@ import GRPCManager
 
     public func userFriendlyTitle(with router: ExitRouter) -> String? {
         switch router {
-        case .address:
-            return nil
         case let .country(code):
             return localizedCountry(with: code)?.name
         case let .gateway(identifier):
@@ -202,7 +197,7 @@ import GRPCManager
 
     public func containsQuic(with gateway: EntryGateway) -> Bool {
         switch gateway {
-        case let .country(countryCode), let .lowLatencyCountry(countryCode):
+        case let .country(countryCode):
             return vpn.contains { $0.location?.twoLetterIsoCountryCode == countryCode && $0.isQuicAvailable }
         case let .region(countryCode, region):
             return vpn.contains { $0.location?.twoLetterIsoCountryCode == countryCode && $0.location?.region == region }
@@ -215,7 +210,7 @@ import GRPCManager
 
     public func containsStreaming(with gateway: ExitRouter) -> Bool {
         switch gateway {
-        case .address, .country, .region, .random:
+        case .country, .region, .random:
             false
         case let .gateway(identifier):
             vpn.contains { $0.id == identifier && $0.isResidentialAvailable }
@@ -251,6 +246,61 @@ extension GatewayManager {
         case .vpn:
             return vpn.first(where: { $0.id == gatewayId })
         }
+    }
+
+    public func gateways(matching router: ExitRouter, gatewayType: NodeType) -> [GatewayNode] {
+        let pool = pool(for: gatewayType)
+        switch router {
+        case let .country(code):
+            return pool.filter { $0.location?.twoLetterIsoCountryCode == code }
+        case let .region(countryCode, region):
+            return pool.filter {
+                $0.location?.twoLetterIsoCountryCode == countryCode && $0.location?.region == region
+            }
+        case let .gateway(identifier):
+            return pool.filter { $0.id == identifier }
+        case .random:
+            return pool
+        }
+    }
+
+    public func gateways(matching gateway: EntryGateway, gatewayType: NodeType) -> [GatewayNode] {
+        let pool = pool(for: gatewayType)
+        switch gateway {
+        case let .country(code):
+            return pool.filter { $0.location?.twoLetterIsoCountryCode == code }
+        case let .region(countryCode, region):
+            return pool.filter {
+                $0.location?.twoLetterIsoCountryCode == countryCode && $0.location?.region == region
+            }
+        case let .gateway(identifier):
+            return pool.filter { $0.id == identifier }
+        case .random:
+            return pool
+        }
+    }
+
+    public func bestGateway(matching router: ExitRouter, gatewayType: NodeType) -> GatewayNode? {
+        bestScored(in: gateways(matching: router, gatewayType: gatewayType))
+    }
+
+    public func bestGateway(matching gateway: EntryGateway, gatewayType: NodeType) -> GatewayNode? {
+        bestScored(in: gateways(matching: gateway, gatewayType: gatewayType))
+    }
+
+    private func pool(for nodeType: NodeType) -> [GatewayNode] {
+        switch nodeType {
+        case .entry:
+            return entry
+        case .exit:
+            return exit
+        case .vpn:
+            return vpn
+        }
+    }
+
+    private func bestScored(in nodes: [GatewayNode]) -> GatewayNode? {
+        nodes.min { $0.mixnetScore.rawValue < $1.mixnetScore.rawValue }
     }
 }
 

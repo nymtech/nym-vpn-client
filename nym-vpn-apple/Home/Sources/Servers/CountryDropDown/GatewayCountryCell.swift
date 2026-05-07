@@ -150,7 +150,7 @@ private extension GatewayCountryCell {
                 }
         }
         .background {
-            isButtonHovered ? NymColor.elevationHover : NymColor.elevation
+            isButtonHovered ? Color.Nym.backgroundHover : Color.Nym.backgroundCard
         }
     }
 
@@ -163,19 +163,19 @@ private extension GatewayCountryCell {
 
     func countryNameTitle() -> some View {
         Text(country.name)
-            .foregroundStyle(NymColor.primary)
-            .textStyle(.Body.Large.regular)
+            .foregroundStyle(Color.Nym.textPrimary)
+            .nymTextStyle(.bodyLarge)
     }
 
     func serverCountNumberSubtitle() -> some View {
         Text("\(servers.count) \("servers".localizedString)")
-            .foregroundStyle(NymColor.gray1)
-            .textStyle(.Body.Small.regular)
+            .foregroundStyle(Color.Nym.textSecondary)
+            .nymTextStyle(.bodySmall)
     }
 
     func lineSeparator() -> some View {
         Rectangle()
-            .foregroundColor(NymColor.gray2)
+            .foregroundColor(Color.Nym.gray2)
             .frame(width: 1, height: 42)
             .padding(0)
     }
@@ -184,7 +184,7 @@ private extension GatewayCountryCell {
         ZStack {
             if isAccessoryHovered {
                 Circle()
-                    .fill(NymColor.elevationHover)
+                    .fill(Color.Nym.backgroundHover)
                     .frame(width: 40, height: 40)
             }
 

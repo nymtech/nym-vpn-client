@@ -38,16 +38,16 @@ private extension SplitTunnelInfoModal {
     @ViewBuilder
     func title() -> some View {
         Text("splitTunnel.info.title".localizedString)
-            .textStyle(.Headline.Medium.regular)
-            .foregroundStyle(NymColor.primary)
+            .nymTextStyle(.titleScreen)
+            .foregroundStyle(Color.Nym.textPrimary)
 
         Spacer()
             .frame(height: 16)
 
         HStack {
             Text("splitTunnel.info.subtitle".localizedString)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
         }
 
@@ -56,8 +56,8 @@ private extension SplitTunnelInfoModal {
 
         HStack {
             Text("splitTunnel.info.fullDiskAccess".localizedString)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
         }
 
@@ -70,10 +70,10 @@ private extension SplitTunnelInfoModal {
         HStack(spacing: 8) {
             Image(systemName: "slash.circle.fill")
                 .frame(width: 16, height: 16)
-                .foregroundStyle(NymColor.gray1)
+                .foregroundStyle(Color.Nym.textSecondary)
             Text("splitTunnel.info.direct".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
         }
 
@@ -82,8 +82,8 @@ private extension SplitTunnelInfoModal {
 
         HStack {
             Text("splitTunnel.info.direct.subtitle".localizedString)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
         }
     }
@@ -93,10 +93,10 @@ private extension SplitTunnelInfoModal {
         HStack(spacing: 8) {
             Image(systemName: "shield.fill")
                 .frame(width: 16, height: 16)
-                .foregroundStyle(NymColor.gray1)
+                .foregroundStyle(Color.Nym.textSecondary)
             Text("splitTunnel.info.viaNymVPN".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
         }
 
@@ -105,8 +105,8 @@ private extension SplitTunnelInfoModal {
 
         HStack {
             Text("splitTunnel.info.viaNymVPN.subtitle".localizedString)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
         }
     }

@@ -40,7 +40,7 @@ struct AddCredentialsView: View {
         .ignoresSafeArea(edges: [.bottom])
 #endif
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
 #if os(iOS)
@@ -136,7 +136,7 @@ private extension AddCredentialsView {
         HStack {
             Spacer()
             Text("login".localizedString)
-                .textStyle(.Headline.Large.regular)
+                .nymTextStyle(.titleScreen)
             Spacer()
         }
     }
@@ -145,8 +145,8 @@ private extension AddCredentialsView {
     func enterPassphraseTitleText() -> some View {
         HStack {
             Text("addCredentials.getStarted.Title".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
                 .multilineTextAlignment(.leading)
             Spacer()
         }
@@ -168,7 +168,7 @@ private extension AddCredentialsView {
                 }
                 .redacted(reason: .privacy)
                 .submitLabel(.done)
-                .textStyle(NymTextStyle.Body.Large.regular)
+                .nymTextStyle(.bodyLarge)
                 .padding(16)
                 .lineLimit(4, reservesSpace: true)
                 .focused($isFocused)
@@ -177,22 +177,22 @@ private extension AddCredentialsView {
             Spacer()
         }
         .contentShape(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 12)
                 .inset(by: 0.5)
         )
         .frame(height: 130)
         .cornerRadius(8)
         .overlay {
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 12)
                 .inset(by: 0.5)
                 .stroke(viewModel.textFieldStrokeColor, lineWidth: 1)
         }
         .overlay(alignment: .topLeading) {
             Text("addCredtenials.mnemonic".localizedString)
                 .foregroundStyle(viewModel.credentialSubtitleColor)
-                .textStyle(.Body.Small.regular)
+                .nymTextStyle(.bodySmall)
                 .padding(4)
-                .background(NymColor.background)
+                .background(Color.Nym.background)
                 .position(x: 70, y: 0)
         }
         .padding(EdgeInsets(top: 12, leading: 0, bottom: viewModel.bottomPadding, trailing: 0))
@@ -202,10 +202,10 @@ private extension AddCredentialsView {
     func errorMessageView(title: String) -> some View {
         HStack {
             Text(title)
-                .foregroundStyle(NymColor.error)
+                .foregroundStyle(Color.Nym.error)
                 .multilineTextAlignment(.leading)
                 .lineLimit(nil)
-                .textStyle(.Body.Small.regular)
+                .nymTextStyle(.bodySmall)
             Spacer()
         }
     }
@@ -236,9 +236,9 @@ private extension AddCredentialsView {
     func createAccount() -> some View {
         if let createAccountAttributedString = viewModel.createAnAccountAttributedString() {
             Text(createAccountAttributedString)
-                .tint(NymColor.accent)
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Large.regular)
+                .tint(Color.Nym.primary)
+                .foregroundStyle(Color.Nym.textPrimary)
+                .nymTextStyle(.bodyLarge)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
                 .environment(\.openURL, OpenURLAction { url in

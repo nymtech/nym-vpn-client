@@ -27,7 +27,7 @@ private enum LogTextStyle {
     }
 
     static var timestampColor: PlatformColor {
-        PlatformColor(NymColor.info)
+        PlatformColor(Color.Nym.info)
     }
 
     /// Matches both formats produced in this app:

@@ -18,7 +18,7 @@ struct LocationInfoView: View {
     var body: some View {
         ZStack {
             Rectangle()
-                .foregroundColor(.black)
+                .foregroundColor(Color.Nym.black)
                 .opacity(0.3)
                 .background(Color.clear)
                 .contentShape(Rectangle())
@@ -39,7 +39,7 @@ struct LocationInfoView: View {
                     okButton()
                 }
                 .padding(.horizontal, 24)
-                .background(NymColor.elevation)
+                .background(Color.Nym.backgroundCard)
                 .cornerRadius(16)
 
                 Spacer()
@@ -66,8 +66,8 @@ private extension LocationInfoView {
     @ViewBuilder
     func title() -> some View {
         Text(titleText())
-            .textStyle(.Headline.Medium.regular)
-            .foregroundStyle(NymColor.primary)
+            .nymTextStyle(.titleScreen)
+            .foregroundStyle(Color.Nym.textPrimary)
 
         Spacer()
             .frame(height: 16)
@@ -77,12 +77,12 @@ private extension LocationInfoView {
         HStack(spacing: 0) {
             GenericImage(systemImageName: streamingOrQuickImageName())
                 .frame(width: 16, height: 16)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
                 .frame(width: 8)
             Text(streamingOrQuicTitle())
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
         }
     }
@@ -108,9 +108,9 @@ private extension LocationInfoView {
     func streamingOrQuicSubtitle() -> some View {
         HStack(spacing: 0) {
             Text(quicOrStreamingAttributtedString())
-                .tint(NymColor.gray1)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .tint(Color.Nym.textSecondary)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
 
             Spacer()
         }
@@ -138,7 +138,7 @@ private extension LocationInfoView {
         var second = AttributedString("locationModal.quic.subtitle2".localizedString)
         let third = AttributedString("locationModal.quic.subtitle3".localizedString)
         second.underlineStyle = .single
-        second.foregroundColor = NymColor.primary
+        second.foregroundColor = Color.Nym.textPrimary
         second.link = URL(string: Constants.quicURL.rawValue)
         return first + AttributedString(" ") + second + AttributedString(" ") + third
     }
@@ -147,7 +147,7 @@ private extension LocationInfoView {
         var first = AttributedString("locationModal.streaming.subtitle1".localizedString)
         let second = AttributedString("locationModal.streaming.subtitle2".localizedString)
         first.underlineStyle = .single
-        first.foregroundColor = NymColor.primary
+        first.foregroundColor = Color.Nym.textPrimary
         first.link = URL(string: Constants.streamingServicesURL.rawValue)
         return first + AttributedString(" ") + second
     }
@@ -156,12 +156,12 @@ private extension LocationInfoView {
         HStack(spacing: 0) {
             GenericImage(imageName: "pin")
                 .frame(width: 16, height: 16)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
                 .frame(width: 8)
             Text("locationModal.locationAccuracy".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
         }
     }
@@ -169,9 +169,9 @@ private extension LocationInfoView {
     func locationAccuracySubtitle() -> some View {
         HStack(spacing: 0) {
             Text(locationAccuracyattributedString())
-                .tint(NymColor.gray1)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .tint(Color.Nym.textSecondary)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
 
             Spacer()
         }
@@ -189,7 +189,7 @@ private extension LocationInfoView {
         var second = AttributedString("locationModal.accuracy.subtitle2".localizedString)
         let third = AttributedString("locationModal.accuracy.subtitle3".localizedString)
         second.underlineStyle = .single
-        second.foregroundColor = NymColor.primary
+        second.foregroundColor = Color.Nym.textPrimary
         second.link = URL(string: Constants.locationAccuracyURL.rawValue)
         return first + AttributedString(" ") + second + AttributedString(" ") + third
     }

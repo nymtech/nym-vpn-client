@@ -38,7 +38,7 @@ public struct DaemonInstallView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity)
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .overlay {
@@ -58,8 +58,8 @@ extension DaemonInstallView {
     func explanationText() -> some View {
         HStack {
             Text(daemonSectionText())
-                .textStyle(.Body.Large.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodyLarge)
+                .foregroundStyle(Color.Nym.textPrimary)
                 .multilineTextAlignment(.leading)
             Spacer()
         }
@@ -69,8 +69,8 @@ extension DaemonInstallView {
     func firstStepText() -> some View {
         HStack {
             Text("daemonInstall.firstStep".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
                 .multilineTextAlignment(.leading)
             Spacer()
         }
@@ -92,8 +92,8 @@ extension DaemonInstallView {
     func secondStepText() -> some View {
         HStack {
             Text("daemonInstall.secondStep".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
                 .multilineTextAlignment(.leading)
             Spacer()
         }
@@ -111,9 +111,9 @@ extension DaemonInstallView {
         if let thirdStepText = thirdStepAttributedString() {
             HStack {
                 Text("3. \(thirdStepText)")
-                    .tint(NymColor.action)
-                    .textStyle(.Body.Medium.regular)
-                    .foregroundStyle(NymColor.gray1)
+                    .tint(Color.Nym.primary)
+                    .nymTextStyle(.bodyDefault)
+                    .foregroundStyle(Color.Nym.textSecondary)
                     .multilineTextAlignment(.leading)
                 Spacer()
             }
@@ -154,7 +154,7 @@ private extension DaemonInstallView {
     func successInstallActionDialogConfiguration() -> ActionDialogConfiguration {
         ActionDialogConfiguration(
             systemIconImageName: "checkmark",
-            systemIconImageColor: NymColor.action,
+            systemIconImageColor: Color.Nym.primary,
             titleLocalizedString: "daemonInstall.successModal.title".localizedString,
             subtitleLocalizedString: "daemonInstall.successModal.subtitle".localizedString,
             yesLocalizedString: "daemonInstall.backToMainScreen".localizedString,

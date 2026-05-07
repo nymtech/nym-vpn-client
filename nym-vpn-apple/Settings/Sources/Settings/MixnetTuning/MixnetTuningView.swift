@@ -5,7 +5,7 @@ import ConnectionManager
 import ConnectionTypes
 import ExternalLinkManager
 import ImpactGenerator
-import MessageModels
+import SnackbarManager
 import Theme
 import UIComponents
 #if os(iOS)
@@ -35,7 +35,6 @@ struct MixnetTuningView: View {
     @State private var mixingDelayIndex = 15.0
     @State private var isSendTrafficContinuouslyOn = false
     @State private var isSaveButtonDisabled = false
-    @State private var isSaveChangesSnackbarDisplayed = false
 
     @State private var config: MixnetTuningConfig?
 
@@ -46,10 +45,6 @@ struct MixnetTuningView: View {
             content: {
                 content
             }
-        )
-        .snackbar(
-            isDisplayed: $isSaveChangesSnackbarDisplayed,
-            message: SnackBarMessage(text: "mixnetTuning.snackbar.saved".localizedString, style: .info)
         )
         .task {
             let oldConfig = connectionManager.connectionConfig.mixnetTuningConfig
@@ -110,7 +105,7 @@ private extension MixnetTuningView {
     var subtitle: some View {
         HStack(spacing: 0) {
             Text("mixnetTunning.subtitle".localizedString)
-                .nymText(color: NymColor.gray1, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textSecondary, style: .Body.Medium.regular)
             Spacer()
         }
     }
@@ -122,7 +117,7 @@ private extension MixnetTuningView {
     var performanceSection: some View {
         ElevationSectionView {
             Text("mixnetTunning.expectedPerformance.title".localizedString)
-                .nymText(color: NymColor.gray1, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textSecondary, style: .Body.Medium.regular)
             Spacer()
                 .frame(height: 12)
             performanceCell(
@@ -137,26 +132,26 @@ private extension MixnetTuningView {
             Spacer()
                 .frame(height: 12)
             Text("mixnetTuning.expectedRTT".localizedString)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Small.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodySmall)
         }
     }
 
     func performanceCell(title: String, subtitle: String) -> some View {
         HStack(spacing: 0) {
             Text(title)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
             Text(subtitle)
-                .foregroundStyle(NymColor.action)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.primary)
+                .nymTextStyle(.bodyDefault)
         }
     }
 
     func separatorLine() -> some View {
         Rectangle()
-            .foregroundColor(NymColor.gray2)
+            .foregroundColor(Color.Nym.gray2)
             .frame(height: 1)
             .padding(.vertical, 12)
     }
@@ -195,15 +190,15 @@ private extension MixnetTuningView {
 
     @ViewBuilder var backgroundCoverTrafficSection: some View {
         Text("⚠️ \("mixnetTuning.sendTraffic.off".localizedString)")
-            .nymText(color: NymColor.warning, style: .Body.Small.regular)
+            .nymText(color: Color.Nym.warning, style: .Body.Small.regular)
         Spacer()
             .frame(height: 16)
         Text("mixnetTuning.backgroundCoverTrafficState.title".localizedString)
-            .nymText(color: NymColor.primary, style: .Headline.Small.regular)
+            .nymText(color: Color.Nym.textPrimary, style: .Headline.Small.regular)
         Spacer()
             .frame(height: 16)
         Text("mixnetTuning.backgroundCoverTrafficState.subtitle".localizedString)
-            .nymText(color: NymColor.gray1, style: .Body.Small.regular)
+            .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         Spacer()
             .frame(height: 16)
         coverTrafficSliderSection
@@ -214,15 +209,15 @@ private extension MixnetTuningView {
     @ViewBuilder var coverTrafficSliderSection: some View {
         HStack(spacing: 0) {
             Text("mixnetTuning.lessBatteryData".localizedString)
-                .nymText(color: NymColor.gray1, style: .Body.Small.regular)
+                .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
             Text("mixnetTuning.maximumAnonimity".localizedString)
-                .nymText(color: NymColor.gray1, style: .Body.Small.regular)
+                .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
             .frame(height: 16)
         Slider(value: $coverTrafficIndex, in: 0.0...Double(coverTrafficOptions.count - 1), step: 1)
-            .tint(NymColor.accent)
+            .tint(Color.Nym.primary)
             .accessibilityLabel("mixnetTuning.backgroundCoverTrafficState.title".localizedString)
             .accessibilityValue(coverTrafficAccessibilityValue)
             .accessibilityAdjustableAction { direction in
@@ -232,39 +227,39 @@ private extension MixnetTuningView {
             .frame(height: 16)
         HStack(spacing: 0) {
             Text("\("mixnetTuning.base".localizedString)\n")
-                .nymText(color: NymColor.primary, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
             Text("\("mixnetTuning.balanced".localizedString)\n5x")
-                .nymText(color: NymColor.primary, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
             Text("\("mixnetTuning.medium".localizedString)\n10x")
-                .nymText(color: NymColor.primary, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
             Text("\("mixnetTuning.high".localizedString)\n20x")
-                .nymText(color: NymColor.primary, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
         }
     }
 
     @ViewBuilder var continiuosTrafficSection: some View {
         Text("mixnetTuning.sendTraffic.on".localizedString)
-            .nymText(color: NymColor.gray1, style: .Body.Small.regular)
+            .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         Spacer()
             .frame(height: 16)
         HStack(spacing: 0) {
             Text("mixnetTuning.lessBatteryData".localizedString)
-                .nymText(color: NymColor.gray1, style: .Body.Small.regular)
+                .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
             Text("mixnetTuning.maximumAnonimity".localizedString)
-                .nymText(color: NymColor.gray1, style: .Body.Small.regular)
+                .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
             .frame(height: 16)
         Slider(value: $continuousTrafficIndex, in: 0.0...Double(continuousTrafficOptions.count - 1), step: 1)
-            .tint(NymColor.accent)
+            .tint(Color.Nym.primary)
             .accessibilityLabel("mixnetTuning.sendTrafficContinously".localizedString)
             .accessibilityValue(continuousTrafficAccessibilityValue)
             .accessibilityAdjustableAction { direction in
@@ -274,15 +269,15 @@ private extension MixnetTuningView {
             .frame(height: 16)
         HStack(spacing: 0) {
             Text("\("mixnetTuning.low".localizedString)\n0.7 Mbps")
-                .nymText(color: NymColor.primary, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
             Text("\("mixnetTuning.balanced".localizedString)\n1 Mbps")
-                .nymText(color: NymColor.primary, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
             Text("\("mixnetTuning.high".localizedString)\n2 Mbps")
-                .nymText(color: NymColor.primary, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
         }
         Spacer()
@@ -292,15 +287,15 @@ private extension MixnetTuningView {
     var delaySection: some View {
         ElevationSectionView {
             Text("mixnetTuning.mixingDelays".localizedString)
-                .nymText(color: NymColor.primary, style: .Headline.Small.regular)
+                .nymText(color: Color.Nym.textPrimary, style: .Headline.Small.regular)
             Spacer()
                 .frame(height: 16)
             if mixingDelayIndex == 0 {
                 Text("⚠️ \("mixnetTuning.mixingDelay.off".localizedString)")
-                    .nymText(color: NymColor.warning, style: .Body.Small.regular)
+                    .nymText(color: Color.Nym.warning, style: .Body.Small.regular)
             } else {
                 Text("mixnetTuning.mixingDelay.on".localizedString)
-                    .nymText(color: NymColor.gray1, style: .Body.Small.regular)
+                    .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             }
             Spacer()
                 .frame(height: 16)
@@ -312,10 +307,10 @@ private extension MixnetTuningView {
     @ViewBuilder var sliderValue: some View {
         HStack(spacing: 0) {
             Text("mixnetTuning.fasterSpeed".localizedString)
-                .nymText(color: NymColor.gray1, style: .Body.Small.regular)
+                .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
             Spacer()
             Text("mixnetTuning.maximumAnonimity".localizedString)
-                .nymText(color: NymColor.gray1, style: .Body.Small.regular)
+                .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
         }
         Spacer()
             .frame(height: 16)
@@ -324,7 +319,7 @@ private extension MixnetTuningView {
             in: Double(mixnetDefaults.defaultMixingDelay().minValue)...Double(mixnetDefaults.defaultMixingDelay().maxValue),
             step: 1
         )
-            .tint(NymColor.accent)
+            .tint(Color.Nym.primary)
             .accessibilityLabel("mixnetTuning.mixingDelays".localizedString)
             .accessibilityValue(mixingDelayAccessibilityValue)
             .accessibilityAdjustableAction { direction in
@@ -341,21 +336,21 @@ private extension MixnetTuningView {
         let defaultDelay = mixnetDefaults.defaultMixingDelay()
         return HStack(spacing: 0) {
             Text("\("mixnetTuning.low".localizedString)\n\(defaultDelay.minValue) ms")
-                .nymText(color: NymColor.primary, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
             Spacer()
             if mixingDelayIndex != Double(defaultDelay.defaultValue) {
                 Text("\("mixnetTuning.current".localizedString)\n \(Int(mixingDelayIndex)) ms")
-                    .nymText(color: NymColor.info, style: .Body.Medium.regular)
+                    .nymText(color: Color.Nym.info, style: .Body.Medium.regular)
                     .multilineTextAlignment(.center)
             } else {
                 Text("\("mixnetTuning.default".localizedString)\n\(defaultDelay.defaultValue) ms")
-                    .nymText(color: NymColor.info, style: .Body.Medium.regular)
+                    .nymText(color: Color.Nym.info, style: .Body.Medium.regular)
                     .multilineTextAlignment(.center)
             }
             Spacer()
             Text("\("mixnetTuning.high".localizedString)\n\(defaultDelay.maxValue) ms")
-                .nymText(color: NymColor.primary, style: .Body.Medium.regular)
+                .nymText(color: Color.Nym.textPrimary, style: .Body.Medium.regular)
                 .multilineTextAlignment(.center)
         }
     }
@@ -363,13 +358,13 @@ private extension MixnetTuningView {
     var learnMoreAttributtedString: AttributedString {
         var first = AttributedString("mixnetTuning.learnMore".localizedString)
         first.underlineStyle = .single
-        first.foregroundColor = NymColor.primary
+        first.foregroundColor = Color.Nym.textPrimary
         first.link = URL(string: Constants.mixnetParametersLearnMoreURL.rawValue)
         return first
     }
 
     var learnMoreLink: some View {
-        ExternalLink(text: learnMoreAttributtedString, color: NymColor.primary, style: .Body.Small.regular)
+        ExternalLink(text: learnMoreAttributtedString, color: Color.Nym.textPrimary, style: .Body.Small.regular)
             .onTapGesture {
                 try? externalLinkManager.openExternalURL(urlString: Constants.mixnetParametersLearnMoreURL.rawValue)
             }
@@ -500,13 +495,12 @@ private extension MixnetTuningView {
         connectionManager.connectionConfig = connectionConfig
         updateIsSaveButtonEnabled()
 
-        withAnimation {
-            isSaveChangesSnackbarDisplayed = true
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(3))
-                isSaveChangesSnackbarDisplayed = false
-            }
-        }
+        SnackbarManager.shared.enqueue(
+            SnackbarItem(
+                style: .confirmation,
+                title: "mixnetTuning.snackbar.saved".localizedString
+            )
+        )
     }
 
     func resetToDefaults() {

@@ -18,6 +18,7 @@ public struct ConnectionConfig: Codable {
     public var residentialExit: Bool
     public var mixnetTuningConfig: MixnetTuningConfig
     public var splitTunnelConfig: SplitTunnelConfig
+    public var gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig
 
 #if os(iOS)
 
@@ -44,7 +45,8 @@ public struct ConnectionConfig: Codable {
         netstack: Bool,
         residentialExit: Bool,
         mixnetTuningConfig: MixnetTuningConfig,
-        splitTunnelConfig: SplitTunnelConfig
+        splitTunnelConfig: SplitTunnelConfig,
+        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true, algorithm: .auto)
     ) {
         self.entry = entry
         self.exit = exit
@@ -59,6 +61,7 @@ public struct ConnectionConfig: Codable {
         self.residentialExit = residentialExit
         self.mixnetTuningConfig = mixnetTuningConfig
         self.splitTunnelConfig = splitTunnelConfig
+        self.gatewaySelectionAlgorithmConfig = gatewaySelectionAlgorithmConfig
     }
 
 #if os(iOS)
@@ -78,6 +81,10 @@ public struct ConnectionConfig: Codable {
         self.mixnetTuningConfig = MixnetTuningConfig(from: config.mixnetTraffic)
         self.enableAdBlocking = config.enableAdBlocking
         self.splitTunnelConfig = SplitTunnelConfig(from: config.splitTunnel)
+        self.gatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(
+            enableGeoLocation: true,
+            algorithm: .auto
+        )
     }
 #endif
 }
@@ -100,23 +107,22 @@ private extension ConnectionConfig {
     static func exitRouter(from exitPoint: ExitPoint) -> ExitRouter {
         switch exitPoint {
         case let .address(address):
-            ExitRouter.address(address)
+            print("🔥 unused ExitPoint.address received from daemon (\(address)) — coercing to .random")
+            return ExitRouter.random
         case let .gateway(identity):
-            ExitRouter.gateway(identity)
+            return ExitRouter.gateway(identity)
         case let .country(twoLetterIsoCountryCode):
-            ExitRouter.country(twoLetterIsoCountryCode)
+            return ExitRouter.country(twoLetterIsoCountryCode)
         case let .region(region):
-            ExitRouter.region(countryCode: "", region: region)
+            return ExitRouter.region(countryCode: "", region: region)
         case .random:
-            ExitRouter.random
+            return ExitRouter.random
         }
     }
 
     func entryPoint(from entryGateway: EntryGateway) -> EntryPoint {
         switch entryGateway {
         case let .country(code):
-            EntryPoint.country(twoLetterIsoCountryCode: code)
-        case let .lowLatencyCountry(code):
             EntryPoint.country(twoLetterIsoCountryCode: code)
         case let .gateway(node):
             EntryPoint.gateway(identity: node)
@@ -133,8 +139,6 @@ private extension ConnectionConfig {
             ExitPoint.country(twoLetterIsoCountryCode: code)
         case let .gateway(node):
             ExitPoint.gateway(identity: node)
-        case let .address(address):
-            ExitPoint.address(address: address)
         case let .region(countryCode: _, region: region):
             ExitPoint.region(region: region)
         case .random:
@@ -157,7 +161,38 @@ extension ConnectionConfig: Equatable {
         lhs.enableLewes == rhs.enableLewes &&
         lhs.residentialExit == rhs.residentialExit &&
         lhs.mixnetTuningConfig == rhs.mixnetTuningConfig &&
-        lhs.splitTunnelConfig == rhs.splitTunnelConfig
+        lhs.splitTunnelConfig == rhs.splitTunnelConfig &&
+        lhs.gatewaySelectionAlgorithmConfig == rhs.gatewaySelectionAlgorithmConfig
+    }
+}
+
+extension ConnectionConfig {
+    private enum CodingKeys: String, CodingKey {
+        case entry, exit, dns, allowLan, disableIpv6, enableTwoHop
+        case enableBridges, enableLewes, enableAdBlocking, netstack
+        case residentialExit, mixnetTuningConfig, splitTunnelConfig
+        case gatewaySelectionAlgorithmConfig
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.entry = try container.decode(EntryGateway.self, forKey: .entry)
+        self.exit = try container.decode(ExitRouter.self, forKey: .exit)
+        self.dns = try container.decodeIfPresent([String].self, forKey: .dns)
+        self.allowLan = try container.decode(Bool.self, forKey: .allowLan)
+        self.disableIpv6 = try container.decode(Bool.self, forKey: .disableIpv6)
+        self.enableTwoHop = try container.decode(Bool.self, forKey: .enableTwoHop)
+        self.enableBridges = try container.decode(Bool.self, forKey: .enableBridges)
+        self.enableLewes = try container.decode(Bool.self, forKey: .enableLewes)
+        self.enableAdBlocking = try container.decode(Bool.self, forKey: .enableAdBlocking)
+        self.netstack = try container.decode(Bool.self, forKey: .netstack)
+        self.residentialExit = try container.decode(Bool.self, forKey: .residentialExit)
+        self.mixnetTuningConfig = try container.decode(MixnetTuningConfig.self, forKey: .mixnetTuningConfig)
+        self.splitTunnelConfig = try container.decode(SplitTunnelConfig.self, forKey: .splitTunnelConfig)
+        self.gatewaySelectionAlgorithmConfig = try container.decodeIfPresent(
+            NymGatewaySelectionAlgorithmConfig.self,
+            forKey: .gatewaySelectionAlgorithmConfig
+        ) ?? NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true, algorithm: .auto)
     }
 }
 

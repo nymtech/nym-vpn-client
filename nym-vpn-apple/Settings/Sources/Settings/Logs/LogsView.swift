@@ -27,13 +27,13 @@ public struct LogsView: View {
             }
             .frame(maxWidth: .infinity)
             .background {
-                NymColor.background
+                Color.Nym.background
             }
             buttonsSection()
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(NymColor.background)
+        .background(Color.Nym.background)
         .overlay {
             if viewModel.isDeleteDialogDisplayed {
                 LogsDeleteConfirmationDialog(
@@ -64,23 +64,23 @@ private extension LogsView {
     func button(systemImageName: String, title: String) -> some View {
         VStack {
             Image(systemName: systemImageName)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(Color.Nym.textPrimary)
                 .frame(width: 24, height: 24)
                 .padding(8)
 
             Text(title)
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Headline.Small.regular)
+                .foregroundStyle(Color.Nym.textPrimary)
+                .nymTextStyle(.bodyLarge)
         }
-        .contentShape(RoundedRectangle(cornerRadius: 8))
+        .contentShape(RoundedRectangle(cornerRadius: 12))
         .padding(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
     }
 
     func exportButton() -> some View {
         button(systemImageName: "square.and.arrow.up", title: viewModel.exportLocalizedString)
             .background(
-                isExportButtonHovered ? NymColor.elevationHover : NymColor.elevation,
-                in: RoundedRectangle(cornerRadius: 8)
+                isExportButtonHovered ? Color.Nym.backgroundHover : Color.Nym.backgroundCard,
+                in: RoundedRectangle(cornerRadius: 12)
             )
             .opacity(viewModel.isPreparingExport ? 0.5 : 1.0)
             .disabled(viewModel.logLines.isEmpty || viewModel.isPreparingExport)
@@ -105,8 +105,8 @@ private extension LogsView {
                 }
             }
             .background(
-                isDeleteButtonHovered ? NymColor.elevationHover : NymColor.elevation,
-                in: RoundedRectangle(cornerRadius: 8)
+                isDeleteButtonHovered ? Color.Nym.backgroundHover : Color.Nym.backgroundCard,
+                in: RoundedRectangle(cornerRadius: 12)
             )
     }
 
@@ -125,7 +125,7 @@ private extension LogsView {
             Spacer()
         }
         .background {
-            NymColor.elevation
+            Color.Nym.backgroundCard
         }
         .frame(minHeight: 80)
     }
@@ -160,13 +160,13 @@ private extension LogsView {
                     viewModel.loadOlder()
                 } label: {
                     Text("Load older entries")
-                        .textStyle(NymTextStyle.Body.Medium.regular)
-                        .foregroundStyle(NymColor.info)
+                        .nymTextStyle(.bodyDefault)
+                        .foregroundStyle(Color.Nym.info)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                 }
                 .buttonStyle(.plain)
-                .background(NymColor.elevation)
+                .background(Color.Nym.backgroundCard)
             }
 
             LogTextView(

@@ -123,7 +123,7 @@ public extension GatewayRegionCell {
                 }
         }
         .background {
-            isButtonHovered ? NymColor.backgroundHover : NymColor.elevation.opacity(0.6)
+            isButtonHovered ? Color.Nym.backgroundHover : Color.Nym.backgroundCard.opacity(0.6)
         }
     }
 
@@ -136,21 +136,21 @@ public extension GatewayRegionCell {
 
     func regionNameTitle() -> some View {
         Text(region)
-            .foregroundStyle(NymColor.primary)
-            .textStyle(.Body.Large.regular)
+            .foregroundStyle(Color.Nym.textPrimary)
+            .nymTextStyle(.bodyLarge)
     }
 
     func serverCountNumberSubtitle() -> some View {
         Text("\(servers.count) \("servers".localizedString)")
-            .foregroundStyle(NymColor.gray1)
-            .textStyle(.Body.Small.regular)
+            .foregroundStyle(Color.Nym.textSecondary)
+            .nymTextStyle(.bodySmall)
     }
 
     func arrowDropDown() -> some View {
         ZStack {
             if isAccessoryHovered {
                 Circle()
-                    .fill(NymColor.backgroundHover)
+                    .fill(Color.Nym.backgroundHover)
                     .frame(width: 40, height: 40)
             }
 

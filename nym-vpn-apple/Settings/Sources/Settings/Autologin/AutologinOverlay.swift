@@ -60,7 +60,7 @@ struct AutologinOverlay: ViewModifier {
         if let onRetry {
             ActionDialogConfiguration(
                 systemIconImageName: "exclamationmark.triangle",
-                systemIconImageColor: NymColor.error,
+                systemIconImageColor: Color.Nym.error,
                 titleLocalizedString: "generalNymError.somethingWentWrong".localizedString,
                 subtitleLocalizedString: autologinState.errorMessage,
                 yesLocalizedString: "settings.account.autologin.retry".localizedString,
@@ -75,7 +75,7 @@ struct AutologinOverlay: ViewModifier {
         } else {
             ActionDialogConfiguration(
                 systemIconImageName: "exclamationmark.triangle",
-                systemIconImageColor: NymColor.error,
+                systemIconImageColor: Color.Nym.error,
                 titleLocalizedString: "generalNymError.somethingWentWrong".localizedString,
                 subtitleLocalizedString: autologinState.errorMessage,
                 noLocalizedString: "cancel".localizedString

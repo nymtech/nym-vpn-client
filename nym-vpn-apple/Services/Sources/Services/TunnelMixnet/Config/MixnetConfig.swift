@@ -26,6 +26,9 @@ public struct MixnetConfig: Codable, Equatable {
     public let isStatisticsEnabled: Bool
     public let isLanBypassEnabled: Bool
     public let mixnetTuning: MixnetTuningConfig
+#if os(iOS)
+    public let gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig
+#endif
 
     public var name = "NymVPN Mixnet"
 #if os(iOS)
@@ -43,6 +46,7 @@ public struct MixnetConfig: Codable, Equatable {
         isLewesEnabled: Bool,
         isAdBlockingEnabled: Bool,
         isTwoHopEnabled: Bool = false,
+        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig,
         name: String = "NymVPN Mixnet"
     ) {
         self.entryGateway = entryGateway
@@ -58,6 +62,7 @@ public struct MixnetConfig: Codable, Equatable {
         self.isTwoHopEnabled = isTwoHopEnabled
         self.isLewesEnabled = isLewesEnabled
         self.isAdBlockingEnabled = isAdBlockingEnabled
+        self.gatewaySelectionAlgorithmConfig = gatewaySelectionAlgorithmConfig
         self.name = name
     }
 #endif
@@ -81,10 +86,7 @@ extension MixnetConfig {
             customDns: customDns,
             mixnetTraffic: mixnetTuning.mixnetTrafficConfig(),
             networkStats: nil,
-            gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig(
-                enableGeoLocation: false,
-                gatewaySelectionAlgorithm: .auto
-            ),
+            gatewaySelectionAlgorithmConfig: gatewaySelectionAlgorithmConfig.sdkValue,
             userAgent: .appUserAgent,
             tunProvider: tunProvider
         )

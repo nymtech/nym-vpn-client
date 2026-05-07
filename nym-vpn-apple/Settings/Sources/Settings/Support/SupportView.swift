@@ -30,7 +30,7 @@ struct SupportView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
     }
@@ -48,12 +48,12 @@ private extension SupportView {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 16) {
                 Text("⚠️ \("support.protectTitle".localizedString)")
-                    .textStyle(.Headline.Small.regular)
-                    .foregroundStyle(NymColor.primary)
+                    .nymTextStyle(.bodyLarge)
+                    .foregroundStyle(Color.Nym.textPrimary)
 
                 Text(subtitleText())
-                    .textStyle(.Body.Medium.regular)
-                    .foregroundStyle(NymColor.gray1)
+                    .nymTextStyle(.bodyDefault)
+                    .foregroundStyle(Color.Nym.textSecondary)
             }
             Spacer()
         }

@@ -52,29 +52,29 @@ private extension WhatIsPassphraseView {
 
     var title: some View {
         Text("whatIsPasshphrase.title".localizedString)
-            .textStyle(.Headline.Medium.regular)
-            .foregroundStyle(NymColor.primary)
+            .nymTextStyle(.titleScreen)
+            .foregroundStyle(Color.Nym.textPrimary)
     }
 
     var subtitle: some View {
         Text(subtitleAttributtedString ?? "")
-            .textStyle(.Body.Medium.regular)
-            .foregroundStyle(NymColor.primary)
+            .nymTextStyle(.bodyDefault)
+            .foregroundStyle(Color.Nym.textPrimary)
             .multilineTextAlignment(.center)
     }
 
     var subtitleAttributtedString: AttributedString? {
         let first = AttributedString("whatIsPassphrase.subtitle1".localizedString)
         var second = AttributedString("whatIsPassphrase.keepItSafe".localizedString)
-        second.font = NymTextStyle.Body.Medium.bold.nymFont.font
+        second.font = Nym.TextStyle.bodyDefaultBold.font
         let third = AttributedString("whatIsPassphrase.subtitle2".localizedString)
         return first + AttributedString("\n\n") + AttributedString("⚠️ ") + second + AttributedString(": ") + third
     }
 
     var removedTitle: some View {
         Text("whatIsPassphrase.removedTitle".localizedString)
-            .textStyle(.Body.Medium.bold)
-            .foregroundStyle(NymColor.primary)
+            .nymTextStyle(.bodyDefaultBold)
+            .foregroundStyle(Color.Nym.textPrimary)
     }
 
     var eliminatedList: some View {
@@ -87,8 +87,8 @@ private extension WhatIsPassphraseView {
 
     var passhpraseText: some View {
         Text("whatIsPassphrase.24wordPassphrase".localizedString)
-            .textStyle(.Body.Medium.bold)
-            .foregroundStyle(NymColor.primary)
+            .nymTextStyle(.bodyDefaultBold)
+            .foregroundStyle(Color.Nym.textPrimary)
     }
 
     var enabledList: some View {
@@ -119,8 +119,8 @@ private extension WhatIsPassphraseView {
 
             Text(title.localizedString)
                 .multilineTextAlignment(.center)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textPrimary)
         }
         .accessibilityLabel(title)
         .frame(maxWidth: .infinity)

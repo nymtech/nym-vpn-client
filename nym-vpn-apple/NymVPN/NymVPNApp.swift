@@ -55,16 +55,14 @@ struct NymVPNApp: App {
         connectionManager: ConnectionManager.shared
     )
 
-    @State private var homeViewModel = HomeViewModel(
+    @State private var appFeatureViewModel = AppFeatureViewModel(
         appSettings: .shared,
-        connectionManager: .shared,
-        configurationManager: .shared,
         credentialsManager: .shared,
-        networkMonitor: .shared,
-        externalLinkManager: .shared,
+        connectionManager: .shared,
         gatewayManager: .shared,
+        snackbarManager: .shared,
         impactGenerator: .shared,
-        messagesManager: .shared
+        networkMonitor: .shared
     )
 
     @State private var isSecureScreenVisible = false
@@ -75,7 +73,7 @@ struct NymVPNApp: App {
 
     var body: some Scene {
         WindowGroup {
-            HomeView(viewModel: homeViewModel)
+            AppFeatureView(viewModel: appFeatureViewModel)
                 .transition(.slide)
             .onChange(of: scenePhase) { _, newPhase in
                 configureSecureScreen(with: newPhase)

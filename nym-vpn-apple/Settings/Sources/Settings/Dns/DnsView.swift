@@ -2,7 +2,6 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import Constants
-import MessageModels
 #if os(macOS)
 import NymVPNRpc
 import GRPCManager
@@ -41,13 +40,9 @@ public struct DnsView: View {
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .snackbar(
-            isDisplayed: $viewModel.isSnackbarDisplayed,
-            message: SnackBarMessage(text: viewModel.snackbarMessage ?? "", style: .info)
-        )
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .overlay {
@@ -96,12 +91,12 @@ private extension DnsView {
     func subtitleSection() -> some View {
         VStack(alignment: .leading, spacing: 24) {
             Text("dns.subtitle".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
 
             Text("dns.viewDefault".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
                 .underline()
                 .onTapGesture {
                     withAnimation {
@@ -119,12 +114,12 @@ private extension DnsView {
     func defaultDnsSection() -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("dns.default.title".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
             ForEach(viewModel.defaultDns, id: \.self) { ip in
                 Text("• \(ip)")
-                    .textStyle(.Body.Medium.regular)
-                    .foregroundStyle(NymColor.gray1)
+                    .nymTextStyle(.bodyDefault)
+                    .foregroundStyle(Color.Nym.textSecondary)
             }
         }
     }
@@ -168,8 +163,8 @@ private extension DnsView {
     func customDnsInstructions() -> some View {
         HStack {
             Text("\("dns.custom.instructions1".localizedString) ⚠️ \("dns.custom.instructions2".localizedString)")
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
             Spacer()
         }
         .padding(.horizontal, 16)
@@ -187,13 +182,13 @@ private extension DnsView {
                             HStack {
                                 GenericImage(imageName: "dragIndicator")
                                     .frame(width: 20, height: 20)
-                                    .foregroundStyle(NymColor.gray1)
+                                    .foregroundStyle(Color.Nym.textSecondary)
                                 Text(ip)
                             }
                             Spacer()
                             GenericImage(systemImageName: "trash")
                                 .frame(width: 20, height: 20)
-                                .foregroundStyle(NymColor.primary)
+                                .foregroundStyle(Color.Nym.textPrimary)
                                 .onTapGesture {
                                     viewModel.deleteCustom(ipAddr: ip)
                                 }
@@ -203,7 +198,7 @@ private extension DnsView {
                         .padding(.horizontal, 16)
                         Divider()
                             .frame(height: 1)
-                            .overlay(NymColor.gray2)
+                            .overlay(Color.Nym.divider)
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 8)
                     }
@@ -232,14 +227,14 @@ private extension DnsView {
                             HStack {
                                 GenericImage(imageName: "dragIndicator")
                                     .frame(width: 20, height: 20)
-                                    .foregroundStyle(NymColor.gray1)
+                                    .foregroundStyle(Color.Nym.textSecondary)
                                 Text(ip)
                             }
                             .padding(.leading, 16)
                             Spacer()
                             GenericImage(systemImageName: "trash")
                                 .frame(width: 20, height: 20)
-                                .foregroundStyle(NymColor.primary)
+                                .foregroundStyle(Color.Nym.textPrimary)
                                 .onTapGesture {
                                     viewModel.deleteCustom(ipAddr: ip)
                                 }
@@ -248,8 +243,8 @@ private extension DnsView {
                         .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
                     }
                     .frame(height: DnsView.dnsEntryHeight)
-                    .listRowSeparatorTint(NymColor.gray2)
-                    .listRowBackground(NymColor.elevation)
+                    .listRowSeparatorTint(Color.Nym.divider)
+                    .listRowBackground(Color.Nym.backgroundCard)
                 }
                 .onMove { from, to in
                     viewModel.customDns.move(fromOffsets: from, toOffset: to)
@@ -264,7 +259,7 @@ private extension DnsView {
                 )
             }
             .listStyle(.plain)
-            .background(NymColor.elevation)
+            .background(Color.Nym.backgroundCard)
             .scrollContentBackground(.hidden)
             .scrollDisabled(true)
             .frame(maxWidth: .infinity)
@@ -278,15 +273,15 @@ private extension DnsView {
         if !viewModel.customDns.isEmpty {
             HStack {
                 Text("\("dns.custom.listTitle".localizedString) (\(viewModel.customDns.count)/\(viewModel.maxDnsEntries))")
-                    .textStyle(.Body.Medium.regular)
-                    .foregroundStyle(NymColor.primary)
+                    .nymTextStyle(.bodyDefault)
+                    .foregroundStyle(Color.Nym.textPrimary)
                     .padding(.vertical, 12)
                 Spacer()
             }
             .padding(.horizontal, 16)
             Divider()
                 .frame(height: 1)
-                .overlay(NymColor.gray2)
+                .overlay(Color.Nym.divider)
                 .padding(.horizontal, 16)
         }
     }
@@ -305,8 +300,8 @@ private extension DnsView {
                     isCustomDnsTextFieldDirty {
                     HStack {
                         Text(validationError)
-                            .textStyle(.Body.Medium.regular)
-                            .foregroundStyle(NymColor.error)
+                            .nymTextStyle(.bodyDefault)
+                            .foregroundStyle(Color.Nym.error)
                         Spacer()
                     }
                 }
@@ -323,25 +318,25 @@ private extension DnsView {
             strokeColor: viewModel.customDnsValidationError != nil
                 && !isCustomDnsTextFieldFocused
                 && isCustomDnsTextFieldDirty
-                    ? NymColor.error
-                    : NymColor.primary,
-            backgroundColor: NymColor.elevation
+                    ? Color.Nym.error
+                    : Color.Nym.textPrimary,
+            backgroundColor: Color.Nym.backgroundCard
         ) {
             HStack {
                 ZStack(alignment: .leading) {
                     TextField("", text: $viewModel.customDnsTextField)
                         .padding(.horizontal, 16)
-                        .foregroundStyle(NymColor.primary)
+                        .foregroundStyle(Color.Nym.textPrimary)
                         .textFieldStyle(PlainTextFieldStyle())
                         .background(.clear)
-                        .textStyle(.Body.Large.regular)
+                        .nymTextStyle(.bodyLarge)
                         .focused($isCustomDnsTextFieldFocused)
 
                     if viewModel.customDnsTextField.isEmpty {
                         Text("dns.textfield.placeholder".localizedString)
                             .padding(.leading, 16)
-                            .foregroundStyle(NymColor.gray1)
-                            .textStyle(.Body.Large.regular)
+                            .foregroundStyle(Color.Nym.textSecondary)
+                            .nymTextStyle(.bodyLarge)
                             .background(.clear)
                     }
                 }
@@ -425,14 +420,14 @@ private extension DnsView {
     func learnMoreLink() -> some View {
         HStack(spacing: 4) {
             Text("dns.learnMore".localizedString)
-                .textStyle(.Body.Small.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodySmall)
+                .foregroundStyle(Color.Nym.textPrimary)
                 .underline()
 
             GenericImage(imageName: "externalLink")
                 .frame(width: 12, height: 12)
                 .padding(4)
-                .foregroundStyle(NymColor.primary)
+                .foregroundStyle(Color.Nym.textPrimary)
 
             Spacer()
         }

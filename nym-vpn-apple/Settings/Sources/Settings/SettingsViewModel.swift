@@ -310,18 +310,18 @@ private extension SettingsViewModel {
                    !accountSummary.isExpiringSoon,
                    !accountSummary.isExpiringWarning {
                     var second = AttributedString("* \("autoRenews".localizedString)")
-                    second.foregroundColor = NymColor.gray1
+                    second.foregroundColor = Color.Nym.textSecondary
                     subtitle = planText + AttributedString("\n") + second
                 } else {
                     subtitle = planText
                 }
             } else if accountSummary.subscription?.status == .pending {
                 var confirmingPayment = AttributedString("confirmingPayment".localizedString)
-                confirmingPayment.foregroundColor = NymColor.error
+                confirmingPayment.foregroundColor = Color.Nym.error
                 subtitle = confirmingPayment
             } else {
                 var first = AttributedString("noActivePlan".localizedString)
-                first.foregroundColor = NymColor.error
+                first.foregroundColor = Color.Nym.error
                 subtitle = first
             }
         } else {

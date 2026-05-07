@@ -80,7 +80,11 @@ private extension ConnectionStorage {
                 continuousTraffic: .ms20,
                 dissablePoissonRate: false
             ),
-            splitTunnelConfig: SplitTunnelConfig()
+            splitTunnelConfig: SplitTunnelConfig(),
+            gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig(
+                enableGeoLocation: true,
+                algorithm: .auto
+            )
         )
     }
 }

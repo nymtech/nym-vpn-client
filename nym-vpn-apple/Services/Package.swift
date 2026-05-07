@@ -11,6 +11,7 @@ let package = Package(
         .macOS(.v14)
     ],
     products: [
+        .library(name: "SnackbarManager", targets: ["SnackbarManager"]),
         .library(name: "AppSettings", targets: ["AppSettings"]),
         .library(name: "BiometricAuthenticator", targets: ["BiometricAuthenticator"]),
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
@@ -44,6 +45,11 @@ let package = Package(
         .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.46.0")
     ],
     targets: [
+        .target(
+            name: "SnackbarManager",
+            dependencies: [],
+            path: "Sources/Services/SnackbarManager"
+        ),
         .target(
             name: "AppSettings",
             dependencies: [

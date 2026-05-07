@@ -6,21 +6,18 @@ public final class CountryStore: Codable {
     public var entryCountries: [NymCountry]
     public var exitCountries: [NymCountry]
     public var vpnCountries: [NymCountry]
-    public var lowLatencyCountry: NymCountry?
     public var lastFetchDate: Date?
 
     public init(
         lastFetchDate: Date? = nil,
         entryCountries: [NymCountry] = [],
         exitCountries: [NymCountry] = [],
-        vpnCountries: [NymCountry] = [],
-        lowLatencyCountry: NymCountry? = nil
+        vpnCountries: [NymCountry] = []
     ) {
         self.lastFetchDate = lastFetchDate
         self.entryCountries = entryCountries
         self.exitCountries = exitCountries
         self.vpnCountries = vpnCountries
-        self.lowLatencyCountry = lowLatencyCountry
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -29,10 +26,6 @@ public final class CountryStore: Codable {
         try container.encode(entryCountries, forKey: .entryCountries)
         try container.encode(exitCountries, forKey: .exitCountries)
         try container.encode(vpnCountries, forKey: .vpnCountries)
-
-        if let lowLatencyCountry = lowLatencyCountry {
-            try container.encode(lowLatencyCountry, forKey: .lowLatencyCountry)
-        }
 
         if let lastFetchDate = lastFetchDate {
             try container.encode(lastFetchDate.timeIntervalSince1970, forKey: .lastFetchDate)
@@ -45,7 +38,6 @@ public final class CountryStore: Codable {
         entryCountries = try container.decode([NymCountry].self, forKey: .entryCountries)
         exitCountries = try container.decode([NymCountry].self, forKey: .exitCountries)
         vpnCountries = try container.decode([NymCountry].self, forKey: .vpnCountries)
-        lowLatencyCountry = try? container.decode(NymCountry.self, forKey: .lowLatencyCountry)
 
         if let timeInterval = try? container.decode(Double.self, forKey: .lastFetchDate) {
             lastFetchDate = Date(timeIntervalSince1970: timeInterval)
@@ -73,8 +65,7 @@ public final class CountryStore: Codable {
             lastFetchDate: countryStore.lastFetchDate,
             entryCountries: countryStore.entryCountries,
             exitCountries: countryStore.exitCountries,
-            vpnCountries: countryStore.vpnCountries,
-            lowLatencyCountry: countryStore.lowLatencyCountry
+            vpnCountries: countryStore.vpnCountries
         )
     }
 
@@ -82,7 +73,6 @@ public final class CountryStore: Codable {
         case entryCountries
         case exitCountries
         case vpnCountries
-        case lowLatencyCountry
         case lastFetchDate
     }
 }

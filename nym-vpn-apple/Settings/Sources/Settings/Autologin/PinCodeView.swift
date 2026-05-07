@@ -35,7 +35,7 @@ private extension PinCodeView {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .foregroundStyle(NymColor.primary)
+                    .foregroundStyle(Color.Nym.textPrimary)
                     .frame(width: 24, height: 24)
             }
             .buttonStyle(.plain)
@@ -45,16 +45,16 @@ private extension PinCodeView {
 
     func lockIcon() -> some View {
         RoundedRectangle(cornerRadius: 12)
-            .fill(NymColor.accent.opacity(0.15))
+            .fill(Color.Nym.primary.opacity(0.15))
             .frame(width: 56, height: 56)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(NymColor.accent, lineWidth: 1)
+                    .stroke(Color.Nym.primary, lineWidth: 1)
             )
             .overlay(
                 GenericImage(systemImageName: "lock.fill")
                     .frame(width: 24, height: 24)
-                    .foregroundStyle(NymColor.accent)
+                    .foregroundStyle(Color.Nym.primary)
             )
     }
 
@@ -64,8 +64,8 @@ private extension PinCodeView {
                 .frame(height: 16)
 
             Text("pinCode.title".localizedString)
-                .textStyle(.Headline.Medium.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.titleScreen)
+                .foregroundStyle(Color.Nym.textPrimary)
         }
     }
 
@@ -75,8 +75,8 @@ private extension PinCodeView {
                 .frame(height: 8)
 
             Text("pinCode.subtitle".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
         }
     }
 
@@ -90,13 +90,13 @@ private extension PinCodeView {
                 ForEach(Array(digits.enumerated()), id: \.offset) { index, digit in
                     if index > 0 {
                         Circle()
-                            .fill(NymColor.accent)
+                            .fill(Color.Nym.primary)
                             .frame(width: 6, height: 6)
                             .padding(.horizontal, 8)
                     }
                     Text(String(digit))
                         .textStyle(.Headline.ExtraExtraLarge.bold)
-                        .foregroundStyle(NymColor.primary)
+                        .foregroundStyle(Color.Nym.textPrimary)
                         .monospacedDigit()
                 }
             }

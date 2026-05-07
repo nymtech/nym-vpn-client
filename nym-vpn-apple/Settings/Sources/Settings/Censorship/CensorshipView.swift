@@ -39,7 +39,7 @@ public struct CensorshipView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .overlay {
@@ -63,8 +63,8 @@ private extension CensorshipView {
 
     func subtitleSection() -> some View {
         Text("censorship.subtitle".localizedString)
-            .textStyle(.Body.Medium.regular)
-            .foregroundStyle(NymColor.gray1)
+            .nymTextStyle(.bodyDefault)
+            .foregroundStyle(Color.Nym.textSecondary)
             .padding(.bottom, 12)
     }
 
@@ -113,7 +113,7 @@ private extension CensorshipView {
         guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
         if let range = text.range(of: linkText) {
             text[range].underlineStyle = .single
-            text[range].foregroundColor = NymColor.primary
+            text[range].foregroundColor = Color.Nym.textPrimary
         }
         return text
     }
@@ -151,7 +151,7 @@ private extension CensorshipView {
         guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
         if let range = text.range(of: linkText) {
             text[range].underlineStyle = .single
-            text[range].foregroundColor = NymColor.primary
+            text[range].foregroundColor = Color.Nym.textPrimary
         }
         return text
     }
@@ -187,7 +187,7 @@ private extension CensorshipView {
         guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
         if let range = text.range(of: linkText) {
             text[range].underlineStyle = .single
-            text[range].foregroundColor = NymColor.primary
+            text[range].foregroundColor = Color.Nym.textPrimary
         }
         return text
     }

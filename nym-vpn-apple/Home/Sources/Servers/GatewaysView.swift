@@ -52,7 +52,7 @@ public struct GatewaysView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .overlay {
@@ -88,8 +88,8 @@ private extension GatewaysView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
                     Text(quicText())
-                        .foregroundStyle(NymColor.gray1)
-                        .textStyle(.Body.Small.regular)
+                        .foregroundStyle(Color.Nym.textSecondary)
+                        .nymTextStyle(.bodySmall)
                 }
             }
             .environment(\.openURL, OpenURLAction { url in
@@ -107,7 +107,7 @@ private extension GatewaysView {
         let first = AttributedString("gatewaysView.quic1".localizedString)
         var secondAttr = AttributedString("gatewaysView.quic2".localizedString)
         secondAttr.underlineStyle = .single
-        secondAttr.foregroundColor = NymColor.primary
+        secondAttr.foregroundColor = Color.Nym.textPrimary
         secondAttr.link = URL(string: "app://enable-quic")
         return first + AttributedString(" ") + secondAttr
     }
@@ -147,13 +147,13 @@ private extension GatewaysView {
            viewModel.foundCountries.isEmpty {
             VStack(alignment: .leading, spacing: 0) {
                 Text("search.noResults".localizedString)
-                    .foregroundStyle(NymColor.primary)
-                    .textStyle(.Body.Large.regular)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .nymTextStyle(.bodyLarge)
                 Spacer()
                     .frame(height: 16)
                 Text("search.noResultsSubtitle".localizedString)
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Large.regular)
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .nymTextStyle(.bodyLarge)
                 Spacer()
                     .frame(height: 8)
 
@@ -169,8 +169,8 @@ private extension GatewaysView {
     func contactUsForHelpLinkView() -> some View {
         if let attributtedText = contactUsForHelpAttributedString() {
             Text(attributtedText)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Large.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyLarge)
         }
     }
 
@@ -197,7 +197,7 @@ private extension GatewaysView {
 
         for run in attributed.runs where run.link != nil {
             attributed[run.range].underlineStyle = .single
-            attributed[run.range].foregroundColor = NymColor.gray1
+            attributed[run.range].foregroundColor = Color.Nym.textSecondary
         }
         return attributed
     }
