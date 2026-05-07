@@ -132,6 +132,9 @@ pub struct NymVpnAccountSummaryFairUsage {
     pub usedGB: u64,
     pub limitGB: u64,
     pub resetsOnUtc: Option<String>,
+    // Absent in older API responses - treat as false (data available) during rollout.
+    #[serde(default, rename = "dataUnavailable")]
+    pub data_unavailable: bool,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
