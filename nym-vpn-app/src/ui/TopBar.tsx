@@ -67,7 +67,7 @@ export default function TopBar() {
         },
         noBackground: true,
       },
-      '/': {
+      '/home': {
         title: (
           <NymVpnTextLogo
             className={clsx(

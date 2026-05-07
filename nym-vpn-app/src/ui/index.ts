@@ -17,7 +17,6 @@ export { default as TextInput } from './TextInput';
 export { default as ThemeSetter } from './ThemeSetter';
 export { default as TopBar } from './TopBar';
 export { default as PageAnim } from './PageAnim';
-export { default as RouteLoading } from './RouteLoading';
 export { default as FlagIcon } from './FlagIcon';
 export { default as Link } from './Link';
 export { default as Progress } from './Progress';

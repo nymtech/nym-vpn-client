@@ -1,4 +1,3 @@
-import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
 import {
   AccountRouteIndex,
@@ -35,11 +34,11 @@ import {
   Welcome,
 } from './screens';
 
-// Lazy loads Home
-const Home = lazy(() => import('./screens/home/Home'));
+import Home from './screens/home/Home';
+import StartupGate from './screens/StartupGate';
 
 export const routes = {
-  root: '/',
+  root: '/home',
   login: '/login',
   signup: '/signup',
   account: '/account',
@@ -77,18 +76,22 @@ export const routes = {
 // tree with routes statically defined
 const router = createBrowserRouter([
   {
-    path: routes.root,
-    Component: MainLayout,
+    path: '/',
+    Component: StartupGate,
+    index: true,
+  },
+  {
+    element: <MainLayout />,
     children: [
+      {
+        path: routes.root,
+        Component: Home,
+        errorElement: <Error />,
+      },
       {
         path: routes.loginScreen2,
         Component: LoginScreen,
         errorElement: <Error />,
-      },
-      {
-        Component: Home,
-        errorElement: <Error />,
-        index: true,
       },
       {
         path: routes.login,

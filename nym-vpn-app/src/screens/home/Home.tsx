@@ -279,6 +279,7 @@ function Home() {
       <button onClick={() => navigate(routes.loginScreen2)}>
         go to new login
       </button>
+      <button onClick={() => navigate('/')}>go to startupgate</button>
 
       <div className="flex flex-col justify-end grow">
         <NewBottomComponent />

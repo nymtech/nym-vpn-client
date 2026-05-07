@@ -18,7 +18,7 @@ import { LngTag, detectSystemLocale } from './i18n';
 import { kvGet } from './kvStore';
 import router from './router';
 import './i18n/config';
-import { RouteLoading, ThemeSetter } from './ui';
+import { ThemeSetter } from './ui';
 import { IntroAnim, IntroSplash } from './screens';
 import { InitState } from './types';
 
@@ -75,9 +75,7 @@ function App({ init }: { init: InitState }) {
               <DialogProvider>
                 <TopBarProvider>
                   <AutologinProvider>
-                    <Suspense fallback={<RouteLoading />}>
-                      <RouterProvider router={router} />
-                    </Suspense>
+                    <RouterProvider router={router} />
                   </AutologinProvider>
                 </TopBarProvider>
               </DialogProvider>

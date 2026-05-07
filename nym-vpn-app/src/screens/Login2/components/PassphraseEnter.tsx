@@ -17,7 +17,7 @@ export function PassphraseEnter() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
-  const { add } = useToast();
+  const { add, close } = useToast();
 
   const { daemonStatus, state } = useAppStore(
     useShallow((s) => ({
@@ -62,13 +62,16 @@ export function PassphraseEnter() {
       await invoke<number | null>('add_account', { mnemonic: phrase.trim() });
 
       // TODO: to update
-      navigate(routes.root);
 
       dispatch({ type: 'set-account', stored: true });
       await refreshAccountMode();
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
+
+      navigate(routes.root);
+
+      close('tunnel-running-login-error');
     } catch (e: unknown) {
       console.error('[login] error', e);
       const eT = e as BackendError;

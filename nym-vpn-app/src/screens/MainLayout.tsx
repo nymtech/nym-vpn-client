@@ -1,7 +1,6 @@
 import * as H from 'history';
 import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router';
-import { useShallow } from 'zustand/react/shallow';
 import clsx from 'clsx';
 import { EventNotification } from '../layers';
 import { CardAnimationProvider } from '../contexts/CardAnimationContext';
@@ -9,7 +8,6 @@ import { routes } from '../router';
 import { DaemonDot, TopBar } from '../ui';
 import { ToastList } from '../components/toast';
 import { useAppStore } from '../store';
-import InitialNavigation from './InitialNavigation';
 import { SystemAuthentication } from './SystemAuthentication';
 
 type MainLayoutProps = {
@@ -42,6 +40,8 @@ function MainLayout({
     });
   }, [location]);
 
+  console.log('[MainLayout] current route', location.pathname);
+
   return (
     <div
       className={clsx([
@@ -50,9 +50,6 @@ function MainLayout({
         'dark:bg-aph dark:text-white',
       ])}
     >
-      {/* Responsible for navigating to onboarding for new users on app startup */}
-      <InitialNavigation />
-      {/* Responsible for displaying the system authentication modal when the daemon is not authenticated */}
       <SystemAuthentication />
       {!noNotifications && <ToastList />}
       {!noTopBar && <TopBar />}
