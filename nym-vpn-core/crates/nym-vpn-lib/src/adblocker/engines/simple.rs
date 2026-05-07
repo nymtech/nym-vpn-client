@@ -102,21 +102,14 @@ impl DnsFilterT for SimpleAdBlockEngine {
         const PASS: DnsFilterDecision = DnsFilterDecision::Pass;
         const BLOCK: DnsFilterDecision = DnsFilterDecision::Block(DnsFilterStrategy::Localhost);
 
-        let mut domain = domain.trim();
+        let domain = domain
+            .trim()
+            .trim_end_matches('/')
+            .trim_end_matches('.');
 
         // Treat empty / root as non-blockable.
-        if domain.is_empty() || domain == "." || domain == "./" {
-            return PASS;
-        }
-
-        // Remove any trailing "/"
-        domain = domain.trim_end_matches('/');
-
-        // Remove any trailing "." (including cases like "example.com./")
-        domain = domain.trim_end_matches('.');
-
         if domain.is_empty() {
-            return BLOCK;
+            return PASS;
         }
 
         // Always pass if database is not loaded
