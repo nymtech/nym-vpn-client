@@ -18,7 +18,7 @@ export function CardNewHeader({
   return (
     <div
       className={clsx(
-        'w-full flex flex-row items-start justify-start px-5 pt-5 pb-4',
+        'w-full flex flex-row items-start justify-start p-4',
         className,
       )}
     >
@@ -49,7 +49,7 @@ export function CardNewBody({
   return (
     <div
       className={clsx(
-        'w-full flex flex-col justify-center items-start px-5',
+        'w-full flex flex-col justify-center items-start px-4',
         className,
       )}
     >
@@ -151,7 +151,7 @@ export function CardHeaderSwitch({
     <div
       className={clsx(
         'w-full flex flex-row justify-between items-center gap-4 select-none',
-        'bg-white dark:bg-charcoal px-5 min-h-16 rounded-t-lg py-4',
+        'bg-white dark:bg-charcoal px-4 min-h-16 rounded-t-lg py-4',
         !noHoverEffect && 'hover:bg-iron/5 dark:hover:bg-black/10',
         'cursor-default',
         disabled && 'pointer-events-none',
