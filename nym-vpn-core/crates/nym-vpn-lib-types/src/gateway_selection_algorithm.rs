@@ -17,13 +17,13 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum GatewaySelectionAlgorithm {
-    #[default]
     /// Select gateways explicitly using the entry and exit selectors.
     Explicit,
 
     /// Select gateways explicitly using the exit selector and automatically finding an entry gateway.
     AutoEntryExplicitExit,
 
+    #[default]
     /// Select gateways by automatically finding an entry and an exit gateway.
     /// The hop mode is also automatically set to 2-hop
     Auto,
