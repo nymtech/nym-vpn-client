@@ -11,7 +11,7 @@ pub use config::{
     read_json_config_file, read_toml_config_file, write_json_config_file,
 };
 pub use error::{
-    AccountLinksError, Error, GeoexclusionConfigError, GlobalConfigError, ListGatewaysError,
+    AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
     SetNetworkError,
 };
 pub use socks5::{

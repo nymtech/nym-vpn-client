@@ -5,14 +5,14 @@ pub mod v9 {
     use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
-    pub struct GeoexclusionSettings {
+    pub struct GeoExclusionSettings {
         pub enabled: bool,
         pub listen_port: u16,
         pub excluded_countries: Vec<String>,
     }
 
-    impl From<GeoexclusionSettings> for nym_vpn_lib_types::GeoexclusionSettings {
-        fn from(value: GeoexclusionSettings) -> Self {
+    impl From<GeoExclusionSettings> for nym_vpn_lib_types::GeoExclusionSettings {
+        fn from(value: GeoExclusionSettings) -> Self {
             Self {
                 enabled: value.enabled,
                 listen_port: value.listen_port,
@@ -21,8 +21,8 @@ pub mod v9 {
         }
     }
 
-    impl From<&nym_vpn_lib_types::GeoexclusionSettings> for GeoexclusionSettings {
-        fn from(value: &nym_vpn_lib_types::GeoexclusionSettings) -> Self {
+    impl From<&nym_vpn_lib_types::GeoExclusionSettings> for GeoExclusionSettings {
+        fn from(value: &nym_vpn_lib_types::GeoExclusionSettings) -> Self {
             Self {
                 enabled: value.enabled,
                 listen_port: value.listen_port,

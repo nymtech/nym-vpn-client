@@ -51,7 +51,7 @@ impl Command {
         match self {
             Command::Get => {
                 let config = rpc_client.get_config().await?;
-                let a = &config.geoexclusion;
+                let a = &config.geo_exclusion;
                 println!(
                     "Geo Exclusion enabled:    {}",
                     if a.enabled { "yes" } else { "no" }
@@ -73,16 +73,16 @@ impl SetCommand {
     pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
         match self {
             SetCommand::Enabled { enable } => {
-                rpc_client.set_geoexclusion_enabled(*enable).await?;
+                rpc_client.set_geo_exclusion_enabled(*enable).await?;
                 Ok(())
             }
             SetCommand::ListenPort { port } => {
-                rpc_client.set_geoexclusion_listen_port(port).await?;
+                rpc_client.set_geo_exclusion_listen_port(port).await?;
                 Ok(())
             }
             SetCommand::ExcludedCountries { countries } => {
                 rpc_client
-                    .set_geoexclusion_excluded_countries(countries)
+                    .set_geo_exclusion_excluded_countries(countries)
                     .await?;
                 Ok(())
             }

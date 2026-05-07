@@ -7,7 +7,7 @@ pub mod device;
 pub mod diagnostic;
 pub mod dns;
 pub mod gateway;
-pub mod geoexclusion;
+pub mod geo_exclusion;
 pub mod lan;
 pub mod network;
 pub mod network_stats;

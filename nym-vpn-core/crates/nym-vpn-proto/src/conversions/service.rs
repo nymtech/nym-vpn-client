@@ -44,10 +44,12 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .map(nym_vpn_lib_types::SplitTunnelSettings::from)
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.split_tunnel"))?;
 
-        let geoexclusion = value
-            .geoexclusion
-            .map(nym_vpn_lib_types::GeoexclusionSettings::from)
-            .ok_or(ConversionError::NoValueSet("VpnServiceConfig.geoexclusion"))?;
+        let geo_exclusion = value
+            .geo_exclusion
+            .map(nym_vpn_lib_types::GeoExclusionSettings::from)
+            .ok_or(ConversionError::NoValueSet(
+                "VpnServiceConfig.geo_exclusion",
+            ))?;
 
         let gateway_selection_algorithm_config = value
             .gateway_selection_algorithm
@@ -77,7 +79,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             mixnet_traffic,
             network_stats,
             split_tunnel,
-            geoexclusion,
+            geo_exclusion,
             gateway_selection_algorithm_config,
         };
         Ok(config)
@@ -92,7 +94,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
         let mixnet_traffic = Some(proto::MixnetTrafficConfig::from(value.mixnet_traffic));
         let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
         let split_tunnel = Some(proto::SplitTunnelSettings::from(value.split_tunnel));
-        let geoexclusion = Some(proto::GeoexclusionSettings::from(value.geoexclusion));
+        let geo_exclusion = Some(proto::GeoExclusionSettings::from(value.geo_exclusion));
         let gateway_selection_algorithm =
             proto::GatewaySelectionAlgorithmConfig::from(value.gateway_selection_algorithm_config)
                 .into();
@@ -115,7 +117,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             mixnet_traffic,
             network_stats,
             split_tunnel,
-            geoexclusion,
+            geo_exclusion,
             gateway_selection_algorithm,
         }
     }
@@ -135,9 +137,9 @@ impl From<proto::MixnetTrafficConfig> for nym_vpn_lib_types::MixnetTrafficConfig
     }
 }
 
-impl From<proto::GeoexclusionSettings> for nym_vpn_lib_types::GeoexclusionSettings {
-    fn from(value: proto::GeoexclusionSettings) -> Self {
-        nym_vpn_lib_types::GeoexclusionSettings {
+impl From<proto::GeoExclusionSettings> for nym_vpn_lib_types::GeoExclusionSettings {
+    fn from(value: proto::GeoExclusionSettings) -> Self {
+        nym_vpn_lib_types::GeoExclusionSettings {
             enabled: value.enabled,
             listen_port: value.listen_port as u16,
             excluded_countries: value.excluded_countries,
@@ -145,9 +147,9 @@ impl From<proto::GeoexclusionSettings> for nym_vpn_lib_types::GeoexclusionSettin
     }
 }
 
-impl From<nym_vpn_lib_types::GeoexclusionSettings> for proto::GeoexclusionSettings {
-    fn from(value: nym_vpn_lib_types::GeoexclusionSettings) -> Self {
-        proto::GeoexclusionSettings {
+impl From<nym_vpn_lib_types::GeoExclusionSettings> for proto::GeoExclusionSettings {
+    fn from(value: nym_vpn_lib_types::GeoExclusionSettings) -> Self {
+        proto::GeoExclusionSettings {
             enabled: value.enabled,
             listen_port: value.listen_port as u32,
             excluded_countries: value.excluded_countries,

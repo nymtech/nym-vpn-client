@@ -277,7 +277,7 @@ pub mod tests {
             dns: Default::default(),
             split_tunnel: Default::default(),
             gateway_selection_algorithm_config: Default::default(),
-            geoexclusion_settings: Default::default(),
+            geo_exclusion_settings: Default::default(),
         }
     }
 

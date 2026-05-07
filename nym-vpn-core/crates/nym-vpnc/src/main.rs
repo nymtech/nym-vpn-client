@@ -126,10 +126,10 @@ pub enum Command {
         subcommand: commands::socks5::Command,
     },
 
-    /// Geoexclusion configuration
-    Geoexclusion {
+    /// Geo exclusion configuration
+    GeoExclusion {
         #[command(subcommand)]
-        subcommand: commands::geoexclusion::Command,
+        subcommand: commands::geo_exclusion::Command,
     },
 
     /// Anonymous network statistics collection
@@ -171,7 +171,7 @@ impl Command {
             Command::Device(args) => args.execute(rpc_client).await,
             Command::Sentry { subcommand } => subcommand.execute(rpc_client).await,
             Command::Socks5 { subcommand } => subcommand.execute(rpc_client).await,
-            Command::Geoexclusion { subcommand } => subcommand.execute(rpc_client).await,
+            Command::GeoExclusion { subcommand } => subcommand.execute(rpc_client).await,
             Command::NetworkStats { subcommand } => subcommand.execute(rpc_client).await,
             Command::Diagnostic { subcommand } => {
                 commands::diagnostic::execute(subcommand, rpc_client).await

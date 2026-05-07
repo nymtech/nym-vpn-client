@@ -813,17 +813,17 @@ impl RpcClient {
         Socks5Status::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn set_geoexclusion_enabled(&mut self, enabled: bool) -> Result<()> {
+    pub async fn set_geo_exclusion_enabled(&mut self, enabled: bool) -> Result<()> {
         self.0
-            .set_geoexclusion_enabled(enabled)
+            .set_geo_exclusion_enabled(enabled)
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
     }
 
-    pub async fn set_geoexclusion_listen_port(&mut self, listen_port: u16) -> Result<()> {
+    pub async fn set_geo_exclusion_listen_port(&mut self, listen_port: u16) -> Result<()> {
         self.0
-            .set_geoexclusion_listen_port(proto::GeoexclusionListenPortRequest {
+            .set_geo_exclusion_listen_port(proto::GeoExclusionListenPortRequest {
                 listen_port: listen_port as u32,
             })
             .await
@@ -831,12 +831,12 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    pub async fn set_geoexclusion_excluded_countries(
+    pub async fn set_geo_exclusion_excluded_countries(
         &mut self,
         excluded_countries: Vec<String>,
     ) -> Result<()> {
         self.0
-            .set_geoexclusion_excluded_countries(proto::StringList {
+            .set_geo_exclusion_excluded_countries(proto::StringList {
                 values: excluded_countries,
             })
             .await

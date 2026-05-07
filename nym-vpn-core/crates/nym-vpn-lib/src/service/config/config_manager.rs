@@ -22,7 +22,7 @@ use crate::{
             DEFAULT_CONFIG_FILE_JSON, DEFAULT_CONFIG_FILE_TOML, VpnServiceConfigExt,
             VpnServiceConfigVersion, legacy,
         },
-        error::{Error, GeoexclusionConfigError, Result},
+        error::{Error, GeoExclusionConfigError, Result},
         read_json_config_file, read_toml_config_file, write_json_config_file,
     },
     tunnel_state_machine::{
@@ -313,36 +313,36 @@ impl VpnServiceConfigManager {
         self.save_config_and_send_event().await;
     }
 
-    pub async fn set_geoexclusion_enabled(&mut self, enabled: bool) {
-        if self.config.geoexclusion.enabled != enabled {
-            self.config.geoexclusion.enabled = enabled;
+    pub async fn set_geo_exclusion_enabled(&mut self, enabled: bool) {
+        if self.config.geo_exclusion.enabled != enabled {
+            self.config.geo_exclusion.enabled = enabled;
             self.save_config_and_send_event().await;
         }
     }
 
-    pub async fn set_geoexclusion_listen_port(&mut self, listen_port: u16) {
-        if self.config.geoexclusion.listen_port != listen_port {
-            self.config.geoexclusion.listen_port = listen_port;
+    pub async fn set_geo_exclusion_listen_port(&mut self, listen_port: u16) {
+        if self.config.geo_exclusion.listen_port != listen_port {
+            self.config.geo_exclusion.listen_port = listen_port;
             self.save_config_and_send_event().await;
         }
     }
 
-    pub async fn set_geoexclusion_excluded_countries(
+    pub async fn set_geo_exclusion_excluded_countries(
         &mut self,
         excluded_countries: Vec<String>,
-    ) -> Result<(), GeoexclusionConfigError> {
-        // Temporary:  At the moment Geoexclusion is only supported for China
+    ) -> Result<(), GeoExclusionConfigError> {
+        // Temporary:  At the moment Geo Exclusion is only supported for China
         for country in &excluded_countries {
             if country != "CN" {
-                return Err(GeoexclusionConfigError::UnsupportedCountry(country.clone()));
+                return Err(GeoExclusionConfigError::UnsupportedCountry(country.clone()));
             }
         }
         if !excluded_countries.iter().any(|c| c == "CN") {
-            return Err(GeoexclusionConfigError::CnRequired);
+            return Err(GeoExclusionConfigError::CnRequired);
         }
 
-        if self.config.geoexclusion.excluded_countries != excluded_countries {
-            self.config.geoexclusion.excluded_countries = excluded_countries;
+        if self.config.geo_exclusion.excluded_countries != excluded_countries {
+            self.config.geo_exclusion.excluded_countries = excluded_countries;
             self.save_config_and_send_event().await;
         }
 
@@ -506,13 +506,13 @@ impl VpnServiceConfigManager {
             DnsOptions::default()
         };
 
-        let geoexclusion_settings = self.config.geoexclusion.clone();
+        let geo_exclusion_settings = self.config.geo_exclusion.clone();
 
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         let split_tunnel = {
             let mut split_tunnel = self.config.split_tunnel.clone();
-            // If geoexclusion is enabled then Split Tunneling also needs to be enabled.
-            if geoexclusion_settings.enabled && !self.config.split_tunnel.enabled {
+            // If geo exclusion is enabled then Split Tunneling also needs to be enabled.
+            if geo_exclusion_settings.enabled && !self.config.split_tunnel.enabled {
                 tracing::warn!("Enabling Split Tunnel as Geo Exclusion is enabled");
                 split_tunnel.enabled = true;
             }
@@ -547,7 +547,7 @@ impl VpnServiceConfigManager {
             exit_point: Box::new(self.config.exit_point.clone()),
             dns,
             split_tunnel,
-            geoexclusion_settings,
+            geo_exclusion_settings,
             gateway_selection_algorithm_config: self
                 .config
                 .gateway_selection_algorithm_config

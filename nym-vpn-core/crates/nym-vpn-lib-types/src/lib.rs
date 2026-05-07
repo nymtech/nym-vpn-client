@@ -96,7 +96,7 @@ pub use rpc_requests::{
     ListGatewaysOptions, StoreAccountRequest,
 };
 pub use service::{
-    BackgroundCoverTrafficRate, ContinuousTrafficSendingRate, FrontingMode, GeoexclusionSettings,
+    BackgroundCoverTrafficRate, ContinuousTrafficSendingRate, FrontingMode, GeoExclusionSettings,
     MixingDelay, MixnetTrafficConfig, MixnetTrafficConfigValidationError, MixnetTrafficDefaults,
     SplitApp, SplitTunnelSettings, TargetState, VpnServiceConfig, VpnServiceInfo,
 };

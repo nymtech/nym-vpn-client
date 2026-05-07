@@ -50,7 +50,7 @@ pub struct VpnServiceConfig {
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
-    pub geoexclusion: GeoexclusionSettings,
+    pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 }
 
@@ -91,7 +91,7 @@ impl fmt::Display for VpnServiceConfig {
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
         writeln!(f, "split tunnel settings: {}", self.split_tunnel)?;
-        writeln!(f, "geoexclusion settings: {}", self.geoexclusion)?;
+        writeln!(f, "geo exclusion settings: {}", self.geo_exclusion)?;
         writeln!(
             f,
             "gateway selection algorithm: {}",
@@ -126,7 +126,7 @@ impl Default for VpnServiceConfig {
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
             split_tunnel: SplitTunnelSettings::default(),
-            geoexclusion: GeoexclusionSettings::default(),
+            geo_exclusion: GeoExclusionSettings::default(),
             gateway_selection_algorithm_config: Default::default(),
         }
     }
@@ -528,13 +528,13 @@ impl fmt::Display for SplitTunnelSettings {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub struct GeoexclusionSettings {
+pub struct GeoExclusionSettings {
     pub enabled: bool,
     pub listen_port: u16,
     pub excluded_countries: Vec<String>,
 }
 
-impl fmt::Display for GeoexclusionSettings {
+impl fmt::Display for GeoExclusionSettings {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "enabled: {}", self.enabled)?;
         writeln!(f, "listen_port: {}", self.listen_port)?;
@@ -547,7 +547,7 @@ impl fmt::Display for GeoexclusionSettings {
     }
 }
 
-impl Default for GeoexclusionSettings {
+impl Default for GeoExclusionSettings {
     fn default() -> Self {
         // Temporary, until there is a way to turn Geo Exclusion on.
         let enabled = true;
