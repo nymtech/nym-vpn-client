@@ -177,7 +177,6 @@ export function NodeRow({ type }: NodeRowProps) {
         return getLocationInfo(selected.country.code, gw);
       if (isRegion(selected)) {
         return getLocationInfo(
-          // TODO: vpnd should provide country code alongside region
           regionToCountryCode(selected.region) || 'US',
           gw,
           selected.region,
@@ -318,8 +317,6 @@ export function NodeRow({ type }: NodeRowProps) {
               </AnimatePresence>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
-                  // key={foldState === 2 ? 'name' : 'ip'}
-                  // custom={foldState === 2 ? 'name' : 'ip'}
                   key={textLabel}
                   custom={textLabel}
                   variants={TEXT_VARIANTS}
@@ -340,9 +337,22 @@ export function NodeRow({ type }: NodeRowProps) {
               )}
             </div>
           </div>
-          {/* <p className="ml-0 text-secondary text-xs leading-5 tracking-[0.18px]">
-            {descriptionLabel}
-          </p> */}
+          <AnimatePresence initial={false}>
+            {descriptionLabel && (
+              <motion.div
+                key="description"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                className="overflow-hidden"
+              >
+                <p className="text-secondary text-xs leading-5 tracking-[0.18px]">
+                  {descriptionLabel}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </Button>
     </>
