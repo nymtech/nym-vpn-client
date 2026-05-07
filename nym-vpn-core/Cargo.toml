@@ -62,7 +62,7 @@ homepage = "https://nymtech.net"
 documentation = "https://nymtech.net"
 edition = "2024"
 license = "GPL-3.0-only"
-rust-version = "1.88"
+rust-version = "1.91"
 
 [profile.release]
 lto = true
