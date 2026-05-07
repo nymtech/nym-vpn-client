@@ -154,7 +154,7 @@ pub enum AdBlockerError {
     #[error("failed to open database")]
     OpenDb(#[source] sqlx::Error),
 
-    #[error("failed to open database")]
+    #[error("failed to migrate database")]
     MigrateDb(#[source] sqlx::migrate::MigrateError),
 
     #[error("failed to acquire connection to database")]
