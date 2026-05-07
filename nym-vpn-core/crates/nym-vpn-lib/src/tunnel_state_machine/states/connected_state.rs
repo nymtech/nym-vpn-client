@@ -264,9 +264,12 @@ impl ConnectedState {
             tracing::info!("Tunnel closed. Reconnecting.");
         }
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        #[cfg(not(target_os = "android"))]
         {
             Self::reset_dns(shared_state).await;
+        }
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
             Self::reset_routes(shared_state).await;
         }
 
