@@ -7,11 +7,11 @@ use std::{
 };
 
 use adblock::lists::{ParseOptions, ParsedFilter, RuleTypes, parse_filter};
-use futures::{StreamExt, TryFutureExt};
+use futures::{StreamExt, TryFutureExt, TryStreamExt, pin_mut};
 use nym_common::trace_err_chain;
 use nym_sqlx_pool_guard::SqlitePoolGuard;
 use sqlx::{
-    Connection, Sqlite, SqliteConnection, SqlitePool,
+    Connection, QueryBuilder, Sqlite, SqliteConnection, SqlitePool,
     pool::PoolConnection,
     sqlite::{SqliteConnectOptions, SqliteJournalMode},
 };
@@ -31,6 +31,8 @@ use crate::{
 const SQL_SOFT_HEAP_LIMIT: usize = 4 * 1024 * 1024;
 /// Hard heap limit that enforces a strict ceiling on total heap memory usage
 const SQL_HARD_HEAP_LIMIT: usize = 5 * 1024 * 1024;
+/// Number of domains to insert in a single batch
+const DOMAIN_BATCH_SIZE: usize = 999;
 
 /// Ad-block engine that uses SQLite database for storing the blocklist of domains.
 #[derive(Clone)]
@@ -128,6 +130,12 @@ impl DnsFilterT for SimpleAdBlockEngine {
     }
 }
 
+struct DomainsBatch<'a> {
+    domains: &'a [String],
+    source_id: &'a str,
+    updated_at: OffsetDateTime,
+}
+
 #[derive(Clone)]
 struct DbRequest<T>
 where
@@ -173,6 +181,7 @@ where
     }
 
     /// Add domain to the database if it doesn't exist yet.
+    #[cfg(test)]
     pub async fn add_domain(
         &mut self,
         domain: String,
@@ -189,6 +198,31 @@ where
         )
         .execute(self.executor.as_mut())
         .await?;
+        Ok(())
+    }
+
+    /// Add domains to the database if they don't exist yet.
+    /// This method performs a batch update for performance.
+    pub async fn add_domains_batch<'a>(&mut self, batch: DomainsBatch<'a>) -> sqlx::Result<()> {
+        let mut query_builder: QueryBuilder<Sqlite> =
+            QueryBuilder::new("INSERT INTO blocked_domains (domain_name, source, updated_at) ");
+
+        let update_timestamp = batch.updated_at.unix_timestamp();
+        query_builder.push_values(batch.domains, |mut b, domain| {
+            b.push_bind(domain)
+                .push_bind(batch.source_id)
+                .push_bind(update_timestamp);
+        });
+
+        query_builder.push(
+            r#" ON CONFLICT(domain_name, source) DO UPDATE SET
+                updated_at = excluded.updated_at
+                WHERE updated_at != excluded.updated_at"#,
+        );
+
+        let query = query_builder.build();
+        query.execute(self.executor.as_mut()).await?;
+
         Ok(())
     }
 
@@ -281,25 +315,38 @@ async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Resu
             continue;
         }
 
+        let start = tokio::time::Instant::now();
         let trans = conn.begin().await.map_err(AdBlockerError::PopulateDb)?;
         let mut db_request = DbRequest::new(trans);
 
-        let mut lines = Source::stream_lines(&data_path);
-        while let Some(line) = lines.next().await {
-            let line = line?;
+        let line_stream = Source::stream_lines(&data_path);
+        let chunk_stream = line_stream
+            .try_filter_map(|line| async move {
+                // Ignore errors since they aren't that useful
+                if let Ok(ParsedFilter::Network(filter)) = parse_filter(&line, false, opts)
+                    && let Some(ref domain) = filter.hostname
+                {
+                    // Convert to lowercase for case-insensitive comparison
+                    Ok(Some(domain.to_lowercase()))
+                } else {
+                    Ok(None)
+                }
+            })
+            .try_chunks(DOMAIN_BATCH_SIZE)
+            .map_err(|try_chunks_err| try_chunks_err.1);
+        pin_mut!(chunk_stream);
 
-            // Ignore errors since they aren't that useful
-            if let Ok(ParsedFilter::Network(filter)) = parse_filter(&line, false, opts)
-                && let Some(ref domain) = filter.hostname
-            {
-                // Convert to lowercase for case-insensitive comparison
-                let domain = domain.to_lowercase();
+        while let Some(result) = chunk_stream.next().await {
+            let domains = result?;
 
-                db_request
-                    .add_domain(domain, source_id, update_timestamp)
-                    .await
-                    .map_err(AdBlockerError::PopulateDb)?;
-            }
+            db_request
+                .add_domains_batch(DomainsBatch {
+                    domains: &domains,
+                    source_id,
+                    updated_at: update_timestamp,
+                })
+                .await
+                .map_err(AdBlockerError::PopulateDb)?;
         }
 
         // Remove entries that haven't been updated
@@ -310,6 +357,9 @@ async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Resu
 
         let trans = db_request.into_inner();
         trans.commit().await.map_err(AdBlockerError::PopulateDb)?;
+
+        let duration = start.elapsed();
+        tracing::debug!("Populated database from {source_id} in {duration:?}");
     }
 
     Ok(())
@@ -407,5 +457,76 @@ mod tests {
                 matches!(fs::metadata(f).await, Err(err) if err.kind() == std::io::ErrorKind::NotFound)
             )
         }
+    }
+
+    #[tokio::test]
+    async fn test_add_batch_domains() {
+        let temp_dir = TempDir::new().unwrap();
+
+        let domains: Vec<String> = (0..100_000).map(|i| format!("domain-{}.com", i)).collect();
+        let db = open_db(&temp_dir.path().join("adblock.db")).await.unwrap();
+
+        let mut req = DbRequest::new(db.acquire().await.unwrap());
+        for chunk in domains.chunks(DOMAIN_BATCH_SIZE) {
+            let batch = DomainsBatch {
+                domains: chunk,
+                source_id: "bench",
+                updated_at: OffsetDateTime::from_unix_timestamp(1768163200).unwrap(),
+            };
+            req.add_domains_batch(batch).await.unwrap();
+        }
+
+        let start = tokio::time::Instant::now();
+        let trans = db.begin().await.unwrap();
+        let mut req = DbRequest::new(trans);
+        let update_timestamp = OffsetDateTime::from_unix_timestamp(1778163200).unwrap();
+        for chunk in domains.chunks(DOMAIN_BATCH_SIZE) {
+            let batch = DomainsBatch {
+                domains: chunk,
+                source_id: "bench",
+                updated_at: update_timestamp,
+            };
+            req.add_domains_batch(batch).await.unwrap();
+        }
+        req.into_inner().commit().await.unwrap();
+
+        let duration = start.elapsed();
+
+        println!("Total time: {:?}", duration);
+        println!("Rows per second: {:.2}", 100_000.0 / duration.as_secs_f64());
+    }
+
+    #[tokio::test]
+    async fn test_add_domains() {
+        let temp_dir = TempDir::new().unwrap();
+
+        let domains: Vec<String> = (0..100_000).map(|i| format!("domain-{}.com", i)).collect();
+        let db = open_db(&temp_dir.path().join("adblock.db")).await.unwrap();
+
+        let mut req = DbRequest::new(db.acquire().await.unwrap());
+        for chunk in domains.chunks(DOMAIN_BATCH_SIZE) {
+            let batch = DomainsBatch {
+                domains: chunk,
+                source_id: "bench",
+                updated_at: OffsetDateTime::from_unix_timestamp(1768163200).unwrap(),
+            };
+            req.add_domains_batch(batch).await.unwrap();
+        }
+
+        let start = tokio::time::Instant::now();
+        let trans = db.begin().await.unwrap();
+        let mut req = DbRequest::new(trans);
+        let update_timestamp = OffsetDateTime::from_unix_timestamp(1778163200).unwrap();
+        for domain in domains {
+            req.add_domain(domain, "bench", update_timestamp)
+                .await
+                .unwrap();
+        }
+        req.into_inner().commit().await.unwrap();
+
+        let duration = start.elapsed();
+
+        println!("Total time: {:?}", duration);
+        println!("Rows per second: {:.2}", 100_000.0 / duration.as_secs_f64());
     }
 }
