@@ -6,7 +6,7 @@ import { motion } from 'motion/react';
 import { NymVpnTextLogo } from '../assets';
 import { useDialog, useTopBar } from '../contexts';
 import { routes } from '../router';
-import { Routes } from '../types';
+import { Routes, UiTheme } from '../types';
 import { ActionMenu } from '../screens';
 import { useSystemTheme } from '../state';
 import { useAppStore } from '../store';
@@ -25,6 +25,17 @@ type NavLocation = {
 };
 
 type NavBarData = Record<Routes, NavLocation>;
+
+function TopNymLogo({ uiTheme }: { uiTheme: UiTheme }) {
+  return (
+    <NymVpnTextLogo
+      className={clsx(
+        'w-24 h-6',
+        uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+      )}
+    />
+  );
+}
 
 export default function TopBar() {
   const location = useLocation();
@@ -48,19 +59,10 @@ export default function TopBar() {
   const navBarData = useMemo<NavBarData>(() => {
     return {
       '/login-screen2': {
-        title: (
-          <NymVpnTextLogo
-            className={clsx(
-              'w-24 h-6',
-              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
-            )}
-          />
-        ),
+        title: <TopNymLogo uiTheme={uiTheme} />,
         leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
-        handleLeftNav: () => {
-          // handleThemeChange(uiTheme === 'dark' ? 'light' : 'dark');
-          navigate(-1);
-        },
+        handleLeftNav: () =>
+          handleThemeChange(uiTheme === 'dark' ? 'light' : 'dark'),
         rightIcon: 'settings',
         handleRightNav: () => {
           navigate(routes.settings);
@@ -68,14 +70,7 @@ export default function TopBar() {
         noBackground: true,
       },
       '/home': {
-        title: (
-          <NymVpnTextLogo
-            className={clsx(
-              'w-24 h-6',
-              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
-            )}
-          />
-        ),
+        title: <TopNymLogo uiTheme={uiTheme} />,
         leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
         handleLeftNav: () => {
           handleThemeChange(uiTheme === 'dark' ? 'light' : 'dark');
@@ -291,14 +286,7 @@ export default function TopBar() {
         },
       },
       '/account/select-a-plan': {
-        title: (
-          <NymVpnTextLogo
-            className={clsx(
-              'w-24 h-6',
-              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
-            )}
-          />
-        ),
+        title: <TopNymLogo uiTheme={uiTheme} />,
         leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);

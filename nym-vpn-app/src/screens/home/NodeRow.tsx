@@ -251,11 +251,20 @@ export function NodeRow({ type }: NodeRowProps) {
 
   return (
     <>
-      {algo !== 'auto' && (
-        <p className="text-secondary text-xs leading-5 tracking-[0.18px]">
-          {label}
-        </p>
-      )}
+      <AnimatePresence initial={false}>
+        {algo !== 'auto' && (
+          <motion.p
+            key="label"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="text-secondary text-xs leading-5 tracking-[0.18px] overflow-hidden"
+          >
+            {label}
+          </motion.p>
+        )}
+      </AnimatePresence>
       <Button
         onClick={handleClick}
         className="group relative isolate rounded-xl p-2 w-full"
@@ -331,9 +340,9 @@ export function NodeRow({ type }: NodeRowProps) {
               )}
             </div>
           </div>
-          <p className="ml-0 text-secondary text-xs leading-5 tracking-[0.18px]">
+          {/* <p className="ml-0 text-secondary text-xs leading-5 tracking-[0.18px]">
             {descriptionLabel}
-          </p>
+          </p> */}
         </div>
       </Button>
     </>

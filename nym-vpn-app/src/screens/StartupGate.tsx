@@ -10,8 +10,6 @@ function StartupGate() {
   const destination = !gateDone && !account ? routes.onboarding : routes.root;
   // gateDone = true;
 
-  debugger;
-
   return <Navigate to={destination} replace />;
 }
 
