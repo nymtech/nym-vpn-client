@@ -115,7 +115,7 @@ function Onboarding() {
         </div>
 
         <div className="flex flex-col items-center gap-4 w-full">
-          <ButtonNew onClick={() => handleNavigate(routes.loginScreen2)}>
+          <ButtonNew onClick={() => handleNavigate(routes.welcome)}>
             Get Started
           </ButtonNew>
         </div>

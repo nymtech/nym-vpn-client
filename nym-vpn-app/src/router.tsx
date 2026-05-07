@@ -16,8 +16,6 @@ import {
   LegalRouteIndex,
   LicenseDetails,
   LicenseList,
-  Login,
-  LoginScreen,
   Logs,
   MainLayout,
   MixnetTuning,
@@ -31,7 +29,7 @@ import {
   Socks5,
   SplitTunneling,
   Support,
-  Welcome,
+  WelcomeContainer,
 } from './screens';
 
 import Home from './screens/home/Home';
@@ -64,12 +62,10 @@ export const routes = {
   exitNodeLocation: '/exit-node-location',
   nodeDetails: '/node-details',
   hideout: '/hideout',
-  welcome: '/hideout/welcome',
   onboarding: '/hideout/onboarding',
   mixnetTuning: '/settings/mixnet-tuning',
   accountSettings: '/settings/account',
-
-  loginScreen2: '/login-screen2',
+  welcome: '/welcome',
 } as const;
 
 // ⚠ router instance creation must remain outside of React
@@ -89,13 +85,8 @@ const router = createBrowserRouter([
         errorElement: <Error />,
       },
       {
-        path: routes.loginScreen2,
-        Component: LoginScreen,
-        errorElement: <Error />,
-      },
-      {
-        path: routes.login,
-        Component: Login,
+        path: routes.welcome,
+        Component: WelcomeContainer,
         errorElement: <Error />,
       },
       {
@@ -103,11 +94,6 @@ const router = createBrowserRouter([
         Component: Signup,
         errorElement: <Error />,
       },
-      // {
-      //   path: routes.onboarding,
-      //   Component: Onboarding,
-      //   errorElement: <Error />,
-      // },
       {
         path: routes.account,
         Component: AccountRouteIndex,
@@ -263,11 +249,6 @@ const router = createBrowserRouter([
     path: routes.hideout,
     element: <MainLayout noTopBar noNotifications noDaemonDot />,
     children: [
-      {
-        path: routes.welcome,
-        Component: Welcome,
-        errorElement: <Error />,
-      },
       {
         path: routes.onboarding,
         Component: Onboarding,

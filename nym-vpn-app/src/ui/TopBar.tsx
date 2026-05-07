@@ -58,7 +58,7 @@ export default function TopBar() {
 
   const navBarData = useMemo<NavBarData>(() => {
     return {
-      '/login-screen2': {
+      '/welcome': {
         title: <TopNymLogo uiTheme={uiTheme} />,
         leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
         handleLeftNav: () =>
@@ -295,7 +295,6 @@ export default function TopBar() {
       },
       // these screens do not use the TopBar
       '/hideout': {},
-      '/hideout/welcome': {},
       // TODO
       '/account': {},
     };
