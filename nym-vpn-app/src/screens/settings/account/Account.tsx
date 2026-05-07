@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router';
 import {
   Button,
   ButtonNew,
-  ButtonText,
   CardNew,
   CardNewBody,
   CardNewCopyableRow,
@@ -86,9 +85,9 @@ function Account() {
   }, []);
 
   // When logged out, navigate to settings
-  // useEffect(() => {
-  //   if (!account) navigate(routes.settings, { replace: true });
-  // }, [account, navigate]);
+  useEffect(() => {
+    if (!account) navigate(routes.settings, { replace: true });
+  }, [account, navigate]);
 
   const handleAccountLink = async () => {
     setIsAccountLinking(true);
@@ -163,18 +162,6 @@ function Account() {
             trailing: autologinLoading ? <Spinner /> : undefined,
             onClick: handleManageSubscription,
           },
-          // ...(!accountSummary?.isLinked
-          //   ? [
-          //       {
-          //         title: t('account.account-on-nym'),
-          //         desc: t('account.account-link-social-description'),
-          //         leadingIcon: isAccountLinking ? undefined : 'person',
-          //         leadingComponent: isAccountLinking ? <Spinner /> : undefined,
-          //         trailingIcon: 'open_in_new',
-          //         onClick: handleAccountLink,
-          //       },
-          //     ]
-          //   : []),
         ]}
       />
 
