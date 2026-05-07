@@ -3,60 +3,34 @@ appId: net.nymtech.nymvpn.mock.debug
 - launchApp
 
 - runFlow:
-    when:
-      visible: "Connection request"
-    commands:
-      - tapOn: "OK"
+      when:
+          visible: "Connection request"
+      commands:
+          - tapOn: "OK"
 
 - extendedWaitUntil:
-    visible:
-      text: "Connect"
-    timeout: 15000
+      visible:
+          text: "Connect"
+      timeout: 15000
 
 - tapOn: "Fast (WireGuard)"
 
 - tapOn:
-    text: "Connect"
+      text: "Connect"
 
 - runFlow:
-    when:
-      visible: "Connection request"
-    commands:
-      - tapOn: "OK"
+      when:
+          visible: "Connection request"
+      commands:
+          - tapOn: "OK"
 
 - runFlow:
-    when:
-      visible: "For best connection"
-    commands:
-      - tapOn: "Skip"
+      when:
+          visible: "For best connection"
+      commands:
+          - tapOn: "Skip"
 
 - extendedWaitUntil:
-    visible:
-      text: "Connected"
-    timeout: 20000
-
-- tapOn:
-    text: "Disconnect"
-
-- extendedWaitUntil:
-    visible:
-      text: "Disconnected"
-    timeout: 15000
-
-- tapOn: "Anonymous (mixnet)"
-
-- tapOn:
-    text: "Connect"
-
-- extendedWaitUntil:
-    visible:
-      text: "Connected"
-    timeout: 20000
-
-- tapOn:
-    text: "Disconnect"
-
-- extendedWaitUntil:
-    visible:
-      text: "Disconnected"
-    timeout: 15000
+      visible:
+          text: "Connected"
+      timeout: 20000

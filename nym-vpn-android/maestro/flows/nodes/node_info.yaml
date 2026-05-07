@@ -4,13 +4,13 @@ appId: net.nymtech.nymvpn.mock.debug
 - launchApp
 
 - extendedWaitUntil:
-    visible:
-      text: "Connect"
-    timeout: 15000
+      visible:
+          text: "Connect"
+      timeout: 15000
 
 - tapOn:
-    text: "Random"
-    index: 0
+      text: "Random"
+      index: 0
 
 # Check Info Modal
 - tapOn: "Info"
@@ -42,9 +42,9 @@ appId: net.nymtech.nymvpn.mock.debug
 - assertVisible: "Deutsche Telekom AG"
 
 - scrollUntilVisible:
-    element:
-      text: "More details in the Nym Network Explorer"
-    direction: DOWN
+      element:
+          text: "Anti-censorship"
+      direction: DOWN
 
 - assertVisible: "Advanced privacy"
 - assertVisible: "With mixnet (5-hop)"
@@ -55,6 +55,11 @@ appId: net.nymtech.nymvpn.mock.debug
 - assertVisible: "Anti-censorship"
 - assertVisible: "Standard protocol"
 
+- scrollUntilVisible:
+      element:
+          text: "Uptime"
+      direction: DOWN
+
 - assertVisible: "Overall performance"
 - assertVisible: "High"
 
@@ -64,6 +69,11 @@ appId: net.nymtech.nymvpn.mock.debug
 - assertVisible: "Uptime"
 - assertVisible: "9570%"
 
+- scrollUntilVisible:
+      element:
+          text: "Why is there missing or incorrect info"
+      direction: DOWN
+
 - assertVisible: "5mZ8G2XrYF8nW7AqH2kP3DsV9uQ4JrL1tC6bN0eMfYw"
 
 - assertVisible: "Why is there missing or incorrect info"
@@ -71,6 +81,6 @@ appId: net.nymtech.nymvpn.mock.debug
 - tapOn: "Select server"
 
 - extendedWaitUntil:
-    visible:
-      text: "Connect"
-    timeout: 15000
+      visible:
+          text: "Connect"
+      timeout: 15000

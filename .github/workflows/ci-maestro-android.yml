@@ -112,7 +112,9 @@ jobs:
           disable-animations: true
           script: |
             adb install nym-vpn-android/app/build/outputs/apk/mock/debug/*.apk
-            maestro test nym-vpn-android/maestro --format junit --output maestro-report.xml
+            mkdir -p maestro-debug
+            adb logcat -c || true
+            maestro test nym-vpn-android/maestro --format junit --output maestro-report.xml --debug-output maestro-debug; STATUS=$?; adb logcat -d > maestro-debug/logcat.txt; exit $STATUS
 
       - name: Upload Maestro report
         if: always()
@@ -121,3 +123,12 @@ jobs:
           name: maestro-android-report
           path: maestro-report.xml
           retention-days: 14
+
+      - name: Upload Maestro debug artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: maestro-android-debug
+          path: maestro-debug
+          retention-days: 14
+          if-no-files-found: warn
