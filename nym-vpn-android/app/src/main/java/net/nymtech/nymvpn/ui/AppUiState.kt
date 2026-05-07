@@ -142,6 +142,10 @@ data class AppUiState(
 		else -> null
 	}
 
+	val isExitPointRandom = effectiveExitPoint == ExitPoint.Random
+
+	val isEntryPointRandom = effectiveEntryPoint == EntryPoint.Random
+
 	private fun entryGateways(): List<NymGateway> = when (vpnConfig.mode) {
 		Tunnel.Mode.FIVE_HOP_MIXNET -> gateways.entryGateways
 		Tunnel.Mode.TWO_HOP_MIXNET -> gateways.wgGateways

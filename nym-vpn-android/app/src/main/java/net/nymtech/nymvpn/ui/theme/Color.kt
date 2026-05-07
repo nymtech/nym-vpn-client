@@ -119,6 +119,11 @@ object CustomColors {
     val pulse = Color(0xFF7075FF)
     val buttonRedTransparent = Color(0x1AED5060)
     val buttonRedTransparentBorder = Color(0xFFED5060)
+    // Arc connection animation tokens — identical in dark and light
+    val errorPulse = Color(0xE6E73E14)      // error arc at 90% — pulse peak
+    val errorTint = Color(0x14E73E14)       // error at 8% — sphere ambient tint
+    val sphereBase = Color(0xFF0A0A0A)      // sphere base material
+    val sphereHighlight = Color(0xFF2A2A2E) // sphere radial highlight
 }
 
 @Immutable
@@ -141,36 +146,36 @@ data class NymColors(
 
 val DarkNymColors = NymColors(
     snackBarBackground = Color(0xFF2C2C2E),
-    snackbarText       = Color(0xFFE5E5E7),
-    iconBorder         = Color(0x405BF0A0),
-    iconBackground     = Color(0x265BF0A0),
+    snackbarText = Color(0xFFE5E5E7),
+    iconBorder = Color(0x405BF0A0),
+    iconBackground = Color(0x265BF0A0),
     greyIconBackground = Color(0xFF2C2C2E),
-    greyIcon           = Color(0xFF8B8B90),
-    greenIcon          = Color(0xFF5BF0A0),
-    borderCyan         = Color(0x8098DDFF),
-    labelCyan          = Color(0xFF98DDFF),
-    statusConnectedBg  = Color(0x1A5BF0A0),
-    fastFill           = Color(0xFF5BF0A0),
-    anonFill           = Color(0x998B8B90),
-    errorFill          = Color(0x99E73E14),
-    trackIdle          = Color(0x26FFFFFF),
+    greyIcon = Color(0xFF8B8B90),
+    greenIcon = Color(0xFF5BF0A0),
+    borderCyan = Color(0x8098DDFF),
+    labelCyan = Color(0xFF98DDFF),
+    statusConnectedBg = Color(0x1A5BF0A0),
+    fastFill = Color(0xFF5BF0A0),
+    anonFill = Color(0x998B8B90),
+    errorFill = Color(0x99E73E14),
+    trackIdle = Color(0x26FFFFFF),
 )
 
 val LightNymColors = NymColors(
     snackBarBackground = Color(0xFF1C1C1E),
-    snackbarText       = Color(0xFFF2F2F7),
-    iconBorder         = Color(0x401A9B61),
-    iconBackground     = Color(0x261A9B61),
+    snackbarText = Color(0xFFF2F2F7),
+    iconBorder = Color(0x401A9B61),
+    iconBackground = Color(0x261A9B61),
     greyIconBackground = Color(0xFFE5E5EA),
-    greyIcon           = Color(0xFF8E8E93),
-    greenIcon          = Color(0xFF1A9B61),
-    borderCyan         = Color(0x8000A3F5),
-    labelCyan          = Color(0xFF00A3F5),
-    statusConnectedBg  = Color(0x1A1A9B61),
-    fastFill           = Color(0xFF1A9B61),
-    anonFill           = Color(0x996B6B70),
-    errorFill          = Color(0x99E73E14),
-    trackIdle          = Color(0x1F0A0A0A),
+    greyIcon = Color(0xFF8E8E93),
+    greenIcon = Color(0xFF1A9B61),
+    borderCyan = Color(0x8000A3F5),
+    labelCyan = Color(0xFF00A3F5),
+    statusConnectedBg = Color(0x1A1A9B61),
+    fastFill = Color(0xFF1A9B61),
+    anonFill = Color(0x996B6B70),
+    errorFill = Color(0x99E73E14),
+    trackIdle = Color(0x1F0A0A0A),
 )
 
 val LocalNymColors = staticCompositionLocalOf { NymColors() }

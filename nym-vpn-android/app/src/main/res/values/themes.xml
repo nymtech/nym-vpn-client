@@ -6,11 +6,10 @@
 	</style>
 
 	<style name="Theme.NymVPN.Starting" parent="Theme.SplashScreen">
-		<item name="windowSplashScreenBackground">@color/dark_background</item>
+		<item name="windowSplashScreenBackground">@color/splash_background</item>
 		<item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
-		<!-- Set the theme of the Activity that follows your splash screen. -->
 		<item name="postSplashScreenTheme">@style/Theme.NymVPN</item>
-		<item name="android:navigationBarColor">@color/dark_background</item>
+		<item name="android:navigationBarColor">@color/splash_background</item>
 	</style>
 
 	<style name="Theme.NymVPN.Transparent" parent="Theme.Material3.DayNight.NoActionBar">

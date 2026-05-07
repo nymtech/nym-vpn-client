@@ -1,196 +1,373 @@
 package net.nymtech.nymvpn.ui.screens.main.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCancellationBehavior
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
-import androidx.compose.ui.res.stringResource
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.common.labels.StatusInfoLabel
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
-import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.extensions.isVpnAlwaysOn
-import net.nymtech.nymvpn.util.extensions.scaledHeight
-import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib_types.ErrorStateReason
+import nym_vpn_lib_types.EstablishConnectionState
+
+private const val OUTER_RADIUS = 92.4f
+private const val MIDDLE_RADIUS = 78.4f
+private const val INNER_RADIUS = 64.4f
+private const val SPHERE_RADIUS = 52.4f
+private const val ARC_STROKE = 6f
+private const val LABEL_OFFSET = 14f
 
 @Composable
 fun ConnectionStatus(
 	connectionState: ConnectionState,
 	vpnMode: Tunnel.Mode,
-	connectionTime: String?,
-	theme: Theme,
+	establishConnectionState: EstablishConnectionState? = null,
+	connectionTime: String? = null,
 	modifier: Modifier = Modifier,
-	isAppInForeground: Boolean,
-	isAccountInitializing: Boolean = false,
-	subscription: SubscriptionUiState? = null,
 ) {
-	val isDarkMode = isSystemInDarkTheme()
-	val surfaceAvailable by rememberSurfaceAvailability()
+	val nymColors = LocalNymColors.current
 	val context = LocalContext.current
 
-	val canPlayAnimation = connectionState == ConnectionState.Connected && isAppInForeground && surfaceAvailable
+	val isError = connectionState is ConnectionState.Error || connectionState is ConnectionState.StartFailure
+	val isConnected = connectionState == ConnectionState.Connected
+	val isCanceling = connectionState == ConnectionState.Disconnecting
 
-	val animation by remember(theme) {
-		val asset = when (theme) {
-			Theme.AUTOMATIC, Theme.DYNAMIC -> if (isDarkMode) {
-				if (vpnMode.isTwoHop()) R.raw.noise_2hop_dark else R.raw.noise_5hop_dark
-			} else if (vpnMode.isTwoHop()) {
-				R.raw.noise_2hop_light
-			} else {
-				R.raw.noise_5hop_light
-			}
-			Theme.DARK_MODE -> if (vpnMode.isTwoHop()) R.raw.noise_2hop_dark else R.raw.noise_5hop_dark
-			Theme.LIGHT_MODE -> if (vpnMode.isTwoHop()) R.raw.noise_2hop_light else R.raw.noise_5hop_light
-		}
-		mutableIntStateOf(asset)
+	val (targetOuter, targetMiddle, targetInner) = remember(connectionState, establishConnectionState) {
+		ringFillTargets(connectionState, establishConnectionState)
+	}
+	val sweepMs = if (vpnMode.isTwoHop()) 800 else 1200
+
+	val outerSweep by animateFloatAsState(
+		targetValue = targetOuter,
+		animationSpec = tween(sweepMs, easing = FastOutSlowInEasing),
+		label = "outerSweep",
+	)
+	val middleSweep by animateFloatAsState(
+		targetValue = targetMiddle,
+		animationSpec = tween(sweepMs, easing = FastOutSlowInEasing),
+		label = "middleSweep",
+	)
+	val innerSweep by animateFloatAsState(
+		targetValue = targetInner,
+		animationSpec = tween(sweepMs, easing = FastOutSlowInEasing),
+		label = "innerSweep",
+	)
+
+	val sphereAlpha by animateFloatAsState(
+		targetValue = when {
+			isConnected -> 0.65f
+			isError -> 0.55f
+			connectionState is ConnectionState.Disconnected ||
+				connectionState is ConnectionState.Offline ||
+				connectionState is ConnectionState.WaitingForConnection ||
+				isCanceling -> 0.42f
+			else -> 0.52f
+		},
+		animationSpec = tween(200, easing = FastOutSlowInEasing),
+		label = "sphereAlpha",
+	)
+
+	// Error tint
+	val errorTintAlpha by animateFloatAsState(
+		targetValue = if (isError) 1f else 0f,
+		animationSpec = tween(200, easing = FastOutSlowInEasing),
+		label = "errorTintAlpha",
+	)
+
+	val pulse = rememberInfiniteTransition(label = "arcPulse")
+
+	// Error
+	val errorPulse by pulse.animateFloat(
+		initialValue = 0.60f,
+		targetValue = 0.90f,
+		animationSpec = infiniteRepeatable(
+			animation = keyframes {
+				durationMillis = 880
+				0.60f at 0
+				0.90f at 200
+				0.90f at 280
+				0.60f at 880
+			},
+			repeatMode = RepeatMode.Restart,
+		),
+		label = "errorPulse",
+	)
+
+	// Connected
+	val connectedGlow by pulse.animateFloat(
+		initialValue = 0.10f,
+		targetValue = 0.32f,
+		animationSpec = infiniteRepeatable(
+			animation = tween(1400, easing = FastOutSlowInEasing),
+			repeatMode = RepeatMode.Reverse,
+		),
+		label = "connectedGlow",
+	)
+
+	// Canceling
+	val cancelingGlow by pulse.animateFloat(
+		initialValue = 0.04f,
+		targetValue = 0.22f,
+		animationSpec = infiniteRepeatable(
+			animation = tween(900, easing = FastOutSlowInEasing),
+			repeatMode = RepeatMode.Reverse,
+		),
+		label = "cancelingGlow",
+	)
+
+	// Canceling
+	val cancelingSphere by pulse.animateFloat(
+		initialValue = 0.28f,
+		targetValue = 0.48f,
+		animationSpec = infiniteRepeatable(
+			animation = tween(900, easing = FastOutSlowInEasing),
+			repeatMode = RepeatMode.Reverse,
+		),
+		label = "cancelingSphere",
+	)
+
+	val fillColor = when {
+		isError -> MaterialTheme.colorScheme.error.copy(alpha = errorPulse)
+		vpnMode.isTwoHop() -> nymColors.fastFill
+		else -> nymColors.anonFill
 	}
 
-	val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(animation))
+	val connectedLabel = if(vpnMode.isTwoHop()) stringResource(R.string.connection_status_fast_mode) else stringResource(R.string.connection_status_anonymous)
+	val failedLabel = stringResource(R.string.connection_failed)
+	val disconnectingLabel = stringResource(R.string.disconnecting)
+	val notProtectedLabel = stringResource(R.string.connection_status_not_protected)
+
+	val currentLabel: String? = when (connectionState) {
+		ConnectionState.Connected -> connectedLabel
+		is ConnectionState.Connecting -> connectionState.label.asString(context)
+		is ConnectionState.Error, is ConnectionState.StartFailure -> failedLabel
+		ConnectionState.Disconnecting -> disconnectingLabel
+		ConnectionState.Disconnected, ConnectionState.Offline, ConnectionState.WaitingForConnection -> notProtectedLabel
+	}
 
 	Column(
-		verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight()),
 		horizontalAlignment = Alignment.CenterHorizontally,
-		modifier = modifier.padding(top = 56.dp.scaledHeight()),
+		modifier = modifier,
 	) {
-		AnimatedVisibility(visible = canPlayAnimation) {
-			val logoAnimationState = animateLottieCompositionAsState(
-				composition = composition.value,
-				speed = 1f,
-				isPlaying = canPlayAnimation,
-				iterations = LottieConstants.IterateForever,
-				cancellationBehavior = LottieCancellationBehavior.Immediately,
-			)
-			LottieAnimation(
-				composition = composition.value,
-				progress = { logoAnimationState.progress },
-			)
-		}
+		Canvas(modifier = Modifier.size((OUTER_RADIUS * 2 + ARC_STROKE).dp)) {
+			val cx = size.width / 2f
+			val cy = size.height / 2f
 
-		ConnectionStateDisplay(connectionState = connectionState)
-
-		val isPendingSubscription = subscription?.expiryState == ExpiryState.PENDING
-
-		if (isPendingSubscription) {
-			StatusInfoLabel(
-				message = stringResource(R.string.account_info_confirming_payment),
-				textColor = MaterialTheme.colorScheme.error,
-			)
-		} else {
-			when (connectionState) {
-				is ConnectionState.Connecting -> StatusInfoLabel(
-					message = connectionState.label.asString(context),
-					textColor = MaterialTheme.colorScheme.onSurfaceVariant,
-				)
-
-				is ConnectionState.Error -> {
-					val isKillSwitchError = connectionState.reason == ErrorStateReason.InactiveSubscription && isVpnAlwaysOn(context)
-					val msg = if (isKillSwitchError) {
-						stringResource(R.string.error_kill_switch)
-					} else {
-						connectionState.reason.toUserMessage(context)
-					}
-					StatusInfoLabel(
-						message = msg,
-						textColor = MaterialTheme.colorScheme.error,
+			if (isCanceling) {
+				for (radius in floatArrayOf(OUTER_RADIUS, MIDDLE_RADIUS, INNER_RADIUS)) {
+					val rPx = radius.dp.toPx()
+					drawArcGlow(
+						color = fillColor,
+						sweepAngle = 360f,
+						topLeft = Offset(cx - rPx, cy - rPx),
+						size = Size(rPx * 2f, rPx * 2f),
+						strokePx = ARC_STROKE.dp.toPx(),
+						glowIntensity = cancelingGlow,
 					)
 				}
+			}
 
-				is ConnectionState.StartFailure -> StatusInfoLabel(
-					message = connectionState.exception.localizedMessage ?: stringResource(R.string.unexpected_error, "Unknown"),
-					textColor = MaterialTheme.colorScheme.error,
+			for (radius in floatArrayOf(OUTER_RADIUS, MIDDLE_RADIUS, INNER_RADIUS)) {
+				val rPx = radius.dp.toPx()
+				drawArc(
+					color = nymColors.trackIdle,
+					startAngle = -90f,
+					sweepAngle = 360f,
+					useCenter = false,
+					topLeft = Offset(cx - rPx, cy - rPx),
+					size = Size(rPx * 2f, rPx * 2f),
+					style = Stroke(width = ARC_STROKE.dp.toPx()),
 				)
+			}
 
-				is ConnectionState.Offline, ConnectionState.WaitingForConnection -> StatusInfoLabel(
-					message = stringResource(R.string.no_internet),
-					textColor = MaterialTheme.colorScheme.onSurfaceVariant,
-				)
-
-				ConnectionState.Disconnected -> {
-					if (isAccountInitializing) {
-						StatusInfoLabel(
-							message = stringResource(R.string.account_info_updating),
-							textColor = MaterialTheme.colorScheme.onSurfaceVariant,
+			if (isConnected) {
+				for ((radius, sweep) in listOf(
+					OUTER_RADIUS to outerSweep,
+					MIDDLE_RADIUS to middleSweep,
+					INNER_RADIUS to innerSweep,
+				)) {
+					if (sweep > 0.5f) {
+						val rPx = radius.dp.toPx()
+						drawArcGlow(
+							color = fillColor,
+							sweepAngle = sweep,
+							topLeft = Offset(cx - rPx, cy - rPx),
+							size = Size(rPx * 2f, rPx * 2f),
+							strokePx = ARC_STROKE.dp.toPx(),
+							glowIntensity = connectedGlow,
 						)
 					}
 				}
+			}
 
-				is ConnectionState.Connected -> {
-					// Optional
+			for ((radius, sweep) in listOf(
+				OUTER_RADIUS to outerSweep,
+				MIDDLE_RADIUS to middleSweep,
+				INNER_RADIUS to innerSweep,
+			)) {
+				if (sweep > 0.5f) {
+					val rPx = radius.dp.toPx()
+					drawArc(
+						color = fillColor,
+						startAngle = -90f,
+						sweepAngle = sweep,
+						useCenter = false,
+						topLeft = Offset(cx - rPx, cy - rPx),
+						size = Size(rPx * 2f, rPx * 2f),
+						style = Stroke(width = ARC_STROKE.dp.toPx(), cap = StrokeCap.Round),
+					)
 				}
+			}
 
-				else -> Unit
+			val sphereR = SPHERE_RADIUS.dp.toPx()
+			drawCircle(
+				brush = Brush.radialGradient(
+					colors = listOf(CustomColors.sphereHighlight, CustomColors.sphereBase),
+					center = Offset(cx - sphereR * 0.25f, cy - sphereR * 0.25f),
+					radius = sphereR * 1.6f,
+				),
+				radius = sphereR,
+				center = Offset(cx, cy),
+				alpha = if (isCanceling) cancelingSphere else sphereAlpha,
+			)
+
+			if (errorTintAlpha > 0f) {
+				drawCircle(
+					color = CustomColors.errorTint,
+					radius = sphereR,
+					center = Offset(cx, cy),
+					alpha = errorTintAlpha,
+				)
 			}
 		}
 
-		AnimatedVisibility(visible = connectionTime != null) {
-			connectionTime?.let {
-				StatusInfoLabel(
-					message = it,
-					textColor = MaterialTheme.colorScheme.onSurface,
+		// State label
+		AnimatedVisibility(
+			visible = currentLabel != null,
+			enter = fadeIn(tween(200)),
+			exit = fadeOut(tween(300)),
+		) {
+			Column(horizontalAlignment = Alignment.CenterHorizontally) {
+				Spacer(Modifier.height(LABEL_OFFSET.dp))
+				Text(
+					text = (currentLabel ?: "").uppercase(),
+					style = MaterialTheme.typography.labelSmall,
+					color = when {
+						isError -> MaterialTheme.colorScheme.error
+						isConnected -> MaterialTheme.colorScheme.primary
+						else -> MaterialTheme.colorScheme.onSurfaceVariant
+					},
 				)
+				connectionTime?.let {
+					Spacer(Modifier.height(8.dp))
+					Text(
+						text = it,
+						style = MaterialTheme.typography.labelSmall,
+						color = MaterialTheme.colorScheme.primary,
+					)
+				}
 			}
 		}
 	}
 }
 
-@Composable
-private fun rememberSurfaceAvailability(): State<Boolean> {
-	val surfaceAvailable = remember { mutableStateOf(true) }
-	androidx.compose.ui.platform.LocalView.current.viewTreeObserver
-		.addOnWindowAttachListener(
-			object : android.view.ViewTreeObserver.OnWindowAttachListener {
-				override fun onWindowAttached() {
-					surfaceAvailable.value = true
-				}
+// Layered stroke glow
+private fun DrawScope.drawArcGlow(
+	color: Color,
+	sweepAngle: Float,
+	topLeft: Offset,
+	size: Size,
+	strokePx: Float,
+	glowIntensity: Float,
+) {
+	if (sweepAngle <= 0.5f || glowIntensity <= 0.01f) return
+	val base = color.alpha
+	drawArc(
+		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.18f)),
+		startAngle = -90f, sweepAngle = sweepAngle, useCenter = false,
+		topLeft = topLeft, size = size,
+		style = Stroke(width = strokePx * 5f),
+	)
+	drawArc(
+		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.40f)),
+		startAngle = -90f, sweepAngle = sweepAngle, useCenter = false,
+		topLeft = topLeft, size = size,
+		style = Stroke(width = strokePx * 2.5f),
+	)
+}
 
-				override fun onWindowDetached() {
-					surfaceAvailable.value = false
-				}
-			},
-		)
-	return surfaceAvailable
+private data class RingFillTargets(val outer: Float, val middle: Float, val inner: Float)
+
+private fun ringFillTargets(
+	connectionState: ConnectionState,
+	establishConnectionState: EstablishConnectionState?,
+): RingFillTargets = when (connectionState) {
+	ConnectionState.Connected -> RingFillTargets(360f, 360f, 360f)
+	is ConnectionState.Error, is ConnectionState.StartFailure -> RingFillTargets(360f, 360f, 0f)
+	ConnectionState.Disconnecting -> RingFillTargets(0f, 0f, 0f)
+	is ConnectionState.Connecting -> when (establishConnectionState) {
+		EstablishConnectionState.AWAITING_ACCOUNT_READINESS -> RingFillTargets(360f, 0f, 0f)
+		EstablishConnectionState.REFRESHING_GATEWAYS -> RingFillTargets(360f, 180f, 0f)
+		EstablishConnectionState.SELECTING_GATEWAYS -> RingFillTargets(360f, 360f, 0f)
+		EstablishConnectionState.REGISTERING_WITH_GATEWAYS -> RingFillTargets(360f, 360f, 180f)
+		EstablishConnectionState.CONNECTING_TUNNEL -> RingFillTargets(360f, 360f, 360f)
+		else -> RingFillTargets(180f, 0f, 0f)
+	}
+	else -> RingFillTargets(0f, 0f, 0f)
 }
 
 @Composable
-@Preview
-private fun ConnectionStatusPreview() {
-	NymVPNTheme(Theme.default()) {
+@Preview(showBackground = true, backgroundColor = 0xFF0D0D0F)
+private fun ArcPreviewConnected() {
+	NymVPNTheme(Theme.DARK_MODE) {
 		ConnectionStatus(
-			ConnectionState.Disconnected,
-			Tunnel.Mode.TWO_HOP_MIXNET,
-			null,
-			Theme.default(),
-			isAppInForeground = false,
-			subscription = SubscriptionUiState(
-				isRecurring = false,
-				validUntilDate = "",
-				expiryState = ExpiryState.PENDING,
-			),
+			connectionState = ConnectionState.Connected,
+			vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
+			connectionTime = "2.2.2.2"
+		)
+	}
+}
+
+@Composable
+@Preview(showBackground = true, backgroundColor = 0xFF0D0D0F)
+private fun ArcPreviewError() {
+	NymVPNTheme(Theme.DARK_MODE) {
+		ConnectionStatus(
+			connectionState = ConnectionState.Error(nym_vpn_lib_types.ErrorStateReason.InactiveSubscription),
+			vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
 		)
 	}
 }

@@ -224,6 +224,16 @@
 	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Establishing server connection (6/6)</string>
 	<string name="main_button_select_plan">Select plan</string>
+	<!-- One-click mode -->
+	<string name="one_click_auto_server">Best server for my location</string>
+	<string name="one_click_searching">Searching best location</string>
+	<string name="one_click_mode_fast">Fast</string>
+	<string name="one_click_nym_exit_node">Nym exit node</string>
+	<string name="one_click_nym_entry_node">Nym entry node</string>
+	<!-- Connection status -->
+	<string name="connection_status_not_protected">Not protected</string>
+	<string name="connection_status_fast_mode">Fast mode protection</string>
+	<string name="connection_status_anonymous">Anonymous protection</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censorship</string>
 	<string name="settings_passphrase_title">Passphrase</string>

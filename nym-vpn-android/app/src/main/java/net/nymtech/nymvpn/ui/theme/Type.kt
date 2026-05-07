@@ -10,8 +10,6 @@ import androidx.compose.ui.unit.sp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.extensions.scaled
 
-// Font intent from Figma Nym 2.0: Inter (body/labels) + JetBrains Mono (IDs/addresses).
-// Swap the font families below once Inter TTF files are added to res/font/.
 private val sans = FontFamily(Font(R.font.lab_grotesque_regular))
 private val monoFont = FontFamily(Font(R.font.lab_grotesque_mono))
 

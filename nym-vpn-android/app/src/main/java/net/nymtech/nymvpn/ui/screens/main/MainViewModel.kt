@@ -16,6 +16,8 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.ui.screens.main.components.PanelState
+import net.nymtech.nymvpn.util.extensions.toAlgorithm
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import timber.log.Timber
@@ -76,6 +78,15 @@ constructor(
 			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.FIVE_HOP_MIXNET))
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "VpnModeChangeFailed mode=FIVE_HOP_MIXNET")
+		}
+	}
+
+	fun onPanelStateChanged(state: PanelState) = viewModelScope.launch {
+		Timber.tag(TAG).i("ConnectionPanelStateChanged state=$state")
+		runCatching {
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetAlgorithm(state.toAlgorithm()))
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "VpnAlgorithmChangeFailed mode=$state")
 		}
 	}
 

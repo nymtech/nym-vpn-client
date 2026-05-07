@@ -114,11 +114,16 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun NymVPNTheme(theme: Theme, content: @Composable () -> Unit) {
     val context = LocalContext.current
-    var isDark = isSystemInDarkTheme()
+    val systemDark = isSystemInDarkTheme()
+    val isDark = when (theme) {
+        Theme.DARK_MODE -> true
+        Theme.LIGHT_MODE -> false
+        else -> systemDark
+    }
 
     val colorScheme = when (theme) {
-        Theme.DARK_MODE -> DarkColorScheme.also { isDark = true }
-        Theme.LIGHT_MODE -> LightColorScheme.also { isDark = false }
+        Theme.DARK_MODE -> DarkColorScheme
+        Theme.LIGHT_MODE -> LightColorScheme
         Theme.DYNAMIC -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
