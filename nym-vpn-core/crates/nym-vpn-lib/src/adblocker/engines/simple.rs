@@ -180,27 +180,6 @@ where
         .await
     }
 
-    /// Add domain to the database if it doesn't exist yet.
-    #[cfg(test)]
-    pub async fn add_domain(
-        &mut self,
-        domain: String,
-        source_id: &str,
-        update_timestamp: OffsetDateTime,
-    ) -> sqlx::Result<()> {
-        let update_timestamp = update_timestamp.unix_timestamp();
-        sqlx::query!(
-            r#"INSERT INTO blocked_domains (domain_name, source, updated_at) VALUES ($1, $2, $3)
-            ON CONFLICT(domain_name, source) DO UPDATE SET updated_at = $3 WHERE updated_at != $3"#,
-            domain,
-            source_id,
-            update_timestamp
-        )
-        .execute(self.executor.as_mut())
-        .await?;
-        Ok(())
-    }
-
     /// Add domains to the database if they don't exist yet.
     /// This method performs a batch update for performance.
     pub async fn add_domains_batch<'a>(&mut self, batch: DomainsBatch<'a>) -> sqlx::Result<()> {
@@ -491,42 +470,18 @@ mod tests {
         req.into_inner().commit().await.unwrap();
 
         let duration = start.elapsed();
-
         println!("Total time: {:?}", duration);
         println!("Rows per second: {:.2}", 100_000.0 / duration.as_secs_f64());
-    }
 
-    #[tokio::test]
-    async fn test_add_domains() {
-        let temp_dir = TempDir::new().unwrap();
-
-        let domains: Vec<String> = (0..100_000).map(|i| format!("domain-{}.com", i)).collect();
-        let db = open_db(&temp_dir.path().join("adblock.db")).await.unwrap();
-
-        let mut req = DbRequest::new(db.acquire().await.unwrap());
-        for chunk in domains.chunks(DOMAIN_BATCH_SIZE) {
-            let batch = DomainsBatch {
-                domains: chunk,
-                source_id: "bench",
-                updated_at: OffsetDateTime::from_unix_timestamp(1768163200).unwrap(),
-            };
-            req.add_domains_batch(batch).await.unwrap();
-        }
-
-        let start = tokio::time::Instant::now();
-        let trans = db.begin().await.unwrap();
-        let mut req = DbRequest::new(trans);
-        let update_timestamp = OffsetDateTime::from_unix_timestamp(1778163200).unwrap();
-        for domain in domains {
-            req.add_domain(domain, "bench", update_timestamp)
-                .await
-                .unwrap();
-        }
-        req.into_inner().commit().await.unwrap();
-
-        let duration = start.elapsed();
-
-        println!("Total time: {:?}", duration);
-        println!("Rows per second: {:.2}", 100_000.0 / duration.as_secs_f64());
+        let mut conn = db.acquire().await.unwrap();
+        let update_timestamp = update_timestamp.unix_timestamp();
+        let entry_count = sqlx::query_scalar!(
+            r#"SELECT COUNT(*) FROM blocked_domains WHERE updated_at = $1"#,
+            update_timestamp
+        )
+        .fetch_one(conn.as_mut())
+        .await
+        .unwrap();
+        assert_eq!(entry_count, 100_000);
     }
 }
