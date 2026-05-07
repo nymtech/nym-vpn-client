@@ -33,7 +33,22 @@ use tcp::new_tcp_listener;
 mod udp;
 use udp::new_random_socket;
 
+#[cfg(target_os = "ios")]
+mod apple_connection_provider;
+
+use std::{
+    io,
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
+    str::FromStr,
+    sync::{Arc, LazyLock},
+    time::{Duration, Instant},
+};
+
 use async_trait::async_trait;
+#[cfg(target_os = "ios")]
+use hickory_server::resolver::name_server::GenericConnector;
+#[cfg(not(target_os = "ios"))]
+use hickory_server::resolver::name_server::TokioConnectionProvider;
 use hickory_server::{
     ServerFuture,
     authority::{
@@ -45,35 +60,32 @@ use hickory_server::{
         rr::{LowerName, Record, RecordType, domain::Name, rdata, record_data::RData},
     },
     resolver::{
-        ResolveError, TokioResolver,
+        ResolveError,
         config::{NameServerConfigGroup, ResolverConfig},
         lookup::Lookup,
-        name_server::TokioConnectionProvider,
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
 };
-use rand::Rng;
-use std::{
-    io,
-    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    str::FromStr,
-    sync::{Arc, LazyLock},
-    time::{Duration, Instant},
-};
 use tokio::{
     net::{TcpListener, UdpSocket},
-    sync::{Mutex, mpsc, oneshot},
+    sync::{mpsc, oneshot},
 };
 use tokio_util::{either::Either, sync::CancellationToken};
 
+#[cfg(target_os = "ios")]
+use apple_connection_provider::{AppleConnectionProvider, TokioResolver};
+#[cfg(not(target_os = "ios"))]
+use hickory_server::resolver::TokioResolver;
+
 #[async_trait]
-pub(crate) trait LoopbackAlias: Send {
+#[cfg_attr(target_os = "ios", allow(unused))]
+pub trait LoopbackAlias: Send {
     fn addr(&self) -> IpAddr;
 
     async fn unassign(self: Box<Self>);
 }
 
-pub(crate) type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
+pub type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
 
 pub use crate::dns_filter::{
     DnsFilter, DnsFilterDecision, DnsFilterStrategy, DnsFilterT, NullDnsFilter,
@@ -183,6 +195,11 @@ enum Config {
     Forwarding {
         /// Remote DNS server to use
         dns_servers: Vec<IpAddr>,
+
+        /// Interface to bind client socket to.
+        /// iOS only
+        #[cfg(target_os = "ios")]
+        bind_interface: Option<String>,
     },
 }
 
@@ -262,10 +279,7 @@ impl Resolver {
         let return_query = query.original().clone();
         let qname = return_query.name().to_ascii();
 
-        let decision = {
-            let guard = dns_filter.lock().await;
-            guard.should_block(&qname)
-        };
+        let decision = dns_filter.should_block(&qname).await;
 
         if decision != DnsFilterDecision::Pass {
             tracing::trace!("Blocking DNS query for {qname} with strategy {decision:?}");
@@ -327,12 +341,20 @@ impl ResolverHandle {
     }
 
     /// Set the DNS servers to forward queries to `dns_servers`.
-    pub async fn enable_forward(&self, dns_servers: Vec<IpAddr>) {
+    pub async fn enable_forward(
+        &self,
+        dns_servers: Vec<IpAddr>,
+        #[cfg(target_os = "ios")] bind_interface: Option<String>,
+    ) {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
             .send(ResolverMessage::SetConfig {
-                new_config: Config::Forwarding { dns_servers },
+                new_config: Config::Forwarding {
+                    dns_servers,
+                    #[cfg(target_os = "ios")]
+                    bind_interface,
+                },
                 response_tx,
             })
             .is_ok()
@@ -458,7 +480,7 @@ impl LocalResolver {
             }
         });
 
-        let dns_filter: DnsFilter = Arc::new(Mutex::new(Box::new(NullDnsFilter)));
+        let dns_filter: DnsFilter = Arc::new(NullDnsFilter);
 
         let resolver = Self {
             rx,
@@ -495,7 +517,8 @@ impl LocalResolver {
                     match request {
                         Some(ResolverMessage::SetConfig { new_config, response_tx }) => {
                             self.update_config(new_config);
-                            flush_system_cache();
+                            #[cfg(not(target_os = "ios"))]
+                            flush_system_cache().await;
                             let _ = response_tx.send(());
                         }
                         Some(ResolverMessage::SetDnsFilter { dns_filter, response_tx }) => {
@@ -539,10 +562,18 @@ impl LocalResolver {
             Config::Blocking => {
                 self.blocking();
             }
-            Config::Forwarding { mut dns_servers } => {
+            Config::Forwarding {
+                mut dns_servers,
+                #[cfg(target_os = "ios")]
+                bind_interface,
+            } => {
                 // make sure not to accidentally forward queries to ourselves
                 dns_servers.retain(|addr| *addr != self.bound_to.ip());
-                self.forwarding(dns_servers);
+                self.forwarding(
+                    dns_servers,
+                    #[cfg(target_os = "ios")]
+                    bind_interface,
+                );
             }
         }
     }
@@ -553,14 +584,24 @@ impl LocalResolver {
     }
 
     /// Turn into a forwarding resolver (forward DNS queries to [dns_servers]).
-    fn forwarding(&mut self, dns_servers: Vec<IpAddr>) {
+    fn forwarding(
+        &mut self,
+        dns_servers: Vec<IpAddr>,
+        #[cfg(target_os = "ios")] bind_interface: Option<String>,
+    ) {
         let forward_server_config =
             NameServerConfigGroup::from_ips_clear(&dns_servers, DNS_LISTEN_PORT, true);
-
         let forward_config = ResolverConfig::from_parts(None, vec![], forward_server_config);
+
+        #[cfg(target_os = "ios")]
+        let connection_provider =
+            GenericConnector::new(AppleConnectionProvider::new(bind_interface));
+
+        #[cfg(not(target_os = "ios"))]
+        let connection_provider = TokioConnectionProvider::default();
+
         let resolver =
-            TokioResolver::builder_with_config(forward_config, TokioConnectionProvider::default())
-                .build();
+            TokioResolver::builder_with_config(forward_config, connection_provider).build();
 
         self.inner_resolver = Resolver::Forwarding {
             resolver: Box::new(resolver),
@@ -721,7 +762,10 @@ impl LookupObject for ForwardLookup {
     }
 }
 
-pub(crate) fn random_loopback_ipv4() -> IpAddr {
+#[cfg(not(target_os = "ios"))]
+pub fn random_loopback_ipv4() -> IpAddr {
+    use rand::Rng;
+
     IpAddr::from(Ipv4Addr::new(
         127,
         rand::thread_rng().gen_range(1..=255),

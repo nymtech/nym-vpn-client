@@ -215,7 +215,7 @@ async fn maybe_nxdomain_v4(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
             );
             if udp.get_destination() == DNS_PORT {
                 let domain = blocked_domain(udp.payload(), dns_filter).await?;
-                tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+                tracing::trace!("Ad-blocker: blocking DNS query for {domain}");
                 let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
                 Some(build_udp_response_v4(&ip, &udp, nxdomain_dns))
             } else {
@@ -270,7 +270,7 @@ async fn maybe_nxdomain_v6(packet: &[u8], dns_filter: &DnsFilter) -> Option<Vec<
 
             if udp.get_destination() == DNS_PORT {
                 let domain = blocked_domain(udp.payload(), dns_filter).await?;
-                tracing::debug!("Ad-blocker: blocking DNS query for {domain}");
+                tracing::trace!("Ad-blocker: blocking DNS query for {domain}");
                 let nxdomain_dns = build_nxdomain_dns(udp.payload())?;
                 Some(build_udp_response_v6(&ip, &udp, nxdomain_dns))
             } else {
@@ -310,15 +310,19 @@ async fn blocked_domain(dns_payload: &[u8], dns_filter: &DnsFilter) -> Option<St
     if msg.message_type() != MessageType::Query {
         return None;
     }
-    let guard = dns_filter.lock().await;
-    msg.queries().iter().find_map(|query| {
+
+    for query in msg.queries().iter() {
         let domain = query.name().to_string();
         let domain = domain.trim_end_matches('.');
-        tracing::debug!("DNS proxy: checking domain '{domain}'");
-        let decision = guard.should_block(domain);
-        tracing::debug!("DNS proxy: should_block('{domain}') = {decision:?}");
-        matches!(decision, DnsFilterDecision::Block(_)).then_some(domain.to_string())
-    })
+        tracing::trace!("DNS proxy: checking domain '{domain}'");
+        let decision = dns_filter.should_block(domain).await;
+        tracing::trace!("DNS proxy: should_block('{domain}') = {decision:?}");
+        if matches!(decision, DnsFilterDecision::Block(_)) {
+            return Some(domain.to_owned());
+        }
+    }
+
+    None
 }
 
 fn build_nxdomain_dns(query: &[u8]) -> Option<Vec<u8>> {

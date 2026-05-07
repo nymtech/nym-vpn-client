@@ -1,16 +1,18 @@
 // Copyright 2026 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::{IpAddr, Ipv4Addr};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use socket2::{Domain, Protocol, SockAddr, Socket, Type};
 use tokio::net::UdpSocket;
 
-#[cfg(unix)]
+#[cfg(not(target_os = "ios"))]
+use crate::resolver::LoopbackAlias;
+#[cfg(any(target_os = "macos", target_os = "linux"))]
 use crate::resolver::unix::RandomLoopbackAlias;
 #[cfg(windows)]
 use crate::resolver::windows::RandomLoopbackAlias;
-use crate::resolver::{BoxedLoopbackAlias, Error, LoopbackAlias};
+use crate::resolver::{BoxedLoopbackAlias, Error};
 
 pub async fn new_random_socket(
     port: u16,
@@ -19,49 +21,60 @@ pub async fn new_random_socket(
     for attempt in 0.. {
         let (ip, alias): (IpAddr, Option<BoxedLoopbackAlias>) = match attempt {
             ..3 if !use_random_loopback => continue,
-            ..3 => match RandomLoopbackAlias::assign().await {
-                Ok(random) => (random.addr(), Some(Box::new(random) as BoxedLoopbackAlias)),
-                Err(_) => continue,
-            },
+            ..3 => {
+                #[cfg(not(target_os = "ios"))]
+                {
+                    match RandomLoopbackAlias::assign().await {
+                        Ok(random) => (random.addr(), Some(Box::new(random) as BoxedLoopbackAlias)),
+                        Err(_) => continue,
+                    }
+                }
+                // iOS: unsupported
+                #[cfg(target_os = "ios")]
+                {
+                    continue;
+                }
+            }
             3 => (IpAddr::from(Ipv4Addr::LOCALHOST), None),
             4.. => break,
         };
 
-        let sock = match Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP)) {
-            Ok(sock) => sock,
-            Err(err) => {
-                tracing::error!("Failed to open IPv4/UDP socket: {err}");
-                continue;
+        match bind_socket(SocketAddr::new(ip, port)).await {
+            Ok(socket) => {
+                return Ok((socket, alias));
             }
-        };
-
-        // SO_NONBLOCK is required for turning this into a tokio socket.
-        if let Err(err) = sock.set_nonblocking(true) {
-            tracing::warn!("Failed to set UDP socket as nonblocking: {err}");
-            continue;
-        }
-
-        // SO_REUSEADDR enables us to bind to `127.x.y.z` even if another socket is bound to `0.0.0.0`.
-        // Best-effort: allow binding even if wildcard is in use. Windows semantics differ but
-        // this is harmless.
-        if let Err(err) = sock.set_reuse_address(true) {
-            tracing::warn!("Failed to set SO_REUSEADDR on UDP socket: {err}");
-        }
-
-        let sa = SockAddr::from(std::net::SocketAddr::new(ip, port));
-        if let Err(err) = sock.bind(&sa) {
-            tracing::warn!("Failed to bind UDP socket to {ip}: {err}");
-            // Ensure we clean up the alias before retrying.
-            if let Some(alias) = alias {
-                alias.unassign().await;
+            Err(_err) => {
+                // Ensure we clean up the alias before retrying.
+                if let Some(alias) = alias {
+                    alias.unassign().await;
+                }
             }
-            continue;
         }
-
-        let socket =
-            UdpSocket::from_std(std::net::UdpSocket::from(sock)).expect("socket is non-blocking");
-        return Ok((socket, alias));
     }
 
     Err(Error::UdpBind)
+}
+
+async fn bind_socket(addr: SocketAddr) -> std::io::Result<UdpSocket> {
+    let sock = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP)).inspect_err(|err| {
+        tracing::error!("Failed to open IPv4/UDP socket: {err}");
+    })?;
+
+    // SO_NONBLOCK is required for turning this into a tokio socket.
+    sock.set_nonblocking(true).inspect_err(|err| {
+        tracing::warn!("Failed to set UDP socket as nonblocking: {err}");
+    })?;
+
+    // SO_REUSEADDR enables us to bind to `127.x.y.z` even if another socket is bound to `0.0.0.0`.
+    // Best-effort: allow binding even if wildcard is in use. Windows semantics differ but
+    // this is harmless.
+    if let Err(err) = sock.set_reuse_address(true) {
+        tracing::warn!("Failed to set SO_REUSEADDR on UDP socket: {err}");
+    }
+
+    sock.bind(&SockAddr::from(addr)).inspect_err(|err| {
+        tracing::warn!("Failed to bind UDP socket to {addr}: {err}");
+    })?;
+
+    UdpSocket::from_std(std::net::UdpSocket::from(sock))
 }

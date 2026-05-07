@@ -62,7 +62,7 @@ homepage = "https://nymtech.net"
 documentation = "https://nymtech.net"
 edition = "2024"
 license = "GPL-3.0-only"
-rust-version = "1.88"
+rust-version = "1.91"
 
 [profile.release]
 lto = true
@@ -72,7 +72,7 @@ large_futures = "warn"
 
 [workspace.dependencies]
 # We need to turn off the feature "single-thread" to avoid "future cannot be sent between threads safely".
-adblock = { version = "0.12.1", default-features = false, features = [
+adblock = { version = "0.12.3", default-features = false, features = [
     "embedded-domain-resolver",
 ] }
 

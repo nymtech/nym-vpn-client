@@ -14,6 +14,7 @@ workspace = true
 [dependencies]
 adblock.workspace = true
 anyhow.workspace = true
+async-stream.workspace = true
 async-compression = { workspace = true, features = ["tokio", "gzip"] }
 async-trait.workspace = true
 base64.workspace = true
@@ -61,7 +62,6 @@ nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
 nym-connection-monitor.workspace = true
 nym-gateway-directory.workspace = true
 nym-ip-packet-client.workspace = true
-nym-macos.workspace = true
 nym-offline-monitor.workspace = true
 nym-registration-client.workspace = true
 nym-registration-common.workspace = true
@@ -76,12 +76,13 @@ nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-wg-go = { workspace = true, features = ["amnezia"] }
 nym-wg-metadata-client.workspace = true
+nym-sqlx-pool-guard.workspace = true
 opentelemetry.workspace = true
 opentelemetry_sdk.workspace = true
 quinn.workspace = true
 quinn-proto.workspace = true
 rand.workspace = true
-reqwest = { workspace = true, features = ["socks", "rustls"] }
+reqwest = { workspace = true, features = ["socks", "rustls", "stream"] }
 rustls = { workspace = true, default-features = false, features = [
     "std",
     "ring",
@@ -102,6 +103,7 @@ sentry = { workspace = true, features = [
 ] }
 sha2.workspace = true
 strum.workspace = true
+sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
 toml.workspace = true
 thiserror.workspace = true
 time.workspace = true
@@ -158,8 +160,18 @@ nym-firewall.workspace = true
 nym-firewall-config.workspace = true
 
 # Apple-specific dependencies
+[target.'cfg(target_os = "macos")'.dependencies]
+nym-macos.workspace = true
+
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 tracing-oslog.workspace = true
+
+[target.'cfg(any(target_os = "ios"))'.dependencies]
+hickory-server = { workspace = true, features = ["resolver"] }
+socket2.workspace = true
+libc.workspace = true
+nym-dns.workspace = true
+nym-firewall-config.workspace = true
 
 # Android-specific dependencies
 [target.'cfg(target_os = "android")'.dependencies]
@@ -181,11 +193,14 @@ tempfile.workspace = true
 tracing-test.workspace = true
 
 [build-dependencies]
+sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 vergen-gitcl = { workspace = true, default-features = false, features = [
     "build",
     "cargo",
     "rustc",
 ] }
+
 
 [features]
 default = []

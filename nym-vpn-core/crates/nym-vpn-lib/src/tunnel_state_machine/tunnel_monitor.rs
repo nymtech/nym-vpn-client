@@ -222,6 +222,8 @@ pub struct TunnelParameters {
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
     pub user_agent: UserAgent,
+    #[cfg(target_os = "ios")]
+    pub filtering_resolver_addr: SocketAddr,
 }
 
 pub struct TunnelMonitor {
@@ -463,7 +465,7 @@ impl TunnelMonitor {
         let rcb_config_builder = RegistrationClientBuilderConfig::builder()
             .entry_node(entry_node)
             .exit_node(exit_node)
-            .data_path(self.tunnel_parameters.nym_config.data_path.clone())
+            .data_path(Some(self.tunnel_parameters.nym_config.data_path.clone()))
             .mixnet_client_config(mixnet_client_config)
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)
@@ -862,13 +864,10 @@ impl TunnelMonitor {
                     assigned_addresses.interface_addresses.ipv6,
                 )));
             }
+
+            let dns_servers = self.get_mobile_dns_addresses();
             let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
-                dns_servers: self
-                    .tunnel_parameters
-                    .tunnel_settings
-                    .dns
-                    .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-                    .to_vec(),
+                dns_servers,
                 interface_addresses,
                 remote_addresses: vec![assigned_addresses.entry_mixnet_gateway_ip],
                 mtu,
@@ -1569,14 +1568,10 @@ impl TunnelMonitor {
         }
 
         let entry_endpoint = conn_data.effective_remote_entry_endpoint().ip();
+        let dns_servers = self.get_mobile_dns_addresses();
 
         let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
-            dns_servers: self
-                .tunnel_parameters
-                .tunnel_settings
-                .dns
-                .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-                .to_vec(),
+            dns_servers,
             interface_addresses,
             remote_addresses: vec![entry_endpoint],
             mtu,
@@ -1604,13 +1599,7 @@ impl TunnelMonitor {
             exit: WireguardNode::from(&conn_data.exit),
         });
 
-        let dns_servers = self
-            .tunnel_parameters
-            .tunnel_settings
-            .dns
-            .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-            .to_vec();
-
+        let dns_servers = self.get_mobile_dns_addresses();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             metadata_proxy_tx: entry_metadata_tx,
             exit_tun: tun_device,
@@ -1634,6 +1623,24 @@ impl TunnelMonitor {
             tunnel_interface: TunnelInterface::One(tunnel_metadata),
             tunnel_handle: AnyTunnelHandle::from(tunnel_handle),
         })
+    }
+
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    fn get_mobile_dns_addresses(&self) -> Vec<IpAddr> {
+        #[cfg(target_os = "ios")]
+        {
+            // Use local filtering resolver if ad blocking is enabled
+            // todo: set custom DNS for forwarding in local resolver
+            if self.tunnel_parameters.tunnel_settings.enable_ad_blocking {
+                return vec![self.tunnel_parameters.filtering_resolver_addr.ip()];
+            }
+        }
+
+        self.tunnel_parameters
+            .tunnel_settings
+            .dns
+            .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
+            .to_vec()
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
