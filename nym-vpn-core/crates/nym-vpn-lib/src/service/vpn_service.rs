@@ -560,8 +560,8 @@ impl NymVpnService {
 
         let (network_tx, network_rx) = watch::channel(network_env.clone());
         let nym_config = NymConfig {
-            config_path: Some(config_dir.clone()),
-            data_path: Some(network_data_dir.clone()),
+            config_path: config_dir.clone(),
+            data_path: network_data_dir.clone(),
             gateway_config: gateway_config.clone(),
             network_rx,
         };

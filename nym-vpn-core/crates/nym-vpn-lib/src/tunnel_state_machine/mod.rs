@@ -903,13 +903,8 @@ impl SharedState {
 
     #[cfg(not(target_os = "ios"))]
     fn build_proxy_config(&self) -> Result<ProxyConfig, String> {
-        let Some(data_path) = self.nym_config.data_path.as_ref() else {
-            return Err("Data path is required but not configured".to_string());
-        };
-
         let listen_port = self.tunnel_settings.geo_exclusion_settings.listen_port;
-
-        let data_dir = data_path.to_path_buf();
+        let data_dir = self.nym_config.data_path.clone();
 
         let log_level = if cfg!(debug_assertions) {
             "debug"
@@ -950,8 +945,8 @@ pub struct LinuxSplitTunnelConfiguration {
 
 #[derive(Debug, Clone)]
 pub struct NymConfig {
-    pub config_path: Option<PathBuf>,
-    pub data_path: Option<PathBuf>,
+    pub config_path: PathBuf,
+    pub data_path: PathBuf,
     pub gateway_config: GatewayDirectoryConfig,
     pub network_rx: watch::Receiver<Box<Network>>,
 }
@@ -1006,14 +1001,10 @@ impl TunnelStateMachine {
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
-        let adblocker = {
-            let Some(data_path) = nym_config.data_path.as_ref() else {
-                tracing::error!("Ad-blocking cannot be enabled without a data path configured");
-                todo!("FIXME");
-            };
-
-            adblocker::AdBlocker::new(data_path.join("ad-blocking"), user_agent.to_string())
-        };
+        let adblocker = adblocker::AdBlocker::new(
+            nym_config.data_path.join("ad-blocking"),
+            user_agent.to_string(),
+        );
 
         #[cfg(not(target_os = "android"))]
         {
