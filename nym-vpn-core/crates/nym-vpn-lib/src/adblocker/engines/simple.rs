@@ -284,7 +284,7 @@ async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Resu
         let skip_update = db_request
             .should_skip_update(source_id, update_timestamp)
             .await
-            .unwrap_or(true);
+            .map_err(AdBlockerError::PopulateDb)?;
 
         if skip_update {
             tracing::debug!("Skip update for {source_id} (updated at {update_timestamp})");
