@@ -1,11 +1,12 @@
 import clsx from 'clsx';
-import { useNavigate } from 'react-router';
-import { useTranslation } from 'react-i18next';
 import { Button as HuButton } from '@headlessui/react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { Button, MsIcon, PageAnim } from '../../ui';
+import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
+import { ButtonIconNew, ButtonNew, MsIcon } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import { routes } from '../../router';
+import { InteractiveCard } from '../home/InteractiveCard';
+import { useAppStore } from '../../store/index';
 import { Speed, Tracking, Welcome, ZeroKnowledge } from './slides';
 import { DotButton, useDotButton } from './CarouselDotButton';
 
@@ -24,7 +25,7 @@ const ArrowButton = ({
     <HuButton
       onClick={onClick}
       className={clsx(
-        'h-11 w-11 my-2 mr-2 flex items-center justify-center rounded-full bg-mercury dark:bg-mine-shaft',
+        'bg-mercury dark:bg-mine-shaft my-2 mr-2 flex h-11 w-11 items-center justify-center rounded-full',
         !disabled && 'hover:bg-bombay dark:hover:bg-charcoal',
       )}
     >
@@ -32,7 +33,7 @@ const ArrowButton = ({
         icon={icon}
         className={clsx(
           'leading-none',
-          !disabled ? 'text-baltic-sea dark:text-white' : 'text-bombay',
+          !disabled ? 'text-text-primary' : 'text-bombay',
         )}
       />
     </HuButton>
@@ -40,8 +41,9 @@ const ArrowButton = ({
 };
 
 function Onboarding() {
-  const navigate = useNavigate();
-  const { t } = useTranslation('onboarding');
+  const uiTheme = useAppStore((s) => s.uiTheme);
+
+  const navigate = useAnimatedNavigate();
   const [emblaRef, emblaApi] = useEmblaCarousel({
     duration: 20,
   });
@@ -49,20 +51,33 @@ function Onboarding() {
   const { selectedIndex, scrollSnaps, onDotButtonClick } =
     useDotButton(emblaApi);
 
-  const handleNavigate = (route: string) => {
-    navigate(route);
-  };
+  const handleNavigate = (route: string) => navigate(route);
 
   return (
-    <PageAnim className="h-full flex flex-col justify-end items-center gap-8 select-none cursor-default">
-      <section className="embla w-full h-full flex flex-col justify-between">
-        <div className="flex flex-1 justify-center flex-col gap-6 items-center">
-          <NymVpnTextLogo className="w-32" />
-          <div className="overflow-hidden w-full" ref={emblaRef}>
+    <InteractiveCard className="h-full">
+      <div className="mb-12">
+        <div className="relative flex h-[27px] items-center justify-center">
+          <NymVpnTextLogo
+            className={clsx(
+              'h-[27px] w-[100px]',
+              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+            )}
+          />
+          <ButtonIconNew
+            initialAnimation={true}
+            icon="close"
+            onClick={() => navigate(routes.root)}
+            className="text-bombay hover:text-baltic-sea transition-noborder absolute right-0 cursor-default dark:hover:text-white"
+          />
+        </div>
+      </div>
+      <section className="embla flex h-full w-full flex-col justify-between">
+        <div className="flex flex-1 flex-col items-center justify-center gap-6">
+          <div className="w-full overflow-hidden" ref={emblaRef}>
             <div className="flex touch-pinch-zoom">
               {slides.map((Slide, index) => (
                 <div
-                  className="transform translate-3d flex-none basis-full min-w-0 pl-4"
+                  className="min-w-0 flex-none basis-full translate-3d transform pl-4"
                   key={index}
                 >
                   <Slide />
@@ -70,20 +85,20 @@ function Onboarding() {
               ))}
             </div>
           </div>
-          <div className="w-full flex flex-row justify-between items-center">
+          <div className="flex w-full flex-row items-center justify-between">
             <ArrowButton
               icon="arrow_left"
               onClick={() => emblaApi?.scrollPrev()}
               disabled={!emblaApi?.canScrollPrev()}
             />
-            <div className="flex flex-row gap-2 bg-mercury dark:bg-mine-shaft px-3 py-2 rounded-2xl">
+            <div className="bg-mercury dark:bg-mine-shaft flex flex-row gap-2 rounded-2xl px-3 py-2">
               {scrollSnaps.map((_, index) => (
                 <DotButton
                   key={index}
                   onClick={() => onDotButtonClick(index)}
                   className={clsx(
-                    'flex items-center justify-center rounded-full cursor-pointer bg-bombay dark:bg-charcoal border-0 p-0 m-0 w-2 h-2 appearance-none tap-highlight-transparent no-underline touch-manipulation',
-                    index === selectedIndex ? ' bg-white dark:bg-white' : '',
+                    'bg-bombay dark:bg-charcoal tap-highlight-transparent m-0 flex h-2 w-2 cursor-pointer touch-manipulation appearance-none items-center justify-center rounded-full border-0 p-0 no-underline',
+                    index === selectedIndex ? 'bg-white dark:bg-white' : '',
                   )}
                 />
               ))}
@@ -96,23 +111,13 @@ function Onboarding() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-4 w-full">
-          <Button onClick={() => handleNavigate(routes.signup)}>
-            {t('controls.create-account')}
-          </Button>
-          <Button
-            outline
-            color="gray"
-            onClick={() => handleNavigate(routes.login)}
-            className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
-          >
-            <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-              {t('controls.login')}
-            </span>
-          </Button>
+        <div className="flex w-full flex-col items-center gap-4">
+          <ButtonNew onClick={() => handleNavigate(routes.welcome)}>
+            Get Started
+          </ButtonNew>
         </div>
       </section>
-    </PageAnim>
+    </InteractiveCard>
   );
 }
 

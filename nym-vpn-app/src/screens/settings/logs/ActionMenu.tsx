@@ -3,15 +3,16 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Menu } from '@base-ui-components/react';
 import { invoke } from '@tauri-apps/api/core';
-import { useInAppNotify, useMainState } from '../../../contexts';
 import {
   ConfirmationDialog,
   ConfirmationDialogProps,
   MsIcon,
 } from '../../../ui';
+import { useToast } from '../../../hooks';
+import { useAppStore } from '../../../store';
 
 function Separator() {
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
 
   return (
     <Menu.Separator
@@ -33,13 +34,13 @@ function MenuItem({
   icon: string;
   onClick: () => void;
 }) {
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
 
   return (
     <Menu.Item
       onClick={onClick}
       className={clsx(
-        'flex items-center gap-2 px-3 py-2 cursor-default select-none text-sm',
+        'flex cursor-default items-center gap-2 px-3 py-2 text-sm select-none',
         'hover:bg-black/5 first:hover:rounded-t-sm last:hover:rounded-b-sm',
         uiTheme === 'light' && 'text-baltic-sea',
         uiTheme === 'dark' && 'text-white',
@@ -70,33 +71,29 @@ function ActionMenu() {
   >(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { uiTheme } = useMainState();
-  const { push } = useInAppNotify();
+  const uiTheme = useAppStore((s) => s.uiTheme);
+  const { add } = useToast();
 
   const handleDeleteLogs = useCallback(async () => {
     setIsLoading(true);
     try {
       await invoke('delete_logs');
       await invoke('delete_app_logs');
-      push({
-        message: t('logs.actions.delete.success'),
+      add({
+        title: t('logs.actions.delete.success'),
         type: 'info',
-        duration: 3000,
-        close: true,
       });
     } catch (error) {
       console.error('failed to delete logs', error);
-      push({
-        message: t('logs.actions.delete.error'),
+      add({
+        title: t('logs.actions.delete.error'),
         type: 'error',
-        duration: 3000,
-        close: true,
       });
     } finally {
       setActiveDialog(null);
       setIsLoading(false);
     }
-  }, [push, t]);
+  }, [add, t]);
 
   const handleExportLogs = useCallback(async () => {
     setIsLoading(true);
@@ -104,17 +101,15 @@ function ActionMenu() {
       await invoke('zip_logs');
     } catch (error) {
       console.error('failed to zip logs', error);
-      push({
-        message: t('logs.actions.export.error'),
+      add({
+        title: t('logs.actions.export.error'),
         type: 'error',
-        duration: 3000,
-        close: true,
       });
     } finally {
       setActiveDialog(null);
       setIsLoading(false);
     }
-  }, [push, t]);
+  }, [add, t]);
 
   const dialogConfig = useMemo<Record<string, DialogConfig>>(
     () => ({
@@ -151,7 +146,7 @@ function ActionMenu() {
       <Menu.Root>
         <Menu.Trigger
           className={clsx(
-            'flex items-center justify-center rounded-md mx-4',
+            'mx-4 flex items-center justify-center rounded-md',
             'focus-visible:outline focus-visible:-outline-offset-1',
             'hover:text-baltic-sea/70 dark:hover:text-white/80',
           )}
@@ -159,14 +154,14 @@ function ActionMenu() {
           <MsIcon icon="more_vert" />
         </Menu.Trigger>
         <Menu.Portal>
-          <Menu.Positioner className="outline-none z-50" sideOffset={8}>
+          <Menu.Positioner className="z-50 outline-none" sideOffset={8}>
             <Menu.Popup
               className={clsx(
                 'origin-(--transform-origin) rounded-md text-gray-900 shadow-lg shadow-gray-200 outline transition-[transform,scale,opacity] data-ending-style:scale-90 data-ending-style:opacity-0 data-starting-style:scale-90 data-starting-style:opacity-0',
                 uiTheme === 'dark' &&
-                  'bg-charcoal shadow-none -outline-offset-1  text-white outline-iron',
+                  'bg-charcoal outline-iron text-white shadow-none -outline-offset-1',
                 uiTheme === 'light' &&
-                  'bg-white text-iron outline-faded-lavender',
+                  'text-iron outline-faded-lavender bg-white',
               )}
             >
               <MenuItem
@@ -194,10 +189,6 @@ function ActionMenu() {
           title={dialogConfig[activeDialog].title}
           description={dialogConfig[activeDialog].description}
           confirmButtonText={dialogConfig[activeDialog].confirmButtonText}
-          confirmButtonColor={dialogConfig[activeDialog].confirmButtonColor}
-          confirmButtonOutline={dialogConfig[activeDialog].confirmButtonOutline}
-          cancelButtonColor={dialogConfig[activeDialog].cancelButtonColor}
-          cancelButtonOutline={dialogConfig[activeDialog].cancelButtonOutline}
           cancelButtonText={dialogConfig[activeDialog].cancelButtonText}
           isOpen={!!activeDialog}
           isLoading={isLoading}

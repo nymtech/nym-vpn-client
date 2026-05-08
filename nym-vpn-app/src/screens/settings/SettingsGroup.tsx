@@ -41,37 +41,37 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
             onClick={setting.onClick}
             className={clsx([
               'cursor-default',
-              'bg-white dark:bg-charcoal relative flex px-5 py-2 focus:outline-hidden min-h-16',
-              'hover:bg-white/60 dark:hover:bg-charcoal/85',
+              'dark:bg-aph-light relative flex min-h-16 bg-white px-5 py-2 focus:outline-hidden',
+              'dark:hover:bg-charcoal/85 hover:bg-white/60',
               'transition duration-75',
-              index === 0 && 'rounded-t-lg',
-              index !== 0 && 'border-t border-faded-lavender dark:border-ash',
-              index === items.length - 1 && 'rounded-b-lg',
+              index === 0 && 'rounded-t-2xl',
+              index !== 0 && 'border-faded-lavender dark:border-ash border-t',
+              index === items.length - 1 && 'rounded-b-2xl',
               setting.desc ? 'py-2' : 'py-4',
               setting.disabled &&
-                'opacity-50 pointer-events-none cursor-default!',
+                'pointer-events-none cursor-default! opacity-50',
             ])}
           >
             <div
               role={setting.disabled ? 'none' : 'button'}
-              className="flex flex-1 items-center justify-between gap-4 overflow-hidden cursor-default"
+              className="flex flex-1 cursor-default items-center justify-between gap-4 overflow-hidden"
             >
               {!!setting.leadingIcon && (
-                <span className="font-icon text-2xl select-none text-iron dark:text-bombay">
+                <span className="font-icon text-text-secondary text-2xl select-none">
                   {setting.leadingIcon}
                 </span>
               )}
               {!!setting.leadingComponent && setting.leadingComponent}
-              <div className="flex flex-col flex-1 justify-center min-w-4">
+              <div className="flex min-w-4 flex-1 flex-col justify-center">
                 <Label
                   as="div"
-                  className="text-base text-baltic-sea dark:text-white select-none truncate"
+                  className="text-text-primary truncate text-base select-none"
                 >
                   {setting.title}
                 </Label>
                 <Description
                   as="div"
-                  className="text-sm text-iron dark:text-bombay select-none truncate"
+                  className="text-text-secondary truncate text-sm select-none"
                 >
                   {typeof setting.desc === 'string' ? (
                     <span>{setting.desc}</span>
@@ -81,7 +81,7 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
                 </Description>
               </div>
               {setting.trailingIcon && (
-                <span className="font-icon text-xl select-none text-bombay">
+                <span className="font-icon text-bombay text-xl select-none">
                   {setting.trailingIcon}
                 </span>
               )}

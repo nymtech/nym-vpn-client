@@ -9,7 +9,12 @@ import duration from 'dayjs/plugin/duration';
 import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
-import { InitState, VpndConfig, VpndStatus } from './types';
+import {
+  GatewaySelectionAlgorithmConfig,
+  InitState,
+  VpndConfig,
+  VpndStatus,
+} from './types';
 import { StartupError } from './screens';
 import { init } from './log';
 import { getTheme } from './util';
@@ -68,6 +73,11 @@ const defaultSplitTunnel = {
   enabled: false,
   apps: [],
 };
+
+const defaultGatewaySelectionAlgorithmConfig = {
+  enableGeoLocation: true,
+  gatewaySelectionAlgorithm: 'auto',
+} as GatewaySelectionAlgorithmConfig;
 
 if (!import.meta.env.DEV) {
   // In production env, disable right-click context menu
@@ -144,6 +154,10 @@ dayjs.extend(localizedFormat);
     mixnetTrafficDefaults:
       config?.mixnetTrafficDefaults || defaultMixnetTrafficDefaults,
     splitTunnel: config?.splitTunnel || defaultSplitTunnel,
+    gatewaySelectionAlgorithmConfig:
+      config?.gatewaySelectionAlgorithmConfig ||
+      defaultGatewaySelectionAlgorithmConfig,
+    frontingMode: config?.frontingMode || 'onRetry',
   };
   console.log('initial state:', initState);
 

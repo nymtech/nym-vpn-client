@@ -1,49 +1,16 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { useMainDispatch, useMainState } from '../../../../contexts';
-import { kvSet } from '../../../../kvStore';
 import { useSystemTheme } from '../../../../state';
-import { StateDispatch, ThemeMode, UiTheme } from '../../../../types';
+import { ThemeMode } from '../../../../types';
 import { PageAnim, RadioGroup, RadioGroupOption } from '../../../../ui';
-import { ColorMainBgDark, ColorMainBgLight } from '../../../../constants';
+import { useMainState } from '../../../../store';
 import UiScaler from './UiScaler';
 
 function Display() {
   const state = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('display');
 
-  const { theme: systemTheme } = useSystemTheme();
-
-  const handleThemeChange = async (mode: ThemeMode) => {
-    if (mode !== state.themeMode) {
-      dispatch({
-        type: 'set-ui-theme',
-        theme: mode === 'system' ? systemTheme : mode,
-      });
-      dispatch({
-        type: 'set-theme-mode',
-        mode,
-      });
-      kvSet('ui-theme', mode);
-      try {
-        let theme: UiTheme;
-        if (mode === 'system') {
-          const window = getCurrentWindow();
-          const systemTheme = await window.theme();
-          theme = systemTheme === 'dark' ? 'dark' : 'light';
-        } else {
-          theme = mode;
-        }
-        await invoke('set_background_color', {
-          hexColor: theme === 'dark' ? ColorMainBgDark : ColorMainBgLight,
-        });
-        console.log('updated webview window background color');
-      } catch {}
-    }
-  };
+  const { handleThemeChange } = useSystemTheme();
 
   const options = useMemo<RadioGroupOption<ThemeMode>[]>(() => {
     return [
@@ -67,18 +34,18 @@ function Display() {
 
   return (
     <PageAnim
-      className="h-full flex flex-col py-6 gap-6"
+      className="flex h-full flex-col gap-6 py-6"
       data-testid="display-page"
     >
       <RadioGroup
         defaultValue={state.themeMode}
         options={options}
-        onChange={handleThemeChange}
+        onChange={(mode) => handleThemeChange(mode)}
         rootLabel={t('theme-section-title')}
         data-testid="theme-radio-group"
       />
       <div
-        className="mt-3 text-base font-medium cursor-default"
+        className="mt-3 cursor-default text-base font-medium"
         data-testid="zoom-section-title"
       >
         {t('zoom-section-title')}

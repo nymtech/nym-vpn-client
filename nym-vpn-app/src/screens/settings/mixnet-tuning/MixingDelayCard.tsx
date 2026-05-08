@@ -19,8 +19,8 @@ function MixingDelaySlider({
   const { mixingDelay } = useMixnetTrafficConfig();
 
   return (
-    <div className="w-full mt-5 space-y-5">
-      <div className="flex justify-between text-sm text-iron dark:text-bombay">
+    <div className="mt-5 w-full space-y-5">
+      <div className="text-text-secondary flex justify-between text-sm">
         <span>{t('mixnet-tuning.mixing-delay.faster')}</span>
         <span>{t('mixnet-tuning.mixing-delay.max-anonymity')}</span>
       </div>
@@ -70,7 +70,7 @@ export function MixingDelayCard() {
   return (
     <CardNew>
       <CardNewHeader>
-        <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
+        <p className="text-text-primary truncate text-left text-base select-none">
           {t('mixnet-tuning.mixing-delay.title')}
         </p>
       </CardNewHeader>
@@ -78,7 +78,7 @@ export function MixingDelayCard() {
         <p
           className={clsx('text-sm whitespace-pre-line', {
             'text-cheddar dark:text-king-nacho': value === 0,
-            'text-iron dark:text-bombay': value !== 0,
+            'text-text-secondary': value !== 0,
           })}
         >
           {description}

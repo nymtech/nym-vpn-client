@@ -1,22 +1,16 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  useInAppNotify,
-  useMainDispatch,
-  useMainState,
-} from '../../../../contexts';
-import { StateDispatch } from '../../../../types';
+import { dispatch, useAppStore } from '../../../../store';
 import { App } from '../../../../types/tauri';
 import { AppEntry } from '../AppItem';
+import { useToast } from '../../../../hooks/index';
 
 export const useSplitTunnel = () => {
   const { t } = useTranslation('settings');
-  const {
-    splitTunnel: { enabled, apps: splitTunnelApps },
-  } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
-  const { push } = useInAppNotify();
+  const splitTunnel = useAppStore((s) => s.splitTunnel);
+  const { enabled, apps: splitTunnelApps } = splitTunnel;
+  const { add: addToast } = useToast();
 
   const [installedApps, setInstalledApps] = useState<App[]>([]);
   const [loading, setLoading] = useState(false);
@@ -39,9 +33,8 @@ export const useSplitTunnel = () => {
         setInstalledApps(appList);
       } catch (err: unknown) {
         console.error('Failed to get app list', err);
-        push({
-          message: t('split-tunnel.failed-to-get-app-list', { ns: 'errors' }),
-          close: true,
+        addToast({
+          title: t('split-tunnel.failed-to-get-app-list', { ns: 'errors' }),
           type: 'error',
         });
       } finally {
@@ -70,9 +63,8 @@ export const useSplitTunnel = () => {
       dispatch({ type: 'set-enable-split-tunnel', enabled });
     } catch (error) {
       console.error('Failed to set split tunneling enabled', error);
-      push({
-        message: 'Failed to set split tunneling enabled',
-        close: true,
+      addToast({
+        title: t('split-tunneling.error.failed-to-enable-split-tunneling'),
         type: 'error',
       });
     }
@@ -90,9 +82,8 @@ export const useSplitTunnel = () => {
       });
     } catch (error) {
       console.error('Failed to add app to split tunneling', error);
-      push({
-        message: 'Failed to add app to split tunneling',
-        close: true,
+      addToast({
+        title: t('split-tunneling.error.failed-to-add-app-to-split-tunneling'),
         type: 'error',
       });
     }
@@ -112,9 +103,10 @@ export const useSplitTunnel = () => {
       });
     } catch (error) {
       console.error('Failed to remove app from split tunneling', error);
-      push({
-        message: 'Failed to remove app from split tunneling',
-        close: true,
+      addToast({
+        title: t(
+          'split-tunneling.error.failed-to-remove-app-from-split-tunneling',
+        ),
         type: 'error',
       });
     }

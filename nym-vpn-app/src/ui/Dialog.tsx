@@ -5,7 +5,7 @@ import {
   DialogPanel,
   Dialog as HuDialog,
 } from '@headlessui/react';
-import { useMainState } from '../contexts';
+import { useAppStore } from '../store';
 
 export type DialogProps = {
   open: boolean;
@@ -18,7 +18,7 @@ export type DialogProps = {
 function Dialog({ open, onClose, children, className, ...rest }: DialogProps) {
   // manually injecting the theme is required as dialogs are rendered
   // outside the main app container (using a portal)
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
   const testId = rest['data-testid'] || 'dialog';
 
   return (
@@ -26,7 +26,7 @@ function Dialog({ open, onClose, children, className, ...rest }: DialogProps) {
       as="div"
       className={clsx([
         uiTheme === 'dark' && 'dark',
-        'relative z-50 focus:outline-hidden select-none cursor-default',
+        'relative z-50 cursor-default select-none focus:outline-hidden',
       ])}
       open={open}
       onClose={onClose}
@@ -46,15 +46,15 @@ function Dialog({ open, onClose, children, className, ...rest }: DialogProps) {
         data-testid={`${testId}-container`}
       >
         <div
-          className="flex min-h-full items-center justify-center p-4 mx-4"
+          className="mx-4 flex min-h-full items-center justify-center p-4"
           data-testid={`${testId}-wrapper`}
         >
           <DialogPanel
             transition
             className={clsx(
               [
-                'text-base min-w-80 overflow-x-hidden',
-                'max-w-md rounded-xl bg-white dark:bg-charcoal p-6',
+                'min-w-80 overflow-x-hidden text-base',
+                'dark:bg-charcoal max-w-md rounded-xl bg-white p-6',
                 'duration-200 ease-out data-closed:opacity-0',
               ],
               className,

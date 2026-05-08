@@ -23,14 +23,14 @@ function Support() {
 
   return (
     <PageAnim
-      className="h-full flex flex-col mt-2 gap-6"
+      className="mt-2 flex h-full flex-col gap-6"
       data-testid="support-page"
     >
       <div>
-        <p className="truncate text-base select-none text-baltic-sea dark:text-white">
+        <p className="text-text-primary truncate text-base select-none">
           {t('support.intro.title')}
         </p>
-        <p className="text-sm whitespace-pre-line mt-4 text-iron dark:text-bombay">
+        <p className="text-text-secondary mt-4 text-sm whitespace-pre-line">
           {t('support.intro.description')}
         </p>
       </div>
@@ -61,7 +61,7 @@ function Support() {
             onClick: () => {
               openUrl(GitHubIssuesUrl);
             },
-            leadingComponent: <GitHubIcon className="w-6 h-6 fill-bombay" />,
+            leadingComponent: <GitHubIcon className="fill-bombay h-6 w-6" />,
             trailingIcon: 'open_in_new',
           },
           {
@@ -69,7 +69,7 @@ function Support() {
             onClick: () => {
               openUrl(MatrixRoomUrl);
             },
-            leadingComponent: <ElementIcon className="w-6 h-6 fill-bombay" />,
+            leadingComponent: <ElementIcon className="fill-bombay h-6 w-6" />,
             trailingIcon: 'open_in_new',
           },
           {
@@ -77,7 +77,7 @@ function Support() {
             onClick: () => {
               openUrl(DiscordInviteUrl);
             },
-            leadingComponent: <DiscordIcon className="w-6 h-6 fill-bombay" />,
+            leadingComponent: <DiscordIcon className="fill-bombay h-6 w-6" />,
             trailingIcon: 'open_in_new',
           },
           {
@@ -85,7 +85,7 @@ function Support() {
             onClick: () => {
               openUrl(TelegramUrl);
             },
-            leadingComponent: <TelegramIcon className="w-6 h-6 fill-bombay" />,
+            leadingComponent: <TelegramIcon className="fill-bombay h-6 w-6" />,
             trailingIcon: 'open_in_new',
           },
         ]}

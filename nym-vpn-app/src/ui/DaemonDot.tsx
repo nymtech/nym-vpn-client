@@ -29,14 +29,14 @@ function DaemonDot({ status, ...rest }: DaemonDotProps) {
   return (
     <div
       className={clsx([
-        'absolute z-30 left-1 top-1 pointer-events-none select-none',
+        'pointer-events-none absolute top-1 left-1 z-30 select-none',
         status === 'ok' ? 'animate-pulse' : 'animate-pulse-fast',
       ])}
       data-testid={testId}
       data-test-status={status}
     >
       <div
-        className={clsx(['relative w-2.5 h-2.5 rounded-full', bgColor()])}
+        className={clsx(['relative h-2.5 w-2.5 rounded-full', bgColor()])}
         data-testid={`${testId}-indicator`}
       />
     </div>

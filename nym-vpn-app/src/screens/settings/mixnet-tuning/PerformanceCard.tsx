@@ -30,29 +30,29 @@ export function PerformanceCard() {
   return (
     <CardNew>
       <CardNewHeader>
-        <p className="text-left text-sm text-iron dark:text-bombay whitespace-pre-line">
+        <p className="text-text-secondary text-left text-sm whitespace-pre-line">
           {t('mixnet-tuning.performance.title')}
         </p>
       </CardNewHeader>
       <CardNewBody>
         <CardDataRow label={t('mixnet-tuning.performance.speed.title')}>
-          <p className="text-malachite-moss dark:text-malachite font-medium">
+          <p className="text-primary font-medium">
             {t('mixnet-tuning.performance.speed.value', { value: speed })}
           </p>
         </CardDataRow>
         <Separator
           orientation="horizontal"
-          className="w-full h-px bg-bombay dark:bg-iron"
+          className="bg-bombay dark:bg-iron h-px w-full"
         />
         <CardDataRow label={t('mixnet-tuning.performance.privacy.title')}>
-          <p className="text-malachite-moss dark:text-malachite font-medium">
+          <p className="text-primary font-medium">
             {t('mixnet-tuning.performance.privacy.value', { value: privacy })}
           </p>
         </CardDataRow>
       </CardNewBody>
 
       <CardNewFooter>
-        <p className="text-xs text-iron dark:text-bombay whitespace-pre-line">
+        <p className="text-text-secondary text-xs whitespace-pre-line">
           {t('mixnet-tuning.performance.footer')}
         </p>
       </CardNewFooter>

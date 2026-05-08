@@ -28,29 +28,26 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
   }) => {
     if (!countryCode && !showFastest) {
       return (
-        <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
-          <Skeleton className="w-7 h-7" rounded="full" />
+        <div className="flex w-full flex-row items-center gap-3 overflow-hidden">
+          <Skeleton className="h-7 w-7" rounded="full" />
           <div className="flex flex-col items-start justify-center gap-1">
-            <Skeleton className="w-36 h-4" rounded />
-            <Skeleton className="w-36 h-3" rounded />
+            <Skeleton className="h-4 w-36" rounded />
+            <Skeleton className="h-3 w-36" rounded />
           </div>
         </div>
       );
     }
 
     return (
-      <div className="flex flex-row items-center gap-3 overflow-hidden w-full">
+      <div className="flex w-full flex-row items-center gap-3 overflow-hidden">
         {countryCode && <FlagIcon code={countryCode} alt={countryCode} />}
         {showFastest && (
-          <MsIcon
-            icon="casino"
-            className="text-2xl text-baltic-sea dark:text-white"
-          />
+          <MsIcon icon="casino" className="text-text-primary text-2xl" />
         )}
         <div className={clsx('flex flex-col items-start truncate')}>
           <div
             className={clsx([
-              'text-base truncate',
+              'truncate text-base',
               disabled && 'cursor-default',
             ])}
           >
@@ -64,7 +61,7 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
                   exit={{ opacity: 0, x: '1rem' }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
-                  className="text-sm text-iron dark:text-bombay truncate"
+                  className="text-text-secondary truncate text-sm"
                 >
                   {subInfo}
                 </motion.div>
@@ -73,7 +70,7 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
           ) : (
             <>
               {subInfo && (
-                <div className="text-sm text-iron dark:text-bombay truncate">
+                <div className="text-text-secondary truncate text-sm">
                   {subInfo}
                 </div>
               )}
@@ -81,7 +78,7 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
           )}
         </div>
         {(showQuic || showStreamOptimized) && (
-          <div className="flex items-center justify-end gap-3 flex-1 mr-1">
+          <div className="mr-1 flex flex-1 items-center justify-end gap-3">
             {showStreamOptimized && (
               <MsIcon icon="smart_display" className="text-cornflower" />
             )}

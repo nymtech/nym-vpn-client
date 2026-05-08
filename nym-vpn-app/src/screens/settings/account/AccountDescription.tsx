@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 import dayjs from 'dayjs';
 import clsx from 'clsx';
-import { useMainState } from '../../../contexts';
+import { useMainState } from '../../../store';
 import {
   getAccountDescriptionColor,
   getAccountStateDescription,
@@ -12,7 +12,7 @@ import {
 const statusColors = {
   amber: 'text-liquid-lava',
   yellow: 'text-cheddar dark:text-king-nacho',
-  green: 'text-malachite-moss dark:text-malachite',
+  green: 'text-primary',
 } as const;
 
 export function AccountDescription() {
@@ -63,9 +63,7 @@ export function AccountDescription() {
         })}
       </p>
       {accountSummary?.subscription?.subscription?.isRecurring && (
-        <p className="text-iron dark:text-bombay">
-          *{t('account.auto-renews')}
-        </p>
+        <p className="text-text-secondary">*{t('account.auto-renews')}</p>
       )}
     </>
   );

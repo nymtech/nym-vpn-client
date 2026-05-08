@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { type } from '@tauri-apps/plugin-os';
 import { List, type RowComponentProps } from 'react-window';
-import { useMainState } from '../../../../contexts';
+import { useMainState } from '../../../../store';
 import { routes } from '../../../../router';
 import { PageAnim, SettingsMenuCard } from '../../../../ui';
 import { CodeDependency } from '../../../../types';
@@ -61,9 +61,9 @@ function LicenseList({ language }: Props) {
       : rootFontSize * heightFactor;
 
   return (
-    <PageAnim className="h-full flex flex-col">
+    <PageAnim className="flex h-full flex-col">
       {licenses.length === 0 ? (
-        <span className="mt-4 pl-4 italic text-iron dark:text-bombay select-none cursor-default">
+        <span className="text-text-secondary mt-4 cursor-default pl-4 italic select-none">
           {t('legal.emptyData')}
         </span>
       ) : (

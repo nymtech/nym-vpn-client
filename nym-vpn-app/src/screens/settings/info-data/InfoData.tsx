@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useMainState } from '../../../contexts';
+import { useMainState } from '../../../store';
 import { useClipboard } from '../../../hooks';
 import { routes } from '../../../router';
 import { ButtonText } from '../../../ui';
@@ -60,8 +60,8 @@ function InfoData() {
       <div
         className={clsx([
           'select-none',
-          'flex grow flex-col justify-end text-iron dark:text-iron text-sm',
-          'tracking-tight leading-tight font-medium mb-4 cursor-default',
+          'text-iron dark:text-iron flex grow flex-col justify-end text-sm',
+          'mb-4 cursor-default leading-tight font-medium tracking-tight',
         ])}
         data-testid="info-data-container"
       >

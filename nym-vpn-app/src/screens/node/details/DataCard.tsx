@@ -21,8 +21,8 @@ function DataCard({ rows, footer }: DataCardProps) {
     <div>
       <ul
         className={clsx([
-          'flex flex-col justify-center items-center gap-0',
-          'bg-white dark:bg-charcoal rounded-lg p-4',
+          'flex flex-col items-center justify-center gap-0',
+          'dark:bg-charcoal rounded-lg bg-white p-4',
           'cursor-default',
         ])}
       >
@@ -30,8 +30,8 @@ function DataCard({ rows, footer }: DataCardProps) {
           <li
             key={key}
             className={clsx(
-              'w-full flex border-b last:border-b-0',
-              'py-2 last:pb-0 first:pt-0 border-bombay dark:border-iron',
+              'flex w-full border-b last:border-b-0',
+              'border-bombay dark:border-iron py-2 first:pt-0 last:pb-0',
               footer && '[&:nth-last-child(-n+2)]:border-b-0',
             )}
           >
@@ -41,7 +41,7 @@ function DataCard({ rows, footer }: DataCardProps) {
         {footer && (
           <div
             className={clsx(
-              'self-start mt-3 text-sm text-iron dark:text-bombay select-none',
+              'text-text-secondary mt-3 self-start text-sm select-none',
             )}
           >
             {footer}

@@ -6,6 +6,7 @@ const config = {
   singleQuote: true,
   // this is the default be for the sake of clarity, be explicit
   endOfLine: 'lf',
+  plugins: ['prettier-plugin-tailwindcss'],
 };
 
 export default config;

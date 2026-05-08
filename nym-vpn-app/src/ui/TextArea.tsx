@@ -51,7 +51,7 @@ function TextArea({
   return (
     <Field
       className={clsx([
-        'w-full flex flex-row items-center mb-2',
+        'mb-2 flex w-full flex-row items-center',
         label && 'relative',
       ])}
       data-testid={`${testId}-field`}
@@ -62,9 +62,9 @@ function TextArea({
         value={value}
         aria-multiline={true}
         className={clsx([
-          'text-base bg-faded-lavender dark:bg-ash transition',
-          'w-full flex flex-row justify-between items-center py-4 px-4',
-          'text-baltic-sea dark:text-white',
+          'bg-faded-lavender dark:bg-ash text-base transition',
+          'flex w-full flex-row items-center justify-between px-4 py-4',
+          'text-text-primary',
           'placeholder:text-iron dark:placeholder:text-bombay',
           ...inputStates,
           resize && getResizeClass(resize),
@@ -82,7 +82,7 @@ function TextArea({
       {label && (
         <Label
           className={clsx([
-            'select-none absolute left-3 -top-2 px-1',
+            'absolute -top-2 left-3 px-1 select-none',
             'dark:text-white',
             'bg-faded-lavender dark:bg-ash text-xs',
           ])}

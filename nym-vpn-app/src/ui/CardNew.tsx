@@ -18,7 +18,7 @@ export function CardNewHeader({
   return (
     <div
       className={clsx(
-        'w-full flex flex-row items-start justify-start p-5',
+        'flex w-full flex-row items-start justify-start p-4',
         className,
       )}
     >
@@ -34,7 +34,9 @@ export function CardNewFooter({
   children: ReactNode;
   className?: string;
 }) {
-  return <div className={clsx('w-full px-5 pb-5', className)}>{children}</div>;
+  return (
+    <div className={clsx('w-full px-5 pt-3 pb-5', className)}>{children}</div>
+  );
 }
 
 export function CardNewBody({
@@ -47,12 +49,23 @@ export function CardNewBody({
   return (
     <div
       className={clsx(
-        'w-full flex flex-col justify-center items-start gap-3 px-5',
+        'flex w-full flex-col items-start justify-center px-4',
         className,
       )}
     >
       {children}
     </div>
+  );
+}
+
+export function CardDivider({ className }: { className?: string }) {
+  return (
+    <div
+      className={clsx(
+        'h-px w-full shrink-0 bg-black/8 dark:bg-white/10',
+        className,
+      )}
+    />
   );
 }
 
@@ -64,8 +77,8 @@ export function CardDataRow({
   label: string;
 }) {
   return (
-    <div className="w-full flex justify-between items-center">
-      <p className="text-iron dark:text-bombay truncate select-none">{label}</p>
+    <div className="flex w-full items-center justify-between py-[7px]">
+      <p className="text-text-secondary truncate select-none">{label}</p>
       <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
         {children}
       </div>
@@ -85,12 +98,12 @@ export function CardNewCopyableRow({
   const { copy } = useClipboard();
 
   return (
-    <div className="w-full flex justify-between items-center gap-2">
+    <div className="flex w-full items-center justify-between gap-2 py-[7px]">
       {loading ? (
-        <Skeleton className="w-full h-4" />
+        <Skeleton className="h-4 w-full" />
       ) : (
         <>
-          <p className="text-iron dark:text-bombay truncate text-wrap wrap-break-word">
+          <p className="text-text-secondary truncate text-wrap wrap-break-word">
             {label}
           </p>
           <ButtonIcon
@@ -135,8 +148,8 @@ export function CardHeaderSwitch({
   return (
     <div
       className={clsx(
-        'w-full flex flex-row justify-between items-center gap-4 select-none',
-        'bg-white dark:bg-charcoal px-5 min-h-16 rounded-t-lg py-4',
+        'flex w-full flex-row items-center justify-between gap-4 select-none',
+        'dark:bg-charcoal min-h-16 rounded-t-lg bg-white px-4 py-4',
         !noHoverEffect && 'hover:bg-iron/5 dark:hover:bg-black/10',
         'cursor-default',
         disabled && 'pointer-events-none',
@@ -151,8 +164,8 @@ export function CardHeaderSwitch({
       tabIndex={disabled ? -1 : 0}
       style={style}
     >
-      <div className="min-w-0 flex flex-col justify-center gap-1">
-        <p className="truncate text-base text-baltic-sea dark:text-white select-none">
+      <div className="flex min-w-0 flex-col justify-center gap-1">
+        <p className="text-text-primary truncate text-base select-none">
           {header}
         </p>
         {subheader && (
@@ -160,7 +173,7 @@ export function CardHeaderSwitch({
             className={clsx(
               'text-sm select-none',
               subheaderColor === 'default'
-                ? 'text-iron dark:text-bombay'
+                ? 'text-text-secondary'
                 : 'text-cheddar dark:text-king-nacho',
             )}
           >
@@ -192,10 +205,11 @@ export function CardNew({ children, disabled, className }: CardNewProps) {
   return (
     <div
       className={clsx([
-        'flex flex-col justify-center items-center select-none',
-        'bg-white dark:bg-charcoal rounded-lg min-h-16',
-        'transition cursor-default',
-        disabled && 'opacity-50 pointer-events-none',
+        '',
+        'flex flex-col items-center justify-center overflow-hidden select-none',
+        'dark:bg-aph-light min-h-16 rounded-2xl bg-white',
+        'cursor-default transition',
+        disabled && 'pointer-events-none opacity-50',
         className,
       ])}
     >

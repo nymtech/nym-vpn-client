@@ -1,7 +1,6 @@
-import clsx from 'clsx';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, TextInput } from '../../../../ui';
+import { ButtonNew, TextInput } from '../../../../ui';
 import { portRegex } from '../utils';
 
 type MyInputProps = {
@@ -33,35 +32,20 @@ function ProxyPortInput({
 
   return (
     <div className="flex flex-row gap-2">
-      <div className="flex-1 h-full">
+      <div className="h-full flex-1">
         <TextInput
           color="gray"
           value={value}
           placeholder={defaultValue}
           disabled={disabled}
-          label={t('app-proxy.listen-port')}
           onChange={handleChange}
         />
-        {error && <p className="mt-2 text-xs text-aphrodisiac">{error}</p>}
+        {error && <p className="text-aphrodisiac mt-2 text-xs">{error}</p>}
       </div>
       <div className="h-full">
-        <Button
-          outline
-          color="gray"
-          disabled={disabled}
-          onClick={handleReset}
-          className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0! py-2.5!"
-        >
-          <span
-            className={clsx(
-              'text-lg text-black dark:text-white',
-              !disabled &&
-                'group-hover:text-black/50 dark:group-hover:text-white/80',
-            )}
-          >
-            {t('app-proxy.reset-to-default')}
-          </span>
-        </Button>
+        <ButtonNew variant="outlined" disabled={disabled} onClick={handleReset}>
+          {t('app-proxy.reset-to-default')}
+        </ButtonNew>
       </div>
     </div>
   );

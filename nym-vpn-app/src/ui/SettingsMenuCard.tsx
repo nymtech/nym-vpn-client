@@ -37,26 +37,26 @@ function SettingsMenuCard({
     <div
       className={clsx([
         // normal color
-        color === 'normal' && 'bg-white dark:bg-charcoal',
+        color === 'normal' && 'dark:bg-charcoal bg-white',
         color === 'normal' &&
           !noHoverEffect &&
-          'hover:bg-white/60 dark:hover:bg-charcoal/85',
+          'dark:hover:bg-charcoal/85 hover:bg-white/60',
         // red color
         color === 'red' &&
-          'border-aphrodisiac border bg-aphrodisiac/10 dark:bg-aphrodisiac/10',
+          'border-aphrodisiac bg-aphrodisiac/10 dark:bg-aphrodisiac/10 border',
         color === 'red' &&
           !noHoverEffect &&
           'hover:bg-aphrodisiac/20 dark:hover:bg-aphrodisiac/20',
         // gray color
-        color === 'gray' && 'bg-white dark:bg-mine-shaft',
+        color === 'gray' && 'dark:bg-mine-shaft bg-white',
         color === 'gray' &&
           !noHoverEffect &&
-          'hover:bg-white/60 dark:hover:bg-mine-shaft/85',
-        'flex flex-row justify-between items-center gap-4 select-none',
-        'px-5 rounded-lg min-h-16',
+          'dark:hover:bg-mine-shaft/85 hover:bg-white/60',
+        'flex flex-row items-center justify-between gap-4 select-none',
+        'min-h-16 rounded-lg px-5',
         description ? 'py-2' : 'py-4',
-        'transition cursor-default',
-        disabled && 'opacity-50 pointer-events-none',
+        'cursor-default transition',
+        disabled && 'pointer-events-none opacity-50',
         className,
       ])}
       onClick={onClick}
@@ -69,22 +69,22 @@ function SettingsMenuCard({
     >
       <div
         className={clsx(
-          'overflow-hidden flex flex-row items-center justify-between gap-4',
+          'flex flex-row items-center justify-between gap-4 overflow-hidden',
         )}
       >
         {leadingIcon && (
-          <MsIcon icon={leadingIcon} className="text-iron dark:text-bombay" />
+          <MsIcon icon={leadingIcon} className="text-text-secondary" />
         )}
         {leadingComponent && <div>{leadingComponent}</div>}
-        <div className="min-w-0 flex flex-col justify-center">
-          <p className="truncate text-base text-baltic-sea dark:text-white select-none">
+        <div className="flex min-w-0 flex-col justify-center">
+          <p className="text-text-primary truncate text-base select-none">
             {title}
           </p>
           {description && (
             <p
               className={clsx(
                 'truncate text-sm select-none',
-                descriptionColor === 'normal' && 'text-iron dark:text-bombay',
+                descriptionColor === 'normal' && 'text-text-secondary',
                 descriptionColor === 'red' && 'text-aphrodisiac',
                 descriptionColor === 'yellow' && 'text-king-nacho',
               )}

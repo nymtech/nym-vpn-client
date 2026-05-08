@@ -15,16 +15,16 @@ function LaunchConfirmDialog({ isOpen, appName, onConfirm, onCancel }: Props) {
   return (
     <Dialog open={isOpen} onClose={onCancel} className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-4">
-        <MsIcon icon="info" className="text-baltic-sea dark:text-white" />
+        <MsIcon icon="info" className="text-text-primary" />
         <DialogTitle
           as="h3"
-          className="text-xl font-medium text-baltic-sea dark:text-white text-center"
+          className="text-text-primary text-center text-xl font-medium"
         >
           {t('split-tunneling.launch-confirm-dialog.title', { appName })}
         </DialogTitle>
       </div>
 
-      <div className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+      <div className="text-text-secondary text-sm whitespace-pre-line">
         <p>{t('split-tunneling.launch-confirm-dialog.description')}</p>
       </div>
 

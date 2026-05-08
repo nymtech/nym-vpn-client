@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useReducer } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { MixnetTrafficConfig } from '../../../../types';
-import { useMainState } from '../../../../contexts';
+import { useAppStore } from '../../../../store';
 import { MixnetTrafficConfigContext } from './context';
 import { reducer } from './reducer';
 
@@ -9,7 +10,12 @@ function MixnetTrafficConfigProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { mixnetTrafficConfig, mixnetTrafficDefaults } = useMainState();
+  const { mixnetTrafficConfig, mixnetTrafficDefaults } = useAppStore(
+    useShallow((s) => ({
+      mixnetTrafficConfig: s.mixnetTrafficConfig,
+      mixnetTrafficDefaults: s.mixnetTrafficDefaults,
+    })),
+  );
 
   const [state, dispatch] = useReducer(
     reducer,

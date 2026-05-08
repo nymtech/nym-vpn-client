@@ -33,7 +33,6 @@ pub enum Key {
     DesktopNotifications,
     LastNetworkEnv,
     NetworkStatsEnabled,
-    DomainFrontingEnabled,
     // some data cache (no semantic difference)
     CacheMxEntryGateways,
     CacheMxExitGateways,

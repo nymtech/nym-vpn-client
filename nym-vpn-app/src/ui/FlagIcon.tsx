@@ -285,13 +285,13 @@ function FlagIcon({ code, alt, className, ...rest }: FlagIconProps) {
 
   return (
     <div
-      className="w-7 min-w-7 flex justify-center items-center"
+      className="flex w-7 min-w-7 items-center justify-center"
       data-testid={`${testId}-container`}
     >
       <img
         src={`./flags/${code}.svg`}
         className={clsx([
-          'h-7 scale-90 pointer-events-none fill-current',
+          'pointer-events-none h-7 scale-90 fill-current',
           className && className,
         ])}
         alt={alt}

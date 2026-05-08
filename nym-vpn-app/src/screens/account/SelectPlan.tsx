@@ -6,13 +6,12 @@ import { Button, MsIcon, PageAnim, Spinner } from '../../ui';
 import { routes } from '../../router';
 import { CheckCircleIcon } from '../../assets';
 import { useAutologin } from '../../contexts/autologin/context';
-import { useDeepLink } from '../../hooks';
+import { useDeepLink, useToast } from '../../hooks';
 import { DeeplinkTimeout } from '../../errors';
-import { useInAppNotify } from '../../contexts';
 
 function Feature({ icon, title }: { icon: string; title: string }) {
   return (
-    <h3 className="text-left dark:text-bombay w-72 flex items-center gap-2 text-base">
+    <h3 className="dark:text-bombay flex w-72 items-center gap-2 text-left text-base">
       <MsIcon icon={icon} className="text-malachite" /> {title}
     </h3>
   );
@@ -25,7 +24,7 @@ function SelectPlan() {
   const [autologinLoading, setAutologinLoading] = useState(false);
   const { autologin, closeDialog } = useAutologin();
   const { startListening } = useDeepLink();
-  const { push } = useInAppNotify();
+  const { add } = useToast();
 
   const handleClick = async () => {
     if (autologinLoading) return;
@@ -42,10 +41,9 @@ function SelectPlan() {
     } catch (error: unknown) {
       console.error('Select plan error: ', error);
       if (error instanceof DeeplinkTimeout) {
-        push({
-          message: t('autologin.timeout', { ns: 'errors' }),
+        add({
+          title: t('autologin.timeout', { ns: 'errors' }),
           type: 'error',
-          duration: 3000,
         });
       }
     } finally {
@@ -54,10 +52,10 @@ function SelectPlan() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col items-center select-none cursor-default">
-      <div className="grow flex flex-col justify-center items-center gap-6 px-4">
+    <PageAnim className="flex h-full cursor-default flex-col items-center select-none">
+      <div className="flex grow flex-col items-center justify-center gap-6 px-4">
         <CheckCircleIcon className="text-malachite text-4xl" />
-        <div className="flex flex-col gap-2 text-2xl text-center dark:text-white">
+        <div className="flex flex-col gap-2 text-center text-2xl dark:text-white">
           <h1 className="truncate">{t('select-a-plan.title')}</h1>
         </div>
         <div className="flex flex-col gap-2 self-start">

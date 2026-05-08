@@ -1,22 +1,17 @@
-import {
-  ReactNode,
-  isValidElement,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { ReactNode, isValidElement, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { type } from '@tauri-apps/plugin-os';
 import { motion } from 'motion/react';
 import { NymVpnTextLogo } from '../assets';
-import { useDialog, useMainState, useTopBar } from '../contexts';
+import { useDialog, useTopBar } from '../contexts';
 import { routes } from '../router';
-import { Routes } from '../types';
+import { Routes, UiTheme } from '../types';
 import { ActionMenu } from '../screens';
-import ButtonIcon from './ButtonIcon';
+import { useSystemTheme } from '../state';
+import { useAppStore } from '../store';
+import { ButtonIconNew } from './ButtonIcon';
+import { StaggeredText } from './StaggeredText';
 
 type NavLocation = {
   title?: string | ReactNode;
@@ -31,15 +26,27 @@ type NavLocation = {
 
 type NavBarData = Record<Routes, NavLocation>;
 
+function TopNymLogo({ uiTheme }: { uiTheme: UiTheme }) {
+  return (
+    <NymVpnTextLogo
+      className={clsx(
+        'h-6 w-24',
+        uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+      )}
+    />
+  );
+}
+
 export default function TopBar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const os = type();
 
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
   const { show } = useDialog();
   const { customLeftNavHandler } = useTopBar();
+
+  const { handleThemeChange } = useSystemTheme();
 
   const [currentNavLocation, setCurrentNavLocation] = useState<NavLocation>({
     title: '',
@@ -49,96 +56,81 @@ export default function TopBar() {
     },
   });
 
-  const getMainScreenTitle = useCallback(() => {
-    if (os === 'windows' || os === 'macos') {
-      // we don't show the logo since the native window-bar already shows it
-      return null;
-    }
-    return (
-      <NymVpnTextLogo
-        className={clsx(
-          'w-24 h-6',
-          uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
-        )}
-        data-testid="top-bar-logo"
-      />
-    );
-  }, [os, uiTheme]);
-
   const navBarData = useMemo<NavBarData>(() => {
     return {
-      '/': {
-        title: getMainScreenTitle(),
+      '/welcome': {
+        title: <TopNymLogo uiTheme={uiTheme} />,
+        leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
+        handleLeftNav: () =>
+          handleThemeChange(uiTheme === 'dark' ? 'light' : 'dark'),
         rightIcon: 'settings',
         handleRightNav: () => {
           navigate(routes.settings);
         },
         noBackground: true,
       },
-      '/signup': {
-        leftIcon: 'arrow_back',
+      '/home': {
+        title: <TopNymLogo uiTheme={uiTheme} />,
+        leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
         handleLeftNav: () => {
-          navigate(-1);
+          handleThemeChange(uiTheme === 'dark' ? 'light' : 'dark');
+        },
+        rightIcon: 'settings',
+        handleRightNav: () => {
+          navigate(routes.settings);
         },
         noBackground: true,
       },
-      '/login': {
-        leftIcon: 'arrow_back',
-        handleLeftNav: () => {
-          navigate(-1);
-        },
-        noBackground: true,
-      },
-      '/onboarding': {
+      '/hideout/onboarding': {
         rightIcon: 'close',
         handleRightNav: () => navigate(routes.root),
         noBackground: true,
       },
       '/settings': {
         title: t('settings'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/account': {
         title: t('account.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/appearance': {
         title: t('appearance'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/appearance/lang': {
         title: t('language'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/appearance/display': {
         title: t('display-theme'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/data-privacy': {
         title: t('privacy.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/data-privacy/logs': {
         title: t('logs'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         rightComponent: <ActionMenu />,
         handleLeftNav: () => {
           navigate(-1);
@@ -146,28 +138,28 @@ export default function TopBar() {
       },
       '/settings/data-privacy/diagnostic': {
         title: t('diagnostic.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/dns': {
         title: t('dns.topbar-title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/mixnet-tuning': {
         title: t('mixnet-tuning.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/split-tunneling': {
         title: t('split-tunneling.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
@@ -178,117 +170,110 @@ export default function TopBar() {
       },
       '/settings/anti-censorship': {
         title: t('anti-censorship.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/socks5': {
         title: t('app-proxy.title', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/feedback': {
         title: t('feedback'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/feedback/send': {
         title: t('feedback'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/legal': {
         title: t('legal'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/legal/licenses-rust': {
         title: t('legal.licenses-rust', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/legal/licenses-js': {
         title: t('legal.licenses-js', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/legal/license-details': {
         title: t('legal.license', { ns: 'settings' }),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/support': {
         title: t('support'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/settings/dev': {
         title: 'dev',
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/entry-node-location': {
         title: t('first-hop-selection'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-iron dark:text-bombay hover:text-baltic-sea dark:hover:text-white',
+          'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
         handleRightNav: () => {
           show('location-info');
         },
       },
       '/exit-node-location': {
         title: t('last-hop-selection'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-iron dark:text-bombay hover:text-baltic-sea dark:hover:text-white',
+          'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
         handleRightNav: () => {
           show('location-info');
         },
       },
       '/node-details': {
         title: t('server-details'),
-        leftIcon: 'arrow_back',
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
       },
       '/account/select-a-plan': {
-        title: (
-          <NymVpnTextLogo
-            className={clsx(
-              'w-24 h-6',
-              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
-            )}
-          />
-        ),
-        leftIcon: 'arrow_back',
+        title: <TopNymLogo uiTheme={uiTheme} />,
+        leftIcon: 'keyboard_arrow_left',
         handleLeftNav: () => {
           navigate(-1);
         },
@@ -296,11 +281,10 @@ export default function TopBar() {
       },
       // these screens do not use the TopBar
       '/hideout': {},
-      '/hideout/welcome': {},
       // TODO
       '/account': {},
     };
-  }, [t, navigate, getMainScreenTitle, show, uiTheme]);
+  }, [t, navigate, show, uiTheme, handleThemeChange]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);
@@ -313,12 +297,11 @@ export default function TopBar() {
   const renderTitle = (title?: string | ReactNode) => {
     if (typeof title === 'string') {
       return (
-        <p
-          className="truncate justify-self-center tracking-normal"
+        <StaggeredText
+          text={title}
+          className="justify-self-center truncate tracking-normal"
           data-testid="top-bar-title-text"
-        >
-          {currentNavLocation.title}
-        </p>
+        />
       );
     }
     if (isValidElement(title)) {
@@ -339,12 +322,13 @@ export default function TopBar() {
         transition: { duration: 0.2 },
       }}
       className={clsx([
-        'flex flex-row flex-nowrap justify-between items-center shrink-0',
-        'text-baltic-sea dark:text-white',
-        'h-16 text-xl z-30 select-none cursor-default',
+        'flex shrink-0 flex-row flex-nowrap items-center justify-between',
+        'text-text-primary',
+        'z-30 h-16 cursor-default text-xl select-none',
+        'px-4 py-2',
         currentNavLocation.noBackground
-          ? 'dark:bg-ash bg-faded-lavender'
-          : 'dark:bg-charcoal bg-white',
+          ? 'dark:bg-background bg-gray'
+          : 'dark:bg-surface bg-white',
       ])}
       data-testid="top-bar"
       data-test-route={location.pathname}
@@ -359,20 +343,17 @@ export default function TopBar() {
           transition={{ duration: 0.15, ease: 'easeOut' }}
           data-testid="top-bar-left-button-container"
         >
-          <ButtonIcon
+          <ButtonIconNew
             icon={currentNavLocation.leftIcon}
             onClick={
               customLeftNavHandler ??
               currentNavLocation.handleLeftNav ??
               defaultLeftNavHandler
             }
-            color="chalk"
-            className="mx-4"
-            noDefaultSize
           />
         </motion.div>
       ) : (
-        <div className="w-6 mx-4" data-testid="top-bar-left-spacer" />
+        <div className="mx-4 w-6" data-testid="top-bar-left-spacer" />
       )}
       <div data-testid="top-bar-title-container" className="text-xl">
         {renderTitle(currentNavLocation.title)}
@@ -387,17 +368,14 @@ export default function TopBar() {
           {currentNavLocation.rightComponent &&
             currentNavLocation.rightComponent}
           {currentNavLocation.rightIcon && (
-            <ButtonIcon
+            <ButtonIconNew
               icon={currentNavLocation.rightIcon}
               onClick={currentNavLocation.handleRightNav!}
-              color="chalk"
-              className="mx-4"
-              noDefaultSize
             />
           )}
         </motion.div>
       ) : (
-        <div className="w-6 mx-4" data-testid="top-bar-right-spacer" />
+        <div className="mx-4 w-6" data-testid="top-bar-right-spacer" />
       )}
     </motion.nav>
   );

@@ -31,7 +31,7 @@ function Logs() {
 
   return (
     <PageAnim
-      className="h-full flex flex-col mt-2 gap-6"
+      className="mt-2 flex h-full flex-col gap-6"
       data-testid="logs-page"
     >
       <SettingsGroup

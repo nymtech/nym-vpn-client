@@ -24,28 +24,31 @@
     }
   },
   "signup": {
-    "title": "Create account",
-    "create-account": "Create anonymous account",
-    "maximum-privacy": {
-      "title": "⚡️ Instant & anonymous (recommended)",
-      "description": "One tap to checkout. Anonymous account generated on your device. No password, no personal info."
-    },
-    "quick-setup": {
-      "title": "⚡️ Quick setup",
-      "description": "Use existing account like Google or crypto wallet through our login partner Privy"
-    },
-    "already-have-an-account": {
-      "title": "Already have an account?",
-      "button": "Log in"
-    }
+    "title": "Sign Up",
+    "description": "To the next generation of privacy infrastructure.",
+    "signup-anonymous-button": "Anonymous account",
+    "signup-social-button": "Sign up with socials*",
+    "disclaimer": "*Signing up with an existing social account decreases your anonymity."
+  },
+  "login": {
+    "title": "Log in",
+    "description": "To the next generation of privacy infrastructure.",
+    "login-24-words-button": "Login with 24 words",
+    "login-social-button": "Login using linked socials*",
+    "login-social-button-disclaimer": "*You need to connect socials to an existing account first before you can use them for login.",
+    "can-t-login-while-tunnel-is-running": "Can't login while tunnel is running"
+  },
+  "welcome": {
+    "title": "Welcome!",
+    "description": "To the next generation of privacy infrastructure.",
+    "signup-button": "Sign up",
+    "login-button": "Login to my account",
+    "terms-of-service": "By continuing, you agree to our Terms of Service and acknowledge our Privacy "
   },
   "passphrase": {
     "title": "Log in",
-    "description": "Enter or paste your passphrase: 24 words separated by spaces",
-    "input-label": "Passphrase",
-    "input-placeholder": "24-word-passphrase\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough…",
-    "login-button": "Log in",
-    "new-to-nymvpn": "New to NymVPN?"
+    "description": "Enter your 24-word passphrase...",
+    "login-button": "Login"
   },
   "social-account-button": "Continue with social account",
   "create-account": "Start anonymously",

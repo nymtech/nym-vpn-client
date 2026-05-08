@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { useClipboard } from '../../../../hooks';
-import { ButtonIcon } from '../../../../ui';
+import { ButtonIconNew } from '../../../../ui';
 
 type ProxyUrlProps = {
   value: string;
@@ -15,18 +15,17 @@ function ProxyUrl({ value, title, borderBottom = true }: ProxyUrlProps) {
     <div
       className={clsx(
         'flex flex-col',
-        borderBottom && 'border-b border-bombay dark:border-iron py-2',
+        borderBottom && 'border-bombay dark:border-iron border-b py-2',
       )}
     >
       <p className="text-xs">{title}</p>
       <div className="flex items-center justify-between gap-4">
-        <p className="text-iron dark:text-bombay font-mono text-sm">{value}</p>
-        <ButtonIcon
-          clickFeedback
-          noDefaultSize
-          color="chalk"
+        <p className="text-text-secondary font-mono text-sm">{value}</p>
+        <ButtonIconNew
           icon="content_copy"
           onClick={() => copy(value, false)}
+          noDefaultSize
+          clickFeedback
         />
       </div>
     </div>

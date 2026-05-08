@@ -1,12 +1,8 @@
 import { useCallback } from 'react';
 import clsx from 'clsx';
-import { Accordion } from '@base-ui-components/react';
-import {
-  SelectedKind,
-  UiCountry,
-  UiRegion,
-  useNodeListState,
-} from '../../../contexts';
+import { Collapsible } from '@base-ui-components/react';
+import { SelectedKind, UiCountry, UiRegion } from '../../../types/node';
+import { useNodeListState } from '../../../store/nodeListState';
 import LocationInfo from './LocationInfo';
 import FoldButton from './FoldButton';
 
@@ -56,12 +52,10 @@ function RowHeader({
     <div
       ref={scrollToRowRef}
       className={clsx(
-        'flex flex-row justify-between rounded-r-lg',
+        'flex flex-row items-center justify-between rounded-r-2xl',
+        !sub ? 'dark:bg-charcoal bg-white' : 'bg-gainsboro dark:bg-charcoal/60',
         !sub
-          ? ' bg-white dark:bg-charcoal'
-          : 'bg-gainsboro dark:bg-charcoal/60',
-        !sub
-          ? 'hover:bg-white/60 dark:hover:bg-charcoal/85'
+          ? 'dark:hover:bg-charcoal/85 hover:bg-white/60'
           : 'hover:bg-nordic-breeze hover:dark:bg-charcoal/75',
       )}
     >
@@ -75,7 +69,7 @@ function RowHeader({
         data-selected={isSelected ? isSelected : 'none'}
       />
       <div
-        className={clsx('grow overflow-hidden truncate py-2')}
+        className={clsx('grow truncate overflow-hidden py-2')}
         onClick={() => onClick(node)}
       >
         {node.nodeType === 'country' ? (
@@ -84,11 +78,9 @@ function RowHeader({
           <LocationInfo node={node} name={node.name} gwCount={gwCount} />
         )}
       </div>
-      <Accordion.Header className="flex p-2 items-center justify-center">
-        <Accordion.Trigger
-          render={(props, state) => <FoldButton html={props} state={state} />}
-        />
-      </Accordion.Header>
+      <Collapsible.Trigger
+        render={(props, state) => <FoldButton html={props} state={state} />}
+      />
     </div>
   );
 }

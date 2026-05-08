@@ -190,13 +190,15 @@
       "label": "Enhanced connection (QUIC)",
       "warning": "Changes will apply after reconnect",
       "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible servers only.",
-      "link": "How QUIC improves connections"
+      "link": "How QUIC improves connections",
+      "error": "Failed to enable QUIC"
     },
     "stealth-api": {
       "label": "Stealth API connect",
       "warning": "Changes will apply after reconnect",
       "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
-      "link": "How the Stealth API connect mode works"
+      "link": "How the Stealth API connect mode works",
+      "error": "Failed to enable Stealth API connect"
     },
     "amneziawg": {
       "label": "Minimal obfuscation (AmneziaWG)",
@@ -294,8 +296,8 @@
     "logout": "Log out",
     "forget-me": "Forget me - SSO logout",
     "title": "Account",
-    "account-linked": "⚡️ This account is linked with a social login method via privy.",
-    "account-not-linked": "⚠️ Linking a social account with your Nym account reduces your anonymity. Changes take effect after loggin out and logging back in with the chosen social.",
+    "account-linked": "Backup login method linked via Privy.",
+    "account-not-linked": "<button>Add a social login</button> method to your account.",
     "get-started": "Get started",
     "choose-plan": "Choose plan",
     "syncing": "Syncing…",
@@ -338,6 +340,12 @@
       "description": "The app will be launched outside of the VPN tunnel and will connect directly to the internet (unprotected by NymVPN).\n\nBefore proceeding, please make sure the app is not already running. If it is, close all instances first, then launch the app from here.",
       "launch": "Launch",
       "cancel": "Cancel"
+    },
+    "error": {
+      "failed-to-open-app": "Failed to open app",
+      "failed-to-enable-split-tunneling": "Failed to enable split tunneling",
+      "failed-to-add-app-to-split-tunneling": "Failed to add app to split tunneling",
+      "failed-to-remove-app-from-split-tunneling": "Failed to remove app from split tunneling"
     }
   }
 }

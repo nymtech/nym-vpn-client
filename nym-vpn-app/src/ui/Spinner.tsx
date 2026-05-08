@@ -9,7 +9,7 @@ function Spinner({ className }: { className?: string }) {
       className={clsx([
         'loader h-[22px] w-[22px]',
         os !== 'linux' && 'border-4',
-        'border-baltic-sea dark:border-white border-b-transparent dark:border-b-transparent',
+        'border-baltic-sea border-b-transparent dark:border-white dark:border-b-transparent',
         className,
       ])}
       data-testid="button-spinner"

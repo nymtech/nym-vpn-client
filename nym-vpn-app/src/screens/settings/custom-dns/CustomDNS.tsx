@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router';
 import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
 import { CustomDnsHelpUrl } from '../../../constants';
 import useCustomDns from '../../../hooks/useCustomDns';
-import { useInAppNotify } from '../../../contexts';
 import { BackNavigationConfirmationDialog } from '../../../components';
+import { useToast } from '../../../hooks';
 import { CustomDnsServers } from './CustomDnsServers';
 import { DefaultDnsServers } from './DefaultDnsServers';
 import { DnsItem } from './DnsItemContent';
@@ -19,7 +19,7 @@ function CustomDNS() {
     setCustomDns,
     customDns,
   } = useCustomDns();
-  const { push } = useInAppNotify();
+  const { add } = useToast();
 
   const [customDnsList, setCustomDnsList] = useState<DnsItem[]>(() =>
     customDns.map((dns) => ({ id: dns, dns })),
@@ -36,9 +36,8 @@ function CustomDNS() {
       await toggleCustomDns(false);
     }
     await setCustomDns(customDnsList.map((item) => item.dns));
-    push({
-      message: t('dns.details.applied'),
-      close: true,
+    add({
+      title: t('dns.details.applied'),
       type: 'info',
     });
   };
@@ -61,8 +60,8 @@ function CustomDNS() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
-      <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+    <PageAnim className="mt-2 flex h-full flex-col gap-6 select-none">
+      <p className="text-text-secondary text-sm whitespace-pre-line">
         {t('dns.top-description')}
       </p>
       <DefaultDnsServers />
@@ -78,7 +77,7 @@ function CustomDNS() {
         }
       >
         <div className="flex flex-col gap-6">
-          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+          <p className="text-text-secondary text-sm whitespace-pre-line">
             {t('dns.details.description')}
           </p>
 

@@ -73,7 +73,6 @@ const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 const DEFAULT_SENTRY_ENABLED: bool = false;
 const DEFAULT_NETSTATS_ENABLED: bool = true;
 const DEFAULT_QUIC: bool = false;
-const DEFAULT_DOMAIN_FRONTING: bool = false;
 
 // build time pkg data
 build_info::build_info!(fn build_info);
@@ -297,6 +296,7 @@ async fn main() -> Result<()> {
             tunnel::disconnect,
             tunnel::set_node,
             tunnel::set_quic,
+            tunnel::set_fronting_mode,
             tunnel::get_default_dns,
             tunnel::set_custom_dns,
             tunnel::set_custom_dns_enabled,
@@ -313,6 +313,8 @@ async fn main() -> Result<()> {
             tunnel::add_app_to_split_tunnel,
             tunnel::remove_app_from_split_tunnel,
             tunnel::is_split_tunnel_supported,
+            tunnel::set_gateway_selection_algorithm,
+            tunnel::set_enable_geo_location,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_del,

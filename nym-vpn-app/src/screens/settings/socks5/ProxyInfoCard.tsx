@@ -8,12 +8,9 @@ export type ProxyInfoCardProps = {
 
 function ProxyInfoCard({ children, title }: ProxyInfoCardProps) {
   return (
-    <div className="bg-white dark:bg-charcoal rounded-lg flex flex-col gap-5 p-4">
+    <div className="dark:bg-charcoal flex flex-col gap-5 rounded-lg bg-white p-4">
       <div className="flex items-center gap-2">
-        <MsIcon
-          icon="tag"
-          className="text-iron dark:text-bombay text-2xl leading-1"
-        />
+        <MsIcon icon="tag" className="text-text-secondary text-2xl leading-1" />
         <p className="text-base font-medium">{title}</p>
       </div>
       {children}

@@ -1,21 +1,19 @@
 import { invoke } from '@tauri-apps/api/core';
 import { exit as processExit } from '@tauri-apps/plugin-process';
-import { useMainDispatch, useMainState } from '../contexts';
+import { dispatch, useAppStore } from '../store';
 import { kvFlush } from '../kvStore';
-import { StateDispatch } from '../types';
 
 // Hook to exit the app
 export function useExit() {
-  const state = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
+  const tunnelState = useAppStore((s) => s.state);
 
   const exit = async () => {
     console.info('app exit');
     if (
-      state.state === 'connected' ||
-      state.state === 'error' ||
-      state.state === 'connecting' ||
-      state.state === 'offline-auto-reconnect'
+      tunnelState === 'connected' ||
+      tunnelState === 'error' ||
+      tunnelState === 'connecting' ||
+      tunnelState === 'offline-auto-reconnect'
     ) {
       // TODO add a timeout to prevent the app from hanging
       // in bad disconnect scenarios

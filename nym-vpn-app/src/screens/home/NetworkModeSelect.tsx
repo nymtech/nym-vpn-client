@@ -2,15 +2,20 @@ import { useMemo, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
-import { useGateways, useMainDispatch, useMainState } from '../../contexts';
-import { StateDispatch, VpnMode } from '../../types';
+import { useShallow } from 'zustand/react/shallow';
+import { dispatch, useAppStore, useFetchGateways } from '../../store';
+import { VpnMode } from '../../types';
 import { ButtonIcon, RadioGroup, RadioGroupOption } from '../../ui';
 import ModeDetailsDialog from './ModeDetailsDialog';
 
 function NetworkModeSelect() {
-  const { vpnMode, daemonStatus } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
-  const { fetch } = useGateways();
+  const { vpnMode, daemonStatus } = useAppStore(
+    useShallow((s) => ({
+      vpnMode: s.vpnMode,
+      daemonStatus: s.daemonStatus,
+    })),
+  );
+  const fetchGateways = useFetchGateways();
 
   const [isDialogModesOpen, setIsDialogModesOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -25,10 +30,10 @@ function NetworkModeSelect() {
         dispatch({ type: 'set-vpn-mode', mode: value });
         console.info(`vpn mode set to [${value}]`);
         if (value === 'mixnet') {
-          fetch('mx-entry');
-          fetch('mx-exit');
+          fetchGateways('mx-entry');
+          fetchGateways('mx-exit');
         } else {
-          fetch('wg');
+          fetchGateways('wg');
         }
       } finally {
         setLoading(false);
@@ -40,9 +45,7 @@ function NetworkModeSelect() {
     const iconStyle = (checked: boolean) =>
       clsx(
         'font-icon text-2xl leading-none',
-        checked
-          ? 'text-malachite-moss dark:text-malachite'
-          : 'text-bombay dark:text-iron',
+        checked ? 'text-primary' : 'text-bombay dark:text-iron',
       );
 
     return [
@@ -84,7 +87,7 @@ function NetworkModeSelect() {
       <div
         className={clsx([
           'flex flex-row items-center justify-between',
-          'font-medium text-base text-baltic-sea dark:text-white mb-5 cursor-default',
+          'text-text-primary mb-5 cursor-default text-base font-medium',
         ])}
         data-testid="network-mode-label-container"
       >

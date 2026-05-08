@@ -1,9 +1,95 @@
 import { useTransition } from 'react';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Button as HuButton } from '@headlessui/react';
 import clsx from 'clsx';
+import { Button } from '@base-ui/react';
 import { sleep } from '../util';
 import { MsIcon } from './index';
+
+export type ButtonIconNewProps = {
+  onClick: () => void;
+  icon: string;
+  size?: 'small' | 'base';
+  className?: string;
+  initialAnimation?: boolean;
+  noDefaultSize?: boolean;
+  clickFeedback?: boolean;
+};
+
+export function ButtonIconNew({
+  onClick,
+  icon,
+  className,
+  size = 'base',
+  initialAnimation = false,
+  noDefaultSize = false,
+  clickFeedback = false,
+}: ButtonIconNewProps) {
+  const [isClicked, click] = useTransition();
+
+  const clickAnim = () => {
+    click(async () => {
+      await sleep(500);
+    });
+  };
+  return (
+    <Button
+      className={clsx([
+        'flex items-center justify-center rounded-full transition-colors',
+        'text-iron hover:text-baltic-sea',
+        'dark:text-bombay dark:hover:text-white',
+        !noDefaultSize && 'hover:bg-baltic-sea/20 dark:hover:bg-baltic-sea',
+        !noDefaultSize && 'h-10 w-10',
+        className && className,
+      ])}
+      onClick={() => {
+        if (clickFeedback) {
+          clickAnim();
+        }
+        onClick();
+      }}
+    >
+      <AnimatePresence mode="wait" initial={initialAnimation}>
+        {isClicked ? (
+          <motion.div
+            className="flex"
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              duration: 0.15,
+              scale: { type: 'spring', visualDuration: 0.2, bounce: 0.5 },
+            }}
+          >
+            <MsIcon
+              icon="check"
+              className={clsx([
+                'text-primary leading-none',
+                size === 'small' && 'text-2xl',
+                size === 'base' && 'text-3xl',
+              ])}
+            />
+          </motion.div>
+        ) : (
+          <motion.span
+            key={icon}
+            initial={{ opacity: 0, rotate: 90 }}
+            animate={{ opacity: 1, rotate: 0 }}
+            exit={{ opacity: 0, rotate: -90 }}
+            transition={{ duration: 0.1 }}
+            className={clsx([
+              'h-[1em] w-[1em] leading-none',
+              'font-icon inline-block select-none rtl:-scale-x-100',
+              !noDefaultSize && size === 'small' && 'text-2xl',
+              !noDefaultSize && size === 'base' && 'text-3xl',
+            ])}
+          >
+            {icon}
+          </motion.span>
+        )}
+      </AnimatePresence>
+    </Button>
+  );
+}
 
 export type ButtonIconProps = {
   icon: string;
@@ -46,7 +132,7 @@ function ButtonIcon({
   return (
     <HuButton
       className={clsx([
-        'rounded-full flex items-center justify-center',
+        'flex items-center justify-center rounded-full',
         color === 'malachite' && [
           'text-malachite-moss/80 data-hover:text-malachite-moss',
           'dark:text-malachite/80 data-hover:dark:text-malachite',
@@ -56,10 +142,10 @@ function ButtonIcon({
           'dark:text-white data-hover:dark:text-white/80',
         ],
         'focus:outline-hidden',
-        'transition data-disabled:opacity-60 data-active:ring-0',
+        'transition data-active:ring-0 data-disabled:opacity-60',
         'cursor-default select-none',
         className && className,
-        !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
+        !noDefaultSize && 'h-10 min-h-10 w-10 min-w-10',
       ])}
       onClick={() => {
         if (clickFeedback) {
@@ -86,8 +172,8 @@ function ButtonIcon({
           <MsIcon
             icon={clickedIcon}
             className={clsx([
-              'text-2xl text-malachite-moss dark:text-malachite',
-              !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
+              'text-primary text-2xl',
+              !noDefaultSize && 'h-10 min-h-10 w-10 min-w-10',
               clickedIconClassName,
             ])}
             data-testid={`${testId}-clicked-icon`}
@@ -98,7 +184,7 @@ function ButtonIcon({
           icon={icon}
           className={clsx([
             'text-2xl',
-            !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
+            !noDefaultSize && 'h-10 min-h-10 w-10 min-w-10',
             iconClassName,
           ])}
           data-testid={`${testId}-icon`}

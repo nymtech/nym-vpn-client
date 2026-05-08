@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
-import { UiGateway, useNodeListState } from '../../../contexts';
+import { UiGateway } from '../../../types/node';
+import { useNodeListState } from '../../../store/nodeListState';
 import { MsIcon } from '../../../ui';
 import { NodeHop, VpnMode } from '../../../types';
 import { useLang } from '../../../hooks';
@@ -74,30 +75,28 @@ const GatewayItem = ({
     <div
       ref={scrollToGatewayRef}
       className={clsx(
-        'flex flex-row justify-between items-center select-none',
+        'flex flex-row items-center justify-between rounded-2xl select-none',
         'hover:bg-mercury hover:dark:bg-mine-shaft',
       )}
     >
       <Button
-        className="flex items-center overflow-hidden w-full pr-2 focus:outline-none"
+        className="flex w-full items-center overflow-hidden pr-2 focus:outline-none"
         onClick={handleSelect}
       >
         <div
           className={clsx(
-            'w-1.5 rounded-r-sm shrink-0 self-stretch',
+            'w-1.5 shrink-0 self-stretch rounded-r-sm',
             isSelected === node && 'bg-malachite',
             isSelected && isSelected !== node && 'bg-iron',
           )}
         />
-        <div className="flex flex-row items-center p-2 gap-4 overflow-hidden">
+        <div className="flex flex-row items-center gap-4 overflow-hidden p-2">
           <div className="flex">
             <ScoreIndicator score={score} />
           </div>
-          <div className="flex flex-col text-start overflow-hidden">
-            <p className="truncate">{gateway.name}</p>
-            <p className="text-sm text-iron dark:text-bombay truncate">
-              {location()}
-            </p>
+          <div className="flex flex-col overflow-hidden text-start">
+            <p className="text-text-primary truncate">{gateway.name}</p>
+            <p className="text-text-secondary truncate text-sm">{location()}</p>
           </div>
         </div>
       </Button>
@@ -105,11 +104,11 @@ const GatewayItem = ({
       {streamOptimized && (
         <MsIcon icon="smart_display" className="text-cornflower" />
       )}
-      <div className="flex p-2 self-stretch items-center">
+      <div className="flex items-center self-stretch p-2">
         <Button
           className={clsx(
-            'w-12 h-12 flex justify-center items-center shrink-0 rounded-full',
-            'text-baltic-sea dark:text-white',
+            'flex h-12 w-12 shrink-0 items-center justify-center rounded-full',
+            'text-text-primary',
             'hover:bg-faded-lavender dark:hover:bg-charcoal',
             'focus:outline-none',
           )}

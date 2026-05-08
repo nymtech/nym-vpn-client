@@ -1,36 +1,38 @@
-import React from 'react';
+import { useMemo } from 'react';
 import clsx from 'clsx';
 import dayjs from 'dayjs';
 import * as H from 'history';
 import { Trans, useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useLocation, useNavigate } from 'react-router';
+import { useShallow } from 'zustand/react/shallow';
+import { UiGateway, isSelectedNodeType } from '../../../types/node';
+import { useNodeListState } from '../../../store/nodeListState';
 import {
-  UiGateway,
-  useMainDispatch,
-  useMainState,
-  useNodeListState,
-} from '../../../contexts';
-import {
-  Button,
-  ButtonIcon,
+  ButtonIconNew,
+  ButtonNew,
+  CardDataRow,
+  CardDivider,
+  CardNew,
+  CardNewBody,
+  CardNewFooter,
+  CardNewHeader,
   FlagIcon,
   Link,
   MsIcon,
   PageAnim,
   countryCode,
 } from '../../../ui';
-import { useClipboard, useLang, useScore } from '../../../hooks';
-import { Score, StateDispatch } from '../../../types';
+import { useClipboard, useLang, useScore, useToast } from '../../../hooks';
 import {
   IpInfoIoUrl,
   NetworkExplorerNodeUrl,
   SupportServerLocationUrl,
 } from '../../../constants';
-import { isSelectedNodeType } from '../../../contexts/node-list/util';
 import { routes } from '../../../router';
+import { dispatch, useAppStore } from '../../../store';
 import { ScoreIndicator } from '../ScoreIndicator';
-import DataCard from './DataCard';
+import { LewesIcon } from '../../../assets/index';
 
 type RouteState = {
   gateway: UiGateway;
@@ -38,15 +40,28 @@ type RouteState = {
 };
 
 function NodeDetails() {
-  const { backendFlags, entryNode, exitNode } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
+  const {
+    backendFlags,
+    entryNode,
+    exitNode,
+    quic: quicSetting,
+  } = useAppStore(
+    useShallow((s) => ({
+      backendFlags: s.backendFlags,
+      entryNode: s.entryNode,
+      exitNode: s.exitNode,
+      quic: s.quic,
+    })),
+  );
   const location = useLocation() as H.Location<RouteState>;
   const { t } = useTranslation('node-location');
   const navigate = useNavigate();
 
+  const { add } = useToast();
+
   const { getCountryName } = useLang();
   const { copy } = useClipboard();
-  const { performance, serverLoad: serverLoadStyle } = useScore();
+  const { performance: getPerformance, serverLoad: getLoad } = useScore();
   const { reset: resetSaved } = useNodeListState();
 
   const { gateway, hop } = location.state;
@@ -68,88 +83,26 @@ function NodeDetails() {
   const selectedNode = isSelectedNodeType(gateway, entryNode, exitNode);
   const isSelected = selectedNode === 'exit' || selectedNode === 'entry';
   const quic = backendFlags.quic && gateway.quic;
+  const overallScore =
+    gateway.type === 'wg' ? gateway.wgScore : gateway.mxScore;
 
-  const DataRow = ({
-    children,
-    label,
-  }: {
-    children: React.ReactNode;
-    label: string;
-  }) => (
-    <div className="w-full flex justify-between items-center">
-      <p className="text-iron dark:text-bombay truncate select-none">{label}</p>
-      <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
-        {children}
-      </div>
-    </div>
+  const performance = getPerformance(overallScore);
+  const serverLoadStyle = useMemo(
+    () => (serverLoad ? getLoad(serverLoad) : null),
+    [serverLoad, getLoad],
   );
 
-  const featureRow = (
-    label: string,
-    feature: string,
-    icon: React.ReactNode,
-    status: 'green' | 'orange' = 'green',
-  ) => (
-    <DataRow label={label}>
-      {status === 'green' ? (
-        icon
-      ) : (
-        <MsIcon
-          className="text-cheddar dark:text-king-nacho text-xl"
-          icon="circle"
-        />
-      )}
-      <p className="whitespace-nowrap truncate">{feature}</p>
-    </DataRow>
-  );
-
-  const scoreRow = (label: string, score: Score) => {
-    const { color, label: iconLabel } = performance(score);
-
-    return (
-      <DataRow label={label}>
-        <div className="flex gap-1 items-center overflow-hidden select-none">
-          <ScoreIndicator score={score} />
-          <p className={clsx('font-medium truncate', color)}>{iconLabel}</p>
-        </div>
-      </DataRow>
-    );
+  const serverLocation = () => {
+    const components = [];
+    if (gwLocation.city.length > 0) {
+      components.push(gwLocation.city);
+    }
+    if (gwLocation.region.length > 0) {
+      components.push(gwLocation.region);
+    }
+    components.push(getCountryName(country.code) || country.name);
+    return components.join(', ');
   };
-
-  const serverLoadRow = (label: string, score: Score) => {
-    const { color, label: iconLabel } = serverLoadStyle(score);
-
-    return (
-      <DataRow label={label}>
-        <p className={clsx('font-medium truncate select-none', color)}>
-          {iconLabel}
-        </p>
-      </DataRow>
-    );
-  };
-
-  const identityKey = (
-    <div className="w-full flex flex-col gap-2">
-      <p className="text-iron dark:text-bombay truncate">
-        {t('node-details.data.identity-key')}
-      </p>
-      <div className="flex items-center justify-between gap-3 wrap-break-word">
-        <p className="font-mono text-sm flex-wrap text-wrap wrap-break-word overflow-hidden">
-          {gateway.id}
-        </p>
-        <ButtonIcon
-          className="self-start"
-          iconClassName="!text-xl"
-          clickedIconClassName="!text-xl"
-          icon="content_copy"
-          color="chalk"
-          onClick={() => copy(gateway.id, false)}
-          clickFeedback
-          noDefaultSize
-        />
-      </div>
-    </div>
-  );
 
   const handleSelect = async () => {
     if (isSelected) return;
@@ -165,215 +118,313 @@ function NodeDetails() {
         payload: { hop, node },
       });
     } catch {
-      /* TODO notify the user something went wrong */
+      add({
+        id: 'node-select-error',
+        title: t('node-details.error.title'),
+        description: t('node-details.error.description'),
+        type: 'error',
+      });
     }
     navigate(routes.root);
     resetSaved(hop);
   };
 
-  const card1 = [
-    {
-      row: featureRow(
-        t('node-details.data.advanced-privacy'),
-        t('node-details.data.with-mixnet'),
-        <MsIcon
-          icon="visibility_off"
-          className="text-malachite-moss dark:text-malachite text-xl"
-        />,
-      ),
-      key: 'privacy',
-    },
-    {
-      row: featureRow(
-        t('node-details.data.ip-type'),
-        isGoodIp
-          ? t('node-details.data.ip-residential')
-          : t('node-details.data.ip-datacenter'),
-        <MsIcon icon="smart_display" className="text-cornflower text-xl" />,
-        isGoodIp ? 'green' : 'orange',
-      ),
-      key: 'ip-type',
-    },
-    backendFlags.quic && {
-      row: featureRow(
-        t('node-details.data.anti-censorship'),
-        quic
-          ? t('node-details.data.quic-protocol')
-          : t('node-details.data.standard-protocol'),
-        <MsIcon icon="package_2" className="text-azur text-xl" />,
-        quic ? 'green' : 'orange',
-      ),
-      key: 'anticensor-protocal',
-    },
-  ];
-  const card2 = [
-    {
-      row: scoreRow(
-        t('node-details.data.overall-performance'),
-        gateway.type === 'wg' ? gateway.wgScore : gateway.mxScore,
-      ),
-      key: 'overall-perf',
-    },
-    serverLoad && {
-      row: serverLoadRow(t('node-details.data.server-load'), serverLoad),
-      key: 'load-score',
-    },
-    uptime !== undefined && {
-      row: (
-        <DataRow label={t('node-details.data.uptime')}>
-          <p className="font-medium">{`${uptime * 100}%`}</p>
-        </DataRow>
-      ),
-      key: 'uptime',
-    },
-  ];
-  const card3 = [
-    exitIpv4 && {
-      row: (
-        <DataRow label={t('node-details.data.exit-ipv4')}>
-          <Link
-            text={exitIpv4}
-            url={`${IpInfoIoUrl}/${exitIpv4}`}
-            color="primary"
-            iconClassName="text-lg"
-            icon
-            selectable
-          />
-        </DataRow>
-      ),
-      key: 'exitIpv4',
-    },
-    exitIpv6 && {
-      row: (
-        <DataRow label={t('node-details.data.exit-ipv6')}>
-          <Link
-            text={exitIpv6}
-            url={`${IpInfoIoUrl}/${exitIpv6}`}
-            color="primary"
-            textClassName="select-text"
-            iconClassName="text-lg"
-            icon
-            selectable
-          />
-        </DataRow>
-      ),
-      key: 'exitIpv6',
-    },
-    asnValue && {
-      row: (
-        <DataRow label={t('node-details.data.asn')}>
-          <div className="truncate">{asnValue}</div>
-        </DataRow>
-      ),
-      key: 'asn-value',
-    },
-    asnName && {
-      row: (
-        <DataRow label={t('node-details.data.asn-name')}>
-          <div className="truncate">{asnName}</div>
-        </DataRow>
-      ),
-      key: 'asn-name',
-    },
-  ];
-  const card4 = [
-    buildVersion && {
-      row: (
-        <DataRow label={t('node-details.data.build-version')}>
-          <div className="truncate">{buildVersion}</div>
-        </DataRow>
-      ),
-      key: 'build-version',
-    },
-    { row: identityKey, key: 'id-key' },
-  ];
-
-  const Card1Footer = (
-    <p className="text-iron dark:text-bombay">
-      <Trans i18nKey="node-details.notes.anti-censorship" ns="node-location">
-        <Link className="text-black dark:text-white" to={routes.antiCensorship}>
-          Enable “QUIC protocol”
-        </Link>
-        in Anti-censorship Settings to use this feature
-      </Trans>
-    </p>
-  );
-
-  const card2Footer = lastUpdate
-    ? t('node-details.notes.performance_with_time', {
-        relativeTime: dayjs().to(dayjs(lastUpdate)),
-      })
-    : t('node-details.notes.performance');
-
-  const serverLocation = () => {
-    const components = [];
-    if (gwLocation.city.length > 0) {
-      components.push(gwLocation.city);
-    }
-    if (gwLocation.region.length > 0) {
-      components.push(gwLocation.region);
-    }
-    components.push(getCountryName(country.code) || country.name);
-    return components.join(', ');
-  };
-
   return (
-    <PageAnim className="h-full flex flex-col cursor-default">
-      <div className="flex-1 overflow-auto flex flex-col gap-6 p-4">
-        <h1 className="text-lg font-medium dark:text-white break-words">
-          {gateway.name}
-        </h1>
-        <div className="flex flex-row items-center gap-2 select-none">
-          <FlagIcon
-            code={country.code.toLowerCase() as countryCode}
-            alt={country.code}
-            className="h-6"
-          />
-          <div className="text-lg">{serverLocation()}</div>
-        </div>
-        {gateway.description && (
-          <p className="text-iron dark:text-bombay">{gateway.description}</p>
-        )}
-        {showCard3 && <DataCard rows={card3} />}
-        <DataCard
-          rows={card1}
-          footer={hop === 'entry' && quic && Card1Footer}
-        />
-        <DataCard rows={card2} footer={card2Footer} />
-        <DataCard rows={card4} />
-        <div className="flex flex-col gap-2 select-none">
-          <Link
-            text={t('node-details.links.missing-info')}
-            url={SupportServerLocationUrl}
-            className="text-baltic-sea dark:text-white"
-            iconClassName="text-lg"
-            color="iron"
-            icon
-          />
-          <p className="text-iron dark:text-bombay">
-            <Trans
-              i18nKey="node-details.links.explorer"
-              ns="node-location"
-              components={{
-                networkExplorerLink: (
-                  <Link
-                    text="Network Explorer"
-                    url={`${NetworkExplorerNodeUrl}/${gateway.id}`}
-                    color="primary"
-                    iconClassName="text-lg"
-                    icon
+    <PageAnim className="flex h-full cursor-default flex-col">
+      <div className="min-h-0 grow overflow-auto">
+        <div className="flex flex-col gap-4 p-4">
+          {/* Card 1: Server info */}
+          <CardNew>
+            <CardNewHeader>
+              <FlagIcon
+                code={country.code.toLowerCase() as countryCode}
+                alt={country.code}
+                className="h-6 w-6 shrink-0 rounded-full"
+              />
+              <p className="text-text-primary ml-4 text-base">{gateway.name}</p>
+            </CardNewHeader>
+            <CardDivider />
+            <CardNewBody className="flex-col gap-3 py-4">
+              <p className="text-baltic-sea text-sm font-medium underline dark:text-white">
+                {serverLocation()}
+              </p>
+              {gateway.description && (
+                <p className="text-secondary text-sm">{gateway.description}</p>
+              )}
+            </CardNewBody>
+          </CardNew>
+
+          {/* Card 2: Node features */}
+          <CardNew>
+            <CardNewHeader>
+              <p className="text-baltic-sea text-sm dark:text-white">
+                {t('node-details.data.node-features')}
+              </p>
+            </CardNewHeader>
+            <CardNewBody className="pb-4">
+              {/* Advanced privacy */}
+              <CardDataRow label={t('node-details.data.advanced-privacy')}>
+                <MsIcon
+                  icon="visibility_off"
+                  className="text-primary text-xl"
+                />
+                <p className="text-baltic-sea whitespace-nowrap dark:text-white">
+                  {t('node-details.data.with-mixnet')}
+                </p>
+              </CardDataRow>
+              <CardDivider />
+              {/* Streaming & IP */}
+              <CardDataRow label={t('node-details.data.ip-type')}>
+                <MsIcon
+                  icon={isGoodIp ? 'smart_display' : 'dns'}
+                  className={clsx(
+                    'text-xl',
+                    isGoodIp ? 'text-cornflower' : 'text-text-secondary',
+                  )}
+                />
+                <p className="text-baltic-sea whitespace-nowrap dark:text-white">
+                  {isGoodIp
+                    ? t('node-details.data.ip-residential')
+                    : t('node-details.data.ip-datacenter')}
+                </p>
+              </CardDataRow>
+              <CardDivider />
+              {/* Post-quantum secure keys */}
+              <CardDataRow label={t('node-details.data.lewes-protocol-label')}>
+                <LewesIcon className="text-text-secondary text-xl" />
+                <p className="text-baltic-sea whitespace-nowrap dark:text-white">
+                  {t('node-details.data.lewes-protocol')}
+                </p>
+              </CardDataRow>
+              {/* Anti-censorship */}
+              {backendFlags.quic && (
+                <>
+                  <CardDivider />
+                  <CardDataRow label={t('node-details.data.anti-censorship')}>
+                    <MsIcon
+                      filled
+                      icon={quic ? 'package_2' : 'circle'}
+                      className="text-text-secondary text-xl"
+                    />
+                    <p className="text-baltic-sea whitespace-nowrap dark:text-white">
+                      {quic
+                        ? t('node-details.data.quic-protocol')
+                        : t('node-details.data.standard-protocol')}
+                    </p>
+                  </CardDataRow>
+                </>
+              )}
+            </CardNewBody>
+            {backendFlags.quic && !quicSetting && (
+              <CardNewFooter>
+                <p className="text-text-secondary text-xs">
+                  <Trans
+                    i18nKey="node-details.notes.anti-censorship"
+                    ns="node-location"
+                  >
+                    <Link
+                      className="text-cornflower! underline"
+                      to={routes.antiCensorship}
+                    >
+                      Enable &quot;QUIC protocol&quot;
+                    </Link>
+                    in Anti-censorship Settings to use this feature
+                  </Trans>
+                </p>
+              </CardNewFooter>
+            )}
+          </CardNew>
+
+          {/* Card 3: Performance metrics */}
+          <CardNew>
+            <CardNewHeader>
+              <p className="text-baltic-sea text-sm dark:text-white">
+                {t('node-details.data.performance-metrics')}
+              </p>
+            </CardNewHeader>
+            <CardNewBody className="pb-4">
+              {/* Overall performance */}
+              <CardDataRow label={t('node-details.data.overall-performance')}>
+                <div className="flex items-center gap-1 select-none">
+                  <ScoreIndicator score={overallScore} />
+                  <p
+                    className={clsx('truncate font-medium', performance.color)}
+                  >
+                    {performance.label}
+                  </p>
+                </div>
+              </CardDataRow>
+              {/* Server load */}
+              {serverLoad && (
+                <>
+                  <CardDivider />
+                  <CardDataRow label={t('node-details.data.server-load')}>
+                    <p
+                      className={clsx(
+                        'truncate font-medium select-none',
+                        serverLoadStyle?.color,
+                      )}
+                    >
+                      {serverLoadStyle?.label}
+                    </p>
+                  </CardDataRow>
+                </>
+              )}
+              {/* Uptime */}
+              {uptime !== undefined && (
+                <>
+                  <CardDivider />
+                  <CardDataRow label={t('node-details.data.uptime')}>
+                    <p className="font-medium select-none">
+                      {Math.round(uptime * 100)}%
+                    </p>
+                  </CardDataRow>
+                </>
+              )}
+            </CardNewBody>
+            <CardNewFooter>
+              <p className="text-text-secondary text-xs whitespace-pre-line">
+                {lastUpdate
+                  ? t('node-details.notes.performance_with_time', {
+                      relativeTime: dayjs().to(dayjs(lastUpdate)),
+                    })
+                  : t('node-details.notes.performance')}
+              </p>
+            </CardNewFooter>
+          </CardNew>
+
+          {/* Card 4: Connection details */}
+          {showCard3 && (
+            <CardNew>
+              <CardNewHeader>
+                <p className="text-baltic-sea text-sm dark:text-white">
+                  {t('node-details.data.connection-details')}
+                </p>
+              </CardNewHeader>
+              <CardNewBody className="pb-4">
+                {exitIpv4 && (
+                  <CardDataRow label={t('node-details.data.exit-ipv4')}>
+                    <Link
+                      text={exitIpv4}
+                      url={`${IpInfoIoUrl}/${exitIpv4}`}
+                      color="primary"
+                      iconClassName="text-lg"
+                      icon
+                      selectable
+                    />
+                  </CardDataRow>
+                )}
+
+                {exitIpv6 && (
+                  <>
+                    <CardDivider />
+                    <CardDataRow label={t('node-details.data.exit-ipv6')}>
+                      <Link
+                        text={exitIpv6}
+                        url={`${IpInfoIoUrl}/${exitIpv6}`}
+                        color="primary"
+                        iconClassName="text-lg"
+                        icon
+                        selectable
+                      />
+                    </CardDataRow>
+                  </>
+                )}
+
+                {asnValue && (
+                  <>
+                    <CardDivider />
+                    <CardDataRow label={t('node-details.data.asn')}>
+                      <p className="text-baltic-sea truncate dark:text-white">
+                        {asnValue}
+                      </p>
+                    </CardDataRow>
+                  </>
+                )}
+
+                {asnName && (
+                  <>
+                    <CardDivider />
+                    <CardDataRow label={t('node-details.data.asn-name')}>
+                      <p className="text-baltic-sea truncate dark:text-white">
+                        {asnName}
+                      </p>
+                    </CardDataRow>
+                  </>
+                )}
+              </CardNewBody>
+            </CardNew>
+          )}
+
+          {/* Card 5: Build information */}
+          <CardNew>
+            <CardNewHeader>
+              <p className="text-baltic-sea text-sm dark:text-white">
+                {t('node-details.data.build-information')}
+              </p>
+            </CardNewHeader>
+            <CardNewBody className="pb-4">
+              {buildVersion && (
+                <>
+                  <CardDataRow label={t('node-details.data.build-version')}>
+                    <p className="text-baltic-sea truncate dark:text-white">
+                      {buildVersion}
+                    </p>
+                  </CardDataRow>
+                  <CardDivider />
+                </>
+              )}
+              <div className="flex w-full flex-col gap-2 py-[7px]">
+                <p className="text-text-secondary text-sm">
+                  {t('node-details.data.identity-key')}
+                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-secondary flex-1 overflow-hidden font-mono text-xs text-wrap wrap-break-word">
+                    {gateway.id}
+                  </p>
+                  <ButtonIconNew
+                    size="small"
+                    icon="content_copy"
+                    onClick={() => copy(gateway.id, false)}
+                    clickFeedback
                   />
-                ),
-              }}
+                </div>
+              </div>
+            </CardNewBody>
+          </CardNew>
+
+          {/* Footer links */}
+          <div className="flex flex-col gap-4 px-1 pb-2">
+            <Link
+              text={t('node-details.links.missing-info')}
+              url={SupportServerLocationUrl}
+              icon
+              color="cornflower"
             />
-          </p>
+            <p className="text-secondary">
+              <Trans
+                i18nKey="node-details.links.explorer"
+                ns="node-location"
+                components={{
+                  1: (
+                    <Link
+                      url={`${NetworkExplorerNodeUrl}/${gateway.id}`}
+                      color="cornflower"
+                      icon
+                    />
+                  ),
+                }}
+              />
+            </p>
+          </div>
         </div>
       </div>
+
       {!isSelected && (
-        <div className="p-4 bg-white dark:bg-charcoal border-t border-bombay dark:border-iron">
-          <Button onClick={handleSelect}>
+        <div className="p-4">
+          <ButtonNew onClick={handleSelect}>
             {t('node-details.select-button')}
-          </Button>
+          </ButtonNew>
         </div>
       )}
     </PageAnim>

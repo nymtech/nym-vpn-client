@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { CardSwitch, PageAnim, SettingsMenuCardBig } from '../../../ui';
-import { useInAppNotify, useMainState, useSocks5 } from '../../../contexts';
+import { useMainState, useSocks5 } from '../../../store';
+import { useToast } from '../../../hooks/index';
 import ProxyInfoCard from './ProxyInfoCard';
 import { ProxyInfo, ProxyPortInput, ProxyUrl } from './components';
 
@@ -13,9 +14,8 @@ const DefaultHttpRpcAddress = '127.0.0.1';
 
 function Socks5() {
   const { status, isLoading, enable, disable } = useSocks5();
-  console.log('status', status);
   const { exitNode } = useMainState();
-  const { push } = useInAppNotify();
+  const { add } = useToast();
   const { t } = useTranslation('settings');
 
   const [socks5Address, setSocks5Address] = useState(DefaultSocks5Address);
@@ -50,14 +50,13 @@ function Socks5() {
 
   useEffect(() => {
     if (hasError) {
-      push({
+      add({
         id: 'socks5-error',
-        message: status?.errorMessage ?? t('app-proxy.error-unknown'),
-        close: true,
+        title: status?.errorMessage ?? t('app-proxy.error-unknown'),
         type: 'error',
       });
     }
-  }, [hasError, status?.errorMessage, push, t]);
+  }, [hasError, status?.errorMessage, add, t]);
 
   const getStatusString = () => {
     if (isLoading) {
@@ -77,17 +76,17 @@ function Socks5() {
 
   const getStatusColor = () => {
     if (isLoading) {
-      return 'text-baltic-sea dark:text-white';
+      return 'text-text-primary';
     }
     switch (status?.state) {
       case 'idle':
       case 'connected':
-        return 'text-malachite-moss dark:text-malachite';
+        return 'text-primary';
       case 'error':
       case 'disabled':
         return 'text-aphrodisiac';
       default:
-        return 'text-baltic-sea dark:text-white';
+        return 'text-text-primary';
     }
   };
 
@@ -97,11 +96,10 @@ function Socks5() {
     try {
       if (isEnabled) {
         await disable();
-        push({
+        add({
           id: 'socks5-disabled',
-          message: t('app-proxy.snackbar-disabled'),
-          duration: 3000,
-          close: true,
+          title: t('app-proxy.snackbar-disabled'),
+          type: 'info',
         });
       } else {
         await enable(
@@ -109,30 +107,25 @@ function Socks5() {
           { listenAddress: `${httpRpcAddress}:${httpRpcPort}` },
           exitNode,
         );
-        push({
+        add({
           id: 'socks5-enabled',
-          message: t('app-proxy.snackbar-enabled'),
-          duration: 3000,
-          close: true,
+          title: t('app-proxy.snackbar-enabled'),
+          type: 'info',
         });
       }
     } catch (error) {
       const explicitErrorMessage = String((error as Error)?.message) || '';
 
       if (explicitErrorMessage.includes('Gateway does not support')) {
-        push({
+        add({
           id: 'socks5-error',
-          message: t('app-proxy.error-gateway-not-supported'),
-          duration: 5000,
-          close: true,
+          title: t('app-proxy.error-gateway-not-supported'),
           type: 'error',
         });
       } else {
-        push({
+        add({
           id: 'socks5-error',
-          message: t('app-proxy.error-unknown'),
-          duration: 5000,
-          close: true,
+          title: t('app-proxy.error-unknown'),
           type: 'error',
         });
       }
@@ -140,8 +133,8 @@ function Socks5() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
-      <div className="text-iron dark:text-bombay">{t('app-proxy.intro')}</div>
+    <PageAnim className="mt-2 flex h-full flex-col gap-6 select-none">
+      <div className="text-text-secondary">{t('app-proxy.intro')}</div>
 
       <SettingsMenuCardBig
         header={
@@ -156,19 +149,19 @@ function Socks5() {
         <div>
           <ul
             className={clsx([
-              'flex flex-col justify-center items-center gap-0',
-              'bg-white dark:bg-charcoal',
+              'flex flex-col items-center justify-center gap-0',
+              'dark:bg-charcoal bg-white',
               'cursor-default',
             ])}
           >
             <li
               className={clsx(
-                'w-full flex border-b last:border-b-0',
-                'py-2 last:pb-0 first:pt-0 border-bombay dark:border-iron',
+                'flex w-full border-b last:border-b-0',
+                'border-bombay dark:border-iron py-2 first:pt-0 last:pb-0',
               )}
             >
-              <div className="w-full flex items-center gap-2 justify-between">
-                <span className="text-iron dark:text-bombay truncate select-none">
+              <div className="flex w-full items-center justify-between gap-2">
+                <span className="text-text-secondary truncate select-none">
                   {t('app-proxy.proxy-status')}
                 </span>
                 <span className={clsx(getStatusColor())}>
@@ -178,19 +171,19 @@ function Socks5() {
             </li>
             <li
               className={clsx(
-                'w-full flex border-b last:border-b-0',
-                'py-2 last:pb-0 first:pt-0 border-bombay dark:border-iron',
+                'flex w-full border-b last:border-b-0',
+                'border-bombay dark:border-iron py-2 first:pt-0 last:pb-0',
               )}
             >
-              <div className="w-full flex items-center gap-2 justify-between">
-                <span className="text-iron dark:text-bombay truncate select-none">
+              <div className="flex w-full items-center justify-between gap-2">
+                <span className="text-text-secondary truncate select-none">
                   {t('app-proxy.active-connections')}
                 </span>
                 <span
                   className={clsx(
                     status?.state === 'connected'
-                      ? 'text-malachite-moss dark:text-malachite'
-                      : 'text-baltic-sea dark:text-white',
+                      ? 'text-primary'
+                      : 'text-text-primary',
                   )}
                 >
                   {status?.activeConnections ?? 0}

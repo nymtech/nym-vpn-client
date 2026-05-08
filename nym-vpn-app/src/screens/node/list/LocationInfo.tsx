@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { UiCountry, UiRegion } from '../../../contexts';
+import { UiCountry, UiRegion } from '../../../types/node';
 import { FlagIcon, countryCode } from '../../../ui';
 
 type LocationInfoProps = {
@@ -16,8 +16,8 @@ const LocationInfo = ({ node, name, gwCount }: LocationInfoProps) => {
   return (
     <div
       className={clsx(
-        'flex flex-row items-center ml-2 gap-3 overflow-hidden',
-        'select-none cursor-default',
+        'ml-2 flex flex-row items-center gap-3 overflow-hidden',
+        'cursor-default select-none',
       )}
       data-testid={`country-info-${country.code}`}
     >
@@ -29,12 +29,12 @@ const LocationInfo = ({ node, name, gwCount }: LocationInfoProps) => {
       />
       <div className="flex flex-col justify-center overflow-hidden pr-4">
         <div
-          className={clsx('text-baltic-sea dark:text-white text-base truncate')}
+          className={clsx('text-text-primary truncate text-base')}
           data-testid={`country-name-${country.code}`}
         >
           {name}
         </div>
-        <div className="text-iron dark:text-bombay text-sm">
+        <div className="text-text-secondary text-sm">
           {`${gwCount} ${t('server', { count: gwCount })}`}
         </div>
       </div>

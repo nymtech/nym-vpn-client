@@ -1,20 +1,18 @@
 import { memo } from 'react';
 import { dequal } from 'dequal';
-import { Accordion } from '@base-ui-components/react';
+import { Collapsible } from '@base-ui-components/react';
 import { Trans, useTranslation } from 'react-i18next';
 import clsx from 'clsx';
+import { NodeHop, VpnMode } from '../../../types';
+import { Focused, useNodeListState } from '../../../store/nodeListState';
 import {
-  Focused,
   SelectedKind,
   SelectedUiNode,
   UiCountry,
   UiGateway,
   UiGatewaysByCountry,
   UiRegion,
-  useMainState,
-  useNodeListState,
-} from '../../../contexts';
-import { NodeHop, VpnMode } from '../../../types';
+} from '../../../types/node';
 import { Link } from '../../../ui';
 import { ContactSupportUrl, DocsUrl } from '../../../constants';
 import { NodeItem } from './NodeItem';
@@ -28,6 +26,7 @@ export type NodeListProps = {
   onNodeDetails: (node: UiGateway) => void;
   hop: NodeHop;
   vpnMode: VpnMode;
+  quicFilter: boolean;
   expanded: string[];
   focused: Focused | null;
 };
@@ -38,15 +37,12 @@ const NodeList = memo(function NodeList({
   onSelect,
   hop,
   vpnMode,
+  quicFilter,
   onNodeDetails,
   expanded,
 }: NodeListProps) {
-  const { backendFlags, quic } = useMainState();
   const { setExpanded } = useNodeListState();
   const { t } = useTranslation('node-location');
-
-  const quicFilter =
-    vpnMode === 'wg' && hop === 'entry' && backendFlags.quic && quic;
 
   const handleLocationSelect = (
     location: UiCountry | UiRegion,
@@ -54,8 +50,6 @@ const NodeList = memo(function NodeList({
     gwCount: number,
   ) => {
     if (isSelected && isSelected !== hop && gwCount <= 1) {
-      // don't allow selecting a country if it has only one gateway,
-      // and it's already selected by the other hop
       return;
     }
     if (isSelected !== hop && isSelected !== 'entry-and-exit') {
@@ -63,17 +57,18 @@ const NodeList = memo(function NodeList({
     }
   };
 
-  const onValueChange = (value: string[]) => {
-    setExpanded(hop, value);
+  const onExpandChange = (key: string, open: boolean) => {
+    const next = open ? [...expanded, key] : expanded.filter((k) => k !== key);
+    setExpanded(hop, next);
   };
 
   if (nodes.length === 0 && gateways.length === 0) {
     return (
-      <div className="px-6 space-y-4">
-        <p className=" text-baltic-sea dark:text-white truncate">
+      <div className="space-y-4 px-6">
+        <p className="text-text-primary truncate">
           {t('no-results-found.title')}
         </p>
-        <p className="text-iron dark:text-bombay whitespace-pre-line">
+        <p className="text-text-secondary whitespace-pre-line">
           <Trans
             i18nKey="no-results-found.description"
             ns="node-location"
@@ -89,36 +84,35 @@ const NodeList = memo(function NodeList({
 
   return (
     <div className="mr-0">
-      <Accordion.Root
-        className="w-full flex flex-col gap-3"
+      <div
+        className="flex w-full flex-col gap-3"
         data-testid="node-list-accordion"
-        value={expanded}
-        onValueChange={onValueChange}
-        multiple
       >
         {nodes.map((node) => (
-          <Accordion.Item
+          <Collapsible.Root
             key={node.country.code}
-            value={node.country.code}
-            render={() => (
-              <NodeItem
-                key={node.country.code}
-                node={node}
-                hop={hop}
-                vpnMode={vpnMode}
-                quicFilter={quicFilter}
-                handleLocationSelect={handleLocationSelect}
-                onGatewaySelect={onSelect}
-                onNodeDetails={onNodeDetails}
-              />
-            )}
-          ></Accordion.Item>
+            open={expanded.includes(node.country.code)}
+            onOpenChange={(open) => onExpandChange(node.country.code, open)}
+          >
+            <NodeItem
+              key={node.country.code}
+              node={node}
+              hop={hop}
+              vpnMode={vpnMode}
+              quicFilter={quicFilter}
+              handleLocationSelect={handleLocationSelect}
+              onGatewaySelect={onSelect}
+              onNodeDetails={onNodeDetails}
+              expanded={expanded}
+              onExpandChange={onExpandChange}
+            />
+          </Collapsible.Root>
         ))}
-      </Accordion.Root>
+      </div>
       {gateways.length > 0 && (
         <div className="mt-2" data-testid="standalone-gateways-container">
           <h3
-            className={clsx('text-iron dark:text-bombay px-4 truncate', {
+            className={clsx('text-text-secondary truncate px-4', {
               'py-6': nodes.length > 0,
             })}
           >
@@ -151,6 +145,7 @@ function arePropsEqual(
 ): boolean {
   if (oldProps.hop !== newProps.hop) return false;
   if (oldProps.vpnMode !== newProps.vpnMode) return false;
+  if (oldProps.quicFilter !== newProps.quicFilter) return false;
   if (oldProps.gateways.length !== newProps.gateways.length) return false;
   if (oldProps.nodes.length !== newProps.nodes.length) return false;
   if (!dequal(oldProps.expanded, newProps.expanded)) return false;

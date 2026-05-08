@@ -1,6 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useRef } from 'react';
-import { AccountState, StateDispatch, TAccountSummary } from '../types';
+import { useShallow } from 'zustand/react/shallow';
+import { AccountState, TAccountSummary } from '../types';
+import { dispatch, useAppStore } from '../store';
 
 const ACCOUNT_STATES_REFRESH_SUMMARY: ReadonlySet<AccountState> = new Set([
   'ready',
@@ -12,12 +14,15 @@ const ACCOUNT_STATES_REFRESH_SUMMARY: ReadonlySet<AccountState> = new Set([
   'requesting-zk-nyms',
 ]);
 
-export function useAccountSummaryOnAccountState(
-  accountState: AccountState | null | undefined,
-  accountSyncing: boolean,
-  initialized: boolean,
-  dispatch: StateDispatch,
-) {
+export function useAccountSummaryOnAccountState() {
+  const { accountState, accountSyncing, initialized } = useAppStore(
+    useShallow((s) => ({
+      accountState: s.accountState,
+      accountSyncing: s.accountSyncing,
+      initialized: s.initialized,
+    })),
+  );
+
   const prevRef = useRef<AccountState | null | undefined>(undefined);
   const prevSyncingRef = useRef<boolean>(false);
 
@@ -53,5 +58,5 @@ export function useAccountSummaryOnAccountState(
     return () => {
       cancelled = true;
     };
-  }, [accountState, accountSyncing, initialized, dispatch]);
+  }, [accountState, accountSyncing, initialized]);
 }

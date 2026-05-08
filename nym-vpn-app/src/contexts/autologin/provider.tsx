@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { TAutologinResponse } from '../../types/tauri';
-import { useInAppNotify } from '../in-app-notification';
+import { useToast } from '../../hooks';
 import { AutologinContext, AutologinKind } from './context';
 import { PincodeDialog } from './PincodeDialog';
 
@@ -13,7 +13,7 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
   const [url, setUrl] = useState('');
   const [open, setOpen] = useState(false);
 
-  const { push } = useInAppNotify();
+  const { add } = useToast();
 
   const autologin = useCallback(
     async (kind: AutologinKind) => {
@@ -31,14 +31,14 @@ export function AutologinProvider({ children }: { children: React.ReactNode }) {
         setOpen(true);
       } catch (error) {
         console.error('Failed to get autologin deeplink', error);
-        push({
-          message: t('autologin.initialization-error', { ns: 'errors' }),
+        add({
+          title: t('autologin.initialization-error', { ns: 'errors' }),
+          description: t('autologin.initialization-error', { ns: 'errors' }),
           type: 'error',
-          duration: 3000,
         });
       }
     },
-    [i18n.language, push, t],
+    [i18n.language, add, t],
   );
 
   const closeDialog = useCallback(() => {

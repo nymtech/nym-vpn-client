@@ -2,15 +2,13 @@ import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { DefaultRootFontSize } from '../../../../constants';
-import { useMainDispatch, useMainState } from '../../../../contexts';
+import { dispatch, useMainState } from '../../../../store';
 import { kvSet } from '../../../../kvStore';
-import { StateDispatch } from '../../../../types';
 import { Slider } from '../../../../ui';
 
 function UiScaler() {
   const { t } = useTranslation('display');
   const [slideValue, setSlideValue] = useState(DefaultRootFontSize);
-  const dispatch = useMainDispatch() as StateDispatch;
   const { rootFontSize } = useMainState();
 
   useEffect(() => {
@@ -31,14 +29,14 @@ function UiScaler() {
   return (
     <div
       className={clsx([
-        'flex flex-row justify-between items-center gap-10',
-        'bg-white dark:bg-charcoal',
-        'px-6 py-5 rounded-lg',
+        'flex flex-row items-center justify-between gap-10',
+        'dark:bg-charcoal bg-white',
+        'rounded-lg px-6 py-5',
       ])}
       data-testid="ui-scaler-container"
     >
       <p
-        className="text-base text-baltic-sea dark:text-white flex-nowrap select-none"
+        className="text-text-primary flex-nowrap text-base select-none"
         data-testid="ui-scaler-value"
       >
         {slideValue}

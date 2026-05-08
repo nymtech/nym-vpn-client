@@ -8,7 +8,8 @@ use crate::vpnd::node::Node;
 
 use super::mixnet_config::{MixnetTrafficConfig, MixnetTrafficDefaults};
 
-use crate::vpnd::tunnel::SplitTunnelSettings;
+use crate::vpnd::gateway::GatewaySelectionAlgorithmConfig;
+use crate::vpnd::tunnel::{FrontingMode, SplitTunnelSettings};
 
 #[derive(Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "camelCase")]
@@ -24,12 +25,14 @@ pub struct VpndConfig {
     pub vpn_mode: VpnMode,
     pub bridges: bool,
     pub netstack: bool,
+    pub fronting_mode: FrontingMode,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
     pub enable_lewes_protocol: bool,
     pub mixnet_traffic: MixnetTrafficConfig,
     pub mixnet_traffic_defaults: MixnetTrafficDefaults,
     pub split_tunnel: SplitTunnelSettings,
+    pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 }
 
 impl VpndConfig {
@@ -51,12 +54,14 @@ impl VpndConfig {
             vpn_mode,
             bridges: config.enable_bridges,
             netstack: config.netstack,
+            fronting_mode: config.fronting_mode.into(),
             min_gateway_vpn_performance: config.min_gateway_vpn_performance,
             residential_exit: config.residential_exit,
             enable_lewes_protocol: config.enable_lewes_protocol,
             mixnet_traffic: config.mixnet_traffic.into(),
             mixnet_traffic_defaults: MixnetTrafficDefaults::get(),
             split_tunnel: config.split_tunnel.into(),
+            gateway_selection_algorithm_config: config.gateway_selection_algorithm_config.into(),
         })
     }
 }

@@ -7,7 +7,7 @@ import {
 import { type } from '@tauri-apps/plugin-os';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { AppName } from '../constants';
-import { useMainState } from '../contexts';
+import { useMainState } from '../store';
 
 const AntiSpamTimeout = 60000; // 1min
 

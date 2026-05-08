@@ -19,16 +19,16 @@ function SettingsMenuCardBig({
   return (
     <div
       className={clsx([
-        'flex flex-col justify-center items-center gap-4 select-none',
-        'bg-white dark:bg-charcoal rounded-lg min-h-16',
-        'transition cursor-default',
-        disabled && 'opacity-50 pointer-events-none',
+        'flex flex-col items-center justify-center gap-4 select-none',
+        'dark:bg-charcoal min-h-16 rounded-lg bg-white',
+        'cursor-default transition',
+        disabled && 'pointer-events-none opacity-50',
         className,
       ])}
       style={style}
     >
       {header}
-      <div className="px-5 pb-4 w-full">{children}</div>
+      <div className="w-full px-5 pb-4">{children}</div>
     </div>
   );
 }

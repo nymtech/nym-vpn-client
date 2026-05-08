@@ -35,7 +35,7 @@ function ButtonText({
       'data-hover:underline decoration-2 text-lg font-medium',
     ],
     malachite: [
-      'text-malachite-moss dark:text-malachite',
+      'text-primary',
       'data-hover:text-malachite-moss/80 dark:data-hover:text-malachite/80',
     ],
   };
@@ -47,8 +47,8 @@ function ButtonText({
       className={clsx([
         'rounded-lg px-2',
         'focus:outline-hidden data-focus:ring-0',
-        'transition data-disabled:opacity-60 data-active:ring-0',
-        'tracking-normal cursor-default',
+        'transition data-active:ring-0 data-disabled:opacity-60',
+        'cursor-default tracking-normal',
         truncate && 'overflow-hidden',
         ...colors[color],
         className && className,
@@ -61,7 +61,7 @@ function ButtonText({
       data-test-truncate={truncate ? 'true' : 'false'}
     >
       <div
-        className={clsx(truncate && 'text-nowrap truncate')}
+        className={clsx(truncate && 'truncate text-nowrap')}
         data-testid={`${testId}-content`}
       >
         {children}

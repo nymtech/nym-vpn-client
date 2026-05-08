@@ -6,8 +6,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { CardNewFooter, MsIcon, Spinner } from '../../../../ui';
 import { TAccountSummary } from '../../../../types';
 import { getAccountStatus } from '../utils';
-import { useAutologin, useInAppNotify } from '../../../../contexts';
-import { useDeepLink } from '../../../../hooks';
+import { useAutologin } from '../../../../contexts';
+import { useDeepLink, useToast } from '../../../../hooks';
 import { DeeplinkTimeout } from '../../../../errors';
 
 export function RenewButton({
@@ -20,7 +20,7 @@ export function RenewButton({
   const [autologinLoading, setAutologinLoading] = useState(false);
   const { autologin, closeDialog } = useAutologin();
   const { startListening } = useDeepLink();
-  const { push } = useInAppNotify();
+  const { add } = useToast();
 
   const status = useMemo(
     () => getAccountStatus(accountSummary),
@@ -39,10 +39,9 @@ export function RenewButton({
     } catch (error: unknown) {
       console.error('Renew button error: ', error);
       if (error instanceof DeeplinkTimeout) {
-        push({
-          message: t('autologin.timeout', { ns: 'errors' }),
+        add({
+          title: t('autologin.timeout', { ns: 'errors' }),
           type: 'error',
-          duration: 3000,
         });
       }
     } finally {
@@ -52,7 +51,7 @@ export function RenewButton({
 
   const getStatusColor = () => {
     if (status === 'green' || status === 'yellow') {
-      return 'bg-malachite-moss/10 hover:bg-malachite-moss/20 dark:bg-malachite/10 dark:hover:bg-malachite/20 text-malachite-moss dark:text-malachite';
+      return 'bg-malachite-moss/10 hover:bg-malachite-moss/20 dark:bg-malachite/10 dark:hover:bg-malachite/20 text-primary';
     }
     if (status === 'amber') {
       return 'bg-cheddar/10 hover:bg-cheddar/20 dark:bg-king-nacho/10 dark:hover:bg-king-nacho/20 text-cheddar dark:text-king-nacho';
@@ -76,7 +75,7 @@ export function RenewButton({
     <CardNewFooter className="p-0!">
       <Button
         className={clsx(
-          'flex flex-row items-center justify-between w-full py-3 px-5 rounded-b-lg',
+          'flex w-full flex-row items-center justify-between rounded-b-lg px-5 py-3',
           getStatusColor(),
         )}
         onClick={handleRenew}

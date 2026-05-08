@@ -14,9 +14,7 @@ function PinCodeDigits({ code }: { code: string }) {
             {digit}
           </span>
           {i < digits.length - 1 && (
-            <span className="text-3xl text-malachite-moss dark:text-malachite leading-none">
-              ·
-            </span>
+            <span className="text-primary text-3xl leading-none">·</span>
           )}
         </div>
       ))}
@@ -54,26 +52,23 @@ export function PincodeDialog({
         />
 
         <div className="flex flex-col items-center gap-3">
-          <div className="flex items-center justify-center p-3 bg-malachite-moss/10 rounded-xl border border-malachite-moss">
-            <MsIcon
-              icon="lock"
-              className="text-malachite-moss dark:text-malachite leading-none"
-            />
+          <div className="bg-malachite-moss/10 border-malachite-moss flex items-center justify-center rounded-xl border p-3">
+            <MsIcon icon="lock" className="text-primary leading-none" />
           </div>
           <DialogTitle
             as="h3"
-            className="text-xl text-baltic-sea dark:text-white text-center w-full truncate"
+            className="text-text-primary w-full truncate text-center text-xl"
           >
             {t('autologin.title')}
           </DialogTitle>
-          <p className="text-lg text-ash dark:text-white text-center">
+          <p className="text-ash text-center text-lg dark:text-white">
             {t('autologin.description')}
           </p>
         </div>
 
         <PinCodeDigits code={code} />
 
-        <Button className="w-full mt-3" onClick={handleClick}>
+        <Button className="mt-3 w-full" onClick={handleClick}>
           <div className="flex items-center justify-center gap-2">
             <MsIcon icon="content_copy" className="text-xl!" />
             <span>{t('autologin.copy-code')}</span>

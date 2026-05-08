@@ -14,21 +14,17 @@ export default function Progress({
 }: ProgressProps) {
   return (
     <BuiProgress.Root
-      className={clsx(
-        'flex flex-col gap-2',
-        'text-iron dark:text-bombay',
-        className,
-      )}
+      className={clsx('flex flex-col gap-2', 'text-text-secondary', className)}
       value={value}
     >
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <BuiProgress.Label className="text-sm">
           {label || 'Progress'}
         </BuiProgress.Label>
         <BuiProgress.Value className="text-sm" />
       </div>
-      <BuiProgress.Track className="h-1.5 rounded-full bg-faded-lavender dark:bg-ash border-none">
-        <BuiProgress.Indicator className="rounded-full transition-all duration-150 bg-malachite border-none" />
+      <BuiProgress.Track className="bg-faded-lavender dark:bg-ash h-1.5 rounded-full border-none">
+        <BuiProgress.Indicator className="bg-malachite rounded-full border-none transition-all duration-150" />
       </BuiProgress.Track>
     </BuiProgress.Root>
   );

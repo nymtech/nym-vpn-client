@@ -41,31 +41,31 @@ export function ActivePlan({
           className="grid w-full grid-cols-2 gap-y-2"
           value={bandwidthRemainingProgress}
         >
-          <Progress.Label className="text-sm font-medium text-malachite-moss dark:text-malachite">
+          <Progress.Label className="text-primary text-sm font-medium">
             {t('account-status.bandwidth-remaining')}
           </Progress.Label>
-          <Progress.Label className="text-sm font-medium text-right text-iron dark:text-bombay">
+          <Progress.Label className="text-text-secondary text-right text-sm font-medium">
             {t('account-status.limit')}
           </Progress.Label>
-          <Progress.Track className="col-span-full h-1 overflow-hidden rounded bg-mercury dark:bg-ash">
-            <Progress.Indicator className="block bg-malachite-moss dark:bg-malachite transition-all duration-500" />
+          <Progress.Track className="bg-mercury dark:bg-ash col-span-full h-1 overflow-hidden rounded">
+            <Progress.Indicator className="bg-primary block transition-all duration-500" />
           </Progress.Track>
-          <Progress.Label className="text-sm font-medium text-malachite-moss dark:text-malachite">
+          <Progress.Label className="text-primary text-sm font-medium">
             {bandwidthRemainingValue}
           </Progress.Label>
-          <Progress.Label className="text-sm font-medium text-right text-iron dark:text-bombay">
+          <Progress.Label className="text-text-secondary text-right text-sm font-medium">
             {formatGb(accountSummary.trafficLimitGb)}
           </Progress.Label>
         </Progress.Root>
         <Separator
           orientation="horizontal"
-          className="w-full h-px bg-mercury dark:bg-ash"
+          className="bg-mercury dark:bg-ash h-px w-full"
         />
-        <div className="flex justify-between items-center w-full pt-3">
-          <p className="text-sm text-iron dark:text-bombay select-none">
+        <div className="flex w-full items-center justify-between pt-3">
+          <p className="text-text-secondary text-sm select-none">
             {t('account-status.resets-on')}
           </p>
-          <p className="text-sm text-baltic-sea dark:text-white font-mono select-none">
+          <p className="text-text-primary font-mono text-sm select-none">
             {resetsOn}
           </p>
         </div>

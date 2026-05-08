@@ -7,7 +7,8 @@ use crate::{
     vpnd::{
         client::{Node, VpndClient, VpndError},
         config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
-        tunnel::{ConnectingState, SplitApp, TunnelState},
+        gateway::GatewaySelectionAlgorithm,
+        tunnel::{ConnectingState, FrontingMode, SplitApp, TunnelState},
     },
 };
 use std::net::IpAddr;
@@ -57,6 +58,7 @@ pub async fn connect(
         info!("entry node: {}", config.entry_node);
         info!("exit node: {}", config.exit_node);
         info!("QUIC mode: {}", config.bridges);
+        info!("fronting mode: {}", config.fronting_mode.to_string());
         info!("allow LAN: {}", config.allow_lan);
         info!("no IPv6: {}", config.disable_ipv6);
         info!("mixnet traffic config: {:?}", config.mixnet_traffic);
@@ -140,6 +142,16 @@ pub async fn set_node(
 #[tauri::command]
 pub async fn set_quic(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
     vpnd.set_quic(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_fronting_mode(
+    vpnd: State<'_, VpndClient>,
+    mode: FrontingMode,
+) -> Result<(), BackendError> {
+    vpnd.set_fronting_mode(mode).await?;
     Ok(())
 }
 
@@ -277,4 +289,24 @@ pub async fn remove_app_from_split_tunnel(
 pub async fn is_split_tunnel_supported(vpnd: State<'_, VpndClient>) -> Result<bool, BackendError> {
     let is_supported = vpnd.is_split_tunnel_supported().await?;
     Ok(is_supported)
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_gateway_selection_algorithm(
+    vpnd: State<'_, VpndClient>,
+    algorithm: GatewaySelectionAlgorithm,
+) -> Result<(), BackendError> {
+    vpnd.set_gateway_selection_algorithm(algorithm).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_enable_geo_location(
+    vpnd: State<'_, VpndClient>,
+    enabled: bool,
+) -> Result<(), BackendError> {
+    vpnd.set_enable_geo_location(enabled).await?;
+    Ok(())
 }

@@ -27,7 +27,7 @@ function LicenseDetails() {
 
   const label = (label: string) => (
     <p
-      className="truncate text-iron dark:text-bombay select-none cursor-default"
+      className="text-text-secondary cursor-default truncate select-none"
       data-testid={`license-details-label-${label.toLowerCase()}`}
     >
       {label}:
@@ -36,7 +36,7 @@ function LicenseDetails() {
 
   return (
     <PageAnim
-      className="h-full flex flex-col"
+      className="flex h-full flex-col"
       data-testid="license-details-page"
     >
       {license ? (
@@ -127,7 +127,7 @@ function LicenseDetails() {
           >
             {label(t('language'))}
             <p
-              className="italic truncate"
+              className="truncate italic"
               data-testid="license-details-language-value"
             >
               {language === 'js' ? 'JavaScript' : 'Rust'}
@@ -136,7 +136,7 @@ function LicenseDetails() {
         </article>
       ) : (
         <span
-          className="mt-4 pl-4 italic text-iron dark:text-bombay select-none cursor-default"
+          className="text-text-secondary mt-4 cursor-default pl-4 italic select-none"
           data-testid="license-details-no-data"
         >
           {t('no-data')}

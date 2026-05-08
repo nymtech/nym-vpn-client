@@ -1,4 +1,3 @@
-import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
 import {
   AccountRouteIndex,
@@ -17,30 +16,26 @@ import {
   LegalRouteIndex,
   LicenseDetails,
   LicenseList,
-  Login,
   Logs,
   MainLayout,
   MixnetTuning,
+  Node,
   NodeDetails,
-  NodeEntry,
   Onboarding,
   SelectPlan,
   Settings,
   SettingsRouteIndex,
-  Signup,
   Socks5,
   SplitTunneling,
   Support,
-  Welcome,
+  WelcomeContainer,
 } from './screens';
 
-// Lazy loads Home
-const Home = lazy(() => import('./screens/home/Home'));
+import Home from './screens/home/Home';
+import StartupGate from './screens/StartupGate';
 
 export const routes = {
-  root: '/',
-  login: '/login',
-  signup: '/signup',
+  root: '/home',
   account: '/account',
   selectPlan: '/account/select-a-plan',
   settings: '/settings',
@@ -64,37 +59,31 @@ export const routes = {
   exitNodeLocation: '/exit-node-location',
   nodeDetails: '/node-details',
   hideout: '/hideout',
-  welcome: '/hideout/welcome',
-  onboarding: '/onboarding',
+  onboarding: '/hideout/onboarding',
   mixnetTuning: '/settings/mixnet-tuning',
   accountSettings: '/settings/account',
+  welcome: '/welcome',
 } as const;
 
 // ⚠ router instance creation must remain outside of React
 // tree with routes statically defined
 const router = createBrowserRouter([
   {
-    path: routes.root,
-    Component: MainLayout,
+    path: '/',
+    Component: StartupGate,
+    index: true,
+  },
+  {
+    element: <MainLayout />,
     children: [
       {
+        path: routes.root,
         Component: Home,
         errorElement: <Error />,
-        index: true,
       },
       {
-        path: routes.login,
-        Component: Login,
-        errorElement: <Error />,
-      },
-      {
-        path: routes.signup,
-        Component: Signup,
-        errorElement: <Error />,
-      },
-      {
-        path: routes.onboarding,
-        Component: Onboarding,
+        path: routes.welcome,
+        Component: WelcomeContainer,
         errorElement: <Error />,
       },
       {
@@ -233,12 +222,12 @@ const router = createBrowserRouter([
       },
       {
         path: routes.entryNodeLocation,
-        element: <NodeEntry node="entry" />,
+        element: <Node node="entry" />,
         errorElement: <Error />,
       },
       {
         path: routes.exitNodeLocation,
-        element: <NodeEntry node="exit" />,
+        element: <Node node="exit" />,
         errorElement: <Error />,
       },
       {
@@ -253,8 +242,8 @@ const router = createBrowserRouter([
     element: <MainLayout noTopBar noNotifications noDaemonDot />,
     children: [
       {
-        path: routes.welcome,
-        Component: Welcome,
+        path: routes.onboarding,
+        Component: Onboarding,
         errorElement: <Error />,
       },
     ],

@@ -26,8 +26,8 @@ function IntroAnim({ theme }: { theme: 'light' | 'dark' }) {
         {!completed && (
           <motion.div
             className={clsx([
-              'h-full w-full absolute z-200 flex justify-center items-center min-w-44',
-              'bg-faded-lavender dark:bg-ash overflow-hidden scroll-none',
+              'absolute z-200 flex h-full w-full min-w-44 items-center justify-center',
+              'bg-faded-lavender dark:bg-ash scroll-none overflow-hidden',
             ])}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 5 }}

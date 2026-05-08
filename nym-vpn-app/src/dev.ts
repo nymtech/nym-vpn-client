@@ -4,7 +4,6 @@ if (import.meta.env.MODE === 'dev-browser') {
     devMode: true,
     defaultNetstats: true,
     defaultSentry: false,
-    defaultDomainFronting: false,
     defaultQuic: false,
     updaterEnabled: true,
     noSplash: true,

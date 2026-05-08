@@ -54,10 +54,10 @@ function SortableItem<T extends DraggableListItem>({
       {...attributes}
       {...listeners}
       className={
-        dragHandleClassName ?? 'cursor-grab active:cursor-grabbing touch-none'
+        dragHandleClassName ?? 'cursor-grab touch-none active:cursor-grabbing'
       }
     >
-      <MsIcon icon="drag_indicator" className="text-iron dark:text-bombay" />
+      <MsIcon icon="drag_indicator" className="text-text-secondary" />
     </button>
   );
 
@@ -66,8 +66,8 @@ function SortableItem<T extends DraggableListItem>({
       ref={setNodeRef}
       style={style}
       className={clsx(
-        'border-t border-bombay dark:border-iron',
-        isDragging ? 'opacity-50 z-10' : '',
+        'border-bombay dark:border-iron border-t',
+        isDragging ? 'z-10 opacity-50' : '',
       )}
     >
       {renderItem(item, dragHandle)}
@@ -115,7 +115,7 @@ function DraggableList<T extends DraggableListItem>({
         items={items.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div className="flex flex-col border-b border-bombay dark:border-iron">
+        <div className="border-bombay dark:border-iron flex flex-col border-b">
           {items.map((item) => (
             <SortableItem
               key={item.id}

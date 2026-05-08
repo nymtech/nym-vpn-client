@@ -22,7 +22,7 @@ function PulseDot({ color = 'cornflower', ...rest }: PulseDotProps) {
   return (
     <div
       className={clsx([
-        'relative flex justify-center items-center',
+        'relative flex items-center justify-center',
         // use static pixel sizes for animated elements to avoid glitches
         // with the different UI scaling factors
         'h-[10px] w-[10px]',
@@ -32,7 +32,7 @@ function PulseDot({ color = 'cornflower', ...rest }: PulseDotProps) {
     >
       <div
         className={clsx(
-          'animate-ping absolute h-full w-full rounded-full opacity-75',
+          'absolute h-full w-full animate-ping rounded-full opacity-75',
           dotColor(),
         )}
         data-testid={`${testId}-ping`}

@@ -2,11 +2,12 @@ import * as H from 'history';
 import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router';
 import clsx from 'clsx';
-import { useMainState } from '../contexts';
 import { EventNotification } from '../layers';
+import { CardAnimationProvider } from '../contexts/CardAnimationContext';
 import { routes } from '../router';
-import { DaemonDot, Notifications, TopBar } from '../ui';
-import InitialNavigation from './InitialNavigation';
+import { DaemonDot, TopBar } from '../ui';
+import { ToastList } from '../components/toast';
+import { useAppStore } from '../store';
 import { SystemAuthentication } from './SystemAuthentication';
 
 type MainLayoutProps = {
@@ -24,7 +25,7 @@ function MainLayout({
   noNotifications,
   noDaemonDot,
 }: MainLayoutProps) {
-  const { daemonStatus } = useMainState();
+  const daemonStatus = useAppStore((s) => s.daemonStatus);
   const location = useLocation() as H.Location<RouteState | undefined>;
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -42,21 +43,18 @@ function MainLayout({
   return (
     <div
       className={clsx([
-        'h-full flex flex-col min-w-64',
-        'bg-faded-lavender text-baltic-sea',
-        'dark:bg-ash dark:text-white',
+        'flex h-full min-w-64 flex-col',
+        'bg-gray dark:bg-background',
+        'text-primary',
       ])}
     >
-      {/* Responsible for navigating to onboarding for new users on app startup */}
-      <InitialNavigation />
-      {/* Responsible for displaying the system authentication modal when the daemon is not authenticated */}
       <SystemAuthentication />
-      {!noNotifications && <Notifications />}
+      {!noNotifications && <ToastList />}
       {!noTopBar && <TopBar />}
       {!noDaemonDot && <DaemonDot status={daemonStatus} />}
       <div
         className={clsx([
-          'h-full flex flex-col overflow-auto overscroll-auto p-4',
+          'flex h-full flex-col overflow-auto overscroll-auto p-4',
           (location.pathname === routes.licensesRust ||
             location.pathname === routes.licensesJs ||
             location.pathname === routes.entryNodeLocation ||
@@ -65,18 +63,20 @@ function MainLayout({
             'p-0!',
         ])}
       >
-        <div
-          ref={rootRef}
-          className={clsx([
-            'grow',
-            location.pathname === routes.nodeDetails && 'h-full',
-            location.pathname === routes.diagnostic && 'h-full',
-          ])}
-        >
-          <EventNotification>
-            <Outlet />
-          </EventNotification>
-        </div>
+        <CardAnimationProvider>
+          <div
+            ref={rootRef}
+            className={clsx([
+              'grow',
+              location.pathname === routes.nodeDetails && 'h-full',
+              location.pathname === routes.diagnostic && 'h-full',
+            ])}
+          >
+            <EventNotification>
+              <Outlet />
+            </EventNotification>
+          </div>
+        </CardAnimationProvider>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import clsx from 'clsx';
-import { Button, TextInput } from '../../../ui';
+import { ButtonNew, TextInput } from '../../../ui';
 import DraggableList from '../../../ui/DraggableList';
 import { ipv4Regex, ipv6Regex } from '../../../utils';
 import { DnsItem, DnsItemContent } from './DnsItemContent';
@@ -106,46 +105,38 @@ export function CustomDnsServers({
       {customDnsList.length < MAX_DNS_SERVERS && (
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2">
-            <div className="flex-1 h-full">
+            <div className="h-full flex-1">
               <TextInput
                 placeholder={t('dns.details.input-placeholder')}
                 onChange={handleTextInputChange}
                 value={inputValue}
-                label={t('dns.details.input-label')}
                 color="gray"
               />
             </div>
             <div className="h-full">
-              <Button
+              <ButtonNew
                 onClick={handleAddDns}
-                color="gray"
-                outline
-                className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0! py-2.5!"
+                variant="outlined"
+                className="w-full"
               >
-                <span
-                  className={clsx(
-                    'text-lg text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80',
-                  )}
-                >
-                  {t('dns.details.add')}
-                </span>
-              </Button>
+                {t('dns.details.add')}
+              </ButtonNew>
             </div>
           </div>
           {errorMessage && (
-            <p className="text-xs text-aphrodisiac">{errorMessage}</p>
+            <p className="text-aphrodisiac text-xs">{errorMessage}</p>
           )}
         </div>
       )}
 
-      <Button
+      <ButtonNew
         disabled={!hasUnsavedChanges || isApplyingDns}
         onClick={handleApply}
-        color="malachite"
-        spinner={isApplyingDns}
+        variant="primary"
+        loading={isApplyingDns}
       >
         <span>{t('dns.details.apply')}</span>
-      </Button>
+      </ButtonNew>
     </>
   );
 }

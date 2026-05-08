@@ -7,8 +7,8 @@ use crate::state::app::VpnMode;
 use crate::sys::DisplayServer;
 use crate::sys::OsInfo;
 use crate::{
-    APP_NAME, DEFAULT_DOMAIN_FRONTING, DEFAULT_NETSTATS_ENABLED, DEFAULT_QUIC,
-    DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH, MAIN_WINDOW_LABEL, env,
+    APP_NAME, DEFAULT_NETSTATS_ENABLED, DEFAULT_QUIC, DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH,
+    MAIN_WINDOW_LABEL, env,
 };
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
@@ -59,7 +59,6 @@ pub struct WindowInitEnv {
     pub default_sentry: bool,
     pub default_netstats: bool,
     pub default_quic: bool,
-    pub default_domain_fronting: bool,
     pub startup_error: Option<StartupError>,
 }
 
@@ -339,7 +338,6 @@ impl WindowInitEnv {
             default_sentry: DEFAULT_SENTRY_ENABLED,
             default_netstats: DEFAULT_NETSTATS_ENABLED,
             default_quic: DEFAULT_QUIC,
-            default_domain_fronting: DEFAULT_DOMAIN_FRONTING,
             startup_error,
         }
     }
