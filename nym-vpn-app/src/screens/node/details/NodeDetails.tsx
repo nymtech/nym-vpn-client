@@ -157,7 +157,7 @@ function NodeDetails() {
           {/* Card 2: Node features */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-malachite-200">Node features</p>
+              <p className="text-sm text-primary">Node features</p>
             </CardNewHeader>
             <CardNewBody className="pb-4">
               {/* Advanced privacy */}
@@ -236,7 +236,7 @@ function NodeDetails() {
           {/* Card 3: Performance metrics */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-malachite-200">Performance metrics</p>
+              <p className="text-sm text-primary">Performance metrics</p>
             </CardNewHeader>
             <CardNewBody className="pb-4">
               {/* Overall performance */}
@@ -293,7 +293,7 @@ function NodeDetails() {
           {showCard3 && (
             <CardNew>
               <CardNewHeader>
-                <p className="text-sm text-malachite-200">Connection details</p>
+                <p className="text-sm text-primary">Connection details</p>
               </CardNewHeader>
               <CardNewBody className="pb-4">
                 {exitIpv4 && (
@@ -349,7 +349,7 @@ function NodeDetails() {
           {/* Card 5: Build information */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-malachite-200">Build information</p>
+              <p className="text-sm text-primary">Build information</p>
             </CardNewHeader>
             <CardNewBody className="pb-4">
               {buildVersion && (

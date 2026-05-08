@@ -9,6 +9,8 @@ import { Welcome } from './components/Welcome';
 import { Signup } from './components/Signup';
 import { Login } from './components/Login';
 import { PassphraseEnter } from './components/PassphraseEnter';
+import { routes } from '../../router';
+import { useNavigate } from 'react-router';
 
 type View = 'welcome' | 'signup' | 'login' | 'passphrase';
 
@@ -32,6 +34,8 @@ function WelcomeScreenContainer() {
   const [dir, setDir] = useState(1);
   const hasNavigated = useRef(false);
   const uiTheme = useAppStore((s) => s.uiTheme);
+
+  const globalNavigate = useNavigate();
 
   const navigate = (to: View, direction: 1 | -1 = 1) => {
     hasNavigated.current = true;
@@ -59,6 +63,11 @@ function WelcomeScreenContainer() {
               'w-[100px] h-[27px]',
               uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
             )}
+          />
+          <ButtonIconNew
+            className="absolute right-0"
+            icon="close"
+            onClick={() => globalNavigate(routes.root)}
           />
         </div>
       </div>
