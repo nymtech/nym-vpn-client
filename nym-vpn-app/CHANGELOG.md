@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Support quick connect algorithm
+- New UI 🚀
+- Domain fronting (stealth api) toggle
+
 ## [1.29.4] - 2026-05-07
 
 ## [1.29.3] - 2026-05-04
