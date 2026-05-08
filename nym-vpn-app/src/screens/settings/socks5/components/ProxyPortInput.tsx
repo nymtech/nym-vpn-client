@@ -38,7 +38,6 @@ function ProxyPortInput({
           value={value}
           placeholder={defaultValue}
           disabled={disabled}
-          label={t('app-proxy.listen-port')}
           onChange={handleChange}
         />
         {error && <p className="mt-2 text-xs text-aphrodisiac">{error}</p>}

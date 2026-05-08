@@ -173,7 +173,6 @@ function Node({ node }: { node: NodeHop }) {
             onChange={onSearchChange}
             placeholder={t('search-country')}
             leftIcon="search"
-            label={t('input-label')}
             clearable
             value={search || ''}
           />

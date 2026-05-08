@@ -25,7 +25,6 @@ import {
   SelectPlan,
   Settings,
   SettingsRouteIndex,
-  Signup,
   Socks5,
   SplitTunneling,
   Support,
@@ -37,8 +36,6 @@ import StartupGate from './screens/StartupGate';
 
 export const routes = {
   root: '/home',
-  login: '/login',
-  signup: '/signup',
   account: '/account',
   selectPlan: '/account/select-a-plan',
   settings: '/settings',
@@ -87,11 +84,6 @@ const router = createBrowserRouter([
       {
         path: routes.welcome,
         Component: WelcomeContainer,
-        errorElement: <Error />,
-      },
-      {
-        path: routes.signup,
-        Component: Signup,
         errorElement: <Error />,
       },
       {

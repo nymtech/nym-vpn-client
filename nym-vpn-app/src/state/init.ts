@@ -10,7 +10,6 @@ import {
   AccountLinks,
   CodeDependency,
   FeatureFlags,
-  FrontingMode,
   NetworkCompat,
   TAccountMode,
   TAccountState,
@@ -24,7 +23,6 @@ import { updateAccountState, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
 
 const defaultNetStats = window._APP.defaultNetstats;
-const defaultDomFront = window._APP.defaultDomainFronting;
 
 // initialize connection state
 const getInitialTunnelState = async () => {

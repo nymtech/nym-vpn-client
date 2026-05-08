@@ -110,7 +110,6 @@ export function CustomDnsServers({
                 placeholder={t('dns.details.input-placeholder')}
                 onChange={handleTextInputChange}
                 value={inputValue}
-                label={t('dns.details.input-label')}
                 color="gray"
               />
             </div>

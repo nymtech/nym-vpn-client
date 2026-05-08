@@ -81,20 +81,6 @@ export default function TopBar() {
         },
         noBackground: true,
       },
-      '/signup': {
-        leftIcon: 'keyboard_arrow_left',
-        handleLeftNav: () => {
-          navigate(-1);
-        },
-        noBackground: true,
-      },
-      '/login': {
-        leftIcon: 'keyboard_arrow_left',
-        handleLeftNav: () => {
-          navigate(-1);
-        },
-        noBackground: true,
-      },
       '/hideout/onboarding': {
         rightIcon: 'close',
         handleRightNav: () => navigate(routes.root),

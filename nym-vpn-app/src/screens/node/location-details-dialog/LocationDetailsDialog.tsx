@@ -1,6 +1,6 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { Button, ButtonNew, Dialog, MsIcon } from '../../../ui';
+import { ButtonNew, Dialog, MsIcon } from '../../../ui';
 import { capFirst } from '../../../util';
 import { NodeHop } from '../../../types';
 import { Details } from './Details';

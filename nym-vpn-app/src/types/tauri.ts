@@ -193,7 +193,6 @@ export type JsEnv = {
   defaultSentry: boolean;
   defaultNetstats: boolean;
   defaultQuic: boolean;
-  defaultDomainFronting: boolean;
   startupError: StartupError | null;
 };
 

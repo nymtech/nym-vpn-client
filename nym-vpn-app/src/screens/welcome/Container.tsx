@@ -1,16 +1,16 @@
 import clsx from 'clsx';
 import { AnimatePresence, Variants, motion } from 'motion/react';
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { NymVpnTextLogo } from '../../assets';
 import { ButtonIconNew } from '../../ui';
 import { useAppStore } from '../../store';
 import { InteractiveCard } from '../home/InteractiveCard';
+import { routes } from '../../router';
 import { Welcome } from './components/Welcome';
 import { Signup } from './components/Signup';
 import { Login } from './components/Login';
 import { PassphraseEnter } from './components/PassphraseEnter';
-import { routes } from '../../router';
-import { useNavigate } from 'react-router';
 
 type View = 'welcome' | 'signup' | 'login' | 'passphrase';
 

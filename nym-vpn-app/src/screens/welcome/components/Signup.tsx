@@ -41,7 +41,7 @@ export function Signup() {
       console.error('[Signup] Create account error: ', error);
       // if error, then most likely the deeplink call timed out.
       // But the user might still finish the purchase on the website.
-      navigate(routes.login);
+      navigate(routes.welcome);
     }
   };
 

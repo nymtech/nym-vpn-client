@@ -10,4 +10,3 @@ export * from './account';
 export * from './settings';
 export * from './node';
 export * from './welcome';
-export * from './sign-up';
