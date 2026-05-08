@@ -58,13 +58,11 @@ function PrivyButton({ label }: { label: string }) {
       if (error instanceof DeeplinkTimeout) {
         add({
           title: t('privy.error.timeout'),
-          description: t('privy.error.timeout'),
           type: 'error',
         });
       } else {
         add({
           title: t('privy.error.login'),
-          description: t('privy.error.login'),
           type: 'error',
         });
       }

@@ -232,6 +232,8 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
           mixnetTrafficDefaults: action.config.mixnetTrafficDefaults,
           enableAdBlocking: action.config.enableAdBlocking,
           splitTunnel: action.config.splitTunnel,
+          gatewaySelectionAlgorithmConfig:
+            action.config.gatewaySelectionAlgorithmConfig,
         });
         break;
 

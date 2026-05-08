@@ -72,8 +72,6 @@ impl AppState {
     pub async fn update_tunnel(&mut self, app: &AppHandle, state: TunnelState) -> Result<()> {
         self.tunnel = state;
 
-        info!("tunnel updated: {:?}", self.tunnel);        
-
         let tray_manager = app.state::<TrayManager>();
         tray_manager.update_tray_icon(self.tunnel.clone()).await;
         app.emit_tunnel_update(&self.tunnel);

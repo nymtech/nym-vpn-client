@@ -34,7 +34,7 @@ function ToastList() {
 
             <div className="w-full flex flex-col gap-1 items-start justify-center">
               <Toast.Title className="text-sm leading-5 font-medium" />
-              <Toast.Description className="text-xs font-normal leading-5 text-gray-700" />
+              <Toast.Description className="text-xs font-normal leading-5 text-white dark:text-gray-700" />
               <Toast.Action
                 className={clsx([
                   'self-end border-[1.5px] font-bold bg-transparent rounded-2xl text-xs py-1.5 px-3',

@@ -2,9 +2,6 @@ import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../../store';
 import type { GatewaysState } from './types';
 
-// Expose the combined store under the original name for backward compatibility.
-export { useAppStore as useGatewaysStore } from '../../store';
-
 export const useGateways = (): GatewaysState =>
   useAppStore(
     useShallow((s) => ({

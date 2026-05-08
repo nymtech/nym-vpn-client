@@ -56,6 +56,7 @@ function MainStateProvider({ children, init }: Props) {
         'daemonStatus is down or auth-denied, skipping initialization',
       );
       batchesInitialized = false;
+      gatewaysInit = false;
       return;
     }
     if (batchesInitialized) {
@@ -119,12 +120,10 @@ function MainStateProvider({ children, init }: Props) {
       await fetchGateways('wg');
       console.info('[wg] gateways initialized');
     } else {
-      await fetchGateways('mx-entry');
-      console.info('[mx-entry] gateways initialized');
-      await fetchGateways('mx-exit');
-      console.info('[mx-exit] gateways initialized');
+      await Promise.all([fetchGateways('mx-entry'), fetchGateways('mx-exit')]);
+      console.info('[mx-entry + mx-exit] gateways initialized');
     }
-  }, [initialized, daemonStatus, vpnMode]);
+  }, [daemonStatus, vpnMode]);
 
   useEffect(() => {
     initGateways();

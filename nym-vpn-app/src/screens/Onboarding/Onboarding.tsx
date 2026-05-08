@@ -1,5 +1,4 @@
 import clsx from 'clsx';
-import { useTranslation } from 'react-i18next';
 import { Button as HuButton } from '@headlessui/react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
@@ -45,7 +44,6 @@ function Onboarding() {
   const uiTheme = useAppStore((s) => s.uiTheme);
 
   const navigate = useAnimatedNavigate();
-  const { t } = useTranslation('onboarding');
   const [emblaRef, emblaApi] = useEmblaCarousel({
     duration: 20,
   });
