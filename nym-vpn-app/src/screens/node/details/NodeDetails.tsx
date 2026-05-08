@@ -141,11 +141,11 @@ function NodeDetails() {
                 alt={country.code}
                 className="h-6 w-6 rounded-full shrink-0"
               />
-              <p className="text-base">{gateway.name}</p>
+              <p className="text-base text-text-primary ml-4">{gateway.name}</p>
             </CardNewHeader>
             <CardDivider />
             <CardNewBody className="py-4 flex-col gap-3">
-              <p className="font-medium text-sm underline">
+              <p className="font-medium text-sm underline text-baltic-sea dark:text-white">
                 {serverLocation()}
               </p>
               {gateway.description && (
@@ -157,7 +157,7 @@ function NodeDetails() {
           {/* Card 2: Node features */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-primary">
+              <p className="text-sm text-baltic-sea dark:text-white">
                 {t('node-details.data.node-features')}
               </p>
             </CardNewHeader>
@@ -168,7 +168,7 @@ function NodeDetails() {
                   icon="visibility_off"
                   className="text-primary text-xl"
                 />
-                <p className="whitespace-nowrap">
+                <p className="whitespace-nowrap text-baltic-sea dark:text-white">
                   {t('node-details.data.with-mixnet')}
                 </p>
               </CardDataRow>
@@ -182,7 +182,7 @@ function NodeDetails() {
                     isGoodIp ? 'text-cornflower' : 'text-text-secondary',
                   )}
                 />
-                <p className="whitespace-nowrap">
+                <p className="whitespace-nowrap text-baltic-sea dark:text-white">
                   {isGoodIp
                     ? t('node-details.data.ip-residential')
                     : t('node-details.data.ip-datacenter')}
@@ -192,7 +192,7 @@ function NodeDetails() {
               {/* Post-quantum secure keys */}
               <CardDataRow label={t('node-details.data.lewes-protocol-label')}>
                 <LewesIcon className="text-xl text-text-secondary" />
-                <p className="whitespace-nowrap">
+                <p className="whitespace-nowrap text-baltic-sea dark:text-white">
                   {t('node-details.data.lewes-protocol')}
                 </p>
               </CardDataRow>
@@ -206,7 +206,7 @@ function NodeDetails() {
                       icon={quic ? 'package_2' : 'circle'}
                       className="text-xl text-text-secondary"
                     />
-                    <p className="whitespace-nowrap">
+                    <p className="whitespace-nowrap text-baltic-sea dark:text-white">
                       {quic
                         ? t('node-details.data.quic-protocol')
                         : t('node-details.data.standard-protocol')}
@@ -238,7 +238,7 @@ function NodeDetails() {
           {/* Card 3: Performance metrics */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-primary">
+              <p className="text-sm text-baltic-sea dark:text-white">
                 {t('node-details.data.performance-metrics')}
               </p>
             </CardNewHeader>
@@ -297,7 +297,7 @@ function NodeDetails() {
           {showCard3 && (
             <CardNew>
               <CardNewHeader>
-                <p className="text-sm text-primary">
+                <p className="text-sm text-baltic-sea dark:text-white">
                   {t('node-details.data.connection-details')}
                 </p>
               </CardNewHeader>
@@ -335,7 +335,9 @@ function NodeDetails() {
                   <>
                     <CardDivider />
                     <CardDataRow label={t('node-details.data.asn')}>
-                      <p className="truncate">{asnValue}</p>
+                      <p className="truncate text-baltic-sea dark:text-white">
+                        {asnValue}
+                      </p>
                     </CardDataRow>
                   </>
                 )}
@@ -344,7 +346,9 @@ function NodeDetails() {
                   <>
                     <CardDivider />
                     <CardDataRow label={t('node-details.data.asn-name')}>
-                      <p className="truncate">{asnName}</p>
+                      <p className="truncate text-baltic-sea dark:text-white">
+                        {asnName}
+                      </p>
                     </CardDataRow>
                   </>
                 )}
@@ -355,7 +359,7 @@ function NodeDetails() {
           {/* Card 5: Build information */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-primary">
+              <p className="text-sm text-baltic-sea dark:text-white">
                 {t('node-details.data.build-information')}
               </p>
             </CardNewHeader>
@@ -363,7 +367,9 @@ function NodeDetails() {
               {buildVersion && (
                 <>
                   <CardDataRow label={t('node-details.data.build-version')}>
-                    <p className="truncate">{buildVersion}</p>
+                    <p className="truncate text-baltic-sea dark:text-white">
+                      {buildVersion}
+                    </p>
                   </CardDataRow>
                   <CardDivider />
                 </>
@@ -373,7 +379,7 @@ function NodeDetails() {
                   {t('node-details.data.identity-key')}
                 </p>
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-mono text-xs text-wrap wrap-break-word overflow-hidden flex-1">
+                  <p className="font-mono text-xs text-wrap wrap-break-word overflow-hidden flex-1 text-secondary">
                     {gateway.id}
                   </p>
                   <ButtonIconNew
@@ -395,7 +401,7 @@ function NodeDetails() {
               icon
               color="cornflower"
             />
-            <p>
+            <p className="text-secondary">
               <Trans
                 i18nKey="node-details.links.explorer"
                 ns="node-location"

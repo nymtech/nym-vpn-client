@@ -52,7 +52,7 @@ function RowHeader({
     <div
       ref={scrollToRowRef}
       className={clsx(
-        'flex flex-row justify-between rounded-r-2xl',
+        'flex flex-row items-center justify-between rounded-r-2xl',
         !sub
           ? ' bg-white dark:bg-charcoal'
           : 'bg-gainsboro dark:bg-charcoal/60',

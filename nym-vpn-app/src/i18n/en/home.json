@@ -2,6 +2,7 @@
   "connect": "Connect",
   "disconnect": "Disconnect",
   "failed-to-disconnect": "Failed to disconnect",
+  "not-protected": "Not protected",
   "status": {
     "connected": "Tap to disconnect",
     "disconnected": "Tap to connect",

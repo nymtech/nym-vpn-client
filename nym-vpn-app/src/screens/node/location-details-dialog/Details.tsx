@@ -38,7 +38,7 @@ function LocationSection() {
         Displayed locations are
         <Link
           url={LocationDetailsArticle}
-          textClassName="underline text-black dark:text-white"
+          textClassName="text-black dark:text-white"
         >
           determined from IP addresses
         </Link>
@@ -56,7 +56,7 @@ function QUICSection() {
         Improves the Fast mode reliability in restrictive networks by
         <Link
           url={QuicSupportArticleUrl}
-          textClassName="underline text-black dark:text-white"
+          textClassName="text-black dark:text-white"
         >
           wrapping WireGuard traffic in QUIC
         </Link>
@@ -79,7 +79,7 @@ function StreamingSection() {
       >
         <Link
           url={ResidentialIpServersUrl}
-          textClassName="underline text-black dark:text-white"
+          textClassName="text-black dark:text-white"
         >
           Residential IP servers
         </Link>

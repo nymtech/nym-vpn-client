@@ -177,7 +177,7 @@ export function TunnelState() {
 
   // ─── Label text ───────────────────────────────────────────────────────────
   const label = useMemo((): string | null => {
-    if (phase === 'disconnected') return 'Not protected';
+    if (phase === 'disconnected') return t('not-protected');
 
     if (phase === 'connecting') {
       const prog = progress ?? progressMessages[progressMessages.length - 1];
@@ -185,7 +185,7 @@ export function TunnelState() {
     }
     if (phase === 'canceling') return tP('canceling');
     return null;
-  }, [phase, progress, progressMessages, tP]);
+  }, [phase, progress, progressMessages, tP, t]);
 
   // ─── Error content ────────────────────────────────────────────────────────
   const getError = () => {

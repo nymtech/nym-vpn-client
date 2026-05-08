@@ -95,10 +95,8 @@ const GatewayItem = ({
             <ScoreIndicator score={score} />
           </div>
           <div className="flex flex-col text-start overflow-hidden">
-            <p className="truncate">{gateway.name}</p>
-            <p className="text-sm text-text-secondary truncate">
-              {location()}
-            </p>
+            <p className="truncate text-text-primary">{gateway.name}</p>
+            <p className="text-sm text-text-secondary truncate">{location()}</p>
           </div>
         </div>
       </Button>
