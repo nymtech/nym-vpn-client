@@ -41,7 +41,6 @@ test.describe('Settings', () => {
     await expect(
       settingsPage.SELECTORS.desktopNotificationsButton,
     ).toBeVisible();
-    await expect(settingsPage.SELECTORS.logsButton).toBeVisible();
     await expect(settingsPage.SELECTORS.dataPrivacyButton).toBeVisible();
     await expect(settingsPage.SELECTORS.legalButton).toBeVisible();
     await expect(settingsPage.SELECTORS.quitButton).toBeVisible();
@@ -51,10 +50,6 @@ test.describe('Settings', () => {
     await expect(settingsPage.SELECTORS.daemonVersionValue).toBeVisible();
     await expect(settingsPage.SELECTORS.networkNameLabel).toBeVisible();
     await expect(settingsPage.SELECTORS.networkNameValue).toBeVisible();
-    await expect(settingsPage.SELECTORS.accountIdLabel).toBeVisible();
-    await expect(settingsPage.SELECTORS.accountIdValue).toBeVisible();
-    await expect(settingsPage.SELECTORS.deviceIdLabel).toBeVisible();
-    await expect(settingsPage.SELECTORS.deviceIdValue).toBeVisible();
   });
 
   test('renders anti censorship settings correctly', async () => {

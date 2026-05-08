@@ -9,7 +9,9 @@ class SettingsPage {
     this.page = page;
     this.SELECTORS = {
       title: this.page.getByTestId('top-bar-title-text'),
-      backButton: this.page.getByTestId('button-icon'),
+      backButton: this.page
+        .getByTestId('top-bar-left-button-container')
+        .getByTestId('button-icon'),
 
       notification: this.page.getByTestId('notifications-toast'),
 
@@ -44,9 +46,8 @@ class SettingsPage {
         name: /Desktop notifications/,
       }),
 
-      logsButton: this.page.getByRole('button', { name: /Logs/ }),
       dataPrivacyButton: this.page.getByRole('button', {
-        name: /Data & privacy/,
+        name: /Data, privacy/,
       }),
 
       legalButton: this.page.getByRole('button', { name: /Legal/ }),
@@ -62,12 +63,6 @@ class SettingsPage {
 
       networkNameLabel: this.page.getByTestId('network-name-label'),
       networkNameValue: this.page.getByTestId('network-name-value'),
-
-      accountIdLabel: this.page.getByTestId('account-id-label'),
-      accountIdValue: this.page.getByTestId('account-id-value'),
-
-      deviceIdLabel: this.page.getByTestId('device-id-label'),
-      deviceIdValue: this.page.getByTestId('device-id-value'),
 
       // Anti censorship
       enhancedConnectionText: this.page.getByRole('button', {
@@ -103,7 +98,9 @@ class SettingsPage {
       deleteDNSButton: this.page
         .getByTestId('page-animation')
         .getByTestId('button-icon'),
-      switchDNSButton: this.page.getByTestId('switch'),
+      switchDNSButton: this.page
+        .getByRole('button', { name: /Use custom DNS servers/ })
+        .getByTestId('switch'),
       learnMoreAboutDNSLink: this.page.getByTestId('link-learn-more-about-dns'),
       invalidDNSAddressError: this.page.getByText('Invalid DNS address format'),
 
