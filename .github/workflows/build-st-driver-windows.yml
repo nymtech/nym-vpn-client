@@ -43,29 +43,25 @@ jobs:
       - name: Setup VS dev shell
         uses: humbletim/vsdevenv-shell@503210b7b39a7405e534ea93c36a733b93f01087
 
-      - name: Build st-driver (x64)
+      - name: Build st-driver
         shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-windows/split-tunnel-driver
-        run: MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=x64
-
-      - name: Build st-driver (arm64)
-        shell: vsdevenv x64 pwsh {0}
-        working-directory: nym-vpn-windows/split-tunnel-driver
-        run: MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=ARM64
+        run: |
+          foreach ($platform in @('x64', 'ARM64')) {
+            MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=$platform
+          }
 
       - name: Move things around to prepare for upload
         shell: pwsh
         run: |
           $src = "nym-vpn-windows/split-tunnel-driver/bin"
           $dst = "build/st-driver"
-          New-Item -ItemType Directory -Force -Path "$dst/x64-Release"
-          New-Item -ItemType Directory -Force -Path "$dst/ARM64-Release"
-          Copy-Item "$src/x64-Release/nymvpn-split-tunnel.sys"  "$dst/x64-Release/"
-          Copy-Item "$src/x64-Release/nymvpn-split-tunnel.inf"  "$dst/x64-Release/"
-          Copy-Item "$src/x64-Release/nymvpn-split-tunnel.cat"  "$dst/x64-Release/"
-          Copy-Item "$src/ARM64-Release/nymvpn-split-tunnel.sys" "$dst/ARM64-Release/"
-          Copy-Item "$src/ARM64-Release/nymvpn-split-tunnel.inf" "$dst/ARM64-Release/"
-          Copy-Item "$src/ARM64-Release/nymvpn-split-tunnel.cat" "$dst/ARM64-Release/"
+          foreach ($arch in @('x64-Release', 'ARM64-Release')) {
+            New-Item -ItemType Directory -Force -Path "$dst/$arch"
+            foreach ($file in @('nymvpn-split-tunnel.sys', 'nymvpn-split-tunnel.inf', 'nymvpn-split-tunnel.cat')) {
+              Copy-Item "$src/$arch/nymvpn-split-tunnel/$file" "$dst/$arch/"
+            }
+          }
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
