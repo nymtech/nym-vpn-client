@@ -10,6 +10,7 @@ import {
   AccountLinks,
   CodeDependency,
   FeatureFlags,
+  FrontingMode,
   NetworkCompat,
   TAccountMode,
   TAccountState,
@@ -177,17 +178,6 @@ export async function initFirstBatch() {
     },
   };
 
-  const getDomainFrontingRq: TauriReq<() => Promise<boolean | null>> = {
-    name: 'getDomainFrontingRq',
-    request: () => kvGet<boolean>('domain-fronting-enabled'),
-    onFulfilled: (enabled) => {
-      dispatch({
-        type: 'set-domain-fronting',
-        enabled: enabled !== null ? enabled : defaultDomFront,
-      });
-    },
-  };
-
   const getNetworkStatsRq: TauriReq<() => Promise<boolean | null>> = {
     name: 'getNetworkStats',
     request: () => kvGet<boolean>('network-stats-enabled'),
@@ -209,7 +199,6 @@ export async function initFirstBatch() {
     getDepsJsRq,
     getDesktopNotificationsRq,
     getNetworkStatsRq,
-    getDomainFrontingRq,
     initStateRq,
     getStoredAccountRq,
     getAccountStateRq,

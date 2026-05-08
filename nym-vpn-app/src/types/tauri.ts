@@ -84,7 +84,6 @@ export type DbKey =
   | 'desktop-notifications'
   | 'last-network-env'
   | 'network-stats-enabled'
-  | 'domain-fronting-enabled'
   | 'cache-mx-entry-gateways'
   | 'cache-mx-exit-gateways'
   | 'cache-wg-gateways'
