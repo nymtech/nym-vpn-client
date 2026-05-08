@@ -7,8 +7,8 @@ use crate::state::app::VpnMode;
 use crate::sys::DisplayServer;
 use crate::sys::OsInfo;
 use crate::{
-    APP_NAME, DEFAULT_DOMAIN_FRONTING, DEFAULT_NETSTATS_ENABLED, DEFAULT_QUIC,
-    DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH, MAIN_WINDOW_LABEL, env,
+    APP_NAME, DEFAULT_NETSTATS_ENABLED, DEFAULT_QUIC, DEFAULT_SENTRY_ENABLED, ENV_APP_NOSPLASH,
+    MAIN_WINDOW_LABEL, env,
 };
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
