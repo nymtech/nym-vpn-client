@@ -5,6 +5,7 @@ import {
   AccountLinks,
   ConnectingState,
   FeatureFlags,
+  FrontingMode,
   GatewaySelectionAlgorithmConfig,
   MixnetTrafficConfig,
   MixnetTrafficDefaults,
@@ -51,6 +52,7 @@ export type InitState = {
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
+  frontingMode: FrontingMode;
 };
 
 export type AppState = {
@@ -104,7 +106,6 @@ export type AppState = {
   // aka bridges mode
   quic: boolean;
   // current user setting
-  domainFronting: boolean;
   customDnsEnabled: boolean;
   customDns: string[];
   defaultDns: string[];
@@ -113,4 +114,5 @@ export type AppState = {
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
+  frontingMode: FrontingMode;
 };

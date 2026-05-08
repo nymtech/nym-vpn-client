@@ -141,6 +141,8 @@ export type FeatureFlags = {
   mixnetTuning: boolean;
 };
 
+export type FrontingMode = 'off' | 'onRetry' | 'always';
+
 export type Gateway = {
   id: string;
   type: GatewayType;
@@ -544,6 +546,7 @@ export type VpndConfig = {
   vpnMode: VpnMode;
   bridges: boolean;
   netstack: boolean;
+  frontingMode: FrontingMode;
   minGatewayVpnPerformance: number | null;
   residentialExit: boolean;
   enableLewesProtocol: boolean;

@@ -51,7 +51,7 @@ function Link({
       as="a"
       className={clsx([
         'focus:outline-hidden select-none cursor-default',
-        'inline-flex flex-row items-center gap-1',
+        'inline-flex flex-row items-center gap-1 border-b',
         color === 'malachite' && 'text-malachite-moss dark:text-malachite',
         color === 'iron' && 'text-iron dark:text-bombay',
         color === 'primary' && 'text-baltic-sea dark:text-white',

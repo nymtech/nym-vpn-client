@@ -14,6 +14,7 @@ import {
   ConnectingState,
   DaemonStatus,
   FeatureFlags,
+  FrontingMode,
   GatewaySelectionAlgorithmConfig,
   MixnetTrafficConfig,
   MixnetTrafficDefaults,
@@ -82,7 +83,7 @@ export type StateAction =
   | { type: 'set-account-error'; error: AppError | null }
   | { type: 'set-backend-flags'; flags: FeatureFlags }
   | { type: 'set-quic'; enabled: boolean }
-  | { type: 'set-domain-fronting'; enabled: boolean }
+  | { type: 'set-fronting-mode'; mode: FrontingMode }
   | { type: 'set-custom-dns-enabled'; enabled: boolean }
   | { type: 'set-custom-dns'; dns: string[] }
   | { type: 'set-default-dns'; dns: string[] }
@@ -128,7 +129,7 @@ export const initialState: AppState = {
   welcomeChecked: false,
   quic: false,
   allowLan: false,
-  domainFronting: false,
+  frontingMode: 'onRetry',
   enableAdBlocking: false,
   backendFlags: {
     quic: false,
@@ -223,6 +224,7 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
           exitNode: action.config.exitNode,
           vpnMode: action.config.vpnMode,
           quic: action.config.bridges,
+          frontingMode: action.config.frontingMode,
           ipv6Support: !action.config.disableIpv6,
           allowLan: action.config.allowLan,
           enableLewesProtocol: action.config.enableLewesProtocol,
@@ -449,8 +451,8 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
         set({ quic: action.enabled });
         break;
 
-      case 'set-domain-fronting':
-        set({ domainFronting: action.enabled });
+      case 'set-fronting-mode':
+        set({ frontingMode: action.mode });
         break;
 
       case 'set-custom-dns-enabled':

@@ -7,7 +7,7 @@ use crate::{
     vpnd::{
         client::{Node, VpndClient, VpndError},
         config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
-        tunnel::{ConnectingState, SplitApp, TunnelState},
+        tunnel::{ConnectingState, FrontingMode, SplitApp, TunnelState},
         gateway::GatewaySelectionAlgorithm,
     },
 };
@@ -58,6 +58,7 @@ pub async fn connect(
         info!("entry node: {}", config.entry_node);
         info!("exit node: {}", config.exit_node);
         info!("QUIC mode: {}", config.bridges);
+        info!("fronting mode: {}", config.fronting_mode.to_string());
         info!("allow LAN: {}", config.allow_lan);
         info!("no IPv6: {}", config.disable_ipv6);
         info!("mixnet traffic config: {:?}", config.mixnet_traffic);
@@ -141,6 +142,13 @@ pub async fn set_node(
 #[tauri::command]
 pub async fn set_quic(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), BackendError> {
     vpnd.set_quic(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_fronting_mode(vpnd: State<'_, VpndClient>, mode: FrontingMode) -> Result<(), BackendError> {
+    vpnd.set_fronting_mode(mode).await?;
     Ok(())
 }
 

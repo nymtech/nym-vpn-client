@@ -6,7 +6,7 @@ import { AmneziaWgUrl, DomainFrontingUrl, QuicUrl } from '../../../constants';
 import { useToast } from '../../../hooks';
 
 function AntiCensorship() {
-  const { quic, backendFlags, state } = useMainState();
+  const { quic, backendFlags, state, frontingMode } = useMainState();
   const { add } = useToast();
 
   const { t } = useTranslation('settings');
@@ -16,9 +16,13 @@ function AntiCensorship() {
     try {
       await invoke('set_quic', { enabled: isChecked });
       dispatch({ type: 'set-quic', enabled: isChecked });
-    } catch {
-      /* TODO */
-      return;
+    } catch (err: unknown) {
+      console.error('Failed to set QUIC', err);
+      add({
+        id: `quic-switch-${isChecked}`,
+        title: t('anti-censorship.quic.error'),
+        type: 'error',
+      });
     }
 
     if (state == 'connected' || state == 'connecting') {
@@ -34,14 +38,22 @@ function AntiCensorship() {
     }
   };
 
-  // const onDomainFrontingChange = async () => {
-  //   const isChecked = !domainFronting;
-  //   await kvSet('domain-fronting-enabled', isChecked);
-  //   dispatch({ type: 'set-domain-fronting', enabled: isChecked });
-  //   try {
-  //     // TODO invoke command
-  //   } catch {}
-  // };
+  const handleFrontingModeChange = async () => {
+    const value = frontingMode === 'onRetry' ? 'always' : 'onRetry';
+    console.log('value', value);
+    console.log('frontingMode', frontingMode);
+    try {
+      await invoke('set_fronting_mode', { mode: value });
+      dispatch({ type: 'set-fronting-mode', mode: value });
+    } catch (err: unknown) {
+      console.error('Failed to set fronting mode', err);
+      add({
+        id: `fronting-mode-switch-${value}`,
+        title: t('anti-censorship.stealth-api.error'),
+        type: 'error',
+      });
+    }
+  };
 
   if (!backendFlags.quic && !backendFlags.domainFronting) {
     return (
@@ -77,7 +89,6 @@ function AntiCensorship() {
               text={t('anti-censorship.quic.link')}
               url={QuicUrl}
               color="primary"
-              icon
             />
           </div>
         </SettingsMenuCardBig>
@@ -103,7 +114,6 @@ function AntiCensorship() {
             text={t('anti-censorship.amneziawg.link')}
             url={AmneziaWgUrl}
             color="primary"
-            icon
           />
         </div>
       </SettingsMenuCardBig>
@@ -111,13 +121,8 @@ function AntiCensorship() {
         header={
           <CardSwitch
             header={t('anti-censorship.stealth-api.label')}
-            subheaderColor="king-nacho"
-            // TODO keep it always ON for now
-            checked={true}
-            onClick={() => {
-              /* TODO */
-            }}
-            disabled
+            checked={frontingMode === 'always'}
+            onClick={handleFrontingModeChange}
           />
         }
       >
@@ -130,7 +135,6 @@ function AntiCensorship() {
             text={t('anti-censorship.stealth-api.link')}
             url={DomainFrontingUrl}
             color="primary"
-            icon
           />
         </div>
       </SettingsMenuCardBig>

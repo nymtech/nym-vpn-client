@@ -42,6 +42,7 @@ export function initMainStore(init: InitState): void {
     mixnetTrafficDefaults: init.mixnetTrafficDefaults,
     splitTunnel: init.splitTunnel,
     gatewaySelectionAlgorithmConfig: init.gatewaySelectionAlgorithmConfig,
+    frontingMode: init.frontingMode,
   });
 }
 
@@ -88,7 +89,6 @@ export const useMainState = (): AppState =>
       networkStats: s.networkStats,
       welcomeChecked: s.welcomeChecked,
       quic: s.quic,
-      domainFronting: s.domainFronting,
       customDnsEnabled: s.customDnsEnabled,
       customDns: s.customDns,
       defaultDns: s.defaultDns,
@@ -97,6 +97,7 @@ export const useMainState = (): AppState =>
       mixnetTrafficDefaults: s.mixnetTrafficDefaults,
       splitTunnel: s.splitTunnel,
       gatewaySelectionAlgorithmConfig: s.gatewaySelectionAlgorithmConfig,
+      frontingMode: s.frontingMode,
     })),
   );
 

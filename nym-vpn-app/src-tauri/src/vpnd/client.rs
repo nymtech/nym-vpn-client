@@ -13,7 +13,7 @@ use super::{
     config::{MixnetTrafficConfig, VpndConfig},
     events::MixnetEvent,
     gateway::{Gateway, GatewayType, GatewaySelectionAlgorithm},
-    tunnel::{SplitApp, TunnelState},
+    tunnel::{FrontingMode, SplitApp, TunnelState},
 };
 
 use anyhow::Result;
@@ -396,6 +396,16 @@ impl VpndClient {
 
         vpnd.set_enable_bridges(enabled)
             .or_else(async |e| self.handle_rpc_error("set_enable_bridges", e).await)
+            .await
+    }
+
+    /// Enable or disable domain fronting
+    #[instrument(skip_all)]
+    pub async fn set_fronting_mode(&self, mode: FrontingMode) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_fronting_mode(mode.into())
+            .or_else(async |e| self.handle_rpc_error("set_fronting_mode", e).await)
             .await
     }
 

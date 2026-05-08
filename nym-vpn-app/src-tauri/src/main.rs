@@ -297,6 +297,7 @@ async fn main() -> Result<()> {
             tunnel::disconnect,
             tunnel::set_node,
             tunnel::set_quic,
+            tunnel::set_fronting_mode,
             tunnel::get_default_dns,
             tunnel::set_custom_dns,
             tunnel::set_custom_dns_enabled,

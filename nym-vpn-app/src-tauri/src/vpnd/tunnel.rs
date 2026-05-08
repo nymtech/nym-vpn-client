@@ -353,3 +353,42 @@ impl From<SplitApp> for lib::SplitApp {
         lib::SplitApp { path: app.path }
     }
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
+pub enum FrontingMode {
+    Off,
+    OnRetry,
+    Always,
+}
+
+impl From<lib::FrontingMode> for FrontingMode {
+    fn from(mode: lib::FrontingMode) -> Self {
+        match mode {
+            lib::FrontingMode::Off => FrontingMode::Off,
+            lib::FrontingMode::OnRetry => FrontingMode::OnRetry,
+            lib::FrontingMode::Always => FrontingMode::Always,
+        }
+    }
+}
+
+impl From<FrontingMode> for lib::FrontingMode {
+    fn from(mode: FrontingMode) -> Self {
+        match mode {
+            FrontingMode::Off => lib::FrontingMode::Off,
+            FrontingMode::OnRetry => lib::FrontingMode::OnRetry,
+            FrontingMode::Always => lib::FrontingMode::Always,
+        }
+    }
+}
+
+impl Display for FrontingMode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FrontingMode::Off => write!(f, "off"),
+            FrontingMode::OnRetry => write!(f, "on retry"),
+            FrontingMode::Always => write!(f, "always"),
+        }
+    }
+}
