@@ -307,11 +307,11 @@ async fn blocked_domain(dns_payload: &[u8], dns_filter: &DnsFilter) -> Option<St
             return None;
         }
     };
-    if msg.message_type() != MessageType::Query {
+    if msg.metadata.message_type != MessageType::Query {
         return None;
     }
 
-    for query in msg.queries().iter() {
+    for query in msg.queries.iter() {
         let domain = query.name().to_string();
         let domain = domain.trim_end_matches('.');
         tracing::trace!("DNS proxy: checking domain '{domain}'");
@@ -331,11 +331,11 @@ fn build_nxdomain_dns(query: &[u8]) -> Option<Vec<u8>> {
             tracing::debug!("DNS filter proxy: failed to parse DNS message: {e}");
         })
         .ok()?;
-    msg.set_message_type(MessageType::Response);
-    msg.set_response_code(ResponseCode::NXDomain);
-    msg.take_answers();
-    msg.take_name_servers();
-    msg.take_additionals();
+    msg.metadata.message_type = MessageType::Response;
+    msg.metadata.response_code = ResponseCode::NXDomain;
+    msg.answers.clear();
+    msg.authorities.clear();
+    msg.additionals.clear();
 
     msg.to_vec()
         .inspect_err(|e| {

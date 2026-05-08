@@ -163,14 +163,17 @@ impl ConnectedState {
         if *LOCAL_DNS_RESOLVER {
             let ips = dns_config.addresses().collect::<Vec<_>>();
             tracing::debug!("Enabling local DNS forwarder to: {ips:?}");
-            shared_state
+            if let Err(err) = shared_state
                 .filtering_resolver
                 .enable_forward(
                     ips,
                     #[cfg(target_os = "ios")]
                     Some(tunnel_metadata.interface.clone()),
                 )
-                .await;
+                .await
+            {
+                trace_err_chain!(err, "failed to enable dns forwarding");
+            }
 
             #[cfg(any(target_os = "linux", target_os = "windows"))]
             {
@@ -208,7 +211,9 @@ impl ConnectedState {
     async fn reset_dns(shared_state: &mut SharedState) {
         if *LOCAL_DNS_RESOLVER {
             shared_state.enable_ad_blocking(false).await;
-            shared_state.filtering_resolver.disable_forward().await;
+            if let Err(err) = shared_state.filtering_resolver.disable_forward().await {
+                trace_err_chain!(err, "failed to disable dns forwarding");
+            }
         } else {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             if let Err(error) = shared_state.dns_handler.reset().await {

@@ -5,11 +5,8 @@
 use std::net::SocketAddr;
 
 use super::*;
-use hickory_server::resolver::{
-    TokioResolver,
-    config::{NameServerConfigGroup, ResolverConfig},
-    name_server::TokioConnectionProvider,
-};
+use hickory_resolver::config::{ConnectionConfig, ProtocolConfig};
+use hickory_server::resolver::{TokioResolver, config::ResolverConfig};
 use tokio_util::sync::CancellationToken;
 
 /// Test whether we can successfully bind the socket even if the address is already used in
@@ -28,7 +25,7 @@ async fn test_bind() {
         .await
         .unwrap();
 
-    let test_resolver = get_test_resolver(handle.listen_addr());
+    let test_resolver = get_test_resolver(handle.listen_addr()).expect("failed to create resolver");
     test_resolver
         .lookup(&ALLOWED_DOMAINS[0], RecordType::A)
         .await
@@ -72,7 +69,7 @@ async fn test_successful_lookup() {
     let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
         .await
         .unwrap();
-    let test_resolver = get_test_resolver(handle.listen_addr());
+    let test_resolver = get_test_resolver(handle.listen_addr()).expect("failed to create resolver");
 
     for domain in &*ALLOWED_DOMAINS {
         test_resolver
@@ -92,7 +89,7 @@ async fn test_failed_lookup() {
     let (handle, join_handle) = LocalResolver::spawn(false, shutdown_token.child_token())
         .await
         .unwrap();
-    let test_resolver = get_test_resolver(handle.listen_addr());
+    let test_resolver = get_test_resolver(handle.listen_addr()).expect("failed to create resolver");
 
     let captive_portal_domain = LowerName::from(Name::from_str("apple.com").unwrap());
     assert!(
@@ -126,11 +123,12 @@ async fn test_unbind_socket_on_stop() {
     std::net::UdpSocket::bind(addr).expect("Failed to bind to a port that should have been freed");
 }
 
-fn get_test_resolver(listen_addr: SocketAddr) -> TokioResolver {
-    let resolver_config = ResolverConfig::from_parts(
-        None,
-        vec![],
-        NameServerConfigGroup::from_ips_clear(&[listen_addr.ip()], listen_addr.port(), true),
-    );
-    TokioResolver::builder_with_config(resolver_config, TokioConnectionProvider::default()).build()
+fn get_test_resolver(listen_addr: SocketAddr) -> Result<TokioResolver, NetError> {
+    let mut nameservers = NameServerConfig::udp_and_tcp(listen_addr.ip());
+    nameservers
+        .connections
+        .iter_mut()
+        .for_each(|c| c.port = listen_addr.port());
+    let resolver_config = ResolverConfig::from_parts(None, vec![], vec![nameservers]);
+    TokioResolver::builder_with_config(resolver_config, TokioRuntimeProvider::default()).build()
 }

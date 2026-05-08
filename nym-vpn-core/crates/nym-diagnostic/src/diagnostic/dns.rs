@@ -1,14 +1,13 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_http_api_client::ResolveError;
-use nym_vpn_lib_types::{CompleteDnsReport, DnsResolution};
+use nym_vpn_lib_types::{CompleteDnsReport, DiagnosticResult, DnsResolution};
 use nym_vpn_network_config::Network;
 
 use hickory_resolver::{
-    Resolver, ResolverBuilder,
-    config::{NameServerConfig, NameServerConfigGroup, ResolverConfig, ResolverOpts},
-    name_server::TokioConnectionProvider,
+    Resolver, ResolverBuilder, TokioResolver,
+    config::{CLOUDFLARE, NameServerConfig, QUAD9, ResolverConfig, ResolverOpts},
+    net::runtime::TokioRuntimeProvider,
 };
 use std::{
     iter,
@@ -16,39 +15,45 @@ use std::{
     time::{Duration, Instant},
 };
 
+#[derive(thiserror::Error, Debug)]
+pub enum DnsDiagnosticError {
+    #[error("resolve error: {0}")]
+    ResolveError(#[from] hickory_resolver::net::NetError),
+}
+
 pub struct DnsDiagnostic {
     hostnames: Vec<String>,
+    nameservers: Vec<NameServerConfig>,
 }
 
 impl DnsDiagnostic {
-    fn system() -> Result<Resolver<TokioConnectionProvider>, ResolveError> {
-        Ok(Self::build_resolver(Resolver::builder_tokio()?))
+    fn system() -> Result<TokioResolver, DnsDiagnosticError> {
+        Self::build_resolver(Resolver::builder_tokio()?)
     }
 
-    fn from_nameservers<G: Into<NameServerConfigGroup>>(
-        nameservers: G,
-    ) -> Resolver<TokioConnectionProvider> {
-        let nameservers: NameServerConfigGroup = nameservers.into();
+    fn from_nameservers(
+        nameservers: Vec<NameServerConfig>,
+    ) -> Result<TokioResolver, DnsDiagnosticError> {
         let config = ResolverConfig::from_parts(None, Vec::new(), nameservers);
         Self::from_config(config)
     }
 
-    fn from_config(config: ResolverConfig) -> Resolver<TokioConnectionProvider> {
+    fn from_config(config: ResolverConfig) -> Result<TokioResolver, DnsDiagnosticError> {
         Self::build_resolver(Resolver::builder_with_config(
             config,
-            TokioConnectionProvider::default(),
+            TokioRuntimeProvider::default(),
         ))
     }
 
     fn build_resolver(
-        base: ResolverBuilder<TokioConnectionProvider>,
-    ) -> Resolver<TokioConnectionProvider> {
+        base: ResolverBuilder<TokioRuntimeProvider>,
+    ) -> Result<TokioResolver, DnsDiagnosticError> {
         let mut options = ResolverOpts::default();
         options.attempts = 0;
         options.cache_size = 0;
         options.ip_strategy = hickory_resolver::config::LookupIpStrategy::Ipv4AndIpv6;
         options.timeout = Duration::from_secs(2);
-        base.with_options(options).build()
+        Ok(base.with_options(options).build()?)
     }
 
     pub async fn run_diagnostic(network: &Network) -> CompleteDnsReport {
@@ -56,6 +61,8 @@ impl DnsDiagnostic {
 
         let many_diagnostic = DnsDiagnostic {
             hostnames: hostnames(network),
+            // todo: retrieve system dns
+            nameservers: vec![],
         };
 
         tracing::debug!(
@@ -74,6 +81,8 @@ impl DnsDiagnostic {
         let single_hostname = many_diagnostic.hostnames[0].clone();
         let ns_diagnostic = DnsDiagnostic {
             hostnames: vec![single_hostname],
+            // todo: retrieve system dns
+            nameservers: vec![],
         };
 
         tracing::debug!(
@@ -81,18 +90,25 @@ impl DnsDiagnostic {
             many_diagnostic.hostnames
         );
 
-        let mut name_servers = NameServerConfigGroup::quad9_tls();
-        name_servers.merge(NameServerConfigGroup::quad9());
-        name_servers.merge(NameServerConfigGroup::quad9_https());
-        name_servers.merge(NameServerConfigGroup::cloudflare_tls());
-        name_servers.merge(NameServerConfigGroup::cloudflare());
-        name_servers.merge(NameServerConfigGroup::cloudflare_https());
+        let name_servers = QUAD9
+            .tls()
+            .chain(QUAD9.udp_and_tcp())
+            .chain(QUAD9.https())
+            .chain(CLOUDFLARE.tls())
+            .chain(CLOUDFLARE.udp_and_tcp())
+            .chain(CLOUDFLARE.https())
+            .collect::<Vec<_>>();
 
         let mut results = Vec::new();
-        for nameserver in name_servers.into_inner().into_iter() {
-            tracing::debug!("DNs diagnostic - {nameserver:?}");
-            let resolver = DnsDiagnostic::from_nameservers(vec![nameserver]);
-            results.append(&mut ns_diagnostic.resolve(&resolver).await);
+        for nameserver in name_servers.into_iter() {
+            tracing::debug!("DNS diagnostic - {nameserver:?}");
+            let res = match DnsDiagnostic::from_nameservers(vec![nameserver]) {
+                Ok(resolver) => {
+                    DiagnosticResult::from_value(ns_diagnostic.resolve(&resolver).await)
+                }
+                Err(e) => DiagnosticResult::from_err(e),
+            };
+            results.push(res);
         }
 
         CompleteDnsReport {
@@ -105,18 +121,22 @@ impl DnsDiagnostic {
         futures::future::join_all(
             self.hostnames
                 .iter()
-                .map(|h| Self::dns_resolution(h, dns_resolver)),
+                .map(|h| self.dns_resolution(h, dns_resolver)),
         )
         .await
     }
 
-    async fn dns_resolution(hostname: &str, dns_resolver: &impl DnsResolver) -> DnsResolution {
+    async fn dns_resolution(
+        &self,
+        hostname: &str,
+        dns_resolver: &impl DnsResolver,
+    ) -> DnsResolution {
         let now = Instant::now();
         let resolution = dns_resolver.resolve(hostname).await;
         let resolution_duration_ms = now.elapsed().as_millis();
 
         DnsResolution {
-            nameservers: format!("{:?}", dns_resolver.nameservers()),
+            nameservers: format!("{:?}", self.nameservers),
             hostname: hostname.into(),
             resolution: resolution.into(),
             resolution_duration_ms,
@@ -147,18 +167,12 @@ pub fn hostnames(network: &Network) -> Vec<String> {
 // QoL trait to accommodate both our custom resolver and hickory ones
 #[async_trait::async_trait]
 trait DnsResolver {
-    async fn resolve(&self, hostname: &str) -> Result<Vec<IpAddr>, ResolveError>;
-
-    fn nameservers(&self) -> Vec<NameServerConfig>;
+    async fn resolve(&self, hostname: &str) -> Result<Vec<IpAddr>, DnsDiagnosticError>;
 }
 
 #[async_trait::async_trait]
-impl DnsResolver for Resolver<TokioConnectionProvider> {
-    async fn resolve(&self, hostname: &str) -> Result<Vec<IpAddr>, ResolveError> {
+impl DnsResolver for TokioResolver {
+    async fn resolve(&self, hostname: &str) -> Result<Vec<IpAddr>, DnsDiagnosticError> {
         Ok(self.lookup_ip(hostname).await?.iter().collect())
-    }
-
-    fn nameservers(&self) -> Vec<NameServerConfig> {
-        self.config().name_servers().to_vec()
     }
 }

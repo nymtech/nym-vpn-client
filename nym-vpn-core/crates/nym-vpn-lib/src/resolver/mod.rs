@@ -15,6 +15,7 @@
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 mod unix;
 
+use hickory_resolver::config::NameServerConfig;
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 pub(crate) use unix::flush_system_cache;
 
@@ -45,26 +46,19 @@ use std::{
 };
 
 use async_trait::async_trait;
-#[cfg(target_os = "ios")]
-use hickory_server::resolver::name_server::GenericConnector;
-#[cfg(not(target_os = "ios"))]
-use hickory_server::resolver::name_server::TokioConnectionProvider;
 use hickory_server::{
-    ServerFuture,
-    authority::{
-        EmptyLookup, LookupObject, MessageRequest, MessageResponse, MessageResponseBuilder,
-    },
+    net::runtime::Time,
     proto::{
-        ProtoErrorKind,
-        op::{Header, LowerQuery, ResponseCode, header::MessageType, op_code::OpCode},
-        rr::{LowerName, Record, RecordType, domain::Name, rdata, record_data::RData},
+        op::{Header, HeaderCounts, LowerQuery, MessageType, Metadata, OpCode},
+        rr::{LowerName, RData, Record, RecordType, domain::Name, rdata},
     },
     resolver::{
-        ResolveError,
-        config::{NameServerConfigGroup, ResolverConfig},
+        config::ResolverConfig,
         lookup::Lookup,
+        net::{DnsError, NetError},
     },
-    server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
+    server::{Request, RequestHandler, ResponseHandler, ResponseInfo, Server},
+    zone_handler::{AuthLookup, MessageRequest, MessageResponse, MessageResponseBuilder},
 };
 use tokio::{
     net::{TcpListener, UdpSocket},
@@ -74,8 +68,9 @@ use tokio_util::{either::Either, sync::CancellationToken};
 
 #[cfg(target_os = "ios")]
 use apple_connection_provider::{AppleConnectionProvider, TokioResolver};
+use hickory_server::proto::op::ResponseCode;
 #[cfg(not(target_os = "ios"))]
-use hickory_server::resolver::TokioResolver;
+use hickory_server::{net::runtime::TokioRuntimeProvider, resolver::TokioResolver};
 
 #[async_trait]
 #[cfg_attr(target_os = "ios", allow(unused))]
@@ -133,6 +128,9 @@ const RESOLVED_ADDR: Ipv4Addr = Ipv4Addr::new(198, 51, 100, 1);
 /// Any client that does not send any DNS requests within the given timeout will be dropped.
 pub const TCP_CLIENT_TIMEOUT: Duration = Duration::from_secs(60);
 
+/// Maximum number of DNS responses that can be queued for sending on a single TCP connection.
+pub const TCP_RESPONSE_BUFFER_SIZE: usize = 32;
+
 /// Resolver errors
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -143,6 +141,10 @@ pub enum Error {
     /// Failed to get local address of a bound UDP socket
     #[error("failed to get local address of a bound UDP socket")]
     GetSocketAddr(#[source] io::Error),
+
+    /// Failed to create DNS resolver
+    #[error("failed to create DNS resolver")]
+    CreateResolver(#[source] hickory_resolver::net::NetError),
 }
 
 /// A DNS resolver that forwards queries to some other DNS server
@@ -164,7 +166,7 @@ enum ResolverMessage {
         /// New DNS config to use
         new_config: Config,
         /// Response channel when resolvers have been updated
-        response_tx: oneshot::Sender<()>,
+        response_tx: oneshot::Sender<Result<(), Error>>,
     },
 
     /// Set the DNS-filter
@@ -180,7 +182,7 @@ enum ResolverMessage {
         dns_query: LowerQuery,
 
         /// Channel for the query response
-        response_tx: oneshot::Sender<Result<Box<dyn LookupObject>, ResolveError>>,
+        response_tx: oneshot::Sender<Result<AuthLookup, NetError>>,
     },
 }
 
@@ -215,15 +217,10 @@ enum Resolver {
 }
 
 impl Resolver {
-    pub fn resolve(
-        &self,
-        query: LowerQuery,
-        tx: oneshot::Sender<Result<Box<dyn LookupObject>, ResolveError>>,
-    ) {
+    pub fn resolve(&self, query: LowerQuery, tx: oneshot::Sender<Result<AuthLookup, NetError>>) {
         tracing::trace!("resolve query: {}", query.to_string());
         let lookup = match self {
             Resolver::Blocking => Either::Left(async move { Self::resolve_blocked(query) }),
-
             Resolver::Forwarding {
                 resolver,
                 dns_filter,
@@ -240,9 +237,9 @@ impl Resolver {
     }
 
     /// Resolution in blocked state will return spoofed records for captive portal domains.
-    fn resolve_blocked(query: LowerQuery) -> Result<Box<dyn LookupObject>, ResolveError> {
+    fn resolve_blocked(query: LowerQuery) -> Result<AuthLookup, NetError> {
         if !Self::is_captive_portal_domain(&query) {
-            return Ok(Box::new(EmptyLookup) as Box<dyn LookupObject>);
+            return Ok(AuthLookup::Empty);
         }
 
         let return_query = query.original().clone();
@@ -259,10 +256,10 @@ impl Resolver {
 
         let lookup = Lookup::new_with_deadline(
             return_query,
-            Arc::new([return_record]),
+            [return_record],
             Instant::now() + Duration::from_secs(3),
         );
-        Ok(Box::new(ForwardLookup(lookup)) as Box<_>)
+        Ok(AuthLookup::from(lookup))
     }
 
     /// Determines whether a DNS query is allowable. Currently, this implies that the query is
@@ -275,7 +272,7 @@ impl Resolver {
         resolver: TokioResolver,
         query: LowerQuery,
         dns_filter: DnsFilter,
-    ) -> Result<Box<dyn LookupObject>, ResolveError> {
+    ) -> Result<AuthLookup, NetError> {
         let return_query = query.original().clone();
         let qname = return_query.name().to_ascii();
 
@@ -285,15 +282,15 @@ impl Resolver {
             tracing::trace!("Blocking DNS query for {qname} with strategy {decision:?}");
         }
 
-        let result: Box<dyn LookupObject> = match decision {
+        let result: AuthLookup = match decision {
             DnsFilterDecision::Pass => {
                 let lookup = resolver
                     .lookup(return_query.name().clone(), return_query.query_type())
-                    .await;
+                    .await?;
 
-                lookup.map(|lookup| Box::new(ForwardLookup(lookup)))?
+                AuthLookup::from(lookup)
             }
-            DnsFilterDecision::Block(DnsFilterStrategy::EmptyRecord) => Box::new(EmptyLookup),
+            DnsFilterDecision::Block(DnsFilterStrategy::EmptyRecord) => AuthLookup::Empty,
             DnsFilterDecision::Block(DnsFilterStrategy::Localhost) => {
                 let rdata = match return_query.query_type() {
                     RecordType::A => RData::A(rdata::A(Ipv4Addr::LOCALHOST)),
@@ -301,7 +298,7 @@ impl Resolver {
                     RecordType::CNAME => RData::CNAME(rdata::CNAME(Name::from_str("localhost.")?)),
                     other => {
                         tracing::trace!("Unsupported query type {other} for domain {qname}");
-                        return Ok(Box::new(EmptyLookup) as Box<dyn LookupObject>);
+                        return Ok(AuthLookup::Empty);
                     }
                 };
 
@@ -310,10 +307,10 @@ impl Resolver {
 
                 let lookup = Lookup::new_with_deadline(
                     return_query,
-                    Arc::new([return_record]),
-                    Instant::now() + Duration::from_secs(3),
+                    [return_record],
+                    Instant::now() + Duration::from_secs(u64::from(TTL_SECONDS)),
                 );
-                Box::new(ForwardLookup(lookup))
+                AuthLookup::from(lookup)
             }
         };
 
@@ -345,7 +342,7 @@ impl ResolverHandle {
         &self,
         dns_servers: Vec<IpAddr>,
         #[cfg(target_os = "ios")] bind_interface: Option<String>,
-    ) {
+    ) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
@@ -359,12 +356,14 @@ impl ResolverHandle {
             })
             .is_ok()
         {
-            response_rx.await.ok();
-        };
+            response_rx.await.ok().unwrap_or(Ok(()))
+        } else {
+            Ok(())
+        }
     }
 
     /// Disable forwarding.
-    pub async fn disable_forward(&self) {
+    pub async fn disable_forward(&self) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
         if self
             .tx
@@ -374,7 +373,9 @@ impl ResolverHandle {
             })
             .is_ok()
         {
-            response_rx.await.ok();
+            response_rx.await.ok().unwrap_or(Ok(()))
+        } else {
+            Ok(())
         }
     }
 
@@ -501,11 +502,11 @@ impl LocalResolver {
         server_socket: UdpSocket,
         tcp_listener: Option<TcpListener>,
         tx: mpsc::UnboundedSender<ResolverMessage>,
-    ) -> Result<ServerFuture<ResolverImpl>, Error> {
-        let mut server = ServerFuture::new(ResolverImpl { tx });
+    ) -> Result<Server<ResolverImpl>, Error> {
+        let mut server = Server::new(ResolverImpl { tx });
         server.register_socket(server_socket);
         if let Some(tcp_listener) = tcp_listener {
-            server.register_listener(tcp_listener, TCP_CLIENT_TIMEOUT);
+            server.register_listener(tcp_listener, TCP_CLIENT_TIMEOUT, TCP_RESPONSE_BUFFER_SIZE);
         }
         Ok(server)
     }
@@ -516,10 +517,12 @@ impl LocalResolver {
                 request = self.rx.recv() => {
                     match request {
                         Some(ResolverMessage::SetConfig { new_config, response_tx }) => {
-                            self.update_config(new_config);
+                            let res = self.update_config(new_config) ;
                             #[cfg(not(target_os = "ios"))]
-                            flush_system_cache().await;
-                            let _ = response_tx.send(());
+                            if res.is_ok() {
+                                flush_system_cache().await;
+                            }
+                            let _ = response_tx.send(res);
                         }
                         Some(ResolverMessage::SetDnsFilter { dns_filter, response_tx }) => {
                             // Store the new filter.
@@ -541,7 +544,6 @@ impl LocalResolver {
                         }
                     }
                 },
-
                 _ = self.shutdown_token.cancelled() => {
                     break;
                 }
@@ -555,12 +557,13 @@ impl LocalResolver {
     }
 
     /// Update the current DNS config.
-    fn update_config(&mut self, config: Config) {
+    fn update_config(&mut self, config: Config) -> Result<(), Error> {
         tracing::info!("Updating config: {config:?}");
 
         match config {
             Config::Blocking => {
                 self.blocking();
+                Ok(())
             }
             Config::Forwarding {
                 mut dns_servers,
@@ -573,7 +576,7 @@ impl LocalResolver {
                     dns_servers,
                     #[cfg(target_os = "ios")]
                     bind_interface,
-                );
+                )
             }
         }
     }
@@ -588,36 +591,32 @@ impl LocalResolver {
         &mut self,
         dns_servers: Vec<IpAddr>,
         #[cfg(target_os = "ios")] bind_interface: Option<String>,
-    ) {
-        let forward_server_config =
-            NameServerConfigGroup::from_ips_clear(&dns_servers, DNS_LISTEN_PORT, true);
+    ) -> Result<(), Error> {
+        let forward_server_config = dns_servers
+            .into_iter()
+            .map(NameServerConfig::udp_and_tcp)
+            .collect::<Vec<_>>();
+
         let forward_config = ResolverConfig::from_parts(None, vec![], forward_server_config);
 
         #[cfg(target_os = "ios")]
-        let connection_provider =
-            GenericConnector::new(AppleConnectionProvider::new(bind_interface));
+        let connection_provider = AppleConnectionProvider::new(bind_interface);
 
         #[cfg(not(target_os = "ios"))]
-        let connection_provider = TokioConnectionProvider::default();
+        let connection_provider = TokioRuntimeProvider::default();
 
-        let resolver =
-            TokioResolver::builder_with_config(forward_config, connection_provider).build();
+        let resolver = TokioResolver::builder_with_config(forward_config, connection_provider)
+            .build()
+            .map_err(Error::CreateResolver)?;
 
         self.inner_resolver = Resolver::Forwarding {
             resolver: Box::new(resolver),
             dns_filter: self.dns_filter.clone(),
-        }
+        };
+
+        Ok(())
     }
 }
-
-type LookupResponse<'a> = MessageResponse<
-    'a,
-    'a,
-    Box<dyn Iterator<Item = &'a Record> + Send + 'a>,
-    std::iter::Empty<&'a Record>,
-    std::iter::Empty<&'a Record>,
-    std::iter::Empty<&'a Record>,
->;
 
 /// An implementation of [RequestHandler] that forwards queries.
 struct ResolverImpl {
@@ -627,16 +626,21 @@ struct ResolverImpl {
 impl ResolverImpl {
     fn build_response<'a>(
         message: &'a MessageRequest,
-        lookup: &'a dyn LookupObject,
-    ) -> LookupResponse<'a> {
-        let mut response_header = Header::new();
-        response_header.set_id(message.id());
-        response_header.set_op_code(OpCode::Query);
-        response_header.set_message_type(MessageType::Response);
-        response_header.set_authoritative(false);
+        lookup: &'a AuthLookup,
+    ) -> MessageResponse<
+        'a,
+        'a,
+        impl Iterator<Item = &'a Record> + Send + 'a,
+        impl Iterator<Item = &'a Record> + Send + 'a,
+        impl Iterator<Item = &'a Record> + Send + 'a,
+        impl Iterator<Item = &'a Record> + Send + 'a,
+    > {
+        // Sets authoritative to false by default
+        let response_meta = Metadata::response_from_request(&message.metadata);
+        let builder = MessageResponseBuilder::from_message_request(message);
 
-        MessageResponseBuilder::from_message_request(message).build(
-            response_header,
+        builder.build(
+            response_meta,
             lookup.iter(),
             // forwarder responses only contain query answers, no ns/soa or additionals
             std::iter::empty(),
@@ -646,10 +650,15 @@ impl ResolverImpl {
     }
 
     /// Called when a DNS query is sent to the local resolver.
-    async fn lookup<R: ResponseHandler>(&self, message: &Request, mut response_handler: R) {
+    async fn lookup<R: ResponseHandler>(
+        &self,
+        message: &Request,
+        mut response_handler: R,
+    ) -> Result<ResponseInfo, NetError> {
         tracing::trace!(
             "Lookup for: {}, client: {}/{}",
-            message
+            &message
+                .queries
                 .queries()
                 .iter()
                 .map(|r| format!("{} {}", r.query_type(), r.name()))
@@ -659,13 +668,13 @@ impl ResolverImpl {
             message.protocol(),
         );
 
-        let Some(query) = message.queries().first() else {
+        let Some(query) = message.queries.queries().first() else {
             tracing::error!("Received a message without query");
-            return;
+            return Ok(make_response_info(message, ResponseCode::ServFail));
         };
 
         // BIND does not support multiple questions.
-        if message.queries().len() > 1 {
+        if message.queries.queries().len() > 1 {
             tracing::error!("Received a message with multiple queries, using only the first one");
         }
 
@@ -679,86 +688,67 @@ impl ResolverImpl {
             .is_err()
         {
             tracing::error!("Failed to send query to resolver");
-            return;
+            return Ok(make_response_info(message, ResponseCode::ServFail));
         };
 
         let lookup_result = response_rx.await;
         let response_result = match lookup_result {
             Ok(Ok(ref lookup)) => {
-                let response = Self::build_response(message, lookup.as_ref());
+                let response = Self::build_response(message, lookup);
                 response_handler.send_response(response).await
             }
-            Err(_error) => return,
+            Err(_error) => Ok(make_response_info(message, ResponseCode::ServFail)),
             Ok(Err(resolve_err)) => {
-                if resolve_err.is_no_records_found() {
-                    let response_code = resolve_err
-                        .proto()
-                        .and_then(|proto_err| {
-                            if let ProtoErrorKind::NoRecordsFound { response_code, .. } =
-                                proto_err.kind()
-                            {
-                                Some(*response_code)
-                            } else {
-                                None
-                            }
-                        })
-                        .unwrap_or(ResponseCode::NoError);
+                if let NetError::Dns(DnsError::NoRecordsFound(no_records)) = resolve_err {
+                    let response_code = no_records.response_code;
                     let response = MessageResponseBuilder::from_message_request(message)
-                        .error_msg(message.header(), response_code);
+                        .error_msg(&message.metadata, response_code);
                     response_handler.send_response(response).await
                 } else {
-                    let response = Self::build_response(message, &EmptyLookup);
+                    let response = Self::build_response(message, &AuthLookup::Empty);
                     response_handler.send_response(response).await
                 }
             }
         };
 
-        if let Err(err) = response_result {
+        if let Err(err) = &response_result {
             tracing::error!("Failed to send response: {err}");
         }
+
+        response_result
     }
+}
+
+fn make_response_info(message: &Request, response_code: ResponseCode) -> ResponseInfo {
+    let mut metadata = Metadata::response_from_request(&message.metadata);
+    metadata.response_code = response_code;
+    let header = Header {
+        metadata,
+        counts: HeaderCounts::default(),
+    };
+    ResponseInfo::from(header)
 }
 
 #[async_trait::async_trait]
 impl RequestHandler for ResolverImpl {
-    async fn handle_request<R: ResponseHandler>(
+    async fn handle_request<R: ResponseHandler, T: Time>(
         &self,
         request: &Request,
         response_handle: R,
     ) -> ResponseInfo {
         if !request.src().ip().is_loopback() {
             tracing::error!("Dropping a stray request from outside: {}", request.src());
-            return Header::new().into();
+            make_response_info(request, ResponseCode::Refused)
+        } else if request.metadata.message_type == MessageType::Query
+            && request.metadata.op_code == OpCode::Query
+        {
+            self.lookup(request, response_handle)
+                .await
+                .unwrap_or_else(|_err| make_response_info(request, ResponseCode::ServFail))
+        } else {
+            tracing::trace!("Dropping non-query request: {:?}", request);
+            make_response_info(request, ResponseCode::Refused)
         }
-        if let MessageType::Query = request.message_type() {
-            match request.op_code() {
-                OpCode::Query => {
-                    self.lookup(request, response_handle).await;
-                }
-                _ => {
-                    tracing::trace!("Dropping non-query request: {:?}", request);
-                }
-            };
-        }
-
-        Header::new().into()
-    }
-}
-
-struct ForwardLookup(Lookup);
-
-/// Reimplemented so that Lookup can be sent back to the RequestHandler implementation.
-impl LookupObject for ForwardLookup {
-    fn is_empty(&self) -> bool {
-        self.0.is_empty()
-    }
-
-    fn iter<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Record> + Send + 'a> {
-        Box::new(self.0.record_iter())
-    }
-
-    fn take_additionals(&mut self) -> Option<Box<dyn LookupObject>> {
-        None
     }
 }
 

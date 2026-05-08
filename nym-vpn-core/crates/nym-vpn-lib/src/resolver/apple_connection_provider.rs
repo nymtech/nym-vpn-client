@@ -15,17 +15,17 @@ use std::{
 };
 
 use hickory_server::{
-    proto::runtime::{RuntimeProvider, TokioHandle, TokioTime, iocompat::AsyncIoTokioAsStd},
-    resolver::{Resolver, name_server::GenericConnector},
+    net::runtime::{RuntimeProvider, TokioHandle, TokioTime, iocompat::AsyncIoTokioAsStd},
+    resolver::Resolver,
 };
 use socket2::{Domain, Protocol, SockAddr, Socket, Type};
 use tokio::net::{TcpSocket, TcpStream, UdpSocket as TokioUdpSocket};
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
-pub type TokioResolver = Resolver<GenericConnector<AppleConnectionProvider>>;
+pub type TokioResolver = Resolver<AppleConnectionProvider>;
 
-/// The Tokio Runtime for async execution
+/// Tokio-based runtime provider for hickory that supports binding sockets to network interface
 #[derive(Clone, Default)]
 pub struct AppleConnectionProvider {
     tokio_handle: TokioHandle,
