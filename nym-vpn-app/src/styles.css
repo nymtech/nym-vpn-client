@@ -243,6 +243,15 @@
   }
 }
 
+@keyframes ts2-seal {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
 /* custom breakpoint for height */
 @custom-variant hsm (@media (height >= 30rem));
 

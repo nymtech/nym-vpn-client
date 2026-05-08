@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@base-ui/react';
 import { useNavigate } from 'react-router';
+import { useShallow } from 'zustand/react/shallow';
 import { FlagIcon, MsIcon, type countryCode } from '../../ui';
 import { useAppStore, useLookupGw } from '../../store';
 import { useLang } from '../../hooks';
@@ -49,15 +50,15 @@ export type SelectedNodeDisplayProps = {
 export function NodeRow({ type }: NodeRowProps) {
   const { setFocused, addToExpanded, reset } = useNodeListState();
 
-  const algo = useAppStore(
-    (s) => s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
+  const { algo, state, userSelectedNode, tunnel, connectingState } = useAppStore(
+    useShallow((s) => ({
+      algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
+      state: s.state,
+      userSelectedNode: type === 'entry' ? s.entryNode : s.exitNode,
+      tunnel: s.tunnel,
+      connectingState: s.connectingState,
+    })),
   );
-  const state = useAppStore((s) => s.state);
-  const userSelectedNode = useAppStore((s) =>
-    type === 'entry' ? s.entryNode : s.exitNode,
-  );
-  const tunnel = useAppStore((s) => s.tunnel);
-  const connectingState = useAppStore((s) => s.connectingState);
 
   const navigate = useNavigate();
   const lookupGw = useLookupGw();

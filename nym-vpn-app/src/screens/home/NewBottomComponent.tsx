@@ -364,11 +364,6 @@ export function NewBottomComponent() {
 
   return (
     <div className="flex flex-col">
-      <p>fold state: {foldState}</p>
-      <p>
-        gateway selection algorithm:{' '}
-        {gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm}
-      </p>
       {/* ── Main card ─────────────────────────────────────────────────────── */}
 
       <InteractiveCard>

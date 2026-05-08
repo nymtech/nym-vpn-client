@@ -1,11 +1,14 @@
+import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../../store/index';
 import { Score } from '../../types/index';
 import { ScoreIndicator } from '../node/ScoreIndicator';
 
 export function ScoreIndicatorContainer({ score }: { score?: Score }) {
-  const state = useAppStore((s) => s.state);
-  const gatewaySelectionAlgorithmConfig = useAppStore(
-    (s) => s.gatewaySelectionAlgorithmConfig,
+  const { state, gatewaySelectionAlgorithmConfig } = useAppStore(
+    useShallow((s) => ({
+      state: s.state,
+      gatewaySelectionAlgorithmConfig: s.gatewaySelectionAlgorithmConfig,
+    })),
   );
 
   if (

@@ -4,10 +4,10 @@ import {
   requestPermission,
 } from '@tauri-apps/plugin-notification';
 import { kvSet } from '../kvStore';
-import { dispatch, useMainState } from '../store';
+import { dispatch, useAppStore } from '../store';
 
 function useDesktopNotifications() {
-  const desktopNotifications = useMainState();
+  const desktopNotifications = useAppStore((s) => s.desktopNotifications);
 
   useEffect(() => {
     const checkPermission = async () => {

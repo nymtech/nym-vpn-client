@@ -214,14 +214,6 @@ export function TunnelState() {
 
   return (
     <div className="inline-flex flex-col items-center gap-2 rounded-lg p-3.5 h-full justify-center">
-      {/* Keyframe for sphere seal bump */}
-      <style>{`
-        @keyframes ts2-seal {
-          from { transform: scale(1.08); }
-          to   { transform: scale(1); }
-        }
-      `}</style>
-
       {/* Ring area */}
       <div style={{ position: 'relative', width: SIZE, height: SIZE }}>
         {/* SVG rings: rotated so arc starts at top (12 o'clock) */}
