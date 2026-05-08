@@ -6,13 +6,7 @@ mod gateway_cache;
 mod geo_ip;
 mod selector;
 
-use std::{
-    sync::{
-        Arc,
-        atomic::{AtomicBool, Ordering},
-    },
-    task::Poll,
-};
+use std::{sync::Arc, task::Poll};
 
 use futures::{FutureExt, Stream, StreamExt};
 use nym_gateway_directory::{BlacklistedGateways, GatewayClient, NodeIdentity};
