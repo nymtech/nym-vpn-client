@@ -62,10 +62,6 @@ function BackNavigationConfirmationDialog({
       title={t('confirmation-dialog.title')}
       description={t('confirmation-dialog.description')}
       confirmButtonText={t('confirmation-dialog.save')}
-      confirmButtonColor="malachite"
-      confirmButtonOutline={false}
-      cancelButtonColor={undefined}
-      cancelButtonOutline={undefined}
     />
   );
 }

@@ -189,10 +189,6 @@ function ActionMenu() {
           title={dialogConfig[activeDialog].title}
           description={dialogConfig[activeDialog].description}
           confirmButtonText={dialogConfig[activeDialog].confirmButtonText}
-          confirmButtonColor={dialogConfig[activeDialog].confirmButtonColor}
-          confirmButtonOutline={dialogConfig[activeDialog].confirmButtonOutline}
-          cancelButtonColor={dialogConfig[activeDialog].cancelButtonColor}
-          cancelButtonOutline={dialogConfig[activeDialog].cancelButtonOutline}
           cancelButtonText={dialogConfig[activeDialog].cancelButtonText}
           isOpen={!!activeDialog}
           isLoading={isLoading}

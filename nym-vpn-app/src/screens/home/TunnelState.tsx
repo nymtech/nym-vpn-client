@@ -11,6 +11,7 @@ import {
 } from '../../hooks';
 import { ScrambleIn } from '../../ui/ScrambleIn';
 import { setToString } from '../../util';
+import ConnectionTimer from './ConnectionTimer';
 
 // ─── Geometry ────────────────────────────────────────────────────────────────
 const SIZE = 180;
@@ -176,6 +177,8 @@ export function TunnelState() {
 
   // ─── Label text ───────────────────────────────────────────────────────────
   const label = useMemo((): string | null => {
+    if (phase === 'disconnected') return 'Not protected';
+
     if (phase === 'connecting') {
       const prog = progress ?? progressMessages[progressMessages.length - 1];
       return prog ? tP(prog) : null;
@@ -315,6 +318,9 @@ export function TunnelState() {
         )}
       </div>
 
+      {/* Connection timer */}
+      <ConnectionTimer />
+
       {/* Label / error text */}
       <div className="flex h-4 items-center justify-center">
         <AnimatePresence mode="wait">
@@ -328,7 +334,7 @@ export function TunnelState() {
             >
               <ScrambleIn
                 text={label}
-                className="text-[9px] text-[#8b8b90]"
+                className="text-lg text-[#8b8b90]"
                 scrambledClassName="text-[9px] text-[#8b8b90]/50"
                 scrambleSpeed={20}
               />

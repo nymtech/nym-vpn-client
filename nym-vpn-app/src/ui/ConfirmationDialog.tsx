@@ -1,18 +1,13 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { Button, ButtonProps, Dialog, MsIcon } from '.';
+import { ButtonNew, Dialog, MsIcon } from '.';
 
 export type ConfirmationDialogProps = {
   icon: string;
   title: string;
   description: string;
   confirmButtonText: string;
-  confirmButtonColor: ButtonProps['color'];
-  confirmButtonOutline: ButtonProps['outline'];
   cancelButtonText?: string;
-  cancelButtonColor: ButtonProps['color'];
-  cancelButtonOutline: ButtonProps['outline'];
-
   isOpen: boolean;
   isLoading: boolean;
   onConfirm: () => Promise<void>;
@@ -24,11 +19,7 @@ function ConfirmationDialog({
   title,
   description,
   confirmButtonText,
-  confirmButtonColor = 'malachite',
-  confirmButtonOutline = false,
   cancelButtonText,
-  cancelButtonColor = 'gray',
-  cancelButtonOutline = true,
   isOpen,
   isLoading,
   onConfirm,
@@ -52,24 +43,18 @@ function ConfirmationDialog({
         {description}
       </p>
       <div className="mt-6 flex flex-col flex-nowrap justify-center w-full gap-2">
-        <Button
+        <ButtonNew
           onClick={onConfirm}
           className="min-w-32"
-          color={confirmButtonColor}
-          outline={confirmButtonOutline}
-          spinner={isLoading}
+          variant="primary"
+          loading={isLoading}
           disabled={isLoading}
         >
           {confirmButtonText}
-        </Button>
-        <Button
-          onClick={onCancel}
-          className="min-w-32"
-          color={cancelButtonColor}
-          outline={cancelButtonOutline}
-        >
+        </ButtonNew>
+        <ButtonNew onClick={onCancel} className="min-w-32" variant="outlined">
           {cancelButtonText || t('cancel')}
-        </Button>
+        </ButtonNew>
       </div>
     </Dialog>
   );
