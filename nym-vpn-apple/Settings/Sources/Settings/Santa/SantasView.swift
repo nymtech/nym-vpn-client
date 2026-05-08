@@ -34,7 +34,7 @@ public struct SantasView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
     }
@@ -52,7 +52,7 @@ private extension SantasView {
     func enivironmentDetails() -> some View {
         VStack {
             Text("Environment Details:")
-                .foregroundStyle(NymColor.accent)
+                .foregroundStyle(Color.Nym.primary)
                 .bold()
                 .padding(4)
             Text("App environment: \(viewModel.currentAppEnv)")
@@ -73,7 +73,7 @@ private extension SantasView {
     func environmentSection() -> some View {
         VStack {
             Text("Environment:")
-                .foregroundStyle(NymColor.accent)
+                .foregroundStyle(Color.Nym.primary)
                 .bold()
                 .padding(4)
 #if os(macOS)
@@ -96,18 +96,18 @@ private extension SantasView {
             Toggle(isOn: $appSettings.isLewesEnabled) {
                 Text("Lewes enabled")
             }
-            .tint(NymColor.accent)
+            .tint(Color.Nym.primary)
             Toggle(isOn: $appSettings.isMixnetTuningEnabled) {
                 Text("Mixnet tuning")
             }
-            .tint(NymColor.accent)
+            .tint(Color.Nym.primary)
         }.padding()
     }
 
     func logsSection() -> some View {
         VStack {
             Text("Logs:")
-                .foregroundStyle(NymColor.accent)
+                .foregroundStyle(Color.Nym.primary)
                 .bold()
                 .padding(4)
             Text("Logs size: \(viewModel.logFilesSize)")

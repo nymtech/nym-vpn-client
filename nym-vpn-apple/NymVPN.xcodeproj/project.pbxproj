@@ -329,14 +329,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		D9D7BC4F2F7D53390094415B /* Exceptions for "NymVPNmacOSWidgetExtension" folder in "NymVPNmacOSWidgetExtension" target */ = {
+		D9D7BC4F2F7D53390094415B /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
 			target = D9D7BC3C2F7D53380094415B /* NymVPNmacOSWidgetExtension */;
 		};
-		D9D7BCA72F7D5F920094415B /* Exceptions for "NymVPNWidget" folder in "NymVPNWidgetExtension" target */ = {
+		D9D7BCA72F7D5F920094415B /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -346,30 +346,8 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D9D7BC402F7D53380094415B /* NymVPNmacOSWidgetExtension */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				D9D7BC4F2F7D53390094415B /* Exceptions for "NymVPNmacOSWidgetExtension" folder in "NymVPNmacOSWidgetExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = NymVPNmacOSWidgetExtension;
-			sourceTree = "<group>";
-		};
-		D9D7BC862F7D58060094415B /* NymVPNWidget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				D9D7BCA72F7D5F920094415B /* Exceptions for "NymVPNWidget" folder in "NymVPNWidgetExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = NymVPNWidget;
-			sourceTree = "<group>";
-		};
+		D9D7BC402F7D53380094415B /* NymVPNmacOSWidgetExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (D9D7BC4F2F7D53390094415B /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = NymVPNmacOSWidgetExtension; sourceTree = "<group>"; };
+		D9D7BC862F7D58060094415B /* NymVPNWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (D9D7BCA72F7D5F920094415B /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = NymVPNWidget; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1629,7 +1607,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = NymVPNmacOSWidgetExtension/NymVPNmacOSWidgetExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 430;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
@@ -1672,6 +1650,7 @@
 				CURRENT_PROJECT_VERSION = 430;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = VW5DZLFHM5;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -1689,6 +1668,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = net.nymtech.vpn.macOSwidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "$(MACOS_WIDGET_PROFILE_SPECIFIER)";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "NymVPN macOS Widget";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;

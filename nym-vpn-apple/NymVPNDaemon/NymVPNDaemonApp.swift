@@ -55,17 +55,15 @@ struct NymVPNDaemonApp: App {
         connectionManager: ConnectionManager.shared
     )
 
-    @State private var homeViewModel = HomeViewModel(
+    @State private var appFeatureViewModel = AppFeatureViewModel(
         appSettings: .shared,
-        connectionManager: .shared,
-        configurationManager: .shared,
         credentialsManager: .shared,
-        networkMonitor: .shared,
-        grpcManager: .shared,
-        externalLinkManager: .shared,
+        connectionManager: .shared,
         gatewayManager: .shared,
+        snackbarManager: .shared,
         impactGenerator: .shared,
-        messagesManager: .shared
+        networkMonitor: .shared,
+        grpcManager: .shared
     )
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
     @State private var isDisplayingAlert = false
@@ -83,11 +81,9 @@ struct NymVPNDaemonApp: App {
 
     var body: some Scene {
         Window(windowId, id: windowId) {
-            NavigationStack {
-                HomeView(viewModel: homeViewModel)
-                    .transition(.slide)
-            }
-            .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
+            AppFeatureView(viewModel: appFeatureViewModel)
+                .transition(.slide)
+                .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
             .onAppear {
                 DispatchQueue.main.async {
                     appDelegate.bringWindowToFront()

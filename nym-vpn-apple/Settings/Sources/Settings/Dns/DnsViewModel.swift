@@ -10,6 +10,7 @@ import Network
 import UIComponents
 import ExternalLinkManager
 import Constants
+import SnackbarManager
 
 @MainActor public final class DnsViewModel: ObservableObject {
     private let appSettings: AppSettings
@@ -53,9 +54,6 @@ import Constants
 
     public var isSaveChangesButtonDisabled: Bool { customDns == appSettings.customDns }
     @Published var isSaveChangesModalDisplayed = false
-
-    @Published var isSnackbarDisplayed = false
-    @Published var snackbarMessage: String?
 
     #if os(macOS)
     init(
@@ -146,30 +144,24 @@ extension DnsViewModel {
         do {
             try await grpcManager.setCustomDns(dnsServers: customDns)
         } catch {
-            withAnimation {
-                guard !isSnackbarDisplayed else { return }
-                snackbarMessage = "generalNymError.somethingWentWrong".localizedString
-                isSnackbarDisplayed = true
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(3))
-                    isSnackbarDisplayed = false
-                }
-            }
+            SnackbarManager.shared.enqueue(
+                SnackbarItem(
+                    style: .negative,
+                    title: "generalNymError.somethingWentWrong".localizedString
+                )
+            )
             return
         }
         #endif
 
         appSettings.shouldReconnect = true
 
-        withAnimation {
-            guard !isSnackbarDisplayed else { return }
-            snackbarMessage = "dns.snackbar.saved".localizedString
-            isSnackbarDisplayed = true
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(3))
-                isSnackbarDisplayed = false
-            }
-        }
+        SnackbarManager.shared.enqueue(
+            SnackbarItem(
+                style: .confirmation,
+                title: "dns.snackbar.saved".localizedString
+            )
+        )
     }
 
     func toggleCustomDns() async {
@@ -180,15 +172,12 @@ extension DnsViewModel {
             try await grpcManager.setEnableCustomDns(enable: isCustomDnsEnabled)
         } catch {
             isCustomDnsEnabled.toggle()
-            withAnimation {
-                guard !isSnackbarDisplayed else { return }
-                snackbarMessage = "generalNymError.somethingWentWrong".localizedString
-                isSnackbarDisplayed = true
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(3))
-                    isSnackbarDisplayed = false
-                }
-            }
+            SnackbarManager.shared.enqueue(
+                SnackbarItem(
+                    style: .negative,
+                    title: "generalNymError.somethingWentWrong".localizedString
+                )
+            )
         }
         #endif
         appSettings.shouldReconnect = true

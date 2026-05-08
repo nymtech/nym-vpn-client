@@ -39,7 +39,7 @@ public struct ServerDetailsView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
     }
@@ -102,8 +102,8 @@ private extension ServerDetailsView {
     func serverTitle() -> some View {
         HStack {
             Text(gateway.name ?? gateway.id)
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Headline.Medium.regular)
+                .foregroundStyle(Color.Nym.textPrimary)
+                .nymTextStyle(.titleScreen)
             Spacer()
         }
     }
@@ -115,8 +115,8 @@ private extension ServerDetailsView {
                 HStack(alignment: .firstTextBaseline) {
                     Text(description)
                         .multilineTextAlignment(.leading)
-                        .foregroundStyle(NymColor.gray1)
-                        .textStyle(.Body.Medium.regular)
+                        .foregroundStyle(Color.Nym.textSecondary)
+                        .nymTextStyle(.bodyDefault)
                     Spacer()
                 }
             }
@@ -129,8 +129,8 @@ private extension ServerDetailsView {
             Spacer()
                 .frame(width: 8)
             Text(locationTitle())
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Large.regular)
+                .foregroundStyle(Color.Nym.textPrimary)
+                .nymTextStyle(.bodyLarge)
             Spacer()
         }
     }
@@ -138,9 +138,9 @@ private extension ServerDetailsView {
     func missingInfoText() -> some View {
         HStack(spacing: 0) {
             Text(missingInfoAttributedString() ?? "")
-                .tint(NymColor.gray1)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .tint(Color.Nym.textSecondary)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
                 .underline()
             exportImage()
                 .padding(.horizontal, 8)
@@ -161,9 +161,9 @@ private extension ServerDetailsView {
     func explorer() -> some View {
         HStack(spacing: 0) {
             Text(explorerAttributedString() ?? "")
-                .tint(NymColor.gray1)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .tint(Color.Nym.textSecondary)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             exportImage()
                 .padding(.horizontal, 8)
             Spacer()
@@ -188,7 +188,7 @@ private extension ServerDetailsView {
     func selectServerSection() -> some View {
         VStack(alignment: .center, spacing: 0) {
             Rectangle()
-                .foregroundColor(NymColor.gray2)
+                .foregroundColor(Color.Nym.gray2)
                 .frame(height: 1)
             GenericButton(title: "gatewayInfo.selectServer".localizedString)
                 .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
@@ -197,7 +197,7 @@ private extension ServerDetailsView {
                     .frame(height: 24)
             }
         }
-        .background(NymColor.elevation)
+        .background(Color.Nym.backgroundCard)
         .frame(maxWidth: .infinity, alignment: .center)
         .accessibilityAction {
             selectServer()
@@ -209,27 +209,27 @@ private extension ServerDetailsView {
 
     func separatorLine() -> some View {
         Rectangle()
-            .foregroundColor(NymColor.gray2)
+            .foregroundColor(Color.Nym.gray2)
             .frame(height: 1)
             .padding(.vertical, 12)
     }
 
     func rowTitle(with title: String) -> some View {
         Text(title)
-            .foregroundStyle(NymColor.gray1)
-            .textStyle(.Body.Medium.regular)
+            .foregroundStyle(Color.Nym.textSecondary)
+            .nymTextStyle(.bodyDefault)
     }
 
     func rowSubtite(with subtitle: String) -> some View {
         Text(subtitle)
-            .foregroundStyle(NymColor.primary)
-            .textStyle(.Body.Medium.regular)
+            .foregroundStyle(Color.Nym.textPrimary)
+            .nymTextStyle(.bodyDefault)
     }
 
     func exportImage() -> some View {
         GenericImage(imageName: "export")
             .frame(width: 16, height: 16)
-            .foregroundStyle(NymColor.primary)
+            .foregroundStyle(Color.Nym.textPrimary)
     }
 }
 
@@ -251,8 +251,8 @@ private extension ServerDetailsView {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(NymColor.elevation)
-        .cornerRadius(8)
+        .background(Color.Nym.backgroundCard)
+        .cornerRadius(12)
     }
 
     func advancedPrivacyRow() -> some View {
@@ -261,7 +261,7 @@ private extension ServerDetailsView {
             Spacer()
             GenericImage(imageName: "anonymous")
                 .frame(width: 20, height: 20)
-                .foregroundStyle(NymColor.accent)
+                .foregroundStyle(Color.Nym.primary)
                 .padding(.horizontal, 4)
             rowSubtite(with: "gatewayInfo.advancedPrivacySubtitle".localizedString)
         }
@@ -275,19 +275,19 @@ private extension ServerDetailsView {
             case .residential:
                 GenericImage(imageName: "smartDisplay")
                     .frame(width: 20, height: 20)
-                    .foregroundStyle(NymColor.info)
+                    .foregroundStyle(Color.Nym.info)
                     .padding(.horizontal, 4)
                 rowSubtite(with: "gatewayInfo.residentialIp".localizedString)
             case .other:
                 GenericImage(systemImageName: "circle.fill")
                     .frame(width: 10, height: 10)
-                    .foregroundStyle(NymColor.warning)
+                    .foregroundStyle(Color.Nym.warning)
                     .padding(.horizontal, 8)
                 rowSubtite(with: "gatewayInfo.datacenter".localizedString)
             case nil:
                 GenericImage(systemImageName: "circle.fill")
                     .frame(width: 10, height: 10)
-                    .foregroundStyle(NymColor.warning)
+                    .foregroundStyle(Color.Nym.warning)
                     .padding(.horizontal, 8)
                 rowSubtite(with: "noScore".localizedString)
             }
@@ -307,7 +307,7 @@ private extension ServerDetailsView {
             } else {
                 GenericImage(systemImageName: "circle.fill")
                     .frame(width: 10, height: 10)
-                    .foregroundStyle(NymColor.warning)
+                    .foregroundStyle(Color.Nym.warning)
                     .padding(.horizontal, 8)
             }
 
@@ -322,8 +322,8 @@ private extension ServerDetailsView {
     func bridgesInfo() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(enableQuicText())
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Small.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodySmall)
         }
         .environment(\.openURL, OpenURLAction { url in
             if url == URL(string: "app://enable-quic") {
@@ -340,7 +340,7 @@ private extension ServerDetailsView {
         let second = "gatewayInfo.enableQuic2".localizedString
         var firstAttr = AttributedString(first)
         firstAttr.underlineStyle = .single
-        firstAttr.foregroundColor = NymColor.primary
+        firstAttr.foregroundColor = Color.Nym.textPrimary
         firstAttr.link = URL(string: "app://enable-quic")
         let secondAttr = AttributedString(second)
         return firstAttr + AttributedString(" ") + secondAttr
@@ -359,13 +359,13 @@ private extension ServerDetailsView {
             Spacer()
                 .frame(height: 12)
             Text(formattedLastUpdate())
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Small.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodySmall)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(NymColor.elevation)
-        .cornerRadius(8)
+        .background(Color.Nym.backgroundCard)
+        .cornerRadius(12)
     }
 
     func overAllPerformanceRow() -> some View {
@@ -384,7 +384,7 @@ private extension ServerDetailsView {
                     with: gateway.performance?.score ?? GatewayNodeScore.noScore
                 )
             )
-            .textStyle(.Body.Medium.regular)
+            .nymTextStyle(.bodyDefault)
         }
     }
 
@@ -401,7 +401,7 @@ private extension ServerDetailsView {
                     with: gateway.performance?.load ?? GatewayNodeScore.noScore
                 )
             )
-            .textStyle(.Body.Medium.regular)
+            .nymTextStyle(.bodyDefault)
         }
     }
 
@@ -424,8 +424,8 @@ private extension ServerDetailsView {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(NymColor.elevation)
-        .cornerRadius(8)
+        .background(Color.Nym.backgroundCard)
+        .cornerRadius(12)
     }
 
     func buildVersionRow() -> some View {
@@ -443,13 +443,13 @@ private extension ServerDetailsView {
                 .frame(height: 8)
             HStack(spacing: 0) {
                 Text(gateway.id)
-                    .foregroundStyle(NymColor.primary)
-                    .textStyle(.Body.Medium.regular)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .nymTextStyle(.bodyDefault)
                 Spacer()
                     .frame(width: 16)
                 GenericImage(imageName: "copy")
                     .frame(width: 24, height: 24)
-                    .foregroundStyle(NymColor.primary)
+                    .foregroundStyle(Color.Nym.textPrimary)
                     .onTapGesture {
                         copyToPasteboard()
                     }
@@ -464,9 +464,9 @@ private extension ServerDetailsView {
                     Spacer()
                     Text(messageOverlayText)
                         .padding(8)
-                        .background(NymColor.background)
-                        .foregroundColor(NymColor.gray1)
-                        .cornerRadius(8)
+                        .background(Color.Nym.background)
+                        .foregroundColor(Color.Nym.textSecondary)
+                        .cornerRadius(12)
                         .transition(.opacity)
                         .padding(.trailing, 0)
                 }
@@ -488,8 +488,8 @@ private extension ServerDetailsView {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(NymColor.elevation)
-        .cornerRadius(8)
+        .background(Color.Nym.backgroundCard)
+        .cornerRadius(12)
     }
 
     @ViewBuilder
@@ -620,30 +620,30 @@ private extension ServerDetailsView {
     func scoreOverallPerformanceImageColor(with score: GatewayNodeScore) -> Color {
         switch score {
         case .noScore:
-            NymColor.gray1
+            Color.Nym.textSecondary
         case .low:
-            NymColor.error
+            Color.Nym.error
         case .medium:
-            NymColor.warning
+            Color.Nym.warning
         case .high:
-            NymColor.action
+            Color.Nym.primary
         case .offline:
-            NymColor.gray1
+            Color.Nym.textSecondary
         }
     }
 
     func scoreLoadImageColor(with score: GatewayNodeScore) -> Color {
         switch score {
         case .noScore:
-            NymColor.gray1
+            Color.Nym.textSecondary
         case .low:
-            NymColor.action
+            Color.Nym.primary
         case .medium:
-            NymColor.warning
+            Color.Nym.warning
         case .high:
-            NymColor.error
+            Color.Nym.error
         case .offline:
-            NymColor.gray1
+            Color.Nym.textSecondary
         }
     }
 

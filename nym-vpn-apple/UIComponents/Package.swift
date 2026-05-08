@@ -27,6 +27,7 @@ let package = Package(
             name: "UIComponents",
             dependencies: [
                 "Theme",
+                .product(name: "SnackbarManager", package: "Services"),
                 .product(name: "AppSettings", package: "Services"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "ConfigurationManager", package: "Services"),
@@ -38,6 +39,8 @@ let package = Package(
                 .product(name: "ImpactGenerator", package: "Services"),
                 .product(name: "Lottie", package: "lottie-spm")
             ],
+            path: "Sources",
+            sources: ["UIComponents"],
             resources: [
                 .process("Resources/Assets.xcassets")
             ]

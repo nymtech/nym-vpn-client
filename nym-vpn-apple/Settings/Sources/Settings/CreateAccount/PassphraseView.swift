@@ -5,7 +5,7 @@ import BiometricAuthenticator
 import CredentialsManager
 import ImpactGenerator
 import Keychain
-import MessageModels
+import SnackbarManager
 import Theme
 import UIComponents
 
@@ -15,10 +15,8 @@ public struct PassphraseView: View {
     @EnvironmentObject private var impactGenerator: ImpactGenerator
     @Binding private var path: NavigationPath
     @State private var isErrorDisplayed = false
-    @State private var isSnackbarDisplayed = false
     @State private var isInfoModalDisplayed = false
     @State private var mnemonic: String?
-    @State private var snackbarMessage: String?
     @State private var errorMessage = ""
 
     private var words: [String] {
@@ -69,12 +67,8 @@ public struct PassphraseView: View {
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .snackbar(
-            isDisplayed: $isSnackbarDisplayed,
-            message: SnackBarMessage(text: snackbarMessage ?? "", style: .info)
-        )
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .overlay {
@@ -118,8 +112,8 @@ private extension PassphraseView {
     var title: some View {
         HStack(spacing: 0) {
             Text("passphrase.yourPassphrase".localizedString)
-                .textStyle(.Headline.Small.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodyLarge)
+                .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
         }
     }
@@ -127,8 +121,8 @@ private extension PassphraseView {
     var subtitle: some View {
         HStack(spacing: 0) {
             Text("passphrase.masterPassphrase".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
                 .multilineTextAlignment(.leading)
             Spacer()
         }
@@ -143,12 +137,12 @@ private extension PassphraseView {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 290)
-        .background(NymColor.elevation)
+        .background(Color.Nym.backgroundCard)
         .cornerRadius(8)
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 12)
                 .inset(by: 0.5)
-                .stroke(NymColor.gray2, lineWidth: 1)
+                .stroke(Color.Nym.gray2, lineWidth: 1)
             )
     }
 
@@ -159,16 +153,16 @@ private extension PassphraseView {
             Spacer()
                 .frame(width: 8)
             Text("passphrase.showMyPassphrase".localizedString)
-                .textStyle(.Headline.Small.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodyLarge)
+                .foregroundStyle(Color.Nym.textPrimary)
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 10)
         .cornerRadius(8)
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: 12)
                 .inset(by: 0.5)
-                .stroke(NymColor.primary, lineWidth: 1)
+                .stroke(Color.Nym.textPrimary, lineWidth: 1)
         )
         .onTapGesture {
             showPassphraseDidTap()
@@ -186,13 +180,13 @@ private extension PassphraseView {
                         let number = column * 8 + row + 1
                         HStack(spacing: 4) {
                             Text("\(number).")
-                                .textStyle(.Body.Medium.regular)
-                                .foregroundStyle(NymColor.gray1)
+                                .nymTextStyle(.bodyDefault)
+                                .foregroundStyle(Color.Nym.textSecondary)
                                 .monospacedDigit()
                                 .frame(width: 30, alignment: .trailing)
                             Text("\(word)")
-                                .textStyle(.Body.Medium.regular)
-                                .foregroundStyle(NymColor.primary)
+                                .nymTextStyle(.bodyDefault)
+                                .foregroundStyle(Color.Nym.textPrimary)
                             Spacer()
                         }
                     }
@@ -218,8 +212,8 @@ private extension PassphraseView {
 
     var copyButton: some View {
         Text("passphrase.copy".localizedString)
-            .textStyle(.Body.Medium.regular)
-            .foregroundStyle(NymColor.action)
+            .nymTextStyle(.bodyDefault)
+            .foregroundStyle(Color.Nym.primary)
             .frame(maxWidth: .infinity)
             .onTapGesture {
                 copyToPasteboard()
@@ -232,13 +226,13 @@ private extension PassphraseView {
     var separatorView: some View {
         Rectangle()
             .frame(width: 1, height: 20)
-            .background(NymColor.gray2)
+            .background(Color.Nym.gray2)
     }
 
     var keychainButton: some View {
         Text("passphrase.saveToKeychain".localizedString)
-            .textStyle(.Body.Medium.regular)
-            .foregroundStyle(NymColor.action)
+            .nymTextStyle(.bodyDefault)
+            .foregroundStyle(Color.Nym.primary)
             .frame(maxWidth: .infinity)
             .onTapGesture {
                 storeInKeychain()
@@ -253,14 +247,14 @@ private extension PassphraseView {
             HStack(spacing: 0) {
                 VStack(alignment: .leading) {
                     Text("passphrase.loseTitle".localizedString)
-                        .foregroundStyle(NymColor.primary)
-                        .textStyle(.Body.Medium.bold)
+                        .foregroundStyle(Color.Nym.textPrimary)
+                        .nymTextStyle(.bodyDefaultBold)
                         .multilineTextAlignment(.leading)
                     Spacer()
                         .frame(height: 8)
                     Text("passohrase.loseSubtitle".localizedString)
-                        .foregroundStyle(NymColor.primary)
-                        .textStyle(.Body.Medium.regular)
+                        .foregroundStyle(Color.Nym.textPrimary)
+                        .nymTextStyle(.bodyDefault)
                         .multilineTextAlignment(.leading)
                 }
                 Spacer()
@@ -275,13 +269,13 @@ private extension PassphraseView {
                     GenericImage(systemImageName: appSettings.isPassphraseStored ? "checkmark.square.fill" : "square")
                         .frame(width: 22, height: 22)
                         .padding(EdgeInsets(top: 2, leading: 0, bottom: 0, trailing: 8))
-                        .foregroundStyle(NymColor.primary)
+                        .foregroundStyle(Color.Nym.textPrimary)
                         .transition(.scale.combined(with: .opacity))
 
                     savedConfirmationText
                     Spacer()
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .onTapGesture {
                     withAnimation(.easeOut) {
                         toggleIsPassphraseSaved()
@@ -300,8 +294,8 @@ private extension PassphraseView {
 
     var savedConfirmationText: some View {
         Text("passphrase.iHaveSaved".localizedString)
-            .textStyle(.Body.Medium.regular)
-            .foregroundStyle(NymColor.primary)
+            .nymTextStyle(.bodyDefault)
+            .foregroundStyle(Color.Nym.textPrimary)
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -370,15 +364,12 @@ private extension PassphraseView {
         NSPasteboard.general.prepareForNewContents()
         NSPasteboard.general.setString(mnemonic, forType: .string)
 #endif
-        withAnimation {
-            guard !isSnackbarDisplayed else { return }
-            snackbarMessage = "settings.copiedToPasteboard".localizedString
-            isSnackbarDisplayed = true
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(3))
-                isSnackbarDisplayed = false
-            }
-        }
+        SnackbarManager.shared.enqueue(
+            SnackbarItem(
+                style: .confirmation,
+                title: "settings.copiedToPasteboard".localizedString
+            )
+        )
     }
 
     func storeInKeychain() {

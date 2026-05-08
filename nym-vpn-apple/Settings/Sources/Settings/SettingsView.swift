@@ -34,16 +34,16 @@ private extension SettingsView {
                     renewButton()
 
                     Spacer()
-                        .frame(height: 24)
+                        .frame(height: NymSpacing.section)
                     settingsList()
                     Spacer()
-                        .frame(height: 24)
+                        .frame(height: NymSpacing.section)
                     appVersionText()
                         .onTapGesture(count: 3) {
                             viewModel.navigateToSantasMenu()
                         }
                 }
-                .padding(.horizontal, 16)
+                .padding(.horizontal, NymSpacing.large)
             }
             .scrollIndicators(.never)
             .frame(maxWidth: MagicNumbers.maxWidth)
@@ -52,7 +52,7 @@ private extension SettingsView {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
 #if os(macOS)
@@ -76,7 +76,9 @@ private extension SettingsView {
     func navbar() -> some View {
         CustomNavBar(
             title: viewModel.settingsTitle,
-            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
+            backgroundColorOverride: Color.Nym.navBarBackground,
+            leftButton: CustomNavBarButton(type: .empty, action: {}),
+            rightButton: CustomNavBarButton(type: .close, action: { viewModel.navigateBack() })
         )
     }
 
@@ -91,7 +93,7 @@ private extension SettingsView {
     func loginButton() -> some View {
         GenericButton(title: "settings.getStarted".localizedString)
             .frame(height: 64)
-            .padding(EdgeInsets(top: 24, leading: 0, bottom: 0, trailing: 0))
+            .padding(EdgeInsets(top: NymSpacing.section, leading: 0, bottom: 0, trailing: 0))
             .onTapGesture {
                 viewModel.navigateToOnboardingOrCredential()
             }
@@ -101,7 +103,7 @@ private extension SettingsView {
     func renewButton() -> some View {
         if viewModel.shouldShowRenewButton {
             GenericButton(title: viewModel.renewButtonTitle)
-                .padding(.top, 24)
+                .padding(.top, NymSpacing.section)
                 .onTapGesture {
                     viewModel.navigateToPlanPurchase()
                 }
@@ -117,13 +119,13 @@ private extension SettingsView {
         VStack(spacing: 0) {
             HStack {
                 Text(viewModel.versionTitle)
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Medium.regular)
-                    .padding(.bottom, 16)
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .nymTextStyle(.bodySmall)
+                    .padding(.bottom, NymSpacing.large)
                 Spacer()
             }
             Spacer()
-                .frame(height: 24)
+                .frame(height: NymSpacing.section)
         }
     }
 }

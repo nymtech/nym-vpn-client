@@ -107,7 +107,6 @@ private extension TechnicalOptInsView {
                 isOn: $appSettings.isErrorReportingOn
             ),
             title: "settings.anonymousErrorReports.title".localizedString,
-            titleTextStyle: .Body.Medium.regular,
             attributtedSubtitle: sentryAttributtedString(),
             imageName: "errorReport",
             action: {}
@@ -129,7 +128,6 @@ private extension TechnicalOptInsView {
                 isOn: $appSettings.isStatisticsEnabled
             ),
             title: "welcome.analytics".localizedString,
-            titleTextStyle: .Body.Medium.regular,
             subtitle: "welcome.analytics.subtitle".localizedString,
             imageName: "statistics",
             action: {}

@@ -14,11 +14,11 @@ public struct SettingsCopyableContentCell: View {
             HStack(spacing: 16) {
                 GenericImage(systemImageName: systemImageName)
                     .frame(width: imageSize, height: imageSize)
-                    .foregroundStyle(NymColor.gray1)
+                    .foregroundStyle(Color.Nym.textSecondary)
 
                 Text(title)
-                    .textStyle(.Body.Large.regular)
-                    .foregroundStyle(NymColor.primary)
+                    .nymTextStyle(.bodyLarge)
+                    .foregroundStyle(Color.Nym.textPrimary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityAddTraits([.isStaticText])
@@ -26,8 +26,8 @@ public struct SettingsCopyableContentCell: View {
 
             HStack(alignment: .top, spacing: 16) {
                 Text(subtitle)
-                    .textStyle(.Body.Medium.regular)
-                    .foregroundStyle(NymColor.gray1)
+                    .nymTextStyle(.bodyDefault)
+                    .foregroundStyle(Color.Nym.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .layoutPriority(1)
 
@@ -36,7 +36,7 @@ public struct SettingsCopyableContentCell: View {
         }
         .frame(maxWidth: .infinity)
         .padding(16)
-        .background(NymColor.elevation)
+        .background(Color.Nym.backgroundCard)
         .cornerRadius(8)
     }
 

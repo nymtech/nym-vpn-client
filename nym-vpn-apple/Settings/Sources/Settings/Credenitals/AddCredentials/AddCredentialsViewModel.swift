@@ -48,8 +48,8 @@ import Theme
             configureError()
         }
     }
-    @Published var textFieldStrokeColor = NymColor.gray2
-    @Published var credentialSubtitleColor = NymColor.primary
+    @Published var textFieldStrokeColor = Color.Nym.gray2
+    @Published var credentialSubtitleColor = Color.Nym.textPrimary
     @Published var bottomPadding: CGFloat = 8
     @Published var errorMessageTitle = ""
     @MainActor @Published var isScannerDisplayed = false
@@ -142,8 +142,8 @@ extension AddCredentialsViewModel {
     @MainActor func configureError() {
         let error = error as? CredentialsManagerError
 
-        textFieldStrokeColor = error == .noError ? NymColor.gray2 : NymColor.error
-        credentialSubtitleColor = error == .noError ? NymColor.primary : NymColor.error
+        textFieldStrokeColor = error == .noError ? Color.Nym.gray2 : Color.Nym.error
+        credentialSubtitleColor = error == .noError ? Color.Nym.textPrimary : Color.Nym.error
         bottomPadding = error != .noError ? 4 : 8
 
         errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)

@@ -2,7 +2,6 @@ import Foundation
 import Theme
 
 public enum ExitRouter: Codable, Equatable {
-    case address(String)
     case country(String)
     case gateway(String)
     case region(countryCode: String, region: String)
@@ -12,7 +11,7 @@ public enum ExitRouter: Codable, Equatable {
         switch self {
         case .country:
             true
-        case .gateway, .random, .region, .address:
+        case .gateway, .random, .region:
             false
         }
     }
@@ -21,7 +20,7 @@ public enum ExitRouter: Codable, Equatable {
         switch self {
         case .region:
             true
-        case .gateway, .random, .address, .country:
+        case .gateway, .random, .country:
             false
         }
     }
@@ -32,7 +31,7 @@ extension ExitRouter: GatewayInfoProtocol {
         switch self {
         case let .country(code):
             code
-        case .random, .region, .address, .gateway:
+        case .random, .region, .gateway:
             nil
         }
     }
@@ -41,14 +40,14 @@ extension ExitRouter: GatewayInfoProtocol {
         switch self {
         case .country:
             false
-        case .gateway, .random, .region, .address:
+        case .gateway, .random, .region:
             true
         }
     }
 
     public var gatewayId: String? {
         switch self {
-        case .country, .random, .region, .address:
+        case .country, .random, .region:
             nil
         case let .gateway(gateway):
             gateway

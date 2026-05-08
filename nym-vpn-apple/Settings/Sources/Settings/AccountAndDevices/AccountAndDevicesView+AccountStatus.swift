@@ -12,34 +12,34 @@ extension AccountAndDevicesView {
                 accountStatusBandwidth(accountSummary: accountSummary)
                 Divider()
                     .frame(height: 1)
-                    .overlay(NymColor.background)
+                    .overlay(Color.Nym.divider)
                     .padding(.horizontal, 16)
                 accountStatusResetDate(accountSummary: accountSummary)
                 renewNowRow(accountSummary: accountSummary)
             } else {
                 Divider()
                     .frame(height: 1)
-                    .overlay(NymColor.background)
+                    .overlay(Color.Nym.divider)
                 accountStatusInactive()
             }
         }
-        .background(NymColor.elevation)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .background(Color.Nym.backgroundCard)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     func accountStatusInactive() -> some View {
         VStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .stroke(NymColor.gray1, lineWidth: 2)
+                    .stroke(Color.Nym.textSecondary, lineWidth: 2)
                     .frame(width: 64, height: 64)
                 GenericImage(systemImageName: "shield.slash")
                     .frame(width: 24, height: 24)
-                    .foregroundStyle(NymColor.gray1)
+                    .foregroundStyle(Color.Nym.textSecondary)
             }
             Text("settings.account.noActivePlan".localizedString)
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Large.regular)
+                .foregroundStyle(Color.Nym.textPrimary)
+                .nymTextStyle(.bodyLarge)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 32)
@@ -52,10 +52,10 @@ extension AccountAndDevicesView {
             HStack(spacing: 8) {
                 GenericImage(systemImageName: "gauge.with.dots.needle.50percent")
                     .frame(width: 20, height: 20)
-                    .foregroundStyle(NymColor.gray1)
+                    .foregroundStyle(Color.Nym.textSecondary)
                 Text("settings.account.status".localizedString)
-                    .foregroundStyle(NymColor.primary)
-                    .textStyle(.Body.Large.regular)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .nymTextStyle(.bodyLarge)
                 Spacer()
             }
             .padding(.horizontal, 16)
@@ -68,28 +68,28 @@ extension AccountAndDevicesView {
         VStack(spacing: 8) {
             HStack {
                 Text("settings.account.bandwidthRemaining".localizedString)
-                    .foregroundStyle(NymColor.accent)
-                    .textStyle(.Body.Small.regular)
+                    .foregroundStyle(Color.Nym.primary)
+                    .nymTextStyle(.bodySmall)
                 Spacer()
                 Text("settings.account.bandwidthLimit".localizedString)
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Small.regular)
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .nymTextStyle(.bodySmall)
             }
 
             bandwidthProgressBar(
                 used: accountSummary.trafficUsedGb,
                 limit: accountSummary.trafficLimitGb,
-                color: NymColor.accent
+                color: Color.Nym.primary
             )
 
             HStack {
                 Text(bandwidthRemainingText(used: accountSummary.trafficUsedGb, limit: accountSummary.trafficLimitGb))
-                    .foregroundStyle(NymColor.accent)
-                    .textStyle(.Body.Small.regular)
+                    .foregroundStyle(Color.Nym.primary)
+                    .nymTextStyle(.bodySmall)
                 Spacer()
                 Text(bandwidthLimitText(limit: accountSummary.trafficLimitGb))
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Small.regular)
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .nymTextStyle(.bodySmall)
             }
         }
         .padding(.horizontal, 16)
@@ -99,12 +99,12 @@ extension AccountAndDevicesView {
     func accountStatusResetDate(accountSummary: AccountSummary) -> some View {
         HStack {
             Text("settings.account.resetsOn".localizedString)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
             Text(resetDateText(date: accountSummary.trafficResetDate))
-                .foregroundStyle(NymColor.primary)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textPrimary)
+                .nymTextStyle(.bodyDefault)
         }
         .padding(.horizontal, 16)
         .frame(height: 48)
@@ -123,7 +123,7 @@ extension AccountAndDevicesView {
                         .foregroundStyle(color)
                     Text("settings.account.renewNow".localizedString)
                         .foregroundStyle(color)
-                        .textStyle(.Body.Medium.regular)
+                        .nymTextStyle(.bodyDefault)
                     Spacer()
                     GenericImage(imageName: "externalLink")
                         .frame(width: 16, height: 16)
@@ -144,7 +144,7 @@ extension AccountAndDevicesView {
 
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(NymColor.gray2)
+                    .fill(Color.Nym.gray2)
                     .frame(height: 8)
 
                 RoundedRectangle(cornerRadius: 4)

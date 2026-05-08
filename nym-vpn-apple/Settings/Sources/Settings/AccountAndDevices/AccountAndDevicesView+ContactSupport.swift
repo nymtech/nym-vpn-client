@@ -9,9 +9,9 @@ extension AccountAndDevicesView {
     func contactSupportText() -> some View {
         HStack(spacing: 0) {
             Text(contactSupportAttributedString())
-                .tint(NymColor.gray1)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .tint(Color.Nym.textSecondary)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
         }
         .environment(\.openURL, OpenURLAction { url in
@@ -27,7 +27,7 @@ extension AccountAndDevicesView {
         let bolt = AttributedString("⚡ ")
         var link = AttributedString("settings.account.contactSupport.link".localizedString)
         link.underlineStyle = .single
-        link.foregroundColor = NymColor.primary
+        link.foregroundColor = Color.Nym.textPrimary
         link.link = URL(string: Constants.supportURL.rawValue)
         let suffix = AttributedString(" \("settings.account.contactSupport.suffix".localizedString)")
         return bolt + link + suffix

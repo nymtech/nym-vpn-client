@@ -32,6 +32,7 @@ let package = Package(
             dependencies: [
                 .product(name: "UIComponents", package: "UIComponents"),
                 .product(name: "Settings", package: "Settings"),
+                .product(name: "SnackbarManager", package: "Services"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConfigurationManager", package: "Services"),
@@ -39,6 +40,8 @@ let package = Package(
                 .product(name: "Device", package: "Services"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "ExternalLinkManager", package: "Services"),
+                .product(name: "GatewayManager", package: "Services"),
+                .product(name: "ImpactGenerator", package: "Services"),
                 .product(name: "NetworkMonitor", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "MessagesManager", package: "Services"),

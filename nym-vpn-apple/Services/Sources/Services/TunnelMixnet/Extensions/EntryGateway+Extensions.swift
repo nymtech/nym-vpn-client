@@ -7,8 +7,6 @@ extension EntryGateway {
         switch self {
         case let .country(code):
             .country(twoLetterIsoCountryCode: code)
-        case let .lowLatencyCountry(code):
-            .country(twoLetterIsoCountryCode: code)
         case let .gateway(gateway):
             .gateway(identity: gateway)
         case .random:

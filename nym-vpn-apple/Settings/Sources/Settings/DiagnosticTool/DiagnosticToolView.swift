@@ -35,7 +35,7 @@ struct DiagnosticToolView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
     }
@@ -72,8 +72,8 @@ private extension DiagnosticToolView {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Text("settings.diagnosticTool.report".localizedString)
-                        .foregroundStyle(NymColor.primary)
-                        .textStyle(.Body.Large.regular)
+                        .foregroundStyle(Color.Nym.textPrimary)
+                        .nymTextStyle(.bodyLarge)
 
                     Spacer()
 
@@ -84,13 +84,13 @@ private extension DiagnosticToolView {
                 }
 
                 Text(reportText)
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Small.regular)
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .nymTextStyle(.bodySmall)
                     .textSelection(.enabled)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
-            .background(NymColor.elevation)
+            .background(Color.Nym.backgroundCard)
             .cornerRadius(8)
         }
     }

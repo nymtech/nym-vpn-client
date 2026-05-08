@@ -3,7 +3,6 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import Constants
-import MessageModels
 import NymVPNRpc
 import GRPCManager
 import Theme
@@ -28,13 +27,9 @@ public struct ProxyView: View {
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .snackbar(
-            isDisplayed: $viewModel.isSnackbarDisplayed,
-            message: SnackBarMessage(text: viewModel.snackbarMessage ?? "", style: .info)
-        )
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .task {
@@ -58,8 +53,8 @@ private extension ProxyView {
 
     func subtitleSection() -> some View {
         Text("proxy.subtitle".localizedString)
-            .textStyle(.Body.Medium.regular)
-            .foregroundStyle(NymColor.gray1)
+            .nymTextStyle(.bodyDefault)
+            .foregroundStyle(Color.Nym.textSecondary)
             .padding(.vertical, 24)
     }
 
@@ -116,11 +111,11 @@ private extension ProxyView {
             .padding(.bottom, 12)
             Divider()
                 .frame(height: 1)
-                .overlay(NymColor.gray2)
+                .overlay(Color.Nym.divider)
             detailsSection(
                 title: "proxy.activeConnections".localizedString,
                 details: proxyActiveConnectionsText(),
-                color: NymColor.primary
+                color: Color.Nym.textPrimary
             )
             .padding(.top, 12)
         }
@@ -132,12 +127,12 @@ private extension ProxyView {
     func detailsSection(title: String, details: String, color: Color) -> some View {
         HStack(alignment: .firstTextBaseline) {
             Text(title)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
             Text(details)
                 .foregroundStyle(color)
-                .textStyle(.Body.Medium.regular)
+                .nymTextStyle(.bodyDefault)
         }
     }
 
@@ -156,13 +151,13 @@ private extension ProxyView {
 
     func proxyStatusColor() -> Color {
         if viewModel.proxyStatusLoading {
-            NymColor.primary
+            Color.Nym.textPrimary
         } else {
             switch viewModel.proxyStatus?.state {
             case .none, .some(.disabled), .some(.error):
-                NymColor.error
+                Color.Nym.error
             case .some(.idle), .some(.connected):
-                NymColor.action
+                Color.Nym.primary
             }
         }
     }
@@ -200,8 +195,8 @@ private extension ProxyView {
                 VStack {
                     HStack {
                         Text(viewModel.socks5ProxyListenAddress.url)
-                            .textStyle(.Body.Medium.regular)
-                            .foregroundStyle(NymColor.gray1)
+                            .nymTextStyle(.bodyDefault)
+                            .foregroundStyle(Color.Nym.textSecondary)
                         Spacer()
                         GenericImage(imageName: viewModel.socks5Copied ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
@@ -225,8 +220,8 @@ private extension ProxyView {
         VStack(alignment: .center, spacing: 0) {
             HStack(spacing: 0) {
                 Text("ℹ️  \("proxy.socks5.instructions".localizedString)")
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Small.regular.withSpacing(1.4))
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .nymTextStyle(.bodySmall)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 16)
@@ -273,8 +268,8 @@ private extension ProxyView {
                 VStack {
                     HStack {
                         Text(AttributedString(viewModel.socks5ProxyListenAddress.fullyQualified))
-                            .textStyle(.Body.Medium.regular)
-                            .foregroundStyle(NymColor.gray1)
+                            .nymTextStyle(.bodyDefault)
+                            .foregroundStyle(Color.Nym.textSecondary)
                         Spacer()
                         GenericImage(imageName: viewModel.socks5CopiedFullyQualified ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
@@ -309,8 +304,8 @@ private extension ProxyView {
                 VStack {
                     HStack {
                         Text(viewModel.httpRpcProxyListenAddress.url)
-                            .textStyle(.Body.Medium.regular)
-                            .foregroundStyle(NymColor.gray1)
+                            .nymTextStyle(.bodyDefault)
+                            .foregroundStyle(Color.Nym.textSecondary)
                         Spacer()
                         GenericImage(imageName: viewModel.isHttpRpcCopied ? "checkmarkSeeThrough" : "copy")
                             .frame(width: 24, height: 24)
@@ -335,8 +330,8 @@ private extension ProxyView {
                 VStack {
                     HStack {
                         Text(AttributedString(viewModel.httpRpcProxyListenAddress.fullyQualified))
-                            .textStyle(.Body.Medium.regular)
-                            .foregroundStyle(NymColor.gray1)
+                            .nymTextStyle(.bodyDefault)
+                            .foregroundStyle(Color.Nym.textSecondary)
                         Spacer()
                         GenericImage(
                             imageName: viewModel.isHttpRpcCopiedFullyQualified ? "checkmarkSeeThrough" : "copy"
@@ -362,8 +357,8 @@ private extension ProxyView {
         VStack(alignment: .center, spacing: 0) {
             HStack(spacing: 0) {
                 Text("ℹ️  \("proxy.httpRpc.instructions".localizedString)")
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Small.regular.withSpacing(1.4))
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .nymTextStyle(.bodySmall)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 16)

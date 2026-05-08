@@ -68,7 +68,7 @@ public struct GeneratePassphraseView: View {
         .padding(16)
         .navigationBarBackButtonHidden(true)
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .task {
@@ -136,12 +136,12 @@ private extension GeneratePassphraseView {
         HStack {
             Spacer()
             ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(red: 0.07, green: 0.77, blue: 0.37).opacity(0.15))
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.Nym.primary.opacity(0.15))
                     .frame(width: 68, height: 68)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color(red: 0.08, green: 0.91, blue: 0.44).opacity(0.25), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.Nym.primary.opacity(0.25), lineWidth: 1)
                     )
 
                 GenericImage(imageName: "checkmarkCircle")
@@ -154,8 +154,8 @@ private extension GeneratePassphraseView {
     var titleSubtitleView: some View {
         VStack(alignment: .center) {
             Text("purchasePlan.title".localizedString)
-                .textStyle(.Headline.Large.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.titleScreen)
+                .foregroundStyle(Color.Nym.textPrimary)
                 .multilineTextAlignment(.center)
 
             Spacer()
@@ -189,16 +189,16 @@ private extension GeneratePassphraseView {
         HStack(spacing: 8) {
             if let systemImageName {
                 GenericImage(systemImageName: systemImageName)
-                    .foregroundStyle(NymColor.accent)
+                    .foregroundStyle(Color.Nym.primary)
                     .frame(width: 24, height: 24)
             } else if let imageName {
                 GenericImage(imageName: imageName)
-                    .foregroundStyle(NymColor.accent)
+                    .foregroundStyle(Color.Nym.primary)
                     .frame(width: 24, height: 24)
             }
             Text(title)
-                .foregroundStyle(NymColor.gray1)
-                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(Color.Nym.textSecondary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
         }
         .accessibilityElement(children: .combine)

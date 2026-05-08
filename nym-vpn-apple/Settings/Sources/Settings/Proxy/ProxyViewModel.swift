@@ -4,8 +4,8 @@ import AppSettings
 import ConnectionManager
 import GRPCManager
 import ImpactGenerator
-import MessageModels
 import NymLogger
+import SnackbarManager
 import NymVPNRpc
 import Theme
 
@@ -58,9 +58,6 @@ import Theme
     @Published var isHttpRpcCopied = false
     @Published var isHttpRpcCopiedFullyQualified = false
 
-    @Published var isSnackbarDisplayed = false
-    @Published var snackbarMessage: String?
-
     init(
         path: Binding<NavigationPath>,
         appSettings: AppSettings,
@@ -94,16 +91,12 @@ import Theme
             proxyStatusLoading = false
         } catch {
             proxyStatusLoading = false
-            withAnimation {
-                guard !isSnackbarDisplayed else { return }
-                proxyStatusLoading = false
-                snackbarMessage = "proxy.snackbar.connectionFailed".localizedString
-                isSnackbarDisplayed = true
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(3))
-                    isSnackbarDisplayed = false
-                }
-            }
+            SnackbarManager.shared.enqueue(
+                SnackbarItem(
+                    style: .negative,
+                    title: "proxy.snackbar.connectionFailed".localizedString
+                )
+            )
         }
     }
 
@@ -122,28 +115,21 @@ import Theme
 
             await loadSocks5Status()
             if proxyIsOn {
-                withAnimation {
-                    guard !isSnackbarDisplayed else { return }
-                    snackbarMessage = "proxy.snackbar.successfullyEnabled".localizedString
-                    isSnackbarDisplayed = true
-                    Task { @MainActor in
-                        try? await Task.sleep(for: .seconds(3))
-                        isSnackbarDisplayed = false
-                    }
-                }
+                SnackbarManager.shared.enqueue(
+                    SnackbarItem(
+                        style: .confirmation,
+                        title: "proxy.snackbar.successfullyEnabled".localizedString
+                    )
+                )
             }
         } catch {
             proxyStatusLoading = false
-            withAnimation {
-                guard !isSnackbarDisplayed else { return }
-                proxyStatusLoading = false
-                snackbarMessage = "proxy.snackbar.connectionFailed".localizedString
-                isSnackbarDisplayed = true
-                Task { @MainActor in
-                    try? await Task.sleep(for: .seconds(3))
-                    isSnackbarDisplayed = false
-                }
-            }
+            SnackbarManager.shared.enqueue(
+                SnackbarItem(
+                    style: .negative,
+                    title: "proxy.snackbar.connectionFailed".localizedString
+                )
+            )
         }
     }
 

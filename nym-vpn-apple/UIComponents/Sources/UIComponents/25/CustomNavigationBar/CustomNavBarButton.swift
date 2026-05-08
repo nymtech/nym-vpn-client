@@ -1,0 +1,68 @@
+import SwiftUI
+import Theme
+
+public struct CustomNavBarButton: View {
+    public enum ButtonType: String {
+        case back
+        case settings
+        case info
+        case close
+        case empty
+
+        var imageName: String? {
+            switch self {
+            case .back:
+                "arrowBack"
+            case .settings:
+                "settingsGear"
+            case .info:
+                "info"
+            case .close:
+                "xmark"
+            case .empty:
+                nil
+            }
+        }
+    }
+    @State private var isHovered = false
+
+    public let type: ButtonType
+    public let action: (() -> Void)?
+
+    public init(type: ButtonType, action: (() -> Void)?) {
+        self.type = type
+        self.action = action
+    }
+
+    public var body: some View {
+        genericButton()
+            .focusEffectDisabled()
+    }
+}
+
+private extension CustomNavBarButton {
+    @ViewBuilder
+    func genericButton() -> some View {
+        Button {
+            action?()
+        } label: {
+            if let imageName = type.imageName {
+                switch type {
+                case .back, .settings, .info, .empty:
+                    Image(imageName, bundle: .module)
+                        .foregroundStyle(Color.Nym.textSecondary)
+
+                case .close:
+                    Image(systemName: imageName)
+                        .foregroundStyle(Color.Nym.textSecondary)
+                }
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .frame(width: 48, height: 48)
+        .onHover { newValue in
+            isHovered = newValue
+        }
+        .opacity(isHovered ? 0.7 : 1)
+    }
+}

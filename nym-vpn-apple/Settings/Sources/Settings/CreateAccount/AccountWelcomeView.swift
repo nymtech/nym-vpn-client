@@ -59,7 +59,7 @@ public struct AccountWelcomeView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            NymColor.background
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .alert(alertTitle, isPresented: $isDisplayingAlert) {
@@ -98,8 +98,8 @@ private extension AccountWelcomeView {
 
     var createAccountTitle: some View {
         Text(accountLocalizedString)
-            .textStyle(.Headline.Large.regular)
-            .foregroundStyle(NymColor.primary)
+            .nymTextStyle(.titleScreen)
+            .foregroundStyle(Color.Nym.textPrimary)
     }
 
     var accountLocalizedString: String {
@@ -125,8 +125,8 @@ private extension AccountWelcomeView {
     var maximumPrivacyTitle: some View {
         HStack {
             Text("🔒 \("createAccount.maximumPrivacy".localizedString)")
-                .textStyle(.Headline.Small.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodyLarge)
+                .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
         }
     }
@@ -134,8 +134,8 @@ private extension AccountWelcomeView {
     var maximumPrivacySubtitle: some View {
         HStack {
             Text(privacySubtitleLocalizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
             Spacer()
         }
     }
@@ -182,7 +182,7 @@ private extension AccountWelcomeView {
 
     var separatorLine: some View {
         Rectangle()
-            .foregroundColor(NymColor.gray2)
+            .foregroundColor(Color.Nym.gray2)
             .frame(height: 1)
             .padding(.horizontal, 24)
     }
@@ -201,8 +201,8 @@ private extension AccountWelcomeView {
     var privyTitle: some View {
         HStack {
             Text("⚡️ \("createAccount.quickSetup".localizedString)")
-                .textStyle(.Headline.Small.regular)
-                .foregroundStyle(NymColor.primary)
+                .nymTextStyle(.bodyLarge)
+                .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
         }
     }
@@ -210,8 +210,8 @@ private extension AccountWelcomeView {
     var privySubtitle: some View {
         HStack {
             Text("createAccount.useExistingLogin.subtitle".localizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.gray1)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.textSecondary)
             Spacer()
         }
     }
