@@ -28,10 +28,13 @@ function NodeLocation() {
     navigate('.', { replace: true, state: { tab: newTab } });
   };
 
-  // TODO: fix auto scroll to selected node/gateway
   return (
-    <Tabs.Root value={activeTab} onValueChange={handleTabChange}>
-      <Tabs.List className="bg-gray dark:bg-background sticky top-0 z-10 flex px-4 select-none">
+    <Tabs.Root
+      value={activeTab}
+      onValueChange={handleTabChange}
+      className="flex h-full flex-col"
+    >
+      <Tabs.List className="bg-gray dark:bg-background flex px-4 select-none">
         <Tabs.Tab
           value="entry"
           className="group text-text-secondary data-active:text-text-primary flex flex-1 flex-col items-center gap-2 py-2 text-base font-medium tracking-tight focus-visible:outline-none"
@@ -47,10 +50,10 @@ function NodeLocation() {
           <span className="bg-border group-data-active:bg-primary h-[1.5px] w-full" />
         </Tabs.Tab>
       </Tabs.List>
-      <Tabs.Panel value="entry">
+      <Tabs.Panel value="entry" className="flex-1 min-h-0">
         <Node node="entry" />
       </Tabs.Panel>
-      <Tabs.Panel value="exit">
+      <Tabs.Panel value="exit" className="flex-1 min-h-0">
         <Node node="exit" />
       </Tabs.Panel>
     </Tabs.Root>
