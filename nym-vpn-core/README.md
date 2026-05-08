@@ -145,8 +145,9 @@ After installing Rust, install the following Rust targets and dependencies to en
         ```sh
         pacman -Suy
         pacman -S --needed mingw-w64-x86_64-binutils mingw-w64-x86_64-gcc
-        pacman -S mingw-w64-x86_64-clang
+        pacman -S mingw-w64-clang-x86_64-clang
         pacman -S mingw-w64-clang-aarch64-clang
+        pacman -S mingw-w64-clang-aarch64-headers mingw-w64-clang-aarch64-crt-git
         ```
 7. Install `cargo-get`:
 
@@ -186,11 +187,11 @@ make build-wireguard
 
 ### Windows
 
-Run the following command from a **Visual Studio Developer Command Prompt** or **Visual Studio Developer PowerShell**, to build `winfw`, `libwg`, download `wintun` and build the split-tunnel driver:
+To build the `winfw`, `libwg`, download `wintun` and build the split-tunnel driver, run the following command from a **Visual Studio Developer PowerShell**:
 
 ```sh
 cd nym-vpn-core
-make -f Windows.mk RELEASE=1
+make -f Windows.mk RELEASE=1 PWSH=1
 ```
 
 This command build binaries for the machine CPU architecture and put them into `target/release`.
@@ -203,10 +204,16 @@ If you omit the `RELEASE` flag or set it to `0`, the binaries will be put into `
 
 For convenience, all build artifacts are also mirrored under `build/` directory in the repo root.
 
-If you want to build for different architecture, pass one of the following parameters to `make`:
+#### Compiling for ARM64 on x64
 
-- `CPU_ARCH=AMD64` to build for x64
-- `CPU_ARCH=ARM64` to build for ARM64
+You can cross-compile from x64 to ARM64, again from a **Visual Studio Developer PowerShell**:
+
+```
+cd nym-vpn-core
+make -f Windows.mk CPU_ARCH=ARM64 RELEASE=0 PWSH=1
+```
+
+(use `RELEASE=1` for a release build)
 
 ## Build VPN libraries and executables
 
@@ -220,6 +227,12 @@ cargo build -p nym-vpnd -p nym-socks5-proxy --release
 
 # build all
 cargo build --release
+```
+
+On Windows, to build for ARM64 from x64, firstly ensure you have built the dependencies using `Windows.mk`:
+
+```
+cargo build --release --target aarch64-pc-windows-msvc
 ```
 
 ### iOS (macOS host)
@@ -248,28 +261,6 @@ export ANDROID_NDK_HOME=~/Library/Android/sdk/ndk/28.0.12433566
 export NDK_TOOLCHAIN_DIR=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/darwin-x86_64/bin
 
 make -C nym-vpn-core -f Android.mk
-```
-
-## Build for Windows from MacOS
-
-Install toolchain
-
-```sh
-brew install mingw-w64
-rustup target add x86_64-pc-windows-gnu
-```
-
-Configure linker in `.cargo/config.toml`:
-
-```toml
-[target.x86_64-pc-windows-gnu]
-linker = "x86_64-w64-mingw32-gcc"
-```
-
-Then
-
-```sh
-cargo build --target=x86_64-pc-windows-gnu -p nym-vpn-lib
 ```
 
 ## Environment variables used by the service

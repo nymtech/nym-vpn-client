@@ -8,11 +8,16 @@
 # Primary variables:
 # - CPU_ARCH: CPU architecture (amd64 or arm64, default is the architecture of the machine)
 # - RELEASE: 1 for release build, 0 for debug build (default if omitted)
-# - TARGET_DIR: Directory to copy the built DLLs to (default is target/debug or target/release, depending on RELEASE)
+# - TARGET_DIR: Directory to copy the built DLLs to (default is target/debug or target/release for native builds,
+#               or target/<triple>/debug|release when cross-compiling, e.g. target/aarch64-pc-windows-msvc/release)
 #
 # CI extras:
 # - PWSH: Set to 1 to use PowerShell Core (pwsh) instead of Windows PowerShell (powershell)
 # - MSYS2_LOCATION: Location of MSYS2 installation (default is C:/msys64)
+#
+# Prerequisites for cross-compiling ARM64 on an x64 host:
+# The following MSYS2 packages must be installed (provides ARM64 headers and CRT under /clangarm64/):
+#   pacman -S mingw-w64-clang-aarch64-headers mingw-w64-clang-aarch64-crt-git mingw-w64-clang-x86_64-clang
 
 # Powershell on CI does not support the `Expand-Archive` cmdlet. Prefer pwsh instead.
 ifdef PWSH
@@ -38,10 +43,12 @@ GO_PATH := $(ProgramW6432)/Go/bin
 # Make on Windows is a 32-bit application
 # Use PROCESSOR_ARCHITEW6432 to get the native CPU architecture
 ifdef PROCESSOR_ARCHITEW6432
-    CPU_ARCH ?= $(PROCESSOR_ARCHITEW6432)
+    HOST_ARCH := $(PROCESSOR_ARCHITEW6432)
 else
-    CPU_ARCH ?= $(PROCESSOR_ARCHITECTURE)
+    HOST_ARCH := $(PROCESSOR_ARCHITECTURE)
 endif
+
+CPU_ARCH ?= $(HOST_ARCH)
 
 ifeq ($(CPU_ARCH),AMD64)
     RUST_TARGET := x86_64
@@ -59,10 +66,17 @@ endif
 
 ifeq ($(RELEASE),1)
     MSVC_CONFIG := Release
-    TARGET_DIR ?= $(CURDIR)/target/release
+    RUST_BUILD_TYPE := release
 else
     MSVC_CONFIG := Debug
-    TARGET_DIR ?= $(CURDIR)/target/debug
+    RUST_BUILD_TYPE := debug
+endif
+
+# When cross-compiling, Rust places output under target/<triple>/(release|debug)
+ifneq ($(CPU_ARCH),$(HOST_ARCH))
+    TARGET_DIR ?= $(CURDIR)/target/$(RUST_TARGET)-pc-windows-msvc/$(RUST_BUILD_TYPE)
+else
+    TARGET_DIR ?= $(CURDIR)/target/$(RUST_BUILD_TYPE)
 endif
 
 LIBWG_VERSION_HEADER_PATH = $(CURDIR)/../wireguard/libwg/version.h
@@ -94,7 +108,12 @@ default: wintun libwg winfw st-driver
 libwg: create_target_dir create_version_header
 	if ("$(CPU_ARCH_LOWER)" -eq "arm64") { #\
 		$$wg_arm64_flag = "--arm64" ; #\
-		$$msystem = "clangarm64" ; #\
+		if ("$(HOST_ARCH)" -eq "ARM64") { #\
+			$$msystem = "clangarm64" ; #\
+		} else { #\
+			# Cross-compiling: use clang64 (x64 LLVM tools with arm64 cross-compile support) #\
+			$$msystem = "clang64" ; #\
+		} #\
 	} else { #\
 		$$wg_arm64_flag = "" ; #\
 		$$msystem = "mingw64" ; #\

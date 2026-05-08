@@ -23,8 +23,9 @@ It is forked from (https://github.com/mullvad/mullvadvpn-app) which maintains co
   ```sh
   pacman -Suy
   pacman -S --needed mingw-w64-x86_64-binutils mingw-w64-x86_64-gcc
-  pacman -S mingw-w64-x86_64-clang
+  pacman -S mingw-w64-clang-x86_64-clang
   pacman -S mingw-w64-clang-aarch64-clang
+  pacman -S mingw-w64-clang-aarch64-headers mingw-w64-clang-aarch64-crt-git
   ```
 - Download `make` via winget:
   ```sh
