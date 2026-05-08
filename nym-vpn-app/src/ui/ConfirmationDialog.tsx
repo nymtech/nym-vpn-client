@@ -30,16 +30,16 @@ function ConfirmationDialog({
   return (
     <Dialog open={isOpen} onClose={onCancel}>
       <div className="mx-auto flex flex-col items-center gap-4 w-11/12">
-        <MsIcon icon={icon} className="text-baltic-sea dark:text-white" />
+        <MsIcon icon={icon} className="text-text-primary" />
 
         <DialogTitle
           as="h3"
-          className="text-xl text-baltic-sea dark:text-white text-center w-full truncate"
+          className="text-xl text-text-primary text-center w-full truncate"
         >
           {title}
         </DialogTitle>
       </div>
-      <p className="mt-4 text-center text-iron dark:text-bombay max-w-80 whitespace-pre-line">
+      <p className="mt-4 text-center text-text-secondary max-w-80 whitespace-pre-line">
         {description}
       </p>
       <div className="mt-6 flex flex-col flex-nowrap justify-center w-full gap-2">

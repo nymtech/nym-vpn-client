@@ -76,17 +76,17 @@ function Socks5() {
 
   const getStatusColor = () => {
     if (isLoading) {
-      return 'text-baltic-sea dark:text-white';
+      return 'text-text-primary';
     }
     switch (status?.state) {
       case 'idle':
       case 'connected':
-        return 'text-malachite-moss dark:text-malachite';
+        return 'text-primary';
       case 'error':
       case 'disabled':
         return 'text-aphrodisiac';
       default:
-        return 'text-baltic-sea dark:text-white';
+        return 'text-text-primary';
     }
   };
 
@@ -134,7 +134,7 @@ function Socks5() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
-      <div className="text-iron dark:text-bombay">{t('app-proxy.intro')}</div>
+      <div className="text-text-secondary">{t('app-proxy.intro')}</div>
 
       <SettingsMenuCardBig
         header={
@@ -161,7 +161,7 @@ function Socks5() {
               )}
             >
               <div className="w-full flex items-center gap-2 justify-between">
-                <span className="text-iron dark:text-bombay truncate select-none">
+                <span className="text-text-secondary truncate select-none">
                   {t('app-proxy.proxy-status')}
                 </span>
                 <span className={clsx(getStatusColor())}>
@@ -176,14 +176,14 @@ function Socks5() {
               )}
             >
               <div className="w-full flex items-center gap-2 justify-between">
-                <span className="text-iron dark:text-bombay truncate select-none">
+                <span className="text-text-secondary truncate select-none">
                   {t('app-proxy.active-connections')}
                 </span>
                 <span
                   className={clsx(
                     status?.state === 'connected'
-                      ? 'text-malachite-moss dark:text-malachite'
-                      : 'text-baltic-sea dark:text-white',
+                      ? 'text-primary'
+                      : 'text-text-primary',
                   )}
                 >
                   {status?.activeConnections ?? 0}

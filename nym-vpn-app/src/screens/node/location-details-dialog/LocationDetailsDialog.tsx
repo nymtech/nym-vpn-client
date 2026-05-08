@@ -28,12 +28,12 @@ function LocationDetailsDialog({ isOpen, onClose, node }: Props) {
       <div className="flex flex-col items-center gap-4">
         <MsIcon
           icon="info"
-          className="text-baltic-sea dark:text-white"
+          className="text-text-primary"
           data-testid="location-details-info-icon"
         />
         <DialogTitle
           as="h3"
-          className="text-xl text-baltic-sea dark:text-white text-center"
+          className="text-xl text-text-primary text-center"
           data-testid="location-details-title"
         >
           {title}

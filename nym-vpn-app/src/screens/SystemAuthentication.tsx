@@ -41,12 +41,12 @@ export function SystemAuthentication() {
         <div className="flex items-center justify-center p-3 bg-malachite-moss/10 rounded-xl border border-malachite-moss">
           <MsIcon
             icon="lock"
-            className="text-malachite-moss dark:text-malachite leading-none"
+            className="text-primary leading-none"
           />
         </div>
         <DialogTitle
           as="h3"
-          className="text-xl text-baltic-sea dark:text-white text-center w-full truncate"
+          className="text-xl text-text-primary text-center w-full truncate"
         >
           {t('modal.title')}
         </DialogTitle>

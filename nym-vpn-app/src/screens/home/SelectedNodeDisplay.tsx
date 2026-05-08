@@ -44,7 +44,7 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
         {showFastest && (
           <MsIcon
             icon="casino"
-            className="text-2xl text-baltic-sea dark:text-white"
+            className="text-2xl text-text-primary"
           />
         )}
         <div className={clsx('flex flex-col items-start truncate')}>
@@ -64,7 +64,7 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
                   exit={{ opacity: 0, x: '1rem' }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
-                  className="text-sm text-iron dark:text-bombay truncate"
+                  className="text-sm text-text-secondary truncate"
                 >
                   {subInfo}
                 </motion.div>
@@ -73,7 +73,7 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
           ) : (
             <>
               {subInfo && (
-                <div className="text-sm text-iron dark:text-bombay truncate">
+                <div className="text-sm text-text-secondary truncate">
                   {subInfo}
                 </div>
               )}

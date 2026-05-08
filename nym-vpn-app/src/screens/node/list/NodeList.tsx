@@ -67,10 +67,10 @@ const NodeList = memo(function NodeList({
   if (nodes.length === 0 && gateways.length === 0) {
     return (
       <div className="px-6 space-y-4">
-        <p className=" text-baltic-sea dark:text-white truncate">
+        <p className=" text-text-primary truncate">
           {t('no-results-found.title')}
         </p>
-        <p className="text-iron dark:text-bombay whitespace-pre-line">
+        <p className="text-text-secondary whitespace-pre-line">
           <Trans
             i18nKey="no-results-found.description"
             ns="node-location"
@@ -114,7 +114,7 @@ const NodeList = memo(function NodeList({
       {gateways.length > 0 && (
         <div className="mt-2" data-testid="standalone-gateways-container">
           <h3
-            className={clsx('text-iron dark:text-bombay px-4 truncate', {
+            className={clsx('text-text-secondary px-4 truncate', {
               'py-6': nodes.length > 0,
             })}
           >

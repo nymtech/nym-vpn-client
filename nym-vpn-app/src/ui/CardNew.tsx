@@ -78,7 +78,7 @@ export function CardDataRow({
 }) {
   return (
     <div className="w-full flex justify-between items-center py-[7px]">
-      <p className="text-iron dark:text-secondary truncate select-none">
+      <p className="text-text-secondary truncate select-none">
         {label}
       </p>
       <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
@@ -105,7 +105,7 @@ export function CardNewCopyableRow({
         <Skeleton className="w-full h-4" />
       ) : (
         <>
-          <p className="text-iron dark:text-secondary truncate text-wrap wrap-break-word">
+          <p className="text-text-secondary truncate text-wrap wrap-break-word">
             {label}
           </p>
           <ButtonIcon
@@ -167,7 +167,7 @@ export function CardHeaderSwitch({
       style={style}
     >
       <div className="min-w-0 flex flex-col justify-center gap-1">
-        <p className="truncate text-base text-baltic-sea dark:text-white select-none">
+        <p className="truncate text-base text-text-primary select-none">
           {header}
         </p>
         {subheader && (
@@ -175,7 +175,7 @@ export function CardHeaderSwitch({
             className={clsx(
               'text-sm select-none',
               subheaderColor === 'default'
-                ? 'text-iron dark:text-bombay'
+                ? 'text-text-secondary'
                 : 'text-cheddar dark:text-king-nacho',
             )}
           >

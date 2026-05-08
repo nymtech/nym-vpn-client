@@ -53,7 +53,7 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
           />
         )}
         {!app.icon && (
-          <div className="h-full w-full rounded-md  bg-faded-lavender dark:bg-ash text-baltic-sea dark:text-white flex items-center justify-center text-sm leading-none">
+          <div className="h-full w-full rounded-md  bg-faded-lavender dark:bg-ash text-text-primary flex items-center justify-center text-sm leading-none">
             {app.name[0].toUpperCase()}
           </div>
         )}
@@ -70,7 +70,7 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
         )}
       </div>
       <div className="flex flex-col gap-1 min-w-0 flex-1">
-        <span className="flex-1 text-sm text-baltic-sea dark:text-white truncate select-none">
+        <span className="flex-1 text-sm text-text-primary truncate select-none">
           {app.name}
         </span>
         {isProblematic && (
@@ -91,7 +91,7 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
               'px-2  h-full w-full flex items-center justify-center cursor-default transition-noborder border-r border-r-iron dark:border-r-bombay rounded-l-lg',
               app.state === 'included'
                 ? 'bg-aphrodisiac/20 text-aphrodisiac'
-                : 'text-iron dark:text-bombay',
+                : 'text-text-secondary',
             )}
             onClick={() => onStateChange(app, 'included')}
             aria-label={`Exclude ${app.name} from VPN`}
@@ -102,8 +102,8 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
             className={clsx(
               'px-2  h-full w-full  flex items-center justify-center cursor-default transition-noborder rounded-r-lg',
               app.state === 'excluded'
-                ? 'bg-malachite-moss/15 dark:bg-malachite/15 text-malachite-moss dark:text-malachite'
-                : 'text-iron dark:text-bombay',
+                ? 'bg-malachite-moss/15 dark:bg-malachite/15 text-primary'
+                : 'text-text-secondary',
             )}
             onClick={() => onStateChange(app, 'excluded')}
             aria-label={`Include ${app.name} in VPN`}

@@ -78,7 +78,7 @@ function Diagnostic() {
                 className="w-full h-px bg-bombay dark:bg-iron"
               />
               <div className="overflow-y-auto flex-1 min-h-0">
-                <pre className="whitespace-pre-wrap wrap-break-word text-iron dark:text-bombay">
+                <pre className="whitespace-pre-wrap wrap-break-word text-text-secondary">
                   {diagnosticResult}
                 </pre>
               </div>

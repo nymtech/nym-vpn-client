@@ -40,7 +40,7 @@ const PROGRESS_STEPS = {
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const TRACK = 'rgba(255,255,255,0.15)';
-const FILL_FAST = 'var(--color-malachite-200)';
+const FILL_FAST = 'var(--color-primary)';
 const FILL_ANON = 'rgba(139,139,144,0.60)';
 const ERROR_CLR = 'var(--color-error)';
 

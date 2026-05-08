@@ -68,18 +68,6 @@
 
   /* new colors */
 
-  --color-malachite-50: hsl(141 90.9% 91.4%);
-  --color-malachite-100: hsl(142.6 92.8% 83.7%);
-  --color-malachite-200: hsl(147.8 83.2% 64.9%); /* primary */
-  --color-malachite-300: hsl(147.9 57.3% 55.9%);
-  --color-malachite-400: hsl(147.6 46.4% 46.9%);
-  --color-malachite-500: hsl(147.4 47.4% 38%);
-  --color-malachite-600: hsl(147.6 49.4% 30.2%);
-  --color-malachite-700: hsl(147.5 52.2% 22.2%);
-  --color-malachite-800: hsl(147.1 56.8% 14.5%);
-  --color-malachite-900: hsl(147.9 70% 7.8%);
-  --color-malachite-950: hsl(144.7 73.9% 4.5%);
-
   --color-secondary: #aeacb1;
   --color-success: #28c96c;
   --color-warning: #ffcc33;
@@ -88,6 +76,59 @@
   --color-aph: #090909;
   --color-aph-light: #2e2e2e;
   --color-gray: #d5d5d5;
+}
+
+/* ─── semantic tokens — Figma "VPN color palette" ───────────────────────────
+ * Use these instead of raw palette colors. Each class (bg-primary, text-surface,
+ * border-border, etc.) resolves to the correct shade for the active theme.
+ * ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* primary action */
+  --nv-primary: #0b8a42;
+  --nv-primary-hover: #0a7838;
+  --nv-primary-active: #0a7838;
+  --nv-primary-text: #0a0a0a;
+  /* surfaces & structure */
+  --nv-surface: #ffffff;
+  --nv-border: #e2e4ea;
+  --nv-divider: #e2e4ea;
+  --nv-background: #ebeef4;
+  /* text hierarchy */
+  --nv-text-primary: #1c1b1f;
+  --nv-text-secondary: #606060;
+  --nv-text-tertiary: #b0adb6;
+  /* status (same in both modes) */
+  --nv-info: #485eca;
+}
+
+.dark {
+  --nv-primary: #5bf0a0;
+  --nv-primary-hover: #44ee93;
+  --nv-primary-active: #44ee93;
+  --nv-primary-text: #ffffff;
+  --nv-surface: #1d1d1f;
+  --nv-border: #3a3a3c;
+  --nv-divider: #3a3a3c;
+  --nv-background: #090909;
+  --nv-text-primary: #ffffff;
+  --nv-text-secondary: #aeacb1;
+  --nv-text-tertiary: #e5e5e5;
+  --nv-info: #485eca;
+}
+
+@theme inline {
+  --color-primary: var(--nv-primary);
+  --color-primary-hover: var(--nv-primary-hover);
+  --color-primary-active: var(--nv-primary-active);
+  --color-primary-text: var(--nv-primary-text);
+  --color-surface: var(--nv-surface);
+  --color-border: var(--nv-border);
+  --color-divider: var(--nv-divider);
+  --color-background: var(--nv-background);
+  --color-text-primary: var(--nv-text-primary);
+  --color-text-secondary: var(--nv-text-secondary);
+  --color-text-tertiary: var(--nv-text-tertiary);
+  --color-info: var(--nv-info);
 }
 
 @utility transition-noborder {

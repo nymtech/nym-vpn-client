@@ -151,7 +151,7 @@ function Node({ node }: { node: NodeHop }) {
           data-testid="node-search-container"
         >
           {quicFilter && (
-            <p className="text-sm text-iron dark:text-bombay mb-6 select-none">
+            <p className="text-sm text-text-secondary mb-6 select-none">
               <Trans
                 i18nKey="quic-filter-note"
                 ns="node-location"
@@ -180,7 +180,7 @@ function Node({ node }: { node: NodeHop }) {
         </div>
         {loading && (
           <motion.div
-            className="flex justify-center text-base text-iron dark:text-bombay mt-4"
+            className="flex justify-center text-base text-text-secondary mt-4"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}

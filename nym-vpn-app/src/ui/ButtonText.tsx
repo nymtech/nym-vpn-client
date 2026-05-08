@@ -35,7 +35,7 @@ function ButtonText({
       'data-hover:underline decoration-2 text-lg font-medium',
     ],
     malachite: [
-      'text-malachite-moss dark:text-malachite',
+      'text-primary',
       'data-hover:text-malachite-moss/80 dark:data-hover:text-malachite/80',
     ],
   };

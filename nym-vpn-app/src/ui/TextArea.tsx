@@ -64,7 +64,7 @@ function TextArea({
         className={clsx([
           'text-base bg-faded-lavender dark:bg-ash transition',
           'w-full flex flex-row justify-between items-center py-4 px-4',
-          'text-baltic-sea dark:text-white',
+          'text-text-primary',
           'placeholder:text-iron dark:placeholder:text-bombay',
           ...inputStates,
           resize && getResizeClass(resize),

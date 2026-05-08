@@ -33,7 +33,7 @@ const ArrowButton = ({
         icon={icon}
         className={clsx(
           'leading-none',
-          !disabled ? 'text-baltic-sea dark:text-white' : 'text-bombay',
+          !disabled ? 'text-text-primary' : 'text-bombay',
         )}
       />
     </HuButton>

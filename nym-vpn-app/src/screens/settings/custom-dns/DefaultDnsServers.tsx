@@ -17,7 +17,7 @@ export function DefaultDnsServers() {
     <div className="flex flex-col items-start justify-center">
       <ButtonText
         color="transparent"
-        className="text-sm px-0! text-iron! dark:text-bombay!"
+        className="text-sm px-0! text-text-secondary!"
         onClick={() => setIsDefaultDnsVisible((v) => !v)}
       >
         {buttonText}
@@ -36,7 +36,7 @@ export function DefaultDnsServers() {
             <ul className="py-3">
               {defaultDns.map((dns) => (
                 <li key={dns}>
-                  <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+                  <p className="text-sm text-text-secondary whitespace-pre-line">
                     - {dns}
                   </p>
                 </li>

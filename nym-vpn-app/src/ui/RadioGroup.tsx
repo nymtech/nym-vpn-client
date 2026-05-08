@@ -57,7 +57,7 @@ function RadioGroup<K extends Key>({
     if (checked) {
       return (
         <span
-          className="font-icon text-2xl text-malachite-moss dark:text-malachite"
+          className="font-icon text-2xl text-primary"
           data-testid={`${testId}-checked-icon`}
         >
           radio_button_checked
@@ -66,7 +66,7 @@ function RadioGroup<K extends Key>({
     }
     return (
       <span
-        className="font-icon text-2xl text-iron dark:text-bombay"
+        className="font-icon text-2xl text-text-secondary"
         data-testid={`${testId}-unchecked-icon`}
       >
         radio_button_unchecked
@@ -89,7 +89,7 @@ function RadioGroup<K extends Key>({
         {rootLabel && (
           <Label
             as="div"
-            className="font-medium text-base text-baltic-sea dark:text-white mb-6 cursor-default"
+            className="font-medium text-base text-text-primary mb-6 cursor-default"
             data-testid={`${testId}-label`}
           >
             {rootLabel}
@@ -163,7 +163,7 @@ function RadioGroup<K extends Key>({
                           <Label
                             as="p"
                             className={clsx([
-                              'truncate text-base text-baltic-sea dark:text-white',
+                              'truncate text-base text-text-primary',
                             ])}
                             data-testid={`${optionTestId}-label`}
                           >
@@ -173,7 +173,7 @@ function RadioGroup<K extends Key>({
                             <Description
                               as="span"
                               className={clsx(
-                                'text-xs text-iron dark:text-bombay',
+                                'text-xs text-text-secondary',
                                 !option.descWrap && 'truncate',
                               )}
                               data-testid={`${optionTestId}-description`}

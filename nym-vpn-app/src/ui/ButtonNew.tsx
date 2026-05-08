@@ -11,14 +11,14 @@ export type ButtonVariant =
 
 const variantStyles: Record<ButtonVariant, string[]> = {
   primary: [
-    'bg-malachite-200 text-baltic-sea',
-    'hover:bg-malachite-300',
-    'data-active:bg-malachite-400',
+    'bg-primary text-baltic-sea',
+    'hover:bg-primary-hover',
+    'data-active:bg-primary-active',
     'data-disabled:bg-secondary',
   ],
   outlined: [
     'border-1 border-black dark:border-white',
-    'text-baltic-sea dark:text-white',
+    'text-text-primary',
     'hover:bg-baltic-sea/10 dark:hover:bg-white/10',
     'data-active:bg-transparent',
     'data-disabled:border-black/50 data-disabled:text-black/50 data-disabled:cursor-not-allowed',

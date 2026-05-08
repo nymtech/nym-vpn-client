@@ -3,7 +3,7 @@ type ProxyInfoProps = {
 };
 
 function ProxyInfo({ text }: ProxyInfoProps) {
-  return <span className="text-iron dark:text-bombay text-sm">{text}</span>;
+  return <span className="text-text-secondary text-sm">{text}</span>;
 }
 
 export default ProxyInfo;

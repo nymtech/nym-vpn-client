@@ -164,7 +164,7 @@ function NodeDetails() {
               <CardDataRow label={t('node-details.data.advanced-privacy')}>
                 <MsIcon
                   icon="visibility_off"
-                  className="text-malachite-moss dark:text-malachite text-xl"
+                  className="text-primary text-xl"
                 />
                 <p className="whitespace-nowrap">
                   {t('node-details.data.with-mixnet')}
@@ -177,7 +177,7 @@ function NodeDetails() {
                   icon={isGoodIp ? 'smart_display' : 'dns'}
                   className={clsx(
                     'text-xl',
-                    isGoodIp ? 'text-cornflower' : 'text-iron dark:text-bombay',
+                    isGoodIp ? 'text-cornflower' : 'text-text-secondary',
                   )}
                 />
                 <p className="whitespace-nowrap">
@@ -189,7 +189,7 @@ function NodeDetails() {
               <CardDivider />
               {/* Post-quantum secure keys */}
               <CardDataRow label={t('node-details.data.lewes-protocol-label')}>
-                <LewesIcon className="text-xl text-iron dark:text-bombay" />
+                <LewesIcon className="text-xl text-text-secondary" />
                 <p className="whitespace-nowrap">
                   {t('node-details.data.lewes-protocol')}
                 </p>
@@ -202,7 +202,7 @@ function NodeDetails() {
                     <MsIcon
                       filled
                       icon={quic ? 'package_2' : 'circle'}
-                      className="text-xl text-iron dark:text-bombay"
+                      className="text-xl text-text-secondary"
                     />
                     <p className="whitespace-nowrap">
                       {quic
@@ -215,7 +215,7 @@ function NodeDetails() {
             </CardNewBody>
             {backendFlags.quic && !quicSetting && (
               <CardNewFooter>
-                <p className="text-xs text-iron dark:text-secondary">
+                <p className="text-xs text-text-secondary">
                   <Trans
                     i18nKey="node-details.notes.anti-censorship"
                     ns="node-location"
@@ -279,7 +279,7 @@ function NodeDetails() {
               )}
             </CardNewBody>
             <CardNewFooter>
-              <p className="text-xs text-iron dark:text-secondary whitespace-pre-line">
+              <p className="text-xs text-text-secondary whitespace-pre-line">
                 {lastUpdate
                   ? t('node-details.notes.performance_with_time', {
                       relativeTime: dayjs().to(dayjs(lastUpdate)),
@@ -361,7 +361,7 @@ function NodeDetails() {
                 </>
               )}
               <div className="py-[7px] flex flex-col gap-2 w-full">
-                <p className="text-sm text-iron dark:text-secondary">
+                <p className="text-sm text-text-secondary">
                   {t('node-details.data.identity-key')}
                 </p>
                 <div className="flex items-center justify-between gap-3">

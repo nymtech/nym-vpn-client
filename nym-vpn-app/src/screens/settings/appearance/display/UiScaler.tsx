@@ -36,7 +36,7 @@ function UiScaler() {
       data-testid="ui-scaler-container"
     >
       <p
-        className="text-base text-baltic-sea dark:text-white flex-nowrap select-none"
+        className="text-base text-text-primary flex-nowrap select-none"
         data-testid="ui-scaler-value"
       >
         {slideValue}

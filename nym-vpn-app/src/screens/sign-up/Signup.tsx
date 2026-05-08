@@ -62,7 +62,7 @@ function Login() {
       <div className="flex flex-col">
         <div className="py-6">
           <h2>{t('signup.maximum-privacy.title')}</h2>
-          <p className="mt-2 text-iron dark:text-bombay whitespace-pre-line">
+          <p className="mt-2 text-text-secondary whitespace-pre-line">
             {t('signup.maximum-privacy.description')}
           </p>
           <Button onClick={handleCreateAccount} className="mt-4">
@@ -73,7 +73,7 @@ function Login() {
         </div>
         <div className="py-6 border-t border-iron dark:border-bombay">
           <h2>{t('privy.use-existing-login.title')}</h2>
-          <p className="mt-2 mb-4 text-iron dark:text-bombay whitespace-pre-line">
+          <p className="mt-2 mb-4 text-text-secondary whitespace-pre-line">
             {t('privy.use-existing-login.description')}
           </p>
           <PrivyButton />
@@ -89,7 +89,7 @@ function Login() {
         </div>
       </div>
       <p
-        className="text-xs text-center text-iron dark:text-bombay w-80"
+        className="text-xs text-center text-text-secondary w-80"
         data-testid="welcome-tos-notice"
       >
         <Trans

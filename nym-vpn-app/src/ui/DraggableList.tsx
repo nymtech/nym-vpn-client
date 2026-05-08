@@ -57,7 +57,7 @@ function SortableItem<T extends DraggableListItem>({
         dragHandleClassName ?? 'cursor-grab active:cursor-grabbing touch-none'
       }
     >
-      <MsIcon icon="drag_indicator" className="text-iron dark:text-bombay" />
+      <MsIcon icon="drag_indicator" className="text-text-secondary" />
     </button>
   );
 

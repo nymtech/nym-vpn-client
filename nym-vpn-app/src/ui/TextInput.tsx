@@ -68,8 +68,8 @@ function TextInput({
         className={clsx([
           'text-base transition relative',
           'w-full flex flex-row justify-between items-center py-3 px-4',
-          !disabled && 'text-baltic-sea dark:text-white',
-          disabled && 'text-iron dark:text-bombay',
+          !disabled && 'text-text-primary',
+          disabled && 'text-text-secondary',
           'placeholder:text-iron dark:placeholder:text-bombay',
           ...inputStates,
           getColorClass(),

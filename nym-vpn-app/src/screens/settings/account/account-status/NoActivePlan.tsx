@@ -9,10 +9,10 @@ export function NoActivePlan() {
         <div className="flex items-center justify-center w-14 h-14 rounded-full bg-faded-lavender dark:bg-mine-shaft border border-mercury dark:border-ash">
           <MsIcon
             icon="remove_moderator"
-            className="text-iron dark:text-bombay"
+            className="text-text-secondary"
           />
         </div>
-        <p className="text-base text-baltic-sea dark:text-white select-none">
+        <p className="text-base text-text-primary select-none">
           {t('account-status.no-plan')}
         </p>
       </div>

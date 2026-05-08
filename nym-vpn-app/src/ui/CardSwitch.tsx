@@ -27,7 +27,7 @@ function CardSwitch({
 }: CardSwitchProps) {
   const Header = () => (
     <div className="min-w-0 flex flex-col justify-center gap-1">
-      <p className="truncate text-base text-baltic-sea dark:text-white select-none">
+      <p className="truncate text-base text-text-primary select-none">
         {header}
       </p>
       {subheader && (
@@ -35,7 +35,7 @@ function CardSwitch({
           className={clsx(
             'text-sm select-none',
             subheaderColor === 'default'
-              ? 'text-iron dark:text-bombay'
+              ? 'text-text-secondary'
               : 'text-cheddar dark:text-king-nacho',
           )}
         >

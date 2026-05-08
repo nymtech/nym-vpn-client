@@ -16,7 +16,7 @@ export default function Progress({
     <BuiProgress.Root
       className={clsx(
         'flex flex-col gap-2',
-        'text-iron dark:text-bombay',
+        'text-text-secondary',
         className,
       )}
       value={value}

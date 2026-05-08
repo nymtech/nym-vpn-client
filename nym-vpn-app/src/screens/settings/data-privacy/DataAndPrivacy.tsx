@@ -81,7 +81,7 @@ function DataAndPrivacy() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+          <p className="text-sm text-text-secondary whitespace-pre-line">
             {t('privacy.network-stats.desc')}
           </p>
           <Link
@@ -105,7 +105,7 @@ function DataAndPrivacy() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+          <p className="text-sm text-text-secondary whitespace-pre-line">
             {t('privacy.error-monitoring.desc')}
           </p>
           <Link

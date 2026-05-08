@@ -44,7 +44,7 @@ function ConnectionTimer() {
       >
         <ScrambleIn
           text={t('connection-time')}
-          className="text-base text-iron dark:text-bombay"
+          className="text-base text-text-secondary"
           scrambledClassName="text-[9px] text-[#8b8b90]/50"
           scrambleSpeed={20}
         />
@@ -53,7 +53,7 @@ function ConnectionTimer() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="text-base text-baltic-sea dark:text-white"
+          className="text-base text-text-primary"
           data-testid="connection-time-value"
         >
           {connectionTime}

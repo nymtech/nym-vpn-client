@@ -12,7 +12,7 @@ import {
 const statusColors = {
   amber: 'text-liquid-lava',
   yellow: 'text-cheddar dark:text-king-nacho',
-  green: 'text-malachite-moss dark:text-malachite',
+  green: 'text-primary',
 } as const;
 
 export function AccountDescription() {
@@ -63,7 +63,7 @@ export function AccountDescription() {
         })}
       </p>
       {accountSummary?.subscription?.subscription?.isRecurring && (
-        <p className="text-iron dark:text-bombay">
+        <p className="text-text-secondary">
           *{t('account.auto-renews')}
         </p>
       )}

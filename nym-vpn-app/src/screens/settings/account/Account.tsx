@@ -167,7 +167,7 @@ function Account() {
 
       <div className="flex flex-row items-center gap-2">
         <div className="h-4 w-4 bg-warning rounded-full"></div>
-        <span className="text-sm text-iron dark:text-bombay">
+        <span className="text-sm text-text-secondary">
           {accountSummary?.isLinked ? (
             t('account.account-linked')
           ) : (
@@ -191,8 +191,8 @@ function Account() {
       <CardNew>
         <CardNewHeader>
           <div className="flex flex-row items-center gap-2">
-            <MsIcon icon="numbers" className="text-iron dark:text-bombay" />
-            <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
+            <MsIcon icon="numbers" className="text-text-secondary" />
+            <p className="text-left truncate text-base text-text-primary select-none">
               {t('account.account-id')}
             </p>
           </div>
@@ -207,15 +207,15 @@ function Account() {
         </CardNewBody>
       </CardNew>
 
-      <p className="text-sm text-iron dark:text-bombay">
+      <p className="text-sm text-text-secondary">
         {t('account.account-id-description')}
       </p>
 
       <CardNew>
         <CardNewHeader>
           <div className="flex flex-row items-center gap-2">
-            <MsIcon icon="monitor" className="text-iron dark:text-bombay" />
-            <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
+            <MsIcon icon="monitor" className="text-text-secondary" />
+            <p className="text-left truncate text-base text-text-primary select-none">
               {t('account.device-id')}
             </p>
           </div>
@@ -229,7 +229,7 @@ function Account() {
         </CardNewBody>
       </CardNew>
 
-      <p className="text-sm text-iron dark:text-bombay">
+      <p className="text-sm text-text-secondary">
         {t('account.device-id-description')}
       </p>
 

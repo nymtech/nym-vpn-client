@@ -63,7 +63,7 @@ export function ButtonIconNew({
             <MsIcon
               icon="check"
               className={clsx([
-                'leading-none text-malachite-moss dark:text-malachite',
+                'leading-none text-primary',
                 size === 'small' && 'text-2xl',
                 size === 'base' && 'text-3xl',
               ])}
@@ -172,7 +172,7 @@ function ButtonIcon({
           <MsIcon
             icon={clickedIcon}
             className={clsx([
-              'text-2xl text-malachite-moss dark:text-malachite',
+              'text-2xl text-primary',
               !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
               clickedIconClassName,
             ])}

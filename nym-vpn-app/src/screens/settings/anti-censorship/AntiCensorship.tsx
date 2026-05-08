@@ -65,7 +65,7 @@ function AntiCensorship() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
-      <div className="text-iron dark:text-bombay">
+      <div className="text-text-secondary">
         {t('anti-censorship.intro')}
       </div>
       {backendFlags.quic && (
@@ -81,7 +81,7 @@ function AntiCensorship() {
           }
         >
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+            <p className="text-sm text-text-secondary whitespace-pre-line">
               {t('anti-censorship.quic.content')}
             </p>
             <Link
@@ -106,7 +106,7 @@ function AntiCensorship() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+          <p className="text-sm text-text-secondary whitespace-pre-line">
             {t('anti-censorship.amneziawg.content')}
           </p>
           <Link
@@ -127,7 +127,7 @@ function AntiCensorship() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+          <p className="text-sm text-text-secondary whitespace-pre-line">
             {t('anti-censorship.stealth-api.content')}
           </p>
           <Link

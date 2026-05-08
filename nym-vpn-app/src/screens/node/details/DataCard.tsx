@@ -41,7 +41,7 @@ function DataCard({ rows, footer }: DataCardProps) {
         {footer && (
           <div
             className={clsx(
-              'self-start mt-3 text-sm text-iron dark:text-bombay select-none',
+              'self-start mt-3 text-sm text-text-secondary select-none',
             )}
           >
             {footer}

@@ -41,19 +41,19 @@ export function ActivePlan({
           className="grid w-full grid-cols-2 gap-y-2"
           value={bandwidthRemainingProgress}
         >
-          <Progress.Label className="text-sm font-medium text-malachite-moss dark:text-malachite">
+          <Progress.Label className="text-sm font-medium text-primary">
             {t('account-status.bandwidth-remaining')}
           </Progress.Label>
-          <Progress.Label className="text-sm font-medium text-right text-iron dark:text-bombay">
+          <Progress.Label className="text-sm font-medium text-right text-text-secondary">
             {t('account-status.limit')}
           </Progress.Label>
           <Progress.Track className="col-span-full h-1 overflow-hidden rounded bg-mercury dark:bg-ash">
-            <Progress.Indicator className="block bg-malachite-moss dark:bg-malachite transition-all duration-500" />
+            <Progress.Indicator className="block bg-primary transition-all duration-500" />
           </Progress.Track>
-          <Progress.Label className="text-sm font-medium text-malachite-moss dark:text-malachite">
+          <Progress.Label className="text-sm font-medium text-primary">
             {bandwidthRemainingValue}
           </Progress.Label>
-          <Progress.Label className="text-sm font-medium text-right text-iron dark:text-bombay">
+          <Progress.Label className="text-sm font-medium text-right text-text-secondary">
             {formatGb(accountSummary.trafficLimitGb)}
           </Progress.Label>
         </Progress.Root>
@@ -62,10 +62,10 @@ export function ActivePlan({
           className="w-full h-px bg-mercury dark:bg-ash"
         />
         <div className="flex justify-between items-center w-full pt-3">
-          <p className="text-sm text-iron dark:text-bombay select-none">
+          <p className="text-sm text-text-secondary select-none">
             {t('account-status.resets-on')}
           </p>
-          <p className="text-sm text-baltic-sea dark:text-white font-mono select-none">
+          <p className="text-sm text-text-primary font-mono select-none">
             {resetsOn}
           </p>
         </div>

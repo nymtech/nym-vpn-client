@@ -187,7 +187,7 @@ export default function HopSelect({
     <div
       className={clsx([
         'w-full flex flex-row justify-between items-center h-[3.75rem]',
-        'text-baltic-sea dark:text-white',
+        'text-text-primary',
         'border border-bombay dark:border-iron rounded-lg',
         'relative transition select-none cursor-default',
         disabled && 'opacity-50',
@@ -197,7 +197,7 @@ export default function HopSelect({
       <div
         className={clsx([
           'absolute left-3 -top-2 px-1',
-          'bg-faded-lavender dark:bg-ash text-xs',
+          'bg-background text-xs',
           disabled && 'cursor-default',
         ])}
       >
@@ -225,7 +225,7 @@ export default function HopSelect({
         >
           <MsIcon
             icon="arrow_right"
-            className="text-baltic-sea dark:text-white leading-none"
+            className="text-text-primary leading-none"
           />
         </Button>
       )}

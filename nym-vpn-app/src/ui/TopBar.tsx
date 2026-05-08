@@ -260,7 +260,7 @@ export default function TopBar() {
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-iron dark:text-bombay hover:text-baltic-sea dark:hover:text-white',
+          'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
         handleRightNav: () => {
           show('location-info');
         },
@@ -273,7 +273,7 @@ export default function TopBar() {
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-iron dark:text-bombay hover:text-baltic-sea dark:hover:text-white',
+          'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
         handleRightNav: () => {
           show('location-info');
         },
@@ -337,12 +337,12 @@ export default function TopBar() {
       }}
       className={clsx([
         'flex flex-row flex-nowrap justify-between items-center shrink-0',
-        'text-baltic-sea dark:text-white',
+        'text-text-primary',
         'h-16 text-xl z-30 select-none cursor-default',
         'px-4 py-2',
         currentNavLocation.noBackground
-          ? 'dark:bg-aph bg-gray'
-          : 'dark:bg-[#1E1E1E] bg-white',
+          ? 'dark:bg-background bg-gray'
+          : 'dark:bg-surface bg-white',
       ])}
       data-testid="top-bar"
       data-test-route={location.pathname}

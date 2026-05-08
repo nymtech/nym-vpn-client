@@ -57,7 +57,7 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
               className="flex flex-1 items-center justify-between gap-4 overflow-hidden cursor-default"
             >
               {!!setting.leadingIcon && (
-                <span className="font-icon text-2xl select-none text-iron dark:text-bombay">
+                <span className="font-icon text-2xl select-none text-text-secondary">
                   {setting.leadingIcon}
                 </span>
               )}
@@ -65,13 +65,13 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
               <div className="flex flex-col flex-1 justify-center min-w-4">
                 <Label
                   as="div"
-                  className="text-base text-baltic-sea dark:text-white select-none truncate"
+                  className="text-base text-text-primary select-none truncate"
                 >
                   {setting.title}
                 </Label>
                 <Description
                   as="div"
-                  className="text-sm text-iron dark:text-bombay select-none truncate"
+                  className="text-sm text-text-secondary select-none truncate"
                 >
                   {typeof setting.desc === 'string' ? (
                     <span>{setting.desc}</span>

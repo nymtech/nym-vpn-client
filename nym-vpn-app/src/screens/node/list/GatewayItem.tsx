@@ -96,7 +96,7 @@ const GatewayItem = ({
           </div>
           <div className="flex flex-col text-start overflow-hidden">
             <p className="truncate">{gateway.name}</p>
-            <p className="text-sm text-iron dark:text-bombay truncate">
+            <p className="text-sm text-text-secondary truncate">
               {location()}
             </p>
           </div>
@@ -110,7 +110,7 @@ const GatewayItem = ({
         <Button
           className={clsx(
             'w-12 h-12 flex justify-center items-center shrink-0 rounded-full',
-            'text-baltic-sea dark:text-white',
+            'text-text-primary',
             'hover:bg-faded-lavender dark:hover:bg-charcoal',
             'focus:outline-none',
           )}

@@ -46,7 +46,7 @@ function NetworkModeSelect() {
       clsx(
         'font-icon text-2xl leading-none',
         checked
-          ? 'text-malachite-moss dark:text-malachite'
+          ? 'text-primary'
           : 'text-bombay dark:text-iron',
       );
 
@@ -89,7 +89,7 @@ function NetworkModeSelect() {
       <div
         className={clsx([
           'flex flex-row items-center justify-between',
-          'font-medium text-base text-baltic-sea dark:text-white mb-5 cursor-default',
+          'font-medium text-base text-text-primary mb-5 cursor-default',
         ])}
         data-testid="network-mode-label-container"
       >

@@ -50,15 +50,16 @@ export type SelectedNodeDisplayProps = {
 export function NodeRow({ type }: NodeRowProps) {
   const { setFocused, addToExpanded, reset } = useNodeListState();
 
-  const { algo, state, userSelectedNode, tunnel, connectingState } = useAppStore(
-    useShallow((s) => ({
-      algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
-      state: s.state,
-      userSelectedNode: type === 'entry' ? s.entryNode : s.exitNode,
-      tunnel: s.tunnel,
-      connectingState: s.connectingState,
-    })),
-  );
+  const { algo, state, userSelectedNode, tunnel, connectingState } =
+    useAppStore(
+      useShallow((s) => ({
+        algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
+        state: s.state,
+        userSelectedNode: type === 'entry' ? s.entryNode : s.exitNode,
+        tunnel: s.tunnel,
+        connectingState: s.connectingState,
+      })),
+    );
 
   const navigate = useNavigate();
   const lookupGw = useLookupGw();
@@ -279,7 +280,7 @@ export function NodeRow({ type }: NodeRowProps) {
               <div
                 className={clsx(
                   'size-full will-change-transform backface-hidden',
-                  '[background:conic-gradient(from_0deg,var(--color-malachite-200)_0%,var(--color-cornflower)_45%,var(--color-azur)_72%,var(--color-malachite-200)_100%)]',
+                  '[background:conic-gradient(from_0deg,var(--color-primary)_0%,var(--color-cornflower)_45%,var(--color-azur)_72%,var(--color-primary)_100%)]',
                   'motion-safe:animate-[spin_3s_linear_infinite]',
                 )}
               />
@@ -324,7 +325,7 @@ export function NodeRow({ type }: NodeRowProps) {
                   animate="animate"
                   exit="exit"
                   transition={{ duration: DURATION, ease: [0.32, 0.72, 0, 1] }}
-                  className="block truncate flex-1 text-start min-w-0 text-baltic-sea dark:text-white text-base leading-6 tracking-[-0.08px] overflow-hidden"
+                  className="block truncate flex-1 text-start min-w-0 text-text-primary text-base leading-6 tracking-[-0.08px] overflow-hidden"
                 >
                   {textLabel}
                 </motion.span>

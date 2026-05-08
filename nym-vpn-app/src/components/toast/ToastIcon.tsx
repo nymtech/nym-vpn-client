@@ -22,14 +22,14 @@ export function ToastIcon({ type }: { type?: ToastAddData['type'] }) {
       return (
         <MsIcon
           icon="check_circle"
-          className="h-4 w-4 leading-none text-malachite-moss dark:text-malachite"
+          className="h-4 w-4 leading-none text-primary"
         />
       );
     default:
       return (
         <MsIcon
           icon="info"
-          className="h-4 w-4 leading-none text-malachite-moss dark:text-malachite"
+          className="h-4 w-4 leading-none text-primary"
         />
       );
   }

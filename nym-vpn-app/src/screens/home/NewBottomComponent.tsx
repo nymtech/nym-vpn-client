@@ -115,7 +115,7 @@ function ModeToggle() {
           className={clsx(
             'text-sm leading-[22px] tracking-[0.07px] w-20 text-right shrink-0 cursor-default transition-colors',
             isFast
-              ? 'font-bold text-malachite-200'
+              ? 'font-bold text-primary'
               : 'text-secondary hover:text-baltic-sea dark:hover:text-white',
           )}
         >
@@ -147,7 +147,7 @@ function ModeToggle() {
                 className={clsx([
                   'font-icon text-2xl select-none inline-block rtl:-scale-x-100',
                   'shrink-0 text-xl!',
-                  'text-malachite-200',
+                  'text-primary',
                   '[text-shadow:1px_1px_10px_#fff,1px_1px_10px_#ccc]',
                 ])}
               >
@@ -163,8 +163,8 @@ function ModeToggle() {
           className={clsx(
             'text-sm leading-[22px] tracking-[0.07px] w-20 shrink-0 cursor-default transition-colors',
             !isFast
-              ? 'font-bold text-malachite-200'
-              : 'text-secondary hover:text-baltic-sea dark:hover:text-white',
+              ? 'font-bold text-primary'
+              : 'text-secondary hover:text-primary',
           )}
         >
           Anonymous

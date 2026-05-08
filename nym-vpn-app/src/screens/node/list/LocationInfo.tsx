@@ -29,12 +29,12 @@ const LocationInfo = ({ node, name, gwCount }: LocationInfoProps) => {
       />
       <div className="flex flex-col justify-center overflow-hidden pr-4">
         <div
-          className={clsx('text-baltic-sea dark:text-white text-base truncate')}
+          className={clsx('text-text-primary text-base truncate')}
           data-testid={`country-name-${country.code}`}
         >
           {name}
         </div>
-        <div className="text-iron dark:text-bombay text-sm">
+        <div className="text-text-secondary text-sm">
           {`${gwCount} ${t('server', { count: gwCount })}`}
         </div>
       </div>

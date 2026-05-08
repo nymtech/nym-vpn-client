@@ -18,11 +18,11 @@ function DetailsSection({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
-        <MsIcon icon={icon} className="text-iron dark:text-bombay" />
+      <div className="flex flex-row items-center text-text-primary gap-2">
+        <MsIcon icon={icon} className="text-text-secondary" />
         <h4 className="text-lg">{title}</h4>
       </div>
-      <p className="text-iron dark:text-bombay">{children}</p>
+      <p className="text-text-secondary">{children}</p>
     </div>
   );
 }
