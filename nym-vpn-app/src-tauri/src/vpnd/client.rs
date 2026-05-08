@@ -12,7 +12,7 @@ pub use super::{
 use super::{
     config::{MixnetTrafficConfig, VpndConfig},
     events::MixnetEvent,
-    gateway::{Gateway, GatewayType, GatewaySelectionAlgorithm},
+    gateway::{Gateway, GatewaySelectionAlgorithm, GatewayType},
     tunnel::{FrontingMode, SplitApp, TunnelState},
 };
 
@@ -20,7 +20,7 @@ use anyhow::Result;
 use futures::future::TryFutureExt;
 use lib::UserAgent;
 use nym_vpn_lib_types::{self as lib, AccountCommandResponse};
-use nym_vpn_proto::{rpc_client::RpcClient};
+use nym_vpn_proto::rpc_client::RpcClient;
 use std::{
     env::consts::{ARCH, OS},
     net::IpAddr,
@@ -1098,12 +1098,17 @@ impl VpndClient {
     }
 
     #[instrument(skip_all)]
-    pub async fn set_gateway_selection_algorithm(&self, algorithm: GatewaySelectionAlgorithm) -> Result<(), VpndError> {
+    pub async fn set_gateway_selection_algorithm(
+        &self,
+        algorithm: GatewaySelectionAlgorithm,
+    ) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd
-            .set_gateway_selection_algorithm(algorithm.into())
-            .or_else(async |e| self.handle_rpc_error("set_gateway_selection_algorithm", e).await)
+        vpnd.set_gateway_selection_algorithm(algorithm.into())
+            .or_else(async |e| {
+                self.handle_rpc_error("set_gateway_selection_algorithm", e)
+                    .await
+            })
             .await
     }
 
@@ -1111,8 +1116,7 @@ impl VpndClient {
     pub async fn set_enable_geo_location(&self, enabled: bool) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        vpnd
-            .set_enable_geo_location(enabled)
+        vpnd.set_enable_geo_location(enabled)
             .or_else(async |e| self.handle_rpc_error("set_enable_geo_location", e).await)
             .await
     }

@@ -265,7 +265,9 @@ impl From<lib::GatewaySelectionAlgorithm> for GatewaySelectionAlgorithm {
     fn from(algorithm: lib::GatewaySelectionAlgorithm) -> Self {
         match algorithm {
             lib::GatewaySelectionAlgorithm::Explicit => GatewaySelectionAlgorithm::Explicit,
-            lib::GatewaySelectionAlgorithm::AutoEntryExplicitExit => GatewaySelectionAlgorithm::AutoEntryExplicitExit,
+            lib::GatewaySelectionAlgorithm::AutoEntryExplicitExit => {
+                GatewaySelectionAlgorithm::AutoEntryExplicitExit
+            }
             lib::GatewaySelectionAlgorithm::Auto => GatewaySelectionAlgorithm::Auto,
         }
     }
@@ -275,7 +277,9 @@ impl From<GatewaySelectionAlgorithm> for lib::GatewaySelectionAlgorithm {
     fn from(algorithm: GatewaySelectionAlgorithm) -> Self {
         match algorithm {
             GatewaySelectionAlgorithm::Explicit => lib::GatewaySelectionAlgorithm::Explicit,
-            GatewaySelectionAlgorithm::AutoEntryExplicitExit => lib::GatewaySelectionAlgorithm::AutoEntryExplicitExit,
+            GatewaySelectionAlgorithm::AutoEntryExplicitExit => {
+                lib::GatewaySelectionAlgorithm::AutoEntryExplicitExit
+            }
             GatewaySelectionAlgorithm::Auto => lib::GatewaySelectionAlgorithm::Auto,
         }
     }

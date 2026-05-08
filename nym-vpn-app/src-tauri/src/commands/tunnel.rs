@@ -7,8 +7,8 @@ use crate::{
     vpnd::{
         client::{Node, VpndClient, VpndError},
         config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
-        tunnel::{ConnectingState, FrontingMode, SplitApp, TunnelState},
         gateway::GatewaySelectionAlgorithm,
+        tunnel::{ConnectingState, FrontingMode, SplitApp, TunnelState},
     },
 };
 use std::net::IpAddr;
@@ -147,7 +147,10 @@ pub async fn set_quic(vpnd: State<'_, VpndClient>, enabled: bool) -> Result<(), 
 
 #[instrument(skip(vpnd))]
 #[tauri::command]
-pub async fn set_fronting_mode(vpnd: State<'_, VpndClient>, mode: FrontingMode) -> Result<(), BackendError> {
+pub async fn set_fronting_mode(
+    vpnd: State<'_, VpndClient>,
+    mode: FrontingMode,
+) -> Result<(), BackendError> {
     vpnd.set_fronting_mode(mode).await?;
     Ok(())
 }
