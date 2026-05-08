@@ -2,15 +2,13 @@ import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { DefaultRootFontSize } from '../../../../constants';
-import { useMainDispatch, useMainState } from '../../../../contexts';
+import { dispatch, useMainState } from '../../../../store';
 import { kvSet } from '../../../../kvStore';
-import { StateDispatch } from '../../../../types';
 import { Slider } from '../../../../ui';
 
 function UiScaler() {
   const { t } = useTranslation('display');
   const [slideValue, setSlideValue] = useState(DefaultRootFontSize);
-  const dispatch = useMainDispatch() as StateDispatch;
   const { rootFontSize } = useMainState();
 
   useEffect(() => {
@@ -38,7 +36,7 @@ function UiScaler() {
       data-testid="ui-scaler-container"
     >
       <p
-        className="text-base text-baltic-sea dark:text-white flex-nowrap select-none"
+        className="text-base text-text-primary flex-nowrap select-none"
         data-testid="ui-scaler-value"
       >
         {slideValue}

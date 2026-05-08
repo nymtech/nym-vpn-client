@@ -79,7 +79,7 @@ function Lang() {
             <div
               className={clsx([
                 'pr-4 ml-2 flex items-center font-medium text-xs',
-                'text-iron dark:text-bombay',
+                'text-text-secondary',
               ])}
               data-testid="language-selected-indicator-system"
             >
@@ -114,7 +114,7 @@ function Lang() {
               <div
                 className={clsx([
                   'pr-4 ml-2 flex items-center font-medium text-xs',
-                  'text-iron dark:text-bombay',
+                  'text-text-secondary',
                 ])}
                 data-testid={`language-selected-indicator-${lang.code}`}
               >

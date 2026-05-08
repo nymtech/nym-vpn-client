@@ -36,7 +36,7 @@ function NetworkEnvSelect({ current }: Props) {
   return (
     <div className="mt-2" data-testid="network-env-select-container">
       <h3
-        className="text-lg text-baltic-sea dark:text-white font-medium"
+        className="text-lg text-text-primary font-medium"
         data-testid="network-env-title"
       >
         Network env
@@ -50,7 +50,7 @@ function NetworkEnvSelect({ current }: Props) {
           className="text-liquid-lava"
           data-testid="network-env-warning-icon"
         />
-        <p className="text-iron dark:text-bombay truncate">
+        <p className="text-text-secondary truncate">
           This require to restart the daemon to take effect
         </p>
       </div>

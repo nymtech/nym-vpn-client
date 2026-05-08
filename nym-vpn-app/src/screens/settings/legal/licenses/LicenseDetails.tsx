@@ -27,7 +27,7 @@ function LicenseDetails() {
 
   const label = (label: string) => (
     <p
-      className="truncate text-iron dark:text-bombay select-none cursor-default"
+      className="truncate text-text-secondary select-none cursor-default"
       data-testid={`license-details-label-${label.toLowerCase()}`}
     >
       {label}:
@@ -136,7 +136,7 @@ function LicenseDetails() {
         </article>
       ) : (
         <span
-          className="mt-4 pl-4 italic text-iron dark:text-bombay select-none cursor-default"
+          className="mt-4 pl-4 italic text-text-secondary select-none cursor-default"
           data-testid="license-details-no-data"
         >
           {t('no-data')}

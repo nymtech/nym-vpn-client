@@ -8,8 +8,7 @@ import {
   PageAnim,
   SettingsMenuCardBig,
 } from '../../../ui';
-import { useMainDispatch, useMainState } from '../../../contexts';
-import { StateDispatch } from '../../../types';
+import { dispatch, useMainState } from '../../../store';
 import {
   AnonNetworkStatsUrl,
   SentryPrivacyPolicyUrl,
@@ -19,8 +18,6 @@ import { routes } from '../../../router';
 
 function DataAndPrivacy() {
   const { monitoring, networkStats } = useMainState();
-
-  const dispatch = useMainDispatch() as StateDispatch;
 
   const { t } = useTranslation('settings');
   const navigate = useNavigate();
@@ -84,7 +81,7 @@ function DataAndPrivacy() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+          <p className="text-sm text-text-secondary whitespace-pre-line">
             {t('privacy.network-stats.desc')}
           </p>
           <Link
@@ -108,7 +105,7 @@ function DataAndPrivacy() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+          <p className="text-sm text-text-secondary whitespace-pre-line">
             {t('privacy.error-monitoring.desc')}
           </p>
           <Link

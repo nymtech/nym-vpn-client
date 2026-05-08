@@ -18,7 +18,7 @@ export function DnsItemContent({
     <div className="flex flex-row items-center justify-between gap-2 p-3 pl-">
       <div className="flex flex-row items-center gap-2 flex-1 min-w-0">
         {dragHandle}
-        <p className="text-base text-baltic-sea dark:text-white truncate">
+        <p className="text-base text-text-primary truncate">
           {item.dns}
         </p>
       </div>

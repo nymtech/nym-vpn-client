@@ -18,7 +18,7 @@ export function CardNewHeader({
   return (
     <div
       className={clsx(
-        'w-full flex flex-row items-start justify-start p-5',
+        'w-full flex flex-row items-start justify-start p-4',
         className,
       )}
     >
@@ -34,7 +34,9 @@ export function CardNewFooter({
   children: ReactNode;
   className?: string;
 }) {
-  return <div className={clsx('w-full px-5 pb-5', className)}>{children}</div>;
+  return (
+    <div className={clsx('w-full px-5 pt-3 pb-5', className)}>{children}</div>
+  );
 }
 
 export function CardNewBody({
@@ -47,12 +49,23 @@ export function CardNewBody({
   return (
     <div
       className={clsx(
-        'w-full flex flex-col justify-center items-start gap-3 px-5',
+        'w-full flex flex-col justify-center items-start px-4',
         className,
       )}
     >
       {children}
     </div>
+  );
+}
+
+export function CardDivider({ className }: { className?: string }) {
+  return (
+    <div
+      className={clsx(
+        'w-full h-px bg-black/8 dark:bg-white/10 shrink-0',
+        className,
+      )}
+    />
   );
 }
 
@@ -64,8 +77,10 @@ export function CardDataRow({
   label: string;
 }) {
   return (
-    <div className="w-full flex justify-between items-center">
-      <p className="text-iron dark:text-bombay truncate select-none">{label}</p>
+    <div className="w-full flex justify-between items-center py-[7px]">
+      <p className="text-text-secondary truncate select-none">
+        {label}
+      </p>
       <div className="flex flex-nowrap items-center gap-2 overflow-hidden">
         {children}
       </div>
@@ -85,12 +100,12 @@ export function CardNewCopyableRow({
   const { copy } = useClipboard();
 
   return (
-    <div className="w-full flex justify-between items-center gap-2">
+    <div className="w-full flex justify-between items-center gap-2 py-[7px]">
       {loading ? (
         <Skeleton className="w-full h-4" />
       ) : (
         <>
-          <p className="text-iron dark:text-bombay truncate text-wrap wrap-break-word">
+          <p className="text-text-secondary truncate text-wrap wrap-break-word">
             {label}
           </p>
           <ButtonIcon
@@ -136,7 +151,7 @@ export function CardHeaderSwitch({
     <div
       className={clsx(
         'w-full flex flex-row justify-between items-center gap-4 select-none',
-        'bg-white dark:bg-charcoal px-5 min-h-16 rounded-t-lg py-4',
+        'bg-white dark:bg-charcoal px-4 min-h-16 rounded-t-lg py-4',
         !noHoverEffect && 'hover:bg-iron/5 dark:hover:bg-black/10',
         'cursor-default',
         disabled && 'pointer-events-none',
@@ -152,7 +167,7 @@ export function CardHeaderSwitch({
       style={style}
     >
       <div className="min-w-0 flex flex-col justify-center gap-1">
-        <p className="truncate text-base text-baltic-sea dark:text-white select-none">
+        <p className="truncate text-base text-text-primary select-none">
           {header}
         </p>
         {subheader && (
@@ -160,7 +175,7 @@ export function CardHeaderSwitch({
             className={clsx(
               'text-sm select-none',
               subheaderColor === 'default'
-                ? 'text-iron dark:text-bombay'
+                ? 'text-text-secondary'
                 : 'text-cheddar dark:text-king-nacho',
             )}
           >
@@ -192,8 +207,9 @@ export function CardNew({ children, disabled, className }: CardNewProps) {
   return (
     <div
       className={clsx([
-        'flex flex-col justify-center items-center select-none',
-        'bg-white dark:bg-charcoal rounded-lg min-h-16',
+        '',
+        'flex flex-col justify-center items-center select-none overflow-hidden',
+        'bg-white dark:bg-aph-light rounded-2xl min-h-16',
         'transition cursor-default',
         disabled && 'opacity-50 pointer-events-none',
         className,

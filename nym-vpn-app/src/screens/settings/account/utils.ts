@@ -8,7 +8,7 @@ export const getAccountDescriptionColor = (
   accountSummary?: TAccountSummary | null,
 ) => {
   if (accountSyncing) {
-    return 'text-iron dark:text-bombay';
+    return 'text-text-secondary';
   }
   if (
     state === 'no-subscription' ||
@@ -25,7 +25,7 @@ export const getAccountDescriptionColor = (
   if (!accountSummary?.isSubscriptionActive) {
     return 'text-aphrodisiac';
   }
-  return 'text-iron dark:text-bombay';
+  return 'text-text-secondary';
 };
 
 export const getAccountStateDescription = (

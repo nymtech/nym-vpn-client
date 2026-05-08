@@ -84,7 +84,6 @@ export type DbKey =
   | 'desktop-notifications'
   | 'last-network-env'
   | 'network-stats-enabled'
-  | 'domain-fronting-enabled'
   | 'cache-mx-entry-gateways'
   | 'cache-mx-exit-gateways'
   | 'cache-wg-gateways'
@@ -141,6 +140,8 @@ export type FeatureFlags = {
   mixnetTuning: boolean;
 };
 
+export type FrontingMode = 'off' | 'onRetry' | 'always';
+
 export type Gateway = {
   id: string;
   type: GatewayType;
@@ -156,6 +157,16 @@ export type Gateway = {
   exitIpv6: string | null;
   buildVersion: string | null;
   quic: boolean;
+};
+
+export type GatewaySelectionAlgorithm =
+  | 'explicit'
+  | 'autoEntryExplicitExit'
+  | 'auto';
+
+export type GatewaySelectionAlgorithmConfig = {
+  enableGeoLocation: boolean;
+  gatewaySelectionAlgorithm: GatewaySelectionAlgorithm;
 };
 
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
@@ -534,12 +545,14 @@ export type VpndConfig = {
   vpnMode: VpnMode;
   bridges: boolean;
   netstack: boolean;
+  frontingMode: FrontingMode;
   minGatewayVpnPerformance: number | null;
   residentialExit: boolean;
   enableLewesProtocol: boolean;
   mixnetTraffic: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

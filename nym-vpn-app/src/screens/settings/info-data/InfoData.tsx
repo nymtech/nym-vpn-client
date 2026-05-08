@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useMainState } from '../../../contexts';
+import { useMainState } from '../../../store';
 import { useClipboard } from '../../../hooks';
 import { routes } from '../../../router';
 import { ButtonText } from '../../../ui';

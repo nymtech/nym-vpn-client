@@ -6,10 +6,10 @@ function Speed() {
   return (
     <div className="flex flex-col items-center gap-4">
       <SpeedAsset className="h-full max-h-64 w-fit" />
-      <h1 className="text-2xl text-center whitespace-pre-line text-baltic-sea dark:text-white">
+      <h1 className="text-2xl text-center whitespace-pre-line text-text-primary">
         {t('speed.title')}
       </h1>
-      <p className="text-center text-base whitespace-pre-line text-iron dark:text-bombay">
+      <p className="text-center text-base whitespace-pre-line text-text-secondary">
         <Trans
           i18nKey="speed.description"
           ns="onboarding"

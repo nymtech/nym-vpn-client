@@ -73,7 +73,7 @@ function Button({
       case 'malachite':
         return 'text-malachite';
       case 'gray':
-        return 'text-iron dark:text-bombay';
+        return 'text-text-secondary';
       case 'cornflower':
         return 'text-cornflower';
       case 'red':

@@ -1,6 +1,6 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { Button, Dialog, MsIcon } from '../../../ui';
+import { Button, ButtonNew, Dialog, MsIcon } from '../../../ui';
 import { capFirst } from '../../../util';
 import { NodeHop } from '../../../types';
 import { Details } from './Details';
@@ -28,27 +28,25 @@ function LocationDetailsDialog({ isOpen, onClose, node }: Props) {
       <div className="flex flex-col items-center gap-4">
         <MsIcon
           icon="info"
-          className="text-baltic-sea dark:text-white"
+          className="text-text-primary"
           data-testid="location-details-info-icon"
         />
         <DialogTitle
           as="h3"
-          className="text-xl text-baltic-sea dark:text-white text-center"
+          className="text-xl text-text-primary text-center"
           data-testid="location-details-title"
         >
           {title}
         </DialogTitle>
       </div>
       <Details node={node} />
-      <Button
+      <ButtonNew
         onClick={onClose}
         className="mt-2"
         data-testid="location-details-close-button"
       >
-        <span className="text-lg text-black dark:text-baltic-sea">
-          {capFirst(t('ok', { ns: 'glossary' }))}
-        </span>
-      </Button>
+        {capFirst(t('ok', { ns: 'glossary' }))}
+      </ButtonNew>
     </Dialog>
   );
 }

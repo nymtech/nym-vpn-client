@@ -29,24 +29,30 @@
   "node-details": {
     "id-label": "Identity key:",
     "data": {
+      "node-features": "Node features",
       "advanced-privacy": "Advanced privacy",
-      "with-mixnet": "With mixnet (5-hop)",
-      "ip-type": "Streaming & content",
-      "ip-residential": "Residential IP",
-      "ip-datacenter": "Datacenter IP",
+      "with-mixnet": "Mixnet",
+      "ip-type": "Streaming & IP",
+      "ip-residential": "Residential",
+      "ip-datacenter": "Datacenter",
       "anti-censorship": "Anti-censorship",
       "quic-protocol": "QUIC protocol",
+      "lewes-protocol-label": "Post-quantum secure keys",
+      "lewes-protocol": "Lewes protocol",
       "standard-protocol": "Standard protocol",
       "overall-performance": "Overall performance",
+      "performance-metrics": "Performance metrics",
       "server-load": "Server load",
       "speed": "Speed",
       "uptime": "Uptime",
+      "connection-details": "Connection details",
       "exit-ipv4": "Exit IPv4",
       "exit-ipv6": "Exit IPv6",
       "asn": "ASN",
       "asn-name": "ASN name",
       "build-version": "Nym build version",
-      "identity-key": "Identity key:"
+      "identity-key": "Identity key:",
+      "build-information": "Build information"
     },
     "perf-score": {
       "high": "Good",
@@ -67,9 +73,13 @@
     },
     "links": {
       "missing-info": "Why is there missing or incorrect info",
-      "explorer": "More details in the Nym <networkExplorerLink />"
+      "explorer": "More details in the Nym <1>Network Explorer</1>"
     },
-    "select-button": "Select server"
+    "select-button": "Select server",
+    "error": {
+      "title": "Failed to select server",
+      "description": "Something went wrong. Please try different server."
+    }
   },
   "search-other-nodes": "Other search results",
   "no-results-found": {

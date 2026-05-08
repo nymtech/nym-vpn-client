@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import { Button } from '@headlessui/react';
 import clsx from 'clsx';
-import { UiGateway, useNodeListState } from '../../../contexts';
+import { UiGateway } from '../../../types/node';
+import { useNodeListState } from '../../../store/nodeListState';
 import { MsIcon } from '../../../ui';
 import { NodeHop, VpnMode } from '../../../types';
 import { useLang } from '../../../hooks';
@@ -74,7 +75,7 @@ const GatewayItem = ({
     <div
       ref={scrollToGatewayRef}
       className={clsx(
-        'flex flex-row justify-between items-center select-none',
+        'flex flex-row justify-between items-center select-none rounded-2xl',
         'hover:bg-mercury hover:dark:bg-mine-shaft',
       )}
     >
@@ -94,10 +95,8 @@ const GatewayItem = ({
             <ScoreIndicator score={score} />
           </div>
           <div className="flex flex-col text-start overflow-hidden">
-            <p className="truncate">{gateway.name}</p>
-            <p className="text-sm text-iron dark:text-bombay truncate">
-              {location()}
-            </p>
+            <p className="truncate text-text-primary">{gateway.name}</p>
+            <p className="text-sm text-text-secondary truncate">{location()}</p>
           </div>
         </div>
       </Button>
@@ -109,7 +108,7 @@ const GatewayItem = ({
         <Button
           className={clsx(
             'w-12 h-12 flex justify-center items-center shrink-0 rounded-full',
-            'text-baltic-sea dark:text-white',
+            'text-text-primary',
             'hover:bg-faded-lavender dark:hover:bg-charcoal',
             'focus:outline-none',
           )}

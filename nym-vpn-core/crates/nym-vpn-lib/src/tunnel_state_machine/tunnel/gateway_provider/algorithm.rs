@@ -105,7 +105,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Arc;
+    use std::sync::{Arc, atomic::AtomicBool};
 
     use tokio::sync::RwLock;
 

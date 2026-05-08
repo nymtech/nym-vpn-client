@@ -1,18 +1,13 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { Button, ButtonProps, Dialog, MsIcon } from '.';
+import { ButtonNew, Dialog, MsIcon } from '.';
 
 export type ConfirmationDialogProps = {
   icon: string;
   title: string;
   description: string;
   confirmButtonText: string;
-  confirmButtonColor: ButtonProps['color'];
-  confirmButtonOutline: ButtonProps['outline'];
   cancelButtonText?: string;
-  cancelButtonColor: ButtonProps['color'];
-  cancelButtonOutline: ButtonProps['outline'];
-
   isOpen: boolean;
   isLoading: boolean;
   onConfirm: () => Promise<void>;
@@ -24,11 +19,7 @@ function ConfirmationDialog({
   title,
   description,
   confirmButtonText,
-  confirmButtonColor = 'malachite',
-  confirmButtonOutline = false,
   cancelButtonText,
-  cancelButtonColor = 'gray',
-  cancelButtonOutline = true,
   isOpen,
   isLoading,
   onConfirm,
@@ -39,37 +30,31 @@ function ConfirmationDialog({
   return (
     <Dialog open={isOpen} onClose={onCancel}>
       <div className="mx-auto flex flex-col items-center gap-4 w-11/12">
-        <MsIcon icon={icon} className="text-baltic-sea dark:text-white" />
+        <MsIcon icon={icon} className="text-text-primary" />
 
         <DialogTitle
           as="h3"
-          className="text-xl text-baltic-sea dark:text-white text-center w-full truncate"
+          className="text-xl text-text-primary text-center w-full truncate"
         >
           {title}
         </DialogTitle>
       </div>
-      <p className="mt-4 text-center text-iron dark:text-bombay max-w-80 whitespace-pre-line">
+      <p className="mt-4 text-center text-text-secondary max-w-80 whitespace-pre-line">
         {description}
       </p>
       <div className="mt-6 flex flex-col flex-nowrap justify-center w-full gap-2">
-        <Button
+        <ButtonNew
           onClick={onConfirm}
           className="min-w-32"
-          color={confirmButtonColor}
-          outline={confirmButtonOutline}
-          spinner={isLoading}
+          variant="primary"
+          loading={isLoading}
           disabled={isLoading}
         >
           {confirmButtonText}
-        </Button>
-        <Button
-          onClick={onCancel}
-          className="min-w-32"
-          color={cancelButtonColor}
-          outline={cancelButtonOutline}
-        >
+        </ButtonNew>
+        <ButtonNew onClick={onCancel} className="min-w-32" variant="outlined">
           {cancelButtonText || t('cancel')}
-        </Button>
+        </ButtonNew>
       </div>
     </Dialog>
   );

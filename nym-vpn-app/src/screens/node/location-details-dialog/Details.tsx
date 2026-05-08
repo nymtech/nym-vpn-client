@@ -18,11 +18,11 @@ function DetailsSection({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
-        <MsIcon icon={icon} className="text-iron dark:text-bombay" />
+      <div className="flex flex-row items-center text-text-primary gap-2">
+        <MsIcon icon={icon} className="text-text-secondary" />
         <h4 className="text-lg">{title}</h4>
       </div>
-      <p className="text-iron dark:text-bombay">{children}</p>
+      <p className="text-text-secondary">{children}</p>
     </div>
   );
 }
@@ -38,7 +38,7 @@ function LocationSection() {
         Displayed locations are
         <Link
           url={LocationDetailsArticle}
-          textClassName="underline text-black dark:text-white"
+          textClassName="text-black dark:text-white"
         >
           determined from IP addresses
         </Link>
@@ -56,7 +56,7 @@ function QUICSection() {
         Improves the Fast mode reliability in restrictive networks by
         <Link
           url={QuicSupportArticleUrl}
-          textClassName="underline text-black dark:text-white"
+          textClassName="text-black dark:text-white"
         >
           wrapping WireGuard traffic in QUIC
         </Link>
@@ -79,7 +79,7 @@ function StreamingSection() {
       >
         <Link
           url={ResidentialIpServersUrl}
-          textClassName="underline text-black dark:text-white"
+          textClassName="text-black dark:text-white"
         >
           Residential IP servers
         </Link>

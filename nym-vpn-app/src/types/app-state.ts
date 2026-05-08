@@ -1,10 +1,12 @@
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
-import { StateAction } from '../contexts';
+import { StateAction } from '../store/slices/createMainSlice';
 import {
   AccountLinks,
   ConnectingState,
   FeatureFlags,
+  FrontingMode,
+  GatewaySelectionAlgorithmConfig,
   MixnetTrafficConfig,
   MixnetTrafficDefaults,
   NetworkCompat,
@@ -49,6 +51,8 @@ export type InitState = {
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
+  frontingMode: FrontingMode;
 };
 
 export type AppState = {
@@ -102,7 +106,6 @@ export type AppState = {
   // aka bridges mode
   quic: boolean;
   // current user setting
-  domainFronting: boolean;
   customDnsEnabled: boolean;
   customDns: string[];
   defaultDns: string[];
@@ -110,4 +113,6 @@ export type AppState = {
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
+  frontingMode: FrontingMode;
 };

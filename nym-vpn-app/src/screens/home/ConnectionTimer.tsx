@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import dayjs from 'dayjs';
-import { useMainState } from '../../contexts';
+import { useAppStore } from '../../store';
+import { ScrambleIn } from '../../ui/ScrambleIn';
 
 function ConnectionTimer() {
-  const { tunnelConnectedAt } = useMainState();
+  const state = useAppStore((s) => s.state);
+  const tunnelConnectedAt = useAppStore((s) => s.tunnelConnectedAt);
   const [connectionTime, setConnectionTime] = useState('00:00:00');
   const { t } = useTranslation('home');
 
@@ -27,27 +29,37 @@ function ConnectionTimer() {
     };
   }, [tunnelConnectedAt]);
 
+  if (state !== 'connected') {
+    return null;
+  }
+
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.1, ease: 'easeOut' }}
-      className="flex flex-col items-center gap-2 cursor-default select-none"
-      data-testid="connection-timer"
-    >
-      <p
-        className="text-base text-iron dark:text-bombay"
-        data-testid="connection-time-label"
+    <AnimatePresence mode="wait">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.1, ease: 'easeOut' }}
+        className="flex flex-col items-center gap-2 cursor-default select-none"
+        data-testid="connection-timer"
       >
-        {t('connection-time')}
-      </p>
-      <p
-        className="text-base text-baltic-sea dark:text-white"
-        data-testid="connection-time-value"
-      >
-        {connectionTime}
-      </p>
-    </motion.div>
+        <ScrambleIn
+          text={t('connection-time')}
+          className="text-base text-text-secondary"
+          scrambledClassName="text-[9px] text-[#8b8b90]/50"
+          scrambleSpeed={20}
+        />
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          className="text-base text-text-primary"
+          data-testid="connection-time-value"
+        >
+          {connectionTime}
+        </motion.p>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

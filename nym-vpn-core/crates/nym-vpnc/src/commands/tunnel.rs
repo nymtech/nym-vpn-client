@@ -3,6 +3,7 @@
 
 use anyhow::Result;
 
+use nym_vpn_lib_types::GatewaySelectionAlgorithm;
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::{

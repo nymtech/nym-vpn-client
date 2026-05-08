@@ -7,8 +7,9 @@ import { Command } from '@tauri-apps/plugin-shell';
 import PageAnim from '../../../ui/PageAnim';
 import SettingsMenuCard from '../../../ui/SettingsMenuCard';
 import Switch from '../../../ui/Switch';
-import { useDialog, useInAppNotify } from '../../../contexts';
+import { useDialog } from '../../../contexts';
 import { Spinner } from '../../../ui';
+import { useToast } from '../../../hooks/index';
 import InfoDialog from './InfoDialog';
 import LaunchConfirmDialog from './LaunchConfirmDialog';
 import AppItem, { AppEntry } from './AppItem';
@@ -20,7 +21,7 @@ function SplitTunneling() {
 
   const { t } = useTranslation('settings');
   const { isOpen, close } = useDialog();
-  const { push } = useInAppNotify();
+  const { add: addToast } = useToast();
 
   const { apps, enabled, loading, setEnabled, add, remove, isSupported } =
     useSplitTunnel();
@@ -66,14 +67,13 @@ function SplitTunneling() {
         }));
       } catch (error) {
         console.error('[nym-exclude] Failed to execute command', error);
-        push({
-          message: 'Failed to open app',
-          close: true,
+        addToast({
+          title: t('split-tunneling.error.failed-to-open-app'),
           type: 'error',
         });
       }
     },
-    [push],
+    [addToast, t],
   );
 
   const handleLaunch = useCallback(
@@ -175,7 +175,7 @@ function SplitTunneling() {
       )}
 
       {/* Description */}
-      <p className="text-sm text-iron dark:text-bombay">
+      <p className="text-sm text-text-secondary">
         {os === 'linux'
           ? t('split-tunneling.description-linux')
           : t('split-tunneling.description-windows')}
@@ -197,7 +197,7 @@ function SplitTunneling() {
             transition={{ duration: 0.15, ease: 'easeInOut' }}
             className="flex flex-col gap-2"
           >
-            <p className="text-base font-semibold text-baltic-sea dark:text-white select-none">
+            <p className="text-base font-semibold text-text-primary select-none">
               {t('split-tunneling.apps')} ({apps.length})
             </p>
 
@@ -214,7 +214,7 @@ function SplitTunneling() {
                   >
                     {/* Section divider */}
                     <div className="px-4 py-1 bg-mercury/40 dark:bg-mine-shaft/60">
-                      <span className="text-xs text-iron dark:text-bombay select-none">
+                      <span className="text-xs text-text-secondary select-none">
                         {letter}
                       </span>
                     </div>
@@ -244,7 +244,7 @@ function SplitTunneling() {
                     key={letter}
                     className={clsx(
                       'text-xs h-4 w-full text-center cursor-default select-none',
-                      'text-iron dark:text-bombay hover:text-baltic-sea dark:hover:text-white',
+                      'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
                       'transition-noborder',
                     )}
                     onClick={() => scrollToSection(letter)}

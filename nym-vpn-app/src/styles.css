@@ -65,6 +65,70 @@
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-icon: Material Symbols Outlined;
   --font-icon--font-variation-settings: 'opsz' 24;
+
+  /* new colors */
+
+  --color-secondary: #aeacb1;
+  --color-success: #28c96c;
+  --color-warning: #ffcc33;
+  --color-error: #e73e14;
+
+  --color-aph: #090909;
+  --color-aph-light: #2e2e2e;
+  --color-gray: #d5d5d5;
+}
+
+/* ─── semantic tokens — Figma "VPN color palette" ───────────────────────────
+ * Use these instead of raw palette colors. Each class (bg-primary, text-surface,
+ * border-border, etc.) resolves to the correct shade for the active theme.
+ * ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* primary action */
+  --nv-primary: #0b8a42;
+  --nv-primary-hover: #0a7838;
+  --nv-primary-active: #0a7838;
+  --nv-primary-text: #0a0a0a;
+  /* surfaces & structure */
+  --nv-surface: #ffffff;
+  --nv-border: #e2e4ea;
+  --nv-divider: #e2e4ea;
+  --nv-background: #ebeef4;
+  /* text hierarchy */
+  --nv-text-primary: #1c1b1f;
+  --nv-text-secondary: #606060;
+  --nv-text-tertiary: #b0adb6;
+  /* status (same in both modes) */
+  --nv-info: #485eca;
+}
+
+.dark {
+  --nv-primary: #5bf0a0;
+  --nv-primary-hover: #44ee93;
+  --nv-primary-active: #44ee93;
+  --nv-primary-text: #ffffff;
+  --nv-surface: #1d1d1f;
+  --nv-border: #3a3a3c;
+  --nv-divider: #3a3a3c;
+  --nv-background: #090909;
+  --nv-text-primary: #ffffff;
+  --nv-text-secondary: #aeacb1;
+  --nv-text-tertiary: #e5e5e5;
+  --nv-info: #485eca;
+}
+
+@theme inline {
+  --color-primary: var(--nv-primary);
+  --color-primary-hover: var(--nv-primary-hover);
+  --color-primary-active: var(--nv-primary-active);
+  --color-primary-text: var(--nv-primary-text);
+  --color-surface: var(--nv-surface);
+  --color-border: var(--nv-border);
+  --color-divider: var(--nv-divider);
+  --color-background: var(--nv-background);
+  --color-text-primary: var(--nv-text-primary);
+  --color-text-secondary: var(--nv-text-secondary);
+  --color-text-tertiary: var(--nv-text-tertiary);
+  --color-info: var(--nv-info);
 }
 
 @utility transition-noborder {
@@ -77,6 +141,14 @@
 
 @utility animate-pulse-fast {
   animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@utility animate-pulse-scale-even {
+  animation: pulse-scale-even 0.28s cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@utility animate-pulse-scale-odd {
+  animation: pulse-scale-odd 0.28s cubic-bezier(0.4, 0, 0.6, 1);
 }
 
 @utility loader {
@@ -190,7 +262,58 @@
       transform: rotate(1turn);
     }
   }
+
+  @keyframes pulse-scale-odd {
+    0%,
+    100% {
+      scale: 1;
+    }
+    50% {
+      scale: 1.04;
+    }
+  }
+
+  @keyframes pulse-scale-even {
+    0%,
+    100% {
+      scale: 1;
+    }
+    50% {
+      scale: 1.04;
+    }
+  }
+}
+
+@keyframes ts2-seal {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
 }
 
 /* custom breakpoint for height */
 @custom-variant hsm (@media (height >= 30rem));
+
+.accordion-panel {
+  overflow: hidden;
+  height: var(--accordion-panel-height);
+  transition: height 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.accordion-panel[data-starting-style],
+.accordion-panel[data-ending-style] {
+  height: 0;
+}
+
+.collapsible-panel {
+  overflow: hidden;
+  height: var(--collapsible-panel-height);
+  transition: height 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapsible-panel[data-starting-style],
+.collapsible-panel[data-ending-style] {
+  height: 0;
+}

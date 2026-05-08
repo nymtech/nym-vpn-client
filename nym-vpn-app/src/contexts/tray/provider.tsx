@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { useMainState } from '../main/context';
-import { useGateways } from '../index';
+import { useShallow } from 'zustand/react/shallow';
 import {
   Gateway,
   SelectedNode,
@@ -12,6 +11,7 @@ import {
 } from '../../types';
 import { useLang } from '../../hooks/index';
 import { regionToCountryCode } from '../../screens/home/util';
+import { useAppStore, useLookupGw } from '../../store';
 import { TrayContext } from './context';
 
 export type TrayProviderProps = {
@@ -28,8 +28,19 @@ export function TrayProvider({ children }: TrayProviderProps) {
     tunnel,
     connectingState,
     daemonStatus,
-  } = useMainState();
-  const { lookupGw } = useGateways();
+  } = useAppStore(
+    useShallow((s) => ({
+      vpnMode: s.vpnMode,
+      state: s.state,
+      entryNode: s.entryNode,
+      exitNode: s.exitNode,
+      tunnel: s.tunnel,
+      connectingState: s.connectingState,
+      daemonStatus: s.daemonStatus,
+    })),
+  );
+
+  const lookupGw = useLookupGw();
   const { getCountryName } = useLang();
 
   const entryGwId = tunnel?.entryGwId || connectingState?.entryGwId || null;

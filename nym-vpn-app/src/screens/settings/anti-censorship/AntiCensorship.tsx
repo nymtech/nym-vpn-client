@@ -1,19 +1,13 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
-import {
-  useInAppNotify,
-  useMainDispatch,
-  useMainState,
-} from '../../../contexts';
-import { StateDispatch } from '../../../types';
+import { dispatch, useMainState } from '../../../store';
 import { AmneziaWgUrl, DomainFrontingUrl, QuicUrl } from '../../../constants';
+import { useToast } from '../../../hooks';
 
 function AntiCensorship() {
-  const { quic, backendFlags, state } = useMainState();
-  const { push } = useInAppNotify();
-
-  const dispatch = useMainDispatch() as StateDispatch;
+  const { quic, backendFlags, state, frontingMode } = useMainState();
+  const { add } = useToast();
 
   const { t } = useTranslation('settings');
 
@@ -22,34 +16,44 @@ function AntiCensorship() {
     try {
       await invoke('set_quic', { enabled: isChecked });
       dispatch({ type: 'set-quic', enabled: isChecked });
-    } catch {
-      /* TODO */
-      return;
+    } catch (err: unknown) {
+      console.error('Failed to set QUIC', err);
+      add({
+        id: `quic-switch-${isChecked}`,
+        title: t('anti-censorship.quic.error'),
+        type: 'error',
+      });
     }
 
     if (state == 'connected' || state == 'connecting') {
-      push({
+      add({
         id: `quic-switch-${isChecked}`,
-        message: t(
+        title: t(
           isChecked
             ? 'anti-censorship.snackbar-switch-on'
             : 'anti-censorship.snackbar-switch-off',
         ),
-        throttle: 5,
-        duration: 5000,
-        close: true,
+        type: 'info',
       });
     }
   };
 
-  // const onDomainFrontingChange = async () => {
-  //   const isChecked = !domainFronting;
-  //   await kvSet('domain-fronting-enabled', isChecked);
-  //   dispatch({ type: 'set-domain-fronting', enabled: isChecked });
-  //   try {
-  //     // TODO invoke command
-  //   } catch {}
-  // };
+  const handleFrontingModeChange = async () => {
+    const value = frontingMode === 'onRetry' ? 'always' : 'onRetry';
+    console.log('value', value);
+    console.log('frontingMode', frontingMode);
+    try {
+      await invoke('set_fronting_mode', { mode: value });
+      dispatch({ type: 'set-fronting-mode', mode: value });
+    } catch (err: unknown) {
+      console.error('Failed to set fronting mode', err);
+      add({
+        id: `fronting-mode-switch-${value}`,
+        title: t('anti-censorship.stealth-api.error'),
+        type: 'error',
+      });
+    }
+  };
 
   if (!backendFlags.quic && !backendFlags.domainFronting) {
     return (
@@ -61,7 +65,7 @@ function AntiCensorship() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
-      <div className="text-iron dark:text-bombay">
+      <div className="text-text-secondary">
         {t('anti-censorship.intro')}
       </div>
       {backendFlags.quic && (
@@ -77,7 +81,7 @@ function AntiCensorship() {
           }
         >
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+            <p className="text-sm text-text-secondary whitespace-pre-line">
               {t('anti-censorship.quic.content')}
             </p>
             <Link
@@ -85,7 +89,6 @@ function AntiCensorship() {
               text={t('anti-censorship.quic.link')}
               url={QuicUrl}
               color="primary"
-              icon
             />
           </div>
         </SettingsMenuCardBig>
@@ -103,7 +106,7 @@ function AntiCensorship() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+          <p className="text-sm text-text-secondary whitespace-pre-line">
             {t('anti-censorship.amneziawg.content')}
           </p>
           <Link
@@ -111,7 +114,6 @@ function AntiCensorship() {
             text={t('anti-censorship.amneziawg.link')}
             url={AmneziaWgUrl}
             color="primary"
-            icon
           />
         </div>
       </SettingsMenuCardBig>
@@ -119,18 +121,13 @@ function AntiCensorship() {
         header={
           <CardSwitch
             header={t('anti-censorship.stealth-api.label')}
-            subheaderColor="king-nacho"
-            // TODO keep it always ON for now
-            checked={true}
-            onClick={() => {
-              /* TODO */
-            }}
-            disabled
+            checked={frontingMode === 'always'}
+            onClick={handleFrontingModeChange}
           />
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-iron dark:text-bombay whitespace-pre-line">
+          <p className="text-sm text-text-secondary whitespace-pre-line">
             {t('anti-censorship.stealth-api.content')}
           </p>
           <Link
@@ -138,7 +135,6 @@ function AntiCensorship() {
             text={t('anti-censorship.stealth-api.link')}
             url={DomainFrontingUrl}
             color="primary"
-            icon
           />
         </div>
       </SettingsMenuCardBig>

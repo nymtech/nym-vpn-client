@@ -44,7 +44,7 @@ function StartupError({
     >
       <div
         className={clsx([
-          'min-w-64 bg-white dark:bg-charcoal text-baltic-sea dark:text-white',
+          'min-w-64 bg-white dark:bg-charcoal text-text-primary',
           'flex flex-col items-center justify-between h-full gap-4',
           'cursor-default select-none p-6 px-6',
         ])}

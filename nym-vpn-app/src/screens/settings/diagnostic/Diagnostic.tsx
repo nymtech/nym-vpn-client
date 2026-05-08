@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { Separator } from '@base-ui-components/react';
-import { Button, ButtonIcon, PageAnim } from '../../../ui';
+import { ButtonIconNew, ButtonNew, PageAnim } from '../../../ui';
 import { useClipboard } from '../../../hooks';
 
 function Diagnostic() {
@@ -43,34 +43,31 @@ function Diagnostic() {
   return (
     <PageAnim className="h-full flex flex-col">
       <div className="flex gap-6 flex-col min-h-0 flex-1">
-        <Button
+        <ButtonNew
           onClick={handleRunDiagnostic}
           disabled={diagnosticRunning}
-          spinner={diagnosticRunning}
+          loading={diagnosticRunning}
         >
           {t('diagnostic.run')}
-        </Button>
+        </ButtonNew>
         {diagnosticResult && (
           <>
-            <Button
-              outline
+            <ButtonNew
+              variant="outlined"
               onClick={handleShareReport}
               disabled={shareLoading}
-              spinner={shareLoading}
+              loading={shareLoading}
             >
               {t('diagnostic.share')}
-            </Button>
+            </ButtonNew>
             <div className="space-y-4 p-6 rounded-lg min-h-0 flex flex-col flex-1 text-xs font-mono dark:bg-charcoal bg-white">
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-sm">
                   {t('diagnostic.report-title')}
                 </span>
-                <ButtonIcon
+                <ButtonIconNew
                   className="self-start"
-                  iconClassName="!text-xl"
-                  clickedIconClassName="!text-xl"
                   icon="content_copy"
-                  color="chalk"
                   onClick={() => copy(diagnosticResult, false)}
                   clickFeedback
                   noDefaultSize
@@ -81,7 +78,7 @@ function Diagnostic() {
                 className="w-full h-px bg-bombay dark:bg-iron"
               />
               <div className="overflow-y-auto flex-1 min-h-0">
-                <pre className="whitespace-pre-wrap wrap-break-word text-iron dark:text-bombay">
+                <pre className="whitespace-pre-wrap wrap-break-word text-text-secondary">
                   {diagnosticResult}
                 </pre>
               </div>

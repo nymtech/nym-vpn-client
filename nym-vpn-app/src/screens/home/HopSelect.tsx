@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 import { Button } from '@headlessui/react';
+import { useShallow } from 'zustand/react/shallow';
 import {
   Gateway,
   NodeHop,
@@ -13,7 +14,8 @@ import {
 } from '../../types';
 import { MsIcon, countryCode } from '../../ui';
 import { useLang } from '../../hooks';
-import { useGateways, useMainState } from '../../contexts';
+import { useLookupGw } from '../../contexts';
+import { useAppStore } from '../../store';
 import { countriesWithRegions } from '../../constants';
 import { routes } from '../../router';
 import { isBridgeMode, regionToCountryCode, useActionToast } from './util';
@@ -37,8 +39,15 @@ export default function HopSelect({
   onClick,
   disabled,
 }: HopSelectProps) {
-  const { backendFlags, vpnMode, tunnel, connectingState } = useMainState();
-  const { lookupGw } = useGateways();
+  const { backendFlags, vpnMode, tunnel, connectingState } = useAppStore(
+    useShallow((s) => ({
+      backendFlags: s.backendFlags,
+      vpnMode: s.vpnMode,
+      tunnel: s.tunnel,
+      connectingState: s.connectingState,
+    })),
+  );
+  const lookupGw = useLookupGw();
   const { t } = useTranslation('home');
   const { getCountryName } = useLang();
   const toast = useActionToast('node-select');
@@ -178,7 +187,7 @@ export default function HopSelect({
     <div
       className={clsx([
         'w-full flex flex-row justify-between items-center h-[3.75rem]',
-        'text-baltic-sea dark:text-white',
+        'text-text-primary',
         'border border-bombay dark:border-iron rounded-lg',
         'relative transition select-none cursor-default',
         disabled && 'opacity-50',
@@ -188,7 +197,7 @@ export default function HopSelect({
       <div
         className={clsx([
           'absolute left-3 -top-2 px-1',
-          'bg-faded-lavender dark:bg-ash text-xs',
+          'bg-background text-xs',
           disabled && 'cursor-default',
         ])}
       >
@@ -216,7 +225,7 @@ export default function HopSelect({
         >
           <MsIcon
             icon="arrow_right"
-            className="text-baltic-sea dark:text-white leading-none"
+            className="text-text-primary leading-none"
           />
         </Button>
       )}

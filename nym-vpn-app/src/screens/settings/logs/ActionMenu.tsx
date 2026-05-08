@@ -3,15 +3,16 @@ import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Menu } from '@base-ui-components/react';
 import { invoke } from '@tauri-apps/api/core';
-import { useInAppNotify, useMainState } from '../../../contexts';
 import {
   ConfirmationDialog,
   ConfirmationDialogProps,
   MsIcon,
 } from '../../../ui';
+import { useToast } from '../../../hooks';
+import { useAppStore } from '../../../store';
 
 function Separator() {
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
 
   return (
     <Menu.Separator
@@ -33,7 +34,7 @@ function MenuItem({
   icon: string;
   onClick: () => void;
 }) {
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
 
   return (
     <Menu.Item
@@ -70,33 +71,29 @@ function ActionMenu() {
   >(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { uiTheme } = useMainState();
-  const { push } = useInAppNotify();
+  const uiTheme = useAppStore((s) => s.uiTheme);
+  const { add } = useToast();
 
   const handleDeleteLogs = useCallback(async () => {
     setIsLoading(true);
     try {
       await invoke('delete_logs');
       await invoke('delete_app_logs');
-      push({
-        message: t('logs.actions.delete.success'),
+      add({
+        title: t('logs.actions.delete.success'),
         type: 'info',
-        duration: 3000,
-        close: true,
       });
     } catch (error) {
       console.error('failed to delete logs', error);
-      push({
-        message: t('logs.actions.delete.error'),
+      add({
+        title: t('logs.actions.delete.error'),
         type: 'error',
-        duration: 3000,
-        close: true,
       });
     } finally {
       setActiveDialog(null);
       setIsLoading(false);
     }
-  }, [push, t]);
+  }, [add, t]);
 
   const handleExportLogs = useCallback(async () => {
     setIsLoading(true);
@@ -104,17 +101,15 @@ function ActionMenu() {
       await invoke('zip_logs');
     } catch (error) {
       console.error('failed to zip logs', error);
-      push({
-        message: t('logs.actions.export.error'),
+      add({
+        title: t('logs.actions.export.error'),
         type: 'error',
-        duration: 3000,
-        close: true,
       });
     } finally {
       setActiveDialog(null);
       setIsLoading(false);
     }
-  }, [push, t]);
+  }, [add, t]);
 
   const dialogConfig = useMemo<Record<string, DialogConfig>>(
     () => ({
@@ -194,10 +189,6 @@ function ActionMenu() {
           title={dialogConfig[activeDialog].title}
           description={dialogConfig[activeDialog].description}
           confirmButtonText={dialogConfig[activeDialog].confirmButtonText}
-          confirmButtonColor={dialogConfig[activeDialog].confirmButtonColor}
-          confirmButtonOutline={dialogConfig[activeDialog].confirmButtonOutline}
-          cancelButtonColor={dialogConfig[activeDialog].cancelButtonColor}
-          cancelButtonOutline={dialogConfig[activeDialog].cancelButtonOutline}
           cancelButtonText={dialogConfig[activeDialog].cancelButtonText}
           isOpen={!!activeDialog}
           isLoading={isLoading}

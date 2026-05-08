@@ -3,22 +3,21 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
-import { Button, MsIcon } from '../../ui';
-import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
-import { useDeepLink } from '../../hooks';
+import { ButtonNew, MsIcon } from '../../ui';
+import { dispatch, useMainState } from '../../store';
+import { useDeepLink, useToast } from '../../hooks';
 import { routes } from '../../router';
 import { CCache } from '../../cache';
-import { StateDispatch, TAccountMode } from '../../types';
+import { TAccountMode } from '../../types';
 import { DeeplinkTimeout } from '../../errors';
 
-function PrivyButton() {
+function PrivyButton({ label }: { label: string }) {
   const { t, i18n } = useTranslation('login');
 
-  const { push } = useInAppNotify();
+  const { add } = useToast();
   const { startListening } = useDeepLink();
   const { welcomeChecked } = useMainState();
   const navigate = useNavigate();
-  const dispatch = useMainDispatch() as StateDispatch;
 
   const [loading, setLoading] = useState(false);
 
@@ -57,18 +56,14 @@ function PrivyButton() {
     } catch (error) {
       console.error('Privy login error: ', error);
       if (error instanceof DeeplinkTimeout) {
-        push({
-          message: t('privy.error.timeout'),
+        add({
+          title: t('privy.error.timeout'),
           type: 'error',
-          duration: 3000,
-          close: true,
         });
       } else {
-        push({
-          message: t('privy.error.login'),
+        add({
+          title: t('privy.error.login'),
           type: 'error',
-          duration: 3000,
-          close: true,
         });
       }
     } finally {
@@ -77,17 +72,16 @@ function PrivyButton() {
   };
 
   return (
-    <Button
-      outline
-      color="gray"
+    <ButtonNew
+      variant="outlined"
       onClick={handlePrivy}
       className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
-      spinner={loading}
+      loading={loading}
     >
       <span className="flex items-center gap-2 whitespace-pre-wrap text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
-        {t('privy.login-button')} <MsIcon icon="open_in_new" />
+        {label} <MsIcon icon="open_in_new" />
       </span>
-    </Button>
+    </ButtonNew>
   );
 }
 

@@ -25,7 +25,7 @@ function useScore() {
           };
         case 'high':
           return {
-            color: 'text-malachite-moss dark:text-malachite',
+            color: 'text-primary',
             label: t('node-details.perf-score.high'),
           };
       }
@@ -38,12 +38,12 @@ function useScore() {
       switch (score) {
         case 'offline':
           return {
-            color: 'text-iron dark:text-bombay',
+            color: 'text-text-secondary',
             label: t('node-details.server-load-score.offline'),
           };
         case 'low':
           return {
-            color: 'text-malachite-moss dark:text-malachite',
+            color: 'text-primary',
             label: t('node-details.server-load-score.low'),
           };
         case 'medium':

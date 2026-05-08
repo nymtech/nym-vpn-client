@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { PageAnim } from '../../../ui';
-import { useMainState } from '../../../contexts';
+import { useMainState } from '../../../store';
 import {
   MixnetData,
   WgNode,

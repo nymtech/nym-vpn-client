@@ -1,9 +1,8 @@
 import { Trans, useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { useMainDispatch } from '../../../contexts';
+import { dispatch } from '../../../store';
 import { Button, Link, PageAnim } from '../../../ui';
-import { StateDispatch } from '../../../types';
 import { MixnetParametersLearnMoreUrl } from '../../../constants';
 import { MixnetTrafficConfigProvider, useMixnetTrafficConfig } from './context';
 import { ContinuousTrafficCard } from './ContinuousTrafficCard';
@@ -21,13 +20,11 @@ function MixnetTuning() {
     hasUnsavedSettings,
     hasSettingsOtherThanDefaults,
   } = useMixnetTrafficConfig();
-  const mainDispatch = useMainDispatch() as StateDispatch;
-
   const handleSaveCustomSettings = async () => {
     setLoading(true);
     try {
       await invoke('set_mixnet_traffic_config', { config: state });
-      mainDispatch({
+      dispatch({
         type: 'set-mixnet-traffic-config',
         config: {
           ...state,
@@ -43,7 +40,7 @@ function MixnetTuning() {
   return (
     <PageAnim className="h-full flex flex-col mt-2 pb-2 gap-6 justify-between select-none">
       <div className="flex flex-col gap-6">
-        <p className="text-sm text-center text-iron dark:text-bombay whitespace-pre-line">
+        <p className="text-sm text-center text-text-secondary whitespace-pre-line">
           <Trans
             i18nKey="mixnet-tuning.top-description"
             ns="settings"

@@ -27,10 +27,10 @@ function Support() {
       data-testid="support-page"
     >
       <div>
-        <p className="truncate text-base select-none text-baltic-sea dark:text-white">
+        <p className="truncate text-base select-none text-text-primary">
           {t('support.intro.title')}
         </p>
-        <p className="text-sm whitespace-pre-line mt-4 text-iron dark:text-bombay">
+        <p className="text-sm whitespace-pre-line mt-4 text-text-secondary">
           {t('support.intro.description')}
         </p>
       </div>

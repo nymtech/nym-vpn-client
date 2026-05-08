@@ -1,6 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
-import { Field, Input, Label } from '@headlessui/react';
+import { Field, Input } from '@headlessui/react';
 import { inputStates } from './common-styles';
 import MsIcon from './MsIcon';
 import ButtonIcon from './ButtonIcon';
@@ -12,7 +12,6 @@ export type TextInputProps = {
   // value for controlled input
   value?: string;
   onChange: (value: string) => void;
-  label?: string;
   placeholder?: string;
   spellCheck?: boolean;
   autoFocus?: boolean;
@@ -31,7 +30,6 @@ function TextInput({
   value,
   onChange,
   spellCheck,
-  label,
   placeholder,
   leftIcon,
   autoFocus,
@@ -58,12 +56,7 @@ function TextInput({
   };
 
   return (
-    <Field
-      className={clsx([
-        'w-full flex flex-row items-center',
-        label && 'relative',
-      ])}
-    >
+    <Field className={clsx(['w-full flex flex-row items-center relative'])}>
       <Input
         id="passphrase"
         name="passphrase"
@@ -73,15 +66,14 @@ function TextInput({
         value={value}
         aria-multiline={true}
         className={clsx([
-          'text-base transition',
+          'text-base transition relative',
           'w-full flex flex-row justify-between items-center py-3 px-4',
-          !disabled && 'text-baltic-sea dark:text-white',
-          disabled && 'text-iron dark:text-bombay',
+          !disabled && 'text-text-primary',
+          disabled && 'text-text-secondary',
           'placeholder:text-iron dark:placeholder:text-bombay',
           ...inputStates,
           getColorClass(),
           className,
-          label && 'relative',
           leftIcon && 'pl-11',
           clearable && 'pr-11',
         ])}
@@ -92,18 +84,6 @@ function TextInput({
         data-test-has-left-icon={leftIcon ? 'true' : 'false'}
         disabled={disabled}
       />
-      {label && (
-        <Label
-          className={clsx([
-            'select-none absolute left-3 -top-2 px-1',
-            'dark:text-white',
-            getColorClass(),
-            'text-xs',
-          ])}
-        >
-          {label}
-        </Label>
-      )}
       {leftIcon && (
         <MsIcon
           icon={leftIcon}

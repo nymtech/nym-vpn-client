@@ -1,10 +1,11 @@
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
 import {
   Button,
+  ButtonNew,
   CardNew,
   CardNewBody,
   CardNewCopyableRow,
@@ -15,9 +16,10 @@ import {
 } from '../../../ui';
 import SettingsGroup from '../SettingsGroup';
 import { CCache } from '../../../cache';
-import { useAutologin, useInAppNotify, useMainState } from '../../../contexts';
+import { useAutologin } from '../../../contexts';
+import { useMainState } from '../../../store';
 import { routes } from '../../../router';
-import { useDeepLink, useLogout } from '../../../hooks';
+import { useDeepLink, useLogout, useToast } from '../../../hooks';
 import { DeeplinkTimeout } from '../../../errors';
 import { AccountStatus } from './account-status';
 import { AccountDescription } from './AccountDescription';
@@ -45,7 +47,7 @@ function Account() {
   const [accountId, setAccountId] = useState<string | null>(null);
 
   const { startListening } = useDeepLink();
-  const { push } = useInAppNotify();
+  const { add } = useToast();
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -105,18 +107,14 @@ function Account() {
     } catch (error) {
       console.error('Account login error: ', error);
       if (error instanceof DeeplinkTimeout) {
-        push({
-          message: t('account-linking-timeout', { ns: 'notifications' }),
+        add({
+          title: t('account-linking-timeout', { ns: 'notifications' }),
           type: 'error',
-          duration: 3000,
-          close: true,
         });
       } else {
-        push({
-          message: t('account-linking-error', { ns: 'notifications' }),
+        add({
+          title: t('account-linking-error', { ns: 'notifications' }),
           type: 'error',
-          duration: 3000,
-          close: true,
         });
       }
     } finally {
@@ -164,32 +162,37 @@ function Account() {
             trailing: autologinLoading ? <Spinner /> : undefined,
             onClick: handleManageSubscription,
           },
-          ...(!accountSummary?.isLinked
-            ? [
-                {
-                  title: t('account.account-on-nym'),
-                  desc: t('account.account-link-social-description'),
-                  leadingIcon: isAccountLinking ? undefined : 'person',
-                  leadingComponent: isAccountLinking ? <Spinner /> : undefined,
-                  trailingIcon: 'open_in_new',
-                  onClick: handleAccountLink,
-                },
-              ]
-            : []),
         ]}
       />
 
-      <p className="text-sm text-iron dark:text-bombay">
-        {accountSummary?.isLinked
-          ? t('account.account-linked')
-          : t('account.account-not-linked')}
-      </p>
+      <div className="flex flex-row items-center gap-2">
+        <div className="h-4 w-4 bg-warning rounded-full"></div>
+        <span className="text-sm text-text-secondary">
+          {accountSummary?.isLinked ? (
+            t('account.account-linked')
+          ) : (
+            <Trans
+              i18nKey="account.account-not-linked"
+              ns="settings"
+              components={{
+                button: (
+                  <button
+                    className="underline hover:text-shadow-baltic-sea dark:hover:text-white"
+                    onClick={handleAccountLink}
+                  />
+                ),
+              }}
+            />
+          )}
+        </span>
+        {isAccountLinking && <Spinner className="h-4! w-4! border-2!" />}
+      </div>
 
       <CardNew>
         <CardNewHeader>
           <div className="flex flex-row items-center gap-2">
-            <MsIcon icon="numbers" className="text-iron dark:text-bombay" />
-            <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
+            <MsIcon icon="numbers" className="text-text-secondary" />
+            <p className="text-left truncate text-base text-text-primary select-none">
               {t('account.account-id')}
             </p>
           </div>
@@ -204,15 +207,15 @@ function Account() {
         </CardNewBody>
       </CardNew>
 
-      <p className="text-sm text-iron dark:text-bombay">
+      <p className="text-sm text-text-secondary">
         {t('account.account-id-description')}
       </p>
 
       <CardNew>
         <CardNewHeader>
           <div className="flex flex-row items-center gap-2">
-            <MsIcon icon="devices" className="text-iron dark:text-bombay" />
-            <p className="text-left truncate text-base text-baltic-sea dark:text-white select-none">
+            <MsIcon icon="monitor" className="text-text-secondary" />
+            <p className="text-left truncate text-base text-text-primary select-none">
               {t('account.device-id')}
             </p>
           </div>
@@ -226,20 +229,19 @@ function Account() {
         </CardNewBody>
       </CardNew>
 
-      <p className="text-sm text-iron dark:text-bombay">
+      <p className="text-sm text-text-secondary">
         {t('account.device-id-description')}
       </p>
 
       <div className="flex flex-col gap-2">
-        <Button
-          color="red"
-          outline
+        <ButtonNew
+          variant="destructive-outlined"
           onClick={() => logout()}
           disabled={loading}
-          spinner={loading}
+          loading={loading}
         >
           {t('account.logout')}
-        </Button>
+        </ButtonNew>
       </div>
     </PageAnim>
   );

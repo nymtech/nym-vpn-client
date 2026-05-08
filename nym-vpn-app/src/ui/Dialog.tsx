@@ -5,7 +5,7 @@ import {
   DialogPanel,
   Dialog as HuDialog,
 } from '@headlessui/react';
-import { useMainState } from '../contexts';
+import { useAppStore } from '../store';
 
 export type DialogProps = {
   open: boolean;
@@ -18,7 +18,7 @@ export type DialogProps = {
 function Dialog({ open, onClose, children, className, ...rest }: DialogProps) {
   // manually injecting the theme is required as dialogs are rendered
   // outside the main app container (using a portal)
-  const { uiTheme } = useMainState();
+  const uiTheme = useAppStore((s) => s.uiTheme);
   const testId = rest['data-testid'] || 'dialog';
 
   return (

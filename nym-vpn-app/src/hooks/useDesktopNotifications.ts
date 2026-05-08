@@ -3,13 +3,11 @@ import {
   isPermissionGranted,
   requestPermission,
 } from '@tauri-apps/plugin-notification';
-import { useMainDispatch, useMainState } from '../contexts';
 import { kvSet } from '../kvStore';
-import { StateDispatch } from '../types';
+import { dispatch, useAppStore } from '../store';
 
 function useDesktopNotifications() {
-  const { desktopNotifications } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
+  const desktopNotifications = useAppStore((s) => s.desktopNotifications);
 
   useEffect(() => {
     const checkPermission = async () => {
@@ -25,7 +23,7 @@ function useDesktopNotifications() {
     };
 
     checkPermission();
-  }, [desktopNotifications, dispatch]);
+  }, [desktopNotifications]);
 
   const toggle = useCallback(async () => {
     let enabled = !desktopNotifications;
@@ -37,13 +35,10 @@ function useDesktopNotifications() {
     }
 
     if (enabled !== desktopNotifications) {
-      dispatch({
-        type: 'set-desktop-notifications',
-        enabled: enabled,
-      });
+      dispatch({ type: 'set-desktop-notifications', enabled });
       kvSet('desktop-notifications', enabled);
     }
-  }, [dispatch, desktopNotifications]);
+  }, [desktopNotifications]);
 
   return toggle;
 }

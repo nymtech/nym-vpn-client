@@ -2,9 +2,8 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect } from 'react';
-import { StateDispatch } from '../../../types';
-import { useMainDispatch, useMainState } from '../../../contexts';
-import { Button, MsIcon } from '../../../ui';
+import { dispatch, useMainState } from '../../../store';
+import { Button, ButtonNew, MsIcon } from '../../../ui';
 import { routes } from '../../../router';
 import SettingsGroup from '../SettingsGroup';
 import { AccountDescription } from './AccountDescription';
@@ -14,7 +13,6 @@ function AccountSettingRow() {
     useMainState();
 
   const navigate = useNavigate();
-  const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
   const needAPlan = account && accountState === 'no-subscription';
 
@@ -29,16 +27,16 @@ function AccountSettingRow() {
     if (daemonStatus !== 'down') {
       checkAccount();
     }
-  }, [daemonStatus, dispatch]);
+  }, [daemonStatus]);
 
   if (!account) {
     return (
-      <Button
+      <ButtonNew
         onClick={() => navigate(routes.onboarding)}
         disabled={daemonStatus === 'down'}
       >
         {t('account.get-started')}
-      </Button>
+      </ButtonNew>
     );
   }
 
@@ -57,9 +55,11 @@ function AccountSettingRow() {
           {
             title: 'Account',
             desc: <AccountDescription />,
-            leadingIcon: 'account_circle',
+            leadingIcon: 'person',
             onClick: () => navigate(routes.accountSettings),
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="dark:text-white" />
+            ),
           },
         ]}
       />

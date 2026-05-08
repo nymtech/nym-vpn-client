@@ -3,29 +3,36 @@ import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
+import { useDialog } from '../../contexts';
+import { NodeHop, isGateway } from '../../types';
 import {
   SelectedUiNode,
   UiGateway,
-  useDialog,
-  useMainDispatch,
-  useMainState,
-  useNodeList,
-  useNodeListState,
-} from '../../contexts';
-import { NodeHop, StateDispatch, isGateway } from '../../types';
+  uiNodeToSelectedNode,
+} from '../../types/node';
 import { Link, PageAnim, TextInput } from '../../ui';
-import { uiNodeToSelectedNode } from '../../contexts/node-list/util';
 import { useI18nError } from '../../hooks';
+import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
+import { dispatch, useAppStore, useFetchGateways } from '../../store';
+import { useNodeListState } from '../../store/nodeListState';
 import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
 function Node({ node }: { node: NodeHop }) {
-  const { backendFlags, vpnMode, quic } = useMainState();
-  const dispatch = useMainDispatch() as StateDispatch;
+  const daemonStatus = useAppStore((s) => s.daemonStatus);
+  const fetchGateways = useFetchGateways();
+
+  const {
+    loading,
+    error,
+    vpnMode,
+    quicFilter,
+    nodes: rawNodes,
+    gateways: rawGateways,
+  } = useNodeListData(node);
 
   const { isOpen, close } = useDialog();
-  const { loading, error } = useNodeList();
   const {
     setFocused,
     exit: exitNodeList,
@@ -34,6 +41,7 @@ function Node({ node }: { node: NodeHop }) {
     addToExpanded,
     setSearch,
   } = useNodeListState();
+
   const expanded =
     node === 'entry' ? entryNodeList.expanded : exitNodeList.expanded;
   const focused =
@@ -41,20 +49,27 @@ function Node({ node }: { node: NodeHop }) {
   const search = node === 'entry' ? entryNodeList.search : exitNodeList.search;
 
   const { tE } = useI18nError();
-
-  const quicFilter =
-    vpnMode === 'wg' && node === 'entry' && backendFlags.quic && quic;
-
   const navigate = useNavigate();
   const { t } = useTranslation('node-location');
 
-  const { filter, nodes, gateways } = useFilterList(node);
+  const { filter, nodes, gateways } = useFilterList(
+    node,
+    rawNodes,
+    rawGateways,
+    vpnMode,
+  );
   const deferredNodes = useDeferredValue(nodes);
   const deferredGateways = useDeferredValue(gateways);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (searchRef.current) searchRef.current.focus();
+    if (daemonStatus === 'down') return;
+    fetchGateways(vpnMode === 'mixnet' ? `mx-${node}` : 'wg');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [node, vpnMode, daemonStatus]);
+
+  useEffect(() => {
+    if (searchRef.current) searchRef.current.focus({ preventScroll: true });
   }, []);
 
   const handleSelect = async (selected: SelectedUiNode) => {
@@ -87,9 +102,6 @@ function Node({ node }: { node: NodeHop }) {
       state: { gateway, hop: node, resetScroll: true },
     });
     setFocused(node, { type: 'gateway', key: gateway.id });
-    // if the picked gateway's country node is not expanded, ie; while filtering
-    // expand it, so it can be restored and scrolled to when navigating back
-    // to the node list
     addToExpanded(node, gateway.country.code);
   };
 
@@ -139,7 +151,7 @@ function Node({ node }: { node: NodeHop }) {
           data-testid="node-search-container"
         >
           {quicFilter && (
-            <p className="text-sm text-iron dark:text-bombay mb-6 select-none">
+            <p className="text-sm text-text-secondary mb-6 select-none">
               <Trans
                 i18nKey="quic-filter-note"
                 ns="node-location"
@@ -168,7 +180,7 @@ function Node({ node }: { node: NodeHop }) {
         </div>
         {loading && (
           <motion.div
-            className="flex justify-center text-base text-iron dark:text-bombay mt-4"
+            className="flex justify-center text-base text-text-secondary mt-4"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
@@ -185,6 +197,7 @@ function Node({ node }: { node: NodeHop }) {
             onNodeDetails={handleNodeDetails}
             hop={node}
             vpnMode={vpnMode}
+            quicFilter={quicFilter}
             expanded={expanded}
             focused={focused}
           />

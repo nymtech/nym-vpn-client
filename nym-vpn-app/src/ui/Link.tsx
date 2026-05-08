@@ -12,7 +12,7 @@ type LinkProps = {
   url?: string;
   to?: Routes;
   icon?: boolean | string;
-  color?: 'primary' | 'malachite' | 'iron';
+  color?: 'primary' | 'malachite' | 'iron' | 'cornflower';
   className?: string;
   textClassName?: string;
   iconClassName?: string;
@@ -52,11 +52,12 @@ function Link({
       className={clsx([
         'focus:outline-hidden select-none cursor-default',
         'inline-flex flex-row items-center gap-1',
-        color === 'malachite' && 'text-malachite-moss dark:text-malachite',
-        color === 'iron' && 'text-iron dark:text-bombay',
-        color === 'primary' && 'text-baltic-sea dark:text-white',
+        color === 'malachite' && 'text-primary',
+        color === 'iron' && 'text-text-secondary',
+        color === 'primary' && 'text-text-primary',
+        color === 'cornflower' && 'text-cornflower',
         className && className,
-        selectable && '!select-text',
+        selectable && 'select-text!',
       ])}
       onClick={handleClick}
       data-testid={testId}
@@ -67,7 +68,7 @@ function Link({
           <span
             className={clsx([
               hover ? 'underline' : '',
-              'decoration-2 underline-offset-4',
+              'decoration-2 underline-offset-4 border-b',
               textClassName && textClassName,
             ])}
             data-testid={`${testId}-text`}
@@ -77,7 +78,7 @@ function Link({
           {icon && (
             <MsIcon
               className={clsx(
-                'no-underline! hover:no-underline!',
+                'no-underline! hover:no-underline! text-xl',
                 iconClassName,
               )}
               icon={typeof icon === 'string' ? icon : 'open_in_new'}

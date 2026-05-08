@@ -73,18 +73,18 @@ function SettingsMenuCard({
         )}
       >
         {leadingIcon && (
-          <MsIcon icon={leadingIcon} className="text-iron dark:text-bombay" />
+          <MsIcon icon={leadingIcon} className="text-text-secondary" />
         )}
         {leadingComponent && <div>{leadingComponent}</div>}
         <div className="min-w-0 flex flex-col justify-center">
-          <p className="truncate text-base text-baltic-sea dark:text-white select-none">
+          <p className="truncate text-base text-text-primary select-none">
             {title}
           </p>
           {description && (
             <p
               className={clsx(
                 'truncate text-sm select-none',
-                descriptionColor === 'normal' && 'text-iron dark:text-bombay',
+                descriptionColor === 'normal' && 'text-text-secondary',
                 descriptionColor === 'red' && 'text-aphrodisiac',
                 descriptionColor === 'yellow' && 'text-king-nacho',
               )}

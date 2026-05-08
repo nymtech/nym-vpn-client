@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  UiGateway,
-  UiGatewaysByCountry,
-  UiRegion,
-  useNodeList,
-  useNodeListState,
-} from '../../../contexts';
-import { NodeHop } from '../../../types';
+import { NodeHop, VpnMode } from '../../../types';
+import { UiGateway, UiGatewaysByCountry } from '../../../types/node';
+import { useNodeListState } from '../../../store/nodeListState';
 import { sortByScore } from './util';
 
-export function useFilterList(hop: NodeHop) {
-  const { nodes, gateways, vpnMode } = useNodeList();
+export function useFilterList(
+  hop: NodeHop,
+  nodes: UiGatewaysByCountry[],
+  gateways: UiGateway[],
+  vpnMode: VpnMode,
+) {
   const { addToExpanded, setExpanded, entry, exit, setFocused } =
     useNodeListState();
   const search = hop === 'entry' ? entry.search : exit.search;
@@ -22,7 +21,6 @@ export function useFilterList(hop: NodeHop) {
   const filter = useCallback(
     (value: string) => {
       if (value.length <= 0) {
-        // reset
         setFilteredNodes(nodes);
         setFilteredGateways([]);
         setExpanded(hop, []);
@@ -31,49 +29,42 @@ export function useFilterList(hop: NodeHop) {
       }
 
       const lowCaseValue = value.toLowerCase();
-      let usRegions: UiRegion[] = [];
-      const filteredNodes = structuredClone(nodes).filter((node) => {
+      const filtered: UiGatewaysByCountry[] = [];
+      for (const node of nodes) {
         if (node.country.code.toLowerCase() === 'us') {
-          usRegions = node.regions.filter((region) => {
-            return region.name.toLowerCase().includes(lowCaseValue);
-          });
-          if (usRegions.length > 0) {
+          const matchingRegions = node.regions.filter((region) =>
+            region.name.toLowerCase().includes(lowCaseValue),
+          );
+          if (matchingRegions.length > 0) {
             addToExpanded(hop, node.country.code);
-            return true;
+            filtered.push({ ...node, regions: matchingRegions });
+            continue;
           }
         }
-        // toLowerCase() is used to make it case-insensitive
-        return node.i18n.toLowerCase().includes(lowCaseValue);
-      });
-      if (usRegions.length > 0) {
-        const index = filteredNodes.findIndex(
-          (n) => n.country.code.toLowerCase() === 'us',
-        );
-        if (index !== -1) {
-          filteredNodes[index].regions = usRegions;
+        if (node.i18n.toLowerCase().includes(lowCaseValue)) {
+          filtered.push(node);
         }
       }
-      const filteredGw = gateways.filter((gw) => {
-        return (
-          gw.name.toLowerCase().includes(lowCaseValue) ||
-          gw.location.city.toLowerCase().includes(lowCaseValue)
-        );
-      });
-      filteredGw.sort((a, b) => {
-        if (vpnMode === 'mixnet') {
-          return sortByScore(a.mxScore, b.mxScore);
-        } else {
-          return sortByScore(a.wgScore, b.wgScore);
-        }
-      });
 
-      setFilteredNodes(filteredNodes);
+      const filteredGw = gateways
+        .filter(
+          (gw) =>
+            gw.name.toLowerCase().includes(lowCaseValue) ||
+            gw.location.city.toLowerCase().includes(lowCaseValue),
+        )
+        .sort((a, b) =>
+          vpnMode === 'mixnet'
+            ? sortByScore(a.mxScore, b.mxScore)
+            : sortByScore(a.wgScore, b.wgScore),
+        );
+
+      setFilteredNodes(filtered);
       setFilteredGateways(filteredGw);
     },
     [gateways, nodes, vpnMode, addToExpanded, setExpanded, setFocused, hop],
   );
 
-  // refresh the UI list whenever the backend gateway data changes
+  // Re-apply filter when backend data updates
   useEffect(() => {
     if (search) {
       filter(search);

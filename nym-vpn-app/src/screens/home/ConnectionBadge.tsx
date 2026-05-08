@@ -10,12 +10,12 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
   const getBadgeStyle = (state: TunnelState) => {
     switch (state) {
       case 'connected':
-        return ['text-malachite-moss dark:text-malachite bg-malachite/10!'];
+        return ['text-primary bg-malachite/10!'];
       case 'disconnected':
-        return ['text-iron dark:text-bombay'];
+        return ['text-text-secondary'];
       case 'connecting':
       case 'disconnecting':
-        return ['text-baltic-sea dark:text-white'];
+        return ['text-text-primary'];
       case 'error':
       case 'offline':
       case 'offline-auto-reconnect':

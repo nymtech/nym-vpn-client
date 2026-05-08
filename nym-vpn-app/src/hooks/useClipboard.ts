@@ -1,10 +1,10 @@
 import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 import { useTranslation } from 'react-i18next';
-import { useInAppNotify } from '../contexts';
+import { useToast } from './index';
 
 /* Access the system clipboard */
 function useClipboard() {
-  const { push } = useInAppNotify();
+  const { add } = useToast();
   const { t } = useTranslation('notifications');
 
   // Writes text to the clipboard
@@ -12,9 +12,9 @@ function useClipboard() {
     try {
       await writeText(text);
       if (notify) {
-        push({
-          message: t('copied-to-clipboard'),
-          clickAway: true,
+        add({
+          title: t('copied-to-clipboard'),
+          type: 'success',
         });
       }
     } catch (e) {

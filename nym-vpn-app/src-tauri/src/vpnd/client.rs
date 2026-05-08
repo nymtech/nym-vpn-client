@@ -12,15 +12,15 @@ pub use super::{
 use super::{
     config::{MixnetTrafficConfig, VpndConfig},
     events::MixnetEvent,
-    gateway::{Gateway, GatewayType},
-    tunnel::{SplitApp, TunnelState},
+    gateway::{Gateway, GatewayType, GatewaySelectionAlgorithm},
+    tunnel::{FrontingMode, SplitApp, TunnelState},
 };
 
 use anyhow::Result;
 use futures::future::TryFutureExt;
 use lib::UserAgent;
 use nym_vpn_lib_types::{self as lib, AccountCommandResponse};
-use nym_vpn_proto::rpc_client::RpcClient;
+use nym_vpn_proto::{rpc_client::RpcClient};
 use std::{
     env::consts::{ARCH, OS},
     net::IpAddr,
@@ -396,6 +396,16 @@ impl VpndClient {
 
         vpnd.set_enable_bridges(enabled)
             .or_else(async |e| self.handle_rpc_error("set_enable_bridges", e).await)
+            .await
+    }
+
+    /// Enable or disable domain fronting
+    #[instrument(skip_all)]
+    pub async fn set_fronting_mode(&self, mode: FrontingMode) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_fronting_mode(mode.into())
+            .or_else(async |e| self.handle_rpc_error("set_fronting_mode", e).await)
             .await
     }
 
@@ -1085,5 +1095,25 @@ impl VpndClient {
             .await?;
 
         Ok(is_supported)
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_gateway_selection_algorithm(&self, algorithm: GatewaySelectionAlgorithm) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd
+            .set_gateway_selection_algorithm(algorithm.into())
+            .or_else(async |e| self.handle_rpc_error("set_gateway_selection_algorithm", e).await)
+            .await
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_enable_geo_location(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd
+            .set_enable_geo_location(enabled)
+            .or_else(async |e| self.handle_rpc_error("set_enable_geo_location", e).await)
+            .await
     }
 }

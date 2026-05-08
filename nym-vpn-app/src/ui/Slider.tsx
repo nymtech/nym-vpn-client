@@ -88,7 +88,7 @@ function Slider({
             <HuSlider.Track className="relative h-2 w-full rounded-full bg-bombay dark:bg-iron">
               <HuSlider.Indicator
                 className={clsx([
-                  'absolute h-full rounded-full bg-malachite-moss dark:bg-malachite',
+                  'absolute h-full rounded-full bg-primary',
                   'transition-[width] duration-300 ease-out',
                 ])}
               />
