@@ -53,6 +53,20 @@ jobs:
         working-directory: nym-vpn-windows/split-tunnel-driver
         run: MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=arm64
 
+      - name: Move things around to prepare for upload
+        shell: pwsh
+        run: |
+          $src = "nym-vpn-windows/split-tunnel-driver/nymvpn-split-tunnel/bin"
+          $dst = "build/st-driver"
+          New-Item -ItemType Directory -Force -Path "$dst/x64-Release"
+          New-Item -ItemType Directory -Force -Path "$dst/ARM64-Release"
+          Copy-Item "$src/x64-Release/nymvpn-split-tunnel.sys"  "$dst/x64-Release/"
+          Copy-Item "$src/x64-Release/nymvpn-split-tunnel.inf"  "$dst/x64-Release/"
+          Copy-Item "$src/x64-Release/nymvpn-split-tunnel.cat"  "$dst/x64-Release/"
+          Copy-Item "$src/ARM64-Release/nymvpn-split-tunnel.sys" "$dst/ARM64-Release/"
+          Copy-Item "$src/ARM64-Release/nymvpn-split-tunnel.inf" "$dst/ARM64-Release/"
+          Copy-Item "$src/ARM64-Release/nymvpn-split-tunnel.cat" "$dst/ARM64-Release/"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
