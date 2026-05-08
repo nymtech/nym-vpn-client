@@ -1,4 +1,6 @@
 {
+  "tab-entry": "Entry",
+  "tab-exit": "Exit",
   "loading": "Loading…",
   "none-found": "No results found. Please try another search",
   "list-loading": "The location list is loading…",

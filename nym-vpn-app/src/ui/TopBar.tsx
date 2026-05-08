@@ -264,6 +264,19 @@ export default function TopBar() {
           show('location-info');
         },
       },
+      '/node-location': {
+        title: t('location'),
+        leftIcon: 'keyboard_arrow_left',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+        rightIcon: 'info',
+        rightIconClassName:
+          'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
+        handleRightNav: () => {
+          show('location-info');
+        },
+      },
       '/node-details': {
         title: t('server-details'),
         leftIcon: 'keyboard_arrow_left',

@@ -59,6 +59,7 @@ function MainLayout({
             location.pathname === routes.licensesJs ||
             location.pathname === routes.entryNodeLocation ||
             location.pathname === routes.exitNodeLocation ||
+            location.pathname === routes.nodeLocation ||
             location.pathname === routes.nodeDetails) &&
             'p-0!',
         ])}

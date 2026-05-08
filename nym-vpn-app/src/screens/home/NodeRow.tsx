@@ -71,9 +71,6 @@ export function NodeRow({ type }: NodeRowProps) {
   const handleClick = () => {
     if (algo === 'auto') return;
 
-    const route =
-      type === 'entry' ? routes.entryNodeLocation : routes.exitNodeLocation;
-
     reset(type);
 
     if (isCountry(userSelectedNode)) {
@@ -99,7 +96,7 @@ export function NodeRow({ type }: NodeRowProps) {
       addToExpanded(type, userSelectedNode.gateway.id);
     }
 
-    navigate(route);
+    navigate(routes.nodeLocation, { state: { tab: type } });
   };
 
   const quicTag =
