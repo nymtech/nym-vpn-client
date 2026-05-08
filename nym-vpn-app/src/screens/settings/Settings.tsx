@@ -87,7 +87,7 @@ function Settings() {
     }
   };
   return (
-    <PageAnim className="h-full flex flex-col gap-4">
+    <PageAnim className="flex h-full flex-col gap-4">
       <AccountSettingRow />
       <SettingsGroup
         settings={[

@@ -24,7 +24,7 @@ function Switch({
       onChange={onChange}
       className={clsx([
         checked ? 'bg-primary' : 'bg-bombay dark:bg-iron',
-        'relative inline-flex h-7 w-11 min-w-11 items-center rounded-full cursor-default',
+        'relative inline-flex h-7 w-11 min-w-11 cursor-default items-center rounded-full',
         className,
       ])}
       disabled={disabled}

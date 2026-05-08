@@ -58,16 +58,14 @@ const NodeList = memo(function NodeList({
   };
 
   const onExpandChange = (key: string, open: boolean) => {
-    const next = open
-      ? [...expanded, key]
-      : expanded.filter((k) => k !== key);
+    const next = open ? [...expanded, key] : expanded.filter((k) => k !== key);
     setExpanded(hop, next);
   };
 
   if (nodes.length === 0 && gateways.length === 0) {
     return (
-      <div className="px-6 space-y-4">
-        <p className=" text-text-primary truncate">
+      <div className="space-y-4 px-6">
+        <p className="text-text-primary truncate">
           {t('no-results-found.title')}
         </p>
         <p className="text-text-secondary whitespace-pre-line">
@@ -87,7 +85,7 @@ const NodeList = memo(function NodeList({
   return (
     <div className="mr-0">
       <div
-        className="w-full flex flex-col gap-3"
+        className="flex w-full flex-col gap-3"
         data-testid="node-list-accordion"
       >
         {nodes.map((node) => (
@@ -114,7 +112,7 @@ const NodeList = memo(function NodeList({
       {gateways.length > 0 && (
         <div className="mt-2" data-testid="standalone-gateways-container">
           <h3
-            className={clsx('text-text-secondary px-4 truncate', {
+            className={clsx('text-text-secondary truncate px-4', {
               'py-6': nodes.length > 0,
             })}
           >

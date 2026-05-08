@@ -13,7 +13,7 @@ const FoldButton = ({ html, state }: FoldButtonProps) => {
   return (
     <Button
       className={clsx(
-        'w-12 h-12 flex justify-center items-center rounded-full',
+        'flex h-12 w-12 items-center justify-center rounded-full',
         'text-baltic-sea/80 dark:text-white/80',
         'hover:text-baltic-sea dark:hover:text-white',
         'hover:bg-mercury dark:hover:bg-mine-shaft',
@@ -24,7 +24,7 @@ const FoldButton = ({ html, state }: FoldButtonProps) => {
       <MsIcon
         icon="keyboard_arrow_down"
         className={clsx(
-          'transition-transform duration-150 leading-none',
+          'leading-none transition-transform duration-150',
           state.open && 'rotate-180',
         )}
       />

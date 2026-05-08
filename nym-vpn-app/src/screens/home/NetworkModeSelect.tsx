@@ -45,9 +45,7 @@ function NetworkModeSelect() {
     const iconStyle = (checked: boolean) =>
       clsx(
         'font-icon text-2xl leading-none',
-        checked
-          ? 'text-primary'
-          : 'text-bombay dark:text-iron',
+        checked ? 'text-primary' : 'text-bombay dark:text-iron',
       );
 
     return [
@@ -89,7 +87,7 @@ function NetworkModeSelect() {
       <div
         className={clsx([
           'flex flex-row items-center justify-between',
-          'font-medium text-base text-text-primary mb-5 cursor-default',
+          'text-text-primary mb-5 cursor-default text-base font-medium',
         ])}
         data-testid="network-mode-label-container"
       >

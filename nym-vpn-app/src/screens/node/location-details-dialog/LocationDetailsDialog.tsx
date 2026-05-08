@@ -33,7 +33,7 @@ function LocationDetailsDialog({ isOpen, onClose, node }: Props) {
         />
         <DialogTitle
           as="h3"
-          className="text-xl text-text-primary text-center"
+          className="text-text-primary text-center text-xl"
           data-testid="location-details-title"
         >
           {title}

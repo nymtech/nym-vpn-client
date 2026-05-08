@@ -38,9 +38,9 @@ function MixnetTuning() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 pb-2 gap-6 justify-between select-none">
+    <PageAnim className="mt-2 flex h-full flex-col justify-between gap-6 pb-2 select-none">
       <div className="flex flex-col gap-6">
-        <p className="text-sm text-center text-text-secondary whitespace-pre-line">
+        <p className="text-text-secondary text-center text-sm whitespace-pre-line">
           <Trans
             i18nKey="mixnet-tuning.top-description"
             ns="settings"
@@ -77,9 +77,9 @@ function MixnetTuning() {
             outline
             color="gray"
             onClick={restoreDefaults}
-            className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
+            className="group border-iron dark:border-bombay border hover:ring-0! dark:hover:ring-0!"
           >
-            <span className="text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
+            <span className="text-black group-hover:text-black/50 dark:text-white dark:group-hover:text-white/80">
               {t('mixnet-tuning.restore-default-settings')}
             </span>
           </Button>

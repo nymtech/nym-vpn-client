@@ -39,7 +39,7 @@ export function ButtonIconNew({
         'text-iron hover:text-baltic-sea',
         'dark:text-bombay dark:hover:text-white',
         !noDefaultSize && 'hover:bg-baltic-sea/20 dark:hover:bg-baltic-sea',
-        !noDefaultSize && 'w-10 h-10',
+        !noDefaultSize && 'h-10 w-10',
         className && className,
       ])}
       onClick={() => {
@@ -63,7 +63,7 @@ export function ButtonIconNew({
             <MsIcon
               icon="check"
               className={clsx([
-                'leading-none text-primary',
+                'text-primary leading-none',
                 size === 'small' && 'text-2xl',
                 size === 'base' && 'text-3xl',
               ])}
@@ -77,8 +77,8 @@ export function ButtonIconNew({
             exit={{ opacity: 0, rotate: -90 }}
             transition={{ duration: 0.1 }}
             className={clsx([
-              'leading-none w-[1em] h-[1em]',
-              'font-icon select-none inline-block rtl:-scale-x-100',
+              'h-[1em] w-[1em] leading-none',
+              'font-icon inline-block select-none rtl:-scale-x-100',
               !noDefaultSize && size === 'small' && 'text-2xl',
               !noDefaultSize && size === 'base' && 'text-3xl',
             ])}
@@ -132,7 +132,7 @@ function ButtonIcon({
   return (
     <HuButton
       className={clsx([
-        'rounded-full flex items-center justify-center',
+        'flex items-center justify-center rounded-full',
         color === 'malachite' && [
           'text-malachite-moss/80 data-hover:text-malachite-moss',
           'dark:text-malachite/80 data-hover:dark:text-malachite',
@@ -142,10 +142,10 @@ function ButtonIcon({
           'dark:text-white data-hover:dark:text-white/80',
         ],
         'focus:outline-hidden',
-        'transition data-disabled:opacity-60 data-active:ring-0',
+        'transition data-active:ring-0 data-disabled:opacity-60',
         'cursor-default select-none',
         className && className,
-        !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
+        !noDefaultSize && 'h-10 min-h-10 w-10 min-w-10',
       ])}
       onClick={() => {
         if (clickFeedback) {
@@ -172,8 +172,8 @@ function ButtonIcon({
           <MsIcon
             icon={clickedIcon}
             className={clsx([
-              'text-2xl text-primary',
-              !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
+              'text-primary text-2xl',
+              !noDefaultSize && 'h-10 min-h-10 w-10 min-w-10',
               clickedIconClassName,
             ])}
             data-testid={`${testId}-clicked-icon`}
@@ -184,7 +184,7 @@ function ButtonIcon({
           icon={icon}
           className={clsx([
             'text-2xl',
-            !noDefaultSize && 'w-10 h-10 min-w-10 min-h-10',
+            !noDefaultSize && 'h-10 min-h-10 w-10 min-w-10',
             iconClassName,
           ])}
           data-testid={`${testId}-icon`}

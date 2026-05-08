@@ -1,4 +1,10 @@
-import { Country, Gateway, GatewaysByCountry, Region, SelectedNode } from './tauri';
+import {
+  Country,
+  Gateway,
+  GatewaysByCountry,
+  Region,
+  SelectedNode,
+} from './tauri';
 import {
   SelectableNode,
   isCountry,

@@ -63,9 +63,7 @@ export function AccountDescription() {
         })}
       </p>
       {accountSummary?.subscription?.subscription?.isRecurring && (
-        <p className="text-text-secondary">
-          *{t('account.auto-renews')}
-        </p>
+        <p className="text-text-secondary">*{t('account.auto-renews')}</p>
       )}
     </>
   );

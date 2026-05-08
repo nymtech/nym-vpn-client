@@ -35,13 +35,13 @@ function Chevrons({ onUp, onDown }: ChevronProps) {
   if (!onUp && !onDown) return null;
 
   return (
-    <div className="flex flex-col items-center shrink-0">
+    <div className="flex shrink-0 flex-col items-center">
       <button
         disabled={disabled}
         type="button"
         onClick={onUp}
         className={clsx([
-          'text-secondary transition-all cursor-default leading-none',
+          'text-secondary cursor-default leading-none transition-all',
           onUp ? 'opacity-100' : 'opacity-0',
           !disabled && 'hover:text-baltic-sea dark:hover:text-white',
         ])}
@@ -53,7 +53,7 @@ function Chevrons({ onUp, onDown }: ChevronProps) {
         type="button"
         onClick={onDown}
         className={clsx([
-          'text-secondary transition-all cursor-default leading-none',
+          'text-secondary cursor-default leading-none transition-all',
           onDown ? 'opacity-100' : 'opacity-0',
           !disabled && 'hover:text-baltic-sea dark:hover:text-white',
         ])}
@@ -110,14 +110,14 @@ function ModeToggle() {
 
   return (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-4 flex-1 min-w-0 justify-center">
+      <div className="flex min-w-0 flex-1 items-center justify-center gap-4">
         <button
           type="button"
           onClick={() => handleToggle('wg')}
           className={clsx(
-            'text-sm leading-[22px] tracking-[0.07px] w-20 text-right shrink-0 cursor-default transition-colors',
+            'w-20 shrink-0 cursor-default text-right text-sm leading-[22px] tracking-[0.07px] transition-colors',
             isFast
-              ? 'font-bold text-primary'
+              ? 'text-primary font-bold'
               : 'text-secondary hover:text-baltic-sea dark:hover:text-white',
           )}
         >
@@ -129,10 +129,10 @@ function ModeToggle() {
           type="button"
           onClick={() => handleToggle(isFast ? 'mixnet' : 'wg')}
           aria-label={t('toggle-vpn-mode.aria-label')}
-          className="relative bg-[#e5e5e5] dark:bg-aph h-10 w-20 rounded-full shrink-0 cursor-default"
+          className="dark:bg-aph relative h-10 w-20 shrink-0 cursor-default rounded-full bg-[#e5e5e5]"
         >
           <motion.div
-            className="absolute top-[6px] bg-white border border-ash dark:border-transparent dark:bg-charcoal size-7 rounded-full flex items-center justify-center pointer-events-none"
+            className="border-ash dark:bg-charcoal pointer-events-none absolute top-[6px] flex size-7 items-center justify-center rounded-full border bg-white dark:border-transparent"
             animate={{
               x: isFast ? 6 : 40,
             }}
@@ -147,7 +147,7 @@ function ModeToggle() {
                 exit={{ opacity: 0, rotateX: -90 }}
                 transition={{ duration: 0.1 }}
                 className={clsx([
-                  'font-icon text-2xl select-none inline-block rtl:-scale-x-100',
+                  'font-icon inline-block text-2xl select-none rtl:-scale-x-100',
                   'shrink-0 text-xl!',
                   'text-primary',
                   '[text-shadow:1px_1px_10px_#fff,1px_1px_10px_#ccc]',
@@ -163,9 +163,9 @@ function ModeToggle() {
           type="button"
           onClick={() => handleToggle('mixnet')}
           className={clsx(
-            'text-sm leading-[22px] tracking-[0.07px] w-20 shrink-0 cursor-default transition-colors',
+            'w-20 shrink-0 cursor-default text-sm leading-[22px] tracking-[0.07px] transition-colors',
             !isFast
-              ? 'font-bold text-primary'
+              ? 'text-primary font-bold'
               : 'text-secondary hover:text-primary',
           )}
         >
@@ -378,7 +378,7 @@ export function NewBottomComponent() {
               animate={{ y: 0, height: 'auto' }}
               exit={{ y: '100%', height: 0 }}
               transition={{ duration: DURATION, ease: easeOutQuart }}
-              className="z-10 bg-white dark:bg-[#1d1d1f] rounded-t-2xl px-4"
+              className="z-10 rounded-t-2xl bg-white px-4 dark:bg-[#1d1d1f]"
             >
               <ModeToggle />
               <motion.div
@@ -386,15 +386,15 @@ export function NewBottomComponent() {
                 animate={{ opacity: 1, width: '100%' }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: DURATION, ease: easeOutQuart }}
-                className="h-px bg-[#3b3b3b] rounded-full w-full mx-auto my-4"
+                className="mx-auto my-4 h-px w-full rounded-full bg-[#3b3b3b]"
               />
             </motion.div>
           )}
         </AnimatePresence>
         {/* ── Toggle section ────────────────────────────────────────────────── */}
-        <div className="relative flex flex-col mb-4 z-20 bg-white dark:bg-[#1d1d1f] ">
-          <div className="flex flex-row gap-2 items-center">
-            <motion.div className="w-full min-w-0 flex flex-col overflow-hidden">
+        <div className="relative z-20 mb-4 flex flex-col bg-white dark:bg-[#1d1d1f]">
+          <div className="flex flex-row items-center gap-2">
+            <motion.div className="flex w-full min-w-0 flex-col overflow-hidden">
               <div>
                 <NodeRow
                   type={

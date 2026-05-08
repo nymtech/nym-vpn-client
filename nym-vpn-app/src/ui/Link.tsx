@@ -50,7 +50,7 @@ function Link({
     <Button
       as="a"
       className={clsx([
-        'focus:outline-hidden select-none cursor-default',
+        'cursor-default select-none focus:outline-hidden',
         'inline-flex flex-row items-center gap-1',
         color === 'malachite' && 'text-primary',
         color === 'iron' && 'text-text-secondary',
@@ -68,7 +68,7 @@ function Link({
           <span
             className={clsx([
               hover ? 'underline' : '',
-              'decoration-2 underline-offset-4 border-b',
+              'border-b decoration-2 underline-offset-4',
               textClassName && textClassName,
             ])}
             data-testid={`${testId}-text`}
@@ -78,7 +78,7 @@ function Link({
           {icon && (
             <MsIcon
               className={clsx(
-                'no-underline! hover:no-underline! text-xl',
+                'text-xl no-underline! hover:no-underline!',
                 iconClassName,
               )}
               icon={typeof icon === 'string' ? icon : 'open_in_new'}

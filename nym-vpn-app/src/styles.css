@@ -167,18 +167,16 @@
    *    <div class="tooltip">Tooltip content</div>
    *  </div>
    */
-  @apply invisible absolute p-2 px-3 rounded-sm shadow-md
-        bg-white dark:bg-ash text-sm
-        transition-opacity duration-200 opacity-0 ease-out;
+  @apply dark:bg-ash invisible absolute rounded-sm bg-white p-2 px-3 text-sm opacity-0 shadow-md transition-opacity duration-200 ease-out;
 
   .attach-tooltip:hover & {
-    @apply visible opacity-100 z-50;
+    @apply visible z-50 opacity-100;
   }
 }
 
 @utility attach-tooltip {
   &:hover .tooltip {
-    @apply visible opacity-100 z-50;
+    @apply visible z-50 opacity-100;
   }
 }
 

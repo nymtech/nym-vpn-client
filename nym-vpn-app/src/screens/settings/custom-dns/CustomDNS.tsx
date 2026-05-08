@@ -60,8 +60,8 @@ function CustomDNS() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
-      <p className="text-sm text-text-secondary whitespace-pre-line">
+    <PageAnim className="mt-2 flex h-full flex-col gap-6 select-none">
+      <p className="text-text-secondary text-sm whitespace-pre-line">
         {t('dns.top-description')}
       </p>
       <DefaultDnsServers />
@@ -77,7 +77,7 @@ function CustomDNS() {
         }
       >
         <div className="flex flex-col gap-6">
-          <p className="text-sm text-text-secondary whitespace-pre-line">
+          <p className="text-text-secondary text-sm whitespace-pre-line">
             {t('dns.details.description')}
           </p>
 

@@ -57,7 +57,7 @@ function RadioGroup<K extends Key>({
     if (checked) {
       return (
         <span
-          className="font-icon text-2xl text-primary"
+          className="font-icon text-primary text-2xl"
           data-testid={`${testId}-checked-icon`}
         >
           radio_button_checked
@@ -66,7 +66,7 @@ function RadioGroup<K extends Key>({
     }
     return (
       <span
-        className="font-icon text-2xl text-text-secondary"
+        className="font-icon text-text-secondary text-2xl"
         data-testid={`${testId}-unchecked-icon`}
       >
         radio_button_unchecked
@@ -89,7 +89,7 @@ function RadioGroup<K extends Key>({
         {rootLabel && (
           <Label
             as="div"
-            className="font-medium text-base text-text-primary mb-6 cursor-default"
+            className="text-text-primary mb-6 cursor-default text-base font-medium"
             data-testid={`${testId}-label`}
           >
             {rootLabel}
@@ -106,21 +106,21 @@ function RadioGroup<K extends Key>({
                 value={option.key}
                 className={({ checked }) =>
                   clsx([
-                    'bg-white dark:bg-charcoal relative flex rounded-lg px-5 py-2 focus:outline-hidden',
+                    'dark:bg-charcoal relative flex rounded-lg bg-white px-5 py-2 focus:outline-hidden',
                     checked &&
-                      'border border-malachite-moss hover:border-malachite-moss',
+                      'border-malachite-moss hover:border-malachite-moss border',
                     checked &&
                       'dark:border-malachite dark:hover:border-malachite',
-                    !checked && 'border border-white dark:border-charcoal',
+                    !checked && 'dark:border-charcoal border border-white',
                     !option.disabled &&
                       !checked &&
-                      'hover:border-transparent dark:hover:border-charcoal/85',
+                      'dark:hover:border-charcoal/85 hover:border-transparent',
                     !option.disabled &&
-                      'hover:bg-white/60 dark:hover:bg-charcoal/85',
+                      'dark:hover:bg-charcoal/85 hover:bg-white/60',
                     'transition-noborder cursor-default',
                     option.tooltip && 'attach-tooltip',
                     disabled &&
-                      'opacity-50 dark:opacity-60 hover hover:bg-white! dark:hover:bg-charcoal!',
+                      'hover dark:hover:bg-charcoal! opacity-50 hover:bg-white! dark:opacity-60',
                   ])
                 }
                 disabled={option.disabled}
@@ -140,7 +140,7 @@ function RadioGroup<K extends Key>({
                       )}
                       <div
                         className={clsx([
-                          'overflow-hidden flex flex-1 items-center justify-start gap-5',
+                          'flex flex-1 items-center justify-start gap-5 overflow-hidden',
                           option.className && option.className,
                         ])}
                         data-testid={`${optionTestId}-content`}
@@ -148,7 +148,7 @@ function RadioGroup<K extends Key>({
                         {radioIcons && checkedIcon(checked)}
                         {option.icon && (
                           <div
-                            className="w-7 flex justify-center items-center"
+                            className="flex w-7 items-center justify-center"
                             data-testid={`${optionTestId}-icon-container`}
                           >
                             {typeof option.icon === 'function'
@@ -157,13 +157,13 @@ function RadioGroup<K extends Key>({
                           </div>
                         )}
                         <div
-                          className="min-w-0 flex flex-col justify-center"
+                          className="flex min-w-0 flex-col justify-center"
                           data-testid={`${optionTestId}-text-container`}
                         >
                           <Label
                             as="p"
                             className={clsx([
-                              'truncate text-base text-text-primary',
+                              'text-text-primary truncate text-base',
                             ])}
                             data-testid={`${optionTestId}-label`}
                           >
@@ -173,7 +173,7 @@ function RadioGroup<K extends Key>({
                             <Description
                               as="span"
                               className={clsx(
-                                'text-xs text-text-secondary',
+                                'text-text-secondary text-xs',
                                 !option.descWrap && 'truncate',
                               )}
                               data-testid={`${optionTestId}-description`}

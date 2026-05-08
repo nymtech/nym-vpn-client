@@ -130,8 +130,8 @@ function NodeDetails() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col cursor-default">
-      <div className="grow min-h-0 overflow-auto">
+    <PageAnim className="flex h-full cursor-default flex-col">
+      <div className="min-h-0 grow overflow-auto">
         <div className="flex flex-col gap-4 p-4">
           {/* Card 1: Server info */}
           <CardNew>
@@ -139,17 +139,17 @@ function NodeDetails() {
               <FlagIcon
                 code={country.code.toLowerCase() as countryCode}
                 alt={country.code}
-                className="h-6 w-6 rounded-full shrink-0"
+                className="h-6 w-6 shrink-0 rounded-full"
               />
-              <p className="text-base text-text-primary ml-4">{gateway.name}</p>
+              <p className="text-text-primary ml-4 text-base">{gateway.name}</p>
             </CardNewHeader>
             <CardDivider />
-            <CardNewBody className="py-4 flex-col gap-3">
-              <p className="font-medium text-sm underline text-baltic-sea dark:text-white">
+            <CardNewBody className="flex-col gap-3 py-4">
+              <p className="text-baltic-sea text-sm font-medium underline dark:text-white">
                 {serverLocation()}
               </p>
               {gateway.description && (
-                <p className="text-sm text-secondary">{gateway.description}</p>
+                <p className="text-secondary text-sm">{gateway.description}</p>
               )}
             </CardNewBody>
           </CardNew>
@@ -157,7 +157,7 @@ function NodeDetails() {
           {/* Card 2: Node features */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-baltic-sea dark:text-white">
+              <p className="text-baltic-sea text-sm dark:text-white">
                 {t('node-details.data.node-features')}
               </p>
             </CardNewHeader>
@@ -168,7 +168,7 @@ function NodeDetails() {
                   icon="visibility_off"
                   className="text-primary text-xl"
                 />
-                <p className="whitespace-nowrap text-baltic-sea dark:text-white">
+                <p className="text-baltic-sea whitespace-nowrap dark:text-white">
                   {t('node-details.data.with-mixnet')}
                 </p>
               </CardDataRow>
@@ -182,7 +182,7 @@ function NodeDetails() {
                     isGoodIp ? 'text-cornflower' : 'text-text-secondary',
                   )}
                 />
-                <p className="whitespace-nowrap text-baltic-sea dark:text-white">
+                <p className="text-baltic-sea whitespace-nowrap dark:text-white">
                   {isGoodIp
                     ? t('node-details.data.ip-residential')
                     : t('node-details.data.ip-datacenter')}
@@ -191,8 +191,8 @@ function NodeDetails() {
               <CardDivider />
               {/* Post-quantum secure keys */}
               <CardDataRow label={t('node-details.data.lewes-protocol-label')}>
-                <LewesIcon className="text-xl text-text-secondary" />
-                <p className="whitespace-nowrap text-baltic-sea dark:text-white">
+                <LewesIcon className="text-text-secondary text-xl" />
+                <p className="text-baltic-sea whitespace-nowrap dark:text-white">
                   {t('node-details.data.lewes-protocol')}
                 </p>
               </CardDataRow>
@@ -204,9 +204,9 @@ function NodeDetails() {
                     <MsIcon
                       filled
                       icon={quic ? 'package_2' : 'circle'}
-                      className="text-xl text-text-secondary"
+                      className="text-text-secondary text-xl"
                     />
-                    <p className="whitespace-nowrap text-baltic-sea dark:text-white">
+                    <p className="text-baltic-sea whitespace-nowrap dark:text-white">
                       {quic
                         ? t('node-details.data.quic-protocol')
                         : t('node-details.data.standard-protocol')}
@@ -217,7 +217,7 @@ function NodeDetails() {
             </CardNewBody>
             {backendFlags.quic && !quicSetting && (
               <CardNewFooter>
-                <p className="text-xs text-text-secondary">
+                <p className="text-text-secondary text-xs">
                   <Trans
                     i18nKey="node-details.notes.anti-censorship"
                     ns="node-location"
@@ -238,7 +238,7 @@ function NodeDetails() {
           {/* Card 3: Performance metrics */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-baltic-sea dark:text-white">
+              <p className="text-baltic-sea text-sm dark:text-white">
                 {t('node-details.data.performance-metrics')}
               </p>
             </CardNewHeader>
@@ -248,7 +248,7 @@ function NodeDetails() {
                 <div className="flex items-center gap-1 select-none">
                   <ScoreIndicator score={overallScore} />
                   <p
-                    className={clsx('font-medium truncate', performance.color)}
+                    className={clsx('truncate font-medium', performance.color)}
                   >
                     {performance.label}
                   </p>
@@ -261,7 +261,7 @@ function NodeDetails() {
                   <CardDataRow label={t('node-details.data.server-load')}>
                     <p
                       className={clsx(
-                        'font-medium truncate select-none',
+                        'truncate font-medium select-none',
                         serverLoadStyle?.color,
                       )}
                     >
@@ -283,7 +283,7 @@ function NodeDetails() {
               )}
             </CardNewBody>
             <CardNewFooter>
-              <p className="text-xs text-text-secondary whitespace-pre-line">
+              <p className="text-text-secondary text-xs whitespace-pre-line">
                 {lastUpdate
                   ? t('node-details.notes.performance_with_time', {
                       relativeTime: dayjs().to(dayjs(lastUpdate)),
@@ -297,7 +297,7 @@ function NodeDetails() {
           {showCard3 && (
             <CardNew>
               <CardNewHeader>
-                <p className="text-sm text-baltic-sea dark:text-white">
+                <p className="text-baltic-sea text-sm dark:text-white">
                   {t('node-details.data.connection-details')}
                 </p>
               </CardNewHeader>
@@ -335,7 +335,7 @@ function NodeDetails() {
                   <>
                     <CardDivider />
                     <CardDataRow label={t('node-details.data.asn')}>
-                      <p className="truncate text-baltic-sea dark:text-white">
+                      <p className="text-baltic-sea truncate dark:text-white">
                         {asnValue}
                       </p>
                     </CardDataRow>
@@ -346,7 +346,7 @@ function NodeDetails() {
                   <>
                     <CardDivider />
                     <CardDataRow label={t('node-details.data.asn-name')}>
-                      <p className="truncate text-baltic-sea dark:text-white">
+                      <p className="text-baltic-sea truncate dark:text-white">
                         {asnName}
                       </p>
                     </CardDataRow>
@@ -359,7 +359,7 @@ function NodeDetails() {
           {/* Card 5: Build information */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-baltic-sea dark:text-white">
+              <p className="text-baltic-sea text-sm dark:text-white">
                 {t('node-details.data.build-information')}
               </p>
             </CardNewHeader>
@@ -367,19 +367,19 @@ function NodeDetails() {
               {buildVersion && (
                 <>
                   <CardDataRow label={t('node-details.data.build-version')}>
-                    <p className="truncate text-baltic-sea dark:text-white">
+                    <p className="text-baltic-sea truncate dark:text-white">
                       {buildVersion}
                     </p>
                   </CardDataRow>
                   <CardDivider />
                 </>
               )}
-              <div className="py-[7px] flex flex-col gap-2 w-full">
-                <p className="text-sm text-text-secondary">
+              <div className="flex w-full flex-col gap-2 py-[7px]">
+                <p className="text-text-secondary text-sm">
                   {t('node-details.data.identity-key')}
                 </p>
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-mono text-xs text-wrap wrap-break-word overflow-hidden flex-1 text-secondary">
+                  <p className="text-secondary flex-1 overflow-hidden font-mono text-xs text-wrap wrap-break-word">
                     {gateway.id}
                   </p>
                   <ButtonIconNew
@@ -421,7 +421,7 @@ function NodeDetails() {
       </div>
 
       {!isSelected && (
-        <div className="p-4 ">
+        <div className="p-4">
           <ButtonNew onClick={handleSelect}>
             {t('node-details.select-button')}
           </ButtonNew>

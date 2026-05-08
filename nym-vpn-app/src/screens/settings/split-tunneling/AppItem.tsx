@@ -38,29 +38,29 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
   return (
     <div
       className={clsx(
-        'flex items-center gap-3 px-4 py-3 bg-white dark:bg-charcoal',
-        os === 'linux' && 'hover:bg-black/10 dark:hover:bg-charcoal/75',
-        isProblematic && 'opacity-50 cursor-not-allowed',
+        'dark:bg-charcoal flex items-center gap-3 bg-white px-4 py-3',
+        os === 'linux' && 'dark:hover:bg-charcoal/75 hover:bg-black/10',
+        isProblematic && 'cursor-not-allowed opacity-50',
       )}
       onClick={handleClick}
     >
-      <div className="relative w-7 h-7 flex items-center justify-center">
+      <div className="relative flex h-7 w-7 items-center justify-center">
         {app.icon && (
           <img
             src={convertFileSrc(app.icon)}
             alt={app.name}
-            className="w-full h-full"
+            className="h-full w-full"
           />
         )}
         {!app.icon && (
-          <div className="h-full w-full rounded-md  bg-faded-lavender dark:bg-ash text-text-primary flex items-center justify-center text-sm leading-none">
+          <div className="bg-faded-lavender dark:bg-ash text-text-primary flex h-full w-full items-center justify-center rounded-md text-sm leading-none">
             {app.name[0].toUpperCase()}
           </div>
         )}
         {os === 'linux' && (
           <div
             className={clsx(
-              'absolute bottom-0 right-0 h-2 w-2 bg-malachite-moss rounded-full',
+              'bg-malachite-moss absolute right-0 bottom-0 h-2 w-2 rounded-full',
               {
                 'bg-malachite-moss animate-pulse duration-1000': isRunning,
                 'bg-ash dark:bg-mercury': !isRunning,
@@ -69,26 +69,26 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
           ></div>
         )}
       </div>
-      <div className="flex flex-col gap-1 min-w-0 flex-1">
-        <span className="flex-1 text-sm text-text-primary truncate select-none">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="text-text-primary flex-1 truncate text-sm select-none">
           {app.name}
         </span>
         {isProblematic && (
-          <span className="text-xs text-cheddar dark:text-king-nacho">
+          <span className="text-cheddar dark:text-king-nacho text-xs">
             {t('split-tunneling.problematic-app')}
           </span>
         )}
       </div>
       {os === 'linux' && (
-        <MsIcon icon="open_in_new" className="text-base text-bombay shrink-0" />
+        <MsIcon icon="open_in_new" className="text-bombay shrink-0 text-base" />
       )}
       {/* Only Windows can include/exclude apps from inside the app */}
       {/* Linux uses custom app launcher to launch the app and immediately exclude it from the tunnel */}
       {os === 'windows' && (
-        <div className="flex items-center rounded-lg border border-iron dark:border-bombay">
+        <div className="border-iron dark:border-bombay flex items-center rounded-lg border">
           <button
             className={clsx(
-              'px-2  h-full w-full flex items-center justify-center cursor-default transition-noborder border-r border-r-iron dark:border-r-bombay rounded-l-lg',
+              'transition-noborder border-r-iron dark:border-r-bombay flex h-full w-full cursor-default items-center justify-center rounded-l-lg border-r px-2',
               app.state === 'included'
                 ? 'bg-aphrodisiac/20 text-aphrodisiac'
                 : 'text-text-secondary',
@@ -100,7 +100,7 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
           </button>
           <button
             className={clsx(
-              'px-2  h-full w-full  flex items-center justify-center cursor-default transition-noborder rounded-r-lg',
+              'transition-noborder flex h-full w-full cursor-default items-center justify-center rounded-r-lg px-2',
               app.state === 'excluded'
                 ? 'bg-malachite-moss/15 dark:bg-malachite/15 text-primary'
                 : 'text-text-secondary',

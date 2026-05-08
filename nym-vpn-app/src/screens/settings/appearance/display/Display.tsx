@@ -34,7 +34,7 @@ function Display() {
 
   return (
     <PageAnim
-      className="h-full flex flex-col py-6 gap-6"
+      className="flex h-full flex-col gap-6 py-6"
       data-testid="display-page"
     >
       <RadioGroup
@@ -45,7 +45,7 @@ function Display() {
         data-testid="theme-radio-group"
       />
       <div
-        className="mt-3 text-base font-medium cursor-default"
+        className="mt-3 cursor-default text-base font-medium"
         data-testid="zoom-section-title"
       >
         {t('zoom-section-title')}

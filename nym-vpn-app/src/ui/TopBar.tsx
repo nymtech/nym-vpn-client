@@ -30,7 +30,7 @@ function TopNymLogo({ uiTheme }: { uiTheme: UiTheme }) {
   return (
     <NymVpnTextLogo
       className={clsx(
-        'w-24 h-6',
+        'h-6 w-24',
         uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
       )}
     />
@@ -299,7 +299,7 @@ export default function TopBar() {
       return (
         <StaggeredText
           text={title}
-          className="truncate justify-self-center tracking-normal"
+          className="justify-self-center truncate tracking-normal"
           data-testid="top-bar-title-text"
         />
       );
@@ -322,9 +322,9 @@ export default function TopBar() {
         transition: { duration: 0.2 },
       }}
       className={clsx([
-        'flex flex-row flex-nowrap justify-between items-center shrink-0',
+        'flex shrink-0 flex-row flex-nowrap items-center justify-between',
         'text-text-primary',
-        'h-16 text-xl z-30 select-none cursor-default',
+        'z-30 h-16 cursor-default text-xl select-none',
         'px-4 py-2',
         currentNavLocation.noBackground
           ? 'dark:bg-background bg-gray'
@@ -353,7 +353,7 @@ export default function TopBar() {
           />
         </motion.div>
       ) : (
-        <div className="w-6 mx-4" data-testid="top-bar-left-spacer" />
+        <div className="mx-4 w-6" data-testid="top-bar-left-spacer" />
       )}
       <div data-testid="top-bar-title-container" className="text-xl">
         {renderTitle(currentNavLocation.title)}
@@ -375,7 +375,7 @@ export default function TopBar() {
           )}
         </motion.div>
       ) : (
-        <div className="w-6 mx-4" data-testid="top-bar-right-spacer" />
+        <div className="mx-4 w-6" data-testid="top-bar-right-spacer" />
       )}
     </motion.nav>
   );

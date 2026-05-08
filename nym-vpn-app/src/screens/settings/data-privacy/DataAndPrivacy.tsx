@@ -47,7 +47,7 @@ function DataAndPrivacy() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6">
+    <PageAnim className="mt-2 flex h-full flex-col gap-6">
       <SettingsGroup
         settings={[
           {
@@ -81,11 +81,11 @@ function DataAndPrivacy() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-text-secondary whitespace-pre-line">
+          <p className="text-text-secondary text-sm whitespace-pre-line">
             {t('privacy.network-stats.desc')}
           </p>
           <Link
-            className="w-fit text-sm mt-2"
+            className="mt-2 w-fit text-sm"
             text={t('privacy.network-stats.link')}
             url={AnonNetworkStatsUrl}
             color="primary"
@@ -105,11 +105,11 @@ function DataAndPrivacy() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-text-secondary whitespace-pre-line">
+          <p className="text-text-secondary text-sm whitespace-pre-line">
             {t('privacy.error-monitoring.desc')}
           </p>
           <Link
-            className="w-fit text-sm mt-2"
+            className="mt-2 w-fit text-sm"
             text={t('privacy.error-monitoring.link')}
             url={SentryPrivacyPolicyUrl}
             color="primary"

@@ -15,12 +15,10 @@ export function DnsItemContent({
   onDelete: (dns: string) => void;
 }) {
   return (
-    <div className="flex flex-row items-center justify-between gap-2 p-3 pl-">
-      <div className="flex flex-row items-center gap-2 flex-1 min-w-0">
+    <div className="pl- flex flex-row items-center justify-between gap-2 p-3">
+      <div className="flex min-w-0 flex-1 flex-row items-center gap-2">
         {dragHandle}
-        <p className="text-base text-text-primary truncate">
-          {item.dns}
-        </p>
+        <p className="text-text-primary truncate text-base">{item.dns}</p>
       </div>
       <ButtonIcon
         icon="delete_outline"

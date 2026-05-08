@@ -32,7 +32,7 @@ function ProxyPortInput({
 
   return (
     <div className="flex flex-row gap-2">
-      <div className="flex-1 h-full">
+      <div className="h-full flex-1">
         <TextInput
           color="gray"
           value={value}
@@ -40,7 +40,7 @@ function ProxyPortInput({
           disabled={disabled}
           onChange={handleChange}
         />
-        {error && <p className="mt-2 text-xs text-aphrodisiac">{error}</p>}
+        {error && <p className="text-aphrodisiac mt-2 text-xs">{error}</p>}
       </div>
       <div className="h-full">
         <ButtonNew variant="outlined" disabled={disabled} onClick={handleReset}>

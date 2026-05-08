@@ -85,6 +85,7 @@ Main app state is managed via **Zustand** stores in `src/store/`:
 - `src/store/nodeListState.ts` — node list
 
 Zustand stores are accessed via React Contexts in `src/contexts/`:
+
 - `src/contexts/main/` — wraps the main Zustand store
 - `src/contexts/gateways/` — gateway selection/caching
 - `src/contexts/socks5/` — SOCKS5 proxy
@@ -100,6 +101,7 @@ All providers are composed in `src/App.tsx`.
 React Router 7, configured in `src/router.tsx`. Route constants are in `src/types/routes.ts`. The Home screen is lazy-loaded behind a Suspense boundary.
 
 Key routes:
+
 - `/` → startup gate (routes to home/login based on auth state)
 - `/home` → main VPN control screen
 - `/welcome` → welcome screen
@@ -113,25 +115,25 @@ Key routes:
 
 All settings routes live under `/settings`:
 
-| Route | Screen |
-|---|---|
-| `/settings` | Settings index |
-| `/settings/account` | Account management |
-| `/settings/appearance` | Theme & display |
-| `/settings/appearance/display` | UI scaling |
-| `/settings/appearance/lang` | Language selector |
-| `/settings/dns` | Custom DNS servers |
-| `/settings/anti-censorship` | Domain fronting toggle (+ Lewes protocol in DEV) |
-| `/settings/socks5` | SOCKS5 proxy |
-| `/settings/mixnet-tuning` | Mixnet traffic tuning (mixing delays, continuous traffic, performance) |
-| `/settings/split-tunneling` | Per-app VPN bypass (Windows) |
-| `/settings/advanced-settings` | Advanced settings |
-| `/settings/data-privacy` | Data & privacy |
-| `/settings/data-privacy/logs` | App log viewer |
-| `/settings/data-privacy/diagnostic` | Diagnostic info |
-| `/settings/support` | Support links |
-| `/settings/legal` | Legal info & licenses |
-| `/settings/dev` | Developer features (network env, Lewes protocol) |
+| Route                               | Screen                                                                 |
+| ----------------------------------- | ---------------------------------------------------------------------- |
+| `/settings`                         | Settings index                                                         |
+| `/settings/account`                 | Account management                                                     |
+| `/settings/appearance`              | Theme & display                                                        |
+| `/settings/appearance/display`      | UI scaling                                                             |
+| `/settings/appearance/lang`         | Language selector                                                      |
+| `/settings/dns`                     | Custom DNS servers                                                     |
+| `/settings/anti-censorship`         | Domain fronting toggle (+ Lewes protocol in DEV)                       |
+| `/settings/socks5`                  | SOCKS5 proxy                                                           |
+| `/settings/mixnet-tuning`           | Mixnet traffic tuning (mixing delays, continuous traffic, performance) |
+| `/settings/split-tunneling`         | Per-app VPN bypass (Windows)                                           |
+| `/settings/advanced-settings`       | Advanced settings                                                      |
+| `/settings/data-privacy`            | Data & privacy                                                         |
+| `/settings/data-privacy/logs`       | App log viewer                                                         |
+| `/settings/data-privacy/diagnostic` | Diagnostic info                                                        |
+| `/settings/support`                 | Support links                                                          |
+| `/settings/legal`                   | Legal info & licenses                                                  |
+| `/settings/dev`                     | Developer features (network env, Lewes protocol)                       |
 
 ### Tauri backend module layout
 

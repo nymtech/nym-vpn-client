@@ -29,20 +29,20 @@ function ConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onClose={onCancel}>
-      <div className="mx-auto flex flex-col items-center gap-4 w-11/12">
+      <div className="mx-auto flex w-11/12 flex-col items-center gap-4">
         <MsIcon icon={icon} className="text-text-primary" />
 
         <DialogTitle
           as="h3"
-          className="text-xl text-text-primary text-center w-full truncate"
+          className="text-text-primary w-full truncate text-center text-xl"
         >
           {title}
         </DialogTitle>
       </div>
-      <p className="mt-4 text-center text-text-secondary max-w-80 whitespace-pre-line">
+      <p className="text-text-secondary mt-4 max-w-80 text-center whitespace-pre-line">
         {description}
       </p>
-      <div className="mt-6 flex flex-col flex-nowrap justify-center w-full gap-2">
+      <div className="mt-6 flex w-full flex-col flex-nowrap justify-center gap-2">
         <ButtonNew
           onClick={onConfirm}
           className="min-w-32"

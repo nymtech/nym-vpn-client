@@ -33,19 +33,19 @@ function BackgroundCoverTrafficRateSlider({
 
   return (
     <div className="w-full space-y-5">
-      <p className="text-sm text-cheddar dark:text-king-nacho whitespace-pre-line">
+      <p className="text-cheddar dark:text-king-nacho text-sm whitespace-pre-line">
         {t('mixnet-tuning.continuous-traffic.background-cover-traffic.warning')}
       </p>
 
-      <p className="truncate text-base text-text-primary select-none">
+      <p className="text-text-primary truncate text-base select-none">
         {t('mixnet-tuning.continuous-traffic.background-cover-traffic.title')}
       </p>
-      <p className="text-sm text-text-secondary whitespace-pre-line">
+      <p className="text-text-secondary text-sm whitespace-pre-line">
         {t(
           'mixnet-tuning.continuous-traffic.background-cover-traffic.description',
         )}
       </p>
-      <div className="flex justify-between text-sm text-text-secondary">
+      <div className="text-text-secondary flex justify-between text-sm">
         <span>
           {t(
             'mixnet-tuning.continuous-traffic.background-cover-traffic.use-less-battery-and-data',
@@ -71,7 +71,7 @@ function BackgroundCoverTrafficRateSlider({
           <Button
             onClick={() => setValue(index)}
             key={item.label}
-            className={clsx('flex flex-col text-sm whitespace-nowrap ', {
+            className={clsx('flex flex-col text-sm whitespace-nowrap', {
               'items-start': index === 0,
               'items-end': index === backgroundCoverItems.length - 1,
               'items-center':
@@ -118,12 +118,12 @@ function ContinuousTrafficSlider({
     [continuousItems],
   );
   return (
-    <div className="w-full mt-0 space-y-5">
-      <p className="text-sm text-text-secondary whitespace-pre-line">
+    <div className="mt-0 w-full space-y-5">
+      <p className="text-text-secondary text-sm whitespace-pre-line">
         {t('mixnet-tuning.continuous-traffic.continuous.title')}
       </p>
 
-      <div className="flex justify-between text-sm text-text-secondary">
+      <div className="text-text-secondary flex justify-between text-sm">
         <span>
           {t(
             'mixnet-tuning.continuous-traffic.continuous.use-less-battery-and-data',

@@ -18,13 +18,13 @@ function LaunchConfirmDialog({ isOpen, appName, onConfirm, onCancel }: Props) {
         <MsIcon icon="info" className="text-text-primary" />
         <DialogTitle
           as="h3"
-          className="text-xl font-medium text-text-primary text-center"
+          className="text-text-primary text-center text-xl font-medium"
         >
           {t('split-tunneling.launch-confirm-dialog.title', { appName })}
         </DialogTitle>
       </div>
 
-      <div className="text-sm text-text-secondary whitespace-pre-line">
+      <div className="text-text-secondary text-sm whitespace-pre-line">
         <p>{t('split-tunneling.launch-confirm-dialog.description')}</p>
       </div>
 

@@ -113,11 +113,11 @@ function Node({ node }: { node: NodeHop }) {
   if (error) {
     return (
       <PageAnim
-        className="h-full flex flex-col"
+        className="flex h-full flex-col"
         data-testid="node-error-container"
       >
         <div
-          className="w-4/5 h-2/3 overflow-auto wrap-break-word text-center"
+          className="h-2/3 w-4/5 overflow-auto text-center wrap-break-word"
           data-testid="node-error-message"
         >
           <p
@@ -127,7 +127,7 @@ function Node({ node }: { node: NodeHop }) {
             An error occurred
           </p>
           <p
-            className="text-base font-mono"
+            className="font-mono text-base"
             data-testid="node-error-details"
           >{`${tE(error.key)}: ${error.message} ${error.data?.details || '-'}`}</p>
         </div>
@@ -143,15 +143,15 @@ function Node({ node }: { node: NodeHop }) {
         node={node}
       />
       <PageAnim
-        className="h-full flex flex-col"
+        className="flex h-full flex-col"
         data-testid={`node-container-${node}`}
       >
         <div
-          className="w-full px-6 mt-6 mb-6"
+          className="mt-6 mb-6 w-full px-6"
           data-testid="node-search-container"
         >
           {quicFilter && (
-            <p className="text-sm text-text-secondary mb-6 select-none">
+            <p className="text-text-secondary mb-6 text-sm select-none">
               <Trans
                 i18nKey="quic-filter-note"
                 ns="node-location"
@@ -179,7 +179,7 @@ function Node({ node }: { node: NodeHop }) {
         </div>
         {loading && (
           <motion.div
-            className="flex justify-center text-base text-text-secondary mt-4"
+            className="text-text-secondary mt-4 flex justify-center text-base"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}

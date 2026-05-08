@@ -43,7 +43,7 @@ function MainLayout({
   return (
     <div
       className={clsx([
-        'h-full flex flex-col min-w-64',
+        'flex h-full min-w-64 flex-col',
         'bg-gray dark:bg-background',
         'text-primary',
       ])}
@@ -54,7 +54,7 @@ function MainLayout({
       {!noDaemonDot && <DaemonDot status={daemonStatus} />}
       <div
         className={clsx([
-          'h-full flex flex-col overflow-auto overscroll-auto p-4',
+          'flex h-full flex-col overflow-auto overscroll-auto p-4',
           (location.pathname === routes.licensesRust ||
             location.pathname === routes.licensesJs ||
             location.pathname === routes.entryNodeLocation ||

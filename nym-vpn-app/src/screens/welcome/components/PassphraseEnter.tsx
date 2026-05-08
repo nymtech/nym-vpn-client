@@ -86,13 +86,13 @@ export function PassphraseEnter() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 h-full justify-between">
+    <div className="flex h-full flex-col items-center justify-between gap-6">
       <div className="flex flex-col items-center gap-2">
-        <h1 className="text-2xl font-medium tracking-tight text-text-primary">
+        <h1 className="text-text-primary text-2xl font-medium tracking-tight">
           {t('passphrase.title')}
         </h1>
       </div>
-      <div className="flex flex-col gap-3 w-full">
+      <div className="flex w-full flex-col gap-3">
         <TextArea
           value={phrase}
           onChange={onChange}

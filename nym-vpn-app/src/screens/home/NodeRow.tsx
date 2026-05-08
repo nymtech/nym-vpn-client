@@ -259,7 +259,7 @@ export function NodeRow({ type }: NodeRowProps) {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="text-secondary text-xs leading-5 tracking-[0.18px] overflow-hidden"
+            className="text-secondary overflow-hidden text-xs leading-5 tracking-[0.18px]"
           >
             {label}
           </motion.p>
@@ -267,7 +267,7 @@ export function NodeRow({ type }: NodeRowProps) {
       </AnimatePresence>
       <Button
         onClick={handleClick}
-        className="group relative isolate rounded-xl p-2 w-full"
+        className="group relative isolate w-full rounded-xl p-2"
       >
         {/* Rotating gradient ring on hover — mask center with card bg so only border shows */}
         <div
@@ -276,7 +276,7 @@ export function NodeRow({ type }: NodeRowProps) {
         >
           <div className="absolute inset-0 overflow-hidden rounded-[inherit]">
             {/* Outer: translate only. Inner: rotate only — avoids transform override jump on spin */}
-            <div className="absolute left-1/2 top-1/2 size-[260%] -translate-x-1/2 -translate-y-1/2">
+            <div className="absolute top-1/2 left-1/2 size-[260%] -translate-x-1/2 -translate-y-1/2">
               <div
                 className={clsx(
                   'size-full will-change-transform backface-hidden',
@@ -293,8 +293,8 @@ export function NodeRow({ type }: NodeRowProps) {
         </div>
 
         <div className="relative z-10 flex flex-col items-start">
-          <div className="flex items-center justify-between gap-4 w-full">
-            <div className="flex items-center gap-2 flex-1 overflow-hidden">
+          <div className="flex w-full items-center justify-between gap-4">
+            <div className="flex flex-1 items-center gap-2 overflow-hidden">
               <ScoreIndicatorContainer score={nodeDetails.score} />
               <AnimatePresence mode="wait">
                 {nodeDetails.countryCode &&
@@ -325,7 +325,7 @@ export function NodeRow({ type }: NodeRowProps) {
                   animate="animate"
                   exit="exit"
                   transition={{ duration: DURATION, ease: [0.32, 0.72, 0, 1] }}
-                  className="block truncate flex-1 text-start min-w-0 text-text-primary text-base leading-6 tracking-[-0.08px] overflow-hidden"
+                  className="text-text-primary block min-w-0 flex-1 truncate overflow-hidden text-start text-base leading-6 tracking-[-0.08px]"
                 >
                   {textLabel}
                 </motion.span>

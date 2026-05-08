@@ -26,8 +26,8 @@ function CardSwitch({
   noHoverEffect,
 }: CardSwitchProps) {
   const Header = () => (
-    <div className="min-w-0 flex flex-col justify-center gap-1">
-      <p className="truncate text-base text-text-primary select-none">
+    <div className="flex min-w-0 flex-col justify-center gap-1">
+      <p className="text-text-primary truncate text-base select-none">
         {header}
       </p>
       {subheader && (
@@ -48,8 +48,8 @@ function CardSwitch({
   return (
     <div
       className={clsx(
-        'w-full flex flex-row justify-between items-center gap-4 select-none',
-        'bg-white dark:bg-charcoal px-5 min-h-16 rounded-t-lg py-4',
+        'flex w-full flex-row items-center justify-between gap-4 select-none',
+        'dark:bg-charcoal min-h-16 rounded-t-lg bg-white px-5 py-4',
         !noHoverEffect && 'hover:bg-iron/5 dark:hover:bg-black/10',
         'cursor-default',
         disabled && 'pointer-events-none',

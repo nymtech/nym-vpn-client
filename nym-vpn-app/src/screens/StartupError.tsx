@@ -44,14 +44,14 @@ function StartupError({
     >
       <div
         className={clsx([
-          'min-w-64 bg-white dark:bg-charcoal text-text-primary',
-          'flex flex-col items-center justify-between h-full gap-4',
-          'cursor-default select-none p-6 px-6',
+          'dark:bg-charcoal text-text-primary min-w-64 bg-white',
+          'flex h-full flex-col items-center justify-between gap-4',
+          'cursor-default p-6 px-6 select-none',
         ])}
         data-testid="startup-error-content"
       >
         <div
-          className="flex flex-col justify-center items-center gap-2"
+          className="flex flex-col items-center justify-center gap-2"
           data-testid="startup-error-header"
         >
           <MsIcon
@@ -60,7 +60,7 @@ function StartupError({
             data-testid="startup-error-icon"
           />
           <h1
-            className="text-xl font-medium tracking-wider leading-loose"
+            className="text-xl leading-loose font-medium tracking-wider"
             data-testid="startup-error-title"
           >
             Problem detected
@@ -73,10 +73,10 @@ function StartupError({
         </p>
         {error?.detail && (
           <div
-            className="w-full max-h-44 overflow-auto select-text text-balance break-words"
+            className="max-h-44 w-full overflow-auto text-balance break-words select-text"
             data-testid="startup-error-details"
           >
-            <p className="text-aphrodisiac text-center cursor-auto">
+            <p className="text-aphrodisiac cursor-auto text-center">
               {error.detail}
             </p>
           </div>

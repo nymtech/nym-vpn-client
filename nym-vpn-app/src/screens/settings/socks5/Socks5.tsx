@@ -133,7 +133,7 @@ function Socks5() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
+    <PageAnim className="mt-2 flex h-full flex-col gap-6 select-none">
       <div className="text-text-secondary">{t('app-proxy.intro')}</div>
 
       <SettingsMenuCardBig
@@ -149,18 +149,18 @@ function Socks5() {
         <div>
           <ul
             className={clsx([
-              'flex flex-col justify-center items-center gap-0',
-              'bg-white dark:bg-charcoal',
+              'flex flex-col items-center justify-center gap-0',
+              'dark:bg-charcoal bg-white',
               'cursor-default',
             ])}
           >
             <li
               className={clsx(
-                'w-full flex border-b last:border-b-0',
-                'py-2 last:pb-0 first:pt-0 border-bombay dark:border-iron',
+                'flex w-full border-b last:border-b-0',
+                'border-bombay dark:border-iron py-2 first:pt-0 last:pb-0',
               )}
             >
-              <div className="w-full flex items-center gap-2 justify-between">
+              <div className="flex w-full items-center justify-between gap-2">
                 <span className="text-text-secondary truncate select-none">
                   {t('app-proxy.proxy-status')}
                 </span>
@@ -171,11 +171,11 @@ function Socks5() {
             </li>
             <li
               className={clsx(
-                'w-full flex border-b last:border-b-0',
-                'py-2 last:pb-0 first:pt-0 border-bombay dark:border-iron',
+                'flex w-full border-b last:border-b-0',
+                'border-bombay dark:border-iron py-2 first:pt-0 last:pb-0',
               )}
             >
-              <div className="w-full flex items-center gap-2 justify-between">
+              <div className="flex w-full items-center justify-between gap-2">
                 <span className="text-text-secondary truncate select-none">
                   {t('app-proxy.active-connections')}
                 </span>

@@ -41,8 +41,8 @@ function Diagnostic() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col">
-      <div className="flex gap-6 flex-col min-h-0 flex-1">
+    <PageAnim className="flex h-full flex-col">
+      <div className="flex min-h-0 flex-1 flex-col gap-6">
         <ButtonNew
           onClick={handleRunDiagnostic}
           disabled={diagnosticRunning}
@@ -60,9 +60,9 @@ function Diagnostic() {
             >
               {t('diagnostic.share')}
             </ButtonNew>
-            <div className="space-y-4 p-6 rounded-lg min-h-0 flex flex-col flex-1 text-xs font-mono dark:bg-charcoal bg-white">
-              <div className="flex justify-between items-center">
-                <span className="font-semibold text-sm">
+            <div className="dark:bg-charcoal flex min-h-0 flex-1 flex-col space-y-4 rounded-lg bg-white p-6 font-mono text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">
                   {t('diagnostic.report-title')}
                 </span>
                 <ButtonIconNew
@@ -75,10 +75,10 @@ function Diagnostic() {
               </div>
               <Separator
                 orientation="horizontal"
-                className="w-full h-px bg-bombay dark:bg-iron"
+                className="bg-bombay dark:bg-iron h-px w-full"
               />
-              <div className="overflow-y-auto flex-1 min-h-0">
-                <pre className="whitespace-pre-wrap wrap-break-word text-text-secondary">
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <pre className="text-text-secondary wrap-break-word whitespace-pre-wrap">
                   {diagnosticResult}
                 </pre>
               </div>

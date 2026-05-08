@@ -101,12 +101,12 @@ function UpdateDialog() {
       <div className="flex flex-col items-center gap-4">
         <MsIcon
           icon="info"
-          className="text-3xl text-text-primary"
+          className="text-text-primary text-3xl"
           data-testid="update-dialog-info-icon"
         />
         <DialogTitle
           as="h3"
-          className="text-xl text-text-primary text-center"
+          className="text-text-primary text-center text-xl"
           data-testid="update-dialog-title"
         >
           {isUpdating
@@ -127,14 +127,14 @@ function UpdateDialog() {
             })}
           </p>
           <p
-            className="text-text-primary text-center max-w-2/3"
+            className="text-text-primary max-w-2/3 text-center"
             data-testid="update-dialog-description"
           >
             {t('app-update-available.restart-note')}
           </p>
-          <div className={clsx('flex flex-col items-center w-full gap-2')}>
+          <div className={clsx('flex w-full flex-col items-center gap-2')}>
             <Button onClick={onUpdate} className="mt-2" disabled={isUpdating}>
-              <span className="text-lg text-black dark:text-baltic-sea">
+              <span className="dark:text-baltic-sea text-lg text-black">
                 {t('app-update-available.button-update')}
               </span>
             </Button>

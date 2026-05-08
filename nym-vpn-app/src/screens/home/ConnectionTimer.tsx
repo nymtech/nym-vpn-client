@@ -39,12 +39,12 @@ function ConnectionTimer() {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.1, ease: 'easeOut' }}
-        className="flex flex-col items-center gap-2 cursor-default select-none"
+        className="flex cursor-default flex-col items-center gap-2 select-none"
         data-testid="connection-timer"
       >
         <ScrambleIn
           text={t('connection-time')}
-          className="text-base text-text-secondary"
+          className="text-text-secondary text-base"
           scrambledClassName="text-[9px] text-[#8b8b90]/50"
           scrambleSpeed={20}
         />
@@ -53,7 +53,7 @@ function ConnectionTimer() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
-          className="text-base text-text-primary"
+          className="text-text-primary text-base"
           data-testid="connection-time-value"
         >
           {connectionTime}

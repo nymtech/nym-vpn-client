@@ -47,11 +47,11 @@ function Home() {
         initial={{ opacity: 0, x: '-1rem' }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
-        className="h-full flex flex-col"
+        className="flex h-full flex-col"
       >
         <TunnelState />
 
-        <div className="flex flex-col justify-end grow">
+        <div className="flex grow flex-col justify-end">
           <NewBottomComponent />
         </div>
       </motion.div>

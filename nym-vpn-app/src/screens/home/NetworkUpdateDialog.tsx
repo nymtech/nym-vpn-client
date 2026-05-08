@@ -61,12 +61,12 @@ function NetworkUpdateDialog({
       <div className="flex flex-col items-center gap-4">
         <MsIcon
           icon="info"
-          className="text-3xl text-text-primary"
+          className="text-text-primary text-3xl"
           data-testid="update-dialog-info-icon"
         />
         <DialogTitle
           as="h3"
-          className="text-xl text-text-primary"
+          className="text-text-primary text-xl"
           data-testid="update-dialog-title"
         >
           {t('update-dialog.title')}
@@ -83,7 +83,7 @@ function NetworkUpdateDialog({
         className="mt-2"
         data-testid="update-dialog-button"
       >
-        <span className="text-lg text-black dark:text-baltic-sea">
+        <span className="dark:text-baltic-sea text-lg text-black">
           {t('update-dialog.button-update')}
         </span>
       </Button>

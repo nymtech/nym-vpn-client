@@ -186,17 +186,17 @@ export default function HopSelect({
   return (
     <div
       className={clsx([
-        'w-full flex flex-row justify-between items-center h-[3.75rem]',
+        'flex h-[3.75rem] w-full flex-row items-center justify-between',
         'text-text-primary',
-        'border border-bombay dark:border-iron rounded-lg',
-        'relative transition select-none cursor-default',
+        'border-bombay dark:border-iron rounded-lg border',
+        'relative cursor-default transition select-none',
         disabled && 'opacity-50',
       ])}
       role="presentation"
     >
       <div
         className={clsx([
-          'absolute left-3 -top-2 px-1',
+          'absolute -top-2 left-3 px-1',
           'bg-background text-xs',
           disabled && 'cursor-default',
         ])}
@@ -206,7 +206,7 @@ export default function HopSelect({
 
       <Button
         className={clsx([
-          'flex flex-1 ps-4 items-center justify-center h-full py-3 rounded-none rounded-l-lg overflow-hidden',
+          'flex h-full flex-1 items-center justify-center overflow-hidden rounded-none rounded-l-lg py-3 ps-4',
           !disabled && 'hover:text-baltic-sea/80 dark:hover:text-white/80',
         ])}
         onClick={handleClick}
@@ -217,7 +217,7 @@ export default function HopSelect({
       {!!gateway && (
         <Button
           className={clsx(
-            'h-11 w-11 my-2 me-2 flex items-center justify-center rounded-full',
+            'my-2 me-2 flex h-11 w-11 items-center justify-center rounded-full',
             !disabled && 'hover:bg-mercury dark:hover:bg-mine-shaft',
           )}
           onClick={handleDetailsClick}

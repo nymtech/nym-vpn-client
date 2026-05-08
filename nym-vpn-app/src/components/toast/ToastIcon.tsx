@@ -11,26 +11,23 @@ export function ToastIcon({ type }: { type?: ToastAddData['type'] }) {
       return (
         <MsIcon
           icon="fmd_bad"
-          className="h-4 w-4 leading-none text-cheddar dark:text-king-nacho"
+          className="text-cheddar dark:text-king-nacho h-4 w-4 leading-none"
         />
       );
     case 'info':
       return (
-        <MsIcon icon="info" className="h-4 w-4 leading-none text-baltic-sea" />
+        <MsIcon icon="info" className="text-baltic-sea h-4 w-4 leading-none" />
       );
     case 'success':
       return (
         <MsIcon
           icon="check_circle"
-          className="h-4 w-4 leading-none text-primary"
+          className="text-primary h-4 w-4 leading-none"
         />
       );
     default:
       return (
-        <MsIcon
-          icon="info"
-          className="h-4 w-4 leading-none text-primary"
-        />
+        <MsIcon icon="info" className="text-primary h-4 w-4 leading-none" />
       );
   }
 }

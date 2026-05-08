@@ -23,7 +23,7 @@ export function InteractiveCard({
   }, [controls, registerExit]);
 
   return (
-    <div className="h-full flex justify-end flex-col overflow-hidden">
+    <div className="flex h-full flex-col justify-end overflow-hidden">
       <motion.div
         layout
         animate={controls}
@@ -34,7 +34,7 @@ export function InteractiveCard({
           ease: 'easeOut',
         }}
         className={clsx(
-          'z-20 bg-white dark:bg-[#1d1d1f] rounded-2xl flex flex-col p-5 overflow-hidden',
+          'z-20 flex flex-col overflow-hidden rounded-2xl bg-white p-5 dark:bg-[#1d1d1f]',
           className,
         )}
       >
@@ -43,7 +43,7 @@ export function InteractiveCard({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.15 }}
-          className="flex flex-col flex-1"
+          className="flex flex-1 flex-col"
         >
           {children}
         </motion.div>

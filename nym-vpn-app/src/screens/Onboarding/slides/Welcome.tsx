@@ -6,10 +6,8 @@ function Welcome() {
   return (
     <div className="flex flex-col items-center gap-4">
       <WelcomeAsset className="h-full max-h-64 w-fit" />
-      <h1 className="text-2xl text-text-primary">
-        {t('welcome.title')}
-      </h1>
-      <p className="text-center text-sm whitespace-pre-line text-text-secondary">
+      <h1 className="text-text-primary text-2xl">{t('welcome.title')}</h1>
+      <p className="text-text-secondary text-center text-sm whitespace-pre-line">
         <Trans
           i18nKey="welcome.description"
           ns="onboarding"

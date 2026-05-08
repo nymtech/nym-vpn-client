@@ -25,7 +25,7 @@ const ArrowButton = ({
     <HuButton
       onClick={onClick}
       className={clsx(
-        'h-11 w-11 my-2 mr-2 flex items-center justify-center rounded-full bg-mercury dark:bg-mine-shaft',
+        'bg-mercury dark:bg-mine-shaft my-2 mr-2 flex h-11 w-11 items-center justify-center rounded-full',
         !disabled && 'hover:bg-bombay dark:hover:bg-charcoal',
       )}
     >
@@ -56,10 +56,10 @@ function Onboarding() {
   return (
     <InteractiveCard className="h-full">
       <div className="mb-12">
-        <div className="flex items-center justify-center relative h-[27px]">
+        <div className="relative flex h-[27px] items-center justify-center">
           <NymVpnTextLogo
             className={clsx(
-              'w-[100px] h-[27px]',
+              'h-[27px] w-[100px]',
               uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
             )}
           />
@@ -67,17 +67,17 @@ function Onboarding() {
             initialAnimation={true}
             icon="close"
             onClick={() => navigate(routes.root)}
-            className="absolute right-0 text-bombay hover:text-baltic-sea dark:hover:text-white transition-noborder cursor-default"
+            className="text-bombay hover:text-baltic-sea transition-noborder absolute right-0 cursor-default dark:hover:text-white"
           />
         </div>
       </div>
-      <section className="embla w-full h-full flex flex-col justify-between">
-        <div className="flex flex-1 justify-center flex-col gap-6 items-center">
-          <div className="overflow-hidden w-full" ref={emblaRef}>
+      <section className="embla flex h-full w-full flex-col justify-between">
+        <div className="flex flex-1 flex-col items-center justify-center gap-6">
+          <div className="w-full overflow-hidden" ref={emblaRef}>
             <div className="flex touch-pinch-zoom">
               {slides.map((Slide, index) => (
                 <div
-                  className="transform translate-3d flex-none basis-full min-w-0 pl-4"
+                  className="min-w-0 flex-none basis-full translate-3d transform pl-4"
                   key={index}
                 >
                   <Slide />
@@ -85,20 +85,20 @@ function Onboarding() {
               ))}
             </div>
           </div>
-          <div className="w-full flex flex-row justify-between items-center">
+          <div className="flex w-full flex-row items-center justify-between">
             <ArrowButton
               icon="arrow_left"
               onClick={() => emblaApi?.scrollPrev()}
               disabled={!emblaApi?.canScrollPrev()}
             />
-            <div className="flex flex-row gap-2 bg-mercury dark:bg-mine-shaft px-3 py-2 rounded-2xl">
+            <div className="bg-mercury dark:bg-mine-shaft flex flex-row gap-2 rounded-2xl px-3 py-2">
               {scrollSnaps.map((_, index) => (
                 <DotButton
                   key={index}
                   onClick={() => onDotButtonClick(index)}
                   className={clsx(
-                    'flex items-center justify-center rounded-full cursor-pointer bg-bombay dark:bg-charcoal border-0 p-0 m-0 w-2 h-2 appearance-none tap-highlight-transparent no-underline touch-manipulation',
-                    index === selectedIndex ? ' bg-white dark:bg-white' : '',
+                    'bg-bombay dark:bg-charcoal tap-highlight-transparent m-0 flex h-2 w-2 cursor-pointer touch-manipulation appearance-none items-center justify-center rounded-full border-0 p-0 no-underline',
+                    index === selectedIndex ? 'bg-white dark:bg-white' : '',
                   )}
                 />
               ))}
@@ -111,7 +111,7 @@ function Onboarding() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-4 w-full">
+        <div className="flex w-full flex-col items-center gap-4">
           <ButtonNew onClick={() => handleNavigate(routes.welcome)}>
             Get Started
           </ButtonNew>

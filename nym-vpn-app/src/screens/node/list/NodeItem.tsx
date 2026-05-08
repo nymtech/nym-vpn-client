@@ -55,7 +55,7 @@ export const NodeItem = memo(function NodeItem({
       <Collapsible.Panel
         keepMounted={false}
         data-testid={`country-accordion-content-${country.code}`}
-        className="collapsible-panel w-full flex flex-col gap-3"
+        className="collapsible-panel flex w-full flex-col gap-3"
       >
         {country.code.toLowerCase() === 'us' ? (
           regions.map((region) => (

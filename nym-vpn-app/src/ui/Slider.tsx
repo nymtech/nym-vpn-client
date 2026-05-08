@@ -82,13 +82,13 @@ function Slider({
             setInternalValue(val);
             onChange?.(val);
           }}
-          className="relative flex w-full touch-none select-none items-center"
+          className="relative flex w-full touch-none items-center select-none"
         >
           <HuSlider.Control className="w-full">
-            <HuSlider.Track className="relative h-2 w-full rounded-full bg-bombay dark:bg-iron">
+            <HuSlider.Track className="bg-bombay dark:bg-iron relative h-2 w-full rounded-full">
               <HuSlider.Indicator
                 className={clsx([
-                  'absolute h-full rounded-full bg-primary',
+                  'bg-primary absolute h-full rounded-full',
                   'transition-[width] duration-300 ease-out',
                 ])}
               />
@@ -96,8 +96,8 @@ function Slider({
                 aria-label={ariaLabel}
                 getAriaValueText={(_formattedValue, val) => val.toString()}
                 className={clsx([
-                  'group block h-6 w-6 rounded-full border border-bombay dark:border-iron active:bg-faded-lavender bg-white hover:bg-faded-lavender shadow-md focus:outline-none focus:ring-2 focus:ring-malachite',
-                  'transition-[inset] duration-300 ease-out ',
+                  'group border-bombay dark:border-iron active:bg-faded-lavender hover:bg-faded-lavender focus:ring-malachite block h-6 w-6 rounded-full border bg-white shadow-md focus:ring-2 focus:outline-none',
+                  'transition-[inset] duration-300 ease-out',
                 ])}
               />
             </HuSlider.Track>
@@ -107,7 +107,7 @@ function Slider({
 
       <div className="relative">
         {valueIndicator && (
-          <div className="absolute left-1/2 -translate-x-1/2 flex flex-col justify-between items-center text-sm text-cornflower">
+          <div className="text-cornflower absolute left-1/2 flex -translate-x-1/2 flex-col items-center justify-between text-sm">
             <span className="whitespace-nowrap">
               {internalValue === defaultValue ? t('default') : t('current')}
             </span>
@@ -115,7 +115,7 @@ function Slider({
           </div>
         )}
         {labels && (
-          <div className="mt-5 w-full h-10 ">
+          <div className="mt-5 h-10 w-full">
             {(i18n.dir() === 'rtl' ? [...labels].reverse() : labels).map(
               (label, idx) => {
                 const position = getLabelPosition(idx);

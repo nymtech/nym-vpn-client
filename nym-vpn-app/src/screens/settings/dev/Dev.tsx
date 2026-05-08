@@ -15,14 +15,14 @@ function Dev() {
 
   const mixnetData = (data: MixnetData) => (
     <div data-testid="dev-mixnet-data">
-      <h3 className="text-lg mb-2" data-testid="dev-mixnet-title">
+      <h3 className="mb-2 text-lg" data-testid="dev-mixnet-title">
         Mixnet data
       </h3>
       <div
-        className="bg-black/20 rounded-md flex flex-col gap-3 font-mono p-2 overflow-x-scroll"
+        className="flex flex-col gap-3 overflow-x-scroll rounded-md bg-black/20 p-2 font-mono"
         data-testid="dev-mixnet-details"
       >
-        <div className="select-text cursor-text">
+        <div className="cursor-text select-text">
           {data.nymAddress && (
             <>
               {'nym address:'}
@@ -50,7 +50,7 @@ function Dev() {
 
   const wgNode = (node: WgNode, nodeType: 'entry' | 'exit') => (
     <div
-      className="select-text cursor-text"
+      className="cursor-text select-text"
       data-testid={`dev-wg-${nodeType}-node`}
     >
       <div
@@ -69,11 +69,11 @@ function Dev() {
 
   const wgData = (data: WireguardData) => (
     <div data-testid="dev-wg-data">
-      <h3 className="text-lg mb-2" data-testid="dev-wg-title">
+      <h3 className="mb-2 text-lg" data-testid="dev-wg-title">
         Wg data
       </h3>
       <div
-        className="bg-black/20 rounded-md flex flex-col gap-3 font-mono p-2 overflow-x-scroll"
+        className="flex flex-col gap-3 overflow-x-scroll rounded-md bg-black/20 p-2 font-mono"
         data-testid="dev-wg-details"
       >
         entry:
@@ -86,18 +86,18 @@ function Dev() {
 
   return (
     <PageAnim
-      className="h-full flex flex-col py-6 gap-6 select-none cursor-default"
+      className="flex h-full cursor-default flex-col gap-6 py-6 select-none"
       data-testid="dev-page"
     >
       {daemonStatus !== 'down' && networkEnv && (
         <NetworkEnvSelect current={networkEnv} />
       )}
       <div data-testid="dev-state-container">
-        <h3 className="text-lg mb-2" data-testid="dev-state-title">
+        <h3 className="mb-2 text-lg" data-testid="dev-state-title">
           State
         </h3>
         <div
-          className="bg-black/20 rounded-md font-mono p-2 select-text cursor-text"
+          className="cursor-text rounded-md bg-black/20 p-2 font-mono select-text"
           data-testid="dev-state-value"
         >
           {state}
@@ -105,17 +105,17 @@ function Dev() {
       </div>
       {tunnel && (
         <div data-testid="dev-tunnel-container">
-          <h3 className="text-lg mb-2" data-testid="dev-tunnel-title">
+          <h3 className="mb-2 text-lg" data-testid="dev-tunnel-title">
             Tunnel
           </h3>
           <div
-            className="bg-black/20 rounded-md flex flex-col gap-3 font-mono p-2 overflow-x-scroll"
+            className="flex flex-col gap-3 overflow-x-scroll rounded-md bg-black/20 p-2 font-mono"
             data-testid="dev-tunnel-details"
           >
             <div>
               {'entry gw:'}
               <div
-                className="select-text cursor-text"
+                className="cursor-text select-text"
                 data-testid="dev-tunnel-entry-gw"
               >
                 {tunnel.entryGwId}
@@ -124,7 +124,7 @@ function Dev() {
             <div>
               {'exit gw:'}
               <div
-                className="select-text cursor-text"
+                className="cursor-text select-text"
                 data-testid="dev-tunnel-exit-gw"
               >
                 {tunnel.exitGwId}
@@ -132,7 +132,7 @@ function Dev() {
             </div>
             {tunnel.connectedAt && (
               <div
-                className="select-text cursor-text text-nowrap"
+                className="cursor-text text-nowrap select-text"
                 data-testid="dev-tunnel-connected-at"
               >{`connectedAt: ${dayjs.unix(tunnel.connectedAt as unknown as number).format()}`}</div>
             )}

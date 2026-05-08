@@ -138,7 +138,7 @@ function SplitTunneling() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex h-full items-center justify-center">
         <Spinner />
       </div>
     );
@@ -175,14 +175,14 @@ function SplitTunneling() {
       )}
 
       {/* Description */}
-      <p className="text-sm text-text-secondary">
+      <p className="text-text-secondary text-sm">
         {os === 'linux'
           ? t('split-tunneling.description-linux')
           : t('split-tunneling.description-windows')}
       </p>
 
       {/* Exclude warning */}
-      <p className="text-sm text-cheddar dark:text-king-nacho p-3 bg-mercury/40 dark:bg-mine-shaft/60 rounded-lg">
+      <p className="text-cheddar dark:text-king-nacho bg-mercury/40 dark:bg-mine-shaft/60 rounded-lg p-3 text-sm">
         {t('split-tunneling.exclude-warning')}
       </p>
 
@@ -197,14 +197,14 @@ function SplitTunneling() {
             transition={{ duration: 0.15, ease: 'easeInOut' }}
             className="flex flex-col gap-2"
           >
-            <p className="text-base font-semibold text-text-primary select-none">
+            <p className="text-text-primary text-base font-semibold select-none">
               {t('split-tunneling.apps')} ({apps.length})
             </p>
 
             {/* App list with alphabetical sidebar */}
             <div className="flex items-stretch gap-0">
               {/* App list */}
-              <div className="flex-1 min-w-0 rounded-lg overflow-hidden">
+              <div className="min-w-0 flex-1 overflow-hidden rounded-lg">
                 {letters.map((letter) => (
                   <div
                     key={letter}
@@ -213,8 +213,8 @@ function SplitTunneling() {
                     }}
                   >
                     {/* Section divider */}
-                    <div className="px-4 py-1 bg-mercury/40 dark:bg-mine-shaft/60">
-                      <span className="text-xs text-text-secondary select-none">
+                    <div className="bg-mercury/40 dark:bg-mine-shaft/60 px-4 py-1">
+                      <span className="text-text-secondary text-xs select-none">
                         {letter}
                       </span>
                     </div>
@@ -229,7 +229,7 @@ function SplitTunneling() {
                           onLaunch={handleLaunch}
                         />
                         {i < groupedApps[letter].length - 1 && (
-                          <div className="mx-4 h-px bg-mercury/60 dark:bg-white/5" />
+                          <div className="bg-mercury/60 mx-4 h-px dark:bg-white/5" />
                         )}
                       </div>
                     ))}
@@ -238,12 +238,12 @@ function SplitTunneling() {
               </div>
 
               {/* Alphabetical sidebar */}
-              <div className="sticky top-0 gap-1.5 self-start flex flex-col items-center justify-between w-5 ml-3.5">
+              <div className="sticky top-0 ml-3.5 flex w-5 flex-col items-center justify-between gap-1.5 self-start">
                 {letters.map((letter) => (
                   <button
                     key={letter}
                     className={clsx(
-                      'text-xs h-4 w-full text-center cursor-default select-none',
+                      'h-4 w-full cursor-default text-center text-xs select-none',
                       'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
                       'transition-noborder',
                     )}
@@ -263,7 +263,7 @@ function SplitTunneling() {
 
 function SplitTunnelingAnimWrapper() {
   return (
-    <PageAnim className="flex flex-col mt-2 gap-4 h-full">
+    <PageAnim className="mt-2 flex h-full flex-col gap-4">
       <SplitTunneling />
     </PageAnim>
   );

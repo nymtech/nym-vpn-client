@@ -49,18 +49,18 @@ function WelcomeScreenContainer() {
     <InteractiveCard className="min-h-96">
       {/* Static header — never animates on navigation */}
       <div className="mb-12">
-        <div className="flex items-center justify-center relative h-[27px]">
+        <div className="relative flex h-[27px] items-center justify-center">
           {backAction && (
             <ButtonIconNew
               initialAnimation={true}
               icon="arrow_back"
               onClick={() => navigate(backAction.target, -1)}
-              className="absolute left-0 text-bombay hover:text-baltic-sea dark:hover:text-white transition-noborder cursor-default"
+              className="text-bombay hover:text-baltic-sea transition-noborder absolute left-0 cursor-default dark:hover:text-white"
             />
           )}
           <NymVpnTextLogo
             className={clsx(
-              'w-[100px] h-[27px]',
+              'h-[27px] w-[100px]',
               uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
             )}
           />
@@ -73,7 +73,7 @@ function WelcomeScreenContainer() {
       </div>
 
       {/* Animated content area */}
-      <div className="overflow-hidden flex-1">
+      <div className="flex-1 overflow-hidden">
         <AnimatePresence mode="wait" custom={dir}>
           <motion.div
             key={view}

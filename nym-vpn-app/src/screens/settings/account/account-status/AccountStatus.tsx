@@ -25,10 +25,10 @@ export function AccountStatus() {
   return (
     <>
       <CardNew>
-        <CardNewHeader className="border-b border-bombay/30 dark:border-ash">
+        <CardNewHeader className="border-bombay/30 dark:border-ash border-b">
           <div className="flex flex-row items-center gap-2">
             <MsIcon icon="speed" className="text-text-secondary" />
-            <p className="text-left truncate text-base text-text-primary select-none">
+            <p className="text-text-primary truncate text-left text-base select-none">
               {t('account-status.title')}
             </p>
           </div>

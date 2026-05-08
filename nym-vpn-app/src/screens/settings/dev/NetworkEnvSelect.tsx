@@ -36,7 +36,7 @@ function NetworkEnvSelect({ current }: Props) {
   return (
     <div className="mt-2" data-testid="network-env-select-container">
       <h3
-        className="text-lg text-text-primary font-medium"
+        className="text-text-primary text-lg font-medium"
         data-testid="network-env-title"
       >
         Network env
@@ -58,7 +58,7 @@ function NetworkEnvSelect({ current }: Props) {
         <Select
           className={clsx(
             'mt-3 block w-full appearance-none rounded-lg border-none',
-            'bg-black/5 dark:bg-white/5 py-1.5 px-3 text-sm/6 text-black dark:text-white',
+            'bg-black/5 px-3 py-1.5 text-sm/6 text-black dark:bg-white/5 dark:text-white',
             'focus:outline-hidden data-focus:outline-2 data-focus:-outline-offset-2',
             'data-focus:outline-black/25 dark:data-focus:outline-white/25',
             // Make the text of each option black on Windows
@@ -82,7 +82,7 @@ function NetworkEnvSelect({ current }: Props) {
         </Select>
         <MsIcon
           icon="keyboard_arrow_down"
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-black/50 dark:text-white/60"
+          className="absolute top-1/2 right-2 -translate-y-1/2 transform text-black/50 dark:text-white/60"
           data-testid="network-env-select-arrow"
         />
       </div>
@@ -93,7 +93,7 @@ function NetworkEnvSelect({ current }: Props) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.15, ease: 'easeInOut' }}
           className={clsx([
-            'text-aphrodisiac overflow-y-scroll max-h-16 mt-3 break-words',
+            'text-aphrodisiac mt-3 max-h-16 overflow-y-scroll break-words',
             'select-none',
           ])}
           data-testid="network-env-error"

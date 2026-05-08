@@ -36,14 +36,14 @@ export const useNodeListStateStore = create<NodeListStore>((set, get) => ({
 
   addToExpanded: (hop, value) => {
     if (get()[hop].expanded.includes(value)) return;
-    set((s) => ({ [hop]: { ...s[hop], expanded: [...s[hop].expanded, value] } }));
+    set((s) => ({
+      [hop]: { ...s[hop], expanded: [...s[hop].expanded, value] },
+    }));
   },
 
-  setFocused: (hop, focused) =>
-    set((s) => ({ [hop]: { ...s[hop], focused } })),
+  setFocused: (hop, focused) => set((s) => ({ [hop]: { ...s[hop], focused } })),
 
-  setSearch: (hop, search) =>
-    set((s) => ({ [hop]: { ...s[hop], search } })),
+  setSearch: (hop, search) => set((s) => ({ [hop]: { ...s[hop], search } })),
 
   reset: (hop) => {
     if (hop === 'all') {

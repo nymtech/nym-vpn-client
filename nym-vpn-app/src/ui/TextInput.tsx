@@ -56,7 +56,7 @@ function TextInput({
   };
 
   return (
-    <Field className={clsx(['w-full flex flex-row items-center relative'])}>
+    <Field className={clsx(['relative flex w-full flex-row items-center'])}>
       <Input
         id="passphrase"
         name="passphrase"
@@ -66,8 +66,8 @@ function TextInput({
         value={value}
         aria-multiline={true}
         className={clsx([
-          'text-base transition relative',
-          'w-full flex flex-row justify-between items-center py-3 px-4',
+          'relative text-base transition',
+          'flex w-full flex-row items-center justify-between px-4 py-3',
           !disabled && 'text-text-primary',
           disabled && 'text-text-secondary',
           'placeholder:text-iron dark:placeholder:text-bombay',
@@ -87,14 +87,14 @@ function TextInput({
       {leftIcon && (
         <MsIcon
           icon={leftIcon}
-          className="absolute left-3 text-baltic-sea dark:text-bombay hover:cursor-text"
+          className="text-baltic-sea dark:text-bombay absolute left-3 hover:cursor-text"
         />
       )}
       {clearable && !!value && (
         <ButtonIcon
           color="chalk"
           icon="cancel"
-          className="absolute top-2.5 right-1 text-baltic-sea dark:text-bombay hover:cursor-pointer"
+          className="text-baltic-sea dark:text-bombay absolute top-2.5 right-1 hover:cursor-pointer"
           onClick={handleClear}
         />
       )}

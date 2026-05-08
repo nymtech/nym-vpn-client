@@ -75,10 +75,10 @@ function PrivyButton({ label }: { label: string }) {
     <ButtonNew
       variant="outlined"
       onClick={handlePrivy}
-      className="group border border-iron dark:border-bombay hover:ring-0! dark:hover:ring-0!"
+      className="group border-iron dark:border-bombay border hover:ring-0! dark:hover:ring-0!"
       loading={loading}
     >
-      <span className="flex items-center gap-2 whitespace-pre-wrap text-black dark:text-white group-hover:text-black/50 dark:group-hover:text-white/80">
+      <span className="flex items-center gap-2 whitespace-pre-wrap text-black group-hover:text-black/50 dark:text-white dark:group-hover:text-white/80">
         {label} <MsIcon icon="open_in_new" />
       </span>
     </ButtonNew>

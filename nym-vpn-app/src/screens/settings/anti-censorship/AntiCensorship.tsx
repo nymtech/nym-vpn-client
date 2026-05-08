@@ -57,17 +57,15 @@ function AntiCensorship() {
 
   if (!backendFlags.quic && !backendFlags.domainFronting) {
     return (
-      <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
+      <PageAnim className="mt-2 flex h-full flex-col gap-6 select-none">
         This feature is not available
       </PageAnim>
     );
   }
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6 select-none">
-      <div className="text-text-secondary">
-        {t('anti-censorship.intro')}
-      </div>
+    <PageAnim className="mt-2 flex h-full flex-col gap-6 select-none">
+      <div className="text-text-secondary">{t('anti-censorship.intro')}</div>
       {backendFlags.quic && (
         <SettingsMenuCardBig
           header={
@@ -81,11 +79,11 @@ function AntiCensorship() {
           }
         >
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-text-secondary whitespace-pre-line">
+            <p className="text-text-secondary text-sm whitespace-pre-line">
               {t('anti-censorship.quic.content')}
             </p>
             <Link
-              className="w-fit text-sm mt-2"
+              className="mt-2 w-fit text-sm"
               text={t('anti-censorship.quic.link')}
               url={QuicUrl}
               color="primary"
@@ -106,11 +104,11 @@ function AntiCensorship() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-text-secondary whitespace-pre-line">
+          <p className="text-text-secondary text-sm whitespace-pre-line">
             {t('anti-censorship.amneziawg.content')}
           </p>
           <Link
-            className="w-fit text-sm mt-2"
+            className="mt-2 w-fit text-sm"
             text={t('anti-censorship.amneziawg.link')}
             url={AmneziaWgUrl}
             color="primary"
@@ -127,11 +125,11 @@ function AntiCensorship() {
         }
       >
         <div className="flex flex-col gap-2">
-          <p className="text-sm text-text-secondary whitespace-pre-line">
+          <p className="text-text-secondary text-sm whitespace-pre-line">
             {t('anti-censorship.stealth-api.content')}
           </p>
           <Link
-            className="w-fit text-sm mt-2"
+            className="mt-2 w-fit text-sm"
             text={t('anti-censorship.stealth-api.link')}
             url={DomainFrontingUrl}
             color="primary"

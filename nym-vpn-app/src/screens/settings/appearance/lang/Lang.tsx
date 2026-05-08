@@ -32,13 +32,13 @@ function Lang() {
 
   return (
     <PageAnim
-      className="relative h-full flex flex-col"
+      className="relative flex h-full flex-col"
       data-testid="language-page"
     >
       <div
         className={clsx(
-          'sticky -top-4 left-0 right-0 w-full pt-4 mb-4',
-          'bg-linear-to-b from-faded-lavender via-faded-lavender/98 to-transparent dark:from-ash dark:via-ash/98 dark:to-transparent',
+          'sticky -top-4 right-0 left-0 mb-4 w-full pt-4',
+          'from-faded-lavender via-faded-lavender/98 dark:from-ash dark:via-ash/98 bg-linear-to-b to-transparent dark:to-transparent',
         )}
       >
         <SettingsMenuCard
@@ -51,34 +51,34 @@ function Lang() {
       </div>
 
       <ul
-        className="flex flex-col w-full items-stretch gap-1"
+        className="flex w-full flex-col items-stretch gap-1"
         data-testid="language-list"
       >
         <li
           key="system"
-          className="list-none w-full"
+          className="w-full list-none"
           data-testid="language-item-system"
         >
           <Button
             role="presentation"
             className={clsx([
-              'flex flex-row justify-between items-center w-full',
+              'flex w-full flex-row items-center justify-between',
               'hover:bg-iron/10 dark:hover:bg-bombay/10',
-              'rounded-lg px-3 py-1 transition duration-75 cursor-default',
+              'cursor-default rounded-lg px-3 py-1 transition duration-75',
             ])}
             onClick={handleSystemLang}
             data-testid="language-button-system"
             data-selected={isSystemLang}
           >
             <div
-              className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden"
+              className="m-1 flex flex-row items-center gap-3 overflow-hidden p-1"
               data-testid="language-name-system"
             >
               {t('language-system', { ns: 'settings' })}
             </div>
             <div
               className={clsx([
-                'pr-4 ml-2 flex items-center font-medium text-xs',
+                'ml-2 flex items-center pr-4 text-xs font-medium',
                 'text-text-secondary',
               ])}
               data-testid="language-selected-indicator-system"
@@ -91,29 +91,29 @@ function Lang() {
         {languages.map((lang) => (
           <li
             key={lang.code}
-            className="list-none w-full"
+            className="w-full list-none"
             data-testid={`language-item-${lang.code}`}
           >
             <Button
               role="presentation"
               className={clsx([
-                'flex flex-row justify-between items-center w-full',
+                'flex w-full flex-row items-center justify-between',
                 'hover:bg-iron/10 dark:hover:bg-bombay/10',
-                'rounded-lg px-3 py-1 transition duration-75 cursor-default',
+                'cursor-default rounded-lg px-3 py-1 transition duration-75',
               ])}
               onClick={() => handleLangSelect(lang.code)}
               data-testid={`language-button-${lang.code}`}
               data-selected={!isSystemLang && i18n.language === lang.code}
             >
               <div
-                className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden"
+                className="m-1 flex flex-row items-center gap-3 overflow-hidden p-1"
                 data-testid={`language-name-${lang.code}`}
               >
                 {lang.name}
               </div>
               <div
                 className={clsx([
-                  'pr-4 ml-2 flex items-center font-medium text-xs',
+                  'ml-2 flex items-center pr-4 text-xs font-medium',
                   'text-text-secondary',
                 ])}
                 data-testid={`language-selected-indicator-${lang.code}`}

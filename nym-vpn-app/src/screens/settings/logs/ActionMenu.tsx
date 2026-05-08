@@ -40,7 +40,7 @@ function MenuItem({
     <Menu.Item
       onClick={onClick}
       className={clsx(
-        'flex items-center gap-2 px-3 py-2 cursor-default select-none text-sm',
+        'flex cursor-default items-center gap-2 px-3 py-2 text-sm select-none',
         'hover:bg-black/5 first:hover:rounded-t-sm last:hover:rounded-b-sm',
         uiTheme === 'light' && 'text-baltic-sea',
         uiTheme === 'dark' && 'text-white',
@@ -146,7 +146,7 @@ function ActionMenu() {
       <Menu.Root>
         <Menu.Trigger
           className={clsx(
-            'flex items-center justify-center rounded-md mx-4',
+            'mx-4 flex items-center justify-center rounded-md',
             'focus-visible:outline focus-visible:-outline-offset-1',
             'hover:text-baltic-sea/70 dark:hover:text-white/80',
           )}
@@ -154,14 +154,14 @@ function ActionMenu() {
           <MsIcon icon="more_vert" />
         </Menu.Trigger>
         <Menu.Portal>
-          <Menu.Positioner className="outline-none z-50" sideOffset={8}>
+          <Menu.Positioner className="z-50 outline-none" sideOffset={8}>
             <Menu.Popup
               className={clsx(
                 'origin-(--transform-origin) rounded-md text-gray-900 shadow-lg shadow-gray-200 outline transition-[transform,scale,opacity] data-ending-style:scale-90 data-ending-style:opacity-0 data-starting-style:scale-90 data-starting-style:opacity-0',
                 uiTheme === 'dark' &&
-                  'bg-charcoal shadow-none -outline-offset-1  text-white outline-iron',
+                  'bg-charcoal outline-iron text-white shadow-none -outline-offset-1',
                 uiTheme === 'light' &&
-                  'bg-white text-iron outline-faded-lavender',
+                  'text-iron outline-faded-lavender bg-white',
               )}
             >
               <MenuItem

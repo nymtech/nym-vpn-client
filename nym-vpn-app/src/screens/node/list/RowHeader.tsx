@@ -53,11 +53,9 @@ function RowHeader({
       ref={scrollToRowRef}
       className={clsx(
         'flex flex-row items-center justify-between rounded-r-2xl',
+        !sub ? 'dark:bg-charcoal bg-white' : 'bg-gainsboro dark:bg-charcoal/60',
         !sub
-          ? ' bg-white dark:bg-charcoal'
-          : 'bg-gainsboro dark:bg-charcoal/60',
-        !sub
-          ? 'hover:bg-white/60 dark:hover:bg-charcoal/85'
+          ? 'dark:hover:bg-charcoal/85 hover:bg-white/60'
           : 'hover:bg-nordic-breeze hover:dark:bg-charcoal/75',
       )}
     >
@@ -71,7 +69,7 @@ function RowHeader({
         data-selected={isSelected ? isSelected : 'none'}
       />
       <div
-        className={clsx('grow overflow-hidden truncate py-2')}
+        className={clsx('grow truncate overflow-hidden py-2')}
         onClick={() => onClick(node)}
       >
         {node.nodeType === 'country' ? (

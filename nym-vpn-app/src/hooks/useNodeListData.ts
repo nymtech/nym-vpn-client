@@ -123,7 +123,8 @@ function buildNodeList(
         gateways,
         type: gwByCountry.type,
         isSelected: country.isSelected,
-        i18n: getCountryName(gwByCountry.country.code) || gwByCountry.country.name,
+        i18n:
+          getCountryName(gwByCountry.country.code) || gwByCountry.country.name,
       });
       return acc;
     }, [])

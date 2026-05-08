@@ -16,7 +16,7 @@ function MsIcon({ icon, filled = false, className, ...rest }: MsIconProps) {
   return (
     <span
       className={clsx([
-        'font-icon text-2xl select-none inline-block rtl:-scale-x-100',
+        'font-icon inline-block text-2xl select-none rtl:-scale-x-100',
         className && className,
       ])}
       style={filled ? { fontVariationSettings: "'FILL' 1" } : undefined}

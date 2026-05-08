@@ -75,7 +75,7 @@ export function RenewButton({
     <CardNewFooter className="p-0!">
       <Button
         className={clsx(
-          'flex flex-row items-center justify-between w-full py-3 px-5 rounded-b-lg',
+          'flex w-full flex-row items-center justify-between rounded-b-lg px-5 py-3',
           getStatusColor(),
         )}
         onClick={handleRenew}

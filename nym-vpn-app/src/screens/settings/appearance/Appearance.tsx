@@ -8,7 +8,7 @@ function Appearance() {
   const { t } = useTranslation('settings');
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6">
+    <PageAnim className="mt-2 flex h-full flex-col gap-6">
       <SettingsMenuCard
         title={t('language', { ns: 'common' })}
         onClick={() => navigate(routes.lang)}

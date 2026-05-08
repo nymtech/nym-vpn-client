@@ -140,7 +140,7 @@ function Account() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 pb-2 gap-6 select-none">
+    <PageAnim className="mt-2 flex h-full flex-col gap-6 pb-2 select-none">
       {needAPlan && (
         <Button
           onClick={() => navigate(routes.selectPlan)}
@@ -166,8 +166,8 @@ function Account() {
       />
 
       <div className="flex flex-row items-center gap-2">
-        <div className="h-4 w-4 bg-warning rounded-full"></div>
-        <span className="text-sm text-text-secondary">
+        <div className="bg-warning h-4 w-4 rounded-full"></div>
+        <span className="text-text-secondary text-sm">
           {accountSummary?.isLinked ? (
             t('account.account-linked')
           ) : (
@@ -177,7 +177,7 @@ function Account() {
               components={{
                 button: (
                   <button
-                    className="underline hover:text-shadow-baltic-sea dark:hover:text-white"
+                    className="hover:text-shadow-baltic-sea underline dark:hover:text-white"
                     onClick={handleAccountLink}
                   />
                 ),
@@ -192,7 +192,7 @@ function Account() {
         <CardNewHeader>
           <div className="flex flex-row items-center gap-2">
             <MsIcon icon="numbers" className="text-text-secondary" />
-            <p className="text-left truncate text-base text-text-primary select-none">
+            <p className="text-text-primary truncate text-left text-base select-none">
               {t('account.account-id')}
             </p>
           </div>
@@ -207,7 +207,7 @@ function Account() {
         </CardNewBody>
       </CardNew>
 
-      <p className="text-sm text-text-secondary">
+      <p className="text-text-secondary text-sm">
         {t('account.account-id-description')}
       </p>
 
@@ -215,7 +215,7 @@ function Account() {
         <CardNewHeader>
           <div className="flex flex-row items-center gap-2">
             <MsIcon icon="monitor" className="text-text-secondary" />
-            <p className="text-left truncate text-base text-text-primary select-none">
+            <p className="text-text-primary truncate text-left text-base select-none">
               {t('account.device-id')}
             </p>
           </div>
@@ -229,7 +229,7 @@ function Account() {
         </CardNewBody>
       </CardNew>
 
-      <p className="text-sm text-text-secondary">
+      <p className="text-text-secondary text-sm">
         {t('account.device-id-description')}
       </p>
 

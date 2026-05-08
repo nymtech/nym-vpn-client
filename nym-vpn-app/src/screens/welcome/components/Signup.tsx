@@ -46,21 +46,21 @@ export function Signup() {
   };
 
   return (
-    <div className="flex flex-col items-center gap-6 h-full justify-between">
+    <div className="flex h-full flex-col items-center justify-between gap-6">
       <div className="flex flex-col items-center gap-2">
-        <h1 className="text-2xl font-medium tracking-tight text-text-primary">
+        <h1 className="text-text-primary text-2xl font-medium tracking-tight">
           {t('signup.title')}
         </h1>
-        <p className="text-sm text-bombay text-center w-[281px]">
+        <p className="text-bombay w-[281px] text-center text-sm">
           {t('signup.description')}
         </p>
       </div>
-      <div className="flex flex-col gap-3 w-full">
+      <div className="flex w-full flex-col gap-3">
         <ButtonNew onClick={handleCreateAccount}>
           {t('signup.signup-anonymous-button')}
         </ButtonNew>
         <PrivyButton label={t('signup.signup-social-button')} />
-        <p className="text-xs text-bombay text-center leading-5">
+        <p className="text-bombay text-center text-xs leading-5">
           {t('signup.disclaimer')}
         </p>
       </div>

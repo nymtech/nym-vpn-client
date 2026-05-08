@@ -216,7 +216,7 @@ export function TunnelState() {
   };
 
   return (
-    <div className="inline-flex flex-col items-center gap-2 rounded-lg p-3.5 h-full justify-center">
+    <div className="inline-flex h-full flex-col items-center justify-center gap-2 rounded-lg p-3.5">
       {/* Ring area */}
       <div style={{ position: 'relative', width: SIZE, height: SIZE }}>
         {/* SVG rings: rotated so arc starts at top (12 o'clock) */}
@@ -342,7 +342,7 @@ export function TunnelState() {
           )}
         </AnimatePresence>
         {phase === 'error' && (
-          <div className="text-[9px] text-error text-center">{getError()}</div>
+          <div className="text-error text-center text-[9px]">{getError()}</div>
         )}
       </div>
     </div>

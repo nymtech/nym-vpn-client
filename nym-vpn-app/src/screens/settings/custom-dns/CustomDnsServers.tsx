@@ -105,7 +105,7 @@ export function CustomDnsServers({
       {customDnsList.length < MAX_DNS_SERVERS && (
         <div className="flex flex-col gap-2">
           <div className="flex flex-row gap-2">
-            <div className="flex-1 h-full">
+            <div className="h-full flex-1">
               <TextInput
                 placeholder={t('dns.details.input-placeholder')}
                 onChange={handleTextInputChange}
@@ -124,7 +124,7 @@ export function CustomDnsServers({
             </div>
           </div>
           {errorMessage && (
-            <p className="text-xs text-aphrodisiac">{errorMessage}</p>
+            <p className="text-aphrodisiac text-xs">{errorMessage}</p>
           )}
         </div>
       )}

@@ -15,7 +15,7 @@ function ProxyUrl({ value, title, borderBottom = true }: ProxyUrlProps) {
     <div
       className={clsx(
         'flex flex-col',
-        borderBottom && 'border-b border-bombay dark:border-iron py-2',
+        borderBottom && 'border-bombay dark:border-iron border-b py-2',
       )}
     >
       <p className="text-xs">{title}</p>

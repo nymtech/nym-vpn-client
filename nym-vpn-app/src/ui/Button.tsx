@@ -95,13 +95,13 @@ function Button({
   return (
     <HuButton
       className={clsx([
-        'flex justify-center items-center w-full',
-        'rounded-lg font-medium py-3 px-6',
+        'flex w-full items-center justify-center',
+        'rounded-lg px-6 py-3 font-medium',
         getTextSizeStyle(),
         outline ? getOutlineTextColor() : 'text-baltic-sea',
         'focus:outline-hidden',
-        'transition data-disabled:opacity-60 data-active:ring-0',
-        'tracking-normal cursor-default',
+        'transition data-active:ring-0 data-disabled:opacity-60',
+        'cursor-default tracking-normal',
         colorStyle,
         className && className,
       ])}
