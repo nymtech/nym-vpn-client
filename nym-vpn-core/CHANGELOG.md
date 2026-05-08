@@ -12,23 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add TCP listener for local DNS resolver (https://github.com/nymtech/nym-vpn-client/pull/5113)
 - Add SOCKS5 Proxy process to implement Airporting (https://github.com/nymtech/nym-vpn-client/pull/5078)
 - Disable client verifications on daemon flag for debug purposes (https://github.com/nymtech/nym-vpn-client/pull/5148)
-- [Linux] Ship the polkit action policy `com.nymvpn.vpnd.unix-access.policy` as a packaging asset (deb, AUR, raw install script) under `/usr/share/polkit-1/actions/` so the daemon no longer relies on a runtime write to a path that may be read-only on immutable distros.
 
 ### Changed
 
 - [macOS] Use endpoint-security framework directly instead of parsing eslogger output (https://github.com/nymtech/nym-vpn-client/pull/4749)
-- [Linux] Promote the IPC auth-denied log line in `nym-ipc` from `debug` to `warn` so the reason for a failed daemon connection appears in the default log level.
 
 ### Fixed
 
 - Unify `VpnAccountSummary` timestamp parsing through a single `parse_timestamp` helper that warns on malformed input. Only `fair_usage.resetsOnUtc` soft-fails to `None`; subscription and auth-method timestamps now propagate `PayloadError` so a bad payload fails loudly instead of silently flipping subscriptions to inactive (root cause of NYM-1156 "Requesting ZkNyms" / "Get Started" hangs on v2.22.0 iOS).
 - [iOS/macOS] Stop swallowing errors from `fetchAccountSummary` with `try?`; log a sanitized line (error type only, no raw payload string) and set `accountSummaryLastFetchFailed` so the UI can observe failure without parsing device logs.
-- [Linux] `nym-vpnd` polkit action install no longer fails silently on read-only `/usr` filesystems (Fedora Silverblue, MicroOS, NixOS, etc.). The daemon now falls back to `/etc/polkit-1/actions/` when `/usr/share/polkit-1/actions/` is unwritable, with full per-attempt tracing of the install path so failures are diagnosable from `/var/log/nym-vpnd/nym-vpnd.log`.
 
 
 ### Fixed
 
 - [Linux] Add Polkit as deb and arch dependency (https://github.com/nymtech/nym-vpn-client/pull/5143)
+- [Linux] Ship the polkit action policy via packaging and fallback with installation at runtime (https://github.com/nymtech/nym-vpn-client/pull/5161)
 
 
 ## [1.28.0] - 2026-04-14
