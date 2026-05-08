@@ -38,6 +38,10 @@ impl DisconnectedState {
         HickoryDnsResolver::shared().clear_preresolve();
 
         shared_state.allow_networking().await;
+        shared_state
+            .gateway_provider
+            .set_active_geo_location(true)
+            .await;
 
         // Notify the SOCKS5 proxy subprocess that the VPN tunnel is down
         #[cfg(not(target_os = "ios"))]
@@ -89,11 +93,11 @@ impl TunnelStateHandler for DisconnectedState {
                             shared_state.set_tunnel_settings(tunnel_settings).await;
 
                             #[cfg(any(target_os = "macos", target_os = "windows"))]
-                            if diff.split_tunnel_changed() || diff.airporting_enabled_changed() {
+                            if diff.split_tunnel_changed() || diff.geo_exclusion_enabled_changed() {
                                 let _ = shared_state.set_split_tunnel_exclude_paths().await;
                             }
 
-                            if diff.airporting_enabled_changed() {
+                            if diff.geo_exclusion_enabled_changed() {
                                 shared_state.start_or_stop_socks5_proxy().await;
                             }
                         }

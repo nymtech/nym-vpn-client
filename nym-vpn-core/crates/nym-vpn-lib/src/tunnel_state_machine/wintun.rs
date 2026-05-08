@@ -30,9 +30,6 @@ pub enum SetupWintunAdapterError {
     #[error("failed to set ip interface entry")]
     SetIpInterfaceEntry(#[source] windows::core::Error),
 
-    #[error("failed to obtain interface luid from alias")]
-    GetInterfaceLuidFromAlias(#[source] std::io::Error),
-
     #[error("failed to wait for ip interfaces to attach on network interface")]
     WaitForInterfaces(#[source] std::io::Error),
 
@@ -126,12 +123,6 @@ pub fn initialize_interfaces(
     }
 
     Ok(())
-}
-
-/// Returns interface LUID for alias upon success, otherwise error.
-pub fn get_interface_luid_for_alias(interface_alias: &str) -> Result<NET_LUID_LH> {
-    wnet::luid_from_alias(interface_alias)
-        .map_err(SetupWintunAdapterError::GetInterfaceLuidFromAlias)
 }
 
 /// Waits until the specified IP interfaces have attached to a given network interface.

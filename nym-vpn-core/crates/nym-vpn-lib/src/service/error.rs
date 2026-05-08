@@ -71,7 +71,7 @@ pub enum GlobalConfigError {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum AirportingConfigError {
+pub enum GeoExclusionConfigError {
     #[error("unsupported country code '{0}': only 'CN' is currently supported")]
     UnsupportedCountry(String),
 

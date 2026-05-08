@@ -208,6 +208,8 @@ impl RouteManagerImpl {
                     nym_common::detect_flood!();
 
                     if self.check_default_routes_restored.is_terminated() {
+                        tracing::warn!("Exhausted all attempts to restore unscoped routes");
+                        self.check_default_routes_restored = Box::pin(futures::stream::pending());
                         continue;
                     }
 

@@ -29,7 +29,11 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tun::AbstractDevice;
+#[cfg(windows)]
+use tun::AbstractDeviceExt;
 use tun::AsyncDevice;
+#[cfg(windows)]
+use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 use nym_common::{ErrorExt, trace_err_chain};
@@ -218,6 +222,8 @@ pub struct TunnelParameters {
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
     pub user_agent: UserAgent,
+    #[cfg(target_os = "ios")]
+    pub filtering_resolver_addr: SocketAddr,
 }
 
 pub struct TunnelMonitor {
@@ -459,7 +465,7 @@ impl TunnelMonitor {
         let rcb_config_builder = RegistrationClientBuilderConfig::builder()
             .entry_node(entry_node)
             .exit_node(exit_node)
-            .data_path(self.tunnel_parameters.nym_config.data_path.clone())
+            .data_path(Some(self.tunnel_parameters.nym_config.data_path.clone()))
             .mixnet_client_config(mixnet_client_config)
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)
@@ -858,13 +864,10 @@ impl TunnelMonitor {
                     assigned_addresses.interface_addresses.ipv6,
                 )));
             }
+
+            let dns_servers = self.get_mobile_dns_addresses();
             let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
-                dns_servers: self
-                    .tunnel_parameters
-                    .tunnel_settings
-                    .dns
-                    .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-                    .to_vec(),
+                dns_servers,
                 interface_addresses,
                 remote_addresses: vec![assigned_addresses.entry_mixnet_gateway_ip],
                 mtu,
@@ -1565,14 +1568,10 @@ impl TunnelMonitor {
         }
 
         let entry_endpoint = conn_data.effective_remote_entry_endpoint().ip();
+        let dns_servers = self.get_mobile_dns_addresses();
 
         let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
-            dns_servers: self
-                .tunnel_parameters
-                .tunnel_settings
-                .dns
-                .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-                .to_vec(),
+            dns_servers,
             interface_addresses,
             remote_addresses: vec![entry_endpoint],
             mtu,
@@ -1600,13 +1599,7 @@ impl TunnelMonitor {
             exit: WireguardNode::from(&conn_data.exit),
         });
 
-        let dns_servers = self
-            .tunnel_parameters
-            .tunnel_settings
-            .dns
-            .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-            .to_vec();
-
+        let dns_servers = self.get_mobile_dns_addresses();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             metadata_proxy_tx: entry_metadata_tx,
             exit_tun: tun_device,
@@ -1632,6 +1625,24 @@ impl TunnelMonitor {
         })
     }
 
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    fn get_mobile_dns_addresses(&self) -> Vec<IpAddr> {
+        #[cfg(target_os = "ios")]
+        {
+            // Use local filtering resolver if ad blocking is enabled
+            // todo: set custom DNS for forwarding in local resolver
+            if self.tunnel_parameters.tunnel_settings.enable_ad_blocking {
+                return vec![self.tunnel_parameters.filtering_resolver_addr.ip()];
+            }
+        }
+
+        self.tunnel_parameters
+            .tunnel_settings
+            .dns
+            .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
+            .to_vec()
+    }
+
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     async fn set_routes(&mut self, routing_config: RoutingConfig, enable_ipv6: bool) -> Result<()> {
         self.route_handler
@@ -1655,7 +1666,11 @@ impl TunnelMonitor {
             #[cfg(windows)]
             tun_config.tun_name(MIXNET_WINTUN_NAME);
 
-            tun_config.address(interface_ipv4).mtu(mtu).up();
+            tun_config
+                .address(interface_ipv4)
+                .netmask(Ipv4Addr::BROADCAST)
+                .mtu(mtu)
+                .up();
 
             #[cfg(target_os = "macos")]
             tun_config.platform_config(|platform_config| {
@@ -1665,20 +1680,21 @@ impl TunnelMonitor {
             tun::create_as_async(&tun_config).map_err(Error::CreateTunDevice)?
         };
 
-        let tun_name = tun_device
-            .deref()
-            .tun_name()
-            .map_err(Error::GetTunDeviceName)?;
-
         #[cfg(any(target_os = "linux", target_os = "macos"))]
         if let Some(interface_ipv6) = interface_ipv6 {
+            let tun_name = tun_device
+                .deref()
+                .tun_name()
+                .map_err(Error::GetTunDeviceName)?;
             tun_ipv6::set_ipv6_addr(&tun_name, interface_ipv6)
                 .map_err(Error::SetTunDeviceIpv6Addr)?;
         }
 
         #[cfg(windows)]
         {
-            let interface_luid = wintun::get_interface_luid_for_alias(&tun_name)?;
+            let interface_luid = NET_LUID_LH {
+                Value: tun_device.tun_luid(),
+            };
 
             if let Some(interface_ipv6) = interface_ipv6 {
                 wintun::add_ipv6_address(interface_luid, interface_ipv6)?;

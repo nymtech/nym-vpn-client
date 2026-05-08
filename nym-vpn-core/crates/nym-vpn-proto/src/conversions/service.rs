@@ -44,10 +44,12 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .map(nym_vpn_lib_types::SplitTunnelSettings::from)
             .ok_or(ConversionError::NoValueSet("VpnServiceConfig.split_tunnel"))?;
 
-        let airporting = value
-            .airporting
-            .map(nym_vpn_lib_types::AirportingSettings::from)
-            .ok_or(ConversionError::NoValueSet("VpnServiceConfig.airporting"))?;
+        let geo_exclusion = value
+            .geo_exclusion
+            .map(nym_vpn_lib_types::GeoExclusionSettings::from)
+            .ok_or(ConversionError::NoValueSet(
+                "VpnServiceConfig.geo_exclusion",
+            ))?;
 
         let gateway_selection_algorithm_config = value
             .gateway_selection_algorithm
@@ -55,6 +57,9 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             .ok_or(ConversionError::NoValueSet(
                 "VpnServiceConfig.gateway_selection_algorithm",
             ))??;
+        let fronting_mode = proto::FrontingModes::try_from(value.fronting_mode)
+            .map_err(|e| ConversionError::Decode("fronting_mode", e))?
+            .into();
 
         let config = nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -65,6 +70,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
+            fronting_mode,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u8),
             residential_exit: value.residential_exit,
@@ -73,7 +79,7 @@ impl TryFrom<proto::VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             mixnet_traffic,
             network_stats,
             split_tunnel,
-            airporting,
+            geo_exclusion,
             gateway_selection_algorithm_config,
         };
         Ok(config)
@@ -88,7 +94,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
         let mixnet_traffic = Some(proto::MixnetTrafficConfig::from(value.mixnet_traffic));
         let network_stats = Some(proto::NetworkStatsConfig::from(value.network_stats));
         let split_tunnel = Some(proto::SplitTunnelSettings::from(value.split_tunnel));
-        let airporting = Some(proto::AirportingSettings::from(value.airporting));
+        let geo_exclusion = Some(proto::GeoExclusionSettings::from(value.geo_exclusion));
         let gateway_selection_algorithm =
             proto::GatewaySelectionAlgorithmConfig::from(value.gateway_selection_algorithm_config)
                 .into();
@@ -102,6 +108,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
+            fronting_mode: proto::FrontingModes::from(value.fronting_mode).into(),
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance.map(|u| u as u32),
             residential_exit: value.residential_exit,
@@ -110,7 +117,7 @@ impl From<nym_vpn_lib_types::VpnServiceConfig> for proto::VpnServiceConfig {
             mixnet_traffic,
             network_stats,
             split_tunnel,
-            airporting,
+            geo_exclusion,
             gateway_selection_algorithm,
         }
     }
@@ -130,9 +137,9 @@ impl From<proto::MixnetTrafficConfig> for nym_vpn_lib_types::MixnetTrafficConfig
     }
 }
 
-impl From<proto::AirportingSettings> for nym_vpn_lib_types::AirportingSettings {
-    fn from(value: proto::AirportingSettings) -> Self {
-        nym_vpn_lib_types::AirportingSettings {
+impl From<proto::GeoExclusionSettings> for nym_vpn_lib_types::GeoExclusionSettings {
+    fn from(value: proto::GeoExclusionSettings) -> Self {
+        nym_vpn_lib_types::GeoExclusionSettings {
             enabled: value.enabled,
             listen_port: value.listen_port as u16,
             excluded_countries: value.excluded_countries,
@@ -140,9 +147,9 @@ impl From<proto::AirportingSettings> for nym_vpn_lib_types::AirportingSettings {
     }
 }
 
-impl From<nym_vpn_lib_types::AirportingSettings> for proto::AirportingSettings {
-    fn from(value: nym_vpn_lib_types::AirportingSettings) -> Self {
-        proto::AirportingSettings {
+impl From<nym_vpn_lib_types::GeoExclusionSettings> for proto::GeoExclusionSettings {
+    fn from(value: nym_vpn_lib_types::GeoExclusionSettings) -> Self {
+        proto::GeoExclusionSettings {
             enabled: value.enabled,
             listen_port: value.listen_port as u32,
             excluded_countries: value.excluded_countries,
@@ -160,6 +167,26 @@ impl From<nym_vpn_lib_types::MixnetTrafficConfig> for proto::MixnetTrafficConfig
             disable_background_cover_traffic: value.disable_background_cover_traffic,
             min_mixnode_performance: value.min_mixnode_performance.map(|u| u as u32),
             min_gateway_mixnet_performance: value.min_gateway_mixnet_performance.map(|u| u as u32),
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::FrontingMode> for proto::FrontingModes {
+    fn from(value: nym_vpn_lib_types::FrontingMode) -> Self {
+        match value {
+            nym_vpn_lib_types::FrontingMode::Off => proto::FrontingModes::Off,
+            nym_vpn_lib_types::FrontingMode::OnRetry => proto::FrontingModes::OnRetry,
+            nym_vpn_lib_types::FrontingMode::Always => proto::FrontingModes::Always,
+        }
+    }
+}
+
+impl From<proto::FrontingModes> for nym_vpn_lib_types::FrontingMode {
+    fn from(val: proto::FrontingModes) -> Self {
+        match val {
+            proto::FrontingModes::Off => nym_vpn_lib_types::FrontingMode::Off,
+            proto::FrontingModes::OnRetry => nym_vpn_lib_types::FrontingMode::OnRetry,
+            proto::FrontingModes::Always => nym_vpn_lib_types::FrontingMode::Always,
         }
     }
 }

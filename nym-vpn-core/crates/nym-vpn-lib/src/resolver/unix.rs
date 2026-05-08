@@ -135,7 +135,8 @@ impl LoopbackAlias for RandomLoopbackAlias {
     }
 }
 
-pub(crate) fn flush_system_cache() {
+#[cfg(any(target_os = "macos", target_os = "linux"))]
+pub async fn flush_system_cache() {
     #[cfg(target_os = "macos")]
     {
         if let Err(error) = kill_mdnsresponder() {
@@ -145,12 +146,14 @@ pub(crate) fn flush_system_cache() {
 
     #[cfg(target_os = "linux")]
     {
-        let _ = std::process::Command::new("resolvectl")
+        let _ = tokio::process::Command::new("resolvectl")
             .arg("flush-caches")
-            .output();
-        let _ = std::process::Command::new("systemd-resolve")
+            .output()
+            .await;
+        let _ = tokio::process::Command::new("systemd-resolve")
             .arg("--flush-caches")
-            .output();
+            .output()
+            .await;
     }
 }
 

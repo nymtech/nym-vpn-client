@@ -1,6 +1,6 @@
 ## Ticket
 
-JIRA-VPN-XXXX
+JIRA-NYM-XXXX
 
 ## Description
 

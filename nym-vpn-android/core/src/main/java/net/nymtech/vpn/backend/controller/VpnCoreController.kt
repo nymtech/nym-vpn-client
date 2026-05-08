@@ -28,6 +28,7 @@ import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewaySelectionAlgorithmConfig
+import nym_vpn_lib_types.FrontingMode
 import nym_vpn_lib_types.MixnetTrafficConfig
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.UserAgent
@@ -341,6 +342,7 @@ class VpnCoreController(
 			exitRouter = ExitPoint.Random,
 			enableTwoHop = false,
 			enableBridges = false,
+			frontingMode = FrontingMode.ON_RETRY,
 			enableLewesProtocol = enableLewesProtocol,
 			customDns = emptyList(),
 			residentialExit = false,
@@ -350,7 +352,7 @@ class VpnCoreController(
 			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,
-			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false, GatewaySelectionAlgorithm.AUTO),
+			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false, GatewaySelectionAlgorithm.EXPLICIT),
 		)
 
 		val svc = NymVpnService.newService(initialConfig, env, service)

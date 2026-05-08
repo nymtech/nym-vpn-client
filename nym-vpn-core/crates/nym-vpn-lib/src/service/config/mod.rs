@@ -1,10 +1,11 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-mod airporting_settings;
+mod circumvention;
 mod config_manager;
 mod entry_exit;
 mod gateway_selection_algorithm;
+mod geo_exclusion_settings;
 mod legacy;
 mod mixnet_traffic;
 mod network_stats;
@@ -35,9 +36,10 @@ use tokio::{
 };
 
 use crate::service::config::{
-    airporting_settings::v9::AirportingSettings,
+    circumvention::v9::FrontingMode,
     entry_exit::v2::{EntryPoint, ExitPoint},
     gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
+    geo_exclusion_settings::v9::GeoExclusionSettings,
     mixnet_traffic::v5::MixnetTrafficConfig,
     network_stats::v1::NetworkStatisticsConfig,
     split_tunnel_settings::v8::SplitTunnelSettings,
@@ -197,10 +199,12 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
         let network_stats = NetworkStatisticsConfig::from(&value.network_stats);
 
         let split_tunnel = SplitTunnelSettings::from(&value.split_tunnel);
-        let airporting = AirportingSettings::from(&value.airporting);
+        let geo_exclusion = GeoExclusionSettings::from(&value.geo_exclusion);
 
         let gateway_selection_algorithm_config =
             GatewaySelectionAlgorithmConfig::from(&value.gateway_selection_algorithm_config);
+
+        let fronting_mode = FrontingMode::from(&value.fronting_mode);
 
         let v9 = v9::VpnServiceConfig {
             entry_point,
@@ -211,6 +215,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             enable_bridges: value.enable_bridges,
             enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
+            fronting_mode,
             netstack: value.netstack,
             min_gateway_vpn_performance: value.min_gateway_vpn_performance,
             residential_exit: value.residential_exit,
@@ -219,7 +224,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             mixnet_traffic,
             network_stats,
             split_tunnel,
-            airporting,
+            geo_exclusion,
             gateway_selection_algorithm_config,
         };
 

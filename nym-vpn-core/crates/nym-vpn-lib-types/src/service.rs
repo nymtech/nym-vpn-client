@@ -41,6 +41,7 @@ pub struct VpnServiceConfig {
     pub enable_bridges: bool,
     pub enable_lewes_protocol: bool,
     pub enable_ad_blocking: bool,
+    pub fronting_mode: FrontingMode,
     pub netstack: bool,
     pub min_gateway_vpn_performance: Option<u8>,
     pub residential_exit: bool,
@@ -49,7 +50,7 @@ pub struct VpnServiceConfig {
     pub mixnet_traffic: MixnetTrafficConfig,
     pub network_stats: NetworkStatisticsConfig,
     pub split_tunnel: SplitTunnelSettings,
-    pub airporting: AirportingSettings,
+    pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
 }
 
@@ -90,7 +91,7 @@ impl fmt::Display for VpnServiceConfig {
         writeln!(f, "mixnet traffic config: {}", self.mixnet_traffic)?;
         writeln!(f, "networks stats config: {}", self.network_stats)?;
         writeln!(f, "split tunnel settings: {}", self.split_tunnel)?;
-        writeln!(f, "airporting settings: {}", self.airporting)?;
+        writeln!(f, "geo exclusion settings: {}", self.geo_exclusion)?;
         writeln!(
             f,
             "gateway selection algorithm: {}",
@@ -116,6 +117,7 @@ impl Default for VpnServiceConfig {
             enable_bridges: false,
             enable_lewes_protocol: false,
             enable_ad_blocking: false,
+            fronting_mode: FrontingMode::default(),
             netstack: false,
             min_gateway_vpn_performance: None,
             residential_exit: false,
@@ -124,7 +126,7 @@ impl Default for VpnServiceConfig {
             network_stats: Default::default(),
             mixnet_traffic: MixnetTrafficConfig::default(),
             split_tunnel: SplitTunnelSettings::default(),
-            airporting: AirportingSettings::default(),
+            geo_exclusion: GeoExclusionSettings::default(),
             gateway_selection_algorithm_config: Default::default(),
         }
     }
@@ -409,6 +411,23 @@ impl ContinuousTrafficSendingRate {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum FrontingMode {
+    Off,
+    #[default]
+    OnRetry,
+    Always,
+}
+
 /// Single application participating in split tunneling.
 #[derive(Debug, Clone, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
@@ -509,13 +528,13 @@ impl fmt::Display for SplitTunnelSettings {
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
-pub struct AirportingSettings {
+pub struct GeoExclusionSettings {
     pub enabled: bool,
     pub listen_port: u16,
     pub excluded_countries: Vec<String>,
 }
 
-impl fmt::Display for AirportingSettings {
+impl fmt::Display for GeoExclusionSettings {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "enabled: {}", self.enabled)?;
         writeln!(f, "listen_port: {}", self.listen_port)?;
@@ -528,9 +547,9 @@ impl fmt::Display for AirportingSettings {
     }
 }
 
-impl Default for AirportingSettings {
+impl Default for GeoExclusionSettings {
     fn default() -> Self {
-        // Temporary, until there is a way to turn on Airporting on.
+        // Temporary, until there is a way to turn Geo Exclusion on.
         let enabled = true;
         Self {
             enabled,

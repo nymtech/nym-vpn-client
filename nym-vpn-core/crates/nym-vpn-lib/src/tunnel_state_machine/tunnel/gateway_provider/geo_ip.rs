@@ -1,14 +1,21 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{cmp, sync::Arc};
+use std::{cmp, sync::Arc, time::Duration};
 
 use geo::{Distance, Haversine, Point};
 use nym_gateway_directory::{Gateway, Location};
 use nym_vpn_api_client::{
     VpnApiClient, error::VpnApiClientError, response::NymUserGeoIpLocationResponse,
 };
-use tokio::sync::Mutex;
+use tokio::sync::{
+    RwLock,
+    mpsc::{self, UnboundedReceiver},
+    oneshot,
+};
+use tokio_util::sync::CancellationToken;
+
+const GEO_IP_UPDATE_INTERVAL: Duration = Duration::from_hours(1);
 
 #[async_trait::async_trait]
 pub trait GeoIpClient: Send + Sync + 'static {
@@ -84,59 +91,127 @@ impl QueryControl {
         self.active = active;
     }
 
-    fn can_query(&self) -> bool {
-        self.enabled && self.active
+    pub(crate) fn do_not_query(&self) -> bool {
+        !self.enabled || !self.active
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+enum State {
+    Nothing,
+    FetchInProgress,
+}
+
+pub(crate) enum FetcherCommand {
+    Fetch,
+    Abort(oneshot::Sender<()>),
+}
+
+pub(crate) struct GeoIpFetcher {
+    state: State,
+    query_control: Arc<RwLock<QueryControl>>,
+    client: Box<dyn GeoIpClient>,
+    command_rx: mpsc::UnboundedReceiver<FetcherCommand>,
+    update_location_tx: mpsc::UnboundedSender<Location>,
+    shutdown_token: CancellationToken,
+}
+
+impl GeoIpFetcher {
+    pub(crate) fn new(
+        enable_geo_location: bool,
+        client: Box<dyn GeoIpClient>,
+        command_rx: mpsc::UnboundedReceiver<FetcherCommand>,
+        update_location_tx: mpsc::UnboundedSender<Location>,
+        shutdown_token: CancellationToken,
+    ) -> Self {
+        let state = if enable_geo_location {
+            State::FetchInProgress
+        } else {
+            State::Nothing
+        };
+        let query_control = Arc::new(RwLock::new(QueryControl::new(enable_geo_location)));
+
+        Self {
+            state,
+            query_control,
+            client,
+            command_rx,
+            update_location_tx,
+            shutdown_token,
+        }
     }
 
-    fn should_clear_location(&self) -> bool {
-        !self.enabled
+    pub(crate) fn query_control(&self) -> Arc<RwLock<QueryControl>> {
+        self.query_control.clone()
+    }
+
+    async fn maybe_start_fetching(&mut self) {
+        if !self.query_control.read().await.do_not_query() {
+            self.state = State::FetchInProgress;
+        }
+    }
+
+    pub(crate) async fn run(mut self) {
+        let update_timer = tokio::time::sleep(GEO_IP_UPDATE_INTERVAL);
+        tokio::pin!(update_timer);
+        loop {
+            tokio::select! {
+                _ = self.shutdown_token.cancelled() => {
+                    tracing::debug!("GeoIpFetcher shut down");
+                    return;
+                }
+                _ = &mut update_timer => {
+                    self.maybe_start_fetching().await;
+                    update_timer.set(tokio::time::sleep(GEO_IP_UPDATE_INTERVAL));
+                }
+                ret = self.client.latest_geo_ip(), if self.state == State::FetchInProgress => {
+                    self.state = State::Nothing;
+                    match ret {
+                        Ok(location) => {
+                            let _ = self.update_location_tx.send(location.into());
+                        }
+                        Err(err) => tracing::warn!("Failed to query VPN API: {err:?}"),
+                    }
+                }
+                Some(command) = self.command_rx.recv() => {
+                    match command {
+                        FetcherCommand::Fetch => self.maybe_start_fetching().await,
+                        FetcherCommand::Abort(done) => {
+                            self.state = State::Nothing;
+                            let _ = done.send(());
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 pub(crate) struct GeoIpProvider {
-    client: Box<dyn GeoIpClient>,
-    query_control: Arc<Mutex<QueryControl>>,
-    latest_location: Option<Location>,
+    update_location_rx: UnboundedReceiver<Location>,
+    latest_known_location: Option<Location>,
 }
 
 impl GeoIpProvider {
-    pub(crate) async fn new(
-        client: impl GeoIpClient,
-        query_control: Arc<Mutex<QueryControl>>,
-    ) -> Self {
-        let can_query = query_control.lock().await.can_query();
-        let latest_location = if can_query {
-            client
-                .latest_geo_ip()
-                .await
-                .inspect_err(|err| tracing::warn!("Failed to query VPN API: {err:?}"))
-                .map(|ret| ret.into())
-                .ok()
-        } else {
-            None
-        };
+    pub(crate) fn new(update_location_rx: UnboundedReceiver<Location>) -> Self {
         Self {
-            client: Box::new(client),
-            query_control,
-            latest_location,
+            update_location_rx,
+            latest_known_location: None,
         }
     }
 
-    pub(crate) async fn update(&mut self) -> Result<(), VpnApiClientError> {
-        let (should_clear_location, can_query) = {
-            let control = self.query_control.lock().await;
-            (control.should_clear_location(), control.can_query())
-        };
-        if should_clear_location {
-            self.latest_location = None;
-        } else if can_query {
-            self.latest_location = Some(self.client.latest_geo_ip().await?.into());
+    /// Return whenever there is a new location available, different to what we've already returned
+    /// previously.
+    pub(crate) async fn new_location(&mut self) -> Option<Location> {
+        loop {
+            // if recv() returns None, there will never be a new location because the fetcher is gone
+            // So we should skip the loop
+            let latest_location = Some(self.update_location_rx.recv().await?);
+            if self.latest_known_location != latest_location {
+                self.latest_known_location = latest_location;
+                return self.latest_known_location.clone();
+            }
         }
-        Ok(())
-    }
-
-    pub(crate) fn latest_location(&mut self) -> Option<Location> {
-        self.latest_location.clone()
     }
 }
 

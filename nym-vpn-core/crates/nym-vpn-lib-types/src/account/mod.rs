@@ -266,6 +266,10 @@ pub struct VpnAccountSummary {
     #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601::option"))]
     pub traffic_reset_time: Option<OffsetDateTime>,
 
+    /// True when the API could not retrieve fair-usage data from the database.
+    /// Clients should treat this as fail-open rather than surfacing a quota-exceeded error.
+    pub fair_usage_data_unavailable: bool,
+
     pub account_addr: String,
     pub canonical_account_addr: Option<String>,
     pub auth_methods: Vec<VpnAccountAuthMethod>,
@@ -294,7 +298,14 @@ impl VpnAccountSummary {
     }
 
     pub fn fair_usage_left(&self) -> bool {
-        self.traffic_used_gb != self.traffic_limit_gb
+        if !self.is_subscription_active() {
+            return false;
+        }
+        if self.fair_usage_data_unavailable {
+            // Data gap from the API - fail-open so users are not blocked by infrastructure errors.
+            return true;
+        }
+        self.traffic_limit_gb > 0 && self.traffic_used_gb < self.traffic_limit_gb
     }
 
     pub fn is_linked(&self) -> bool {
@@ -344,6 +355,7 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             traffic_used_gb: value.fair_usage.usedGB,
             traffic_limit_gb: value.fair_usage.limitGB,
             traffic_reset_time,
+            fair_usage_data_unavailable: value.fair_usage.data_unavailable,
             account_addr: value.account.account_addr.clone(),
             canonical_account_addr: value.account.canonical_account_addr.clone(),
             auth_methods,
@@ -672,6 +684,7 @@ mod tests {
                 usedGB: 0,
                 limitGB: 2000,
                 resetsOnUtc: None,
+                data_unavailable: false,
             },
         }
     }
@@ -827,5 +840,156 @@ mod tests {
             .subscription
             .expect("pending subscription must be kept");
         assert!(matches!(sub.status, NymVpnSubscriptionStatus::Pending));
+    }
+}
+
+#[cfg(test)]
+mod fair_usage_left_semantics_tests {
+    use super::*;
+
+    fn active_subscription_valid_for_days(days: i64) -> Subscription {
+        let now = OffsetDateTime::now_utc().unix_timestamp();
+        Subscription {
+            status: NymVpnSubscriptionStatus::Active,
+            subscription: NymVpnSubscription {
+                created_on_utc: "2024-01-01T00:00:00Z".into(),
+                last_updated_utc: "2024-01-01T00:00:00Z".into(),
+                id: "sub_test".into(),
+                valid_from_utc: now - 86_400,
+                valid_until_utc: now + days * 86_400,
+                status: "active".into(),
+                kind: NymVpnSubscriptionKind::OneMonth,
+                is_recurring: false,
+            },
+        }
+    }
+
+    fn expired_active_subscription() -> Subscription {
+        let now = OffsetDateTime::now_utc().unix_timestamp();
+        Subscription {
+            status: NymVpnSubscriptionStatus::Active,
+            subscription: NymVpnSubscription {
+                created_on_utc: "2024-01-01T00:00:00Z".into(),
+                last_updated_utc: "2024-01-01T00:00:00Z".into(),
+                id: "sub_expired".into(),
+                valid_from_utc: now - 2 * 86_400,
+                valid_until_utc: now - 1,
+                status: "active".into(),
+                kind: NymVpnSubscriptionKind::OneMonth,
+                is_recurring: false,
+            },
+        }
+    }
+
+    fn pending_subscription() -> Subscription {
+        let now = OffsetDateTime::now_utc().unix_timestamp();
+        Subscription {
+            status: NymVpnSubscriptionStatus::Pending,
+            subscription: NymVpnSubscription {
+                created_on_utc: "2024-01-01T00:00:00Z".into(),
+                last_updated_utc: "2024-01-01T00:00:00Z".into(),
+                id: "sub_pending".into(),
+                valid_from_utc: now - 86_400,
+                valid_until_utc: now + 365 * 86_400,
+                status: "pending".into(),
+                kind: NymVpnSubscriptionKind::OneMonth,
+                is_recurring: false,
+            },
+        }
+    }
+
+    fn bare_summary(
+        subscription: Option<Subscription>,
+        traffic_limit_gb: u64,
+        traffic_used_gb: u64,
+    ) -> VpnAccountSummary {
+        VpnAccountSummary {
+            traffic_used_gb,
+            traffic_limit_gb,
+            traffic_reset_time: None,
+            fair_usage_data_unavailable: false,
+            account_addr: "n1test".into(),
+            canonical_account_addr: None,
+            auth_methods: vec![],
+            account_mode: None,
+            subscription,
+            is_subscription_stacked: false,
+        }
+    }
+
+    #[test]
+    fn fair_usage_left_false_without_active_subscription_even_when_zeros() {
+        let s = bare_summary(None, 0, 0);
+        assert!(
+            !s.fair_usage_left(),
+            "no subscription: ambiguous zeros must not mean quota available"
+        );
+    }
+
+    #[test]
+    fn fair_usage_left_false_when_subscription_pending_even_with_positive_limits() {
+        let s = bare_summary(Some(pending_subscription()), 2000, 0);
+        assert!(!s.fair_usage_left());
+    }
+
+    #[test]
+    fn fair_usage_left_false_when_active_and_limit_zero_with_reliable_usage() {
+        let s = bare_summary(Some(active_subscription_valid_for_days(30)), 0, 0);
+        assert!(
+            !s.fair_usage_left(),
+            "limit 0 with reliable fair-usage data means no quota remaining"
+        );
+    }
+
+    #[test]
+    fn fair_usage_left_false_when_active_and_exhausted() {
+        let s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2000);
+        assert!(!s.fair_usage_left());
+    }
+
+    #[test]
+    fn fair_usage_left_false_when_active_and_over_limit() {
+        let s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2100);
+        assert!(!s.fair_usage_left());
+    }
+
+    #[test]
+    fn fair_usage_left_true_when_active_and_under_cap() {
+        let s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 100);
+        assert!(s.fair_usage_left());
+    }
+
+    #[test]
+    fn fair_usage_left_false_when_status_active_but_valid_until_expired() {
+        // status==Active but valid_until_utc is in the past (clock skew / API inconsistency).
+        // fair_usage_left() must return false; the ZK_NYM_STATE caller has no prior wire guard.
+        let s = bare_summary(Some(expired_active_subscription()), 2000, 0);
+        assert!(
+            !s.fair_usage_left(),
+            "expired valid_until_utc must block zk-nym issuance regardless of status field"
+        );
+    }
+
+    #[test]
+    fn fair_usage_left_true_when_data_unavailable_and_sub_active() {
+        // API returned dataUnavailable:true (database down). Must fail-open so users with
+        // a valid subscription are not blocked by an infrastructure outage.
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 0, 0);
+        s.fair_usage_data_unavailable = true;
+        assert!(
+            s.fair_usage_left(),
+            "data_unavailable with active sub must fail-open, not raise BandwidthExceeded"
+        );
+    }
+
+    #[test]
+    fn fair_usage_left_false_when_data_unavailable_but_no_sub() {
+        // Edge case: data_unavailable=true but no subscription → still blocked.
+        let mut s = bare_summary(None, 0, 0);
+        s.fair_usage_data_unavailable = true;
+        assert!(
+            !s.fair_usage_left(),
+            "data_unavailable without a subscription must not grant access"
+        );
     }
 }

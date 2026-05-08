@@ -18,7 +18,7 @@ use futures::{FutureExt, Stream, StreamExt};
 use nym_gateway_directory::{BlacklistedGateways, GatewayClient, NodeIdentity};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
-    sync::{Mutex, mpsc},
+    sync::{Mutex, RwLock, mpsc, oneshot},
     task::JoinHandle,
 };
 use tokio_stream::wrappers::ReceiverStream;
@@ -31,7 +31,7 @@ use crate::tunnel_state_machine::{
         gateway_provider::{
             algorithm::{SelectAndSend, SelectionAlgorithm},
             gateway_cache::GatewayCache,
-            geo_ip::{GeoIpClient, GeoIpProvider, QueryControl},
+            geo_ip::{FetcherCommand, GeoIpClient, GeoIpFetcher, GeoIpProvider, QueryControl},
         },
     },
 };
@@ -48,7 +48,8 @@ pub struct GatewayProvider<C: GatewayCache> {
     tunnel_settings_tx: mpsc::Sender<SelectAndSend>,
     selected_gateways_stream: SelectedGatewaysStream,
     blacklisted_entry_gateways: BlacklistedGateways,
-    query_control: Arc<Mutex<QueryControl>>,
+    query_control: Arc<RwLock<QueryControl>>,
+    query_control_tx: mpsc::UnboundedSender<FetcherCommand>,
 }
 
 impl<C: GatewayCache> Stream for GatewayProvider<C> {
@@ -72,14 +73,28 @@ impl<C: GatewayCache> GatewayProvider<C> {
         gateway_cache: C,
         geo_ip_client: impl GeoIpClient,
         enable_geo_location: bool,
-        initial_tunnel_settings: TunnelSettings,
+        tunnel_settings: TunnelSettings,
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
     ) -> Result<(Self, JoinHandle<()>), crate::tunnel_state_machine::Error> {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_entry_gateways = BlacklistedGateways::new();
-        let query_control = Arc::new(Mutex::new(QueryControl::new(enable_geo_location)));
-        let geo_ip_provider = GeoIpProvider::new(geo_ip_client, query_control.clone()).await;
+        let (query_control_tx, query_control_rx) = mpsc::unbounded_channel();
+        let (update_location_tx, update_location_rx) = mpsc::unbounded_channel();
+
+        let geo_ip_provider = GeoIpProvider::new(update_location_rx);
+        let geo_ip_fetcher = GeoIpFetcher::new(
+            enable_geo_location,
+            Box::new(geo_ip_client),
+            query_control_rx,
+            update_location_tx,
+            shutdown_token.child_token(),
+        );
+        let query_control = geo_ip_fetcher.query_control();
+        let geo_ip_fetcher_handle = tokio::spawn(geo_ip_fetcher.run());
+
+        // Pre-compute at most 10 different possibilities of selected gateways
+        let (selection_tx, selection_rx) = mpsc::channel(10);
         let selection_algorithm_handle = tokio::spawn(
             SelectionAlgorithm::new(
                 tunnel_settings_rx,
@@ -89,10 +104,18 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 wg_keys_db,
                 shutdown_token,
             )
-            .run(),
+            .run(SelectAndSend {
+                tunnel_settings,
+                selection_tx,
+            }),
         );
-        let selected_gateways_stream =
-            Self::inner_set_tunnel_settings(&tunnel_settings_tx, initial_tunnel_settings).await?;
+        let selected_gateways_stream = Arc::new(Mutex::new(ReceiverStream::new(selection_rx)));
+
+        // unify the two local handles into one
+        let gateway_provider_handle = tokio::spawn(async {
+            let _ = geo_ip_fetcher_handle.await;
+            let _ = selection_algorithm_handle.await;
+        });
 
         Ok((
             Self {
@@ -100,9 +123,10 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 tunnel_settings_tx,
                 selected_gateways_stream,
                 blacklisted_entry_gateways,
+                query_control_tx,
                 query_control,
             },
-            selection_algorithm_handle,
+            gateway_provider_handle,
         ))
     }
 
@@ -122,10 +146,39 @@ impl<C: GatewayCache> GatewayProvider<C> {
         Ok(Arc::new(Mutex::new(ReceiverStream::new(selection_rx))))
     }
 
+    async fn start_fetching_again(&self) {
+        if self.query_control_tx.send(FetcherCommand::Fetch).is_err() {
+            tracing::warn!("Could send fetch control message to geo ip fetcher");
+        }
+    }
+
+    async fn abort_any_fetch(&self) {
+        let (done_tx, done_rx) = oneshot::channel();
+        if self
+            .query_control_tx
+            .send(FetcherCommand::Abort(done_tx))
+            .is_err()
+        {
+            tracing::warn!("Could send abort control message to geo ip fetcher");
+        }
+        if done_rx.await.is_err() {
+            tracing::warn!("Geo ip fetcher did not respond to abort command");
+        }
+    }
+
     /// Set if geo-location should be used by the algorithm, based on user's
     /// preference
     async fn set_enabled_geo_location(&self, enabled: bool) {
-        self.query_control.lock().await.set_enabled(enabled);
+        let do_not_query = {
+            let mut query_control = self.query_control.write().await;
+            query_control.set_enabled(enabled);
+            query_control.do_not_query()
+        };
+        if do_not_query {
+            self.abort_any_fetch().await;
+        } else {
+            self.start_fetching_again().await;
+        }
     }
 
     /// Set the activation for geo-location based on connection status, to avoid
@@ -133,7 +186,16 @@ impl<C: GatewayCache> GatewayProvider<C> {
     /// Being active means we try to query the location from the API. We want to
     /// deactivate this in certain states of TSM, when the queries are proxied.
     pub async fn set_active_geo_location(&self, active: bool) {
-        self.query_control.lock().await.set_active(active);
+        let do_not_query = {
+            let mut query_control = self.query_control.write().await;
+            query_control.set_active(active);
+            query_control.do_not_query()
+        };
+        if do_not_query {
+            self.abort_any_fetch().await;
+        } else {
+            self.start_fetching_again().await;
+        }
     }
 
     pub async fn set_tunnel_settings(
@@ -221,7 +283,7 @@ pub mod tests {
             dns: Default::default(),
             split_tunnel: Default::default(),
             gateway_selection_algorithm_config: Default::default(),
-            airporting_settings: Default::default(),
+            geo_exclusion_settings: Default::default(),
         }
     }
 
