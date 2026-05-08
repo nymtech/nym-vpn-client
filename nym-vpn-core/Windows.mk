@@ -77,7 +77,7 @@ WINFW_DLL := winfw.dll
 WINFW_LIB := winfw.lib
 
 ST_DRIVER_DIST_DIR := $(CURDIR)/../build/st-driver/$(WINFW_PLATFORM)-$(MSVC_CONFIG)
-ST_DRIVER_BUILD_DIR := $(CURDIR)/../nym-vpn-windows/split-tunnel-driver/bin/$(WINFW_PLATFORM)-$(MSVC_CONFIG)/nymvpn-split-tunnel
+ST_DRIVER_SIGNED_DIR := $(CURDIR)/../nym-vpn-windows/split-tunnel-driver/signed/$(MSVC_PLATFORM)
 ST_DRIVER_SYS := nymvpn-split-tunnel.sys
 ST_DRIVER_INF := nymvpn-split-tunnel.inf
 ST_DRIVER_CAT := nymvpn-split-tunnel.cat
@@ -86,9 +86,9 @@ ST_DRIVER_PDB := nymvpn-split-tunnel.pdb
 # Ensure that msys2 inherits PATH from environment
 export MSYS2_PATH_TYPE = inherit
 
-.PHONY: wintun libwg st-driver winfw create_target_dir create_version_header
+.PHONY: wintun libwg winfw st-driver create_target_dir create_version_header
 
-default: wintun libwg st-driver winfw
+default: wintun libwg winfw st-driver
 
 # Build libwg and copy it to build/lib
 libwg: create_target_dir create_version_header
@@ -139,24 +139,21 @@ wintun: create_target_dir
 	Copy-Item -Path "$(WINTUN_BIN_DIR)/$(CPU_ARCH_LOWER)/$(WINTUN_DLL_NAME)" -Destination "$(TARGET_DIR)/$(WINTUN_DLL_NAME)" -Force
 
 st-driver: create_target_dir
-# Setup environment and build split tunnel driver
-	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/split-tunnel-driver/nymvpn-split-tunnel/nymvpn-split-tunnel.sln" /p:Configuration=$(MSVC_CONFIG) /p:Platform=$(WINFW_PLATFORM)
-
-# Copy driver files to distribution directory
+# Copy signed driver files to distribution directory
 	New-Item -ItemType Directory -Force -Path "$(ST_DRIVER_DIST_DIR)"
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_SYS)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_SYS)" -Force
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_INF)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_INF)" -Force
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_CAT)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_CAT)" -Force
-	if (Test-Path "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)") { #\
-    	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_SYS)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_SYS)" -Force
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_INF)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_INF)" -Force
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_CAT)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_CAT)" -Force
+	if (Test-Path "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_PDB)") { #\
+    	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_PDB)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
 	}
 
-# Copy driver files to target directory
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_SYS)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_SYS)" -Force
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_INF)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_INF)" -Force
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_CAT)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_CAT)" -Force
-	if (Test-Path "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)") { #\
-    	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
+# Copy signed driver files to target directory
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_SYS)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_SYS)" -Force
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_INF)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_INF)" -Force
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_CAT)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_CAT)" -Force
+	if (Test-Path "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_PDB)") { #\
+    	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_PDB)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
 	}
 
 create_target_dir:

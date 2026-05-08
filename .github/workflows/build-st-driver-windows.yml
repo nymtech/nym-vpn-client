@@ -43,18 +43,20 @@ jobs:
       - name: Setup VS dev shell
         uses: humbletim/vsdevenv-shell@503210b7b39a7405e534ea93c36a733b93f01087
 
-      - name: Build st-driver
+      - name: Build st-driver (x64)
         shell: vsdevenv x64 pwsh {0}
-        working-directory: nym-vpn-core
-        run: make -f Windows.mk st-driver CPU_ARCH=AMD64 RELEASE=1 PWSH=1
+        working-directory: nym-vpn-windows/split-tunnel-driver
+        run: MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=x64
+
+      - name: Build st-driver (arm64)
+        shell: vsdevenv x64 pwsh {0}
+        working-directory: nym-vpn-windows/split-tunnel-driver
+        run: MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=arm64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: st-driver
-          path: |
-            ${{ github.workspace }}/build/st-driver/x64-Release/nymvpn-split-tunnel.sys
-            ${{ github.workspace }}/build/st-driver/x64-Release/nymvpn-split-tunnel.inf
-            ${{ github.workspace }}/build/st-driver/x64-Release/nymvpn-split-tunnel.cat
+          path: ${{ github.workspace }}/build/st-driver/
           if-no-files-found: error
           retention-days: 1
