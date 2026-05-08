@@ -35,3 +35,5 @@ src/i18n/**
 !src/i18n/config.ts
 !src/i18n/index.ts
 !src/i18n/types.ts
+
+.claude/settings.local.json
