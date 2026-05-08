@@ -340,6 +340,12 @@
       "description": "The app will be launched outside of the VPN tunnel and will connect directly to the internet (unprotected by NymVPN).\n\nBefore proceeding, please make sure the app is not already running. If it is, close all instances first, then launch the app from here.",
       "launch": "Launch",
       "cancel": "Cancel"
+    },
+    "error": {
+      "failed-to-open-app": "Failed to open app",
+      "failed-to-enable-split-tunneling": "Failed to enable split tunneling",
+      "failed-to-add-app-to-split-tunneling": "Failed to add app to split tunneling",
+      "failed-to-remove-app-from-split-tunneling": "Failed to remove app from split tunneling"
     }
   }
 }

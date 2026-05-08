@@ -1,12 +1,13 @@
 import { Toast } from '@base-ui/react';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 import { MsIcon } from '../../ui';
 import { ToastAddData } from '../../hooks';
 import { ToastIcon } from './ToastIcon';
 
 function ToastList() {
+  const { t } = useTranslation('common');
   const { toasts } = Toast.useToastManager();
-
   return (
     <Toast.Viewport className="fixed z-50 top-16 right-0 bottom-auto left-0 mx-auto flex w-full max-w-md">
       {toasts.map((toast) => (
@@ -49,7 +50,7 @@ function ToastList() {
                 'hover:bg-iron dark:hover:bg-mercury',
                 'text-white dark:text-baltic-sea',
               ])}
-              aria-label="Close"
+              aria-label={t('close')}
             >
               <MsIcon
                 icon="close"

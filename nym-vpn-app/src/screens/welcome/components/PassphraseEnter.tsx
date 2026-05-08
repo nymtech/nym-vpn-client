@@ -48,7 +48,7 @@ export function PassphraseEnter() {
     if (state !== 'disconnected') {
       add({
         id: 'tunnel-running-login-error',
-        title: "Can't login while tunnel is running",
+        title: t('login.can-t-login-while-tunnel-is-running'),
         type: 'error',
       });
       console.warn(`cannot login while tunnel state is ${state}`);
@@ -60,8 +60,6 @@ export function PassphraseEnter() {
     try {
       console.info('logging in');
       await invoke<number | null>('add_account', { mnemonic: phrase.trim() });
-
-      // TODO: to update
 
       dispatch({ type: 'set-account', stored: true });
       await refreshAccountMode();

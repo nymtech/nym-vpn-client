@@ -1,10 +1,11 @@
 {
   "connect": "Connect",
   "disconnect": "Disconnect",
+  "failed-to-disconnect": "Failed to disconnect",
   "status": {
-    "connected": "Connected",
-    "disconnected": "Disconnected",
-    "connecting": "Connecting",
+    "connected": "Tap to disconnect",
+    "disconnected": "Tap to connect",
+    "connecting": "Tap to cancel",
     "disconnecting": "Disconnecting",
     "error": "Error",
     "offline": "No internet"
@@ -65,5 +66,14 @@
   },
   "get-started": "Get started",
   "choose-plan": "Choose plan",
-  "authenticate": "Authenticate"
+  "authenticate": "Authenticate",
+  "toggle-vpn-mode": {
+    "fast": "Fast",
+    "anonymous": "Anonymous",
+    "error": "Failed to toggle VPN mode",
+    "aria-label": "Toggle VPN mode"
+  },
+  "gateway-selection-algorithm": {
+    "error": "Failed to set gateway selection algorithm"
+  }
 }

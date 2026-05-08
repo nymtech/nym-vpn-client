@@ -157,7 +157,9 @@ function NodeDetails() {
           {/* Card 2: Node features */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-primary">Node features</p>
+              <p className="text-sm text-primary">
+                {t('node-details.data.node-features')}
+              </p>
             </CardNewHeader>
             <CardNewBody className="pb-4">
               {/* Advanced privacy */}
@@ -236,7 +238,9 @@ function NodeDetails() {
           {/* Card 3: Performance metrics */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-primary">Performance metrics</p>
+              <p className="text-sm text-primary">
+                {t('node-details.data.performance-metrics')}
+              </p>
             </CardNewHeader>
             <CardNewBody className="pb-4">
               {/* Overall performance */}
@@ -293,7 +297,9 @@ function NodeDetails() {
           {showCard3 && (
             <CardNew>
               <CardNewHeader>
-                <p className="text-sm text-primary">Connection details</p>
+                <p className="text-sm text-primary">
+                  {t('node-details.data.connection-details')}
+                </p>
               </CardNewHeader>
               <CardNewBody className="pb-4">
                 {exitIpv4 && (
@@ -349,7 +355,9 @@ function NodeDetails() {
           {/* Card 5: Build information */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-sm text-primary">Build information</p>
+              <p className="text-sm text-primary">
+                {t('node-details.data.build-information')}
+              </p>
             </CardNewHeader>
             <CardNewBody className="pb-4">
               {buildVersion && (
@@ -392,12 +400,11 @@ function NodeDetails() {
                 i18nKey="node-details.links.explorer"
                 ns="node-location"
                 components={{
-                  networkExplorerLink: (
+                  1: (
                     <Link
-                      text="Network Explorer"
                       url={`${NetworkExplorerNodeUrl}/${gateway.id}`}
-                      icon
                       color="cornflower"
+                      icon
                     />
                   ),
                 }}

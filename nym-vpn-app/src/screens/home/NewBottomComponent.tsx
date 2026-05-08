@@ -77,6 +77,8 @@ export type SelectedNodeDisplayProps = {
 };
 
 function ModeToggle() {
+  const { t } = useTranslation('home');
+
   const { add } = useToast();
   const vpnMode = useAppStore((s) => s.vpnMode);
 
@@ -100,7 +102,7 @@ function ModeToggle() {
       console.error(`failed to set vpn mode to [${mode}]`, error);
       add({
         id: 'vpn-mode-toggle-error',
-        title: 'Failed to toggle VPN mode',
+        title: t('toggle-vpn-mode.error'),
         type: 'error',
       });
     }
@@ -119,14 +121,14 @@ function ModeToggle() {
               : 'text-secondary hover:text-baltic-sea dark:hover:text-white',
           )}
         >
-          Fast
+          {t('toggle-vpn-mode.fast')}
         </button>
 
         {/* Toggle pill */}
         <button
           type="button"
           onClick={() => handleToggle(isFast ? 'mixnet' : 'wg')}
-          aria-label="Toggle VPN mode"
+          aria-label={t('toggle-vpn-mode.aria-label')}
           className="relative bg-[#e5e5e5] dark:bg-aph h-10 w-20 rounded-full shrink-0 cursor-default"
         >
           <motion.div
@@ -167,7 +169,7 @@ function ModeToggle() {
               : 'text-secondary hover:text-primary',
           )}
         >
-          Anonymous
+          {t('toggle-vpn-mode.anonymous')}
         </button>
       </div>
     </div>
@@ -204,7 +206,6 @@ export function NewBottomComponent() {
       case 'explicit':
         return 2;
     }
-    return 0;
   });
 
   const expand = () => setFoldState((s) => Math.min(s + 1, 2) as FoldState);
@@ -249,12 +250,12 @@ export function NewBottomComponent() {
         );
         add({
           id: 'gateway-selection-algorithm-error',
-          title: 'Failed to set gateway selection algorithm',
+          title: t('gateway-selection-algorithm.error'),
           type: 'error',
         });
       }
     })();
-  }, [add, foldState, gatewaySelectionAlgorithmConfig]);
+  }, [add, foldState, gatewaySelectionAlgorithmConfig, t]);
 
   const handleConnect = async () => {
     if (daemonStatus === 'auth-denied') {
@@ -288,7 +289,7 @@ export function NewBottomComponent() {
         console.error('failed to disconnect', error);
         add({
           id: 'disconnect-error',
-          title: 'Failed to disconnect',
+          title: t('failed-to-disconnect'),
           type: 'error',
         });
       }
@@ -325,15 +326,15 @@ export function NewBottomComponent() {
 
     switch (state) {
       case 'connected':
-        return 'Tap to disconnect';
+        return t('status.connected');
       case 'disconnected':
-        return 'Tap to connect';
+        return t('status.disconnected');
       case 'connecting':
-        return 'Tap to cancel';
+        return t('status.connecting');
       case 'disconnecting':
-        return 'Disconnecting...';
+        return t('status.disconnecting');
       case 'offline':
-        return 'Tap to connect';
+        return t('status.offline');
     }
   };
 

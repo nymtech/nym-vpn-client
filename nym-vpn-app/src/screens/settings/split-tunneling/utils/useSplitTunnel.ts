@@ -64,7 +64,7 @@ export const useSplitTunnel = () => {
     } catch (error) {
       console.error('Failed to set split tunneling enabled', error);
       addToast({
-        title: 'Failed to set split tunneling enabled',
+        title: t('split-tunneling.error.failed-to-enable-split-tunneling'),
         type: 'error',
       });
     }
@@ -83,7 +83,7 @@ export const useSplitTunnel = () => {
     } catch (error) {
       console.error('Failed to add app to split tunneling', error);
       addToast({
-        title: 'Failed to add app to split tunneling',
+        title: t('split-tunneling.error.failed-to-add-app-to-split-tunneling'),
         type: 'error',
       });
     }
@@ -104,7 +104,9 @@ export const useSplitTunnel = () => {
     } catch (error) {
       console.error('Failed to remove app from split tunneling', error);
       addToast({
-        title: 'Failed to remove app from split tunneling',
+        title: t(
+          'split-tunneling.error.failed-to-remove-app-from-split-tunneling',
+        ),
         type: 'error',
       });
     }

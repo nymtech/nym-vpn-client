@@ -35,7 +35,8 @@
     "description": "To the next generation of privacy infrastructure.",
     "login-24-words-button": "Login with 24 words",
     "login-social-button": "Login using linked socials*",
-    "login-social-button-disclaimer": "*You need to connect socials to an existing account first before you can use them for login."
+    "login-social-button-disclaimer": "*You need to connect socials to an existing account first before you can use them for login.",
+    "can-t-login-while-tunnel-is-running": "Can't login while tunnel is running"
   },
   "welcome": {
     "title": "Welcome!",

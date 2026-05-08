@@ -68,12 +68,12 @@ function SplitTunneling() {
       } catch (error) {
         console.error('[nym-exclude] Failed to execute command', error);
         addToast({
-          title: 'Failed to open app',
+          title: t('split-tunneling.error.failed-to-open-app'),
           type: 'error',
         });
       }
     },
-    [addToast],
+    [addToast, t],
   );
 
   const handleLaunch = useCallback(

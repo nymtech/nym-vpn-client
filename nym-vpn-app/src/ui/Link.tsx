@@ -51,13 +51,13 @@ function Link({
       as="a"
       className={clsx([
         'focus:outline-hidden select-none cursor-default',
-        'inline-flex flex-row items-center gap-1 border-b',
+        'inline-flex flex-row items-center gap-1',
         color === 'malachite' && 'text-primary',
         color === 'iron' && 'text-text-secondary',
         color === 'primary' && 'text-text-primary',
         color === 'cornflower' && 'text-cornflower',
         className && className,
-        selectable && '!select-text',
+        selectable && 'select-text!',
       ])}
       onClick={handleClick}
       data-testid={testId}
@@ -68,7 +68,7 @@ function Link({
           <span
             className={clsx([
               hover ? 'underline' : '',
-              'decoration-2 underline-offset-4',
+              'decoration-2 underline-offset-4 border-b',
               textClassName && textClassName,
             ])}
             data-testid={`${testId}-text`}
