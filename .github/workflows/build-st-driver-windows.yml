@@ -51,12 +51,12 @@ jobs:
       - name: Build st-driver (arm64)
         shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-windows/split-tunnel-driver
-        run: MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=arm64
+        run: MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=ARM64
 
       - name: Move things around to prepare for upload
         shell: pwsh
         run: |
-          $src = "nym-vpn-windows/split-tunnel-driver/nymvpn-split-tunnel/bin"
+          $src = "nym-vpn-windows/split-tunnel-driver/bin"
           $dst = "build/st-driver"
           New-Item -ItemType Directory -Force -Path "$dst/x64-Release"
           New-Item -ItemType Directory -Force -Path "$dst/ARM64-Release"
