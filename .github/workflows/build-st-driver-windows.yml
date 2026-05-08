@@ -47,21 +47,20 @@ jobs:
         shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-windows/split-tunnel-driver
         run: |
-          foreach ($platform in @('x64', 'ARM64')) {
-            MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=$platform
-          }
+          MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=x64
+          MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=ARM64
 
       - name: Move things around to prepare for upload
-        shell: pwsh
+        shell: bash
         run: |
-          $src = "nym-vpn-windows/split-tunnel-driver/bin"
-          $dst = "build/st-driver"
-          foreach ($arch in @('x64-Release', 'ARM64-Release')) {
-            New-Item -ItemType Directory -Force -Path "$dst/$arch"
-            foreach ($file in @('nymvpn-split-tunnel.sys', 'nymvpn-split-tunnel.inf', 'nymvpn-split-tunnel.cat')) {
-              Copy-Item "$src/$arch/nymvpn-split-tunnel/$file" "$dst/$arch/"
-            }
-          }
+          src="nym-vpn-windows/split-tunnel-driver/bin"
+          dst="build/st-driver"
+          for arch in x64-Release ARM64-Release; do
+            mkdir -p "$dst/$arch"
+            for file in nymvpn-split-tunnel.sys nymvpn-split-tunnel.inf nymvpn-split-tunnel.cat; do
+              cp "$src/$arch/nymvpn-split-tunnel/$file" "$dst/$arch/"
+            done
+          done
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
