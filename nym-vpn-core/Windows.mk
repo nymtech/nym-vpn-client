@@ -8,11 +8,16 @@
 # Primary variables:
 # - CPU_ARCH: CPU architecture (amd64 or arm64, default is the architecture of the machine)
 # - RELEASE: 1 for release build, 0 for debug build (default if omitted)
-# - TARGET_DIR: Directory to copy the built DLLs to (default is target/debug or target/release, depending on RELEASE)
+# - TARGET_DIR: Directory to copy the built DLLs to (default is target/debug or target/release for native builds,
+#               or target/<triple>/debug|release when cross-compiling, e.g. target/aarch64-pc-windows-msvc/release)
 #
 # CI extras:
 # - PWSH: Set to 1 to use PowerShell Core (pwsh) instead of Windows PowerShell (powershell)
 # - MSYS2_LOCATION: Location of MSYS2 installation (default is C:/msys64)
+#
+# Prerequisites for cross-compiling ARM64 on an x64 host:
+# The following MSYS2 packages must be installed (provides ARM64 headers and CRT under /clangarm64/):
+#   pacman -S mingw-w64-clang-aarch64-headers mingw-w64-clang-aarch64-crt-git mingw-w64-clang-x86_64-clang
 
 # Powershell on CI does not support the `Expand-Archive` cmdlet. Prefer pwsh instead.
 ifdef PWSH
@@ -38,10 +43,12 @@ GO_PATH := $(ProgramW6432)/Go/bin
 # Make on Windows is a 32-bit application
 # Use PROCESSOR_ARCHITEW6432 to get the native CPU architecture
 ifdef PROCESSOR_ARCHITEW6432
-    CPU_ARCH ?= $(PROCESSOR_ARCHITEW6432)
+    HOST_ARCH := $(PROCESSOR_ARCHITEW6432)
 else
-    CPU_ARCH ?= $(PROCESSOR_ARCHITECTURE)
+    HOST_ARCH := $(PROCESSOR_ARCHITECTURE)
 endif
+
+CPU_ARCH ?= $(HOST_ARCH)
 
 ifeq ($(CPU_ARCH),AMD64)
     RUST_TARGET := x86_64
@@ -59,10 +66,17 @@ endif
 
 ifeq ($(RELEASE),1)
     MSVC_CONFIG := Release
-    TARGET_DIR ?= $(CURDIR)/target/release
+    RUST_BUILD_TYPE := release
 else
     MSVC_CONFIG := Debug
-    TARGET_DIR ?= $(CURDIR)/target/debug
+    RUST_BUILD_TYPE := debug
+endif
+
+# When cross-compiling, Rust places output under target/<triple>/(release|debug)
+ifneq ($(CPU_ARCH),$(HOST_ARCH))
+    TARGET_DIR ?= $(CURDIR)/target/$(RUST_TARGET)-pc-windows-msvc/$(RUST_BUILD_TYPE)
+else
+    TARGET_DIR ?= $(CURDIR)/target/$(RUST_BUILD_TYPE)
 endif
 
 LIBWG_VERSION_HEADER_PATH = $(CURDIR)/../wireguard/libwg/version.h
@@ -77,7 +91,7 @@ WINFW_DLL := winfw.dll
 WINFW_LIB := winfw.lib
 
 ST_DRIVER_DIST_DIR := $(CURDIR)/../build/st-driver/$(WINFW_PLATFORM)-$(MSVC_CONFIG)
-ST_DRIVER_BUILD_DIR := $(CURDIR)/../nym-vpn-windows/split-tunnel-driver/bin/$(WINFW_PLATFORM)-$(MSVC_CONFIG)/nymvpn-split-tunnel
+ST_DRIVER_SIGNED_DIR := $(CURDIR)/../nym-vpn-windows/split-tunnel-driver/signed/$(MSVC_PLATFORM)
 ST_DRIVER_SYS := nymvpn-split-tunnel.sys
 ST_DRIVER_INF := nymvpn-split-tunnel.inf
 ST_DRIVER_CAT := nymvpn-split-tunnel.cat
@@ -86,15 +100,20 @@ ST_DRIVER_PDB := nymvpn-split-tunnel.pdb
 # Ensure that msys2 inherits PATH from environment
 export MSYS2_PATH_TYPE = inherit
 
-.PHONY: wintun libwg st-driver winfw create_target_dir create_version_header
+.PHONY: wintun libwg winfw st-driver create_target_dir create_version_header
 
-default: wintun libwg st-driver winfw
+default: wintun libwg winfw st-driver
 
 # Build libwg and copy it to build/lib
 libwg: create_target_dir create_version_header
 	if ("$(CPU_ARCH_LOWER)" -eq "arm64") { #\
 		$$wg_arm64_flag = "--arm64" ; #\
-		$$msystem = "clangarm64" ; #\
+		if ("$(HOST_ARCH)" -eq "ARM64") { #\
+			$$msystem = "clangarm64" ; #\
+		} else { #\
+			# Cross-compiling: use clang64 (x64 LLVM tools with arm64 cross-compile support) #\
+			$$msystem = "clang64" ; #\
+		} #\
 	} else { #\
 		$$wg_arm64_flag = "" ; #\
 		$$msystem = "mingw64" ; #\
@@ -139,24 +158,21 @@ wintun: create_target_dir
 	Copy-Item -Path "$(WINTUN_BIN_DIR)/$(CPU_ARCH_LOWER)/$(WINTUN_DLL_NAME)" -Destination "$(TARGET_DIR)/$(WINTUN_DLL_NAME)" -Force
 
 st-driver: create_target_dir
-# Setup environment and build split tunnel driver
-	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/split-tunnel-driver/nymvpn-split-tunnel/nymvpn-split-tunnel.sln" /p:Configuration=$(MSVC_CONFIG) /p:Platform=$(WINFW_PLATFORM)
-
-# Copy driver files to distribution directory
+# Copy signed driver files to distribution directory
 	New-Item -ItemType Directory -Force -Path "$(ST_DRIVER_DIST_DIR)"
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_SYS)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_SYS)" -Force
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_INF)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_INF)" -Force
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_CAT)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_CAT)" -Force
-	if (Test-Path "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)") { #\
-    	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_SYS)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_SYS)" -Force
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_INF)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_INF)" -Force
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_CAT)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_CAT)" -Force
+	if (Test-Path "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_PDB)") { #\
+    	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_PDB)" -Destination "$(ST_DRIVER_DIST_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
 	}
 
-# Copy driver files to target directory
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_SYS)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_SYS)" -Force
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_INF)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_INF)" -Force
-	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_CAT)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_CAT)" -Force
-	if (Test-Path "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)") { #\
-    	Copy-Item "$(ST_DRIVER_BUILD_DIR)/$(ST_DRIVER_PDB)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
+# Copy signed driver files to target directory
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_SYS)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_SYS)" -Force
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_INF)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_INF)" -Force
+	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_CAT)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_CAT)" -Force
+	if (Test-Path "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_PDB)") { #\
+    	Copy-Item "$(ST_DRIVER_SIGNED_DIR)/$(ST_DRIVER_PDB)" -Destination "$(TARGET_DIR)/$(ST_DRIVER_PDB)" -Force ; #\
 	}
 
 create_target_dir:

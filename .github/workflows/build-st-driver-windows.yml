@@ -45,16 +45,27 @@ jobs:
 
       - name: Build st-driver
         shell: vsdevenv x64 pwsh {0}
-        working-directory: nym-vpn-core
-        run: make -f Windows.mk st-driver CPU_ARCH=AMD64 RELEASE=1 PWSH=1
+        working-directory: nym-vpn-windows/split-tunnel-driver
+        run: |
+          MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=x64
+          MSBuild.exe /m nymvpn-split-tunnel\nymvpn-split-tunnel.sln /p:Configuration=Release /p:Platform=ARM64
+
+      - name: Move things around to prepare for upload
+        shell: bash
+        run: |
+          src="nym-vpn-windows/split-tunnel-driver/bin"
+          dst="build/st-driver"
+          for arch in x64-Release ARM64-Release; do
+            mkdir -p "$dst/$arch"
+            for file in nymvpn-split-tunnel.sys nymvpn-split-tunnel.inf nymvpn-split-tunnel.cat; do
+              cp "$src/$arch/nymvpn-split-tunnel/$file" "$dst/$arch/"
+            done
+          done
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: st-driver
-          path: |
-            ${{ github.workspace }}/build/st-driver/x64-Release/nymvpn-split-tunnel.sys
-            ${{ github.workspace }}/build/st-driver/x64-Release/nymvpn-split-tunnel.inf
-            ${{ github.workspace }}/build/st-driver/x64-Release/nymvpn-split-tunnel.cat
+          path: ${{ github.workspace }}/build/st-driver/
           if-no-files-found: error
           retention-days: 1

@@ -1,0 +1,9 @@
+{
+  "version": "1.15.0-cherry-rc.2",
+  "platforms": {
+    "windows-aarch64": {
+      "signature": "",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.15.0-cherry-rc.2/NymVPN_1.15.0-cherry-rc.2_arm64-setup.exe"
+    }
+  }
+}
