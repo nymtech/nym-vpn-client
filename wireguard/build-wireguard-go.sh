@@ -95,7 +95,20 @@ function build_windows {
     if $IS_WIN_ARM64; then
         local arch="aarch64"
         export GOARCH=arm64
-        export CC="aarch64-w64-mingw32-cc"
+        if [[ "${MSYSTEM:-}" != "CLANGARM64" ]]; then
+            local clangarm64_inc clangarm64_lib clangarm64_path clangarm64_resdir clang_path clang_ver
+            clangarm64_path=$(cygpath -m /clangarm64)
+            clangarm64_inc=$(cygpath -m /clangarm64/include)
+            clangarm64_lib=$(cygpath -m /clangarm64/lib)
+            clang_ver=$(ls /clangarm64/lib/clang/ 2>/dev/null | sort -V | tail -1)
+            clangarm64_resdir=$(cygpath -m "/clangarm64/lib/clang/${clang_ver}")
+            clang_path=$(cygpath -m /clang64/bin/clang.exe)
+            export CC="${clang_path}"
+            export CGO_CFLAGS="--target=aarch64-w64-mingw32 -isystem ${clangarm64_inc}"
+            export CGO_LDFLAGS="--target=aarch64-w64-mingw32 --sysroot=${clangarm64_path} -resource-dir=${clangarm64_resdir} -L${clangarm64_lib}"
+        else
+            export CC="aarch64-w64-mingw32-cc"
+        fi
     else
         local arch="x86_64"
         export GOARCH=amd64
@@ -109,16 +122,16 @@ function build_windows {
     echo "Building wireguard-go for Windows ($arch)"
 
     pushd $LIB_DIR
-        if [ $# -eq 0 ] ; then
+        if [[ $# -eq 0 ]] ; then
             win_create_versioninfo
         fi
 
         build_go -v -o libwg.dll -buildmode c-shared
 
-        if [ $# -eq 0 ] ; then
+        if [[ $# -eq 0 ]] ; then
             win_create_lib_file
             local target_dir="../../build/lib/$arch-pc-windows-msvc/"
-        elif [ "$1" == "cross" ]; then
+        elif [[ "$1" == "cross" ]]; then
             win_create_lib_file_cross
             local target_dir="../../build/lib/$arch-pc-windows-gnu/"
         fi
@@ -131,7 +144,21 @@ function build_windows {
 
 function win_create_versioninfo {
     echo "Compiling DLL version info (libwg.rc)"
-    windres -i libwg.rc -O coff -o versioninfo_windows.syso
+    # When cross-compiling arm64 on an x64 host we are running inside the clang64 MSYS2
+    # subsystem. In that environment windres is an x64 binary but targets x64 by default;
+    # use llvm-windres with an explicit arm64 target instead.
+    # When building natively on arm64 we are in clangarm64 and plain windres is correct.
+    if $IS_WIN_ARM64 && [ "${MSYSTEM:-}" != "CLANGARM64" ]; then
+        # Cross-compiling arm64 on an x64 host inside the clang64 MSYS2 environment.
+        # clang64 has no windres that can target ARM64 PE; use llvm-rc to compile the
+        # resource script and then cvtres.exe (from VS tools, available via
+        # MSYS2_PATH_TYPE=inherit) to produce the ARM64 COFF object.
+        llvm-rc -FO versioninfo_windows.res libwg.rc
+        MSYS2_ARG_CONV_EXCL="*" cvtres.exe /machine:arm64 /nologo /out:versioninfo_windows.syso versioninfo_windows.res
+        rm -f versioninfo_windows.res
+    else
+        windres -i libwg.rc -O coff -o versioninfo_windows.syso
+    fi
 }
 
 function unix_target_triple {

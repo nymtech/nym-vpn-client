@@ -1,0 +1,9 @@
+{
+  "version": "1.29.4",
+  "platforms": {
+    "windows-aarch64": {
+      "signature": "",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.29.4/NymVPN_1.29.4_arm64-setup.exe"
+    }
+  }
+}
