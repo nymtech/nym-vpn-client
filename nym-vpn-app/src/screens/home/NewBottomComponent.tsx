@@ -129,10 +129,10 @@ function ModeToggle() {
           type="button"
           onClick={() => handleToggle(isFast ? 'mixnet' : 'wg')}
           aria-label={t('toggle-vpn-mode.aria-label')}
-          className="dark:bg-aph relative h-10 w-20 shrink-0 cursor-default rounded-full bg-[#e5e5e5]"
+          className="dark:bg-background bg-gray relative h-10 w-20 shrink-0 cursor-default rounded-full"
         >
           <motion.div
-            className="border-ash dark:bg-charcoal pointer-events-none absolute top-[6px] flex size-7 items-center justify-center rounded-full border bg-white dark:border-transparent"
+            className="dark:bg-charcoal pointer-events-none absolute top-1.5 flex size-7 items-center justify-center rounded-full bg-white"
             animate={{
               x: isFast ? 6 : 40,
             }}
@@ -386,7 +386,7 @@ export function NewBottomComponent() {
                 animate={{ opacity: 1, width: '100%' }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: DURATION, ease: easeOutQuart }}
-                className="mx-auto my-4 h-px w-full rounded-full bg-[#3b3b3b]"
+                className="bg-background-secondary dark:bg-charcoal mx-auto my-4 h-px w-full rounded-full"
               />
             </motion.div>
           )}

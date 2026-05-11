@@ -256,7 +256,7 @@ export function NodeRow({ type }: NodeRowProps) {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="text-secondary overflow-hidden text-xs leading-5 tracking-[0.18px]"
+            className="text-text-secondary overflow-hidden text-xs leading-5 tracking-wide"
           >
             {label}
           </motion.p>
