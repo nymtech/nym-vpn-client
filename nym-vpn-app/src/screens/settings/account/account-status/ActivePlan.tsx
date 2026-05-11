@@ -19,14 +19,8 @@ export function ActivePlan({
     const used = accountSummary.trafficUsedGb;
     const limit = accountSummary.trafficLimitGb;
 
-    return ((Number(limit) - Number(used)) / Number(limit)) * 100;
+    return (Number(used) / Number(limit)) * 100;
   }, [accountSummary]);
-
-  const bandwidthRemainingValue = useMemo(
-    () =>
-      formatGb(accountSummary.trafficLimitGb - accountSummary.trafficUsedGb),
-    [accountSummary],
-  );
 
   const resetsOn = useMemo(() => {
     return dayjs
@@ -51,7 +45,7 @@ export function ActivePlan({
             <Progress.Indicator className="bg-primary block transition-all duration-500" />
           </Progress.Track>
           <Progress.Label className="text-primary text-sm font-medium">
-            {bandwidthRemainingValue}
+            {formatGb(accountSummary.trafficUsedGb)}
           </Progress.Label>
           <Progress.Label className="text-text-secondary text-right text-sm font-medium">
             {formatGb(accountSummary.trafficLimitGb)}

@@ -11,7 +11,7 @@
   "account-status": {
     "title": "Account status",
     "no-plan": "No active plan",
-    "bandwidth-remaining": "Bandwidth remaining",
+    "bandwidth-remaining": "Bandwidth used",
     "limit": "Limit",
     "resets-on": "Resets on",
     "renew-now": "Renew now to stay protected",
