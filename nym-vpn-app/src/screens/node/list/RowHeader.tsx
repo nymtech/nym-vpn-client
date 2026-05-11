@@ -12,7 +12,6 @@ export type RowHeaderProps = {
   node: UiCountry | UiRegion;
   onClick: (node: UiCountry | UiRegion) => void;
   sub?: boolean;
-  gwCount: number;
   i18n: string;
   open?: boolean;
 };
@@ -22,7 +21,6 @@ function RowHeader({
   hop,
   onClick,
   node,
-  gwCount,
   i18n,
   sub,
   open,

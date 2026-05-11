@@ -50,7 +50,6 @@ export const NodeItem = memo(function NodeItem({
         onClick={() =>
           handleLocationSelect(country, isSelected, gateways.length)
         }
-        gwCount={gateways.length}
         open={expanded.includes(country.code) || false}
       />
       <Collapsible.Panel
@@ -78,7 +77,6 @@ export const NodeItem = memo(function NodeItem({
                     region.gateways.length,
                   );
                 }}
-                gwCount={region.gateways.length}
                 sub
                 open={expanded.includes(region.name)}
               />
