@@ -83,7 +83,7 @@ function WelcomeScreenContainer() {
             initial={hasNavigated.current ? 'enter' : false}
             animate="visible"
             exit="exit"
-            transition={{ duration: 0.28, ease: 'easeInOut' }}
+            transition={{ duration: 0.15, ease: 'easeInOut' }}
             className="h-full"
           >
             {view === 'welcome' && (

@@ -177,30 +177,32 @@ function Node({ node }: { node: NodeHop }) {
             value={search || ''}
           />
         </div>
-        {loading && (
-          <motion.div
-            className="text-text-secondary mt-4 flex justify-center text-base"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            data-testid="node-loading-indicator"
-          >
-            {t('loading')}
-          </motion.div>
-        )}
-        {!loading && (
-          <NodeList
-            nodes={deferredNodes}
-            gateways={deferredGateways}
-            onSelect={handleSelect}
-            onNodeDetails={handleNodeDetails}
-            hop={node}
-            vpnMode={vpnMode}
-            quicFilter={quicFilter}
-            expanded={expanded}
-            focused={focused}
-          />
-        )}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {loading && (
+            <motion.div
+              className="text-text-secondary mt-4 flex justify-center text-base"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              data-testid="node-loading-indicator"
+            >
+              {t('loading')}
+            </motion.div>
+          )}
+          {!loading && (
+            <NodeList
+              nodes={deferredNodes}
+              gateways={deferredGateways}
+              onSelect={handleSelect}
+              onNodeDetails={handleNodeDetails}
+              hop={node}
+              vpnMode={vpnMode}
+              quicFilter={quicFilter}
+              expanded={expanded}
+              focused={focused}
+            />
+          )}
+        </div>
       </PageAnim>
     </>
   );

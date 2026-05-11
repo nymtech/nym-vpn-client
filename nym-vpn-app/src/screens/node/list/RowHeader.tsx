@@ -61,10 +61,10 @@ function RowHeader({
     >
       <div
         className={clsx(
-          'w-1.5 rounded-r-sm',
+          'w-1.5 self-stretch rounded-r-sm',
           (isSelected === hop || isSelected === 'entry-and-exit') &&
-            'bg-malachite',
-          isSelected && isSelected !== hop && 'bg-iron',
+            'bg-primary',
+          isSelected && isSelected !== hop && 'bg-background-secondary',
         )}
         data-selected={isSelected ? isSelected : 'none'}
       />

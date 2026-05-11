@@ -71,9 +71,6 @@ export function NodeRow({ type }: NodeRowProps) {
   const handleClick = () => {
     if (algo === 'auto') return;
 
-    const route =
-      type === 'entry' ? routes.entryNodeLocation : routes.exitNodeLocation;
-
     reset(type);
 
     if (isCountry(userSelectedNode)) {
@@ -99,7 +96,7 @@ export function NodeRow({ type }: NodeRowProps) {
       addToExpanded(type, userSelectedNode.gateway.id);
     }
 
-    navigate(route);
+    navigate(routes.nodeLocation, { state: { tab: type } });
   };
 
   const quicTag =
@@ -129,7 +126,7 @@ export function NodeRow({ type }: NodeRowProps) {
 
       return {
         countryCode: countryCode.toLowerCase() as countryCode,
-        name: location,
+        name: parts.join(', '),
         location: parts.join(', '),
         ip: gw?.exitIpv4 || gw?.exitIpv6 || '',
         ...gwFlags(gw),
@@ -259,7 +256,7 @@ export function NodeRow({ type }: NodeRowProps) {
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="text-secondary overflow-hidden text-xs leading-5 tracking-[0.18px]"
+            className="text-text-secondary overflow-hidden text-xs leading-5 tracking-wide"
           >
             {label}
           </motion.p>

@@ -48,6 +48,9 @@
   --color-king-nacho: #ffb400;
   --color-cheddar: #e48212;
   --color-cornflower: #9189ff;
+  --color-aph: #090909;
+  --color-aph-light: #2e2e2e;
+  --color-gray: #d5d5d5;
   /* quic tag */
   --color-ozone: #00a3f5;
   --color-azur: #98ddff;
@@ -65,17 +68,6 @@
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-icon: Material Symbols Outlined;
   --font-icon--font-variation-settings: 'opsz' 24;
-
-  /* new colors */
-
-  --color-secondary: #aeacb1;
-  --color-success: #28c96c;
-  --color-warning: #ffcc33;
-  --color-error: #e73e14;
-
-  --color-aph: #090909;
-  --color-aph-light: #2e2e2e;
-  --color-gray: #d5d5d5;
 }
 
 /* ─── semantic tokens — Figma "VPN color palette" ───────────────────────────
@@ -93,12 +85,16 @@
   --nv-border: #e2e4ea;
   --nv-divider: #e2e4ea;
   --nv-background: #ebeef4;
+  --nv-background-secondary: #e1e5ee;
   /* text hierarchy */
   --nv-text-primary: #1c1b1f;
   --nv-text-secondary: #606060;
   --nv-text-tertiary: #b0adb6;
   /* status (same in both modes) */
   --nv-info: #485eca;
+  --nv-success: #28c96c;
+  --nv-warning: #ffcc33;
+  --nv-error: #e73e14;
 }
 
 .dark {
@@ -110,10 +106,14 @@
   --nv-border: #3a3a3c;
   --nv-divider: #3a3a3c;
   --nv-background: #090909;
+  --nv-background-secondary: #e1e5ee;
   --nv-text-primary: #ffffff;
   --nv-text-secondary: #aeacb1;
   --nv-text-tertiary: #e5e5e5;
   --nv-info: #485eca;
+  --nv-success: #28c96c;
+  --nv-warning: #ffcc33;
+  --nv-error: #e73e14;
 }
 
 @theme inline {
@@ -125,10 +125,14 @@
   --color-border: var(--nv-border);
   --color-divider: var(--nv-divider);
   --color-background: var(--nv-background);
+  --color-background-secondary: var(--nv-background-secondary);
   --color-text-primary: var(--nv-text-primary);
   --color-text-secondary: var(--nv-text-secondary);
   --color-text-tertiary: var(--nv-text-tertiary);
   --color-info: var(--nv-info);
+  --color-success: var(--nv-success);
+  --color-warning: var(--nv-warning);
+  --color-error: var(--nv-error);
 }
 
 @utility transition-noborder {

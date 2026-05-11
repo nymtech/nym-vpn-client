@@ -19,8 +19,8 @@ import {
   Logs,
   MainLayout,
   MixnetTuning,
-  Node,
   NodeDetails,
+  NodeLocation,
   Onboarding,
   SelectPlan,
   Settings,
@@ -57,6 +57,7 @@ export const routes = {
   dev: '/settings/dev',
   entryNodeLocation: '/entry-node-location',
   exitNodeLocation: '/exit-node-location',
+  nodeLocation: '/node-location',
   nodeDetails: '/node-details',
   hideout: '/hideout',
   onboarding: '/hideout/onboarding',
@@ -221,13 +222,8 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: routes.entryNodeLocation,
-        element: <Node node="entry" />,
-        errorElement: <Error />,
-      },
-      {
-        path: routes.exitNodeLocation,
-        element: <Node node="exit" />,
+        path: routes.nodeLocation,
+        Component: NodeLocation,
         errorElement: <Error />,
       },
       {

@@ -34,13 +34,13 @@ function MainStateProvider({ children, init }: Props) {
     })),
   );
 
-  const { add } = useToast();
-  useTauriEvents(add);
+  const { add, close } = useToast();
+  useTauriEvents(add, close);
   useAccountSummaryOnAccountState();
 
   // initialize app state
   useEffect(() => {
-    daemonStatusUpdate(init.vpnd, add);
+    daemonStatusUpdate(init.vpnd, add, close);
     networkEnvChanged(init.vpnd).then(async (changed) => {
       if (changed) {
         console.info('network env changed, clearing cache');
@@ -142,7 +142,11 @@ function MainStateProvider({ children, init }: Props) {
     };
   }, []);
 
-  if (!initialized) {
+  if (
+    !initialized &&
+    daemonStatus !== 'auth-denied' &&
+    daemonStatus !== 'down'
+  ) {
     return <IntroSplash theme={init.uiTheme} />;
   }
 
