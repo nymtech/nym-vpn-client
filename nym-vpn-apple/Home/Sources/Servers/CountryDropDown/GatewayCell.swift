@@ -57,18 +57,15 @@ public struct GatewayCell: View {
 
     public var body: some View {
         HStack(spacing: 0) {
-            HStack {
+            HStack(spacing: 0) {
                 serverInfo()
-                Spacer()
-                    .frame(width: 16)
                 if shouldShowQuic {
                     QuicLabel()
+                        .padding(.trailing, NymSpacing.small)
                 } else if shouldShowStreaming {
                     StreamingIcon()
+                        .padding(.trailing, NymSpacing.small)
                 }
-            }
-            .onHover { newValue in
-                isButtonHovered = newValue
             }
 
             infoButton()
@@ -83,14 +80,24 @@ public struct GatewayCell: View {
                     infoButtonTapAction()
                 }
         }
-        .background(isButtonHovered ? Color.Nym.backgroundHover : Color.Nym.background)
+        .frame(minHeight: 64)
+        .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)
+        .overlay {
+            Rectangle()
+                .inset(by: 0.5)
+                .stroke(isSelected ? Color.Nym.primary : .clear, lineWidth: 1)
+                .allowsHitTesting(false)
+        }
+        .animation(.default, value: isSelected)
+        .onHover { newValue in
+            isButtonHovered = newValue
+        }
     }
 }
 
 private extension GatewayCell {
     func serverInfo() -> some View {
         HStack(spacing: 0) {
-            selectionMarkerView()
             scoreImage()
             serverDetails()
             Spacer()
@@ -128,17 +135,11 @@ private extension GatewayCell {
 }
 
 private extension GatewayCell {
-    @ViewBuilder
-    func selectionMarkerView() -> some View {
-        if isSelected {
-            SelectionMarker()
-        }
-    }
-
     func scoreImage() -> some View {
         GenericImage(imageName: scoreImageName())
             .frame(width: 16, height: 16)
-            .padding(20)
+            .padding(.leading, NymSpacing.large)
+            .padding(.trailing, NymSpacing.medium)
     }
 
     func serverDetails() -> some View {
@@ -177,18 +178,11 @@ private extension GatewayCell {
     }
 
     func infoButton() -> some View {
-        ZStack {
-            if isAccessoryHovered {
-                Circle()
-                    .fill(Color.Nym.backgroundHover)
-                    .frame(width: 40, height: 40)
-            }
-
-            GenericImage(imageName: "arrowRight")
-                .frame(width: 24, height: 24)
-        }
-        .frame(width: 48, height: 48)
-        .padding(.trailing, 4)
+        Image(systemName: "chevron.right")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(isAccessoryHovered ? Color.Nym.textPrimary : Color.Nym.textSecondary)
+            .frame(width: 24, height: 24)
+            .padding(.trailing, NymSpacing.large)
     }
 }
 

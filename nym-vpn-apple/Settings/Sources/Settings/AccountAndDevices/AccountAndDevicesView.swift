@@ -39,7 +39,6 @@ import Theme
                 ScrollView {
                     VStack(spacing: 24) {
                         if credentialsManager.isValidCredentialImported {
-                            renewButton()
                             accountStatusSection()
                             contactSupportText()
                             nymAccountSection()
@@ -111,25 +110,6 @@ extension AccountAndDevicesView {
             title: "settings.account".localizedString,
             leftButton: CustomNavBarButton(type: .back, action: { navigateBack() })
         )
-    }
-
-    @ViewBuilder
-    func renewButton() -> some View {
-        if let accountSummary = credentialsManager.accountSummary,
-           accountSummary.shouldShowRenewButton(isAutoRenew: isAutoRenewEnabled(accountSummary: accountSummary)) {
-            GenericButton(title: accountSummary.renewButtonTitle)
-                .onTapGesture {
-                    navigateToPlanPurchase()
-                }
-        }
-    }
-
-    private func isAutoRenewEnabled(accountSummary: AccountSummary) -> Bool {
-#if os(iOS)
-        purchasesManager.isAutoRenewEnabled || accountSummary.isAutoRenewEnabled
-#elseif os(macOS)
-        accountSummary.isAutoRenewEnabled
-#endif
     }
 
     @ViewBuilder

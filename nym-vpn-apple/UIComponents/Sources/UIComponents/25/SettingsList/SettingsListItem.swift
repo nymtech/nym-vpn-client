@@ -26,6 +26,7 @@ public struct SettingsListItem: View {
                         .padding(.trailing, NymSpacing.small)
                     Spacer()
                 }
+                .frame(maxHeight: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     if case let .toggle(_, isDisabled) = viewModel.accessory, !isDisabled {

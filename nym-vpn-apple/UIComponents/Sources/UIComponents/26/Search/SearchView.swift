@@ -19,7 +19,9 @@ public struct SearchView: View {
     public var body: some View {
         StrokeBorderView(
             strokeTitle: strokeTitle,
-            isHovered: $isHovered
+            isHovered: $isHovered,
+            backgroundColor: Color.Nym.background,
+            backgroundColorHover: Color.Nym.background
         ) {
             HStack {
                 searchImage()
