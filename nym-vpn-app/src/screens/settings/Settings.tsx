@@ -5,7 +5,13 @@ import { useAutostart, useDesktopNotifications, useToast } from '../../hooks';
 import { routes } from '../../router';
 import { dispatch, useMainState } from '../../store';
 import { useExit } from '../../state';
-import { MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
+import {
+  ButtonNew,
+  MsIcon,
+  PageAnim,
+  SettingsMenuCard,
+  Switch,
+} from '../../ui';
 import { AccountSettingRow } from './account';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
@@ -251,7 +257,10 @@ function Settings() {
           },
         ]}
       />
-      <SettingsMenuCard title={t('quit')} onClick={exit} />
+      {/* <SettingsMenuCard title={t('quit')} onClick={exit} /> */}
+      <ButtonNew variant="destructive" onClick={exit}>
+        {t('quit')}
+      </ButtonNew>
       <InfoData />
     </PageAnim>
   );
