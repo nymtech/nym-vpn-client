@@ -39,6 +39,7 @@ export async function fireRequests(requests: TauriReq<any>[]) {
 export function daemonStatusUpdate(
   status: VpndStatus,
   add: (data: ToastAddData) => string,
+  close: (id: string) => void,
 ) {
   console.log('daemonStatusUpdate', status);
   dispatch({
@@ -48,6 +49,7 @@ export function daemonStatusUpdate(
   const info = getVpndInfo(status);
   if (info) {
     dispatch({ type: 'set-daemon-info', info });
+    close('daemon-not-connected');
   }
   if (isVpndNonCompat(status)) {
     add({

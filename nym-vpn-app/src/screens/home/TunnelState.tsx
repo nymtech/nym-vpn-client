@@ -342,7 +342,7 @@ export function TunnelState() {
           )}
         </AnimatePresence>
         {phase === 'error' && (
-          <div className="text-error text-center text-[9px]">{getError()}</div>
+          <div className="text-error text-center text-lg">{getError()}</div>
         )}
       </div>
     </div>

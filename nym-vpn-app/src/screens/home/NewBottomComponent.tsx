@@ -433,7 +433,11 @@ export function NewBottomComponent() {
 
         {/* Button ───────────────────────────────────────────────────────── */}
         <div className="z-10">
-          <ButtonNew variant={getButtonVariant()} onClick={handleConnect}>
+          <ButtonNew
+            disabled={daemonStatus === 'down'}
+            variant={getButtonVariant()}
+            onClick={handleConnect}
+          >
             {getButtonText()}
           </ButtonNew>
         </div>

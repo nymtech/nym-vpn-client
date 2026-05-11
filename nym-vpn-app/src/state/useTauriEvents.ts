@@ -29,7 +29,10 @@ import { dispatch } from '../store';
 import { daemonStatusUpdate, networkEnvChanged } from './helper';
 import { updateAccountState, updateTunnel } from './update';
 
-export function useTauriEvents(add: (data: ToastAddData) => string) {
+export function useTauriEvents(
+  add: (data: ToastAddData) => string,
+  close: (id: string) => void,
+) {
   const registerDaemonListener = useCallback(() => {
     return listen<VpndStatus>(
       DaemonEvent,
@@ -37,7 +40,7 @@ export function useTauriEvents(add: (data: ToastAddData) => string) {
         console.log(
           `received event [${event}], status: ${status === 'down' ? status : JSON.stringify(status)}`,
         );
-        daemonStatusUpdate(status, add);
+        daemonStatusUpdate(status, add, close);
         const changed = await networkEnvChanged(status);
         if (changed) {
           console.info('network env changed, clearing cache');
