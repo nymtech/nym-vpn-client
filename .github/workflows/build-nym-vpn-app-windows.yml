@@ -256,28 +256,29 @@ jobs:
 
       - name: Download nym-vpn-core artifact
         if: ${{ !inputs.core_build_it }}
-        shell: bash
         run: |
-          curl -fLo nym-vpn-core.zip '${{ env.core_asset_url }}'
+          curl.exe -fLo nym-vpn-core.zip '${{ env.core_asset_url }}'
 
       - name: Unzip nym-vpn-core artifact
         if: ${{ !inputs.core_build_it }}
-        shell: bash
         run: |
-          unzip -o nym-vpn-core.zip -d nym-vpn-core-bin
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::ExtractToDirectory('nym-vpn-core.zip', 'nym-vpn-core-bin')
 
       - name: List files
         if: ${{ !inputs.core_build_it }}
-        shell: bash
         run: |
-          ls -lR nym-vpn-core-bin
+          $destination = 'nym-vpn-core-bin'
+          Get-ChildItem -Path $destination -Recurse
 
       - name: Copy files
         if: ${{ !inputs.core_build_it }}
-        shell: bash
         run: |
-          subdirectory=$(ls -d nym-vpn-core-bin/*/ | head -1)
-          cp -rv "${subdirectory}"* nym-vpn-app/src-tauri/
+          $destination = 'nym-vpn-core-bin'
+          $subdirectory = Get-ChildItem -Path $destination | Where-Object { $_.PSIsContainer } | Select-Object -First 1
+          $sourcePath = Join-Path -Path $destination -ChildPath $subdirectory.Name
+          $targetPath = 'nym-vpn-app/src-tauri'
+          Copy-Item -Path (Join-Path -Path $sourcePath -ChildPath '*') -Destination $targetPath -Recurse -Force
 
       - name: Download nym-vpn-core from local build
         if: ${{ inputs.core_build_it }}
