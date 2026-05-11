@@ -20,20 +20,20 @@ on:
         type: boolean
         default: false
       core_release_tag:
-        description: "nym-vpn-core release tag from GH to use for Windows, to get the daemon"
+        description: "nym-vpn-core: GitHub release tag (pick 1)"
         required: false
         type: string
       core_artifact_url:
-        description: "direct nym-vpn-core artifact URL for Windows, to get the daemon"
+        description: "nym-vpn-core: Zip file artifact URL (pick 1)"
         required: false
         type: string
-      core_build:
-        description: "Build nym-vpn-core from source using build-nym-vpn-core-windows workflow"
+      core_build_it:
+        description: "nym-vpn-core: Build from source (pick 1)"
         required: false
         type: boolean
         default: false
       sign:
-        description: "Sign this build using SSL.com. Signing is billed per signature so be 100% sure you want a signed release"
+        description: "Sign using SSL.com. Signing is billed per signature so be 100% sure you want a signed release"
         required: false
         type: boolean
         default: false
@@ -67,7 +67,7 @@ on:
       core_artifact_url:
         required: false
         type: string
-      core_build:
+      core_build_it:
         required: false
         type: boolean
         default: false
@@ -117,7 +117,7 @@ env:
 
 jobs:
   build-core:
-    if: ${{ inputs.core_build == true }}
+    if: ${{ inputs.core_build_it == true }}
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
     with:
       cpu_arch: ${{ inputs.cpu_arch || 'x64' }}
@@ -138,6 +138,18 @@ jobs:
       core_build_url_path: ${{ steps.get_dev_url.outputs.latest_dev_path }}
 
     steps:
+      - name: Validate mutually exclusive core inputs
+        shell: bash
+        run: |
+          count=0
+          [[ -n "${{ inputs.core_release_tag }}" ]] && count=$((count + 1))
+          [[ -n "${{ inputs.core_artifact_url }}" ]] && count=$((count + 1))
+          [[ "${{ inputs.core_build_it }}" == "true" ]] && count=$((count + 1))
+          if [[ $count -gt 1 ]]; then
+            echo "ERROR: core_release_tag, core_artifact_url, and core_build_it are mutually exclusive. Set at most one."
+            exit 1
+          fi
+
       - name: "Cleanup working directory"
         shell: bash
         run: |
@@ -186,13 +198,13 @@ jobs:
           subcommand: package.version --entry nym-vpn-app/src-tauri
 
       - name: Get nym-vpn-core release tag
-        if: ${{ inputs.core_release_tag && !inputs.core_build }}
+        if: ${{ inputs.core_release_tag && !inputs.core_build_it }}
         run: |
           echo "core_release_tag: ${{ inputs.core_release_tag }}"
           "core_release_tag=${{ inputs.core_release_tag }}" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core release tag (latest stable)
-        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.dev_mode && !inputs.core_build && github.event_name != 'pull_request' }}
+        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.dev_mode && !inputs.core_build_it && github.event_name != 'pull_request' }}
         run: |
           $release_tag = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases |
@@ -201,7 +213,7 @@ jobs:
           "core_release_tag=$release_tag" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core artifact url (latest dev)
-        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.core_build && (inputs.dev_mode || github.event_name == 'pull_request') }}
+        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.core_build_it && (inputs.dev_mode || github.event_name == 'pull_request') }}
         id: get_dev_url
         run: |
           $latest = Invoke-WebRequest -Uri "${{ env.VPN_CORE_BUILDS_URL }}/develop" | Select-String -Pattern '<a href="(\d+)/"' -AllMatches | ForEach-Object {$_.Matches} | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Descending | Select-Object -First 1
@@ -214,7 +226,7 @@ jobs:
           "core_asset_url=$artifact_url" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core artifact url (${{ env.core_release_tag }})
-        if: ${{ env.core_release_tag && !inputs.core_build }}
+        if: ${{ env.core_release_tag && !inputs.core_build_it }}
         run: |
           $asset_url = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/${{ env.core_release_tag }} |
@@ -223,13 +235,13 @@ jobs:
           "core_asset_url=$asset_url" >> $env:GITHUB_ENV
 
       - name: Use nym-vpn-core artifact url from inputs
-        if: ${{ inputs.core_artifact_url && !inputs.core_build }}
+        if: ${{ inputs.core_artifact_url && !inputs.core_build_it }}
         run: |
           echo "core_asset_url: ${{ inputs.core_artifact_url }}"
           "core_asset_url=${{ inputs.core_artifact_url }}" >> $env:GITHUB_ENV
 
       - name: Validate nym-vpn-core artifact url
-        if: ${{ !inputs.core_build }}
+        if: ${{ !inputs.core_build_it }}
         shell: bash
         run: |
           if [[ -z "${{ env.core_asset_url }}" ]]; then
@@ -239,24 +251,24 @@ jobs:
           echo "core_asset_url: ${{ env.core_asset_url }}"
 
       - name: Download nym-vpn-core artifact
-        if: ${{ !inputs.core_build }}
+        if: ${{ !inputs.core_build_it }}
         run: |
           curl.exe -fLo nym-vpn-core.zip '${{ env.core_asset_url }}'
 
       - name: Unzip nym-vpn-core artifact
-        if: ${{ !inputs.core_build }}
+        if: ${{ !inputs.core_build_it }}
         run: |
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           [System.IO.Compression.ZipFile]::ExtractToDirectory('nym-vpn-core.zip', 'nym-vpn-core-bin')
 
       - name: List files
-        if: ${{ !inputs.core_build }}
+        if: ${{ !inputs.core_build_it }}
         run: |
           $destination = 'nym-vpn-core-bin'
           Get-ChildItem -Path $destination -Recurse
 
       - name: Copy files
-        if: ${{ !inputs.core_build }}
+        if: ${{ !inputs.core_build_it }}
         run: |
           $destination = 'nym-vpn-core-bin'
           $subdirectory = Get-ChildItem -Path $destination | Where-Object { $_.PSIsContainer } | Select-Object -First 1
@@ -265,7 +277,7 @@ jobs:
           Copy-Item -Path (Join-Path -Path $sourcePath -ChildPath '*') -Destination $targetPath -Recurse -Force
 
       - name: Download nym-vpn-core from local build
-        if: ${{ inputs.core_build }}
+        if: ${{ inputs.core_build_it }}
         uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build-core.outputs.UPLOAD_DIR_WINDOWS }}
