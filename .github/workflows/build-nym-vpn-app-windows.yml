@@ -109,6 +109,9 @@ on:
         description: "Core build URL path that has been bundled"
         value: ${{ jobs.build-nym-vpn-app.outputs.core_build_url_path }}
 
+permissions:
+  contents: read
+
 env:
   CARGO_TERM_COLOR: always
   LIBS_PATH: "${{ github.workspace }}/lib"

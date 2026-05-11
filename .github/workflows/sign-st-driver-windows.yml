@@ -117,6 +117,7 @@ jobs:
           SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
           SSL_COM_CREDENTIAL_ID: ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}
         run: |
+          mkdir -p signed
           ./CodeSignTool.sh sign \
             -username="$SSL_COM_USERNAME" \
             -password="$SSL_COM_PASSWORD" \
