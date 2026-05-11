@@ -17621,6 +17621,28 @@
         }
       }
     },
+    "gatewaysView.countries" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "countries"
+          }
+        }
+      }
+    },
+    "gatewaysView.nodes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nodes"
+          }
+        }
+      }
+    },
     "gatewaysView.quic1" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -25014,7 +25036,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No active plan"
+            "value" : "This account has no active subscription"
           }
         }
       }
@@ -32522,13 +32544,13 @@
         }
       }
     },
-    "settings.account.bandwidthRemaining" : {
+    "settings.account.bandwidthUsed" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bandwidth remaining"
+            "value" : "Bandwidth used"
           }
         }
       }
@@ -32605,7 +32627,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No active plan"
+            "value" : "No active subscription"
           }
         }
       }

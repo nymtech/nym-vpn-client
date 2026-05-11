@@ -30,9 +30,6 @@ private extension SettingsView {
             navbar()
             ScrollView {
                 VStack(spacing: 0) {
-                    credentialOrAddCredentialView()
-                    renewButton()
-
                     Spacer()
                         .frame(height: NymSpacing.section)
                     settingsList()
@@ -80,34 +77,6 @@ private extension SettingsView {
             leftButton: CustomNavBarButton(type: .empty, action: {}),
             rightButton: CustomNavBarButton(type: .close, action: { viewModel.navigateBack() })
         )
-    }
-
-    @ViewBuilder
-    func credentialOrAddCredentialView() -> some View {
-        if !viewModel.isValidCredentialImported {
-            loginButton()
-        }
-    }
-
-    @ViewBuilder
-    func loginButton() -> some View {
-        GenericButton(title: "settings.getStarted".localizedString)
-            .frame(height: 64)
-            .padding(EdgeInsets(top: NymSpacing.section, leading: 0, bottom: 0, trailing: 0))
-            .onTapGesture {
-                viewModel.navigateToOnboardingOrCredential()
-            }
-    }
-
-    @ViewBuilder
-    func renewButton() -> some View {
-        if viewModel.shouldShowRenewButton {
-            GenericButton(title: viewModel.renewButtonTitle)
-                .padding(.top, NymSpacing.section)
-                .onTapGesture {
-                    viewModel.navigateToPlanPurchase()
-                }
-        }
     }
 
     @ViewBuilder

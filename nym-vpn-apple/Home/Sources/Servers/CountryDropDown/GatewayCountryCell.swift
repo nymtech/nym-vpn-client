@@ -1,7 +1,6 @@
 import SwiftUI
 import ConnectionManager
 import ConnectionTypes
-import ConnectionTypes
 import GatewayManager
 import ImpactGenerator
 import Theme
@@ -12,10 +11,10 @@ public struct GatewayCountryCell: View {
     private let servers: [GatewayNode]
     private let hopType: HopType
     private let isSearching: Bool
+    private let cornerRadius: CGFloat = 16
 
     @EnvironmentObject private var gatewayManager: GatewayManager
     @State private var isButtonHovered = false
-    @State private var isAccessoryHovered = false
     @State private var isExpanded: Bool
     @State private var isCountrySelected = false
     @Binding private var path: NavigationPath
@@ -59,89 +58,120 @@ public struct GatewayCountryCell: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            countryCell()
+            countryRow()
+                .overlay {
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: cornerRadius,
+                        bottomLeadingRadius: isExpanded ? 0 : cornerRadius,
+                        bottomTrailingRadius: isExpanded ? 0 : cornerRadius,
+                        topTrailingRadius: cornerRadius
+                    )
+                    .inset(by: 0.5)
+                    .stroke(isCountrySelected ? Color.Nym.primary : .clear, lineWidth: 1)
+                    .allowsHitTesting(false)
+                }
+                .animation(.default, value: isCountrySelected)
                 .id(GatewayScrollToModel.country(code: country.code).scrollToIdentifier)
             if isExpanded {
-                if !country.regions.isEmpty && gatewayManager.shouldDisplayRegion(with: country.code) {
-                    ForEach(country.regions, id: \.self) { region in
-                        Spacer()
-                            .frame(height: 6)
-                        GatewayRegionCell(
-                            hopType: hopType,
-                            country: country,
-                            region: region.name,
-                            servers: servers.filter { $0.location?.region == region.name },
-                            infoButtonTapCompletion: infoButtonTapCompletion,
-                            path: $path,
-                            entryGateway: $entryGateway,
-                            exitRouter: $exitRouter,
-                            scrollToModel: $scrollToModel
-                        )
-                        .id(
-                            GatewayScrollToModel.region(
-                                countryCode: country.code,
-                                region: region.name
-                            )
-                            .scrollToIdentifier
-                        )
-                    }
-                } else {
-                    ForEach(servers, id: \.id) { server in
-                        GatewayCell(
-                            server: server,
-                            type: hopType,
-                            path: $path,
-                            scrollToModel: $scrollToModel,
-                            infoButtonTapCompletion: { server in
-                                infoButtonTapCompletion?(server)
-                            }
-                        )
-                        .id(GatewayScrollToModel.server(id: server.id).scrollToIdentifier)
-                    }
-                }
+                expandedContent()
             }
         }
+        .background {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(Color.Nym.backgroundCard)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+        .padding(.horizontal, NymSpacing.large)
+        .padding(.bottom, NymSpacing.small)
     }
 }
 
 private extension GatewayCountryCell {
     @ViewBuilder
-    func countryCell() -> some View {
+    func expandedContent() -> some View {
+        Divider()
+            .frame(height: 1)
+            .overlay(Color.Nym.divider)
+
+        if !country.regions.isEmpty && gatewayManager.shouldDisplayRegion(with: country.code) {
+            ForEach(Array(country.regions.enumerated()), id: \.element.self) { index, region in
+                if index > 0 {
+                    Divider()
+                        .frame(height: 1)
+                        .overlay(Color.Nym.divider)
+                }
+                GatewayRegionCell(
+                    hopType: hopType,
+                    country: country,
+                    region: region.name,
+                    servers: servers.filter { $0.location?.region == region.name },
+                    infoButtonTapCompletion: infoButtonTapCompletion,
+                    path: $path,
+                    entryGateway: $entryGateway,
+                    exitRouter: $exitRouter,
+                    scrollToModel: $scrollToModel
+                )
+                .id(
+                    GatewayScrollToModel.region(
+                        countryCode: country.code,
+                        region: region.name
+                    )
+                    .scrollToIdentifier
+                )
+            }
+        } else {
+            ForEach(Array(servers.enumerated()), id: \.element.id) { index, server in
+                if index > 0 {
+                    Divider()
+                        .frame(height: 1)
+                        .overlay(Color.Nym.divider)
+                }
+                GatewayCell(
+                    server: server,
+                    type: hopType,
+                    path: $path,
+                    scrollToModel: $scrollToModel,
+                    infoButtonTapCompletion: { server in
+                        infoButtonTapCompletion?(server)
+                    }
+                )
+                .id(GatewayScrollToModel.server(id: server.id).scrollToIdentifier)
+            }
+        }
+    }
+
+    @ViewBuilder
+    func countryRow() -> some View {
         HStack(spacing: 0) {
             HStack(spacing: 0) {
-                isSelectedMarker()
                 FlagImage(countryCode: country.code)
-                    .padding(EdgeInsets(top: 0, leading: isCountrySelected ? 12 : 16, bottom: 0, trailing: 16))
-                VStack(alignment: .leading, spacing: 0) {
-                    countryNameTitle()
-                    serverCountNumberSubtitle()
-                }
+                    .padding(.leading, NymSpacing.large)
+                Text(country.name)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .nymTextStyle(.bodyLarge)
+                    .padding(.leading, NymSpacing.medium)
                 Spacer()
             }
-            .padding(.vertical, 12)
-            .onHover { newValue in
-                isButtonHovered = newValue
-            }
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(country.name) \(servers.count) \("servers".localizedString)")
             .accessibilityValue(isCountrySelected ? "selected".localizedString : "")
             .accessibilityAddTraits([.isButton])
-            .contentShape(Rectangle())
             .onTapGesture {
-                countryTapAction()
+                countrySelectTapAction()
             }
             .accessibilityAction {
-                countryTapAction()
+                countrySelectTapAction()
             }
 
-            arrowDropDown()
-                .onHover { newValue in
-                    isAccessoryHovered = newValue
-                }
+            chevron()
+                .padding(.trailing, NymSpacing.large)
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("gatewaySelector.expandServers".localizedString)
                 .accessibilityAddTraits([.isButton])
-                .contentShape(Rectangle())
                 .onTapGesture {
                     expandDidTap()
                 }
@@ -149,57 +179,24 @@ private extension GatewayCountryCell {
                     expandDidTap()
                 }
         }
-        .background {
-            isButtonHovered ? Color.Nym.backgroundHover : Color.Nym.backgroundCard
+        .frame(height: 64)
+        .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)
+        .onHover { newValue in
+            isButtonHovered = newValue
         }
     }
 
-    @ViewBuilder
-    func isSelectedMarker() -> some View {
-        if isCountrySelected {
-            SelectionMarker()
-        }
-    }
-
-    func countryNameTitle() -> some View {
-        Text(country.name)
-            .foregroundStyle(Color.Nym.textPrimary)
-            .nymTextStyle(.bodyLarge)
-    }
-
-    func serverCountNumberSubtitle() -> some View {
-        Text("\(servers.count) \("servers".localizedString)")
-            .foregroundStyle(Color.Nym.textSecondary)
-            .nymTextStyle(.bodySmall)
-    }
-
-    func lineSeparator() -> some View {
-        Rectangle()
-            .foregroundColor(Color.Nym.gray2)
-            .frame(width: 1, height: 42)
-            .padding(0)
-    }
-
-    func arrowDropDown() -> some View {
-        ZStack {
-            if isAccessoryHovered {
-                Circle()
-                    .fill(Color.Nym.backgroundHover)
-                    .frame(width: 40, height: 40)
-            }
-
-            GenericImage(imageName: "arrowDropDown")
-                .frame(width: 24, height: 24)
-                .rotationEffect(.degrees(isExpanded ? 0 : 180))
-                .animation(.easeInOut, value: isExpanded)
-        }
-        .frame(width: 48, height: 48)
-        .padding(.trailing, 4)
+    func chevron() -> some View {
+        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(isExpanded ? Color.Nym.primary : Color.Nym.textSecondary)
+            .frame(width: 24, height: 24)
+            .animation(.easeInOut(duration: 0.2), value: isExpanded)
     }
 }
 
 private extension GatewayCountryCell {
-    func countryTapAction() {
+    func countrySelectTapAction() {
         ImpactGenerator.shared.softImpact()
         switch hopType {
         case .entry:
@@ -212,6 +209,8 @@ private extension GatewayCountryCell {
 
     func expandDidTap() {
         ImpactGenerator.shared.softImpact()
-        isExpanded.toggle()
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isExpanded.toggle()
+        }
     }
 }

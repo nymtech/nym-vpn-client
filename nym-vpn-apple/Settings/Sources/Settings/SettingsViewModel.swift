@@ -38,21 +38,15 @@ import Theme
 #endif
     @Published var sections: [AppSettingsSection] = []
     @Published var accountIdentifier: String?
-    @Published var shouldShowRenewButton = false
 #if os(macOS)
     var autologinState: AutologinState?
 #endif
 
-    var renewButtonTitle: String {
-        credentialsManager.accountSummary?.renewButtonTitle ?? "purchasePlan.chooseMyPlan".localizedString
-    }
-
-    var isValidCredentialImported: Bool {
-        credentialsManager.isValidCredentialImported
-    }
-
     var versionTitle: String {
-        "\("version".localizedString) \(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))"
+        let base = "\("version".localizedString) \(AppVersionProvider.appVersion()) (\(AppVersionProvider.libVersion))"
+        let env = configurationManager.currentEnvString
+        guard env != Env.mainnet.rawValue else { return base }
+        return "\(base) - \(env)"
     }
 
 #if os(iOS)
@@ -109,46 +103,14 @@ import Theme
         path.removeLast()
     }
 
-    func navigateToOnboardingOrCredential() {
-#if os(macOS)
-        guard isServing
-        else {
-            path.append(SettingLink.daemonEnable)
-            return
-        }
-        if credentialsManager.isValidCredentialImported {
-            navigateToAccount()
-        } else {
-            path.append(HomeLink.onboarding)
-        }
-#elseif os(iOS)
-        impactGenerator.softImpact()
-        if credentialsManager.isValidCredentialImported {
-            navigateToAccount()
-        } else {
-            path.append(HomeLink.onboarding)
-        }
-#endif
-    }
-
     func navigateToSantasMenu() {
         guard configurationManager.isSantaClaus else { return }
         impactGenerator.impact()
         path.append(SettingLink.santasMenu)
     }
 
-    func navigateToPlanPurchase() {
-        impactGenerator.softImpact()
-#if os(iOS)
-        path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
-#elseif os(macOS)
-        autologinState?.start(kind: .autologinRenew, using: credentialsManager)
-#endif
-    }
-
     /// Use to reload sections and acc renewal info
     func reloadSections() {
-        updateRenewButton()
         configureSections()
     }
 }
@@ -280,16 +242,6 @@ private extension SettingsViewModel {
 
 // MARK: - Helpers -
 private extension SettingsViewModel {
-    func updateRenewButton() {
-        if let accountSummary = credentialsManager.accountSummary {
-            shouldShowRenewButton = accountSummary.shouldShowRenewButton(
-                isAutoRenew: isAutoRenewEnabled(accountSummary: accountSummary)
-            )
-        } else {
-            shouldShowRenewButton = false
-        }
-    }
-
     func isAutoRenewEnabled(accountSummary: AccountSummary) -> Bool {
 #if os(iOS)
         purchasesManager.isAutoRenewEnabled || accountSummary.isAutoRenewEnabled

@@ -1,7 +1,6 @@
 import SwiftUI
 import ConnectionManager
 import ConnectionTypes
-import ConnectionTypes
 import GatewayManager
 import ImpactGenerator
 import Theme
@@ -19,15 +18,17 @@ public struct GatewayRegionCell: View {
     @Binding private var scrollToModel: GatewayScrollToModel
     @State private var isExpanded: Bool
     @State private var isButtonHovered = false
-    @State private var isAccessoryHovered = false
     @State private var isRegionSelected = false
     private var infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
 
     public var body: some View {
         VStack(spacing: 0) {
-            regionCell()
+            regionRow()
             if isExpanded {
                 ForEach(servers, id: \.id) { server in
+                    Divider()
+                        .frame(height: 1)
+                        .overlay(Color.Nym.divider)
                     GatewayCell(
                         server: server,
                         type: hopType,
@@ -77,44 +78,37 @@ public struct GatewayRegionCell: View {
     }
 }
 
-public extension GatewayRegionCell {
+private extension GatewayRegionCell {
     @ViewBuilder
-    func regionCell() -> some View {
+    func regionRow() -> some View {
         HStack(spacing: 0) {
             HStack(spacing: 0) {
-                isSelectedMarker()
-                FlagImage(countryCode: country.code)
-                    .padding(EdgeInsets(top: 0, leading: isRegionSelected ? 12 : 16, bottom: 0, trailing: 16))
-                VStack(alignment: .leading, spacing: 0) {
-                    regionNameTitle()
-                    serverCountNumberSubtitle()
-                }
+                Text(region)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .nymTextStyle(.bodyLarge)
+                    .padding(.leading, NymSpacing.large)
                 Spacer()
             }
-            .padding(.vertical, 12)
-            .onHover { newValue in
-                isButtonHovered = newValue
-            }
+            .frame(maxHeight: .infinity)
+            .contentShape(Rectangle())
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(region) \(servers.count) \("servers".localizedString)")
             .accessibilityValue(isRegionSelected ? "selected".localizedString : "")
             .accessibilityAddTraits([.isButton])
-            .contentShape(Rectangle())
             .onTapGesture {
-                stateTapAction()
+                regionSelectTapAction()
             }
             .accessibilityAction {
-                stateTapAction()
+                regionSelectTapAction()
             }
 
-            arrowDropDown()
-                .onHover { newValue in
-                    isAccessoryHovered = newValue
-                }
+            chevron()
+                .padding(.trailing, NymSpacing.large)
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel("gatewaySelector.expandServers".localizedString)
                 .accessibilityAddTraits([.isButton])
-                .contentShape(Rectangle())
                 .onTapGesture {
                     expandTapAction()
                 }
@@ -122,45 +116,27 @@ public extension GatewayRegionCell {
                     expandTapAction()
                 }
         }
-        .background {
-            isButtonHovered ? Color.Nym.backgroundHover : Color.Nym.backgroundCard.opacity(0.6)
+        .frame(height: 56)
+        .padding(.leading, NymSpacing.medium)
+        .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)
+        .overlay {
+            Rectangle()
+                .inset(by: 0.5)
+                .stroke(isRegionSelected ? Color.Nym.primary : .clear, lineWidth: 1)
+                .allowsHitTesting(false)
+        }
+        .animation(.default, value: isRegionSelected)
+        .onHover { newValue in
+            isButtonHovered = newValue
         }
     }
 
-    @ViewBuilder
-    func isSelectedMarker() -> some View {
-        if isRegionSelected {
-            SelectionMarker()
-        }
-    }
-
-    func regionNameTitle() -> some View {
-        Text(region)
-            .foregroundStyle(Color.Nym.textPrimary)
-            .nymTextStyle(.bodyLarge)
-    }
-
-    func serverCountNumberSubtitle() -> some View {
-        Text("\(servers.count) \("servers".localizedString)")
-            .foregroundStyle(Color.Nym.textSecondary)
-            .nymTextStyle(.bodySmall)
-    }
-
-    func arrowDropDown() -> some View {
-        ZStack {
-            if isAccessoryHovered {
-                Circle()
-                    .fill(Color.Nym.backgroundHover)
-                    .frame(width: 40, height: 40)
-            }
-
-            GenericImage(imageName: "arrowDropDown")
-                .frame(width: 24, height: 24)
-                .rotationEffect(.degrees(isExpanded ? 0 : 180))
-                .animation(.easeInOut, value: isExpanded)
-        }
-        .frame(width: 48, height: 48)
-        .padding(.trailing, 4)
+    func chevron() -> some View {
+        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(isExpanded ? Color.Nym.primary : Color.Nym.textSecondary)
+            .frame(width: 24, height: 24)
+            .animation(.easeInOut(duration: 0.2), value: isExpanded)
     }
 }
 
@@ -176,10 +152,12 @@ public extension GatewayRegionCell {
 
     func expandTapAction() {
         ImpactGenerator.shared.softImpact()
-        isExpanded.toggle()
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isExpanded.toggle()
+        }
     }
 
-    func stateTapAction() {
+    func regionSelectTapAction() {
         ImpactGenerator.shared.softImpact()
         switch hopType {
         case .entry:
