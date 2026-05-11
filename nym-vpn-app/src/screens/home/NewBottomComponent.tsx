@@ -87,8 +87,10 @@ function ModeToggle() {
 
   const isFast = vpnMode === 'wg';
 
+  const toggleDisabled = state === 'connected' || state === 'connecting';
+
   const handleToggle = async (mode: VpnMode) => {
-    if (mode === vpnMode || state === 'connected') return;
+    if (mode === vpnMode || toggleDisabled) return;
     try {
       await invoke('set_vpn_mode', { mode });
       dispatch({ type: 'set-vpn-mode', mode });
@@ -132,7 +134,7 @@ function ModeToggle() {
           aria-label={t('toggle-vpn-mode.aria-label')}
           className={clsx(
             'dark:bg-background bg-gray relative h-10 w-20 shrink-0 cursor-default rounded-full',
-            state === 'connected' && 'cursor-not-allowed opacity-50',
+            toggleDisabled && 'cursor-not-allowed opacity-50',
           )}
         >
           <motion.div
