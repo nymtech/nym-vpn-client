@@ -102,12 +102,12 @@ on:
         required: true
     outputs:
       UPLOAD_DIR_WINDOWS:
-        value: ${{ jobs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
+        value: ${{ jobs.build-nym-vpn-app.outputs.UPLOAD_DIR_WINDOWS }}
       core_build_url_path:
         # as the domain is secret, we cannot pass it directly through GH outputs
         # that's why we pass the url path only
         description: "Core build URL path that has been bundled"
-        value: ${{ jobs.build-windows.outputs.core_build_url_path }}
+        value: ${{ jobs.build-nym-vpn-app.outputs.core_build_url_path }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -123,7 +123,7 @@ jobs:
       cpu_arch: ${{ inputs.cpu_arch || 'x64' }}
     secrets: inherit
 
-  build-windows:
+  build-nym-vpn-app:
     runs-on: custom-windows-11
     needs: [build-core]
     if: ${{ always() && !failure() && !cancelled() }}
@@ -220,7 +220,7 @@ jobs:
           Write-Output "/develop/$latest"
           "latest_dev_path=/develop/$latest" >> $env:GITHUB_OUTPUT
           $latest_url = "${{ env.VPN_CORE_BUILDS_URL }}/develop/$latest"
-          $artifact = Invoke-WebRequest -Uri "$latest_url" | Select-String -Pattern '<a href="(nym-vpn-core-v.+_windows_${{ inputs.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}\.zip)"' -AllMatches | ForEach-Object {$_.Matches.Groups[1].Value}
+          $artifact = Invoke-WebRequest -Uri "$latest_url" | Select-String -Pattern '<a href="(nym-vpn-core-v.+_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}\.zip)"' -AllMatches | ForEach-Object {$_.Matches.Groups[1].Value}
           $artifact_url = "$latest_url/$artifact"
           Write-Output "$artifact_url"
           "core_asset_url=$artifact_url" >> $env:GITHUB_ENV
@@ -230,7 +230,7 @@ jobs:
         run: |
           $asset_url = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/${{ env.core_release_tag }} |
-            yq '.assets.[] | select(.name | test("^nym-vpn-core-v.+_windows_${{ inputs.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}\.zip$")) | .browser_download_url'
+            yq '.assets.[] | select(.name | test("^nym-vpn-core-v.+_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}\.zip$")) | .browser_download_url'
           echo "core_asset_url: $asset_url"
           "core_asset_url=$asset_url" >> $env:GITHUB_ENV
 

@@ -30,11 +30,11 @@ on:
         type: boolean
         default: false
       core_release_tag:
-        description: "For Windows daemon, nym-vpn-core GH release tag (leave empty if using direct link)"
+        description: "nym-vpn-core: GitHub release tag (leave empty if using direct link)"
         required: false
         type: string
       core_artifact_url:
-        description: "For Windows daemon, direct link to nym-vpn-core windows zip archive, eg. https://.._windows_x86_64.zip (leave empty if using GH release tag)"
+        description: "nym-vpn-core: Direct link to Windows zip archive, eg. https://.._windows_x64.zip (leave empty if using GH release tag)"
         required: false
         type: string
 

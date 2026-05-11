@@ -29,7 +29,7 @@ env:
 # https://github.com/actions/runner-images/issues/1794#issuecomment-707217728
 
 jobs:
-  build:
+  build-winfw:
     runs-on: "custom-windows-11"
 
     steps:
