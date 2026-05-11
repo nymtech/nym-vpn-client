@@ -41,7 +41,7 @@ function Chevrons({ onUp, onDown }: ChevronProps) {
         type="button"
         onClick={onUp}
         className={clsx([
-          'text-secondary cursor-default leading-none transition-all',
+          'text-text-secondary cursor-default leading-none transition-all',
           onUp ? 'opacity-100' : 'opacity-0',
           !disabled && 'hover:text-baltic-sea dark:hover:text-white',
         ])}
@@ -53,7 +53,7 @@ function Chevrons({ onUp, onDown }: ChevronProps) {
         type="button"
         onClick={onDown}
         className={clsx([
-          'text-secondary cursor-default leading-none transition-all',
+          'text-text-secondary cursor-default leading-none transition-all',
           onDown ? 'opacity-100' : 'opacity-0',
           !disabled && 'hover:text-baltic-sea dark:hover:text-white',
         ])}
