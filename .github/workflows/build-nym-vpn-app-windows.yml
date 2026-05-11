@@ -224,7 +224,9 @@ jobs:
           Write-Output "/develop/$latest"
           "latest_dev_path=/develop/$latest" >> $env:GITHUB_OUTPUT
           $latest_url = "${{ env.VPN_CORE_BUILDS_URL }}/develop/$latest"
-          $artifact = Invoke-WebRequest -Uri "$latest_url" | Select-String -Pattern '<a href="(nym-vpn-core-v.+_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}\.zip)"' -AllMatches | ForEach-Object {$_.Matches.Groups[1].Value}
+          $arch = '${{ inputs.cpu_arch == ''ARM64'' && ''aarch64'' || ''x86_64'' }}'
+          $artifact = Invoke-WebRequest -Uri "$latest_url" | Select-String -Pattern "<a href=""(nym-vpn-core-v.+_windows_$arch\.zip)""" -AllMatches | ForEach-Object {$_.Matches.Groups[1].Value} | Select-Object -First 1
+          if (-not $artifact) { Write-Error "Could not find a matching nym-vpn-core artifact at $latest_url"; exit 1 }
           $artifact_url = "$latest_url/$artifact"
           Write-Output "$artifact_url"
           "core_asset_url=$artifact_url" >> $env:GITHUB_ENV
@@ -234,7 +236,7 @@ jobs:
         run: |
           $asset_url = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/${{ env.core_release_tag }} |
-            yq '.assets.[] | select(.name | test("^nym-vpn-core-v.+_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}\.zip$")) | .browser_download_url'
+            yq '.assets.[] | select(.name | test("^nym-vpn-core-v.+_windows_${{ inputs.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}\.zip$")) | .browser_download_url'
           echo "core_asset_url: $asset_url"
           "core_asset_url=$asset_url" >> $env:GITHUB_ENV
 
