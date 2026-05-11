@@ -24,7 +24,11 @@ public struct GatewaysView: View {
             searchView()
                 .frame(maxWidth: MagicNumbers.maxWidth)
             Spacer()
-                .frame(height: 24)
+                .frame(height: 16)
+            countSummaryHeader()
+                .frame(maxWidth: MagicNumbers.maxWidth)
+            Spacer()
+                .frame(height: 12)
 
             ScrollViewReader { proxy in
                 ScrollView {
@@ -115,6 +119,21 @@ private extension GatewaysView {
     func searchView() -> some View {
         SearchView(searchText: $viewModel.searchText, isSearchFocused: $isSearchFocused)
             .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    func countSummaryHeader() -> some View {
+        let countriesCount = viewModel.countries.count
+        let nodesCount = viewModel.gateways.count
+        if countriesCount > 0 {
+            HStack(spacing: 0) {
+                Text("\(countriesCount) \("gatewaysView.countries".localizedString) · \(nodesCount) \("gatewaysView.nodes".localizedString)")
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .nymTextStyle(.bodySmall)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+        }
     }
 
     @ViewBuilder

@@ -1,6 +1,8 @@
 import Foundation
 import SwiftUI
 import CredentialsManager
+import SnackbarManager
+import Theme
 
 @MainActor
 @Observable
@@ -44,6 +46,13 @@ public final class PassphraseSignInViewModel {
                 // Cancelled — keep current state.
             } catch {
                 submissionState = .failed
+                SnackbarManager.shared.enqueue(
+                    SnackbarItem(
+                        style: .critical,
+                        title: "error".localizedString,
+                        message: error.localizedDescription
+                    )
+                )
             }
         }
     }
