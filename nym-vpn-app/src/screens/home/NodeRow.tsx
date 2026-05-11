@@ -246,6 +246,8 @@ export function NodeRow({ type }: NodeRowProps) {
     }
   }, [algo, nodeDetails, state, userSelectedNode]);
 
+  console.log('nodedetails', nodeDetails);
+
   return (
     <>
       <AnimatePresence initial={false}>

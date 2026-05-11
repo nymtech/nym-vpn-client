@@ -81,13 +81,14 @@ function ModeToggle() {
 
   const { add } = useToast();
   const vpnMode = useAppStore((s) => s.vpnMode);
+  const state = useAppStore((s) => s.state);
 
   const fetchGateways = useFetchGateways();
 
   const isFast = vpnMode === 'wg';
 
   const handleToggle = async (mode: VpnMode) => {
-    if (mode === vpnMode) return;
+    if (mode === vpnMode || state === 'connected') return;
     try {
       await invoke('set_vpn_mode', { mode });
       dispatch({ type: 'set-vpn-mode', mode });
@@ -129,7 +130,10 @@ function ModeToggle() {
           type="button"
           onClick={() => handleToggle(isFast ? 'mixnet' : 'wg')}
           aria-label={t('toggle-vpn-mode.aria-label')}
-          className="dark:bg-background bg-gray relative h-10 w-20 shrink-0 cursor-default rounded-full"
+          className={clsx(
+            'dark:bg-background bg-gray relative h-10 w-20 shrink-0 cursor-default rounded-full',
+            state === 'connected' && 'cursor-not-allowed opacity-50',
+          )}
         >
           <motion.div
             className="dark:bg-charcoal pointer-events-none absolute top-1.5 flex size-7 items-center justify-center rounded-full bg-white"
