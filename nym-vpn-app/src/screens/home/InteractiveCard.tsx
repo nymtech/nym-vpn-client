@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { motion, useAnimationControls } from 'motion/react';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { useCardAnimation } from '../../contexts/CardAnimationContext';
 
 export function InteractiveCard({
@@ -13,7 +13,7 @@ export function InteractiveCard({
   const controls = useAnimationControls();
   const { registerExit } = useCardAnimation();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     controls.start({ y: 0 });
   }, [controls]);
 
@@ -25,7 +25,6 @@ export function InteractiveCard({
   return (
     <div className="flex h-full flex-col justify-end overflow-hidden">
       <motion.div
-        layout
         animate={controls}
         initial={{ y: '100%' }}
         style={{ originY: 1 }}
