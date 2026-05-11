@@ -5,13 +5,7 @@ import { useAutostart, useDesktopNotifications, useToast } from '../../hooks';
 import { routes } from '../../router';
 import { dispatch, useMainState } from '../../store';
 import { useExit } from '../../state';
-import {
-  ButtonNew,
-  MsIcon,
-  PageAnim,
-  SettingsMenuCard,
-  Switch,
-} from '../../ui';
+import { ButtonNew, MsIcon, PageAnim, Switch } from '../../ui';
 import { AccountSettingRow } from './account';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
