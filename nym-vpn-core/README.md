@@ -187,9 +187,9 @@ make build-wireguard
 
 ### Windows
 
-To build the `winfw`, `libwg`, download `wintun` and build the split-tunnel driver, run the following command from a **Visual Studio Developer PowerShell**:
+To build the `winfw`, `libwg`, download `wintun` and copy the pre-signed split-tunnel driver, run the following command from a **Visual Studio Developer PowerShell**:
 
-```sh
+```pwsh
 cd nym-vpn-core
 make -f Windows.mk RELEASE=1 PWSH=1
 ```
@@ -208,7 +208,7 @@ For convenience, all build artifacts are also mirrored under `build/` directory 
 
 You can cross-compile from x64 to ARM64, again from a **Visual Studio Developer PowerShell**:
 
-```
+```pwsh
 cd nym-vpn-core
 make -f Windows.mk CPU_ARCH=ARM64 RELEASE=0 PWSH=1
 ```
@@ -233,7 +233,7 @@ On Windows, to build for ARM64 from x64, firstly ensure you have built the depen
 
 And then run:
 
-```
+```pwsh
 cargo build --release --target aarch64-pc-windows-msvc
 ```
 
