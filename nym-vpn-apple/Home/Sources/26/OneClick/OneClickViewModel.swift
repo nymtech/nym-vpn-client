@@ -32,6 +32,7 @@ public final class OneClickViewModel {
     var connectState: OneClickConnectState = .disconnected
     var entrySelectionPhase: OneClickSelectionPhase = .selecting
     var selectionPhase: OneClickSelectionPhase = .selecting
+    var isLiveConnection: Bool = false
 
     var displayMode: OneClickDisplayMode
 
@@ -218,6 +219,7 @@ private extension OneClickViewModel {
                     impactGenerator.success()
                 }
                 recomputeConnectState()
+                refreshSelection()
             }
             .store(in: &cancellables)
 
@@ -333,9 +335,28 @@ private extension OneClickViewModel {
         let exitType: NodeType = twoHop ? .vpn : .exit
         let entryType: NodeType = twoHop ? .vpn : .entry
         let info = connectionManager.connectionInfoData
+        let liveCandidate = isLiveStatus(connectionManager.currentTunnelStatus) && info != nil
         resolveTask?.cancel()
         resolveTask = Task { @MainActor [weak self] in
             guard let self else { return }
+            if liveCandidate,
+               let info,
+               let exitLive = livePhase(gatewayId: info.exitGatewayId, gatewayType: exitType) {
+                isLiveConnection = true
+                selectionPhase = exitLive
+                if displayMode == .nerd {
+                    entrySelectionPhase = livePhase(gatewayId: info.entryGatewayId, gatewayType: entryType)
+                        ?? resolveEntryPhase(
+                            entry: cfg.entry,
+                            gatewayId: info.entryGatewayId ?? cfg.entry.gatewayId,
+                            gatewayType: entryType
+                        )
+                } else {
+                    entrySelectionPhase = .selecting
+                }
+                return
+            }
+            isLiveConnection = false
             switch displayMode {
             case .oneClick:
                 entrySelectionPhase = .selecting
@@ -363,6 +384,41 @@ private extension OneClickViewModel {
                 )
             }
         }
+    }
+
+    func isLiveStatus(_ status: TunnelStatus) -> Bool {
+        switch status {
+        case .connecting, .reasserting, .restarting, .connected, .offlineReconnect:
+            return true
+        case .disconnected, .disconnecting, .offline, .error, .unknown:
+            return false
+        }
+    }
+
+    func livePhase(gatewayId: String?, gatewayType: NodeType) -> OneClickSelectionPhase? {
+        guard let gatewayId,
+              let gateway = gatewayManager.gateway(with: gatewayId, gatewayType: gatewayType)
+        else { return nil }
+        let title = gateway.name ?? gateway.id
+        let location = gateway.location
+        let subtitle: String?
+        if let location {
+            let country = gatewayManager.localizedCountry(with: location.twoLetterIsoCountryCode)?.name
+            if gatewayManager.shouldDisplayRegion(with: location.twoLetterIsoCountryCode) {
+                subtitle = "\(location.city), \(location.region), \(country ?? "")"
+            } else {
+                subtitle = "\(location.city), \(country ?? "")"
+            }
+        } else {
+            subtitle = nil
+        }
+        return .selected(OneClickServerInfo(
+            countryCode: location?.twoLetterIsoCountryCode ?? "",
+            title: title,
+            subtitle: subtitle,
+            score: Self.score(from: gateway.mixnetScore),
+            supportsPostQuantum: gateway.isQuicAvailable
+        ))
     }
 
     func resolveOneClickExitPhase(
