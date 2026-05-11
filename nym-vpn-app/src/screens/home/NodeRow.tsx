@@ -126,7 +126,7 @@ export function NodeRow({ type }: NodeRowProps) {
 
       return {
         countryCode: countryCode.toLowerCase() as countryCode,
-        name: location,
+        name: parts.join(', '),
         location: parts.join(', '),
         ip: gw?.exitIpv4 || gw?.exitIpv6 || '',
         ...gwFlags(gw),
@@ -324,7 +324,6 @@ export function NodeRow({ type }: NodeRowProps) {
                   transition={{ duration: DURATION, ease: [0.32, 0.72, 0, 1] }}
                   className="text-text-primary block min-w-0 flex-1 truncate overflow-hidden text-start text-base leading-6 tracking-[-0.08px]"
                 >
-                  {/* TODO: Handle US regions properly */}
                   {textLabel}
                 </motion.span>
               </AnimatePresence>
