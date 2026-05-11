@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::SocketAddr, sync::Arc};
+use std::{f64::consts::E, net::SocketAddr, sync::Arc};
 
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{
@@ -167,70 +167,15 @@ fn find_best_exit_gateway(
     }
 }
 
-pub async fn select_gateways(
-    gateway_cache: impl GatewayCache,
+fn select_entry_exit(
+    entry_gateways: &mut GatewayList,
+    exit_gateways: &mut GatewayList,
     blacklisted_entry_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     device_location: Option<Location>,
-    wg_keys_db: WireguardKeysDb,
-) -> Result<SelectedGateways, GatewayDirectoryError> {
-    // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
-    // the exit gateway and then filter out the exit gateway from the set of entry gateways.
-
+) -> Result<(Gateway, Gateway), GatewayDirectoryError> {
     let entry_point = EntryPoint::from(*tunnel_settings.entry_point.clone());
     let exit_point = ExitPoint::from(*tunnel_settings.exit_point.clone());
-
-    if let (
-        EntryPoint::Gateway {
-            identity: entry_identity,
-        },
-        ExitPoint::Gateway {
-            identity: exit_identity,
-        },
-    ) = (&entry_point, &exit_point)
-        && entry_identity == exit_identity
-    {
-        return Err(GatewayDirectoryError::SameEntryAndExitGateway {
-            identity: entry_identity.to_string(),
-        });
-    };
-
-    let (mut entry_gateways, mut exit_gateways) = match tunnel_settings.tunnel_type_used() {
-        TunnelType::Wireguard => {
-            let all_gateways = gateway_cache
-                .lookup_gateways(GatewayType::Wg)
-                .await
-                .map_err(GatewayDirectoryError::LookupGateways)?;
-
-            let entry_gateways = if tunnel_settings.bridges_enabled() {
-                GatewayList::new(
-                    all_gateways.gw_type(),
-                    all_gateways
-                        .clone()
-                        .into_iter()
-                        .filter(|gw| gw.bridge_params.is_some())
-                        .collect(),
-                )
-            } else {
-                all_gateways.clone()
-            };
-
-            (entry_gateways, all_gateways)
-        }
-        TunnelType::Mixnet => {
-            // Setup the gateway that we will use as the exit point
-            let exit_gateways = gateway_cache
-                .lookup_gateways(GatewayType::MixnetExit)
-                .await
-                .map_err(GatewayDirectoryError::LookupGateways)?;
-            // Setup the gateway that we will use as the entry point
-            let entry_gateways = gateway_cache
-                .lookup_gateways(GatewayType::MixnetEntry)
-                .await
-                .map_err(GatewayDirectoryError::LookupGateways)?;
-            (entry_gateways, exit_gateways)
-        }
-    };
 
     let entry_filters = if blacklisted_entry_gateways.is_empty().unwrap_or(true) {
         GatewayFilters::default()
@@ -308,6 +253,81 @@ pub async fn select_gateways(
     let exit_gateway =
         find_best_exit_gateway(&exit_gateways, exit_ordering_criteria, &exit_filters)
             .map_err(GatewayDirectoryError::ExitGatewayUnavailable)?;
+
+    Ok((entry_gateway, exit_gateway))
+}
+
+pub async fn select_gateways(
+    gateway_cache: impl GatewayCache,
+    blacklisted_entry_gateways: &BlacklistedGateways,
+    tunnel_settings: &TunnelSettings,
+    device_location: Option<Location>,
+    wg_keys_db: WireguardKeysDb,
+) -> Result<SelectedGateways, GatewayDirectoryError> {
+    // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
+    // the exit gateway and then filter out the exit gateway from the set of entry gateways.
+
+    if let (
+        nym_vpn_lib_types::EntryPoint::Gateway {
+            identity: entry_identity,
+        },
+        nym_vpn_lib_types::ExitPoint::Gateway {
+            identity: exit_identity,
+        },
+    ) = (
+        tunnel_settings.entry_point.as_ref(),
+        tunnel_settings.exit_point.as_ref(),
+    ) && *entry_identity == *exit_identity
+    {
+        return Err(GatewayDirectoryError::SameEntryAndExitGateway {
+            identity: entry_identity.to_string(),
+        });
+    };
+
+    let (mut entry_gateways, mut exit_gateways) = match tunnel_settings.tunnel_type_used() {
+        TunnelType::Wireguard => {
+            let all_gateways = gateway_cache
+                .lookup_gateways(GatewayType::Wg)
+                .await
+                .map_err(GatewayDirectoryError::LookupGateways)?;
+
+            let entry_gateways = if tunnel_settings.bridges_enabled() {
+                GatewayList::new(
+                    all_gateways.gw_type(),
+                    all_gateways
+                        .clone()
+                        .into_iter()
+                        .filter(|gw| gw.bridge_params.is_some())
+                        .collect(),
+                )
+            } else {
+                all_gateways.clone()
+            };
+
+            (entry_gateways, all_gateways)
+        }
+        TunnelType::Mixnet => {
+            // Setup the gateway that we will use as the exit point
+            let exit_gateways = gateway_cache
+                .lookup_gateways(GatewayType::MixnetExit)
+                .await
+                .map_err(GatewayDirectoryError::LookupGateways)?;
+            // Setup the gateway that we will use as the entry point
+            let entry_gateways = gateway_cache
+                .lookup_gateways(GatewayType::MixnetEntry)
+                .await
+                .map_err(GatewayDirectoryError::LookupGateways)?;
+            (entry_gateways, exit_gateways)
+        }
+    };
+
+    let (entry_gateway, exit_gateway) = select_entry_exit(
+        &mut entry_gateways,
+        &mut exit_gateways,
+        blacklisted_entry_gateways,
+        tunnel_settings,
+        device_location,
+    )?;
 
     let entry_keys = wg_keys_db
         .load_or_create_keys(&entry_gateway.identity().to_string())
