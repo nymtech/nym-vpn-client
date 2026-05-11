@@ -356,7 +356,7 @@ jobs:
 
       - name: Build tauri app
         working-directory: nym-vpn-app/src-tauri
-        shell: vsdevenv x64 bash {0}
+        shell: vsdevenv x64 pwsh {0}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
@@ -372,19 +372,17 @@ jobs:
           UPDATER_ENDPOINT: ${{ inputs.updater_channel == 'stable' && (inputs.cpu_arch == 'ARM64' && env.UPDATER_URL_STABLE_ARM64 || env.UPDATER_URL_STABLE) || (inputs.cpu_arch == 'ARM64' && env.UPDATER_URL_DEV_ARM64 || env.UPDATER_URL_DEV) }}
           CI: true
         run: |
-          # Remove Git's /usr/bin from PATH so its link.exe doesn't shadow MSVC's link.exe
-          export PATH=$(echo "$PATH" | tr ':' '\n' | grep -v '^/usr/bin$' | tr '\n' ':')
-          echo "signing: ${{ inputs.sign }}"
-          echo "generate updater bundle: ${{ env.UPDATER_ENABLED }}"
-          target_args=${TAURI_TARGET:+--target $TAURI_TARGET}
-          nsis_dir="target/${TAURI_TARGET:+$TAURI_TARGET/}release/bundle/nsis"
-          if [[ "${{ env.UPDATER_ENABLED }}" = true ]]; then
-            echo "updater endpoint: ${{ env.UPDATER_ENDPOINT }}"
-            npm run tauri build -- --bundles nsis $target_args --config src-tauri/updater.conf.json
-          else
-            npm run tauri build -- --bundles nsis $target_args
-          fi
-          ls -la $nsis_dir/* || true
+          Write-Host "signing: ${{ inputs.sign }}"
+          Write-Host "generate updater bundle: $env:UPDATER_ENABLED"
+          $targetArgs = if ($env:TAURI_TARGET) { "--target $env:TAURI_TARGET" } else { "" }
+          $nsisDir = "target/$( if ($env:TAURI_TARGET) { "$env:TAURI_TARGET/" } )release/bundle/nsis"
+          if ($env:UPDATER_ENABLED -eq 'true') {
+            Write-Host "Updater endpoint: $env:UPDATER_ENDPOINT"
+            npm run tauri build -- --bundles nsis $targetArgs --config src-tauri/updater.conf.json
+          } else {
+            npm run tauri build -- --bundles nsis $targetArgs
+          }
+          Get-ChildItem "$nsisDir" -ErrorAction SilentlyContinue | Write-Host
 
       - name: Move things around to prepare for upload
         shell: bash
