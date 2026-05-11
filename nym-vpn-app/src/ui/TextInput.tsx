@@ -49,7 +49,7 @@ function TextInput({
   const getColorClass = () => {
     switch (color) {
       case 'default':
-        return 'bg-faded-lavender dark:bg-ash';
+        return 'bg-background';
       case 'gray':
         return 'bg-white dark:bg-charcoal';
     }
