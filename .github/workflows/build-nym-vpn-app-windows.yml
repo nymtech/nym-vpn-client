@@ -392,11 +392,11 @@ jobs:
           NSIS_DIR: nym-vpn-app/src-tauri/target/${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc/' || '' }}release/bundle/nsis
           NSIS_ARCH: ${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
         run: |
-          echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
-          rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
-          mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vp "${{ env.NSIS_DIR }}/NymVPN_*_${NSIS_ARCH}-setup.exe" ${{ env.UPLOAD_DIR_WINDOWS }}/
-          cp -vp "${{ env.NSIS_DIR }}/NymVPN_*_${NSIS_ARCH}-setup.exe.sig" ${{ env.UPLOAD_DIR_WINDOWS }}/ || true
+          echo "moving binaries into $UPLOAD_DIR_WINDOWS"
+          rm -rf "$UPLOAD_DIR_WINDOWS" || true
+          mkdir "$UPLOAD_DIR_WINDOWS"
+          cp -vp "$NSIS_DIR"/NymVPN_*_${NSIS_ARCH}-setup.exe "$UPLOAD_DIR_WINDOWS"/
+          cp -vp "$NSIS_DIR"/NymVPN_*_${NSIS_ARCH}-setup.exe.sig "$UPLOAD_DIR_WINDOWS"/ || true
 
       - name: Upload artifact windows
         uses: actions/upload-artifact@v7
