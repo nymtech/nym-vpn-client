@@ -85,7 +85,7 @@ const NodeList = memo(function NodeList({
   return (
     <div className="mr-0">
       <div
-        className="flex w-full flex-col gap-3"
+        className="flex w-full flex-col gap-3 p-3"
         data-testid="node-list-accordion"
       >
         {nodes.map((node) => (

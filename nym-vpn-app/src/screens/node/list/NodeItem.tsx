@@ -51,16 +51,17 @@ export const NodeItem = memo(function NodeItem({
           handleLocationSelect(country, isSelected, gateways.length)
         }
         gwCount={gateways.length}
+        open={expanded.includes(country.code) || false}
       />
       <Collapsible.Panel
         keepMounted={false}
         data-testid={`country-accordion-content-${country.code}`}
-        className="collapsible-panel flex w-full flex-col gap-3"
+        className="collapsible-panel flex w-full flex-col"
       >
         {country.code.toLowerCase() === 'us' ? (
           regions.map((region) => (
             <Collapsible.Root
-              className="first:pt-3"
+              className="group/region border-divider border-b first:pt-0 last:border-b-0"
               key={region.name}
               open={expanded.includes(region.name)}
               onOpenChange={(open) => onExpandChange(region.name, open)}
@@ -79,6 +80,7 @@ export const NodeItem = memo(function NodeItem({
                 }}
                 gwCount={region.gateways.length}
                 sub
+                open={expanded.includes(region.name)}
               />
               <Collapsible.Panel
                 keepMounted={false}

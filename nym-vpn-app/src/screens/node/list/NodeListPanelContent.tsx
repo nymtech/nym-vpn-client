@@ -13,7 +13,7 @@ export const PanelContent = ({
       initial={animate && { opacity: 0, translateY: -4 }}
       animate={animate && { opacity: 1, translateY: 0 }}
       transition={animate ? { duration: 0.1, ease: 'easeIn' } : undefined}
-      className="flex flex-col gap-2"
+      className="group flex flex-col"
     >
       {children}
     </motion.div>

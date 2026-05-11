@@ -1,41 +1,49 @@
-import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { UiCountry, UiRegion } from '../../../types/node';
+import { SelectedKind, UiCountry, UiRegion } from '../../../types/node';
 import { FlagIcon, countryCode } from '../../../ui';
 
 type LocationInfoProps = {
   node: UiCountry | UiRegion;
   name: string;
-  gwCount: number;
+  isSelected: SelectedKind;
+  hop: 'entry' | 'exit';
+  hideFlag?: boolean;
 };
 
-const LocationInfo = ({ node, name, gwCount }: LocationInfoProps) => {
-  const { t } = useTranslation('glossary');
+const LocationInfo = ({
+  node,
+  name,
+  isSelected,
+  hop,
+  hideFlag,
+}: LocationInfoProps) => {
   const country = node.nodeType === 'country' ? node : node.country;
 
   return (
     <div
-      className={clsx(
-        'ml-2 flex flex-row items-center gap-3 overflow-hidden',
-        'cursor-default select-none',
-      )}
+      className="flex cursor-default items-center gap-4 overflow-hidden pl-4 select-none"
       data-testid={`country-info-${country.code}`}
     >
-      <FlagIcon
-        code={country.code.toLowerCase() as countryCode}
-        alt={country.code}
-        className="h-6"
-        data-testid={`country-flag-${country.code}`}
-      />
+      {!hideFlag && (
+        <FlagIcon
+          code={country.code.toLowerCase() as countryCode}
+          alt={country.code}
+          className={clsx(
+            'box-content size-8! min-h-8! min-w-8! rounded-full',
+            isSelected && 'border-2',
+            (isSelected === hop || isSelected === 'entry-and-exit') &&
+              'border-primary-active',
+            isSelected && isSelected !== hop && 'border-text-secondary',
+          )}
+          data-testid={`country-flag-${country.code}`}
+        />
+      )}
       <div className="flex flex-col justify-center overflow-hidden pr-4">
         <div
-          className={clsx('text-text-primary truncate text-base')}
+          className="text-text-primary truncate text-lg"
           data-testid={`country-name-${country.code}`}
         >
           {name}
-        </div>
-        <div className="text-text-secondary text-sm">
-          {`${gwCount} ${t('server', { count: gwCount })}`}
         </div>
       </div>
     </div>

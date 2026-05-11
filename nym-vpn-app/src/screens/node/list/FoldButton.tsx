@@ -13,10 +13,9 @@ const FoldButton = ({ html, state }: FoldButtonProps) => {
   return (
     <Button
       className={clsx(
+        'group/fold-button',
         'flex h-12 w-12 items-center justify-center rounded-full',
         'text-baltic-sea/80 dark:text-white/80',
-        'hover:text-baltic-sea dark:hover:text-white',
-        'hover:bg-mercury dark:hover:bg-mine-shaft',
         'focus:outline-none',
       )}
       {...html}
@@ -26,6 +25,7 @@ const FoldButton = ({ html, state }: FoldButtonProps) => {
         className={clsx(
           'leading-none transition-transform duration-150',
           state.open && 'rotate-180',
+          'group-hover/fold-button:text-primary',
         )}
       />
     </Button>
