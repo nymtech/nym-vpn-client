@@ -50,10 +50,10 @@ function NodeLocation() {
           <span className="bg-border group-data-active:bg-primary h-[1.5px] w-full" />
         </Tabs.Tab>
       </Tabs.List>
-      <Tabs.Panel value="entry" className="flex-1 min-h-0">
+      <Tabs.Panel value="entry" className="min-h-0 flex-1">
         <Node node="entry" />
       </Tabs.Panel>
-      <Tabs.Panel value="exit" className="flex-1 min-h-0">
+      <Tabs.Panel value="exit" className="min-h-0 flex-1">
         <Node node="exit" />
       </Tabs.Panel>
     </Tabs.Root>
