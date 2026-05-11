@@ -89,7 +89,7 @@ const GatewayItem = ({
         <div
           className={clsx(
             'w-1 shrink-0 self-stretch rounded-r-sm',
-            isSelected === node && 'bg-malachite',
+            isSelected === node && 'bg-primary',
             isSelected && isSelected !== node && 'bg-iron',
           )}
         />
