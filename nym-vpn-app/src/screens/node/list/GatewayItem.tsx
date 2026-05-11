@@ -77,8 +77,6 @@ const GatewayItem = ({
       className={clsx(
         'flex flex-row items-center justify-between p-2 select-none',
         'hover:bg-gainsboro/45 hover:dark:bg-aph-light/80',
-        // 'last:rounded-b-2xl group-[:not(:last-child)/region]:last:rounded-b-none',
-        // 'group-[:not(:last-child)/region]:last:rounded-b-none!',
         'last:border-azur',
         'group-last/region:last:rounded-b-2xl',
         'border-divider border-b last:border-b-0',
@@ -90,7 +88,7 @@ const GatewayItem = ({
       >
         <div
           className={clsx(
-            'w-1.5 shrink-0 self-stretch rounded-r-sm',
+            'w-1 shrink-0 self-stretch rounded-r-sm',
             isSelected === node && 'bg-malachite',
             isSelected && isSelected !== node && 'bg-iron',
           )}
@@ -116,17 +114,6 @@ const GatewayItem = ({
           iconClassName="flex! items-center justify-center hover:text-primary"
           onClick={() => onNodeDetails(gateway)}
         />
-        {/* <Button
-          className={clsx(
-            'flex h-12 w-12 shrink-0 items-center justify-center rounded-full',
-            'text-text-primary',
-            'hover:bg-faded-lavender dark:hover:bg-charcoal',
-            'focus:outline-none',
-          )}
-          onClick={() => onNodeDetails(gateway)}
-        >
-          <MsIcon icon="arrow_right" />
-        </Button> */}
       </div>
     </div>
   );
