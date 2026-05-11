@@ -1,11 +1,26 @@
 name: build-nym-vpn-core-windows
 on:
   pull_request:
-    types: [ opened ]
+    types: [opened]
     paths:
       - ".github/workflows/build-nym-vpn-core-windows.yml"
   workflow_dispatch:
+    inputs:
+      cpu_arch:
+        description: "Target CPU architecture"
+        required: false
+        default: x64
+        type: choice
+        options:
+          - x64
+          - ARM64
   workflow_call:
+    inputs:
+      cpu_arch:
+        description: "Target CPU architecture"
+        required: false
+        default: x64
+        type: string
     secrets:
       VPND_SENTRY_DSN:
         required: true
@@ -17,11 +32,11 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  LIBS_PATH: build/lib/x86_64-pc-windows-msvc
-  WINFW_PATH: build/winfw/x64-Release
-  STDRIVER_PATH: nym-vpn-windows/split-tunnel-driver/signed
+  LIBS_PATH: build/lib/${{ inputs.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}-pc-windows-msvc
+  WINFW_PATH: build/winfw/${{ inputs.cpu_arch || 'x64' }}-Release
+  STDRIVER_PATH: nym-vpn-windows/split-tunnel-driver/signed/${{ inputs.cpu_arch || 'x64' }}
   WINTUN_DIST_DIR: wintun-dist
-  UPLOAD_DIR_WINDOWS: windows_artifacts
+  UPLOAD_DIR_WINDOWS: windows_artifacts_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
 
 jobs:
   build-wireguard-go-windows:
@@ -32,7 +47,7 @@ jobs:
 
   build-windows:
     if: github.actor != 'dependabot[bot]'
-    needs: [ build-wireguard-go-windows, build-winfw-windows ]
+    needs: [build-wireguard-go-windows, build-winfw-windows]
     runs-on: custom-windows-11
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
@@ -58,6 +73,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          targets: ${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || '' }}
           components: rustfmt, clippy
 
       - name: Get workspace version
@@ -83,7 +99,7 @@ jobs:
       - name: Download wireguard-go-windows artifacts
         uses: actions/download-artifact@v8
         with:
-          name: wireguard-go_x86_64-pc-windows-msvc
+          name: wireguard-go_${{ inputs.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}-pc-windows-msvc
           path: ${{ env.LIBS_PATH }}
 
       - name: Download winfw artifacts
@@ -96,7 +112,7 @@ jobs:
         shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-core
         run: |
-          make -f Windows.mk wintun PWSH=1 CPU_ARCH=AMD64 TARGET_DIR="${{ github.workspace }}/${{ env.WINTUN_DIST_DIR }}"
+          make -f Windows.mk wintun PWSH=1 CPU_ARCH=${{ inputs.cpu_arch == 'ARM64' && 'ARM64' || 'AMD64' }} TARGET_DIR="${{ github.workspace }}/${{ env.WINTUN_DIST_DIR }}"
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -108,7 +124,7 @@ jobs:
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo build --release
+          cargo build --release${{ inputs.cpu_arch == 'ARM64' && ' --target aarch64-pc-windows-msvc' || '' }}
 
       - name: Get rust version used for build
         id: rust-version
@@ -118,7 +134,7 @@ jobs:
       - name: Move things around to prepare for upload
         shell: bash
         env:
-          SRC_BINARY: nym-vpn-core/target/release
+          SRC_BINARY: nym-vpn-core/target/${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc/' || '' }}release
         run: |
           echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true

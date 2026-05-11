@@ -229,7 +229,9 @@ cargo build -p nym-vpnd -p nym-socks5-proxy --release
 cargo build --release
 ```
 
-On Windows, to build for ARM64 from x64, firstly ensure you have built the dependencies using `Windows.mk`:
+On Windows, to build for ARM64 from x64, firstly ensure you have built the dependencies using `Windows.mk`.
+
+And then run:
 
 ```
 cargo build --release --target aarch64-pc-windows-msvc
