@@ -378,14 +378,11 @@ jobs:
         run: |
           Write-Host "signing: ${{ inputs.sign }}"
           Write-Host "generate updater bundle: $env:UPDATER_ENABLED"
-          $targetArgs = if ($env:TAURI_TARGET) { "--target $env:TAURI_TARGET" } else { "" }
-          $nsisDir = "target/$( if ($env:TAURI_TARGET) { "$env:TAURI_TARGET/" } )release/bundle/nsis"
-          if ($env:UPDATER_ENABLED -eq 'true') {
-            Write-Host "Updater endpoint: $env:UPDATER_ENDPOINT"
-            npm run tauri build -- --bundles nsis $targetArgs --config src-tauri/updater.conf.json
-          } else {
-            npm run tauri build -- --bundles nsis $targetArgs
-          }
+          $targetArgs = if ($env:TAURI_TARGET) { @('--target', $env:TAURI_TARGET) } else { @() }
+          $nsisDir = "target/" + $(if ($env:TAURI_TARGET) { "$env:TAURI_TARGET/" }) + "release/bundle/nsis"
+          if ($env:UPDATER_ENABLED -eq 'true') { Write-Host "Updater endpoint: $env:UPDATER_ENDPOINT" }
+          $updaterArgs = if ($env:UPDATER_ENABLED -eq 'true') { @('--config', 'src-tauri/updater.conf.json') } else { @() }
+          npm run tauri build -- --bundles nsis @targetArgs @updaterArgs
           Get-ChildItem "$nsisDir" -ErrorAction SilentlyContinue | Write-Host
 
       - name: Move things around to prepare for upload
