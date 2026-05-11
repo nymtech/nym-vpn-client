@@ -20,15 +20,15 @@ on:
         type: boolean
         default: false
       core_release_tag:
-        description: "nym-vpn-core: GitHub release tag (pick 1)"
+        description: "nym-vpn-core: GitHub release tag"
         required: false
         type: string
       core_artifact_url:
-        description: "nym-vpn-core: Zip file artifact URL (pick 1)"
+        description: "nym-vpn-core: Zip file artifact URL"
         required: false
         type: string
       core_build_it:
-        description: "nym-vpn-core: Build from source (pick 1)"
+        description: "nym-vpn-core: Build from source"
         required: false
         type: boolean
         default: false
