@@ -74,7 +74,7 @@ pub struct DiagnosticReport {
 #[derive(Debug, Clone)]
 pub struct CompleteDnsReport {
     pub system: DiagnosticResult<Vec<DnsResolution>>,
-    pub by_nameserver: Vec<DnsResolution>,
+    pub by_nameserver: Vec<DiagnosticResult<Vec<DnsResolution>>>,
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]

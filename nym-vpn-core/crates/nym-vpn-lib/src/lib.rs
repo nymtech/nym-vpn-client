@@ -23,6 +23,7 @@ pub mod tunnel_provider;
 pub mod tunnel_state_machine;
 mod wg_config;
 
+use hickory_resolver::config::{CLOUDFLARE, NameServerConfig, QUAD9};
 #[cfg(target_os = "windows")]
 pub use nym_split_tunnel::install_driver_service as install_split_tunnel_driver_service;
 #[cfg(target_os = "windows")]
@@ -30,7 +31,6 @@ pub use nym_split_tunnel::uninstall_driver_service as uninstall_split_tunnel_dri
 
 use std::{net::IpAddr, sync::LazyLock};
 
-use hickory_resolver::config::NameServerConfigGroup;
 use itertools::Itertools;
 
 // Re-export some our nym dependencies
@@ -51,19 +51,20 @@ pub use crate::{
 };
 
 /// Default DNS servers.
-static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<NameServerConfigGroup> = LazyLock::new(|| {
-    let mut name_servers = NameServerConfigGroup::quad9_tls();
-    name_servers.merge(NameServerConfigGroup::quad9_https());
-    name_servers.merge(NameServerConfigGroup::cloudflare_tls());
-    name_servers.merge(NameServerConfigGroup::cloudflare_https());
-    name_servers
+static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<Vec<NameServerConfig>> = LazyLock::new(|| {
+    QUAD9
+        .tls()
+        .chain(QUAD9.https())
+        .chain(CLOUDFLARE.tls())
+        .chain(CLOUDFLARE.https())
+        .collect()
 });
 
 /// Default DNS server IP addresses.
 pub static DEFAULT_DNS_SERVERS: LazyLock<Vec<IpAddr>> = LazyLock::new(|| {
     DEFAULT_DNS_SERVERS_CONFIG
         .iter()
-        .map(|ns| ns.socket_addr.ip())
+        .map(|ns| ns.ip)
         .unique()
         .collect()
 });
