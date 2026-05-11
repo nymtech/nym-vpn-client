@@ -26,9 +26,9 @@ on:
         required: true
     outputs:
       RUST_VERSION:
-        value: ${{ jobs.build-windows.outputs.RUST_VERSION }}
+        value: ${{ jobs.build-nym-vpn-core.outputs.RUST_VERSION }}
       UPLOAD_DIR_WINDOWS:
-        value: ${{ jobs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
+        value: ${{ jobs.build-nym-vpn-core.outputs.UPLOAD_DIR_WINDOWS }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -49,7 +49,7 @@ jobs:
     with:
       cpu_arch: ${{ inputs.cpu_arch || 'x64' }}
 
-  build-windows:
+  build-nym-vpn-core:
     if: github.actor != 'dependabot[bot]'
     needs: [build-wireguard-go-windows, build-winfw-windows]
     runs-on: custom-windows-11
