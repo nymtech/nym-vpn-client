@@ -386,7 +386,7 @@ export function NewBottomComponent() {
                 animate={{ opacity: 1, width: '100%' }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: DURATION, ease: easeOutQuart }}
-                className="bg-background-secondary dark:bg-charcoal mx-auto my-4 h-px w-full rounded-full"
+                className="bg-background-secondary mx-auto my-4 h-px w-full rounded-full"
               />
             </motion.div>
           )}
