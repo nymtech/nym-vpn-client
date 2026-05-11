@@ -6,6 +6,14 @@ on:
       - ".github/workflows/build-nym-vpn-app-windows.yml"
   workflow_dispatch:
     inputs:
+      cpu_arch:
+        description: "Target CPU architecture"
+        required: false
+        default: x64
+        type: choice
+        options:
+          - x64
+          - ARM64
       dev_mode:
         description: "dev build"
         required: true
@@ -19,6 +27,11 @@ on:
         description: "direct nym-vpn-core artifact URL for Windows, to get the daemon"
         required: false
         type: string
+      core_build:
+        description: "Build nym-vpn-core from source using build-nym-vpn-core-windows workflow"
+        required: false
+        type: boolean
+        default: false
       sign:
         description: "Sign this build using SSL.com. Signing is billed per signature so be 100% sure you want a signed release"
         required: false
@@ -37,16 +50,12 @@ on:
           - stable
           - dev
         default: dev
-      cpu_arch:
-        description: "Target CPU architecture"
-        required: false
-        default: x64
-        type: choice
-        options:
-          - x64
-          - ARM64
   workflow_call:
     inputs:
+      cpu_arch:
+        required: false
+        type: string
+        default: x64
       # set to true when it is a 'dev' build
       dev_mode:
         required: true
@@ -58,6 +67,10 @@ on:
       core_artifact_url:
         required: false
         type: string
+      core_build:
+        required: false
+        type: boolean
+        default: false
       sign:
         required: false
         type: boolean
@@ -70,10 +83,6 @@ on:
         required: false
         type: string
         default: dev
-      cpu_arch:
-        required: false
-        type: string
-        default: x64
     secrets:
       SSL_COM_USERNAME:
         required: true
@@ -107,8 +116,17 @@ env:
   TAURI_SRC: "${{ github.workspace }}/nym-vpn-app/src-tauri/"
 
 jobs:
+  build-core:
+    if: ${{ inputs.core_build == true }}
+    uses: ./.github/workflows/build-nym-vpn-core-windows.yml
+    with:
+      cpu_arch: ${{ inputs.cpu_arch || 'x64' }}
+    secrets: inherit
+
   build-windows:
     runs-on: custom-windows-11
+    needs: [build-core]
+    if: ${{ always() && !failure() && !cancelled() }}
     env:
       VPN_CORE_BUILDS_URL: https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core
       UPDATER_URL_STABLE: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable.json
@@ -168,13 +186,13 @@ jobs:
           subcommand: package.version --entry nym-vpn-app/src-tauri
 
       - name: Get nym-vpn-core release tag
-        if: inputs.core_release_tag
+        if: ${{ inputs.core_release_tag && !inputs.core_build }}
         run: |
           echo "core_release_tag: ${{ inputs.core_release_tag }}"
           "core_release_tag=${{ inputs.core_release_tag }}" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core release tag (latest stable)
-        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.dev_mode && github.event_name != 'pull_request' }}
+        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.dev_mode && !inputs.core_build && github.event_name != 'pull_request' }}
         run: |
           $release_tag = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases |
@@ -183,7 +201,7 @@ jobs:
           "core_release_tag=$release_tag" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core artifact url (latest dev)
-        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && (inputs.dev_mode || github.event_name == 'pull_request') }}
+        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.core_build && (inputs.dev_mode || github.event_name == 'pull_request') }}
         id: get_dev_url
         run: |
           $latest = Invoke-WebRequest -Uri "${{ env.VPN_CORE_BUILDS_URL }}/develop" | Select-String -Pattern '<a href="(\d+)/"' -AllMatches | ForEach-Object {$_.Matches} | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Descending | Select-Object -First 1
@@ -196,7 +214,7 @@ jobs:
           "core_asset_url=$artifact_url" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core artifact url (${{ env.core_release_tag }})
-        if: ${{ env.core_release_tag }}
+        if: ${{ env.core_release_tag && !inputs.core_build }}
         run: |
           $asset_url = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/${{ env.core_release_tag }} |
@@ -205,12 +223,13 @@ jobs:
           "core_asset_url=$asset_url" >> $env:GITHUB_ENV
 
       - name: Use nym-vpn-core artifact url from inputs
-        if: ${{ inputs.core_artifact_url }}
+        if: ${{ inputs.core_artifact_url && !inputs.core_build }}
         run: |
           echo "core_asset_url: ${{ inputs.core_artifact_url }}"
           "core_asset_url=${{ inputs.core_artifact_url }}" >> $env:GITHUB_ENV
 
       - name: Validate nym-vpn-core artifact url
+        if: ${{ !inputs.core_build }}
         shell: bash
         run: |
           if [[ -z "${{ env.core_asset_url }}" ]]; then
@@ -220,26 +239,37 @@ jobs:
           echo "core_asset_url: ${{ env.core_asset_url }}"
 
       - name: Download nym-vpn-core artifact
+        if: ${{ !inputs.core_build }}
         run: |
           curl.exe -fLo nym-vpn-core.zip '${{ env.core_asset_url }}'
 
       - name: Unzip nym-vpn-core artifact
+        if: ${{ !inputs.core_build }}
         run: |
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           [System.IO.Compression.ZipFile]::ExtractToDirectory('nym-vpn-core.zip', 'nym-vpn-core-bin')
 
       - name: List files
+        if: ${{ !inputs.core_build }}
         run: |
           $destination = 'nym-vpn-core-bin'
           Get-ChildItem -Path $destination -Recurse
 
       - name: Copy files
+        if: ${{ !inputs.core_build }}
         run: |
           $destination = 'nym-vpn-core-bin'
           $subdirectory = Get-ChildItem -Path $destination | Where-Object { $_.PSIsContainer } | Select-Object -First 1
           $sourcePath = Join-Path -Path $destination -ChildPath $subdirectory.Name
           $targetPath = 'nym-vpn-app/src-tauri'
           Copy-Item -Path (Join-Path -Path $sourcePath -ChildPath '*') -Destination $targetPath -Recurse -Force
+
+      - name: Download nym-vpn-core from local build
+        if: ${{ inputs.core_build }}
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ needs.build-core.outputs.UPLOAD_DIR_WINDOWS }}
+          path: nym-vpn-app/src-tauri
 
       - name: Install JS dependencies
         working-directory: nym-vpn-app
@@ -314,7 +344,7 @@ jobs:
 
       - name: Build tauri app
         working-directory: nym-vpn-app/src-tauri
-        shell: vsdevenv amd64_arm64 bash {0}
+        shell: vsdevenv x64 bash {0}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
