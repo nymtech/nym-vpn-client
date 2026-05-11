@@ -345,7 +345,7 @@ export function NodeRow({ type }: NodeRowProps) {
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                 className="overflow-hidden"
               >
-                <p className="text-secondary text-xs leading-5 tracking-[0.18px]">
+                <p className="text-text-secondary text-xs leading-5 tracking-[0.18px]">
                   {descriptionLabel}
                 </p>
               </motion.div>

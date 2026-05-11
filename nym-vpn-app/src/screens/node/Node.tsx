@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useRef } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
@@ -61,6 +61,14 @@ function Node({ node }: { node: NodeHop }) {
   const deferredNodes = useDeferredValue(nodes);
   const deferredGateways = useDeferredValue(gateways);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const countriesCount = useMemo(() => {
+    return new Set(nodes.map((node) => node.country.code)).size;
+  }, [nodes]);
+
+  const nodesCount = useMemo(() => {
+    return nodes.reduce((acc, node) => acc + node.gateways.length, 0);
+  }, [nodes]);
 
   useEffect(() => {
     if (daemonStatus === 'down') return;
@@ -146,10 +154,7 @@ function Node({ node }: { node: NodeHop }) {
         className="flex h-full flex-col"
         data-testid={`node-container-${node}`}
       >
-        <div
-          className="mt-6 mb-6 w-full px-6"
-          data-testid="node-search-container"
-        >
+        <div className="my-3 w-full px-6" data-testid="node-search-container">
           {quicFilter && (
             <p className="text-text-secondary mb-6 text-sm select-none">
               <Trans
@@ -176,6 +181,12 @@ function Node({ node }: { node: NodeHop }) {
             clearable
             value={search || ''}
           />
+          <p className="text-text-secondary mt-3 text-sm">
+            {t('countries-nodes', {
+              countriesCount,
+              nodesCount,
+            })}
+          </p>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           {loading && (

@@ -149,7 +149,9 @@ function NodeDetails() {
                 {serverLocation()}
               </p>
               {gateway.description && (
-                <p className="text-secondary text-sm">{gateway.description}</p>
+                <p className="text-text-secondary text-sm">
+                  {gateway.description}
+                </p>
               )}
             </CardNewBody>
           </CardNew>
@@ -379,7 +381,7 @@ function NodeDetails() {
                   {t('node-details.data.identity-key')}
                 </p>
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-secondary flex-1 overflow-hidden font-mono text-xs text-wrap wrap-break-word">
+                  <p className="text-text-primary flex-1 overflow-hidden font-mono text-xs text-wrap wrap-break-word">
                     {gateway.id}
                   </p>
                   <ButtonIconNew

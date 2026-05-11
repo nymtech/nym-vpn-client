@@ -41,7 +41,7 @@ function Chevrons({ onUp, onDown }: ChevronProps) {
         type="button"
         onClick={onUp}
         className={clsx([
-          'text-secondary cursor-default leading-none transition-all',
+          'text-text-secondary cursor-default leading-none transition-all',
           onUp ? 'opacity-100' : 'opacity-0',
           !disabled && 'hover:text-baltic-sea dark:hover:text-white',
         ])}
@@ -53,7 +53,7 @@ function Chevrons({ onUp, onDown }: ChevronProps) {
         type="button"
         onClick={onDown}
         className={clsx([
-          'text-secondary cursor-default leading-none transition-all',
+          'text-text-secondary cursor-default leading-none transition-all',
           onDown ? 'opacity-100' : 'opacity-0',
           !disabled && 'hover:text-baltic-sea dark:hover:text-white',
         ])}
@@ -81,13 +81,16 @@ function ModeToggle() {
 
   const { add } = useToast();
   const vpnMode = useAppStore((s) => s.vpnMode);
+  const state = useAppStore((s) => s.state);
 
   const fetchGateways = useFetchGateways();
 
   const isFast = vpnMode === 'wg';
 
+  const toggleDisabled = state === 'connected' || state === 'connecting';
+
   const handleToggle = async (mode: VpnMode) => {
-    if (mode === vpnMode) return;
+    if (mode === vpnMode || toggleDisabled) return;
     try {
       await invoke('set_vpn_mode', { mode });
       dispatch({ type: 'set-vpn-mode', mode });
@@ -129,7 +132,10 @@ function ModeToggle() {
           type="button"
           onClick={() => handleToggle(isFast ? 'mixnet' : 'wg')}
           aria-label={t('toggle-vpn-mode.aria-label')}
-          className="dark:bg-background bg-gray relative h-10 w-20 shrink-0 cursor-default rounded-full"
+          className={clsx(
+            'dark:bg-background bg-gray relative h-10 w-20 shrink-0 cursor-default rounded-full',
+            toggleDisabled && 'cursor-not-allowed opacity-50',
+          )}
         >
           <motion.div
             className="dark:bg-charcoal pointer-events-none absolute top-1.5 flex size-7 items-center justify-center rounded-full bg-white"
@@ -386,7 +392,7 @@ export function NewBottomComponent() {
                 animate={{ opacity: 1, width: '100%' }}
                 exit={{ opacity: 0, width: 0 }}
                 transition={{ duration: DURATION, ease: easeOutQuart }}
-                className="bg-background-secondary dark:bg-charcoal mx-auto my-4 h-px w-full rounded-full"
+                className="bg-background-secondary mx-auto my-4 h-px w-full rounded-full"
               />
             </motion.div>
           )}

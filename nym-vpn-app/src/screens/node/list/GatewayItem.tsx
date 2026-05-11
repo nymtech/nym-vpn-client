@@ -3,7 +3,7 @@ import { Button } from '@headlessui/react';
 import clsx from 'clsx';
 import { UiGateway } from '../../../types/node';
 import { useNodeListState } from '../../../store/nodeListState';
-import { MsIcon } from '../../../ui';
+import { ButtonIcon, MsIcon } from '../../../ui';
 import { NodeHop, VpnMode } from '../../../types';
 import { useLang } from '../../../hooks';
 import { countriesWithRegions } from '../../../constants';
@@ -75,8 +75,11 @@ const GatewayItem = ({
     <div
       ref={scrollToGatewayRef}
       className={clsx(
-        'flex flex-row items-center justify-between rounded-2xl select-none',
-        'hover:bg-mercury hover:dark:bg-mine-shaft',
+        'flex flex-row items-center justify-between p-2 select-none',
+        'hover:bg-gainsboro/45 hover:dark:bg-aph-light/80',
+        'last:border-azur',
+        'group-last/region:last:rounded-b-2xl',
+        'border-divider border-b last:border-b-0',
       )}
     >
       <Button
@@ -85,8 +88,8 @@ const GatewayItem = ({
       >
         <div
           className={clsx(
-            'w-1.5 shrink-0 self-stretch rounded-r-sm',
-            isSelected === node && 'bg-malachite',
+            'w-1 shrink-0 self-stretch rounded-r-sm',
+            isSelected === node && 'bg-primary',
             isSelected && isSelected !== node && 'bg-iron',
           )}
         />
@@ -105,17 +108,12 @@ const GatewayItem = ({
         <MsIcon icon="smart_display" className="text-cornflower" />
       )}
       <div className="flex items-center self-stretch p-2">
-        <Button
-          className={clsx(
-            'flex h-12 w-12 shrink-0 items-center justify-center rounded-full',
-            'text-text-primary',
-            'hover:bg-faded-lavender dark:hover:bg-charcoal',
-            'focus:outline-none',
-          )}
+        <ButtonIcon
+          color="chalk"
+          icon="chevron_right"
+          iconClassName="flex! items-center justify-center hover:text-primary"
           onClick={() => onNodeDetails(gateway)}
-        >
-          <MsIcon icon="arrow_right" />
-        </Button>
+        />
       </div>
     </div>
   );

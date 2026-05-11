@@ -1,6 +1,6 @@
 // styles for input's hover and focus states
 export const inputStates = [
-  'border border-bombay dark:border-iron rounded-lg',
+  'border border-bombay dark:border-iron rounded-xl',
   'hover:outline-hidden focus:outline-hidden',
   'data-hover:border-baltic-sea data-hover:ring-baltic-sea',
   'data-focus:border-baltic-sea data-focus:ring-baltic-sea',

@@ -1,9 +1,9 @@
 import React from 'react';
 import clsx from 'clsx';
 import { Field, Input } from '@headlessui/react';
-import { inputStates } from './common-styles';
 import MsIcon from './MsIcon';
 import ButtonIcon from './ButtonIcon';
+import { inputStates } from './common-styles';
 
 export type TextInputProps = {
   ref?: React.RefObject<HTMLInputElement | null>;
@@ -49,14 +49,14 @@ function TextInput({
   const getColorClass = () => {
     switch (color) {
       case 'default':
-        return 'bg-faded-lavender dark:bg-ash';
+        return 'bg-background';
       case 'gray':
         return 'bg-white dark:bg-charcoal';
     }
   };
 
   return (
-    <Field className={clsx(['relative flex w-full flex-row items-center'])}>
+    <Field className="relative flex w-full flex-row items-center">
       <Input
         id="passphrase"
         name="passphrase"
@@ -68,10 +68,10 @@ function TextInput({
         className={clsx([
           'relative text-base transition',
           'flex w-full flex-row items-center justify-between px-4 py-3',
+          ...inputStates,
           !disabled && 'text-text-primary',
           disabled && 'text-text-secondary',
           'placeholder:text-iron dark:placeholder:text-bombay',
-          ...inputStates,
           getColorClass(),
           className,
           leftIcon && 'pl-11',

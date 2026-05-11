@@ -12,8 +12,8 @@ export type RowHeaderProps = {
   node: UiCountry | UiRegion;
   onClick: (node: UiCountry | UiRegion) => void;
   sub?: boolean;
-  gwCount: number;
   i18n: string;
+  open?: boolean;
 };
 
 function RowHeader({
@@ -21,9 +21,9 @@ function RowHeader({
   hop,
   onClick,
   node,
-  gwCount,
   i18n,
   sub,
+  open,
 }: RowHeaderProps) {
   const { exit: exitNodeList, entry: entryNodeList } = useNodeListState();
 
@@ -52,31 +52,28 @@ function RowHeader({
     <div
       ref={scrollToRowRef}
       className={clsx(
-        'flex flex-row items-center justify-between rounded-r-2xl',
-        !sub ? 'dark:bg-charcoal bg-white' : 'bg-gainsboro dark:bg-charcoal/60',
-        !sub
-          ? 'dark:hover:bg-charcoal/85 hover:bg-white/60'
-          : 'hover:bg-nordic-breeze hover:dark:bg-charcoal/75',
+        'p-2',
+        'flex flex-row items-center justify-between transition-all duration-100',
+        sub
+          ? 'bg-gainsboro dark:bg-aph-light/40 hover:bg-gainsboro/60 hover:dark:bg-aph-light/20'
+          : 'dark:bg-aph-light dark:hover:bg-aph-light/75 bg-white hover:bg-white/60',
+        !sub && !open && 'rounded-2xl',
+        !sub && open && 'rounded-2xl rounded-b-none',
+        open && 'rounded-b-none!',
+        'group-last/region:rounded-b-2xl',
       )}
     >
-      <div
-        className={clsx(
-          'w-1.5 self-stretch rounded-r-sm',
-          (isSelected === hop || isSelected === 'entry-and-exit') &&
-            'bg-primary',
-          isSelected && isSelected !== hop && 'bg-background-secondary',
-        )}
-        data-selected={isSelected ? isSelected : 'none'}
-      />
       <div
         className={clsx('grow truncate overflow-hidden py-2')}
         onClick={() => onClick(node)}
       >
-        {node.nodeType === 'country' ? (
-          <LocationInfo node={node} name={i18n} gwCount={gwCount} />
-        ) : (
-          <LocationInfo node={node} name={node.name} gwCount={gwCount} />
-        )}
+        <LocationInfo
+          node={node}
+          name={node.nodeType === 'country' ? i18n : node.name}
+          isSelected={isSelected}
+          hop={hop}
+          hideFlag={node.nodeType === 'region'}
+        />
       </div>
       <Collapsible.Trigger
         render={(props, state) => <FoldButton html={props} state={state} />}
