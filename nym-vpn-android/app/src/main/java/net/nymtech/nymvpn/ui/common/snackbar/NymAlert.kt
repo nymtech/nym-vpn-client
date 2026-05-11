@@ -41,8 +41,9 @@ import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.ui.theme.CustomColors
 
 @Composable
-fun NymAlertHost(modifier: Modifier = Modifier) {
-	val message by NymAlertController.message.collectAsStateWithLifecycle()
+fun NymAlertHost(modifier: Modifier = Modifier, previewMessage: NymAlertMessage? = null) {
+	val controllerMessage by NymAlertController.message.collectAsStateWithLifecycle()
+	val message = previewMessage ?: controllerMessage
 
 	var lastMessage by remember { mutableStateOf<NymAlertMessage?>(null) }
 	if (message != null) lastMessage = message
@@ -69,24 +70,28 @@ fun NymAlertHost(modifier: Modifier = Modifier) {
 
 @Composable
 private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+	val isCritical = message.type == AlertType.Critical
+	val background = if (isCritical) CustomColors.criticalAlert else MaterialTheme.colorScheme.inverseSurface
+	val onAlertSurface = if (isCritical) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.inverseOnSurface
 	val iconTint = when (message.type) {
 		AlertType.Confirmation -> MaterialTheme.colorScheme.primary
-		AlertType.Neutral -> MaterialTheme.colorScheme.onSurface
+		AlertType.Neutral -> onAlertSurface
 		AlertType.Negative -> MaterialTheme.colorScheme.error
 		AlertType.Warning -> CustomColors.warning
+		AlertType.Critical -> onAlertSurface
 	}
 
 	Surface(
 		modifier = modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(12.dp),
-		color = MaterialTheme.colorScheme.surfaceContainerHigh,
+		color = background,
 		shadowElevation = 6.dp,
 	) {
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
 				.padding(16.dp),
-			verticalArrangement = Arrangement.spacedBy(5.dp),
+			verticalArrangement = Arrangement.spacedBy(if (isCritical) 12.dp else 5.dp),
 		) {
 			Row(
 				modifier = Modifier.fillMaxWidth(),
@@ -106,23 +111,25 @@ private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: 
 					Text(
 						text = message.title,
 						style = MaterialTheme.typography.titleSmall,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = onAlertSurface,
 					)
 					message.body?.let { body ->
 						Text(
 							text = body,
 							style = MaterialTheme.typography.bodySmall,
-							color = MaterialTheme.colorScheme.onSurfaceVariant,
+							color = onAlertSurface,
 						)
 					}
 				}
-				IconButton(onClick = onDismiss) {
-					Icon(
-						imageVector = Icons.Filled.Close,
-						contentDescription = stringResource(R.string.close),
-						tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						modifier = Modifier.size(24.dp),
-					)
+				if (!isCritical) {
+					IconButton(onClick = onDismiss) {
+						Icon(
+							imageVector = Icons.Filled.Close,
+							contentDescription = stringResource(R.string.close),
+							tint = onAlertSurface,
+							modifier = Modifier.size(24.dp),
+						)
+					}
 				}
 			}
 			message.action?.let { action ->
@@ -136,13 +143,13 @@ private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: 
 							onDismiss()
 						},
 						shape = CircleShape,
-						border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.onSurface),
+						border = BorderStroke(1.5.dp, onAlertSurface),
 						contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
 					) {
 						Text(
 							text = action.label,
 							style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-							color = MaterialTheme.colorScheme.onSurface,
+							color = onAlertSurface,
 						)
 					}
 				}

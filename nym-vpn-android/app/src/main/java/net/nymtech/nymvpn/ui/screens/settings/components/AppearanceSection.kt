@@ -4,7 +4,7 @@ import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Notifications
@@ -98,21 +98,21 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 							Icons.Outlined.ViewComfy,
 							stringResource(R.string.appearance),
 							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
 						Icon(
-							Icons.AutoMirrored.Outlined.ArrowRight,
+							Icons.AutoMirrored.Filled.KeyboardArrowRight,
 							stringResource(R.string.go),
 							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onBackground,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					title = {
 						Text(
 							stringResource(R.string.appearance),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
 						)
 					},
 					onClick = actions.onAppearanceClick,
@@ -125,21 +125,21 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 							Icons.Outlined.Notifications,
 							stringResource(R.string.notifications),
 							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
 						Icon(
-							Icons.AutoMirrored.Outlined.ArrowRight,
+							Icons.AutoMirrored.Filled.KeyboardArrowRight,
 							stringResource(R.string.go),
 							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onBackground,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					title = {
 						Text(
 							stringResource(R.string.notifications),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
 						)
 					},
 					onClick = actions.onNotificationsClick,
@@ -152,21 +152,21 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 							Icons.Outlined.BatterySaver,
 							stringResource(R.string.battery_opt),
 							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
 						Icon(
-							Icons.AutoMirrored.Outlined.ArrowRight,
+							Icons.AutoMirrored.Filled.KeyboardArrowRight,
 							stringResource(R.string.go),
 							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onBackground,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					title = {
 						Text(
 							stringResource(R.string.battery_opt),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
 						)
 					},
 					onClick = actions.onBatterySettingsClick,
@@ -180,7 +180,7 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 								Icons.Outlined.Apps,
 								stringResource(R.string.app_shortcuts),
 								modifier = Modifier.size(iconSize.scaledWidth()),
-								tint = MaterialTheme.colorScheme.outline,
+								tint = MaterialTheme.colorScheme.onSurfaceVariant,
 							)
 						},
 						trailing = {
@@ -192,13 +192,13 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 						title = {
 							Text(
 								stringResource(R.string.app_shortcuts),
-								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
 							)
 						},
 						description = {
 							Text(
 								stringResource(R.string.enable_shortcuts),
-								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSecondary),
 							)
 						},
 					),

@@ -3,14 +3,15 @@ package net.nymtech.nymvpn.ui.common.snackbar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.FmdBad
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-enum class AlertType { Confirmation, Neutral, Negative, Warning }
+enum class AlertType { Confirmation, Neutral, Negative, Warning, Critical }
 
 data class NymAlertMessage(
 	val type: AlertType = AlertType.Neutral,
@@ -42,7 +43,8 @@ object NymAlertController {
 internal val AlertType.icon: ImageVector
 	get() = when (this) {
 		AlertType.Confirmation -> Icons.Filled.CheckCircle
-		AlertType.Neutral -> Icons.Outlined.Info
+		AlertType.Neutral -> Icons.Filled.Info
 		AlertType.Negative -> Icons.Filled.Cancel
-		AlertType.Warning -> Icons.Filled.Warning
+		AlertType.Warning -> Icons.Filled.FmdBad
+		AlertType.Critical -> Icons.Filled.Error
 	}

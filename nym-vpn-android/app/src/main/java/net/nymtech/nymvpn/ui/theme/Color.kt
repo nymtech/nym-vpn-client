@@ -121,6 +121,7 @@ internal object LightSchemeBaseColors {
 }
 
 object CustomColors {
+	val criticalAlert = Color(0xFFCD2C3C)
 	val warning = Color(0xFFFFB400)
 	val warningAmber = Color(0xFFFB6E4E)
 	val pulse = Color(0xFF7075FF)

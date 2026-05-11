@@ -74,13 +74,14 @@ import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.nymvpn.util.extensions.toPanelState
+import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import androidx.compose.ui.res.stringResource
 
 @Composable
-fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, showAuth: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState = remember(appUiState.managerState, appUiState.networkStatus) {
 		with(appUiState) {
 			val baseState = when {
@@ -148,6 +149,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	var showAuthSheet by remember { mutableStateOf(false) }
 	var initialAuthRoute by remember { mutableStateOf<AuthRoute>(AuthRoute.Welcome) }
 	var authSheetChecked by rememberSaveable { mutableStateOf(false) }
+	var isShowingConnectionErrorAlert by remember { mutableStateOf(false) }
 	val activity = context as? MainActivity
 
 	val connectionTime = remember(connectionSeconds) {
@@ -164,6 +166,13 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		if (appUiState.managerState.isInitialized && !authSheetChecked) {
 			authSheetChecked = true
 			showAuthSheet = !appUiState.managerState.isMnemonicStored
+		}
+	}
+
+	LaunchedEffect(showAuth) {
+		if (showAuth) {
+			initialAuthRoute = AuthRoute.Welcome
+			showAuthSheet = true
 		}
 	}
 
@@ -323,6 +332,40 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
+	val connectionErrorRetryLabel = stringResource(R.string.try_reconnecting)
+	val connectionFailedLabel = stringResource(R.string.connection_failed)
+	LaunchedEffect(uiState.connectionState) {
+		when (val state = uiState.connectionState) {
+			is ConnectionState.Error -> {
+				val message = state.reason.toUserMessage(context).ifEmpty { connectionFailedLabel }
+				NymAlertController.show(
+					NymAlertMessage(
+						type = AlertType.Critical,
+						title = message,
+						action = NymAlertAction(connectionErrorRetryLabel) { onConnectPressed() },
+						duration = Long.MAX_VALUE,
+						onDismiss = { isShowingConnectionErrorAlert = false },
+					),
+				)
+				isShowingConnectionErrorAlert = true
+			}
+			is ConnectionState.StartFailure -> {
+				val message = state.exception.toUserMessage(context)
+				NymAlertController.show(
+					NymAlertMessage(
+						type = AlertType.Critical,
+						title = message,
+						action = NymAlertAction(connectionErrorRetryLabel) { onConnectPressed() },
+						duration = Long.MAX_VALUE,
+						onDismiss = { isShowingConnectionErrorAlert = false },
+					),
+				)
+				isShowingConnectionErrorAlert = true
+			}
+			else -> if (isShowingConnectionErrorAlert) NymAlertController.dismiss()
+		}
+	}
+
 	when (val autologin = autologinState) {
 		is AutologinState.Loading -> AutologinLoadingDialog(onCancel = appViewModel::cancelAutologin)
 		is AutologinState.PinReady -> PinCodeDialog(
@@ -442,6 +485,7 @@ private fun MainScreenContent(
 	onPanelStateChange: (state: PanelState) -> Unit,
 	modifier: Modifier = Modifier,
 	contentPadding: PaddingValues = PaddingValues(),
+	previewAlertMessage: NymAlertMessage? = null,
 ) {
 	Box(
 		modifier = modifier
@@ -507,6 +551,36 @@ private fun MainScreenContent(
 				.align(Alignment.TopCenter)
 				.padding(top = contentPadding.calculateTopPadding() + 8.dp)
 				.padding(horizontal = 16.dp),
+			previewMessage = previewAlertMessage,
+		)
+	}
+}
+
+@Composable
+@Preview(showBackground = true, backgroundColor = 0xFF0D0D0F)
+private fun MainScreenPreviewAlertCritical() {
+	NymVPNTheme(Theme.DARK_MODE) {
+		MainScreenContent(
+			connectionState = ConnectionState.Disconnected,
+			appUiState = AppUiState(),
+			connectionTime = null,
+			initialPanelState = PanelState.COLLAPSED,
+			onConnect = {},
+			onDisconnect = {},
+			onStopKillSwitch = {},
+			onGetStartedClick = {},
+			onFastModeClick = {},
+			onAnonModeClick = {},
+			onPanelStateChange = {},
+			onExitNodeClick = {},
+			onEntryNodeClick = {},
+			previewAlertMessage = NymAlertMessage(
+				type = AlertType.Critical,
+				title = "Secure your secret passphrase",
+				body = "No passphrase no access to account",
+				action = NymAlertAction("Back up now") {},
+				duration = Long.MAX_VALUE,
+			),
 		)
 	}
 }

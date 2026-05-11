@@ -99,18 +99,18 @@ private fun BaseAccountStatusCard(content: @Composable ColumnScope.() -> Unit) {
 	Card(
 		modifier = Modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(8.dp),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
 	) {
 		Column(modifier = Modifier.fillMaxWidth()) {
 			Row(
 				modifier = Modifier.padding(16.dp),
 				verticalAlignment = Alignment.CenterVertically,
 			) {
-				Icon(Icons.Outlined.Speed, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+				Icon(Icons.Outlined.Speed, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
 				Spacer(Modifier.width(12.dp))
 				Text(
 					text = stringResource(R.string.account_info_status_title),
-					style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+					style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onBackground),
 				)
 			}
 			content()
@@ -180,7 +180,7 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 		) {
 			Text(
 				text = stringResource(R.string.account_info_reset_text),
-				style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.outline),
+				style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSecondary),
 			)
 			Text(
 				text = bandwidth.resetDate,
@@ -228,13 +228,13 @@ private fun ExpiredCard() {
 			Box(
 				modifier = Modifier
 					.size(64.dp)
-					.border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+					.border(1.dp, MaterialTheme.colorScheme.onSurfaceVariant, CircleShape),
 				contentAlignment = Alignment.Center,
 			) {
 				Icon(
 					imageVector = Icons.Outlined.GppBad,
 					contentDescription = null,
-					tint = MaterialTheme.colorScheme.outline,
+					tint = MaterialTheme.colorScheme.onSurfaceVariant,
 					modifier = Modifier.size(32.dp),
 				)
 			}
@@ -261,7 +261,7 @@ private fun ContactSupportText(onClick: () -> Unit) {
 		) {
 			append(stringResource(R.string.account_info_contact_support_action))
 		}
-		withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {
+		withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSecondary)) {
 			append(stringResource(R.string.account_info_contact_support_suffix))
 		}
 	}

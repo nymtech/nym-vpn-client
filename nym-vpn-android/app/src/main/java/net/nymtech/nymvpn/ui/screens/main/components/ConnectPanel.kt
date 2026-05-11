@@ -299,7 +299,7 @@ private fun ModeToggle(vpnMode: Tunnel.Mode, onFastClick: () -> Unit, onAnonClic
 				contentAlignment = Alignment.Center,
 			) {
 				Icon(
-					imageVector = if(isFast) Icons.Outlined.Bolt else Icons.Outlined.VisibilityOff,
+					imageVector = if (isFast) Icons.Outlined.Bolt else Icons.Outlined.VisibilityOff,
 					contentDescription = null,
 					tint = MaterialTheme.colorScheme.surfaceTint,
 					modifier = Modifier.size(20.dp),
@@ -628,6 +628,7 @@ private fun PreviewDisconnectedDark() {
 		)
 	}
 }
+
 @Preview(name = "Disconnected – light", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PreviewDisconnectedLight() {

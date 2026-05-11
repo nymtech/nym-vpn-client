@@ -3,7 +3,7 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,16 +24,16 @@ fun LegalSection(onLegalClick: () -> Unit) {
 			SelectionItem(
 				trailing = {
 					Icon(
-						Icons.AutoMirrored.Outlined.ArrowRight,
+						Icons.AutoMirrored.Filled.KeyboardArrowRight,
 						stringResource(R.string.go),
 						modifier = Modifier.size(iconSize),
-						tint = MaterialTheme.colorScheme.onBackground,
+						tint = MaterialTheme.colorScheme.onSurfaceVariant,
 					)
 				},
 				title = {
 					Text(
 						stringResource(R.string.legal),
-						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
 					)
 				},
 				onClick = onLegalClick,

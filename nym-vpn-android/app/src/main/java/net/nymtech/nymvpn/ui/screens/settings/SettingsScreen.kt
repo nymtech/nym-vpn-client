@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.settings
 import android.app.Activity
 import android.content.res.Configuration
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,6 +45,7 @@ import net.nymtech.nymvpn.ui.screens.settings.components.VpnSettingsSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.DeviceAuthHelper
+import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
 import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
@@ -92,7 +95,7 @@ fun SettingsScreen(appUiState: AppUiState, showVpnSettings: Boolean = false, vie
 		),
 		SettingsActions(
 			onGetStartedClick = {
-				navController.navigate(Route.Welcome)
+				navController.goFromRoot(Route.Main(showAuth = true))
 			},
 			onAccountClick = {
 				navController.navigate(Route.Account)
@@ -174,10 +177,10 @@ fun SettingsScreen(appUiState: AppUiState, showVpnSettings: Boolean = false, vie
 
 @Composable
 fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
-	Box(modifier = Modifier.fillMaxSize()) {
+	Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
 		Column(
 			horizontalAlignment = Alignment.Start,
-			verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.Top),
+			verticalArrangement = Arrangement.spacedBy(14.dp, Alignment.Top),
 			modifier = Modifier
 				.verticalScroll(rememberScrollState())
 				.fillMaxSize()

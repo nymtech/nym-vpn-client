@@ -66,7 +66,7 @@ fun AccountInfoCard(title: String, value: String, icon: ImageVector, onClick: ()
 								imageVector = icon,
 								contentDescription = null,
 								modifier = Modifier.size(24.dp.scaledWidth()),
-								tint = MaterialTheme.colorScheme.outline,
+								tint = MaterialTheme.colorScheme.onSurfaceVariant,
 							)
 							Text(
 								text = title,
@@ -76,7 +76,7 @@ fun AccountInfoCard(title: String, value: String, icon: ImageVector, onClick: ()
 						}
 						Text(
 							text = value,
-							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSecondary),
 							modifier = Modifier.padding(top = 10.dp),
 						)
 					}

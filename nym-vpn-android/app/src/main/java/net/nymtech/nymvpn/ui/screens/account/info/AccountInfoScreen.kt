@@ -201,7 +201,7 @@ fun AccountInfoScreenContent(
 				subtitle = {
 					Text(
 						text = stringResource(R.string.account_info_link_description),
-						style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+						style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.onSecondary),
 					)
 				},
 				icon = Icons.Outlined.Person,
@@ -211,7 +211,7 @@ fun AccountInfoScreenContent(
 
 		Text(
 			text = stringResource(if (!isLinked) R.string.account_info_link_warning else R.string.account_info_linked_info),
-			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSecondary),
 			modifier = Modifier.padding(vertical = 24.dp),
 		)
 
@@ -224,7 +224,7 @@ fun AccountInfoScreenContent(
 
 		Text(
 			text = stringResource(R.string.account_info_id_info),
-			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSecondary),
 			modifier = Modifier.padding(vertical = 24.dp),
 		)
 
@@ -237,7 +237,7 @@ fun AccountInfoScreenContent(
 
 		Text(
 			text = stringResource(R.string.account_info_device_info),
-			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSecondary),
 			modifier = Modifier.padding(vertical = 24.dp),
 		)
 

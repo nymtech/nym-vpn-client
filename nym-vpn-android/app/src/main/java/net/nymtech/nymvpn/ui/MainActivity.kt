@@ -239,7 +239,7 @@ class MainActivity : AppCompatActivity() {
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Main>()
-									MainScreen(appViewModel, appState, args.autoStart)
+									MainScreen(appViewModel, appState, args.autoStart, showAuth = args.showAuth)
 								}
 
 								composable<Route.Permission> {
