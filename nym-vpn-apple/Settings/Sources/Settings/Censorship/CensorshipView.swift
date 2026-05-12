@@ -158,11 +158,15 @@ private extension CensorshipView {
 
     // MARK: - Stealth API -
     func stealthApiSection() -> some View {
-        SettingsListItem(
+        let stealthBinding = Binding<Bool>(
+            get: { appSettings.isStealthApiEnabled },
+            set: { _ in appSettings.isStealthApiEnabled.toggle() }
+        )
+
+        return SettingsListItem(
             viewModel: SettingsListItemViewModel(
                 accessory: .toggle(
-                    isOn: .constant(true),
-                    isDisabled: true
+                    isOn: stealthBinding
                 ),
                 title: "censorship.stealhapi.title".localizedString,
                 multilineText: stealthApiMultilineText(),
