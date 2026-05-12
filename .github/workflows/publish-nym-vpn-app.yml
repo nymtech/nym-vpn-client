@@ -30,11 +30,11 @@ on:
         type: boolean
         default: false
       core_release_tag:
-        description: "For Windows daemon, nym-vpn-core GH release tag (leave empty if using direct link)"
+        description: "nym-vpn-core: GitHub release tag (leave empty if using direct link)"
         required: false
         type: string
       core_artifact_url:
-        description: "For Windows daemon, direct link to nym-vpn-core windows zip archive, eg. https://.._windows_x86_64.zip (leave empty if using GH release tag)"
+        description: "nym-vpn-core: Direct link to Windows zip archive, eg. https://.._windows_x86_64.zip (leave empty if using GH release tag)"
         required: false
         type: string
 
@@ -55,6 +55,18 @@ jobs:
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
     secrets: inherit
 
+  build-windows-arm64:
+    uses: ./.github/workflows/build-nym-vpn-app-windows.yml
+    with:
+      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
+      core_release_tag: ${{ inputs.core_release_tag }}
+      core_artifact_url: ${{ inputs.core_artifact_url }}
+      sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
+      updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
+      updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
+      cpu_arch: ARM64
+    secrets: inherit
+
   generate-build-info-nym-vpn-app:
     uses: ./.github/workflows/generate-build-info-nym-vpn-app.yml
     needs: build-linux
@@ -66,6 +78,7 @@ jobs:
     needs:
       - build-linux
       - build-windows
+      - build-windows-arm64
       - generate-build-info-nym-vpn-app
     runs-on: arc-linux-latest
     outputs:
@@ -74,6 +87,8 @@ jobs:
       version: ${{ steps.cargo-get.outputs.metadata }}
       win_updater_exe: ${{ steps.win_updater.outputs.exe }}
       win_updater_sig: ${{ steps.win_updater.outputs.sig }}
+      win_updater_arm64_exe: ${{ steps.win_updater_arm64.outputs.exe }}
+      win_updater_arm64_sig: ${{ steps.win_updater_arm64.outputs.sig }}
       core_build_url_path: ${{ needs.build-windows.outputs.core_build_url_path }}
     env:
       # stable | nightly | dev
@@ -84,6 +99,7 @@ jobs:
       UPLOAD_DIR_LINUX_X86_64: linux_artifacts_x86_64
       UPLOAD_DIR_LINUX_AARCH64: linux_artifacts_aarch64
       UPLOAD_DIR_WINDOWS: ${{ needs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
+      UPLOAD_DIR_WINDOWS_ARM64: ${{ needs.build-windows-arm64.outputs.UPLOAD_DIR_WINDOWS }}
       UPDATER_ENABLED: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
     permissions: write-all
     steps:
@@ -138,6 +154,17 @@ jobs:
           sig=$(head -n 1 *.exe.sig)
           echo "sig=$sig" >> "$GITHUB_OUTPUT"
 
+      - name: Set output for updater (Windows ARM64)
+        if: ${{ env.UPDATER_ENABLED == 'true' }}
+        id: win_updater_arm64
+        working-directory: ${{ env.UPLOAD_DIR_WINDOWS_ARM64 }}
+        run: |
+          shopt -s failglob
+          exe=(*setup.exe)
+          echo "exe=${exe[0]}" >> "$GITHUB_OUTPUT"
+          sig=$(head -n 1 *.exe.sig)
+          echo "sig=$sig" >> "$GITHUB_OUTPUT"
+
       - name: Remove previous nightly release
         if: ${{ env.RELEASE_TYPE == 'nightly' }}
         run: |
@@ -159,10 +186,16 @@ jobs:
             sha256sum "${exe[0]}" > "${exe[0]}.sha256sum";
           popd
 
+          pushd ${{ env.UPLOAD_DIR_WINDOWS_ARM64 }} || exit 1
+            exe=(*setup.exe)
+            sha256sum "${exe[0]}" > "${exe[0]}.sha256sum";
+          popd
+
           echo 'SHA256SUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_LINUX_X86_64 }}/*.sha256sum >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_LINUX_AARCH64 }}/*.sha256sum >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_WINDOWS_ARM64 }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Build info
@@ -220,6 +253,7 @@ jobs:
             ${{ env.UPLOAD_DIR_LINUX_X86_64 }}/*
             ${{ env.UPLOAD_DIR_LINUX_AARCH64 }}/*
             ${{ env.UPLOAD_DIR_WINDOWS }}/*
+            ${{ env.UPLOAD_DIR_WINDOWS_ARM64 }}/*
 
   windows-updater:
     uses: ./.github/workflows/tauri-updater.yml
@@ -231,6 +265,17 @@ jobs:
       platform: "windows-x86_64"
       url: https://github.com/nymtech/nym-vpn-client/releases/download/${{ needs.publish.outputs.release_tag }}/${{ needs.publish.outputs.win_updater_exe }}
       signature: ${{ needs.publish.outputs.win_updater_sig }}
+
+  windows-arm64-updater:
+    uses: ./.github/workflows/tauri-updater.yml
+    needs: publish
+    if: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
+    with:
+      channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
+      version: ${{ needs.publish.outputs.version }}
+      platform: "windows-aarch64"
+      url: https://github.com/nymtech/nym-vpn-client/releases/download/${{ needs.publish.outputs.release_tag }}/${{ needs.publish.outputs.win_updater_arm64_exe }}
+      signature: ${{ needs.publish.outputs.win_updater_arm64_sig }}
 
   update-aur-app:
     uses: ./.github/workflows/publish-aur-nym-vpn-app.yml

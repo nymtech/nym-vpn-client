@@ -74,7 +74,13 @@ Var VpndVersion
 Var VpndVersionMajor
 Var VpndVersionMinor
 
-Name "${PRODUCTNAME}"
+!if "${ARCH}" == "arm64"
+  !define DISPLAYNAME "${PRODUCTNAME} (ARM64)"
+!else
+  !define DISPLAYNAME "${PRODUCTNAME}"
+!endif
+
+Name "${DISPLAYNAME}"
 BrandingText "${COPYRIGHT}"
 OutFile "${OUTFILE}"
 
@@ -697,17 +703,26 @@ Section Install
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"
 
+  ; ARM64 builds place the NSIS script one directory level deeper than x64
+  ; (target/<triple>/release/nsis/arm64/ vs target/release/nsis/x86-64/),
+  ; so the relative path to src-tauri/ differs by one level.
+  !if "${ARCH}" == "arm64"
+    !define RESPREFIX "..\..\..\..\..\"
+  !else
+    !define RESPREFIX "..\..\..\.."
+  !endif
+
   ; Copy vpnd, socks5-proxy and libs
-  File "..\..\..\..\nym-vpnd.exe"
-  File "..\..\..\..\nym-socks5-proxy.exe"
-  File "..\..\..\..\libwg.dll"
-  File "..\..\..\..\wintun.dll"
-  File "..\..\..\..\winfw.dll"
+  File "${RESPREFIX}\nym-vpnd.exe"
+  File "${RESPREFIX}\nym-socks5-proxy.exe"
+  File "${RESPREFIX}\libwg.dll"
+  File "${RESPREFIX}\wintun.dll"
+  File "${RESPREFIX}\winfw.dll"
 
   ; Copy split-tunnel driver artifacts
-  File "..\..\..\..\nymvpn-split-tunnel.sys"
-  File "..\..\..\..\nymvpn-split-tunnel.inf"
-  File "..\..\..\..\nymvpn-split-tunnel.cat"
+  File "${RESPREFIX}\nymvpn-split-tunnel.sys"
+  File "${RESPREFIX}\nymvpn-split-tunnel.inf"
+  File "${RESPREFIX}\nymvpn-split-tunnel.cat"
 
   ; Install NymVPN service, abort early if something goes wrong
   vpnd-install:
