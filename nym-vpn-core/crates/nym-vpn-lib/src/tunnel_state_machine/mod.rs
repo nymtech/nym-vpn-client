@@ -41,7 +41,7 @@ use crate::socks5_proxy::Socks5ProxyManager;
 use crate::socks5_proxy::find_proxy_binary;
 
 use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    GatewayProviderError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
     mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
@@ -1053,8 +1053,7 @@ impl TunnelStateMachine {
             tunnel_settings.clone(),
             wg_keys_db,
             shutdown_token.clone(),
-        )
-        .await?;
+        );
 
         let mut shared_state = SharedState {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1343,13 +1342,13 @@ impl tunnel::Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
         match self {
             Self::SelectGateways(e) => match *e {
-                GatewayDirectoryError::SameEntryAndExitGateway { .. } => {
+                GatewayProviderError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
-                GatewayDirectoryError::EntryGatewayUnavailable { .. } => {
+                GatewayProviderError::EntryGatewayUnavailable { .. } => {
                     Some(ErrorStateReason::PerformantEntryGatewayUnavailable)
                 }
-                GatewayDirectoryError::ExitGatewayUnavailable { .. } => {
+                GatewayProviderError::ExitGatewayUnavailable { .. } => {
                     Some(ErrorStateReason::PerformantExitGatewayUnavailable)
                 }
                 _ => None,

@@ -8,7 +8,6 @@ mod bandwidth_controller;
 pub mod cache_refresh;
 pub mod config;
 mod dns_filter;
-mod error;
 pub mod logging;
 mod mixnet;
 pub mod privy;
@@ -43,11 +42,11 @@ pub use nym_sdk::{
 };
 
 pub use crate::{
-    error::GatewayDirectoryError,
     mixnet::{
         DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, MixnetError,
         VpnTopologyProvider, VpnTopologyService, VpnTopologyServiceError, VpnTopologyServiceHandle,
     },
+    tunnel_state_machine::tunnel::gateway_provider::GatewayProviderError,
 };
 
 /// Default DNS servers.

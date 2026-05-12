@@ -12,14 +12,15 @@ pub use gateway_provider::SelectedGateways;
 
 #[cfg(windows)]
 use super::route_handler;
-use crate::{GatewayDirectoryError, MixnetError};
+use crate::MixnetError;
 pub use any_tunnel_handle::AnyTunnelHandle;
+use gateway_provider::GatewayProviderError;
 pub use tombstone::Tombstone;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("failed to select gateways")]
-    SelectGateways(#[source] Box<GatewayDirectoryError>),
+    SelectGateways(#[source] Box<GatewayProviderError>),
 
     #[error("mixnet tunnel has failed")]
     MixnetClient(#[from] MixnetError),
