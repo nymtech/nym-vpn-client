@@ -23,6 +23,19 @@ pub struct GatewayIndependence {
     pub different_asn: bool,
 }
 
+impl GatewayIndependence {
+    pub fn new_deactivated() -> Self {
+        Self {
+            different_node_family: false,
+            different_asn: false,
+        }
+    }
+
+    pub fn active(&self) -> bool {
+        self.different_node_family || self.different_asn
+    }
+}
+
 impl Default for GatewayIndependence {
     fn default() -> Self {
         Self {

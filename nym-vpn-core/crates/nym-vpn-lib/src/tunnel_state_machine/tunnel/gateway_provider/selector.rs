@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{f64::consts::E, net::SocketAddr, sync::Arc};
+use std::{net::SocketAddr, sync::Arc};
 
 use nym_crypto::asymmetric::x25519::KeyPair;
 use nym_gateway_directory::{
@@ -10,19 +10,18 @@ use nym_gateway_directory::{
 };
 use nym_registration_client::RegistrationNymNode;
 use nym_registration_common::{NymNodeInformation, NymNodeLPInformation};
-use nym_vpn_lib_types::GatewaySelectionAlgorithm;
+use nym_vpn_lib_types::{GatewayIndependence, GatewaySelectionAlgorithm};
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
-use crate::{
-    GatewayDirectoryError,
-    tunnel_state_machine::{
-        TunnelSettings, TunnelType,
-        tunnel::{
-            self,
-            gateway_provider::{
-                gateway_cache::GatewayCache,
-                geo_ip::{closest_gateway, same_jurisdiction},
-            },
+use crate::tunnel_state_machine::{
+    TunnelSettings, TunnelType,
+    tunnel::{
+        self,
+        gateway_provider::{
+            error::GatewayProviderError,
+            gateway_cache::GatewayCache,
+            geo_ip::{closest_gateway, same_jurisdiction},
+            independence::gateways_are_independent,
         },
     },
 };
@@ -52,7 +51,7 @@ impl TryFrom<GatewayWithKeys> for RegistrationNymNode {
             );
             // Signature check doesn't pass, something fishy is going on
             return Err(tunnel::Error::SelectGateways(Box::new(
-                GatewayDirectoryError::MalformedGateway(
+                GatewayProviderError::MalformedGateway(
                     nym_gateway_directory::Error::MalformedGateway,
                 ),
             )));
@@ -167,15 +166,13 @@ fn find_best_exit_gateway(
     }
 }
 
-fn select_entry_exit(
-    entry_gateways: &mut GatewayList,
-    exit_gateways: &mut GatewayList,
+fn select_entry(
+    mut entry_gateways: GatewayList,
     blacklisted_entry_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
-    device_location: Option<Location>,
-) -> Result<(Gateway, Gateway), GatewayDirectoryError> {
+    device_location: Option<&Location>,
+) -> Result<Gateway, GatewayProviderError> {
     let entry_point = EntryPoint::from(*tunnel_settings.entry_point.clone());
-    let exit_point = ExitPoint::from(*tunnel_settings.exit_point.clone());
 
     let entry_filters = if blacklisted_entry_gateways.is_empty().unwrap_or(true) {
         GatewayFilters::default()
@@ -189,7 +186,7 @@ fn select_entry_exit(
         .gateway_selection_algorithm_config
         .gateway_selection_algorithm;
 
-    let entry_ordering_criteria = match (device_location.clone(), gateway_selection_algorithm) {
+    let entry_ordering_criteria = match (device_location, gateway_selection_algorithm) {
         (_, GatewaySelectionAlgorithm::Explicit) | (None, _) => {
             OrderingCriteria::Random(entry_point)
         }
@@ -201,19 +198,37 @@ fn select_entry_exit(
                     .location
                     .as_ref()
                     .is_some_and(|entry_gateway_location| {
-                        !same_jurisdiction(entry_gateway_location, &device_location)
+                        !same_jurisdiction(entry_gateway_location, device_location)
                     })
             });
-            OrderingCriteria::ClosestTo(device_location)
+            OrderingCriteria::ClosestTo(device_location.clone())
         }
     };
 
-    let entry_gateway =
-        find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters)
-            .map_err(GatewayDirectoryError::EntryGatewayUnavailable)?;
+    find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters)
+        .map_err(GatewayProviderError::EntryGatewayUnavailable)
+}
+
+fn select_exit(
+    entry_gateway: &Gateway,
+    mut exit_gateways: GatewayList,
+    tunnel_settings: &TunnelSettings,
+    device_location: Option<&Location>,
+) -> Result<Gateway, GatewayProviderError> {
+    let gateway_selection_algorithm = tunnel_settings
+        .gateway_selection_algorithm_config
+        .gateway_selection_algorithm;
+
+    let exit_point = ExitPoint::from(*tunnel_settings.exit_point.clone());
 
     // Exclude the entry gateway from the list of exit gateways for privacy reasons
-    exit_gateways.retain_gateways_by(|gateway| gateway.identity() != entry_gateway.identity());
+    exit_gateways.retain_gateways_by(|exit_gateway| {
+        gateways_are_independent(
+            entry_gateway,
+            exit_gateway,
+            tunnel_settings.gateway_independence,
+        )
+    });
 
     let exit_ordering_criteria = match (device_location, gateway_selection_algorithm) {
         (_, GatewaySelectionAlgorithm::Explicit)
@@ -227,7 +242,7 @@ fn select_entry_exit(
                         .location
                         .as_ref()
                         .is_some_and(|exit_gateway_location| {
-                            !same_jurisdiction(exit_gateway_location, &device_location)
+                            !same_jurisdiction(exit_gateway_location, device_location)
                                 && !same_jurisdiction(
                                     exit_gateway_location,
                                     &entry_gateway_location,
@@ -250,11 +265,36 @@ fn select_entry_exit(
         GatewayFilters::default()
     };
 
-    let exit_gateway =
-        find_best_exit_gateway(&exit_gateways, exit_ordering_criteria, &exit_filters)
-            .map_err(GatewayDirectoryError::ExitGatewayUnavailable)?;
+    find_best_exit_gateway(&exit_gateways, exit_ordering_criteria, &exit_filters)
+        .map_err(GatewayProviderError::ExitGatewayUnavailable)
+}
 
-    Ok((entry_gateway, exit_gateway))
+fn loop_select(
+    mut entry_gateways: GatewayList,
+    exit_gateways: GatewayList,
+    blacklisted_entry_gateways: &BlacklistedGateways,
+    tunnel_settings: &TunnelSettings,
+    device_location: Option<&Location>,
+) -> Result<(Gateway, Gateway), GatewayProviderError> {
+    loop {
+        let entry_gateway = select_entry(
+            entry_gateways.clone(),
+            blacklisted_entry_gateways,
+            tunnel_settings,
+            device_location,
+        )?;
+        if let Ok(exit_gateway) = select_exit(
+            &entry_gateway,
+            exit_gateways.clone(),
+            tunnel_settings,
+            device_location,
+        ) {
+            return Ok((entry_gateway, exit_gateway));
+        } else {
+            entry_gateways
+                .retain_gateways_by(|gateway| gateway.identity() != entry_gateway.identity());
+        }
+    }
 }
 
 pub async fn select_gateways(
@@ -263,7 +303,7 @@ pub async fn select_gateways(
     tunnel_settings: &TunnelSettings,
     device_location: Option<Location>,
     wg_keys_db: WireguardKeysDb,
-) -> Result<SelectedGateways, GatewayDirectoryError> {
+) -> Result<SelectedGateways, GatewayProviderError> {
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
 
@@ -279,17 +319,17 @@ pub async fn select_gateways(
         tunnel_settings.exit_point.as_ref(),
     ) && *entry_identity == *exit_identity
     {
-        return Err(GatewayDirectoryError::SameEntryAndExitGateway {
+        return Err(GatewayProviderError::SameEntryAndExitGateway {
             identity: entry_identity.to_string(),
         });
     };
 
-    let (mut entry_gateways, mut exit_gateways) = match tunnel_settings.tunnel_type_used() {
+    let (entry_gateways, exit_gateways) = match tunnel_settings.tunnel_type_used() {
         TunnelType::Wireguard => {
             let all_gateways = gateway_cache
                 .lookup_gateways(GatewayType::Wg)
                 .await
-                .map_err(GatewayDirectoryError::LookupGateways)?;
+                .map_err(GatewayProviderError::LookupGateways)?;
 
             let entry_gateways = if tunnel_settings.bridges_enabled() {
                 GatewayList::new(
@@ -311,28 +351,63 @@ pub async fn select_gateways(
             let exit_gateways = gateway_cache
                 .lookup_gateways(GatewayType::MixnetExit)
                 .await
-                .map_err(GatewayDirectoryError::LookupGateways)?;
+                .map_err(GatewayProviderError::LookupGateways)?;
             // Setup the gateway that we will use as the entry point
             let entry_gateways = gateway_cache
                 .lookup_gateways(GatewayType::MixnetEntry)
                 .await
-                .map_err(GatewayDirectoryError::LookupGateways)?;
+                .map_err(GatewayProviderError::LookupGateways)?;
             (entry_gateways, exit_gateways)
         }
     };
 
-    let (entry_gateway, exit_gateway) = select_entry_exit(
-        &mut entry_gateways,
-        &mut exit_gateways,
-        blacklisted_entry_gateways,
-        tunnel_settings,
-        device_location,
-    )?;
+    let (entry_gateway, exit_gateway) = if tunnel_settings.gateway_independence.active() {
+        // Try with gateway independent gateways first
+        if let Ok(pair) = loop_select(
+            entry_gateways.clone(),
+            exit_gateways.clone(),
+            blacklisted_entry_gateways,
+            tunnel_settings,
+            device_location.as_ref(),
+        ) {
+            pair
+        } else {
+            // Check if removing the independence criteria allows us to select a gateway pair
+            // so we know what to tell the user.
+            let mut no_gateway_independence_settings = tunnel_settings.clone();
+            no_gateway_independence_settings.gateway_independence =
+                GatewayIndependence::new_deactivated();
+            // if we still can't select, we just return the error
+            loop_select(
+                entry_gateways,
+                exit_gateways,
+                blacklisted_entry_gateways,
+                &no_gateway_independence_settings,
+                device_location.as_ref(),
+            )?;
+            // otherwise we return an error that prompts the user to explicitly agree to possible non-independent gateways
+            return Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria);
+        }
+    } else {
+        let entry_gateway = select_entry(
+            entry_gateways,
+            blacklisted_entry_gateways,
+            tunnel_settings,
+            device_location.as_ref(),
+        )?;
+        let exit_gateway = select_exit(
+            &entry_gateway,
+            exit_gateways,
+            tunnel_settings,
+            device_location.as_ref(),
+        )?;
+        (entry_gateway, exit_gateway)
+    };
 
     let entry_keys = wg_keys_db
         .load_or_create_keys(&entry_gateway.identity().to_string())
         .await
-        .map_err(|source| GatewayDirectoryError::LoadKeypair {
+        .map_err(|source| GatewayProviderError::LoadKeypair {
             identity: entry_gateway.identity().to_string(),
             source,
         })?
@@ -341,7 +416,7 @@ pub async fn select_gateways(
     let exit_keys = wg_keys_db
         .load_or_create_keys(&exit_gateway.identity().to_string())
         .await
-        .map_err(|source| GatewayDirectoryError::LoadKeypair {
+        .map_err(|source| GatewayProviderError::LoadKeypair {
             identity: exit_gateway.identity().to_string(),
             source,
         })?

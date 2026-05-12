@@ -386,21 +386,21 @@ pub struct DVpnGatewayPerformance {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NodeStaking {
     // delegations + bond
-    total_stake: u128,
-    total_delegations: u128,
-    total_bond: u128,
+    pub total_stake: u128,
+    pub total_delegations: u128,
+    pub total_bond: u128,
     // number of delegations
-    delegations: usize,
+    pub delegations: usize,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NodeFamily {
-    id: u32,
-    name: String,
-    description: String,
+    pub id: u32,
+    pub name: String,
+    pub description: String,
     // in unym
-    family_stake: u128,
-    members: usize,
+    pub family_stake: u128,
+    pub members: usize,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
