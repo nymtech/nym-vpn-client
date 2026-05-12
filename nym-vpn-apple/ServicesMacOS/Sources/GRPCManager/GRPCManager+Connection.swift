@@ -71,6 +71,10 @@ extension GRPCManager {
         try await rpcClient?.setEnableAdBlocking(enableAdBlocking: enabled)
     }
 
+    public func setStealthApiEnabled(_ enabled: Bool) async throws {
+        try await rpcClient?.setFrontingMode(frontingMode: enabled ? .always : .onRetry)
+    }
+
     public func setDisableIpv6(_ disabled: Bool) async throws {
         try await rpcClient?.setDisableIpv6(disableIpv6: disabled)
     }
