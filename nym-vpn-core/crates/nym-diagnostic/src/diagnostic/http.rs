@@ -49,7 +49,7 @@ impl HttpDiagnostic {
     }
 
     async fn test_nym_apis(network: &Network, parallel: bool) -> Result<()> {
-        tracing::info!("nym apis");
+        tracing::info!("Running Nym api diagnostics");
 
         let api_clients = build_nym_api_clients(network).await?;
 
@@ -73,7 +73,7 @@ impl HttpDiagnostic {
     }
 
     async fn test_vpn_apis(network: &Network, parallel: bool) -> Result<()> {
-        tracing::info!("vpn apis");
+        tracing::info!("Running VPN api diagnostics");
         let api_clients = build_vpn_api_clients(network).await?;
 
         if parallel {
