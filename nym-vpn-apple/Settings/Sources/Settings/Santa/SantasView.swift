@@ -93,10 +93,6 @@ private extension SantasView {
     @ViewBuilder
     func togglesSection() -> some View {
         VStack {
-            Toggle(isOn: $appSettings.isLewesEnabled) {
-                Text("Lewes enabled")
-            }
-            .tint(Color.Nym.primary)
             Toggle(isOn: $appSettings.isMixnetTuningEnabled) {
                 Text("Mixnet tuning")
             }

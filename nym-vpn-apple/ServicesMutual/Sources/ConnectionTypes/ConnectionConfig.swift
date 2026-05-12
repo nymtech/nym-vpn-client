@@ -12,7 +12,6 @@ public struct ConnectionConfig: Codable {
     public var disableIpv6: Bool
     public var enableTwoHop: Bool
     public var enableBridges: Bool
-    public var enableLewes: Bool
     public var enableAdBlocking: Bool
     public var netstack: Bool
     public var residentialExit: Bool
@@ -40,7 +39,6 @@ public struct ConnectionConfig: Codable {
         disableIpv6: Bool,
         enableTwoHop: Bool,
         enableBridges: Bool,
-        enableLewes: Bool,
         enableAdBlocking: Bool,
         netstack: Bool,
         residentialExit: Bool,
@@ -55,7 +53,6 @@ public struct ConnectionConfig: Codable {
         self.disableIpv6 = disableIpv6
         self.enableTwoHop = enableTwoHop
         self.enableBridges = enableBridges
-        self.enableLewes = enableLewes
         self.enableAdBlocking = enableAdBlocking
         self.netstack = netstack
         self.residentialExit = residentialExit
@@ -75,7 +72,6 @@ public struct ConnectionConfig: Codable {
         self.disableIpv6 = config.disableIpv6
         self.enableTwoHop = config.enableTwoHop
         self.enableBridges = config.enableBridges
-        self.enableLewes = config.enableLewesProtocol
         self.netstack = config.netstack
         self.residentialExit = config.residentialExit
         self.mixnetTuningConfig = MixnetTuningConfig(from: config.mixnetTraffic)
@@ -158,7 +154,6 @@ extension ConnectionConfig: Equatable {
         lhs.enableTwoHop == rhs.enableTwoHop &&
         lhs.enableBridges == rhs.enableBridges &&
         lhs.netstack == rhs.netstack &&
-        lhs.enableLewes == rhs.enableLewes &&
         lhs.residentialExit == rhs.residentialExit &&
         lhs.mixnetTuningConfig == rhs.mixnetTuningConfig &&
         lhs.splitTunnelConfig == rhs.splitTunnelConfig &&
@@ -169,7 +164,7 @@ extension ConnectionConfig: Equatable {
 extension ConnectionConfig {
     private enum CodingKeys: String, CodingKey {
         case entry, exit, dns, allowLan, disableIpv6, enableTwoHop
-        case enableBridges, enableLewes, enableAdBlocking, netstack
+        case enableBridges, enableAdBlocking, netstack
         case residentialExit, mixnetTuningConfig, splitTunnelConfig
         case gatewaySelectionAlgorithmConfig
     }
@@ -183,7 +178,6 @@ extension ConnectionConfig {
         self.disableIpv6 = try container.decode(Bool.self, forKey: .disableIpv6)
         self.enableTwoHop = try container.decode(Bool.self, forKey: .enableTwoHop)
         self.enableBridges = try container.decode(Bool.self, forKey: .enableBridges)
-        self.enableLewes = try container.decode(Bool.self, forKey: .enableLewes)
         self.enableAdBlocking = try container.decode(Bool.self, forKey: .enableAdBlocking)
         self.netstack = try container.decode(Bool.self, forKey: .netstack)
         self.residentialExit = try container.decode(Bool.self, forKey: .residentialExit)

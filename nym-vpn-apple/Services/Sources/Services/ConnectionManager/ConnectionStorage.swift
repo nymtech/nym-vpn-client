@@ -71,7 +71,6 @@ private extension ConnectionStorage {
             disableIpv6: false,
             enableTwoHop: true,
             enableBridges: false,
-            enableLewes: false,
             enableAdBlocking: false,
             netstack: false,
             residentialExit: false,

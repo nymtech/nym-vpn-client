@@ -109,7 +109,6 @@ extension ConnectionManager {
             isStatisticsEnabled: appSettings.isStatisticsEnabled,
             isQuicEnabled: appSettings.isQuicEnabled,
             isLanBypassEnabled: appSettings.isLanBypassEnabled,
-            isLewesEnabled: appSettings.isLewesEnabled,
             isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
             isTwoHopEnabled: connectionType == .wireguard,
             gatewaySelectionAlgorithmConfig: algorithmConfig
