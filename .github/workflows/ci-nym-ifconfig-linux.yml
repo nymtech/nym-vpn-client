@@ -25,6 +25,12 @@ jobs:
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
 
+      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: Set Rust caching env vars
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+
       - name: Build
         working-directory: nym-vpn-core
         run: cargo build --package nym-ifconfig --locked

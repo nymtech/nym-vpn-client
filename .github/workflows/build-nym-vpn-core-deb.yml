@@ -1,7 +1,7 @@
 name: build-nym-vpn-core-deb
 on:
   pull_request:
-    types: [ opened ]
+    types: [opened]
     paths:
       - ".github/workflows/build-nym-vpn-core-deb.yml"
   workflow_dispatch:
@@ -35,9 +35,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
-
         with:
           fetch-depth: 1
+
       - name: Install system dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
@@ -73,7 +73,8 @@ jobs:
           cache-key: ${{ matrix.arch }}
 
       - name: Append timestamp if it's a dev version
-        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{
+        run:
+          ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{
           steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go artifacts
