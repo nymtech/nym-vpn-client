@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod algorithm;
+mod error;
 mod gateway_cache;
 mod geo_ip;
+mod independence;
 mod selector;
 
 use std::{sync::Arc, task::Poll};
@@ -30,6 +32,7 @@ use crate::tunnel_state_machine::{
     },
 };
 
+pub use error::GatewayProviderError;
 pub use selector::SelectedGateways;
 
 type SelectionResult = Result<SelectedGateways, tunnel::Error>;
@@ -63,14 +66,14 @@ impl<C: GatewayCache> Stream for GatewayProvider<C> {
 }
 
 impl<C: GatewayCache> GatewayProvider<C> {
-    pub async fn new(
+    pub fn new(
         gateway_cache: C,
         geo_ip_client: impl GeoIpClient,
         enable_geo_location: bool,
         tunnel_settings: TunnelSettings,
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
-    ) -> Result<(Self, JoinHandle<()>), crate::tunnel_state_machine::Error> {
+    ) -> (Self, JoinHandle<()>) {
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_entry_gateways = BlacklistedGateways::new();
         let (query_control_tx, query_control_rx) = mpsc::unbounded_channel();
@@ -111,7 +114,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
             let _ = selection_algorithm_handle.await;
         });
 
-        Ok((
+        (
             Self {
                 gateway_cache,
                 tunnel_settings_tx,
@@ -121,7 +124,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 query_control,
             },
             gateway_provider_handle,
-        ))
+        )
     }
 
     async fn inner_set_tunnel_settings(
@@ -306,9 +309,7 @@ pub mod tests {
             default_tunnel_settings(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.child_token(),
-        )
-        .await
-        .unwrap();
+        );
         // No gateways come out of the stream when there are no gateways to select from
         assert!(
             tokio::time::timeout(Duration::from_millis(100), gw_provider.next())
@@ -337,9 +338,7 @@ pub mod tests {
             default_tunnel_settings(),
             WireguardKeysDb::Ephemeral(Default::default()),
             shutdown_token.child_token(),
-        )
-        .await
-        .unwrap();
+        );
         gw_provider
             .set_tunnel_settings(default_tunnel_settings())
             .await
