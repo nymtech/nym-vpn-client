@@ -48,21 +48,37 @@ jobs:
         shell: bash
         run: ls -la st-driver/
 
-      - name: Build CAB file
+      - name: Build CAB file (x64)
         shell: pwsh
         run: |
           $lines = @(
             '.OPTION EXPLICIT',
-            '.Set CabinetNameTemplate=nymvpn-split-tunnel.cab',
+            '.Set CabinetNameTemplate=nymvpn-split-tunnel-x64.cab',
             '.Set DiskDirectory1=.',
             '.Set CompressionType=MSZIP',
             '.Set DestinationDir=driver',
-            '"st-driver\nymvpn-split-tunnel.sys" "nymvpn-split-tunnel.sys"',
-            '"st-driver\nymvpn-split-tunnel.cat" "nymvpn-split-tunnel.cat"',
-            '"st-driver\nymvpn-split-tunnel.inf" "nymvpn-split-tunnel.inf"'
+            '"st-driver\x64-Release\nymvpn-split-tunnel.sys" "nymvpn-split-tunnel.sys"',
+            '"st-driver\x64-Release\nymvpn-split-tunnel.cat" "nymvpn-split-tunnel.cat"',
+            '"st-driver\x64-Release\nymvpn-split-tunnel.inf" "nymvpn-split-tunnel.inf"'
           )
-          $lines | Set-Content -Path nymvpn-split-tunnel.ddf
-          makecab /F nymvpn-split-tunnel.ddf
+          $lines | Set-Content -Path nymvpn-split-tunnel-x64.ddf
+          makecab /F nymvpn-split-tunnel-x64.ddf
+
+      - name: Build CAB file (arm64)
+        shell: pwsh
+        run: |
+          $lines = @(
+            '.OPTION EXPLICIT',
+            '.Set CabinetNameTemplate=nymvpn-split-tunnel-arm64.cab',
+            '.Set DiskDirectory1=.',
+            '.Set CompressionType=MSZIP',
+            '.Set DestinationDir=driver',
+            '"st-driver\ARM64-Release\nymvpn-split-tunnel.sys" "nymvpn-split-tunnel.sys"',
+            '"st-driver\ARM64-Release\nymvpn-split-tunnel.cat" "nymvpn-split-tunnel.cat"',
+            '"st-driver\ARM64-Release\nymvpn-split-tunnel.inf" "nymvpn-split-tunnel.inf"'
+          )
+          $lines | Set-Content -Path nymvpn-split-tunnel-arm64.ddf
+          makecab /F nymvpn-split-tunnel-arm64.ddf
 
       - name: Download EV CodeSignTool from ssl.com
         shell: bash
@@ -76,7 +92,7 @@ jobs:
         run: |
           echo "SSL_COM_CREDENTIAL_ID=$(./CodeSignTool.sh get_credential_ids -username=${{ secrets.SSL_COM_USERNAME }} -password=${{ secrets.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //')" >> "$GITHUB_OUTPUT"
 
-      - name: Sign CAB file
+      - name: Sign CAB file (x64)
         shell: bash
         env:
           SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
@@ -90,7 +106,24 @@ jobs:
             -password="$SSL_COM_PASSWORD" \
             -totp_secret="$SSL_COM_TOTP_SECRET" \
             -credential_id="$SSL_COM_CREDENTIAL_ID" \
-            -input_file_path="nymvpn-split-tunnel.cab" \
+            -input_file_path="nymvpn-split-tunnel-x64.cab" \
+            -output_dir_path=signed
+
+      - name: Sign CAB file (arm64)
+        shell: bash
+        env:
+          SSL_COM_USERNAME: ${{ secrets.SSL_COM_USERNAME }}
+          SSL_COM_PASSWORD: ${{ secrets.SSL_COM_PASSWORD }}
+          SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
+          SSL_COM_CREDENTIAL_ID: ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}
+        run: |
+          mkdir -p signed
+          ./CodeSignTool.sh sign \
+            -username="$SSL_COM_USERNAME" \
+            -password="$SSL_COM_PASSWORD" \
+            -totp_secret="$SSL_COM_TOTP_SECRET" \
+            -credential_id="$SSL_COM_CREDENTIAL_ID" \
+            -input_file_path="nymvpn-split-tunnel-arm64.cab" \
             -output_dir_path=signed
 
       - name: Move things around to prepare for upload
@@ -98,7 +131,8 @@ jobs:
         run: |
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vp signed/nymvpn-split-tunnel.cab ${{ env.UPLOAD_DIR_WINDOWS }}/
+          cp -vp signed/nymvpn-split-tunnel-x64.cab ${{ env.UPLOAD_DIR_WINDOWS }}/
+          cp -vp signed/nymvpn-split-tunnel-arm64.cab ${{ env.UPLOAD_DIR_WINDOWS }}/
 
       - name: Upload artifact
         id: upload_artifact
@@ -112,5 +146,5 @@ jobs:
       - name: Print download link
         shell: bash
         run: |
-          echo "Signed CAB artifact ready for submission to Microsoft."
+          echo "Signed CAB artifacts ready for submission to Microsoft."
           echo "Download from: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
