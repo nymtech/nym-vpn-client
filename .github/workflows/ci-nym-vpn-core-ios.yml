@@ -24,11 +24,17 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: Set Rust caching env vars only on non-release runs
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+
       - name: Checkout repo
         uses: actions/checkout@v6
-
         with:
           fetch-depth: 1
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -41,27 +47,6 @@ jobs:
         with:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cache Cargo registry
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-registry-
-
-      - name: Cache Cargo build
-        uses: actions/cache@v5
-        with:
-          path: nym-vpn-core/target/
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}-
-            ${{ runner.os }}-cargo-build-
 
       - name: Download artifacts
         uses: actions/download-artifact@v8
@@ -76,6 +61,9 @@ jobs:
 
       - name: Clippy
         working-directory: nym-vpn-core
+        env:
+          RUSTC_WRAPPER: sccache
+          SCCACHE_GHA_ENABLED: "true"
         run: |
           cargo clippy --target aarch64-apple-ios -p nym-vpn-lib-uniffi --locked -- -Dwarnings
 

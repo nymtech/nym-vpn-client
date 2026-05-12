@@ -18,8 +18,12 @@ jobs:
         os: [macos-14, macos-15, macos-26]
     runs-on: ${{ matrix.os }}
     steps:
+      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: Set Rust caching env vars only on non-release runs
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
       - uses: actions/checkout@v6
-
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:

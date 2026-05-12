@@ -100,6 +100,16 @@ jobs:
     outputs:
       UPLOAD_DIR_ANDROID: ${{ env.UPLOAD_DIR_ANDROID }}
     steps:
+      - name: Run sccache-cache only for debug builds
+        if: github.event_name == 'workflow_call' && inputs.build_type == 'debug'
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Set Rust caching env vars only on debug runs
+        if: github.event_name != 'release' && github.event_name != 'workflow_dispatch'
+        run: |
+          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+
       - uses: actions/checkout@v6
         with:
           submodules: true
