@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.ui.screens.account.passphrase
 import android.app.Activity
 import android.content.ClipData
 import android.content.Intent
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -113,8 +112,6 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 	val promptInfo = remember(context) {
 		DeviceAuthHelper.buildPromptInfo(context, title = title, subtitle = subtitle)
 	}
-
-	BackHandler(enabled = showSheet) { }
 
 	LaunchedEffect(showSheet) {
 		onBackButtonVisibilityChange(showSheet)
