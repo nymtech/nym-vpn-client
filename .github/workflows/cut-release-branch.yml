@@ -168,6 +168,10 @@ jobs:
           toml set vpnd_compat.toml version ">=${{ steps.next-version.outputs.next_version }}" > new_vpnd_compat.toml
           mv new_vpnd_compat.toml vpnd_compat.toml
 
+      - name: Install npm dependencies
+        working-directory: nym-vpn-app
+        run: npm install
+
       - name: Update nym-vpn-app/src-tauri/tauri.conf.json
         working-directory: nym-vpn-app/src-tauri
         run: |
