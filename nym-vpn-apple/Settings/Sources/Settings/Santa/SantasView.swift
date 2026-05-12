@@ -1,6 +1,7 @@
 import SwiftUI
 import AppSettings
 import Constants
+import SnackbarManager
 import Theme
 import UIComponents
 
@@ -23,6 +24,8 @@ public struct SantasView: View {
                     environmentSection()
                     santasSpacer()
                     togglesSection()
+                    santasSpacer()
+                    snackbarSection()
                     santasSpacer()
                     logsSection()
                 }
@@ -100,6 +103,48 @@ private extension SantasView {
         }.padding()
     }
 
+    func snackbarSection() -> some View {
+        VStack(spacing: 8) {
+            Text("Snackbar tests:")
+                .foregroundStyle(Color.Nym.primary)
+                .bold()
+                .padding(4)
+            Text("Tap, then pop back to Home to see them play.")
+                .font(.caption)
+                .padding(4)
+
+            Text("Style coverage")
+                .foregroundStyle(Color.Nym.primary)
+                .padding(.top, 4)
+            Button("Queue all 5 styles") {
+                SantasView.styleFixtures.forEach { SnackbarManager.shared.enqueue($0.item) }
+            }
+            ForEach(SantasView.styleFixtures, id: \.label) { fixture in
+                Button(fixture.label) {
+                    SnackbarManager.shared.enqueue(fixture.item)
+                }
+            }
+
+            Text("Real scenarios")
+                .foregroundStyle(Color.Nym.primary)
+                .padding(.top, 8)
+            Button("Queue all real scenarios") {
+                SantasView.realFixtures.forEach { SnackbarManager.shared.enqueue($0.item) }
+            }
+            ForEach(SantasView.realFixtures, id: \.label) { fixture in
+                Button(fixture.label) {
+                    SnackbarManager.shared.enqueue(fixture.item)
+                }
+            }
+
+            Button("Clear queue") {
+                SnackbarManager.shared.clear()
+            }
+            .padding(.top, 8)
+        }
+        .padding(16)
+    }
+
     func logsSection() -> some View {
         VStack {
             Text("Logs:")
@@ -117,5 +162,146 @@ private extension SantasView {
     func santasSpacer() -> some View {
         Spacer()
             .frame(height: 16)
+    }
+}
+
+private extension SantasView {
+    struct SnackbarFixture {
+        let label: String
+        let item: SnackbarItem
+    }
+
+    static let styleFixtures: [SnackbarFixture] = [
+        SnackbarFixture(
+            label: "Critical (action)",
+            item: SnackbarItem(
+                style: .critical,
+                title: "Error connecting",
+                message: "The selected gateway is not available!",
+                actionTitle: "Try again",
+                onAction: {}
+            )
+        ),
+        SnackbarFixture(
+            label: "Confirmation",
+            item: SnackbarItem(
+                style: .confirmation,
+                title: "Renewal success!",
+                message: "Welcome back to actual privacy."
+            )
+        ),
+        SnackbarFixture(
+            label: "Neutral (action)",
+            item: SnackbarItem(
+                style: .neutral,
+                title: "Heads up",
+                message: "Regular info",
+                actionTitle: "Action",
+                onAction: {}
+            )
+        ),
+        SnackbarFixture(
+            label: "Negative (action)",
+            item: SnackbarItem(
+                style: .negative,
+                title: "Negative alert",
+                message: "Explain negative situation",
+                actionTitle: "Action",
+                onAction: {}
+            )
+        ),
+        SnackbarFixture(
+            label: "Warning",
+            item: SnackbarItem(
+                style: .warning,
+                title: "Subscription expired"
+            )
+        )
+    ]
+
+    static var realFixtures: [SnackbarFixture] {
+        [
+            SnackbarFixture(
+                label: "OneClick: offline",
+                item: SnackbarItem(
+                    style: .warning,
+                    title: "home.modal.noInternetConnection.title".localizedString,
+                    message: "home.modal.noInternetConnection.subtitle".localizedString
+                )
+            ),
+            SnackbarFixture(
+                label: "OneClick: connection failed (retry)",
+                item: SnackbarItem(
+                    style: .critical,
+                    title: "connectionError.title".localizedString,
+                    message: connectionErrorBody(
+                        reason: "Mock failure: gateway timed out."
+                    ),
+                    actionTitle: "disconnect".localizedString,
+                    onAction: {},
+                    duration: 7
+                )
+            ),
+            SnackbarFixture(
+                label: "Auth: login failed",
+                item: SnackbarItem(
+                    style: .critical,
+                    title: "error".localizedString,
+                    message: "Invalid recovery phrase."
+                )
+            ),
+            SnackbarFixture(
+                label: "Proxy: enabled",
+                item: SnackbarItem(
+                    style: .confirmation,
+                    title: "proxy.snackbar.successfullyEnabled".localizedString
+                )
+            ),
+            SnackbarFixture(
+                label: "Proxy: connection failed",
+                item: SnackbarItem(
+                    style: .negative,
+                    title: "proxy.snackbar.connectionFailed".localizedString
+                )
+            ),
+            SnackbarFixture(
+                label: "DNS: saved",
+                item: SnackbarItem(
+                    style: .confirmation,
+                    title: "dns.snackbar.saved".localizedString
+                )
+            ),
+            SnackbarFixture(
+                label: "Generic: something went wrong",
+                item: SnackbarItem(
+                    style: .negative,
+                    title: "generalNymError.somethingWentWrong".localizedString
+                )
+            ),
+            SnackbarFixture(
+                label: "Mixnet tuning: saved",
+                item: SnackbarItem(
+                    style: .confirmation,
+                    title: "mixnetTuning.snackbar.saved".localizedString
+                )
+            ),
+            SnackbarFixture(
+                label: "Copied to pasteboard",
+                item: SnackbarItem(
+                    style: .confirmation,
+                    title: "settings.copiedToPasteboard".localizedString
+                )
+            )
+        ]
+    }
+
+    /// Mirrors `Home/Sources/26/ConnectionStatus/ConnectionErrorCopy.message(reason:)`.
+    /// Inlined because ConnectionErrorCopy is internal to the Home module.
+    static func connectionErrorBody(reason: String?) -> String {
+        let hint = "connectionError.killswitchHint".localizedString
+        let instruction = "connectionError.disconnectInstruction".localizedString
+        let tail = hint + "\n\n" + instruction
+        guard let reason, !reason.isEmpty else { return tail }
+        return reason + "\n\n" + tail
     }
 }
