@@ -95,8 +95,8 @@ jobs:
       - name: Build wireguard-go
         run: ./wireguard/build-wireguard-go.sh
 
-      - name: Build nym-vpnc and nym-vpnd
-        run: cargo build --release -p nym-vpnc -p nym-vpnd
+      - name: Build nym-vpnc, nym-vpnd and nym-socks5-proxy
+        run: cargo build --release -p nym-vpnc -p nym-vpnd -p nym-socks5-proxy
         working-directory: nym-vpn-core
 
       - name: Build test-manager, test-runner
@@ -137,6 +137,7 @@ jobs:
           mkdir -p /tmp/dist
           cp nym-vpn-core/target/release/nym-vpnc /tmp/dist/
           cp nym-vpn-core/target/release/nym-vpnd /tmp/dist/
+          cp nym-vpn-core/target/release/nym-socks5-proxy /tmp/dist/
           cp nym-vpn-core/target/release/test-manager /tmp/dist/
           cp nym-vpn-core/target/release/test-runner /tmp/dist/
 
