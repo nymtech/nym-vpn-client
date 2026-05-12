@@ -42,7 +42,12 @@ async-trait.workspace = true
 boringtun.workspace = true
 clap.workspace = true
 futures.workspace = true
-hickory-resolver.workspace = true
+hickory-resolver = { workspace = true, features = [
+    "system-config",
+    "tokio",
+    "tls-ring",
+    "https-ring",
+] }
 pnet_packet.workspace = true
 rand09.workspace = true
 rand.workspace = true

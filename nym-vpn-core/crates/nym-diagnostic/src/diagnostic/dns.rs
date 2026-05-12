@@ -59,10 +59,16 @@ impl DnsDiagnostic {
     pub async fn run_diagnostic(network: &Network) -> CompleteDnsReport {
         tracing::info!("Running DNS diagnostic");
 
+        let system_dns = hickory_resolver::system_conf::read_system_conf()
+            .inspect_err(|err| {
+                tracing::warn!("Failed to obtain system dns config: {err}");
+            })
+            .map(|(resolver_config, _opts)| resolver_config.name_servers)
+            .unwrap_or_default();
+
         let many_diagnostic = DnsDiagnostic {
             hostnames: hostnames(network),
-            // todo: retrieve system dns
-            nameservers: vec![],
+            nameservers: system_dns.clone(),
         };
 
         tracing::debug!(
@@ -81,8 +87,7 @@ impl DnsDiagnostic {
         let single_hostname = many_diagnostic.hostnames[0].clone();
         let ns_diagnostic = DnsDiagnostic {
             hostnames: vec![single_hostname],
-            // todo: retrieve system dns
-            nameservers: vec![],
+            nameservers: system_dns,
         };
 
         tracing::debug!(
