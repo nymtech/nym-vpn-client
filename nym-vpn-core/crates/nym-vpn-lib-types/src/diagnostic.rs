@@ -68,6 +68,15 @@ pub struct DiagnosticReport {
     pub dns: Option<CompleteDnsReport>,
     pub http: Option<DiagnosticResult<HttpReport>>,
     pub gateway: Option<GatewayReport>,
+    #[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "Option::is_none"))]
+    pub hybrid_transport: Option<DiagnosticResult<HybridTransportReport>>,
+}
+
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone)]
+pub struct HybridTransportReport {
+    pub routing_id: String,
+    pub handshake_duration_ms: u128,
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -233,6 +242,7 @@ pub struct DiagnosticRunParams {
     pub gateway: Option<String>,
     pub skip_dns: bool,
     pub skip_http: bool,
+    pub skip_hybrid_transport: bool,
 }
 
 #[derive(Debug, Clone)]
