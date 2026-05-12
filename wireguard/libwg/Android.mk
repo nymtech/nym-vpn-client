@@ -13,7 +13,7 @@ NDK_GO_ARCH_MAP_mips := mipsx
 NDK_GO_ARCH_MAP_mips64 := mips64x
 
 export CGO_CFLAGS := $(CFLAGS)
-export CGO_LDFLAGS := $(LDFLAGS)
+export CGO_LDFLAGS := $(LDFLAGS) -Wl,-z,max-page-size=16384
 export CC := $(ANDROID_C_COMPILER)
 export GOARCH := $(NDK_GO_ARCH_MAP_$(ANDROID_ARCH_NAME))
 export GOOS := android
