@@ -782,6 +782,10 @@ impl TunnelStateHandler for ConnectingState {
                                 .await;
                         }
 
+                        if diff.enable_ad_blocking_changed() {
+                            shared_state.enable_ad_blocking(shared_state.tunnel_settings.enable_ad_blocking).await;
+                        }
+
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
                             if new_firewall_policy != self.firewall_policy_params {

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use clap::builder::ValueParserFactory;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
@@ -19,7 +21,7 @@ pub enum Command {
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     Set {
         /// Enable or disable split tunnel
-        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
+        #[arg(value_parser = BooleanOption::value_parser())]
         enable: BooleanOption,
     },
 

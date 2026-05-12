@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
+use clap::builder::ValueParserFactory;
 use nym_vpn_proto::rpc_client::RpcClient;
 
 use crate::boolean_option::BooleanOption;
@@ -23,7 +24,7 @@ pub enum SetCommand {
     /// Enable or disable Geo Exclusion
     Enabled {
         /// Enable or disable Geo Exclusion
-        #[arg(value_parser = BooleanOption::custom_parser("on", "off"))]
+        #[arg(value_parser = BooleanOption::value_parser())]
         enable: BooleanOption,
     },
 
