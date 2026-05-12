@@ -17,7 +17,7 @@
   "nym_vpn_api_url": "https://nymvpn.com/api/",
   "nym_vpn_api_urls": [
     {
-      "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api",
+      "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api/",
       "fronts": ["yelp.global.ssl.fastly.net"]
     },
     {
