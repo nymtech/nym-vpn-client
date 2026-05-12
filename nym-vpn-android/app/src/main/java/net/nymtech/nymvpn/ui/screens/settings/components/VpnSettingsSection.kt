@@ -125,36 +125,6 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 					},
 				),
 			)
-			add(
-				SelectionItem(
-					leading = {
-						Icon(
-							ImageVector.vectorResource(R.drawable.ic_lewes),
-							stringResource(R.string.settings_lewes_title),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						)
-					},
-					trailing = {
-						ScaledSwitch(
-							checked = values.isLewesEnabled,
-							onClick = actions.onLewesEnable,
-						)
-					},
-					title = {
-						Text(
-							stringResource(R.string.settings_lewes_title),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
-					},
-					description = {
-						Text(
-							stringResource(R.string.settings_lewes_description),
-							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.onSecondary),
-						)
-					},
-				),
-			)
 
 			add(
 				SelectionItem(
