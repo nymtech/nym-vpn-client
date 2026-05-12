@@ -84,11 +84,6 @@ import ConnectionTypes
         didSet { isAdBlockerEnabledPublisher = isAdBlockerEnabled}
     }
 
-    @AppStorage(AppSettingKey.isLewesEnabled.rawValue)
-    public var isLewesEnabled = false {
-        didSet { isLewesEnabledPublisher = isLewesEnabled }
-    }
-
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
 
@@ -166,7 +161,6 @@ import ConnectionTypes
     @Published public var customDnsPublisher: [String]
     @Published public var isIPv6TrafficEnabledPublisher: Bool
     @Published public var isLanBypassEnabledPublisher: Bool
-    @Published public var isLewesEnabledPublisher: Bool
     @Published public var isMixnetTuningEnabledPublisher: Bool
     @Published public var isAdBlockerEnabledPublisher: Bool
     @Published public var isPassphraseStoredPublisher: Bool
@@ -181,7 +175,6 @@ import ConnectionTypes
         self.customDnsPublisher = []
         self.isIPv6TrafficEnabledPublisher = true
         self.isLanBypassEnabledPublisher = false
-        self.isLewesEnabledPublisher = false
         self.isMixnetTuningEnabledPublisher = false
         isAdBlockerEnabledPublisher = false
         isPassphraseStoredPublisher = false
@@ -194,7 +187,6 @@ import ConnectionTypes
         self.customDnsPublisher = self.customDns
         self.isIPv6TrafficEnabledPublisher = self.isIPv6TrafficEnabled
         self.isLanBypassEnabledPublisher = self.isLanBypassEnabled
-        self.isLewesEnabledPublisher = self.isLewesEnabled
         self.isMixnetTuningEnabledPublisher = self.isMixnetTuningEnabled
         self.isAdBlockerEnabledPublisher = self.isAdBlockerEnabled
         self.isPassphraseStoredPublisher = self.isPassphraseStored
@@ -243,7 +235,6 @@ public enum AppSettingKey: String {
     case connectionConfig
     case customDnsIsEnabled
     case customDns
-    case isLewesEnabled
     case isMixnetTuningEnabled
     case isAdBlockerEnabled
     case isDebugLogsOn

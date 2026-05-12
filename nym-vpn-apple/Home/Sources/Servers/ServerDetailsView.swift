@@ -30,11 +30,14 @@ public struct ServerDetailsView: View {
             navbar()
             ScrollView {
                 Spacer()
+                    .frame(height: 16)
+                selectServerButton()
+                    .padding(.horizontal, 16)
+                Spacer()
                     .frame(height: 24)
                 scrollViewContent()
             }
             .scrollIndicators(.never)
-            selectServerSection()
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -68,22 +71,16 @@ private extension ServerDetailsView {
 
     func scrollViewContent() -> some View {
         VStack(spacing: 0) {
-            serverTitle()
-            Spacer()
-                .frame(height: 16)
-            location()
-            Spacer()
-                .frame(height: 16)
-            serverDescription()
-            Spacer()
-                .frame(height: 24)
-            ipSection()
+            identityCard()
             Spacer()
                 .frame(height: 24)
             capabilitiesSection()
             Spacer()
                 .frame(height: 24)
             performanceSection()
+            Spacer()
+                .frame(height: 24)
+            ipSection()
             Spacer()
                 .frame(height: 24)
             serverInfoSection()
@@ -99,47 +96,59 @@ private extension ServerDetailsView {
         .padding(.horizontal, 16)
     }
 
-    func serverTitle() -> some View {
-        HStack {
-            Text(gateway.name ?? gateway.id)
-                .foregroundStyle(Color.Nym.textPrimary)
-                .nymTextStyle(.titleScreen)
+    func sectionHeader(with title: String) -> some View {
+        HStack(spacing: 0) {
+            Text(title)
+                .foregroundStyle(Color.Nym.primary)
+                .nymTextStyle(.bodyDefault)
             Spacer()
         }
+        .padding(.bottom, 8)
     }
 
-    @ViewBuilder
-    func serverDescription() -> some View {
-        if let description = gateway.description, !description.isEmpty {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .firstTextBaseline) {
+    func identityCard() -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 8) {
+                FlagImage(countryCode: gateway.location?.twoLetterIsoCountryCode, width: 24, height: 24)
+                Text(gateway.name ?? gateway.id)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .nymTextStyle(.bodyLarge)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+
+            Rectangle()
+                .foregroundColor(Color.Nym.gray2)
+                .frame(height: 1)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text(locationTitle())
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .nymTextStyle(.bodyDefault)
+                    .underline()
+                if let description = gateway.description, !description.isEmpty {
                     Text(description)
                         .multilineTextAlignment(.leading)
                         .foregroundStyle(Color.Nym.textSecondary)
                         .nymTextStyle(.bodyDefault)
-                    Spacer()
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
         }
-    }
-
-    func location() -> some View {
-        HStack(spacing: 0) {
-            FlagImage(countryCode: gateway.location?.twoLetterIsoCountryCode, width: 16, height: 16)
-            Spacer()
-                .frame(width: 8)
-            Text(locationTitle())
-                .foregroundStyle(Color.Nym.textPrimary)
-                .nymTextStyle(.bodyLarge)
-            Spacer()
-        }
+        .frame(maxWidth: .infinity, alignment: .topLeading)
+        .background(Color.Nym.backgroundCard)
+        .cornerRadius(12)
     }
 
     func missingInfoText() -> some View {
         HStack(spacing: 0) {
             Text(missingInfoAttributedString() ?? "")
-                .tint(Color.Nym.textSecondary)
-                .foregroundStyle(Color.Nym.textSecondary)
+                .tint(Color.Nym.info)
+                .foregroundStyle(Color.Nym.info)
                 .nymTextStyle(.bodyDefault)
                 .underline()
             exportImage()
@@ -181,30 +190,19 @@ private extension ServerDetailsView {
         guard var explorerMarkdownString = try? AttributedString(markdown: markdown) else { return nil }
         for run in explorerMarkdownString.runs where run.link != nil {
             explorerMarkdownString[run.range].underlineStyle = .single
+            explorerMarkdownString[run.range].foregroundColor = Color.Nym.info
         }
         return explorerMarkdownString
     }
 
-    func selectServerSection() -> some View {
-        VStack(alignment: .center, spacing: 0) {
-            Rectangle()
-                .foregroundColor(Color.Nym.gray2)
-                .frame(height: 1)
-            GenericButton(title: "gatewayInfo.selectServer".localizedString)
-                .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
-            if Device.isMacOS || appSettings.isSmallScreen {
-                Spacer()
-                    .frame(height: 24)
+    func selectServerButton() -> some View {
+        GenericButton(title: "gatewayInfo.selectServer".localizedString)
+            .accessibilityAction {
+                selectServer()
             }
-        }
-        .background(Color.Nym.backgroundCard)
-        .frame(maxWidth: .infinity, alignment: .center)
-        .accessibilityAction {
-            selectServer()
-        }
-        .onTapGesture {
-            selectServer()
-        }
+            .onTapGesture {
+                selectServer()
+            }
     }
 
     func separatorLine() -> some View {
@@ -229,25 +227,28 @@ private extension ServerDetailsView {
     func exportImage() -> some View {
         GenericImage(imageName: "export")
             .frame(width: 16, height: 16)
-            .foregroundStyle(Color.Nym.textPrimary)
+            .foregroundStyle(Color.Nym.info)
     }
 }
 
 private extension ServerDetailsView {
     func capabilitiesSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
+            Text("gatewayInfo.section.serverFeatures".localizedString)
+                .foregroundStyle(Color.Nym.primary)
+                .nymTextStyle(.bodyDefault)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 16)
             advancedPrivacyRow()
             separatorLine()
             streamingAndContentRow()
-            if gateway.isQuicAvailable,
-                hopType == .entry,
-                connectionManager.connectionType == .wireguard {
-                separatorLine()
-                bridges()
-                Spacer()
-                    .frame(height: 12)
-                bridgesInfo()
-            }
+            separatorLine()
+            postQuantumRow()
+            separatorLine()
+            bridges()
+            Spacer()
+                .frame(height: 16)
+            bridgesInfo()
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -255,60 +256,66 @@ private extension ServerDetailsView {
         .cornerRadius(12)
     }
 
+    func postQuantumRow() -> some View {
+        HStack(spacing: 0) {
+            rowTitle(with: "gatewayInfo.postQuantumSecureKeys".localizedString)
+            Spacer()
+            GenericImage(imageName: "quantum")
+                .frame(width: 15, height: 15)
+                .foregroundStyle(Color.Nym.primary)
+                .padding(.trailing, 6)
+            rowSubtite(with: "gatewayInfo.lewesProtocol".localizedString)
+        }
+    }
+
     func advancedPrivacyRow() -> some View {
         HStack(spacing: 0) {
             rowTitle(with: "gatewayInfo.advancedPrivacy".localizedString)
             Spacer()
-            GenericImage(imageName: "anonymous")
-                .frame(width: 20, height: 20)
+            GenericImage(imageName: "mixnet26")
+                .frame(width: 15, height: 15)
                 .foregroundStyle(Color.Nym.primary)
-                .padding(.horizontal, 4)
-            rowSubtite(with: "gatewayInfo.advancedPrivacySubtitle".localizedString)
+                .padding(.trailing, 6)
+            rowSubtite(with: "gatewayInfo.mixnet".localizedString)
         }
     }
 
     func streamingAndContentRow() -> some View {
         HStack(spacing: 0) {
-            rowTitle(with: "gatewayInfo.streamingAndContent".localizedString)
+            rowTitle(with: "gatewayInfo.streamingAndIp".localizedString)
             Spacer()
             switch gateway.location?.asn?.type {
             case .residential:
                 GenericImage(imageName: "smartDisplay")
-                    .frame(width: 20, height: 20)
+                    .frame(width: 15, height: 15)
                     .foregroundStyle(Color.Nym.info)
-                    .padding(.horizontal, 4)
+                    .padding(.trailing, 6)
                 rowSubtite(with: "gatewayInfo.residentialIp".localizedString)
-            case .other:
-                GenericImage(systemImageName: "circle.fill")
-                    .frame(width: 10, height: 10)
-                    .foregroundStyle(Color.Nym.warning)
-                    .padding(.horizontal, 8)
+            case .other, nil:
+                GenericImage(imageName: "datacenter")
+                    .frame(width: 15, height: 15)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .padding(.trailing, 6)
                 rowSubtite(with: "gatewayInfo.datacenter".localizedString)
-            case nil:
-                GenericImage(systemImageName: "circle.fill")
-                    .frame(width: 10, height: 10)
-                    .foregroundStyle(Color.Nym.warning)
-                    .padding(.horizontal, 8)
-                rowSubtite(with: "noScore".localizedString)
             }
         }
     }
 
     func bridges() -> some View {
         HStack(spacing: 0) {
-            rowTitle(with: "gatewayInfo.bridges".localizedString)
+            rowTitle(with: "gatewayInfo.antiCensorship".localizedString)
             Spacer()
 
             if gateway.isQuicAvailable {
                 GenericImage(systemImageName: "shippingbox")
-                    .frame(width: 20, height: 20)
-                    .foregroundStyle(NymColor.quic)
-                    .padding(.horizontal, 4)
+                    .frame(width: 15, height: 15)
+                    .foregroundStyle(Color.Nym.textPrimary)
+                    .padding(.trailing, 6)
             } else {
                 GenericImage(systemImageName: "circle.fill")
                     .frame(width: 10, height: 10)
                     .foregroundStyle(Color.Nym.warning)
-                    .padding(.horizontal, 8)
+                    .padding(.trailing, 6)
             }
 
             rowSubtite(
@@ -340,7 +347,7 @@ private extension ServerDetailsView {
         let second = "gatewayInfo.enableQuic2".localizedString
         var firstAttr = AttributedString(first)
         firstAttr.underlineStyle = .single
-        firstAttr.foregroundColor = Color.Nym.textPrimary
+        firstAttr.foregroundColor = Color.Nym.info
         firstAttr.link = URL(string: "app://enable-quic")
         let secondAttr = AttributedString(second)
         return firstAttr + AttributedString(" ") + secondAttr
@@ -351,6 +358,11 @@ private extension ServerDetailsView {
 private extension ServerDetailsView {
     func performanceSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
+            Text("gatewayInfo.section.performanceMetrics".localizedString)
+                .foregroundStyle(Color.Nym.primary)
+                .nymTextStyle(.bodyDefault)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 16)
             overAllPerformanceRow()
             separatorLine()
             serverLoadRow()
@@ -418,6 +430,11 @@ private extension ServerDetailsView {
 private extension ServerDetailsView {
     func serverInfoSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
+            Text("gatewayInfo.section.buildInformation".localizedString)
+                .foregroundStyle(Color.Nym.primary)
+                .nymTextStyle(.bodyDefault)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 16)
             buildVersionRow()
             separatorLine()
             identityRow()
@@ -480,6 +497,11 @@ private extension ServerDetailsView {
 private extension ServerDetailsView {
     func ipSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
+            Text("gatewayInfo.section.connectionDetails".localizedString)
+                .foregroundStyle(Color.Nym.primary)
+                .nymTextStyle(.bodyDefault)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, 16)
             ipv4Rows()
             ipv6Rows()
             asnRow()
@@ -526,7 +548,9 @@ private extension ServerDetailsView {
 
     func ipRowCell(with ip: String) -> some View {
         HStack(spacing: 8) {
-            rowSubtite(with: ip)
+            Text(ip)
+                .foregroundStyle(Color.Nym.info)
+                .nymTextStyle(.bodyDefault)
                 .underline()
             exportImage()
         }
