@@ -6,7 +6,22 @@ on:
       - ".github/workflows/build-winfw-windows.yml"
       - "nym-windows/**"
   workflow_dispatch:
+    inputs:
+      cpu_arch:
+        description: "Target CPU architecture"
+        required: false
+        default: x64
+        type: choice
+        options:
+          - x64
+          - ARM64
   workflow_call:
+    inputs:
+      cpu_arch:
+        description: "Target CPU architecture"
+        required: false
+        default: x64
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
@@ -14,7 +29,7 @@ env:
 # https://github.com/actions/runner-images/issues/1794#issuecomment-707217728
 
 jobs:
-  build:
+  build-winfw:
     runs-on: "custom-windows-11"
 
     steps:
@@ -51,14 +66,14 @@ jobs:
       - name: Build winfw
         shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-core
-        run: make -f Windows.mk winfw CPU_ARCH=AMD64 RELEASE=1 PWSH=1
+        run: make -f Windows.mk winfw CPU_ARCH=${{ inputs.cpu_arch == 'ARM64' && 'ARM64' || 'AMD64' }} RELEASE=1 PWSH=1
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: winfw
+          name: winfw_${{ inputs.cpu_arch || 'x64' }}
           path: |
-            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.dll
-            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.lib
+            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/${{ inputs.cpu_arch || 'x64' }}-Release/winfw.dll
+            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/${{ inputs.cpu_arch || 'x64' }}-Release/winfw.lib
           if-no-files-found: error
           retention-days: 1
