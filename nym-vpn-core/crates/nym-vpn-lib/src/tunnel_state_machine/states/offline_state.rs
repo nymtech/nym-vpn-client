@@ -158,6 +158,10 @@ impl TunnelStateHandler for OfflineState {
                                 .await;
                         }
 
+                        if diff.enable_ad_blocking_changed() {
+                            shared_state.enable_ad_blocking(shared_state.tunnel_settings.enable_ad_blocking).await;
+                        }
+
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
                         {
                             if diff.allow_lan_changed() {

@@ -366,8 +366,11 @@ impl TunnelSettingsDiffFields {
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
             | Self::Dns => true,
+            Self::EnableAdBlocking => {
+                // On android reconnect is necessary due to packet filtering used for adblocking.
+                cfg!(target_os = "android")
+            }
             Self::AllowLan
-            | Self::EnableAdBlocking
             | Self::SplitTunnel
             | Self::GeoExclusion
             | Self::GeoExclusionEnabled
@@ -1005,6 +1008,9 @@ impl TunnelStateMachine {
             nym_config.data_path.join("ad-blocking"),
             user_agent.to_string(),
         );
+        if tunnel_settings.enable_ad_blocking {
+            adblocker.enable().await;
+        }
 
         #[cfg(not(target_os = "android"))]
         {
