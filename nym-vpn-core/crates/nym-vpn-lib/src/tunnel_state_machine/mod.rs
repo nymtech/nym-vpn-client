@@ -1345,6 +1345,9 @@ impl tunnel::Error {
                 GatewayProviderError::ExitGatewayUnavailable { .. } => {
                     Some(ErrorStateReason::PerformantExitGatewayUnavailable)
                 }
+                GatewayProviderError::NeedsRelaxedIndependenceCriteria => {
+                    Some(ErrorStateReason::NeedsRelaxedIndependenceCriteria)
+                }
                 _ => None,
             },
             Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {

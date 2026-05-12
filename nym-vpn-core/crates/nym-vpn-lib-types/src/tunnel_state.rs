@@ -301,6 +301,9 @@ pub enum ErrorStateReason {
     /// Internal split tunnel error
     SplitTunnel,
 
+    /// Gateway pair can be found if user agrees to relax the gateway independence criteria
+    NeedsRelaxedIndependenceCriteria,
+
     /// Program errors that must not happen.
     Internal(String),
 }
@@ -335,6 +338,9 @@ impl std::fmt::Display for ErrorStateReason {
             Self::DeviceLoggedOut => f.write_str("DeviceLoggedOut"),
             Self::NeedFullDiskPermissions => f.write_str("NeedFullDiskPermissions"),
             Self::SplitTunnel => f.write_str("SplitTunnel"),
+            Self::NeedsRelaxedIndependenceCriteria => {
+                f.write_str("NeedsRelaxedIndependenceCriteria")
+            }
             Self::Internal(str) => write!(f, "Internal({str})"),
         }
     }
