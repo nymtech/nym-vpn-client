@@ -13,6 +13,8 @@ env:
   IPHONEOS_DEPLOYMENT_TARGET: 16.0
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+  SCCACHE_GHA_ENABLED: true
+  RUSTC_WRAPPER: sccache
 
 jobs:
   build-wireguard-go-ios:
@@ -29,18 +31,14 @@ jobs:
         with:
           fetch-depth: 1
 
+      - uses: mozilla-actions/sccache-action@v0.0.10
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
           targets: aarch64-apple-ios
-
-      - uses: mozilla-actions/sccache-action@v0.0.10
-      - name: Set Rust caching env vars
-        run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
-          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
