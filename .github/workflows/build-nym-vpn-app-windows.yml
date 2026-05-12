@@ -182,7 +182,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install cargo-license
-        uses: baptiste0928/cargo-install@v3
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
         with:
           crate: cargo-license
 
@@ -196,11 +196,17 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+        with:
+          crate: cargo-get
+
       - name: Get package version
         id: package-version
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: package.version --entry nym-vpn-app/src-tauri
+        shell: bash
+        run: |
+          metadata=$(cargo get package.version --entry nym-vpn-app/src-tauri)
+          echo "metadata=$metadata" >> "$GITHUB_OUTPUT"
 
       - name: Get nym-vpn-core release tag
         if: ${{ inputs.core_release_tag && !inputs.core_build_it }}
