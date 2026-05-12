@@ -371,8 +371,7 @@ class VpnCoreController(
 
 		val tunSettingsChanged = force ||
 			prev?.bypassLan != cfg.bypassLan ||
-			prev.restrictedApps != cfg.restrictedApps ||
-			prev.adBlockingEnabled != cfg.adBlockingEnabled
+			prev.restrictedApps != cfg.restrictedApps
 
 		syncLocalFieldsFromConfig(cfg)
 
