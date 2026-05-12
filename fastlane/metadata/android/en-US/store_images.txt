@@ -1,0 +1,292 @@
+# ============================================================
+# NymVPN App Store Images — Translator Source File
+# Source language: English (en-US)
+# Last updated: 2026-05-12
+# ============================================================
+#
+# This file contains the text overlays that appear on NymVPN's
+# App Store and Google Play screenshot images. Each block below
+# corresponds to one image. The translatable string is on its
+# own line; lines starting with # are context for the translator
+# and should NOT be translated.
+#
+# ============================================================
+# UNTRANSLATABLE TERMS — keep in English exactly
+# ============================================================
+#
+# Brand and product names:
+#   NymVPN, Nym, VPN, dVPN
+#
+# Protocols and technologies:
+#   WireGuard, AmneziaWG, Mixnet, Noise Generating Mixnet,
+#   Tor, Signal, DNS, QUIC
+#
+# Cryptocurrency names:
+#   Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC),
+#   USDT, USDC, NYM
+#
+# Geographic/legal terms:
+#   14 Eyes (the surveillance alliance — keep English)
+#
+# ============================================================
+# BRAND VOICE RULES
+# ============================================================
+#
+# 1. Use your locale's equivalent of "by design" — NOT
+#    "by architecture". Examples of what to aim for:
+#      German: "von Haus aus" or "durch Design"
+#      Russian: "по умолчанию" (by default in this sense)
+#      Spanish: "por diseño"
+#      French: "par conception"
+#    The technical word "architecture" as a noun (e.g., "the
+#    network architecture") is fine; only the slogan-tail
+#    pattern "X by architecture" is replaced by "X by design".
+#
+# 2. Architectural verbs preferred. When translating "can't",
+#    use the equivalent of "cannot" (architectural impossibility)
+#    rather than "won't" (policy promise). The distinction
+#    matters: NymVPN can't log/track because of how it's built,
+#    not because we promise not to.
+#
+# 3. Privacy > security as the lead claim. When choosing
+#    between equivalent locale words for "private" and
+#    "secure", lead with private.
+#
+# ============================================================
+# CHARACTER LENGTH GUIDANCE
+# ============================================================
+#
+# These strings appear as text overlays on screenshot images.
+# No hard character limits enforced by Apple/Google, BUT:
+#
+# - Each string should fit one or two visual lines in the
+#   image design. Match the English source length within
+#   approximately +/-25%.
+#
+# - If your locale naturally expands a lot (e.g., German,
+#   Bengali in formal register), prioritize the headline
+#   punch over completeness. A scannable 5-word translation
+#   beats a complete 12-word one.
+#
+# - Most images have a single translatable string. Image 6
+#   has four (one headline + three badge facts). Translate
+#   each independently — the design team handles how badge
+#   facts are visually arranged.
+#
+# ============================================================
+# STORE COVERAGE
+# ============================================================
+#
+# Images 1–8 + the image-6 badge: BOTH Apple App Store and
+#   Google Play. Translate these for all active locales.
+#
+# Images 9 and 10: APPLE APP STORE ONLY. Translate only for
+#   locales where NymVPN has an Apple App Store listing.
+#
+# ============================================================
+
+
+# ------------------------------------------------------------
+# IMAGE 1 — Hero / cover
+# ------------------------------------------------------------
+# Visual: Brand identity, NymVPN logo, main cover screenshot
+# Context: This is the first image users see in the store
+#   listing. It's the most-viewed line of text in the entire
+#   listing. Translate as a confident, descriptive brand
+#   tagline — not a feature description.
+# Tone: Confident, universal, brand-level
+
+The world's most private VPN
+
+
+# ------------------------------------------------------------
+# IMAGE 2 — Two VPN modes, one app
+# ------------------------------------------------------------
+# Visual: Screenshot of the app's mode-toggle UI. "Fast" and
+#   "Anonymous" appear as labels WITHIN the screenshot itself.
+# Context: Describes the product structure — users can choose
+#   between Fast mode (WireGuard 2-hop) and Anonymous mode
+#   (5-hop Noise Generating Mixnet) within one app.
+# Important: Do NOT translate "Fast" or "Anonymous" here —
+#   those labels are already shown in the screenshot image.
+#   This overlay text is a higher-level description.
+# Tone: Functional, product-structural
+
+Two VPN modes. One app.
+
+
+# ------------------------------------------------------------
+# IMAGE 3 — Architectural privacy claim
+# ------------------------------------------------------------
+# Visual: User browsing/streaming/chatting with a can't-track
+#   metaphor (no-eye, broken-tracking visual, etc.)
+# Context: The brand's core architectural claim — NymVPN
+#   cannot see what users do because of how the network is
+#   designed, not because of a policy promise.
+# Tone: Direct, confident, foundational brand claim
+
+Nym can't log or track you.
+
+
+# ------------------------------------------------------------
+# IMAGE 4 — No-name signup
+# ------------------------------------------------------------
+# Visual: Anonymous account creation flow / signup screen
+# Context: Three claims in a row — no email required, no
+#   name required, leaves no traceable identity.
+# Tone: Rule of three. Three short negations. Scannable.
+# Important: Preserve the three-beat rhythm in your locale
+#   if possible. If your language can't do three short
+#   negations gracefully, two punchy negations are fine.
+
+No email. No name. No trace.
+
+
+# ------------------------------------------------------------
+# IMAGE 5 — Censorship resistance (brand-aspirational)
+# ------------------------------------------------------------
+# Visual: Open-Internet metaphor / wall-piercing / freed
+#   connection. The image carries the meaning emotionally.
+# Context: This is the one image in the set with permission
+#   to be aspirational rather than transactional. Users
+#   looking at this image are typically from restricted-
+#   Internet markets and are emotionally engaged. Brand
+#   vision matters more here than feature comparison.
+# Tone: Aspirational, brand-statement. Different register
+#   from the other images.
+# Important: "Walls" is the metaphor. Preserve it if possible
+#   in your locale — it translates well to most languages and
+#   anchors the image's visual concept. If "walls" doesn't
+#   work in your locale, choose a metaphor that captures
+#   "barriers being removed" or "open access".
+
+An internet without walls.
+
+
+# ------------------------------------------------------------
+# IMAGE 6 — Decentralized network
+# ------------------------------------------------------------
+# Visual: World map with country indicators + decentralized
+#   network diagram showing distributed servers
+# Context: Decentralization is NymVPN's #1 differentiator
+#   versus centralized VPN competitors. Most VPNs route
+#   through company-owned servers; NymVPN routes through
+#   independently-operated decentralized nodes.
+# Tone: Active, agency-framing. "Pick your path" emphasizes
+#   user control.
+# Important: Keep "decentralized" prominent in the translation.
+#   In some locales this word is technical; use it anyway —
+#   it signals serious-privacy-user audience filtering.
+
+Decentralized network. Pick your path.
+
+
+# ------------------------------------------------------------
+# IMAGE 6 — Badge facts (three separate strings)
+# ------------------------------------------------------------
+# Layout: Three short claims that appear on image 6 as badge
+#   facts. Visual arrangement (separator style, horizontal
+#   row vs vertical stack, etc.) is decided at the design
+#   stage — translate each as an independent string.
+# Context: Quick proof points — global reach, multi-device
+#   support, single anonymous subscription.
+
+# Badge fact 1 of 3:
+70+ countries
+
+# Badge fact 2 of 3:
+10 devices
+
+# Badge fact 3 of 3:
+1 account
+
+
+# ------------------------------------------------------------
+# IMAGE 7 — Advanced privacy controls
+# ------------------------------------------------------------
+# Visual: Settings panel showing split tunneling toggle and
+#   custom DNS field
+# Context: Power-user features. "Split tunneling" lets users
+#   route only chosen apps through the VPN. "Custom DNS"
+#   lets users select their own DNS resolver.
+# Tone: Functional, agency-framing
+# Important: "Split tunneling" and "custom DNS" can stay in
+#   English in many locales (they're technical terms that
+#   power users search in English). If your locale has
+#   widely-used native equivalents, use those instead.
+
+Control your privacy: split tunneling and custom DNS.
+
+
+# ------------------------------------------------------------
+# IMAGE 8 — Ad and tracker blocker
+# ------------------------------------------------------------
+# Visual: Blocked ads / clean-interface comparison
+# Context: NymVPN includes an optional ad and tracker
+#   blocker that works across all apps on the device
+#   (not just the browser).
+# Tone: Active verb, universal benefit. "Every app" is the
+#   differentiator vs browser-only ad blockers.
+# Important: Don't translate "block" as "remove" or "delete" —
+#   "block" is the active marketing verb.
+
+Block ads and trackers in every app.
+
+
+# ============================================================
+# APPLE APP STORE ONLY — Images 9 and 10
+# ============================================================
+
+
+# ------------------------------------------------------------
+# IMAGE 9 — Best VPN for crypto (APPLE ONLY)
+# ------------------------------------------------------------
+# Visual: Cryptocurrency logos (Bitcoin, Ethereum, Monero,
+#   Zcash, NYM, USDT, USDC) arranged around the headline
+# Context: Crypto-friendly positioning. NymVPN accepts more
+#   cryptocurrencies than any other VPN. This image targets
+#   the crypto-VPN search audience specifically.
+# Tone: Declarative claim
+# Important: "Best VPN for crypto" is a deliberate SEO
+#   keyword phrase that mirrors how crypto users search.
+#   Translate as the equivalent search-keyword phrase in
+#   your locale — what would a crypto user type into the
+#   App Store search? Use that phrase. Don't translate
+#   word-for-word if your locale's natural search phrase
+#   is different.
+
+Best VPN for crypto.
+
+
+# ------------------------------------------------------------
+# IMAGE 10 — Trust signals (APPLE ONLY)
+# ------------------------------------------------------------
+# Visual: Swiss flag + open-source badge + audit certificate
+#   visual elements
+# Context: Three short verifiable trust claims. Final image
+#   in the Apple App Store screenshot scroll — the closer.
+# Tone: Three staccato facts, period-separated.
+# Layout: Three short clauses. Each scans as its own beat.
+# Important: Preserve the three-beat structure. Each clause
+#   should be short enough to scan in under one second.
+
+Swiss-built. Open source. Independently audited.
+
+
+# ============================================================
+# END OF FILE
+# ============================================================
+#
+# Questions? Direct to: casey@nymtech.net
+#
+# When you're done translating:
+#   1. Keep all the # comments unchanged (don't translate them)
+#   2. Translate only the non-# lines
+#   3. Match the line structure exactly — each image has
+#      a fixed number of translatable lines (most have one;
+#      image 6 has four: headline + 3 badge facts)
+#   4. If a string doesn't fit visually in your locale,
+#      flag it in the Crowdin comment field so Casey can
+#      review with the designer
+#
+# ============================================================

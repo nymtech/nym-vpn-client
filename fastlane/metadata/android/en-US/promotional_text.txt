@@ -1,0 +1,151 @@
+# ============================================================
+# NymVPN Apple App Store — Promotional Text (English source)
+# Source language: English (en-US)
+# Last updated: 2026-05-12
+# ============================================================
+#
+# This file contains the Apple App Store promotional text for
+# NymVPN. Lines starting with # are context for the translator
+# and should NOT be translated. The translatable content is
+# the 4-line block at the bottom (treated as one string).
+#
+# ============================================================
+# FIELD SPEC
+# ============================================================
+#
+# Field: Apple App Store promotional text
+# Character limit: 170 characters (HARD LIMIT — Apple enforces)
+# Indexed for ASO: NO — promo text is NOT indexed for search
+#   ranking. Its job is purely conversion.
+# Editable without resubmission: YES — Apple allows updating
+#   promo text via App Store Connect without shipping a new
+#   app version. Useful for time-sensitive offers, A/B copy
+#   tests, or quick fixes.
+#
+# Position in listing: Above-the-fold at the top of the app
+#   listing, between the title/subtitle and the description.
+#   Visible without scrolling.
+#
+# Conversion role: This is your hook. Users have arrived at
+#   the listing; promo text is what converts them from browser
+#   to installer. Lead with the strongest claim, prove it,
+#   add the trial offer, close with social proof.
+#
+# ============================================================
+# UNTRANSLATABLE TERMS — keep in English exactly
+# ============================================================
+#
+#   Nym, NymVPN, Tor, App Store
+#   $2.39, $/mo (currency stays $, decimal stays .)
+#   * * * * * (the 5-star pattern — see formatting note below)
+#
+# ============================================================
+# FORMATTING NOTES
+# ============================================================
+#
+# Stars: Use "* * * * *" (asterisks with spaces) instead of
+#   "★★★★★" (Unicode stars). Apple App Store accepts both,
+#   but Google Play doesn't allow special characters, so we
+#   standardize on asterisks for cross-platform consistency.
+#   Keep the spaces between asterisks — improves readability.
+#
+# Quotation marks: Use straight quotes (") for the review
+#   quote line. Translators may swap to locale-appropriate
+#   typographic quotes if natural ("German low/high quotes",
+#   French guillemets, etc.).
+#
+# Line breaks: Keep the 4-line structure. Each line carries
+#   one concept:
+#     Line 1 — Brand slogan / positioning
+#     Line 2 — Architectural privacy claim
+#     Line 3 — Free trial + pricing + payment options
+#     Line 4 — Social proof (review quote with star attribution)
+#
+# Currency formatting: The "$2.39/mo" pattern is the standard.
+#   Some locales use comma decimal ($2,39). Use the comma
+#   form if it's standard in your locale's typography.
+#
+# ============================================================
+# BRAND VOICE NOTES
+# ============================================================
+#
+# - Line 1: "The most private way to be online." — descriptive
+#   superlative ("most private" is defensible vs. "most secure"
+#   which is falsifiable). Find your locale's equivalent
+#   strongest privacy claim that doesn't open legal exposure.
+#
+# - Line 2: "Nym can't log or track you." — architectural verb
+#   (can't), not policy verb (won't). Use your locale's
+#   equivalent of cannot-by-design, not promise-not-to.
+#
+# - Line 4: The review quote is a REAL 5-star review from
+#   the App Store. It's quoted with attribution. Translators
+#   may translate the quote naturally for their locale (the
+#   quote itself can be re-translated; the attribution
+#   "★★★★★ App Store" → "* * * * * App Store" stays English
+#   as a brand-attribution element).
+#
+# Already-shipped reference (translator-finalized in 5 locales):
+#
+#   Hindi (167 chars):
+#     ऑनलाइन रहने का सबसे प्राइवेट उपाय।
+#     Nym आपके डेटा को स्टोर या ट्रैक नहीं कर सकता।
+#     7-दिन मुफ्त ट्रायल। $2.39/महीने से। क्रिप्टो, कार्ड, नकद।
+#     "सुपरचार्ज्ड Tor।" * * * * *
+#
+#   Russian (135 chars):
+#     Nym – приватность без слежки.
+#     7 дней бесплатно. От $2,39/мес.
+#     Крипта, карта, наличные.
+#     «Это как Tor на стероидах» – * * * * * App Store
+#
+#   Turkish (162 chars):
+#     Çevrim içi olmanın en gizli yolu.
+#     Nym sizi takip edemez.
+#     7 gün ücretsiz, aylık 2,39$. Kripto, kart, nakit ödeme.
+#     Tor'un güçlendirilmiş hali. – * * * * * App Store
+#
+#   Ukrainian (156 chars):
+#     Максимальна анонімність.
+#     Nym не збирає дані.
+#     7 днів тест-драйв. Від $2,39/міс. Оплата: крипта, картка, готівка.
+#     "Як Tor на стероїдах." - * * * * * App Store
+#
+#   German (162 chars):
+#     Die privateste Art, online zu sein.
+#     Nym trackt und loggt dich nicht.
+#     7 Tage kostenlos. Ab 2,39 $/Monat. Krypto, Karte, Bargeld.
+#     "Wie Tor auf Steroiden." * * * * *
+#
+# ============================================================
+# CHARACTER LIMIT GUIDANCE
+# ============================================================
+#
+# 170 characters is the hard ceiling. Each of the 4 lines
+# should be punchy enough to scan independently.
+#
+# If your translation exceeds 170, Apple App Store Connect
+# will REJECT the string. Count Unicode codepoints (emoji
+# count as 1; combining marks may count as 1 or more).
+#
+# Compression priorities if you need to cut:
+#   1. Tighten the trial line (line 3) — payment options
+#      can be abbreviated
+#   2. Drop "App Store" attribution from line 4 if needed
+#   3. Tighten line 2 (architectural claim) — but keep the
+#      "cannot" architectural framing
+#   4. Don't touch line 1 (positioning) or line 4's star
+#      pattern (social proof)
+#
+# ============================================================
+
+
+The most private way to be online.
+Nym can't log or track you.
+7-day free trial. From $2.39/mo. Crypto, card, or cash.
+"It's like Tor on steroids." — * * * * * App Store
+
+
+# ============================================================
+# END OF FILE
+# ============================================================
