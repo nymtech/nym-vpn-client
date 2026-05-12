@@ -111,9 +111,10 @@ impl TunnelStateHandler for DisconnectingState {
                         NextTunnelState::SameState(self)
                     }
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                        let diff = shared_state.tunnel_settings.diff(&tunnel_settings);
+                        if diff.is_empty() {
                             return NextTunnelState::SameState(self);
-                        };
+                        }
 
                         shared_state.set_tunnel_settings(tunnel_settings).await;
 

@@ -298,9 +298,10 @@ impl TunnelStateHandler for ConnectedState {
                         self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                        let diff = shared_state.tunnel_settings.diff(&tunnel_settings);
+                        if diff.is_empty() {
                             return NextTunnelState::SameState(self);
-                        };
+                        }
                         shared_state.set_tunnel_settings(tunnel_settings).await;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]

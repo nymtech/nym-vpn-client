@@ -243,7 +243,7 @@ impl TunnelSettings {
             && self.wireguard_tunnel_options.enable_bridges
     }
 
-    pub fn diff(&self, other: &Self) -> Option<TunnelSettingsDiff> {
+    pub fn diff(&self, other: &Self) -> TunnelSettingsDiff {
         let mut diff = TunnelSettingsDiff::default();
 
         if self.enable_ipv6 != other.enable_ipv6 {
@@ -326,7 +326,7 @@ impl TunnelSettings {
             diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
         }
 
-        if diff.is_empty() { None } else { Some(diff) }
+        diff
     }
 }
 
