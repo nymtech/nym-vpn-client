@@ -105,7 +105,7 @@ jobs:
       - name: Download winfw artifacts
         uses: actions/download-artifact@v8
         with:
-          name: winfw
+          name: winfw_x64
           path: ${{ env.WINFW_PATH }}
 
       - name: Download st-driver artifacts
