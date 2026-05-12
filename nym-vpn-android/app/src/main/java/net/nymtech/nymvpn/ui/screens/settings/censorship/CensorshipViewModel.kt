@@ -12,6 +12,7 @@ import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -34,6 +35,16 @@ class CensorshipViewModel @Inject constructor(private val backendManager: Backen
 			}
 		}.onFailure {
 			Timber.e(it, "Failed to update QUIC setting")
+		}
+	}
+
+	fun onStealthModeEnabled(enabled: Boolean) = viewModelScope.launch {
+		runCatching {
+			notifyReconnectIfConnected()
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetStealthMode(enabled))
+			backendManager.requestReconnect()
+		}.onFailure {
+			Timber.e(it, "Failed to update stealth mode setting")
 		}
 	}
 
