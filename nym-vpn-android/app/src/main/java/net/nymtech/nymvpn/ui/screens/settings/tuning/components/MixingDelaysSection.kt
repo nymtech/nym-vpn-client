@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.domain.Settings
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.Typography
 import kotlin.math.roundToInt
 
@@ -62,7 +62,7 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 				Text(
 					text = stringResource(R.string.mixnet_tuning_traffic_warning),
 					style = Typography.bodySmall,
-					color = CustomColors.warning,
+					color = LocalNymColors.current.warning,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				)
 			} else {
@@ -138,7 +138,7 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 						stringResource(R.string.mixnet_tuning_delays_current, currentInt.toString())
 					},
 					style = Typography.bodyMedium,
-					color = if (isDefault) CustomColors.pulse else MaterialTheme.colorScheme.onBackground,
+					color = if (isDefault) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
 					modifier = Modifier.weight(1f),
 					textAlign = TextAlign.Center,
 				)

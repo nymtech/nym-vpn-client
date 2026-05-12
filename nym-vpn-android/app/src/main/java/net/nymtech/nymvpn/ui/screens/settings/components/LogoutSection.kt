@@ -26,7 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -40,11 +40,11 @@ fun LogoutSection(isMnemonicStored: Boolean, onLogoutClick: () -> Unit) {
 			modifier = Modifier.fillMaxWidth()
 				.border(
 					width = 1.dp,
-					color = CustomColors.buttonRedTransparentBorder,
+					color = LocalNymColors.current.buttonErrorBorder,
 					shape = RoundedCornerShape(8.dp),
 				),
 			shape = RoundedCornerShape(8.dp),
-			colors = CardDefaults.cardColors(containerColor = CustomColors.buttonRedTransparent),
+			colors = CardDefaults.cardColors(containerColor = LocalNymColors.current.buttonErrorBorder),
 		) {
 			Box(
 				contentAlignment = Alignment.Center,

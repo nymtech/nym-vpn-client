@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -62,10 +63,11 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.isVpnAlwaysOn
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.vpn.backend.Tunnel
@@ -96,7 +98,6 @@ fun ConnectPanel(
 	onPanelStateChange: (state: PanelState) -> Unit,
 	modifier: Modifier = Modifier,
 ) {
-	val context = LocalContext.current
 	var panelState by remember { mutableStateOf(initialPanelState) }
 	val dragThresholdPx = with(LocalDensity.current) { 60.dp.toPx() }
 	var dragAccum by remember { mutableFloatStateOf(0f) }
@@ -269,10 +270,10 @@ private fun ModeToggle(vpnMode: Tunnel.Mode, onFastClick: () -> Unit, onAnonClic
 	) {
 		Text(
 			text = stringResource(R.string.one_click_mode_fast),
-			style = MaterialTheme.typography.labelMedium.copy(
+			style = MaterialTheme.typography.labelLarge.copy(
 				fontWeight = if (isFast) FontWeight.Bold else FontWeight.Normal,
 			),
-			color = if (isFast) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+			color = if (isFast) LocalNymColors.current.labelCyan else MaterialTheme.colorScheme.onSurface,
 			textAlign = TextAlign.End,
 			modifier = Modifier
 				.weight(1f)
@@ -287,7 +288,7 @@ private fun ModeToggle(vpnMode: Tunnel.Mode, onFastClick: () -> Unit, onAnonClic
 			modifier = Modifier
 				.size(width = 80.dp, height = 40.dp)
 				.clip(RoundedCornerShape(50))
-				.background(MaterialTheme.colorScheme.secondary)
+				.background(MaterialTheme.colorScheme.background)
 				.clickable { if (isFast) onAnonClick() else onFastClick() },
 		) {
 			Box(
@@ -295,13 +296,13 @@ private fun ModeToggle(vpnMode: Tunnel.Mode, onFastClick: () -> Unit, onAnonClic
 					.offset(x = indicatorX, y = 4.dp)
 					.size(32.dp)
 					.clip(CircleShape)
-					.background(MaterialTheme.colorScheme.surfaceVariant),
+					.background(LocalNymColors.current.iconCyanBackground),
 				contentAlignment = Alignment.Center,
 			) {
 				Icon(
 					imageVector = if (isFast) Icons.Outlined.Bolt else Icons.Outlined.VisibilityOff,
 					contentDescription = null,
-					tint = MaterialTheme.colorScheme.surfaceTint,
+					tint = LocalNymColors.current.iconCyan,
 					modifier = Modifier.size(20.dp),
 				)
 			}
@@ -309,10 +310,10 @@ private fun ModeToggle(vpnMode: Tunnel.Mode, onFastClick: () -> Unit, onAnonClic
 
 		Text(
 			text = stringResource(R.string.anonymous),
-			style = MaterialTheme.typography.labelMedium.copy(
+			style = MaterialTheme.typography.labelLarge.copy(
 				fontWeight = if (!isFast) FontWeight.Bold else FontWeight.Normal,
 			),
-			color = if (!isFast) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+			color = if (!isFast) LocalNymColors.current.labelCyan else MaterialTheme.colorScheme.onSurface,
 			modifier = Modifier
 				.weight(1f)
 				.clickable(
@@ -335,7 +336,6 @@ private fun ServerRow(
 	currentState: PanelState,
 	connectionState: ConnectionState,
 ) {
-	val context = LocalContext.current
 	val isAutoMode = currentState == PanelState.COLLAPSED && (connectionState !is ConnectionState.Connecting && connectionState !is ConnectionState.Connected)
 	val indication = if (!isAutoMode) ripple() else null
 
@@ -347,7 +347,7 @@ private fun ServerRow(
 			Icon(
 				imageVector = Icons.Outlined.SignalCellularAlt,
 				contentDescription = null,
-				tint = MaterialTheme.colorScheme.primary,
+				tint = LocalNymColors.current.success,
 				modifier = Modifier.size(iconSize),
 			)
 
@@ -370,7 +370,7 @@ private fun ServerRow(
 					if (!isAutoMode) {
 						val (image, description) = node.countryCode?.let {
 							Pair(
-								ImageVector.vectorResource(context.getFlagImageVectorByName(it)),
+								ImageVector.vectorResource(R.drawable.faq),
 								stringResource(R.string.country_flag, it),
 							)
 						} ?: Pair(
@@ -395,7 +395,7 @@ private fun ServerRow(
 					Text(
 						text = title,
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis,
 						modifier = Modifier.weight(1f),
@@ -410,7 +410,7 @@ private fun ServerRow(
 					Text(
 						text = node.location.orEmpty(),
 						style = MaterialTheme.typography.labelSmall,
-						color = MaterialTheme.colorScheme.onSurfaceVariant,
+						color = MaterialTheme.colorScheme.onSurface,
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis,
 					)
@@ -428,10 +428,10 @@ private fun ServerRow(
 
 			if (!isAutoMode) {
 				Icon(
-					imageVector = ImageVector.vectorResource(R.drawable.ic_lewes),
+					imageVector = ImageVector.vectorResource(R.drawable.ic_quantum),
 					contentDescription = null,
 					tint = MaterialTheme.colorScheme.primary,
-					modifier = Modifier.size(iconSize),
+					modifier = Modifier.size(22.dp),
 				)
 			}
 
@@ -441,9 +441,9 @@ private fun ServerRow(
 						Icon(
 							imageVector = Icons.Outlined.KeyboardArrowUp,
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
+							tint = MaterialTheme.colorScheme.secondary,
 							modifier = Modifier
-								.size(24.dp)
+								.size(16.dp)
 								.clickable { onExpand() },
 						)
 					}
@@ -451,15 +451,15 @@ private fun ServerRow(
 						Icon(
 							imageVector = Icons.Outlined.KeyboardArrowDown,
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
+							tint = MaterialTheme.colorScheme.secondary,
 							modifier = Modifier
-								.size(24.dp)
+								.size(16.dp)
 								.clickable { onCollapse() },
 						)
 					}
 				}
 			} else if (fillTrailingSpace) {
-				Spacer(modifier = Modifier.size(24.dp))
+				Spacer(modifier = Modifier.size(16.dp))
 			}
 		}
 	}
@@ -490,7 +490,8 @@ private fun ActionButton(
 			content = {
 				Text(
 					stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started),
-					style = CustomTypography.buttonMain,
+					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimary,
 				)
 			},
 			modifier = buttonModifier,
@@ -502,11 +503,11 @@ private fun ActionButton(
 			content = {
 				Text(
 					stringResource(R.string.connecting),
-					style = CustomTypography.buttonMain,
-					color = MaterialTheme.colorScheme.onSurface,
+					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimary,
 				)
 			},
-			color = Color(0xFFB0ADB6),
+			color = MaterialTheme.colorScheme.secondary,
 			modifier = buttonModifier,
 			shape = RoundedCornerShape(50),
 		)
@@ -516,11 +517,11 @@ private fun ActionButton(
 			content = {
 				Text(
 					stringResource(R.string.disconnecting),
-					style = CustomTypography.buttonMain,
-					color = MaterialTheme.colorScheme.onSurface,
+					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimary,
 				)
 			},
-			color = Color(0xFFB0ADB6),
+			color = MaterialTheme.colorScheme.secondary,
 			modifier = buttonModifier,
 			shape = RoundedCornerShape(50),
 		)
@@ -530,8 +531,8 @@ private fun ActionButton(
 			content = {
 				Text(
 					stringResource(R.string.disconnect),
-					style = CustomTypography.buttonMain,
-					color = MaterialTheme.colorScheme.onSurface,
+					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 			},
 			color = Color.Transparent,
@@ -608,48 +609,66 @@ private fun ActionButton(
 @Composable
 private fun PreviewDisconnectedDark() {
 	NymVPNTheme(Theme.DARK_MODE) {
-		ConnectPanel(
-			connectionState = ConnectionState.Disconnected,
-			accountState = AccountControllerState.ReadyToConnect,
-			isMnemonicStored = true,
-			vpnMode = Tunnel.Mode.FIVE_HOP_MIXNET,
-			exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France"),
-			entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France"),
-			onFastModeClick = {},
-			onAnonModeClick = {},
-			onConnect = {},
-			onDisconnect = {},
-			onStopKillSwitch = {},
-			onGetStartedClick = {},
-			onPanelStateChange = {},
-			initialPanelState = PanelState.MODE,
-			onExitNodeClick = {},
-			onEntryNodeClick = {},
-		)
+		Surface(
+			shape = RoundedCornerShape(16.dp),
+			color = MaterialTheme.colorScheme.surface,
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 20.dp)
+				.padding(bottom = 16.dp),
+		) {
+			ConnectPanel(
+				connectionState = ConnectionState.Connecting(StringValue.Empty),
+				accountState = AccountControllerState.ReadyToConnect,
+				isMnemonicStored = true,
+				vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
+				exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France"),
+				entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France"),
+				onFastModeClick = {},
+				onAnonModeClick = {},
+				onConnect = {},
+				onDisconnect = {},
+				onStopKillSwitch = {},
+				onGetStartedClick = {},
+				onPanelStateChange = {},
+				initialPanelState = PanelState.FULL,
+				onExitNodeClick = {},
+				onEntryNodeClick = {},
+			)
+		}
 	}
 }
 
-@Preview(name = "Disconnected – light", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Disconnected – light", uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 private fun PreviewDisconnectedLight() {
 	NymVPNTheme(Theme.LIGHT_MODE) {
-		ConnectPanel(
-			connectionState = ConnectionState.Disconnected,
-			accountState = AccountControllerState.ReadyToConnect,
-			isMnemonicStored = true,
-			vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
-			exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France"),
-			entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France"),
-			onFastModeClick = {},
-			onAnonModeClick = {},
-			onConnect = {},
-			onDisconnect = {},
-			onStopKillSwitch = {},
-			onGetStartedClick = {},
-			onPanelStateChange = {},
-			initialPanelState = PanelState.MODE,
-			onExitNodeClick = {},
-			onEntryNodeClick = {},
-		)
+		Surface(
+			shape = RoundedCornerShape(16.dp),
+			color = MaterialTheme.colorScheme.surface,
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(horizontal = 20.dp)
+				.padding(bottom = 16.dp),
+		) {
+			ConnectPanel(
+				connectionState = ConnectionState.Disconnected,
+				accountState = AccountControllerState.ReadyToConnect,
+				isMnemonicStored = true,
+				vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
+				exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France"),
+				entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France"),
+				onFastModeClick = {},
+				onAnonModeClick = {},
+				onConnect = {},
+				onDisconnect = {},
+				onStopKillSwitch = {},
+				onGetStartedClick = {},
+				onPanelStateChange = {},
+				initialPanelState = PanelState.MODE,
+				onExitNodeClick = {},
+				onEntryNodeClick = {},
+			)
+		}
 	}
 }

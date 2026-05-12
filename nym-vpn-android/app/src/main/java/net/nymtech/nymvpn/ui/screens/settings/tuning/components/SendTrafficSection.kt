@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -75,7 +75,7 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 				Text(
 					text = stringResource(R.string.mixnet_tuning_traffic_warning),
 					style = Typography.bodySmall,
-					color = CustomColors.warning,
+					color = LocalNymColors.current.warning,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				)
 				Text(

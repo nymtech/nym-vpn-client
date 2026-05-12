@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
@@ -60,7 +60,7 @@ fun MonitoringSection(sentryEnabled: Boolean, onMonitoringEnable: (enabled: Bool
 					Text(
 						text = stringResource(R.string.privacy_error_reports_restart),
 						style = MaterialTheme.typography.bodySmall,
-						color = CustomColors.warning,
+						color = LocalNymColors.current.warning,
 					)
 				}
 				ScaledSwitch(

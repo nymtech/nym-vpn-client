@@ -27,7 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.InfoItem
-import net.nymtech.nymvpn.ui.theme.CustomColors
 
 @Composable
 fun TripleRow(items: List<InfoItem>, spacing: Dp = 16.dp) {
@@ -53,9 +52,10 @@ fun TripleRow(items: List<InfoItem>, spacing: Dp = 16.dp) {
 						modifier = Modifier.size(22.dp),
 					)
 					if (item.negative) {
+						val bgColor = MaterialTheme.colorScheme.errorContainer
 						Canvas(modifier = Modifier.size(34.dp)) {
 							drawLine(
-								color = CustomColors.buttonRedTransparentBorder,
+								color = bgColor,
 								start = Offset(12f, size.height - 12f),
 								end = Offset(size.width - 12f, 12f),
 								strokeWidth = 6f,

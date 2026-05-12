@@ -7,7 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 
 @Composable
 fun SubscriptionStatusText(subscription: SubscriptionUiState?, modifier: Modifier = Modifier) {
@@ -21,12 +21,12 @@ fun SubscriptionStatusText(subscription: SubscriptionUiState?, modifier: Modifie
 		}
 
 		ExpiryState.WARNING_YELLOW -> {
-			color = CustomColors.warning
+			color = LocalNymColors.current.warning
 			text = stringResource(R.string.account_info_expires_text, subscription.validUntilDate)
 		}
 
 		ExpiryState.WARNING_AMBER -> {
-			color = CustomColors.warningAmber
+			color = LocalNymColors.current.warning
 			text = stringResource(R.string.account_info_expires_text, subscription.validUntilDate)
 		}
 

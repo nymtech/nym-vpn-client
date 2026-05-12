@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmapOrNull
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppInfo
-import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -39,7 +38,6 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun AppInfoRow(appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableInteraction: MutableInteractionSource = MutableInteractionSource()) {
-	val colors = LocalNymColors.current
 	val scheme = MaterialTheme.colorScheme
 	Row(
 		modifier = Modifier.fillMaxWidth(),
@@ -74,7 +72,7 @@ fun AppInfoRow(appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableI
 				modifier = Modifier
 					.size(50.dp.scaledHeight(), 24.dp.scaledHeight())
 					.background(
-						color = if (!appInfo.passThroughVpn) scheme.errorContainer else colors.greyIconBackground,
+						color = if (!appInfo.passThroughVpn) scheme.errorContainer else scheme.background,
 						shape = RoundedCornerShape(24.dp.scaledHeight()),
 					),
 				contentAlignment = Alignment.Center,
@@ -83,7 +81,7 @@ fun AppInfoRow(appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableI
 					painter = painterResource(R.drawable.split),
 					contentDescription = null,
 					modifier = Modifier.size(16.dp.scaledHeight()),
-					tint = if (!appInfo.passThroughVpn) scheme.error else colors.greyIcon,
+					tint = if (!appInfo.passThroughVpn) scheme.error else scheme.onBackground,
 				)
 			}
 			Spacer(modifier = Modifier.width(8.dp.scaledWidth()))
@@ -91,7 +89,7 @@ fun AppInfoRow(appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableI
 				modifier = Modifier
 					.size(50.dp.scaledHeight(), 24.dp.scaledHeight())
 					.background(
-						color = if (appInfo.passThroughVpn) scheme.primaryContainer else colors.greyIconBackground,
+						color = if (appInfo.passThroughVpn) scheme.primaryContainer else scheme.background,
 						shape = RoundedCornerShape(24.dp.scaledHeight()),
 					),
 				contentAlignment = Alignment.Center,
@@ -100,7 +98,7 @@ fun AppInfoRow(appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableI
 					imageVector = Icons.Filled.Shield,
 					contentDescription = null,
 					modifier = Modifier.size(16.dp.scaledHeight()),
-					tint = if (appInfo.passThroughVpn) colors.greenIcon else colors.greyIcon,
+					tint = if (appInfo.passThroughVpn) scheme.primary else scheme.onBackground,
 				)
 			}
 		}

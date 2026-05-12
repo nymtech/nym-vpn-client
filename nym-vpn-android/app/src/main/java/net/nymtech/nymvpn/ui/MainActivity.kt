@@ -17,9 +17,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +46,6 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
-import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
@@ -210,15 +207,6 @@ class MainActivity : AppCompatActivity() {
 									onMainThemeClick = { navController.goFromRoot(Route.Display) },
 									onMainSettingsClick = { navController.goFromRoot(Route.Settings(false)) },
 								)
-							},
-							snackbarHost = {
-								SnackbarHost(host) { snackbarData: SnackbarData ->
-									CustomSnackBar(
-										snackbarData,
-										paddingTop = navHeight,
-										content = content,
-									)
-								}
 							},
 						) { padding ->
 							NavHost(

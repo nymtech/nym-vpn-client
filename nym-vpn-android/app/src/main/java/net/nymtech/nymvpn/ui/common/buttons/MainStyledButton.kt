@@ -20,6 +20,7 @@ fun MainStyledButton(
 	onClick: () -> Unit,
 	content: @Composable () -> Unit,
 	color: Color = MaterialTheme.colorScheme.primary,
+	textColor: Color = MaterialTheme.colorScheme.onPrimary,
 	modifier: Modifier = Modifier,
 	enabled: Boolean = true,
 	borderStroke: BorderStroke? = null,
@@ -30,6 +31,7 @@ fun MainStyledButton(
 		colors =
 		ButtonDefaults.buttonColors(
 			containerColor = color,
+			contentColor = textColor,
 		),
 		border = borderStroke,
 		enabled = enabled,

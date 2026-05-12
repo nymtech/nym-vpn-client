@@ -60,7 +60,7 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.components.EmptyLogsPlacehold
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsList
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsPagerTabs
 import net.nymtech.nymvpn.ui.screens.settings.logs.modal.LogsModal
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -314,7 +314,7 @@ fun LogsScreenContent(
 				Text(
 					text = stringResource(R.string.privacy_error_reports_restart),
 					style = MaterialTheme.typography.bodySmall,
-					color = CustomColors.warning,
+					color = LocalNymColors.current.warning,
 					modifier = Modifier
 						.fillMaxWidth()
 						.padding(top = 8.dp),

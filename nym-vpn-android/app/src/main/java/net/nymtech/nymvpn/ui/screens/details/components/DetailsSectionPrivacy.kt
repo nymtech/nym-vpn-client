@@ -27,7 +27,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.Typography
 import nym_vpn_lib_types.AsnKind
 
@@ -87,7 +87,7 @@ private fun AsnKindItem(kind: AsnKind) {
 	val isResidential = kind == AsnKind.RESIDENTIAL
 	DetailsRow(
 		icon = if (isResidential) ImageVector.vectorResource(R.drawable.smart_display) else Icons.Filled.Circle,
-		iconTint = if (isResidential) Color.Unspecified else CustomColors.warning,
+		iconTint = if (isResidential) Color.Unspecified else LocalNymColors.current.warning,
 		iconSize = if (isResidential) 20.dp else 12.dp,
 		textResId = if (isResidential) R.string.details_residental_ip else R.string.details_datacenter_ip,
 	)
@@ -97,7 +97,7 @@ private fun AsnKindItem(kind: AsnKind) {
 private fun QuicProtocolItem(isQuicSupported: Boolean) {
 	DetailsRow(
 		icon = if (isQuicSupported) ImageVector.vectorResource(R.drawable.quic_label) else Icons.Filled.Circle,
-		iconTint = if (isQuicSupported) Color.Unspecified else CustomColors.warning,
+		iconTint = if (isQuicSupported) Color.Unspecified else LocalNymColors.current.warning,
 		iconSize = if (isQuicSupported) 20.dp else 12.dp,
 		textResId = if (isQuicSupported) R.string.details_quic_protocol else R.string.details_standard_protocol,
 	)

@@ -58,7 +58,6 @@ import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.auth.AuthBottomSheet
 import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectPanel
-import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
 import net.nymtech.nymvpn.ui.screens.main.components.PanelState
 import net.nymtech.nymvpn.ui.screens.main.components.ServerNode
 import net.nymtech.nymvpn.ui.screens.main.modal.BatteryModal
@@ -79,6 +78,7 @@ import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import androidx.compose.ui.res.stringResource
+import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
 
 @Composable
 fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, showAuth: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
@@ -340,7 +340,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				val message = state.reason.toUserMessage(context).ifEmpty { connectionFailedLabel }
 				NymAlertController.show(
 					NymAlertMessage(
-						type = AlertType.Critical,
+						type = AlertType.Error,
 						title = message,
 						action = NymAlertAction(connectionErrorRetryLabel) { onConnectPressed() },
 						duration = Long.MAX_VALUE,
@@ -353,7 +353,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				val message = state.exception.toUserMessage(context)
 				NymAlertController.show(
 					NymAlertMessage(
-						type = AlertType.Critical,
+						type = AlertType.Error,
 						title = message,
 						action = NymAlertAction(connectionErrorRetryLabel) { onConnectPressed() },
 						duration = Long.MAX_VALUE,
@@ -509,7 +509,7 @@ private fun MainScreenContent(
 
 		Surface(
 			shape = RoundedCornerShape(16.dp),
-			color = MaterialTheme.colorScheme.surfaceContainerLow,
+			color = MaterialTheme.colorScheme.surface,
 			modifier = Modifier
 				.align(Alignment.BottomCenter)
 				.fillMaxWidth()
@@ -575,7 +575,7 @@ private fun MainScreenPreviewAlertCritical() {
 			onExitNodeClick = {},
 			onEntryNodeClick = {},
 			previewAlertMessage = NymAlertMessage(
-				type = AlertType.Critical,
+				type = AlertType.Error,
 				title = "Secure your secret passphrase",
 				body = "No passphrase no access to account",
 				action = NymAlertAction("Back up now") {},

@@ -2,19 +2,14 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 
 import android.content.res.Configuration
 import android.os.Build
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.ViewComfy
-import androidx.compose.material.icons.rounded.ViewComfy
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import net.nymtech.nymvpn.R
@@ -24,8 +19,6 @@ import net.nymtech.nymvpn.ui.screens.settings.SettingsActions
 import net.nymtech.nymvpn.ui.screens.settings.SettingsValues
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
@@ -94,26 +87,16 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 			add(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.Outlined.ViewComfy,
 							stringResource(R.string.appearance),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Filled.KeyboardArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
-							stringResource(R.string.appearance),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
+						SettingsTitle(stringResource(R.string.appearance))
 					},
 					onClick = actions.onAppearanceClick,
 				),
@@ -121,26 +104,16 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 			add(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.Outlined.Notifications,
 							stringResource(R.string.notifications),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Filled.KeyboardArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
-							stringResource(R.string.notifications),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
+						SettingsTitle(stringResource(R.string.notifications))
 					},
 					onClick = actions.onNotificationsClick,
 				),
@@ -148,26 +121,16 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 			add(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.Outlined.BatterySaver,
 							stringResource(R.string.battery_opt),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Filled.KeyboardArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
-							stringResource(R.string.battery_opt),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
+						SettingsTitle(stringResource(R.string.battery_opt))
 					},
 					onClick = actions.onBatterySettingsClick,
 				),
@@ -176,11 +139,9 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 				add(
 					SelectionItem(
 						leading = {
-							Icon(
+							SettingsIcon(
 								Icons.Outlined.Apps,
 								stringResource(R.string.app_shortcuts),
-								modifier = Modifier.size(iconSize.scaledWidth()),
-								tint = MaterialTheme.colorScheme.onSurfaceVariant,
 							)
 						},
 						trailing = {
@@ -190,15 +151,13 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 							)
 						},
 						title = {
-							Text(
-								stringResource(R.string.app_shortcuts),
-								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-							)
+							SettingsTitle(stringResource(R.string.app_shortcuts))
 						},
 						description = {
 							Text(
 								stringResource(R.string.enable_shortcuts),
-								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSecondary),
+								style = MaterialTheme.typography.bodyMedium,
+								color = MaterialTheme.colorScheme.onBackground,
 							)
 						},
 					),

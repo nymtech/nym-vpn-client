@@ -27,8 +27,8 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -76,7 +76,7 @@ fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, on
 					)
 					Spacer(modifier = Modifier.width(12.dp))
 					CircularProgressIndicator(
-						color = CustomColors.warning,
+						color = LocalNymColors.current.warning,
 						modifier = Modifier.size(24.dp),
 						strokeWidth = 2.dp,
 					)
@@ -96,8 +96,8 @@ fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, on
 					modifier = Modifier
 						.fillMaxWidth()
 						.height(40.dp.scaledHeight()),
-					color = CustomColors.buttonRedTransparent,
-					borderStroke = BorderStroke(width = 1.dp, color = CustomColors.buttonRedTransparentBorder),
+					color = LocalNymColors.current.buttonErrorText,
+					borderStroke = BorderStroke(width = 1.dp, color = LocalNymColors.current.buttonErrorBorder),
 				)
 			}
 		},

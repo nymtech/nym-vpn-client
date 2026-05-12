@@ -1,9 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.settings.components
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Campaign
 import androidx.compose.material.icons.automirrored.outlined.CallSplit
 import androidx.compose.material.icons.outlined.Dns
@@ -11,11 +9,9 @@ import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Power
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -27,8 +23,6 @@ import net.nymtech.nymvpn.ui.screens.settings.SettingsActions
 import net.nymtech.nymvpn.ui.screens.settings.SettingsValues
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
@@ -37,11 +31,9 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 			add(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							ImageVector.vectorResource(R.drawable.auto),
 							stringResource(R.string.auto_connect),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
@@ -51,15 +43,13 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 						)
 					},
 					title = {
-						Text(
-							stringResource(R.string.auto_connect),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
+						SettingsTitle(stringResource(R.string.auto_connect))
 					},
 					description = {
 						Text(
 							stringResource(R.string.auto_connect_description),
-							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.onSecondary),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onBackground,
 						)
 					},
 				),
@@ -98,11 +88,9 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 			add(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.Outlined.Lan,
 							stringResource(R.string.bypass_lan),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
@@ -112,15 +100,13 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 						)
 					},
 					title = {
-						Text(
-							stringResource(R.string.bypass_lan),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
+						SettingsTitle(stringResource(R.string.bypass_lan))
 					},
 					description = {
 						Text(
 							stringResource(R.string.settings_bypass_description),
-							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.onSecondary),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onBackground,
 						)
 					},
 				),
@@ -129,11 +115,9 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 			add(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.Outlined.Block,
 							stringResource(R.string.settings_ad_blocking_title),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
@@ -143,10 +127,7 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 						)
 					},
 					title = {
-						Text(
-							stringResource(R.string.settings_ad_blocking_title),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
+						SettingsTitle(stringResource(R.string.settings_ad_blocking_title))
 					},
 				),
 			)
@@ -185,26 +166,16 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 			add(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.Outlined.Power,
 							stringResource(R.string.kill_switch),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Filled.KeyboardArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
-							stringResource(R.string.kill_switch),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
+						SettingsTitle(stringResource(R.string.kill_switch))
 					},
 					onClick = actions.onKillSwitchClick,
 				),
@@ -212,26 +183,16 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 			add(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.AutoMirrored.Outlined.CallSplit,
 							stringResource(R.string.split_tunneling),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Filled.KeyboardArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
-							stringResource(R.string.split_tunneling),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
+						SettingsTitle(stringResource(R.string.split_tunneling))
 					},
 					onClick = actions.onSplitTunnelingClick,
 				),
@@ -240,26 +201,16 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 			add(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.Outlined.Dns,
 							stringResource(R.string.settings_dns_title),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Filled.KeyboardArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
-							stringResource(R.string.settings_dns_title),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
+						SettingsTitle(stringResource(R.string.settings_dns_title))
 					},
 					onClick = actions.onDnsClick,
 				),
@@ -268,32 +219,23 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 				add(
 					SelectionItem(
 						leading = {
-							Icon(
+							SettingsIcon(
 								Icons.Outlined.VisibilityOff,
 								stringResource(R.string.settings_mixnet_tuning_title),
-								modifier = Modifier.size(iconSize.scaledWidth()),
-								tint = MaterialTheme.colorScheme.onSurfaceVariant,
 							)
 						},
 						trailing = {
-							Icon(
-								Icons.AutoMirrored.Filled.KeyboardArrowRight,
-								stringResource(R.string.go),
-								modifier = Modifier.size(iconSize),
-								tint = MaterialTheme.colorScheme.onSurfaceVariant,
-							)
+							SettingsArrowIcon()
 						},
 						description = {
 							Text(
 								stringResource(R.string.settings_mixnet_tuning_description),
-								style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.onSecondary),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onBackground,
 							)
 						},
 						title = {
-							Text(
-								stringResource(R.string.settings_mixnet_tuning_title),
-								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-							)
+							SettingsTitle(stringResource(R.string.settings_mixnet_tuning_title))
 						},
 						onClick = actions.onMixnetTuningClick,
 					),
@@ -302,26 +244,16 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 			add(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.Outlined.Campaign,
 							stringResource(R.string.settings_censorship_title),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Filled.KeyboardArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onSurfaceVariant,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
-							stringResource(R.string.settings_censorship_title),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
-						)
+						SettingsTitle(stringResource(R.string.settings_censorship_title))
 					},
 					onClick = actions.onCensorshipClick,
 				),

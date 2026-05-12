@@ -21,7 +21,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BridgeParameter
 import net.nymtech.vpn.model.NymGateway
@@ -214,7 +214,7 @@ fun getScoreIcon(score: Score): Pair<ImageVector, String> = when (score) {
 @Composable
 fun Score.colorLoad(): Color = when (this) {
 	Score.HIGH -> Color.Red
-	Score.MEDIUM -> CustomColors.warning
+	Score.MEDIUM -> LocalNymColors.current.warning
 	Score.LOW -> Color.Green
 	Score.OFFLINE -> Color.Gray
 }
@@ -222,7 +222,7 @@ fun Score.colorLoad(): Color = when (this) {
 @Composable
 fun Score.colorPerformance(): Color = when (this) {
 	Score.HIGH -> Color.Green
-	Score.MEDIUM -> CustomColors.warning
+	Score.MEDIUM -> LocalNymColors.current.warning
 	Score.LOW -> Color.Red
 	Score.OFFLINE -> Color.Gray
 }

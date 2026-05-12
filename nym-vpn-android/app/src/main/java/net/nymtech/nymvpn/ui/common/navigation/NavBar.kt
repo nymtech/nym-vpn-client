@@ -30,6 +30,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.screens.settings.logs.modal.LogsActionsMenu
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 
@@ -53,6 +54,10 @@ fun NavBar(
 	val currentMainSettingsClick by rememberUpdatedState(onMainSettingsClick)
 
 	val currentRoute = navBackStackEntry?.destination?.route
+	val backgroundColor = when (navBarState) {
+		is NavBarState.Main -> LocalNymColors.current.navBarTitleBackground
+		else -> MaterialTheme.colorScheme.surface
+	}
 	LaunchedEffect(currentRoute, hideBackButton, logsEnabled) {
 		keyboardController?.hide()
 		val route = currentRoute ?: return@LaunchedEffect
@@ -90,9 +95,9 @@ fun NavBar(
 				onBack = { navController.safePopBackStack() },
 			)
 
-			route.startsWith(Route.Settings::class.qualifiedName!!) -> NavBarState.WithBack(
+			route.startsWith(Route.Settings::class.qualifiedName!!) -> NavBarState.WithClose(
 				titleRes = R.string.settings,
-				onBack = { navController.safePopBackStack() },
+				onClose = { navController.safePopBackStack() },
 			)
 
 			route.startsWith(Route.EntryLocation::class.qualifiedName!!) -> NavBarState.WithBack(
@@ -274,7 +279,7 @@ fun NavBar(
 					else -> {}
 				}
 			},
-			colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+			colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
 		)
 	}
 }
