@@ -7,6 +7,7 @@ import net.nymtech.vpn.util.Base58
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.TunnelEvent
 import nym_vpn_lib_types.TunnelState
 import java.util.Locale
@@ -48,6 +49,13 @@ fun String.asExitPoint(): ExitPoint = when {
 	Base58.isValidBase58(this, 32) -> ExitPoint.Gateway(this)
 	this == "Random" -> ExitPoint.Random
 	else -> throw IllegalArgumentException("Invalid exit id $this")
+}
+
+fun String.asAlgorithm(): GatewaySelectionAlgorithm = when {
+	this == "AUTO" -> GatewaySelectionAlgorithm.AUTO
+	this == "EXPLICIT" -> GatewaySelectionAlgorithm.EXPLICIT
+	this == "AUTO_ENTRY_EXPLICIT_EXIT" -> GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT
+	else -> throw IllegalArgumentException("Invalid GatewaySelectionAlgorithm $this")
 }
 
 fun toDisplayCountry(twoLetterIsoCountryCode: String): String = Locale(twoLetterIsoCountryCode, twoLetterIsoCountryCode).displayCountry

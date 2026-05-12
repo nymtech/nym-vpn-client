@@ -1,5 +1,20 @@
 package net.nymtech.nymvpn.ui.common.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.annotation.StringRes
 
-data class NavBarState(val show: Boolean = false, val title: @Composable () -> Unit = {}, val leading: @Composable () -> Unit = {}, val trailing: @Composable () -> Unit = {})
+sealed class NavBarState {
+	data object Hidden : NavBarState()
+	data object Empty : NavBarState()
+
+	class Main(val onThemeClick: () -> Unit, val onSettingsClick: () -> Unit) : NavBarState()
+
+	class WithClose(@StringRes val titleRes: Int?, val showClose: Boolean = true, val onClose: () -> Unit = {}) : NavBarState()
+
+	class WithBack(@StringRes val titleRes: Int?, val onBack: (() -> Unit)?, val trailing: Trailing = Trailing.None) : NavBarState()
+
+	sealed class Trailing {
+		data object None : Trailing()
+		class Info(val onClick: () -> Unit) : Trailing()
+		class LogsMenu(val onDownload: () -> Unit, val onShare: () -> Unit, val onDelete: () -> Unit) : Trailing()
+	}
+}

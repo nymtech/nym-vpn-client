@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,13 +24,14 @@ fun LoginSection(isMnemonicStored: Boolean, onGetStartedClick: () -> Unit) {
 			onClick = onGetStartedClick,
 			content = {
 				Text(
-					stringResource(R.string.get_started),
+					stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started),
 					style = CustomTypography.buttonMain,
 				)
 			},
 			modifier = Modifier
 				.fillMaxWidth()
-				.height(56.dp.scaledHeight()),
+				.height(48.dp.scaledHeight()),
+			shape = RoundedCornerShape(50),
 		)
 	}
 }

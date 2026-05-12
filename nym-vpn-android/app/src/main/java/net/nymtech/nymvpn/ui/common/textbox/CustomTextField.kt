@@ -29,7 +29,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.ui.theme.CustomColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,13 +118,13 @@ fun CustomTextField(
 			supportingText = supportingText,
 			colors = TextFieldDefaults.colors().copy(
 				disabledLabelColor = MaterialTheme.colorScheme.onSurface,
-				disabledContainerColor = MaterialTheme.colorScheme.background,
-				focusedIndicatorColor = CustomColors.outlineVariant,
-				disabledIndicatorColor = CustomColors.outlineVariant,
-				unfocusedIndicatorColor = CustomColors.outlineVariant,
+				disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+				focusedIndicatorColor = MaterialTheme.colorScheme.onSurface,
+				disabledIndicatorColor = MaterialTheme.colorScheme.outline,
+				unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
 				focusedLabelColor = MaterialTheme.colorScheme.onSurface,
-				focusedContainerColor = MaterialTheme.colorScheme.background,
-				unfocusedContainerColor = MaterialTheme.colorScheme.background,
+				focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+				unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
 				focusedTextColor = MaterialTheme.colorScheme.onSurface,
 				cursorColor = MaterialTheme.colorScheme.onSurface,
 			),
@@ -140,19 +139,19 @@ fun CustomTextField(
 					isError = isError,
 					interactionSource,
 					colors = TextFieldDefaults.colors().copy(
-						errorContainerColor = MaterialTheme.colorScheme.background,
+						errorContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
 						disabledLabelColor = MaterialTheme.colorScheme.onSurface,
-						disabledContainerColor = MaterialTheme.colorScheme.background,
+						disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
 						focusedIndicatorColor = MaterialTheme.colorScheme.onSurface,
-						disabledIndicatorColor = CustomColors.outlineVariant,
-						unfocusedIndicatorColor = CustomColors.outlineVariant,
+						disabledIndicatorColor = MaterialTheme.colorScheme.outline,
+						unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
 						focusedLabelColor = MaterialTheme.colorScheme.onSurface,
-						focusedContainerColor = MaterialTheme.colorScheme.background,
-						unfocusedContainerColor = MaterialTheme.colorScheme.background,
+						focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+						unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
 						focusedTextColor = MaterialTheme.colorScheme.onSurface,
 						cursorColor = MaterialTheme.colorScheme.onSurface,
 					),
-					shape = RoundedCornerShape(8.dp),
+					shape = RoundedCornerShape(12.dp),
 					focusedBorderThickness = 0.5.dp,
 					unfocusedBorderThickness = 0.5.dp,
 				)

@@ -1,12 +1,16 @@
 package net.nymtech.nymvpn.ui.common.buttons
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
@@ -16,7 +20,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 @Composable
 fun ScaledSwitch(checked: Boolean, onClick: (checked: Boolean) -> Unit, enabled: Boolean = true) {
 	val primary = MaterialTheme.colorScheme.primary
-	val surface = MaterialTheme.colorScheme.surface
+	val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
 
 	Switch(
 		checked = checked,
@@ -25,29 +29,36 @@ fun ScaledSwitch(checked: Boolean, onClick: (checked: Boolean) -> Unit, enabled:
 		modifier = Modifier.scale(52.dp.scaledHeight() / 52.dp),
 		colors = SwitchDefaults.colors(
 			checkedTrackColor = primary,
-			checkedThumbColor = surface,
+			checkedThumbColor = MaterialTheme.colorScheme.surface,
 			checkedBorderColor = primary,
-			uncheckedBorderColor = MaterialTheme.colorScheme.outline,
-			uncheckedThumbColor = MaterialTheme.colorScheme.outline,
 
-			disabledCheckedTrackColor = primary.copy(alpha = 0.2f),
-			disabledCheckedThumbColor = surface,
-			disabledCheckedBorderColor = primary.copy(alpha = 0.6f),
+			uncheckedTrackColor = onSurfaceVariant,
+			uncheckedThumbColor = Color.White,
+			uncheckedBorderColor = onSurfaceVariant,
 
-			disabledUncheckedTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-			disabledUncheckedThumbColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
-			disabledUncheckedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+			disabledCheckedTrackColor = primary.copy(alpha = 0.3f),
+			disabledCheckedThumbColor = MaterialTheme.colorScheme.surface,
+			disabledCheckedBorderColor = primary.copy(alpha = 0.3f),
+
+			disabledUncheckedTrackColor = onSurfaceVariant.copy(alpha = 0.4f),
+			disabledUncheckedThumbColor = Color.White.copy(alpha = 0.5f),
+			disabledUncheckedBorderColor = onSurfaceVariant.copy(alpha = 0.4f),
 		),
 	)
 }
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-internal fun PreviewScaledSwitch() {
+private fun PreviewScaledSwitchOff() {
 	NymVPNTheme(Theme.default()) {
-		ScaledSwitch(
-			true,
-			{},
-		)
+		Column(
+			verticalArrangement = Arrangement.spacedBy(8.dp),
+			modifier = Modifier.padding(16.dp),
+		) {
+			ScaledSwitch(checked = false, onClick = {})
+			ScaledSwitch(checked = true, onClick = {})
+			ScaledSwitch(checked = false, onClick = {}, enabled = false)
+			ScaledSwitch(checked = true, onClick = {}, enabled = false)
+		}
 	}
 }

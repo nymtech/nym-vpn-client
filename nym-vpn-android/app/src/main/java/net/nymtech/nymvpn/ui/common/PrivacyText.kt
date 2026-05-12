@@ -60,8 +60,8 @@ fun PrivacyText() {
 			append(".")
 		},
 		textAlign = TextAlign.Center,
-		style = MaterialTheme.typography.bodySmall.copy(
-			color = MaterialTheme.colorScheme.outline,
+		style = MaterialTheme.typography.bodyMedium.copy(
+			color = MaterialTheme.colorScheme.onSecondary,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		),
 		modifier = Modifier.fillMaxWidth(),

@@ -38,7 +38,7 @@ fun AccountActionCard(title: String, subtitle: @Composable (() -> Unit)? = null,
 	Card(
 		modifier = Modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(8.dp),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
 	) {
 		Box(
 			contentAlignment = Alignment.Center,
@@ -68,7 +68,7 @@ fun AccountActionCard(title: String, subtitle: @Composable (() -> Unit)? = null,
 							imageVector = icon,
 							contentDescription = null,
 							modifier = Modifier.size(24.dp.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
+							tint = MaterialTheme.colorScheme.onSurfaceVariant,
 						)
 					}
 					Column(
@@ -80,7 +80,7 @@ fun AccountActionCard(title: String, subtitle: @Composable (() -> Unit)? = null,
 					) {
 						Text(
 							text = title,
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
 						)
 						subtitle?.invoke()
 					}

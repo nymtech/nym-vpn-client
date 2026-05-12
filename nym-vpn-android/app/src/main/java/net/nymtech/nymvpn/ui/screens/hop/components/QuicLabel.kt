@@ -21,13 +21,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.LocalCustomColorsPalette
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 
 @Composable
 internal fun QuickLabel() {
+	val colors = LocalNymColors.current
 	Row(
 		modifier = Modifier
-			.border(width = 1.dp, color = LocalCustomColorsPalette.current.borderCyan, shape = RoundedCornerShape(4.dp))
+			.border(width = 1.dp, color = colors.borderCyan, shape = RoundedCornerShape(4.dp))
 			.padding(horizontal = 8.dp, vertical = 4.dp),
 		horizontalArrangement = Arrangement.spacedBy(2.dp),
 		verticalAlignment = Alignment.CenterVertically,
@@ -41,7 +42,7 @@ internal fun QuickLabel() {
 			text = stringResource(R.string.quic),
 			style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
-			color = LocalCustomColorsPalette.current.labelCyan,
+			color = colors.labelCyan,
 			maxLines = 1,
 		)
 	}

@@ -40,7 +40,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -221,7 +220,7 @@ fun CustomDnsCard(
 					Spacer(Modifier.height(8.dp))
 					Text(
 						text = stringResource(R.string.dns_custom_list_error),
-						color = CustomColors.error,
+						color = MaterialTheme.colorScheme.error,
 						style = MaterialTheme.typography.bodyMedium,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)

@@ -14,9 +14,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
+import net.nymtech.vpn.util.extensions.asAlgorithm
 import net.nymtech.vpn.util.extensions.asString
 import androidx.datastore.preferences.core.Preferences
 import net.nymtech.vpn.model.config.CoreVpnConfig
+import nym_vpn_lib_types.GatewaySelectionAlgorithm
 
 /**
  * Canonical persisted VPN config store.
@@ -40,6 +42,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		private val KEY_ENV_SENTRY = booleanPreferencesKey("ENV_SENTRY")
 		private val KEY_LEWES = booleanPreferencesKey("ENABLE_LEWES_PROTOCOL")
 		private val KEY_AD_BLOCKING = booleanPreferencesKey("AD_BLOCKING_ENABLED")
+		private val KEY_ALGORITHM = stringPreferencesKey("ALGORITHM")
 
 		private const val SEP = "|"
 		private const val MAX_DNS = 5
@@ -84,6 +87,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		val sentry = this[KEY_ENV_SENTRY] ?: false
 		val lewes = this[KEY_LEWES] ?: false
 		val adBlockingEnabled = this[KEY_AD_BLOCKING] ?: false
+		val algorithm: GatewaySelectionAlgorithm = this[KEY_ALGORITHM]?.let { runCatching { it.asAlgorithm() }.getOrNull() } ?: GatewaySelectionAlgorithm.AUTO
 
 		return CoreVpnConfig(
 			entryPoint = entry,
@@ -99,6 +103,7 @@ class CoreVpnConfigStore(private val context: Context) {
 			sentry = sentry,
 			lewes = lewes,
 			adBlockingEnabled = adBlockingEnabled,
+			algorithm = algorithm,
 		)
 	}
 
@@ -116,6 +121,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		this[KEY_ENV_SENTRY] = cfg.sentry
 		this[KEY_LEWES] = cfg.lewes
 		this[KEY_AD_BLOCKING] = cfg.adBlockingEnabled
+		this[KEY_ALGORITHM] = cfg.algorithm.name
 	}
 
 	private fun encodeList(list: List<String>): String = list.asSequence()

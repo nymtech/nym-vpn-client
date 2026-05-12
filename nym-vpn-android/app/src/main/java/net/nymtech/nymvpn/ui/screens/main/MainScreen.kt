@@ -9,24 +9,18 @@ import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.Close
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,58 +32,56 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.common.BannerAction
-import net.nymtech.nymvpn.ui.common.BannerConfig
-import net.nymtech.nymvpn.ui.common.BannerIcon
-import net.nymtech.nymvpn.ui.common.InfoBanner
 import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.MainActivity
+import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.snackbar.AlertType
+import net.nymtech.nymvpn.ui.common.snackbar.NymAlertAction
+import net.nymtech.nymvpn.ui.common.snackbar.NymAlertController
+import net.nymtech.nymvpn.ui.common.snackbar.NymAlertHost
+import net.nymtech.nymvpn.ui.common.snackbar.NymAlertMessage
+import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
 import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
-import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
-import net.nymtech.nymvpn.ui.theme.CustomColors
-import net.nymtech.nymvpn.util.StringValue
-import nym_vpn_lib_types.DeeplinkKind
-import net.nymtech.nymvpn.ui.common.labels.GroupLabel
-import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.common.snackbar.IconAction
-import net.nymtech.nymvpn.ui.common.snackbar.SnackbarAction
-import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
-import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
-import net.nymtech.nymvpn.ui.screens.main.components.ConnectionButton
+import net.nymtech.nymvpn.ui.screens.auth.AuthBottomSheet
+import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.screens.main.components.ConnectPanel
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
-import net.nymtech.nymvpn.ui.screens.main.components.LocationField
-import net.nymtech.nymvpn.ui.screens.main.components.ModeSelector
+import net.nymtech.nymvpn.ui.screens.main.components.PanelState
+import net.nymtech.nymvpn.ui.screens.main.components.ServerNode
 import net.nymtech.nymvpn.ui.screens.main.modal.BatteryModal
 import net.nymtech.nymvpn.ui.screens.main.modal.CompatibilityModal
 import net.nymtech.nymvpn.ui.screens.main.modal.NetworkStatsModal
 import net.nymtech.nymvpn.ui.screens.main.modal.ShowInfoModal
 import net.nymtech.nymvpn.ui.screens.permission.Permission
+import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
-import net.nymtech.nymvpn.util.extensions.isQuicSupported
 import net.nymtech.nymvpn.util.extensions.openWebUrl
-import net.nymtech.nymvpn.util.extensions.scaledHeight
-import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.nymvpn.util.extensions.savePasswordToManager
+import net.nymtech.nymvpn.util.extensions.toPanelState
+import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerState
-import nym_vpn_lib_types.AsnKind
-import nym_vpn_lib_types.EntryPoint
-import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.DeeplinkKind
+import androidx.compose.ui.res.stringResource
 
 @Composable
-fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, showAuth: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState = remember(appUiState.managerState, appUiState.networkStatus) {
 		with(appUiState) {
 			val baseState = when {
@@ -100,11 +92,13 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						managerState.tunnelState,
 						managerState.establishConnectionState,
 					)
+
 				managerState.isRestarting ->
 					ConnectionState.from(
 						managerState.tunnelState,
 						managerState.establishConnectionState,
 					)
+
 				managerState.tunnelState !is Tunnel.State.Down && managerState.tunnelState !is Tunnel.State.Error && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
 				managerState.tunnelState == Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.Offline
 				else ->
@@ -128,6 +122,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						ConnectionState.Error(event.reason)
 					}
 				}
+
 				is BackendUiEvent.StartFailure -> ConnectionState.StartFailure(event.exception)
 			}
 
@@ -140,9 +135,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	val context = LocalContext.current
 	val navController = LocalNavController.current
-	val snackbar = SnackbarController.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
-	val screenSnackbar = remember { SnackbarHostState() }
 	var didAutoStart by rememberSaveable { mutableStateOf(false) }
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
@@ -150,10 +143,14 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
 	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
-	var showBanner by remember { mutableStateOf(false) }
-	var showPerAppSecurityBanner by remember { mutableStateOf(false) }
 	val autologinState by appViewModel.autologinState.collectAsState()
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsState()
+
+	var showAuthSheet by remember { mutableStateOf(false) }
+	var initialAuthRoute by remember { mutableStateOf<AuthRoute>(AuthRoute.Welcome) }
+	var authSheetChecked by rememberSaveable { mutableStateOf(false) }
+	var isShowingConnectionErrorAlert by remember { mutableStateOf(false) }
+	val activity = context as? MainActivity
 
 	val connectionTime = remember(connectionSeconds) {
 		connectionSeconds?.convertSecondsToTimeString()
@@ -162,6 +159,20 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	with(appUiState.managerState) {
 		LaunchedEffect(tunnelState, connectionData?.connectedAt, appUiState.networkStatus) {
 			viewModel.onTunnelStateChanged(tunnelState, connectionData?.connectedAt, appUiState.networkStatus)
+		}
+	}
+
+	LaunchedEffect(appUiState.managerState.isInitialized) {
+		if (appUiState.managerState.isInitialized && !authSheetChecked) {
+			authSheetChecked = true
+			showAuthSheet = !appUiState.managerState.isMnemonicStored
+		}
+	}
+
+	LaunchedEffect(showAuth) {
+		if (showAuth) {
+			initialAuthRoute = AuthRoute.Welcome
+			showAuthSheet = true
 		}
 	}
 
@@ -175,17 +186,21 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
+	val alertTitle = stringResource(R.string.notification_improve_title)
+	val alertAction = stringResource(R.string.notification_improve_button)
+
 	fun checkStatsEnabled() {
 		if (!appUiState.settings.statsEnabled && !appUiState.settings.statsDialogSkip) {
-			SnackbarController.showMessage(
-				message = context.getString(R.string.notification_improve_title),
-				action = SnackbarAction(title = context.getString(R.string.notification_improve_button)) {
-					showNetworkStatsDialog = true
-				},
-				duration = SnackbarDuration.Long,
-				iconAction = IconAction(icon = Icons.Filled.Close) {
-					viewModel.onNetworkStatsSkipped()
-				},
+			NymAlertController.show(
+				NymAlertMessage(
+					type = AlertType.Neutral,
+					title = alertTitle,
+					action = NymAlertAction(alertAction) {
+						showNetworkStatsDialog = true
+					},
+					duration = 7_000L,
+					onDismiss = { viewModel.onNetworkStatsSkipped() },
+				),
 			)
 		}
 	}
@@ -202,22 +217,29 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		},
 	)
 
+	val batteryOptSettingsTitle = stringResource(R.string.battery_opt_settings_text)
 	val batteryOptResultState = rememberLauncherForActivityResult(
 		ActivityResultContracts.StartActivityForResult(),
 		onResult = {
 			val accepted = (it.resultCode == RESULT_OK)
-			if (!accepted) {
-				viewModel.onBatteryOptSkipped()
-			}
-			snackbar.showMessage(context.getString(R.string.battery_opt_settings_text))
+			if (!accepted) viewModel.onBatteryOptSkipped()
+			NymAlertController.show(NymAlertMessage(title = batteryOptSettingsTitle))
 			viewModel.onDisconnect()
 		},
 	)
 
+	val permissionAlertTitle = stringResource(R.string.notification_permission_required)
 	val requestPermissionLauncher = rememberLauncherForActivityResult(
 		ActivityResultContracts.RequestPermission(),
 	) { isGranted ->
-		if (!isGranted) snackbar.showMessage(context.getString(R.string.notification_permission_required))
+		if (!isGranted) {
+			NymAlertController.show(
+				NymAlertMessage(
+					type = AlertType.Warning,
+					title = permissionAlertTitle,
+				),
+			)
+		}
 	}
 
 	fun onConnectPressed() {
@@ -239,33 +261,29 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	}
 
 	fun onGetStartedPressed() {
-		navController.goFromRoot(Route.SelectPlan)
+		initialAuthRoute = AuthRoute.Welcome
+		showAuthSheet = true
 	}
 
-	fun dismissStreamingBanner() {
-		viewModel.onStreamingServerBannerDisplayed()
-		showBanner = false
-	}
-
-	fun dismissPerAppSecurityBanner() {
-		viewModel.onPerAppSecurityBannerDisplayed()
-		showPerAppSecurityBanner = false
-	}
-
+	val entryAlertTitle = stringResource(R.string.disabled_while_connecting)
 	fun onEntryClick() {
 		when (uiState.connectionState) {
-			ConnectionState.WaitingForConnection -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
+			ConnectionState.WaitingForConnection -> NymAlertController.show(
+				NymAlertMessage(title = entryAlertTitle),
+			)
+
 			else -> navController.goFromRoot(Route.EntryLocation)
 		}
 	}
 
+	val exitAlertTitle = stringResource(R.string.disabled_while_connecting)
 	fun onExitClick() {
 		when (uiState.connectionState) {
-			ConnectionState.WaitingForConnection -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
-			else -> {
-				dismissStreamingBanner()
-				navController.goFromRoot(Route.ExitLocation)
-			}
+			ConnectionState.WaitingForConnection -> NymAlertController.show(
+				NymAlertMessage(title = exitAlertTitle),
+			)
+
+			else -> navController.goFromRoot(Route.ExitLocation)
 		}
 	}
 
@@ -282,6 +300,72 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
+	val autologinAlertTitle = stringResource(R.string.account_info_autologin_error)
+	LaunchedEffect(autologinState) {
+		if (autologinState is AutologinState.Error) {
+			NymAlertController.show(
+				NymAlertMessage(
+					type = AlertType.Negative,
+					title = autologinAlertTitle,
+				),
+			)
+		}
+	}
+
+	val expiryAlertTitle = stringResource(R.string.banner_plan_expires_text, appUiState.subscription?.validUntilDate ?: "")
+	val expiryAlertAction = stringResource(R.string.banner_renew_text)
+	val expiryState = appUiState.subscription?.expiryState
+	LaunchedEffect(expiryState, expiryBannerDismissed) {
+		if (!expiryBannerDismissed && (expiryState == ExpiryState.WARNING_YELLOW || expiryState == ExpiryState.WARNING_AMBER)) {
+			NymAlertController.show(
+				NymAlertMessage(
+					type = AlertType.Warning,
+					title = expiryAlertTitle,
+					action = NymAlertAction(expiryAlertAction) {
+						viewModel.dismissExpiryBanner()
+						appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
+					},
+					duration = Long.MAX_VALUE,
+					onDismiss = { viewModel.dismissExpiryBanner() },
+				),
+			)
+		}
+	}
+
+	val connectionErrorRetryLabel = stringResource(R.string.try_reconnecting)
+	val connectionFailedLabel = stringResource(R.string.connection_failed)
+	LaunchedEffect(uiState.connectionState) {
+		when (val state = uiState.connectionState) {
+			is ConnectionState.Error -> {
+				val message = state.reason.toUserMessage(context).ifEmpty { connectionFailedLabel }
+				NymAlertController.show(
+					NymAlertMessage(
+						type = AlertType.Critical,
+						title = message,
+						action = NymAlertAction(connectionErrorRetryLabel) { onConnectPressed() },
+						duration = Long.MAX_VALUE,
+						onDismiss = { isShowingConnectionErrorAlert = false },
+					),
+				)
+				isShowingConnectionErrorAlert = true
+			}
+			is ConnectionState.StartFailure -> {
+				val message = state.exception.toUserMessage(context)
+				NymAlertController.show(
+					NymAlertMessage(
+						type = AlertType.Critical,
+						title = message,
+						action = NymAlertAction(connectionErrorRetryLabel) { onConnectPressed() },
+						duration = Long.MAX_VALUE,
+						onDismiss = { isShowingConnectionErrorAlert = false },
+					),
+				)
+				isShowingConnectionErrorAlert = true
+			}
+			else -> if (isShowingConnectionErrorAlert) NymAlertController.dismiss()
+		}
+	}
+
 	when (val autologin = autologinState) {
 		is AutologinState.Loading -> AutologinLoadingDialog(onCancel = appViewModel::cancelAutologin)
 		is AutologinState.PinReady -> PinCodeDialog(
@@ -289,176 +373,26 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			url = autologin.url,
 			onDismiss = appViewModel::dismissAutologin,
 		)
-		is AutologinState.Error -> {
-			SnackbarController.showMessage(StringValue.StringResource(R.string.account_info_autologin_error))
-		}
-		AutologinState.Idle -> {}
+
+		else -> Unit
 	}
 
-	Box(
-		modifier = Modifier
-			.fillMaxSize()
-			.padding(bottom = padding.calculateBottomPadding()),
-	) {
-		Column(
-			verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
-			horizontalAlignment = Alignment.CenterHorizontally,
-			modifier = Modifier
-				.fillMaxSize()
-				.verticalScroll(rememberScrollState()),
-		) {
-			SnackbarHost(hostState = screenSnackbar, Modifier)
-			ConnectionStatus(
-				connectionState = uiState.connectionState,
-				vpnMode = appUiState.vpnConfig.mode,
-				connectionTime = connectionTime,
-				theme = appUiState.settings.theme ?: Theme.AUTOMATIC,
-				isAppInForeground = isAppInForeground,
-				isAccountInitializing = appUiState.isAccountInitializing,
-				subscription = appUiState.subscription,
-			)
-			Spacer(modifier = Modifier.weight(1f))
-			Column(
-				verticalArrangement = Arrangement.spacedBy(36.dp.scaledHeight(), Alignment.Bottom),
-				horizontalAlignment = Alignment.CenterHorizontally,
-				modifier = Modifier
-					.fillMaxSize()
-					.padding(bottom = 24.dp.scaledHeight()),
-			) {
-				ModeSelector(
-					vpnMode = appUiState.vpnConfig.mode,
-					connectionState = uiState.connectionState,
-					onTwoHopClick = { viewModel.onTwoHopSelected() },
-					onFiveHopClick = { viewModel.onFiveHopSelected() },
-					onInfoClick = { showInfoDialog = true },
-					snackbar = snackbar,
-				)
-				Column(
-					verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom),
-					modifier = Modifier.padding(horizontal = 24.dp.scaledWidth()),
-				) {
-					GroupLabel(title = stringResource(R.string.connect_to))
-					val shouldShowQuic = run {
-						appUiState.vpnConfig.mode == Tunnel.Mode.TWO_HOP_MIXNET &&
-							appUiState.settings.quicEnabled &&
-							appUiState.entryPointGateway?.isQuicSupported() ?: false
-					}
-					LocationField(
-						value = appUiState.entryPointName,
-						label = stringResource(R.string.entry_location),
-						countryCode = appUiState.entryPointCountry,
-						gatewayLocation = appUiState.entryPointLocation,
-						onClick = { onEntryClick() },
-						enabled = true,
-						showQuicLabel = shouldShowQuic,
-						showTrailingIcon = appUiState.vpnConfig.entryPoint is EntryPoint.Gateway || appUiState.managerState.tunnelState == Tunnel.State.Up,
-						onTrailingClick = {
-							appUiState.entryPointGateway?.let { gateway ->
-								navController.goFromRoot(Route.ServerDetails(gateway.identity, GatewayLocation.ENTRY.name))
-							}
-						},
-					)
-					LocationField(
-						value = appUiState.exitPointName,
-						label = stringResource(R.string.exit_location),
-						countryCode = appUiState.exitPointCountry,
-						gatewayLocation = appUiState.exitPointLocation,
-						onClick = { onExitClick() },
-						enabled = true,
-						showGatewayStreamIcon = appUiState.exitPointGateway?.asnKind == AsnKind.RESIDENTIAL,
-						showTrailingIcon = appUiState.vpnConfig.exitPoint is ExitPoint.Gateway || appUiState.managerState.tunnelState == Tunnel.State.Up,
-						onTrailingClick = {
-							appUiState.exitPointGateway?.let { gateway ->
-								navController.goFromRoot(Route.ServerDetails(gateway.identity, GatewayLocation.EXIT.name))
-							}
-						},
-					)
-				}
-				ConnectionButton(
-					connectionState = uiState.connectionState,
-					isMnemonicStored = appUiState.managerState.isMnemonicStored,
-					isAccountInitializing = appUiState.isAccountInitializing,
-					onConnect = { onConnectPressed() },
-					onDisconnect = { onDisconnectPressed() },
-					onStopKillSwitch = { onStopKillSwitchPressed() },
-					onGetStart = { onGetStartedPressed() },
-					navController = navController,
-					accountState = appUiState.managerState.accountState,
-					snackbar = snackbar,
-				)
-			}
-		}
-
-		val expiryState = appUiState.subscription?.expiryState
-		if (expiryState == ExpiryState.WARNING_YELLOW || expiryState == ExpiryState.WARNING_AMBER) {
-			val actionColor = if (expiryState == ExpiryState.WARNING_AMBER) {
-				CustomColors.warning
-			} else {
-				null
-			}
-			InfoBanner(
-				showBanner = !expiryBannerDismissed,
-				config = BannerConfig(
-					message = stringResource(R.string.banner_plan_expires_text, appUiState.subscription!!.validUntilDate),
-					action = BannerAction(
-						title = stringResource(R.string.banner_renew_text),
-						color = actionColor,
-						onClicked = {
-							viewModel.dismissExpiryBanner()
-							appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
-						},
-					),
-					icon = BannerIcon(
-						icon = Icons.Outlined.Close,
-						onClicked = { viewModel.dismissExpiryBanner() },
-					),
-					backgroundColor = MaterialTheme.colorScheme.surface,
-				),
-				modifier = Modifier.padding(16.dp),
-			)
-		}
-
-		InfoBanner(
-			showBanner = showBanner,
-			config = BannerConfig(
-				message = stringResource(R.string.streaming_server_banner_title),
-				action = BannerAction(
-					title = stringResource(R.string.streaming_server_banner_action),
-					onClicked = {
-						dismissStreamingBanner()
-						navController.goFromRoot(Route.ExitLocation)
-					},
-				),
-				icon = BannerIcon(
-					icon = Icons.Outlined.Close,
-					onClicked = {
-						dismissStreamingBanner()
-					},
-				),
-			),
-			modifier = Modifier.padding(16.dp),
-		)
-		InfoBanner(
-			showBanner = showPerAppSecurityBanner,
-			config = BannerConfig(
-				message = stringResource(R.string.split_tunneling_per_app_security_banner_title),
-				action = BannerAction(
-					title = stringResource(R.string.split_tunneling_per_app_security_banner_action),
-					onClicked = {
-						dismissPerAppSecurityBanner()
-						navController.goFromRoot(Route.SplitTunneling)
-					},
-				),
-				icon = BannerIcon(
-					icon = Icons.Outlined.Close,
-					onClicked = {
-						dismissPerAppSecurityBanner()
-					},
-				),
-			),
-			modifier = Modifier.padding(16.dp),
-		)
-	}
+	MainScreenContent(
+		connectionState = uiState.connectionState,
+		appUiState = appUiState,
+		connectionTime = connectionTime,
+		initialPanelState = appUiState.vpnConfig.algorithm.toPanelState(),
+		onConnect = ::onConnectPressed,
+		onDisconnect = ::onDisconnectPressed,
+		onStopKillSwitch = ::onStopKillSwitchPressed,
+		onGetStartedClick = ::onGetStartedPressed,
+		onFastModeClick = { viewModel.onTwoHopSelected() },
+		onAnonModeClick = { viewModel.onFiveHopSelected() },
+		onPanelStateChange = { viewModel.onPanelStateChanged(it) },
+		contentPadding = padding,
+		onExitNodeClick = { onExitClick() },
+		onEntryNodeClick = { onEntryClick() },
+	)
 
 	ShowInfoModal(
 		context = context,
@@ -466,15 +400,17 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		onDismiss = { showInfoDialog = false },
 	)
 
+	val downloadUrl = stringResource(R.string.download_url)
 	CompatibilityModal(
 		showCompatibilityDialog = showCompatibilityDialog,
 		onDismiss = { showCompatibilityDialog = false },
 		onConfirmClick = {
 			showCompatibilityDialog = false
-			context.openWebUrl(context.getString(R.string.download_url))
+			context.openWebUrl(downloadUrl)
 		},
 	)
 
+	val batteryOptTitle = stringResource(R.string.battery_opt_settings_text)
 	BatteryModal(
 		showBatteryDialog = showBatteryDialog,
 		onClickSettings = {
@@ -488,21 +424,207 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		onDismiss = {
 			showBatteryDialog = false
 			viewModel.onBatteryOptSkipped()
-			snackbar.showMessage(context.getString(R.string.battery_opt_settings_text))
+			NymAlertController.show(
+				NymAlertMessage(
+					type = AlertType.Neutral,
+					title = batteryOptTitle,
+				),
+			)
 			viewModel.onDisconnect()
 		},
 	)
 
+	val statsAlertTitle = stringResource(R.string.notification_stats_enabled)
 	NetworkStatsModal(
 		showNetworkStatsDialog = showNetworkStatsDialog,
 		onConfirm = {
 			showNetworkStatsDialog = false
 			viewModel.setNetworkStatsEnabled()
-			snackbar.showMessage(context.getString(R.string.notification_stats_enabled))
+			NymAlertController.show(
+				NymAlertMessage(
+					type = AlertType.Confirmation,
+					title = statsAlertTitle,
+				),
+			)
 		},
 		onDismiss = {
 			viewModel.onNetworkStatsSkipped()
 			showNetworkStatsDialog = false
 		},
 	)
+
+	AuthBottomSheet(
+		isVisible = showAuthSheet,
+		initialRoute = initialAuthRoute,
+		onDismissRequest = { showAuthSheet = false },
+		onAuthSuccess = {
+			showAuthSheet = false
+		},
+		onSaveToPasswordManager = {
+			activity?.lifecycleScope?.launch {
+				savePasswordToManager(context = context, password = it)
+			}
+		},
+	)
+}
+
+@Composable
+private fun MainScreenContent(
+	connectionState: ConnectionState,
+	appUiState: AppUiState,
+	connectionTime: String?,
+	initialPanelState: PanelState,
+	onConnect: () -> Unit,
+	onDisconnect: () -> Unit,
+	onStopKillSwitch: () -> Unit,
+	onGetStartedClick: () -> Unit,
+	onFastModeClick: () -> Unit,
+	onAnonModeClick: () -> Unit,
+	onExitNodeClick: () -> Unit,
+	onEntryNodeClick: () -> Unit,
+	onPanelStateChange: (state: PanelState) -> Unit,
+	modifier: Modifier = Modifier,
+	contentPadding: PaddingValues = PaddingValues(),
+	previewAlertMessage: NymAlertMessage? = null,
+) {
+	Box(
+		modifier = modifier
+			.fillMaxSize()
+			.padding(bottom = contentPadding.calculateBottomPadding()),
+	) {
+		Box(
+			modifier = Modifier
+				.fillMaxWidth()
+				.fillMaxHeight(0.5f)
+				.align(Alignment.TopCenter),
+			contentAlignment = Alignment.BottomCenter,
+		) {
+			ConnectionStatus(
+				connectionState = connectionState,
+				vpnMode = appUiState.vpnConfig.mode,
+				establishConnectionState = appUiState.managerState.establishConnectionState,
+				connectionTime = connectionTime,
+			)
+		}
+
+		Surface(
+			shape = RoundedCornerShape(16.dp),
+			color = MaterialTheme.colorScheme.surfaceContainerLow,
+			modifier = Modifier
+				.align(Alignment.BottomCenter)
+				.fillMaxWidth()
+				.padding(horizontal = 20.dp)
+				.padding(bottom = 16.dp),
+		) {
+			ConnectPanel(
+				connectionState = connectionState,
+				accountState = appUiState.managerState.accountState,
+				isMnemonicStored = appUiState.managerState.isMnemonicStored,
+				vpnMode = appUiState.vpnConfig.mode,
+				exitNode = ServerNode(
+					name = appUiState.exitPointName,
+					countryCode = appUiState.exitPointCountry,
+					location = appUiState.exitPointLocation,
+					isRandom = appUiState.isExitPointRandom,
+				),
+				entryNode = ServerNode(
+					name = appUiState.entryPointName,
+					countryCode = appUiState.entryPointCountry,
+					location = appUiState.entryPointLocation,
+					isRandom = appUiState.isEntryPointRandom,
+				),
+				initialPanelState = initialPanelState,
+				onFastModeClick = onFastModeClick,
+				onAnonModeClick = onAnonModeClick,
+				onConnect = onConnect,
+				onDisconnect = onDisconnect,
+				onStopKillSwitch = onStopKillSwitch,
+				onGetStartedClick = onGetStartedClick,
+				onPanelStateChange = onPanelStateChange,
+				onEntryNodeClick = onEntryNodeClick,
+				onExitNodeClick = onExitNodeClick,
+			)
+		}
+
+		NymAlertHost(
+			modifier = Modifier
+				.align(Alignment.TopCenter)
+				.padding(top = contentPadding.calculateTopPadding() + 8.dp)
+				.padding(horizontal = 16.dp),
+			previewMessage = previewAlertMessage,
+		)
+	}
+}
+
+@Composable
+@Preview(showBackground = true, backgroundColor = 0xFF0D0D0F)
+private fun MainScreenPreviewAlertCritical() {
+	NymVPNTheme(Theme.DARK_MODE) {
+		MainScreenContent(
+			connectionState = ConnectionState.Disconnected,
+			appUiState = AppUiState(),
+			connectionTime = null,
+			initialPanelState = PanelState.COLLAPSED,
+			onConnect = {},
+			onDisconnect = {},
+			onStopKillSwitch = {},
+			onGetStartedClick = {},
+			onFastModeClick = {},
+			onAnonModeClick = {},
+			onPanelStateChange = {},
+			onExitNodeClick = {},
+			onEntryNodeClick = {},
+			previewAlertMessage = NymAlertMessage(
+				type = AlertType.Critical,
+				title = "Secure your secret passphrase",
+				body = "No passphrase no access to account",
+				action = NymAlertAction("Back up now") {},
+				duration = Long.MAX_VALUE,
+			),
+		)
+	}
+}
+
+@Composable
+@Preview(showBackground = true, backgroundColor = 0xFF0D0D0F)
+private fun MainScreenPreviewDisconnected() {
+	NymVPNTheme(Theme.DARK_MODE) {
+		MainScreenContent(
+			connectionState = ConnectionState.Disconnected,
+			appUiState = AppUiState(),
+			connectionTime = null,
+			initialPanelState = PanelState.COLLAPSED,
+			onConnect = {},
+			onDisconnect = {},
+			onStopKillSwitch = {},
+			onGetStartedClick = {},
+			onFastModeClick = {},
+			onAnonModeClick = {},
+			onPanelStateChange = {},
+			onExitNodeClick = {},
+			onEntryNodeClick = {},
+		)
+	}
+}
+
+@Composable
+@Preview(showBackground = true, backgroundColor = 0xFF0D0D0F)
+private fun MainScreenPreviewConnected() {
+	NymVPNTheme(Theme.DARK_MODE) {
+		MainScreenContent(
+			connectionState = ConnectionState.Connected,
+			appUiState = AppUiState(),
+			connectionTime = "01:23:45",
+			initialPanelState = PanelState.COLLAPSED,
+			onConnect = {},
+			onDisconnect = {},
+			onStopKillSwitch = {},
+			onGetStartedClick = {},
+			onFastModeClick = {},
+			onAnonModeClick = {},
+			onPanelStateChange = {},
+			onExitNodeClick = {},
+			onEntryNodeClick = {},
+		)
+	}
 }

@@ -1,111 +1,190 @@
 package net.nymtech.nymvpn.ui.theme
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-sealed class ThemeColors(
-	val background: Color,
-	val surface: Color,
-	val primary: Color,
-	val secondary: Color,
-	val onBackground: Color,
-	val onSurface: Color,
-	val onPrimary: Color,
-	val onSurfaceVariant: Color,
-	val onSecondary: Color,
-	val surfaceContainer: Color,
-	val tertiary: Color,
-	val outline: Color,
-	val error: Color,
-) {
-	data object Dark : ThemeColors(
-		background = Color(0xFF242B2D),
-		surface = Color(0xFF374042),
-		primary = primary,
-		secondary = secondary,
-		onBackground = Color(0xFFFFFFFF),
-		onSurface = Color(0xFFE6E1E5),
-		onPrimary = Color(0xFF242B2D),
-		onSurfaceVariant = Color(0xFF938F99),
-		onSecondary = Color(0xFF56545A),
-		surfaceContainer = Color(0xFF313033),
-		tertiary = Color(0xFF14E76F),
-		outline = Color(0xFFB0ADB6),
-		error = Color(0xFFE33B5A),
-	)
+val Green = Color(0xFF5BF0A0) // primary / button fill — both modes
+val GreenDark = Color(0xFF1A9B61) // primary text/icon in light mode
+val GreenOnPrimary = Color(0xFF052E18)
 
-	data object Light : ThemeColors(
-		background = Color(0xFFEBEEF4),
-		surface = Color(0xFFFFFFFF),
-		primary = primary,
-		secondary = secondary,
-		onBackground = Color(0xFF1C1B1F),
-		onSurface = Color(0xFF1C1B1F),
-		onPrimary = Color(0xFF1C1B1F),
-		onSurfaceVariant = Color(0xFF79747E),
-		onSecondary = Color(0xFFA4A4A4),
-		surfaceContainer = Color(0xFFFFFFFF),
-		tertiary = Color(0xFF0B8A42),
-		outline = Color(0xFF606060),
-		error = Color(0xFFE33B5A),
-	)
+internal object DarkSchemeBaseColors {
+	val primary = Green
+	val onPrimary = GreenOnPrimary
+
+	// greenIconBackground
+	val primaryContainer = Color(0xFF0A4A28)
+	val onPrimaryContainer = Color(0xFFB8FDD5)
+
+	val secondary = Color(0xFF48484A)
+	val onSecondary = Color(0xFFAEAEB2)
+	val secondaryContainer = Color(0xFF3A3A3C)
+	val onSecondaryContainer = Color(0xFFCCCCCF)
+
+	val tertiary = Green
+	val onTertiary = GreenOnPrimary
+	val tertiaryContainer = Color(0xFF0A3D22)
+	val onTertiaryContainer = Color(0xFFB8FDD5)
+
+	// errorPillText
+	val background = Color(0xFF0D0D0F)
+	val onBackground = Color(0xFFFFFFFF)
+
+	val surface = Color(0xFF1C1C1E)
+	val onSurface = Color(0xFFE5E5E7)
+
+	// statusDefaultBg
+	val surfaceVariant = Color(0xFF2C2C2E)
+
+	// stateLabel
+	val onSurfaceVariant = Color(0xFF8B8B90)
+	val surfaceTint = Green
+	val surfaceBright = Color(0xFF3A3A3C)
+	val surfaceDim = Color(0xFF0D0D0F)
+	val surfaceContainer = Color(0xFF2C2C2E)
+	val surfaceContainerHigh = Color(0xFF363638)
+	val surfaceContainerHighest = Color(0xFF424244)
+	val surfaceContainerLow = Color(0xFF1C1C1E)
+	val surfaceContainerLowest = Color(0xFF0D0D0F)
+
+	val outline = Color(0xFF3C3C3E)
+	val outlineVariant = Color(0xFF2C2C2E)
+	val scrim = Color(0xFF000000)
+
+	val inverseSurface = Color(0xFFE5E5E7)
+	val inverseOnSurface = Color(0xFF1C1C1E)
+	val inversePrimary = GreenDark
+
+	// redIcon, CustomColors.error, CustomColors.disconnect
+	val error = Color(0xFFE73E14)
+	val onError = Color(0xFFFFFFFF)
+
+	// redIconBackground, statusErrorBg
+	val errorContainer = Color(0xFF5C1208)
+	val onErrorContainer = Color(0xFFFFBDAB)
 }
 
-val primary = Color(0xFF14E76F)
-val secondary = Color(0XFFCECCD1)
+internal object LightSchemeBaseColors {
+	val primary = Green
+	val onPrimary = GreenOnPrimary
+
+	// greenIconBackground
+	val primaryContainer = Color(0xFFC2FFE0)
+	val onPrimaryContainer = Color(0xFF002D14)
+
+	val secondary = Color(0xFF8E8E93)
+	val onSecondary = Color(0xFFFFFFFF)
+	val secondaryContainer = Color(0xFFE5E5EA)
+	val onSecondaryContainer = Color(0xFF3A3A3C)
+
+	val tertiary = GreenDark
+	val onTertiary = Color(0xFFFFFFFF)
+	val tertiaryContainer = Color(0xFFC2FFE0)
+	val onTertiaryContainer = Color(0xFF002D14)
+
+	// errorPillText
+	val background = Color(0xFFF2F2F7)
+	val onBackground = Color(0xFF0D0D0F)
+
+	val surface = Color(0xFFFFFFFF)
+	val onSurface = Color(0xFF0D0D0F)
+
+	// statusDefaultBg
+	val surfaceVariant = Color(0xFFEBEBF0)
+
+	// stateLabel
+	val onSurfaceVariant = Color(0xFF6B6B70)
+	val surfaceTint = GreenDark
+	val surfaceBright = Color(0xFFFFFFFF)
+	val surfaceDim = Color(0xFFDFE0E5)
+	val surfaceContainer = Color(0xFFEBEBF0)
+	val surfaceContainerHigh = Color(0xFFE5E5EA)
+	val surfaceContainerHighest = Color(0xFFE0E0E5)
+	val surfaceContainerLow = Color(0xFFF0F0F5)
+	val surfaceContainerLowest = Color(0xFFFFFFFF)
+
+	val outline = Color(0xFFB4B4B9)
+	val outlineVariant = Color(0xFFDFDFE4)
+	val scrim = Color(0xFF000000)
+
+	val inverseSurface = Color(0xFF1C1C1E)
+	val inverseOnSurface = Color(0xFFF2F2F7)
+	val inversePrimary = Green
+
+	// redIcon, CustomColors.error, CustomColors.disconnect
+	val error = Color(0xFFE73E14)
+	val onError = Color(0xFFFFFFFF)
+
+	// redIconBackground, statusErrorBg
+	val errorContainer = Color(0xFFFFDAD0)
+	val onErrorContainer = Color(0xFF5C1208)
+}
 
 object CustomColors {
-	val outlineVariant = Color(0xFF49454F)
-	val statusGreen = Color(0x1A47C45D)
-	val statusRed = Color(0xFF672D32)
-	val statusRedLight = Color(0xFFF3CAC8)
-	val statusDefaultDark = Color(0xFF2B3234)
-	val statusDefaultLight = Color(0xFFE2E4EA)
-	val errorStatusPillLight = Color(0xFFEBEEF4)
-	val errorStatusPillDark = Color(0xFF242B2D)
-	val pulse = Color(0xFF7075FF)
-	val disconnect = Color(0xFFE02C4D)
-	val error = Color(0xFFE33B5A)
-	val snackBarBackgroundColor = Color(0xFF484649)
-	val snackbarTextColor = Color(0xFFE7E7E7)
+	val criticalAlert = Color(0xFFCD2C3C)
 	val warning = Color(0xFFFFB400)
-	val iconBorder = Color(0x4014E76F)
-	val iconBackground = Color(0x2611C55F)
+	val warningAmber = Color(0xFFFB6E4E)
+	val pulse = Color(0xFF7075FF)
 	val buttonRedTransparent = Color(0x1AED5060)
 	val buttonRedTransparentBorder = Color(0xFFED5060)
-	val warningAmber = Color(0xFFFB6E4E)
+
+	// Arc connection animation tokens — identical in dark and light
+	val errorPulse = Color(0xE6E73E14) // error arc at 90% — pulse peak
+	val errorTint = Color(0x14E73E14) // error at 8% — sphere ambient tint
+	val sphereBase = Color(0xFF0A0A0A) // sphere base material
+	val sphereHighlight = Color(0xFF2A2A2E) // sphere radial highlight
 }
 
 @Immutable
-data class CustomColorsPalette(
-	val borderCyan: Color = Color.Unspecified,
-	val labelCyan: Color = Color.Unspecified,
-	val redIconBackground: Color = Color.Unspecified,
-	val redIcon: Color = Color.Unspecified,
+data class NymColors(
+	val snackBarBackground: Color = Color.Unspecified,
+	val snackbarText: Color = Color.Unspecified,
+	val iconBorder: Color = Color.Unspecified,
+	val iconBackground: Color = Color.Unspecified,
 	val greyIconBackground: Color = Color.Unspecified,
 	val greyIcon: Color = Color.Unspecified,
-	val greenIconBackground: Color = Color.Unspecified,
 	val greenIcon: Color = Color.Unspecified,
+	val borderCyan: Color = Color.Unspecified,
+	val labelCyan: Color = Color.Unspecified,
+	val statusConnectedBg: Color = Color.Unspecified,
+	val fastFill: Color = Color.Unspecified,
+	val anonFill: Color = Color.Unspecified, // semi-transparent onSurfaceVariant
+	val errorFill: Color = Color.Unspecified, // semi-transparent error
+	val trackIdle: Color = Color.Unspecified,
 )
 
-val LightCustomColorsPalette = CustomColorsPalette(
-	borderCyan = Color(0x8000A3F5),
-	labelCyan = Color(0xFF00A3F5),
-	redIconBackground = Color(0xFFFFE2E2),
-	redIcon = Color(0xFFE73E14),
-	greyIconBackground = Color(0xFFE2E4EA),
-	greyIcon = Color(0xFFB0ADB6),
-	greenIconBackground = Color(0xFFAFFFD2),
-	greenIcon = Color(0xFF0B8A42),
-)
-
-val DarkCustomColorsPalette = CustomColorsPalette(
+val DarkNymColors = NymColors(
+	snackBarBackground = Color(0xFF2C2C2E),
+	snackbarText = Color(0xFFE5E5E7),
+	iconBorder = Color(0x405BF0A0),
+	iconBackground = Color(0x265BF0A0),
+	greyIconBackground = Color(0xFF2C2C2E),
+	greyIcon = Color(0xFF8B8B90),
+	greenIcon = Color(0xFF5BF0A0),
 	borderCyan = Color(0x8098DDFF),
 	labelCyan = Color(0xFF98DDFF),
-	redIconBackground = Color(0xFF500E0E),
-	redIcon = Color(0xFFE73E14),
-	greyIconBackground = Color(0xFF32393B),
-	greyIcon = Color(0xFF66646C),
-	greenIconBackground = Color(0xFF254B35),
-	greenIcon = Color(0xFF14E76F),
+	statusConnectedBg = Color(0x1A5BF0A0),
+	fastFill = Color(0xFF5BF0A0),
+	anonFill = Color(0x998B8B90),
+	errorFill = Color(0x99E73E14),
+	trackIdle = Color(0x26FFFFFF),
 )
+
+val LightNymColors = NymColors(
+	snackBarBackground = Color(0xFF1C1C1E),
+	snackbarText = Color(0xFFF2F2F7),
+	iconBorder = Color(0x401A9B61),
+	iconBackground = Color(0x261A9B61),
+	greyIconBackground = Color(0xFFE5E5EA),
+	greyIcon = Color(0xFF8E8E93),
+	greenIcon = Color(0xFF1A9B61),
+	borderCyan = Color(0x8000A3F5),
+	labelCyan = Color(0xFF00A3F5),
+	statusConnectedBg = Color(0x1A1A9B61),
+	fastFill = Color(0xFF1A9B61),
+	anonFill = Color(0x996B6B70),
+	errorFill = Color(0x99E73E14),
+	trackIdle = Color(0x1F0A0A0A),
+)
+
+val LocalNymColors = staticCompositionLocalOf { DarkNymColors }

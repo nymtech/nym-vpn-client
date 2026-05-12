@@ -89,6 +89,7 @@ import net.nymtech.nymvpn.ui.screens.welcome.WelcomeScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isCurrentRoute
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.resetTile
@@ -206,6 +207,8 @@ class MainActivity : AppCompatActivity() {
 									onBackClick = { onBackClickEventFromRoute = it },
 									onNavBarEvent = { navBarEvent = it },
 									logsEnabled = appState.settings.logsEnabled,
+									onMainThemeClick = { navController.goFromRoot(Route.Display) },
+									onMainSettingsClick = { navController.goFromRoot(Route.Settings(false)) },
 								)
 							},
 							snackbarHost = {
@@ -236,7 +239,7 @@ class MainActivity : AppCompatActivity() {
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Main>()
-									MainScreen(appViewModel, appState, args.autoStart)
+									MainScreen(appViewModel, appState, args.autoStart, showAuth = args.showAuth)
 								}
 
 								composable<Route.Permission> {

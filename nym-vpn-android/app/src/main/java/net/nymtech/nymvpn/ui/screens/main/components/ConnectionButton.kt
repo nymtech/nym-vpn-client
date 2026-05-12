@@ -7,19 +7,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.ui.common.snackbar.AlertType
+import net.nymtech.nymvpn.ui.common.snackbar.NymAlertController
+import net.nymtech.nymvpn.ui.common.snackbar.NymAlertMessage
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.goFromRoot
@@ -34,44 +33,41 @@ fun ConnectionButton(
 	connectionState: ConnectionState,
 	accountState: AccountControllerState,
 	isMnemonicStored: Boolean,
-	isAccountInitializing: Boolean,
+	navController: NavController,
 	onConnect: () -> Unit,
 	onDisconnect: () -> Unit,
 	onStopKillSwitch: () -> Unit,
 	onGetStart: () -> Unit,
 	modifier: Modifier = Modifier,
-	snackbar: SnackbarController,
-	navController: NavController,
 ) {
 	val context = LocalContext.current
-	val scope = rememberCoroutineScope()
+	val noInternetText = stringResource(R.string.no_internet)
+	val buttonModifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight())
 
 	Box(modifier = modifier.padding(horizontal = 24.dp.scaledWidth())) {
 		when (connectionState) {
 			ConnectionState.Disconnected,
 			ConnectionState.Offline,
 			ConnectionState.WaitingForConnection,
-			-> {
-				MainStyledButton(
-					testTag = Constants.CONNECT_TEST_TAG,
-					onClick = {
-						scope.launch {
-							if (!isMnemonicStored) return@launch navController.goFromRoot(Route.Welcome)
-							if (connectionState is ConnectionState.Offline) return@launch snackbar.showMessage(context.getString(R.string.no_internet))
-							onConnect()
-						}
-					},
-					content = {
-						Text(
-							stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started),
-							style = CustomTypography.buttonMain,
+			-> MainStyledButton(
+				testTag = Constants.CONNECT_TEST_TAG,
+				onClick = {
+					when {
+						!isMnemonicStored -> navController.goFromRoot(Route.Welcome)
+						connectionState is ConnectionState.Offline -> NymAlertController.show(
+							NymAlertMessage(type = AlertType.Neutral, title = noInternetText),
 						)
-					},
-					modifier = Modifier
-						.fillMaxWidth()
-						.height(56.dp.scaledHeight()),
-				)
-			}
+						else -> onConnect()
+					}
+				},
+				content = {
+					Text(
+						stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started),
+						style = CustomTypography.buttonMain,
+					)
+				},
+				modifier = buttonModifier,
+			)
 
 			is ConnectionState.Error -> {
 				val isSubscriptionError = connectionState.reason is ErrorStateReason.InactiveSubscription ||
@@ -85,13 +81,11 @@ fun ConnectionButton(
 								Text(
 									stringResource(R.string.stop),
 									style = CustomTypography.buttonMain,
-									color = MaterialTheme.colorScheme.background,
+									color = MaterialTheme.colorScheme.onError,
 								)
 							},
-							color = CustomColors.disconnect,
-							modifier = Modifier
-								.fillMaxWidth()
-								.height(56.dp.scaledHeight()),
+							color = MaterialTheme.colorScheme.error,
+							modifier = buttonModifier,
 						)
 					} else {
 						MainStyledButton(
@@ -102,16 +96,15 @@ fun ConnectionButton(
 									style = CustomTypography.buttonMain,
 								)
 							},
-							modifier = Modifier
-								.fillMaxWidth()
-								.height(56.dp.scaledHeight()),
+							modifier = buttonModifier,
 						)
 					}
 				} else {
 					MainStyledButton(
 						onClick = {
-							scope.launch {
-								if (!isMnemonicStored) return@launch navController.goFromRoot(Route.Welcome)
+							if (!isMnemonicStored) {
+								navController.goFromRoot(Route.Welcome)
+							} else {
 								onConnect()
 							}
 						},
@@ -121,41 +114,33 @@ fun ConnectionButton(
 								style = CustomTypography.buttonMain,
 							)
 						},
-						modifier = Modifier
-							.fillMaxWidth()
-							.height(56.dp.scaledHeight()),
+						modifier = buttonModifier,
 					)
 				}
 			}
 
 			ConnectionState.Disconnecting,
 			is ConnectionState.Connecting,
-			-> {
-				MainStyledButton(
-					onClick = onDisconnect,
-					content = {
-						Text(
-							stringResource(R.string.stop),
-							style = CustomTypography.buttonMain,
-							color = MaterialTheme.colorScheme.background,
-						)
-					},
-					color = CustomColors.disconnect,
-					modifier = Modifier
-						.fillMaxWidth()
-						.height(56.dp.scaledHeight()),
-				)
-			}
+			-> MainStyledButton(
+				onClick = onDisconnect,
+				content = {
+					Text(
+						stringResource(R.string.stop),
+						style = CustomTypography.buttonMain,
+						color = MaterialTheme.colorScheme.onError,
+					)
+				},
+				color = MaterialTheme.colorScheme.error,
+				modifier = buttonModifier,
+			)
 
-			is ConnectionState.StartFailure -> {
-				MainStyledButton(
-					onClick = { onConnect() },
-					content = {
-						Text(stringResource(R.string.connect), style = CustomTypography.buttonMain)
-					},
-					modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
-				)
-			}
+			is ConnectionState.StartFailure -> MainStyledButton(
+				onClick = onConnect,
+				content = {
+					Text(stringResource(R.string.connect), style = CustomTypography.buttonMain)
+				},
+				modifier = buttonModifier,
+			)
 
 			ConnectionState.Connected -> MainStyledButton(
 				testTag = Constants.DISCONNECT_TEST_TAG,
@@ -164,12 +149,11 @@ fun ConnectionButton(
 					Text(
 						stringResource(R.string.disconnect),
 						style = CustomTypography.buttonMain,
+						color = MaterialTheme.colorScheme.onError,
 					)
 				},
-				color = CustomColors.disconnect,
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(56.dp.scaledHeight()),
+				color = MaterialTheme.colorScheme.error,
+				modifier = buttonModifier,
 			)
 		}
 	}

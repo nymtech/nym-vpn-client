@@ -2,7 +2,7 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,21 +26,21 @@ fun SupportSection(onSupportClick: () -> Unit) {
 						ImageVector.vectorResource(R.drawable.support),
 						stringResource(R.string.support),
 						modifier = Modifier.size(iconSize.scaledWidth()),
-						tint = MaterialTheme.colorScheme.outline,
+						tint = MaterialTheme.colorScheme.onSurfaceVariant,
 					)
 				},
 				trailing = {
 					Icon(
-						Icons.AutoMirrored.Outlined.ArrowRight,
+						Icons.AutoMirrored.Filled.KeyboardArrowRight,
 						stringResource(R.string.go),
 						modifier = Modifier.size(iconSize),
-						tint = MaterialTheme.colorScheme.onBackground,
+						tint = MaterialTheme.colorScheme.onSurfaceVariant,
 					)
 				},
 				title = {
 					Text(
 						stringResource(R.string.support_and_feedback),
-						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
 					)
 				},
 				onClick = onSupportClick,

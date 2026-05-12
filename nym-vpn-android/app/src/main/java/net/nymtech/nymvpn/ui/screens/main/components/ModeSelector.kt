@@ -16,13 +16,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
-import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.ui.common.snackbar.AlertType
+import net.nymtech.nymvpn.ui.common.snackbar.NymAlertController
+import net.nymtech.nymvpn.ui.common.snackbar.NymAlertMessage
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -30,26 +31,14 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 
 @Composable
-fun ModeSelector(
-	vpnMode: Tunnel.Mode,
-	connectionState: ConnectionState,
-	onTwoHopClick: () -> Unit,
-	onFiveHopClick: () -> Unit,
-	onInfoClick: () -> Unit,
-	modifier: Modifier = Modifier,
-	snackbar: SnackbarController,
-) {
-	val context = LocalContext.current
-
-	// Only prevent mode changes while connecting (not while connected - restart will handle it)
+fun ModeSelector(vpnMode: Tunnel.Mode, connectionState: ConnectionState, onTwoHopClick: () -> Unit, onFiveHopClick: () -> Unit, onInfoClick: () -> Unit, modifier: Modifier = Modifier) {
+	// Mode switches while connected trigger a tunnel restart; only block during active connecting.
+	val disabledWhileConnecting = stringResource(R.string.disabled_while_connecting)
 	fun handleModeClick(callback: () -> Unit) {
 		when (connectionState) {
-			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> {
-				snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
-			}
-			else -> {
-				callback.invoke()
-			}
+			ConnectionState.WaitingForConnection, is ConnectionState.Connecting ->
+				NymAlertController.show(NymAlertMessage(type = AlertType.Neutral, title = disabledWhileConnecting))
+			else -> callback()
 		}
 	}
 
