@@ -5,7 +5,6 @@
 use std::net::SocketAddr;
 
 use super::*;
-use hickory_resolver::config::{ConnectionConfig, ProtocolConfig};
 use hickory_server::resolver::{TokioResolver, config::ResolverConfig};
 use tokio_util::sync::CancellationToken;
 
