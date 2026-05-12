@@ -29,9 +29,9 @@ impl Command {
                 println!(
                     "Ad blocking: {}",
                     if config.enable_ad_blocking {
-                        "enabled"
+                        "on"
                     } else {
-                        "disabled"
+                        "off"
                     }
                 );
                 Ok(())
