@@ -37,7 +37,7 @@ env:
   WINFW_PATH: build/winfw/${{ inputs.cpu_arch || 'x64' }}-Release
   STDRIVER_PATH: nym-vpn-windows/split-tunnel-driver/signed/${{ inputs.cpu_arch || 'x64' }}
   WINTUN_DIST_DIR: wintun-dist
-  UPLOAD_DIR_WINDOWS: windows_artifacts_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
+  UPLOAD_DIR_WINDOWS: windows_core_artifacts_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
 
 jobs:
   build-wireguard-go-windows:
@@ -78,7 +78,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
-          targets: ${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || '' }}
+          targets: ${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || 'x86_64-pc-windows-msvc' }}
           components: rustfmt, clippy
 
       - name: Get workspace version
