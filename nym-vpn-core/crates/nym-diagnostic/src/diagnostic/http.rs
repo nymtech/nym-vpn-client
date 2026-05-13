@@ -71,12 +71,10 @@ impl HttpDiagnostic {
             for api_client in api_clients {
                 jobs.spawn(async move {
                     match api_client.health().await {
-                        Ok(res) => {
-                            DiagnosticResult::from_value(DiagnosticEndpointResponse {
-                                status: res.status.is_up().to_string(),
-                                url: url_from_client(&api_client),
-                            })
-                        }
+                        Ok(res) => DiagnosticResult::from_value(DiagnosticEndpointResponse {
+                            status: res.status.is_up().to_string(),
+                            url: url_from_client(&api_client),
+                        }),
                         Err(e) => DiagnosticResult::from_err(e),
                     }
                 });
@@ -118,12 +116,10 @@ impl HttpDiagnostic {
             for api_client in api_clients {
                 jobs.spawn(async move {
                     match api_client.get_health().await {
-                        Ok(res) => {
-                            DiagnosticResult::from_value(DiagnosticEndpointResponse {
-                                status: res.status,
-                                url: url_from_client(api_client.as_ref()),
-                            })
-                        }
+                        Ok(res) => DiagnosticResult::from_value(DiagnosticEndpointResponse {
+                            status: res.status,
+                            url: url_from_client(api_client.as_ref()),
+                        }),
                         Err(e) => DiagnosticResult::from_err(e),
                     }
                 });
