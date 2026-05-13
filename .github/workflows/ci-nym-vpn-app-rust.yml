@@ -12,6 +12,8 @@ on:
 env:
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+  SCCACHE_GHA_ENABLED: true
+  RUSTC_WRAPPER: sccache
 
 jobs:
   check:
@@ -46,9 +48,11 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v6
-
         with:
           fetch-depth: 1
+
+      - uses: mozilla-actions/sccache-action@v0.0.10
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:

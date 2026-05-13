@@ -19,9 +19,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v6
-
         with:
           fetch-depth: 1
+
       - name: Install yq
         run: |
           sudo wget https://github.com/mikefarah/yq/releases/download/v4.44.1/yq_linux_amd64 -O /usr/bin/yq
