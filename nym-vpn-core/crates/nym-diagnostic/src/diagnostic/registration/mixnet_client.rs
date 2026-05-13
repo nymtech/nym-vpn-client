@@ -110,17 +110,17 @@ impl MixnetClientRegistration {
                             Some(DiagnosticResult::<()>::SUCCESS)
                     }
                     Err(e) => {
-                        registration_report.mixnet_ipr_connect = Some(
-                            DiagnosticResult::from_err(format!("IPR handshake failed: {e}")),
-                        )
+                        registration_report.mixnet_ipr_connect = Some(DiagnosticResult::from_err(
+                            format!("IPR handshake failed: {e}"),
+                        ))
                     }
                 }
                 mixnet_client
             }
             Err(e) => {
-                registration_report.mixnet_ipr_connect = Some(DiagnosticResult::from_err(
-                    format!("IPR address lookup failed: {e}"),
-                ));
+                registration_report.mixnet_ipr_connect = Some(DiagnosticResult::from_err(format!(
+                    "IPR address lookup failed: {e}"
+                )));
                 mixnet_client
             }
         };
