@@ -49,8 +49,9 @@ function UpdateDialog() {
       id: 'update-installed-restart-required',
       title: t('update-installed-restart-required', { ns: 'notifications' }),
       type: 'info',
+      timeout: 10000, // 10 seconds
       actionProps: {
-        value: t('restart', { ns: 'common' }),
+        children: t('restart', { ns: 'common' }),
         onClick: () => {
           relaunch();
           close('update-installed-restart-required');
