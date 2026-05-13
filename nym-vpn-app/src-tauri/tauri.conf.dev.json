@@ -1,0 +1,9 @@
+{
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/dev.json"
+      ]
+    }
+  }
+}
