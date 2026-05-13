@@ -45,6 +45,7 @@ jobs:
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
+      dev_build: ${{ inputs.release_type == 'dev' || inputs.release_type == 'rc' }}
     secrets: inherit
 
   build-windows-arm64:
@@ -56,6 +57,8 @@ jobs:
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
+      dev_build: ${{ inputs.release_type == 'dev' || inputs.release_type == 'rc' }}
+      cpu_arch: ARM64
     secrets: inherit
 
   generate-build-info-nym-vpn-app:
