@@ -51,11 +51,6 @@ on:
           - stable
           - dev
         default: dev
-      dev_build:
-        description: 'dev build'
-        required: false
-        type: boolean
-        default: false
   workflow_call:
     inputs:
       cpu_arch:
@@ -89,10 +84,6 @@ on:
         required: false
         type: string
         default: dev
-      dev_build:
-        required: false
-        type: boolean
-        default: false
     secrets:
       SSL_COM_USERNAME:
         required: true
@@ -398,7 +389,7 @@ jobs:
           $nsisDir = "target/" + $(if ($env:TAURI_TARGET) { "$env:TAURI_TARGET/" }) + "release/bundle/nsis"
           if ($env:UPDATER_ENABLED -eq 'true') { Write-Host "Updater endpoint: $env:UPDATER_ENDPOINT" }
           $updaterArgs = if ($env:UPDATER_ENABLED -eq 'true') { @('--config', 'src-tauri/updater.conf.json') } else { @() }
-          $devBuildArgs = if ('${{ inputs.dev_build }}' -eq 'true') { @('--config', 'src-tauri/tauri.conf.dev.json') } else { @() }
+          $devBuildArgs = if ('${{ inputs.dev_mode }}' -eq 'true') { @('--config', 'src-tauri/tauri.conf.dev.json') } else { @() }
           npm run tauri build -- --bundles nsis @targetArgs @updaterArgs @devBuildArgs
           Get-ChildItem "$nsisDir" -ErrorAction SilentlyContinue | Write-Host
 
