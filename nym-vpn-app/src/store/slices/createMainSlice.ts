@@ -111,6 +111,7 @@ export const initialState: AppState = {
   daemonStatus: 'down',
   networkEnv: 'mainnet',
   version: null,
+  linuxAppUpdated: false,
   vpnMode: 'wg',
   uiTheme: 'light',
   themeMode: DefaultThemeMode,

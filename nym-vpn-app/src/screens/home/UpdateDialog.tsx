@@ -42,14 +42,14 @@ function UpdateDialog() {
   useEffect(() => {
     if (!linuxAppUpdated || os !== 'linux') return;
 
-    // rese the state to false so the dialog is not shown again on return
-    dispatch({ type: 'set-linux-app-updated', updated: false });
-
     add({
       id: 'update-installed-restart-required',
       title: t('update-installed-restart-required', { ns: 'notifications' }),
       type: 'info',
       timeout: 10000, // 10 seconds
+      onClose: () => {
+        dispatch({ type: 'set-linux-app-updated', updated: false });
+      },
       actionProps: {
         children: t('restart', { ns: 'common' }),
         onClick: () => {
