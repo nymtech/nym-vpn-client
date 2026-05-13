@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -23,7 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun PulsingDotsWave(modifier: Modifier = Modifier, dotCount: Int = 4, dotSize: Dp = 8.dp, dotColor: Color = Color(0xFF00FF66), spaceBetween: Dp = 2.dp, pulseDuration: Int = 1000) {
+fun PulsingDotsWave(modifier: Modifier = Modifier, dotCount: Int = 4, dotSize: Dp = 8.dp, dotColor: Color = MaterialTheme.colorScheme.primary, spaceBetween: Dp = 2.dp, pulseDuration: Int = 1000) {
 	val infiniteTransition = rememberInfiniteTransition(label = "waveTransition")
 	val progress by infiniteTransition.animateFloat(
 		initialValue = 0f,

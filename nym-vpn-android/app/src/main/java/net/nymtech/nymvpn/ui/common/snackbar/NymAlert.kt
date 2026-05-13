@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 
 @Composable
 fun NymAlertHost(modifier: Modifier = Modifier, previewMessage: NymAlertMessage? = null) {
@@ -70,15 +70,15 @@ fun NymAlertHost(modifier: Modifier = Modifier, previewMessage: NymAlertMessage?
 
 @Composable
 private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
-	val isCritical = message.type == AlertType.Critical
-	val background = if (isCritical) CustomColors.criticalAlert else MaterialTheme.colorScheme.inverseSurface
-	val onAlertSurface = if (isCritical) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.inverseOnSurface
+	val isError = message.type == AlertType.Error
+	val background = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.inverseSurface
+	val onAlertSurface = if (isError) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.inverseOnSurface
 	val iconTint = when (message.type) {
 		AlertType.Confirmation -> MaterialTheme.colorScheme.primary
 		AlertType.Neutral -> onAlertSurface
 		AlertType.Negative -> MaterialTheme.colorScheme.error
-		AlertType.Warning -> CustomColors.warning
-		AlertType.Critical -> onAlertSurface
+		AlertType.Warning -> LocalNymColors.current.warning
+		AlertType.Error -> onAlertSurface
 	}
 
 	Surface(
@@ -91,7 +91,7 @@ private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: 
 			modifier = Modifier
 				.fillMaxWidth()
 				.padding(16.dp),
-			verticalArrangement = Arrangement.spacedBy(if (isCritical) 12.dp else 5.dp),
+			verticalArrangement = Arrangement.spacedBy(if (isError) 12.dp else 5.dp),
 		) {
 			Row(
 				modifier = Modifier.fillMaxWidth(),
@@ -121,7 +121,7 @@ private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: 
 						)
 					}
 				}
-				if (!isCritical) {
+				if (!isError) {
 					IconButton(onClick = onDismiss) {
 						Icon(
 							imageVector = Icons.Filled.Close,

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Download
@@ -29,6 +30,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
 fun PassphraseActions(show: Boolean, onCopyClick: () -> Unit, onDownloadClick: () -> Unit, onSaveClick: () -> Unit) {
@@ -36,79 +38,70 @@ fun PassphraseActions(show: Boolean, onCopyClick: () -> Unit, onDownloadClick: (
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(top = 16.dp),
+				.padding(top = 14.dp),
 			horizontalAlignment = Alignment.CenterHorizontally,
 		) {
 			OutlineStyledButton(
-				modifier = Modifier
-					.fillMaxWidth(0.8f)
-					.padding(horizontal = 12.dp),
+				modifier = Modifier.fillMaxWidth(0.8f).height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
 				onClick = onSaveClick,
-				borderColor = MaterialTheme.colorScheme.outline,
 				content = {
 					Row(verticalAlignment = Alignment.CenterVertically) {
 						Icon(
 							imageVector = Icons.Outlined.Lock,
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurface,
+							tint = MaterialTheme.colorScheme.onPrimaryContainer,
 							modifier = Modifier.size(16.dp),
 						)
 						Spacer(modifier = Modifier.width(4.dp))
 						Text(
 							stringResource(R.string.passphrase_save),
-							style = MaterialTheme.typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onSurface,
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+							style = MaterialTheme.typography.titleMedium,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
 						)
 					}
 				},
 			)
-			Spacer(modifier = Modifier.height(16.dp))
+			Spacer(modifier = Modifier.height(14.dp))
 			OutlineStyledButton(
-				modifier = Modifier
-					.fillMaxWidth(0.8f)
-					.padding(horizontal = 12.dp),
+				modifier = Modifier.fillMaxWidth(0.8f).height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
 				onClick = onDownloadClick,
-				borderColor = MaterialTheme.colorScheme.outline,
 				content = {
 					Row(verticalAlignment = Alignment.CenterVertically) {
 						Icon(
 							imageVector = Icons.Filled.Download,
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurface,
+							tint = MaterialTheme.colorScheme.onPrimaryContainer,
 							modifier = Modifier.size(16.dp),
 						)
 						Spacer(modifier = Modifier.width(4.dp))
 						Text(
 							stringResource(R.string.passphrase_download),
-							style = MaterialTheme.typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onSurface,
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+							style = MaterialTheme.typography.titleMedium,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
 						)
 					}
 				},
 			)
-			Spacer(modifier = Modifier.height(16.dp))
+			Spacer(modifier = Modifier.height(14.dp))
 			OutlineStyledButton(
-				modifier = Modifier
-					.fillMaxWidth(0.8f)
-					.padding(horizontal = 12.dp),
+				modifier = Modifier.fillMaxWidth(0.8f).height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
 				onClick = onCopyClick,
-				borderColor = MaterialTheme.colorScheme.outline,
 				content = {
 					Row(verticalAlignment = Alignment.CenterVertically) {
 						Icon(
 							imageVector = Icons.Filled.ContentCopy,
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onSurface,
+							tint = MaterialTheme.colorScheme.onPrimaryContainer,
 							modifier = Modifier.size(16.dp),
 						)
 						Spacer(modifier = Modifier.width(4.dp))
 						Text(
 							stringResource(R.string.passphrase_copy),
-							style = MaterialTheme.typography.bodyMedium,
-							color = MaterialTheme.colorScheme.onSurface,
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+							style = MaterialTheme.typography.titleMedium,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
 						)
 					}
 				},
@@ -117,7 +110,7 @@ fun PassphraseActions(show: Boolean, onCopyClick: () -> Unit, onDownloadClick: (
 			Text(
 				text = stringResource(R.string.passphrase_lose),
 				style = MaterialTheme.typography.labelLarge,
-				color = MaterialTheme.colorScheme.onSurface,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				modifier = Modifier
 					.fillMaxWidth()
@@ -127,8 +120,7 @@ fun PassphraseActions(show: Boolean, onCopyClick: () -> Unit, onDownloadClick: (
 			Text(
 				text = stringResource(R.string.passphrase_never),
 				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 4.dp),

@@ -11,8 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -41,7 +39,6 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 							text = s.displayText(),
 							style = Typography.bodyMedium,
 							color = s.colorPerformance(),
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						)
 					}
 				},
@@ -56,7 +53,6 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 							text = l.displayText(),
 							style = Typography.bodyMedium,
 							color = l.colorLoad(),
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						)
 					}
 				},
@@ -68,8 +64,7 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 				Text(
 					text = uptime?.let { u -> "${u.toInt()}%" } ?: stringResource(R.string.not_applicable),
 					style = Typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onBackground,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 			},
 		)
@@ -86,8 +81,7 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 						relativeTimeSpan,
 					),
 					style = Typography.labelSmall,
-					color = MaterialTheme.colorScheme.outline,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onBackground,
 				)
 			}
 		},

@@ -15,11 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.Typography
 
 @Composable
 fun InfoSection(items: List<Pair<String, @Composable () -> Unit>>, bottomContent: (@Composable () -> Unit)? = null, modifier: Modifier = Modifier) {
@@ -43,9 +39,8 @@ fun InfoSection(items: List<Pair<String, @Composable () -> Unit>>, bottomContent
 			) {
 				Text(
 					text = item.first,
-					style = Typography.bodyMedium,
-					color = MaterialTheme.colorScheme.outline,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onBackground,
 				)
 
 				item.second()
@@ -55,7 +50,7 @@ fun InfoSection(items: List<Pair<String, @Composable () -> Unit>>, bottomContent
 				HorizontalDivider(
 					modifier = Modifier
 						.fillMaxWidth()
-						.background(color = MaterialTheme.colorScheme.outline)
+						.background(color = MaterialTheme.colorScheme.surfaceVariant)
 						.height(1.dp),
 				)
 			}

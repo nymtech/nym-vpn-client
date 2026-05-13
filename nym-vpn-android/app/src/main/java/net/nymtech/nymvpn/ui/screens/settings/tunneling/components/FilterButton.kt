@@ -20,12 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -35,7 +32,7 @@ fun FilterButton(title: String, noOfApps: Int, description: String, imageVector:
 	Card(
 		modifier = modifier.heightIn(min = 56.dp),
 		shape = RoundedCornerShape(8.dp.scaledHeight()),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(0.7f)),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
 		border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground) else null,
 	) {
 		Column(
@@ -49,24 +46,24 @@ fun FilterButton(title: String, noOfApps: Int, description: String, imageVector:
 					imageVector = imageVector,
 					contentDescription = null,
 					modifier = Modifier.size(16.dp.scaledHeight()),
+					tint = MaterialTheme.colorScheme.onBackground,
 				)
 				Text(
 					text = title,
-					style = Typography.bodyMedium.copy(fontWeight = if (isSelected) FontWeight(700) else Typography.bodyMedium.fontWeight),
-					color = MaterialTheme.colorScheme.onBackground,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (isSelected) FontWeight(700) else Typography.bodyMedium.fontWeight),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 				Text(
 					text = "($noOfApps)",
-					style = Typography.bodySmall,
-					color = MaterialTheme.colorScheme.outline,
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
 				)
 			}
 			Spacer(modifier = Modifier.height(4.dp.scaledHeight()))
 			Text(
 				text = description,
-				style = Typography.bodySmall.copy(fontSize = 10.sp, lineHeight = 14.sp),
-				color = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outline,
+				style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp, lineHeight = 14.sp),
+				color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onBackground,
 			)
 		}
 	}

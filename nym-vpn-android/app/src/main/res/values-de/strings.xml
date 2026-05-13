@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">Beim Start der App automatisch verbinden</string>
 	<string name="logs">Logs</string>
 	<string name="support">Support</string>
-	<string name="legal">Rechtliches</string>
-	<string name="terms_of_use">Nutzungsbedingungen</string>
+    <string name="terms_of_use">Nutzungsbedingungen</string>
 	<string name="privacy_policy">Datenschutzerklärung</string>
 	<string name="licenses">Lizenzen</string>
 	<string name="open_github">Problem auf GitHub melden</string>
@@ -44,15 +43,11 @@
 	<string name="okay">Okay</string>
 	<string name="two_hop">2-hop</string>
 	<string name="country_load_failure">Fehler beim Laden der Ein- und Austrittsregionen</string>
-	<string name="app_shortcuts">App-Verknüpfungen</string>
-	<string name="enable_shortcuts">App-Verknüpfungen aktivieren</string>
-	<string name="disabled_while_connected">Deaktiviert während einer VPN-Verbindung</string>
+    <string name="disabled_while_connected">Deaktiviert während einer VPN-Verbindung</string>
 	<string name="permission_required">Berechtigung erforderlich</string>
 	<string name="permission_message">Um sicherzustellen, dass die App auf deinem Gerät ordnungsgemäß funktioniert, erlaube bitte die folgenden Berechtigungen. Diese Berechtigungen sind erforderlich, damit diese App funktioniert.</string>
-	<string name="notifications">Benachrichtigungen</string>
-	<string name="notification_permission_required">Für die ordnungsgemäße App-Funktionalität aktivere bitte die Berechtigung für Benachrichtigungen</string>
-	<string name="kill_switch">Killswitch</string>
-	<string name="mode_selection">Modus auswählen</string>
+    <string name="notification_permission_required">Für die ordnungsgemäße App-Funktionalität aktivere bitte die Berechtigung für Benachrichtigungen</string>
+    <string name="mode_selection">Modus auswählen</string>
 	<string name="five_hop_explanation">Maximale Privatsphäre durch 5-Hop-Routing (bis zu 1-5 Mbit/s). Dummy-Traffic und Timing-Verschleierung für verbesserte Anonymität. Perfekt für hochsensible Aktivitäten wie Zahlungen, E-Mails und Nachrichten.</string>
 	<string name="continue_reading">Weiter lesen</string>
 	<string name="appearance">Erscheinungsbild</string>
@@ -147,8 +142,7 @@
 	<string name="bars_3">3 Balken</string>
 	<string name="bars_2">2 Balken</string>
 	<string name="bars_1">1 Balken</string>
-	<string name="bypass_lan">Bypass LAN</string>
-	<string name="account_id">Konto-ID:</string>
+    <string name="account_id">Konto-ID:</string>
 	<string name="developer">Entwickler</string>
 	<string name="get_help">Hilfe erhalten</string>
 	<string name="join_telegram">Begleite uns auf Telegram</string>
@@ -211,12 +205,9 @@
 	<string name="settings_dns_title">DNS-Anpassung</string>
 	<string name="settings_ipv6_title">IPv6 unterstützen</string>
 	<string name="settings_ipv6_description">IPv6-Verbindungen erlauben</string>
-	<string name="settings_bypass_description">Direktzugriff auf lokales Netzwerk erlauben</string>
-	<string name="settings_auto_select_title">Eintrittsserver automatisch wählen</string>
+    <string name="settings_auto_select_title">Eintrittsserver automatisch wählen</string>
 	<string name="settings_auto_select_description">Der App den besten Eintrittsserver auswählen lassen</string>
-	<string name="settings_device_startup_title">Beim Gerätestart starten</string>
-	<string name="settings_device_startup_description">Der App den besten Eintrittsort auswählen lassen</string>
-	<string name="settings_system_tray_title">In der Systemleiste ausführen</string>
+    <string name="settings_system_tray_title">In der Systemleiste ausführen</string>
 	<string name="settings_system_tray_description">App beim Schließen laufen lassen</string>
 	<string name="settings_reset_app_title">App-Daten zurücksetzen</string>
 	<string name="settings_system_status_title">Systemstatus</string>
@@ -449,8 +440,7 @@
 	<string name="logs_download_button">Trotzdem als Datei speichern</string>
 	<string name="logs_saved">Logs wurden im Download-Ordner gespeichert</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Split-Tunneling</string>
-	<string name="split_tunneling_info_msg">Konfiguriere bei jeder App, ob sie sich über NymVPN verbinden soll oder direkt eine Verbindung herstellt.</string>
+    <string name="split_tunneling_info_msg">Konfiguriere bei jeder App, ob sie sich über NymVPN verbinden soll oder direkt eine Verbindung herstellt.</string>
 	<string name="split_tunneling_info_desc">Änderungen werden nach dem erneuten Verbinden übernommen</string>
 	<string name="split_tunneling_search_apps_hint">Apps suchen</string>
 	<string name="split_tunneling_apps">Apps</string>

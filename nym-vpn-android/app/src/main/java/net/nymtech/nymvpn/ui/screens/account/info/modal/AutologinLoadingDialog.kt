@@ -27,7 +27,7 @@ fun AutologinLoadingDialog(onCancel: () -> Unit) {
 			Text(
 				text = stringResource(R.string.account_info_autologin_fetching),
 				style = MaterialTheme.typography.titleMedium,
-				color = MaterialTheme.colorScheme.onBackground,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 		},
 		text = {
@@ -37,13 +37,13 @@ fun AutologinLoadingDialog(onCancel: () -> Unit) {
 				modifier = Modifier.fillMaxWidth(),
 			) {
 				CircularProgressIndicator(
-					modifier = Modifier.size(24.dp).padding(end = 12.dp),
+					modifier = Modifier.padding(end = 12.dp).size(24.dp),
 					strokeWidth = 2.dp,
 				)
 				Text(
 					text = stringResource(R.string.loading),
 					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.outline,
+					color = MaterialTheme.colorScheme.onBackground,
 				)
 			}
 		},

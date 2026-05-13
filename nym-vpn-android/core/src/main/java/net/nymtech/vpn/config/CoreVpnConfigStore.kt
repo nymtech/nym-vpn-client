@@ -42,6 +42,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		private val KEY_ENV_SENTRY = booleanPreferencesKey("ENV_SENTRY")
 		private val KEY_LEWES = booleanPreferencesKey("ENABLE_LEWES_PROTOCOL")
 		private val KEY_AD_BLOCKING = booleanPreferencesKey("AD_BLOCKING_ENABLED")
+		private val KEY_STEALTH_MODE = booleanPreferencesKey("STEALTH_MODE_ENABLED")
 		private val KEY_ALGORITHM = stringPreferencesKey("ALGORITHM")
 
 		private const val SEP = "|"
@@ -87,6 +88,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		val sentry = this[KEY_ENV_SENTRY] ?: false
 		val lewes = this[KEY_LEWES] ?: false
 		val adBlockingEnabled = this[KEY_AD_BLOCKING] ?: false
+		val stealthMode = this[KEY_STEALTH_MODE] ?: false
 		val algorithm: GatewaySelectionAlgorithm = this[KEY_ALGORITHM]?.let { runCatching { it.asAlgorithm() }.getOrNull() } ?: GatewaySelectionAlgorithm.AUTO
 
 		return CoreVpnConfig(
@@ -103,6 +105,7 @@ class CoreVpnConfigStore(private val context: Context) {
 			sentry = sentry,
 			lewes = lewes,
 			adBlockingEnabled = adBlockingEnabled,
+			stealthMode = stealthMode,
 			algorithm = algorithm,
 		)
 	}
@@ -121,6 +124,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		this[KEY_ENV_SENTRY] = cfg.sentry
 		this[KEY_LEWES] = cfg.lewes
 		this[KEY_AD_BLOCKING] = cfg.adBlockingEnabled
+		this[KEY_STEALTH_MODE] = cfg.stealthMode
 		this[KEY_ALGORITHM] = cfg.algorithm.name
 	}
 

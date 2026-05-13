@@ -23,5 +23,6 @@ data class CoreVpnConfig(
 	val sentry: Boolean = false,
 	val lewes: Boolean = false,
 	val adBlockingEnabled: Boolean = false,
+	val stealthMode: Boolean = false,
 	val algorithm: GatewaySelectionAlgorithm = GatewaySelectionAlgorithm.AUTO,
 )

@@ -8,7 +8,7 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 
 @Composable
-fun SettingsGroup(items: List<SelectionItem>, modifier: Modifier = Modifier, background: Color = MaterialTheme.colorScheme.surfaceContainer) {
+fun SettingsGroup(items: List<SelectionItem>, modifier: Modifier = Modifier, background: Color = MaterialTheme.colorScheme.primaryContainer) {
 	SurfaceSelectionGroupButton(
 		items = items,
 		background = background,

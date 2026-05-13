@@ -21,8 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,18 +29,17 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
-fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier) {
+fun StealthApiSection(isEnabled: Boolean, onEnable: (Boolean) -> Unit, shape: Shape = RoundedCornerShape(8.dp), modifier: Modifier = Modifier) {
 	val context = LocalContext.current
 	val interactionSource = remember { MutableInteractionSource() }
 
 	Card(
 		modifier = modifier,
 		shape = shape,
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 	) {
 		Column(
 			modifier = Modifier
@@ -57,19 +54,17 @@ fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp), modifier: Modifie
 				Text(
 					text = stringResource(R.string.censorship_stealth_title),
 					style = MaterialTheme.typography.titleMedium,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 				ScaledSwitch(
-					checked = true,
-					enabled = false,
-					onClick = {},
+					checked = isEnabled,
+					onClick = onEnable,
 				)
 			}
 			Text(
 				text = stringResource(R.string.censorship_stealth_description),
-				style = Typography.bodySmall,
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 16.dp),
@@ -90,6 +85,7 @@ fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp), modifier: Modifie
 			) {
 				Text(
 					text = stringResource(R.string.censorship_stealth_link_text),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					style = MaterialTheme.typography.bodyMedium.copy(
 						textDecoration = TextDecoration.Underline,
 					),
@@ -104,6 +100,6 @@ fun StealthApiSection(shape: Shape = RoundedCornerShape(8.dp), modifier: Modifie
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewStealthApiSection() {
 	NymVPNTheme(Theme.default()) {
-		StealthApiSection(modifier = Modifier.fillMaxWidth())
+		StealthApiSection(isEnabled = false, onEnable = {}, modifier = Modifier.fillMaxWidth())
 	}
 }

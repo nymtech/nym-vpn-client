@@ -26,7 +26,6 @@ import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.settings.login.MnemonicError
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -53,7 +52,7 @@ fun PassphraseView(
 
 	Column(
 		modifier = modifier
-			.background(MaterialTheme.colorScheme.surfaceContainerLow)
+			.background(MaterialTheme.colorScheme.surface)
 			.fillMaxWidth()
 			.padding(horizontal = 18.dp)
 			.padding(top = 16.dp, bottom = 41.dp),
@@ -76,7 +75,7 @@ fun PassphraseView(
 			Icon(
 				imageVector = ImageVector.vectorResource(R.drawable.app_label),
 				contentDescription = stringResource(R.string.app_name),
-				tint = MaterialTheme.colorScheme.onBackground,
+				tint = MaterialTheme.colorScheme.onPrimaryContainer,
 				modifier = Modifier.align(Alignment.Center),
 			)
 		}
@@ -84,7 +83,7 @@ fun PassphraseView(
 		Text(
 			text = stringResource(R.string.auth_log_in_title),
 			style = MaterialTheme.typography.headlineSmall,
-			color = MaterialTheme.colorScheme.onSurface,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 		)
 
 		CustomTextField(
@@ -126,7 +125,7 @@ fun PassphraseView(
 				)
 			},
 			textStyle = MaterialTheme.typography.bodyMedium.copy(
-				color = MaterialTheme.colorScheme.onSurface,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			),
 		)
 
@@ -137,7 +136,10 @@ fun PassphraseView(
 				if (loading) {
 					SpinningIcon(Icons.Outlined.Lock, "")
 				} else {
-					Text(stringResource(R.string.auth_passphrase_login_button), style = CustomTypography.buttonMain)
+					Text(
+						stringResource(R.string.auth_passphrase_login_button),
+						style = MaterialTheme.typography.titleMedium,
+					)
 				}
 			},
 			modifier = Modifier

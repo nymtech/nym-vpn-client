@@ -39,15 +39,13 @@ private fun calculateExpiryState(isRecurring: Boolean, isActive: Boolean, planTy
 
 	return when (planType) {
 		is NymVpnSubscriptionKind.OneMonth -> when {
-			daysUntilExpiry < 2 -> ExpiryState.WARNING_AMBER
-			daysUntilExpiry < 7 -> ExpiryState.WARNING_YELLOW
+			daysUntilExpiry < 7 -> ExpiryState.WARNING
 			else -> ExpiryState.NORMAL
 		}
 		is NymVpnSubscriptionKind.OneYear,
 		is NymVpnSubscriptionKind.TwoYears,
 		-> when {
-			daysUntilExpiry < 15 -> ExpiryState.WARNING_AMBER
-			daysUntilExpiry < 60 -> ExpiryState.WARNING_YELLOW
+			daysUntilExpiry < 15 -> ExpiryState.WARNING
 			else -> ExpiryState.NORMAL
 		}
 		else -> ExpiryState.NORMAL
