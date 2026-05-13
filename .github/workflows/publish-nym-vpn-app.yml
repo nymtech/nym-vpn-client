@@ -311,19 +311,19 @@ jobs:
           core_build_arm64_url_path: "${{ needs.publish.outputs.core_build_arm64_url_path }}"
         run: |
           if [[ -n "${{ inputs.core_release_tag }}" ]]; then
-            url=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
-            url_arm64=$url
+            url_x64=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
+            url_arm64=$url_x64
           elif [[ -n "${{ inputs.core_artifact_url }}" ]]; then
-            url="$(dirname ${{ inputs.core_artifact_url }})/"
-            url_arm64=$url
+            url_x64="$(dirname ${{ inputs.core_artifact_url }})/"
+            url_arm64=$url_x64
           elif [[ -n "$core_build_x64_url_path" ]]; then
-            url="${{ env.NYM_BUILDS_URL }}${{ env.core_build_x64_url_path }}/"
+            url_x64="${{ env.NYM_BUILDS_URL }}${{ env.core_build_x64_url_path }}/"
             url_arm64="${{ env.NYM_BUILDS_URL }}${{ env.core_build_arm64_url_path }}/"
           else
-            url="${{ env.NYM_BUILDS_URL }}/develop/"
-            url_arm64=$url
+            url_x64="${{ env.NYM_BUILDS_URL }}/develop/"
+            url_arm64=$url_x64
           fi
-          echo "CORE_LINK_X64=$url" >> "$GITHUB_ENV"
+          echo "CORE_LINK_X64=$url_x64" >> "$GITHUB_ENV"
           echo "CORE_LINK_ARM64=$url_arm64" >> "$GITHUB_ENV"
 
       - name: Set message
