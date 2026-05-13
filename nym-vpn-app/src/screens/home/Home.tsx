@@ -8,7 +8,6 @@ import UpdateDialog from './UpdateDialog';
 import { NewBottomComponent } from './NewBottomComponent';
 import { TunnelState } from './TunnelState';
 
-const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
 const os = type();
 let compatChecked = false;
