@@ -34,6 +34,6 @@ features = [
 
 [dependencies]
 sha2.workspace = true
-sysinfo.workspace = true
+sysinfo = { workspace = true, features = ["system"] }
 nym-bin-common = { workspace = true, optional = true }
 nym-sdk = { workspace = true, optional = true }
