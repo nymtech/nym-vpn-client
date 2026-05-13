@@ -91,7 +91,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       UPLOAD_DIR_LINUX_X86_64: linux_artifacts_x86_64
       UPLOAD_DIR_LINUX_AARCH64: linux_artifacts_aarch64
-      UPLOAD_DIR_WINDOWS: ${{ needs.build-windows-x64.outputs.UPLOAD_DIR_WINDOWS }}
+      UPLOAD_DIR_WINDOWS_X64: ${{ needs.build-windows-x64.outputs.UPLOAD_DIR_WINDOWS }}
       UPLOAD_DIR_WINDOWS_ARM64: ${{ needs.build-windows-arm64.outputs.UPLOAD_DIR_WINDOWS }}
       UPDATER_ENABLED: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
     permissions: write-all
@@ -139,7 +139,7 @@ jobs:
       - name: Set output for updater (Windows x64)
         if: ${{ env.UPDATER_ENABLED == 'true' }}
         id: win_updater_x64
-        working-directory: ${{ env.UPLOAD_DIR_WINDOWS }}
+        working-directory: ${{ env.UPLOAD_DIR_WINDOWS_X64 }}
         run: |
           shopt -s failglob
           exe=(*setup.exe)
@@ -174,7 +174,7 @@ jobs:
             for f in *; do sha256sum "$f" > "$f.sha256sum"; done
           popd
 
-          pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
+          pushd ${{ env.UPLOAD_DIR_WINDOWS_X64 }} || exit 1
             exe=(*setup.exe)
             sha256sum "${exe[0]}" > "${exe[0]}.sha256sum";
           popd
@@ -187,7 +187,7 @@ jobs:
           echo 'SHA256SUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_LINUX_X86_64 }}/*.sha256sum >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_LINUX_AARCH64 }}/*.sha256sum >> $GITHUB_ENV
-          cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
+          cat ${{ env.UPLOAD_DIR_WINDOWS_X64 }}/*.sha256sum >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_WINDOWS_ARM64 }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
@@ -246,7 +246,7 @@ jobs:
           files: |
             ${{ env.UPLOAD_DIR_LINUX_X86_64 }}/*
             ${{ env.UPLOAD_DIR_LINUX_AARCH64 }}/*
-            ${{ env.UPLOAD_DIR_WINDOWS }}/*
+            ${{ env.UPLOAD_DIR_WINDOWS_X64 }}/*
             ${{ env.UPLOAD_DIR_WINDOWS_ARM64 }}/*
 
   windows-updater:
