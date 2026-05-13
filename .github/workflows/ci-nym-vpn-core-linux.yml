@@ -13,6 +13,8 @@ env:
   CI_TESTING: true
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+  SCCACHE_GHA_ENABLED: true
+  RUSTC_WRAPPER: sccache
 
 jobs:
   build-wireguard-go-linux:
@@ -28,9 +30,11 @@ jobs:
 
       - name: Checkout repo
         uses: actions/checkout@v6
-
         with:
           fetch-depth: 1
+
+      - uses: mozilla-actions/sccache-action@v0.0.10
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -42,27 +46,6 @@ jobs:
         with:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cache Cargo registry
-        uses: actions/cache@v5
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-
-      - name: Cache Cargo build
-        uses: actions/cache@v5
-        with:
-          path: nym-vpn-core/target/
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-build-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
-            ${{ runner.os }}-cargo-build-
 
       # To avoid running out of disk space, skip generating debug symbols
       - name: Set debug to false
