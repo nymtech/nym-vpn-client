@@ -274,7 +274,7 @@ pub mod tests {
     use std::time::Duration;
 
     use nym_gateway_directory::{Gateway, Performance, ScoreValue};
-    use nym_vpn_lib_types::{EntryPoint, ExitPoint, TunnelType};
+    use nym_vpn_lib_types::{EntryPoint, ExitPoint, GatewayIndependence, TunnelType};
     use tokio::sync::RwLock;
 
     use crate::tunnel_state_machine::tunnel::gateway_provider::{
@@ -301,7 +301,10 @@ pub mod tests {
             split_tunnel: Default::default(),
             gateway_selection_algorithm_config: Default::default(),
             geo_exclusion_settings: Default::default(),
-            gateway_independence: Default::default(),
+            gateway_independence: GatewayIndependence {
+                different_asn: false,
+                different_node_family: false,
+            },
         }
     }
 

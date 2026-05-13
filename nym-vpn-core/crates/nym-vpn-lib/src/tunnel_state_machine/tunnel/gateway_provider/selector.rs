@@ -434,3 +434,131 @@ pub async fn select_gateways(
         }),
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use std::sync::Arc;
+
+    use nym_gateway_directory::{
+        Asn, AsnKind, BlacklistedGateways, Location, Performance, ScoreValue,
+    };
+    use nym_vpn_lib_types::{EntryPoint, ExitPoint, GatewayIndependence};
+    use nym_vpn_store::keys::wireguard::WireguardKeysDb;
+    use tokio::sync::RwLock;
+
+    use crate::tunnel_state_machine::tunnel::gateway_provider::{
+        error::GatewayProviderError,
+        gateway_cache::tests::MockGatewayCache,
+        tests::{default_tunnel_settings, gateway_id_to_gateway},
+    };
+
+    use super::*;
+
+    const GW_ID_1: &str = "2zHiExNRKiCXVKS35SNKtK4apGfZELMpA1jJ2gVevJoz";
+    const GW_ID_2: &str = "38zcSsvjXsAX7C28ko2H3Lt55X4TYxfZYkPADxKXZHUj";
+
+    fn make_gw_with_asn(id: &str, asn: &str) -> Gateway {
+        Gateway::builder()
+            .identity(id.parse().unwrap())
+            .location(Location {
+                asn: Some(Asn {
+                    asn: asn.to_string(),
+                    name: "ISP".to_string(),
+                    kind: AsnKind::Other,
+                }),
+                ..Default::default()
+            })
+            .performance(Performance {
+                last_updated_utc: Default::default(),
+                score: ScoreValue::High,
+                mixnet_score: ScoreValue::High,
+                load: ScoreValue::Low,
+                uptime_percentage_last_24_hours: Default::default(),
+            })
+            .build()
+    }
+
+    #[tokio::test]
+    async fn same_entry_and_exit_gateway_identity_returns_error() {
+        let gateways = Arc::new(RwLock::new(Some(vec![
+            gateway_id_to_gateway(GW_ID_1),
+            gateway_id_to_gateway(GW_ID_2),
+        ])));
+        let gateway_cache = MockGatewayCache::new(gateways);
+
+        let identity: nym_vpn_lib_types::NodeIdentity = GW_ID_1.parse().unwrap();
+        let mut settings = default_tunnel_settings();
+        settings.entry_point = Box::new(EntryPoint::Gateway {
+            identity: identity.clone(),
+        });
+        settings.exit_point = Box::new(ExitPoint::Gateway { identity });
+
+        let result = select_gateways(
+            gateway_cache,
+            &BlacklistedGateways::new(),
+            &settings,
+            None,
+            WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await;
+
+        assert!(matches!(
+            result,
+            Err(GatewayProviderError::SameEntryAndExitGateway { .. })
+        ));
+    }
+
+    #[tokio::test]
+    async fn active_independence_criteria_triggers_needs_relaxed_error() {
+        // Both gateways share the same ASN so no independent pair can be found with the default
+        // (fully active) independence criteria. Without any criteria they CAN be paired, so the
+        // selector should suggest relaxing the criteria.
+        let gateways = Arc::new(RwLock::new(Some(vec![
+            make_gw_with_asn(GW_ID_1, "AS100"),
+            make_gw_with_asn(GW_ID_2, "AS100"),
+        ])));
+        let gateway_cache = MockGatewayCache::new(gateways);
+
+        let mut settings = default_tunnel_settings();
+        settings.gateway_independence = GatewayIndependence::default();
+
+        let result = select_gateways(
+            gateway_cache,
+            &BlacklistedGateways::new(),
+            &settings,
+            None,
+            WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await;
+
+        assert!(matches!(
+            result,
+            Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)
+        ));
+    }
+
+    #[tokio::test]
+    async fn gateways_with_different_asns_succeed_with_full_independence_criteria() {
+        // Gateways have different ASNs and no node family, so the full independence criteria
+        // is satisfied (missing family is treated as independent).
+        let gateways = Arc::new(RwLock::new(Some(vec![
+            make_gw_with_asn(GW_ID_1, "AS100"),
+            make_gw_with_asn(GW_ID_2, "AS200"),
+        ])));
+        let gateway_cache = MockGatewayCache::new(gateways);
+
+        let mut settings = default_tunnel_settings();
+        settings.gateway_independence = GatewayIndependence::default();
+
+        let result = select_gateways(
+            gateway_cache,
+            &BlacklistedGateways::new(),
+            &settings,
+            None,
+            WireguardKeysDb::Ephemeral(Default::default()),
+        )
+        .await;
+
+        assert!(result.is_ok());
+    }
+}

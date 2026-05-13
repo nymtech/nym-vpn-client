@@ -45,6 +45,53 @@ impl Default for GatewayIndependence {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_has_both_criteria_active() {
+        let gi = GatewayIndependence::default();
+        assert!(gi.different_node_family);
+        assert!(gi.different_asn);
+    }
+
+    #[test]
+    fn deactivated_has_no_criteria() {
+        let gi = GatewayIndependence::new_deactivated();
+        assert!(!gi.different_node_family);
+        assert!(!gi.different_asn);
+    }
+
+    #[test]
+    fn active_returns_true_for_default() {
+        assert!(GatewayIndependence::default().active());
+    }
+
+    #[test]
+    fn active_returns_false_when_fully_deactivated() {
+        assert!(!GatewayIndependence::new_deactivated().active());
+    }
+
+    #[test]
+    fn active_returns_true_with_only_asn_enabled() {
+        let gi = GatewayIndependence {
+            different_asn: true,
+            different_node_family: false,
+        };
+        assert!(gi.active());
+    }
+
+    #[test]
+    fn active_returns_true_with_only_family_enabled() {
+        let gi = GatewayIndependence {
+            different_asn: false,
+            different_node_family: true,
+        };
+        assert!(gi.active());
+    }
+}
+
 impl fmt::Display for GatewayIndependence {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "different node family: {}; ", self.different_node_family)?;
