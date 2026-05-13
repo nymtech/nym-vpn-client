@@ -29,6 +29,7 @@ impl RegistrationDiagnostic {
         let mut registration_report = RegistrationReport {
             mixnet_client_build: DiagnosticResult::from_value(()),
             mixnet_client_start: None,
+            mixnet_ipr_connect: None,
             mixnet_based_dvpn_registration: None,
             lp_handshake: None,
             lp_based_dvpn_registration: None,
