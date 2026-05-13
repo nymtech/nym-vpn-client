@@ -80,8 +80,8 @@ jobs:
       win_updater_x64_sig: ${{ steps.win_updater_x64.outputs.sig }}
       win_updater_arm64_exe: ${{ steps.win_updater_arm64.outputs.exe }}
       win_updater_arm64_sig: ${{ steps.win_updater_arm64.outputs.sig }}
-      core_build_url_path: ${{ needs.build-windows-x64.outputs.core_build_url_path }}
-      core_build_url_path_arm64: ${{ needs.build-windows-arm64.outputs.core_build_url_path }}
+      core_build_x64_url_path: ${{ needs.build-windows-x64.outputs.core_build_x64_url_path }}
+      core_build_arm64_url_path: ${{ needs.build-windows-arm64.outputs.core_build_x64_url_path }}
     env:
       # stable | nightly | dev
       RELEASE_TYPE: ${{ inputs.release_type || (github.event_name == 'schedule' && 'nightly' || 'dev') }}
@@ -307,8 +307,8 @@ jobs:
       - name: Set vpn-core link
         env:
           NYM_BUILDS_URL: "https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core"
-          CORE_BUILD_URL_PATH: "${{ needs.publish.outputs.core_build_url_path }}"
-          CORE_BUILD_URL_PATH_ARM64: "${{ needs.publish.outputs.core_build_url_path_arm64 }}"
+          core_build_x64_url_path: "${{ needs.publish.outputs.core_build_x64_url_path }}"
+          core_build_arm64_url_path: "${{ needs.publish.outputs.core_build_arm64_url_path }}"
         run: |
           if [[ -n "${{ inputs.core_release_tag }}" ]]; then
             url=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
@@ -316,9 +316,9 @@ jobs:
           elif [[ -n "${{ inputs.core_artifact_url }}" ]]; then
             url="$(dirname ${{ inputs.core_artifact_url }})/"
             url_arm64=$url
-          elif [[ -n "$CORE_BUILD_URL_PATH" ]]; then
-            url="${{ env.NYM_BUILDS_URL }}${{ env.CORE_BUILD_URL_PATH }}/"
-            url_arm64="${{ env.NYM_BUILDS_URL }}${{ env.CORE_BUILD_URL_PATH_ARM64 }}/"
+          elif [[ -n "$core_build_x64_url_path" ]]; then
+            url="${{ env.NYM_BUILDS_URL }}${{ env.core_build_x64_url_path }}/"
+            url_arm64="${{ env.NYM_BUILDS_URL }}${{ env.core_build_arm64_url_path }}/"
           else
             url="${{ env.NYM_BUILDS_URL }}/develop/"
             url_arm64=$url
