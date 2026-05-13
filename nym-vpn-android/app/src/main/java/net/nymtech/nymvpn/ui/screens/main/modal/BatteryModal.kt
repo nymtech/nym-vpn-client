@@ -31,6 +31,7 @@ fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDism
 			Text(
 				text = stringResource(R.string.battery_opt_title),
 				style = CustomTypography.labelHuge,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
@@ -39,17 +40,18 @@ fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDism
 				stringResource(R.string.battery_opt_descr),
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
 		confirmButton = {
 			MainStyledButton(
 				onClick = onClickSettings,
+				textColor = Color.Black,
 				content = {
 					Text(
 						stringResource(R.string.settings),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = Color.Black,
 					)
 				},
 				modifier = Modifier
@@ -64,7 +66,7 @@ fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDism
 					Text(
 						stringResource(R.string.skip),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				},
 				modifier = Modifier

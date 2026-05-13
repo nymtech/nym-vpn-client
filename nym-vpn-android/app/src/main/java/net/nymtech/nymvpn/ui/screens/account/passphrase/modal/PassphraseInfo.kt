@@ -36,7 +36,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 fun PassphraseInfo(show: Boolean, onDismiss: () -> Unit) {
 	if (show) {
 		AlertDialog(
-			containerColor = MaterialTheme.colorScheme.surface,
+			containerColor = MaterialTheme.colorScheme.primaryContainer,
 			onDismissRequest = { onDismiss() },
 			tonalElevation = 0.dp,
 			confirmButton = {
@@ -48,11 +48,11 @@ fun PassphraseInfo(show: Boolean, onDismiss: () -> Unit) {
 						Text(
 							stringResource(R.string.button_done),
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-							color = MaterialTheme.colorScheme.onSurface,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
 						)
 					},
 					modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
-					borderStroke = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.onSurface),
+					borderStroke = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.onPrimaryContainer),
 				)
 			},
 			text = {
@@ -63,20 +63,20 @@ fun PassphraseInfo(show: Boolean, onDismiss: () -> Unit) {
 					Text(
 						text = stringResource(R.string.passphrase_info_title),
 						style = CustomTypography.titleMediumPlus,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 					Text(
 						text = stringResource(R.string.passphrase_info_description),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						textAlign = TextAlign.Center,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 					Text(
 						text = stringResource(R.string.passphrase_info_privacy_removed),
 						style = MaterialTheme.typography.labelLarge,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						textAlign = TextAlign.Center,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
@@ -102,7 +102,7 @@ fun PassphraseInfo(show: Boolean, onDismiss: () -> Unit) {
 					Text(
 						text = stringResource(R.string.passphrase_info_use),
 						style = MaterialTheme.typography.labelLarge,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						textAlign = TextAlign.Center,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)

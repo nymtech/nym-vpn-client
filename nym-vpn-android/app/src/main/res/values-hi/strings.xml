@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">ऐप खुलने पर कनेक्ट करें</string>
 	<string name="logs">लॉग्स</string>
 	<string name="support">सपोर्ट</string>
-	<string name="legal">कानूनी</string>
-	<string name="terms_of_use">उपयोग की शर्तें</string>
+    <string name="terms_of_use">उपयोग की शर्तें</string>
 	<string name="privacy_policy">गोपनीयता कथन</string>
 	<string name="licenses">लाइसेंस</string>
 	<string name="open_github">GitHub मुद्दा खोलें</string>
@@ -44,15 +43,11 @@
 	<string name="okay">ठीक है</string>
 	<string name="two_hop">2-हॉप</string>
 	<string name="country_load_failure">हॉप देशों को लोड करने में विफल</string>
-	<string name="app_shortcuts">ऐप शॉर्टकट्स</string>
-	<string name="enable_shortcuts">ऐप शॉर्टकट्स चालू करें</string>
-	<string name="disabled_while_connected">VPN से जुड़े रहते समय डिसेबल्ड</string>
+    <string name="disabled_while_connected">VPN से जुड़े रहते समय डिसेबल्ड</string>
 	<string name="permission_required">अनुमति आवश्यक है</string>
 	<string name="permission_message">यह सुनिश्चित करने के लिए कि ऐप आपके डिवाइस पर सही तरीके से काम करे, कृपया निम्नलिखित अनुमतियाँ अनुमति दें। ये अनुमतियाँ ऐप के काम करने के लिए आवश्यक हैं।</string>
-	<string name="notifications">सूचनाएँ</string>
-	<string name="notification_permission_required">कृपया ऐप के लिए नोटिफिकेशन की अनुमति दें८</string>
-	<string name="kill_switch">किल स्विच</string>
-	<string name="mode_selection">मोड चयन</string>
+    <string name="notification_permission_required">कृपया ऐप के लिए नोटिफिकेशन की अनुमति दें८</string>
+    <string name="mode_selection">मोड चयन</string>
 	<string name="five_hop_explanation">5-हॉप रूटिंग (1-5 Mbps तक) के माध्यम से अधिकतम प्राइवेसी। बेहतर गुमनामी के लिए नकली ट्रैफ़िक और समय को छिपाने की सुविधा। भुगतान, ईमेल और संदेशों जैसी अत्यंत संवेदनशील गतिविधियों के लिए आदर्श।</string>
 	<string name="continue_reading">पढ़ना जारी रखें</string>
 	<string name="appearance">रूपरंग</string>
@@ -145,8 +140,7 @@
 	<string name="bars_3">3 बार</string>
 	<string name="bars_2">2 बार</string>
 	<string name="bars_1">1 बार</string>
-	<string name="bypass_lan">लैन बाईपास</string>
-	<string name="account_id">अकाउंट ID:</string>
+    <string name="account_id">अकाउंट ID:</string>
 	<string name="developer">डेवलपर</string>
 	<string name="get_help">मदद् लें</string>
 	<string name="join_telegram">Telegram पर हमसे जुड़ें</string>
@@ -209,12 +203,9 @@
 	<string name="settings_dns_title">DNS को अनुकूलित करें</string>
 	<string name="settings_ipv6_title">IPv6 सपोर्ट</string>
 	<string name="settings_ipv6_description">IPv6 कनेक्शन की अनुमति दें</string>
-	<string name="settings_bypass_description">डाएरेक्ट लोकल नेट्वर्क ऐक्सेस की अनुमति दें</string>
-	<string name="settings_auto_select_title">ऑटो सलेक्ट एंट्री सर्वर</string>
+    <string name="settings_auto_select_title">ऑटो सलेक्ट एंट्री सर्वर</string>
 	<string name="settings_auto_select_description">ऐप को बेस्ट एंट्री लोकेशन चुनने दें</string>
-	<string name="settings_device_startup_title">डिवाइस स्टार्टप पर लॉंच करें</string>
-	<string name="settings_device_startup_description">ऐप को बेस्ट एंट्री लोकेशन चुनने दें</string>
-	<string name="settings_system_tray_title">सिस्टम ट्रे में चलाएँ</string>
+    <string name="settings_system_tray_title">सिस्टम ट्रे में चलाएँ</string>
 	<string name="settings_system_tray_description">बंद होने पर भी ऐप चालू रखें</string>
 	<string name="settings_reset_app_title">ऐप डेटा रीसेट करें</string>
 	<string name="settings_system_status_title">सिस्टम स्टेटस</string>
@@ -448,8 +439,7 @@
 	<string name="logs_download_button">फिर भी फ़ाइल के रूप में सहेजें</string>
 	<string name="logs_saved">लॉग्स डाउनलोड फोल्डर में सहेजे गए</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">स्प्लिट टन्नलिंग</string>
-	<string name="split_tunneling_info_msg">प्रत्येक ऐप को NymVPN का उपयोग करने या सीधे कनेक्ट करने के लिए सेट करें।</string>
+    <string name="split_tunneling_info_msg">प्रत्येक ऐप को NymVPN का उपयोग करने या सीधे कनेक्ट करने के लिए सेट करें।</string>
 	<string name="split_tunneling_info_desc">पुनः कनेक्ट होने के बाद परिवर्तन लागू होंगे</string>
 	<string name="split_tunneling_search_apps_hint">ऐप्स खोजें</string>
 	<string name="split_tunneling_apps">ऐप्स</string>

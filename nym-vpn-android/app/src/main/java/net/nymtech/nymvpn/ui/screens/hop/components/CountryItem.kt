@@ -179,11 +179,18 @@ private fun CountryDropDown(
 						}
 					}
 				},
-				title = { Text(text = title, style = MaterialTheme.typography.bodyLarge) },
+				title = {
+					Text(
+						text = title,
+						style = MaterialTheme.typography.bodyLarge,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
+				},
 				description = {
 					Text(
 						"${gateways.size} ${stringResource(R.string.servers)}",
 						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onBackground,
 					)
 				},
 				selected = isSelected,
@@ -282,6 +289,7 @@ private fun GatewayCell(
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis,
 						style = MaterialTheme.typography.bodyLarge,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				},
 				description = {
@@ -290,6 +298,7 @@ private fun GatewayCell(
 						maxLines = 1,
 						overflow = TextOverflow.Ellipsis,
 						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onBackground,
 					)
 				},
 				selected = selectedKey == gateway.identity,

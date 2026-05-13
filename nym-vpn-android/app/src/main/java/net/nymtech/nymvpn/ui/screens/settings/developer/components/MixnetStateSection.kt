@@ -67,11 +67,11 @@ fun MixnetStateSection(appUiState: AppUiState) {
 						Column {
 							Text(
 								"Ipv4: ${mixnetState.ipv4State}",
-								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onBackground),
 							)
 							Text(
 								"Ipv6: ${mixnetState.ipv6State}",
-								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onBackground),
 							)
 						}
 					},

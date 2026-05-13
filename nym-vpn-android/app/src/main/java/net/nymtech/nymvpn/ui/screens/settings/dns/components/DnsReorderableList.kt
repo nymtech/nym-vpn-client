@@ -100,7 +100,7 @@ fun DnsReorderableList(dns: List<DnsEntry>, onMove: (from: Int, to: Int) -> Unit
 				Icon(
 					imageVector = Icons.Default.DragIndicator,
 					contentDescription = "Drag",
-					tint = MaterialTheme.colorScheme.outline,
+					tint = MaterialTheme.colorScheme.onBackground,
 					modifier = Modifier.padding(end = 10.dp),
 				)
 
@@ -118,7 +118,7 @@ fun DnsReorderableList(dns: List<DnsEntry>, onMove: (from: Int, to: Int) -> Unit
 					)
 				}
 			}
-			HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.60f))
+			HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 		}
 	}
 }

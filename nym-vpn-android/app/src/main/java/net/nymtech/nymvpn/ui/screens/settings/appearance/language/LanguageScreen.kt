@@ -80,7 +80,7 @@ fun LanguageScreen(locales: List<Locale>, currentLocale: String?, onLocaleChange
 		Card(
 			modifier = Modifier.fillMaxWidth(),
 			shape = RoundedCornerShape(8.dp),
-			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 		) {
 			Box(
 				contentAlignment = Alignment.Center,
@@ -124,11 +124,13 @@ fun LanguageScreen(locales: List<Locale>, currentLocale: String?, onLocaleChange
 						) {
 							Text(
 								stringResource(R.string.settings_language_help_title),
-								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onBackground),
+								style = MaterialTheme.typography.bodyLarge,
+								color = MaterialTheme.colorScheme.onPrimaryContainer,
 							)
 							Text(
 								stringResource(R.string.settings_language_help_description),
-								style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onBackground,
 							)
 						}
 					}
@@ -202,7 +204,7 @@ internal fun PreviewLanguageScreen() {
 				Locale.FRANCE,
 				Locale.GERMANY,
 			),
-			currentLocale = "en",
+			currentLocale = "UK",
 			onLocaleChange = {},
 			onHelpClick = {},
 		)

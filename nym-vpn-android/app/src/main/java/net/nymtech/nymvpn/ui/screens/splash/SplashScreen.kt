@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
@@ -39,8 +40,8 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	) {
 		Icon(
 			imageVector = ImageVector.vectorResource(R.drawable.app_label),
-			contentDescription = null,
-			tint = MaterialTheme.colorScheme.onBackground,
+			contentDescription = stringResource(R.string.app_name),
+			tint = MaterialTheme.colorScheme.primary,
 		)
 	}
 }

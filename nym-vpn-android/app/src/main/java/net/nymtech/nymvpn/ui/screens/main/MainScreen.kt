@@ -58,9 +58,7 @@ import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.auth.AuthBottomSheet
 import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectPanel
-import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
 import net.nymtech.nymvpn.ui.screens.main.components.PanelState
-import net.nymtech.nymvpn.ui.screens.main.components.ServerNode
 import net.nymtech.nymvpn.ui.screens.main.modal.BatteryModal
 import net.nymtech.nymvpn.ui.screens.main.modal.CompatibilityModal
 import net.nymtech.nymvpn.ui.screens.main.modal.NetworkStatsModal
@@ -79,6 +77,9 @@ import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import androidx.compose.ui.res.stringResource
+import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
+import net.nymtech.nymvpn.ui.screens.main.components.ServerNode
+import nym_vpn_lib_types.Score
 
 @Composable
 fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, showAuth: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
@@ -316,7 +317,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val expiryAlertAction = stringResource(R.string.banner_renew_text)
 	val expiryState = appUiState.subscription?.expiryState
 	LaunchedEffect(expiryState, expiryBannerDismissed) {
-		if (!expiryBannerDismissed && (expiryState == ExpiryState.WARNING_YELLOW || expiryState == ExpiryState.WARNING_AMBER)) {
+		if (!expiryBannerDismissed && (expiryState == ExpiryState.WARNING)) {
 			NymAlertController.show(
 				NymAlertMessage(
 					type = AlertType.Warning,
@@ -340,7 +341,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				val message = state.reason.toUserMessage(context).ifEmpty { connectionFailedLabel }
 				NymAlertController.show(
 					NymAlertMessage(
-						type = AlertType.Critical,
+						type = AlertType.Error,
 						title = message,
 						action = NymAlertAction(connectionErrorRetryLabel) { onConnectPressed() },
 						duration = Long.MAX_VALUE,
@@ -353,7 +354,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				val message = state.exception.toUserMessage(context)
 				NymAlertController.show(
 					NymAlertMessage(
-						type = AlertType.Critical,
+						type = AlertType.Error,
 						title = message,
 						action = NymAlertAction(connectionErrorRetryLabel) { onConnectPressed() },
 						duration = Long.MAX_VALUE,
@@ -509,7 +510,7 @@ private fun MainScreenContent(
 
 		Surface(
 			shape = RoundedCornerShape(16.dp),
-			color = MaterialTheme.colorScheme.surfaceContainerLow,
+			color = MaterialTheme.colorScheme.surface,
 			modifier = Modifier
 				.align(Alignment.BottomCenter)
 				.fillMaxWidth()
@@ -526,12 +527,14 @@ private fun MainScreenContent(
 					countryCode = appUiState.exitPointCountry,
 					location = appUiState.exitPointLocation,
 					isRandom = appUiState.isExitPointRandom,
+					score = appUiState.exitPointGateway?.wgScore ?: Score.HIGH,
 				),
 				entryNode = ServerNode(
 					name = appUiState.entryPointName,
 					countryCode = appUiState.entryPointCountry,
 					location = appUiState.entryPointLocation,
 					isRandom = appUiState.isEntryPointRandom,
+					score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
 				),
 				initialPanelState = initialPanelState,
 				onFastModeClick = onFastModeClick,
@@ -575,7 +578,7 @@ private fun MainScreenPreviewAlertCritical() {
 			onExitNodeClick = {},
 			onEntryNodeClick = {},
 			previewAlertMessage = NymAlertMessage(
-				type = AlertType.Critical,
+				type = AlertType.Error,
 				title = "Secure your secret passphrase",
 				body = "No passphrase no access to account",
 				action = NymAlertAction("Back up now") {},

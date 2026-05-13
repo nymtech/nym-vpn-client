@@ -89,9 +89,6 @@ sealed class Route {
 	data object SplitTunneling : Route()
 
 	@Serializable
-	data object Welcome : Route()
-
-	@Serializable
 	data object MixnetTuning : Route()
 
 	@Serializable

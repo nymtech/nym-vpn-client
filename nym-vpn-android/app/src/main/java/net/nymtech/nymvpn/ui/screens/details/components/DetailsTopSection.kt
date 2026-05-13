@@ -9,20 +9,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.ui.theme.Typography
 
 @Composable
 internal fun DetailsTopSection(name: String, location: String, countryCode: String?, description: String?) {
 	Text(
 		text = name,
-		style = CustomTypography.titleMediumPlus,
-		color = MaterialTheme.colorScheme.onBackground,
-		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		style = MaterialTheme.typography.titleLarge,
+		color = MaterialTheme.colorScheme.onPrimaryContainer,
 	)
 	Row(
 		modifier = Modifier
@@ -33,18 +27,16 @@ internal fun DetailsTopSection(name: String, location: String, countryCode: Stri
 		Spacer(modifier = Modifier.width(8.dp))
 		Text(
 			text = location,
-			style = Typography.titleMedium,
-			color = MaterialTheme.colorScheme.onBackground,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			style = MaterialTheme.typography.titleMedium,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 		)
 	}
 	description?.let {
 		Text(
 			modifier = Modifier.padding(top = 16.dp),
 			text = it,
-			style = Typography.bodyMedium,
-			color = MaterialTheme.colorScheme.outline,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onBackground,
 		)
 	}
 }

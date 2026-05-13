@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">Se connecte au démarrage de l\'application</string>
 	<string name="logs">Journaux</string>
 	<string name="support">Assistance</string>
-	<string name="legal">Juridique</string>
-	<string name="terms_of_use">Conditions d\'utilisation</string>
+    <string name="terms_of_use">Conditions d\'utilisation</string>
 	<string name="privacy_policy">Politique de confidentialité</string>
 	<string name="licenses">Licences</string>
 	<string name="open_github">Créer un ticket GitHub</string>
@@ -44,15 +43,11 @@
 	<string name="okay">OK</string>
 	<string name="two_hop">2 sauts</string>
 	<string name="country_load_failure">Échec du chargement des pays du saut</string>
-	<string name="app_shortcuts">Activer les raccourcis</string>
-	<string name="enable_shortcuts">Allume les accourcis d\'app</string>
-	<string name="disabled_while_connected">Désactivé lors de la connexion au VPN</string>
+    <string name="disabled_while_connected">Désactivé lors de la connexion au VPN</string>
 	<string name="permission_required">Permission requise</string>
 	<string name="permission_message">Pour assurer un fonctionnement optimal de l\'application, merci d\'accorder les permissions suivantes.</string>
-	<string name="notifications">Notifications</string>
-	<string name="notification_permission_required">Merci d\'autoriser l\'envoi de notification pour le bon fonctionnement de l\'application</string>
-	<string name="kill_switch">Arrêt d\'urgence (kill switch)</string>
-	<string name="mode_selection">Sélection de mode</string>
+    <string name="notification_permission_required">Merci d\'autoriser l\'envoi de notification pour le bon fonctionnement de l\'application</string>
+    <string name="mode_selection">Sélection de mode</string>
 	<string name="five_hop_explanation">Bénéficiez du plus haut niveau de confidentialité, grâce à une connexion via le mixnet (5 sauts). Idéal pour les paiements, emails et messages.</string>
 	<string name="continue_reading">Continuer la lecture</string>
 	<string name="appearance">Apparence</string>
@@ -145,8 +140,7 @@
 	<string name="bars_3">3 barres</string>
 	<string name="bars_2">2 barres</string>
 	<string name="bars_1">1 barre</string>
-	<string name="bypass_lan">Accéder au LAN</string>
-	<string name="account_id">Identifiant du compte client :</string>
+    <string name="account_id">Identifiant du compte client :</string>
 	<string name="developer">Développeur</string>
 	<string name="get_help">Obtenir de l\'aide</string>
 	<string name="join_telegram">Rejoignez-nous sur Telegram</string>
@@ -209,12 +203,9 @@
 	<string name="settings_dns_title">Personnaliser le DNS</string>
 	<string name="settings_ipv6_title">Activer IPv6</string>
 	<string name="settings_ipv6_description">Autorise les connexions IPv6</string>
-	<string name="settings_bypass_description">Permet l\'accès direct au réseau local</string>
-	<string name="settings_auto_select_title">Sélection automatique du serveur d\'entrée</string>
+    <string name="settings_auto_select_title">Sélection automatique du serveur d\'entrée</string>
 	<string name="settings_auto_select_description">Laisser l\'application choisir le meilleur emplacement d\'entrée</string>
-	<string name="settings_device_startup_title">Lance au démarrage de l\'appareil</string>
-	<string name="settings_device_startup_description">Laisser l\'application choisir le meilleur emplacement d\'entrée</string>
-	<string name="settings_system_tray_title">Exécuter dans le menu système</string>
+    <string name="settings_system_tray_title">Exécuter dans le menu système</string>
 	<string name="settings_system_tray_description">Garde l\'application en cours d\'exécution quand elle est fermée</string>
 	<string name="settings_reset_app_title">Réinitialiser les données de l\'application</string>
 	<string name="settings_system_status_title">Statut du système</string>
@@ -447,8 +438,7 @@
 	<string name="logs_download_button">Enregistrer quand même</string>
 	<string name="logs_saved">Journaux enregistrés dans le dossier Téléchargements</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Tunnel partagé (« split tunneling »)</string>
-	<string name="split_tunneling_info_msg">Réglez chacune de vos applications pour qu\'elle utilise NymVPN ou se connecte directement à internet.</string>
+    <string name="split_tunneling_info_msg">Réglez chacune de vos applications pour qu\'elle utilise NymVPN ou se connecte directement à internet.</string>
 	<string name="split_tunneling_info_desc">Les modifications s\'appliqueront après la reconnexion</string>
 	<string name="split_tunneling_search_apps_hint">Rechercher des applications</string>
 	<string name="split_tunneling_apps">Applications</string>

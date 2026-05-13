@@ -61,9 +61,9 @@ val Typography = Typography(
 	),
 	titleLarge = TextStyle(
 		fontFamily = sans,
-		fontWeight = FontWeight.SemiBold,
-		fontSize = 22.sp.scaled(),
-		lineHeight = 28.sp.scaled(),
+		fontWeight = FontWeight.Medium,
+		fontSize = 18.sp.scaled(),
+		lineHeight = 24.sp.scaled(),
 		letterSpacing = 0.sp,
 	),
 	titleMedium = TextStyle(
@@ -85,7 +85,7 @@ val Typography = Typography(
 		fontWeight = FontWeight.Normal,
 		fontSize = 16.sp.scaled(),
 		lineHeight = 24.sp.scaled(),
-		letterSpacing = 0.5.sp.scaled(),
+		letterSpacing = 0.16.sp.scaled(),
 	),
 	bodyMedium = TextStyle(
 		fontFamily = sans,
@@ -103,24 +103,24 @@ val Typography = Typography(
 	),
 	labelLarge = TextStyle(
 		fontFamily = sans,
-		fontWeight = FontWeight.Medium,
+		fontWeight = FontWeight.Bold,
 		fontSize = 14.sp.scaled(),
 		lineHeight = 20.sp.scaled(),
-		letterSpacing = 0.1.sp.scaled(),
+		letterSpacing = 0.7.sp.scaled(),
 	),
 	labelMedium = TextStyle(
 		fontFamily = sans,
-		fontWeight = FontWeight.Medium,
+		fontWeight = FontWeight.Bold,
 		fontSize = 12.sp.scaled(),
 		lineHeight = 16.sp.scaled(),
-		letterSpacing = 0.5.sp.scaled(),
+		letterSpacing = 0.7.sp.scaled(),
 	),
 	labelSmall = TextStyle(
 		fontFamily = sans,
-		fontWeight = FontWeight.Medium,
+		fontWeight = FontWeight.Bold,
 		fontSize = 11.sp.scaled(),
 		lineHeight = 16.sp.scaled(),
-		letterSpacing = 0.5.sp.scaled(),
+		letterSpacing = 0.7.sp.scaled(),
 	),
 )
 

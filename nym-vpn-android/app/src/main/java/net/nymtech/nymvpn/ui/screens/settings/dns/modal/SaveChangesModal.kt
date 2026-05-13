@@ -19,7 +19,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -35,6 +34,7 @@ fun SaveChangesModal(showSaveChangesDialog: Boolean, confirmTextResId: Int, onCl
 			Text(
 				text = stringResource(R.string.dns_save_dialog_title),
 				style = CustomTypography.labelHuge,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
@@ -44,17 +44,18 @@ fun SaveChangesModal(showSaveChangesDialog: Boolean, confirmTextResId: Int, onCl
 				textAlign = TextAlign.Center,
 				modifier = Modifier.fillMaxWidth(),
 				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
 		confirmButton = {
 			MainStyledButton(
 				onClick = onClickSave,
+				textColor = Color.Black,
 				content = {
 					Text(
 						stringResource(confirmTextResId),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = Color.Black,
 					)
 				},
 				modifier = Modifier
@@ -69,7 +70,7 @@ fun SaveChangesModal(showSaveChangesDialog: Boolean, confirmTextResId: Int, onCl
 					Text(
 						stringResource(R.string.button_discard),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = CustomColors.buttonRedTransparentBorder,
+						color = MaterialTheme.colorScheme.error,
 					)
 				},
 				modifier = Modifier

@@ -30,6 +30,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.screens.settings.logs.modal.LogsActionsMenu
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 
@@ -53,6 +54,10 @@ fun NavBar(
 	val currentMainSettingsClick by rememberUpdatedState(onMainSettingsClick)
 
 	val currentRoute = navBackStackEntry?.destination?.route
+	val backgroundColor = when (navBarState) {
+		is NavBarState.Main -> LocalNymColors.current.navBarTitleBackground
+		else -> MaterialTheme.colorScheme.surface
+	}
 	LaunchedEffect(currentRoute, hideBackButton, logsEnabled) {
 		keyboardController?.hide()
 		val route = currentRoute ?: return@LaunchedEffect
@@ -70,11 +75,6 @@ fun NavBar(
 				onSettingsClick = currentMainSettingsClick,
 			)
 
-			route.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState.WithClose(
-				titleRes = null,
-				onClose = { navController.navigate(Route.Main()) },
-			)
-
 			route.startsWith(Route.Login::class.qualifiedName!!) -> NavBarState.WithBack(
 				titleRes = null,
 				onBack = { navController.safePopBackStack() },
@@ -90,9 +90,9 @@ fun NavBar(
 				onBack = { navController.safePopBackStack() },
 			)
 
-			route.startsWith(Route.Settings::class.qualifiedName!!) -> NavBarState.WithBack(
+			route.startsWith(Route.Settings::class.qualifiedName!!) -> NavBarState.WithClose(
 				titleRes = R.string.settings,
-				onBack = { navController.safePopBackStack() },
+				onClose = { navController.safePopBackStack() },
 			)
 
 			route.startsWith(Route.EntryLocation::class.qualifiedName!!) -> NavBarState.WithBack(
@@ -127,7 +127,7 @@ fun NavBar(
 			)
 
 			route.startsWith(Route.Legal::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.legal,
+				titleRes = R.string.settings_legal_title,
 				onBack = { navController.safePopBackStack() },
 			)
 
@@ -183,12 +183,12 @@ fun NavBar(
 
 			route.startsWith(Route.Passphrase::class.qualifiedName!!) -> NavBarState.WithBack(
 				titleRes = R.string.settings_passphrase_title,
-				onBack = if (hideBackButton) null else ({ navController.safePopBackStack() }),
+				onBack = { navController.safePopBackStack() },
 				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.PassphraseInfoClicked) },
 			)
 
 			route.startsWith(Route.SplitTunneling::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.split_tunneling,
+				titleRes = R.string.settings_split_tunneling_title,
 				onBack = { onBackClick(Route.SplitTunneling) },
 				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.SplitTunnelingInfoClicked) },
 			)
@@ -274,7 +274,7 @@ fun NavBar(
 					else -> {}
 				}
 			},
-			colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+			colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
 		)
 	}
 }

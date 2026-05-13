@@ -21,7 +21,7 @@ fun SelectedLabel() {
 		Text(
 			stringResource(id = R.string.is_selected),
 			color =
-			MaterialTheme.colorScheme.onSurfaceVariant,
+			MaterialTheme.colorScheme.primary,
 			style = MaterialTheme.typography.labelSmall,
 		)
 	}
