@@ -59,7 +59,6 @@ import net.nymtech.nymvpn.ui.screens.auth.AuthBottomSheet
 import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectPanel
 import net.nymtech.nymvpn.ui.screens.main.components.PanelState
-import net.nymtech.nymvpn.ui.screens.main.components.ServerNode
 import net.nymtech.nymvpn.ui.screens.main.modal.BatteryModal
 import net.nymtech.nymvpn.ui.screens.main.modal.CompatibilityModal
 import net.nymtech.nymvpn.ui.screens.main.modal.NetworkStatsModal
@@ -79,6 +78,8 @@ import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import androidx.compose.ui.res.stringResource
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
+import net.nymtech.nymvpn.ui.screens.main.components.ServerNode
+import nym_vpn_lib_types.Score
 
 @Composable
 fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, showAuth: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
@@ -526,12 +527,14 @@ private fun MainScreenContent(
 					countryCode = appUiState.exitPointCountry,
 					location = appUiState.exitPointLocation,
 					isRandom = appUiState.isExitPointRandom,
+					score = appUiState.exitPointGateway?.wgScore ?: Score.HIGH,
 				),
 				entryNode = ServerNode(
 					name = appUiState.entryPointName,
 					countryCode = appUiState.entryPointCountry,
 					location = appUiState.entryPointLocation,
 					isRandom = appUiState.isEntryPointRandom,
+					score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
 				),
 				initialPanelState = initialPanelState,
 				onFastModeClick = onFastModeClick,

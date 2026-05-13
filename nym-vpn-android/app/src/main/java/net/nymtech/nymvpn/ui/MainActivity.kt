@@ -82,7 +82,6 @@ import net.nymtech.nymvpn.ui.screens.settings.tuning.MixnetTuningScreen
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.screens.technical.TechnicalOptScreen
-import net.nymtech.nymvpn.ui.screens.welcome.WelcomeScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
@@ -351,8 +350,6 @@ class MainActivity : AppCompatActivity() {
 										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
-
-								composable<Route.Welcome> { WelcomeScreen() }
 
 								composable<Route.MixnetTuning> { MixnetTuningScreen(appState) }
 

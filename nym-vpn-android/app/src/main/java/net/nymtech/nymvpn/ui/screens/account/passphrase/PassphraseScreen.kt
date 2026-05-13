@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -55,10 +56,8 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseActions
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseCard
 import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.DeviceAuthHelper
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
@@ -176,21 +175,20 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 	) {
 		Text(
 			text = stringResource(R.string.passphrase_title),
-			style = Typography.titleMedium,
-			color = MaterialTheme.colorScheme.onBackground,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			style = MaterialTheme.typography.bodyLarge,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 			modifier = Modifier.fillMaxWidth(),
 		)
 
 		Text(
 			text = buildAnnotatedString {
-				withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.outline)) {
+				withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
 					append(stringResource(R.string.passphrase_description_first))
 				}
 				append(" ")
 				withStyle(
 					style = SpanStyle(
-						color = MaterialTheme.colorScheme.outline,
+						color = MaterialTheme.colorScheme.onBackground,
 						fontWeight = FontWeight.Bold,
 					),
 				) {
@@ -227,25 +225,24 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 					Text(
 						text = stringResource(R.string.passphrase_saved),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						textAlign = TextAlign.Start,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 				}
 				MainStyledButton(
+					enabled = confirmed,
 					onClick = { if (confirmed) onContinueClick() },
 					content = {
 						Text(
 							stringResource(R.string.welcome_continue),
-							style = CustomTypography.buttonMain,
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+							style = MaterialTheme.typography.titleMedium,
 						)
 					},
-					color = MaterialTheme.colorScheme.primary.copy(if (confirmed) 1f else 0.5f),
-					modifier = Modifier
-						.fillMaxWidth()
+					modifier = Modifier.fillMaxWidth()
 						.padding(vertical = 16.dp)
-						.height(54.dp.scaledHeight()),
+						.height(48.dp.scaledHeight()),
+					shape = RoundedCornerShape(12.dp),
 				)
 			}
 		}

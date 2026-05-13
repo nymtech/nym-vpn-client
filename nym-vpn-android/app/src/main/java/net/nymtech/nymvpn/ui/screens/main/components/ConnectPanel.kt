@@ -9,7 +9,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -30,7 +29,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
-import androidx.compose.material.icons.outlined.SignalCellularAlt
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -62,21 +60,32 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.model.ConnectionState
+import net.nymtech.nymvpn.ui.screens.details.components.CountryFlag
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.isVpnAlwaysOn
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.ErrorStateReason
+import nym_vpn_lib_types.Score
 
 enum class PanelState { COLLAPSED, MODE, FULL }
 
-data class ServerNode(val name: String?, val countryCode: String?, val location: String?, val showQuicIcon: Boolean = false, val showQuicLewesIcon: Boolean = false, val isRandom: Boolean = false)
+data class ServerNode(
+	val name: String?,
+	val countryCode: String?,
+	val location: String?,
+	val showQuicIcon: Boolean = false,
+	val showQuicLewesIcon: Boolean = false,
+	val isRandom: Boolean = false,
+	val score: Score,
+)
 
 @Composable
 fun ConnectPanel(
@@ -344,11 +353,12 @@ private fun ServerRow(
 			verticalAlignment = Alignment.CenterVertically,
 			horizontalArrangement = Arrangement.spacedBy(8.dp),
 		) {
+			val (icon, description) = getScoreIcon(node.score)
 			Icon(
-				imageVector = Icons.Outlined.SignalCellularAlt,
-				contentDescription = null,
+				icon,
+				contentDescription = description,
 				tint = LocalNymColors.current.success,
-				modifier = Modifier.size(iconSize),
+				modifier = Modifier.size(iconSize).padding(2.dp),
 			)
 
 			Column(
@@ -368,22 +378,7 @@ private fun ServerRow(
 					horizontalArrangement = Arrangement.spacedBy(4.dp),
 				) {
 					if (!isAutoMode) {
-						val (image, description) = node.countryCode?.let {
-							Pair(
-								ImageVector.vectorResource(R.drawable.faq),
-								stringResource(R.string.country_flag, it),
-							)
-						} ?: Pair(
-							ImageVector.vectorResource(R.drawable.faq),
-							stringResource(R.string.unknown),
-						)
-
-						Image(
-							image,
-							description,
-							modifier = Modifier
-								.size(16.dp),
-						)
+						CountryFlag(node.countryCode, 16.dp)
 					}
 
 					val title = if (isAutoMode) {
@@ -620,8 +615,8 @@ private fun PreviewDisconnectedDark() {
 				accountState = AccountControllerState.ReadyToConnect,
 				isMnemonicStored = true,
 				vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
-				exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France"),
-				entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France"),
+				exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France", score = Score.HIGH),
+				entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France", score = Score.HIGH),
 				onFastModeClick = {},
 				onAnonModeClick = {},
 				onConnect = {},
@@ -654,8 +649,8 @@ private fun PreviewDisconnectedLight() {
 				accountState = AccountControllerState.ReadyToConnect,
 				isMnemonicStored = true,
 				vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
-				exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France"),
-				entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France"),
+				exitNode = ServerNode(name = "169.128.6.931", countryCode = "fr", location = "France", score = Score.HIGH),
+				entryNode = ServerNode(name = "169.128.6.932", countryCode = "fr", location = "France", score = Score.HIGH),
 				onFastModeClick = {},
 				onAnonModeClick = {},
 				onConnect = {},

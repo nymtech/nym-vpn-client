@@ -66,7 +66,7 @@ private fun DetailsRow(icon: ImageVector, iconTint: Color, iconSize: Dp, textRes
 		Text(
 			text = stringResource(textResId),
 			style = Typography.bodyMedium,
-			color = MaterialTheme.colorScheme.onBackground,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		)
 	}
@@ -109,7 +109,7 @@ private fun QuicBottomContent(onEnableQuicProtocolClick: () -> Unit) {
 		pushStringAnnotation(tag = "QUIC", annotation = "quic_action")
 		withStyle(
 			style = SpanStyle(
-				color = MaterialTheme.colorScheme.onBackground,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				textDecoration = TextDecoration.Underline,
 			),
 		) {
@@ -123,7 +123,7 @@ private fun QuicBottomContent(onEnableQuicProtocolClick: () -> Unit) {
 	Text(
 		text = annotatedText,
 		style = Typography.labelSmall.copy(
-			color = MaterialTheme.colorScheme.outline,
+			color = MaterialTheme.colorScheme.onBackground,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		),
 		modifier = Modifier.clickable {

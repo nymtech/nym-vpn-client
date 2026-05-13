@@ -90,13 +90,6 @@ fun NavController.replaceCurrentWith(route: Route) {
 	}
 }
 
-fun NavController.navigateAndClearWelcome(route: Route) {
-	navigate(route) {
-		popUpTo(Route.Welcome) { inclusive = true }
-		launchSingleTop = true
-	}
-}
-
 @SuppressLint("RestrictedApi")
 fun <T : Route> NavBackStackEntry?.isCurrentRoute(cls: KClass<T>): Boolean = this?.destination?.hierarchy?.any {
 	it.hasRoute(route = cls)

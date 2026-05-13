@@ -38,7 +38,7 @@ fun DetailsSectionIdentity(identity: String, buildVersion: String?) {
 					Text(
 						text = version,
 						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onBackground,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 				},
@@ -61,7 +61,7 @@ fun DetailsSectionIdentity(identity: String, buildVersion: String?) {
 				Text(
 					text = identity,
 					style = Typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onBackground,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					maxLines = 2,
 					overflow = TextOverflow.Ellipsis,
@@ -71,7 +71,7 @@ fun DetailsSectionIdentity(identity: String, buildVersion: String?) {
 				Icon(
 					imageVector = Icons.Outlined.ContentCopy,
 					contentDescription = null,
-					tint = MaterialTheme.colorScheme.onBackground,
+					tint = MaterialTheme.colorScheme.onPrimaryContainer,
 					modifier = Modifier.size(16.dp),
 				)
 			}

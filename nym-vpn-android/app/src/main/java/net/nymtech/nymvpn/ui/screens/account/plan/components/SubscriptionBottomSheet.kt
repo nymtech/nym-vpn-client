@@ -7,7 +7,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,13 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.billing.model.ProductData
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -39,7 +36,7 @@ fun SubscriptionBottomSheet(products: List<ProductData>, onDismiss: () -> Unit, 
 	ModalBottomSheet(
 		onDismissRequest = onDismiss,
 		shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-		containerColor = MaterialTheme.colorScheme.background,
+		containerColor = MaterialTheme.colorScheme.surface,
 		tonalElevation = 4.dp,
 	) {
 		SubscriptionBottomSheetContent(products, onDismiss, onSelect)
@@ -51,29 +48,26 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 	Column(
 		modifier = Modifier
 			.fillMaxWidth()
-			.background(color = MaterialTheme.colorScheme.background)
+			.background(color = MaterialTheme.colorScheme.surface)
 			.padding(16.dp),
-		verticalArrangement = Arrangement.spacedBy(12.dp),
+		verticalArrangement = Arrangement.spacedBy(14.dp),
 	) {
 		Text(
 			text = stringResource(R.string.select_plan_modal_title),
 			style = MaterialTheme.typography.titleMedium,
-			color = MaterialTheme.colorScheme.onSurface,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 			modifier = Modifier.align(Alignment.CenterHorizontally),
 		)
-
-		Spacer(Modifier.height(8.dp))
 
 		Column(
 			modifier = Modifier
 				.clip(RoundedCornerShape(8.dp))
 				.fillMaxWidth()
 				.border(
-					BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
+					BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
 					RoundedCornerShape(8.dp),
 				)
-				.background(MaterialTheme.colorScheme.surface),
+				.background(MaterialTheme.colorScheme.primaryContainer),
 		) {
 			products.forEachIndexed { index, product ->
 				Column(
@@ -86,41 +80,37 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 					Text(
 						text = product.name + " (${product.price})",
 						style = MaterialTheme.typography.titleMedium,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 					product.freeTrialDays?.let { _ ->
 						Text(
 							text = stringResource(R.string.select_plan_modal_free_trial),
 							style = MaterialTheme.typography.bodyLarge,
-							color = MaterialTheme.colorScheme.onSurface,
+							color = MaterialTheme.colorScheme.onBackground,
 						)
 					}
 				}
 
 				if (index < products.lastIndex) {
 					HorizontalDivider(
-						color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+						color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
 						thickness = 1.dp,
 					)
 				}
 			}
 		}
 
-		MainStyledButton(
+		OutlineStyledButton(
+			modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+			shape = RoundedCornerShape(12.dp),
 			onClick = onDismiss,
-			textColor = MaterialTheme.colorScheme.onSurface,
 			content = {
 				Text(
 					stringResource(R.string.cancel),
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 			},
-			modifier = Modifier
-				.fillMaxWidth()
-				.height(56.dp.scaledHeight()),
-			color = MaterialTheme.colorScheme.surface,
-			borderStroke = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.onSurface),
 		)
 	}
 }

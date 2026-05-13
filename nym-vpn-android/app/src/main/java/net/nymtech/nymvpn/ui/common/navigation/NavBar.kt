@@ -75,11 +75,6 @@ fun NavBar(
 				onSettingsClick = currentMainSettingsClick,
 			)
 
-			route.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState.WithClose(
-				titleRes = null,
-				onClose = { navController.navigate(Route.Main()) },
-			)
-
 			route.startsWith(Route.Login::class.qualifiedName!!) -> NavBarState.WithBack(
 				titleRes = null,
 				onBack = { navController.safePopBackStack() },

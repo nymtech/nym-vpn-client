@@ -50,14 +50,14 @@ fun DetailsSectionBottom(identity: String) {
 			style = MaterialTheme.typography.bodyMedium.copy(
 				textDecoration = TextDecoration.Underline,
 			),
-			color = MaterialTheme.colorScheme.onBackground,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		)
 		Spacer(modifier = Modifier.width(4.dp))
 		Icon(
 			imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
 			contentDescription = null,
-			tint = MaterialTheme.colorScheme.onBackground,
+			tint = MaterialTheme.colorScheme.onPrimaryContainer,
 			modifier = Modifier.size(12.dp),
 		)
 	}
@@ -78,7 +78,7 @@ fun DetailsSectionBottom(identity: String) {
 			text = buildAnnotatedString {
 				withStyle(
 					style = SpanStyle(
-						color = MaterialTheme.colorScheme.outline,
+						color = MaterialTheme.colorScheme.onBackground,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					),
 				) {
@@ -87,7 +87,7 @@ fun DetailsSectionBottom(identity: String) {
 				append(" ")
 				withStyle(
 					style = SpanStyle(
-						color = MaterialTheme.colorScheme.onBackground,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						textDecoration = TextDecoration.Underline,
 					),
 				) {
@@ -97,14 +97,14 @@ fun DetailsSectionBottom(identity: String) {
 				}
 			},
 			style = MaterialTheme.typography.bodyMedium,
-			color = MaterialTheme.colorScheme.onBackground,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		)
 		Spacer(modifier = Modifier.width(4.dp))
 		Icon(
 			imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
 			contentDescription = null,
-			tint = MaterialTheme.colorScheme.onBackground,
+			tint = MaterialTheme.colorScheme.onPrimaryContainer,
 			modifier = Modifier.size(12.dp),
 		)
 	}

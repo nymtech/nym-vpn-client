@@ -41,8 +41,6 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -58,7 +56,6 @@ import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
 import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.account.plan.components.SubscriptionBottomSheet
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -177,8 +174,7 @@ fun SelectPlanScreen(
 			Text(
 				text = stringResource(R.string.select_plan_title),
 				style = MaterialTheme.typography.headlineSmall,
-				color = MaterialTheme.colorScheme.onSurface,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 
 			Column(
@@ -196,8 +192,7 @@ fun SelectPlanScreen(
 					Text(
 						text = stringResource(R.string.select_plan_line_0),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				}
 				Row {
@@ -211,8 +206,7 @@ fun SelectPlanScreen(
 					Text(
 						text = stringResource(R.string.select_plan_line_1),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				}
 				Row {
@@ -226,8 +220,7 @@ fun SelectPlanScreen(
 					Text(
 						text = stringResource(R.string.select_plan_line_2),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				}
 				Row {
@@ -241,8 +234,7 @@ fun SelectPlanScreen(
 					Text(
 						text = stringResource(R.string.select_plan_line_3),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				}
 			}
@@ -257,13 +249,13 @@ fun SelectPlanScreen(
 				content = {
 					Text(
 						stringResource(R.string.select_plan_button),
-						style = CustomTypography.buttonMain,
+						style = MaterialTheme.typography.titleMedium,
 					)
 				},
-				color = MaterialTheme.colorScheme.primary,
 				modifier = Modifier
 					.fillMaxWidth()
 					.height(56.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
 			)
 		}
 	}
