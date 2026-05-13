@@ -127,7 +127,7 @@ export function useTauriEvents(
   const registerUpdatePendingListener = useCallback(() => {
     return listen(UpdatePendingEvent, () => {
       console.info('[update] new version installed, restart required');
-      dispatch({ type: 'set-linux-update-available', available: true });
+      dispatch({ type: 'set-linux-app-updated', updated: true });
     });
   }, []);
 

@@ -23,7 +23,7 @@ function UpdateDialog() {
   const version = update?.version || 'unknown';
 
   // for Linux
-  const linuxUpdateAvailable = useAppStore((s) => s.linuxUpdateAvailable);
+  const linuxAppUpdated = useAppStore((s) => s.linuxAppUpdated);
   const { add, close } = useToast();
 
   const { t } = useTranslation('home');
@@ -40,10 +40,10 @@ function UpdateDialog() {
   };
 
   useEffect(() => {
-    if (!linuxUpdateAvailable || os !== 'linux') return;
+    if (!linuxAppUpdated || os !== 'linux') return;
 
     // rese the state to false so the dialog is not shown again on return
-    dispatch({ type: 'set-linux-update-available', available: false });
+    dispatch({ type: 'set-linux-app-updated', updated: false });
 
     add({
       id: 'update-installed-restart-required',
@@ -57,7 +57,7 @@ function UpdateDialog() {
         },
       },
     });
-  }, [add, close, linuxUpdateAvailable, t]);
+  }, [add, close, linuxAppUpdated, t]);
 
   useEffect(() => {
     if (initialized || os !== 'windows' || !updaterEnabled) {
