@@ -37,7 +37,7 @@ fun AutologinLoadingDialog(onCancel: () -> Unit) {
 				modifier = Modifier.fillMaxWidth(),
 			) {
 				CircularProgressIndicator(
-					modifier = Modifier.size(24.dp).padding(end = 12.dp),
+					modifier = Modifier.padding(end = 12.dp).size(24.dp),
 					strokeWidth = 2.dp,
 				)
 				Text(
