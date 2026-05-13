@@ -4,6 +4,10 @@
     "windows-x86_64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjFpaUR5eWFBNlhCTTFlQ1cxU3hXSFBJbXZSRXRkMW9nLzNpZS9Ja0ppM3krRTFScjkxd0tNeUdrUzdyYnh5L2tOR29XVFlHQzM4ZitmVjB1QVcvS1FrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc4MTUyMTYzCWZpbGU6TnltVlBOXzEuMjkuNF94NjQtc2V0dXAuZXhlCjhIeWdwcXBHYnlsTGRTaVFMeDBDU0JYTnhHU2RTUk9MN0lmemFuakN1Q0dFQWxhb3RCMEw0MnlIQnVaa1VXcEdXNitldmsvaTBtZVJoT1VVQVFrL0RnPT0K",
       "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.29.4/NymVPN_1.29.4_x64-setup.exe"
+    },
+    "windows-aarch64": {
+      "signature": "",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.29.4/NymVPN_1.29.4_arm64-setup.exe"
     }
   }
 }
