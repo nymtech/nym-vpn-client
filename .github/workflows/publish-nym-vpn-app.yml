@@ -81,6 +81,7 @@ jobs:
       win_updater_arm64_exe: ${{ steps.win_updater_arm64.outputs.exe }}
       win_updater_arm64_sig: ${{ steps.win_updater_arm64.outputs.sig }}
       core_build_url_path: ${{ needs.build-windows-x64.outputs.core_build_url_path }}
+      core_build_url_path_arm64: ${{ needs.build-windows-arm64.outputs.core_build_url_path }}
     env:
       # stable | nightly | dev
       RELEASE_TYPE: ${{ inputs.release_type || (github.event_name == 'schedule' && 'nightly' || 'dev') }}
@@ -307,18 +308,23 @@ jobs:
         env:
           NYM_BUILDS_URL: "https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core"
           CORE_BUILD_URL_PATH: "${{ needs.publish.outputs.core_build_url_path }}"
+          CORE_BUILD_URL_PATH_ARM64: "${{ needs.publish.outputs.core_build_url_path_arm64 }}"
         run: |
           if [[ -n "${{ inputs.core_release_tag }}" ]]; then
             url=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
+            url_arm64=$url
           elif [[ -n "${{ inputs.core_artifact_url }}" ]]; then
             url="$(dirname ${{ inputs.core_artifact_url }})/"
+            url_arm64=$url
           elif [[ -n "$CORE_BUILD_URL_PATH" ]]; then
             url="${{ env.NYM_BUILDS_URL }}${{ env.CORE_BUILD_URL_PATH }}/"
+            url_arm64="${{ env.NYM_BUILDS_URL }}${{ env.CORE_BUILD_URL_PATH_ARM64 }}/"
           else
             url="${{ env.NYM_BUILDS_URL }}/develop/"
+            url_arm64=$url
           fi
-          echo $url
           echo "CORE_LINK=$url" >> "$GITHUB_ENV"
+          echo "CORE_LINK_ARM64=$url_arm64" >> "$GITHUB_ENV"
 
       - name: Set message
         env:
@@ -330,7 +336,7 @@ jobs:
           {
             echo 'MESSAGE<<EOF'
             echo '${{ env.EMOJI }} **${{ env.NAME }}** `${{ env.VERSION }}`
-          [app](https://github.com/nymtech/nym-vpn-client/releases/tag/${{ env.APP_RELEASE_TAG }}) | [core](${{ env.CORE_LINK }})
+          [app](https://github.com/nymtech/nym-vpn-client/releases/tag/${{ env.APP_RELEASE_TAG }}) | [core x64](${{ env.CORE_LINK }}) | [core arm64](${{ env.CORE_LINK_ARM64 }})
           '
             echo EOF
           } >> "$GITHUB_ENV"
