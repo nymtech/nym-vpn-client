@@ -1182,6 +1182,17 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(proto_report))
     }
 
+    async fn get_tentative_gateways(
+        &self,
+        _: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::TentativeGateways>> {
+        let tentative_gateways = self
+            .send_and_wait(VpnServiceCommand::GetTentativeGateways, ())
+            .await?;
+
+        Ok(tonic::Response::new(tentative_gateways.into()))
+    }
+
     async fn is_split_tunnel_supported(
         &self,
         _request: tonic::Request<()>,

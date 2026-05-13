@@ -12,6 +12,7 @@ use std::{sync::Arc, task::Poll};
 
 use futures::{FutureExt as _, Stream, StreamExt as FuturesStreamExt};
 use nym_gateway_directory::{BlacklistedGateways, GatewayClient, NodeIdentity};
+use nym_vpn_lib_types::TentativeGateways;
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
     sync::{Mutex, RwLock, mpsc, oneshot},
@@ -128,11 +129,17 @@ impl<C: GatewayCache> GatewayProvider<C> {
         )
     }
 
-    pub async fn needs_relaxed_independence_criteria(&self) -> bool {
-        matches!(
-            self.selected_gateways_stream.lock().await.peek().await,
-            Some(Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria))
-        )
+    pub async fn tentative_gateways(&self) -> TentativeGateways {
+        match self.selected_gateways_stream.lock().await.peek().await {
+            Some(Ok(selected_gateways)) => TentativeGateways::Selected {
+                entry: Box::new(selected_gateways.entry_gateway().clone().into()),
+                exit: Box::new(selected_gateways.entry_gateway().clone().into()),
+            },
+            Some(Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)) => {
+                TentativeGateways::NeedsRelaxedIndependenceCriteria
+            }
+            Some(Err(_)) | None => TentativeGateways::NoGatewaysAvailable,
+        }
     }
 
     async fn inner_set_tunnel_settings(

@@ -201,6 +201,8 @@ impl<'de> Deserialize<'de> for Recipient {
 pub type BoxedRecepient = Box<Recipient>;
 #[cfg(feature = "uniffi-bindings")]
 pub type BoxedNodeIdentity = Box<NodeIdentity>;
+#[cfg(feature = "uniffi-bindings")]
+pub type BoxedGateway = Box<Gateway>;
 
 #[cfg(feature = "uniffi-bindings")]
 uniffi::custom_type!(NodeIdentity, String, {
@@ -228,6 +230,13 @@ uniffi::custom_type!(BoxedRecepient, String, {
     remote,
     try_lift: |val| Ok(Box::new(Recipient::try_from_base58_string(val)?)),
     lower: |val| val.to_string()
+});
+
+#[cfg(feature = "uniffi-bindings")]
+uniffi::custom_type!(BoxedGateway, Gateway, {
+    remote,
+    try_lift: |val| Ok(Box::new(val)),
+    lower: |val| *val
 });
 
 #[cfg(feature = "nym-type-conversions")]
@@ -527,6 +536,25 @@ pub struct Gateway {
     pub exit_ipv6s: Vec<Ipv6Addr>,
     pub build_version: Option<String>,
     pub lewes_protocol_details: Option<LewesProtocolDetails>,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub enum TentativeGateways {
+    Selected {
+        entry: Box<Gateway>,
+        exit: Box<Gateway>,
+    },
+    NeedsRelaxedIndependenceCriteria,
+    NoGatewaysAvailable,
 }
 
 #[derive(Debug, Clone)]
