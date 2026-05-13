@@ -368,6 +368,69 @@ impl From<nym_vpn_lib_types::Gateway> for proto::GatewayResponse {
     }
 }
 
+impl TryFrom<proto::TentativeGateways> for nym_vpn_lib_types::TentativeGateways {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::TentativeGateways) -> Result<Self, Self::Error> {
+        match value
+            .tentative_gateways
+            .ok_or_else(|| ConversionError::generic("missing tentative gateways"))?
+        {
+            proto::tentative_gateways::TentativeGateways::Selected(
+                proto::tentative_gateways::Selected { entry, exit },
+            ) => {
+                let entry = entry
+                    .ok_or_else(|| ConversionError::generic("missing selected entry gateway"))?;
+                let exit =
+                    exit.ok_or_else(|| ConversionError::generic("missing selected exit gateway"))?;
+                Ok(nym_vpn_lib_types::TentativeGateways::Selected {
+                    entry: Box::new(entry.try_into()?),
+                    exit: Box::new(exit.try_into()?),
+                })
+            }
+            proto::tentative_gateways::TentativeGateways::NeedsRelaxedIndependenceCriteria(_) => {
+                Ok(nym_vpn_lib_types::TentativeGateways::NeedsRelaxedIndependenceCriteria)
+            }
+            proto::tentative_gateways::TentativeGateways::NoGatewaysAvailable(_) => {
+                Ok(nym_vpn_lib_types::TentativeGateways::NoGatewaysAvailable)
+            }
+        }
+    }
+}
+
+impl From<nym_vpn_lib_types::TentativeGateways> for proto::TentativeGateways {
+    fn from(value: nym_vpn_lib_types::TentativeGateways) -> Self {
+        match value {
+            nym_vpn_lib_types::TentativeGateways::Selected { entry, exit } => {
+                proto::TentativeGateways {
+                    tentative_gateways: Some(
+                        proto::tentative_gateways::TentativeGateways::Selected(
+                            proto::tentative_gateways::Selected {
+                                entry: Some(proto::GatewayResponse::from(*entry)),
+                                exit: Some(proto::GatewayResponse::from(*exit)),
+                            },
+                        ),
+                    ),
+                }
+            }
+            nym_vpn_lib_types::TentativeGateways::NeedsRelaxedIndependenceCriteria => {
+                proto::TentativeGateways {
+                    tentative_gateways: Some(proto::tentative_gateways::TentativeGateways::NeedsRelaxedIndependenceCriteria(
+                        proto::tentative_gateways::NeedsRelaxedIndependenceCriteria {},
+                    )),
+                }
+            }
+             nym_vpn_lib_types::TentativeGateways::NoGatewaysAvailable   => {
+                proto::TentativeGateways {
+                    tentative_gateways: Some(proto::tentative_gateways::TentativeGateways::NoGatewaysAvailable(
+                        proto::tentative_gateways::NoGatewaysAvailable { },
+                    )),
+                }
+             }
+        }
+    }
+}
+
 impl From<BridgeInformation> for proto::BridgeInformation {
     fn from(value: BridgeInformation) -> Self {
         let transports = value
