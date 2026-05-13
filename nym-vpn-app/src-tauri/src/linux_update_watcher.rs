@@ -1,7 +1,7 @@
 use std::os::linux::fs::MetadataExt;
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use notify::event::EventKind;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
