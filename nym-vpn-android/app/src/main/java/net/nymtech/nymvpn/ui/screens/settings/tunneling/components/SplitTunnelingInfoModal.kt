@@ -113,7 +113,8 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 		confirmButton = {
 			MainStyledButton(
 				onClick = onDismiss,
-				content = { Text(stringResource(R.string.ok), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black) },
+				textColor = Color.Black,
+				content = { Text(stringResource(R.string.ok), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))) },
 				modifier = Modifier
 					.fillMaxWidth()
 					.height(40.dp.scaledHeight()),

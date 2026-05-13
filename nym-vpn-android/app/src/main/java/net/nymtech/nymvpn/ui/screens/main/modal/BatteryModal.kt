@@ -45,11 +45,11 @@ fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDism
 		confirmButton = {
 			MainStyledButton(
 				onClick = onClickSettings,
+				textColor = Color.Black,
 				content = {
 					Text(
 						stringResource(R.string.settings),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = Color.Black,
 					)
 				},
 				modifier = Modifier

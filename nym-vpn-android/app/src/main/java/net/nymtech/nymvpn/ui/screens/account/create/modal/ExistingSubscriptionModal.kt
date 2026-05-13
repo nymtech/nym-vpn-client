@@ -46,11 +46,11 @@ fun ExistingSubscriptionModal(showSubscriptionDialog: Boolean, onClickLogin: () 
 		confirmButton = {
 			MainStyledButton(
 				onClick = onClickLogin,
+				textColor = Color.Black,
 				content = {
 					Text(
 						stringResource(R.string.account_subscription_button),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = Color.Black,
 					)
 				},
 				modifier = Modifier

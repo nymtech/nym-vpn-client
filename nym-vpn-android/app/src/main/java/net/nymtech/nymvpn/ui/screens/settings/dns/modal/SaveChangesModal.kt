@@ -50,11 +50,11 @@ fun SaveChangesModal(showSaveChangesDialog: Boolean, confirmTextResId: Int, onCl
 		confirmButton = {
 			MainStyledButton(
 				onClick = onClickSave,
+				textColor = Color.Black,
 				content = {
 					Text(
 						stringResource(confirmTextResId),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = Color.Black,
 					)
 				},
 				modifier = Modifier

@@ -83,11 +83,11 @@ fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, on
 					onClick = {
 						onConfirm()
 					},
+					textColor = MaterialTheme.colorScheme.onPrimaryContainer,
 					content = {
 						Text(
 							stringResource(R.string.log_out),
 							style = MaterialTheme.typography.bodyLarge,
-							color = MaterialTheme.colorScheme.onPrimaryContainer,
 						)
 					},
 					modifier = Modifier

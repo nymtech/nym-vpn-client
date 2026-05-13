@@ -43,7 +43,6 @@ fun CredentialModalBody(onClick: () -> Unit) {
 						fontFamily = FontFamily(
 							Font(R.font.lab_grotesque_regular),
 						),
-						color = MaterialTheme.colorScheme.onPrimary,
 					)
 				},
 				modifier = Modifier

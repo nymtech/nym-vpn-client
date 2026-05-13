@@ -51,11 +51,11 @@ fun LogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, title
 		confirmButton = {
 			MainStyledButton(
 				onClick = onConfirm,
+				textColor = MaterialTheme.colorScheme.onSurface,
 				content = {
 					Text(
 						buttonText,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = MaterialTheme.colorScheme.onSurface,
 					)
 				},
 				modifier = Modifier

@@ -3,9 +3,6 @@ package net.nymtech.nymvpn.ui.common.navigation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import net.nymtech.nymvpn.R
 
 @Composable
 fun NavTitle(text: String) {
@@ -13,6 +10,5 @@ fun NavTitle(text: String) {
 		text,
 		style = MaterialTheme.typography.titleLarge,
 		color = MaterialTheme.colorScheme.onPrimaryContainer,
-		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 	)
 }

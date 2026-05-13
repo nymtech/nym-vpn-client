@@ -43,8 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -63,7 +61,6 @@ import net.nymtech.nymvpn.ui.screens.settings.logs.modal.LogsModal
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
@@ -238,7 +235,7 @@ fun LogsScreenContent(
 		Card(
 			modifier = Modifier.fillMaxWidth(),
 			shape = RoundedCornerShape(8.dp),
-			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 		) {
 			Column(
 				modifier = Modifier
@@ -253,6 +250,7 @@ fun LogsScreenContent(
 					Text(
 						text = stringResource(R.string.logs_enable_title),
 						style = MaterialTheme.typography.titleMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 					ScaledSwitch(
 						checked = logsEnabled,
@@ -262,9 +260,8 @@ fun LogsScreenContent(
 
 				Text(
 					text = stringResource(R.string.logs_enable_description),
-					style = Typography.bodySmall,
-					color = MaterialTheme.colorScheme.outline,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
 					modifier = Modifier
 						.fillMaxWidth()
 						.padding(top = 8.dp),
@@ -278,7 +275,7 @@ fun LogsScreenContent(
 		Card(
 			modifier = Modifier.fillMaxWidth(),
 			shape = RoundedCornerShape(8.dp),
-			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 		) {
 			Column(
 				modifier = Modifier
@@ -293,6 +290,7 @@ fun LogsScreenContent(
 					Text(
 						text = stringResource(R.string.logs_debug_enable_title),
 						style = MaterialTheme.typography.titleMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 					ScaledSwitch(
 						checked = logsDebugEnabled,
@@ -302,9 +300,8 @@ fun LogsScreenContent(
 
 				Text(
 					text = stringResource(R.string.logs_debug_enable_description),
-					style = Typography.bodySmall,
-					color = MaterialTheme.colorScheme.outline,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
 					modifier = Modifier
 						.fillMaxWidth()
 						.padding(top = 8.dp),
@@ -322,24 +319,30 @@ fun LogsScreenContent(
 			}
 		}
 
-		LogsPagerTabs(
-			selectedTab = selectedTab,
-			onSelectTab = onSelectTab,
-		)
-
-		Box(
-			modifier = Modifier
-				.fillMaxWidth()
-				.weight(1f),
+		Card(
+			modifier = Modifier.fillMaxWidth(),
+			shape = RoundedCornerShape(8.dp),
+			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 		) {
-			if (currentLogs.isEmpty()) {
-				EmptyLogsPlaceholder()
-			} else {
-				LogsList(
-					logs = currentLogs,
-					lazyColumnListState = currentScrollState,
-					modifier = Modifier.fillMaxSize(),
-				)
+			LogsPagerTabs(
+				selectedTab = selectedTab,
+				onSelectTab = onSelectTab,
+			)
+
+			Box(
+				modifier = Modifier
+					.padding(8.dp)
+					.fillMaxWidth(),
+			) {
+				if (currentLogs.isEmpty()) {
+					EmptyLogsPlaceholder()
+				} else {
+					LogsList(
+						logs = currentLogs,
+						lazyColumnListState = currentScrollState,
+						modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer),
+					)
+				}
 			}
 		}
 	}

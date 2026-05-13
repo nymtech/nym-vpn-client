@@ -504,7 +504,6 @@ private fun ActionButton(
 				Text(
 					stringResource(R.string.connecting),
 					style = MaterialTheme.typography.titleMedium,
-					color = MaterialTheme.colorScheme.onPrimary,
 				)
 			},
 			color = MaterialTheme.colorScheme.secondary,
@@ -518,7 +517,6 @@ private fun ActionButton(
 				Text(
 					stringResource(R.string.disconnecting),
 					style = MaterialTheme.typography.titleMedium,
-					color = MaterialTheme.colorScheme.onPrimary,
 				)
 			},
 			color = MaterialTheme.colorScheme.secondary,
@@ -528,11 +526,11 @@ private fun ActionButton(
 
 		ConnectionState.Connected -> MainStyledButton(
 			onClick = onDisconnect,
+			textColor = MaterialTheme.colorScheme.onPrimaryContainer,
 			content = {
 				Text(
 					stringResource(R.string.disconnect),
 					style = MaterialTheme.typography.titleMedium,
-					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 			},
 			color = Color.Transparent,
@@ -553,11 +551,11 @@ private fun ActionButton(
 				isSubscriptionError && !isAccountActionPending && isVpnAlwaysOn(context) ->
 					MainStyledButton(
 						onClick = onStopKillSwitch,
+						textColor = MaterialTheme.colorScheme.onError,
 						content = {
 							Text(
 								stringResource(R.string.stop),
 								style = CustomTypography.buttonMain,
-								color = MaterialTheme.colorScheme.onError,
 							)
 						},
 						color = MaterialTheme.colorScheme.error,

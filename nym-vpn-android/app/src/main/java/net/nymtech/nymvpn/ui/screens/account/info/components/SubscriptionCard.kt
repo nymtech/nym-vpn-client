@@ -44,7 +44,6 @@ import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.ui.screens.settings.components.SettingsIcon
 import net.nymtech.nymvpn.ui.screens.settings.components.SettingsTitle
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -60,7 +59,7 @@ fun SubscriptionSection(subscriptionState: SubscriptionUiState?, bandwidthState:
 					content = {
 						Text(
 							stringResource(R.string.select_plan_button),
-							style = CustomTypography.buttonMain,
+							style = MaterialTheme.typography.titleMedium,
 						)
 					},
 					modifier = Modifier

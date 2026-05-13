@@ -32,7 +32,6 @@ import net.nymtech.nymvpn.ui.screens.settings.censorship.components.QuicSection
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.StealthApiSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
@@ -70,8 +69,8 @@ fun CensorshipScreen(quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> U
 	) {
 		Text(
 			text = stringResource(R.string.censorship_description),
-			style = Typography.bodyMedium,
-			color = MaterialTheme.colorScheme.outline,
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onBackground,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			modifier = Modifier
 				.fillMaxWidth()

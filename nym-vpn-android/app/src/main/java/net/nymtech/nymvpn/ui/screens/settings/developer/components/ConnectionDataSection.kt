@@ -54,7 +54,8 @@ fun ConnectionDataSection(appUiState: AppUiState) {
 								) {
 									Text(
 										"Tunnel details",
-										style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSurface),
+										style = MaterialTheme.typography.bodyMedium,
+										color = MaterialTheme.colorScheme.onBackground,
 									)
 								}
 							}

@@ -48,11 +48,11 @@ fun NetworkStatsModal(showNetworkStatsDialog: Boolean, onDismiss: () -> Unit, on
 		confirmButton = {
 			MainStyledButton(
 				onClick = onConfirm,
+				textColor = Color.Black,
 				content = {
 					Text(
 						stringResource(R.string.modal_network_stats_enable_button),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = Color.Black,
 					)
 				},
 				modifier = Modifier

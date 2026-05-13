@@ -77,11 +77,11 @@ fun ConnectionButton(
 					if (isVpnAlwaysOn(context)) {
 						MainStyledButton(
 							onClick = onStopKillSwitch,
+							textColor = MaterialTheme.colorScheme.onError,
 							content = {
 								Text(
 									stringResource(R.string.stop),
 									style = CustomTypography.buttonMain,
-									color = MaterialTheme.colorScheme.onError,
 								)
 							},
 							color = MaterialTheme.colorScheme.error,
@@ -123,11 +123,11 @@ fun ConnectionButton(
 			is ConnectionState.Connecting,
 			-> MainStyledButton(
 				onClick = onDisconnect,
+				textColor = MaterialTheme.colorScheme.onError,
 				content = {
 					Text(
 						stringResource(R.string.stop),
 						style = CustomTypography.buttonMain,
-						color = MaterialTheme.colorScheme.onError,
 					)
 				},
 				color = MaterialTheme.colorScheme.error,

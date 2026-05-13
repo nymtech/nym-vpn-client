@@ -108,11 +108,11 @@ fun SubscriptionBottomSheetContent(products: List<ProductData>, onDismiss: () ->
 
 		MainStyledButton(
 			onClick = onDismiss,
+			textColor = MaterialTheme.colorScheme.onSurface,
 			content = {
 				Text(
 					stringResource(R.string.cancel),
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					color = MaterialTheme.colorScheme.onSurface,
 					style = MaterialTheme.typography.titleMedium,
 				)
 			},

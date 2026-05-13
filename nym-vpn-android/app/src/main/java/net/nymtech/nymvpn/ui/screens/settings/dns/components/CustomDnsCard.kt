@@ -17,7 +17,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ShapeDefaults
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -111,7 +110,7 @@ fun CustomDnsCard(
 	Card(
 		modifier = modifier.fillMaxWidth(),
 		shape = RoundedCornerShape(8.dp),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 	) {
 		Column(modifier = Modifier.padding(16.dp)) {
 			Row(
@@ -121,14 +120,13 @@ fun CustomDnsCard(
 				Text(
 					text = stringResource(R.string.dns_custom_title),
 					style = MaterialTheme.typography.titleMedium,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					color = MaterialTheme.colorScheme.onBackground,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					modifier = Modifier.weight(1f),
 				)
 
-				Switch(
+				ScaledSwitch(
 					checked = dnsEnabled,
-					onCheckedChange = if (toggleEnabled) onDnsEnable else null,
+					onClick = { if (toggleEnabled) onDnsEnable.invoke(it) },
 					enabled = toggleEnabled,
 				)
 			}
@@ -136,8 +134,7 @@ fun CustomDnsCard(
 			Text(
 				text = stringResource(R.string.dns_custom_description),
 				style = Typography.bodySmall,
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier.padding(top = 16.dp),
 			)
 
@@ -147,7 +144,7 @@ fun CustomDnsCard(
 				Text(
 					text = stringResource(R.string.dns_custom_list_entries, dnsItems.size),
 					style = MaterialTheme.typography.bodySmall,
-					color = MaterialTheme.colorScheme.onBackground,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				)
 
@@ -179,13 +176,13 @@ fun CustomDnsCard(
 						label = {
 							Text(
 								text = stringResource(R.string.dns_custom_list_title),
-								fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+								style = MaterialTheme.typography.bodyMedium,
 							)
 						},
 						placeholder = {
 							Text(
 								text = stringResource(R.string.dns_custom_list_hint),
-								fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+								style = MaterialTheme.typography.bodyMedium,
 							)
 						},
 						isError = shouldShowInputError,
@@ -202,7 +199,7 @@ fun CustomDnsCard(
 						content = {
 							Text(
 								text = stringResource(R.string.button_add),
-								style = CustomTypography.buttonMain,
+								style = MaterialTheme.typography.titleMedium,
 								maxLines = 1,
 								softWrap = false,
 								overflow = TextOverflow.Ellipsis,
@@ -237,13 +234,12 @@ fun CustomDnsCard(
 				enabled = hasUnsavedChanges,
 				content = {
 					Text(
-						text = stringResource(saveTextRes),
-						style = CustomTypography.buttonMain,
+						stringResource(saveTextRes),
+						style = MaterialTheme.typography.titleMedium,
 					)
 				},
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(56.dp.scaledHeight()),
+				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
 			)
 		}
 	}
