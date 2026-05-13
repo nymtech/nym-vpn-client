@@ -257,6 +257,15 @@ private extension ConnectionManager {
 #endif
             }
             .store(in: &cancellables)
+
+#if os(macOS)
+        appSettings.$isStealthApiEnabledPublisher
+            .removeDuplicates()
+            .sink { [weak self] newValue in
+                Task { try? await self?.grpcManager.setStealthApiEnabled(newValue) }
+            }
+            .store(in: &cancellables)
+#endif
     }
 
     func setupConnectionChangeObserver() {
