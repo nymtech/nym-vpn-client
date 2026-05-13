@@ -11,12 +11,18 @@ use nym_platform_metadata::new_user_agent;
 use nym_validator_client::nym_api::NymApiClientExt;
 use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_api_client::api_urls_to_urls;
-use nym_vpn_lib_types::{ApiTimeSkew, HttpReport};
+use nym_vpn_lib_types::{
+    ApiTimeSkew, ApiUrl, DiagnosticEndpointResponse, DiagnosticResult, HttpReport,
+};
 use nym_vpn_network_config::Network;
 
 pub struct HttpDiagnostic;
 
 impl HttpDiagnostic {
+    /// Run a series of short tests to check that APIs are reachable.
+    ///
+    /// For the `by_endpoint` tests if there is a front defined in the output
+    /// it means that the FrontPolicy was set to always and fronting was used.
     pub async fn run_diagnostic(network: &Network) -> Result<HttpReport> {
         tracing::info!("Running http diagnostic");
         let nym_vpn_api_client =
@@ -38,61 +44,120 @@ impl HttpDiagnostic {
             .await
             .map(|list| list.len());
 
-        Self::test_nym_apis(network, false).await?;
-        Self::test_vpn_apis(network, false).await?;
+        let mut http_report = Vec::new();
+        http_report.extend_from_slice(&Self::test_nym_apis(network, false).await?);
+        http_report.extend_from_slice(&Self::test_vpn_apis(network, false).await?);
 
         Ok(HttpReport {
             remote_time: remote_time.into(),
             health_response: health_response.into(),
             nb_nymnodes: nb_nodes.into(),
+            by_endpoint: http_report,
         })
     }
 
-    async fn test_nym_apis(network: &Network, parallel: bool) -> Result<()> {
+    async fn test_nym_apis(
+        network: &Network,
+        parallel: bool,
+    ) -> Result<Vec<DiagnosticResult<DiagnosticEndpointResponse>>> {
         tracing::info!("Running Nym api diagnostics");
 
         let api_clients = build_nym_api_clients(network).await?;
+        let mut results = Vec::new();
 
         if parallel {
             let mut jobs = tokio::task::JoinSet::new();
 
             for api_client in api_clients {
                 jobs.spawn(async move {
-                    let _ = api_client.get_network_details().await;
+                    match api_client.health().await {
+                        Ok(res) => {
+                            DiagnosticResult::from_value(DiagnosticEndpointResponse {
+                                status: res.status.is_up().to_string(),
+                                url: url_from_client(&api_client),
+                            })
+                        }
+                        Err(e) => DiagnosticResult::from_err(e),
+                    }
                 });
             }
 
-            while jobs.join_next().await.is_some() {}
+            jobs.join_all()
+                .await
+                .into_iter()
+                .for_each(|r| results.push(r));
         } else {
             for api_client in api_clients {
-                let _ = api_client.get_network_details().await;
+                match api_client.health().await {
+                    Ok(res) => {
+                        results.push(DiagnosticResult::from_value(DiagnosticEndpointResponse {
+                            status: res.status.is_up().to_string(),
+                            url: url_from_client(&api_client),
+                        }))
+                    }
+                    Err(e) => results.push(DiagnosticResult::from_err(e)),
+                }
             }
         }
 
-        Ok(())
+        Ok(results)
     }
 
-    async fn test_vpn_apis(network: &Network, parallel: bool) -> Result<()> {
+    async fn test_vpn_apis(
+        network: &Network,
+        parallel: bool,
+    ) -> Result<Vec<DiagnosticResult<DiagnosticEndpointResponse>>> {
         tracing::info!("Running VPN api diagnostics");
+
         let api_clients = build_vpn_api_clients(network).await?;
+        let mut results = Vec::new();
 
         if parallel {
             let mut jobs = tokio::task::JoinSet::new();
 
             for api_client in api_clients {
                 jobs.spawn(async move {
-                    let _ = api_client.get_health().await;
+                    match api_client.get_health().await {
+                        Ok(res) => {
+                            DiagnosticResult::from_value(DiagnosticEndpointResponse {
+                                status: res.status,
+                                url: url_from_client(api_client.as_ref()),
+                            })
+                        }
+                        Err(e) => DiagnosticResult::from_err(e),
+                    }
                 });
             }
 
-            while jobs.join_next().await.is_some() {}
+            jobs.join_all()
+                .await
+                .into_iter()
+                .for_each(|r| results.push(r));
         } else {
             for api_client in api_clients {
-                let _ = api_client.get_health().await;
+                match api_client.get_health().await {
+                    Ok(res) => {
+                        results.push(DiagnosticResult::from_value(DiagnosticEndpointResponse {
+                            status: res.status,
+                            url: url_from_client(api_client.as_ref()),
+                        }))
+                    }
+                    Err(e) => results.push(DiagnosticResult::from_err(e)),
+                }
             }
         }
 
-        Ok(())
+        Ok(results)
+    }
+}
+
+fn url_from_client(client: &Client) -> ApiUrl {
+    ApiUrl {
+        url: client.current_url().inner_url().to_string(),
+        front_hosts: client
+            .current_url()
+            .fronts()
+            .map(|v| v.iter().map(ToString::to_string).collect()),
     }
 }
 
