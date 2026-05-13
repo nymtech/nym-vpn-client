@@ -644,11 +644,11 @@ pub(super) mod tests {
             .expect("Failed to initialize ad-blocker files");
         let cache_dir = temp_dir.path();
 
-        write_fake_etag(&cache_dir, 0)
+        write_fake_etag(cache_dir, 0)
             .await
             .expect("Failed to update ad-blocker metadata");
 
-        let updated = update_files(&cache_dir, USER_AGENT, CancellationToken::new())
+        let updated = update_files(cache_dir, USER_AGENT, CancellationToken::new())
             .await
             .expect("Failed to update ad-blocker files");
 
@@ -666,11 +666,11 @@ pub(super) mod tests {
             .expect("Failed to initialize ad-blocker files");
         let cache_dir = temp_dir.path();
 
-        write_fake_etag(&cache_dir, 1)
+        write_fake_etag(cache_dir, 1)
             .await
             .expect("Failed to update ad-blocker metadata");
 
-        let updated = update_files(&cache_dir, USER_AGENT, CancellationToken::new())
+        let updated = update_files(cache_dir, USER_AGENT, CancellationToken::new())
             .await
             .expect("Failed to update ad-blocker files");
 
