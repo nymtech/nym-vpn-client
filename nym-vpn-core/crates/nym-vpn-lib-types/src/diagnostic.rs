@@ -162,6 +162,9 @@ pub struct RegistrationReport {
     pub mixnet_client_start: Option<DiagnosticResult<()>>,
 
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    pub mixnet_ipr_connect: Option<DiagnosticResult<()>>,
+
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub mixnet_based_dvpn_registration: Option<DiagnosticResult<GatewayDataReport>>,
 
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
@@ -179,6 +182,7 @@ impl RegistrationReport {
         Self {
             mixnet_client_build: DiagnosticResult::from_err(error),
             mixnet_client_start: None,
+            mixnet_ipr_connect: None,
             mixnet_based_dvpn_registration: None,
             lp_handshake: None,
             lp_based_dvpn_registration: None,

@@ -5636,6 +5636,7 @@ dependencies = [
  "nym-gateway-directory",
  "nym-gateway-requests",
  "nym-http-api-client",
+ "nym-ip-packet-client",
  "nym-lp",
  "nym-platform-metadata",
  "nym-registration-client",

@@ -23,6 +23,7 @@ nym-crypto.workspace = true
 nym-gateway-directory.workspace = true
 nym-gateway-requests.workspace = true
 nym-http-api-client.workspace = true
+nym-ip-packet-client.workspace = true
 nym-lp.workspace = true
 nym-registration-common.workspace = true
 nym-registration-client.workspace = true
