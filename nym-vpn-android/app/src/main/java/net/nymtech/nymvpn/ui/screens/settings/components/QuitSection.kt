@@ -1,6 +1,8 @@
 package net.nymtech.nymvpn.ui.screens.settings.components
 
 import android.content.res.Configuration
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -14,8 +16,11 @@ fun QuitSection(onQuitClick: () -> Unit) {
 	SettingsGroup(
 		items = listOf(
 			SelectionItem(
-				trailing = {
-					SettingsArrowIcon()
+				leading = {
+					SettingsIcon(
+						Icons.Outlined.Close,
+						stringResource(R.string.settings_quit_title),
+					)
 				},
 				title = {
 					SettingsTitle(stringResource(R.string.settings_quit_title))

@@ -316,7 +316,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val expiryAlertAction = stringResource(R.string.banner_renew_text)
 	val expiryState = appUiState.subscription?.expiryState
 	LaunchedEffect(expiryState, expiryBannerDismissed) {
-		if (!expiryBannerDismissed && (expiryState == ExpiryState.WARNING_YELLOW || expiryState == ExpiryState.WARNING_AMBER)) {
+		if (!expiryBannerDismissed && (expiryState == ExpiryState.WARNING)) {
 			NymAlertController.show(
 				NymAlertMessage(
 					type = AlertType.Warning,

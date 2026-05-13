@@ -20,12 +20,7 @@ fun SubscriptionStatusText(subscription: SubscriptionUiState?, modifier: Modifie
 			text = stringResource(R.string.account_info_valid_text, subscription.validUntilDate)
 		}
 
-		ExpiryState.WARNING_YELLOW -> {
-			color = LocalNymColors.current.warning
-			text = stringResource(R.string.account_info_expires_text, subscription.validUntilDate)
-		}
-
-		ExpiryState.WARNING_AMBER -> {
+		ExpiryState.WARNING -> {
 			color = LocalNymColors.current.warning
 			text = stringResource(R.string.account_info_expires_text, subscription.validUntilDate)
 		}
@@ -55,8 +50,7 @@ fun SubscriptionStatusText(subscription: SubscriptionUiState?, modifier: Modifie
 
 enum class ExpiryState {
 	NORMAL,
-	WARNING_YELLOW,
-	WARNING_AMBER,
+	WARNING,
 	EXPIRED,
 	PENDING,
 }

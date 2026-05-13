@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">Conexão automática na reinicialização</string>
 	<string name="logs">Registros</string>
 	<string name="support">Suporte</string>
-	<string name="legal">Informações Legais</string>
-	<string name="terms_of_use">Termos de uso</string>
+    <string name="terms_of_use">Termos de uso</string>
 	<string name="privacy_policy">Declaração de privacidade</string>
 	<string name="licenses">Licenças</string>
 	<string name="open_github">Abrir um problema no GitHub</string>
@@ -44,15 +43,11 @@
 	<string name="okay">Ok</string>
 	<string name="two_hop">2-saltos</string>
 	<string name="country_load_failure">Falha ao carregar países de salto</string>
-	<string name="app_shortcuts">Atalhos do aplicativo</string>
-	<string name="enable_shortcuts">Ativar atalhos do aplicativo</string>
-	<string name="disabled_while_connected">Desativado enquanto conectado à VPN</string>
+    <string name="disabled_while_connected">Desativado enquanto conectado à VPN</string>
 	<string name="permission_required">É necessária permissão</string>
 	<string name="permission_message">Para garantir que o aplicativo funcione corretamente em seu dispositivo, conceda as seguintes permissões. Essas permissões são necessárias para o funcionamento do aplicativo.</string>
-	<string name="notifications">Notificações</string>
-	<string name="notification_permission_required">Ative a permissão de notificação para a funcionalidade adequada do aplicativo</string>
-	<string name="kill_switch">Kill switch</string>
-	<string name="mode_selection">Modo se seleção</string>
+    <string name="notification_permission_required">Ative a permissão de notificação para a funcionalidade adequada do aplicativo</string>
+    <string name="mode_selection">Modo se seleção</string>
 	<string name="five_hop_explanation">Privacidade máxima através de roteamento de 5 saltos (até 1-5 Mbps). Tráfego fictício e ofuscação de tempo para maior anonimato. Perfeito para atividades altamente confidenciais, como pagamentos, emails e mensagens.</string>
 	<string name="continue_reading">Continuar lendo</string>
 	<string name="appearance">Aparência</string>
@@ -147,8 +142,7 @@
 	<string name="bars_3">3 barras</string>
 	<string name="bars_2">2 barras</string>
 	<string name="bars_1">1 barra</string>
-	<string name="bypass_lan">Bypass LAN</string>
-	<string name="account_id">ID da conta</string>
+    <string name="account_id">ID da conta</string>
 	<string name="developer">Desenvolvedor</string>
 	<string name="get_help">Obtenha ajuda</string>
 	<string name="join_telegram">Junte-se a nós no Telegram</string>
@@ -211,12 +205,9 @@
 	<string name="settings_dns_title">Personalizar DNS</string>
 	<string name="settings_ipv6_title">Suporte IPv6</string>
 	<string name="settings_ipv6_description">Permitir conexões IPv6</string>
-	<string name="settings_bypass_description">Permitir acesso direto à rede local</string>
-	<string name="settings_auto_select_title">Auto-selecionar servidor de referências</string>
+    <string name="settings_auto_select_title">Auto-selecionar servidor de referências</string>
 	<string name="settings_auto_select_description">Deixe o app escolher o melhor local de entrada</string>
-	<string name="settings_device_startup_title">Iniciar na inicialização do dispositivo</string>
-	<string name="settings_device_startup_description">Deixe o app escolher o melhor local de entrada</string>
-	<string name="settings_system_tray_title">Executar na bandeja do sistema</string>
+    <string name="settings_system_tray_title">Executar na bandeja do sistema</string>
 	<string name="settings_system_tray_description">Manter o aplicativo em execução quando fechado</string>
 	<string name="settings_reset_app_title">Redefinir dados do aplicativo</string>
 	<string name="settings_system_status_title">Status do sistema</string>
@@ -449,8 +440,7 @@
 	<string name="logs_download_button">Salvar como arquivo mesmo assim</string>
 	<string name="logs_saved">Registros salvos na pasta de downloads</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Ajustar tunelamento</string>
-	<string name="split_tunneling_info_msg">Defina cada aplicativo para usar o NymVPN ou conectar diretamente.</string>
+    <string name="split_tunneling_info_msg">Defina cada aplicativo para usar o NymVPN ou conectar diretamente.</string>
 	<string name="split_tunneling_info_desc">As alterações serão aplicadas após reconectar</string>
 	<string name="split_tunneling_search_apps_hint">Pesquisar aplicativos</string>
 	<string name="split_tunneling_apps">Aplicativos</string>

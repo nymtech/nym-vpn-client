@@ -3,12 +3,11 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.BatterySaver
+import androidx.compose.material.icons.outlined.KeyboardAlt
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.RocketLaunch
 import androidx.compose.material.icons.outlined.ViewComfy
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,36 +23,26 @@ import net.nymtech.nymvpn.ui.theme.Theme
 fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 	SettingsGroup(
 		items = buildList {
-// 			add(
-// 				SelectionItem(
-// 					leading = {
-// 						Icon(
-// 							Icons.Outlined.RocketLaunch,
-// 							stringResource(R.string.settings_device_startup_title),
-// 							modifier = Modifier.size(iconSize.scaledWidth()),
-// 							tint = MaterialTheme.colorScheme.outline,
-// 						)
-// 					},
-// 					trailing = {
-// 						ScaledSwitch(
-// 							checked = values.appDeviceStartupEnabled,
-// 							onClick = actions.onDeviceStartupEnable,
-// 						)
-// 					},
-// 					title = {
-// 						Text(
-// 							stringResource(R.string.settings_device_startup_title),
-// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-// 						)
-// 					},
-// 					description = {
-// 						Text(
-// 							stringResource(R.string.settings_device_startup_description),
-// 							style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-// 						)
-// 					},
-// 				),
-// 			)
+			add(
+				SelectionItem(
+					leading = {
+						SettingsIcon(
+							Icons.Outlined.RocketLaunch,
+							stringResource(R.string.settings_startup_title),
+						)
+					},
+					trailing = {
+						ScaledSwitch(
+							checked = values.autoConnectEnabled,
+							onClick = actions.onAutoConnectEnable,
+						)
+					},
+					title = {
+						SettingsTitle(stringResource(R.string.settings_startup_title))
+					},
+				),
+			)
+
 // 			add(
 // 				SelectionItem(
 // 					leading = {
@@ -84,6 +73,63 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 // 					},
 // 				),
 // 			)
+
+			add(
+				SelectionItem(
+					leading = {
+						SettingsIcon(
+							Icons.Outlined.Notifications,
+							stringResource(R.string.settings_notifications_title),
+						)
+					},
+					trailing = {
+						SettingsArrowIcon()
+					},
+					title = {
+						SettingsTitle(stringResource(R.string.settings_notifications_title))
+					},
+					onClick = actions.onNotificationsClick,
+				),
+			)
+			add(
+				SelectionItem(
+					leading = {
+						SettingsIcon(
+							Icons.Outlined.BatterySaver,
+							stringResource(R.string.settings_power_managment_title),
+						)
+					},
+					trailing = {
+						SettingsArrowIcon()
+					},
+					title = {
+						SettingsTitle(stringResource(R.string.settings_power_managment_title))
+					},
+					onClick = actions.onBatterySettingsClick,
+				),
+			)
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+				add(
+					SelectionItem(
+						leading = {
+							SettingsIcon(
+								Icons.Outlined.KeyboardAlt,
+								stringResource(R.string.settings_shortcuts_title),
+							)
+						},
+						trailing = {
+							ScaledSwitch(
+								checked = values.appShortcutsEnabled,
+								onClick = actions.onShortcutsEnable,
+							)
+						},
+						title = {
+							SettingsTitle(stringResource(R.string.settings_shortcuts_title))
+						},
+					),
+				)
+			}
+
 			add(
 				SelectionItem(
 					leading = {
@@ -101,68 +147,6 @@ fun AppearanceSection(values: SettingsValues, actions: SettingsActions) {
 					onClick = actions.onAppearanceClick,
 				),
 			)
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							Icons.Outlined.Notifications,
-							stringResource(R.string.notifications),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.notifications))
-					},
-					onClick = actions.onNotificationsClick,
-				),
-			)
-			add(
-				SelectionItem(
-					leading = {
-						SettingsIcon(
-							Icons.Outlined.BatterySaver,
-							stringResource(R.string.battery_opt),
-						)
-					},
-					trailing = {
-						SettingsArrowIcon()
-					},
-					title = {
-						SettingsTitle(stringResource(R.string.battery_opt))
-					},
-					onClick = actions.onBatterySettingsClick,
-				),
-			)
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-				add(
-					SelectionItem(
-						leading = {
-							SettingsIcon(
-								Icons.Outlined.Apps,
-								stringResource(R.string.app_shortcuts),
-							)
-						},
-						trailing = {
-							ScaledSwitch(
-								checked = values.appShortcutsEnabled,
-								onClick = actions.onShortcutsEnable,
-							)
-						},
-						title = {
-							SettingsTitle(stringResource(R.string.app_shortcuts))
-						},
-						description = {
-							Text(
-								stringResource(R.string.enable_shortcuts),
-								style = MaterialTheme.typography.bodyMedium,
-								color = MaterialTheme.colorScheme.onBackground,
-							)
-						},
-					),
-				)
-			}
 		},
 	)
 }

@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">Підключатися при відкритті програми</string>
 	<string name="logs">Журнали</string>
 	<string name="support">Служба підтримки</string>
-	<string name="legal">Правові документи</string>
-	<string name="terms_of_use">Умови використання</string>
+    <string name="terms_of_use">Умови використання</string>
 	<string name="privacy_policy">Положення про конфіденційність</string>
 	<string name="licenses">Ліцензії</string>
 	<string name="open_github">Відкрити GitHub запит</string>
@@ -44,15 +43,11 @@
 	<string name="okay">Добре</string>
 	<string name="two_hop">2-ланки</string>
 	<string name="country_load_failure">Не вдалось завантажити країну</string>
-	<string name="app_shortcuts">Ярлик додатку</string>
-	<string name="enable_shortcuts">Увімкнути ярлик додатку</string>
-	<string name="disabled_while_connected">Вимкнено при підключенні до VPN</string>
+    <string name="disabled_while_connected">Вимкнено при підключенні до VPN</string>
 	<string name="permission_required">Необхідний дозвіл</string>
 	<string name="permission_message">Щоб забезпечити коректну роботу додатку на вашому пристрої, будь ласка, надайте наступні дозволи.</string>
-	<string name="notifications">Сповіщення</string>
-	<string name="notification_permission_required">Будь ласка, увімкніть дозвіл на сповіщення для правильної роботи програми</string>
-	<string name="kill_switch">Вимикач</string>
-	<string name="mode_selection">Режим вибрано</string>
+    <string name="notification_permission_required">Будь ласка, увімкніть дозвіл на сповіщення для правильної роботи програми</string>
+    <string name="mode_selection">Режим вибрано</string>
 	<string name="five_hop_explanation">Максимальна конфіденційність завдяки 5-ступеневій маршрутизації (до 1-5 Мбіт/с). Фальшивий трафік і заплутування часу для підвищення анонімності. Ідеально підходить для дуже конфіденційних дій, таких як платежі, електронні листи та повідомлення.</string>
 	<string name="continue_reading">Продовжити читання</string>
 	<string name="appearance">Зовнішній вигляд</string>
@@ -145,8 +140,7 @@
 	<string name="bars_3">3 смужки</string>
 	<string name="bars_2">2 смужки</string>
 	<string name="bars_1">1 смужка</string>
-	<string name="bypass_lan">Обхідна локальна мережа</string>
-	<string name="account_id">Ідентифікатор облікового запису:</string>
+    <string name="account_id">Ідентифікатор облікового запису:</string>
 	<string name="developer">Розробник</string>
 	<string name="get_help">Зверніться по допомогу</string>
 	<string name="join_telegram">Приєднуйтесь до нас у Telegram</string>
@@ -209,12 +203,9 @@
 	<string name="settings_dns_title">Налаштування DNS</string>
 	<string name="settings_ipv6_title">Підтримка IPv6</string>
 	<string name="settings_ipv6_description">Вимкнути, щоб використовувати тільки IPv4</string>
-	<string name="settings_bypass_description">Дозволити прямий доступ до локальної мережі</string>
-	<string name="settings_auto_select_title">Автоматичний вибір сервера входу</string>
+    <string name="settings_auto_select_title">Автоматичний вибір сервера входу</string>
 	<string name="settings_auto_select_description">Дозвольте додатку вибрати найкраще місце для входу</string>
-	<string name="settings_device_startup_title">Запуск при запуску пристрою</string>
-	<string name="settings_device_startup_description">Дозвольте додатку вибрати найкраще місце для входу</string>
-	<string name="settings_system_tray_title">Запустити в системному треї</string>
+    <string name="settings_system_tray_title">Запустити в системному треї</string>
 	<string name="settings_system_tray_description">Зберігати роботу програми після закриття</string>
 	<string name="settings_reset_app_title">Скинути дані програми</string>
 	<string name="settings_system_status_title">Стан системи</string>
@@ -448,8 +439,7 @@
 	<string name="logs_download_button">Все одно зберегти як файл</string>
 	<string name="logs_saved">Логи збережені в папці завантажень</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Роздільне тунелювання</string>
-	<string name="split_tunneling_info_msg">Налаштуйте кожну програму на використання NymVPN або підключіться безпосередньо.</string>
+    <string name="split_tunneling_info_msg">Налаштуйте кожну програму на використання NymVPN або підключіться безпосередньо.</string>
 	<string name="split_tunneling_info_desc">Зміни будуть застосовані після повторного підключення</string>
 	<string name="split_tunneling_search_apps_hint">Пошук додатків</string>
 	<string name="split_tunneling_apps">Додатки</string>

@@ -132,7 +132,7 @@ fun NavBar(
 			)
 
 			route.startsWith(Route.Legal::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.legal,
+				titleRes = R.string.settings_legal_title,
 				onBack = { navController.safePopBackStack() },
 			)
 
@@ -188,12 +188,12 @@ fun NavBar(
 
 			route.startsWith(Route.Passphrase::class.qualifiedName!!) -> NavBarState.WithBack(
 				titleRes = R.string.settings_passphrase_title,
-				onBack = if (hideBackButton) null else ({ navController.safePopBackStack() }),
+				onBack = { navController.safePopBackStack() },
 				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.PassphraseInfoClicked) },
 			)
 
 			route.startsWith(Route.SplitTunneling::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = R.string.split_tunneling,
+				titleRes = R.string.settings_split_tunneling_title,
 				onBack = { onBackClick(Route.SplitTunneling) },
 				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.SplitTunnelingInfoClicked) },
 			)

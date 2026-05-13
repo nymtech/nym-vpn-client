@@ -3,11 +3,12 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 import android.content.res.Configuration
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
@@ -47,7 +48,7 @@ fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?
 				SelectionItem(
 					leading = {
 						SettingsIcon(
-							Icons.Outlined.Key,
+							ImageVector.vectorResource(R.drawable.ic_passphrase),
 							stringResource(R.string.settings_passphrase_title),
 						)
 					},

@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">الاتصال تلقائيًا عند فتح التطبيق</string>
 	<string name="logs">السجلات</string>
 	<string name="support">الدعم</string>
-	<string name="legal">الشؤون القانونية</string>
-	<string name="terms_of_use">شروط الاستخدام</string>
+    <string name="terms_of_use">شروط الاستخدام</string>
 	<string name="privacy_policy">بيان الخصوصية</string>
 	<string name="licenses">التراخيص</string>
 	<string name="open_github">فتح بلاغ على GitHub</string>
@@ -44,15 +43,11 @@
 	<string name="okay">حسنًا</string>
 	<string name="two_hop">مسار بقفزتين</string>
 	<string name="country_load_failure">تعذّر تحميل الدول الخاصة بالقفزات</string>
-	<string name="app_shortcuts">اختصارات التطبيق</string>
-	<string name="enable_shortcuts">تمكين اختصارات التطبيق</string>
-	<string name="disabled_while_connected">معطّل عند الاتصال بالـVPN</string>
+    <string name="disabled_while_connected">معطّل عند الاتصال بالـVPN</string>
 	<string name="permission_required">الإذن مطلوب</string>
 	<string name="permission_message">للتأكد من أن التطبيق يعمل بشكل صحيح على جهازك، يرجى السماح بالأذويات</string>
-	<string name="notifications">التنبيهات</string>
-	<string name="notification_permission_required">الرجاء تمكين إذن الإشعار لوظيفة التطبيق الصحيح</string>
-	<string name="kill_switch">مفتاح الإيقاف التلقائي</string>
-	<string name="mode_selection">اختيار النمط</string>
+    <string name="notification_permission_required">الرجاء تمكين إذن الإشعار لوظيفة التطبيق الصحيح</string>
+    <string name="mode_selection">اختيار النمط</string>
 	<string name="five_hop_explanation">يوفّر أقصى درجات الخصوصية من خلال توجيه متعدد من 5 قفزات (بسرعة تصل إلى 1–5 ميجابت/ث). يتضمّن حركة مرور وهمية وتمويهًا للتوقيت لزيادة مستوى عدم الكشف عن الهوية. مناسب تمامًا للأنشطة عالية الحساسية مثل المدفوعات والبريد الإلكتروني والمراسلات</string>
 	<string name="continue_reading">متابعة القراءة</string>
 	<string name="appearance">المظهر</string>
@@ -147,8 +142,7 @@
 	<string name="bars_3">3 أشرطة</string>
 	<string name="bars_2">2 أشرطة</string>
 	<string name="bars_1">1 شريط</string>
-	<string name="bypass_lan">Bypass LAN</string>
-	<string name="account_id">معرف الحساب:</string>
+    <string name="account_id">معرف الحساب:</string>
 	<string name="developer">المطور</string>
 	<string name="get_help">الحصول على المساعدة</string>
 	<string name="join_telegram">انضم إلينا على تيليجرام</string>
@@ -211,12 +205,9 @@
 	<string name="settings_dns_title">تخصيص DNS</string>
 	<string name="settings_ipv6_title">دعم IPv6</string>
 	<string name="settings_ipv6_description">السماح باتصالات IPv6</string>
-	<string name="settings_bypass_description">السماح بالوصول المباشر إلى الشبكة المحلية</string>
-	<string name="settings_auto_select_title">تحديد تلقائي لخادم الدخول</string>
+    <string name="settings_auto_select_title">تحديد تلقائي لخادم الدخول</string>
 	<string name="settings_auto_select_description">السماح للتطبيق باختيار أفضل موقع للدخول</string>
-	<string name="settings_device_startup_title">تشغيل عند بدء تشغيل الجهاز</string>
-	<string name="settings_device_startup_description">السماح للتطبيق باختيار أفضل موقع للدخول</string>
-	<string name="settings_system_tray_title">تشغيل في صالة النظام</string>
+    <string name="settings_system_tray_title">تشغيل في صالة النظام</string>
 	<string name="settings_system_tray_description">إبقاء التطبيق قيد التشغيل عند إغلاقه</string>
 	<string name="settings_reset_app_title">إعادة تعيين بيانات التطبيق</string>
 	<string name="settings_system_status_title">حالة النظام</string>
@@ -449,8 +440,7 @@
 	<string name="logs_download_button">حفظ كملف على أي حال</string>
 	<string name="logs_saved">Logs saved to downloads folder</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">تقسيم نفق</string>
-	<string name="split_tunneling_info_msg">تعيين كل تطبيق لاستخدام NymVPN أو الاتصال مباشرة.</string>
+    <string name="split_tunneling_info_msg">تعيين كل تطبيق لاستخدام NymVPN أو الاتصال مباشرة.</string>
 	<string name="split_tunneling_info_desc">سيتم تطبيق التغييرات بعد إعادة الاتصال</string>
 	<string name="split_tunneling_search_apps_hint">البحث عن التطبيقات</string>
 	<string name="split_tunneling_apps">التطبيقات</string>

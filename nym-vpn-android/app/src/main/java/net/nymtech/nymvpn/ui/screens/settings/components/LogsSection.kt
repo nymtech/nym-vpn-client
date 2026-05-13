@@ -2,7 +2,7 @@ package net.nymtech.nymvpn.ui.screens.settings.components
 
 import android.content.res.Configuration
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.PrivacyTip
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -18,15 +18,15 @@ fun LogsSection(onPrivacyClick: () -> Unit) {
 			SelectionItem(
 				leading = {
 					SettingsIcon(
-						Icons.Outlined.PrivacyTip,
-						stringResource(R.string.privacy_title),
+						Icons.Outlined.Lock,
+						stringResource(R.string.settings_logs_title),
 					)
 				},
 				trailing = {
 					SettingsArrowIcon()
 				},
 				title = {
-					SettingsTitle(stringResource(R.string.privacy_title))
+					SettingsTitle(stringResource(R.string.settings_logs_title))
 				},
 				onClick = onPrivacyClick,
 			),

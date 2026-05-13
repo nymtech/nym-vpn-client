@@ -27,7 +27,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -46,9 +45,8 @@ fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, on
 		title = {
 			Text(
 				text = stringResource(R.string.log_out_title),
-				style = CustomTypography.labelHuge,
-				color = MaterialTheme.colorScheme.onBackground,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				style = MaterialTheme.typography.titleLarge,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 		},
 		text = {
@@ -56,7 +54,7 @@ fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, on
 				stringResource(R.string.log_out_body),
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.outline,
+				color = MaterialTheme.colorScheme.onBackground,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
@@ -70,15 +68,14 @@ fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, on
 				) {
 					Text(
 						text = stringResource(R.string.logging_out),
-						style = MaterialTheme.typography.labelLarge,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = MaterialTheme.colorScheme.onBackground,
+						style = MaterialTheme.typography.bodyLarge,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 					Spacer(modifier = Modifier.width(12.dp))
 					CircularProgressIndicator(
 						color = LocalNymColors.current.warning,
 						modifier = Modifier.size(24.dp),
-						strokeWidth = 2.dp,
+						strokeWidth = 4.dp,
 					)
 				}
 			} else {
@@ -89,8 +86,8 @@ fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, on
 					content = {
 						Text(
 							stringResource(R.string.log_out),
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-							color = MaterialTheme.colorScheme.onSurface,
+							style = MaterialTheme.typography.bodyLarge,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
 						)
 					},
 					modifier = Modifier
@@ -108,8 +105,8 @@ fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, on
 					content = {
 						Text(
 							stringResource(R.string.cancel),
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-							color = MaterialTheme.colorScheme.onSurface,
+							style = MaterialTheme.typography.bodyLarge,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
 						)
 					},
 					modifier = Modifier

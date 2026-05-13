@@ -1,9 +1,9 @@
 package net.nymtech.nymvpn.ui.screens.settings.components
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 
@@ -14,7 +14,7 @@ fun SupportSection(onSupportClick: () -> Unit) {
 			SelectionItem(
 				leading = {
 					SettingsIcon(
-						ImageVector.vectorResource(R.drawable.support),
+						Icons.Outlined.ChatBubbleOutline,
 						stringResource(R.string.support),
 					)
 				},

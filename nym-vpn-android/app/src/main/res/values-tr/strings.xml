@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">Uygulama açıldığında bağlan</string>
 	<string name="logs">Kayıtlar</string>
 	<string name="support">Destek</string>
-	<string name="legal">Hukuki</string>
-	<string name="terms_of_use">Kullanım şartları</string>
+    <string name="terms_of_use">Kullanım şartları</string>
 	<string name="privacy_policy">Gizlilik politikası</string>
 	<string name="licenses">Lisanslar</string>
 	<string name="open_github">GitHub hata raporu açın</string>
@@ -44,15 +43,11 @@
 	<string name="okay">Tamam</string>
 	<string name="two_hop">2-atlama</string>
 	<string name="country_load_failure">Hop ülkeleri yüklenemedi</string>
-	<string name="app_shortcuts">Uygulama kısayolları</string>
-	<string name="enable_shortcuts">Uygulama kısayollarını etkinleştir</string>
-	<string name="disabled_while_connected">VPN’e bağlıyken devre dışı bırakıldı</string>
+    <string name="disabled_while_connected">VPN’e bağlıyken devre dışı bırakıldı</string>
 	<string name="permission_required">İzin gereklidir</string>
 	<string name="permission_message">Cihazınızda uygulamanın doğru çalışmasını sağlamak için lütfen aşağıdaki izinleri kabul edin. Bu izinler, uygulamanın işlevini yerine getirebilmesi için gereklidir.</string>
-	<string name="notifications">Bildirimler</string>
-	<string name="notification_permission_required">Uygulamanın düzgün çalışması için bildirim izinlerini  etkinleştirin</string>
-	<string name="kill_switch">Kill switch</string>
-	<string name="mode_selection">Mod seçimi</string>
+    <string name="notification_permission_required">Uygulamanın düzgün çalışması için bildirim izinlerini  etkinleştirin</string>
+    <string name="mode_selection">Mod seçimi</string>
 	<string name="five_hop_explanation">5 atlamalı yönlendirme ile en üst düzey gizlilik (1-5 Mbps’ye kadar). Daha güçlü anonimlik için sahte trafik ve zamanlama gizleme kullanılır. Ödemeler, e-postalar ve mesajlar gibi yüksek hassasiyetli işlemler için idealdir.</string>
 	<string name="continue_reading">Okumaya devam edin</string>
 	<string name="appearance">Görünüm</string>
@@ -145,8 +140,7 @@
 	<string name="bars_3">3 çubuk</string>
 	<string name="bars_2">2 çubuk</string>
 	<string name="bars_1">1 çubuk</string>
-	<string name="bypass_lan">Yerel Alan Ağı\'nı (LAN) atla</string>
-	<string name="account_id">Hesap Kimliği:</string>
+    <string name="account_id">Hesap Kimliği:</string>
 	<string name="developer">Geliştirici</string>
 	<string name="get_help">Yardım al</string>
 	<string name="join_telegram">Telegram\'da bize katılın</string>
@@ -209,12 +203,9 @@
 	<string name="settings_dns_title">DNS’i Özelleştir</string>
 	<string name="settings_ipv6_title">IPv6 desteği</string>
 	<string name="settings_ipv6_description">IPv6 bağlantılarına izin ver</string>
-	<string name="settings_bypass_description">Doğrudan yerel ağ erişimine izin ver</string>
-	<string name="settings_auto_select_title">Giriş sunucusunu otomatik seç</string>
+    <string name="settings_auto_select_title">Giriş sunucusunu otomatik seç</string>
 	<string name="settings_auto_select_description">Uygulamanın en iyi giriş lokasyonunu seçmesine izin ver</string>
-	<string name="settings_device_startup_title">Cihaz açıldığında başlat</string>
-	<string name="settings_device_startup_description">Uygulamanın en iyi giriş lokasyonunu seçmesine izin ver</string>
-	<string name="settings_system_tray_title">Arka planda çalıştır</string>
+    <string name="settings_system_tray_title">Arka planda çalıştır</string>
 	<string name="settings_system_tray_description">Kapatıldığında uygulamayı çalıştırmaya devam et</string>
 	<string name="settings_reset_app_title">Uygulama verilerini sıfırla</string>
 	<string name="settings_system_status_title">Sistem durumu</string>
@@ -448,8 +439,7 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="logs_download_button">Yine de dosya olarak kaydet</string>
 	<string name="logs_saved">Kayıtlar, indirilenler klasörüne kaydedildi</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Bölünmüş tünelleme</string>
-	<string name="split_tunneling_info_msg">Her uygulama için ayrı ayrı, NymVPN üzerinden mi yoksa doğrudan mı bağlanacağınızı seçin.</string>
+    <string name="split_tunneling_info_msg">Her uygulama için ayrı ayrı, NymVPN üzerinden mi yoksa doğrudan mı bağlanacağınızı seçin.</string>
 	<string name="split_tunneling_info_desc">Değişiklikler yeniden bağlandıktan sonra uygulanacak</string>
 	<string name="split_tunneling_search_apps_hint">Uygulama ara</string>
 	<string name="split_tunneling_apps">Uygulamalar</string>

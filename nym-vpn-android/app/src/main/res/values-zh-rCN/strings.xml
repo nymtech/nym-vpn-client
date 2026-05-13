@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">应用程序打开时连接</string>
 	<string name="logs">日志</string>
 	<string name="support">支持</string>
-	<string name="legal">法律</string>
-	<string name="terms_of_use">使用条款</string>
+    <string name="terms_of_use">使用条款</string>
 	<string name="privacy_policy">隐私声明</string>
 	<string name="licenses">许可证</string>
 	<string name="open_github">打开 GitHub 问题</string>
@@ -44,15 +43,11 @@
 	<string name="okay">好的</string>
 	<string name="two_hop">两跳</string>
 	<string name="country_load_failure">加载对应国家服务器失败</string>
-	<string name="app_shortcuts">应用程序快捷方式</string>
-	<string name="enable_shortcuts">启用应用快捷方式</string>
-	<string name="disabled_while_connected">连接 VPN 时该操作不可执行</string>
+    <string name="disabled_while_connected">连接 VPN 时该操作不可执行</string>
 	<string name="permission_required">需要授予权限</string>
 	<string name="permission_message">为确保应用程序在您的设备上正常运行，请允许以下权限。这些权限是该应用程序运行所必需的。</string>
-	<string name="notifications">通知</string>
-	<string name="notification_permission_required">请为适当的应用功能启用通知权限</string>
-	<string name="kill_switch">Kill Switch</string>
-	<string name="mode_selection">模式选择</string>
+    <string name="notification_permission_required">请为适当的应用功能启用通知权限</string>
+    <string name="mode_selection">模式选择</string>
 	<string name="five_hop_explanation">通过带有混淆流量和时间混淆技术的5台服务器组成的混合网络路由（网速大约1-5Mbps）享受最高级别的隐私保护。该模式是安全处理付款、电子邮件和信息的完美选择。</string>
 	<string name="continue_reading">继续阅读</string>
 	<string name="appearance">外观</string>
@@ -145,8 +140,7 @@
 	<string name="bars_3">3 小节</string>
 	<string name="bars_2">2 小节</string>
 	<string name="bars_1">1 小节</string>
-	<string name="bypass_lan">绕过局域网</string>
-	<string name="account_id">账户 ID:</string>
+    <string name="account_id">账户 ID:</string>
 	<string name="developer">开发者</string>
 	<string name="get_help">获取帮助</string>
 	<string name="join_telegram">加入Telegram</string>
@@ -209,12 +203,9 @@
 	<string name="settings_dns_title">自定义DNS</string>
 	<string name="settings_ipv6_title">支持 IPv6</string>
 	<string name="settings_ipv6_description">允许IPv6连接</string>
-	<string name="settings_bypass_description">允许直接访问本地网络</string>
-	<string name="settings_auto_select_title">自动选择入口服务器</string>
+    <string name="settings_auto_select_title">自动选择入口服务器</string>
 	<string name="settings_auto_select_description">让应用程序选择最佳的入口位置</string>
-	<string name="settings_device_startup_title">开机时自动启动</string>
-	<string name="settings_device_startup_description">让应用选择最佳的入口位置</string>
-	<string name="settings_system_tray_title">在系统托盘中运行</string>
+    <string name="settings_system_tray_title">在系统托盘中运行</string>
 	<string name="settings_system_tray_description">关闭时保持应用程序运行</string>
 	<string name="settings_reset_app_title">重置应用数据</string>
 	<string name="settings_system_status_title">系统状态</string>
@@ -447,8 +438,7 @@
 	<string name="logs_download_button">仍然保存为文件</string>
 	<string name="logs_saved">保存日志到下载文件夹</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Split tunneling</string>
-	<string name="split_tunneling_info_msg">为每个应用程序设置通过NymVPN连接或者直接连接到网络。</string>
+    <string name="split_tunneling_info_msg">为每个应用程序设置通过NymVPN连接或者直接连接到网络。</string>
 	<string name="split_tunneling_info_desc">更改将在重新连接后生效</string>
 	<string name="split_tunneling_search_apps_hint">搜索应用</string>
 	<string name="split_tunneling_apps">应用程序</string>
