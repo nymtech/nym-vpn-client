@@ -26,7 +26,6 @@ mod tests;
 
 pub use config_manager::VpnServiceConfigManager;
 
-use nym_vpn_lib_types::GatewayIndependence;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
     fmt,
@@ -213,8 +212,6 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let fronting_mode = FrontingMode::from(&value.fronting_mode);
 
-        let gateway_independence = GatewayIndependence::from(value.gateway_independence);
-
         let v10 = v10::VpnServiceConfig {
             entry_point,
             exit_point,
@@ -235,7 +232,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             split_tunnel,
             geo_exclusion,
             gateway_selection_algorithm_config,
-            gateway_independence,
+            gateway_independence: value.gateway_independence,
         };
 
         Ok(VpnServiceConfigExt::V10(v10))
