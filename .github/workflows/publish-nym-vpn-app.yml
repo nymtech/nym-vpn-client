@@ -317,22 +317,37 @@ jobs:
             url="$(dirname ${{ inputs.core_artifact_url }})/"
           elif [[ -n "$core_build_url_path" ]]; then
             url="${{ env.NYM_BUILDS_URL }}${{ env.core_build_url_path }}/"
+          elif [[ "${{ env.RELEASE_TYPE }}" == "dev" ]]; then
+            url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           else
-            url="${{ env.NYM_BUILDS_URL }}/develop/"
+            latest=$(curl -sSL "${{ env.NYM_BUILDS_URL }}/develop/" | grep -oP '(?<=href=")\d+(?=/)' | sort -rn | head -1)
+            if [[ -n "$latest" ]]; then
+              url="${{ env.NYM_BUILDS_URL }}/develop/$latest/"
+            else
+              url="${{ env.NYM_BUILDS_URL }}/develop/"
+            fi
           fi
           echo "CORE_LINK=$url" >> "$GITHUB_ENV"
+
+      - name: Set app link
+        run: |
+          if [[ "${{ env.RELEASE_TYPE }}" == "dev" ]]; then
+            url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          else
+            url="https://github.com/nymtech/nym-vpn-client/releases/tag/${{ needs.publish.outputs.release_tag }}"
+          fi
+          echo "APP_LINK=$url" >> "$GITHUB_ENV"
 
       - name: Set message
         env:
           VERSION: ${{ needs.publish.outputs.version }}
-          APP_RELEASE_TAG: ${{ needs.publish.outputs.release_tag }}
           EMOJI: ${{ (env.RELEASE_TYPE == 'stable' && ':ship:') || (env.RELEASE_TYPE == 'nightly' && ':night:') || ':hammer_and_wrench:' }}
           NAME: ${{ env.RELEASE_TYPE == 'stable' && 'release' || (env.RELEASE_TYPE == 'nightly' && 'nightly build') || 'dev build' }}
         run: |
           {
             echo 'MESSAGE<<EOF'
             echo '${{ env.EMOJI }} **${{ env.NAME }}** `${{ env.VERSION }}`
-          [app](https://github.com/nymtech/nym-vpn-client/releases/tag/${{ env.APP_RELEASE_TAG }}) | [core](${{ env.CORE_LINK }})
+          [app](${{ env.APP_LINK }}) | [core](${{ env.CORE_LINK }})
           '
             echo EOF
           } >> "$GITHUB_ENV"
