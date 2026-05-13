@@ -43,8 +43,7 @@ async fn continuous_select<C: GatewayCache>(
             device_location.clone(),
             wg_keys_db.clone(),
         )
-        .await
-        .map_err(|err| tunnel::Error::SelectGateways(Box::new(err)));
+        .await;
         selection_tx.send(selection);
     }
 }
