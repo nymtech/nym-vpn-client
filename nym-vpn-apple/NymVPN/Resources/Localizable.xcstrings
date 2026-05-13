@@ -5024,37 +5024,37 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "يستخدم NymVPN تلقائياً عندما تفشل محاولات اتصال API القياسية."
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Automatisch von NymVPN verwendet, wenn Standard-API-Verbindungsversuche fehlschlagen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Automatically used by NymVPN when standard API connection attempts fail."
+            "value" : "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard API connection attempts fail."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Utilizado automáticamente por NymVPN cuando la conexión estándar de la API falla."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "به‌صورت خودکار زمانی استفاده می‌شود که تلاش‌های اتصال معمولی API در NymVPN با شکست مواجه شوند."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Utilisé automatiquement par NymVPN lorsque la connexion à l'API standard échoue."
           }
         },
@@ -5066,55 +5066,55 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Usato automaticamente da NymVPN quando la connessione API standard tenta di fallire."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "標準 API 接続の失敗時に自動的に NymVPN で使用されます。"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Usado automaticamente pela NymVPN quando a tentativa de conexão de API padrão falhar."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Usado automaticamente pela NymVPN quando a tentativa de conexão de API padrão falhar."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Автоматически используется NymVPN, когда стандартные попытки подключения по API не удаются."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Standart API bağlantısı başarısız olursa, NymVPN bunu otomatik olarak devreye alır."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Автоматично використовується NymVPN, коли стандартні спроби підключення API не вдаються."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Tự động được NymVPN sử dụng khi các lần thử kết nối API tiêu chuẩn thất bại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "当标准 API 连接尝试失败时，NymVPN 会自动使用。"
           }
         }

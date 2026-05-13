@@ -274,41 +274,41 @@ nym-windows = { path = "crates/nym-windows" }
 test-rpc = { path = "crates/test/test-rpc" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
-nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.8-urda" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-credential-utils = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
+nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.9-venaco" }
 
 # For local development
 #[patch."https://github.com/nymtech/nym"]
