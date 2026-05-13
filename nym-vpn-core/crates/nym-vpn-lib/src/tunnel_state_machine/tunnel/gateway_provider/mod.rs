@@ -35,9 +35,10 @@ use crate::tunnel_state_machine::{
 pub use error::GatewayProviderError;
 pub use selector::SelectedGateways;
 
-type SelectionResult = Result<SelectedGateways, tunnel::Error>;
+type SelectionResult = Result<SelectedGateways, GatewayProviderError>;
 type SelectionResultSender = mpsc::Sender<SelectionResult>;
-type SelectedGatewaysStream = Arc<Mutex<ReceiverStream<Result<SelectedGateways, tunnel::Error>>>>;
+type SelectedGatewaysStream =
+    Arc<Mutex<ReceiverStream<Result<SelectedGateways, GatewayProviderError>>>>;
 
 #[derive(Clone)]
 pub struct GatewayProvider<C: GatewayCache> {
