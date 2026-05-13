@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-enum class AlertType { Confirmation, Neutral, Negative, Warning, Critical }
+enum class AlertType { Confirmation, Neutral, Negative, Warning, Error }
 
 data class NymAlertMessage(
 	val type: AlertType = AlertType.Neutral,
@@ -46,5 +46,5 @@ internal val AlertType.icon: ImageVector
 		AlertType.Neutral -> Icons.Filled.Info
 		AlertType.Negative -> Icons.Filled.Cancel
 		AlertType.Warning -> Icons.Filled.FmdBad
-		AlertType.Critical -> Icons.Filled.Error
+		AlertType.Error -> Icons.Filled.Error
 	}

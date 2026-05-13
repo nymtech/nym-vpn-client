@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -46,7 +47,6 @@ import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.AppInfoRow
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.LoadingDialog
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.SplitTunnelingInfoModal
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.components.StaticContent
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -217,7 +217,7 @@ private fun SplitTunnelingContent(
 					Text(
 						text = stringResource(R.string.split_tunneling_system_applications),
 						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.outline,
+						color = MaterialTheme.colorScheme.onBackground,
 					)
 					Spacer(modifier = Modifier.height(12.dp.scaledHeight()))
 				}
@@ -250,13 +250,13 @@ private fun SplitTunnelingContent(
 				enabled = uiState.hasUnsavedChanges,
 				content = {
 					Text(
-						text = stringResource(saveTextRes),
-						style = CustomTypography.buttonMain,
+						stringResource(saveTextRes),
+						style = MaterialTheme.typography.titleMedium,
 					)
 				},
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(56.dp.scaledHeight()),
+				textColor = MaterialTheme.colorScheme.onPrimary,
+				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
 			)
 		}
 	}

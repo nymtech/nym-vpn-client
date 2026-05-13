@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">Conectar automáticamente al reiniciar</string>
 	<string name="logs">Registros</string>
 	<string name="support">Soporte</string>
-	<string name="legal">Legal</string>
-	<string name="terms_of_use">Términos de uso</string>
+    <string name="terms_of_use">Términos de uso</string>
 	<string name="privacy_policy">Declaración de privacidad</string>
 	<string name="licenses">Licencias</string>
 	<string name="open_github">Abrir un ticket en GitHub</string>
@@ -44,15 +43,11 @@
 	<string name="okay">De acuerdo</string>
 	<string name="two_hop">2-saltos</string>
 	<string name="country_load_failure">No se pudieron cargar los países de salto</string>
-	<string name="app_shortcuts">Accesos directos</string>
-	<string name="enable_shortcuts">Habilitar accesos directos</string>
-	<string name="disabled_while_connected">Desactivado mientras está conectado a VPN</string>
+    <string name="disabled_while_connected">Desactivado mientras está conectado a VPN</string>
 	<string name="permission_required">Permiso requerido</string>
 	<string name="permission_message">Para que la aplicación funcione correctamente en tu dispositivo, permite los siguientes permisos. Estos permisos son necesarios para que la aplicación funcione.</string>
-	<string name="notifications">Notificaciones</string>
-	<string name="notification_permission_required">Por favor, habilita el permiso de notificación para el correcto funcionamiento de la aplicación</string>
-	<string name="kill_switch">Kill switch</string>
-	<string name="mode_selection">Seleccione el modo</string>
+    <string name="notification_permission_required">Por favor, habilita el permiso de notificación para el correcto funcionamiento de la aplicación</string>
+    <string name="mode_selection">Seleccione el modo</string>
 	<string name="five_hop_explanation">Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores (hasta 5 Mbps) mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.</string>
 	<string name="continue_reading">Continúa leyendo</string>
 	<string name="appearance">Apariencia</string>
@@ -147,8 +142,7 @@
 	<string name="bars_3">3 barras</string>
 	<string name="bars_2">2 barras</string>
 	<string name="bars_1">1 barra</string>
-	<string name="bypass_lan">Saltar LAN</string>
-	<string name="account_id">ID de la cuenta:</string>
+    <string name="account_id">ID de la cuenta:</string>
 	<string name="developer">Desarrollador</string>
 	<string name="get_help">Obtener ayuda</string>
 	<string name="join_telegram">Únete a nuestro Telegram</string>
@@ -211,12 +205,9 @@
 	<string name="settings_dns_title">Personalizar DNS</string>
 	<string name="settings_ipv6_title">Soporte IPv6</string>
 	<string name="settings_ipv6_description">Permitir conexiones IPv6</string>
-	<string name="settings_bypass_description">Permitir acceso directo a la red local</string>
-	<string name="settings_auto_select_title">Auto-seleccionar servidor de entrada</string>
+    <string name="settings_auto_select_title">Auto-seleccionar servidor de entrada</string>
 	<string name="settings_auto_select_description">Permitir que la aplicación elija la mejor ubicación de entrada</string>
-	<string name="settings_device_startup_title">Iniciar al iniciar el dispositivo</string>
-	<string name="settings_device_startup_description">Permitir que la aplicación elija la mejor ubicación de entrada</string>
-	<string name="settings_system_tray_title">Ejecutar en la bandeja del sistema</string>
+    <string name="settings_system_tray_title">Ejecutar en la bandeja del sistema</string>
 	<string name="settings_system_tray_description">Mantener aplicación en ejecución al cerrar</string>
 	<string name="settings_reset_app_title">Restablecer datos de la app</string>
 	<string name="settings_system_status_title">Estado del sistema</string>
@@ -449,8 +440,7 @@
 	<string name="logs_download_button">Guardar como archivo de todos modos</string>
 	<string name="logs_saved">Registros guardados en la carpeta de descargas</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Dividir túnel</string>
-	<string name="split_tunneling_info_msg">Establecer cada aplicación para usar NymVPN o conectarse directamente.</string>
+    <string name="split_tunneling_info_msg">Establecer cada aplicación para usar NymVPN o conectarse directamente.</string>
 	<string name="split_tunneling_info_desc">Los cambios se aplicarán después de la reconexión</string>
 	<string name="split_tunneling_search_apps_hint">Buscar apps</string>
 	<string name="split_tunneling_apps">Aplicaciones</string>

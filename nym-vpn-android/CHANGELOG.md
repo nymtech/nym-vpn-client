@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.4.0]
+## [3.5.0]
+
+### Added
+- Add 1-click (https://github.com/nymtech/nym-vpn-client/pull/5236)
+- Add auth view (https://github.com/nymtech/nym-vpn-client/pull/5236)
+- Add code formatting (https://github.com/nymtech/nym-vpn-client/pull/5236)
+- Enable domain fronting toggle (https://github.com/nymtech/nym-vpn-client/pull/5272)
+
+### Changed
+- Update App theme, colors, typography (https://github.com/nymtech/nym-vpn-client/pull/5236)
+- Clean up unused screens (https://github.com/nymtech/nym-vpn-client/pull/5236)
+- Remove reconnect on Ad-block toggle (https://github.com/nymtech/nym-vpn-client/pull/5269)
+- Remove PQ toggle (https://github.com/nymtech/nym-vpn-client/pull/5272)
+
+### Fixed
+- Fix spinner position for Auto login dialog (https://github.com/nymtech/nym-vpn-client/pull/5287)
+
+## [3.4.0] - 8.05.2026
 
 ### Added
 - Add Ad blocking (https://github.com/nymtech/nym-vpn-client/pull/5033)

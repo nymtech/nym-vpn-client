@@ -11,8 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -96,7 +94,6 @@ fun GeneratingContent(mode: GeneratingMode, onAnimationEnd: () -> Unit) {
 
 @Composable
 private fun GeneratingBaseLayout(title: String, description: String, topContent: @Composable (() -> Unit)?) {
-	val font = FontFamily(Font(R.font.lab_grotesque_regular))
 	Column(
 		modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -116,15 +113,14 @@ private fun GeneratingBaseLayout(title: String, description: String, topContent:
 				PulsingDotsWave(modifier = Modifier.padding(8.dp))
 			}
 			listOf(
-				title to (Typography.titleMedium to 24.dp),
-				description to (Typography.bodyMedium to 8.dp),
+				title to (MaterialTheme.typography.titleMedium to 24.dp),
+				description to (MaterialTheme.typography.bodyMedium to 8.dp),
 			).forEach { (text, stylePair) ->
 				Text(
 					text = text,
 					style = stylePair.first,
-					color = if (stylePair.first == Typography.titleMedium) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.outline,
+					color = if (stylePair.first == MaterialTheme.typography.titleMedium) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onBackground,
 					textAlign = TextAlign.Center,
-					fontFamily = font,
 					modifier = Modifier.padding(top = stylePair.second, start = 32.dp, end = 32.dp),
 				)
 			}

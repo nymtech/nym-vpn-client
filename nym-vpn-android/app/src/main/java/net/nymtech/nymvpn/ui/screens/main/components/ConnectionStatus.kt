@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -36,7 +35,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -161,8 +159,7 @@ fun ConnectionStatus(
 
 	val fillColor = when {
 		isError -> MaterialTheme.colorScheme.error.copy(alpha = errorPulse)
-		vpnMode.isTwoHop() -> nymColors.fastFill
-		else -> nymColors.anonFill
+		else -> MaterialTheme.colorScheme.primary
 	}
 
 	val connectedLabel = if (vpnMode.isTwoHop()) stringResource(R.string.connection_status_fast_mode) else stringResource(R.string.connection_status_anonymous)
@@ -203,7 +200,7 @@ fun ConnectionStatus(
 			for (radius in floatArrayOf(OUTER_RADIUS, MIDDLE_RADIUS, INNER_RADIUS)) {
 				val rPx = radius.dp.toPx()
 				drawArc(
-					color = nymColors.trackIdle,
+					color = nymColors.trackDefaultBackground,
 					startAngle = -90f,
 					sweepAngle = 360f,
 					useCenter = false,
@@ -250,27 +247,6 @@ fun ConnectionStatus(
 						style = Stroke(width = ARC_STROKE.dp.toPx(), cap = StrokeCap.Round),
 					)
 				}
-			}
-
-			val sphereR = SPHERE_RADIUS.dp.toPx()
-			drawCircle(
-				brush = Brush.radialGradient(
-					colors = listOf(CustomColors.sphereHighlight, CustomColors.sphereBase),
-					center = Offset(cx - sphereR * 0.25f, cy - sphereR * 0.25f),
-					radius = sphereR * 1.6f,
-				),
-				radius = sphereR,
-				center = Offset(cx, cy),
-				alpha = if (isCanceling) cancelingSphere else sphereAlpha,
-			)
-
-			if (errorTintAlpha > 0f) {
-				drawCircle(
-					color = CustomColors.errorTint,
-					radius = sphereR,
-					center = Offset(cx, cy),
-					alpha = errorTintAlpha,
-				)
 			}
 		}
 

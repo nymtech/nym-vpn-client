@@ -1,97 +1,68 @@
 package net.nymtech.nymvpn.ui.screens.account.info.components
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.util.extensions.scaledHeight
-import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsIcon
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsTitle
 
 @Composable
 fun AccountInfoCard(title: String, value: String, icon: ImageVector, onClick: () -> Unit) {
-	val interactionSource = remember { MutableInteractionSource() }
-
 	Card(
-		modifier = Modifier.fillMaxWidth(),
+		modifier = Modifier.fillMaxWidth().clickable {
+			onClick.invoke()
+		},
 		shape = RoundedCornerShape(8.dp),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 	) {
-		Box(
-			contentAlignment = Alignment.Center,
-			modifier = Modifier
-				.clickable(
-					interactionSource = interactionSource,
-					indication = null,
-				) { onClick() }
-				.fillMaxWidth(),
-		) {
+		Column(modifier = Modifier.fillMaxWidth()) {
 			Row(
+				modifier = Modifier.padding(vertical = 14.dp, horizontal = 16.dp),
 				verticalAlignment = Alignment.CenterVertically,
-				modifier = Modifier
-					.fillMaxWidth()
-					.padding(horizontal = 16.dp),
 			) {
-				Row(
-					verticalAlignment = Alignment.CenterVertically,
+				SettingsIcon(icon, "")
+				Spacer(Modifier.width(18.dp))
+				SettingsTitle(title)
+			}
+			HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+			Row(
+				modifier = Modifier
+					.fillMaxWidth().padding(vertical = 14.dp, horizontal = 16.dp),
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Text(
+					text = value,
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onBackground,
 					modifier = Modifier.weight(1f),
-				) {
-					Column(
-						horizontalAlignment = Alignment.Start,
-						modifier = Modifier
-							.fillMaxWidth()
-							.padding(vertical = 16.dp.scaledHeight()),
-					) {
-						Row(verticalAlignment = Alignment.CenterVertically) {
-							Icon(
-								imageVector = icon,
-								contentDescription = null,
-								modifier = Modifier.size(24.dp.scaledWidth()),
-								tint = MaterialTheme.colorScheme.onSurfaceVariant,
-							)
-							Text(
-								text = title,
-								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-								modifier = Modifier.padding(start = 10.dp),
-							)
-						}
-						Text(
-							text = value,
-							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSecondary),
-							modifier = Modifier.padding(top = 10.dp),
-						)
-					}
-				}
-				Box(
-					contentAlignment = Alignment.CenterEnd,
-					modifier = Modifier.padding(start = 16.dp.scaledWidth()),
-				) {
-					Icon(
-						imageVector = Icons.Outlined.ContentCopy,
-						contentDescription = stringResource(R.string.go),
-						modifier = Modifier.size(20.dp),
-						tint = MaterialTheme.colorScheme.onBackground,
-					)
-				}
+				)
+				Icon(
+					imageVector = Icons.Outlined.ContentCopy,
+					contentDescription = stringResource(R.string.go),
+					modifier = Modifier.size(16.dp),
+					tint = MaterialTheme.colorScheme.onBackground,
+				)
 			}
 		}
 	}

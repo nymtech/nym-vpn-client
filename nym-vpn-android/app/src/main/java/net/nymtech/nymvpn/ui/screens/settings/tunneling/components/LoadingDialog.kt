@@ -37,7 +37,7 @@ fun LoadingDialog() {
 			modifier = Modifier
 				.sizeIn(minWidth = 120.dp.scaledHeight(), minHeight = 120.dp.scaledHeight())
 				.background(
-					color = MaterialTheme.colorScheme.surface,
+					color = MaterialTheme.colorScheme.primaryContainer,
 					shape = MaterialTheme.shapes.medium,
 				),
 			contentAlignment = Alignment.Center,
@@ -55,7 +55,7 @@ fun LoadingDialog() {
 				Text(
 					text = stringResource(R.string.loading),
 					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onSurface,
+					color = MaterialTheme.colorScheme.onBackground,
 					textAlign = TextAlign.Center,
 				)
 			}

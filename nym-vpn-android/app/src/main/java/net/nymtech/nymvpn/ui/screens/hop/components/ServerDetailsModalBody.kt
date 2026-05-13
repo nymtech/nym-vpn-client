@@ -77,7 +77,8 @@ fun ServerDetailsModalBody(showLocationTooltip: Boolean, onClick: () -> Unit, on
 		confirmButton = {
 			MainStyledButton(
 				onClick = onDismiss,
-				content = { Text(stringResource(R.string.okay), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black) },
+				textColor = Color.Black,
+				content = { Text(stringResource(R.string.okay), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))) },
 				modifier = Modifier
 					.fillMaxWidth()
 					.height(40.dp.scaledHeight()),

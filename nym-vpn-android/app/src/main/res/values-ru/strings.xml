@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">Подключаться при запуске приложения</string>
 	<string name="logs">Логи</string>
 	<string name="support">Поддержка</string>
-	<string name="legal">Юридические аспекты</string>
-	<string name="terms_of_use">Условия использования</string>
+    <string name="terms_of_use">Условия использования</string>
 	<string name="privacy_policy">Заявление о конфиденциальности</string>
 	<string name="licenses">Лицензии</string>
 	<string name="open_github">Откройте запрос на GitHub</string>
@@ -44,15 +43,11 @@
 	<string name="okay">Окей</string>
 	<string name="two_hop">2-ступенчатый</string>
 	<string name="country_load_failure">Не удалось загрузить страны перехода</string>
-	<string name="app_shortcuts">Ярлыки приложений</string>
-	<string name="enable_shortcuts">Включить ярлыки приложений</string>
-	<string name="disabled_while_connected">Отключён при подключении к VPN</string>
+    <string name="disabled_while_connected">Отключён при подключении к VPN</string>
 	<string name="permission_required">Доступ запрещён</string>
 	<string name="permission_message">Чтобы приложение корректно работало на вашем устройстве, пожалуйста, предоставьте следующие разрешения. Эти разрешения необходимы для работы приложения.</string>
-	<string name="notifications">Уведомления</string>
-	<string name="notification_permission_required">Пожалуйста, разрешите отправку уведомлений для корректной работы приложения</string>
-	<string name="kill_switch">Экстренное отключение</string>
-	<string name="mode_selection">Выбор режима</string>
+    <string name="notification_permission_required">Пожалуйста, разрешите отправку уведомлений для корректной работы приложения</string>
+    <string name="mode_selection">Выбор режима</string>
 	<string name="five_hop_explanation">Максимальная конфиденциальность благодаря 5-ступенчатой маршрутизации (до 1-5 Мбит/с). Фиктивный трафик и маскировка времени передачи для повышенной анонимности. Идеально для высоко конфиденциальных операций, таких как платежи, электронная почта и сообщения.</string>
 	<string name="continue_reading">Продолжить чтение</string>
 	<string name="appearance">Внешний вид</string>
@@ -147,8 +142,7 @@
 	<string name="bars_3">3 полоски</string>
 	<string name="bars_2">2 полоски</string>
 	<string name="bars_1">1 полоска</string>
-	<string name="bypass_lan">Обход LAN</string>
-	<string name="account_id">ID аккаунта:</string>
+    <string name="account_id">ID аккаунта:</string>
 	<string name="developer">Разработчик</string>
 	<string name="get_help">Получить помощь</string>
 	<string name="join_telegram">Присоединяйтесь к нам в Telegram</string>
@@ -211,12 +205,9 @@
 	<string name="settings_dns_title">Настроить DNS</string>
 	<string name="settings_ipv6_title">Поддержка IPv6</string>
 	<string name="settings_ipv6_description">Разрешить IPv6 соединения</string>
-	<string name="settings_bypass_description">Разрешить прямой доступ к локальной сети</string>
-	<string name="settings_auto_select_title">Автовыбор сервера входа</string>
+    <string name="settings_auto_select_title">Автовыбор сервера входа</string>
 	<string name="settings_auto_select_description">Позволить приложению выбрать оптимальную точку входа</string>
-	<string name="settings_device_startup_title">Запуск при запуске устройства</string>
-	<string name="settings_device_startup_description">Позволить приложению выбрать оптимальную точку входа</string>
-	<string name="settings_system_tray_title">Запускать в панели задач</string>
+    <string name="settings_system_tray_title">Запускать в панели задач</string>
 	<string name="settings_system_tray_description">Оставлять приложение запущенным при закрытии</string>
 	<string name="settings_reset_app_title">Сбросить данные приложения</string>
 	<string name="settings_system_status_title">Статус системы</string>
@@ -449,8 +440,7 @@
 	<string name="logs_download_button">Все равно сохранить как файл</string>
 	<string name="logs_saved">Логи сохранены в загрузки\"</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Раздельное туннелирование</string>
-	<string name="split_tunneling_info_msg">Настройте каждое приложение для использования NymVPN или прямого подключения.</string>
+    <string name="split_tunneling_info_msg">Настройте каждое приложение для использования NymVPN или прямого подключения.</string>
 	<string name="split_tunneling_info_desc">Изменения будут применены после переподключения</string>
 	<string name="split_tunneling_search_apps_hint">Поиск приложений</string>
 	<string name="split_tunneling_apps">Приложения</string>

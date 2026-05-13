@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">اتصال خودکار هنگام اجرای نرم‌افزار</string>
 	<string name="logs">گزارش‌ها</string>
 	<string name="support">پشتیبانی</string>
-	<string name="legal">قانونی</string>
-	<string name="terms_of_use">شرایط استفاده از</string>
+    <string name="terms_of_use">شرایط استفاده از</string>
 	<string name="privacy_policy">اعلامیه حریم خصوصی</string>
 	<string name="licenses">مجوزها</string>
 	<string name="open_github">مطرح کردن مشکل در GitHub</string>
@@ -44,15 +43,11 @@
 	<string name="okay">باشه</string>
 	<string name="two_hop">پرش دو گرهی</string>
 	<string name="country_load_failure">خطا در بارگذاری سرور کشورهای در مسیر عبوری</string>
-	<string name="app_shortcuts">میانبرهای برنامه</string>
-	<string name="enable_shortcuts">فعال‌سازی میانبرهای برنامه</string>
-	<string name="disabled_while_connected">در هنگام اتصال به وی‌پی‌ان غیر‌فعال می‌باشد</string>
+    <string name="disabled_while_connected">در هنگام اتصال به وی‌پی‌ان غیر‌فعال می‌باشد</string>
 	<string name="permission_required">نیازمند دسترسی است</string>
 	<string name="permission_message">برای اطمینان از کارکرد درست برنامه در دستگاه، لطفاً دسترسی‌های زیر را فعال کنید. این دسترسی‌ها برای اجرای برنامه لازم هستند.</string>
-	<string name="notifications">اعلانات</string>
-	<string name="notification_permission_required">لطفاً برای عملکرد صحیح برنامه اجازه اعلان‌ها را فعال کنید</string>
-	<string name="kill_switch">کلید توقف اضطراری</string>
-	<string name="mode_selection">انتخاب حالت</string>
+    <string name="notification_permission_required">لطفاً برای عملکرد صحیح برنامه اجازه اعلان‌ها را فعال کنید</string>
+    <string name="mode_selection">انتخاب حالت</string>
 	<string name="five_hop_explanation">حریم خصوصی حداکثری با مسیر پنج-پرشی (۱ تا ۵ مگابیت بر ثانیه). ترافیک ساختگی و مبهم‌سازی زمان‌بندی برای افزایش ناشناسی. مناسب برای فعالیت‌های بسیار حساس مانند پرداخت‌ها، ایمیل‌ها و پیام‌ها.</string>
 	<string name="continue_reading">ادامه مطلب</string>
 	<string name="appearance">نمای ظاهری</string>
@@ -147,8 +142,7 @@
 	<string name="bars_3">۳ خط</string>
 	<string name="bars_2">۲ خط</string>
 	<string name="bars_1">۱ خط</string>
-	<string name="bypass_lan">عبور از شبکه محلی LAN</string>
-	<string name="account_id">شناسه حساب کاربری:</string>
+    <string name="account_id">شناسه حساب کاربری:</string>
 	<string name="developer">توسعه‌دهنده</string>
 	<string name="get_help">کمک گرفتن</string>
 	<string name="join_telegram">در تلگرام به ما بپیوندید</string>
@@ -211,12 +205,9 @@
 	<string name="settings_dns_title">سفارشی‌سازی DNS</string>
 	<string name="settings_ipv6_title">پشتیبانی از IPv6</string>
 	<string name="settings_ipv6_description">اتصالات IPv6 را مجاز کنید</string>
-	<string name="settings_bypass_description">دسترسی مستقیم به شبکه محلی را مجاز کنید</string>
-	<string name="settings_auto_select_title">انتخاب-خودکار سرور ورودی</string>
+    <string name="settings_auto_select_title">انتخاب-خودکار سرور ورودی</string>
 	<string name="settings_auto_select_description">اجازه دهید برنامه بهترین مکان ورود را انتخاب کند</string>
-	<string name="settings_device_startup_title">اجرا در هنگام روشن شدن دستگاه</string>
-	<string name="settings_device_startup_description">اجازه دهید برنامه بهترین مکان ورود را انتخاب کند</string>
-	<string name="settings_system_tray_title">اجرا در بخش System Tray</string>
+    <string name="settings_system_tray_title">اجرا در بخش System Tray</string>
 	<string name="settings_system_tray_description">ادامه اجرای برنامه بعد از بسته شدن</string>
 	<string name="settings_reset_app_title">تنظیم مجدد داده‌های برنامه</string>
 	<string name="settings_system_status_title">وضعیت سیستم</string>
@@ -451,8 +442,7 @@
 	<string name="logs_download_button">در هر صورت به عنوان فایل ذخیره کنید</string>
 	<string name="logs_saved">گزارش‌ها در پوشه دانلود ذخیره شد</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">تونل سازی اسپلیت</string>
-	<string name="split_tunneling_info_msg">هر برنامه را طوری تنظیم کنید که از NymVPN استفاده کند یا بدون آن مستقیماً متصل شود.</string>
+    <string name="split_tunneling_info_msg">هر برنامه را طوری تنظیم کنید که از NymVPN استفاده کند یا بدون آن مستقیماً متصل شود.</string>
 	<string name="split_tunneling_info_desc">تغییرات پس از اتصال مجدد اعمال خواهد شد</string>
 	<string name="split_tunneling_search_apps_hint">جستجوی برنامه‌ها</string>
 	<string name="split_tunneling_apps">برنامه‌ها</string>

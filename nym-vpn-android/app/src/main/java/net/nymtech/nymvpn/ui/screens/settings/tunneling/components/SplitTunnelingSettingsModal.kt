@@ -50,11 +50,11 @@ internal fun SplitTunnelingSettingModal(showModal: Boolean, onApplyNowClick: () 
 		confirmButton = {
 			MainStyledButton(
 				onClick = onApplyNowClick,
+				textColor = Color.Black,
 				content = {
 					Text(
 						stringResource(R.string.split_tunnel_changes_confirm_modal_primary_btn_label),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = Color.Black,
 					)
 				},
 				modifier = Modifier

@@ -24,8 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,7 +32,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
@@ -45,7 +42,7 @@ fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) ->
 	Card(
 		modifier = modifier,
 		shape = shape,
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 	) {
 		Column(
 			modifier = Modifier
@@ -60,7 +57,7 @@ fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) ->
 				Text(
 					text = stringResource(R.string.censorship_quic_title),
 					style = MaterialTheme.typography.titleMedium,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 				ScaledSwitch(
 					checked = quicEnabled,
@@ -69,9 +66,8 @@ fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) ->
 			}
 			Text(
 				text = stringResource(R.string.censorship_quic_description),
-				style = Typography.bodySmall,
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier
 					.fillMaxWidth()
 					.padding(top = 16.dp),
@@ -91,6 +87,7 @@ fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) ->
 			) {
 				Text(
 					text = stringResource(R.string.censorship_quic_link_text),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					style = MaterialTheme.typography.bodyMedium.copy(
 						textDecoration = TextDecoration.Underline,
 					),
