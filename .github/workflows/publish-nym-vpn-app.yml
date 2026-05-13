@@ -234,6 +234,7 @@ jobs:
 
       - name: Create release
         id: create_release
+        if: ${{ env.RELEASE_TYPE != 'dev' }}
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
