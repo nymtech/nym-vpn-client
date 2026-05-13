@@ -45,7 +45,8 @@ use nym_vpn_lib_types::{
     LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
     ParsedAccountLinks, RegistrationReport, StoreAccountRequest, SystemMessage, TargetState,
-    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig,
+    VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -224,6 +225,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<RegistrationReport>,
         DiagnosticRegisterParams,
     ),
+    GetTentativeGateways(oneshot::Sender<TentativeGateways>, ()),
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     IsSplitTunnelSupported(oneshot::Sender<bool>, ()),
     #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -1196,6 +1198,9 @@ impl NymVpnService {
             }
             VpnServiceCommand::RegisterDiagnostic(tx, params) => {
                 let _ = tx.send(Box::pin(self.handle_register_diagnostic(params)).await);
+            }
+            VpnServiceCommand::GetTentativeGateways(tx, _) => {
+                let _ = tx.send(self.handle_get_tentative_gateways().await);
             }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::IsSplitTunnelSupported(tx, ()) => {
@@ -2219,6 +2224,10 @@ impl NymVpnService {
             Err(e) => tracing::error!("Error serializing report :{e}"),
         }
         report
+    }
+
+    async fn handle_get_tentative_gateways(&self) -> TentativeGateways {
+        self.gateway_provider.tentative_gateways().await
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

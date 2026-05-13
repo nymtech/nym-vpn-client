@@ -1074,6 +1074,20 @@ message RegistrationReport {
   string json = 1;
 }
 
+message TentativeGateways {
+  message Selected {
+    GatewayResponse entry = 1;
+    GatewayResponse exit = 2;
+  };
+  message NeedsRelaxedIndependenceCriteria {};
+  message NoGatewaysAvailable {};
+  oneof tentative_gateways {
+    Selected selected = 1;
+    NeedsRelaxedIndependenceCriteria needs_relaxed_independence_criteria = 2;
+    NoGatewaysAvailable no_gateways_available = 3;
+  }
+}
+
 message AutologinResponse {
   string url = 1;
   string pin_code = 2;
@@ -1289,6 +1303,9 @@ service NymVpnService {
   // Diagnostic stuff
   rpc RunDiagnostic(DiagnosticRunParams) returns (DiagnosticReport) {}
   rpc RegisterDiagnostic(DiagnosticRegisterParams) returns (RegistrationReport) {}
+
+  // Get the most probable gateway pair that is going to be used with the set tunnel settings
+  rpc GetTentativeGateways(google.protobuf.Empty) returns (TentativeGateways) {}
 
   // Split-tunnel (all platforms)
   rpc IsSplitTunnelSupported(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
