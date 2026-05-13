@@ -3,11 +3,11 @@ package net.nymtech.nymvpn.ui.screens.account.create.modal
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -33,6 +33,7 @@ fun ExistingSubscriptionModal(showSubscriptionDialog: Boolean, onClickLogin: () 
 				text = stringResource(R.string.account_subscription_title),
 				style = CustomTypography.labelHuge,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 		},
 		text = {
@@ -41,21 +42,21 @@ fun ExistingSubscriptionModal(showSubscriptionDialog: Boolean, onClickLogin: () 
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 		},
 		confirmButton = {
 			MainStyledButton(
 				onClick = onClickLogin,
-				textColor = Color.Black,
 				content = {
 					Text(
 						stringResource(R.string.account_subscription_button),
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						style = MaterialTheme.typography.titleMedium,
 					)
 				},
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(40.dp.scaledHeight()),
+				modifier = Modifier.fillMaxWidth()
+					.height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
 			)
 		},
 		dismissButton = {
@@ -65,7 +66,7 @@ fun ExistingSubscriptionModal(showSubscriptionDialog: Boolean, onClickLogin: () 
 					Text(
 						stringResource(R.string.close),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				},
 				modifier = Modifier

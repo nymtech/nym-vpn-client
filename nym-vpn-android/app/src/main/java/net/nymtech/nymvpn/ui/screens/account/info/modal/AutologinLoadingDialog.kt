@@ -27,7 +27,7 @@ fun AutologinLoadingDialog(onCancel: () -> Unit) {
 			Text(
 				text = stringResource(R.string.account_info_autologin_fetching),
 				style = MaterialTheme.typography.titleMedium,
-				color = MaterialTheme.colorScheme.onBackground,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 		},
 		text = {
@@ -43,7 +43,7 @@ fun AutologinLoadingDialog(onCancel: () -> Unit) {
 				Text(
 					text = stringResource(R.string.loading),
 					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.outline,
+					color = MaterialTheme.colorScheme.onBackground,
 				)
 			}
 		},

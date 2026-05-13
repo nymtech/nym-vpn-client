@@ -122,6 +122,6 @@ fun LogoutDialog(show: Boolean, isLoggingOut: Boolean, onDismiss: () -> Unit, on
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewLogoutDialog() {
 	NymVPNTheme(Theme.default()) {
-		LogoutDialog(show = true, isLoggingOut = true, {}, {})
+		LogoutDialog(show = true, isLoggingOut = false, {}, {})
 	}
 }

@@ -26,7 +26,7 @@ fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, 
 		title = {
 			Text(
 				text = stringResource(R.string.update_required),
-				color = MaterialTheme.colorScheme.onSurface,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				style = CustomTypography.labelHuge,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
@@ -36,6 +36,7 @@ fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, 
 				stringResource(R.string.app_update_required),
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},

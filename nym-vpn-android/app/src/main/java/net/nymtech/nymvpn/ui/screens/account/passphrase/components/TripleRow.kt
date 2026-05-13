@@ -48,7 +48,7 @@ fun TripleRow(items: List<InfoItem>, spacing: Dp = 16.dp) {
 					Icon(
 						imageVector = item.icon,
 						contentDescription = null,
-						tint = MaterialTheme.colorScheme.onBackground,
+						tint = MaterialTheme.colorScheme.onPrimaryContainer,
 						modifier = Modifier.size(22.dp),
 					)
 					if (item.negative) {
@@ -91,7 +91,7 @@ fun TripleRow(items: List<InfoItem>, spacing: Dp = 16.dp) {
 				}
 				Text(
 					text = item.label,
-					color = MaterialTheme.colorScheme.outline,
+					color = MaterialTheme.colorScheme.onBackground,
 					style = MaterialTheme.typography.bodySmall,
 					textAlign = TextAlign.Center,
 					modifier = Modifier.padding(top = 4.dp),

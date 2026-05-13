@@ -37,7 +37,7 @@ fun LogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, title
 			Text(
 				text = title,
 				style = CustomTypography.labelHuge,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 		},
 		text = {
@@ -45,17 +45,18 @@ fun LogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, title
 				description,
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 		},
 		confirmButton = {
 			MainStyledButton(
-				onClick = onConfirm,
-				textColor = MaterialTheme.colorScheme.onSurface,
+				onClick = {
+					onConfirm()
+				},
+				textColor = MaterialTheme.colorScheme.onPrimaryContainer,
 				content = {
 					Text(
 						buttonText,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 				},
 				modifier = Modifier
@@ -72,7 +73,7 @@ fun LogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, title
 					Text(
 						stringResource(R.string.cancel),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				},
 				modifier = Modifier
