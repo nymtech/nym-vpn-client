@@ -1,6 +1,8 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::ApiUrl;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -92,6 +94,15 @@ pub struct HttpReport {
     pub remote_time: DiagnosticResult<ApiTimeSkew>,
     pub health_response: DiagnosticResult<DiagnosticHealthResponse>,
     pub nb_nymnodes: DiagnosticResult<usize>,
+    pub by_endpoint: Vec<DiagnosticResult<DiagnosticEndpointResponse>>,
+}
+
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug)]
+pub struct DiagnosticEndpointResponse {
+    pub status: String,
+    pub url: ApiUrl,
+    // pub front_policy: String,
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
