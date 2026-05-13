@@ -114,7 +114,6 @@ pub struct HttpReport {
 pub struct DiagnosticEndpointResponse {
     pub status: String,
     pub url: ApiUrl,
-    // pub front_policy: String,
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
