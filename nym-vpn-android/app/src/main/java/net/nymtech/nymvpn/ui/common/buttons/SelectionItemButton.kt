@@ -35,7 +35,7 @@ fun SelectionItemButton(leading: (@Composable () -> Unit)? = null, buttonText: S
 		Text(
 			buttonText,
 			style = MaterialTheme.typography.bodyLarge,
-			color = MaterialTheme.colorScheme.onSurface,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 		)
 		trailing?.let {
 			it()
