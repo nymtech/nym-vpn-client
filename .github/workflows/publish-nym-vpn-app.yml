@@ -323,7 +323,7 @@ jobs:
             url="${{ env.NYM_BUILDS_URL }}/develop/"
             url_arm64=$url
           fi
-          echo "CORE_LINK=$url" >> "$GITHUB_ENV"
+          echo "CORE_LINK_X64=$url" >> "$GITHUB_ENV"
           echo "CORE_LINK_ARM64=$url_arm64" >> "$GITHUB_ENV"
 
       - name: Set message
@@ -336,7 +336,7 @@ jobs:
           {
             echo 'MESSAGE<<EOF'
             echo '${{ env.EMOJI }} **${{ env.NAME }}** `${{ env.VERSION }}`
-          [app](https://github.com/nymtech/nym-vpn-client/releases/tag/${{ env.APP_RELEASE_TAG }}) | [core x64](${{ env.CORE_LINK }}) | [core arm64](${{ env.CORE_LINK_ARM64 }})
+          [app](https://github.com/nymtech/nym-vpn-client/releases/tag/${{ env.APP_RELEASE_TAG }}) | [core x64](${{ env.CORE_LINK_X64 }}) | [core arm64](${{ env.CORE_LINK_ARM64 }})
           '
             echo EOF
           } >> "$GITHUB_ENV"
