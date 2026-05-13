@@ -82,8 +82,7 @@ jobs:
       win_updater_x64_sig: ${{ steps.win_updater_x64.outputs.sig }}
       win_updater_arm64_exe: ${{ steps.win_updater_arm64.outputs.exe }}
       win_updater_arm64_sig: ${{ steps.win_updater_arm64.outputs.sig }}
-      core_build_x64_url_path: ${{ needs.build-windows-x64.outputs.core_build_x64_url_path }}
-      core_build_arm64_url_path: ${{ needs.build-windows-arm64.outputs.core_build_x64_url_path }}
+      core_build_url_path: ${{ needs.build-windows-x64.outputs.core_build_url_path }}
     env:
       # stable | nightly | dev
       RELEASE_TYPE: ${{ inputs.release_type || (github.event_name == 'schedule' && 'nightly' || 'dev') }}
@@ -310,24 +309,18 @@ jobs:
       - name: Set vpn-core link
         env:
           NYM_BUILDS_URL: "https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core"
-          core_build_x64_url_path: "${{ needs.publish.outputs.core_build_x64_url_path }}"
-          core_build_arm64_url_path: "${{ needs.publish.outputs.core_build_arm64_url_path }}"
+          core_build_url_path: "${{ needs.publish.outputs.core_build_url_path }}"
         run: |
           if [[ -n "${{ inputs.core_release_tag }}" ]]; then
-            url_x64=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
-            url_arm64=$url_x64
+            url=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
           elif [[ -n "${{ inputs.core_artifact_url }}" ]]; then
-            url_x64="$(dirname ${{ inputs.core_artifact_url }})/"
-            url_arm64=$url_x64
-          elif [[ -n "$core_build_x64_url_path" ]]; then
-            url_x64="${{ env.NYM_BUILDS_URL }}${{ env.core_build_x64_url_path }}/"
-            url_arm64="${{ env.NYM_BUILDS_URL }}${{ env.core_build_arm64_url_path }}/"
+            url="$(dirname ${{ inputs.core_artifact_url }})/"
+          elif [[ -n "$core_build_url_path" ]]; then
+            url="${{ env.NYM_BUILDS_URL }}${{ env.core_build_url_path }}/"
           else
-            url_x64="${{ env.NYM_BUILDS_URL }}/develop/"
-            url_arm64=$url_x64
+            url="${{ env.NYM_BUILDS_URL }}/develop/"
           fi
-          echo "CORE_LINK_X64=$url_x64" >> "$GITHUB_ENV"
-          echo "CORE_LINK_ARM64=$url_arm64" >> "$GITHUB_ENV"
+          echo "CORE_LINK=$url" >> "$GITHUB_ENV"
 
       - name: Set message
         env:
@@ -339,7 +332,7 @@ jobs:
           {
             echo 'MESSAGE<<EOF'
             echo '${{ env.EMOJI }} **${{ env.NAME }}** `${{ env.VERSION }}`
-          [app](https://github.com/nymtech/nym-vpn-client/releases/tag/${{ env.APP_RELEASE_TAG }}) | [core x64](${{ env.CORE_LINK_X64 }}) | [core arm64](${{ env.CORE_LINK_ARM64 }})
+          [app](https://github.com/nymtech/nym-vpn-client/releases/tag/${{ env.APP_RELEASE_TAG }}) | [core](${{ env.CORE_LINK }})
           '
             echo EOF
           } >> "$GITHUB_ENV"
