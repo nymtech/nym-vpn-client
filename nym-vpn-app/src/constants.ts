@@ -7,6 +7,7 @@ export const AccountStateEvent = 'account-state';
 export const DaemonEvent = 'vpnd-status';
 export const MixnetEvent = 'mixnet-event';
 export const VpnConfigEvent = 'vpn-config';
+export const UpdatePendingEvent = 'update-pending';
 // ⚠ keep this value in sync with the one declared in `index.html`
 export const DefaultRootFontSize = 14; // in px
 // NOTE: when fresh country data is get from daemon, the selected countries

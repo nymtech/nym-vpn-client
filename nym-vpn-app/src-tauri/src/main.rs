@@ -51,6 +51,8 @@ mod events;
 mod fs;
 #[cfg(windows)]
 mod icon_extractor;
+#[cfg(target_os = "linux")]
+mod linux_update_watcher;
 mod log;
 mod sentry;
 mod startup_error;
@@ -181,6 +183,9 @@ async fn main() -> Result<()> {
                     .ok();
                 app.manage(PendingUpdate(Mutex::new(None)));
             }
+
+            #[cfg(target_os = "linux")]
+            linux_update_watcher::spawn(app.handle().clone());
 
             app.manage(cli.clone());
 

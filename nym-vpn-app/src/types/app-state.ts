@@ -73,6 +73,7 @@ export type AppState = {
   backendFlags: FeatureFlags;
   networkEnv: NetworkEnv;
   version: string | null;
+  linuxUpdateAvailable?: boolean;
   error?: AppError | null;
   // general progress messages to show in the main badge
   progressMessages: ProgressMsg[];

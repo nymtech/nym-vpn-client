@@ -51,6 +51,7 @@ export type StateAction =
   | { type: 'connect' }
   | { type: 'disconnect' }
   | { type: 'set-version'; version: string }
+  | { type: 'set-linux-update-available'; available: boolean }
   | { type: 'set-tunnel-connected'; tunnel: Tunnel }
   | { type: 'set-tunnel-disconnected' }
   | { type: 'set-tunnel-connecting'; state: ConnectingState }
@@ -300,6 +301,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-version':
         set({ version: action.version });
+        break;
+
+      case 'set-linux-update-available':
+        set({ linuxUpdateAvailable: action.available });
         break;
 
       case 'set-tunnel-connected':

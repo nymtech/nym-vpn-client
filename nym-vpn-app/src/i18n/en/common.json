@@ -31,5 +31,6 @@
   "cancel": "Cancel",
   "default": "Default",
   "current": "Current",
-  "close": "Close"
+  "close": "Close",
+  "restart": "Restart"
 }

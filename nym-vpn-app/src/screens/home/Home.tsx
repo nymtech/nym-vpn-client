@@ -34,7 +34,7 @@ function Home() {
 
   return (
     <>
-      {updaterEnabled && <UpdateDialog />}
+      <UpdateDialog />
       {os !== 'windows' && (
         <NetworkUpdateDialog
           isOpen={isDialogUpdateOpen}

@@ -95,6 +95,7 @@ winreg = "0.52"
 [target.'cfg(target_os = "linux")'.dependencies]
 freedesktop-desktop-entry = "0.8"
 freedesktop-icons = "0.4"
+notify = "6.1"
 
 [profile.release]
 codegen-units = 1
