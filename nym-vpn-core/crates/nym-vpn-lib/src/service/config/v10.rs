@@ -74,8 +74,6 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
                 value.gateway_selection_algorithm_config,
             );
         let fronting_mode = nym_vpn_lib_types::FrontingMode::from(value.fronting_mode);
-        let gateway_independence =
-            nym_vpn_lib_types::GatewayIndependence::from(value.gateway_independence);
 
         Ok(nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -97,7 +95,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             split_tunnel,
             geo_exclusion,
             gateway_selection_algorithm_config,
-            gateway_independence,
+            gateway_independence: value.gateway_independence,
         })
     }
 }
