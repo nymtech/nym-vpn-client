@@ -22,13 +22,10 @@ use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
     TunnelSettings,
-    tunnel::{
-        self,
-        gateway_provider::{
-            algorithm::{SelectAndSend, SelectionAlgorithm},
-            gateway_cache::GatewayCache,
-            geo_ip::{FetcherCommand, GeoIpClient, GeoIpFetcher, GeoIpProvider, QueryControl},
-        },
+    tunnel::gateway_provider::{
+        algorithm::{SelectAndSend, SelectionAlgorithm},
+        gateway_cache::GatewayCache,
+        geo_ip::{FetcherCommand, GeoIpClient, GeoIpFetcher, GeoIpProvider, QueryControl},
     },
 };
 
