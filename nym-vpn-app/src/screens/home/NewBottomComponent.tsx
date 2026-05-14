@@ -20,47 +20,43 @@ import { NodeRow } from './NodeRow';
 export type FoldState = 0 | 1 | 2;
 
 const DURATION = 0.3;
+const easeOutQuart = [0.22, 1, 0.36, 1] as const;
 
 type ChevronProps = { onUp?: () => void; onDown?: () => void };
 
 function Chevrons({ onUp, onDown }: ChevronProps) {
-  const state = useAppStore((s) => s.state);
-
-  const disabled =
-    state === 'connected' ||
-    state === 'connecting' ||
-    state === 'offline-auto-reconnect' ||
-    state === 'error';
-
   if (!onUp && !onDown) return null;
 
   return (
-    <div className="flex shrink-0 flex-col items-center">
+    <motion.div
+      initial={{ x: -24, opacity: 0, width: 0, marginLeft: -8 }}
+      animate={{ x: 0, opacity: 1, width: 'auto', marginLeft: 0 }}
+      exit={{ x: 24, opacity: 0, width: 0, marginLeft: -8 }}
+      transition={{ duration: DURATION, ease: easeOutQuart }}
+      style={{ overflow: 'hidden' }}
+      className="flex shrink-0 flex-col items-center"
+    >
       <button
-        disabled={disabled}
         type="button"
         onClick={onUp}
         className={clsx([
-          'text-text-secondary cursor-default leading-none transition-all',
+          'text-text-secondary hover:text-baltic-sea cursor-default leading-none transition-all dark:hover:text-white',
           onUp ? 'opacity-100' : 'opacity-0',
-          !disabled && 'hover:text-baltic-sea dark:hover:text-white',
         ])}
       >
         <MsIcon icon="keyboard_arrow_up" className="text-xl! leading-none" />
       </button>
       <button
-        disabled={disabled}
         type="button"
         onClick={onDown}
         className={clsx([
-          'text-text-secondary cursor-default leading-none transition-all',
+          'text-text-secondary hover:text-baltic-sea cursor-default leading-none transition-all dark:hover:text-white',
           onDown ? 'opacity-100' : 'opacity-0',
-          !disabled && 'hover:text-baltic-sea dark:hover:text-white',
         ])}
       >
         <MsIcon icon="keyboard_arrow_down" className="text-xl! leading-none" />
       </button>
-    </div>
+    </motion.div>
   );
 }
 
@@ -182,12 +178,16 @@ function ModeToggle() {
   );
 }
 
-const easeOutQuart = [0.22, 1, 0.36, 1] as const;
-
 export function NewBottomComponent() {
   const navigate = useAnimatedNavigate();
   const { t } = useTranslation('home');
   const { state, daemonStatus, accountState, account } = useMainState();
+
+  const chevronsDisabled =
+    state === 'connected' ||
+    state === 'connecting' ||
+    state === 'offline-auto-reconnect' ||
+    state === 'error';
 
   const daemonUnavailable =
     daemonStatus === 'auth-denied' || daemonStatus === 'down';
@@ -429,10 +429,14 @@ export function NewBottomComponent() {
                 )}
               </AnimatePresence>
             </motion.div>
-            <Chevrons
-              onUp={foldState < 2 ? expand : undefined}
-              onDown={foldState === 0 ? undefined : collapse}
-            />
+            <AnimatePresence initial={false}>
+              {!chevronsDisabled && (
+                <Chevrons
+                  onUp={foldState < 2 ? expand : undefined}
+                  onDown={foldState === 0 ? undefined : collapse}
+                />
+              )}
+            </AnimatePresence>
           </div>
         </div>
         {/* ── Main card ─────────────────────────────────────────────────────── */}
