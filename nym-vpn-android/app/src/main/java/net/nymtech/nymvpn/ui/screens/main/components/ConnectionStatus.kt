@@ -83,7 +83,6 @@ fun ConnectionStatus(
 		label = "innerSweep",
 	)
 
-
 	val pulse = rememberInfiniteTransition(label = "arcPulse")
 
 	// Error
