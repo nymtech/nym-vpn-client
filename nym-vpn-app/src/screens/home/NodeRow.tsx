@@ -15,11 +15,12 @@ import {
   isCountry,
   isGateway,
   isRegion,
-} from '../../types/index';
+} from '../../types';
 import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
+import { LewesIcon } from '../../assets';
 import { isBridgeMode, regionToCountryCode } from './util';
 import { ScoreIndicatorContainer } from './ScoreIndicatorContainer';
 
@@ -333,6 +334,7 @@ export function NodeRow({ type }: NodeRowProps) {
               {nodeDetails.showStreamOptimized && (
                 <MsIcon icon="smart_display" className="text-cornflower" />
               )}
+              {gateway && <LewesIcon />}
             </div>
           </div>
           <AnimatePresence initial={false}>
