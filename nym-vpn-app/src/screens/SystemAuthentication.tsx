@@ -2,12 +2,11 @@ import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { Button, ButtonIcon, Dialog, MsIcon } from '../ui';
+import { ButtonIcon, ButtonNew, Dialog, MsIcon } from '../ui';
 import { useAppStore } from '../store';
 
 export function SystemAuthentication() {
   const daemonStatus = useAppStore((s) => s.daemonStatus);
-  console.log('[SystemAuthentication] daemonStatus', daemonStatus);
 
   const { t } = useTranslation('system-authentication');
 
@@ -51,13 +50,9 @@ export function SystemAuthentication() {
           <MsIcon icon="report" />
           <p>{t('modal.description')}</p>
         </div>
-        <Button
-          onClick={handleAuthenticate}
-          spinner={loading}
-          disabled={loading}
-        >
+        <ButtonNew onClick={handleAuthenticate} loading={loading}>
           {t('modal.authenticate-button')}
-        </Button>
+        </ButtonNew>
       </div>
     </Dialog>
   );

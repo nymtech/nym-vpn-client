@@ -51,9 +51,6 @@ export function Signup() {
         <h1 className="text-text-primary text-2xl font-medium tracking-tight">
           {t('signup.title')}
         </h1>
-        <p className="text-bombay w-[281px] text-center text-sm">
-          {t('signup.description')}
-        </p>
       </div>
       <div className="flex w-full flex-col gap-3">
         <ButtonNew onClick={handleCreateAccount}>

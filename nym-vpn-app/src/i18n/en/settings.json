@@ -189,21 +189,21 @@
     "quic": {
       "label": "Enhanced connection (QUIC)",
       "warning": "Changes will apply after reconnect",
-      "content": "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible servers only.",
-      "link": "How QUIC improves connections",
+      "content": "Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3).",
+      "link": "Learn more",
       "error": "Failed to enable QUIC"
     },
     "stealth-api": {
       "label": "Stealth API connect",
       "warning": "Changes will apply after reconnect",
-      "content": "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard connection attempts fail.",
-      "link": "How the Stealth API connect mode works",
+      "content": "Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.",
+      "link": "Learn more",
       "error": "Failed to enable Stealth API connect"
     },
     "amneziawg": {
       "label": "Minimal obfuscation (AmneziaWG)",
-      "content": "Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments.\n\nNote: Only implemented client-side.",
-      "link": "How AmneziaWG prevents DPI"
+      "content": "Disguises WireGuard traffic with decoy packets to prevent VPN blocking.",
+      "link": "Learn more"
     },
     "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
     "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
@@ -290,7 +290,7 @@
     "account-link-social-description": "Link a social account for effortless login.",
     "account-on-nym": "Account on nym.com",
     "account-id": "Account ID",
-    "account-id-description": "Use your account ID if you need to contact Nym customer support. This is safe to share!",
+    "account-id-description": "Safe to share. Use to contact Nym Support.",
     "device-id": "Device ID",
     "device-id-description": "Use this to link this device to your account on nym.com",
     "logout": "Log out",
