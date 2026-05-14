@@ -6,10 +6,6 @@
       "url": "https://validator.nymtech.net/api/"
     },
     {
-      "url": "https://nym-frontdoor.vercel.app/api/",
-      "fronts": ["vercel.app", "vercel.com"]
-    },
-    {
       "url": "https://nym-frontdoor.global.ssl.fastly.net/api/",
       "fronts": ["yelp.global.ssl.fastly.net"]
     }
@@ -17,11 +13,10 @@
   "nym_vpn_api_url": "https://nymvpn.com/api/",
   "nym_vpn_api_urls": [
     {
-      "url": "https://nymvpn.com/api/",
-      "fronts": ["vercel.app", "vercel.com"]
+      "url": "https://nymvpn.com/api/"
     },
     {
-      "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api",
+      "url": "https://nymvpn-frontdoor.global.ssl.fastly.net/api/",
       "fronts": ["yelp.global.ssl.fastly.net"]
     }
   ],
