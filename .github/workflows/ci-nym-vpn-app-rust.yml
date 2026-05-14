@@ -13,6 +13,8 @@ env:
   CARGO_TERM_COLOR: always
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
   RUSTC_WRAPPER: sccache
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   check:
@@ -50,17 +52,20 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Enable Redis for sscache
+      - name: Enable Redis for sscache (Linux)
         if: ${{ matrix.os == 'arc-linux-latest' }}
         run: |
           echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_ENDPOINT }}" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_PASSWORD=${{ secrets.SCCACHE_REDIS_PASSWORD }}" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_EXPIRATION=86400" >> $GITHUB_ENV
 
-      - name: Enable GHA for sscache
-        if: ${{ matrix.os != 'arc-linux-latest' }}
+      - name: Enable Redis for sscache (macOS)
+        if: ${{ matrix.os == 'custom-macos-15' }}
         run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
+          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" >> $GITHUB_ENV
+
+      - name: Enable Redis for sscache (Windows)
+        if: ${{ matrix.os == 'custom-windows-11' }}
+        run: |
+          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" >> $env:GITHUB_ENV
 
       - uses: mozilla-actions/sccache-action@v0.0.10
 
@@ -80,31 +85,6 @@ jobs:
       - name: Install dependencies
         working-directory: nym-vpn-app
         run: npm ci
-
-      - name: Set env
-        shell: bash
-        run: |
-          if ${{ contains(matrix.os, 'ubuntu') || contains(matrix.os, 'arc-linux-latest') }}; then
-            ubuntu_version=$(lsb_release -rs | tail -n 1)
-            platform_arch=ubuntu-${ubuntu_version}_x86_64
-            triplet=x86_64-unknown-linux-gnu
-          elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
-            platform_arch=macos_x86_64
-            triplet=x86_64-apple-darwin
-          elif ${{ contains(matrix.os, 'macos') || contains(matrix.os, 'macos-15') }}; then
-            # platform_arch=macos_aarch64
-            platform_arch=macos_universal
-            triplet=universal-apple-darwin
-          elif ${{ contains(matrix.os, 'windows') }}; then
-            triplet=x86_64-pc-windows-msvc
-          else
-            echo " ✗ unknown platform/arch [${{ matrix.os }}]"
-            exit 1
-          fi
-          echo " ✓ PLATFORM_ARCH: $platform_arch"
-          echo " ✓ TRIPLET: $triplet"
-          echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
-          echo "TRIPLET=$triplet" >> $GITHUB_ENV
 
       - name: Install protoc
         uses: arduino/setup-protoc@v3
