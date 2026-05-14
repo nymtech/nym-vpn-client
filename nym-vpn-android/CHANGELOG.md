@@ -23,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove reconnect on Ad-block toggle (https://github.com/nymtech/nym-vpn-client/pull/5269)
 - Remove PQ toggle (https://github.com/nymtech/nym-vpn-client/pull/5272)
 - Allow back press on Passphrase screen when passphrase revealed (https://github.com/nymtech/nym-vpn-client/pull/5276)
-- Remove Continue button and acknowledge text from Passphrase screen (https://github.com/nymtech/nym-vpn-client/pull/5308)
 
 ### Fixed
 - Fix spinner position for Auto login dialog (https://github.com/nymtech/nym-vpn-client/pull/5287)
