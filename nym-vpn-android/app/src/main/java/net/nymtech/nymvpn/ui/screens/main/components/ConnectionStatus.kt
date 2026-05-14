@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.main.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -9,8 +8,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -175,6 +173,17 @@ fun ConnectionStatus(
 		ConnectionState.Disconnected, ConnectionState.Offline, ConnectionState.WaitingForConnection -> notProtectedLabel
 	}
 
+	val labelAlpha by animateFloatAsState(
+		targetValue = if (currentLabel != null) 1f else 0f,
+		animationSpec = tween(250, easing = FastOutSlowInEasing),
+		label = "labelAlpha",
+	)
+	val timeAlpha by animateFloatAsState(
+		targetValue = if (connectionTime != null) 1f else 0f,
+		animationSpec = tween(250, easing = FastOutSlowInEasing),
+		label = "timeAlpha",
+	)
+
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
 		modifier = modifier,
@@ -250,32 +259,28 @@ fun ConnectionStatus(
 			}
 		}
 
-		// State label
-		AnimatedVisibility(
-			visible = currentLabel != null,
-			enter = fadeIn(tween(200)),
-			exit = fadeOut(tween(300)),
+		// State label — always takes space to keep the circle position fixed
+		Column(
+			horizontalAlignment = Alignment.CenterHorizontally,
+			modifier = Modifier.alpha(labelAlpha),
 		) {
-			Column(horizontalAlignment = Alignment.CenterHorizontally) {
-				Spacer(Modifier.height(LABEL_OFFSET.dp))
-				Text(
-					text = (currentLabel ?: "").uppercase(),
-					style = MaterialTheme.typography.labelSmall,
-					color = when {
-						isError -> MaterialTheme.colorScheme.error
-						isConnected -> MaterialTheme.colorScheme.primary
-						else -> MaterialTheme.colorScheme.onSurfaceVariant
-					},
-				)
-				connectionTime?.let {
-					Spacer(Modifier.height(8.dp))
-					Text(
-						text = it,
-						style = MaterialTheme.typography.labelSmall,
-						color = MaterialTheme.colorScheme.primary,
-					)
-				}
-			}
+			Spacer(Modifier.height(LABEL_OFFSET.dp))
+			Text(
+				text = (currentLabel ?: "").uppercase(),
+				style = MaterialTheme.typography.labelSmall,
+				color = when {
+					isError -> MaterialTheme.colorScheme.error
+					isConnected -> MaterialTheme.colorScheme.primary
+					else -> MaterialTheme.colorScheme.onSurfaceVariant
+				},
+			)
+			Spacer(Modifier.height(8.dp))
+			Text(
+				text = connectionTime ?: "",
+				style = MaterialTheme.typography.labelSmall,
+				color = MaterialTheme.colorScheme.primary,
+				modifier = Modifier.alpha(timeAlpha),
+			)
 		}
 	}
 }

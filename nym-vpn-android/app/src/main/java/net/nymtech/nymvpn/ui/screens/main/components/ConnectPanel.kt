@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -164,6 +165,7 @@ fun ConnectPanel(
 			Box(
 				modifier = Modifier
 					.size(width = 32.dp, height = 4.dp)
+					.alpha(if (canToggle) 1f else 0f)
 					.clip(RoundedCornerShape(2.dp))
 					.background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)),
 			)
