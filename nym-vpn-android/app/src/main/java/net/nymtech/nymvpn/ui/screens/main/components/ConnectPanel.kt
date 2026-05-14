@@ -44,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -164,6 +165,7 @@ fun ConnectPanel(
 			Box(
 				modifier = Modifier
 					.size(width = 32.dp, height = 4.dp)
+					.alpha(if (canToggle) 1f else 0f)
 					.clip(RoundedCornerShape(2.dp))
 					.background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)),
 			)
@@ -243,7 +245,6 @@ fun ConnectPanel(
 				)
 				ServerRow(
 					node = entryNode,
-					fillTrailingSpace = true,
 					modifier = Modifier.padding(bottom = 16.dp),
 					currentState = panelState,
 					connectionState = connectionState,
@@ -340,7 +341,6 @@ private fun ServerRow(
 	modifier: Modifier = Modifier,
 	onExpand: (() -> Unit)? = null,
 	onCollapse: (() -> Unit)? = null,
-	fillTrailingSpace: Boolean = false,
 	onServerClick: () -> Unit,
 	currentState: PanelState,
 	connectionState: ConnectionState,
@@ -453,7 +453,7 @@ private fun ServerRow(
 						)
 					}
 				}
-			} else if (fillTrailingSpace) {
+			} else {
 				Spacer(modifier = Modifier.size(16.dp))
 			}
 		}

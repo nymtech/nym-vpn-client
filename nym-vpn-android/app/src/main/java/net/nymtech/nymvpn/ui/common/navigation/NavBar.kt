@@ -48,7 +48,7 @@ fun NavBar(
 ) {
 	val keyboardController = LocalSoftwareKeyboardController.current
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
-	var navBarState: NavBarState by remember { mutableStateOf(NavBarState.Hidden) }
+	var navBarState: NavBarState by remember { mutableStateOf(NavBarState.Empty) }
 
 	val currentMainThemeClick by rememberUpdatedState(onMainThemeClick)
 	val currentMainSettingsClick by rememberUpdatedState(onMainSettingsClick)
@@ -56,6 +56,7 @@ fun NavBar(
 	val currentRoute = navBackStackEntry?.destination?.route
 	val backgroundColor = when (navBarState) {
 		is NavBarState.Main -> LocalNymColors.current.navBarTitleBackground
+		is NavBarState.Empty -> MaterialTheme.colorScheme.background
 		else -> MaterialTheme.colorScheme.surface
 	}
 	LaunchedEffect(currentRoute, hideBackButton, logsEnabled) {
@@ -63,8 +64,9 @@ fun NavBar(
 		val route = currentRoute ?: return@LaunchedEffect
 
 		navBarState = when {
-			route.startsWith(Route.Splash::class.qualifiedName!!) ||
-				route.startsWith(Route.LoginScanner::class.qualifiedName!!) ||
+			route.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState.Empty
+
+			route.startsWith(Route.LoginScanner::class.qualifiedName!!) ||
 				route.startsWith(Route.Technical::class.qualifiedName!!) -> NavBarState.Hidden
 
 			route.startsWith(Route.Generating::class.qualifiedName!!) ||

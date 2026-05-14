@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -52,11 +54,17 @@ fun FilterButton(title: String, noOfApps: Int, description: String, imageVector:
 					text = title,
 					style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (isSelected) FontWeight(700) else Typography.bodyMedium.fontWeight),
 					color = MaterialTheme.colorScheme.onPrimaryContainer,
+					maxLines = 1,
+					overflow = TextOverflow.Ellipsis,
+					modifier = Modifier.weight(1f),
 				)
 				Text(
 					text = "($noOfApps)",
 					style = MaterialTheme.typography.bodySmall,
 					color = MaterialTheme.colorScheme.onBackground,
+					maxLines = 1,
+					softWrap = false,
+					modifier = Modifier.wrapContentWidth(),
 				)
 			}
 			Spacer(modifier = Modifier.height(4.dp.scaledHeight()))

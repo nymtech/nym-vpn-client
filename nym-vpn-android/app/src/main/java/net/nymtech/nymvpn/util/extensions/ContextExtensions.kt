@@ -130,6 +130,29 @@ fun Context.launchBatteryOptSettingsScreen() {
 	this.startActivity(intent)
 }
 
+fun Context.launchPrivateDnsSettings() {
+	if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+		val intent = Intent("android.settings.PRIVATE_DNS_SETTINGS").apply {
+			addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		}
+		try {
+			startActivity(intent)
+		} catch (e: android.content.ActivityNotFoundException) {
+			startActivity(
+				Intent(Settings.ACTION_WIRELESS_SETTINGS).apply {
+					addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+				},
+			)
+		}
+	}
+}
+
+fun Context.isPrivateDnsEnabled(): Boolean {
+	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
+	val mode = Settings.Global.getString(contentResolver, "private_dns_mode")
+	return mode != "off"
+}
+
 // for localization changes
 fun Activity.resetTile() {
 	try {
