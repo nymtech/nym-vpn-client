@@ -80,17 +80,6 @@ extension ConnectionManager {
                 updateConnectionConfig(forceReconnect: appSettings.shouldReconnect)
             }
             .store(in: &cancellables)
-
-        appSettings.$isLewesEnabledPublisher
-            .removeDuplicates()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] newValue in
-                self?.connectionConfig.enableLewes = newValue
-                Task {
-                    try? await self?.grpcManager.setEnableLewes(newValue)
-                }
-            }
-            .store(in: &cancellables)
     }
 }
 

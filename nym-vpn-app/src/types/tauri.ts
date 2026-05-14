@@ -391,7 +391,7 @@ export type TBackendError = {
 
 export type TCompleteDnsReport = {
   system: TDiagnosticResult<Array<TDnsResolution>>;
-  byNameserver: Array<TDnsResolution>;
+  byNameserver: Array<TDiagnosticResult<Array<TDnsResolution>>>;
 };
 
 export type TDiagnosticGateway = {

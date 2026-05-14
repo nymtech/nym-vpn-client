@@ -24,8 +24,8 @@ fun LogsPagerTabs(selectedTab: Int, onSelectTab: (Int) -> Unit, modifier: Modifi
 	SecondaryTabRow(
 		selectedTabIndex = selectedTab,
 		modifier = modifier.fillMaxWidth(),
-		containerColor = MaterialTheme.colorScheme.background,
-		contentColor = MaterialTheme.colorScheme.onBackground,
+		containerColor = MaterialTheme.colorScheme.primaryContainer,
+		contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
 		divider = {},
 		indicator = {
 			TabRowDefaults.SecondaryIndicator(
@@ -46,9 +46,9 @@ fun LogsPagerTabs(selectedTab: Int, onSelectTab: (Int) -> Unit, modifier: Modifi
 						text = label,
 						style = MaterialTheme.typography.labelLarge,
 						color = if (selected) {
-							MaterialTheme.colorScheme.onBackground
+							MaterialTheme.colorScheme.onPrimaryContainer
 						} else {
-							MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+							MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
 						},
 					)
 				},

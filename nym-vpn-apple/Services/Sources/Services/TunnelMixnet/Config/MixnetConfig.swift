@@ -20,7 +20,7 @@ public struct MixnetConfig: Codable, Equatable {
     public let exitRouter: ExitRouter
     public let isTwoHopEnabled: Bool
     public let isQuicEnabled: Bool
-    public let isLewesEnabled: Bool
+    public let isStealthApiEnabled: Bool
     public let isAdBlockingEnabled: Bool
     public let isErrorReportingEnabled: Bool
     public let isStatisticsEnabled: Bool
@@ -42,8 +42,8 @@ public struct MixnetConfig: Codable, Equatable {
         isErrorReportingEnabled: Bool,
         isStatisticsEnabled: Bool,
         isQuicEnabled: Bool,
+        isStealthApiEnabled: Bool,
         isLanBypassEnabled: Bool,
-        isLewesEnabled: Bool,
         isAdBlockingEnabled: Bool,
         isTwoHopEnabled: Bool = false,
         gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig,
@@ -58,9 +58,9 @@ public struct MixnetConfig: Codable, Equatable {
         self.isErrorReportingEnabled = isErrorReportingEnabled
         self.isStatisticsEnabled = isStatisticsEnabled
         self.isQuicEnabled = isQuicEnabled
+        self.isStealthApiEnabled = isStealthApiEnabled
         self.isLanBypassEnabled = isLanBypassEnabled
         self.isTwoHopEnabled = isTwoHopEnabled
-        self.isLewesEnabled = isLewesEnabled
         self.isAdBlockingEnabled = isAdBlockingEnabled
         self.gatewaySelectionAlgorithmConfig = gatewaySelectionAlgorithmConfig
         self.name = name
@@ -79,10 +79,10 @@ extension MixnetConfig {
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
             enableBridges: isQuicEnabled,
-            enableLewesProtocol: isLewesEnabled,
+            enableLewesProtocol: false,
             residentialExit: false,
             enableAdBlocking: isAdBlockingEnabled,
-            frontingMode: .onRetry,
+            frontingMode: isStealthApiEnabled ? .always : .onRetry,
             customDns: customDns,
             mixnetTraffic: mixnetTuning.mixnetTrafficConfig(),
             networkStats: nil,

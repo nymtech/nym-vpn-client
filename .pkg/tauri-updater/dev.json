@@ -4,6 +4,10 @@
     "windows-x86_64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjhBZ1Q2dmlFa0RhNzBJcCtzdFlmRmU3ajhCZ3p2UFBML2FuUzAySGJxdUVXSzd0M1BGcDFqTXM3WTF6Q0dBS3ZUOXJBR1E5dlRIRS8rdmNhQmFYZGdnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU3MzQ1NzczCWZpbGU6TnltVlBOXzEuMTUuMC1jaGVycnktcmMuMl94NjQtc2V0dXAuZXhlClFPaUhOREtlaEpNQVpHRnJWWXNlWnhrdVhGY3pOMlJ3ZVFtd1NLWm1GMHBRaHg0d2c0Vk9YSHN5L293VW5hWUt0WTdMUytzL0lIV1ZoSkNEMDYyY0RnPT0K",
       "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.15.0-cherry-rc.2/NymVPN_1.15.0-cherry-rc.2_x64-setup.exe"
+    },
+    "windows-aarch64": {
+      "signature": "",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.15.0-cherry-rc.2/NymVPN_1.15.0-cherry-rc.2_arm64-setup.exe"
     }
   }
 }

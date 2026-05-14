@@ -5,14 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
-import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material.icons.outlined.MonitorHeart
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,12 +21,14 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsArrowIcon
 import net.nymtech.nymvpn.ui.screens.settings.components.SettingsGroup
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsIcon
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsTitle
 import net.nymtech.nymvpn.ui.screens.settings.privacy.components.MonitoringSection
 import net.nymtech.nymvpn.ui.screens.settings.privacy.components.NetworkStatsSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -68,7 +65,7 @@ fun PrivacyScreen(
 	val context = LocalContext.current
 	Column(
 		horizontalAlignment = Alignment.Start,
-		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
+		verticalArrangement = Arrangement.spacedBy(14.dp.scaledHeight(), Alignment.Top),
 		modifier = Modifier
 			.fillMaxSize()
 			.padding(top = 24.dp.scaledHeight())
@@ -78,25 +75,17 @@ fun PrivacyScreen(
 			items = listOf(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.AutoMirrored.Default.Notes,
 							stringResource(R.string.local_logs),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Outlined.ArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onBackground,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
+						SettingsTitle(
 							stringResource(R.string.local_logs),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 						)
 					},
 					onClick = onLogsClick,
@@ -108,25 +97,17 @@ fun PrivacyScreen(
 			items = listOf(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.Outlined.MonitorHeart,
 							stringResource(R.string.local_logs),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Outlined.ArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onBackground,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
+						SettingsTitle(
 							stringResource(R.string.privacy_diagnostic_tool),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
 						)
 					},
 					onClick = onDiagnosticClick,

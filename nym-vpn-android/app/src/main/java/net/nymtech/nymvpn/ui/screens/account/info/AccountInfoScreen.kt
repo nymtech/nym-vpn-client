@@ -2,12 +2,21 @@ package net.nymtech.nymvpn.ui.screens.account.info
 
 import android.content.ClipData
 import android.content.res.Configuration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Devices
@@ -28,6 +37,10 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +50,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.components.AccountActionCard
@@ -47,15 +61,16 @@ import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.account.info.components.SubscriptionSection
 import net.nymtech.nymvpn.ui.screens.settings.components.ExpiryState
 import net.nymtech.nymvpn.ui.screens.settings.components.LogoutDialog
-import net.nymtech.nymvpn.ui.screens.settings.components.LogoutSection
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionStatusText
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
 import nym_vpn_lib_types.DeeplinkKind
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
 
@@ -193,27 +208,28 @@ fun AccountInfoScreenContent(
 			onClick = onManageClick,
 		)
 
-		Spacer(Modifier.height(8.dp))
+		Spacer(Modifier.height(16.dp))
 
-		if (!isLinked) {
-			AccountActionCard(
-				title = stringResource(R.string.account_info_account_button),
-				subtitle = {
-					Text(
-						text = stringResource(R.string.account_info_link_description),
-						style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-					)
-				},
-				icon = Icons.Outlined.Person,
-				onClick = onLinkAccountClick,
+		Row(
+			verticalAlignment = Alignment.CenterVertically,
+		) {
+			Spacer(
+				modifier = Modifier
+					.size(12.dp)
+					.background(LocalNymColors.current.warning, CircleShape),
 			)
+			Spacer(Modifier.width(4.dp))
+			if (!isLinked) {
+				AddSocialText(onLinkAccountClick)
+			} else {
+				Text(
+					text = stringResource(R.string.account_info_backup),
+					color = MaterialTheme.colorScheme.onBackground,
+					style = MaterialTheme.typography.bodyMedium,
+				)
+			}
 		}
-
-		Text(
-			text = stringResource(if (!isLinked) R.string.account_info_link_warning else R.string.account_info_linked_info),
-			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-			modifier = Modifier.padding(vertical = 24.dp),
-		)
+		Spacer(Modifier.height(16.dp))
 
 		AccountInfoCard(
 			title = stringResource(R.string.account_info_id_title),
@@ -221,13 +237,13 @@ fun AccountInfoScreenContent(
 			icon = Icons.Outlined.Numbers,
 			onClick = onAccountIdClick,
 		)
-
+		Spacer(Modifier.height(16.dp))
 		Text(
 			text = stringResource(R.string.account_info_id_info),
-			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-			modifier = Modifier.padding(vertical = 24.dp),
+			color = MaterialTheme.colorScheme.onBackground,
+			style = MaterialTheme.typography.bodyMedium,
 		)
-
+		Spacer(Modifier.height(16.dp))
 		AccountInfoCard(
 			title = stringResource(R.string.account_info_device_title),
 			value = deviceId,
@@ -235,44 +251,86 @@ fun AccountInfoScreenContent(
 			onClick = onDeviceIdClick,
 		)
 
+		Spacer(Modifier.height(16.dp))
 		Text(
 			text = stringResource(R.string.account_info_device_info),
-			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-			modifier = Modifier.padding(vertical = 24.dp),
+			color = MaterialTheme.colorScheme.onBackground,
+			style = MaterialTheme.typography.bodyMedium,
 		)
-
-		LogoutSection(isMnemonicStored, onLogoutClick)
+		Spacer(Modifier.height(16.dp))
+		if (isMnemonicStored) {
+			OutlineStyledButton(
+				onClick = onLogoutClick,
+				content = {
+					Text(
+						stringResource(R.string.log_out),
+						style = MaterialTheme.typography.bodyLarge,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
+				},
+				borderColor = LocalNymColors.current.buttonErrorBorder,
+				modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
+			)
+		}
 	}
+}
+
+@Composable
+private fun AddSocialText(onClick: () -> Unit) {
+	val annotatedString = buildAnnotatedString {
+		withStyle(
+			SpanStyle(
+				color = MaterialTheme.colorScheme.onBackground,
+				textDecoration = TextDecoration.Underline,
+			),
+		) {
+			append(stringResource(R.string.account_info_add_social_action))
+		}
+		withStyle(SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
+			append(stringResource(R.string.account_info_add_social_suffix))
+		}
+	}
+
+	Text(
+		text = annotatedString,
+		style = MaterialTheme.typography.bodyMedium,
+		modifier = Modifier
+			.fillMaxWidth()
+			.clickable { onClick() },
+	)
 }
 
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewAccountInfoScreen() {
 	NymVPNTheme(Theme.default()) {
-		AccountInfoScreenContent(
-			accountId = "AccountID",
-			deviceId = "DeviceID123",
-			isLinked = false,
-			isMnemonicStored = true,
-			onManageClick = {},
-			onRenewClick = {},
-			onLinkAccountClick = {},
-			onAccountIdClick = {},
-			onDeviceIdClick = {},
-			onLogoutClick = {},
-			onSelectPlanClick = {},
-			onContactSupportClick = {},
-			subscriptionState = SubscriptionUiState(
-				isRecurring = false,
-				validUntilDate = "December 24, 2026",
-				expiryState = ExpiryState.NORMAL,
-			),
-			bandwidthState = BandwidthUiState(
-				consumedGb = 800f,
-				totalGb = 2000f,
-				percentage = 0.4f,
-				resetDate = "2026.03.18",
-			),
-		)
+		Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+			AccountInfoScreenContent(
+				accountId = "AccountID",
+				deviceId = "DeviceID123",
+				isLinked = false,
+				isMnemonicStored = true,
+				onManageClick = {},
+				onRenewClick = {},
+				onLinkAccountClick = {},
+				onAccountIdClick = {},
+				onDeviceIdClick = {},
+				onLogoutClick = {},
+				onSelectPlanClick = {},
+				onContactSupportClick = {},
+				subscriptionState = SubscriptionUiState(
+					isRecurring = false,
+					validUntilDate = "December 24, 2026",
+					expiryState = ExpiryState.NORMAL,
+				),
+				bandwidthState = BandwidthUiState(
+					consumedGb = 800f,
+					totalGb = 2000f,
+					percentage = 0.4f,
+					resetDate = "2026.03.18",
+				),
+			)
+		}
 	}
 }

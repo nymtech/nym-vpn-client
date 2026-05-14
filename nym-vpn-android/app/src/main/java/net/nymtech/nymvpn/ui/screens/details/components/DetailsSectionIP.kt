@@ -22,7 +22,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
@@ -47,14 +46,14 @@ fun DetailsSectionIP(exitIpv4: String?, exitIpv6: String?, asn: String?, asnName
 							style = MaterialTheme.typography.bodyMedium.copy(
 								textDecoration = TextDecoration.Underline,
 							),
-							color = MaterialTheme.colorScheme.onBackground,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						)
 						Spacer(modifier = Modifier.width(4.dp))
 						Icon(
 							imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onBackground,
+							tint = MaterialTheme.colorScheme.onPrimaryContainer,
 							modifier = Modifier.size(12.dp),
 						)
 					}
@@ -78,14 +77,14 @@ fun DetailsSectionIP(exitIpv4: String?, exitIpv6: String?, asn: String?, asnName
 							style = MaterialTheme.typography.bodyMedium.copy(
 								textDecoration = TextDecoration.Underline,
 							),
-							color = MaterialTheme.colorScheme.onBackground,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						)
 						Spacer(modifier = Modifier.width(4.dp))
 						Icon(
 							imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
 							contentDescription = null,
-							tint = MaterialTheme.colorScheme.onBackground,
+							tint = MaterialTheme.colorScheme.onPrimaryContainer,
 							modifier = Modifier.size(12.dp),
 						)
 					}
@@ -98,9 +97,8 @@ fun DetailsSectionIP(exitIpv4: String?, exitIpv6: String?, asn: String?, asnName
 				stringResource(R.string.details_asn) to {
 					Text(
 						text = it,
-						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onBackground,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				},
 			)
@@ -111,9 +109,8 @@ fun DetailsSectionIP(exitIpv4: String?, exitIpv6: String?, asn: String?, asnName
 				stringResource(R.string.details_asn_name) to {
 					Text(
 						text = it,
-						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onBackground,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				},
 			)

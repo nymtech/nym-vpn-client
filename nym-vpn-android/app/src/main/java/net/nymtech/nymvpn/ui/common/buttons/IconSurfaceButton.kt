@@ -44,7 +44,7 @@ fun IconSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, lea
 		Column(
 			modifier =
 			Modifier
-				.padding(horizontal = 8.dp.scaledWidth(), vertical = 10.dp.scaledHeight())
+				.padding(horizontal = 8.dp.scaledWidth(), vertical = 8.dp.scaledHeight())
 				.padding(end = 16.dp.scaledWidth()).padding(start = 8.dp.scaledWidth())
 				.fillMaxSize(),
 			verticalArrangement = Arrangement.Center,
@@ -52,22 +52,26 @@ fun IconSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, lea
 		) {
 			Row(
 				verticalAlignment = Alignment.CenterVertically,
-				horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth()),
+				horizontalArrangement = Arrangement.spacedBy(8.dp.scaledWidth()),
 			) {
 				Row(
-					horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth()),
+					horizontalArrangement = Arrangement.spacedBy(8.dp.scaledWidth()),
 					verticalAlignment = Alignment.CenterVertically,
-					modifier = Modifier.padding(vertical = if (description == null) 10.dp.scaledHeight() else 0.dp),
+					modifier = Modifier.padding(vertical = if (description == null) 8.dp.scaledHeight() else 0.dp),
 				) {
 					leading?.let {
 						it()
 					}
 					Column {
-						Text(title, style = MaterialTheme.typography.titleMedium)
+						Text(
+							title,
+							style = MaterialTheme.typography.bodyLarge,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
+						)
 						description?.let {
 							Text(
 								description,
-								color = MaterialTheme.colorScheme.onSurfaceVariant,
+								color = MaterialTheme.colorScheme.onBackground,
 								style = MaterialTheme.typography.bodyMedium,
 							)
 						}

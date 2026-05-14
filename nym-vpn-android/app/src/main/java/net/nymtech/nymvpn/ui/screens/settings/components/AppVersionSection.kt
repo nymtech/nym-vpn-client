@@ -38,7 +38,7 @@ fun AppVersionSection(appVersion: String, daemonVersion: String, onAppVersionCli
 			stringResource(R.string.settings_daemon_version_line, daemonVersion),
 			style = MaterialTheme.typography.bodyMedium,
 			color = MaterialTheme.colorScheme.outline,
-			modifier = Modifier.padding(top = 16.dp),
+			modifier = Modifier.padding(top = 8.dp),
 		)
 	}
 }

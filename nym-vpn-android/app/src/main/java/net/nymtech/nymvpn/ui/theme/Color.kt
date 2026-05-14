@@ -1,111 +1,100 @@
 package net.nymtech.nymvpn.ui.theme
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-sealed class ThemeColors(
-	val background: Color,
-	val surface: Color,
-	val primary: Color,
-	val secondary: Color,
-	val onBackground: Color,
-	val onSurface: Color,
-	val onPrimary: Color,
-	val onSurfaceVariant: Color,
-	val onSecondary: Color,
-	val surfaceContainer: Color,
-	val tertiary: Color,
-	val outline: Color,
-	val error: Color,
-) {
-	data object Dark : ThemeColors(
-		background = Color(0xFF242B2D),
-		surface = Color(0xFF374042),
-		primary = primary,
-		secondary = secondary,
-		onBackground = Color(0xFFFFFFFF),
-		onSurface = Color(0xFFE6E1E5),
-		onPrimary = Color(0xFF242B2D),
-		onSurfaceVariant = Color(0xFF938F99),
-		onSecondary = Color(0xFF56545A),
-		surfaceContainer = Color(0xFF313033),
-		tertiary = Color(0xFF14E76F),
-		outline = Color(0xFFB0ADB6),
-		error = Color(0xFFE33B5A),
-	)
-
-	data object Light : ThemeColors(
-		background = Color(0xFFEBEEF4),
-		surface = Color(0xFFFFFFFF),
-		primary = primary,
-		secondary = secondary,
-		onBackground = Color(0xFF1C1B1F),
-		onSurface = Color(0xFF1C1B1F),
-		onPrimary = Color(0xFF1C1B1F),
-		onSurfaceVariant = Color(0xFF79747E),
-		onSecondary = Color(0xFFA4A4A4),
-		surfaceContainer = Color(0xFFFFFFFF),
-		tertiary = Color(0xFF0B8A42),
-		outline = Color(0xFF606060),
-		error = Color(0xFFE33B5A),
-	)
+internal object DarkSchemeBaseColors {
+	val primary = Color(0xFF59F09F)
+	val onPrimary = Color(0xFF1C1B1F)
+	val primaryContainer = Color(0xFF2E2E2E)
+	val onPrimaryContainer = Color(0xFFFFFFFF)
+	val secondary = Color(0xFFB0ADB6)
+	val onSecondary = Color(0xFF1C1B1F)
+	val background = Color(0xFF090909)
+	val onBackground = Color(0xFFAEACB1)
+	val surface = Color(0xFF1D1D1F)
+	val onSurface = Color(0xFFAEACB1)
+	val surfaceContainer = Color(0xFF313033)
+	val inverseSurface = Color(0xFFEEEEEE)
+	val error = Color(0xFFFF4444)
+	val errorContainer = Color(0xFFCD2C3C)
+	val onErrorContainer = Color(0xFFFFFFFF)
+	val outline = Color(0xFF66656A)
 }
 
-val primary = Color(0xFF14E76F)
-val secondary = Color(0XFFCECCD1)
-
-object CustomColors {
-	val outlineVariant = Color(0xFF49454F)
-	val statusGreen = Color(0x1A47C45D)
-	val statusRed = Color(0xFF672D32)
-	val statusRedLight = Color(0xFFF3CAC8)
-	val statusDefaultDark = Color(0xFF2B3234)
-	val statusDefaultLight = Color(0xFFE2E4EA)
-	val errorStatusPillLight = Color(0xFFEBEEF4)
-	val errorStatusPillDark = Color(0xFF242B2D)
-	val pulse = Color(0xFF7075FF)
-	val disconnect = Color(0xFFE02C4D)
-	val error = Color(0xFFE33B5A)
-	val snackBarBackgroundColor = Color(0xFF484649)
-	val snackbarTextColor = Color(0xFFE7E7E7)
-	val warning = Color(0xFFFFB400)
-	val iconBorder = Color(0x4014E76F)
-	val iconBackground = Color(0x2611C55F)
-	val buttonRedTransparent = Color(0x1AED5060)
-	val buttonRedTransparentBorder = Color(0xFFED5060)
-	val warningAmber = Color(0xFFFB6E4E)
+internal object LightSchemeBaseColors {
+	val primary = Color(0xFF5BF0A0)
+	val onPrimary = Color(0xFF1C1B1F)
+	val primaryContainer = Color(0xFFFFFFFF)
+	val onPrimaryContainer = Color(0xFF111111)
+	val secondary = Color(0xFFB0ADB6)
+	val onSecondary = Color(0xFF1C1B1F)
+	val background = Color(0xFFD5D5D5)
+	val onBackground = Color(0xFF8A8990)
+	val surface = Color(0xFFFFFFFF)
+	val onSurface = Color(0xFF6A7282)
+	val surfaceContainer = Color(0xFFFFFFFF)
+	val inverseSurface = Color(0xFFEEEEEE)
+	val error = Color(0xFFFF4444)
+	val errorContainer = Color(0xFFCD2C3C)
+	val onErrorContainer = Color(0xFFFFFFFF)
+	val outline = Color(0xFF66656A)
 }
 
 @Immutable
-data class CustomColorsPalette(
-	val borderCyan: Color = Color.Unspecified,
+data class NymColors(
 	val labelCyan: Color = Color.Unspecified,
-	val redIconBackground: Color = Color.Unspecified,
-	val redIcon: Color = Color.Unspecified,
-	val greyIconBackground: Color = Color.Unspecified,
-	val greyIcon: Color = Color.Unspecified,
-	val greenIconBackground: Color = Color.Unspecified,
-	val greenIcon: Color = Color.Unspecified,
+	val iconCyan: Color = Color.Unspecified,
+	val iconCyanBackground: Color = Color.Unspecified,
+	val warning: Color = Color.Unspecified,
+	val success: Color = Color.Unspecified,
+	val iconBorder: Color = Color.Unspecified,
+	val iconBackground: Color = Color.Unspecified,
+	val statusConnectedBg: Color = Color.Unspecified,
+	val borderCyan: Color = Color.Unspecified,
+	val buttonErrorBorder: Color = Color.Unspecified,
+	val buttonErrorText: Color = Color.Unspecified,
+	val trackDefaultBackground: Color = Color.Unspecified,
+	val navBarTitleBackground: Color = Color.Unspecified,
+	val navBarIconTint: Color = Color.Unspecified,
+	val switchBackground: Color = Color.Unspecified,
 )
 
-val LightCustomColorsPalette = CustomColorsPalette(
-	borderCyan = Color(0x8000A3F5),
-	labelCyan = Color(0xFF00A3F5),
-	redIconBackground = Color(0xFFFFE2E2),
-	redIcon = Color(0xFFE73E14),
-	greyIconBackground = Color(0xFFE2E4EA),
-	greyIcon = Color(0xFFB0ADB6),
-	greenIconBackground = Color(0xFFAFFFD2),
-	greenIcon = Color(0xFF0B8A42),
-)
-
-val DarkCustomColorsPalette = CustomColorsPalette(
+val DarkNymColors = NymColors(
+	labelCyan = Color(0xFF5BF0A0),
+	iconCyan = Color(0xFF76FFB1),
+	iconCyanBackground = Color(0xFF374042),
+	success = Color(0xFF28C96C),
+	warning = Color(0xFFFFCC33),
+	iconBorder = Color(0x405BF0A0),
+	iconBackground = Color(0x265BF0A0),
+	statusConnectedBg = Color(0x1A5BF0A0),
 	borderCyan = Color(0x8098DDFF),
-	labelCyan = Color(0xFF98DDFF),
-	redIconBackground = Color(0xFF500E0E),
-	redIcon = Color(0xFFE73E14),
-	greyIconBackground = Color(0xFF32393B),
-	greyIcon = Color(0xFF66646C),
-	greenIconBackground = Color(0xFF254B35),
-	greenIcon = Color(0xFF14E76F),
+	buttonErrorBorder = Color(0x99FF4444),
+	buttonErrorText = Color(0xFFE73E14),
+	trackDefaultBackground = Color(0x26FFFFFF),
+	navBarTitleBackground = Color(0xFF090909),
+	navBarIconTint = Color(0xFFAEACB1),
+	switchBackground = Color(0xFF66656A),
 )
+
+val LightNymColors = NymColors(
+	labelCyan = Color(0xFF28C96C),
+	iconCyan = Color(0xFF28C96C),
+	iconCyanBackground = Color(0xFFFFFFFF),
+	success = Color(0xFF28C96C),
+	warning = Color(0xFFFFCC33),
+	iconBorder = Color(0x401A9B61),
+	iconBackground = Color(0x261A9B61),
+	statusConnectedBg = Color(0x1A1A9B61),
+	borderCyan = Color(0x8000A3F5),
+	buttonErrorBorder = Color(0x99FF4444),
+	buttonErrorText = Color(0xFFE73E14),
+	trackDefaultBackground = Color(0x26FFFFFF),
+	navBarTitleBackground = Color(0xFFFFFFFF),
+	navBarIconTint = Color(0xFF111111),
+	switchBackground = Color(0xFFD5D5D5),
+)
+
+val LocalNymColors = staticCompositionLocalOf { DarkNymColors }

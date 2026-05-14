@@ -37,10 +37,6 @@ extension GRPCManager {
             try await rpcClient?.setAllowLan(allowLan: newConfig.allowLan)
         }
 
-        if oldConfig.enableLewes != newConfig.enableLewes {
-            try await rpcClient?.setEnableLewesProtocol(enableLewesProtocol: newConfig.enableLewes)
-        }
-
         if oldConfig.enableAdBlocking != newConfig.enableAdBlocking {
             try await rpcClient?.setEnableAdBlocking(enableAdBlocking: newConfig.enableAdBlocking)
         }
@@ -71,12 +67,12 @@ extension GRPCManager {
         }.value
     }
 
-    public func setEnableLewes(_ enabled: Bool) async throws {
-        try await rpcClient?.setEnableLewesProtocol(enableLewesProtocol: enabled)
-    }
-
     public func setEnableAdBlocking(_ enabled: Bool) async throws {
         try await rpcClient?.setEnableAdBlocking(enableAdBlocking: enabled)
+    }
+
+    public func setStealthApiEnabled(_ enabled: Bool) async throws {
+        try await rpcClient?.setFrontingMode(frontingMode: enabled ? .always : .onRetry)
     }
 
     public func setDisableIpv6(_ disabled: Bool) async throws {

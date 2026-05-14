@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
@@ -27,6 +28,7 @@ class VpnEventReducer(private val context: Context, private val state: MutableSt
 			apiFlow
 				.filterNotNull()
 				.flatMapLatest { it.events }
+				.catch { t -> Timber.e(t, "Error in VPN events stream") }
 				.collect { handle(it) }
 		}
 	}

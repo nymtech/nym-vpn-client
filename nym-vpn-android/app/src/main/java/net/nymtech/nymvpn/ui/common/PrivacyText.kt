@@ -11,6 +11,7 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
@@ -32,8 +33,9 @@ fun PrivacyText() {
 					tag = "terms",
 					styles = TextLinkStyles(
 						style = SpanStyle(
-							color = MaterialTheme.colorScheme.onBackground,
+							color = MaterialTheme.colorScheme.onSurface,
 							textDecoration = TextDecoration.None,
+							fontWeight = FontWeight.ExtraBold,
 						),
 					),
 					linkInteractionListener = { uriHandler.openUri(termsUrl) },
@@ -49,8 +51,9 @@ fun PrivacyText() {
 					tag = "privacy",
 					styles = TextLinkStyles(
 						style = SpanStyle(
-							color = MaterialTheme.colorScheme.onBackground,
+							color = MaterialTheme.colorScheme.onSurface,
 							textDecoration = TextDecoration.None,
+							fontWeight = FontWeight.ExtraBold,
 						),
 					),
 					linkInteractionListener = { uriHandler.openUri(privacyUrl) },
@@ -60,8 +63,8 @@ fun PrivacyText() {
 			append(".")
 		},
 		textAlign = TextAlign.Center,
-		style = MaterialTheme.typography.bodySmall.copy(
-			color = MaterialTheme.colorScheme.outline,
+		style = MaterialTheme.typography.bodyMedium.copy(
+			color = MaterialTheme.colorScheme.onSurface,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		),
 		modifier = Modifier.fillMaxWidth(),

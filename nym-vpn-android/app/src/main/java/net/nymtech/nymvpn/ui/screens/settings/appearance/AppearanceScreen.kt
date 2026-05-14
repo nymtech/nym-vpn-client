@@ -19,7 +19,7 @@ fun AppearanceScreen() {
 
 	Column(
 		horizontalAlignment = Alignment.Start,
-		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
+		verticalArrangement = Arrangement.spacedBy(14.dp.scaledHeight(), Alignment.Top),
 		modifier = Modifier
 			.fillMaxSize()
 			.padding(top = 24.dp.scaledHeight())

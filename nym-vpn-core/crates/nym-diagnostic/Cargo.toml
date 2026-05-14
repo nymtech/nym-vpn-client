@@ -23,6 +23,7 @@ nym-crypto.workspace = true
 nym-gateway-directory.workspace = true
 nym-gateway-requests.workspace = true
 nym-http-api-client.workspace = true
+nym-ip-packet-client.workspace = true
 nym-lp.workspace = true
 nym-registration-common.workspace = true
 nym-registration-client.workspace = true
@@ -42,7 +43,12 @@ async-trait.workspace = true
 boringtun.workspace = true
 clap.workspace = true
 futures.workspace = true
-hickory-resolver.workspace = true
+hickory-resolver = { workspace = true, features = [
+    "system-config",
+    "tokio",
+    "tls-ring",
+    "https-ring",
+] }
 pnet_packet.workspace = true
 rand09.workspace = true
 rand.workspace = true

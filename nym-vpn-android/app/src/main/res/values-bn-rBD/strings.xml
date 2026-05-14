@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">অ্যাপ খুললে স্বয়ংক্রিয়ভাবে সংযোগ করুন</string>
 	<string name="logs">লগস </string>
 	<string name="support">সহায়তা</string>
-	<string name="legal">আইনগত</string>
-	<string name="terms_of_use">ব্যবহারের শর্তাবলী</string>
+    <string name="terms_of_use">ব্যবহারের শর্তাবলী</string>
 	<string name="privacy_policy">গোপনীয়তা স্টেটমেন্ট</string>
 	<string name="licenses">লাইসেন্স</string>
 	<string name="open_github">GitHub-এ একটি ইস্যু খুলুন</string>
@@ -44,15 +43,11 @@
 	<string name="okay">ঠিক আছে</string>
 	<string name="two_hop">২-হপ</string>
 	<string name="country_load_failure">হপ দেশ লোড ব্যর্থ</string>
-	<string name="app_shortcuts">অ্যাপ শর্টকাট</string>
-	<string name="enable_shortcuts">শর্টকাট চালু করুন</string>
-	<string name="disabled_while_connected">ভিপিএনে সংযুক্ত থাকাকালীন নিষ্ক্রিয়</string>
+    <string name="disabled_while_connected">ভিপিএনে সংযুক্ত থাকাকালীন নিষ্ক্রিয়</string>
 	<string name="permission_required">অনুমতি দরকার</string>
 	<string name="permission_message">অ্যাপটি সঠিকভাবে চলার জন্য নিচের অনুমতিগুলো চালু করুন, এগুলো আবশ্যক.</string>
-	<string name="notifications">নোটিফিকেশন</string>
-	<string name="notification_permission_required">অ্যাপ সঠিকভাবে কাজ করার জন্য নোটিফিকেশন অনুমতি দিন</string>
-	<string name="kill_switch">কিল সুইচ</string>
-	<string name="mode_selection">মোড নির্বাচন</string>
+    <string name="notification_permission_required">অ্যাপ সঠিকভাবে কাজ করার জন্য নোটিফিকেশন অনুমতি দিন</string>
+    <string name="mode_selection">মোড নির্বাচন</string>
 	<string name="five_hop_explanation">৫-হপ রাউটিং দ্বারা সর্বোচ্চ গোপনীয়তা প্রদান করা হয়, (গতি প্রায় ১–৫ Mbps পর্যন্ত হতে পারে). ডামি ট্র্যাফিক ও টাইমিং অস্পষ্টকরণ গোপনীয়তা আরও বাড়ায়, ফলে পেমেন্ট, ইমেইল ও মেসেজিং-এর মতো সংবেদনশীল কাজের জন্য উপযুক্ত.</string>
 	<string name="continue_reading">পড়া চালিয়ে যান</string>
 	<string name="appearance">প্রদর্শন</string>
@@ -145,8 +140,7 @@
 	<string name="bars_3">৩ বার</string>
 	<string name="bars_2">২ বার</string>
 	<string name="bars_1">১ বার</string>
-	<string name="bypass_lan">LAN বাইপাস করুন</string>
-	<string name="account_id">সহায়তা নিন</string>
+    <string name="account_id">সহায়তা নিন</string>
 	<string name="developer">ডেভেলপার</string>
 	<string name="get_help">সহায়তা নিন</string>
 	<string name="join_telegram"></string>
@@ -209,12 +203,9 @@
 	<string name="settings_dns_title">DNS কাস্টমাইজ করুন</string>
 	<string name="settings_ipv6_title">IPv6 সমর্থন</string>
 	<string name="settings_ipv6_description">IPv6 সংযোগ অনুমতি দিন</string>
-	<string name="settings_bypass_description">স্থানীয় নেটওয়ার্কে সরাসরি অ্যাক্সেস অনুমতি দিন</string>
-	<string name="settings_auto_select_title">এন্ট্রি সার্ভার স্বয়ংক্রিয়ভাবে নির্বাচন করুন</string>
+    <string name="settings_auto_select_title">এন্ট্রি সার্ভার স্বয়ংক্রিয়ভাবে নির্বাচন করুন</string>
 	<string name="settings_auto_select_description">অ্যাপকে সেরা এন্ট্রি অবস্থান স্বয়ংক্রিয়ভাবে নির্বাচন করতে দিন</string>
-	<string name="settings_device_startup_title">ডিভাইস চালু হলে শুরু করুন</string>
-	<string name="settings_device_startup_description">অ্যাপকে সেরা এন্ট্রি অবস্থান নির্বাচন করতে দিন</string>
-	<string name="settings_system_tray_title">সিস্টেম ট্রেতে চালান</string>
+    <string name="settings_system_tray_title">সিস্টেম ট্রেতে চালান</string>
 	<string name="settings_system_tray_description">বন্ধ করলেও অ্যাপ চালু রাখুন</string>
 	<string name="settings_reset_app_title">অ্যাপ ডেটা রিসেট করুন</string>
 	<string name="settings_system_status_title">সিস্টেম অবস্থা</string>
@@ -449,8 +440,7 @@
 	<string name="logs_download_button">তবুও ফাইল হিসেবে সংরক্ষণ করুন</string>
 	<string name="logs_saved">লগগুলো আপনার Downloads ফোল্ডারে সংরক্ষিত হয়েছে</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">স্প্লিট টানেলিং</string>
-	<string name="split_tunneling_info_msg">প্রতিটি অ্যাপকে NymVPN ব্যবহার অথবা সরাসরি সংযোগে সেট করুন।</string>
+    <string name="split_tunneling_info_msg">প্রতিটি অ্যাপকে NymVPN ব্যবহার অথবা সরাসরি সংযোগে সেট করুন।</string>
 	<string name="split_tunneling_info_desc">পরিবর্তনগুলো পুনরায় সংযোগ করার পর কার্যকর হবে</string>
 	<string name="split_tunneling_search_apps_hint">অ্যাপ অনুসন্ধান করুন</string>
 	<string name="split_tunneling_apps">অ্যাপসমূহ</string>

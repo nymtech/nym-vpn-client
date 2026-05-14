@@ -99,6 +99,7 @@ class VpnCoreController(
 				mixnetParamConfig = null,
 				enableLewesProtocol = savedConfig.lewes,
 				adBlockingEnabled = savedConfig.adBlockingEnabled,
+				stealthMode = savedConfig.stealthMode,
 			)
 			applyCanonicalConfigToRustIfReady(force = false, canonical = savedConfig)
 		}.onFailure { Timber.tag(TAG).w(it, "ensureReadyForManagement failed") }
@@ -118,6 +119,7 @@ class VpnCoreController(
 				mixnetParamConfig = req.mixnetParamConfig,
 				enableLewesProtocol = config.lewes,
 				adBlockingEnabled = config.adBlockingEnabled,
+				stealthMode = config.stealthMode,
 			)
 
 			applyCanonicalConfigToRustIfReady(force = true, canonical = config)
@@ -177,6 +179,7 @@ class VpnCoreController(
 				mixnetParamConfig = null,
 				enableLewesProtocol = cfg.lewes,
 				adBlockingEnabled = cfg.adBlockingEnabled,
+				stealthMode = cfg.stealthMode,
 			)
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "CoreInitFailed")
@@ -308,6 +311,7 @@ class VpnCoreController(
 		mixnetParamConfig: MixnetTrafficConfig?,
 		enableLewesProtocol: Boolean,
 		adBlockingEnabled: Boolean,
+		stealthMode: Boolean,
 	) {
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
@@ -342,7 +346,7 @@ class VpnCoreController(
 			exitRouter = ExitPoint.Random,
 			enableTwoHop = false,
 			enableBridges = false,
-			frontingMode = FrontingMode.ON_RETRY,
+			frontingMode = if (stealthMode) FrontingMode.ALWAYS else FrontingMode.ON_RETRY,
 			enableLewesProtocol = enableLewesProtocol,
 			customDns = emptyList(),
 			residentialExit = false,
@@ -352,7 +356,7 @@ class VpnCoreController(
 			userAgent = userAgent,
 			tunProvider = service,
 			connectivityMonitor = service,
-			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false, GatewaySelectionAlgorithm.EXPLICIT),
+			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false, GatewaySelectionAlgorithm.AUTO),
 		)
 
 		val svc = NymVpnService.newService(initialConfig, env, service)
@@ -371,8 +375,7 @@ class VpnCoreController(
 
 		val tunSettingsChanged = force ||
 			prev?.bypassLan != cfg.bypassLan ||
-			prev.restrictedApps != cfg.restrictedApps ||
-			prev.adBlockingEnabled != cfg.adBlockingEnabled
+			prev.restrictedApps != cfg.restrictedApps
 
 		syncLocalFieldsFromConfig(cfg)
 

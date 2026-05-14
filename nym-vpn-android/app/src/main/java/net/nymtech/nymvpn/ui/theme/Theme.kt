@@ -1,6 +1,8 @@
 package net.nymtech.nymvpn.ui.theme
 
 import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -11,7 +13,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -21,8 +22,8 @@ import androidx.core.view.WindowCompat
 enum class Theme {
 	AUTOMATIC,
 	DARK_MODE,
-	DYNAMIC,
 	LIGHT_MODE,
+	DYNAMIC,
 	;
 
 	companion object {
@@ -30,63 +31,77 @@ enum class Theme {
 	}
 }
 
-private val DarkColorScheme =
-	darkColorScheme(
-		background = ThemeColors.Dark.background,
-		surface = ThemeColors.Dark.surface,
-		primary = ThemeColors.Dark.primary,
-		secondary = ThemeColors.Dark.secondary,
-		onBackground = ThemeColors.Dark.onBackground,
-		onSurface = ThemeColors.Dark.onSurface,
-		onPrimary = ThemeColors.Dark.onPrimary,
-		onSurfaceVariant = ThemeColors.Dark.onSurfaceVariant,
-		onSecondary = ThemeColors.Dark.onSecondary,
-		surfaceContainer = ThemeColors.Dark.surfaceContainer,
-		tertiary = ThemeColors.Dark.tertiary,
-		outline = ThemeColors.Dark.outline,
-		error = ThemeColors.Dark.error,
-	)
+private val DarkColorScheme = darkColorScheme(
+	primary = DarkSchemeBaseColors.primary,
+	onPrimary = DarkSchemeBaseColors.onPrimary,
+	primaryContainer = DarkSchemeBaseColors.primaryContainer,
+	onPrimaryContainer = DarkSchemeBaseColors.onPrimaryContainer,
+	secondary = DarkSchemeBaseColors.secondary,
+	onSecondary = DarkSchemeBaseColors.onSecondary,
+	background = DarkSchemeBaseColors.background,
+	onBackground = DarkSchemeBaseColors.onBackground,
+	surface = DarkSchemeBaseColors.surface,
+	onSurface = DarkSchemeBaseColors.onSurface,
+	inverseSurface = DarkSchemeBaseColors.inverseSurface,
+	error = DarkSchemeBaseColors.error,
+	errorContainer = DarkSchemeBaseColors.errorContainer,
+	onErrorContainer = DarkSchemeBaseColors.onErrorContainer,
+	outline = DarkSchemeBaseColors.outline,
+)
 
-private val LightColorScheme =
-	lightColorScheme(
-		background = ThemeColors.Light.background,
-		surface = ThemeColors.Light.surface,
-		primary = ThemeColors.Light.primary,
-		secondary = ThemeColors.Light.secondary,
-		onBackground = ThemeColors.Light.onBackground,
-		onSurface = ThemeColors.Light.onSurface,
-		onPrimary = ThemeColors.Light.onPrimary,
-		onSurfaceVariant = ThemeColors.Light.onSurfaceVariant,
-		onSecondary = ThemeColors.Light.onSecondary,
-		surfaceContainer = ThemeColors.Light.surfaceContainer,
-		tertiary = ThemeColors.Light.tertiary,
-		outline = ThemeColors.Light.outline,
-		error = ThemeColors.Light.error,
-	)
-
-val LocalCustomColorsPalette = staticCompositionLocalOf { CustomColorsPalette() }
+private val LightColorScheme = lightColorScheme(
+	primary = LightSchemeBaseColors.primary,
+	onPrimary = LightSchemeBaseColors.onPrimary,
+	primaryContainer = LightSchemeBaseColors.primaryContainer,
+	onPrimaryContainer = LightSchemeBaseColors.onPrimaryContainer,
+	secondary = LightSchemeBaseColors.secondary,
+	onSecondary = LightSchemeBaseColors.onSecondary,
+	background = LightSchemeBaseColors.background,
+	onBackground = LightSchemeBaseColors.onBackground,
+	surface = LightSchemeBaseColors.surface,
+	onSurface = LightSchemeBaseColors.onSurface,
+	inverseSurface = LightSchemeBaseColors.inverseSurface,
+	error = LightSchemeBaseColors.error,
+	errorContainer = LightSchemeBaseColors.errorContainer,
+	onErrorContainer = LightSchemeBaseColors.onErrorContainer,
+	outline = LightSchemeBaseColors.outline,
+)
 
 @Composable
 fun NymVPNTheme(theme: Theme, content: @Composable () -> Unit) {
 	val context = LocalContext.current
-	var isDark = isSystemInDarkTheme()
+	val systemDark = isSystemInDarkTheme()
+	val isDark = when (theme) {
+		Theme.DARK_MODE -> true
+		Theme.LIGHT_MODE -> false
+		else -> systemDark
+	}
 
-	val colorScheme =
-		when (theme) {
-			Theme.DARK_MODE -> DarkColorScheme.also { isDark = true }
-			Theme.LIGHT_MODE -> LightColorScheme.also { isDark = false }
-			Theme.DYNAMIC, Theme.AUTOMATIC -> {
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && theme == Theme.DYNAMIC) {
-					if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-				} else {
-					if (isDark) DarkColorScheme else LightColorScheme
-				}
+	val colorScheme = when (theme) {
+		Theme.DARK_MODE -> DarkColorScheme
+		Theme.LIGHT_MODE -> LightColorScheme
+		Theme.DYNAMIC -> {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+				if (isDark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+			} else {
+				if (isDark) DarkColorScheme else LightColorScheme
 			}
 		}
+		Theme.AUTOMATIC -> if (isDark) DarkColorScheme else LightColorScheme
+	}
+
+	val nymColors = if (isDark) DarkNymColors else LightNymColors
+
+	tailrec fun Context.findActivity(): Activity? = when (this) {
+		is Activity -> this
+		is ContextWrapper -> baseContext.findActivity()
+		else -> null
+	}
+
 	val view = LocalView.current
 	if (!view.isInEditMode) {
 		SideEffect {
-			val window = (view.context as Activity).window
+			val window = view.context.findActivity()?.window ?: return@SideEffect
 			WindowCompat.setDecorFitsSystemWindows(window, false)
 			window.navigationBarColor = Color.Transparent.toArgb()
 			window.statusBarColor = Color.Transparent.toArgb()
@@ -97,11 +112,7 @@ fun NymVPNTheme(theme: Theme, content: @Composable () -> Unit) {
 		}
 	}
 
-	val customColorsPalette = if (isDark) DarkCustomColorsPalette else LightCustomColorsPalette
-
-	CompositionLocalProvider(
-		LocalCustomColorsPalette provides customColorsPalette,
-	) {
+	CompositionLocalProvider(LocalNymColors provides nymColors) {
 		MaterialTheme(
 			colorScheme = colorScheme,
 			typography = Typography,

@@ -42,11 +42,17 @@ pub fn get_tun_name(fd: &BorrowedFd) -> Result<String> {
     unsafe { tungetiff(fd.as_raw_fd(), &mut ifr as *mut _ as _) }
         .map_err(GetTunNameError::Syscall)?;
 
-    // SAFETY: reinterpreting [i8; N] as [u8; N] is safe — same size/alignment, no invalid values.
-    let ifr_name_bytes: &[u8] = unsafe {
-        std::slice::from_raw_parts(ifr.ifr_name.as_ptr() as *const u8, ifr.ifr_name.len())
-    };
-    CStr::from_bytes_until_nul(ifr_name_bytes)
+    #[cfg(not(target_arch = "aarch64"))]
+    let ifr_name_bytes = ifr
+        .ifr_name
+        .into_iter()
+        .map(|c| c as u8)
+        .collect::<Vec<_>>();
+
+    #[cfg(target_arch = "aarch64")]
+    let ifr_name_bytes = ifr.ifr_name;
+
+    CStr::from_bytes_until_nul(&ifr_name_bytes)
         .map_err(GetTunNameError::CopyInterfaceName)?
         .to_str()
         .map(|s| s.to_owned())

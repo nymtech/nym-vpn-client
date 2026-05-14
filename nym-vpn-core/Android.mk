@@ -53,7 +53,7 @@ STRIP_TARGETS := libnym_vpn_lib.so libnym_vpn_lib_types.so
 # todo: consider migrating libwg builds to makefile to avoid rebuilds but for now this should make this makefile aware of changes to go sources
 LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_DIR)/libwg/*/*.go)
 
-.PHONY: build uniffi libwg strip clean
+.PHONY: build clippy uniffi libwg strip clean
 
 all: $(ARM64_V8_BUILD_DIR)/libwg.so $(X86_64_BUILD_DIR)/libwg.so build uniffi strip $(LICENSES_FILE)
 
@@ -63,6 +63,9 @@ build: $(ARM64_V8_BUILD_DIR)/libwg.so $(X86_64_BUILD_DIR)/libwg.so
 	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so
 	cd $(X86_64_BUILD_DIR) ; \
 	mv libnym_vpn_lib_uniffi.so libnym_vpn_lib.so
+
+clippy:
+	$(ALL_IDEMPOTENT_FLAGS) cargo ndk -t $(ARCH_ARM64_V8) -t $(ARCH_X86_64) -o $(JNI_LIBS_DIR) clippy --package nym-vpn-lib-uniffi --package nym-vpn-lib-types $(RELEASE_FLAG)
 
 strip: build
 	cd $(ARM64_V8_BUILD_DIR) ; \

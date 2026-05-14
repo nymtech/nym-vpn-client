@@ -111,7 +111,7 @@ private extension OneClickView {
             case .selecting:
                 selectingRowCompact(score: .offline)
             case let .selected(info):
-                if viewModel.displayMode == .oneClick {
+                if viewModel.displayMode == .oneClick && !viewModel.isLiveConnection {
                     selectingRowCompact(score: info.score, supportsPostQuantum: info.supportsPostQuantum)
                 } else {
                     selectedRowCompact(info: info, showCarets: true)

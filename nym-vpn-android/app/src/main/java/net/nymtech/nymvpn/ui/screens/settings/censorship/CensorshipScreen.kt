@@ -32,7 +32,6 @@ import net.nymtech.nymvpn.ui.screens.settings.censorship.components.QuicSection
 import net.nymtech.nymvpn.ui.screens.settings.censorship.components.StealthApiSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
@@ -51,14 +50,14 @@ fun CensorshipScreen(appUiState: AppUiState, viewModel: CensorshipViewModel = hi
 
 	CensorshipScreen(
 		quicEnabled = appUiState.settings.quicEnabled,
-		onQuicEnable = { enabled ->
-			viewModel.onQUICEnabled(enabled)
-		},
+		onQuicEnable = { enabled -> viewModel.onQUICEnabled(enabled) },
+		stealthModeEnabled = appUiState.vpnConfig.stealthMode,
+		onStealthModeEnable = { enabled -> viewModel.onStealthModeEnabled(enabled) },
 	)
 }
 
 @Composable
-fun CensorshipScreen(quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> Unit) {
+fun CensorshipScreen(quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> Unit, stealthModeEnabled: Boolean = false, onStealthModeEnable: (Boolean) -> Unit = {}) {
 	val scrollState = rememberScrollState()
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -70,8 +69,8 @@ fun CensorshipScreen(quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> U
 	) {
 		Text(
 			text = stringResource(R.string.censorship_description),
-			style = Typography.bodyMedium,
-			color = MaterialTheme.colorScheme.outline,
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onBackground,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			modifier = Modifier
 				.fillMaxWidth()
@@ -91,7 +90,11 @@ fun CensorshipScreen(quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> U
 				.fillMaxWidth()
 				.padding(top = 1.dp),
 		)
-		StealthApiSection(modifier = Modifier.fillMaxWidth().padding(top = 24.dp))
+		StealthApiSection(
+			isEnabled = stealthModeEnabled,
+			onEnable = onStealthModeEnable,
+			modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+		)
 	}
 }
 
@@ -99,6 +102,6 @@ fun CensorshipScreen(quicEnabled: Boolean, onQuicEnable: (enabled: Boolean) -> U
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 internal fun PreviewCensorshipScreen() {
 	NymVPNTheme(Theme.default()) {
-		CensorshipScreen(true, onQuicEnable = {})
+		CensorshipScreen(quicEnabled = true, onQuicEnable = {})
 	}
 }

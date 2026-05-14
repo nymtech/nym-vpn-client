@@ -66,7 +66,6 @@ import net.nymtech.nymvpn.ui.screens.hop.components.ExitServerDetailsModal
 import net.nymtech.nymvpn.ui.screens.hop.components.QuicInfoMessage
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsTrailingContent
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
@@ -261,12 +260,12 @@ internal fun HopScreenContent(
 							.fillMaxWidth()
 							.height(56.dp.scaledHeight())
 							.background(Color.Transparent, RoundedCornerShape(30.dp)),
-						placeholder = { Text(stringResource(R.string.search_country), color = MaterialTheme.colorScheme.outline) },
+						placeholder = { Text(stringResource(R.string.search_country), color = MaterialTheme.colorScheme.onBackground) },
 						singleLine = true,
 						leading = { Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.search), modifier = Modifier.size(iconSize)) },
 						label = { Text(stringResource(R.string.search)) },
 						showClearIcon = true,
-						textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+						textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onPrimaryContainer),
 					)
 				}
 			}
@@ -285,7 +284,7 @@ internal fun HopScreenContent(
 									)
 								}
 							},
-							title = { Text(stringResource(R.string.random_text), style = MaterialTheme.typography.bodyLarge) },
+							title = { Text(stringResource(R.string.random_text), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
 							selected = selectedKey == null,
 						),
 					),
@@ -310,7 +309,7 @@ internal fun HopScreenContent(
 						if (uiState.error) {
 							Text(
 								stringResource(R.string.country_load_failure),
-								style = MaterialTheme.typography.bodyMedium.copy(color = CustomColors.error),
+								style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.error),
 								textAlign = TextAlign.Center,
 							)
 						} else {
@@ -318,6 +317,7 @@ internal fun HopScreenContent(
 								stringResource(R.string.loading),
 								style = MaterialTheme.typography.bodyMedium,
 								textAlign = TextAlign.Center,
+								color = MaterialTheme.colorScheme.onBackground,
 							)
 						}
 					}
@@ -368,7 +368,7 @@ internal fun HopScreenContent(
 								}
 							},
 							textAlign = TextAlign.Center,
-							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.outline),
+							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
 						)
 					}
 				}
@@ -424,9 +424,10 @@ internal fun HopScreenContent(
 									title = {
 										Text(
 											gateway.name,
+											style = MaterialTheme.typography.bodyLarge,
+											color = MaterialTheme.colorScheme.onPrimaryContainer,
 											maxLines = 1,
 											overflow = TextOverflow.Ellipsis,
-											style = MaterialTheme.typography.bodyLarge,
 										)
 									},
 									description = {
@@ -435,13 +436,14 @@ internal fun HopScreenContent(
 											maxLines = 1,
 											overflow = TextOverflow.Ellipsis,
 											style = MaterialTheme.typography.bodySmall,
+											color = MaterialTheme.colorScheme.onBackground,
 										)
 									},
 									selected = selectedKey == gateway.identity,
 								),
 							),
 							shape = RectangleShape,
-							background = MaterialTheme.colorScheme.background,
+							background = MaterialTheme.colorScheme.primaryContainer,
 							divider = false,
 							anchorsPadding = 0.dp,
 							modifier = Modifier,

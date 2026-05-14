@@ -23,13 +23,12 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 
 @Composable
 fun PerformanceSection(speed: String, latency: String, shape: Shape = RoundedCornerShape(8.dp)) {
 	Card(
 		shape = shape,
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 	) {
 		Column(
 			modifier = Modifier
@@ -39,9 +38,8 @@ fun PerformanceSection(speed: String, latency: String, shape: Shape = RoundedCor
 		) {
 			Text(
 				text = stringResource(R.string.mixnet_tuning_current_title),
-				style = Typography.bodyMedium,
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				style = MaterialTheme.typography.bodyMedium,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 
 			PerformanceRow(
@@ -61,8 +59,8 @@ fun PerformanceSection(speed: String, latency: String, shape: Shape = RoundedCor
 
 			Text(
 				text = stringResource(R.string.mixnet_tuning_current_description),
-				style = Typography.labelSmall,
-				color = MaterialTheme.colorScheme.outline,
+				style = MaterialTheme.typography.labelSmall,
+				color = MaterialTheme.colorScheme.onBackground,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		}
@@ -79,13 +77,11 @@ private fun PerformanceRow(label: String, value: String) {
 		Text(
 			text = label,
 			style = MaterialTheme.typography.bodyMedium,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			color = MaterialTheme.colorScheme.outline,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 		)
 		Text(
 			text = value,
 			style = MaterialTheme.typography.labelLarge,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			color = MaterialTheme.colorScheme.primary,
 		)
 	}

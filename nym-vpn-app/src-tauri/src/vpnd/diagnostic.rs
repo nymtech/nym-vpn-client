@@ -61,7 +61,7 @@ impl From<lib::DiagnosticReport> for DiagnosticReport {
 #[serde(rename_all = "camelCase")]
 pub struct CompleteDnsReport {
     pub system: DiagnosticResult<Vec<DnsResolution>>,
-    pub by_nameserver: Vec<DnsResolution>,
+    pub by_nameserver: Vec<DiagnosticResult<Vec<DnsResolution>>>,
 }
 
 impl From<lib::CompleteDnsReport> for CompleteDnsReport {
@@ -73,7 +73,11 @@ impl From<lib::CompleteDnsReport> for CompleteDnsReport {
             by_nameserver: report
                 .by_nameserver
                 .into_iter()
-                .map(DnsResolution::from)
+                .map(|r| {
+                    DiagnosticResult::from_lib(r, |resolutions| {
+                        resolutions.into_iter().map(DnsResolution::from).collect()
+                    })
+                })
                 .collect(),
         }
     }

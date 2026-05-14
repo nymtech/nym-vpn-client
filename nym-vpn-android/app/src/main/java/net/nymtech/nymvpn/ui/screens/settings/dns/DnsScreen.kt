@@ -189,7 +189,7 @@ private fun DnsScreen(
 		Text(
 			text = stringResource(R.string.dns_description),
 			style = Typography.bodyMedium,
-			color = MaterialTheme.colorScheme.outline,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			modifier = Modifier
 				.fillMaxWidth()
@@ -199,7 +199,7 @@ private fun DnsScreen(
 		Text(
 			text = stringResource(if (expanded) R.string.dns_hide_list else R.string.dns_view_list),
 			style = Typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
-			color = MaterialTheme.colorScheme.outline,
+			color = MaterialTheme.colorScheme.onBackground,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			modifier = Modifier
 				.fillMaxWidth()
@@ -289,7 +289,6 @@ private fun DnsScreen(
 				text = stringResource(R.string.dns_learn_more_text),
 				style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
 				color = MaterialTheme.colorScheme.onBackground,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 			Spacer(modifier = Modifier.width(4.dp))
 			Icon(

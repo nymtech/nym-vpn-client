@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Contrast
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -19,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -28,7 +30,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.screens.settings.logs.modal.LogsActionsMenu
-import net.nymtech.nymvpn.util.extensions.goFromRoot
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.safePopBackStack
 
@@ -41,341 +43,238 @@ fun NavBar(
 	onBackClick: (Route) -> Unit = {},
 	onNavBarEvent: (NavBarEvent) -> Unit = {},
 	logsEnabled: Boolean = false,
+	onMainThemeClick: () -> Unit = {},
+	onMainSettingsClick: () -> Unit = {},
 ) {
 	val keyboardController = LocalSoftwareKeyboardController.current
-
 	val navBackStackEntry by navController.currentBackStackEntryAsState()
-	var navBarState by remember { mutableStateOf(NavBarState()) }
+	var navBarState: NavBarState by remember { mutableStateOf(NavBarState.Hidden) }
 
-	LaunchedEffect(navBackStackEntry, hideBackButton, logsEnabled) {
+	val currentMainThemeClick by rememberUpdatedState(onMainThemeClick)
+	val currentMainSettingsClick by rememberUpdatedState(onMainSettingsClick)
+
+	val currentRoute = navBackStackEntry?.destination?.route
+	val backgroundColor = when (navBarState) {
+		is NavBarState.Main -> LocalNymColors.current.navBarTitleBackground
+		else -> MaterialTheme.colorScheme.surface
+	}
+	LaunchedEffect(currentRoute, hideBackButton, logsEnabled) {
 		keyboardController?.hide()
-		val currentRoute = navBackStackEntry?.destination?.route ?: return@LaunchedEffect
+		val route = currentRoute ?: return@LaunchedEffect
 
 		navBarState = when {
-			currentRoute.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState(show = false)
+			route.startsWith(Route.Splash::class.qualifiedName!!) ||
+				route.startsWith(Route.LoginScanner::class.qualifiedName!!) ||
+				route.startsWith(Route.Technical::class.qualifiedName!!) -> NavBarState.Hidden
 
-			currentRoute.startsWith(Route.Main::class.qualifiedName!!) -> NavBarState(
-				title = { MainTitle() },
-				show = true,
-				trailing = {
-					NavIcon(Icons.Outlined.Settings, stringResource(R.string.settings)) {
-						navController.goFromRoot(Route.Settings(false))
-					}
+			route.startsWith(Route.Generating::class.qualifiedName!!) ||
+				route.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState.Empty
+
+			route.startsWith(Route.Main::class.qualifiedName!!) -> NavBarState.Main(
+				onThemeClick = currentMainThemeClick,
+				onSettingsClick = currentMainSettingsClick,
+			)
+
+			route.startsWith(Route.Login::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = null,
+				onBack = { navController.safePopBackStack() },
+			)
+
+			route.startsWith(Route.SelectPlan::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = null,
+				onBack = { navController.replaceCurrentWith(Route.Main()) },
+			)
+
+			route.startsWith(Route.CreateAccount::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = null,
+				onBack = { navController.safePopBackStack() },
+			)
+
+			route.startsWith(Route.Settings::class.qualifiedName!!) -> NavBarState.WithClose(
+				titleRes = R.string.settings,
+				onClose = { navController.safePopBackStack() },
+			)
+
+			route.startsWith(Route.EntryLocation::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.entry_location,
+				onBack = { navController.safePopBackStack() },
+				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.EntryLocationInfoClicked) },
+			)
+
+			route.startsWith(Route.ExitLocation::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.exit_location,
+				onBack = { navController.safePopBackStack() },
+				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.ExitLocationInfoClicked) },
+			)
+
+			route.startsWith(Route.Logs::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.logs,
+				onBack = { navController.safePopBackStack() },
+				trailing = if (logsEnabled) {
+					NavBarState.Trailing.LogsMenu(
+						onDownload = { onNavBarEvent(NavBarEvent.LogsDownloadClicked) },
+						onShare = { onNavBarEvent(NavBarEvent.LogsShareClicked) },
+						onDelete = { onNavBarEvent(NavBarEvent.LogsDeleteClicked) },
+					)
+				} else {
+					NavBarState.Trailing.None
 				},
 			)
 
-			currentRoute.startsWith(Route.Settings::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.settings)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
+			route.startsWith(Route.Support::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.support,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.EntryLocation::class.qualifiedName!!) -> NavBarState(
-				show = true,
-				title = { NavTitle(stringResource(R.string.entry_location)) },
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
-				trailing = {
-					NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) {
-						onNavBarEvent(NavBarEvent.EntryLocationInfoClicked)
-					}
-				},
+			route.startsWith(Route.Legal::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.settings_legal_title,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.ExitLocation::class.qualifiedName!!) -> NavBarState(
-				show = true,
-				title = { NavTitle(stringResource(R.string.exit_location)) },
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
-				trailing = {
-					NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) {
-						onNavBarEvent(NavBarEvent.ExitLocationInfoClicked)
-					}
-				},
+			route.startsWith(Route.Licenses::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.licenses,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Logs::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.logs)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
-				trailing = {
-					if (logsEnabled) {
-						LogsActionsMenu(
-							onDownload = { onNavBarEvent(NavBarEvent.LogsDownloadClicked) },
-							onShare = { onNavBarEvent(NavBarEvent.LogsShareClicked) },
-							onDelete = { onNavBarEvent(NavBarEvent.LogsDeleteClicked) },
-						)
-					}
-				},
+			route.startsWith(Route.Censorship::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.settings_censorship_title,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Support::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.support)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
+			route.startsWith(Route.Dns::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.dns_title,
+				onBack = { onBackClick(Route.Dns) },
 			)
 
-			currentRoute.startsWith(Route.Legal::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.legal)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
+			route.startsWith(Route.Appearance::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.appearance,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.LoginScanner::class.qualifiedName!!) -> NavBarState(show = false)
-
-			currentRoute.startsWith(Route.Login::class.qualifiedName!!) -> NavBarState(
-				title = { MainTitle() },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
+			route.startsWith(Route.Privacy::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.privacy_title,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Licenses::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.licenses)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
+			route.startsWith(Route.Display::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.display_theme,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Censorship::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.settings_censorship_title)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
+			route.startsWith(Route.Language::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.language,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Dns::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.dns_title)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						onBackClick(Route.Dns)
-					}
-				},
+			route.startsWith(Route.Developer::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.developer,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Appearance::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.appearance)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
+			route.startsWith(Route.Permission::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.permission_required,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Privacy::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.privacy_title)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
+			route.startsWith(Route.ServerDetails::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.details_title,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Display::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.display_theme)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
+			route.startsWith(Route.Passphrase::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.settings_passphrase_title,
+				onBack = { navController.safePopBackStack() },
+				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.PassphraseInfoClicked) },
 			)
 
-			currentRoute.startsWith(Route.SelectPlan::class.qualifiedName!!) -> NavBarState(
-				title = { MainTitle() },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.replaceCurrentWith(Route.Main())
-					}
-				},
+			route.startsWith(Route.SplitTunneling::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.settings_split_tunneling_title,
+				onBack = { onBackClick(Route.SplitTunneling) },
+				trailing = NavBarState.Trailing.Info { onNavBarEvent(NavBarEvent.SplitTunnelingInfoClicked) },
 			)
 
-			currentRoute.startsWith(Route.CreateAccount::class.qualifiedName!!) -> NavBarState(
-				title = { MainTitle() },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
+			route.startsWith(Route.Account::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.account_title,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Generating::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle("") },
-				show = true,
-				leading = {},
+			route.startsWith(Route.MixnetTuning::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.settings_mixnet_tuning_title,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle("") },
-				show = true,
-				leading = {},
+			route.startsWith(Route.Diagnostic::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.privacy_diagnostic_tool,
+				onBack = { navController.safePopBackStack() },
 			)
 
-			currentRoute.startsWith(Route.Language::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.language)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
-			)
-
-			currentRoute.startsWith(Route.Developer::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.developer)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
-			)
-
-			currentRoute.startsWith(Route.Permission::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.permission_required)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
-			)
-
-			currentRoute.startsWith(Route.ServerDetails::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.details_title)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
-			)
-
-			currentRoute.startsWith(Route.Technical::class.qualifiedName!!) -> NavBarState(show = false)
-
-			currentRoute.startsWith(Route.Passphrase::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.settings_passphrase_title)) },
-				show = true,
-				leading = {
-					if (!hideBackButton) {
-						NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-							navController.safePopBackStack()
-						}
-					}
-				},
-				trailing = {
-					NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) {
-						onNavBarEvent(NavBarEvent.PassphraseInfoClicked)
-					}
-				},
-			)
-
-			currentRoute.startsWith(Route.SplitTunneling::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.split_tunneling)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						onBackClick(Route.SplitTunneling)
-					}
-				},
-				trailing = {
-					NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) {
-						onNavBarEvent(NavBarEvent.SplitTunnelingInfoClicked)
-					}
-				},
-			)
-
-			currentRoute.startsWith(Route.Account::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.account_title)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
-			)
-
-			currentRoute.startsWith(Route.Welcome::class.qualifiedName!!) -> NavBarState(
-				title = { MainTitle() },
-				show = true,
-				trailing = {
-					NavIcon(Icons.Filled.Close, stringResource(R.string.close)) {
-						navController.navigate(Route.Main())
-					}
-				},
-			)
-
-			currentRoute.startsWith(Route.MixnetTuning::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.settings_mixnet_tuning_title)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
-			)
-
-			currentRoute.startsWith(Route.Diagnostic::class.qualifiedName!!) -> NavBarState(
-				title = { NavTitle(stringResource(R.string.privacy_diagnostic_tool)) },
-				show = true,
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.safePopBackStack()
-					}
-				},
-			)
-
-			else -> NavBarState(show = false)
+			else -> NavBarState.Hidden
 		}
 	}
 
 	AnimatedVisibility(
-		visible = navBarState.show,
+		visible = navBarState !is NavBarState.Hidden,
 		enter = slideInVertically() + fadeIn(),
 		exit = slideOutVertically() + fadeOut(),
 	) {
 		CenterAlignedTopAppBar(
 			modifier = modifier,
-			title = { navBarState.title() },
-			actions = { navBarState.trailing() },
-			navigationIcon = { navBarState.leading() },
-			colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
+			title = {
+				when (val state = navBarState) {
+					is NavBarState.Main -> MainTitle()
+					is NavBarState.WithBack -> if (state.titleRes != null) NavTitle(stringResource(state.titleRes)) else MainTitle()
+					is NavBarState.WithClose -> if (state.titleRes != null) NavTitle(stringResource(state.titleRes)) else MainTitle()
+					else -> {}
+				}
+			},
+			navigationIcon = {
+				when (val state = navBarState) {
+					is NavBarState.Main -> NavIcon(
+						icon = Icons.Outlined.Contrast,
+						description = stringResource(R.string.appearance),
+						onClick = state.onThemeClick,
+					)
+					is NavBarState.WithBack -> state.onBack?.let { onBack ->
+						NavIcon(
+							icon = Icons.AutoMirrored.Filled.ArrowBack,
+							description = stringResource(R.string.back),
+							onClick = onBack,
+						)
+					}
+					else -> {}
+				}
+			},
+			actions = {
+				when (val state = navBarState) {
+					is NavBarState.Main -> NavIcon(
+						icon = Icons.Outlined.Settings,
+						description = stringResource(R.string.settings),
+						onClick = state.onSettingsClick,
+					)
+					is NavBarState.WithClose -> if (state.showClose) {
+						NavIcon(
+							icon = Icons.Filled.Close,
+							description = stringResource(R.string.close),
+							onClick = state.onClose,
+						)
+					}
+					is NavBarState.WithBack -> when (val trailing = state.trailing) {
+						is NavBarState.Trailing.Info -> NavIcon(
+							icon = Icons.Outlined.Info,
+							description = stringResource(R.string.info),
+							onClick = trailing.onClick,
+						)
+						is NavBarState.Trailing.LogsMenu -> LogsActionsMenu(
+							onDownload = trailing.onDownload,
+							onShare = trailing.onShare,
+							onDelete = trailing.onDelete,
+						)
+						NavBarState.Trailing.None -> {}
+					}
+					else -> {}
+				}
+			},
+			colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor),
 		)
 	}
 }

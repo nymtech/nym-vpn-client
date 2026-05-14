@@ -125,12 +125,7 @@ impl ConnectedState {
             .await;
         }
 
-        #[cfg(target_os = "android")]
-        shared_state
-            .enable_ad_blocking(shared_state.tunnel_settings.enable_ad_blocking)
-            .await;
-
-        #[cfg(target_os = "ios")]
+        #[cfg(any(target_os = "android", target_os = "ios"))]
         let _ = shared_state; // Avoid unused variable warning
 
         (
@@ -188,10 +183,6 @@ impl ConnectedState {
                     .await
                     .map_err(Error::SetDns)?;
             }
-
-            if shared_state.tunnel_settings.enable_ad_blocking {
-                shared_state.enable_ad_blocking(true).await;
-            }
         } else {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             {
@@ -210,7 +201,6 @@ impl ConnectedState {
     #[cfg(not(target_os = "android"))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if *LOCAL_DNS_RESOLVER {
-            shared_state.enable_ad_blocking(false).await;
             if let Err(err) = shared_state.filtering_resolver.disable_forward().await {
                 trace_err_chain!(err, "failed to disable dns forwarding");
             }
@@ -308,9 +298,10 @@ impl TunnelStateHandler for ConnectedState {
                         self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
+                        let diff = shared_state.tunnel_settings.diff(&tunnel_settings);
+                        if diff.is_empty() {
                             return NextTunnelState::SameState(self);
-                        };
+                        }
                         shared_state.set_tunnel_settings(tunnel_settings).await;
 
                         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -362,7 +353,6 @@ impl TunnelStateHandler for ConnectedState {
                                 .await;
                         }
 
-                        #[cfg(not(target_os = "ios"))]
                         if diff.enable_ad_blocking_changed() {
                             shared_state.enable_ad_blocking(shared_state.tunnel_settings.enable_ad_blocking).await;
                         }

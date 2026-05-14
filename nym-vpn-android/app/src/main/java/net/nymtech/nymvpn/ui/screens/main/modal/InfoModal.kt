@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.screens.main.modal
 
 import android.content.Context
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -21,6 +22,7 @@ fun ShowInfoModal(context: Context, showInfoDialog: Boolean, onDismiss: () -> Un
 			Text(
 				text = stringResource(R.string.mode_selection),
 				style = CustomTypography.labelHuge,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},

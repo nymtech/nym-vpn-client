@@ -84,27 +84,25 @@ impl TunnelStateHandler for DisconnectedState {
                     },
                     TunnelCommand::Disconnect => NextTunnelState::SameState(self),
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        #[cfg(not(target_os = "ios"))]
-                        {
-                            let Some(diff) = shared_state.tunnel_settings.diff(&tunnel_settings) else {
-                                return NextTunnelState::SameState(self);
-                            };
-
-                            shared_state.set_tunnel_settings(tunnel_settings).await;
-
-                            #[cfg(any(target_os = "macos", target_os = "windows"))]
-                            if diff.split_tunnel_changed() || diff.geo_exclusion_enabled_changed() {
-                                let _ = shared_state.set_split_tunnel_exclude_paths().await;
-                            }
-
-                            if diff.geo_exclusion_enabled_changed() {
-                                shared_state.start_or_stop_socks5_proxy().await;
-                            }
+                        let diff = shared_state.tunnel_settings.diff(&tunnel_settings);
+                        if diff.is_empty() {
+                            return NextTunnelState::SameState(self);
                         }
 
-                        #[cfg(target_os = "ios")]
-                        {
-                            shared_state.set_tunnel_settings(tunnel_settings).await;
+                        shared_state.set_tunnel_settings(tunnel_settings).await;
+
+                        #[cfg(any(target_os = "macos", target_os = "windows"))]
+                        if diff.split_tunnel_changed() || diff.geo_exclusion_enabled_changed() {
+                            let _ = shared_state.set_split_tunnel_exclude_paths().await;
+                        }
+
+                        #[cfg(not(target_os = "ios"))]
+                        if diff.geo_exclusion_enabled_changed() {
+                            shared_state.start_or_stop_socks5_proxy().await;
+                        }
+
+                        if diff.enable_ad_blocking_changed() {
+                            shared_state.enable_ad_blocking(shared_state.tunnel_settings.enable_ad_blocking).await;
                         }
 
                         NextTunnelState::SameState(self)

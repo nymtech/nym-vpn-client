@@ -108,8 +108,8 @@ extension ConnectionManager {
             isErrorReportingEnabled: isErrorReportingEnabled,
             isStatisticsEnabled: appSettings.isStatisticsEnabled,
             isQuicEnabled: appSettings.isQuicEnabled,
+            isStealthApiEnabled: appSettings.isStealthApiEnabled,
             isLanBypassEnabled: appSettings.isLanBypassEnabled,
-            isLewesEnabled: appSettings.isLewesEnabled,
             isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
             isTwoHopEnabled: connectionType == .wireguard,
             gatewaySelectionAlgorithmConfig: algorithmConfig

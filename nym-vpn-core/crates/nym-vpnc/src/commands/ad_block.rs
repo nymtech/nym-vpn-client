@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
+use clap::builder::ValueParserFactory;
 
 use nym_vpn_proto::rpc_client::RpcClient;
 
@@ -15,7 +16,7 @@ pub enum Command {
     /// Set Ad blocking state
     Set {
         /// Enable or disable Ad blocking
-        #[arg(value_parser = BooleanOption::custom_parser("enabled", "disabled"))]
+        #[arg(value_parser = BooleanOption::value_parser())]
         enabled: BooleanOption,
     },
 }
@@ -28,9 +29,9 @@ impl Command {
                 println!(
                     "Ad blocking: {}",
                     if config.enable_ad_blocking {
-                        "enabled"
+                        "on"
                     } else {
-                        "disabled"
+                        "off"
                     }
                 );
                 Ok(())

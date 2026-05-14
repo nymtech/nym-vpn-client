@@ -3,6 +3,7 @@ package net.nymtech.vpn.config
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.GatewaySelectionAlgorithm
 
 sealed class CoreVpnConfigUpdate {
 	data class SetEntryPoint(val value: EntryPoint) : CoreVpnConfigUpdate()
@@ -19,4 +20,6 @@ sealed class CoreVpnConfigUpdate {
 	data class SetSentry(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetLewes(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetAdBlockingEnabled(val value: Boolean) : CoreVpnConfigUpdate()
+	data class SetStealthMode(val value: Boolean) : CoreVpnConfigUpdate()
+	data class SetAlgorithm(val value: GatewaySelectionAlgorithm) : CoreVpnConfigUpdate()
 }

@@ -3,6 +3,7 @@ package net.nymtech.vpn.model.config
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.GatewaySelectionAlgorithm
 
 /**
  * Persistent VPN configuration model.
@@ -22,4 +23,6 @@ data class CoreVpnConfig(
 	val sentry: Boolean = false,
 	val lewes: Boolean = false,
 	val adBlockingEnabled: Boolean = false,
+	val stealthMode: Boolean = false,
+	val algorithm: GatewaySelectionAlgorithm = GatewaySelectionAlgorithm.AUTO,
 )

@@ -1,24 +1,19 @@
 package net.nymtech.nymvpn.ui.screens.settings.components
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.iconSize
-import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
 fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?, onAccountClick: () -> Unit, onPassphraseClick: () -> Unit) {
@@ -27,33 +22,24 @@ fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?
 			items = listOf(
 				SelectionItem(
 					leading = {
-						Icon(
+						SettingsIcon(
 							Icons.Outlined.AccountCircle,
 							stringResource(R.string.account),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Outlined.ArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onBackground,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
-							stringResource(R.string.account),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
+						SettingsTitle(stringResource(R.string.account))
 					},
 					description = {
 						SubscriptionStatusText(subscription = subscription)
 						if (subscription != null && subscription.isRecurring && subscription.expiryState != ExpiryState.EXPIRED) {
 							Text(
 								text = stringResource(R.string.account_info_auto_renew_text),
-								style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+								style = MaterialTheme.typography.bodySmall,
+								color = MaterialTheme.colorScheme.onBackground,
 							)
 						}
 					},
@@ -61,26 +47,16 @@ fun AccountSection(isMnemonicStored: Boolean, subscription: SubscriptionUiState?
 				),
 				SelectionItem(
 					leading = {
-						Icon(
-							Icons.Outlined.Key,
+						SettingsIcon(
+							ImageVector.vectorResource(R.drawable.ic_passphrase),
 							stringResource(R.string.settings_passphrase_title),
-							modifier = Modifier.size(iconSize.scaledWidth()),
-							tint = MaterialTheme.colorScheme.outline,
 						)
 					},
 					trailing = {
-						Icon(
-							Icons.AutoMirrored.Outlined.ArrowRight,
-							stringResource(R.string.go),
-							modifier = Modifier.size(iconSize),
-							tint = MaterialTheme.colorScheme.onBackground,
-						)
+						SettingsArrowIcon()
 					},
 					title = {
-						Text(
-							stringResource(R.string.settings_passphrase_title),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
+						SettingsTitle(stringResource(R.string.settings_passphrase_title))
 					},
 					onClick = onPassphraseClick,
 				),

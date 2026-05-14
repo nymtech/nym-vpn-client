@@ -8,10 +8,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import net.nymtech.vpn.model.VpnServiceEvent
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -170,6 +174,17 @@ class ServiceBackedBackendManager @Inject constructor(
 			dispatcher = ioDispatcher,
 			apiFlow = serviceConnectionManager.apiFlow,
 		)
+		applicationScope.launch(ioDispatcher) {
+			serviceConnectionManager.apiFlow
+				.filterNotNull()
+				.flatMapLatest { it.events }
+				.catch { t -> Timber.tag(TAG).e(t, "Error in VPN events stream") }
+				.collect { event ->
+					if (event is VpnServiceEvent.AccountStateChanged) {
+						refreshAccountSummary()
+					}
+				}
+		}
 	}
 
 	override suspend fun storeMnemonic(mnemonic: String) {

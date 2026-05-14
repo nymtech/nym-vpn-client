@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
@@ -31,8 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,7 +47,6 @@ import net.nymtech.nymvpn.ui.screens.settings.tuning.components.SendTrafficSecti
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -138,10 +136,9 @@ fun MixnetTuningScreen(
 	) {
 		Text(
 			text = stringResource(R.string.mixnet_tuning_description),
-			style = Typography.bodyMedium,
-			color = MaterialTheme.colorScheme.outline,
+			style = MaterialTheme.typography.bodyLarge,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 			textAlign = TextAlign.Center,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			modifier = Modifier
 				.fillMaxWidth()
 				.padding(top = 16.dp),
@@ -170,14 +167,13 @@ fun MixnetTuningScreen(
 			Text(
 				text = stringResource(R.string.mixnet_tuning_link_text),
 				style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.Underline),
-				color = MaterialTheme.colorScheme.onBackground,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 			Spacer(modifier = Modifier.width(4.dp))
 			Icon(
 				imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
 				contentDescription = null,
-				tint = MaterialTheme.colorScheme.onBackground,
+				tint = MaterialTheme.colorScheme.onPrimaryContainer,
 				modifier = Modifier.size(12.dp),
 			)
 		}
@@ -188,12 +184,11 @@ fun MixnetTuningScreen(
 			content = {
 				Text(
 					text = stringResource(R.string.mixnet_tuning_save_button),
-					style = CustomTypography.buttonMain,
+					style = MaterialTheme.typography.titleMedium,
 				)
 			},
-			modifier = Modifier
-				.fillMaxWidth()
-				.height(42.dp.scaledHeight()),
+			modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
+			shape = RoundedCornerShape(12.dp),
 		)
 
 		if (showRestoreButton) {

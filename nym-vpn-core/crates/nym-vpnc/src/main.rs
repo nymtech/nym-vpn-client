@@ -82,6 +82,7 @@ pub enum Command {
     },
 
     /// Ad blocking
+    #[clap(alias = "adblock")]
     AdBlock {
         #[command(subcommand)]
         subcommand: commands::ad_block::Command,

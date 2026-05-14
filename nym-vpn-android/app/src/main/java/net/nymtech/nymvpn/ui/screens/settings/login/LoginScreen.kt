@@ -49,7 +49,6 @@ import net.nymtech.nymvpn.ui.screens.settings.login.components.LoginInputSection
 import net.nymtech.nymvpn.ui.screens.settings.login.components.MaxDevicesModal
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.extensions.navigateAndClearWelcome
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -79,11 +78,6 @@ fun LoginScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: L
 				when (event) {
 					is LoginEvent.NavigateAfterLogin -> {
 						appViewModel.notifyLoginStarted()
-						if (event.showTechnicalOpt) {
-							navController.navigateAndClearWelcome(Technical)
-						} else {
-							navController.navigateAndClearWelcome(Main())
-						}
 					}
 					LoginEvent.Processing -> {
 						val pass = uiState.mnemonic.trim()

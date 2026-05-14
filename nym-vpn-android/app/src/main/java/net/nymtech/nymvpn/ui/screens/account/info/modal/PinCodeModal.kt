@@ -91,7 +91,7 @@ fun PinCodeDialog(pinCode: String, url: String, onDismiss: () -> Unit) {
 			Text(
 				text = stringResource(R.string.pin_code_title),
 				style = CustomTypography.titleMediumPlus,
-				color = MaterialTheme.colorScheme.onBackground,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				textAlign = TextAlign.Center,
 			)
 		},
@@ -100,7 +100,7 @@ fun PinCodeDialog(pinCode: String, url: String, onDismiss: () -> Unit) {
 				Text(
 					text = stringResource(R.string.pin_code_subtitle),
 					style = MaterialTheme.typography.titleMedium,
-					color = MaterialTheme.colorScheme.onBackground,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					textAlign = TextAlign.Center,
 				)
@@ -124,7 +124,7 @@ fun PinCodeDialog(pinCode: String, url: String, onDismiss: () -> Unit) {
 						}
 						Text(
 							text = char.toString(),
-							color = MaterialTheme.colorScheme.onBackground,
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 							style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
 						)

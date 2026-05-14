@@ -2,7 +2,9 @@ package net.nymtech.nymvpn.util.extensions
 
 import android.content.Context
 import android.provider.Settings
+import net.nymtech.nymvpn.ui.screens.main.components.PanelState
 import net.nymtech.vpn.model.NymGateway
+import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import java.util.Locale
 import kotlin.math.round
 import kotlin.time.Duration
@@ -33,4 +35,16 @@ fun isVpnAlwaysOn(context: Context): Boolean = try {
 	alwaysOn == context.packageName
 } catch (ex: SecurityException) {
 	false
+}
+
+fun PanelState.toAlgorithm(): GatewaySelectionAlgorithm = when (this) {
+	PanelState.COLLAPSED -> GatewaySelectionAlgorithm.AUTO
+	PanelState.MODE -> GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT
+	PanelState.FULL -> GatewaySelectionAlgorithm.EXPLICIT
+}
+
+fun GatewaySelectionAlgorithm.toPanelState(): PanelState = when (this) {
+	GatewaySelectionAlgorithm.AUTO -> PanelState.COLLAPSED
+	GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT -> PanelState.MODE
+	GatewaySelectionAlgorithm.EXPLICIT -> PanelState.FULL
 }

@@ -417,20 +417,6 @@ private extension SettingsViewModel {
                 action: {}
             )
         )
-        viewModels.append(
-            SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: Binding(
-                        get: { [weak appSettings] in appSettings?.isLewesEnabled ?? false },
-                        set: { [weak appSettings] in appSettings?.isLewesEnabled = $0 }
-                    )
-                ),
-                title: "settings.lewes.title".localizedString,
-                subtitle: "settings.lewes.subtitle".localizedString,
-                imageName: "quantum",
-                action: {}
-            )
-        )
 #if os(macOS)
         viewModels.append(
             SettingsListItemViewModel(

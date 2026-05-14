@@ -43,7 +43,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -73,7 +72,7 @@ fun DiagnosticScreen(viewModel: DiagnosticViewModel = hiltViewModel()) {
 fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShareClick: () -> Unit, onCopyClick: () -> Unit) {
 	Column(
 		horizontalAlignment = Alignment.Start,
-		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
+		verticalArrangement = Arrangement.spacedBy(14.dp.scaledHeight(), Alignment.Top),
 		modifier = Modifier
 			.fillMaxSize()
 			.verticalScroll(rememberScrollState())
@@ -89,11 +88,10 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 				} else {
 					Text(
 						text = stringResource(R.string.diagnostic_run_button),
-						style = CustomTypography.buttonMain,
+						style = MaterialTheme.typography.titleMedium,
 					)
 				}
 			},
-			color = MaterialTheme.colorScheme.primary,
 			modifier = Modifier
 				.fillMaxWidth()
 				.height(54.dp.scaledHeight()),
@@ -105,7 +103,8 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 				content = {
 					Text(
 						text = stringResource(R.string.diagnostic_share_button),
-						style = CustomTypography.buttonMain,
+						style = MaterialTheme.typography.titleMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				},
 				borderColor = MaterialTheme.colorScheme.onBackground,
@@ -133,14 +132,14 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 					Text(
 						text = stringResource(R.string.diagnostic_report_title),
 						style = MaterialTheme.typography.titleSmall,
-						color = MaterialTheme.colorScheme.onBackground,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 					IconButton(onClick = onCopyClick) {
 						Icon(
 							Icons.Outlined.ContentCopy,
 							contentDescription = stringResource(R.string.diagnostic_copy_report),
 							modifier = Modifier.size(20.dp),
-							tint = MaterialTheme.colorScheme.onSurface,
+							tint = MaterialTheme.colorScheme.onBackground,
 						)
 					}
 				}
@@ -150,7 +149,7 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 						.fillMaxWidth()
 						.heightIn(min = 120.dp, max = 400.dp)
 						.clip(RoundedCornerShape(8.dp))
-						.background(MaterialTheme.colorScheme.surface)
+						.background(MaterialTheme.colorScheme.primaryContainer)
 						.verticalScroll(rememberScrollState())
 						.horizontalScroll(rememberScrollState())
 						.padding(12.dp),
@@ -159,7 +158,7 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 						Text(
 							text = report,
 							style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-							color = MaterialTheme.colorScheme.outline,
+							color = MaterialTheme.colorScheme.onBackground,
 						)
 					}
 				}
