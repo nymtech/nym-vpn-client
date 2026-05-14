@@ -30,6 +30,7 @@ pub enum TunnelError {
     CredentialWastedOnExitGateway,
     NeedFullDiskPermissions,
     SplitTunnel,
+    NeedsRelaxedIndependenceCriteria,
 }
 
 impl From<lib::ErrorStateReason> for TunnelError {
@@ -67,6 +68,9 @@ impl From<lib::ErrorStateReason> for TunnelError {
             }
             lib::ErrorStateReason::NeedFullDiskPermissions => TunnelError::NeedFullDiskPermissions,
             lib::ErrorStateReason::SplitTunnel => TunnelError::SplitTunnel,
+            lib::ErrorStateReason::NeedsRelaxedIndependenceCriteria => {
+                TunnelError::NeedsRelaxedIndependenceCriteria
+            }
         }
     }
 }
