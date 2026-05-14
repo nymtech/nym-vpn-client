@@ -1,9 +1,13 @@
 {
-  "version": "1.15.0-cherry-rc.2",
+  "version": "1.31.0-beta",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjhBZ1Q2dmlFa0RhNzBJcCtzdFlmRmU3ajhCZ3p2UFBML2FuUzAySGJxdUVXSzd0M1BGcDFqTXM3WTF6Q0dBS3ZUOXJBR1E5dlRIRS8rdmNhQmFYZGdnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU3MzQ1NzczCWZpbGU6TnltVlBOXzEuMTUuMC1jaGVycnktcmMuMl94NjQtc2V0dXAuZXhlClFPaUhOREtlaEpNQVpHRnJWWXNlWnhrdVhGY3pOMlJ3ZVFtd1NLWm1GMHBRaHg0d2c0Vk9YSHN5L293VW5hWUt0WTdMUytzL0lIV1ZoSkNEMDYyY0RnPT0K",
-      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.15.0-cherry-rc.2/NymVPN_1.15.0-cherry-rc.2_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjdTbHpOVWxXZFVhalZGcksyVlZVb1k2M20wdmdqc1BBcTVyMDNya1hvaFVRbWhqQXNpR1ZEbzhEbzJhaHVFZ2k1bXlnVWRUMm01WVA2cWFEL2RUTkFNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc4NzQ4MDE4CWZpbGU6TnltVlBOXzEuMzEuMC1iZXRhX3g2NC1zZXR1cC5leGUKb253cUxXc0Q4TlVoNkpJb0RtVWZ2dE1BQm9qb29WZklqaElRcHpwQXdFQngyblFiUmZ6N3RCWkJ4OU1EdlRZVlVPREFpQzBqdEhJVVNab0VwdGZ0QXc9PQo=",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.31.0-beta/NymVPN_1.31.0-beta_x64-setup.exe"
+    },
+    "windows-aarch64": {
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.31.0-beta/NymVPN_1.31.0-beta_arm64-setup.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5Vi96SnNpT2FmN01vRGR2S1N2RjlpdzJDVWxqKzR2aHI1M2pKS1BqZkdHcG9lY3VzTm9pU05hUWFURHhuVVZJeTlkU1pqTXhIVE5RTzVDcVN4Qks5ZUFFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc4NzQ4MTY1CWZpbGU6TnltVlBOXzEuMzEuMC1iZXRhX2FybTY0LXNldHVwLmV4ZQpBWTRiV28zckxPQTIvQTVXdUZFamlOdndzdlk1OGhUOWVpK0VBbmlBT1dqTzNJemsxTDdmak9GUnRqRVl6UjdKckE2bDRHckpIak1EejJjN0w0Y0hDUT09Cg=="
     }
   }
 }
