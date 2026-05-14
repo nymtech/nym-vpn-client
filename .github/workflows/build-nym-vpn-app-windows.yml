@@ -135,9 +135,7 @@ jobs:
     env:
       VPN_CORE_BUILDS_URL: https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core
       UPDATER_URL_STABLE: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable.json
-      UPDATER_URL_STABLE_ARM64: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable-arm64.json
       UPDATER_URL_DEV: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/dev.json
-      UPDATER_URL_DEV_ARM64: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/dev-arm64.json
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
       core_build_url_path: ${{ steps.get_dev_url.outputs.latest_dev_path }}
@@ -382,7 +380,7 @@ jobs:
           TAURI_TARGET: ${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || '' }}
           DEV_MODE: ${{ inputs.dev_mode == true }}
           UPDATER_ENABLED: ${{ inputs.updater_bundle == true }}
-          UPDATER_ENDPOINT: ${{ inputs.updater_channel == 'stable' && (inputs.cpu_arch == 'ARM64' && env.UPDATER_URL_STABLE_ARM64 || env.UPDATER_URL_STABLE) || (inputs.cpu_arch == 'ARM64' && env.UPDATER_URL_DEV_ARM64 || env.UPDATER_URL_DEV) }}
+          UPDATER_ENDPOINT: ${{ inputs.updater_channel == 'stable' && env.UPDATER_URL_STABLE || env.UPDATER_URL_DEV }}
           CI: true
         run: |
           Write-Host "signing: ${{ inputs.sign }}"
@@ -391,7 +389,8 @@ jobs:
           $nsisDir = "target/" + $(if ($env:TAURI_TARGET) { "$env:TAURI_TARGET/" }) + "release/bundle/nsis"
           if ($env:UPDATER_ENABLED -eq 'true') { Write-Host "Updater endpoint: $env:UPDATER_ENDPOINT" }
           $updaterArgs = if ($env:UPDATER_ENABLED -eq 'true') { @('--config', 'src-tauri/updater.conf.json') } else { @() }
-          npm run tauri build -- --bundles nsis @targetArgs @updaterArgs
+          $devBuildArgs = if ('${{ inputs.dev_mode }}' -eq 'true') { @('--config', 'src-tauri/tauri.conf.dev.json') } else { @() }
+          npm run tauri build -- --bundles nsis @targetArgs @updaterArgs @devBuildArgs
           Get-ChildItem "$nsisDir" -ErrorAction SilentlyContinue | Write-Host
 
       - name: Move things around to prepare for upload
