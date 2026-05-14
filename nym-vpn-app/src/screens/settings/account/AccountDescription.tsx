@@ -59,7 +59,7 @@ export function AccountDescription() {
             .unix(
               Number(accountSummary?.subscription?.subscription?.validUntilUtc),
             )
-            .format('MMMM D, YYYY'),
+            .format('D MMMM YYYY'),
         })}
       </p>
       {accountSummary?.subscription?.subscription?.isRecurring && (

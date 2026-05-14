@@ -13,9 +13,6 @@ export function Login({ onPassphrase }: Props) {
         <h1 className="text-text-primary text-2xl font-medium tracking-tight">
           {t('login.title')}
         </h1>
-        <p className="text-bombay w-[281px] text-center text-sm">
-          {t('login.description')}
-        </p>
       </div>
       <div className="flex w-full flex-col gap-3">
         <ButtonNew onClick={onPassphrase}>
