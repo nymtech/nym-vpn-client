@@ -12,7 +12,7 @@ use nym_vpn_lib_types::{
     EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams,
     ListGatewaysOptions, NetworkCompatibility, ParsedAccountLinks, RegisterAccountRequest,
     RegisterAccountResponse, StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState,
-    TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    TentativeGateways, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -348,5 +348,10 @@ impl NymVpnServiceCommandSender {
         .map_err(|_| {
             NymVpnServiceCommandInnerError::Internal("Failed to serialize DiagnosticReport")
         })?)
+    }
+
+    pub async fn get_tentative_gateways(&self) -> Result<TentativeGateways> {
+        self.send_and_wait(VpnServiceCommand::GetTentativeGateways, ())
+            .await
     }
 }
