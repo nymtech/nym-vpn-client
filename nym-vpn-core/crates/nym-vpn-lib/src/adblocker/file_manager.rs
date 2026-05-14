@@ -235,9 +235,18 @@ impl Source {
                 error,
             })?;
 
-        if response.status() == reqwest::StatusCode::NOT_MODIFIED {
-            tracing::debug!("Ad-blocker data file {} is up to date", self.file_name);
-            return Ok(false);
+        match response.status() {
+            reqwest::StatusCode::OK => {
+                tracing::debug!("Received HTTP/200 for {}", self.url);
+            }
+            reqwest::StatusCode::NOT_MODIFIED => {
+                tracing::debug!("Ad-blocker data file {} is up to date", self.file_name);
+                return Ok(false);
+            }
+            status => {
+                tracing::debug!("Unexpected response for {}: {}", self.url, status);
+                return Ok(false);
+            }
         }
 
         // Grab the new etag from the HTTP response
@@ -276,6 +285,11 @@ impl Source {
             ))
             .await
             .ok_or(AdBlockerError::Cancelled)??;
+
+        if Self::contains_embedded_http_429_error(&temp_data_path).await? {
+            tracing::warn!("Received embedded HTTP/429 for {}", self.url);
+            return Ok(false);
+        }
 
         // Write the new meta data to a temporary file in the ad-blocker directory
         let temp_meta_path = cache_dir.join(Self::TEMP_META_FILE_NAME);
@@ -536,6 +550,18 @@ impl Source {
             .to_string();
         Ok(etag)
     }
+
+    /// Returns `Ok(true)` if the first bytes of the given file contain embedded HTTP/429 error string.
+    async fn contains_embedded_http_429_error(file_path: &Path) -> Result<bool> {
+        const MATCH_ERROR_STRING: &str = "429: too many requests";
+
+        let mut stream = Self::stream_lines(file_path);
+
+        match stream.next().await {
+            Some(res) => Ok(res?.to_lowercase().starts_with(MATCH_ERROR_STRING)),
+            None => Ok(false),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -677,6 +703,37 @@ pub(super) mod tests {
         assert!(
             updated,
             "ad-blocker files were not updated when they should have been"
+        );
+    }
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_contains_embedded_http_429_error() {
+        let temp_dir = init_tests().await.unwrap();
+
+        for source in SOURCES.iter() {
+            let blocking_rules_file_path = temp_dir.path().join(source.file_name);
+            assert!(
+                !Source::contains_embedded_http_429_error(&blocking_rules_file_path)
+                    .await
+                    .unwrap()
+            );
+        }
+
+        let test_file_path = temp_dir.path().join("test.txt.gz");
+        let writer = File::create(&test_file_path).await.unwrap();
+        let mut encoder = GzipEncoder::new(writer);
+        encoder
+            .write_all("429: Too Many Requests".as_bytes())
+            .await
+            .unwrap();
+        encoder.shutdown().await.unwrap();
+        encoder.into_inner().flush().await.unwrap();
+
+        assert!(
+            Source::contains_embedded_http_429_error(&test_file_path)
+                .await
+                .unwrap()
         );
     }
 

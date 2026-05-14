@@ -4,9 +4,9 @@ version = 4
 
 [[package]]
 name = "adblock"
-version = "0.12.4"
+version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33eab07cdcfd3577600c27d75df00a6d61a01b5778b9b19ea51264453540212b"
+checksum = "db6fe7702c798519299bcbe011ff6f1dc9e3aedc1f3171178cddf71e1736bf95"
 dependencies = [
  "addr",
  "arrayvec",
@@ -8596,9 +8596,9 @@ dependencies = [
 
 [[package]]
 name = "psl"
-version = "2.1.197"
+version = "2.1.209"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b15ca31b68a87f984f41949f5e4341502dcd2af119b3226ba7285b3fe3e77ea2"
+checksum = "0c187d8a1cb043fbd20b07333314b4644293c0601d0414c0c74f67d0e65a94f4"
 dependencies = [
  "psl-types",
 ]
