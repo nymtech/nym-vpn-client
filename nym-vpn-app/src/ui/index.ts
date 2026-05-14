@@ -45,3 +45,4 @@ export * from './ConfirmationDialog';
 export * from './CardNew';
 export * from './ScrambleIn';
 export * from './StaggeredText';
+export * from './LewesIcon';

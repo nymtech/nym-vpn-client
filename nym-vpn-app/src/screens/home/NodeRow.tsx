@@ -5,7 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@base-ui/react';
 import { useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
-import { FlagIcon, MsIcon, type countryCode } from '../../ui';
+import {
+  FlagIcon,
+  LewesIconComponent,
+  MsIcon,
+  type countryCode,
+} from '../../ui';
 import { useAppStore, useLookupGw } from '../../store';
 import { useLang } from '../../hooks';
 import {
@@ -20,7 +25,6 @@ import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
-import { LewesIcon } from '../../assets';
 import { isBridgeMode, regionToCountryCode } from './util';
 import { ScoreIndicatorContainer } from './ScoreIndicatorContainer';
 
@@ -334,7 +338,7 @@ export function NodeRow({ type }: NodeRowProps) {
               {nodeDetails.showStreamOptimized && (
                 <MsIcon icon="smart_display" className="text-cornflower" />
               )}
-              {gateway && <LewesIcon />}
+              {gateway && <LewesIconComponent />}
             </div>
           </div>
           <AnimatePresence initial={false}>
