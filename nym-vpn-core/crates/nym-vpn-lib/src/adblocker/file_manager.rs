@@ -235,9 +235,18 @@ impl Source {
                 error,
             })?;
 
-        if response.status() == reqwest::StatusCode::NOT_MODIFIED {
-            tracing::debug!("Ad-blocker data file {} is up to date", self.file_name);
-            return Ok(false);
+        match response.status() {
+            reqwest::StatusCode::OK => {
+                tracing::debug!("Received HTTP/200 for {}", self.url);
+            }
+            reqwest::StatusCode::NOT_MODIFIED => {
+                tracing::debug!("Ad-blocker data file {} is up to date", self.file_name);
+                return Ok(false);
+            }
+            status => {
+                tracing::debug!("Unexpected response for {}: {}", self.url, status);
+                return Ok(false);
+            }
         }
 
         // Grab the new etag from the HTTP response
@@ -276,6 +285,11 @@ impl Source {
             ))
             .await
             .ok_or(AdBlockerError::Cancelled)??;
+
+        if contains_embedded_http_429_error(&temp_data_path).await? {
+            tracing::warn!("Received embedded HTTP/429 for {}", self.url);
+            return Ok(false);
+        }
 
         // Write the new meta data to a temporary file in the ad-blocker directory
         let temp_meta_path = cache_dir.join(Self::TEMP_META_FILE_NAME);
@@ -582,6 +596,29 @@ impl SourceMetaData {
     }
 }
 
+/// Returns `Ok(true)` if the first bytes of the given file contain embedded HTTP/429 error string.
+async fn contains_embedded_http_429_error(file_path: &Path) -> Result<bool> {
+    const MATCH_ERROR_STRING: &str = "429: too many requests";
+
+    let file = File::open(file_path)
+        .await
+        .map_err(|error| AdBlockerError::ReadFile {
+            file_path: file_path.to_path_buf(),
+            error,
+        })?;
+
+    let mut buffer = String::new();
+    file.take(MATCH_ERROR_STRING.len() as u64)
+        .read_to_string(&mut buffer)
+        .await
+        .map_err(|error| AdBlockerError::ReadFile {
+            file_path: file_path.to_path_buf(),
+            error,
+        })?;
+
+    Ok(buffer.to_lowercase() == MATCH_ERROR_STRING)
+}
+
 #[cfg(test)]
 pub(super) mod tests {
     use super::*;
@@ -677,6 +714,34 @@ pub(super) mod tests {
         assert!(
             updated,
             "ad-blocker files were not updated when they should have been"
+        );
+    }
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_contains_embedded_http_429_error() {
+        let temp_dir = TempDir::new().unwrap();
+
+        let test_file_path = temp_dir.path().join("test.txt");
+        let blocking_rules_file_path = temp_dir.path().join("light.txt");
+        tokio::fs::write(&test_file_path, "429: Too Many Requests")
+            .await
+            .unwrap();
+        tokio::fs::write(
+            &blocking_rules_file_path,
+            "# Title: HaGeZi's Light DNS Blocklist",
+        )
+        .await
+        .unwrap();
+        assert!(
+            contains_embedded_http_429_error(&test_file_path)
+                .await
+                .unwrap()
+        );
+        assert!(
+            !contains_embedded_http_429_error(&blocking_rules_file_path)
+                .await
+                .unwrap()
         );
     }
 
