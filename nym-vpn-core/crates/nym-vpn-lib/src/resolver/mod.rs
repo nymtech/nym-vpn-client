@@ -275,9 +275,7 @@ impl Resolver {
     ) -> Result<AuthLookup, NetError> {
         let return_query = query.original().clone();
         let qname = return_query.name().to_ascii();
-
         let decision = dns_filter.should_block(&qname).await;
-
         if decision != DnsFilterDecision::Pass {
             tracing::trace!("Blocking DNS query for {qname} with strategy {decision:?}");
         }
