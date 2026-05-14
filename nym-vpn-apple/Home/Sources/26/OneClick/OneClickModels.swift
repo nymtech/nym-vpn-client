@@ -7,6 +7,7 @@ public enum OneClickConnectState: Equatable {
     case connecting
     case stop
     case connected
+    case disconnecting
     case noInternet
     case noSubscription
 }

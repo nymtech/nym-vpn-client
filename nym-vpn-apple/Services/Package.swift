@@ -239,6 +239,7 @@ let package = Package(
             name: "Tunnels",
             dependencies: [
                 .product(name: "Constants", package: "ServicesMutual"),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 "Keychain",
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),

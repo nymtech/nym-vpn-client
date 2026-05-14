@@ -31,8 +31,6 @@ import GRPCManager
     var tunnelConnectingStateCancellable: AnyCancellable?
     var tunnelConnectionInfoDataCancellable: AnyCancellable?
 
-    // TODO: remove this once iOS tunnel supports tunnel reconnection
-    public var isReconnecting = false
     public var isDisconnecting = false
 
 #if os(iOS)
@@ -60,16 +58,7 @@ import GRPCManager
     @Published public var tunnelConnectingState: TunnelConnectingState?
     @Published public var connectionInfoData: ConnectionInfoData?
 
-    @Published public var connectionType: ConnectionType {
-        didSet {
-            switch connectionType {
-            case .mixnet5hop:
-                connectionConfig.enableTwoHop = false
-            case .wireguard:
-                connectionConfig.enableTwoHop = true
-            }
-        }
-    }
+    @Published public var connectionType: ConnectionType
     public var entryGatewayType: NodeType { connectionType == .wireguard ? .vpn : .entry }
     public var exitGatewayType: NodeType { connectionType == .wireguard ? .vpn : .exit }
     @Published public var isTunnelManagerLoaded: Result<Void, Error>?
@@ -80,26 +69,10 @@ import GRPCManager
             configureTunnelStatusObserver(tunnel: activeTunnel)
         }
     }
-
-    // TODO: remove this once iOS tunnel supports tunnel reconnection
-    @Published public var currentTunnelStatus: TunnelStatus = .disconnected
-#elseif os(macOS)
-    @Published public var currentTunnelStatus: TunnelStatus = .disconnected
 #endif
-    @Published public var entryGateway: EntryGateway {
-        didSet {
-            Task { @MainActor in
-                connectionConfig.entry = entryGateway
-            }
-        }
-    }
-    @Published public var exitRouter: ExitRouter {
-        didSet {
-            Task { @MainActor in
-                connectionConfig.exit = exitRouter
-            }
-        }
-    }
+    @Published public var currentTunnelStatus: TunnelStatus = .disconnected
+    @Published public var entryGateway: EntryGateway
+    @Published public var exitRouter: ExitRouter
 
 #if os(iOS)
     public init(
@@ -172,7 +145,6 @@ private extension ConnectionManager {
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
-        setupAppSettingsObservers()
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
     }
@@ -209,65 +181,6 @@ extension ConnectionManager {
 // MARK: - Setup -
 
 private extension ConnectionManager {
-    func setupAppSettingsObservers() {
-        appSettings.$isQuicEnabledPublisher
-            .removeDuplicates()
-            .sink { [weak self] value in
-                self?.connectionConfig.enableBridges = value
-            }
-            .store(in: &cancellables)
-
-        appSettings.$shouldReconnectPublisher
-            .removeDuplicates()
-            .filter { $0 }
-            .sink { [weak self] shouldReconnect in
-                // Used in censorship view, dns
-                guard shouldReconnect else { return }
-                self?.updateConnectionConfig(forceReconnect: shouldReconnect)
-                self?.appSettings.shouldReconnect = false
-            }
-            .store(in: &cancellables)
-
-        appSettings.$isIPv6TrafficEnabledPublisher
-            .removeDuplicates()
-            .sink { [weak self] newValue in
-                self?.connectionConfig.disableIpv6 = !newValue
-#if os(macOS)
-                Task { try? await self?.grpcManager.setDisableIpv6(!newValue) }
-#endif
-            }
-            .store(in: &cancellables)
-
-        appSettings.$isLanBypassEnabledPublisher
-            .removeDuplicates()
-            .sink { [weak self] newValue in
-                self?.connectionConfig.allowLan = newValue
-#if os(macOS)
-                Task { try? await self?.grpcManager.setAllowLan(newValue) }
-#endif
-            }
-            .store(in: &cancellables)
-
-        appSettings.$isAdBlockerEnabledPublisher
-            .removeDuplicates()
-            .sink { [weak self] newValue in
-                self?.connectionConfig.enableAdBlocking = newValue
-#if os(macOS)
-                Task { try? await self?.grpcManager.setEnableAdBlocking(newValue) }
-#endif
-            }
-            .store(in: &cancellables)
-
-#if os(macOS)
-        appSettings.$isStealthApiEnabledPublisher
-            .removeDuplicates()
-            .sink { [weak self] newValue in
-                Task { try? await self?.grpcManager.setStealthApiEnabled(newValue) }
-            }
-            .store(in: &cancellables)
-#endif
-    }
-
     func setupConnectionChangeObserver() {
         $connectionType.sink { [weak self] _ in
             self?.updateCountries()
@@ -276,7 +189,6 @@ private extension ConnectionManager {
 
         $connectionConfig.sink { [weak self] newConnectionConfig in
             self?.connectionStorage.connectionConfig = newConnectionConfig
-            self?.updateConnectionConfig()
         }
         .store(in: &cancellables)
     }
@@ -311,51 +223,3 @@ private extension ConnectionManager {
     }
 }
 
-// MARK: - Helpers -
-
-extension ConnectionManager {
-    func isReconnectNeeded(with oldConfig: ConnectionConfig?) -> Bool {
-        guard let oldConfig else { return true }
-        guard oldConfig != connectionStorage.connectionConfig else { return false }
-
-        guard shouldReconnectMixnetTunningSettings(with: oldConfig)
-                || shouldEntryReconnect()
-                || shouldExitRecconnect()
-                || oldConfig.splitTunnelConfig != connectionStorage.connectionConfig.splitTunnelConfig
-        else {
-            return false
-        }
-        return true
-    }
-
-    func shouldReconnectMixnetTunningSettings(with oldConfig: ConnectionConfig) -> Bool {
-        let newConfig = connectionStorage.connectionConfig
-
-        if oldConfig.enableTwoHop != newConfig.enableTwoHop {
-            return true
-        }
-
-        if newConfig.enableTwoHop == true,
-           oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig {
-            return false
-        }
-
-        return oldConfig.mixnetTuningConfig != newConfig.mixnetTuningConfig
-    }
-
-    func shouldEntryReconnect() -> Bool {
-        guard connectionStorage.connectionConfig.entry.gatewayId == connectionInfoData?.entryGatewayId
-        else {
-            return true
-        }
-        return false
-    }
-
-    func shouldExitRecconnect() -> Bool {
-        guard connectionStorage.connectionConfig.exit.gatewayId == connectionInfoData?.exitGatewayId
-        else {
-            return true
-        }
-        return false
-    }
-}

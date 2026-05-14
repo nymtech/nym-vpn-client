@@ -3,7 +3,7 @@ import NymVPNLib
 import ConnectionTypes
 
 extension EntryGateway {
-    var entryPoint: EntryPoint {
+    public var entryPoint: EntryPoint {
         switch self {
         case let .country(code):
             .country(twoLetterIsoCountryCode: code)
