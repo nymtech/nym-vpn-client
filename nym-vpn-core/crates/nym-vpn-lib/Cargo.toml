@@ -12,7 +12,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-adblock.workspace = true
+adblock = { workspace = true, features = ["embedded-domain-resolver"] }
 anyhow.workspace = true
 async-stream.workspace = true
 async-compression = { workspace = true, features = ["tokio", "gzip"] }
