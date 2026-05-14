@@ -219,7 +219,10 @@ class MainActivity : AppCompatActivity() {
 								popEnterTransition = { fadeIn(tween(200)) },
 								popExitTransition = { fadeOut(tween(200)) },
 							) {
-								composable<Route.Splash> { SplashScreen(appViewModel, appState) }
+								composable<Route.Splash>(
+									exitTransition = { fadeOut(tween(150)) },
+									popEnterTransition = { fadeIn(tween(200)) },
+								) { SplashScreen(appViewModel, appState, topOffset = padding.calculateTopPadding()) }
 
 								composable<Route.Main>(
 									enterTransition = { fadeIn() },
