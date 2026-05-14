@@ -9,11 +9,13 @@ import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,7 +44,6 @@ import nym_vpn_lib_types.EstablishConnectionState
 private const val OUTER_RADIUS = 92.4f
 private const val MIDDLE_RADIUS = 78.4f
 private const val INNER_RADIUS = 64.4f
-private const val SPHERE_RADIUS = 52.4f
 private const val ARC_STROKE = 6f
 private const val LABEL_OFFSET = 14f
 
@@ -96,13 +97,6 @@ fun ConnectionStatus(
 		label = "sphereAlpha",
 	)
 
-	// Error tint
-	val errorTintAlpha by animateFloatAsState(
-		targetValue = if (isError) 1f else 0f,
-		animationSpec = tween(200, easing = FastOutSlowInEasing),
-		label = "errorTintAlpha",
-	)
-
 	val pulse = rememberInfiniteTransition(label = "arcPulse")
 
 	// Error
@@ -144,20 +138,9 @@ fun ConnectionStatus(
 		label = "cancelingGlow",
 	)
 
-	// Canceling
-	val cancelingSphere by pulse.animateFloat(
-		initialValue = 0.28f,
-		targetValue = 0.48f,
-		animationSpec = infiniteRepeatable(
-			animation = tween(900, easing = FastOutSlowInEasing),
-			repeatMode = RepeatMode.Reverse,
-		),
-		label = "cancelingSphere",
-	)
-
 	val fillColor = when {
 		isError -> MaterialTheme.colorScheme.error.copy(alpha = errorPulse)
-		else -> MaterialTheme.colorScheme.primary
+		else -> LocalNymColors.current.connectionFillColor
 	}
 
 	val connectedLabel = if (vpnMode.isTwoHop()) stringResource(R.string.connection_status_fast_mode) else stringResource(R.string.connection_status_anonymous)
@@ -270,7 +253,7 @@ fun ConnectionStatus(
 				style = MaterialTheme.typography.labelSmall,
 				color = when {
 					isError -> MaterialTheme.colorScheme.error
-					isConnected -> MaterialTheme.colorScheme.primary
+					isConnected -> LocalNymColors.current.connectionFillColor
 					else -> MaterialTheme.colorScheme.onSurfaceVariant
 				},
 			)
@@ -278,7 +261,7 @@ fun ConnectionStatus(
 			Text(
 				text = connectionTime ?: "",
 				style = MaterialTheme.typography.labelSmall,
-				color = MaterialTheme.colorScheme.primary,
+				color = LocalNymColors.current.connectionFillColor,
 				modifier = Modifier.alpha(timeAlpha),
 			)
 		}
@@ -327,19 +310,35 @@ private fun ringFillTargets(connectionState: ConnectionState, establishConnectio
 }
 
 @Composable
-@Preview(showBackground = true, backgroundColor = 0xFF0D0D0F)
-private fun ArcPreviewConnected() {
+@Preview(showBackground = true)
+private fun ArcPreviewConnectedDark() {
 	NymVPNTheme(Theme.DARK_MODE) {
-		ConnectionStatus(
-			connectionState = ConnectionState.Connected,
-			vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
-			connectionTime = "2.2.2.2",
-		)
+		Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+			ConnectionStatus(
+				connectionState = ConnectionState.Connected,
+				vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
+				connectionTime = "2.2.2.2",
+			)
+		}
 	}
 }
 
 @Composable
-@Preview(showBackground = true, backgroundColor = 0xFF0D0D0F)
+@Preview(showBackground = true)
+private fun ArcPreviewConnected() {
+	NymVPNTheme(Theme.LIGHT_MODE) {
+		Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+			ConnectionStatus(
+				connectionState = ConnectionState.Connected,
+				vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
+				connectionTime = "2.2.2.2",
+			)
+		}
+	}
+}
+
+@Composable
+@Preview(showBackground = true)
 private fun ArcPreviewError() {
 	NymVPNTheme(Theme.DARK_MODE) {
 		ConnectionStatus(
