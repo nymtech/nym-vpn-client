@@ -101,5 +101,10 @@ jobs:
           git add .pkg/linux
           git add nym-vpn-app/.pkg/flatpak
           git commit -m "${{ env.COMMIT_MSG }}"
-          git push origin ${{ env.GIT_BRANCH }}
-          gh pr create --title '${{ env.COMMIT_MSG }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "agentpietrucha"
+          git push --force origin ${{ env.GIT_BRANCH }}
+          existing=$(gh pr list --head "${{ env.GIT_BRANCH }}" --json number --jq 'length')
+          if [[ "$existing" == "0" ]]; then
+            gh pr create --title '${{ env.COMMIT_MSG }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "agentpietrucha"
+          else
+            echo "PR already exists for branch ${{ env.GIT_BRANCH }}, skipping"
+          fi
