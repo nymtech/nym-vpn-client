@@ -5,13 +5,20 @@ import android.content.ClipData
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
@@ -32,6 +40,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -39,15 +48,20 @@ import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseActions
 import net.nymtech.nymvpn.ui.screens.account.passphrase.components.PassphraseCard
 import net.nymtech.nymvpn.ui.screens.account.passphrase.modal.PassphraseInfo
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
+import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.DeviceAuthHelper
+import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
+import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import timber.log.Timber
 
@@ -143,11 +157,13 @@ fun PassphraseScreen(onBackButtonVisibilityChange: (Boolean) -> Unit, navBarEven
 				savePasswordToManager(context = context, password = passphrase.joinToString(" "))
 			}
 		},
+		onContinueClick = { navController.safePopBackStack() },
 	)
 }
 
 @Composable
-fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () -> Unit, onCopyClick: () -> Unit, onDownloadClick: () -> Unit, onSaveClick: () -> Unit) {
+fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () -> Unit, onCopyClick: () -> Unit, onDownloadClick: () -> Unit, onSaveClick: () -> Unit, onContinueClick: () -> Unit) {
+	var confirmed by remember { mutableStateOf(false) }
 	Column(
 		modifier = Modifier
 			.fillMaxSize()
@@ -157,20 +173,21 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 	) {
 		Text(
 			text = stringResource(R.string.passphrase_title),
-			style = MaterialTheme.typography.bodyLarge,
-			color = MaterialTheme.colorScheme.onPrimaryContainer,
+			style = Typography.titleMedium,
+			color = MaterialTheme.colorScheme.onBackground,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			modifier = Modifier.fillMaxWidth(),
 		)
 
 		Text(
 			text = buildAnnotatedString {
-				withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
+				withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.outline)) {
 					append(stringResource(R.string.passphrase_description_first))
 				}
 				append(" ")
 				withStyle(
 					style = SpanStyle(
-						color = MaterialTheme.colorScheme.onBackground,
+						color = MaterialTheme.colorScheme.outline,
 						fontWeight = FontWeight.Bold,
 					),
 				) {
@@ -184,6 +201,51 @@ fun PassphraseScreen(passphrase: List<String>, show: Boolean, onShowClick: () ->
 
 		PassphraseCard(passphrase = passphrase, show = show, onShowClick = onShowClick)
 		PassphraseActions(show = show, onCopyClick = onCopyClick, onDownloadClick = onDownloadClick, onSaveClick = onSaveClick)
+
+		if (show) {
+			Spacer(modifier = Modifier.weight(1f))
+			Column(
+				modifier = Modifier
+					.fillMaxWidth()
+					.padding(top = 24.dp),
+			) {
+				Row(
+					verticalAlignment = Alignment.CenterVertically,
+					horizontalArrangement = Arrangement.spacedBy(16.dp),
+					modifier = Modifier
+						.fillMaxWidth()
+						.clickable { confirmed = !confirmed },
+				) {
+					Checkbox(
+						checked = confirmed,
+						onCheckedChange = { confirmed = it },
+						modifier = Modifier.size(20.dp),
+					)
+					Text(
+						text = stringResource(R.string.passphrase_saved),
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onSurface,
+						textAlign = TextAlign.Start,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					)
+				}
+				MainStyledButton(
+					onClick = { if (confirmed) onContinueClick() },
+					content = {
+						Text(
+							stringResource(R.string.welcome_continue),
+							style = CustomTypography.buttonMain,
+							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						)
+					},
+					color = MaterialTheme.colorScheme.primary.copy(if (confirmed) 1f else 0.5f),
+					modifier = Modifier
+						.fillMaxWidth()
+						.padding(vertical = 16.dp)
+						.height(54.dp.scaledHeight()),
+				)
+			}
+		}
 	}
 }
 
@@ -202,6 +264,7 @@ internal fun PreviewPassphraseScreen() {
 			onCopyClick = {},
 			onDownloadClick = {},
 			onSaveClick = {},
+			onContinueClick = {},
 		)
 	}
 }
