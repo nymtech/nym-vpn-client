@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -51,7 +50,7 @@ fun SaveChangesModal(showSaveChangesDialog: Boolean, confirmTextResId: Int, onCl
 		confirmButton = {
 			MainStyledButton(
 				onClick = onClickSave,
-				textColor = Color.Black,
+				textColor = MaterialTheme.colorScheme.onPrimary,
 				content = {
 					Text(
 						stringResource(confirmTextResId),

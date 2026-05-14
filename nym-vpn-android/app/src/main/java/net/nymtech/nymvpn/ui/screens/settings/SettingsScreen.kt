@@ -47,12 +47,15 @@ import net.nymtech.nymvpn.ui.screens.settings.components.QuitSection
 import net.nymtech.nymvpn.ui.screens.settings.components.SubscriptionUiState
 import net.nymtech.nymvpn.ui.screens.settings.components.SupportSection
 import net.nymtech.nymvpn.ui.screens.settings.components.VpnSettingsSection
+import net.nymtech.nymvpn.ui.screens.settings.modal.PrivateDnsDialog
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.DeviceAuthHelper
 import net.nymtech.nymvpn.util.extensions.goFromRoot
+import net.nymtech.nymvpn.util.extensions.isPrivateDnsEnabled
 import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
 import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
+import net.nymtech.nymvpn.util.extensions.launchPrivateDnsSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import kotlin.Boolean
@@ -66,6 +69,7 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 
 	var loggingOut by remember { mutableStateOf(false) }
 	var showLogoutDialog by remember { mutableStateOf(false) }
+	var showPrivateDnsDialog by remember { mutableStateOf(false) }
 
 	val shortcutsInfoText = stringResource(R.string.shortcuts_info_message)
 	val lanReconnectingText = stringResource(R.string.settings_event_lan_reconnecting)
@@ -95,6 +99,15 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 					launchSingleTop = true
 				}
 			}
+		},
+	)
+
+	PrivateDnsDialog(
+		showPrivateDnsDialog = showPrivateDnsDialog,
+		onDismiss = { showPrivateDnsDialog = false },
+		onClickSettings = {
+			showPrivateDnsDialog = false
+			context.launchPrivateDnsSettings()
 		},
 	)
 
@@ -156,7 +169,12 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			},
 			onAutoConnectEnable = { viewModel.onAutoConnectSelected(it) },
 			onBypassLanEnable = { viewModel.onBypassLanSelected(it) },
-			onAdBlockingEnable = { viewModel.onAdBlockingSelected(it) },
+			onAdBlockingEnable = {
+				if (it && context.isPrivateDnsEnabled()) {
+					showPrivateDnsDialog = true
+				}
+				viewModel.onAdBlockingSelected(it)
+			},
 			onSupportIPv6Enable = {
 			},
 			onAutoselectServerEnable = {

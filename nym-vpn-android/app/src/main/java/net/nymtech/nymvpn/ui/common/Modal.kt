@@ -58,7 +58,7 @@ fun Modal(
 				Icon(
 					icon,
 					description,
-					tint = MaterialTheme.colorScheme.onSurface,
+					tint = MaterialTheme.colorScheme.onBackground,
 					modifier = Modifier.then(
 						if (iconSize != null) {
 							Modifier.size(iconSize)
