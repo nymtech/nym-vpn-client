@@ -243,7 +243,6 @@ fun ConnectPanel(
 				)
 				ServerRow(
 					node = entryNode,
-					fillTrailingSpace = true,
 					modifier = Modifier.padding(bottom = 16.dp),
 					currentState = panelState,
 					connectionState = connectionState,
@@ -340,7 +339,6 @@ private fun ServerRow(
 	modifier: Modifier = Modifier,
 	onExpand: (() -> Unit)? = null,
 	onCollapse: (() -> Unit)? = null,
-	fillTrailingSpace: Boolean = false,
 	onServerClick: () -> Unit,
 	currentState: PanelState,
 	connectionState: ConnectionState,
@@ -453,7 +451,7 @@ private fun ServerRow(
 						)
 					}
 				}
-			} else if (fillTrailingSpace) {
+			} else {
 				Spacer(modifier = Modifier.size(16.dp))
 			}
 		}
