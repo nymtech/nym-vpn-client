@@ -83,19 +83,6 @@ fun ConnectionStatus(
 		label = "innerSweep",
 	)
 
-	val sphereAlpha by animateFloatAsState(
-		targetValue = when {
-			isConnected -> 0.65f
-			isError -> 0.55f
-			connectionState is ConnectionState.Disconnected ||
-				connectionState is ConnectionState.Offline ||
-				connectionState is ConnectionState.WaitingForConnection ||
-				isCanceling -> 0.42f
-			else -> 0.52f
-		},
-		animationSpec = tween(200, easing = FastOutSlowInEasing),
-		label = "sphereAlpha",
-	)
 
 	val pulse = rememberInfiniteTransition(label = "arcPulse")
 
@@ -315,7 +302,7 @@ private fun ArcPreviewConnectedDark() {
 	NymVPNTheme(Theme.DARK_MODE) {
 		Surface(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
 			ConnectionStatus(
-				connectionState = ConnectionState.Connected,
+				connectionState = ConnectionState.Disconnected,
 				vpnMode = Tunnel.Mode.TWO_HOP_MIXNET,
 				connectionTime = "2.2.2.2",
 			)
