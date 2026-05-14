@@ -68,7 +68,10 @@ pub struct DiagnosticReport {
     pub dns: Option<CompleteDnsReport>,
     pub http: Option<DiagnosticResult<HttpReport>>,
     pub gateway: Option<GatewayReport>,
-    #[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub hybrid_transport: Option<DiagnosticResult<HybridTransportReport>>,
 }
 
