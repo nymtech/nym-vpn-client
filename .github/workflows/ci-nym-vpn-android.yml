@@ -12,6 +12,10 @@ on:
       - ".github/workflows/publish-nym-vpn-android.yml"
   workflow_dispatch:
 
+env:
+  CARGO_TERM_COLOR: always
+  AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
+
 jobs:
   check:
     runs-on: arc-linux-latest
@@ -79,3 +83,6 @@ jobs:
     with:
       build_type: "debug"
       build_format: "apk"
+    secrets:
+      SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
+      SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
