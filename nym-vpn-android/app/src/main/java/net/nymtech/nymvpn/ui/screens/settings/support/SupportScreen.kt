@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.screens.settings.components.SettingsTitle
 import net.nymtech.nymvpn.ui.screens.settings.support.components.SupportOptions
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
@@ -33,13 +34,10 @@ fun SupportScreen() {
 			.padding(vertical = 24.dp.scaledHeight())
 			.padding(horizontal = 24.dp.scaledWidth()),
 	) {
-		Text(
-			text = stringResource(R.string.support_protect_title),
-			style = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-		)
+		SettingsTitle(stringResource(R.string.support_protect_title))
 		Text(
 			text = stringResource(R.string.support_protect_description),
-			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+			style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onBackground),
 		)
 		SupportOptions()
 	}

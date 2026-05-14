@@ -29,8 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,7 +43,6 @@ import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
@@ -217,20 +214,18 @@ fun PaymentScreen(accountState: AccountControllerState?, start: Boolean, onAnima
 
 			Text(
 				text = stringResource(textData.first),
-				style = Typography.titleMedium,
+				style = MaterialTheme.typography.titleMedium,
 				textAlign = TextAlign.Center,
-				color = MaterialTheme.colorScheme.onBackground,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				modifier = Modifier.padding(top = 16.dp, start = 40.dp, end = 40.dp),
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 
 			Text(
 				text = stringResource(textData.second),
-				style = Typography.bodyMedium,
+				style = MaterialTheme.typography.bodyMedium,
 				textAlign = TextAlign.Center,
 				modifier = Modifier.padding(top = 16.dp, start = 40.dp, end = 40.dp),
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onBackground,
 			)
 		}
 	}
@@ -240,6 +235,6 @@ fun PaymentScreen(accountState: AccountControllerState?, start: Boolean, onAnima
 @Composable
 private fun PreviewPaymentScreen() {
 	NymVPNTheme(Theme.default()) {
-		PaymentScreen(accountState = AccountControllerState.RequestingZkNyms, start = true, onAnimationEnd = {})
+		PaymentScreen(accountState = AccountControllerState.Syncing, start = true, onAnimationEnd = {})
 	}
 }

@@ -27,8 +27,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.domain.Settings
-import net.nymtech.nymvpn.ui.theme.CustomColors
-import net.nymtech.nymvpn.ui.theme.Typography
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,7 +41,7 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 
 	Card(
 		shape = RoundedCornerShape(8.dp),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 	) {
 		Column(
 			modifier = Modifier
@@ -53,7 +52,7 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 			Text(
 				text = stringResource(R.string.mixnet_tuning_delays_title),
 				style = MaterialTheme.typography.titleMedium,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				maxLines = 2,
 				overflow = TextOverflow.Ellipsis,
 			)
@@ -61,15 +60,15 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 			if (delayValue == 0f) {
 				Text(
 					text = stringResource(R.string.mixnet_tuning_traffic_warning),
-					style = Typography.bodySmall,
-					color = CustomColors.warning,
+					style = MaterialTheme.typography.bodySmall,
+					color = LocalNymColors.current.warning,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				)
 			} else {
 				Text(
 					text = stringResource(R.string.mixnet_tuning_delays_description),
-					style = Typography.bodySmall,
-					color = MaterialTheme.colorScheme.outline,
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				)
 			}
@@ -80,13 +79,13 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 			) {
 				Text(
 					text = stringResource(R.string.mixnet_tuning_delays_min),
-					style = Typography.bodySmall,
-					color = MaterialTheme.colorScheme.outline,
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
 				)
 				Text(
 					text = stringResource(R.string.mixnet_tuning_max),
-					style = Typography.bodySmall,
-					color = MaterialTheme.colorScheme.outline,
+					style = MaterialTheme.typography.bodySmall,
+					color = MaterialTheme.colorScheme.onBackground,
 				)
 			}
 
@@ -125,8 +124,8 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 			) {
 				Text(
 					text = stringResource(R.string.mixnet_tuning_delays_low),
-					style = Typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onBackground,
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					modifier = Modifier.weight(1f),
 					textAlign = TextAlign.Start,
 				)
@@ -137,16 +136,16 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 					} else {
 						stringResource(R.string.mixnet_tuning_delays_current, currentInt.toString())
 					},
-					style = Typography.bodyMedium,
-					color = if (isDefault) CustomColors.pulse else MaterialTheme.colorScheme.onBackground,
+					style = MaterialTheme.typography.bodyMedium,
+					color = if (isDefault) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimaryContainer,
 					modifier = Modifier.weight(1f),
 					textAlign = TextAlign.Center,
 				)
 
 				Text(
 					text = stringResource(R.string.mixnet_tuning_delays_high),
-					style = Typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onBackground,
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					modifier = Modifier.weight(1f),
 					textAlign = TextAlign.End,
 				)

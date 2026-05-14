@@ -21,7 +21,6 @@ import net.nymtech.nymvpn.ui.screens.auth.components.LoginView
 import net.nymtech.nymvpn.ui.screens.auth.components.PassphraseView
 import net.nymtech.nymvpn.ui.screens.auth.components.SignUpView
 import net.nymtech.nymvpn.ui.screens.auth.components.WelcomeView
-import net.nymtech.nymvpn.util.extensions.navigateAndClearWelcome
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
@@ -48,9 +47,9 @@ fun AuthComponent(
 				is AuthEvent.LoginSuccess -> {
 					onAuthSuccess()
 					if (event.showTechnicalOpt) {
-						rootNavController.navigateAndClearWelcome(Route.Technical)
+						rootNavController.navigate(Route.Technical)
 					} else {
-						rootNavController.navigateAndClearWelcome(Route.Main())
+						onAuthSuccess()
 					}
 				}
 				is AuthEvent.NavigateToGenerating -> {

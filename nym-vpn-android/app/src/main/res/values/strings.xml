@@ -30,7 +30,6 @@
 	<string name="auto_connect_description">Connect when app opens</string>
 	<string name="logs">Logs</string>
 	<string name="support">Support</string>
-	<string name="legal">Legal</string>
 	<string name="privacy_link" translatable="false">https://nym.com/vpn-privacy-statement</string>
 	<string name="terms_of_use">Terms of use</string>
 	<string name="privacy_policy">Privacy statement</string>
@@ -55,14 +54,10 @@
 	<string name="okay">Okay</string>
 	<string name="two_hop">2-hop</string>
 	<string name="country_load_failure">Failed to load hop countries</string>
-	<string name="app_shortcuts">App shortcuts</string>
-	<string name="enable_shortcuts">Enable app shortcuts</string>
 	<string name="disabled_while_connected">Disabled while connected to VPN</string>
 	<string name="permission_required">Permission required</string>
 	<string name="permission_message">To ensure the app works correctly on your device, please allow the following permissions. These permissions are required for that app to function.</string>
-	<string name="notifications">Notifications</string>
 	<string name="notification_permission_required">Please enable notification permission for proper app functionality</string>
-	<string name="kill_switch">Kill switch</string>
 	<string name="mode_selection">Mode selection</string>
 	<string name="five_hop_explanation">Maximum privacy through 5-hop routing (up to 1-5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages.</string>
 	<string name="continue_reading">Continue reading</string>
@@ -164,7 +159,6 @@
 	<string name="bars_3">3 bars</string>
 	<string name="bars_2">2 bars</string>
 	<string name="bars_1">1 bar</string>
-	<string name="bypass_lan">Bypass LAN</string>
 	<string name="pricing_url" translatable="false">https://nym.com/pricing</string>
 	<string name="account_id">Account ID:</string>
 	<string name="developer">Developer</string>
@@ -255,11 +249,8 @@
 	<string name="settings_dns_title">Customize DNS</string>
 	<string name="settings_ipv6_title">Support IPv6</string>
 	<string name="settings_ipv6_description">Allow IPv6 connections</string>
-	<string name="settings_bypass_description">Allow direct local network access</string>
 	<string name="settings_auto_select_title">Auto-select entry server</string>
 	<string name="settings_auto_select_description">Let app choose best entry location</string>
-	<string name="settings_device_startup_title">Launch on device startup</string>
-	<string name="settings_device_startup_description">Let app choose best entry location</string>
 	<string name="settings_system_tray_title">Run in system tray</string>
 	<string name="settings_system_tray_description">Keep app running when closed</string>
 	<string name="settings_reset_app_title">Reset app data</string>
@@ -276,6 +267,17 @@
 	<string name="settings_lewes_title">Post-quantum</string>
 	<string name="settings_lewes_description">Always prefer post-quantum gateways</string>
 	<string name="settings_ad_blocking_title">Ad blocking</string>
+	<string name="settings_kill_switch_title">Kill switch</string>
+	<string name="settings_kill_switch_description">Disconnect if the internet drops</string>
+	<string name="settings_bypass_lan_title">LAN bypass</string>
+	<string name="settings_bypass_lan_description">Allow direct local network access</string>
+	<string name="settings_split_tunneling_title">Split tunneling</string>
+	<string name="settings_startup_title">Launch at startup</string>
+	<string name="settings_notifications_title">Notifications</string>
+	<string name="settings_power_managment_title">Power management</string>
+	<string name="settings_shortcuts_title">App shortcuts</string>
+	<string name="settings_logs_title">Logs &amp; data</string>
+	<string name="settings_legal_title">Legal</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
 	<string name="shortcut_title">Confirm action</string>
@@ -456,7 +458,7 @@
 	<string name="account_info_device_title">Device ID</string>
 	<string name="account_info_device_info">Use this to link this device to your account on nym.com</string>
 	<string name="account_info_status_title">Account status</string>
-	<string name="account_info_bandwidth_title">Bandwidth remaining</string>
+	<string name="account_info_bandwidth_title">Bandwidth used</string>
 	<string name="account_info_limit_text">Limit</string>
 	<string name="account_info_reset_text">Resets on</string>
 	<string name="account_info_contact_support_icon" translatable="false">⚡ </string>
@@ -468,11 +470,14 @@
 	<string name="account_info_renew_text">Renew now to stay protected</string>
 	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*Auto-renews</string>
-	<string name="account_info_no_plan">No active plan</string>
+	<string name="account_info_no_plan">No active subscription</string>
 	<string name="account_info_confirming_payment">Confirming payment</string>
 	<string name="account_info_updating">Updating account status…</string>
 	<string name="account_info_autologin_fetching">Fetching access code…</string>
 	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>
+	<string name="account_info_add_social_action">Add a social login</string>
+	<string name="account_info_add_social_suffix">\u0020method to your account.</string>
+	<string name="account_info_backup">Backup login method linked via Privy.</string>
 	<string name="pin_code_title">Pin code</string>
 	<string name="pin_code_subtitle">Enter this code on web</string>
 	<string name="pin_code_copy_and_open">Copy code and open web</string>
@@ -500,7 +505,6 @@
 	<string name="logs_download_button">Save as file anyway</string>
 	<string name="logs_saved">Logs saved to your Downloads folder"</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Split tunneling</string>
 	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
 	<string name="split_tunneling_info_desc">Changes will apply after reconnect</string>
 	<string name="split_tunneling_search_apps_hint">Search apps</string>

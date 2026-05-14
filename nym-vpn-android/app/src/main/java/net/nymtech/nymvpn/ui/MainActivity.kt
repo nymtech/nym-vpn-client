@@ -17,9 +17,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +46,6 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
-import net.nymtech.nymvpn.ui.common.labels.CustomSnackBar
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
@@ -85,7 +82,6 @@ import net.nymtech.nymvpn.ui.screens.settings.tuning.MixnetTuningScreen
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
 import net.nymtech.nymvpn.ui.screens.technical.TechnicalOptScreen
-import net.nymtech.nymvpn.ui.screens.welcome.WelcomeScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
@@ -211,15 +207,6 @@ class MainActivity : AppCompatActivity() {
 									onMainSettingsClick = { navController.goFromRoot(Route.Settings(false)) },
 								)
 							},
-							snackbarHost = {
-								SnackbarHost(host) { snackbarData: SnackbarData ->
-									CustomSnackBar(
-										snackbarData,
-										paddingTop = navHeight,
-										content = content,
-									)
-								}
-							},
 						) { padding ->
 							NavHost(
 								navController = navController,
@@ -259,7 +246,7 @@ class MainActivity : AppCompatActivity() {
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Settings>()
-									SettingsScreen(appState, args.showVpnSettings)
+									SettingsScreen(appState, appViewModel, args.showVpnSettings)
 								}
 
 								composable<Route.EntryLocation> {
@@ -363,8 +350,6 @@ class MainActivity : AppCompatActivity() {
 										onNavBarEventConsume = consumeNavBarEvent,
 									)
 								}
-
-								composable<Route.Welcome> { WelcomeScreen() }
 
 								composable<Route.MixnetTuning> { MixnetTuningScreen(appState) }
 

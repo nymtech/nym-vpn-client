@@ -22,7 +22,7 @@ internal fun QuicInfoMessage(onNavigateToQuicSettings: () -> Unit) {
 		append(" ")
 		withStyle(
 			style = SpanStyle(
-				color = MaterialTheme.colorScheme.onBackground,
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				textDecoration = TextDecoration.Underline,
 			),
 		) {
@@ -36,7 +36,7 @@ internal fun QuicInfoMessage(onNavigateToQuicSettings: () -> Unit) {
 	Text(
 		text = annotatedText,
 		style = Typography.bodyMedium.copy(
-			color = MaterialTheme.colorScheme.outline,
+			color = MaterialTheme.colorScheme.onBackground,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		),
 	)

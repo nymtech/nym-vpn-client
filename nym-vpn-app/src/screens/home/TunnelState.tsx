@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import { useShallow } from 'zustand/react/shallow';
@@ -112,6 +112,7 @@ export function TunnelState() {
 
   const ringTargets = useMemo((): number[] => {
     if (phase === 'connected') return [0, 0, 0];
+    if (phase === 'error') return [0, 0, 0];
     if (phase !== 'connecting' || !progress) return [...CIRCS];
     const step = PROGRESS_STEPS[progress];
     if (!step) return [...CIRCS];
@@ -122,18 +123,17 @@ export function TunnelState() {
     });
   }, [phase, progress]);
 
-  // ─── Freeze offsets when entering error/canceling ────────────────────────
-  // Updated whenever we're NOT in error/canceling, so when those phases begin
+  // ─── Freeze offsets when entering canceling ──────────────────────────────
+  // Updated whenever we're NOT in canceling, so when that phase begins
   // the ref already holds the last "live" position.
   const frozenOffsets = useRef<number[]>([...CIRCS]);
   useEffect(() => {
-    if (!isError && !isCanceling) {
+    if (!isCanceling) {
       frozenOffsets.current = ringTargets;
     }
-  }, [isError, isCanceling, ringTargets]);
+  }, [isCanceling, ringTargets]);
 
-  const effectiveOffsets =
-    isError || isCanceling ? frozenOffsets.current : ringTargets;
+  const effectiveOffsets = isCanceling ? frozenOffsets.current : ringTargets;
 
   // ─── Per-ring stroke appearance ───────────────────────────────────────────
   const strokeColor = phase === 'error' ? ERROR_CLR : fillColor;
@@ -141,39 +141,9 @@ export function TunnelState() {
     phase === 'canceling' ? 0.15 : phase === 'error' ? 0.6 : 1;
 
   const ringTransition =
-    phase === 'error'
-      ? 'stroke 200ms ease, stroke-opacity 200ms ease'
-      : phase === 'canceling'
-        ? 'stroke-opacity 600ms ease-in, stroke-dashoffset 0ms'
-        : `stroke-dashoffset ${sweepDur}ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease`;
-
-  // ─── Sphere opacity ───────────────────────────────────────────────────────
-  const sphereOpacity =
-    phase === 'connected'
-      ? 0.65
-      : phase === 'connecting'
-        ? 0.52
-        : phase === 'error'
-          ? 0.55
-          : 0.42;
-
-  // Bump animation when transitioning to connected
-  const [bumpKey, setBumpKey] = useState(0);
-  const prevPhase = useRef<Phase>(phase);
-  useEffect(() => {
-    if (prevPhase.current !== 'connected' && phase === 'connected') {
-      setBumpKey((k) => k + 1);
-    }
-    prevPhase.current = phase;
-  }, [phase]);
-
-  // ─── Glow color ───────────────────────────────────────────────────────────
-  const glowColor = isMixnet
-    ? 'rgba(180,182,186,0.55)'
-    : 'rgba(91,240,160,0.70)';
-  const glowColorTransparent = isMixnet
-    ? 'rgba(180,182,186,0)'
-    : 'rgba(91,240,160,0)';
+    phase === 'canceling'
+      ? 'stroke-opacity 600ms ease-in, stroke-dashoffset 0ms'
+      : `stroke-dashoffset ${sweepDur}ms cubic-bezier(.4,0,.2,1), stroke 200ms ease, stroke-opacity 200ms ease`;
 
   // ─── Label text ───────────────────────────────────────────────────────────
   const label = useMemo((): string | null => {
@@ -272,78 +242,38 @@ export function TunnelState() {
               width: SPHERE_SIZE + GLOW_SPREAD,
               height: SPHERE_SIZE + GLOW_SPREAD,
               borderRadius: '50%',
-              background: `radial-gradient(circle, ${glowColor} 0%, ${glowColorTransparent} 60%)`,
               pointerEvents: 'none',
-            }}
-          />
-        )}
-
-        {/* Central sphere — remounted on bumpKey to replay seal animation */}
-        <div
-          key={`sphere-${bumpKey}`}
-          style={{
-            position: 'absolute',
-            top: SPHERE_INSET,
-            left: SPHERE_INSET,
-            width: SPHERE_SIZE,
-            height: SPHERE_SIZE,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle at 30% 30%, #2A2A2E, #050505)',
-            opacity: sphereOpacity,
-            transition: 'opacity 300ms ease-out, box-shadow 320ms ease-out',
-            boxShadow: isConnected
-              ? isMixnet
-                ? `0 0 ${SIZE * 0.1}px rgba(180,182,186,0.35)`
-                : `0 0 ${SIZE * 0.12}px rgba(91,240,160,0.55)`
-              : 'none',
-            animation: bumpKey > 0 ? 'ts2-seal 200ms ease-out' : undefined,
-          }}
-        />
-
-        {/* Error tint overlay on sphere */}
-        {phase === 'error' && (
-          <div
-            style={{
-              position: 'absolute',
-              top: SPHERE_INSET,
-              left: SPHERE_INSET,
-              width: SPHERE_SIZE,
-              height: SPHERE_SIZE,
-              borderRadius: '50%',
-              background: 'rgba(231,62,20,0.08)',
-              pointerEvents: 'none',
-              transition: 'opacity 200ms ease',
             }}
           />
         )}
       </div>
 
-      {/* Connection timer */}
-      <ConnectionTimer />
-
-      {/* Label / error text */}
-      <div className="flex h-4 items-center justify-center">
-        <AnimatePresence mode="wait">
-          {label !== null && (
-            <motion.div
-              key={label}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <ScrambleIn
-                text={label}
-                className="text-lg text-[#8b8b90]"
-                scrambledClassName="text-[9px] text-[#8b8b90]/50"
-                scrambleSpeed={20}
-              />
-            </motion.div>
+      <div className="flex h-0 w-full flex-col items-center overflow-visible">
+        <ConnectionTimer />
+        <div className="min-h-8 w-full">
+          <AnimatePresence mode="wait">
+            {label !== null && (
+              <motion.div
+                key={label}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center justify-center"
+              >
+                <ScrambleIn
+                  text={label}
+                  className="text-text-secondary text-lg"
+                  scrambledClassName="text-lg text-text-secondary"
+                  scrambleSpeed={20}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {phase === 'error' && (
+            <div className="text-error text-center text-lg">{getError()}</div>
           )}
-        </AnimatePresence>
-        {phase === 'error' && (
-          <div className="text-error text-center text-lg">{getError()}</div>
-        )}
+        </div>
       </div>
     </div>
   );

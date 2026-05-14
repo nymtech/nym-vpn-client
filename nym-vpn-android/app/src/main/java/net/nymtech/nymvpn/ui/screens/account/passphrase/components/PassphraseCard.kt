@@ -31,8 +31,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -48,7 +46,7 @@ fun PassphraseCard(passphrase: List<String>, modifier: Modifier = Modifier, show
 			.height(326.dp)
 			.shadow(elevation = 6.dp, shape = shape, clip = false)
 			.clip(shape)
-			.background(MaterialTheme.colorScheme.surface)
+			.background(MaterialTheme.colorScheme.primaryContainer)
 			.border(BorderStroke(1.dp, MaterialTheme.colorScheme.outline), shape),
 	) {
 		if (!show) {
@@ -76,7 +74,7 @@ fun PassphraseCard(passphrase: List<String>, modifier: Modifier = Modifier, show
 				Text(
 					text = stringResource(R.string.passphrase_show),
 					style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 			}
 		} else {
@@ -101,16 +99,14 @@ fun PassphraseCard(passphrase: List<String>, modifier: Modifier = Modifier, show
 							Text(
 								text = "${index + 1}.",
 								style = MaterialTheme.typography.bodyMedium,
-								color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f),
-								fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+								color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.75f),
 							)
 							Text(
 								text = word,
 								style = MaterialTheme.typography.bodyMedium,
-								color = MaterialTheme.colorScheme.onBackground,
+								color = MaterialTheme.colorScheme.onPrimaryContainer,
 								maxLines = 1,
 								overflow = TextOverflow.Ellipsis,
-								fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 							)
 						}
 					}

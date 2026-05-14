@@ -9,6 +9,7 @@ data class SettingsActions(
 	val onLegalClick: () -> Unit = {},
 	val onSystemStatusClick: () -> Unit = {},
 	val onQuitClick: () -> Unit = {},
+	val onLogoutClick: () -> Unit = {},
 	val onAppVersionClick: () -> Unit = {},
 	val onSplitTunnelingClick: () -> Unit = {},
 	val onAutoConnectEnable: (enabled: Boolean) -> Unit = {},

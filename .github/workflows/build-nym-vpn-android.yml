@@ -29,23 +29,6 @@ on:
         description: "Skip Crowdin translations download"
         required: false
         default: false
-    secrets:
-      ANDROID_SIGNING_KEY_ALIAS:
-        required: false
-      ANDROID_SIGNING_KEY_PASSWORD:
-        required: false
-      ANDROID_SIGNING_STORE_PASSWORD:
-        required: false
-      ANDROID_SENTRY_DSN:
-        required: false
-      ANDROID_SERVICE_ACCOUNT_JSON:
-        required: false
-      ANDROID_KEYSTORE:
-        required: false
-      CROWDIN_PROJECT_ID:
-        required: false
-      CROWDIN_PERSONAL_TOKEN:
-        required: false
   workflow_call:
     inputs:
       build_type:
@@ -64,6 +47,10 @@ on:
         required: false
         default: false
     secrets:
+      SCCACHE_REDIS_ENDPOINT:
+        required: false
+      SCCACHE_REDIS_PASSWORD:
+        required: false
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
       ANDROID_SIGNING_KEY_PASSWORD:
@@ -173,8 +160,10 @@ jobs:
       - name: Set Rust caching env vars only for non-release runs
         if: ${{ inputs.build_type == 'debug' }}
         run: |
-          echo "SCCACHE_GHA_ENABLED=true" >> $GITHUB_ENV
           echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_ENDPOINT }}" >> $GITHUB_ENV
+          echo "SCCACHE_REDIS_PASSWORD=${{ secrets.SCCACHE_REDIS_PASSWORD }}" >> $GITHUB_ENV
+          echo "SCCACHE_REDIS_EXPIRATION=86400" >> $GITHUB_ENV
 
       - name: Install cargo-ndk
         uses: baptiste0928/cargo-install@v3

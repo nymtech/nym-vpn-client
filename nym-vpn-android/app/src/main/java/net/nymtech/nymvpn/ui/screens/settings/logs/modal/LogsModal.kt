@@ -21,8 +21,8 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
-import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -37,7 +37,7 @@ fun LogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, title
 			Text(
 				text = title,
 				style = CustomTypography.labelHuge,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 		},
 		text = {
@@ -45,24 +45,25 @@ fun LogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, title
 				description,
 				textAlign = TextAlign.Center,
 				style = MaterialTheme.typography.bodyMedium,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 		},
 		confirmButton = {
 			MainStyledButton(
-				onClick = onConfirm,
+				onClick = {
+					onConfirm()
+				},
+				textColor = MaterialTheme.colorScheme.onPrimaryContainer,
 				content = {
 					Text(
 						buttonText,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = MaterialTheme.colorScheme.onSurface,
 					)
 				},
 				modifier = Modifier
 					.fillMaxWidth()
 					.height(40.dp.scaledHeight()),
-				color = CustomColors.buttonRedTransparent,
-				borderStroke = BorderStroke(width = 1.dp, color = CustomColors.buttonRedTransparentBorder),
+				color = LocalNymColors.current.buttonErrorText,
+				borderStroke = BorderStroke(width = 1.dp, color = LocalNymColors.current.buttonErrorBorder),
 			)
 		},
 		dismissButton = {
@@ -72,7 +73,7 @@ fun LogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit, title
 					Text(
 						stringResource(R.string.cancel),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
 				},
 				modifier = Modifier

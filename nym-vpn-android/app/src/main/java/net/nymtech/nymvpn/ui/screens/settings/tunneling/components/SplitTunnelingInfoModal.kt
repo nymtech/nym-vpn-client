@@ -41,7 +41,7 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 			Text(
 				text = stringResource(R.string.split_tunnel_info_modal_title),
 				style = CustomTypography.titleMediumPlus,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				color = MaterialTheme.colorScheme.onPrimaryContainer,
 			)
 		},
 		text = {
@@ -49,7 +49,7 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 				Text(
 					stringResource(R.string.split_tunnel_info_modal_desc),
 					style = MaterialTheme.typography.bodyMedium,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 				Row(
 					modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
@@ -62,12 +62,12 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 						Modifier
 							.size(20.dp)
 							.align(Alignment.CenterVertically),
-						tint = MaterialTheme.colorScheme.outline,
+						tint = MaterialTheme.colorScheme.onBackground,
 					)
 					Text(
 						text = stringResource(id = R.string.split_tunneling_direct),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						fontWeight = FontWeight(700),
 					)
@@ -76,7 +76,7 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 					text = stringResource(R.string.split_tunnel_info_direct_desc),
 					modifier = Modifier.padding(top = 8.dp),
 					style = MaterialTheme.typography.bodyMedium,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 
 				Row(
@@ -92,12 +92,12 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 						Modifier
 							.size(20.dp)
 							.align(Alignment.CenterVertically),
-						tint = MaterialTheme.colorScheme.outline,
+						tint = MaterialTheme.colorScheme.onBackground,
 					)
 					Text(
 						stringResource(id = R.string.split_tunneling_via_vpn),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onSurface,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						fontWeight = FontWeight(700),
 					)
@@ -106,14 +106,15 @@ internal fun SplitTunnelingInfoModal(showModal: Boolean, onDismiss: () -> Unit) 
 					text = stringResource(R.string.split_tunneling_via_desc),
 					modifier = Modifier.padding(top = 8.dp),
 					style = MaterialTheme.typography.bodyMedium,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 			}
 		},
 		confirmButton = {
 			MainStyledButton(
 				onClick = onDismiss,
-				content = { Text(stringResource(R.string.ok), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)), color = Color.Black) },
+				textColor = Color.Black,
+				content = { Text(stringResource(R.string.ok), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))) },
 				modifier = Modifier
 					.fillMaxWidth()
 					.height(40.dp.scaledHeight()),

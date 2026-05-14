@@ -22,8 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,10 +29,9 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
-import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.ui.theme.Typography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +40,7 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 
 	Card(
 		shape = RoundedCornerShape(8.dp),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 	) {
 		Column(
 			modifier = Modifier
@@ -59,7 +56,7 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 				Text(
 					text = stringResource(R.string.mixnet_tuning_traffic_title),
 					style = MaterialTheme.typography.titleMedium,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					maxLines = 2,
 					overflow = TextOverflow.Ellipsis,
 					modifier = Modifier.weight(1f),
@@ -74,14 +71,13 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 			if (!trafficEnabled) {
 				Text(
 					text = stringResource(R.string.mixnet_tuning_traffic_warning),
-					style = Typography.bodySmall,
-					color = CustomColors.warning,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+					style = MaterialTheme.typography.bodySmall,
+					color = LocalNymColors.current.warning,
 				)
 				Text(
 					text = stringResource(R.string.mixnet_tuning_traffic_off_title),
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					style = MaterialTheme.typography.titleMedium,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					maxLines = 2,
 					overflow = TextOverflow.Ellipsis,
 				)
@@ -89,9 +85,8 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 
 			Text(
 				text = stringResource(if (trafficEnabled) R.string.mixnet_tuning_traffic_on_description else R.string.mixnet_tuning_traffic_off_description),
-				style = Typography.bodySmall,
-				color = MaterialTheme.colorScheme.outline,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onBackground,
 			)
 
 			Column(
@@ -103,13 +98,13 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 				) {
 					Text(
 						text = stringResource(R.string.mixnet_tuning_traffic_min),
-						style = Typography.bodySmall,
-						color = MaterialTheme.colorScheme.outline,
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onBackground,
 					)
 					Text(
 						text = stringResource(R.string.mixnet_tuning_max),
-						style = Typography.bodySmall,
-						color = MaterialTheme.colorScheme.outline,
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onBackground,
 					)
 				}
 
@@ -146,16 +141,16 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 			) {
 				Text(
 					text = stringResource(if (trafficEnabled) R.string.mixnet_tuning_traffic_on_low else R.string.mixnet_tuning_traffic_off_low),
-					style = Typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onBackground,
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					modifier = Modifier.weight(1f),
 					textAlign = TextAlign.Start,
 				)
 
 				Text(
 					text = stringResource(if (trafficEnabled) R.string.mixnet_tuning_traffic_on_balanced else R.string.mixnet_tuning_traffic_off_balanced),
-					style = Typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onBackground,
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					modifier = Modifier.weight(1f),
 					textAlign = TextAlign.Center,
 				)
@@ -163,16 +158,16 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 				if (!trafficEnabled) {
 					Text(
 						text = stringResource(R.string.mixnet_tuning_traffic_off_medium),
-						style = Typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onBackground,
+						style = MaterialTheme.typography.bodyMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						modifier = Modifier.weight(1f),
 						textAlign = TextAlign.Center,
 					)
 				}
 				Text(
 					text = stringResource(if (trafficEnabled) R.string.mixnet_tuning_traffic_on_high else R.string.mixnet_tuning_traffic_off_high),
-					style = Typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onBackground,
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					modifier = Modifier.weight(1f),
 					textAlign = TextAlign.End,
 				)

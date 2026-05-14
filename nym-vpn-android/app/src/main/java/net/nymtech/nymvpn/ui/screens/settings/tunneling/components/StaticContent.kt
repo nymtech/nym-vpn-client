@@ -22,15 +22,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.AppFilter
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingUiState
-import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -39,10 +36,9 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun StaticContent(uiState: SplitTunnelingUiState, onQueryChange: (String) -> Unit, onSelectAllDirectAppsClick: () -> Unit, onSelectAllVpnPassThroughClick: () -> Unit) {
 	Text(
 		text = stringResource(R.string.split_tunneling_info_msg),
-		style = Typography.bodyMedium,
-		color = MaterialTheme.colorScheme.outline,
+		style = MaterialTheme.typography.bodyMedium,
+		color = MaterialTheme.colorScheme.onPrimaryContainer,
 		modifier = Modifier.padding(top = 8.dp.scaledHeight()),
-		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 	)
 
 	CustomTextField(
@@ -54,19 +50,18 @@ fun StaticContent(uiState: SplitTunnelingUiState, onQueryChange: (String) -> Uni
 			.height(56.dp.scaledHeight())
 			.padding(horizontal = 0.dp)
 			.then(Modifier),
-		placeholder = { Text(stringResource(R.string.split_tunneling_search_apps_hint), color = MaterialTheme.colorScheme.outline) },
+		placeholder = { Text(stringResource(R.string.split_tunneling_search_apps_hint), color = MaterialTheme.colorScheme.onBackground) },
 		singleLine = true,
 		leading = { Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.search), modifier = Modifier.height(iconSize)) },
 		label = { Text(stringResource(R.string.search)) },
-		textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+		textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onPrimaryContainer),
 		showClearIcon = true,
 	)
 
 	Text(
 		text = stringResource(R.string.split_tunneling_apps),
-		style = Typography.bodyLarge,
-		color = MaterialTheme.colorScheme.onSurface,
-		fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		style = MaterialTheme.typography.bodyMedium,
+		color = MaterialTheme.colorScheme.onPrimaryContainer,
 		fontWeight = FontWeight(500),
 	)
 

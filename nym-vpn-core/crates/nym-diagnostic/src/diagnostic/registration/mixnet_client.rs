@@ -6,6 +6,7 @@ use nym_authenticator_client::{AuthClientMixnetListener, AuthenticatorClient, Re
 use nym_bandwidth_controller::BandwidthTicketProvider;
 use nym_client_core::client::topology_control::nym_api_provider::Config;
 use nym_credentials_interface::TicketType;
+use nym_ip_packet_client::IprClientConnect;
 use nym_platform_metadata::new_user_agent;
 use nym_registration_common::WireguardConfiguration;
 use nym_sdk::{
@@ -15,7 +16,7 @@ use nym_sdk::{
     },
 };
 use nym_topology::HardcodedTopologyProvider;
-use nym_validator_client::client::NymApiClientExt;
+use nym_validator_client::{client::NymApiClientExt, models::NymNodeDescriptionV2};
 use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
 use nym_vpn_network_config::Network;
 
@@ -85,9 +86,48 @@ impl MixnetClientRegistration {
 
         tracing::info!("Mixnet client started");
 
-        let registration_config = match setup_registration(
+        let gateway = match describe_gateway(network, &parameters.gateway).await {
+            Ok(g) => g,
+            Err(e) => {
+                let msg = format!("Gateway lookup failed: {e}");
+                registration_report.mixnet_ipr_connect =
+                    Some(DiagnosticResult::from_err(msg.clone()));
+                registration_report.mixnet_based_dvpn_registration =
+                    Some(DiagnosticResult::from_err(msg));
+                mixnet_client.disconnect().await;
+                return None;
+            }
+        };
+
+        let mixnet_client = match lookup_ipr_address(&gateway) {
+            Ok(address) => {
+                tracing::info!("Connecting to IPR...");
+                let (result, mixnet_client) =
+                    Self::mixnet_ipr_connect(mixnet_client, address).await;
+                match result {
+                    Ok(()) => {
+                        registration_report.mixnet_ipr_connect =
+                            Some(DiagnosticResult::<()>::SUCCESS)
+                    }
+                    Err(e) => {
+                        registration_report.mixnet_ipr_connect = Some(DiagnosticResult::from_err(
+                            format!("IPR handshake failed: {e}"),
+                        ))
+                    }
+                }
+                mixnet_client
+            }
+            Err(e) => {
+                registration_report.mixnet_ipr_connect = Some(DiagnosticResult::from_err(format!(
+                    "IPR address lookup failed: {e}"
+                )));
+                mixnet_client
+            }
+        };
+
+        let registration_config = match setup_wg_registration(
             network,
-            &parameters.gateway,
+            &gateway,
             parameters.storage_path.as_ref(),
         )
         .await
@@ -167,6 +207,17 @@ impl MixnetClientRegistration {
 
         auth_res
     }
+
+    async fn mixnet_ipr_connect(
+        mixnet_client: MixnetClient,
+        ipr_address: Recipient,
+    ) -> (Result<(), nym_ip_packet_client::Error>, MixnetClient) {
+        let mut ipr_client = IprClientConnect::new(mixnet_client, CancellationToken::new());
+
+        let result = ipr_client.connect(ipr_address).await;
+
+        (result.map(|_| ()), ipr_client.into_mixnet_client())
+    }
 }
 
 fn debug_config() -> DebugConfig {
@@ -209,24 +260,40 @@ async fn setup_topology(network: &Network) -> anyhow::Result<HardcodedTopologyPr
     Ok(HardcodedTopologyProvider::new(topology))
 }
 
-async fn setup_registration(
+async fn describe_gateway(
     network: &Network,
     gateway_id: &str,
-    storage_path: Option<&PathBuf>,
-) -> anyhow::Result<WgRegistrationConfig> {
-    let storage_path = storage_path.ok_or(anyhow::anyhow!("No storage path provided"))?;
-
+) -> anyhow::Result<NymNodeDescriptionV2> {
     let api_client = build_api_client(network).await?;
 
     let described_nodes = api_client
         .get_all_described_nodes_v2()
         .await
         .map_err(|e| anyhow::anyhow!("Failed to fetch described nodes : {e}"))?;
-    let gateway = described_nodes
-        .iter()
+
+    described_nodes
+        .into_iter()
         .find(|g| g.ed25519_identity_key().to_base58_string() == gateway_id)
-        .ok_or(anyhow::anyhow!("Gateway requested not found"))?
-        .clone();
+        .ok_or(anyhow::anyhow!("Gateway requested not found"))
+}
+
+fn lookup_ipr_address(gateway: &NymNodeDescriptionV2) -> anyhow::Result<Recipient> {
+    gateway
+        .description
+        .ip_packet_router
+        .as_ref()
+        .and_then(|a| Recipient::try_from_base58_string(&a.address).ok())
+        .ok_or(anyhow::anyhow!(
+            "Failed to get IPR address for chosen gateway",
+        ))
+}
+
+async fn setup_wg_registration(
+    network: &Network,
+    gateway: &NymNodeDescriptionV2,
+    storage_path: Option<&PathBuf>,
+) -> anyhow::Result<WgRegistrationConfig> {
+    let storage_path = storage_path.ok_or(anyhow::anyhow!("No storage path provided"))?;
 
     let gateway_keypair = Arc::new(x25519::KeyPair::new(&mut rand::rngs::OsRng));
 
@@ -234,6 +301,7 @@ async fn setup_registration(
     let authenticator_address = gateway
         .description
         .authenticator
+        .as_ref()
         .and_then(|a| Recipient::try_from_base58_string(&a.address).ok())
         .ok_or(anyhow::anyhow!(
             "Failed to get authenticator address for chosen gateway",

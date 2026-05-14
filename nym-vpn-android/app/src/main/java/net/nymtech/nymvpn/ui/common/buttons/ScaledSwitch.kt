@@ -4,32 +4,32 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
 fun ScaledSwitch(checked: Boolean, onClick: (checked: Boolean) -> Unit, enabled: Boolean = true) {
 	val primary = MaterialTheme.colorScheme.primary
-	val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+	val onSurfaceVariant = LocalNymColors.current.switchBackground
 
 	Switch(
 		checked = checked,
 		onCheckedChange = onClick,
 		enabled = enabled,
-		modifier = Modifier.scale(52.dp.scaledHeight() / 52.dp),
+		modifier = Modifier.size(width = 46.dp, height = 24.dp),
 		colors = SwitchDefaults.colors(
 			checkedTrackColor = primary,
-			checkedThumbColor = MaterialTheme.colorScheme.surface,
+			checkedThumbColor = Color.White,
 			checkedBorderColor = primary,
 
 			uncheckedTrackColor = onSurfaceVariant,

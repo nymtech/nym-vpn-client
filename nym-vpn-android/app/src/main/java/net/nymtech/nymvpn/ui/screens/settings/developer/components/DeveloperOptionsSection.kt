@@ -70,7 +70,7 @@ fun DeveloperOptionsSection(
 							value = appUiState.vpnConfig.network.networkName().uppercase(),
 							onValueChange = {},
 							readOnly = true,
-							textStyle = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSurface),
+							textStyle = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onPrimaryContainer),
 							trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = environmentExpanded) },
 							modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
 						)
@@ -97,7 +97,7 @@ fun DeveloperOptionsSection(
 				description = {
 					Text(
 						"Environment",
-						style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+						style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onBackground),
 					)
 				},
 				trailing = null,
@@ -119,7 +119,7 @@ fun DeveloperOptionsSection(
 							value = credentialMode.name,
 							onValueChange = {},
 							readOnly = true,
-							textStyle = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onSurface),
+							textStyle = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onPrimaryContainer),
 							trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = credentialExpanded) },
 							modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable, true),
 						)
@@ -147,7 +147,7 @@ fun DeveloperOptionsSection(
 				description = {
 					Text(
 						"Credential mode",
-						style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+						style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.onBackground),
 					)
 				},
 				trailing = null,

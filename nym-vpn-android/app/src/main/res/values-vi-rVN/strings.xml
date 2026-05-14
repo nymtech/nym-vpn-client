@@ -28,8 +28,7 @@
 	<string name="auto_connect_description">Kết nối khi khởi động lại</string>
 	<string name="logs">Nhật Ký</string>
 	<string name="support">Hỗ trợ</string>
-	<string name="legal">Pháp lý</string>
-	<string name="terms_of_use">Điều khoản sử dụng</string>
+    <string name="terms_of_use">Điều khoản sử dụng</string>
 	<string name="privacy_policy">Tuyên bố về quyền riêng tư</string>
 	<string name="licenses">Giấy phép</string>
 	<string name="open_github">Mở một issue trên GitHub</string>
@@ -44,15 +43,11 @@
 	<string name="okay">Okay</string>
 	<string name="two_hop">2 bước nhảy</string>
 	<string name="country_load_failure">Không tải được các quốc gia bước nhảy</string>
-	<string name="app_shortcuts">Phím tắt ứng dụng</string>
-	<string name="enable_shortcuts">Bật phím tắt ứng dụng</string>
-	<string name="disabled_while_connected">Đã tắt trong khi đã kết nối đến VPN</string>
+    <string name="disabled_while_connected">Đã tắt trong khi đã kết nối đến VPN</string>
 	<string name="permission_required">Yêu cầu cấp quyền</string>
 	<string name="permission_message">Để đảm bảo ứng dụng hoạt động đúng trên thiết bị của bạn, vui lòng cho phép các quyền sau. Đây là những quyền cần thiết để ứng dụng có thể hoạt động.</string>
-	<string name="notifications">Thông báo</string>
-	<string name="notification_permission_required">Vui lòng bật quyền thông báo để ứng dụng hoạt động bình thường</string>
-	<string name="kill_switch">Kill switch</string>
-	<string name="mode_selection">Chọn chế độ</string>
+    <string name="notification_permission_required">Vui lòng bật quyền thông báo để ứng dụng hoạt động bình thường</string>
+    <string name="mode_selection">Chọn chế độ</string>
 	<string name="five_hop_explanation">Tận hưởng quyền riêng tư tối đa thông qua định tuyến 5 bước nhảy (lên đến 1-5 Mbps). Lưu lượng giả và che giấu thời gian để nâng cao tính ẩn danh. Hoàn hảo cho các hoạt động nhạy cảm cao như thanh toán, email và tin nhắn.</string>
 	<string name="continue_reading">Tiếp tục đọc</string>
 	<string name="appearance">Giao diện</string>
@@ -145,8 +140,7 @@
 	<string name="bars_3">3 thanh</string>
 	<string name="bars_2">2 thanh</string>
 	<string name="bars_1">1 thanh</string>
-	<string name="bypass_lan">Bỏ qua LAN</string>
-	<string name="account_id">ID tài khoản:</string>
+    <string name="account_id">ID tài khoản:</string>
 	<string name="developer">Nhà phát triển</string>
 	<string name="get_help">Trợ giúp</string>
 	<string name="join_telegram">Tham gia Telegram của chúng tôi</string>
@@ -209,12 +203,9 @@
 	<string name="settings_dns_title">Tùy chỉnh DNS</string>
 	<string name="settings_ipv6_title">Hỗ trợ IPv6</string>
 	<string name="settings_ipv6_description">Cho phép kết nối IPv6</string>
-	<string name="settings_bypass_description">Cho phép truy cập mạng cục bộ trực tiếp</string>
-	<string name="settings_auto_select_title">Tự động chọn máy chủ vào</string>
+    <string name="settings_auto_select_title">Tự động chọn máy chủ vào</string>
 	<string name="settings_auto_select_description">Cho phép ứng dụng chọn vị trí vào tốt nhất</string>
-	<string name="settings_device_startup_title">Khởi chạy khi khởi động thiết bị</string>
-	<string name="settings_device_startup_description">Cho phép ứng dụng chọn vị trí vào tốt nhất</string>
-	<string name="settings_system_tray_title">Chạy trong khay hệ thống</string>
+    <string name="settings_system_tray_title">Chạy trong khay hệ thống</string>
 	<string name="settings_system_tray_description">Giữ ứng dụng chạy khi đóng</string>
 	<string name="settings_reset_app_title">Đặt lại dữ liệu ứng dụng</string>
 	<string name="settings_system_status_title">Trạng thái hệ thống</string>
@@ -447,8 +438,7 @@
 	<string name="logs_download_button">Vẫn lưu dưới dạng tệp</string>
 	<string name="logs_saved">Nhật ký được lưu vào thư mục tải xuống\"</string>
 	<!-- Split tunneling screen -->
-	<string name="split_tunneling">Split tunneling</string>
-	<string name="split_tunneling_info_msg">Thiết lập từng ứng dụng để sử dụng NymVPN hoặc kết nối trực tiếp.</string>
+    <string name="split_tunneling_info_msg">Thiết lập từng ứng dụng để sử dụng NymVPN hoặc kết nối trực tiếp.</string>
 	<string name="split_tunneling_info_desc">Thay đổi sẽ có hiệu lực sau khi kết nối lại</string>
 	<string name="split_tunneling_search_apps_hint">Tìm kiếm ứng dụng</string>
 	<string name="split_tunneling_apps">Ứng Dụng</string>
