@@ -42,7 +42,7 @@ public final class OneClickViewModel {
         switch connectState {
         case .disconnected, .noInternet, .noSubscription:
             return true
-        case .connecting, .stop, .connected:
+        case .connecting, .stop, .connected, .disconnecting:
             return false
         }
     }
@@ -199,7 +199,7 @@ public final class OneClickViewModel {
         let next: ConnectionType = enabled ? .wireguard : .mixnet5hop
         guard connectionManager.connectionType != next else { return }
         impactGenerator.softImpact()
-        connectionManager.connectionType = next
+        connectionManager.setTwoHop(enabled)
     }
 }
 
@@ -275,8 +275,10 @@ private extension OneClickViewModel {
 
     func derivedConnectState() -> OneClickConnectState {
         switch connectionManager.currentTunnelStatus {
-        case .connected, .disconnecting:
+        case .connected:
             return .connected
+        case .disconnecting:
+            return .disconnecting
         case .connecting, .reasserting, .restarting, .offlineReconnect, .error:
             return .stop
         case .disconnected, .offline, .unknown:
@@ -317,14 +319,12 @@ private extension OneClickViewModel {
 
     func applyDisplayMode(_ mode: OneClickDisplayMode) {
         displayMode = mode
-        var cfg = connectionManager.connectionConfig
         let next = NymGatewaySelectionAlgorithmConfig(
             enableGeoLocation: true,
             algorithm: mode.algorithm
         )
-        if cfg.gatewaySelectionAlgorithmConfig != next {
-            cfg.gatewaySelectionAlgorithmConfig = next
-            connectionManager.connectionConfig = cfg
+        if connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig != next {
+            connectionManager.setGatewaySelectionAlgorithm(next)
         }
         refreshSelection()
     }

@@ -360,6 +360,8 @@ private extension OneClickView {
             "stop".localizedString
         case .connected:
             "oneClick.connectButton.connected".localizedString
+        case .disconnecting:
+            "disconnecting".localizedString
         case .noInternet:
             "noInternet".localizedString
         case .noSubscription:
@@ -371,7 +373,7 @@ private extension OneClickView {
         switch viewModel.connectState {
         case .disconnected, .noSubscription:
             .primary
-        case .connecting, .noInternet:
+        case .connecting, .disconnecting, .noInternet:
             .connecting
         case .stop:
             .destructive
@@ -382,7 +384,7 @@ private extension OneClickView {
 
     var connectButtonDisabled: Bool {
         switch viewModel.connectState {
-        case .connecting, .noInternet:
+        case .connecting, .disconnecting, .noInternet:
             true
         case .disconnected, .stop, .connected, .noSubscription:
             false

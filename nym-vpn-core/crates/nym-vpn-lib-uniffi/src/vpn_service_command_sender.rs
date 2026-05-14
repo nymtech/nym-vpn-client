@@ -9,10 +9,11 @@ use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, DiagnosticRunParams,
-    EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams,
-    ListGatewaysOptions, NetworkCompatibility, ParsedAccountLinks, RegisterAccountRequest,
-    RegisterAccountResponse, StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState,
-    TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewaySelectionAlgorithm,
+    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, NetworkCompatibility,
+    ParsedAccountLinks, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
+    StoredAccountMode, SystemMessage, TargetState, TunnelState, VpnAccountSummary,
+    VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -149,6 +150,36 @@ impl NymVpnServiceCommandSender {
             gateway_selection_algorithm,
         )
         .await
+    }
+
+    pub async fn set_fronting_mode(&self, fronting_mode: FrontingMode) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetFrontingMode, fronting_mode)
+            .await
+    }
+
+    pub async fn set_allow_lan(&self, allow_lan: bool) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetAllowLan, allow_lan)
+            .await
+    }
+
+    pub async fn set_disable_ipv6(&self, disable_ipv6: bool) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetDisableIPv6, disable_ipv6)
+            .await
+    }
+
+    pub async fn set_mixnet_traffic_config(
+        &self,
+        mixnet_traffic_config: MixnetTrafficConfig,
+    ) -> Result<()> {
+        self.send_and_wait(
+            VpnServiceCommand::SetMixnetTrafficConfig,
+            mixnet_traffic_config,
+        )
+        .await?
+        .map_err(|_| {
+            NymVpnServiceCommandInnerError::Internal("Failed to set mixnet traffic config")
+        })?;
+        Ok(())
     }
 
     pub async fn get_system_messages(&self) -> Result<Vec<SystemMessage>> {

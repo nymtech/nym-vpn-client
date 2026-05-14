@@ -19,6 +19,7 @@ import ErrorHandler
     var lastErrorMessage: String?
     var mode: ArcProgressMode = .fast
     var status: TunnelStatus = .unknown
+    var connectedDate: Date?
 
     @ObservationIgnored private var lastErrorSignature: ErrorSignature?
     @ObservationIgnored private var didFireForCurrentError = false
@@ -67,6 +68,7 @@ private extension ConnectionStatusViewModel {
     func seedFromCurrentValues() {
         status = connectionManager.currentTunnelStatus
         lastConnectingStep = connectionManager.tunnelConnectingState
+        connectedDate = connectionManager.connectedDate
         let error = connectionManager.lastError
         hasFailure = error != nil
         lastErrorMessage = error.map { Self.userFacingMessage(from: $0) }
@@ -92,6 +94,11 @@ private extension ConnectionStatusViewModel {
         connectionManager.$lastError
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.apply(error: $0) }
+            .store(in: &cancellables)
+
+        connectionManager.$connectedDate
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.connectedDate = $0 }
             .store(in: &cancellables)
     }
 
