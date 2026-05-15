@@ -21,7 +21,7 @@ function NodeLocation() {
 
   const handleTabChange = (value: unknown) => {
     if (value !== 'entry' && value !== 'exit') return;
-    const newTab = value as NodeHop;
+    const newTab = value;
     if (newTab === activeTab) return;
     reset(newTab);
     setActiveTab(newTab);

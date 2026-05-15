@@ -14,7 +14,6 @@ Current version: `1.30.0-beta`. Minimum compatible daemon version: `>=1.30.0-bet
 
 ```sh
 npm run dev:app       # Full Tauri app (requires Rust toolchain)
-npm run dev:browser   # Frontend only in the browser with Tauri command mocks
 npm run dev           # Vite dev server only (no Tauri)
 ```
 
@@ -197,10 +196,6 @@ Feature flags are reported by the daemon and exposed to the frontend via `Featur
 ### Type generation workflow
 
 Rust types annotated with `#[derive(Serialize, ts_rs::TS)]` are exported via `cargo test` to `src/types/tauri.ts`. When modifying types on the Rust side that cross the IPC boundary, always run `npm run tsgen` afterward.
-
-### Browser dev mode
-
-`npm run dev:browser` runs the frontend without a Tauri runtime. Tauri IPC is mocked via `@tauri-apps/api/mocks` in `src/dev/setup.ts`. Mock data fixtures are in `src/dev/mocked/`. This is the fastest way to iterate on UI changes.
 
 ## Key conventions
 
