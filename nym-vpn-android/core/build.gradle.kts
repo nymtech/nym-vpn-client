@@ -19,6 +19,11 @@ android {
 		minSdk = Constants.MIN_SDK
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		consumerProguardFiles("consumer-rules.pro")
+
+		ndk {
+			abiFilters.clear()
+			abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+		}
 	}
 
 	buildTypes {
