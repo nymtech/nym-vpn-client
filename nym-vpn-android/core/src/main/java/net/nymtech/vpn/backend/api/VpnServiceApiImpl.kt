@@ -106,7 +106,7 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 	override suspend fun getAccountMode(): StoredAccountMode? = core.tryWithCoreSender { it.getAccountMode() }
 	override suspend fun getAccountSummary(): VpnAccountSummary? = core.tryWithCoreSender { it.getAccountSummary() }
 	override suspend fun runDiagnostic(): String? = core.tryWithCoreSender {
-		val params = DiagnosticRunParams(null, skipDns = false, skipHttp = false)
+		val params = DiagnosticRunParams(null, skipDns = false, skipHttp = false, skipHybridTransport = false)
 		it.runDiagnostic(params)
 	}
 }

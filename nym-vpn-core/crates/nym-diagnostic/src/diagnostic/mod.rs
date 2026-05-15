@@ -4,7 +4,7 @@
 use crate::{
     diagnostic::{
         dns::DnsDiagnostic, gateway::GatewayDiagnostic, http::HttpDiagnostic,
-        registration::RegistrationDiagnostic,
+        hybrid_transport::HybridTransportDiagnostic, registration::RegistrationDiagnostic,
     },
     error::{Error, Result},
 };
@@ -19,6 +19,7 @@ use nym_vpn_network_config::Network;
 mod dns;
 mod gateway;
 mod http;
+mod hybrid_transport;
 mod registration;
 
 pub struct DiagnosticHandler;
@@ -46,10 +47,17 @@ impl DiagnosticHandler {
             None => None,
         };
 
+        let hybrid_transport_report = if !parameters.skip_hybrid_transport {
+            Some(HybridTransportDiagnostic::run_diagnostic().await)
+        } else {
+            None
+        };
+
         DiagnosticReport {
             dns: dns_report,
             http: http_report.map(Into::into),
             gateway: gateway_report,
+            hybrid_transport: hybrid_transport_report.map(Into::into),
         }
     }
 

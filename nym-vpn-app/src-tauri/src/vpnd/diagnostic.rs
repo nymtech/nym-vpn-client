@@ -214,6 +214,7 @@ pub struct DiagnosticRunParams {
     pub gateway: Option<String>,
     pub skip_dns: bool,
     pub skip_http: bool,
+    pub skip_hybrid_transport: bool,
 }
 
 impl From<DiagnosticRunParams> for lib::DiagnosticRunParams {
@@ -222,6 +223,7 @@ impl From<DiagnosticRunParams> for lib::DiagnosticRunParams {
             gateway: params.gateway,
             skip_dns: params.skip_dns,
             skip_http: params.skip_http,
+            skip_hybrid_transport: params.skip_hybrid_transport,
         }
     }
 }
