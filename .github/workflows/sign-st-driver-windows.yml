@@ -109,6 +109,10 @@ jobs:
             -input_file_path="nymvpn-split-tunnel-x64.cab" \
             -output_dir_path=signed
 
+      - name: Wait for TOTP window to advance
+        shell: bash
+        run: sleep 35
+
       - name: Sign CAB file (arm64)
         shell: bash
         env:
