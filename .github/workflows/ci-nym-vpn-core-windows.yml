@@ -6,6 +6,7 @@ on:
     paths:
       - "nym-vpn-core/crates/**"
       - "nym-vpn-core/Cargo.toml"
+      - "nym-vpn-core/Cargo.lock"
       - "nym-vpn-windows/**"
       - ".github/workflows/ci-nym-vpn-core-windows.yml"
   workflow_dispatch:
