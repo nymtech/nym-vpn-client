@@ -72,7 +72,7 @@ export function useTauriEvents(
         }
       },
     );
-  }, [add]);
+  }, [add, close]);
 
   const registerTunnelStateListener = useCallback(() => {
     return listen<TunnelStatePayload>(TunnelStateEvent, (event) => {
