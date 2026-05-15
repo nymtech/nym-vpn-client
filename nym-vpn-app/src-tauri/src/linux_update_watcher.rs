@@ -1,3 +1,6 @@
+use anyhow::Result;
+use procfs::process::Process;
+
 use std::os::linux::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
@@ -14,8 +17,9 @@ const DELETED_SUFFIX: &str = " (deleted)";
 
 /// Returns the path of the running binary, stripping any trailing
 /// " (deleted)" suffix that Linux appends after the file has been unlinked.
-fn resolve_self_path() -> std::io::Result<PathBuf> {
-    let link = std::fs::read_link("/proc/self/exe")?;
+fn resolve_self_path() -> Result<PathBuf> {
+    let process = Process::myself()?;
+    let link = process.exe()?;
     let s = link.to_string_lossy();
     if let Some(stripped) = s.strip_suffix(DELETED_SUFFIX) {
         Ok(PathBuf::from(stripped))
@@ -28,16 +32,25 @@ fn resolve_self_path() -> std::io::Result<PathBuf> {
 /// started — either the /proc/self/exe link is marked deleted, or the inode
 /// of the running binary differs from the file currently at its path.
 fn update_detected(binary_path: &Path) -> bool {
-    let link = match std::fs::read_link("/proc/self/exe") {
+    let process = match Process::myself() {
         Ok(p) => p,
         Err(e) => {
-            warn!("failed to read /proc/self/exe: {e}");
+            warn!("failed to get process myself: {e}");
             return false;
         }
     };
+    let link = match process.exe() {
+        Ok(p) => p,
+        Err(e) => {
+            warn!("failed to get process exe: {e}");
+            return false;
+        }
+    };
+
     if link.to_string_lossy().ends_with(DELETED_SUFFIX) {
         return true;
     }
+
 
     let running_ino = match std::fs::metadata("/proc/self/exe") {
         Ok(m) => m.st_ino(),
