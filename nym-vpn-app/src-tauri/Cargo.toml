@@ -72,7 +72,6 @@ tauri-plugin-clipboard-manager = "2.3.0"
 tauri-plugin-updater = "2.10.0"
 tauri-plugin-shell = "2"
 regex = "1.12.3"
-procfs = "0.18.0"
 [target."cfg(any(target_os = \"macos\", windows, target_os = \"linux\"))".dependencies]
 tauri-plugin-single-instance = { version = "2.3.4", features = ["deep-link"] }
 tauri-plugin-window-state = "2.4.0"
@@ -94,6 +93,7 @@ windows = { version = "0.61.3", features = [
 winreg = "0.52"
 
 [target.'cfg(target_os = "linux")'.dependencies]
+procfs = "0.18.0"
 freedesktop-desktop-entry = "0.8"
 freedesktop-icons = "0.4"
 notify = "6.1"
