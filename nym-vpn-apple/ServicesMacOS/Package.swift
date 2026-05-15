@@ -11,8 +11,7 @@ let package = Package(
     products: [
         .library(name: "AppDiscoveryService", targets: ["AppDiscoveryService"]),
         .library(name: "AutoUpdater", targets: ["AutoUpdater"]),
-        .library(name: "GRPCManager", targets: ["GRPCManager"]),
-        .library(name: "Shell", targets: ["Shell"])
+        .library(name: "GRPCManager", targets: ["GRPCManager"])
     ],
     dependencies: [
         .package(path: "../NymVPNRpc"),
@@ -38,18 +37,11 @@ let package = Package(
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "DarwinNotificationCenter", package: "ServicesMutual"),
-                .product(name: "MessageModels", package: "ServicesMutual"),
                 .product(name: "NymVPNRpc", package: "NymVPNRpc"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
-                .product(name: "TunnelStatus", package: "ServicesMutual"),
-                "Shell"
+                .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
             path: "Sources/GRPCManager"
-        ),
-        .target(
-            name: "Shell",
-            dependencies: [],
-            path: "Sources/Shell"
         )
     ]
 )

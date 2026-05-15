@@ -17,7 +17,6 @@ let package = Package(
         .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "ErrorReason", targets: ["ErrorReason"]),
         .library(name: "NymLogger", targets: ["NymLogger"]),
-        .library(name: "MessageModels", targets: ["MessageModels"]),
         .library(name: "TunnelStatus", targets: ["TunnelStatus"])
     ],
     dependencies: [
@@ -73,13 +72,6 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log")
             ],
             path: "Sources/NymLogger"
-        ),
-        .target(
-            name: "MessageModels",
-            dependencies: [
-                "Theme"
-            ],
-            path: "Sources/MessageModels"
         ),
         .target(
             name: "TunnelStatus",
