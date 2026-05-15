@@ -90,7 +90,7 @@ jobs:
         id: get_credential_ids
         shell: bash
         run: |
-          echo "SSL_COM_CREDENTIAL_ID=$(./CodeSignTool.sh get_credential_ids -username=${{ secrets.SSL_COM_USERNAME }} -password=${{ secrets.SSL_COM_PASSWORD }} | sed -n '1!p' | sed 's/- //')" >> "$GITHUB_OUTPUT"
+          echo "SSL_COM_CREDENTIAL_ID=$(./CodeSignTool.sh get_credential_ids -username=${{ secrets.SSL_COM_USERNAME }} -password=${{ secrets.SSL_COM_PASSWORD }} | sed -n '1!p' | head -1 | sed 's/- //' | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
 
       - name: Sign CAB file (x64)
         shell: bash
