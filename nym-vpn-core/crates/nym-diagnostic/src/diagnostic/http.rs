@@ -166,6 +166,7 @@ async fn build_nym_api_clients(network: &Network) -> Result<Vec<Client>> {
         let plain_client = ClientBuilder::new(plain_url)
             .map_err(|_| Error::MissingApiUrl)?
             .no_hickory_dns()
+            .with_user_agent(new_user_agent!())
             .with_retries(0)
             .build()
             .map_err(|_| Error::MissingApiUrl)?;
@@ -181,6 +182,7 @@ async fn build_nym_api_clients(network: &Network) -> Result<Vec<Client>> {
                     .map_err(|_| Error::MissingApiUrl)?
                     .no_hickory_dns()
                     .with_fronting(Some(FrontPolicy::Always))
+                    .with_user_agent(new_user_agent!())
                     .with_retries(0)
                     .build()
                     .map_err(|_| Error::MissingApiUrl)?;
