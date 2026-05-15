@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.outlined.AccessTime
@@ -25,14 +27,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -121,7 +121,7 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 			) {
 				Text(
 					text = stringResource(R.string.account_info_bandwidth_title),
-					style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.primary),
+					style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.tertiary),
 				)
 				Text(
 					text = stringResource(R.string.account_info_limit_text),
@@ -134,15 +134,20 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 			val remainingGb = maxOf(0f, bandwidth.totalGb - bandwidth.consumedGb)
 			val progress = if (bandwidth.totalGb > 0) remainingGb / bandwidth.totalGb else 0f
 
-			LinearProgressIndicator(
-				progress = { progress },
+			Box(
 				modifier = Modifier
 					.fillMaxWidth()
-					.height(6.dp),
-				color = MaterialTheme.colorScheme.primary,
-				trackColor = MaterialTheme.colorScheme.background,
-				strokeCap = StrokeCap.Round,
-			)
+					.height(6.dp)
+					.clip(RoundedCornerShape(50))
+					.background(MaterialTheme.colorScheme.background),
+			) {
+				Box(
+					modifier = Modifier
+						.fillMaxWidth(progress)
+						.fillMaxHeight()
+						.background(MaterialTheme.colorScheme.tertiary),
+				)
+			}
 
 			Spacer(Modifier.height(8.dp))
 
@@ -153,7 +158,7 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 				val format = java.text.NumberFormat.getNumberInstance(java.util.Locale.US)
 				Text(
 					text = "${format.format(remainingGb.toInt())} GB",
-					style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.primary),
+					style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onPrimaryContainer),
 				)
 				Text(
 					text = "${format.format(bandwidth.totalGb.toInt())} GB",
@@ -271,7 +276,7 @@ private fun PreviewAccountStatusNormal() {
 					subscriptionState = SubscriptionUiState(
 						isRecurring = true,
 						validUntilDate = "December 24, 2026",
-						expiryState = ExpiryState.EXPIRED,
+						expiryState = ExpiryState.NORMAL,
 					),
 					bandwidthState = BandwidthUiState(
 						consumedGb = 800f,

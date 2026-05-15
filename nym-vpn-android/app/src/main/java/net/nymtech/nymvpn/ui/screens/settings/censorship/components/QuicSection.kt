@@ -86,7 +86,7 @@ fun QuicSection(quicEnabled: Boolean, onQuicEnabledEnable: (enabled: Boolean) ->
 					},
 			) {
 				Text(
-					text = stringResource(R.string.censorship_quic_link_text),
+					text = stringResource(R.string.censorship_learn_more_link_text),
 					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					style = MaterialTheme.typography.bodyMedium.copy(
 						textDecoration = TextDecoration.Underline,

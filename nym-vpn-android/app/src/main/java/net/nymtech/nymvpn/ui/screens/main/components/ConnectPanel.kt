@@ -425,7 +425,7 @@ private fun ServerRow(
 				Icon(
 					imageVector = ImageVector.vectorResource(R.drawable.ic_quantum),
 					contentDescription = null,
-					tint = MaterialTheme.colorScheme.primary,
+					tint = MaterialTheme.colorScheme.tertiary,
 					modifier = Modifier.size(22.dp),
 				)
 			}

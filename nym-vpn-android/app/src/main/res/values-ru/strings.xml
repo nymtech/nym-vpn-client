@@ -317,19 +317,16 @@
 	<string name="censorship_quic_title">Расширенное соединение (QUIC)</string>
 	<string name="censorship_quic_changes">Изменения будут применены после переподключения</string>
 	<string name="censorship_quic_description">Повышает надёжность работы в Быстром режиме в сетях с ограничениями, оборачивая трафик WireGuard в QUIC (HTTP/3). Трафик будет выглядеть как обычный веб-сёрфинг, что обходит системы цензуры с глубоким анализом пакетов (DPI).\n\n**Примечание:** Ограничивает выбор входных серверов только серверами, совместимыми с QUIC.</string>
-	<string name="censorship_quic_link_text">Как QUIC улучшает соединения</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
+    <string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API соединение</string>
 	<string name="censorship_stealth_description">Маскирует API-запросы под популярные разрешённые домены, чтобы обойти блокировку VPN. Автоматически используется NymVPN, когда стандартные попытки подключения API не удаются.</string>
-	<string name="censorship_stealth_link_text">Как работает режим подключения Stealth API</string>
-	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">Переподключение для применения настроек QUIC…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Отображение только быстрого режима местоположения и серверов, поддерживающих протокол QUIC. Чтобы открыть все серверы, выключите QUIC</string>
 	<string name="censorship_amnezia_title">Минимальное обфускация (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Делает трафик WireGuard менее заметным. Вводит пакеты-приманки, которые нарушают работу простых правил, часто используемых системами цензуры с глубоким анализом пакетов (DPI), повышая надежность соединения в условиях ограничительных сред. \n\nПримечание: Реализовано только на стороне клиента.</string>
-	<string name="censorship_amnezia_link_text">Как AmneziaWG предотвращает DPI</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/ru/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+    <string name="censorship_amnezia_link">https://support.nym.com/hc/ru/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡ Мгновенно &amp; анонимно </string>
 	<string name="account_welcome_create_description">Одно нажатие для регистрации. Анонимный аккаунт создаётся на вашем устройстве. Без пароля, без личной информации.</string>
