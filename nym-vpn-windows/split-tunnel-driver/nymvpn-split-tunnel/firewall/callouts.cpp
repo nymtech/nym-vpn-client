@@ -71,7 +71,7 @@ RegisterCalloutTx(
 
     auto status = FwpmCalloutAdd0(WfpSession, &callout, NULL, NULL);
 
-    if (!NT_SUCCESS(status)) {
+    if (!NT_SUCCESS(status) && status != STATUS_FWP_ALREADY_EXISTS) {
         return status;
     }
 
@@ -82,7 +82,13 @@ RegisterCalloutTx(
     aCallout.notifyFn = NotifyFilterAttach;
     aCallout.flowDeleteFn = NULL;
 
-    return FwpsCalloutRegister1(DeviceObject, &aCallout, NULL);
+    status = FwpsCalloutRegister1(DeviceObject, &aCallout, NULL);
+
+    if (status == STATUS_FWP_ALREADY_EXISTS) {
+        return STATUS_SUCCESS;
+    }
+
+    return status;
 }
 
 //
