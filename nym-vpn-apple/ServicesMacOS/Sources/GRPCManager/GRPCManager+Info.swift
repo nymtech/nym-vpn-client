@@ -1,5 +1,3 @@
-import Shell
-
 extension GRPCManager {
     public func version() async throws {
         do {

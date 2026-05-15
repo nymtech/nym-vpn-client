@@ -104,8 +104,3 @@ private extension AppDelegate {
         }
     }
 }
-
-enum TerminationType {
-    case app
-    case menubar
-}

@@ -17,7 +17,6 @@ import Home
 import ImpactGenerator
 import NotificationsManager
 import NymLogger
-import MessagesManager
 import Migrations
 import SentryManager
 import Theme
@@ -147,7 +146,6 @@ private extension NymVPNDaemonApp {
             CredentialsManager.shared.setup()
             FeatureFlagsManager.shared.setup()
             GatewayManager.shared.setup()
-            MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
