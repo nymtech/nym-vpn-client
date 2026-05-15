@@ -317,19 +317,16 @@
 	<string name="censorship_quic_title">Conexão aprimorada (QUIC)</string>
 	<string name="censorship_quic_changes">As alterações serão aplicadas após reconectar</string>
 	<string name="censorship_quic_description">Melhora a confiabilidade do modo rápido em redes restritivas envolvendo o tráfego do WireGuard na QUIC (HTTP/3) para aparecer como navegação na web regular.\n\nNota: Limita as opções do servidor de entrada apenas para gateways compatíveis com QUIC.</string>
-	<string name="censorship_quic_link_text">Como o QUIC melhora as conexões</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
+    <string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Conexão à API Furtiva</string>
 	<string name="censorship_stealth_description">Disfarça solicitações de API por trás de domínios populares e permitidos para ignorar o bloqueio VPN. Usado automaticamente pelo NymVPN quando as tentativas de conexão de API padrão falham.</string>
-	<string name="censorship_stealth_link_text">Como funciona o modo de conexão de API furtiva</string>
-	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">Reconectando para aplicar as configurações QUIC…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Mostrar apenas localizações e servidores rápidos que suportam o protocolo QUIC. Para revelar todos os servidores, desative o QUIC</string>
 	<string name="censorship_amnezia_title">ofuscação mínima (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Torna o tráfego do WireGuard mais difícil de detectar. Introduz pacotes de descodificação que perturbam regras simples frequentemente usadas por sistemas de censura de Inspeção de Pacotes Profundos (DPI), melhorando a confiabilidade da conexão em ambientes restritivos. \n\nNota: Só implementou o lado do cliente.</string>
-	<string name="censorship_amnezia_link_text">Como o AmneziaWG impede o DPI</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/pt-br/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+    <string name="censorship_amnezia_link">https://support.nym.com/hc/pt-br/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">🔒 Privacidade Máxima</string>
 	<string name="account_welcome_create_description">Criar uma conta nym anônima, nenhuma informação pessoal necessária</string>

@@ -231,7 +231,7 @@
 	<string name="connection_status_anonymous">Anonymous protection</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Welcome!</string>
-	<string name="auth_welcome_description">To the next generation of privacy \ninfrastructure.</string>
+	<string name="auth_welcome_description">To the world’s most private VPN</string>
 	<string name="auth_welcome_login_button">Login to my account</string>
 	<string name="auth_sign_up_title">Sign Up</string>
 	<string name="auth_sign_up_account_button">Anonymous account</string>
@@ -373,21 +373,19 @@
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking.</string>
+	<string name="censorship_learn_more_link_text">Learn more</string>
 	<string name="censorship_quic_title">Enhanced connection (QUIC)</string>
 	<string name="censorship_quic_changes">Changes will apply after reconnect</string>
-	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3). Traffic will appear as regular web browsing, defeating Deep Packet Inspection (DPI) censorship systems.\n\nNote: Limits entry server options to QUIC-compatible servers only.</string>
-	<string name="censorship_quic_link_text">How QUIC improves connections</string>
+	<string name="censorship_quic_description">Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3).\n\nNote: Limits entry server options to QUIC-compatible servers only.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
-	<string name="censorship_stealth_description">Prevents VPN blocking by connecting through permitted domains. Toggle on to use always, or off only when normal connection fails.</string>
-	<string name="censorship_stealth_link_text">How the Stealth API connect mode works</string>
+	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">Reconnecting to apply settings…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments. \n\nNote: Only implemented client-side.</string>
-	<string name="censorship_amnezia_link_text">How AmneziaWG prevents DPI</string>
+	<string name="censorship_amnezia_description">Disguises WireGuard traffic with decoy packets to prevent VPN blocking. \n\nNote: Only implemented client-side.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡ Instant &amp; anonymous </string>
@@ -454,11 +452,11 @@
 	<string name="account_info_link_warning">⚠️ Linking a social account with your Nym account reduces your anonymity. Changes take effect after logging out and logging back in with the chosen social. </string>
 	<string name="account_info_linked_info">⚡ This account is linked with a social login method via privy.  </string>
 	<string name="account_info_id_title">Account ID</string>
-	<string name="account_info_id_info">Use your account ID if you need to contact Nym customer support.  This is safe to share!</string>
+	<string name="account_info_id_info">Safe to share. Use to contact Nym Support.</string>
 	<string name="account_info_device_title">Device ID</string>
 	<string name="account_info_device_info">Use this to link this device to your account on nym.com</string>
 	<string name="account_info_status_title">Account status</string>
-	<string name="account_info_bandwidth_title">Bandwidth used</string>
+	<string name="account_info_bandwidth_title">Fair usage spent</string>
 	<string name="account_info_limit_text">Limit</string>
 	<string name="account_info_reset_text">Resets on</string>
 	<string name="account_info_contact_support_icon" translatable="false">⚡ </string>
