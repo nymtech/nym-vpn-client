@@ -23,8 +23,8 @@ jobs:
           fetch-depth: 1
           sparse-checkout-cone-mode: false
           sparse-checkout: |
-            nym-vpn-app
-            .env
+            /.env
+            /nym-vpn-app/
 
       - name: Install Node
         uses: actions/setup-node@v6

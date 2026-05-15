@@ -31,8 +31,8 @@ jobs:
           fetch-depth: 1
           sparse-checkout-cone-mode: false
           sparse-checkout: |
-            nym-vpn-android
-            .env
+            /.env
+            /nym-vpn-android/
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
