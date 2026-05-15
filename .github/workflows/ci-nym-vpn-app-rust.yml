@@ -67,6 +67,20 @@ jobs:
         run: |
           echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" >> $env:GITHUB_ENV
 
+      - name: Check Redis (Temporary for debugging)
+        if: ${{ matrix.os == 'custom-macos-15' }}
+        run: |
+          brew install redis
+          RESULT=$(redis-cli -u "${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" --pass "${{ secrets.SCCACHE_REDIS_PASSWORD }}" PING 2>/dev/null)
+
+          if [ "$RESULT" = "PONG" ]; then
+              echo "Status: Connected successfully."
+              exit 0
+          else
+              echo "Status: Connection failed. Response was: $RESULT"
+              exit 1
+          fi
+
       - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Install rust toolchain
