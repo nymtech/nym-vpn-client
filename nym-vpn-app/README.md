@@ -130,24 +130,6 @@ $env:RUST_LOG='debug,nym_vpn_app=trace'; npm run dev:app; $env:RUST_LOG=$null
 npm run dev:app -- -- -- -Ltrace
 ```
 
-## Dev in the browser
-
-For convenience and better development experience, we can run the
-app directly in the browser
-
-```
-npm run dev:browser
-```
-
-Then press `o` to open the app in the browser.
-
-#### Tauri commands mock
-
-Browser mode requires some of the tauri [commands](https://tauri.app/develop/calling-rust/#commands) (IPC calls) to be mocked.
-When creating new tauri command, be sure to add the corresponding
-mock definition into `src/dev/tauri-cmd-mocks/` and update
-`src/dev/setup.ts` accordingly.
-
 ## CLI
 
 We are using [clap](https://docs.rs/clap/latest/clap/) to handle CLI for the app.
