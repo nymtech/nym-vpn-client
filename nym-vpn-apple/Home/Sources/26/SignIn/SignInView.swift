@@ -105,7 +105,6 @@ struct SignInRootContent: View {
             Spacer(minLength: NymSpacing.large)
             VStack(spacing: AuthLayout.stackSpacing) {
                 heading
-                subtitle
                 buttons
             }
             Spacer(minLength: NymSpacing.large)
@@ -138,14 +137,6 @@ private extension SignInRootContent {
             .nymTextStyle(.titleScreen)
             .foregroundStyle(Color.Nym.textPrimary)
             .multilineTextAlignment(.center)
-    }
-
-    var subtitle: some View {
-        Text("signIn.subtitle".localizedString)
-            .nymTextStyle(.bodyDefault)
-            .foregroundStyle(Color.Nym.textSecondary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, NymSpacing.component)
     }
 
     var buttons: some View {

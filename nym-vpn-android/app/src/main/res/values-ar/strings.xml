@@ -317,19 +317,16 @@
 	<string name="censorship_quic_title">تحسين الاتصال (QUIC)</string>
 	<string name="censorship_quic_changes">سيتم تطبيق التغييرات بعد إعادة الاتصال</string>
 	<string name="censorship_quic_description">تحسين موثوقية النمط السريع في الشبكات التقييدية عن طريق تغليف حركة WireGuard في QUIC (HTTP/3). ستظهر حركة المرور كتصفح منتظم على شبكة الانترنت، وهزيمة أنظمة الرقابة على التفتيش العميق.\n\nملاحظة: حدود خيارات خادم الدخول إلى بوابات متوافقة مع QUIC-فقط.</string>
-	<string name="censorship_quic_link_text">كيف يحسن QUIC الاتصالات</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
+    <string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">توصيل API الثري</string>
 	<string name="censorship_stealth_description">إخفاء طلبات API خلف شعبية, النطاقات المسموح بها لتجاوز حظر VPN. يتم استخدامها تلقائياً من قبل NymVPN عند فشل محاولات اتصال API القياسية.</string>
-	<string name="censorship_stealth_link_text">كيف يعمل واجهة برمجة تطبيقات ستثنى</string>
-	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-Connect</string>
+    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-Connect</string>
 	<string name="censorship_event_reconnecting">إعادة الاتصال لتطبيق إعدادات QUIC…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">عرض مواقع الوضع السريع والخوادم التي تدعم بروتوكول QUIC فقط. للكشف عن جميع الخوادم، إيقاف تشغيل QUIC</string>
 	<string name="censorship_amnezia_title">الحد الأدنى من التشويش</string>
 	<string name="censorship_amnezia_description">يجعل حركة مرور WireGuard أكثر صعوبة لكشفها. يقدم حزم مفككة تعطل القواعد البسيطة التي كثيرا ما تستخدمها نظم الرقابة على عمليات التفتيش العميقة (Deep Packet)، مما يحسن موثوقية الاتصال في البيئات التقييدية. \n\nملاحظة: تم تنفيذ جانب العميل فقط.</string>
-	<string name="censorship_amnezia_link_text">كيف يمنع أمنيزياي الفريق إدارة شؤون الإعلام</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-★ NymVPN-implement-Wireguard</string>
+    <string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-★ NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">🔒 أقصى قدر من الخصوصية</string>
 	<string name="account_welcome_create_description">إنشاء حساب نيم مجهول، لا توجد معلومات شخصية مطلوبة</string>

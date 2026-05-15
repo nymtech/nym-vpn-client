@@ -86,9 +86,9 @@ private extension SplitTunnelView {
                             Binding(
                                 get: { splitTunnelConfig.isEnabled },
                                 set: { newValue in
-                                    var config = connectionManager.connectionConfig
-                                    config.splitTunnelConfig.isEnabled = newValue
-                                    connectionManager.connectionConfig = config
+                                    var next = splitTunnelConfig
+                                    next.isEnabled = newValue
+                                    connectionManager.setSplitTunnelConfig(next)
                                 }
                             ),
                         isDisabled: !isFullDiskAccessEnabled
@@ -344,13 +344,13 @@ private extension SplitTunnelView {
 
     func toggleAppState(app: FoundApp) {
         guard let path = app.executablePath else { return }
-        var config = connectionManager.connectionConfig
-        if let index = config.splitTunnelConfig.appPaths.firstIndex(of: path) {
-            config.splitTunnelConfig.appPaths.remove(at: index)
+        var next = splitTunnelConfig
+        if let index = next.appPaths.firstIndex(of: path) {
+            next.appPaths.remove(at: index)
         } else {
-            config.splitTunnelConfig.appPaths.append(path)
+            next.appPaths.append(path)
         }
-        connectionManager.connectionConfig = config
+        connectionManager.setSplitTunnelConfig(next)
     }
 
     func appBundlePath(for app: FoundApp) -> String? {

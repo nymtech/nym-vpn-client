@@ -365,7 +365,8 @@ impl TunnelSettingsDiffFields {
             | Self::EntryPoint
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
-            | Self::Dns => true,
+            | Self::Dns
+            | Self::GatewaySelectionAlgorithm => true,
             Self::EnableAdBlocking => {
                 // On android reconnect is necessary due to packet filtering used for adblocking.
                 cfg!(target_os = "android")
@@ -375,8 +376,7 @@ impl TunnelSettingsDiffFields {
             | Self::GeoExclusion
             | Self::GeoExclusionEnabled
             | Self::GeoExclusionExcludedCountries
-            | Self::GeoLocationEnabled
-            | Self::GatewaySelectionAlgorithm => false,
+            | Self::GeoLocationEnabled => false,
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
             }

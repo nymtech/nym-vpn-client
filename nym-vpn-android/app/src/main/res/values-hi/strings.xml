@@ -315,19 +315,16 @@
 	<string name="censorship_quic_title">संशोधित कनेक्शन (QUIC)</string>
 	<string name="censorship_quic_changes">पुनः कनेक्ट करने के बाद परिवर्तन लागू होंगे</string>
 	<string name="censorship_quic_description">यह QUIC (HTTP/3) में WireGuard ट्रैफ़िक को रैप करके प्रतिबंधित नेटवर्क में फ़ास्ट मोड की विश्वसनीयता को बेहतर बनाता है। ट्रैफ़िक सामान्य वेब ब्राउज़िंग के रूप में दिखाई देगा, जिससे डीप पैकेट इंस्पेक्शन (DPI) सेंसरशिप सिस्टम को नाकाम किया जा सकेगा।\n\nनोट: यह केवल QUIC-संगत सर्वरों तक ही सीमित है।</string>
-	<string name="censorship_quic_link_text">QUIC कनेक्शनों को कैसे बेहतर बनाता है</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
+    <string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">स्टेल्थ API कनेक्ट</string>
 	<string name="censorship_stealth_description">API अनुरोधों को पॉपुलर, अनुमत डोमेन के पीछे छुपाता है ताकि VPN ब्लॉकिंग को बायपास किया जा सके। जब मानक API कनेक्शन प्रयास विफल हो जाते हैं, तो NymVPN इसे स्वचालित रूप से इसका उपयोग करता है।</string>
-	<string name="censorship_stealth_link_text">Stealth API कनेक्ट मोड कैसे काम करता है</string>
-	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">QUIC सेटिंग्स लागू करने के लिए पुनः कनेक्ट किया जा रहा है…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">केवल फास्ट मोड वाले स्थान और QUIC प्रोटोकॉल का सपोर्ट करने वाले सर्वर दिखाए जा रहे हैं। सभी सर्वरों को देखने के लिए, QUIC को बंद कर दें।</string>
 	<string name="censorship_amnezia_title">मिनिमल ऑब्फ़स्केशन (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">WireGuard ट्रैफ़िक का पता लगाना कठिन बनाता है। डीप पैकेट इंस्पेक्शन (DPI) सेंसरशिप सिस्टम द्वारा अक्सर इस्तेमाल किए जाने वाले सरल नियमों को बाधित करने वाले डिकॉय पैकेट पेश करता है, जिससे प्रतिबंधात्मक वातावरण में कनेक्शन की विश्वसनीयता बेहतर होती है। \n\nनोट: केवल क्लाइंट-साइड पर इम्पलिमेंट किया जाता है।</string>
-	<string name="censorship_amnezia_link_text">AmneziaWG DPI को कैसे रोकता है</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+    <string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡ तुरंत &amp; गुमनाम </string>
 	<string name="account_welcome_create_description">बस एक टैप से भुगतान करें। आपके डिवाइस पर एक अनॉनिमस अकाउंट बनाया जाएगा। कोई पासवर्ड नहीं, कोई व्यक्तिगत जानकारी नहीं।</string>

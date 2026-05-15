@@ -76,7 +76,7 @@ private extension CensorshipView {
                 guard connectionManager.currentTunnelStatus == .connected ||
                         connectionManager.currentTunnelStatus == .connecting
                 else {
-                    appSettings.isQuicEnabled.toggle()
+                    connectionManager.setBridges(!appSettings.isQuicEnabled)
                     return
                 }
                 isConfirmationDisplayed = true
@@ -160,7 +160,7 @@ private extension CensorshipView {
     func stealthApiSection() -> some View {
         let stealthBinding = Binding<Bool>(
             get: { appSettings.isStealthApiEnabled },
-            set: { _ in appSettings.isStealthApiEnabled.toggle() }
+            set: { _ in connectionManager.setStealthApiEnabled(!appSettings.isStealthApiEnabled) }
         )
 
         return SettingsListItem(
@@ -220,13 +220,12 @@ private extension CensorshipView {
             yesLocalizedString: yesTitle,
             noLocalizedString: noTitle,
             yesAction: {
-                appSettings.isQuicEnabled.toggle()
-                appSettings.shouldReconnect = true
+                connectionManager.setBridges(!appSettings.isQuicEnabled)
                 isConfirmationDisplayed = false
                 path = .init()
             },
             noAction: {
-                appSettings.isQuicEnabled.toggle()
+                connectionManager.setBridges(!appSettings.isQuicEnabled)
                 isConfirmationDisplayed = false
             },
             verticalButtonsLayout: true

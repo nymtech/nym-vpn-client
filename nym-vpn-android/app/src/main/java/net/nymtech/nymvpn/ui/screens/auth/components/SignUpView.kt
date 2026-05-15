@@ -65,12 +65,7 @@ fun SignUpView(onBackClick: () -> Unit, onAccountClick: () -> Unit, onSocialClic
 			text = stringResource(R.string.auth_sign_up_title),
 			style = MaterialTheme.typography.headlineSmall,
 			color = MaterialTheme.colorScheme.onPrimaryContainer,
-		)
-		Text(
-			text = stringResource(R.string.auth_welcome_description),
-			style = MaterialTheme.typography.bodyMedium,
-			color = MaterialTheme.colorScheme.onSurface,
-			textAlign = TextAlign.Center,
+			modifier = Modifier.padding(20.dp),
 		)
 
 		MainStyledButton(

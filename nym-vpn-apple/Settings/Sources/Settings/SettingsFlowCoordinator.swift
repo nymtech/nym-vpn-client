@@ -243,6 +243,7 @@ private extension SettingsFlowCoordinator {
             viewModel: DnsViewModel(
                 path: $flowState.path,
                 appSettings: .shared,
+                connectionManager: .shared,
                 grpcManager: .shared
             )
         )
@@ -250,7 +251,8 @@ private extension SettingsFlowCoordinator {
         DnsView(
             viewModel: DnsViewModel(
                 path: $flowState.path,
-                appSettings: .shared
+                appSettings: .shared,
+                connectionManager: .shared
             )
         )
         #endif

@@ -134,10 +134,8 @@ extension ConnectionManager {
         else {
             return
         }
-        if !isReconnecting {
-            activeTunnel.tunnel.isOnDemandEnabled = false
-            try await activeTunnel.saveToPreferencesAndLoadTunnels()
-        }
+        activeTunnel.tunnel.isOnDemandEnabled = false
+        try await activeTunnel.saveToPreferencesAndLoadTunnels()
         tunnelsManager.disconnect(tunnel: activeTunnel)
     }
 
@@ -152,79 +150,20 @@ extension ConnectionManager {
         }
     }
 
-    @MainActor func updateConnectionConfig(forceReconnect: Bool = false) {
-        guard isReconnectNeeded(with: connectionStorage.previousConnectionConfig) || forceReconnect
-        else {
-            return
-        }
-        Task {
-            do {
-                let newConfig = try generateConfig()
-                guard currentTunnelStatus == .connected || currentTunnelStatus == .connecting,
-                      let configuration = activeTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
-                      let mixnetConfig = configuration.asMixnetConfig(),
-                      newConfig.toJson() != mixnetConfig.toJson(),
-                      !isReconnecting
-                else {
-                    return
-                }
-                isReconnecting = true
-                try await disconnectActiveTunnel()
-                await waitForTunnelStatus(with: .disconnected)
-                try await connectDisconnect()
-                isReconnecting = false
-            } catch {
-                lastError = error
-            }
-        }
-    }
-
     func fetchConnectionConfig() async {}
 }
 
 extension ConnectionManager {
-// TODO: use this once iOS tunnel supports tunnel reconnection
-//    @MainActor public func connectDisconnect() async throws {
-//        do {
-//            let config = try generateConfig()
-//
-//            if shouldDisconnectActiveTunnel() {
-//                disconnectActiveTunnel()
-//            } else {
-//                try await connect(with: config)
-//            }
-//        } catch let error {
-//            throw error
-//        }
-//    }
-}
-
-// TODO: remove extension once tunnel supports reconnect
-extension ConnectionManager {
     /// connects disconnects VPN, depending on current VPN status
     @MainActor public func connectDisconnect() async throws {
-        do {
-            if shouldDisconnectActiveTunnel() {
-                isDisconnecting = true
-                try await disconnectActiveTunnel()
-                lastError = nil
-            } else {
-                let config = try generateConfig()
-                try await connect(with: config)
-            }
-        } catch let error {
-            throw error
+        if shouldDisconnectActiveTunnel() {
+            isDisconnecting = true
+            try await disconnectActiveTunnel()
+            lastError = nil
+        } else {
+            let config = try generateConfig()
+            try await connect(with: config)
         }
-    }
-
-    func isReconnecting(newConfig: MixnetConfig) -> Bool {
-        guard let tunnelProviderProtocol = activeTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
-              let mixnetConfig = tunnelProviderProtocol.asMixnetConfig(),
-              currentTunnelStatus == .connected, newConfig != mixnetConfig
-        else {
-            return false
-        }
-        return true
     }
 }
 

@@ -2226,6 +2226,39 @@
         }
       }
     },
+    "arcProgress.anonymousModeProtection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anonymous mode protection"
+          }
+        }
+      }
+    },
+    "arcProgress.fastModeProtection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast mode protection"
+          }
+        }
+      }
+    },
+    "arcProgress.disconnecting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Disconnecting"
+          }
+        }
+      }
+    },
     "arcProgress.connected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3679,7 +3712,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments."
+            "value" : "Disguises WireGuard traffic with decoy packets to prevent VPN blocking."
           }
         }
       }
@@ -4330,7 +4363,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "How QUIC improves connections"
+            "value" : "Learn more"
           }
         },
         "es" : {
@@ -4633,7 +4666,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3). Traffic will appear as regular web browsing, defeating Deep Packet Inspection (DPI) censorship systems."
+            "value" : "Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3)."
           }
         },
         "es" : {
@@ -4936,7 +4969,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "How the Stealth API connect mode works"
+            "value" : "Learn more"
           }
         },
         "es" : {
@@ -5037,7 +5070,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard API connection attempts fail."
+            "value" : "Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail."
           }
         },
         "es" : {
@@ -28141,7 +28174,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use your account ID if you need to contact Nym customer support.  This is safe to share!"
+            "value" : "Safe to share. Use to contact Nym Support."
           }
         }
       }
@@ -28185,7 +28218,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limit"
+            "value" : "Fair usage spent"
           }
         }
       }
@@ -34735,7 +34768,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To the next generation of privacy infrastructure."
+            "value" : "To the world’s most private VPN"
           }
         },
         "es" : {

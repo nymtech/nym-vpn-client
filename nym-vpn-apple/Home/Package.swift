@@ -44,7 +44,6 @@ let package = Package(
                 .product(name: "ImpactGenerator", package: "Services"),
                 .product(name: "NetworkMonitor", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "MessagesManager", package: "Services"),
                 .product(name: "Routes", package: "Routes"),
                 .product(name: "Theme", package: "Theme")
             ],

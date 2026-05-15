@@ -85,7 +85,7 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
         verbosity_level: cli_args.verbosity_level(),
         enable_file_log: run_as_service,
         enable_stdout_log: !run_as_service,
-        enable_json_log: cli_args.json_output || run_as_service,
+        enable_json_log: cli_args.json_output,
         log_dir: Some(crate::paths::log_dir()),
         sentry: sentry_enabled,
     };

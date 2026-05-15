@@ -55,7 +55,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState, topOffset: 
 		label = "PulseAnimation",
 	)
 
-	val primaryColor = MaterialTheme.colorScheme.primary
+	val primaryColor = MaterialTheme.colorScheme.tertiary
 
 	Box(
 		contentAlignment = Alignment.Center,
