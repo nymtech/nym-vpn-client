@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +29,6 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.technical.components.SettingsSection
 import net.nymtech.nymvpn.ui.screens.technical.components.WelcomeSection
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
@@ -87,13 +87,14 @@ fun TechnicalOptScreen(
 					content = {
 						Text(
 							text = stringResource(R.string.welcome_continue),
-							style = CustomTypography.buttonMain,
+							style = MaterialTheme.typography.titleMedium,
 						)
 					},
 					color = MaterialTheme.colorScheme.primary,
 					modifier = Modifier
 						.fillMaxWidth()
-						.height(54.dp.scaledHeight()),
+						.height(48.dp.scaledHeight()),
+					shape = RoundedCornerShape(12.dp),
 				)
 			}
 		}

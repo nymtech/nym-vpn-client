@@ -16,7 +16,7 @@ fun SubscriptionStatusText(subscription: SubscriptionUiState?, modifier: Modifie
 
 	when (subscription?.expiryState) {
 		ExpiryState.NORMAL -> {
-			color = MaterialTheme.colorScheme.primary
+			color = MaterialTheme.colorScheme.tertiary
 			text = stringResource(R.string.account_info_valid_text, subscription.validUntilDate)
 		}
 

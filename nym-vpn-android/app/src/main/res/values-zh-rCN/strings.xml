@@ -315,19 +315,16 @@
 	<string name="censorship_quic_title">增强连接 (QUIC)</string>
 	<string name="censorship_quic_changes">更改将在重新连接后应用</string>
 	<string name="censorship_quic_description">通过使用 QUIC (HTTP/3) 包装WireGuard流量来改善快速模式在严苛的网络环境中的稳定性。用户流量看起来像常规网络流量，从而可以抵御深度包检测（DPI）审查系统。\n\n注意：将只会显示提供QUIC协议的入口网关。</string>
-	<string name="censorship_quic_link_text">QUIC如何改善连接</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
+    <string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">隐身API连接</string>
 	<string name="censorship_stealth_description">伪装API请求，允许域绕过VPN 拦截。当标准API连接尝试失败时，NymVPN 会自动使用。</string>
-	<string name="censorship_stealth_link_text">SteomAPI连接模式工作方式</string>
-	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">正在重新连接以应用QUIC设置…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">仅显示支持QUIC 协议的快速模式位置和服务器。要显示所有服务器，请关闭 QUIC</string>
 	<string name="censorship_amnezia_title">最低限度的反审查保护（AmneziaWG）</string>
 	<string name="censorship_amnezia_description">通过引入能够绕开深度包检测系统的基本检查规则的诱饵数据包，使得WireGuard流量更加难以被检测到，改善受限制的网络中连接的稳定性。\n\n注意：只实现了客户端。</string>
-	<string name="censorship_amnezia_link_text">Amnezia WG是如何阻止DPI的</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+    <string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡立即创建匿名账号 </string>
 	<string name="account_welcome_create_description">快速支付。本地生成匿名账号。不需要设置密码，不需要个人信息。</string>

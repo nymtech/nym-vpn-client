@@ -51,7 +51,7 @@ fun SettingsSection(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStat
 					Text(
 						stringResource(R.string.welcome_error_reports_title),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onBackground,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 				},
@@ -73,7 +73,7 @@ fun SettingsSection(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStat
 							append(stringResource(R.string.welcome_error_reports_description_end))
 						},
 						style = MaterialTheme.typography.bodySmall,
-						color = MaterialTheme.colorScheme.outline,
+						color = MaterialTheme.colorScheme.onBackground,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 				},
@@ -96,7 +96,7 @@ fun SettingsSection(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStat
 					Text(
 						stringResource(R.string.welcome_usage_title),
 						style = MaterialTheme.typography.bodyMedium,
-						color = MaterialTheme.colorScheme.onBackground,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 				},
@@ -104,7 +104,7 @@ fun SettingsSection(statsEnabled: Boolean, sentryEnabled: Boolean, onNetworkStat
 					Text(
 						text = stringResource(R.string.welcome_usage_description),
 						style = MaterialTheme.typography.bodySmall,
-						color = MaterialTheme.colorScheme.outline,
+						color = MaterialTheme.colorScheme.onBackground,
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 				},

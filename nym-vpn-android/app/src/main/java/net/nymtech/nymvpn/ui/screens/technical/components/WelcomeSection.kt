@@ -34,7 +34,7 @@ fun WelcomeSection(modifier: Modifier = Modifier) {
 		Image(
 			painter = painterResource(R.drawable.app_label),
 			contentDescription = stringResource(R.string.app_name),
-			colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+			colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer),
 			contentScale = ContentScale.Fit,
 			modifier = Modifier.size(110.dp.scaledWidth()),
 			alignment = Alignment.Center,
@@ -42,13 +42,13 @@ fun WelcomeSection(modifier: Modifier = Modifier) {
 		Text(
 			text = stringResource(R.string.welcome_title),
 			style = MaterialTheme.typography.titleLarge,
-			color = MaterialTheme.colorScheme.onBackground,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		)
 		Text(
 			text = stringResource(R.string.welcome_description),
 			style = MaterialTheme.typography.bodyMedium,
-			color = MaterialTheme.colorScheme.outline,
+			color = MaterialTheme.colorScheme.onBackground,
 			textAlign = TextAlign.Center,
 			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 		)

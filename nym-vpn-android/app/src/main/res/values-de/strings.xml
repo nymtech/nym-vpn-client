@@ -317,19 +317,16 @@
 	<string name="censorship_quic_title">Verbesserte Verbindung (QUIC)</string>
 	<string name="censorship_quic_changes">Änderungen werden nach dem erneuten Verbinden übernommen</string>
 	<string name="censorship_quic_description">Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken, indem WireGuard-Datenverkehr in QUIC (HTTP/3) eingehüllt wird. Der Datenverkehr erscheint wie normales Webbrowsing im Internet und umgeht so Deep Packet Inspection (DPI)-Zensursysteme.\n\nHinweis: Beschränkt die Optionen für Eintrittsserver auf QUIC-kompatible Server.</string>
-	<string name="censorship_quic_link_text">Wie QUIC die Verbindungen verbessert</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
+    <string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth-API-Verbindung</string>
 	<string name="censorship_stealth_description">Versteckt API-Anfragen hinter beliebten, zugelassenen Domains, um VPN-Blockierungen zu umgehen. Wird von NymVPN automatisch verwendet, wenn Standard-API Verbindungsversuche fehlschlagen.</string>
-	<string name="censorship_stealth_link_text">Wie der Stealth-API-Verbindungsmodus funktioniert</string>
-	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">Erneut verbinden, um die QUIC-Einstellungen zu übernehmen…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Es werden nur Server angezeigt, die den Schnellmodus und das QUIC-Protokoll unterstützen. Um alle Server anzuzeigen, deaktiviere QUIC</string>
 	<string name="censorship_amnezia_title">Minimale Verschleierung (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Erschwert die Erkennung von WireGuard Datenverkehr. Führt Scheinpakete ein, die einfache Regeln stören, die häufig von Deep Packet Inspection (DPI)-Zensursystemen verwendet werden. So wird die Verbindungszuverlässigkeit in restriktiven Umgebungen verbessert. \n\nHinweis: Nur clientseitig implementiert.</string>
-	<string name="censorship_amnezia_link_text">Wie AmneziaWG DPI verhindert</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/de-de/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+    <string name="censorship_amnezia_link">https://support.nym.com/hc/de-de/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡ Sofort &amp; anonym </string>
 	<string name="account_welcome_create_description">Mit einem Tipp zum Kauf. Ein anonymes Konto wird auf deinem Gerät erstellt. Kein Passwort, keine persönlichen Daten.</string>

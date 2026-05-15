@@ -92,7 +92,7 @@ fun VpnAccountSummary.toBandwidthUiState(): BandwidthUiState {
 		0f
 	}
 
-	val resetFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+	val resetFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 	val resetDateStr = this.trafficResetTime?.toZonedDateTime()?.format(resetFormatter) ?: "Unknown"
 
 	return BandwidthUiState(

@@ -317,19 +317,16 @@
 	<string name="censorship_quic_title">উন্নত সংযোগ (QUIC)</string>
 	<string name="censorship_quic_changes">পুনরায় সংযোগের পর পরিবর্তন কার্যকর হবে</string>
 	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
-	<string name="censorship_quic_link_text">QUIC কীভাবে সংযোগ উন্নত করে</string>
-	<string name="censorship_quic_link">সেন্সরশিপ-বাইপাস (QUIC) (ভুল ও অস্পষ্ট শব্দ ঠিক)</string>
+    <string name="censorship_quic_link">সেন্সরশিপ-বাইপাস (QUIC) (ভুল ও অস্পষ্ট শব্দ ঠিক)</string>
 	<string name="censorship_stealth_title">স্টেলথ API সংযোগ</string>
 	<string name="censorship_stealth_description">অনুমোদিত জনপ্রিয় ডোমেইনের আড়ালে API অনুরোধ লুকিয়ে VPN ব্লক বাইপাস করে। সাধারণ সংযোগের প্রচেষ্টা ব্যর্থ হলে এটি স্বয়ংক্রিয়ভাবে সক্রিয় হয়।</string>
-	<string name="censorship_stealth_link_text">স্টেলথ API সংযোগ মোড কীভাবে কাজ করে</string>
-	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">QUIC সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">শুধু ফাস্ট মোডের লোকেশন ও QUIC-সমর্থিত সার্ভার দেখানো হচ্ছে। সব সার্ভার দেখতে QUIC বন্ধ করুন</string>
 	<string name="censorship_amnezia_title">ন্যূনতম ওবফাসকেশন (Amnezia WG)</string>
 	<string name="censorship_amnezia_description">WireGuard ট্রাফিক শনাক্ত করা কঠিন করে তোলে। এটি ডিকয় (প্রতারণামূলক) প্যাকেট প্রয়োগ করে যা সাধারণত Deep Packet Inspection (DPI) সিস্টেমে ব্যবহৃত সরল নিয়মগুলো ব্যাহত করে, ফলে সীমাবদ্ধ নেটওয়ার্কে সংযোগের নির্ভরযোগ্যতা বাড়ে। নোট: শুধুমাত্র ক্লায়েন্ট-সাইডে বাস্তবায়িত</string>
-	<string name="censorship_amnezia_link_text">Amnezia WG কীভাবে DPI প্রতিহত করে</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+    <string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">🔒 Maximum privacy</string>
 	<string name="account_welcome_create_description">Create an anonymous Nym account, no personal info required</string>
