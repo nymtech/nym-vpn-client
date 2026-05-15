@@ -93,8 +93,10 @@ windows = { version = "0.61.3", features = [
 winreg = "0.52"
 
 [target.'cfg(target_os = "linux")'.dependencies]
+procfs = "0.18.0"
 freedesktop-desktop-entry = "0.8"
 freedesktop-icons = "0.4"
+notify = "6.1"
 
 [profile.release]
 codegen-units = 1

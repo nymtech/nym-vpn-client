@@ -65,6 +65,7 @@ export const useMainState = (): AppState =>
       backendFlags: s.backendFlags,
       networkEnv: s.networkEnv,
       version: s.version,
+      linuxAppUpdated: s.linuxAppUpdated,
       error: s.error,
       progressMessages: s.progressMessages,
       tunnelConnectedAt: s.tunnelConnectedAt,

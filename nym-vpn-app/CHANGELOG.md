@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support quick connect algorithm
 - New UI 🚀
 - Domain fronting (stealth api) toggle
+- (linux) Prompt user for app restart after update
 
 ## [1.29.4] - 2026-05-07
 

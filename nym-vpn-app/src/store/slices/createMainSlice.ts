@@ -51,6 +51,7 @@ export type StateAction =
   | { type: 'connect' }
   | { type: 'disconnect' }
   | { type: 'set-version'; version: string }
+  | { type: 'set-linux-app-updated'; updated: boolean }
   | { type: 'set-tunnel-connected'; tunnel: Tunnel }
   | { type: 'set-tunnel-disconnected' }
   | { type: 'set-tunnel-connecting'; state: ConnectingState }
@@ -110,6 +111,7 @@ export const initialState: AppState = {
   daemonStatus: 'down',
   networkEnv: 'mainnet',
   version: null,
+  linuxAppUpdated: false,
   vpnMode: 'wg',
   uiTheme: 'light',
   themeMode: DefaultThemeMode,
@@ -300,6 +302,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-version':
         set({ version: action.version });
+        break;
+
+      case 'set-linux-app-updated':
+        set({ linuxAppUpdated: action.updated });
         break;
 
       case 'set-tunnel-connected':

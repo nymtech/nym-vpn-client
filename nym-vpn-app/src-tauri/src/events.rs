@@ -14,6 +14,8 @@ pub const EVENT_TUNNEL_STATE: &str = "tunnel-state";
 pub const EVENT_ACCOUNT_STATE: &str = "account-state";
 pub const EVENT_VPN_CONFIG: &str = "vpn-config";
 pub const EVENT_MIXNET: &str = "mixnet-event";
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+pub const EVENT_UPDATE_PENDING: &str = "update-pending";
 
 #[derive(Clone, Serialize, TS)]
 #[ts(export, export_to = "tauri.ts")]
