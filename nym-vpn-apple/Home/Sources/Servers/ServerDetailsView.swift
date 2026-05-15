@@ -619,9 +619,9 @@ private extension ServerDetailsView {
 #endif
         switch hopType {
         case .entry:
-            connectionManager.entryGateway = .gateway(gateway.id)
+            connectionManager.setEntryGateway(.gateway(gateway.id))
         case .exit:
-            connectionManager.exitRouter = .gateway(gateway.id)
+            connectionManager.setExitGateway(.gateway(gateway.id))
         }
         path = .init()
     }

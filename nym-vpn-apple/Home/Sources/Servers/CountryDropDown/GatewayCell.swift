@@ -121,9 +121,9 @@ private extension GatewayCell {
         ImpactGenerator.shared.softImpact()
         switch hopType {
         case .entry:
-            connectionManager.entryGateway = .gateway(server.id)
+            connectionManager.setEntryGateway(.gateway(server.id))
         case .exit:
-            connectionManager.exitRouter = .gateway(server.id)
+            connectionManager.setExitGateway(.gateway(server.id))
         }
         path = .init()
     }

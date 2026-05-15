@@ -10,16 +10,19 @@ import Theme
 public struct ArcProgressView: View {
     public let state: ArcProgressState
     public let mode: ArcProgressMode
+    public let connectedDate: Date?
 
     @State private var lastStep: ArcProgressState.Step?
     @Environment(\.colorScheme) private var colorScheme
 
     public init(
         state: ArcProgressState,
-        mode: ArcProgressMode = .fast
+        mode: ArcProgressMode = .fast,
+        connectedDate: Date? = nil
     ) {
         self.state = state
         self.mode = mode
+        self.connectedDate = connectedDate
     }
 
     public var body: some View {
@@ -27,8 +30,15 @@ public struct ArcProgressView: View {
             arcStack
                 .frame(width: Constants.canvasSize, height: Constants.canvasSize)
 
-            label
+            Text(labelText)
+                .font(.system(size: Constants.labelFontSize))
+                .foregroundColor(labelColor)
                 .frame(minHeight: Constants.labelMinHeight)
+                .animation(.easeOut(duration: 0.3), value: state)
+                .animation(.easeInOut(duration: 0.2), value: labelColor)
+        }
+        .overlay(alignment: .top) {
+            timerOverlay
         }
         .onAppear { recordStepIfActive(state) }
         .onChange(of: state) { _, newValue in
@@ -117,13 +127,18 @@ private extension ArcProgressView {
             .animation(.easeOut(duration: 0.32), value: state)
     }
 
-    var label: some View {
-        Text(labelText)
-            .font(.system(size: Constants.labelFontSize))
-            .foregroundColor(labelColor)
-            .opacity(state == .connected ? 0 : 1)
-            .animation(.easeOut(duration: 0.3), value: state)
-            .animation(.easeInOut(duration: 0.2), value: labelColor)
+    @ViewBuilder
+    var timerOverlay: some View {
+        if state == .connected, let connectedDate {
+            TimelineView(.periodic(from: connectedDate, by: 1.0)) { context in
+                Text(verbatim: fastHMS(from: connectedDate, to: context.date))
+                    .font(.system(size: Constants.labelFontSize))
+                    .foregroundColor(Color.Nym.primary)
+                    .monospacedDigit()
+            }
+            .id(connectedDate)
+            .offset(y: Constants.timerTopOffset)
+        }
     }
 
     var sweepAnimation: Animation {
@@ -178,18 +193,25 @@ private extension ArcProgressView {
         case .disconnected:
             return "arcProgress.notProtected".localizedString
         case .connected:
-            return "arcProgress.connected".localizedString
+            switch mode {
+            case .fast:      return "arcProgress.fastModeProtection".localizedString
+            case .anonymous: return "arcProgress.anonymousModeProtection".localizedString
+            }
         case .failed:
             return "arcProgress.connectionFailed".localizedString
         case .canceling:
-            return lastStep.map(stepLabel) ?? ""
+            return "arcProgress.disconnecting".localizedString
         case .step(let step):
             return stepLabel(step)
         }
     }
 
     var labelColor: Color {
-        state == .failed ? Constants.errorFill : Color.Nym.textTertiary
+        switch state {
+        case .failed:               return Constants.errorFill
+        case .connected, .step:     return Color.Nym.primary
+        case .disconnected, .canceling: return Color.Nym.textTertiary
+        }
     }
 
     func progress(for ring: Ring) -> CGFloat {
@@ -237,6 +259,14 @@ private extension ArcProgressView {
         StrokeStyle(lineWidth: Constants.strokeWidth, lineCap: .round)
     }
 
+    func fastHMS(from start: Date, to now: Date) -> String {
+        let total = max(0, Int(now.timeIntervalSince(start)))
+        let hours = total / 3600
+        let minutes = (total / 60) % 60
+        let seconds = total % 60
+        return String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
+
     enum Ring {
         case outer, middle, inner
 
@@ -266,6 +296,11 @@ private extension ArcProgressView {
         static let labelFontSize: CGFloat = 11
         static let labelTopSpacing: CGFloat = 14
         static let labelMinHeight: CGFloat = 14
+        /// Vertical offset from ArcView's top edge to the timer baseline.
+        /// Places the timer ~4pt below the bottom of the label line so it
+        /// hangs visually below ArcView's frame without contributing to
+        /// parent layout (overlay isn't clipped by default).
+        static let timerTopOffset: CGFloat = canvasSize + labelTopSpacing + labelMinHeight + 4
 
         static let glowConnectedOpacity: Double = 0.55
 

@@ -3,7 +3,7 @@ import NymVPNLib
 import ConnectionTypes
 
 extension ExitRouter {
-    var exitPoint: ExitPoint {
+    public var exitPoint: ExitPoint {
         switch self {
         case let .country(code):
             .country(twoLetterIsoCountryCode: code)

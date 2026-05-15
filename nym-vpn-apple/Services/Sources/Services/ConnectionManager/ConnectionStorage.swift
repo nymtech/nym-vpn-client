@@ -30,15 +30,10 @@ import GatewayManager
     }
 
     var connectionConfig: ConnectionConfig {
-        willSet {
-            previousConnectionConfig = connectionConfig
-        }
         didSet {
             appSettings.connectionConfig = connectionConfig.toJson()
         }
     }
-
-    var previousConnectionConfig: ConnectionConfig?
 
     public init(
         appSettings: AppSettings,
