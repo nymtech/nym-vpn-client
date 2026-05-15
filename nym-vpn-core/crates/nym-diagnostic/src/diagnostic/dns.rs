@@ -59,12 +59,18 @@ impl DnsDiagnostic {
     pub async fn run_diagnostic(network: &Network) -> CompleteDnsReport {
         tracing::info!("Running DNS diagnostic");
 
+        #[cfg(not(target_os = "android"))]
         let system_dns = hickory_resolver::system_conf::read_system_conf()
             .inspect_err(|err| {
                 tracing::warn!("Failed to obtain system dns config: {err}");
             })
             .map(|(resolver_config, _opts)| resolver_config.name_servers)
             .unwrap_or_default();
+        // Hickory fails due to missing JavaVM context
+        // See: https://github.com/hickory-dns/hickory-dns/issues/3625
+        // TODO: FIXME
+        #[cfg(target_os = "android")]
+        let system_dns = vec![];
 
         let many_diagnostic = DnsDiagnostic {
             hostnames: hostnames(network),
