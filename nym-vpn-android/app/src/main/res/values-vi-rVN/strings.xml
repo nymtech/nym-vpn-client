@@ -315,19 +315,16 @@
 	<string name="censorship_quic_title">Kết nối nâng cao (QUIC)</string>
 	<string name="censorship_quic_changes">Thay đổi sẽ có hiệu lực sau khi kết nối lại</string>
 	<string name="censorship_quic_description">Cải thiện độ ổn định của chế độ Nhanh trong các mạng hạn chế bằng cách gói lưu lượng WireGuard trong QUIC (HTTP/3) để hiển thị như trình duyệt web thông thường.\n\nLưu ý: Giới hạn tùy chọn máy chủ vào chỉ dành cho các cổng tương thích với QUIC.</string>
-	<string name="censorship_quic_link_text">Cách QUIC cải thiện kết nối</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
+    <string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Kết nối API Ẩn danh</string>
 	<string name="censorship_stealth_description">Ẩn yêu cầu API phía sau các tên miền phổ biến, được phép để vượt qua chặn VPN. Tự động được NymVPN sử dụng sau khi kết nối API tiêu chuẩn thất bại.</string>
-	<string name="censorship_stealth_link_text">Cách chế độ kết nối API Ẩn danh hoạt động</string>
-	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">Đang kết nối lại để áp dụng các cài đặt QUIC…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Chỉ hiển thị các vị trí trong chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, hãy tắt QUIC</string>
 	<string name="censorship_amnezia_title">Mức độ che giấu tối thiểu (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Giúp lưu lượng WireGuard khó bị phát hiện hơn. Đưa vào các gói tin mồi nhử phá vỡ các quy tắc đơn giản thường được sử dụng bởi các hệ thống kiểm duyệt Kiểm tra gói sâu (DPI), cải thiện độ tin cậy của kết nối trong các môi trường hạn chế. \n\nLưu ý: Chỉ được triển khai ở phía máy khách.</string>
-	<string name="censorship_amnezia_link_text">AmneziaWG ngăn chặn DPI như thế nào</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+    <string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡ Nhanh chóng &amp; ẩn danh </string>
 	<string name="account_welcome_create_description">Chỉ một chạm để thanh toán. Tài khoản ẩn danh được tạo trên thiết bị của bạn. Không cần mật khẩu, không tiết lộ thông tin cá nhân.</string>

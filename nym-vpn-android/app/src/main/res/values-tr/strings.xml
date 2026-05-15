@@ -315,20 +315,17 @@
 	<string name="censorship_quic_title">Geliştirilmiş bağlantı (QUIC)</string>
 	<string name="censorship_quic_changes">Değişiklikler, yeniden bağlandıktan sonra uygulanacaktır.</string>
 	<string name="censorship_quic_description">Kısıtlayıcı ağlarda Hızlı modunun güvenilirliğini artırır; WireGuard trafiğini QUIC (HTTP/3) içinde paketleyerek normal web trafiği gibi görünmesini sağlar.\n\nNot: Giriş sunucusu seçeneklerini yalnızca QUIC uyumlu sunucular ile sınırlar.</string>
-	<string name="censorship_quic_link_text">QUIC bağlantıları nasıl iyileştirir</string>
-	<string name="censorship_quic_link">https://nym.com/features/quic</string>
+    <string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API (Gizlilik odaklı API) bağlantısı</string>
 	<string name="censorship_stealth_description">API isteklerini VPN engelini aşmak için popüler ve izin verilen alan adlarının arkasına gizler. Standart API bağlantı denemeleri başarısız olduğunda NymVPN tarafından otomatik olarak kullanılır.</string>
-	<string name="censorship_stealth_link_text">Stealth API bağlantı modu nasıl çalışır</string>
-	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">QUIC ayarlarını uygulamak için yeniden bağlanıyor…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Sadece Hızlı mod lokasyonları ve QUIC protokolünü destekleyen sunucular gösteriliyor. Tüm sunucuları görmek için QUIC\'i kapatın.</string>
 	<string name="censorship_amnezia_title">Minimum gizleme (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">WireGuard trafiğinin tespit edilmesini zorlaştırır.
 Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kuralları bozmak için sahte paketler (decoy packets) ekler ve bu da kısıtlayıcı ortamlarda bağlantı güvenilirliğini artırır. \n\nNot: Yalnızca istemci tarafında uygulanmıştır.</string>
-	<string name="censorship_amnezia_link_text">AmneziaWG, DPI’yi nasıl engeller?</string>
-	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+    <string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">🔒 Maximum privacy</string>
 	<string name="account_welcome_create_description">Tek dokunuşla ödeme. Cihazınızda anonim bir hesap oluşturulur. Şifre yok, kişisel bilgi yok.</string>

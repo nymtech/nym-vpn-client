@@ -94,7 +94,8 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 			},
 			modifier = Modifier
 				.fillMaxWidth()
-				.height(54.dp.scaledHeight()),
+				.height(48.dp.scaledHeight()),
+			shape = RoundedCornerShape(12.dp),
 		)
 
 		uiState.report?.let {
@@ -110,7 +111,8 @@ fun DiagnosticScreen(uiState: DiagnosticUiState, onRunClick: () -> Unit, onShare
 				borderColor = MaterialTheme.colorScheme.onBackground,
 				modifier = Modifier
 					.fillMaxWidth()
-					.height(54.dp.scaledHeight()),
+					.height(48.dp.scaledHeight()),
+				shape = RoundedCornerShape(12.dp),
 			)
 		}
 

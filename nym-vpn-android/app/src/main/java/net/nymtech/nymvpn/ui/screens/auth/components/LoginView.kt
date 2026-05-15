@@ -60,19 +60,12 @@ fun LoginView(onBackClick: () -> Unit, onPassphraseClick: () -> Unit, onSocialCl
 				modifier = Modifier.align(Alignment.Center),
 			)
 		}
-
 		Text(
 			text = stringResource(R.string.auth_log_in_title),
 			style = MaterialTheme.typography.headlineSmall,
 			color = MaterialTheme.colorScheme.onPrimaryContainer,
+			modifier = Modifier.padding(20.dp),
 		)
-		Text(
-			text = stringResource(R.string.auth_welcome_description),
-			style = MaterialTheme.typography.bodyMedium,
-			color = MaterialTheme.colorScheme.onSurface,
-			textAlign = TextAlign.Center,
-		)
-
 		MainStyledButton(
 			onClick = onPassphraseClick,
 			content = {

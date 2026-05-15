@@ -233,7 +233,8 @@ fun LogsScreenContent(
 			.windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Bottom)),
 	) {
 		Card(
-			modifier = Modifier.fillMaxWidth(),
+			modifier = Modifier.fillMaxWidth()
+				.padding(top = 16.dp),
 			shape = RoundedCornerShape(8.dp),
 			colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
 		) {
