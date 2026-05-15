@@ -250,12 +250,14 @@ private extension PassphraseView {
                         .foregroundStyle(Color.Nym.textPrimary)
                         .nymTextStyle(.bodyDefaultBold)
                         .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
                     Spacer()
                         .frame(height: 8)
                     Text("passohrase.loseSubtitle".localizedString)
                         .foregroundStyle(Color.Nym.textPrimary)
                         .nymTextStyle(.bodyDefault)
                         .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer()
             }

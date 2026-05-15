@@ -1,20 +1,13 @@
 import SwiftUI
-import AppSettings
-import CredentialsManager
-import Routes
 import Theme
 import UIComponents
 
 public struct LaunchView: View {
-    @EnvironmentObject private var appSettings: AppSettings
-    @EnvironmentObject private var credentialsManager: CredentialsManager
     @Binding private var splashScreenDidDisplay: Bool
-    @Binding private var path: NavigationPath
     @State private var logoOpacity: Double = 0.0
 
-    public init(splashScreenDidDisplay: Binding<Bool>, path: Binding<NavigationPath>) {
+    public init(splashScreenDidDisplay: Binding<Bool>) {
         _splashScreenDidDisplay = splashScreenDidDisplay
-        _path = path
     }
 
     public var body: some View {
@@ -22,7 +15,7 @@ public struct LaunchView: View {
             .navigationBarBackButtonHidden(true)
             .opacity(logoOpacity)
             .background {
-                NymColor.background
+                Color.Nym.background
                     .ignoresSafeArea()
             }
             .task {
@@ -32,9 +25,6 @@ public struct LaunchView: View {
                     Task {
                         try? await Task.sleep(for: .seconds(0.3))
                         splashScreenDidDisplay = true
-                        path = (
-                            !appSettings.onboardingDidDisplay && !credentialsManager.isValidCredentialImported
-                        ) ? NavigationPath([HomeLink.onboarding]) : .init()
                     }
                 }
             }
