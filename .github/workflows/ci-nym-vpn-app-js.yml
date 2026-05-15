@@ -30,6 +30,7 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: nym-vpn-app/package-lock.json
+          package-manager-cache: false
 
       - name: Install dependencies
         working-directory: nym-vpn-app
