@@ -3773,7 +3773,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.62.2",
+ "windows-core 0.58.0",
 ]
 
 [[package]]
@@ -5108,7 +5108,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bs58",
  "celes",
@@ -5161,7 +5161,7 @@ dependencies = [
 [[package]]
 name = "nym-authenticator-client"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bincode",
  "futures",
@@ -5184,7 +5184,7 @@ dependencies = [
 [[package]]
 name = "nym-authenticator-requests"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -5208,7 +5208,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "async-trait",
  "log",
@@ -5226,7 +5226,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "const-str",
  "log",
@@ -5268,7 +5268,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5328,7 +5328,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-config-types"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -5344,7 +5344,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-gateways-storage"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5364,7 +5364,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-surb-storage"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5383,7 +5383,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5397,7 +5397,7 @@ dependencies = [
 [[package]]
 name = "nym-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -5414,7 +5414,7 @@ dependencies = [
 [[package]]
 name = "nym-compact-ecash"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bincode",
  "bs58",
@@ -5437,7 +5437,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "dirs",
  "handlebars",
@@ -5470,7 +5470,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -5485,7 +5485,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-proxy-requests"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -5506,7 +5506,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5527,7 +5527,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -5546,7 +5546,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bincode",
  "cosmrs",
@@ -5570,7 +5570,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-bls12_381-fork",
  "nym-compact-ecash",
@@ -5589,7 +5589,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "aead",
  "aes 0.8.4",
@@ -5704,7 +5704,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-contract-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -5718,7 +5718,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-signer-check-types"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-coconut-dkg-common",
  "nym-crypto",
@@ -5734,7 +5734,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-time"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -5752,7 +5752,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "serde",
  "serde_json",
@@ -5794,7 +5794,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -5858,7 +5858,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bs58",
  "futures",
@@ -5888,7 +5888,7 @@ dependencies = [
 [[package]]
 name = "nym-group-contract-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -5900,7 +5900,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "async-trait",
  "bincode",
@@ -5933,7 +5933,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client-macro"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -5945,7 +5945,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bincode",
  "serde",
@@ -5956,7 +5956,7 @@ dependencies = [
 [[package]]
 name = "nym-id"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -5984,7 +5984,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-client"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bincode",
  "bytes",
@@ -6000,7 +6000,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-requests"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bincode",
  "bytes",
@@ -6048,7 +6048,7 @@ dependencies = [
 [[package]]
 name = "nym-kkt"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "libcrux-chacha20poly1305",
  "libcrux-ecdh",
@@ -6069,7 +6069,7 @@ dependencies = [
 [[package]]
 name = "nym-kkt-ciphersuite"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "blake3",
  "libcrux-sha3",
@@ -6083,7 +6083,7 @@ dependencies = [
 [[package]]
 name = "nym-kkt-context"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "num_enum",
  "nym-kkt-ciphersuite",
@@ -6093,7 +6093,7 @@ dependencies = [
 [[package]]
 name = "nym-lp"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bs58",
  "bytes",
@@ -6123,7 +6123,7 @@ dependencies = [
 [[package]]
 name = "nym-metrics"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -6134,7 +6134,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-client"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "dashmap",
  "futures",
@@ -6150,7 +6150,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-contract-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -6171,7 +6171,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6187,7 +6187,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "cargo_metadata 0.19.2",
  "dotenvy",
@@ -6204,7 +6204,7 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "celes",
  "humantime-serde",
@@ -6229,7 +6229,7 @@ dependencies = [
 [[package]]
 name = "nym-noise"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "arc-swap",
  "bytes",
@@ -6250,7 +6250,7 @@ dependencies = [
 [[package]]
 name = "nym-noise-keys"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-crypto",
  "schemars 0.8.22",
@@ -6261,7 +6261,7 @@ dependencies = [
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -6291,7 +6291,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "log",
  "thiserror 2.0.18",
@@ -6300,7 +6300,7 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "blake3",
  "chacha20 0.9.1",
@@ -6314,7 +6314,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "pem",
  "tracing",
@@ -6324,7 +6324,7 @@ dependencies = [
 [[package]]
 name = "nym-performance-contract-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6352,7 +6352,7 @@ dependencies = [
 [[package]]
 name = "nym-registration-client"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bincode",
  "bytes",
@@ -6379,7 +6379,7 @@ dependencies = [
 [[package]]
 name = "nym-registration-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bincode",
  "nym-authenticator-requests",
@@ -6416,7 +6416,7 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6474,7 +6474,7 @@ dependencies = [
 [[package]]
 name = "nym-serde-helpers"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -6486,7 +6486,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-requests-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
@@ -6495,7 +6495,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "async-trait",
  "log",
@@ -6519,7 +6519,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "anyhow",
  "dirs",
@@ -6576,7 +6576,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bytes",
  "futures",
@@ -6599,7 +6599,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bincode",
  "log",
@@ -6615,7 +6615,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-crypto",
  "nym-metrics",
@@ -6641,7 +6641,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -6658,7 +6658,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -6669,7 +6669,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -6687,7 +6687,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "dashmap",
  "log",
@@ -6706,7 +6706,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -6724,7 +6724,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-anonymous-replies",
@@ -6736,7 +6736,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "bytes",
  "cfg-if",
@@ -6753,7 +6753,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -6764,7 +6764,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -6774,7 +6774,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -6823,7 +6823,7 @@ dependencies = [
 [[package]]
 name = "nym-sqlx-pool-guard"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "proc_pidinfo",
  "sqlx",
@@ -6867,7 +6867,7 @@ dependencies = [
 [[package]]
 name = "nym-statistics-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "futures",
  "log",
@@ -6892,7 +6892,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "cfg-if",
  "futures",
@@ -6909,7 +6909,7 @@ dependencies = [
 [[package]]
 name = "nym-ticketbooks-merkle"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -6924,7 +6924,7 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -6944,7 +6944,7 @@ dependencies = [
 [[package]]
 name = "nym-upgrade-mode-check"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "jwt-simple",
  "nym-crypto",
@@ -6961,7 +6961,7 @@ dependencies = [
 [[package]]
 name = "nym-validator-client"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -7011,7 +7011,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7424,7 +7424,7 @@ dependencies = [
 [[package]]
 name = "nym-wasm-utils"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -7486,7 +7486,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-private-metadata-client"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "async-trait",
  "nym-http-api-client",
@@ -7497,7 +7497,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-private-metadata-shared"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "axum 0.7.9",
  "bincode",
@@ -7511,7 +7511,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-types"
 version = "1.20.4"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#0c83ae2408ea9efcc1abae613711c6e4e16148ad"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.8-urda#850cc6cb9c0525cc9cc901dbfd61b80988f47ba1"
 dependencies = [
  "base64 0.22.1",
  "nym-crypto",
@@ -7862,7 +7862,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d8fae84b431384b68627d0f9b3b1245fcf9f46f6c0e3dc902e9dce64edd1967"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.36.1",
 ]
 
 [[package]]
@@ -8525,7 +8525,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "343d3bd7056eda839b03204e68deff7d1b13aba7af2b2fd16890697274262ee7"
 dependencies = [
  "heck",
- "itertools 0.14.0",
+ "itertools 0.11.0",
  "log",
  "multimap",
  "petgraph",
@@ -8546,7 +8546,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.14.0",
+ "itertools 0.11.0",
  "proc-macro2",
  "quote",
  "syn 2.0.117",
@@ -8559,7 +8559,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "27c6023962132f4b30eb4c172c91ce92d933da334c59c23cddee82358ddafb0b"
 dependencies = [
  "anyhow",
- "itertools 0.14.0",
+ "itertools 0.11.0",
  "proc-macro2",
  "quote",
  "syn 2.0.117",
@@ -9997,7 +9997,7 @@ version = "1.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4db69cba1110affc0e9f7bcd48bbf87b3f4fc7c61fc9155afd4c469eb3d6c1b"
 dependencies = [
- "errno 0.3.14",
+ "errno 0.2.8",
  "libc",
 ]
 
