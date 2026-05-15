@@ -17,7 +17,6 @@ import {
   FrontingMode,
   GatewaySelectionAlgorithmConfig,
   MixnetTrafficConfig,
-  MixnetTrafficDefaults,
   NetworkCompat,
   NetworkEnv,
   NodeHop,
@@ -159,7 +158,7 @@ export const initialState: AppState = {
     defaultContinuousTraffic: { value: 0, throughput: '' },
     allBackgroundTraffic: [],
     allContinuousTraffic: [],
-  } as MixnetTrafficDefaults,
+  },
   splitTunnel: { enabled: false, apps: [] },
   gatewaySelectionAlgorithmConfig: {
     enableGeoLocation: true,

@@ -70,11 +70,7 @@ function regionsToUi(
       ...region,
       nodeType: 'region',
       gateways,
-      isSelected: isSelectedNodeType(
-        region,
-        selectedEntry,
-        selectedExit,
-      ) as GwSelectedKind,
+      isSelected: isSelectedNodeType(region, selectedEntry, selectedExit),
     });
     return acc;
   }, []);
