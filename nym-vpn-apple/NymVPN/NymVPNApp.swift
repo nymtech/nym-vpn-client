@@ -13,7 +13,6 @@ import Home
 import ImpactGenerator
 import Extensions
 import KeyboardManager
-import MessagesManager
 import Migrations
 import NymLogger
 import NotificationsManager
@@ -121,7 +120,6 @@ private extension NymVPNApp {
             CredentialsManager.shared.setup()
             FeatureFlagsManager.shared.setup()
             GatewayManager.shared.setup()
-            MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
