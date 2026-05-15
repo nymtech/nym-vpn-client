@@ -367,7 +367,7 @@ private extension SettingsViewModel {
             accessory: .toggle(
                 isOn: Binding(
                     get: { [weak appSettings] in appSettings?.isAdBlockerEnabled ?? false },
-                    set: { [weak appSettings] in appSettings?.isAdBlockerEnabled = $0 }
+                    set: { [weak connectionManager] in connectionManager?.setAdBlocking($0) }
                 )
             ),
             title: "settings.adblock.title".localizedString,
@@ -393,7 +393,7 @@ private extension SettingsViewModel {
                 accessory: .toggle(
                     isOn: Binding(
                         get: { [weak appSettings] in appSettings?.isIPv6TrafficEnabled ?? true },
-                        set: { [weak appSettings] in appSettings?.isIPv6TrafficEnabled = $0 }
+                        set: { [weak connectionManager] in connectionManager?.setIPv6TrafficEnabled($0) }
                     )
                 ),
                 title: "settings.ipv6.title".localizedString,
@@ -408,7 +408,7 @@ private extension SettingsViewModel {
                 accessory: .toggle(
                     isOn: Binding(
                         get: { [weak appSettings] in appSettings?.isLanBypassEnabled ?? false },
-                        set: { [weak appSettings] in appSettings?.isLanBypassEnabled = $0 }
+                        set: { [weak connectionManager] in connectionManager?.setLanBypassEnabled($0) }
                     )
                 ),
                 title: "settings.lanBypass.title".localizedString,

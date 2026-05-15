@@ -387,21 +387,11 @@ private extension HomeViewModel {
 extension HomeViewModel {
     @MainActor func updateUI(with status: TunnelStatus) {
         guard status != lastTunnelStatus else { return }
-        let newStatus: TunnelStatus
+        let newStatus: TunnelStatus = status
 #if os(iOS)
-        // TODO: remove once tunnel supports reconnect
-        // Fake satus, until we get support from the tunnel
-        if connectionManager.isReconnecting &&
-            (status == .disconnecting || status == .disconnected || status == .connecting) {
-            newStatus = .reasserting
-        } else {
-            newStatus = status
-        }
         if newStatus == .connected {
             impactGenerator.success()
         }
-#elseif os(macOS)
-        newStatus = status
 #endif
         lastTunnelStatus = newStatus
         withAnimation { [weak self] in
@@ -441,6 +431,6 @@ extension HomeViewModel {
     func changeConnectionType(with type: ConnectionType) {
         impactGenerator.softImpact()
         guard connectionManager.connectionType != type else { return }
-        connectionManager.connectionType = type
+        connectionManager.setTwoHop(type == .wireguard)
     }
 }

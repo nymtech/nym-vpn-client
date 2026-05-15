@@ -64,7 +64,6 @@ public struct AppFeatureView: View {
                 drawer
             }
             .animation(.spring, value: viewModel.drawerContent == nil)
-            .animation(Constants.Backdrop.animation, value: drawerHeight)
             .navigationDestination(for: HomeLink.self, destination: linkDestination)
 #if os(iOS)
             .toolbar(.hidden, for: .navigationBar)
@@ -139,14 +138,9 @@ private extension AppFeatureView {
             ConnectionStatusBackdrop(viewModel: viewModel.connectionStatus)
             Spacer(minLength: 0)
             Color.clear
-                .frame(height: drawerFootprint)
+                .frame(height: Constants.Backdrop.drawerReserve)
                 .accessibilityHidden(true)
         }
-    }
-
-    var drawerFootprint: CGFloat {
-        guard drawerHeight > 0 else { return 0 }
-        return drawerHeight + NymSpacing.large
     }
 
     @ViewBuilder var drawer: some View {
@@ -203,6 +197,7 @@ private extension AppFeatureView {
                 imageSize: Constants.NavigationBar.LeadingIcon.size,
                 accessibilityLabel: "home.navigationBar.theme.accessibilityLabel".localizedString
             ) {
+                impactGenerator.softImpact()
                 viewModel.leadingButtonTapped()
             }
             .padding(.leading, NymSpacing.small)
@@ -212,6 +207,7 @@ private extension AppFeatureView {
                 imageSize: Constants.NavigationBar.TrailingIcon.size,
                 accessibilityLabel: "home.navigationBar.settings.accessibilityLabel".localizedString
             ) {
+                impactGenerator.softImpact()
                 viewModel.path.append(HomeLink.settings)
             }
             .padding(.leading, NymSpacing.small)
@@ -327,7 +323,10 @@ private extension AppFeatureView {
         }
 
         enum Backdrop {
-            static let animation = SwiftUI.Animation.spring(response: 0.35, dampingFraction: 0.8)
+            /// Fixed bottom reservation used by `connectionStatusBackdrop` so the
+            /// arc center stays stable regardless of the drawer's measured height.
+            /// Approximates a typical OneClick drawer card + bottom safe area.
+            static let drawerReserve: CGFloat = 200
         }
     }
 }
