@@ -22,33 +22,46 @@ export default defineConfig(() => ({
   // 3. to make use of `TAURI_DEBUG` and other env variables
   envPrefix: ['VITE_', 'TAURI_', 'APP_'],
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          // put the following packages in their own chunk
-          // to reduce main chunk size
-          tauri: [
-            '@tauri-apps/api',
-            '@tauri-apps/plugin-autostart',
-            '@tauri-apps/plugin-clipboard-manager',
-            '@tauri-apps/plugin-dialog',
-            '@tauri-apps/plugin-notification',
-            '@tauri-apps/plugin-opener',
-            '@tauri-apps/plugin-os',
-            '@tauri-apps/plugin-process',
-            '@tauri-apps/plugin-updater',
-            '@tauri-apps/plugin-window-state',
+        codeSplitting: {
+          groups: [
+            {
+              name: 'tauri',
+              test: /@tauri-apps/,
+              priority: 70,
+            },
+            {
+              name: 'ui',
+              test: /@(headlessui|radix-ui|base-ui)/,
+              priority: 60,
+            },
+            {
+              name: 'lodash',
+              test: /lodash/,
+              priority: 50,
+            },
+            {
+              name: 'lottie',
+              test: /lottie/,
+              priority: 40,
+            },
+            {
+              name: 'motion',
+              test: /[\\/]motion[\\/]/,
+              priority: 30,
+            },
+            {
+              name: 'i18next',
+              test: /i18next/,
+              priority: 20,
+            },
+            {
+              name: 'react',
+              test: /node_modules[\\/](react|react-dom|react-router|react-window|react-is|scheduler|use-sync-external-store)([\\/]|$)/,
+              priority: 10,
+            },
           ],
-          motion: ['motion'],
-          i18next: ['i18next', 'i18next-browser-languagedetector'],
-          ui: [
-            '@headlessui/react',
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-toast',
-          ],
-          lodash: ['lodash-es'],
-          lottie: ['@lottiefiles/dotlottie-react'],
         },
       },
     },
