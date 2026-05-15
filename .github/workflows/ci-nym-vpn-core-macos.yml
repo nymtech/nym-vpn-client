@@ -34,18 +34,21 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
       - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
 
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION}}
+          go-version: ${{ env.GOLANG_VERSION}}
           cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Install Protoc
