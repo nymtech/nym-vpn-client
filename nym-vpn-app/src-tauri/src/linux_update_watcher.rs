@@ -51,7 +51,6 @@ fn update_detected(binary_path: &Path) -> bool {
         return true;
     }
 
-
     let running_ino = match std::fs::metadata("/proc/self/exe") {
         Ok(m) => m.st_ino(),
         Err(e) => {
