@@ -113,10 +113,14 @@ dependencies {
 val envNdkProvider = providers.environmentVariable("ANDROID_NDK_HOME")
 val propNdkProvider = providers.gradleProperty("android.ndkDirectory")
 val sdkDirProvider = androidComponents.sdkComponents.sdkDirectory
+val releaseVariants = setOf(Constants.RELEASE, Constants.PRERELEASE, Constants.NIGHTLY)
+val isReleaseBuild = gradle.startParameter.taskRequests
+	.flatMap { it.args }
+	.any { arg -> releaseVariants.any { variant -> arg.contains(variant, ignoreCase = true) } }
 
 val releaseBuildProvider = providers.gradleProperty("releaseBuild")
 	.map { it == "true" }
-	.orElse(false)
+	.orElse(isReleaseBuild)
 
 val skipBuildProvider = providers.gradleProperty(Constants.BUILD_LIB_TASK)
 	.map { it == "false" }
