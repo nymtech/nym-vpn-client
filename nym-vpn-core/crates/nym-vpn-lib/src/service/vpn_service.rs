@@ -8,7 +8,7 @@ use std::{
     sync::Arc,
 };
 
-use futures::{FutureExt, StreamExt, future::Fuse};
+use futures::{FutureExt, StreamExt, future::{Fuse, FusedFuture}};
 use nym_diagnostic::DiagnosticHandler;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
@@ -826,9 +826,14 @@ impl NymVpnService {
         }
     }
 
-    async fn reconnect_tunnel(&self) -> bool {
+    async fn reconnect_tunnel(&mut self) -> bool {
         match self.target_state {
             TargetState::Secured => {
+                // Flush any pending throttled settings update so the tunnel rebuild
+                // sees the latest tunnel_settings rather than racing the 1s throttle.
+                if !self.tunnel_settings_update_timer.is_terminated() {
+                    self.update_tunnel_settings_immediate();
+                }
                 self.statistics_event_sender.report_connection_request();
                 let _ = self.command_sender.send(TunnelCommand::Connect);
                 true
@@ -852,6 +857,14 @@ impl NymVpnService {
             }
             TargetState::Unsecured => self.update_tunnel_settings(),
         }
+    }
+
+    // Apply settings immediately, bypassing the throttle. Used for structural
+    // changes (tunnel_type, enable_bridges) that require a full tunnel rebuild
+    // and may be followed by an immediate reconnect_tunnel() from the client.
+    fn update_tunnel_settings_immediate(&mut self) {
+        self.tunnel_settings_update_timer.set(Fuse::terminated());
+        self.update_tunnel_settings();
     }
 
     fn handle_tunnel_event(&mut self, event: TunnelEvent) {
@@ -1279,7 +1292,7 @@ impl NymVpnService {
 
     async fn handle_set_enable_two_hop(&mut self, enable_two_hop: bool) {
         self.config_manager.set_enable_two_hop(enable_two_hop).await;
-        self.update_tunnel_settings_with_throttle();
+        self.update_tunnel_settings_immediate();
     }
 
     async fn handle_set_netstack(&mut self, netstack: bool) {
@@ -1294,7 +1307,7 @@ impl NymVpnService {
 
     async fn handle_set_enable_bridges(&mut self, enable_bridges: bool) {
         self.config_manager.set_enable_bridges(enable_bridges).await;
-        self.update_tunnel_settings_with_throttle();
+        self.update_tunnel_settings_immediate();
     }
 
     async fn handle_set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {

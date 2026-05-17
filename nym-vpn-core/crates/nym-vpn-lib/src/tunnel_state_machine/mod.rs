@@ -70,7 +70,7 @@ use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
+    GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
     SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
@@ -143,8 +143,7 @@ pub struct TunnelSettings {
     /// Whether to enable support for IPv6.
     pub enable_ipv6: bool,
 
-    /// Type of tunnel. This is persisted across different `GatewaySelectionAlgorithm`s,
-    /// but is disregarded for `GatewaySelectionAlgorithm::Auto` selection
+    /// Type of tunnel. Honored across all `GatewaySelectionAlgorithm`s, including `Auto`.
     pub tunnel_type: TunnelType,
 
     /// Allow LAN connections outside of tunnel.
@@ -192,20 +191,10 @@ pub struct TunnelSettings {
 }
 
 impl TunnelSettings {
-    /// The tunnel type to be used
-    /// If the gateway selection algorithm is set to Auto, the tunnel_type is
-    /// disregarded and Wireguard mode is used, otherwise it's just the
-    /// configured tunnel_type
+    /// The tunnel type to be used. Always honors the configured `tunnel_type`,
+    /// regardless of gateway selection algorithm.
     pub fn tunnel_type_used(&self) -> TunnelType {
-        if matches!(
-            self.gateway_selection_algorithm_config
-                .gateway_selection_algorithm,
-            GatewaySelectionAlgorithm::Auto
-        ) {
-            TunnelType::Wireguard
-        } else {
-            self.tunnel_type
-        }
+        self.tunnel_type
     }
 
     #[cfg(not(any(target_os = "android")))]
@@ -361,7 +350,6 @@ impl TunnelSettingsDiffFields {
             Self::EnableIpv6
             | Self::TunnelType
             | Self::ResidentialExit
-            | Self::QUIC
             | Self::EntryPoint
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
@@ -380,8 +368,8 @@ impl TunnelSettingsDiffFields {
             Self::MixnetTunnelOptions | Self::MixnetPerformanceOptions => {
                 tunnel_type == TunnelType::Mixnet
             }
-            // As LP is only Wg mode, only reconnect if two-hop mode. This will change in the future
-            Self::WireguardTunnelOptions | Self::EnableLewesProtocol => {
+            // QUIC bridges and Lewes/LP are wg-only — no reconnect when in mixnet mode.
+            Self::QUIC | Self::WireguardTunnelOptions | Self::EnableLewesProtocol => {
                 tunnel_type == TunnelType::Wireguard
             }
         }

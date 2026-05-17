@@ -29,9 +29,10 @@ class CensorshipViewModel @Inject constructor(private val backendManager: Backen
 	fun onQUICEnabled(enabled: Boolean) = viewModelScope.launch {
 		runCatching {
 			settingsRepository.setQUICEnabled(enabled)
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetEnableBridges(enabled))
 			if (vpnConfigRepository.getConfig().mode == Tunnel.Mode.TWO_HOP_MIXNET) {
-				backendManager.requestReconnect()
 				notifyReconnectIfConnected()
+				backendManager.requestReconnect()
 			}
 		}.onFailure {
 			Timber.e(it, "Failed to update QUIC setting")

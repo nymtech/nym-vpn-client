@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{SinkExt, StreamExt, prelude::stream::SplitSink};
-use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
+use nym_ip_packet_client::{IprListener, MixnetMessageOutcome, lp_stream};
 use nym_sdk::mixnet::{EventReceiver, MixTrafficEvent, MixnetClient, MixnetClientEvent};
 use tokio::task::JoinHandle;
 use tokio_util::{codec::Framed, sync::CancellationToken};
@@ -69,7 +69,16 @@ impl MixnetListener {
                     }
                 }
                 reconstructed_message = self.mixnet_client.next() => match reconstructed_message {
-                    Some(reconstructed_message) => {
+                    Some(mut reconstructed_message) => {
+                        // v9 IPR responses arrive wrapped in an LP SphinxStream frame.
+                        // IprListener's bincode path reads message.message directly, so
+                        // strip the LP header here or deserialization leaves trailing bytes.
+                        let unwrapped =
+                            lp_stream::maybe_unwrap_lp_stream_payload_from_reconstructed(
+                                &reconstructed_message,
+                            )
+                            .to_vec();
+                        reconstructed_message.message = unwrapped;
                         // We're just going to assume that all incoming messags are IPR messages
                         match self.ipr_listener.handle_reconstructed_message(reconstructed_message).await {
                             Ok(Some(MixnetMessageOutcome::IpPackets(packets))) => {
