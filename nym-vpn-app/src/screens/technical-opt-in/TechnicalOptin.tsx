@@ -3,11 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
-import {
-  AnonNetworkStatsUrl,
-  PrivacyPolicyUrl,
-  SentryHomePage,
-} from '../../constants';
+import { AnonNetworkStatsUrl, PrivacyPolicyUrl } from '../../constants';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { ButtonNew, Link, Switch } from '../../ui';
