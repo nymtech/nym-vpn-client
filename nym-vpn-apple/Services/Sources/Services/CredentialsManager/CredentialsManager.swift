@@ -32,7 +32,7 @@ import PathManager
 
     public static let shared = CredentialsManager()
 
-    public var deviceIdentifier: String?
+    @Published public var deviceIdentifier: String?
     @Published public var accountIdentifier: String?
     @Published public var didReceiveAccountLinkCallback = false
     @Published public var didReceiveSubscriptionPayment = false

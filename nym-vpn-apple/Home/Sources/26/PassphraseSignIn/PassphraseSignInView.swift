@@ -101,7 +101,7 @@ private extension PassphraseSignInView {
             return Color.Nym.error
         }
         return colorScheme == .dark
-            ? Color.white.opacity(0.4)
+            ? Color.Nym.textPrimary.opacity(0.4)
             : Color.Nym.textPrimary.opacity(0.3)
     }
 }

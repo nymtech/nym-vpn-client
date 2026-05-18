@@ -238,7 +238,7 @@ private extension OneClickView {
     func scoreBars(score: OneClickServerScore) -> some View {
         Image(systemName: "cellularbars", variableValue: score.variableValue)
             .symbolRenderingMode(.palette)
-            .foregroundStyle(score.activeColor, Color.Nym.icon.opacity(0.35))
+            .foregroundStyle(score.activeColor, Color.Nym.textTertiary.opacity(0.35))
             .font(.system(size: Constants.ScoreBars.iconSize))
             .frame(width: Constants.ScoreBars.frameSize, height: Constants.ScoreBars.frameSize)
             .accessibilityHidden(true)
@@ -255,7 +255,7 @@ private extension OneClickView {
         ) {
             viewModel.upCaretTapped()
         }
-        .foregroundStyle(Color.Nym.gray1)
+        .foregroundStyle(Color.Nym.textTertiary)
         .opacity(caretOpacity(showWhen: animatedDisplayMode != .nerd))
         .disabled(!viewModel.canChangeDisplayMode)
     }
@@ -271,7 +271,7 @@ private extension OneClickView {
         ) {
             viewModel.downCaretTapped()
         }
-        .foregroundStyle(Color.Nym.gray1)
+        .foregroundStyle(Color.Nym.textTertiary)
         .opacity(caretOpacity(showWhen: true))
         .disabled(!viewModel.canChangeDisplayMode)
     }

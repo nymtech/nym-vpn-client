@@ -8,12 +8,14 @@ public struct CopyButton: View {
 
     public var body: some View {
         GenericImage(imageName: didCopy ? "checkmarkSeeThrough" : "copy")
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("accessibility.doubleTap.copy".localizedString)
-            .accessibilityAddTraits([.isButton])
             .animation(.easeInOut, value: didCopy)
             .foregroundStyle(Color.Nym.textSecondary)
             .frame(width: 20, height: 20)
+            .padding(12)
+            .contentShape(Rectangle())
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("accessibility.doubleTap.copy".localizedString)
+            .accessibilityAddTraits([.isButton])
             .onTapGesture {
                 copyAction()
             }
