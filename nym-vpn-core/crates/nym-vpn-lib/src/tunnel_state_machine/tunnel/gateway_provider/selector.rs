@@ -276,23 +276,29 @@ fn loop_select(
     tunnel_settings: &TunnelSettings,
     device_location: Option<&Location>,
 ) -> Result<(Gateway, Gateway), GatewayProviderError> {
+    let mut exit_error = None;
     loop {
         let entry_gateway = select_entry(
             entry_gateways.clone(),
             blacklisted_entry_gateways,
             tunnel_settings,
             device_location,
-        )?;
-        if let Ok(exit_gateway) = select_exit(
+        )
+        // if we failed previously on exit selection, we return that error
+        // entry error is returned if there was no previous exit selection error
+        .or_else(|entry_error| Err(exit_error.unwrap_or(entry_error)))?;
+        match select_exit(
             &entry_gateway,
             exit_gateways.clone(),
             tunnel_settings,
             device_location,
         ) {
-            return Ok((entry_gateway, exit_gateway));
-        } else {
-            entry_gateways
-                .retain_gateways_by(|gateway| gateway.identity() != entry_gateway.identity());
+            Ok(exit_gateway) => return Ok((entry_gateway, exit_gateway)),
+            Err(err) => {
+                exit_error = Some(err);
+                entry_gateways
+                    .retain_gateways_by(|gateway| gateway.identity() != entry_gateway.identity());
+            }
         }
     }
 }
