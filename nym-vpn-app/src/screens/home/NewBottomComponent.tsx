@@ -334,22 +334,22 @@ export function NewBottomComponent() {
       case 'connected':
         return t('status.connected');
       case 'disconnected':
+      case 'unknown':
         return t('status.disconnected');
       case 'connecting':
+      case 'offline-auto-reconnect':
         return t('status.connecting');
       case 'disconnecting':
         return t('status.disconnecting');
       case 'offline':
         return t('status.offline');
+      case 'error':
+        return t('status.error');
     }
   };
 
   const getButtonVariant = (): ButtonVariant => {
-    if (!account) {
-      return 'primary';
-    }
-
-    if (needAPlan) {
+    if (!account || needAPlan) {
       return 'primary';
     }
 
@@ -367,6 +367,17 @@ export function NewBottomComponent() {
       case 'unknown':
         return 'outlined';
     }
+  };
+
+  const getButtonDisabled = () => {
+    if (daemonStatus === 'auth-denied') return false;
+
+    return (
+      daemonStatus === 'down' ||
+      state === 'offline' ||
+      state === 'disconnecting' ||
+      accountState === 'pending-subscription'
+    );
   };
 
   return (
@@ -444,7 +455,8 @@ export function NewBottomComponent() {
         {/* Button ───────────────────────────────────────────────────────── */}
         <div className="z-10">
           <ButtonNew
-            disabled={daemonStatus === 'down'}
+            // disabled={daemonStatus === 'down'}
+            disabled={getButtonDisabled()}
             variant={getButtonVariant()}
             onClick={handleConnect}
           >
