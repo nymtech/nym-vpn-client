@@ -19,11 +19,11 @@ export function PassphraseEnter() {
 
   const { add, close } = useToast();
 
-  const { daemonStatus, state } = useAppStore(
+  const { daemonStatus, state, technicalOptinSeen } = useAppStore(
     useShallow((s) => ({
       daemonStatus: s.daemonStatus,
       state: s.state,
-      welcomeChecked: s.welcomeChecked,
+      technicalOptinSeen: s.technicalOptinSeen,
       uiTheme: s.uiTheme,
     })),
   );
@@ -67,7 +67,11 @@ export function PassphraseEnter() {
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
 
-      navigate(routes.root);
+      if (!technicalOptinSeen) {
+        navigate(routes.technicalOptin);
+      } else {
+        navigate(routes.root);
+      }
 
       close('tunnel-running-login-error');
     } catch (e: unknown) {
