@@ -101,9 +101,9 @@ private extension SpeedModeToggle {
         case (true, .dark):
             Color.Nym.background
         case (false, .dark):
-            Color.Nym.gray12
+            Color.Nym.backgroundCard
         default:
-            Color.Nym.white
+            Color.Nym.backgroundCard
         }
     }
 

@@ -1,6 +1,7 @@
 import Foundation
 
 enum AppDrawerContent: Equatable {
+    case technicalOptIns
     case welcome
     case processing
     case oneClick
@@ -26,25 +27,33 @@ enum AppDrawerContent: Equatable {
         return false
     }
 
+    var isTechnicalOptIns: Bool {
+        if case .technicalOptIns = self {
+            return true
+        }
+        return false
+    }
+
     /// True when an imported credential should promote the drawer to
-    /// `.processing` (and on completion to `.oneClick`). Pre-auth surfaces
-    /// qualify; the post-auth `.processing` and `.oneClick` drawers do not.
+    /// `.processing` (and on completion to `.oneClick` or `.technicalOptIns`).
+    /// Only `.welcome` qualifies; `.technicalOptIns` is reached after
+    /// processing, and `.processing`/`.oneClick` are post-auth.
     var allowsCredentialPromotion: Bool {
         switch self {
         case .welcome:
             return true
-        case .processing, .oneClick:
+        case .technicalOptIns, .processing, .oneClick:
             return false
         }
     }
 
-    /// Coarse identity used by `DrawerView` to decide when to slide. Welcome
-    /// and processing share the `preauth` identity so the drawer stays put
-    /// and we can animate the swap internally instead of sliding the whole
-    /// modal down/up.
+    /// Coarse identity used by `DrawerView` to decide when to slide. Welcome,
+    /// processing and opt-ins share the `preauth` identity so the drawer stays
+    /// put across the auth → processing → tech-opt-ins handoff and we can
+    /// animate swaps internally instead of sliding the modal down/up.
     var slideID: AppDrawerSlideID {
         switch self {
-        case .welcome, .processing:
+        case .welcome, .processing, .technicalOptIns:
             return .preauth
         case .oneClick:
             return .oneClick

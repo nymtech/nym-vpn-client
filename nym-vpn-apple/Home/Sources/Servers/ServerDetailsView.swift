@@ -467,9 +467,14 @@ private extension ServerDetailsView {
                 GenericImage(imageName: "copy")
                     .frame(width: 24, height: 24)
                     .foregroundStyle(Color.Nym.textPrimary)
+                    .padding(10)
+                    .contentShape(Rectangle())
                     .onTapGesture {
                         copyToPasteboard()
                     }
+                    .accessibilityLabel("gatewayInfo.copyIdentityKey".localizedString)
+                    .accessibilityHint("accessibility.doubleTap.copy".localizedString)
+                    .accessibilityAddTraits([.isButton])
                     .accessibilityAction {
                         copyToPasteboard()
                     }

@@ -27,6 +27,7 @@ import GRPCManager
     var pendingDrawerContent: AppDrawerContent?
     private(set) var processingViewModel: ProcessingAccountViewModel?
 
+    @ObservationIgnored private var pendingPlanPurchaseAfterOptIns = false
     @ObservationIgnored public var onRequestPlanPurchase: (() -> Void)?
 
     var accountSummary: AccountSummary?
@@ -93,13 +94,12 @@ import GRPCManager
 #endif
 
     private func finishInit() {
-        drawerContent = appSettings.isCredentialImported ? .oneClick : .welcome
+        drawerContent = initialDrawerContent()
         accountSummary = credentialsManager.accountSummary
         accountIdentifier = credentialsManager.accountIdentifier
         deviceIdentifier = credentialsManager.deviceIdentifier
         accountSummaryFetchFailed = credentialsManager.accountSummaryLastFetchFailed
 
-        observeCredentialStatus()
         observeAccountFields()
         wireConnectionStatusDelegates()
     }
@@ -121,6 +121,26 @@ import GRPCManager
         appSettings.currentAppearance = appSettings.currentAppearance == .dark ? .light : .dark
     }
 
+    func technicalOptInsContinueTapped() {
+        appSettings.welcomeScreenDidDisplay = true
+        let purchaseAfter = pendingPlanPurchaseAfterOptIns
+        pendingPlanPurchaseAfterOptIns = false
+
+        if appSettings.isCredentialImported {
+            pendingDrawerContent = .oneClick
+            if purchaseAfter || !credentialsManager.isAccountActive() {
+                onRequestPlanPurchase?()
+            }
+        } else {
+            pendingDrawerContent = .welcome
+        }
+    }
+
+    private func initialDrawerContent() -> AppDrawerContent {
+        guard appSettings.isCredentialImported else { return .welcome }
+        return appSettings.welcomeScreenDidDisplay ? .oneClick : .technicalOptIns
+    }
+
     func drawerTransitionCompleted() {
         if let pending = pendingDrawerContent {
             drawerContent = pending
@@ -128,6 +148,20 @@ import GRPCManager
         }
         if drawerContent?.isProcessing == false {
             processingViewModel = nil
+        }
+    }
+
+    func handleCredentialChange(imported: Bool) {
+        guard let current = drawerContent else { return }
+        if imported {
+            guard current.allowsCredentialPromotion else { return }
+            startProcessingTransition()
+        } else {
+            pendingDrawerContent = nil
+            cancelProcessingTransition()
+            if current != .welcome {
+                drawerContent = .welcome
+            }
         }
     }
 }
@@ -159,16 +193,6 @@ private extension AppFeatureViewModel {
         )
     }
 
-    func observeCredentialStatus() {
-        appSettings.$isCredentialImportedPublisher
-            .removeDuplicates()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] imported in
-                self?.applyCredentialStatus(imported: imported)
-            }
-            .store(in: &cancellables)
-    }
-
     func observeAccountFields() {
         credentialsManager.$accountSummary
             .receive(on: DispatchQueue.main)
@@ -180,34 +204,15 @@ private extension AppFeatureViewModel {
             .sink { [weak self] in self?.accountIdentifier = $0 }
             .store(in: &cancellables)
 
+        credentialsManager.$deviceIdentifier
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.deviceIdentifier = $0 }
+            .store(in: &cancellables)
+
         credentialsManager.$accountSummaryLastFetchFailed
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.accountSummaryFetchFailed = $0 }
             .store(in: &cancellables)
-    }
-
-    func applyCredentialStatus(imported: Bool) {
-        deviceIdentifier = credentialsManager.deviceIdentifier
-
-        guard let current = drawerContent
-        else {
-            drawerContent = imported ? .oneClick : .welcome
-            return
-        }
-
-        if imported {
-            guard current.allowsCredentialPromotion
-            else {
-                return
-            }
-            startProcessingTransition()
-        } else {
-            pendingDrawerContent = nil
-            cancelProcessingTransition()
-            if !current.isWelcome {
-                drawerContent = .welcome
-            }
-        }
     }
 
     func startProcessingTransition() {
@@ -231,8 +236,16 @@ private extension AppFeatureViewModel {
 
     func processingDidFinish() {
         guard drawerContent?.isProcessing == true else { return }
+        let needsPurchase = !credentialsManager.isAccountActive()
+
+        if !appSettings.welcomeScreenDidDisplay {
+            pendingPlanPurchaseAfterOptIns = needsPurchase
+            pendingDrawerContent = .technicalOptIns
+            return
+        }
+
         pendingDrawerContent = .oneClick
-        if !credentialsManager.isAccountActive() {
+        if needsPurchase {
             onRequestPlanPurchase?()
         }
     }
