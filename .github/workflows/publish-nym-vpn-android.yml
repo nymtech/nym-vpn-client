@@ -300,6 +300,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
       - name: Setup ruby
         uses: ruby/setup-ruby@v1
         with:
@@ -324,7 +327,7 @@ jobs:
         uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: ${{ vars.REQUIRED_NDK_VERSION }}
+          ndk-version: ${{ env.NDK_VERSION }}
           add-to-path: false
 
       - name: Set env
@@ -339,7 +342,7 @@ jobs:
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          toolchain: ${{ env.RUST_VERSION }}
           targets: aarch64-linux-android,x86_64-linux-android
 
       - name: Install cargo-ndk

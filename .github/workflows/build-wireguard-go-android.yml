@@ -21,12 +21,15 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
       - name: Cache libwg
         uses: actions/cache@v5
         id: cache
         with:
           path: build/lib
-          key: libwg-android-go${{ vars.REQUIRED_GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: libwg-android-go${{ env.GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
 
       - name: Install system dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -36,7 +39,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v6
         with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
+          go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Setup NDK
@@ -44,7 +47,7 @@ jobs:
         uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: ${{ vars.REQUIRED_NDK_VERSION }}
+          ndk-version: ${{ env.NDK_VERSION }}
           add-to-path: false
 
       - name: Set env
