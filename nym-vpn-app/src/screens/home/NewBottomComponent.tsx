@@ -341,6 +341,8 @@ export function NewBottomComponent() {
         return t('status.disconnecting');
       case 'offline':
         return t('status.offline');
+      case 'error':
+        return t('stop', { ns: 'glossary' });
     }
   };
 
