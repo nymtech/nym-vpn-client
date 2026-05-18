@@ -345,7 +345,7 @@ export function NewBottomComponent() {
       case 'offline':
         return t('status.offline');
       case 'error':
-        return t('status.error');
+        return t('stop', { ns: 'glossary' });
     }
   };
 
