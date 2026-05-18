@@ -20,47 +20,43 @@ import { NodeRow } from './NodeRow';
 export type FoldState = 0 | 1 | 2;
 
 const DURATION = 0.3;
+const easeOutQuart = [0.22, 1, 0.36, 1] as const;
 
 type ChevronProps = { onUp?: () => void; onDown?: () => void };
 
 function Chevrons({ onUp, onDown }: ChevronProps) {
-  const state = useAppStore((s) => s.state);
-
-  const disabled =
-    state === 'connected' ||
-    state === 'connecting' ||
-    state === 'offline-auto-reconnect' ||
-    state === 'error';
-
   if (!onUp && !onDown) return null;
 
   return (
-    <div className="flex shrink-0 flex-col items-center">
+    <motion.div
+      initial={{ x: -24, opacity: 0, width: 0, marginLeft: -8 }}
+      animate={{ x: 0, opacity: 1, width: 'auto', marginLeft: 0 }}
+      exit={{ x: 24, opacity: 0, width: 0, marginLeft: -8 }}
+      transition={{ duration: DURATION, ease: easeOutQuart }}
+      style={{ overflow: 'hidden' }}
+      className="flex shrink-0 flex-col items-center"
+    >
       <button
-        disabled={disabled}
         type="button"
         onClick={onUp}
         className={clsx([
-          'text-text-secondary cursor-default leading-none transition-all',
+          'text-text-secondary hover:text-baltic-sea cursor-default leading-none transition-all dark:hover:text-white',
           onUp ? 'opacity-100' : 'opacity-0',
-          !disabled && 'hover:text-baltic-sea dark:hover:text-white',
         ])}
       >
         <MsIcon icon="keyboard_arrow_up" className="text-xl! leading-none" />
       </button>
       <button
-        disabled={disabled}
         type="button"
         onClick={onDown}
         className={clsx([
-          'text-text-secondary cursor-default leading-none transition-all',
+          'text-text-secondary hover:text-baltic-sea cursor-default leading-none transition-all dark:hover:text-white',
           onDown ? 'opacity-100' : 'opacity-0',
-          !disabled && 'hover:text-baltic-sea dark:hover:text-white',
         ])}
       >
         <MsIcon icon="keyboard_arrow_down" className="text-xl! leading-none" />
       </button>
-    </div>
+    </motion.div>
   );
 }
 
@@ -152,6 +148,7 @@ function ModeToggle() {
                 animate={{ opacity: 1, rotateX: 0 }}
                 exit={{ opacity: 0, rotateX: -90 }}
                 transition={{ duration: 0.1 }}
+                style={{ fontVariationSettings: "'FILL' 1" }}
                 className={clsx([
                   'font-icon inline-block text-2xl select-none rtl:-scale-x-100',
                   'shrink-0 text-xl!',
@@ -182,12 +179,16 @@ function ModeToggle() {
   );
 }
 
-const easeOutQuart = [0.22, 1, 0.36, 1] as const;
-
 export function NewBottomComponent() {
   const navigate = useAnimatedNavigate();
   const { t } = useTranslation('home');
   const { state, daemonStatus, accountState, account } = useMainState();
+
+  const chevronsDisabled =
+    state === 'connected' ||
+    state === 'connecting' ||
+    state === 'offline-auto-reconnect' ||
+    state === 'error';
 
   const daemonUnavailable =
     daemonStatus === 'auth-denied' || daemonStatus === 'down';
@@ -334,22 +335,22 @@ export function NewBottomComponent() {
       case 'connected':
         return t('status.connected');
       case 'disconnected':
+      case 'unknown':
         return t('status.disconnected');
       case 'connecting':
+      case 'offline-auto-reconnect':
         return t('status.connecting');
       case 'disconnecting':
         return t('status.disconnecting');
       case 'offline':
         return t('status.offline');
+      case 'error':
+        return t('status.error');
     }
   };
 
   const getButtonVariant = (): ButtonVariant => {
-    if (!account) {
-      return 'primary';
-    }
-
-    if (needAPlan) {
+    if (!account || needAPlan) {
       return 'primary';
     }
 
@@ -367,6 +368,17 @@ export function NewBottomComponent() {
       case 'unknown':
         return 'outlined';
     }
+  };
+
+  const getButtonDisabled = () => {
+    if (daemonStatus === 'auth-denied') return false;
+
+    return (
+      daemonStatus === 'down' ||
+      state === 'offline' ||
+      state === 'disconnecting' ||
+      accountState === 'pending-subscription'
+    );
   };
 
   return (
@@ -402,20 +414,13 @@ export function NewBottomComponent() {
           <div className="flex flex-row items-center gap-2">
             <motion.div className="flex w-full min-w-0 flex-col overflow-hidden">
               <div>
-                <NodeRow
-                  type={
-                    gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm ===
-                    'explicit'
-                      ? 'entry'
-                      : 'exit'
-                  }
-                />
+                <NodeRow type="exit" />
               </div>
               <AnimatePresence initial={false}>
                 {gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm ===
                   'explicit' && (
                   <motion.div
-                    key="exit-node"
+                    key="entry-node"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -423,16 +428,20 @@ export function NewBottomComponent() {
                     className="overflow-hidden"
                   >
                     <div className="pt-4">
-                      <NodeRow type="exit" />
+                      <NodeRow type="entry" />
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </motion.div>
-            <Chevrons
-              onUp={foldState < 2 ? expand : undefined}
-              onDown={foldState === 0 ? undefined : collapse}
-            />
+            <AnimatePresence initial={false}>
+              {!chevronsDisabled && (
+                <Chevrons
+                  onUp={foldState < 2 ? expand : undefined}
+                  onDown={foldState === 0 ? undefined : collapse}
+                />
+              )}
+            </AnimatePresence>
           </div>
         </div>
         {/* ── Main card ─────────────────────────────────────────────────────── */}
@@ -440,7 +449,8 @@ export function NewBottomComponent() {
         {/* Button ───────────────────────────────────────────────────────── */}
         <div className="z-10">
           <ButtonNew
-            disabled={daemonStatus === 'down'}
+            // disabled={daemonStatus === 'down'}
+            disabled={getButtonDisabled()}
             variant={getButtonVariant()}
             onClick={handleConnect}
           >

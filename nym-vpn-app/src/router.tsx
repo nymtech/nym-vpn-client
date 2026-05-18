@@ -28,6 +28,7 @@ import {
   Socks5,
   SplitTunneling,
   Support,
+  TechnicalOptin,
   WelcomeContainer,
 } from './screens';
 
@@ -64,6 +65,7 @@ export const routes = {
   mixnetTuning: '/settings/mixnet-tuning',
   accountSettings: '/settings/account',
   welcome: '/welcome',
+  technicalOptin: '/technical-optin',
 } as const;
 
 // ⚠ router instance creation must remain outside of React
@@ -80,6 +82,11 @@ const router = createBrowserRouter([
       {
         path: routes.root,
         Component: Home,
+        errorElement: <Error />,
+      },
+      {
+        path: routes.technicalOptin,
+        Component: TechnicalOptin,
         errorElement: <Error />,
       },
       {

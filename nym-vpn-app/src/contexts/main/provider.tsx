@@ -38,6 +38,21 @@ function MainStateProvider({ children, init }: Props) {
   useTauriEvents(add, close);
   useAccountSummaryOnAccountState();
 
+  const initGateways = useCallback(async () => {
+    if (gatewaysInit || daemonStatus === 'down') {
+      return;
+    }
+    gatewaysInit = true;
+    const { fetchGateways } = useAppStore.getState();
+    if (vpnMode === 'wg') {
+      await fetchGateways('wg');
+      console.info('[wg] gateways initialized');
+    } else {
+      await Promise.all([fetchGateways('mx-entry'), fetchGateways('mx-exit')]);
+      console.info('[mx-entry + mx-exit] gateways initialized');
+    }
+  }, [daemonStatus, vpnMode]);
+
   // initialize app state
   useEffect(() => {
     daemonStatusUpdate(init.vpnd, add, close);
@@ -109,21 +124,6 @@ function MainStateProvider({ children, init }: Props) {
     };
     querySystemMessages();
   }, [init.vpnd, daemonStatus, add]);
-
-  const initGateways = useCallback(async () => {
-    if (gatewaysInit || daemonStatus === 'down') {
-      return;
-    }
-    gatewaysInit = true;
-    const { fetchGateways } = useAppStore.getState();
-    if (vpnMode === 'wg') {
-      await fetchGateways('wg');
-      console.info('[wg] gateways initialized');
-    } else {
-      await Promise.all([fetchGateways('mx-entry'), fetchGateways('mx-exit')]);
-      console.info('[mx-entry + mx-exit] gateways initialized');
-    }
-  }, [daemonStatus, vpnMode]);
 
   useEffect(() => {
     initGateways();

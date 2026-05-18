@@ -51,13 +51,22 @@ export const languages = [
 
 export const supportedLngs = languages.map((lang) => lang.code);
 
+const localeModules = import.meta.glob<{ default: Locale }>([
+  './*/*.json',
+  '!./en/**',
+]);
+
 const loadLocaleNs = async (
   locale: LngTag,
   ns: Namespaces,
 ): Promise<Locale> => {
-  const module = (await import(`./${locale}/${ns}.json`)) as {
-    default: Locale;
-  };
+  if (locale === 'en') {
+    return en[ns];
+  }
+  const module = await localeModules[`./${locale}/${ns}.json`]?.();
+  if (!module) {
+    throw new Error(`Missing translations for ${locale}/${ns}`);
+  }
   return module.default;
 };
 
