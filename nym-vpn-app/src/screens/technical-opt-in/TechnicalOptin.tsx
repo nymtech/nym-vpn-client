@@ -3,7 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
-import { SentryHomePage } from '../../constants';
+import {
+  AnonNetworkStatsUrl,
+  PrivacyPolicyUrl,
+  SentryHomePage,
+} from '../../constants';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { ButtonNew, Link, Switch } from '../../ui';
@@ -79,12 +83,12 @@ function TechnicalOptin() {
           className="w-full"
           settings={[
             {
-              title: t('error-monitoring-label'),
+              title: t('anonymous-network-stats'),
               desc: (
                 <Link
                   color="iron"
-                  text={t('anon-toggle-desc')}
-                  url={SentryHomePage}
+                  text={t('anonymous-network-stats-toggle-desc')}
+                  url={AnonNetworkStatsUrl}
                 />
               ),
               leadingIcon: 'bug_report',
@@ -98,12 +102,12 @@ function TechnicalOptin() {
               'data-testid': 'welcome-monitoring-option',
             },
             {
-              title: t('network-statistic'),
+              title: t('error-and-crash-reports'),
               desc: (
                 <Link
                   color="iron"
-                  text={t('network-statistic-toggle-desc')}
-                  url={SentryHomePage}
+                  text={t('error-and-crash-reports-toggle-desc')}
+                  url={PrivacyPolicyUrl}
                 />
               ),
               leadingIcon: 'analytics',
