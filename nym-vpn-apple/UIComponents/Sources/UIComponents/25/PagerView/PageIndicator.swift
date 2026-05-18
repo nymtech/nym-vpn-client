@@ -29,6 +29,15 @@ public struct PageIndicator: View {
                     Circle()
                         .frame(width: 8, height: 8)
                         .opacity(selection == index ? 1 : 0.25)
+                        .accessibilityLabel(
+                            String(
+                                format: "onboarding.dot.label".localizedString,
+                                index + 1
+                            )
+                        )
+                        .accessibilityAddTraits(
+                            selection == index ? [.isButton, .isSelected] : [.isButton]
+                        )
                         .onTapGesture {
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 selection = index

@@ -110,6 +110,8 @@ private extension GatewaysView {
                         .nymTextStyle(.bodySmall)
                 }
             }
+            .padding(.horizontal, 16)
+            .frame(maxWidth: MagicNumbers.maxWidth)
             .environment(\.openURL, OpenURLAction { url in
                 if url == URL(string: "app://enable-quic") {
                     viewModel.path.append(HomeLink.settings)

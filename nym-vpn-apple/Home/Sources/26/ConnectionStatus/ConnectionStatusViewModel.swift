@@ -7,6 +7,7 @@ import TunnelStatus
 import UIComponents
 #if os(iOS)
 import ErrorHandler
+import UIKit
 #endif
 
 @Observable
@@ -104,6 +105,7 @@ private extension ConnectionStatusViewModel {
 
     func apply(status newStatus: TunnelStatus) {
         let wasConnecting = status.isConnectingLike
+        let statusChanged = status != newStatus
 
         if case .connecting = newStatus {
             hasFailure = false
@@ -113,6 +115,10 @@ private extension ConnectionStatusViewModel {
         }
 
         status = newStatus
+
+        if statusChanged {
+            announceStatusChange(newStatus)
+        }
 
         switch newStatus {
         case .connected:
@@ -213,6 +219,35 @@ private extension ConnectionStatusViewModel {
     func cancelQueue() {
         queueTask?.cancel()
         queueTask = nil
+    }
+
+    func announceStatusChange(_ newStatus: TunnelStatus) {
+#if os(iOS)
+        guard UIAccessibility.isVoiceOverRunning,
+              let key = accessibilityAnnouncementKey(for: newStatus) else { return }
+        UIAccessibility.post(notification: .announcement, argument: key.localizedString)
+#endif
+    }
+
+    func accessibilityAnnouncementKey(for status: TunnelStatus) -> String? {
+        switch status {
+        case .connected:
+            return "accessibility.tunnelStatus.connected"
+        case .connecting, .reasserting, .restarting:
+            return "accessibility.tunnelStatus.connecting"
+        case .disconnecting:
+            return "accessibility.tunnelStatus.disconnecting"
+        case .disconnected:
+            return "accessibility.tunnelStatus.disconnected"
+        case .offline, .offlineReconnect:
+            return "accessibility.tunnelStatus.offline"
+        case .error:
+            return "accessibility.tunnelStatus.error"
+        case .unknown:
+            return nil
+        @unknown default:
+            return nil
+        }
     }
 }
 

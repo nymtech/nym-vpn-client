@@ -1003,6 +1003,83 @@
         }
       }
     },
+    "accessibility.label.copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.connecting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.disconnected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Disconnected"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.disconnecting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Disconnecting"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connection error"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No internet connection"
+          }
+        }
+      }
+    },
     "accountToken.empty" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2237,28 +2314,6 @@
         }
       }
     },
-    "arcProgress.fastModeProtection" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Fast mode protection"
-          }
-        }
-      }
-    },
-    "arcProgress.disconnecting" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Disconnecting"
-          }
-        }
-      }
-    },
     "arcProgress.connected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2457,6 +2512,28 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Connection failed"
+          }
+        }
+      }
+    },
+    "arcProgress.disconnecting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Disconnecting"
+          }
+        }
+      }
+    },
+    "arcProgress.fastModeProtection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast mode protection"
           }
         }
       }
@@ -12290,6 +12367,17 @@
         }
       }
     },
+    "gatewayInfo.copyIdentityKey" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Copy identity key"
+          }
+        }
+      }
+    },
     "gatewayInfo.datacenter" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21403,6 +21491,50 @@
         }
       }
     },
+    "navigation.back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Back"
+          }
+        }
+      }
+    },
+    "navigation.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "navigation.info" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Information"
+          }
+        }
+      }
+    },
+    "navigation.settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
     "no" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22323,6 +22455,17 @@
         }
       }
     },
+    "onboarding.dot.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Page %d"
+          }
+        }
+      }
+    },
     "onboarding.next" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22330,6 +22473,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Next"
+          }
+        }
+      }
+    },
+    "onboarding.pager.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Feature overview"
+          }
+        }
+      }
+    },
+    "onboarding.pager.position" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Page %1$d of %2$d"
           }
         }
       }
@@ -35554,6 +35719,72 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "our Terms"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.error.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Learn exactly what's shared"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.error.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Error & crash reports"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.stats.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View Privacy Policy"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.stats.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anonymous network stats"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Choose what anonymous data to share. All data is stripped of identifying information before being sent."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Help us improve NymVPN"
           }
         }
       }
