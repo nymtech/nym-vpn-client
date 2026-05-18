@@ -133,7 +133,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         match self.selected_gateways_stream.lock().await.peek().await {
             Some(Ok(selected_gateways)) => TentativeGateways::Selected {
                 entry: Box::new(selected_gateways.entry_gateway().clone().into()),
-                exit: Box::new(selected_gateways.entry_gateway().clone().into()),
+                exit: Box::new(selected_gateways.exit_gateway().clone().into()),
             },
             Some(Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)) => {
                 TentativeGateways::NeedsRelaxedIndependenceCriteria
