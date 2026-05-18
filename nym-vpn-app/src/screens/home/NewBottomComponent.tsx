@@ -414,20 +414,13 @@ export function NewBottomComponent() {
           <div className="flex flex-row items-center gap-2">
             <motion.div className="flex w-full min-w-0 flex-col overflow-hidden">
               <div>
-                <NodeRow
-                  type={
-                    gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm ===
-                    'explicit'
-                      ? 'entry'
-                      : 'exit'
-                  }
-                />
+                <NodeRow type="exit" />
               </div>
               <AnimatePresence initial={false}>
                 {gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm ===
                   'explicit' && (
                   <motion.div
-                    key="exit-node"
+                    key="entry-node"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -435,7 +428,7 @@ export function NewBottomComponent() {
                     className="overflow-hidden"
                   >
                     <div className="pt-4">
-                      <NodeRow type="exit" />
+                      <NodeRow type="entry" />
                     </div>
                   </motion.div>
                 )}
