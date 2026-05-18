@@ -61,6 +61,10 @@ function RowHeader({
         !sub && open && 'rounded-2xl rounded-b-none',
         open && 'rounded-b-none!',
         'group-last/region:rounded-b-2xl',
+        isSelected && 'border-2',
+        (isSelected === hop || isSelected === 'entry-and-exit') &&
+          'border-primary-active',
+        isSelected && isSelected !== hop && 'border-text-secondary',
       )}
     >
       <div
@@ -70,8 +74,6 @@ function RowHeader({
         <LocationInfo
           node={node}
           name={node.nodeType === 'country' ? i18n : node.name}
-          isSelected={isSelected}
-          hop={hop}
           hideFlag={node.nodeType === 'region'}
         />
       </div>

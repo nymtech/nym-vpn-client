@@ -28,7 +28,7 @@ export function initMainStore(init: InitState): void {
   useAppStore.setState({
     vpnMode: init.vpnMode,
     uiTheme: init.uiTheme,
-    welcomeChecked: init.welcomeChecked,
+    technicalOptinSeen: init.technicalOptinSeen,
     entryNode: init.entryNode,
     exitNode: init.exitNode,
     quic: init.quic,
@@ -87,7 +87,7 @@ export const useMainState = (): AppState =>
       allowLan: s.allowLan,
       enableAdBlocking: s.enableAdBlocking,
       networkStats: s.networkStats,
-      welcomeChecked: s.welcomeChecked,
+      technicalOptinSeen: s.technicalOptinSeen,
       quic: s.quic,
       customDnsEnabled: s.customDnsEnabled,
       customDns: s.customDns,

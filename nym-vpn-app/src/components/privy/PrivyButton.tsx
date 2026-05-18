@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
 import { ButtonNew, MsIcon } from '../../ui';
-import { dispatch, useMainState } from '../../store';
+import { dispatch, useAppStore } from '../../store';
 import { useDeepLink, useToast } from '../../hooks';
 import { routes } from '../../router';
 import { CCache } from '../../cache';
@@ -16,7 +16,7 @@ function PrivyButton({ label }: { label: string }) {
 
   const { add } = useToast();
   const { startListening } = useDeepLink();
-  const { welcomeChecked } = useMainState();
+  const technicalOptinSeen = useAppStore((state) => state.technicalOptinSeen);
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -42,8 +42,8 @@ function PrivyButton({ label }: { label: string }) {
         callbackUrl: deeplinkurl,
       });
 
-      if (!welcomeChecked) {
-        navigate(routes.welcome);
+      if (!technicalOptinSeen) {
+        navigate(routes.technicalOptin);
       } else {
         navigate(routes.root);
       }

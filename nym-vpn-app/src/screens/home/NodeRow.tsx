@@ -71,7 +71,7 @@ export function NodeRow({ type }: NodeRowProps) {
   const { getCountryName } = useLang();
   const { t } = useTranslation('home');
 
-  const label = type === 'entry' ? 'Nym entry node' : 'Nym exit node';
+  const label = type === 'entry' ? t('nym-entry-server') : t('nym-exit-server');
 
   const handleClick = () => {
     if (algo === 'auto') return;

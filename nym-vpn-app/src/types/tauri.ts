@@ -80,7 +80,7 @@ export type DbKey =
   | 'ui-theme'
   | 'ui-root-font-size'
   | 'ui-language'
-  | 'welcome-screen-seen'
+  | 'technical-optin-seen'
   | 'desktop-notifications'
   | 'last-network-env'
   | 'network-stats-enabled'
@@ -421,6 +421,7 @@ export type TDiagnosticRunParams = {
   gateway: string | null;
   skipDns: boolean;
   skipHttp: boolean;
+  skipHybridTransport: boolean;
 };
 
 export type TDnsResolution = {
