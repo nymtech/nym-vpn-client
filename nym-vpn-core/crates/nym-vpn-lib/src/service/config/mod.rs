@@ -4,6 +4,7 @@
 mod circumvention;
 mod config_manager;
 mod entry_exit;
+mod gateway_independence;
 mod gateway_selection_algorithm;
 mod geo_exclusion_settings;
 mod legacy;
@@ -39,6 +40,7 @@ use tokio::{
 use crate::service::config::{
     circumvention::v9::FrontingMode,
     entry_exit::v2::{EntryPoint, ExitPoint},
+    gateway_independence::v10::GatewayIndependence,
     gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
     geo_exclusion_settings::v9::GeoExclusionSettings,
     mixnet_traffic::v5::MixnetTrafficConfig,
@@ -212,6 +214,8 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
 
         let fronting_mode = FrontingMode::from(&value.fronting_mode);
 
+        let gateway_independence = GatewayIndependence::from(&value.gateway_independence);
+
         let v10 = v10::VpnServiceConfig {
             entry_point,
             exit_point,
@@ -232,7 +236,7 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             split_tunnel,
             geo_exclusion,
             gateway_selection_algorithm_config,
-            gateway_independence: value.gateway_independence,
+            gateway_independence,
         };
 
         Ok(VpnServiceConfigExt::V10(v10))

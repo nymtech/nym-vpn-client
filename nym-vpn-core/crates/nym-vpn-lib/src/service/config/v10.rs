@@ -7,6 +7,7 @@ use crate::service::{
         VpnServiceConfigExt,
         circumvention::v9::FrontingMode,
         entry_exit::v2::{EntryPoint, ExitPoint},
+        gateway_independence::v10::GatewayIndependence,
         gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
         geo_exclusion_settings::v9::GeoExclusionSettings,
         mixnet_traffic::v5::MixnetTrafficConfig,
@@ -14,7 +15,6 @@ use crate::service::{
         split_tunnel_settings::v8::SplitTunnelSettings,
     },
 };
-use nym_vpn_lib_types::GatewayIndependence;
 use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, str::FromStr};
 
@@ -74,6 +74,8 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
                 value.gateway_selection_algorithm_config,
             );
         let fronting_mode = nym_vpn_lib_types::FrontingMode::from(value.fronting_mode);
+        let gateway_independence =
+            nym_vpn_lib_types::GatewayIndependence::from(value.gateway_independence);
 
         Ok(nym_vpn_lib_types::VpnServiceConfig {
             entry_point,
@@ -95,7 +97,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             split_tunnel,
             geo_exclusion,
             gateway_selection_algorithm_config,
-            gateway_independence: value.gateway_independence,
+            gateway_independence,
         })
     }
 }
