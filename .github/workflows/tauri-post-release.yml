@@ -40,8 +40,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v6
         with:
-          fetch-depth: 1
           ref: "develop"
+          fetch-depth: 0
 
       - name: Install deps
         run: |
@@ -83,7 +83,8 @@ jobs:
         run: |
           ./update_metainfo.sh
 
-      - name: Create PR
+      - name: Create PR against develop
+        id: create_pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
@@ -101,10 +102,36 @@ jobs:
           git add .pkg/linux
           git add nym-vpn-app/.pkg/flatpak
           git commit -m "${{ env.COMMIT_MSG }}"
+          echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           git push --force origin ${{ env.GIT_BRANCH }}
           existing=$(gh pr list --head "${{ env.GIT_BRANCH }}" --json number --jq 'length')
           if [[ "$existing" == "0" ]]; then
             gh pr create --title '${{ env.COMMIT_MSG }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "agentpietrucha"
           else
             echo "PR already exists for branch ${{ env.GIT_BRANCH }}, skipping"
+          fi
+
+      - name: Create PR against release branch
+        if: ${{ github.ref_name != 'develop' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BASE_BRANCH: ${{ github.ref_name }}
+          GIT_BRANCH: "tauri_postrel_${{ inputs.version }}_${{ github.ref_name }}"
+          COMMIT_SHA: ${{ steps.create_pr.outputs.commit_sha }}
+          COMMIT_MSG: "tauri: post release v${{ inputs.version }}"
+          PR_BODY: |
+            - update CHANGELOG.md
+            - bump Linux installer script
+            - update flatpak package metainfo.xml
+        run: |
+          git fetch origin "${BASE_BRANCH}"
+          git switch -C "${GIT_BRANCH}" "origin/${BASE_BRANCH}"
+          git cherry-pick "${COMMIT_SHA}"
+          git push --force origin "${GIT_BRANCH}"
+          existing=$(gh pr list --head "${GIT_BRANCH}" --json number --jq 'length')
+          if [[ "$existing" == "0" ]]; then
+            gh pr create --title "${COMMIT_MSG}" --body "${PR_BODY}" --base "${BASE_BRANCH}" --head "${GIT_BRANCH}" --reviewer "agentpietrucha"
+          else
+            echo "PR already exists for branch ${GIT_BRANCH}, skipping"
           fi
