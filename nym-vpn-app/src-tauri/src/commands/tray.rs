@@ -45,6 +45,16 @@ pub async fn update_tray_exit(
 
 #[instrument(skip_all)]
 #[tauri::command]
+pub async fn update_tray_entry_visible(
+    tray: State<'_, TrayManager>,
+    visible: bool,
+) -> Result<(), BackendError> {
+    tray.update_tray_entry_visible(visible).await;
+    Ok(())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
 pub async fn update_tray_show_hide(
     tray: State<'_, TrayManager>,
     show_hide: String,
