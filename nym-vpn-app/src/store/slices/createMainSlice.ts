@@ -17,7 +17,6 @@ import {
   FrontingMode,
   GatewaySelectionAlgorithmConfig,
   MixnetTrafficConfig,
-  MixnetTrafficDefaults,
   NetworkCompat,
   NetworkEnv,
   NodeHop,
@@ -79,7 +78,7 @@ export type StateAction =
   | { type: 'set-account-state'; state: AccountState }
   | { type: 'set-account-mode'; mode: TAccountMode }
   | { type: 'set-account-syncing'; syncing: boolean }
-  | { type: 'set-welcome-checked'; checked: boolean }
+  | { type: 'set-technical-optin-seen'; seen: boolean }
   | { type: 'set-account-error'; error: AppError | null }
   | { type: 'set-backend-flags'; flags: FeatureFlags }
   | { type: 'set-quic'; enabled: boolean }
@@ -126,7 +125,7 @@ export const initialState: AppState = {
   account: false,
   ipv6Support: true,
   networkStats: false,
-  welcomeChecked: false,
+  technicalOptinSeen: false,
   quic: false,
   allowLan: false,
   frontingMode: 'onRetry',
@@ -157,7 +156,7 @@ export const initialState: AppState = {
     defaultContinuousTraffic: { value: 0, throughput: '' },
     allBackgroundTraffic: [],
     allContinuousTraffic: [],
-  } as MixnetTrafficDefaults,
+  },
   splitTunnel: { enabled: false, apps: [] },
   gatewaySelectionAlgorithmConfig: {
     enableGeoLocation: true,
@@ -439,8 +438,8 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
         set({ accountError: action.error });
         break;
 
-      case 'set-welcome-checked':
-        set({ welcomeChecked: action.checked });
+      case 'set-technical-optin-seen':
+        set({ technicalOptinSeen: action.seen });
         break;
 
       case 'set-backend-flags':

@@ -1,22 +1,14 @@
 import clsx from 'clsx';
-import { SelectedKind, UiCountry, UiRegion } from '../../../types/node';
+import { UiCountry, UiRegion } from '../../../types/node';
 import { FlagIcon, countryCode } from '../../../ui';
 
 type LocationInfoProps = {
   node: UiCountry | UiRegion;
   name: string;
-  isSelected: SelectedKind;
-  hop: 'entry' | 'exit';
   hideFlag?: boolean;
 };
 
-const LocationInfo = ({
-  node,
-  name,
-  isSelected,
-  hop,
-  hideFlag,
-}: LocationInfoProps) => {
+const LocationInfo = ({ node, name, hideFlag }: LocationInfoProps) => {
   const country = node.nodeType === 'country' ? node : node.country;
 
   return (
@@ -28,13 +20,7 @@ const LocationInfo = ({
         <FlagIcon
           code={country.code.toLowerCase() as countryCode}
           alt={country.code}
-          className={clsx(
-            'box-content size-8! min-h-8! min-w-8! rounded-full',
-            isSelected && 'border-2',
-            (isSelected === hop || isSelected === 'entry-and-exit') &&
-              'border-primary-active',
-            isSelected && isSelected !== hop && 'border-text-secondary',
-          )}
+          className={clsx('box-content size-8! min-h-8! min-w-8! rounded-full')}
           data-testid={`country-flag-${country.code}`}
         />
       )}

@@ -25,14 +25,12 @@
   },
   "signup": {
     "title": "Sign Up",
-    "description": "To the next generation of privacy infrastructure.",
     "signup-anonymous-button": "Anonymous account",
     "signup-social-button": "Sign up with socials*",
     "disclaimer": "*Signing up with an existing social account decreases your anonymity."
   },
   "login": {
     "title": "Log in",
-    "description": "To the next generation of privacy infrastructure.",
     "login-24-words-button": "Login with 24 words",
     "login-social-button": "Login using linked socials*",
     "login-social-button-disclaimer": "*You need to connect socials to an existing account first before you can use them for login.",
@@ -40,7 +38,7 @@
   },
   "welcome": {
     "title": "Welcome!",
-    "description": "To the next generation of privacy infrastructure.",
+    "description": "To the world’s most private VPN.",
     "signup-button": "Sign up",
     "login-button": "Login to my account",
     "terms-of-service": "By continuing, you agree to our Terms of Service and acknowledge our Privacy "

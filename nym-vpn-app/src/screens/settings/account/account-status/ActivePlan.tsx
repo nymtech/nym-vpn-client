@@ -25,7 +25,7 @@ export function ActivePlan({
   const resetsOn = useMemo(() => {
     return dayjs
       .unix(Number(accountSummary.trafficResetTime))
-      .format('DD.MM.YYYY');
+      .format('D MMMM YYYY');
   }, [accountSummary]);
 
   return (

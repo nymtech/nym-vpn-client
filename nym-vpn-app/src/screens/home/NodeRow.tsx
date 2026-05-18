@@ -5,7 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@base-ui/react';
 import { useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
-import { FlagIcon, MsIcon, type countryCode } from '../../ui';
+import {
+  FlagIcon,
+  LewesIconComponent,
+  MsIcon,
+  type countryCode,
+} from '../../ui';
 import { useAppStore, useLookupGw } from '../../store';
 import { useLang } from '../../hooks';
 import {
@@ -15,7 +20,7 @@ import {
   isCountry,
   isGateway,
   isRegion,
-} from '../../types/index';
+} from '../../types';
 import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
@@ -66,7 +71,7 @@ export function NodeRow({ type }: NodeRowProps) {
   const { getCountryName } = useLang();
   const { t } = useTranslation('home');
 
-  const label = type === 'entry' ? 'Nym entry node' : 'Nym exit node';
+  const label = type === 'entry' ? t('nym-entry-server') : t('nym-exit-server');
 
   const handleClick = () => {
     if (algo === 'auto') return;
@@ -333,6 +338,7 @@ export function NodeRow({ type }: NodeRowProps) {
               {nodeDetails.showStreamOptimized && (
                 <MsIcon icon="smart_display" className="text-cornflower" />
               )}
+              {gateway && <LewesIconComponent />}
             </div>
           </div>
           <AnimatePresence initial={false}>

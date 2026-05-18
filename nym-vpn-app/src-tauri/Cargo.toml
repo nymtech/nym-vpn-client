@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-app"
-version = "1.30.0-rc1"
+version = "1.30.0-rc2"
 description = "NymVPN desktop client"
 authors = [
     "Nym Technologies SA <contact@nymtech.net>",
@@ -16,7 +16,7 @@ build-info-build = "0.0.42"
 toml = "0.9.5"
 
 [dependencies]
-tauri = { version = "2.9.2", features = ["protocol-asset", "tray-icon", "image-png"] }
+tauri = { version = "2.11.0", features = ["protocol-asset", "tray-icon", "image-png"] }
 tokio = { version = "1.52.1", features = [
     "rt",
     "sync",
