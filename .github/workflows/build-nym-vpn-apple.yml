@@ -65,6 +65,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
       - name: Normalize release_type
         run: |
           set -euo pipefail
@@ -122,7 +125,7 @@ jobs:
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
           targets: x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim
 
@@ -146,7 +149,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
+          go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Get workspace version
