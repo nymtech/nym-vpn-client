@@ -29,7 +29,7 @@ pub enum Key {
     UiTheme,
     UiRootFontSize,
     UiLanguage,
-    WelcomeScreenSeen,
+    TechnicalOptinSeen,
     DesktopNotifications,
     LastNetworkEnv,
     NetworkStatsEnabled,

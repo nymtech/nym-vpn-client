@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { dispatch } from '../../../store/index';
+import { useCallback } from 'react';
+import { dispatch, useAppStore } from '../../../store';
 import { ButtonNew } from '../../../ui';
 import { useDeepLink } from '../../../hooks';
 import { CCache } from '../../../cache';
@@ -12,8 +13,17 @@ import { PrivyButton } from '../../../components';
 export function Signup() {
   const { t, i18n } = useTranslation('login');
   const navigate = useNavigate();
+  const technicalOptinSeen = useAppStore((state) => state.technicalOptinSeen);
 
   const { startListening } = useDeepLink();
+
+  const handleNavigate = useCallback(() => {
+    if (!technicalOptinSeen) {
+      navigate(routes.technicalOptin);
+    } else {
+      navigate(routes.root);
+    }
+  }, [technicalOptinSeen, navigate]);
 
   const handleCreateAccount = async () => {
     const url = await invoke<string>('get_deep_link', {
@@ -36,12 +46,12 @@ export function Signup() {
       await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
 
-      navigate(routes.root);
+      handleNavigate();
     } catch (error) {
       console.error('[Signup] Create account error: ', error);
       // if error, then most likely the deeplink call timed out.
       // But the user might still finish the purchase on the website.
-      navigate(routes.welcome);
+      handleNavigate();
     }
   };
 

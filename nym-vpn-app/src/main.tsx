@@ -127,7 +127,7 @@ dayjs.extend(localizedFormat);
     vpnd: (await invoke<VpndStatus | undefined>('daemon_status')) || 'down',
     vpnMode: config?.vpnMode || defaultVpnMode,
     uiTheme: await getTheme(),
-    welcomeChecked: (await kvGet<boolean>('welcome-screen-seen')) || false,
+    technicalOptinSeen: (await kvGet<boolean>('technical-optin-seen')) || false,
     entryNode: config?.entryNode || DefaultNode,
     exitNode: config?.exitNode || DefaultNode,
     quic: config?.bridges !== undefined ? config.bridges : defaultQuic,

@@ -36,7 +36,7 @@ export type StateDispatch = Dispatch<StateAction>;
 // early stage state used to initialize the main app-state
 export type InitState = {
   uiTheme: UiTheme;
-  welcomeChecked: boolean;
+  technicalOptinSeen: boolean;
   vpnMode: VpnMode;
   vpnd: VpndStatus;
   entryNode: SelectedNode;
@@ -103,7 +103,7 @@ export type AppState = {
   enableAdBlocking: boolean;
   networkStats: boolean;
   // whether the user has completed once the welcome screen
-  welcomeChecked: boolean;
+  technicalOptinSeen: boolean;
   // aka bridges mode
   quic: boolean;
   // current user setting

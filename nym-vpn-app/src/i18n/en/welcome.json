@@ -1,10 +1,10 @@
 {
   "title": "Help us improve NymVPN",
   "description": "Choose what anonymous data to share. All data is stripped of identifying information before being sent.",
-  "anon-toggle-desc": "Helps us fix bugs faster, no personal data collected (via <sentryLink />)",
+  "anon-toggle-desc": "View Sentry Privacy Policy",
   "tos-notice": "By continuing, you agree to NymVPN's <tosLink /> and acknowledge NymVPN's <privacyLink />.",
   "continue-button": "Continue",
-  "error-monitoring-label": "Anonymous error reports",
-  "network-statistic": "Share usage analytics",
-  "network-statistic-toggle-desc": "Helps us improve the Nym network. No logging or activity tracked."
+  "error-monitoring-label": "Anonymous network stats",
+  "network-statistic": "Error & crash reports",
+  "network-statistic-toggle-desc": "Learn exactly what's shared"
 }
