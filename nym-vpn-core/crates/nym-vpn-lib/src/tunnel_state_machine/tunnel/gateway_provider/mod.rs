@@ -8,7 +8,7 @@ mod geo_ip;
 mod independence;
 mod selector;
 
-use std::{sync::Arc, task::Poll};
+use std::{sync::Arc, task::Poll, time::Duration};
 
 use futures::{FutureExt as _, Stream, StreamExt as FuturesStreamExt};
 use nym_gateway_directory::{BlacklistedGateways, GatewayClient, NodeIdentity};
@@ -130,15 +130,23 @@ impl<C: GatewayCache> GatewayProvider<C> {
     }
 
     pub async fn tentative_gateways(&self) -> TentativeGateways {
-        match self.selected_gateways_stream.lock().await.peek().await {
-            Some(Ok(selected_gateways)) => TentativeGateways::Selected {
+        // use a very small timeout because we actually expect the stream to always have a value ready
+        // if it doesn't, there's probably some error, but we shouldn't block the RPC call anyway
+        match tokio::time::timeout(
+            Duration::from_millis(10),
+            self.selected_gateways_stream.lock().await.peek(),
+        )
+        .await
+        {
+            Ok(Some(Ok(selected_gateways))) => TentativeGateways::Selected {
                 entry: Box::new(selected_gateways.entry_gateway().clone().into()),
                 exit: Box::new(selected_gateways.exit_gateway().clone().into()),
             },
-            Some(Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria)) => {
+            Ok(Some(Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria))) => {
                 TentativeGateways::NeedsRelaxedIndependenceCriteria
             }
-            Some(Err(_)) | None => TentativeGateways::NoGatewaysAvailable,
+            Ok(Some(Err(_))) | Ok(None) => TentativeGateways::NoGatewaysAvailable,
+            Err(_) => TentativeGateways::NoGatewaysAvailable,
         }
     }
 
