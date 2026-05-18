@@ -539,13 +539,19 @@ install_vpnd_raw() {
   sudo install -Dm644 "$temp_dir/$vpnd_service" "$units_dir/$vpnd_service"
 
   log "  ${B_GRN}Installing$RS polkit action policy"
-  sudo install -Dm644 "$temp_dir/$polkit_policy_file" "$polkit_policy_dir/$polkit_policy_file"
+  if sudo install -Dm644 "$temp_dir/$polkit_policy_file" "$polkit_policy_dir/$polkit_policy_file" 2>/dev/null; then
+    _polkit_installed_dir="$polkit_policy_dir"
+  else
+    log "  ${B_YLW}⚠$RS $polkit_policy_dir is read-only, falling back to $polkit_policy_fallback_dir"
+    sudo install -Dm644 "$temp_dir/$polkit_policy_file" "$polkit_policy_fallback_dir/$polkit_policy_file"
+    _polkit_installed_dir="$polkit_policy_fallback_dir"
+  fi
 
   log "  ${B_GRN}Installed$RS files"
   log "   ${I_YLW}$(tilded "$install_dir/$vpnd_bin")$RS"
   log "   ${I_YLW}$(tilded "$install_dir/$socks5_proxy_bin")$RS"
   log "   ${I_YLW}$(tilded "$units_dir/$vpnd_service")$RS"
-  log "   ${I_YLW}$(tilded "$polkit_policy_dir/$polkit_policy_file")$RS"
+  log "   ${I_YLW}$(tilded "$_polkit_installed_dir/$polkit_policy_file")$RS"
 }
 
 install_vpnd_deb() {
