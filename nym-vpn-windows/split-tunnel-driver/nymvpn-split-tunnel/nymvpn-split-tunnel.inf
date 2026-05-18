@@ -34,9 +34,12 @@ nymvpn-split-tunnel.sys  = 1,,
 ;*****************************************
 
 [Manufacturer]
-%ManufacturerName%=Standard,NT$ARCH$.10.0
+%ManufacturerName%=Standard,NTamd64.10.0,NTARM64.10.0
 
-[Standard.NT$ARCH$.10.0]
+[Standard.NTamd64.10.0]
+%nymvpn-split-tunnel.DeviceDesc%=nymvpn-split-tunnel_Device, Root\nymvpn-split-tunnel
+
+[Standard.NTARM64.10.0]
 %nymvpn-split-tunnel.DeviceDesc%=nymvpn-split-tunnel_Device, Root\nymvpn-split-tunnel
 
 [nymvpn-split-tunnel_Device.NT]

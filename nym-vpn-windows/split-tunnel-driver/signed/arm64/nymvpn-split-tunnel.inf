@@ -9,7 +9,7 @@ ClassGuid={57465043-616C-6C6F-7574-5F636C617373}
 Provider=%ManufacturerName%
 CatalogFile=nymvpn-split-tunnel.cat
 PnpLockdown=1
-DriverVer = 05/08/2026,12.59.14.103
+DriverVer = 05/16/2026,14.19.23.816
 
 [DestinationDirs]
 DefaultDestDir = 12
@@ -34,7 +34,10 @@ nymvpn-split-tunnel.sys  = 1,,
 ;*****************************************
 
 [Manufacturer]
-%ManufacturerName%=Standard,NTARM64.10.0
+%ManufacturerName%=Standard,NTamd64.10.0,NTARM64.10.0
+
+[Standard.NTamd64.10.0]
+%nymvpn-split-tunnel.DeviceDesc%=nymvpn-split-tunnel_Device, Root\nymvpn-split-tunnel
 
 [Standard.NTARM64.10.0]
 %nymvpn-split-tunnel.DeviceDesc%=nymvpn-split-tunnel_Device, Root\nymvpn-split-tunnel
