@@ -110,6 +110,14 @@ jobs:
           toml set vpnd_compat.toml version ">=${{ steps.version.outputs.final_version }}" > new_vpnd_compat.toml
           mv new_vpnd_compat.toml vpnd_compat.toml
 
+      - name: Update Linux install script
+        working-directory: .pkg/linux
+        env:
+          APP_TAG: nym-vpn-app-v${{ steps.version.outputs.final_version }}
+          CORE_TAG: nym-vpn-core-v${{ steps.version.outputs.final_version }}
+        run: |
+          ./bump.sh
+
       - name: Update CHANGELOG.md
         working-directory: nym-vpn-core
         run: |
