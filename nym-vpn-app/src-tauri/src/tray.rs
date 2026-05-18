@@ -37,15 +37,21 @@ enum MenuItemId {
     Exit,
 }
 
+// Position of the entry item in the tray menu when visible:
+// show_hide(0), separator(1), status(2), mode(3), entry(4), exit(5), separator(6), quit(7)
+const ENTRY_MENU_POSITION: usize = 4;
+
 pub struct TrayManager {
     app: AppHandle,
     tray: TrayIcon,
+    menu: Menu<Wry>,
     show_hide: MenuItem<Wry>,
     quit: MenuItem<Wry>,
     status: MenuItem<Wry>,
     mode: MenuItem<Wry>,
     entry: MenuItem<Wry>,
     exit: MenuItem<Wry>,
+    entry_visible: Mutex<bool>,
     icon_debounce: Mutex<Option<JoinHandle<()>>>,
 }
 
@@ -127,12 +133,14 @@ impl TrayManager {
         Ok(Self {
             app: app.clone(),
             tray,
+            menu,
             show_hide,
             quit,
             status,
             mode,
             entry,
             exit,
+            entry_visible: Mutex::new(true),
             icon_debounce: Mutex::new(None),
         })
     }
@@ -183,6 +191,22 @@ impl TrayManager {
 
     pub async fn update_tray_exit(&self, exit: String) {
         self.exit.set_text(exit).ok();
+    }
+
+    pub async fn update_tray_entry_visible(&self, visible: bool) {
+        let mut current = self.entry_visible.lock().await;
+        if *current == visible {
+            return;
+        }
+        let result = if visible {
+            self.menu.insert(&self.entry, ENTRY_MENU_POSITION)
+        } else {
+            self.menu.remove(&self.entry)
+        };
+        match result {
+            Ok(()) => *current = visible,
+            Err(e) => error!("failed to toggle tray entry visibility: {e}"),
+        }
     }
 
     #[instrument(skip_all)]
