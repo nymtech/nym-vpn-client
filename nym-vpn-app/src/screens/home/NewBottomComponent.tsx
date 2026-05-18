@@ -148,6 +148,7 @@ function ModeToggle() {
                 animate={{ opacity: 1, rotateX: 0 }}
                 exit={{ opacity: 0, rotateX: -90 }}
                 transition={{ duration: 0.1 }}
+                style={{ fontVariationSettings: "'FILL' 1" }}
                 className={clsx([
                   'font-icon inline-block text-2xl select-none rtl:-scale-x-100',
                   'shrink-0 text-xl!',
