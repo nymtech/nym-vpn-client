@@ -98,6 +98,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
