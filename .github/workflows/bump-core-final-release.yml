@@ -3,12 +3,17 @@ name: bump-core-final-release
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: 'Release branch (e.g. release/2026.1-banana)'
-        type: string
+      is_release_bump:
+        description: "Release 🚀 (drops beta suffix)"
         required: true
+        type: boolean
+        default: false
+      branch:
+        description: "Git branch to run against (uses github ref if not set). Unless testing, leave it blank, select the branch from dropdown instead"
+        type: string
+        required: false
       dry_run:
-        description: 'Test run that will only print git diff and all changes being made'
+        description: "Test run that will only print git diff and all changes being made"
         required: true
         type: boolean
         default: true
@@ -23,16 +28,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  bump-final-release:
+  next-release-version:
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
+    outputs:
+      next_version: ${{ steps.version.outputs.next_version }}
+    env:
+      GIT_BRANCH: ${{ inputs.branch || github.ref_name }}
     steps:
       - name: Validate input
         run: |
-          if ! echo "${{ inputs.branch }}" | grep -P '^release/.+$'; then
-            echo "::error:: Branch must start with 'release/' (got: ${{ inputs.branch }})"
+          if [ ! echo "${{ env.GIT_BRANCH }}" | grep -P '^release/.+$' && ! ${{ inputs.dry_run }} ]; then
+            echo "::error:: Branch must start with 'release/' (got: ${{ env.GIT_BRANCH }})"
             exit 1
           fi
 
@@ -45,102 +54,47 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
-          ref: ${{ inputs.branch }}
-
-      - name: Install Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-edit
+          ref: ${{ env.GIT_BRANCH }}
 
       - name: Install cargo-get
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-get
 
-      - name: Install toml-cli
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: toml-cli
-
-      - name: Compute final version
+      - name: Compute version
         id: version
         working-directory: nym-vpn-core
         run: |
-          BETA_VERSION=$(cargo get workspace.package.version)
-          echo "::notice:: Current version: $BETA_VERSION"
+          CURRENT_VERSION=$(cargo get workspace.package.version)
+          echo "::notice:: Current version: $CURRENT_VERSION"
 
-          if ! echo "$BETA_VERSION" | grep -q '\-beta$'; then
-            echo "::error:: Version '$BETA_VERSION' does not have a -beta suffix"
+          NEXT_VERSION=$(cargo get workspace.package.version --major --minor --patch --delimiter '.')
+          PRE=$(cargo get workspace.package.version --pre)
+
+          # This must not be the case once develop contains "-beta.1" in Cargo.toml
+          if [ "$PRE" = "beta" ]; then
+            PRE="beta.0"
+          elif ! echo "$PRE" | grep -Pq '^beta\.[1-9][0-9]?$'; then
+            echo "::error:: Version '$CURRENT_VERSION' does not have a '-beta.*' suffix"
             exit 1
           fi
 
-          FINAL_VERSION="${BETA_VERSION%-beta}"
-          echo "::notice:: Final version: $FINAL_VERSION"
-          echo "final_version=$FINAL_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Update nym-vpn-core/Cargo.toml
-        working-directory: nym-vpn-core
-        run: |
-          cargo set-version "${{ steps.version.outputs.final_version }}"
-          # dry-run will update Cargo.lock with new workspace version, without any other changes
-          cargo update --dry-run
-
-      - name: Update nym-vpn-app/src-tauri/Cargo.toml
-        working-directory: nym-vpn-app/src-tauri
-        run: |
-          cargo set-version "${{ steps.version.outputs.final_version }}"
-          # dry-run will update Cargo.lock with new package version, without any other changes
-          cargo update --dry-run
-
-      - name: Update nym-vpn-app/src-tauri/tauri.conf.json
-        working-directory: nym-vpn-app/src-tauri
-        run: |
-          jq -r '.bundle.linux.deb.depends[] = "nym-vpnd (>= ${{ steps.version.outputs.final_version }})"' tauri.conf.json > new_tauri.conf.json
-          npx prettier --config ../prettier.config.js --write new_tauri.conf.json
-          mv new_tauri.conf.json tauri.conf.json
-
-      - name: Update nym-vpn-app/vpnd_compat.toml
-        working-directory: nym-vpn-app
-        run: |
-          toml set vpnd_compat.toml version ">=${{ steps.version.outputs.final_version }}" > new_vpnd_compat.toml
-          mv new_vpnd_compat.toml vpnd_compat.toml
-
-      - name: Update Linux install script
-        working-directory: .pkg/linux
-        env:
-          APP_TAG: nym-vpn-app-v${{ steps.version.outputs.final_version }}
-          CORE_TAG: nym-vpn-core-v${{ steps.version.outputs.final_version }}
-        run: |
-          ./bump.sh
-
-      - name: Update CHANGELOG.md
-        working-directory: nym-vpn-core
-        run: |
-          TODAY=$(date +%Y-%m-%d)
-          sed -i "s/\[${FINAL_VERSION}\] - TBD/[${FINAL_VERSION}] - ${TODAY}/" CHANGELOG.md
-          echo "::notice:: Updated CHANGELOG.md date to $TODAY"
-        env:
-          FINAL_VERSION: ${{ steps.version.outputs.final_version }}
-
-      - name: Create PR to finalize v${{ steps.version.outputs.final_version }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH_NAME: 'ci/bump-final-v${{ steps.version.outputs.final_version }}'
-        run: |
-          git diff
-          if [ '${{ inputs.dry_run }}' == 'true' ]; then
-            echo "::warning:: Dry run, skipping commit and PR creation"
-          else
-            git checkout -b "${{ env.BRANCH_NAME }}"
-            git commit -a -m "ci: bump release to v${{ steps.version.outputs.final_version }}"
-            git push origin "${{ env.BRANCH_NAME }}"
-            gh pr create \
-                --base "${{ inputs.branch }}" \
-                --title 'Bump release to `v${{ steps.version.outputs.final_version }}`' \
-                --body 'This PR strips the `-beta` suffix and finalizes `v${{ steps.version.outputs.final_version }}` for release.'
+          # Increment beta version if not a release bump
+          if [ "${{ inputs.is_release_bump }}" = "false" ]; then
+            SEQ=$(echo "$PRE" | cut -d. -f2)
+            SEQ=$(($SEQ + 1))
+            NEXT_VERSION="$NEXT_VERSION-beta.$SEQ"
           fi
+
+          echo "::notice:: Next version: $NEXT_VERSION"
+          echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+
+  bump-release-branch:
+    needs: next-release-version
+    uses: ./.github/workflows/bump-all-platforms.yml
+    with:
+      branch: ${{ inputs.branch || github.ref_name }}
+      version: ${{ needs.next-release-version.outputs.next_version }}
+      update_linux_installer: ${{ inputs.is_release_bump }}
+      update_changelog: ${{ inputs.is_release_bump }}
+      dry_run: ${{ inputs.dry_run }}
