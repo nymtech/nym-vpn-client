@@ -128,6 +128,7 @@ url.workspace = true
 urlencoding.workspace = true
 webpki-roots.workspace = true
 x509-parser = { workspace = true, features = ["verify"] }
+tempfile.workspace = true
 
 # UNIX-specific dependencies
 [target.'cfg(unix)'.dependencies]
@@ -189,8 +190,9 @@ dispatch2.workspace = true
 [dev-dependencies]
 pretty_assertions.workspace = true
 socket2.workspace = true
-tempfile.workspace = true
 tracing-test.workspace = true
+
+criterion = { version = "0.4", features = ["async_tokio"] }
 
 [build-dependencies]
 sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
@@ -209,3 +211,7 @@ cgroup2 = ["nym-split-tunnel/cgroup2", "nym-firewall/cgroup2"]
 
 [package.metadata.cargo-machete]
 ignored = ["vergen"]
+
+[[bench]]
+name = "adblocker_bench" # This is the name of your benchmark target
+harness = false     # Disables the default libtest harness

@@ -3,8 +3,10 @@
 
 #[cfg(test)]
 mod bench;
-mod engines;
-mod file_manager;
+// Temporarily made public for benchmarking purposes
+pub mod file_manager;
+// Temporarily made public for benchmarking purposes
+pub mod engines;
 mod state;
 
 mod adblock;

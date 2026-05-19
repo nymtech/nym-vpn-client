@@ -22,7 +22,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::{AdBlockerError, Result};
 
-pub(crate) static SOURCES: &[Source] = &[
+pub static SOURCES: &[Source] = &[
     Source {
         file_name: "easylist_adservers.txt.gz",
         builtin: include_bytes!("builtin/easylist_adservers.txt.gz"),
@@ -161,7 +161,7 @@ impl AdBlockFileManager for AdBlockFileManagerWrap {
     }
 }
 
-pub(crate) struct Source {
+pub struct Source {
     pub file_name: &'static str,
     pub builtin: &'static [u8],
     pub url: &'static str,
@@ -606,6 +606,18 @@ impl SourceMetaData {
 
         Ok(())
     }
+}
+
+pub async fn init_tests() -> Result<tempfile::TempDir, String> {
+    let temp_dir = tempfile::tempdir()
+        .map_err(|e| format!("failed to create temporary directory: {e}"))?;
+    let data_dir = temp_dir.path();
+
+    init_files(data_dir, false)
+        .await
+        .map_err(|e| format!("failed to create initial ad-blocker files: {e}"))?;
+
+    Ok(temp_dir)
 }
 
 #[cfg(test)]

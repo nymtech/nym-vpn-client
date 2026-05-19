@@ -3,11 +3,12 @@
 
 pub mod storage;
 
-mod adblocker;
+// Temporarily made public for benchmarking purposes
+pub mod adblocker;
 mod bandwidth_controller;
 pub mod cache_refresh;
 pub mod config;
-mod dns_filter;
+pub mod dns_filter;
 pub mod logging;
 mod mixnet;
 pub mod privy;

@@ -9,7 +9,7 @@ use std::path::Path;
 
 use super::{
     engines::{AdBlockEngine, BraveAdblockEngine, SimpleAdBlockEngine},
-    file_manager::{SOURCES, Source, tests::init_tests},
+    file_manager::{SOURCES, Source, init_tests},
 };
 use crate::{dns_filter::DnsFilterT, resolver::DnsFilterDecision};
 
