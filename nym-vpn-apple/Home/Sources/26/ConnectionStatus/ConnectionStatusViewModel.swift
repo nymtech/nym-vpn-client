@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import ConnectionManager
+import ConnectionTypes
 import ErrorReason
 import Theme
 import TunnelStatus
@@ -70,6 +71,7 @@ private extension ConnectionStatusViewModel {
         status = connectionManager.currentTunnelStatus
         lastConnectingStep = connectionManager.tunnelConnectingState
         connectedDate = connectionManager.connectedDate
+        mode = arcMode(from: connectionManager.connectionType)
         let error = connectionManager.lastError
         hasFailure = error != nil
         lastErrorMessage = error.map { Self.userFacingMessage(from: $0) }
@@ -100,6 +102,11 @@ private extension ConnectionStatusViewModel {
         connectionManager.$connectedDate
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.connectedDate = $0 }
+            .store(in: &cancellables)
+
+        connectionManager.$connectionType
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.mode = arcMode(from: $0) }
             .store(in: &cancellables)
     }
 
@@ -327,6 +334,15 @@ private extension TunnelStatus {
         default:
             return false
         }
+    }
+}
+
+private func arcMode(from connectionType: ConnectionType) -> ArcProgressMode {
+    switch connectionType {
+    case .wireguard:
+        return .fast
+    case .mixnet5hop:
+        return .anonymous
     }
 }
 

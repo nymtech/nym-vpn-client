@@ -15,6 +15,7 @@ public final class PassphraseSignInViewModel {
 
     private let credentialsManager: CredentialsManager
     @ObservationIgnored private var loginTask: Task<Void, Never>?
+    @ObservationIgnored public var onWillRegister: (() -> Void)?
 
     var passphraseText: String = "" {
         didSet {
@@ -39,6 +40,7 @@ public final class PassphraseSignInViewModel {
             guard let self else { return }
             do {
                 try await credentialsManager.add(credential: credential)
+                onWillRegister?()
                 try await credentialsManager.registerAccount()
                 passphraseText = ""
                 submissionState = .idle

@@ -38,6 +38,8 @@ public struct AppFeatureView: View {
     @State private var drawerHeight: CGFloat = 0
     @Environment(\.colorScheme)
     private var colorScheme
+    @Environment(\.scenePhase)
+    private var scenePhase
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     private var appearance: AppSetting.Appearance = .automatic
     @AppStorage(AppSettingKey.credenitalExists.rawValue)
@@ -76,6 +78,14 @@ public struct AppFeatureView: View {
         .onAppear { wireOneClickNavigation() }
         .onChange(of: isCredentialImported) { _, newValue in
             viewModel.handleCredentialChange(imported: newValue)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                viewModel.handleSceneBecameActive()
+            }
+        }
+        .onChange(of: viewModel.connectionStatus.status) { oldValue, newValue in
+            viewModel.handleTunnelStatusChange(from: oldValue, to: newValue)
         }
     }
 }
@@ -172,12 +182,7 @@ private extension AppFeatureView {
                 .trackHeight { drawerHeight = $0 }
                 .transition(.slideFade(from: .trailing))
             case .welcome:
-                AuthFlowView(credentialsManager: viewModel.credentialsManager)
-                    .trackHeight { newHeight in
-                        welcomeHeight = newHeight
-                        drawerHeight = newHeight
-                    }
-                    .transition(.slideFade(from: .trailing))
+                welcomeContent
             case .processing:
                 if let processingViewModel = viewModel.processingViewModel {
                     ProcessingAccountView(
@@ -199,6 +204,18 @@ private extension AppFeatureView {
             }
         }
         .animation(.easeInOut, value: viewModel.drawerTag)
+    }
+
+    var welcomeContent: some View {
+        AuthFlowView(
+            credentialsManager: viewModel.credentialsManager,
+            onWillRegister: { flow in viewModel.pendingProcessingFlow = flow }
+        )
+        .trackHeight { newHeight in
+            welcomeHeight = newHeight
+            drawerHeight = newHeight
+        }
+        .transition(.slideFade(from: .trailing))
     }
 
     var navigationBar: some View {
