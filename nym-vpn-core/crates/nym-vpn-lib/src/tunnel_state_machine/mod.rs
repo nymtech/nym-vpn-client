@@ -41,7 +41,7 @@ use crate::socks5_proxy::Socks5ProxyManager;
 use crate::socks5_proxy::find_proxy_binary;
 
 use crate::{
-    GatewayDirectoryError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    GatewayProviderError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
     mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
@@ -53,9 +53,7 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
-use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
-use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use tokio::{
     sync::{mpsc, watch},
     task::JoinHandle,
@@ -70,8 +68,8 @@ use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
-    GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
-    SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    GatewayIndependence, GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig,
+    GeoExclusionSettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -189,6 +187,9 @@ pub struct TunnelSettings {
 
     /// How the gateways should be selected.
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+
+    /// Heuristics for what is accepted as independent entry and exit gateways
+    pub gateway_independence: GatewayIndependence,
 }
 
 impl TunnelSettings {
@@ -325,6 +326,9 @@ impl TunnelSettings {
         {
             diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
         }
+        if self.gateway_independence != other.gateway_independence {
+            diff.add(TunnelSettingsDiffFields::GatewayIndependence);
+        }
 
         diff
     }
@@ -352,6 +356,7 @@ pub enum TunnelSettingsDiffFields {
     GeoExclusionExcludedCountries,
     GeoLocationEnabled,
     GatewaySelectionAlgorithm,
+    GatewayIndependence,
 }
 
 impl TunnelSettingsDiffFields {
@@ -366,7 +371,8 @@ impl TunnelSettingsDiffFields {
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
             | Self::Dns
-            | Self::GatewaySelectionAlgorithm => true,
+            | Self::GatewaySelectionAlgorithm
+            | Self::GatewayIndependence => true,
             Self::EnableAdBlocking => {
                 // On android reconnect is necessary due to packet filtering used for adblocking.
                 cfg!(target_os = "android")
@@ -965,7 +971,6 @@ pub struct TunnelStateMachine {
     dns_handler_shutdown_token: CancellationToken,
     #[cfg(not(target_os = "android"))]
     filtering_resolver_handle: JoinHandle<()>,
-    gateway_provider_handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
 }
 
@@ -980,14 +985,12 @@ impl TunnelStateMachine {
         account_command_tx: AccountCommandSender,
         account_controller_state: AccountStateReceiver,
         statistics_event_sender: StatisticsSender,
-        gateway_cache_handle: GatewayCacheHandle,
-        nym_vpn_api_client: VpnApiClient,
         topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
         discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
-        wg_keys_db: WireguardKeysDb,
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         split_tunnel: nym_split_tunnel::SplitTunnelHandle,
+        gateway_provider: GatewayProvider<GatewayCacheHandle>,
         #[cfg(target_os = "linux")] split_tunnel_config: LinuxSplitTunnelConfiguration,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
@@ -1040,18 +1043,6 @@ impl TunnelStateMachine {
             net_cls: split_tunnel_config.net_cls,
         })
         .map_err(Error::CreateFirewall)?;
-
-        let (gateway_provider, gateway_provider_handle) = GatewayProvider::new(
-            gateway_cache_handle,
-            nym_vpn_api_client,
-            tunnel_settings
-                .gateway_selection_algorithm_config
-                .enable_geo_location,
-            tunnel_settings.clone(),
-            wg_keys_db,
-            shutdown_token.clone(),
-        )
-        .await?;
 
         let mut shared_state = SharedState {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -1117,7 +1108,6 @@ impl TunnelStateMachine {
             dns_handler_shutdown_token,
             #[cfg(not(target_os = "android"))]
             filtering_resolver_handle,
-            gateway_provider_handle,
             shutdown_token,
         };
 
@@ -1175,10 +1165,6 @@ impl TunnelStateMachine {
         #[cfg(not(target_os = "android"))]
         if let Err(e) = self.filtering_resolver_handle.await {
             tracing::error!("Failed to join on filtering resolver task: {}", e)
-        }
-
-        if let Err(e) = self.gateway_provider_handle.await {
-            tracing::error!("Failed to join on gateway provider task: {}", e)
         }
 
         self.shared_state.adblocker.stop().await;
@@ -1340,14 +1326,17 @@ impl tunnel::Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
         match self {
             Self::SelectGateways(e) => match *e {
-                GatewayDirectoryError::SameEntryAndExitGateway { .. } => {
+                GatewayProviderError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
-                GatewayDirectoryError::EntryGatewayUnavailable { .. } => {
+                GatewayProviderError::EntryGatewayUnavailable { .. } => {
                     Some(ErrorStateReason::PerformantEntryGatewayUnavailable)
                 }
-                GatewayDirectoryError::ExitGatewayUnavailable { .. } => {
+                GatewayProviderError::ExitGatewayUnavailable { .. } => {
                     Some(ErrorStateReason::PerformantExitGatewayUnavailable)
+                }
+                GatewayProviderError::NeedsRelaxedIndependenceCriteria => {
+                    Some(ErrorStateReason::NeedsRelaxedIndependenceCriteria)
                 }
                 _ => None,
             },

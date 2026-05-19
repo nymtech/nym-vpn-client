@@ -18,8 +18,8 @@ use time::OffsetDateTime;
 use ts_rs::TS;
 
 use crate::{
-    EntryPoint, ExitPoint, GatewaySelectionAlgorithmConfig, NetworkStatisticsConfig,
-    NymNetworkDetails, NymVpnNetwork,
+    EntryPoint, ExitPoint, GatewayIndependence, GatewaySelectionAlgorithmConfig,
+    NetworkStatisticsConfig, NymNetworkDetails, NymVpnNetwork,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -52,6 +52,7 @@ pub struct VpnServiceConfig {
     pub split_tunnel: SplitTunnelSettings,
     pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    pub gateway_independence: GatewayIndependence,
 }
 
 impl fmt::Display for VpnServiceConfig {
@@ -128,6 +129,7 @@ impl Default for VpnServiceConfig {
             split_tunnel: SplitTunnelSettings::default(),
             geo_exclusion: GeoExclusionSettings::default(),
             gateway_selection_algorithm_config: Default::default(),
+            gateway_independence: Default::default(),
         }
     }
 }

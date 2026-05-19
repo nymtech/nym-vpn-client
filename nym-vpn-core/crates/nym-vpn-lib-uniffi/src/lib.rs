@@ -201,9 +201,9 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use tokio::runtime::Runtime;
 
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, FrontingMode, GatewaySelectionAlgorithmConfig, GeoExclusionSettings,
-    MixnetTrafficConfig, NetworkStatisticsConfig, PrivyDerivationMessage, SplitTunnelSettings,
-    UserAgent, VpnServiceConfig,
+    EntryPoint, ExitPoint, FrontingMode, GatewayIndependence, GatewaySelectionAlgorithmConfig,
+    GeoExclusionSettings, MixnetTrafficConfig, NetworkStatisticsConfig, PrivyDerivationMessage,
+    SplitTunnelSettings, UserAgent, VpnServiceConfig,
 };
 
 #[cfg(target_os = "android")]
@@ -265,6 +265,7 @@ pub struct VPNConfig {
     pub mixnet_traffic: Option<MixnetTrafficConfig>,
     pub network_stats: Option<NetworkStatisticsConfig>,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    pub gateway_independence: GatewayIndependence,
     pub user_agent: UserAgent,
     #[cfg(target_os = "ios")]
     tun_provider: Arc<dyn OSTunProvider>,
@@ -301,6 +302,7 @@ impl VPNConfig {
             mixnet_traffic: self.mixnet_traffic.clone().unwrap_or_default(),
             network_stats: self.network_stats.unwrap_or_default(),
             gateway_selection_algorithm_config: self.gateway_selection_algorithm_config.clone(),
+            gateway_independence: self.gateway_independence,
 
             // Not available via vpn service on mobile platforms
             split_tunnel: SplitTunnelSettings::default(),

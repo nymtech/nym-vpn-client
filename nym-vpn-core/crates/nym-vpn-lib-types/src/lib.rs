@@ -37,6 +37,7 @@ mod connection_data;
 mod device;
 mod diagnostic;
 mod gateway;
+mod gateway_independence;
 mod gateway_selection_algorithm;
 mod log_path;
 mod network;
@@ -80,8 +81,9 @@ pub use gateway::{
     Asn, AsnKind, BridgeInformation, BridgeParameters, Country, Entry, EntryPoint, Exit, ExitPoint,
     Gateway, GatewayFilter, GatewayType, LewesProtocolDetails, LewesProtocolDetailsData, Location,
     LookupGatewayFilters, Lp, NodeIdentity, ParseRecipientError, Performance, Probe, ProbeOutcome,
-    QuicClientOptions, Recipient, Score, Socks5,
+    QuicClientOptions, Recipient, Score, Socks5, TentativeGateways,
 };
+pub use gateway_independence::GatewayIndependence;
 pub use gateway_selection_algorithm::{GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig};
 pub use log_path::LogPath;
 pub use network::{
