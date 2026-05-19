@@ -157,7 +157,7 @@ impl SyncingState {
                 .await
                 .map_err(Self::map_vpn_api_error)?;
 
-            tracing::debug!("{summary:#?}");
+            tracing::debug!("{summary:?}");
 
             Self::handle_received_account_summary(
                 event_tx.clone(),

@@ -3,6 +3,7 @@
 
 use adblock::lists::{ParseOptions, ParsedFilter, RuleTypes, parse_filter};
 use futures::{StreamExt, pin_mut};
+use rand::Rng;
 use rand::seq::SliceRandom;
 use std::path::Path;
 
@@ -10,7 +11,7 @@ use super::{
     engines::{AdBlockEngine, BraveAdblockEngine, SimpleAdBlockEngine},
     file_manager::{SOURCES, Source, tests::init_tests},
 };
-use crate::dns_filter::DnsFilterT;
+use crate::{dns_filter::DnsFilterT, resolver::DnsFilterDecision};
 
 #[tokio::test]
 async fn bench_brave_engine() {
@@ -21,7 +22,8 @@ async fn bench_brave_engine() {
     let domains = prepare_domains(tempdir.path()).await;
     let start = std::time::Instant::now();
     for domain in domains.iter() {
-        let _ = engine.should_block(&domain);
+        // assert!(matches!(engine.should_block(domain).await, DnsFilterDecision::Block(_)));
+        let _ = engine.should_block(domain).await;
     }
     println!(
         "Duration: {:?} on {} domains",
@@ -39,7 +41,8 @@ async fn bench_simple_engine() {
     let domains = prepare_domains(tempdir.path()).await;
     let start = std::time::Instant::now();
     for domain in domains.iter() {
-        let _ = engine.should_block(&domain);
+        // assert!(matches!(, DnsFilterDecision::Block(_)));
+        let _ = engine.should_block(domain).await;
     }
     println!(
         "Duration: {:?} on {} domains",
@@ -47,6 +50,47 @@ async fn bench_simple_engine() {
         domains.len()
     );
 }
+
+#[tokio::test]
+async fn bench_brave_engine_miss_delay() {
+    const NUM_MISS_DOMAINS: usize = 35000;
+
+    let tempdir = init_tests().await.unwrap();
+    let engine = BraveAdblockEngine::default();
+    engine.load_filters(tempdir.path()).await.unwrap();
+
+    let miss_domains = prepare_random_miss_domains(NUM_MISS_DOMAINS);
+    let start = std::time::Instant::now();
+    for domain in miss_domains.iter() {
+        assert_eq!(engine.should_block(domain).await, DnsFilterDecision::Pass);
+    }
+    println!(
+        "Miss duration: {:?} on {} domains",
+        start.elapsed(),
+        miss_domains.len()
+    );
+}
+
+#[tokio::test]
+async fn bench_simple_engine_miss_delay() {
+    const NUM_MISS_DOMAINS: usize = 35000;
+
+    let tempdir = init_tests().await.unwrap();
+    let engine = SimpleAdBlockEngine::new(tempdir.path().join("adblocker.db"));
+    engine.load_filters(tempdir.path()).await.unwrap();
+
+    let miss_domains = prepare_random_miss_domains(NUM_MISS_DOMAINS);
+    let start = std::time::Instant::now();
+    for domain in miss_domains.iter() {
+        assert_eq!(engine.should_block(domain).await, DnsFilterDecision::Pass);
+    }
+    println!(
+        "Miss duration: {:?} on {} domains",
+        start.elapsed(),
+        miss_domains.len()
+    );
+}
+
 
 async fn prepare_domains(cache_dir: &Path) -> Vec<String> {
     const NUM_DOMAINS: usize = 35000;
@@ -81,6 +125,21 @@ async fn prepare_domains(cache_dir: &Path) -> Vec<String> {
 
     domains.extend(random_domains);
     domains.shuffle(&mut rng);
+
+    domains
+}
+
+fn prepare_random_miss_domains(count: usize) -> Vec<String> {
+    const LABEL_LEN: usize = 12;
+    let mut rng = rand::thread_rng();
+
+    let mut domains = Vec::with_capacity(count);
+    for idx in 0..count {
+        let label: String = (0..LABEL_LEN)
+            .map(|_| (b'a' + rng.gen_range(0..26)) as char)
+            .collect();
+        domains.push(format!("{label}-{idx}.adblock-bench.invalid"));
+    }
 
     domains
 }
