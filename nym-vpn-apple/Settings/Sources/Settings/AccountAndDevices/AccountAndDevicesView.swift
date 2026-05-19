@@ -306,11 +306,7 @@ extension AccountAndDevicesView {
     func linkAccount() async {
         impactGenerator.softImpact()
         let link = try? await credentialsManager.privyLogin(kind: .privyLink)
-#if os(iOS)
-        try? externalLinkManager.openInAppBrowser(urlString: link)
-#else
-        try? externalLinkManager.openExternalURL(urlString: link)
-#endif
+        try? await externalLinkManager.presentPrivyAuthSession(urlString: link)
     }
 
     func logout() async {

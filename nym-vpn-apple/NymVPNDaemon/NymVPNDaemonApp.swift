@@ -94,6 +94,9 @@ struct NymVPNDaemonApp: App {
                 DispatchQueue.main.async {
                     appDelegate.bringWindowToFront()
                 }
+                externalLinkManager.deeplinkHandler = { url in
+                    deeplinkManager.handle(url: url)
+                }
             }
             .onDisappear {
                 if autoUpdater.didPrepareForQuit {

@@ -28,7 +28,7 @@ import PathManager
     var deeplinks: NymDeeplinks?
 #endif
     private var cancellables = Set<AnyCancellable>()
-    private var isUpdatingAccountSummary = false
+    private var accountSummaryUpdateTask: Task<Void, Never>?
 
     public static let shared = CredentialsManager()
 
@@ -244,13 +244,25 @@ import PathManager
     }
 
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
-        guard !isUpdatingAccountSummary else { return }
-        if !force && accountSummary != nil && isAccountSummaryCacheFresh() && isAccountActive() {
+        // Coalesce concurrent callers onto the in-flight pass so they see its
+        // result instead of short-circuiting on a stale `accountSummary`.
+        await accountSummaryUpdateTask?.value
+        if !force, accountSummary != nil, isAccountSummaryCacheFresh(), isAccountActive() {
             return
         }
-        isUpdatingAccountSummary = true
-        defer { isUpdatingAccountSummary = false }
 
+        let task: Task<Void, Never> = Task { [weak self] in
+            guard let self else { return }
+            await performAccountSummaryUpdate(untilActive: untilActive)
+        }
+        accountSummaryUpdateTask = task
+        await task.value
+        if accountSummaryUpdateTask == task {
+            accountSummaryUpdateTask = nil
+        }
+    }
+
+    private func performAccountSummaryUpdate(untilActive: Bool) async {
         let delays: [Duration] = [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
 
         for delay in delays {

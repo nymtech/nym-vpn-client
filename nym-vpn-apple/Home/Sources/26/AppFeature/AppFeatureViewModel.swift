@@ -9,6 +9,7 @@ import CredentialsManager
 import GatewayManager
 import ImpactGenerator
 import NetworkMonitor
+import TunnelStatus
 #if os(macOS)
 import GRPCManager
 #endif
@@ -29,6 +30,7 @@ import GRPCManager
 
     @ObservationIgnored private var pendingPlanPurchaseAfterOptIns = false
     @ObservationIgnored public var onRequestPlanPurchase: (() -> Void)?
+    @ObservationIgnored var pendingProcessingFlow: ProcessingFlow = .postPurchase
 
     var accountSummary: AccountSummary?
     var accountIdentifier: String?
@@ -36,6 +38,8 @@ import GRPCManager
     var accountSummaryFetchFailed = false
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
+    @ObservationIgnored private var lastForegroundRefreshAt: Date?
+    private static let foregroundRefreshMinInterval: TimeInterval = 300
 
 #if os(iOS)
     public init(
@@ -151,6 +155,21 @@ import GRPCManager
         }
     }
 
+    func handleSceneBecameActive() {
+        let now = Date()
+        if let last = lastForegroundRefreshAt,
+           now.timeIntervalSince(last) < Self.foregroundRefreshMinInterval {
+            return
+        }
+        lastForegroundRefreshAt = now
+        Task { await credentialsManager.updateAccountSummary(force: true) }
+    }
+
+    func handleTunnelStatusChange(from oldStatus: TunnelStatus, to newStatus: TunnelStatus) {
+        guard oldStatus != newStatus, newStatus == .disconnected else { return }
+        Task { await credentialsManager.updateAccountSummary(force: true) }
+    }
+
     func handleCredentialChange(imported: Bool) {
         guard let current = drawerContent else { return }
         if imported {
@@ -216,7 +235,10 @@ private extension AppFeatureViewModel {
     }
 
     func startProcessingTransition() {
-        let viewModel = ProcessingAccountViewModel(credentialsManager: credentialsManager)
+        let viewModel = ProcessingAccountViewModel(
+            credentialsManager: credentialsManager,
+            flow: pendingProcessingFlow
+        )
         viewModel.onFinished = { [weak self] in
             self?.processingDidFinish()
         }

@@ -7,6 +7,7 @@ import CredentialsManager
 public final class GeneratePassphraseViewModel {
     private let credentialsManager: CredentialsManager
     @ObservationIgnored private var registrationTask: Task<Void, Never>?
+    @ObservationIgnored public var onWillRegister: (() -> Void)?
 
     var currentStep: Int = 1
     var didFinishAnimatingText = false
@@ -31,6 +32,7 @@ public final class GeneratePassphraseViewModel {
                 if !credentialsManager.isValidCredentialImported {
                     try await credentialsManager.createMnemonic()
                 }
+                onWillRegister?()
                 try await credentialsManager.registerAccount()
                 didRegisterAccount = true
             } catch is CancellationError {
