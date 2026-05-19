@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2026.10.0-beta] - 2026-05-19
+### Added
+
+- Node family restriction and possibility to check for probable gateway selection before connection (https://github.com/nymtech/nym-vpn-client/pull/5285)
+
+
+## [1.30] - 2026-05-29
 
 ### Added
 
 - [iOS] Introduce ad-blocker. (https://github.com/nymtech/nym-vpn-client/pull/5227)
-- Node family restriction and possibility to check for probable gateway selection before connection (https://github.com/nymtech/nym-vpn-client/pull/5285)
 
 ### Fixed
 
@@ -24,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- [Windows] Fix missing IPv4 on mixnet tunnel adapter 
+- [Windows] Fix missing IPv4 on mixnet tunnel adapter (https://github.com/nymtech/nym-vpn-client/pull/5206)
 
 
 ## [1.29.1] - 2026-04-29
