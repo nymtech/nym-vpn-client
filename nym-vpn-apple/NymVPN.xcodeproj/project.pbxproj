@@ -3,11 +3,15 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		582C5F8E2C7654A800B678AE /* ConfigurationManager in Frameworks */ = {isa = PBXBuildFile; productRef = 582C5F8D2C7654A800B678AE /* ConfigurationManager */; };
+		5852D3A42FBCC46C002DC7AF /* NymVPNWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5852D3A22FBCC46C002DC7AF /* NymVPNWidgetBundle.swift */; };
+		5852D3A52FBCC46C002DC7AF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5852D39F2FBCC46C002DC7AF /* Assets.xcassets */; };
+		5852D3AC2FBCC46F002DC7AF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5852D3A72FBCC46F002DC7AF /* Assets.xcassets */; };
+		5852D3AE2FBCC46F002DC7AF /* NymVPNWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5852D3AA2FBCC46F002DC7AF /* NymVPNWidgetBundle.swift */; };
 		5879C2062C80A37200BAB142 /* TunnelSettingsConversions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */; };
 		58C957422F8E505C00FD0C81 /* NymVPND.app in CopyFiles */ = {isa = PBXBuildFile; fileRef = 58C9571F2F8E3F0C00FD0C81 /* NymVPND.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		58E98AED2F92534300A120DF /* nym-socks5-proxy in Copy Files */ = {isa = PBXBuildFile; fileRef = 58E98AEB2F92533600A120DF /* nym-socks5-proxy */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
@@ -260,6 +264,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5852D39F2FBCC46C002DC7AF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5852D3A02FBCC46C002DC7AF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5852D3A12FBCC46C002DC7AF /* NymVPNmacOSWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPNmacOSWidgetExtension.entitlements; sourceTree = "<group>"; };
+		5852D3A22FBCC46C002DC7AF /* NymVPNWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNWidgetBundle.swift; sourceTree = "<group>"; };
+		5852D3A72FBCC46F002DC7AF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5852D3A82FBCC46F002DC7AF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5852D3A92FBCC46F002DC7AF /* NymVPNWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPNWidget.entitlements; sourceTree = "<group>"; };
+		5852D3AA2FBCC46F002DC7AF /* NymVPNWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNWidgetBundle.swift; sourceTree = "<group>"; };
 		5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelSettingsConversions.swift; sourceTree = "<group>"; };
 		58C9571F2F8E3F0C00FD0C81 /* NymVPND.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NymVPND.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		58E98AEB2F92533600A120DF /* nym-socks5-proxy */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = "nym-socks5-proxy"; sourceTree = "<group>"; };
@@ -322,50 +334,6 @@
 		D9F744742D79BF5900DD9277 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D9FB33E72BECFD1F009C3419 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/ServiceManagement.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		D9D7BC4F2F7D53390094415B /* Exceptions for "NymVPNmacOSWidgetExtension" folder in "NymVPNmacOSWidgetExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = D9D7BC3C2F7D53380094415B /* NymVPNmacOSWidgetExtension */;
-		};
-		D9D7BCA72F7D5F920094415B /* Exceptions for "NymVPNWidget" folder in "NymVPNWidgetExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = D9D9548D2F7BCDAE0040753C /* NymVPNWidgetExtension */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		D9D7BC402F7D53380094415B /* NymVPNmacOSWidgetExtension */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				D9D7BC4F2F7D53390094415B /* Exceptions for "NymVPNmacOSWidgetExtension" folder in "NymVPNmacOSWidgetExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = NymVPNmacOSWidgetExtension;
-			sourceTree = "<group>";
-		};
-		D9D7BC862F7D58060094415B /* NymVPNWidget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				D9D7BCA72F7D5F920094415B /* Exceptions for "NymVPNWidget" folder in "NymVPNWidgetExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = NymVPNWidget;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		58C9571C2F8E3F0C00FD0C81 /* Frameworks */ = {
@@ -500,6 +468,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5852D3A32FBCC46C002DC7AF /* NymVPNmacOSWidgetExtension */ = {
+			isa = PBXGroup;
+			children = (
+				5852D39F2FBCC46C002DC7AF /* Assets.xcassets */,
+				5852D3A02FBCC46C002DC7AF /* Info.plist */,
+				5852D3A12FBCC46C002DC7AF /* NymVPNmacOSWidgetExtension.entitlements */,
+				5852D3A22FBCC46C002DC7AF /* NymVPNWidgetBundle.swift */,
+			);
+			path = NymVPNmacOSWidgetExtension;
+			sourceTree = "<group>";
+		};
+		5852D3AB2FBCC46F002DC7AF /* NymVPNWidget */ = {
+			isa = PBXGroup;
+			children = (
+				5852D3A72FBCC46F002DC7AF /* Assets.xcassets */,
+				5852D3A82FBCC46F002DC7AF /* Info.plist */,
+				5852D3A92FBCC46F002DC7AF /* NymVPNWidget.entitlements */,
+				5852D3AA2FBCC46F002DC7AF /* NymVPNWidgetBundle.swift */,
+			);
+			path = NymVPNWidget;
+			sourceTree = "<group>";
+		};
 		58FF8CE92F8EAE7E0037AC51 /* NymVPND */ = {
 			isa = PBXGroup;
 			children = (
@@ -566,8 +556,8 @@
 				D954C0BA2B51C1CA00C6BAAC /* NymMixnetTunnel */,
 				D9EACBD42BC016D60094CDDF /* NymVPNUITests */,
 				58FF8CE92F8EAE7E0037AC51 /* NymVPND */,
-				D9D7BC862F7D58060094415B /* NymVPNWidget */,
-				D9D7BC402F7D53380094415B /* NymVPNmacOSWidgetExtension */,
+				5852D3AB2FBCC46F002DC7AF /* NymVPNWidget */,
+				5852D3A32FBCC46C002DC7AF /* NymVPNmacOSWidgetExtension */,
 				D99A14772B357E9900F2728B /* Products */,
 				D99A14882B35A73F00F2728B /* Frameworks */,
 			);
@@ -834,9 +824,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				D9D7BC402F7D53380094415B /* NymVPNmacOSWidgetExtension */,
-			);
 			name = NymVPNmacOSWidgetExtension;
 			packageProductDependencies = (
 				D9D7BC702F7D57A30094415B /* WidgetShared */,
@@ -856,9 +843,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				D9D7BC862F7D58060094415B /* NymVPNWidget */,
 			);
 			name = NymVPNWidgetExtension;
 			packageProductDependencies = (
@@ -1025,6 +1009,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5852D3A52FBCC46C002DC7AF /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1032,6 +1017,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5852D3AC2FBCC46F002DC7AF /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1122,6 +1108,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5852D3A42FBCC46C002DC7AF /* NymVPNWidgetBundle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1129,6 +1116,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5852D3AE2FBCC46F002DC7AF /* NymVPNWidgetBundle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
