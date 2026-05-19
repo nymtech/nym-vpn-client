@@ -47,10 +47,10 @@ import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
-import net.nymtech.nymvpn.ui.common.snackbar.NymAlertAction
-import net.nymtech.nymvpn.ui.common.snackbar.NymAlertController
-import net.nymtech.nymvpn.ui.common.snackbar.NymAlertHost
-import net.nymtech.nymvpn.ui.common.snackbar.NymAlertMessage
+import net.nymtech.nymvpn.ui.common.snackbar.AlertAction
+import net.nymtech.nymvpn.ui.common.snackbar.AlertController
+import net.nymtech.nymvpn.ui.common.snackbar.AlertHost
+import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
 import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
@@ -143,7 +143,6 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val connectionSeconds by viewModel.connectionSeconds.collectAsState()
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
-	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
 	val autologinState by appViewModel.autologinState.collectAsState()
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsState()
 
@@ -192,11 +191,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	fun checkStatsEnabled() {
 		if (!appUiState.settings.statsEnabled && !appUiState.settings.statsDialogSkip) {
-			NymAlertController.show(
-				NymAlertMessage(
+			AlertController.show(
+				AlertMessage(
 					type = AlertType.Neutral,
 					title = alertTitle,
-					action = NymAlertAction(alertAction) {
+					action = AlertAction(alertAction) {
 						showNetworkStatsDialog = true
 					},
 					duration = 7_000L,
@@ -224,7 +223,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		onResult = {
 			val accepted = (it.resultCode == RESULT_OK)
 			if (!accepted) viewModel.onBatteryOptSkipped()
-			NymAlertController.show(NymAlertMessage(title = batteryOptSettingsTitle))
+			AlertController.show(AlertMessage(title = batteryOptSettingsTitle))
 			viewModel.onDisconnect()
 		},
 	)
@@ -234,8 +233,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		ActivityResultContracts.RequestPermission(),
 	) { isGranted ->
 		if (!isGranted) {
-			NymAlertController.show(
-				NymAlertMessage(
+			AlertController.show(
+				AlertMessage(
 					type = AlertType.Warning,
 					title = permissionAlertTitle,
 				),
@@ -269,8 +268,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val entryAlertTitle = stringResource(R.string.disabled_while_connecting)
 	fun onEntryClick() {
 		when (uiState.connectionState) {
-			ConnectionState.WaitingForConnection -> NymAlertController.show(
-				NymAlertMessage(title = entryAlertTitle),
+			ConnectionState.WaitingForConnection -> AlertController.show(
+				AlertMessage(title = entryAlertTitle),
 			)
 
 			else -> navController.goFromRoot(Route.EntryLocation)
@@ -280,8 +279,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val exitAlertTitle = stringResource(R.string.disabled_while_connecting)
 	fun onExitClick() {
 		when (uiState.connectionState) {
-			ConnectionState.WaitingForConnection -> NymAlertController.show(
-				NymAlertMessage(title = exitAlertTitle),
+			ConnectionState.WaitingForConnection -> AlertController.show(
+				AlertMessage(title = exitAlertTitle),
 			)
 
 			else -> navController.goFromRoot(Route.ExitLocation)
@@ -304,8 +303,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val autologinAlertTitle = stringResource(R.string.account_info_autologin_error)
 	LaunchedEffect(autologinState) {
 		if (autologinState is AutologinState.Error) {
-			NymAlertController.show(
-				NymAlertMessage(
+			AlertController.show(
+				AlertMessage(
 					type = AlertType.Negative,
 					title = autologinAlertTitle,
 				),
@@ -318,11 +317,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val expiryState = appUiState.subscription?.expiryState
 	LaunchedEffect(expiryState, expiryBannerDismissed) {
 		if (!expiryBannerDismissed && (expiryState == ExpiryState.WARNING)) {
-			NymAlertController.show(
-				NymAlertMessage(
+			AlertController.show(
+				AlertMessage(
 					type = AlertType.Warning,
 					title = expiryAlertTitle,
-					action = NymAlertAction(expiryAlertAction) {
+					action = AlertAction(expiryAlertAction) {
 						viewModel.dismissExpiryBanner()
 						appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW)
 					},
@@ -339,11 +338,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		when (val state = uiState.connectionState) {
 			is ConnectionState.Error -> {
 				val message = state.reason.toUserMessage(context).ifEmpty { connectionFailedLabel }
-				NymAlertController.show(
-					NymAlertMessage(
+				AlertController.show(
+					AlertMessage(
 						type = AlertType.Error,
 						title = message,
-						action = NymAlertAction(connectionErrorRetryLabel) { onConnectPressed() },
+						action = AlertAction(connectionErrorRetryLabel) { onConnectPressed() },
 						duration = Long.MAX_VALUE,
 						onDismiss = { isShowingConnectionErrorAlert = false },
 					),
@@ -352,18 +351,18 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			}
 			is ConnectionState.StartFailure -> {
 				val message = state.exception.toUserMessage(context)
-				NymAlertController.show(
-					NymAlertMessage(
+				AlertController.show(
+					AlertMessage(
 						type = AlertType.Error,
 						title = message,
-						action = NymAlertAction(connectionErrorRetryLabel) { onConnectPressed() },
+						action = AlertAction(connectionErrorRetryLabel) { onConnectPressed() },
 						duration = Long.MAX_VALUE,
 						onDismiss = { isShowingConnectionErrorAlert = false },
 					),
 				)
 				isShowingConnectionErrorAlert = true
 			}
-			else -> if (isShowingConnectionErrorAlert) NymAlertController.dismiss()
+			else -> if (isShowingConnectionErrorAlert) AlertController.dismiss()
 		}
 	}
 
@@ -425,8 +424,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		onDismiss = {
 			showBatteryDialog = false
 			viewModel.onBatteryOptSkipped()
-			NymAlertController.show(
-				NymAlertMessage(
+			AlertController.show(
+				AlertMessage(
 					type = AlertType.Neutral,
 					title = batteryOptTitle,
 				),
@@ -441,8 +440,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		onConfirm = {
 			showNetworkStatsDialog = false
 			viewModel.setNetworkStatsEnabled()
-			NymAlertController.show(
-				NymAlertMessage(
+			AlertController.show(
+				AlertMessage(
 					type = AlertType.Confirmation,
 					title = statsAlertTitle,
 				),
@@ -486,7 +485,7 @@ private fun MainScreenContent(
 	onPanelStateChange: (state: PanelState) -> Unit,
 	modifier: Modifier = Modifier,
 	contentPadding: PaddingValues = PaddingValues(),
-	previewAlertMessage: NymAlertMessage? = null,
+	previewAlertMessage: AlertMessage? = null,
 ) {
 	Box(
 		modifier = modifier
@@ -549,7 +548,7 @@ private fun MainScreenContent(
 			)
 		}
 
-		NymAlertHost(
+		AlertHost(
 			modifier = Modifier
 				.align(Alignment.TopCenter)
 				.padding(top = contentPadding.calculateTopPadding() + 8.dp)
@@ -577,11 +576,11 @@ private fun MainScreenPreviewAlertCritical() {
 			onPanelStateChange = {},
 			onExitNodeClick = {},
 			onEntryNodeClick = {},
-			previewAlertMessage = NymAlertMessage(
+			previewAlertMessage = AlertMessage(
 				type = AlertType.Error,
 				title = "Secure your secret passphrase",
 				body = "No passphrase no access to account",
-				action = NymAlertAction("Back up now") {},
+				action = AlertAction("Back up now") {},
 				duration = Long.MAX_VALUE,
 			),
 		)

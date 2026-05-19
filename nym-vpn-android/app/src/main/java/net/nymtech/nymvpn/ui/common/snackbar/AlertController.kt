@@ -13,22 +13,22 @@ import kotlinx.coroutines.flow.asStateFlow
 
 enum class AlertType { Confirmation, Neutral, Negative, Warning, Error }
 
-data class NymAlertMessage(
+data class AlertMessage(
 	val type: AlertType = AlertType.Neutral,
 	val title: String,
 	val body: String? = null,
-	val action: NymAlertAction? = null,
+	val action: AlertAction? = null,
 	val duration: Long = 4_000L,
 	val onDismiss: (() -> Unit)? = null,
 )
 
-data class NymAlertAction(val label: String, val onClick: () -> Unit)
+data class AlertAction(val label: String, val onClick: () -> Unit)
 
-object NymAlertController {
-	private val _message = MutableStateFlow<NymAlertMessage?>(null)
-	val message: StateFlow<NymAlertMessage?> = _message.asStateFlow()
+object AlertController {
+	private val _message = MutableStateFlow<AlertMessage?>(null)
+	val message: StateFlow<AlertMessage?> = _message.asStateFlow()
 
-	fun show(message: NymAlertMessage) {
+	fun show(message: AlertMessage) {
 		_message.value?.onDismiss?.invoke()
 		_message.value = message
 	}
