@@ -20,7 +20,7 @@ function SettingsMenuCardBig({
     <div
       className={clsx([
         'flex flex-col items-center justify-center gap-4 select-none',
-        'dark:bg-charcoal min-h-16 rounded-lg bg-white',
+        'dark:bg-aph-light min-h-16 rounded-lg bg-white',
         'cursor-default transition',
         disabled && 'pointer-events-none opacity-50',
         className,
