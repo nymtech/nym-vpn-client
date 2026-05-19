@@ -216,4 +216,5 @@ jobs:
 
       - name: Dry-run summary
         if: ${{ inputs.dry_run == true }}
-        run: echo "::warning:: Dry run — no commit or PR created."
+        run: |
+          echo "::warning:: Dry run — no commit or PR created."
