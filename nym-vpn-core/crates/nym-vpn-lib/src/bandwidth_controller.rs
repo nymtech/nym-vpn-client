@@ -903,6 +903,10 @@ impl BandwidthController {
             }
         }
 
+        // Explicitly close the credential storage so that the underlying SQLite pool releases
+        // OS file handles promptly (especially important on Windows).
+        self.ticket_provider.close().await;
+
         tracing::debug!("BandwidthController: Exiting");
     }
 }
