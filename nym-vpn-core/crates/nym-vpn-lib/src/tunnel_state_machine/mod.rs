@@ -326,6 +326,9 @@ impl TunnelSettings {
         {
             diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
         }
+        if self.gateway_independence != other.gateway_independence {
+            diff.add(TunnelSettingsDiffFields::GatewayIndependence);
+        }
 
         diff
     }
@@ -353,6 +356,7 @@ pub enum TunnelSettingsDiffFields {
     GeoExclusionExcludedCountries,
     GeoLocationEnabled,
     GatewaySelectionAlgorithm,
+    GatewayIndependence,
 }
 
 impl TunnelSettingsDiffFields {
@@ -367,7 +371,8 @@ impl TunnelSettingsDiffFields {
             | Self::ExitPoint
             | Self::GatewayPerformanceOptions
             | Self::Dns
-            | Self::GatewaySelectionAlgorithm => true,
+            | Self::GatewaySelectionAlgorithm
+            | Self::GatewayIndependence => true,
             Self::EnableAdBlocking => {
                 // On android reconnect is necessary due to packet filtering used for adblocking.
                 cfg!(target_os = "android")
