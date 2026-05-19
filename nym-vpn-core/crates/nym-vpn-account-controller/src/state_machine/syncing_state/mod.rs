@@ -284,7 +284,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                                 NextAccountControllerState::NewState(PendingSubscriptionState::enter())
                             }
                             Some(reason) if is_retryable => {
-                                if self.attempts > MAX_SYNCING_ATTEMPTS {
+                                if self.attempts >= MAX_SYNCING_ATTEMPTS {
                                     tracing::debug!("Error trying to get account summary, exhausted retries : {err_str}");
                                     NextAccountControllerState::NewState(ErrorState::enter(reason))
                                 } else {
