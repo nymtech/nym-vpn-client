@@ -403,7 +403,7 @@ function NodeDetails() {
               icon
               color="cornflower"
             />
-            <p className="text-secondary">
+            <p className="text-text-secondary">
               <Trans
                 i18nKey="node-details.links.explorer"
                 ns="node-location"
