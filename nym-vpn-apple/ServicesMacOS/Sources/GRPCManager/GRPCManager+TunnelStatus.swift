@@ -153,6 +153,8 @@ extension GRPCManager {
             ErrorReason.needFullDiskPermissions
         case .splitTunnel:
             ErrorReason.splitTunnel
+        case .needsRelaxedIndependenceCriteria:
+            ErrorReason.needsRelaxedIndependenceCriteria
         }
     }
 }
@@ -209,6 +211,8 @@ extension ErrorReason {
             self = .needFullDiskPermissions
         case .splitTunnel:
             self = .splitTunnel
+        case .needsRelaxedIndependenceCriteria:
+            self = .needsRelaxedIndependenceCriteria
         }
     }
 }

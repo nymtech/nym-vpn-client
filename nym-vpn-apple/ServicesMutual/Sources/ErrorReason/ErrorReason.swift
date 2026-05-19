@@ -44,6 +44,7 @@ public enum ErrorReason: LocalizedError, Codable {
     case performantExitGatewayUnavailable
     case needFullDiskPermissions
     case splitTunnel
+    case needsRelaxedIndependenceCriteria
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -101,6 +102,8 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .needFullDiskPermissions
         case .splitTunnel:
             self = .splitTunnel
+        case .needsRelaxedIndependenceCriteria:
+            self = .needsRelaxedIndependenceCriteria
         }
     }
 #endif
@@ -187,6 +190,8 @@ public enum ErrorReason: LocalizedError, Codable {
         case .existingAccount:
             self = .existingAccount
 #endif
+        case .needsRelaxedIndependenceCriteria:
+            self = .needsRelaxedIndependenceCriteria
         }
     }
 
@@ -287,6 +292,8 @@ private extension ErrorReason {
         case .existingAccount:
             "errorReason.existingAccount".localizedString
 #endif
+        case .needsRelaxedIndependenceCriteria:
+            "errorReason.needsRelaxedIndependenceCriteria".localizedString
         }
     }
 }
@@ -335,6 +342,7 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case performantExiGatewayUnavailable
     case needFullDiskPermissions
     case splitTunnel
+    case needsRelaxedIndependenceCriteria
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -410,6 +418,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
         case .existingAccount:
             self = .existingAccount
 #endif
+        case .needsRelaxedIndependenceCriteria:
+            self = .needsRelaxedIndependenceCriteria
         }
     }
 }

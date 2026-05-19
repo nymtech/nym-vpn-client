@@ -10112,6 +10112,17 @@
         }
       }
     },
+    "errorReason.needsRelaxedIndependenceCriteria" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No gateway pair meets the current independence criteria. Relax the criteria in settings to find a usable pair."
+          }
+        }
+      }
+    },
     "errorReason.noAccountStored" : {
       "extractionState" : "manual",
       "localizations" : {
