@@ -280,7 +280,9 @@ export function NodeRow({ type }: NodeRowProps) {
               <ScoreIndicatorContainer score={nodeDetails.score} />
               <AnimatePresence mode="wait">
                 {nodeDetails.countryCode &&
-                  (state === 'connected' || algo !== 'auto') && (
+                  (state === 'connected' ||
+                    state === 'connecting' ||
+                    algo !== 'auto') && (
                     <motion.div
                       key={nodeDetails.countryCode}
                       initial={{ opacity: 0, x: 14 }}
