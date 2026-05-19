@@ -7354,6 +7354,7 @@ dependencies = [
  "bip39",
  "nym-crypto",
  "nym-pemstore",
+ "nym-sqlx-pool-guard",
  "rand 0.8.5",
  "rand_chacha 0.3.1",
  "serde",

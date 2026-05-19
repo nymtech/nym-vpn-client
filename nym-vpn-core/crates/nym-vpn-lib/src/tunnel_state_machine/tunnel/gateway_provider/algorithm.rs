@@ -25,7 +25,7 @@ async fn continuous_select<C: GatewayCache>(
     gateway_cache: C,
     blacklisted_entry_gateways: &BlacklistedGateways,
     device_location: Option<Location>,
-    wg_keys_db: WireguardKeysDb,
+    wg_keys_db: &WireguardKeysDb,
 ) {
     loop {
         // make sure the buffer is not full before deciding on other possible selections
@@ -38,7 +38,7 @@ async fn continuous_select<C: GatewayCache>(
             blacklisted_entry_gateways,
             &select_and_send.tunnel_settings,
             device_location.clone(),
-            wg_keys_db.clone(),
+            wg_keys_db,
         )
         .await;
         selection_tx.send(selection);
@@ -79,7 +79,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {
                     tracing::info!("SelectionAlgorithm shut down");
-                    return;
+                    break;
                 }
                 Some(new_settings) = self.tunnel_settings_rx.recv() => {
                     latest_tunnel_settings = new_settings;
@@ -92,10 +92,11 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
                         self.gateway_cache.clone(),
                         &self.blacklisted_entry_gateways,
                         latest_location.clone(),
-                        self.wg_keys_db.clone(),
+                        &self.wg_keys_db,
                     ) => {},
             }
         }
+        self.wg_keys_db.close().await;
     }
 }
 

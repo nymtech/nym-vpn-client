@@ -216,6 +216,7 @@ where
         }
 
         self.shared_state.credential_storage.close().await;
+        self.shared_state.wireguard_keys_storage.close().await;
         tracing::debug!("Account controller state machine is exiting...");
     }
 }
