@@ -17,7 +17,12 @@ function Diagnostic() {
     setDiagnosticRunning(true);
     try {
       const report = await invoke('run_diagnostic', {
-        params: { gateway: null, skipDns: false, skipHttp: false },
+        params: {
+          gateway: null,
+          skipDns: false,
+          skipHttp: false,
+          skipHybridTransport: false,
+        },
       });
       setDiagnosticResult(JSON.stringify(report, null, 2));
     } finally {
@@ -62,7 +67,7 @@ function Diagnostic() {
             </ButtonNew>
             <div className="dark:bg-charcoal flex min-h-0 flex-1 flex-col space-y-4 rounded-lg bg-white p-6 font-mono text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">
+                <span className="text-text-primary text-sm font-semibold">
                   {t('diagnostic.report-title')}
                 </span>
                 <ButtonIconNew
@@ -70,7 +75,8 @@ function Diagnostic() {
                   icon="content_copy"
                   onClick={() => copy(diagnosticResult, false)}
                   clickFeedback
-                  noDefaultSize
+                  size="small"
+                  // noDefaultSize
                 />
               </div>
               <Separator
