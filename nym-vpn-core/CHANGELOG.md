@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.10.0-beta] - 2026-05-19
+
 ### Added
 
 - [iOS] Introduce ad-blocker. (https://github.com/nymtech/nym-vpn-client/pull/5227)
