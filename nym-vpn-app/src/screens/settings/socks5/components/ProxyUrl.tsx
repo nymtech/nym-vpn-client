@@ -24,8 +24,8 @@ function ProxyUrl({ value, title, borderBottom = true }: ProxyUrlProps) {
         <ButtonIconNew
           icon="content_copy"
           onClick={() => copy(value, false)}
-          noDefaultSize
           clickFeedback
+          size="small"
         />
       </div>
     </div>

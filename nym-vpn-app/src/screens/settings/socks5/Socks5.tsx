@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { CardSwitch, PageAnim, SettingsMenuCardBig } from '../../../ui';
+import {
+  CardDataRow,
+  CardDivider,
+  CardHeaderSwitch,
+  CardNew,
+  CardNewBody,
+  CardNewHeader,
+  MsIcon,
+  PageAnim,
+} from '../../../ui';
 import { useMainState, useSocks5 } from '../../../store';
 import { useToast } from '../../../hooks/index';
-import ProxyInfoCard from './ProxyInfoCard';
 import { ProxyInfo, ProxyPortInput, ProxyUrl } from './components';
 
 const DefaultSocks5Port = '1080';
@@ -136,120 +144,103 @@ function Socks5() {
     <PageAnim className="mt-2 flex h-full flex-col gap-6 select-none">
       <div className="text-text-secondary">{t('app-proxy.intro')}</div>
 
-      <SettingsMenuCardBig
-        header={
-          <CardSwitch
-            checked={isEnabled}
-            onClick={handleToggle}
-            header={t('app-proxy.switch-title')}
-            disabled={isLoading || !portValid}
-          />
-        }
-      >
-        <div>
-          <ul
-            className={clsx([
-              'flex flex-col items-center justify-center gap-0',
-              'dark:bg-charcoal bg-white',
-              'cursor-default',
-            ])}
-          >
-            <li
+      <CardNew>
+        <CardHeaderSwitch
+          checked={isEnabled}
+          onClick={handleToggle}
+          header={t('app-proxy.switch-title')}
+          disabled={isLoading || !portValid}
+        />
+        <CardNewBody className="py-4">
+          <CardDataRow label={t('app-proxy.proxy-status')}>
+            <span className={clsx(getStatusColor())}>{getStatusString()}</span>
+          </CardDataRow>
+          <CardDivider />
+          <CardDataRow label={t('app-proxy.active-connections')}>
+            <span
               className={clsx(
-                'flex w-full border-b last:border-b-0',
-                'border-bombay dark:border-iron py-2 first:pt-0 last:pb-0',
+                status?.state === 'connected'
+                  ? 'text-primary'
+                  : 'text-text-primary',
               )}
-            >
-              <div className="flex w-full items-center justify-between gap-2">
-                <span className="text-text-secondary truncate select-none">
-                  {t('app-proxy.proxy-status')}
-                </span>
-                <span className={clsx(getStatusColor())}>
-                  {getStatusString()}
-                </span>
-              </div>
-            </li>
-            <li
-              className={clsx(
-                'flex w-full border-b last:border-b-0',
-                'border-bombay dark:border-iron py-2 first:pt-0 last:pb-0',
-              )}
-            >
-              <div className="flex w-full items-center justify-between gap-2">
-                <span className="text-text-secondary truncate select-none">
-                  {t('app-proxy.active-connections')}
-                </span>
-                <span
-                  className={clsx(
-                    status?.state === 'connected'
-                      ? 'text-primary'
-                      : 'text-text-primary',
-                  )}
-                >
-                  {status?.activeConnections ?? 0}
-                </span>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </SettingsMenuCardBig>
-      <ProxyInfoCard title={t('app-proxy.socks5.proxy-title')}>
-        <div className="flex flex-col gap-4">
-          <ProxyPortInput
-            value={socks5Port}
-            defaultValue={DefaultSocks5Port}
-            disabled={isEnabled || isLoading}
-            onChange={(value, valid) => {
-              setSocks5Port(value);
-              setSocks5PortValid(valid);
-            }}
-          />
-          <ProxyUrl
-            value={`${socks5Address}:${socks5Port}`}
-            title={t('app-proxy.socks5.listen-address')}
-            borderBottom={isConnected}
-          />
-          {isConnected && (
-            <>
-              <ProxyUrl
-                value={socks5Url}
-                title={t('app-proxy.socks5.url-title')}
-                borderBottom={isConnected}
-              />
-              <ProxyInfo text={t('app-proxy.socks5.info')} />
-            </>
-          )}
-        </div>
-      </ProxyInfoCard>
+            ></span>
+          </CardDataRow>
+        </CardNewBody>
+      </CardNew>
 
-      <ProxyInfoCard title={t('app-proxy.http-rpc.proxy-title')}>
-        <div className="flex flex-col gap-4">
-          <ProxyPortInput
-            value={httpRpcPort}
-            defaultValue={DefaultHttpRpcPort}
-            disabled={isEnabled || isLoading}
-            onChange={(value, valid) => {
-              setHttpRpcPort(value);
-              setHttpRpcPortValid(valid);
-            }}
-          />
-          <ProxyUrl
-            value={`${httpRpcAddress}:${httpRpcPort}`}
-            title={t('app-proxy.http-rpc.listen-address')}
-            borderBottom={isConnected}
-          />
-          {isConnected && (
-            <>
-              <ProxyUrl
-                value={httpRpcUrl}
-                title={t('app-proxy.http-rpc.url-title')}
-                borderBottom={isConnected}
-              />
-              <ProxyInfo text={t('app-proxy.http-rpc.info')} />
-            </>
-          )}
-        </div>
-      </ProxyInfoCard>
+      <CardNew>
+        <CardNewHeader className="gap-2">
+          <MsIcon icon="tag" className="text-text-secondary" />
+          <p className="text-text-primary font-medium">
+            {t('app-proxy.socks5.proxy-title')}
+          </p>
+        </CardNewHeader>
+        <CardNewBody className="py-4">
+          <div className="flex w-full flex-col gap-4">
+            <ProxyPortInput
+              value={socks5Port}
+              defaultValue={DefaultSocks5Port}
+              disabled={isEnabled || isLoading}
+              onChange={(value, valid) => {
+                setSocks5Port(value);
+                setSocks5PortValid(valid);
+              }}
+            />
+            <ProxyUrl
+              value={`${socks5Address}:${socks5Port}`}
+              title={t('app-proxy.socks5.listen-address')}
+              borderBottom={isConnected}
+            />
+            {isConnected && (
+              <>
+                <ProxyUrl
+                  value={socks5Url}
+                  title={t('app-proxy.socks5.url-title')}
+                  borderBottom={isConnected}
+                />
+                <ProxyInfo text={t('app-proxy.socks5.info')} />
+              </>
+            )}
+          </div>
+        </CardNewBody>
+      </CardNew>
+
+      <CardNew>
+        <CardNewHeader className="items-center gap-2">
+          <MsIcon icon="tag" className="text-text-secondary" />
+          <p className="text-text-primary font-medium">
+            {t('app-proxy.http-rpc.proxy-title')}
+          </p>
+        </CardNewHeader>
+        <CardNewBody className="py-4">
+          <div className="flex w-full flex-col gap-4">
+            <ProxyPortInput
+              value={httpRpcPort}
+              defaultValue={DefaultHttpRpcPort}
+              disabled={isEnabled || isLoading}
+              onChange={(value, valid) => {
+                setHttpRpcPort(value);
+                setHttpRpcPortValid(valid);
+              }}
+            />
+            <ProxyUrl
+              value={`${httpRpcAddress}:${httpRpcPort}`}
+              title={t('app-proxy.http-rpc.listen-address')}
+              borderBottom={isConnected}
+            />
+            {isConnected && (
+              <>
+                <ProxyUrl
+                  value={httpRpcUrl}
+                  title={t('app-proxy.http-rpc.url-title')}
+                  borderBottom={isConnected}
+                />
+                <ProxyInfo text={t('app-proxy.http-rpc.info')} />
+              </>
+            )}
+          </div>
+        </CardNewBody>
+      </CardNew>
     </PageAnim>
   );
 }
