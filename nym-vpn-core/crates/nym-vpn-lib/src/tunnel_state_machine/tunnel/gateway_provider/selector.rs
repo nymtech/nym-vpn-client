@@ -286,7 +286,7 @@ fn loop_select(
         )
         // if we failed previously on exit selection, we return that error
         // entry error is returned if there was no previous exit selection error
-        .or_else(|entry_error| Err(exit_error.unwrap_or(entry_error)))?;
+        .map_err(|entry_error| exit_error.unwrap_or(entry_error))?;
         match select_exit(
             &entry_gateway,
             exit_gateways.clone(),
