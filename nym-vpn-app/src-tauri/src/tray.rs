@@ -39,7 +39,7 @@ enum MenuItemId {
 
 // Position of the entry item in the tray menu when visible:
 // show_hide(0), separator(1), status(2), mode(3), entry(4), exit(5), separator(6), quit(7)
-const ENTRY_MENU_POSITION: usize = 4;
+const ENTRY_MENU_POSITION: usize = 5;
 
 pub struct TrayManager {
     app: AppHandle,
@@ -93,14 +93,6 @@ impl TrayManager {
             None::<&str>,
         )
         .inspect_err(|e| error!("failed to create menu item: {e}"))?;
-        let entry = MenuItem::with_id(
-            app,
-            MenuItemId::Entry.as_ref(),
-            "Entry: Initial",
-            true,
-            None::<&str>,
-        )
-        .inspect_err(|e| error!("failed to create menu item: {e}"))?;
         let exit = MenuItem::with_id(
             app,
             MenuItemId::Exit.as_ref(),
@@ -109,12 +101,21 @@ impl TrayManager {
             None::<&str>,
         )
         .inspect_err(|e| error!("failed to create menu item: {e}"))?;
+        let entry = MenuItem::with_id(
+            app,
+            MenuItemId::Entry.as_ref(),
+            "Entry: Initial",
+            true,
+            None::<&str>,
+        )
+        .inspect_err(|e| error!("failed to create menu item: {e}"))?;
+
         let separator = PredefinedMenuItem::separator(app)?;
 
         let menu = Menu::with_items(
             app,
             &[
-                &show_hide, &separator, &status, &mode, &entry, &exit, &separator, &quit,
+                &show_hide, &separator, &status, &mode, &exit, &entry, &separator, &quit,
             ],
         )?;
 
