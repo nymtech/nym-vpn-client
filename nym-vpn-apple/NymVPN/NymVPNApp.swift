@@ -95,6 +95,9 @@ struct NymVPNApp: App {
             .preferredColorScheme(appearance.colorScheme)
             .onAppear {
                 configureScreenSize()
+                externalLinkManager.deeplinkHandler = { url in
+                    deeplinkManager.handle(url: url)
+                }
             }
             .onOpenURL { incomingURL in
                 if incomingURL.scheme == Constants.appUrlScheme.rawValue {

@@ -1,3 +1,4 @@
+import AuthenticationServices
 import Combine
 import SwiftUI
 import AppSettings
@@ -274,7 +275,7 @@ private extension AccountWelcomeView {
         path.append(SettingLink.generatePassphrase(displayPurchaseView: false))
 #elseif os(macOS)
         let createAccountLink = try? await credentialsManager.privyLogin(kind: .createAccount)
-        try? externalLinkManager.openExternalURL(urlString: createAccountLink)
+        try? await externalLinkManager.presentPrivyAuthSession(urlString: createAccountLink)
 #endif
     }
 
@@ -289,11 +290,9 @@ private extension AccountWelcomeView {
         Task {
             do {
                 let loginURL = try await credentialsManager.privyLogin(kind: .privy)
-#if os(iOS)
-                try externalLinkManager.openInAppBrowser(urlString: loginURL)
-#else
-                try externalLinkManager.openExternalURL(urlString: loginURL)
-#endif
+                try await externalLinkManager.presentPrivyAuthSession(urlString: loginURL)
+            } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
+                return
             } catch {
                 alertTitle = error.localizedDescription
                 isDisplayingAlert = true

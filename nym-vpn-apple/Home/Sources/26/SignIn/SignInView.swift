@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 import ConnectionTypes
 import CredentialsManager
@@ -10,6 +11,7 @@ public struct SignInView: View {
     private let credentialsManager: CredentialsManager
     private let rootMinHeight: CGFloat
     private let onBackTapped: () -> Void
+    private let onWillRegister: () -> Void
 
     @State private var passphraseViewModel: PassphraseSignInViewModel
     @State private var showsPassphrase = false
@@ -21,14 +23,16 @@ public struct SignInView: View {
     public init(
         credentialsManager: CredentialsManager,
         rootMinHeight: CGFloat = 0,
-        onBackTapped: @escaping () -> Void
+        onBackTapped: @escaping () -> Void,
+        onWillRegister: @escaping () -> Void = {}
     ) {
         self.credentialsManager = credentialsManager
         self.rootMinHeight = rootMinHeight
         self.onBackTapped = onBackTapped
-        _passphraseViewModel = State(
-            wrappedValue: PassphraseSignInViewModel(credentialsManager: credentialsManager)
-        )
+        self.onWillRegister = onWillRegister
+        let viewModel = PassphraseSignInViewModel(credentialsManager: credentialsManager)
+        viewModel.onWillRegister = onWillRegister
+        _passphraseViewModel = State(wrappedValue: viewModel)
     }
 
     public var body: some View {
@@ -73,17 +77,16 @@ public struct SignInView: View {
     private func startPrivyLogin() {
         guard !isPrivyLoading else { return }
         isPrivyLoading = true
+        onWillRegister()
         privyTask?.cancel()
         privyTask = Task { @MainActor in
             defer { isPrivyLoading = false }
             do {
                 let url = try await credentialsManager.privyLogin(kind: .privy)
-#if os(iOS)
-                try ExternalLinkManager.shared.openInAppBrowser(urlString: url)
-#elseif os(macOS)
-                try ExternalLinkManager.shared.openExternalURL(urlString: url)
-#endif
+                try await ExternalLinkManager.shared.presentPrivyAuthSession(urlString: url)
             } catch is CancellationError {
+                return
+            } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
                 return
             } catch {
                 privyAlertMessage = error.localizedDescription
