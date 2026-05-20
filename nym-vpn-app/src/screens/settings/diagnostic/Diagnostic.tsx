@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { Separator } from '@base-ui-components/react';
-import { ButtonIconNew, ButtonNew, PageAnim } from '../../../ui';
+import { Button, ButtonIconNew, PageAnim } from '../../../ui';
 import { useClipboard } from '../../../hooks';
 
 function Diagnostic() {
@@ -48,23 +48,23 @@ function Diagnostic() {
   return (
     <PageAnim className="flex h-full flex-col">
       <div className="flex min-h-0 flex-1 flex-col gap-6">
-        <ButtonNew
+        <Button
           onClick={handleRunDiagnostic}
           disabled={diagnosticRunning}
           loading={diagnosticRunning}
         >
           {t('diagnostic.run')}
-        </ButtonNew>
+        </Button>
         {diagnosticResult && (
           <>
-            <ButtonNew
+            <Button
               variant="outlined"
               onClick={handleShareReport}
               disabled={shareLoading}
               loading={shareLoading}
             >
               {t('diagnostic.share')}
-            </ButtonNew>
+            </Button>
             <div className="dark:bg-charcoal flex min-h-0 flex-1 flex-col space-y-4 rounded-lg bg-white p-6 font-mono text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-text-primary text-sm font-semibold">

@@ -1,6 +1,6 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { ButtonNew, Dialog, MsIcon } from '.';
+import { Button, Dialog, MsIcon } from '.';
 
 export type ConfirmationDialogProps = {
   icon: string;
@@ -43,7 +43,7 @@ function ConfirmationDialog({
         {description}
       </p>
       <div className="mt-6 flex w-full flex-col flex-nowrap justify-center gap-2">
-        <ButtonNew
+        <Button
           onClick={onConfirm}
           className="min-w-32"
           variant="primary"
@@ -51,10 +51,10 @@ function ConfirmationDialog({
           disabled={isLoading}
         >
           {confirmButtonText}
-        </ButtonNew>
-        <ButtonNew onClick={onCancel} className="min-w-32" variant="outlined">
+        </Button>
+        <Button onClick={onCancel} className="min-w-32" variant="outlined">
           {cancelButtonText || t('cancel')}
-        </ButtonNew>
+        </Button>
       </div>
     </Dialog>
   );

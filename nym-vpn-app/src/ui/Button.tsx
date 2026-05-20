@@ -1,125 +1,100 @@
-import { ReactNode } from 'react';
+import { Button as BuButton } from '@base-ui/react';
 import clsx from 'clsx';
-import { Button as HuButton } from '@headlessui/react';
+import { ReactNode } from 'react';
 import Spinner from './Spinner';
 
-export type ButtonProps = {
+export type ButtonVariant =
+  | 'primary'
+  | 'outlined'
+  | 'destructive'
+  | 'destructive-outlined';
+
+const variantStyles: Record<ButtonVariant, string[]> = {
+  primary: [
+    'bg-primary text-baltic-sea',
+    'hover:bg-primary-hover',
+    'data-active:bg-primary-active',
+    'data-disabled:bg-secondary',
+  ],
+  outlined: [
+    'border-1 border-black dark:border-white',
+    'text-text-primary',
+    'hover:bg-baltic-sea/10 dark:hover:bg-white/10',
+    'data-active:bg-transparent',
+    'data-disabled:border-black/50 data-disabled:text-black/50 data-disabled:cursor-not-allowed',
+    'dark:data-disabled:border-white/50 dark:data-disabled:text-white/50',
+  ],
+  destructive: [
+    'bg-aphrodisiac text-white',
+    'hover:bg-aphrodisiac/80',
+    'data-active:bg-aphrodisiac/90',
+    'data-disabled:bg-secondary',
+  ],
+  'destructive-outlined': [
+    'border-1 border-aphrodisiac text-aphrodisiac',
+    'hover:bg-aphrodisiac/10',
+    'data-active:bg-aphrodisiac/20',
+    'data-disabled:border-aphrodisiac/50 data-disabled:text-aphrodisiac/50',
+  ],
+};
+
+const loadingStyles: Record<ButtonVariant, string[]> = {
+  primary: [
+    'group-data-disabled:border-baltic-sea dark:group-data-disabled:border-baltic-sea group-data-disabled:border-b-transparent dark:group-data-disabled:border-b-transparent',
+  ],
+  outlined: [
+    'group-data-disabled:border-black/50 group-data-disabled:border-b-transparent',
+  ],
+  destructive: [
+    'group-data-disabled:border-aphrodisiac/50 group-data-disabled:border-b-transparent',
+  ],
+  'destructive-outlined': [
+    'group-data-disabled:border-aphrodisiac/50 group-data-disabled:border-b-transparent',
+  ],
+};
+export type ButtonNewProps = {
   children: ReactNode;
-  onClick: () => void;
+  variant?: ButtonVariant;
+  onClick?: () => void;
   disabled?: boolean;
-  color?: 'malachite' | 'cornflower' | 'gray' | 'red';
-  textSize?: 'base' | 'lg';
-  outline?: boolean;
   className?: string;
-  spinner?: boolean;
-  'data-testid'?: string;
+  loading?: boolean;
 };
 
 function Button({
-  onClick,
   children,
+  variant = 'primary',
+  onClick,
   disabled,
-  color = 'malachite',
-  textSize = 'lg',
-  outline,
   className,
-  spinner,
-  ...rest
-}: ButtonProps) {
-  const getColorStyle = () => {
-    switch (color) {
-      case 'malachite':
-        return [
-          'bg-malachite data-hover:bg-malachite/75',
-          'dark:data-hover:bg-malachite/80',
-        ];
-      case 'gray':
-        return [
-          'bg-iron/70 data-hover:bg-iron/90',
-          'dark:bg-bombay dark:data-hover:bg-bombay/80',
-        ];
-      case 'cornflower':
-        return [
-          'bg-cornflower data-hover:bg-cornflower/85',
-          'dark:data-hover:bg-cornflower/80',
-        ];
-      case 'red':
-        return [
-          'bg-aphrodisiac data-hover:bg-aphrodisiac/85',
-          'dark:data-hover:bg-aphrodisiac/80',
-        ];
-    }
-  };
-
-  const getOutlineColorStyle = () => {
-    switch (color) {
-      case 'malachite':
-        return 'border border-malachite outline-malachite data-hover:ring-1 data-hover:ring-malachite';
-      case 'red':
-        return [
-          'bg-aphrodisiac/10 data-hover:bg-aphrodisiac/20',
-          'border border-aphrodisiac outline-aphrodisiac',
-        ];
-      case 'gray':
-        return 'data-hover:border-iron dark:data-hover:text-bombay data-hover:ring-1 data-hover:ring-malachite';
-      default:
-        // TODO add style for other colors
-        return null;
-    }
-  };
-
-  const getOutlineTextColor = () => {
-    switch (color) {
-      case 'malachite':
-        return 'text-malachite';
-      case 'gray':
-        return 'text-text-secondary';
-      case 'cornflower':
-        return 'text-cornflower';
-      case 'red':
-        return 'text-aphrodisiac dark:text-white';
-    }
-  };
-
-  const getTextSizeStyle = () => {
-    switch (textSize) {
-      case 'base':
-        return 'text-base';
-      case 'lg':
-        return 'text-lg';
-    }
-  };
-  const colorStyle = outline ? getOutlineColorStyle() : getColorStyle();
-  const testId = rest['data-testid'] || 'button';
-
+  loading,
+}: ButtonNewProps) {
+  const content = loading ? (
+    <Spinner className={clsx(loadingStyles[variant])} />
+  ) : (
+    children
+  );
   return (
-    <HuButton
+    <BuButton
       className={clsx([
-        'flex w-full items-center justify-center',
-        'rounded-lg px-6 py-3 font-medium',
-        getTextSizeStyle(),
-        outline ? getOutlineTextColor() : 'text-baltic-sea',
-        'focus:outline-hidden',
-        'transition data-active:ring-0 data-disabled:opacity-60',
-        'cursor-default tracking-normal',
-        colorStyle,
-        className && className,
+        'group',
+        'flex items-center justify-center',
+        'px-4 py-6 text-base',
+        'h-12 w-full rounded-3xl',
+        'text-base leading-6 font-medium tracking-[0.01em] whitespace-nowrap',
+        'cursor-default transition-colors select-none',
+        'focus:outline-none',
+        'data-disabled:pointer-events-none',
+        disabled
+          ? 'bg-aph-light text-text-secondary'
+          : [...variantStyles[variant]],
+        className,
       ])}
       onClick={onClick}
-      disabled={disabled}
-      data-testid={testId}
-      data-test-color={color}
-      data-test-outline={outline ? 'true' : 'false'}
-      data-test-disabled={disabled ? 'true' : 'false'}
+      disabled={disabled || loading}
     >
-      {spinner ? (
-        <Spinner />
-      ) : (
-        <div className="truncate" data-testid={`${testId}-text`}>
-          {children}
-        </div>
-      )}
-    </HuButton>
+      {content}
+    </BuButton>
   );
 }
 

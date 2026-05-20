@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { type } from '@tauri-apps/plugin-os';
-import { ButtonNew, Dialog, MsIcon, Progress } from '../../ui';
+import { Button, Dialog, MsIcon, Progress } from '../../ui';
 import { DownloadUpdateEvent, UpdateMetadata } from '../../types';
 import { dispatch, useAppStore } from '../../store';
 import { useToast } from '../../hooks';
@@ -161,16 +161,12 @@ function UpdateDialog() {
             {t('app-update-available.restart-note')}
           </p>
           <div className={clsx('flex w-full flex-col items-center gap-2')}>
-            <ButtonNew
-              onClick={onUpdate}
-              className="mt-2"
-              disabled={isUpdating}
-            >
+            <Button onClick={onUpdate} className="mt-2" disabled={isUpdating}>
               <span className="dark:text-baltic-sea text-lg text-black">
                 {t('app-update-available.button-update')}
               </span>
-            </ButtonNew>
-            <ButtonNew
+            </Button>
+            <Button
               onClick={() => {
                 setIsOpen(false);
               }}
@@ -179,7 +175,7 @@ function UpdateDialog() {
               variant="outlined"
             >
               {t('app-update-available.button-close')}
-            </ButtonNew>
+            </Button>
           </div>
         </>
       ) : (

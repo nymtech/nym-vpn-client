@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
-import { ButtonIconNew, ButtonNew, MsIcon } from '../../ui';
+import { Button, ButtonIconNew, MsIcon } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import { routes } from '../../router';
 import { InteractiveCard } from '../home/InteractiveCard';
@@ -112,9 +112,9 @@ function Onboarding() {
         </div>
 
         <div className="flex w-full flex-col items-center gap-4">
-          <ButtonNew onClick={() => handleNavigate(routes.welcome)}>
+          <Button onClick={() => handleNavigate(routes.welcome)}>
             Get Started
-          </ButtonNew>
+          </Button>
         </div>
       </section>
     </InteractiveCard>

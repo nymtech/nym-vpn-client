@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
-import { ButtonNew, MsIcon } from '../../ui';
+import { Button, MsIcon } from '../../ui';
 import { dispatch, useAppStore } from '../../store';
 import { useDeepLink, useToast } from '../../hooks';
 import { routes } from '../../router';
@@ -72,7 +72,7 @@ function PrivyButton({ label }: { label: string }) {
   };
 
   return (
-    <ButtonNew
+    <Button
       variant="outlined"
       onClick={handlePrivy}
       className="group border-iron dark:border-bombay border hover:ring-0! dark:hover:ring-0!"
@@ -81,7 +81,7 @@ function PrivyButton({ label }: { label: string }) {
       <span className="flex items-center gap-2 whitespace-pre-wrap text-black group-hover:text-black/50 dark:text-white dark:group-hover:text-white/80">
         {label} <MsIcon icon="open_in_new" />
       </span>
-    </ButtonNew>
+    </Button>
   );
 }
 
