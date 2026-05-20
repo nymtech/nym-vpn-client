@@ -1,3 +1,4 @@
+import AuthenticationServices
 import SwiftUI
 import ConnectionTypes
 import CredentialsManager
@@ -22,6 +23,7 @@ public struct SignUpView: View {
     private let credentialsManager: CredentialsManager
     private let rootMinHeight: CGFloat
     private let onBackTapped: () -> Void
+    private let onWillRegister: () -> Void
 
 #if os(iOS)
     @State private var generateViewModel: GeneratePassphraseViewModel
@@ -35,15 +37,17 @@ public struct SignUpView: View {
     public init(
         credentialsManager: CredentialsManager,
         rootMinHeight: CGFloat = 0,
-        onBackTapped: @escaping () -> Void
+        onBackTapped: @escaping () -> Void,
+        onWillRegister: @escaping () -> Void = {}
     ) {
         self.credentialsManager = credentialsManager
         self.rootMinHeight = rootMinHeight
         self.onBackTapped = onBackTapped
+        self.onWillRegister = onWillRegister
 #if os(iOS)
-        _generateViewModel = State(
-            wrappedValue: GeneratePassphraseViewModel(credentialsManager: credentialsManager)
-        )
+        let viewModel = GeneratePassphraseViewModel(credentialsManager: credentialsManager)
+        viewModel.onWillRegister = onWillRegister
+        _generateViewModel = State(wrappedValue: viewModel)
 #endif
     }
 
@@ -108,18 +112,17 @@ public struct SignUpView: View {
     private func startPrivyLogin(target: PrivyTarget) {
         guard privyLoadingTarget == nil else { return }
         privyLoadingTarget = target
+        onWillRegister()
         privyTask?.cancel()
         privyTask = Task { @MainActor in
             defer { privyLoadingTarget = nil }
             do {
                 let kind: NymDeeplinkKind = (target == .anonymous) ? .createAccount : .privy
                 let url = try await credentialsManager.privyLogin(kind: kind)
-#if os(iOS)
-                try ExternalLinkManager.shared.openInAppBrowser(urlString: url)
-#elseif os(macOS)
-                try ExternalLinkManager.shared.openExternalURL(urlString: url)
-#endif
+                try await ExternalLinkManager.shared.presentPrivyAuthSession(urlString: url)
             } catch is CancellationError {
+                return
+            } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
                 return
             } catch {
                 privyAlertMessage = error.localizedDescription

@@ -109,7 +109,8 @@ private extension GatewayCountryCell {
                     path: $path,
                     entryGateway: $entryGateway,
                     exitRouter: $exitRouter,
-                    scrollToModel: $scrollToModel
+                    scrollToModel: $scrollToModel,
+                    bottomCornerRadius: index == country.regions.count - 1 ? cornerRadius : 0
                 )
                 .id(
                     GatewayScrollToModel.region(
@@ -131,6 +132,7 @@ private extension GatewayCountryCell {
                     type: hopType,
                     path: $path,
                     scrollToModel: $scrollToModel,
+                    bottomCornerRadius: index == servers.count - 1 ? cornerRadius : 0,
                     infoButtonTapCompletion: { server in
                         infoButtonTapCompletion?(server)
                     }

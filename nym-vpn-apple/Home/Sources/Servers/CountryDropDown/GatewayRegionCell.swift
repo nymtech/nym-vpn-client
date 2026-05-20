@@ -11,6 +11,7 @@ public struct GatewayRegionCell: View {
     private let country: NymCountry
     private let region: String
     private let servers: [GatewayNode]
+    private let bottomCornerRadius: CGFloat
     @EnvironmentObject private var gatewayManager: GatewayManager
     @Binding private var entryGateway: EntryGateway
     @Binding private var exitRouter: ExitRouter
@@ -25,7 +26,7 @@ public struct GatewayRegionCell: View {
         VStack(spacing: 0) {
             regionRow()
             if isExpanded {
-                ForEach(servers, id: \.id) { server in
+                ForEach(Array(servers.enumerated()), id: \.element.id) { index, server in
                     Divider()
                         .frame(height: 1)
                         .overlay(Color.Nym.divider)
@@ -34,6 +35,7 @@ public struct GatewayRegionCell: View {
                         type: hopType,
                         path: $path,
                         scrollToModel: $scrollToModel,
+                        bottomCornerRadius: index == servers.count - 1 ? bottomCornerRadius : 0,
                         infoButtonTapCompletion: { server in
                             infoButtonTapCompletion?(server)
                         }
@@ -53,13 +55,15 @@ public struct GatewayRegionCell: View {
         path: Binding<NavigationPath>,
         entryGateway: Binding<EntryGateway>,
         exitRouter: Binding<ExitRouter>,
-        scrollToModel: Binding<GatewayScrollToModel>
+        scrollToModel: Binding<GatewayScrollToModel>,
+        bottomCornerRadius: CGFloat = 0
     ) {
         self.hopType = hopType
         self.country = country
         self.region = region
         self.servers = servers
         self.infoButtonTapCompletion = infoButtonTapCompletion
+        self.bottomCornerRadius = bottomCornerRadius
         _path = path
         _entryGateway = entryGateway
         _exitRouter = exitRouter
@@ -120,10 +124,16 @@ private extension GatewayRegionCell {
         .padding(.leading, NymSpacing.medium)
         .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)
         .overlay {
-            Rectangle()
-                .inset(by: 0.5)
-                .stroke(isRegionSelected ? Color.Nym.primary : .clear, lineWidth: 1)
-                .allowsHitTesting(false)
+            let radius = isExpanded ? 0 : bottomCornerRadius
+            UnevenRoundedRectangle(
+                topLeadingRadius: 0,
+                bottomLeadingRadius: radius,
+                bottomTrailingRadius: radius,
+                topTrailingRadius: 0
+            )
+            .inset(by: 0.5)
+            .stroke(isRegionSelected ? Color.Nym.primary : .clear, lineWidth: 1)
+            .allowsHitTesting(false)
         }
         .animation(.default, value: isRegionSelected)
         .onHover { newValue in
