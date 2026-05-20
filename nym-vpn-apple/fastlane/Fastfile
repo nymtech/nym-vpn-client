@@ -21,8 +21,6 @@ platform :mac do
       if allowTargets.include?(projectTarget.name)
         projectTarget.build_configurations.each do |configuration|
           configuration.build_settings["MARKETING_VERSION"] = app_version
-          newBundleVersion = (configuration.build_settings["CURRENT_PROJECT_VERSION"].to_i + 1).to_s
-          configuration.build_settings["CURRENT_PROJECT_VERSION"] = newBundleVersion
         end
       end
     end
