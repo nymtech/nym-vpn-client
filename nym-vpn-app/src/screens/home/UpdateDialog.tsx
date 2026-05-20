@@ -144,7 +144,7 @@ function UpdateDialog() {
               }}
               className="mt-2"
               disabled={isUpdating}
-              color="transparent"
+              variant="outlined"
             >
               {t('app-update-available.button-close')}
             </Button>
