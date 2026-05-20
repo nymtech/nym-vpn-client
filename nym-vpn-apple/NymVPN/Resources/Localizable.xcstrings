@@ -6618,6 +6618,17 @@
         }
       }
     },
+    "Daemon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daemon"
+          }
+        }
+      }
+    },
     "daemonInstall.backToMainScreen" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8788,6 +8799,17 @@
         }
       }
     },
+    "errorReason.createLogFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to create log file"
+          }
+        }
+      }
+    },
     "errorReason.credentialWastedOnEntryGateway" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9289,6 +9311,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DNS 配置失败"
+          }
+        }
+      }
+    },
+    "errorReason.existingAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account already exists"
           }
         }
       }
@@ -10000,6 +10033,17 @@
         }
       }
     },
+    "errorReason.ipv6Unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6 is unavailable"
+          }
+        }
+      }
+    },
     "errorReason.maxDevicesReached" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10624,6 +10668,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法连接到退出服务器。请尝试其他服务器！"
+          }
+        }
+      }
+    },
+    "errorReason.registrationInProgress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registration in progress"
           }
         }
       }
@@ -14923,6 +14978,17 @@
         }
       }
     },
+    "generalNymError.authorizationDenied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization denied"
+          }
+        }
+      }
+    },
     "generalNymError.cannotFetchCountries" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17650,6 +17716,28 @@
         }
       }
     },
+    "home.navigationBar.settings.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
+    "home.navigationBar.theme.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toggle appearance"
+          }
+        }
+      }
+    },
     "home.serverDetails" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -18476,6 +18564,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用条款"
+          }
+        }
+      }
+    },
+    "Library" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Library"
           }
         }
       }
@@ -28274,6 +28373,17 @@
         }
       }
     },
+    "servers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "servers"
+          }
+        }
+      }
+    },
     "settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -33128,103 +33238,13 @@
         }
       }
     },
-    "tunnel" : {
+    "Tunnel" : {
       "extractionState" : "manual",
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "نفق"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "tunnel"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tunnel"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "túnel"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تونل"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tunnel"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "टनल "
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tunnel"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "トンネル"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "túnel"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "túnel"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "туннель"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tünel"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "тунель"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tunnel"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隧道"
+            "value" : "Tunnel"
           }
         }
       }
@@ -33831,6 +33851,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择最佳服务器 (4/6)"
+          }
+        }
+      }
+    },
+    "tunnelConnectingState.unrecognized" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting..."
           }
         }
       }

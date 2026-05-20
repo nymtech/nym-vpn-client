@@ -62,51 +62,55 @@ import PathManager
     }
 
     public func add(credential: String) async throws {
-        try await Task {
-            do {
 #if os(iOS)
+        let envOpt = configurationManager.networkEnv
+        do {
+            try await Task {
+                let dataDir = try PathManager.dataFolderURL().path()
+                let env = try envOpt ?? .newWithMainnetFallback()
                 try await NymVpnAccountStorage(
-                    dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+                    dataDir: dataDir,
+                    environment: env
                 ).login(request: .vpn(mnemonic: credential))
-#elseif os(macOS)
-                try await grpcManager.storeAccount(with: .vpn(mnemonic: credential))
-#endif
-                checkCredentialImport()
-            } catch {
-#if os(iOS)
-                if let vpnError = error as? VpnError {
-                    throw VPNErrorReason(with: vpnError)
-                } else {
-                    throw error
-                }
-#elseif os(macOS)
+            }.value
+            checkCredentialImport()
+        } catch {
+            if let vpnError = error as? VpnError {
+                throw VPNErrorReason(with: vpnError)
+            } else {
                 throw error
-#endif
             }
-        }.value
+        }
+#elseif os(macOS)
+        try await grpcManager.storeAccount(with: .vpn(mnemonic: credential))
+        checkCredentialImport()
+#endif
     }
 
     public func createMnemonic() async throws {
 #if os(iOS)
+        let envOpt = configurationManager.networkEnv
         try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            let env = try envOpt ?? .newWithMainnetFallback()
             try await NymVpnAccountStorage(
-                dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+                dataDir: dataDir,
+                environment: env
             ).createAccount()
-            Task { @MainActor in
-                checkCredentialImport()
-            }
         }.value
+        checkCredentialImport()
 #endif
     }
 
     public func mnemonic() async throws -> String {
 #if os(iOS)
-        try await Task {
-            try await NymVpnAccountStorage(
-                dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+        let envOpt = configurationManager.networkEnv
+        return try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            let env = try envOpt ?? .newWithMainnetFallback()
+            return try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: env
             ).getStoredMnemonic()
         }.value
 #elseif os(macOS)
@@ -117,40 +121,37 @@ import PathManager
 
     public func registerAccount() async throws {
 #if os(iOS)
-        do {
-            let result = try await NymVpnAccountStorage(
-                dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
+        let envOpt = configurationManager.networkEnv
+        let result = try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            let env = try envOpt ?? .newWithMainnetFallback()
+            return try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: env
             ).registerAccount()
-            Task { @MainActor in
-                appSettings.accountToken = result.accountToken
-                checkCredentialImport()
-            }
-        }
+        }.value
+        appSettings.accountToken = result.accountToken
+        checkCredentialImport()
 #endif
     }
 
     public func removeCredential() async throws {
-        try await Task {
-            do {
 #if os(iOS)
-                try await NymVpnAccountStorage(
-                    dataDir: PathManager.dataFolderURL().path(),
-                    environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
-                ).forgetAccount()
-#elseif os(macOS)
-                try await grpcManager.forgetAccount()
-#endif
-                checkCredentialImport()
-            } catch {
-                // TODO: need modal for alerts
-                throw error
-            }
-            Task { @MainActor in
-                appSettings.accountToken = nil
-                accountSummary = nil
-            }
+        let envOpt = configurationManager.networkEnv
+        try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            let env = try envOpt ?? .newWithMainnetFallback()
+            try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: env
+            ).forgetAccount()
         }.value
+#elseif os(macOS)
+        try await grpcManager.forgetAccount()
+#endif
+        checkCredentialImport()
+        appSettings.accountToken = nil
+        accountSummary = nil
     }
 
     public func privyLogin(kind: NymDeeplinkKind) async throws -> String? {
@@ -178,10 +179,13 @@ import PathManager
 #if os(iOS)
         guard let deeplinks, let networkEnv = configurationManager.networkEnv else { return }
         let mnemonic = try await deeplinks.deriveMnemonic(deeplinkCallbackUrl: callbackURLString)
-        try await NymVpnAccountStorage(
-            dataDir: PathManager.dataFolderURL().path(),
-            environment: networkEnv
-        ).loginWithDeeplinkMnemonic(deeplinkMnemonic: mnemonic)
+        try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: networkEnv
+            ).loginWithDeeplinkMnemonic(deeplinkMnemonic: mnemonic)
+        }.value
         self.deeplinks = nil
         checkCredentialImport()
 #elseif os(macOS)
@@ -205,17 +209,21 @@ import PathManager
         let name = "default"
 #if os(iOS)
         guard let networkEnv = configurationManager.networkEnv else { return nil }
-        let result = try await NymVpnAccountStorage(
-            dataDir: PathManager.dataFolderURL().path(),
-            environment: networkEnv
-        ).getAutologinDeeplink(
-            params: .init(
-                client: .mobile,
-                locale: locale,
-                kind: kind.deeplinkKind,
-                name: "name"
+        let deeplinkKind = kind.deeplinkKind
+        let result = try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            return try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: networkEnv
+            ).getAutologinDeeplink(
+                params: .init(
+                    client: .mobile,
+                    locale: locale,
+                    kind: deeplinkKind,
+                    name: "name"
+                )
             )
-        )
+        }.value
         return (url: result.url, pinCode: result.pinCode)
 #elseif os(macOS)
         return try await grpcManager.autologin(locale: locale, name: name, deeplinkKind: kind)
@@ -244,25 +252,25 @@ import PathManager
     }
 
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
-        // Drain the in-flight pass plus any follow-up pass another awaiter
-        // may have started before we resumed — otherwise siblings can each
-        // spawn a fresh `performAccountSummaryUpdate` in parallel.
-        while let inflight = accountSummaryUpdateTask {
-            await inflight.value
-        }
-        if !force, accountSummary != nil, isAccountSummaryCacheFresh(), isAccountActive() {
-            return
-        }
-
-        let task: Task<Void, Never> = Task { [weak self] in
+        await Task { [weak self] in
             guard let self else { return }
-            await performAccountSummaryUpdate(untilActive: untilActive)
-        }
-        accountSummaryUpdateTask = task
-        await task.value
-        if accountSummaryUpdateTask == task {
-            accountSummaryUpdateTask = nil
-        }
+            if let inflight = accountSummaryUpdateTask {
+                await inflight.value
+            }
+            if !force, accountSummary != nil, isAccountSummaryCacheFresh(), isAccountActive() {
+                return
+            }
+
+            let task: Task<Void, Never> = Task { [weak self] in
+                guard let self else { return }
+                await performAccountSummaryUpdate(untilActive: untilActive)
+            }
+            accountSummaryUpdateTask = task
+            await task.value
+            if accountSummaryUpdateTask == task {
+                accountSummaryUpdateTask = nil
+            }
+        }.value
     }
 
     private func performAccountSummaryUpdate(untilActive: Bool) async {
@@ -284,13 +292,17 @@ import PathManager
 
     private func fetchAccountSummary() async {
 #if os(iOS)
-        // NYM-1156: don't `try?` - swallowed errors hang the UI.
+        let envOpt = configurationManager.networkEnv
         let summary: VpnAccountSummary?
         do {
-            summary = try await NymVpnAccountStorage(
-                dataDir: PathManager.dataFolderURL().path(),
-                environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
-            ).getAccountSummary()
+            summary = try await Task {
+                let dataDir = try PathManager.dataFolderURL().path()
+                let env = try envOpt ?? .newWithMainnetFallback()
+                return try await NymVpnAccountStorage(
+                    dataDir: dataDir,
+                    environment: env
+                ).getAccountSummary()
+            }.value
         } catch {
             accountSummaryLastFetchFailed = true
             logger.error(
@@ -395,10 +407,13 @@ private extension CredentialsManager {
                 let isImported: Bool
 #if os(iOS)
                 guard let networkEnv = configurationManager.networkEnv else { return }
-                isImported = try await NymVpnAccountStorage(
-                    dataDir: PathManager.dataFolderURL().path(),
-                    environment: networkEnv
-                ).isAccountMnemonicStored()
+                isImported = try await Task {
+                    let dataDir = try PathManager.dataFolderURL().path()
+                    return try await NymVpnAccountStorage(
+                        dataDir: dataDir,
+                        environment: networkEnv
+                    ).isAccountMnemonicStored()
+                }.value
 #elseif os(macOS)
                 isImported = try await grpcManager.isAccountStored()
 #endif
@@ -425,10 +440,13 @@ private extension CredentialsManager {
     func updateDeviceIdentifier() async {
 #if os(iOS)
         guard let networkEnv = configurationManager.networkEnv else { return }
-        deviceIdentifier = try? await NymVpnAccountStorage(
-            dataDir: PathManager.dataFolderURL().path(),
-            environment: networkEnv
-        ).getDeviceIdentity()
+        deviceIdentifier = try? await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            return try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: networkEnv
+            ).getDeviceIdentity()
+        }.value
 #elseif os(macOS)
         deviceIdentifier = try? await grpcManager.deviceIdentifier()
 #endif
@@ -444,15 +462,18 @@ private extension CredentialsManager {
     func updateAccountIdentifier() async {
         let newAccIdentifier: String?
 #if os(iOS)
-        newAccIdentifier = try? await NymVpnAccountStorage(
-            dataDir: PathManager.dataFolderURL().path(),
-            environment: configurationManager.networkEnv ?? .newWithMainnetFallback()
-        ).getAccountIdentity()
+        let envOpt = configurationManager.networkEnv
+        newAccIdentifier = try? await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            let env = try envOpt ?? .newWithMainnetFallback()
+            return try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: env
+            ).getAccountIdentity()
+        }.value
 #elseif os(macOS)
         newAccIdentifier = try? await grpcManager.accountIdentifier()
 #endif
-        Task { @MainActor in
-            accountIdentifier = newAccIdentifier
-        }
+        accountIdentifier = newAccIdentifier
     }
 }
