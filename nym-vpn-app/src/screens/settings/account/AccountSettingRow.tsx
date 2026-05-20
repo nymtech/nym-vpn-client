@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect } from 'react';
 import { dispatch, useMainState } from '../../../store';
-import { Button, ButtonNew, MsIcon } from '../../../ui';
+import { Button, MsIcon } from '../../../ui';
 import { routes } from '../../../router';
 import SettingsGroup from '../SettingsGroup';
 import { AccountDescription } from './AccountDescription';
@@ -31,12 +31,12 @@ function AccountSettingRow() {
 
   if (!account) {
     return (
-      <ButtonNew
+      <Button
         onClick={() => navigate(routes.onboarding)}
         disabled={daemonStatus === 'down'}
       >
         {t('account.get-started')}
-      </ButtonNew>
+      </Button>
     );
   }
 
@@ -46,6 +46,7 @@ function AccountSettingRow() {
         <Button
           onClick={() => navigate(routes.selectPlan)}
           disabled={daemonStatus === 'down' || accountSyncing}
+          variant="primary"
         >
           {t('account.choose-plan')}
         </Button>

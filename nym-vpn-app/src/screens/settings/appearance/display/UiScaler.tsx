@@ -30,7 +30,7 @@ function UiScaler() {
     <div
       className={clsx([
         'flex flex-row items-center justify-between gap-10',
-        'dark:bg-charcoal bg-white',
+        'dark:bg-aph-light bg-white',
         'rounded-lg px-6 py-5',
       ])}
       data-testid="ui-scaler-container"

@@ -32,7 +32,7 @@ function ButtonText({
     ],
     transparent: [
       'text-black dark:text-white',
-      'data-hover:underline decoration-2 text-lg font-medium',
+      'data-hover:underline decoration-2',
     ],
     malachite: [
       'text-primary',

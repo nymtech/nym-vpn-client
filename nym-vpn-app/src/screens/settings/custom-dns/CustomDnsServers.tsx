@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ButtonNew, TextInput } from '../../../ui';
+import { Button, TextInput } from '../../../ui';
 import DraggableList from '../../../ui/DraggableList';
 import { ipv4Regex, ipv6Regex } from '../../../utils';
 import { DnsItem, DnsItemContent } from './DnsItemContent';
@@ -114,13 +114,13 @@ export function CustomDnsServers({
               />
             </div>
             <div className="h-full">
-              <ButtonNew
+              <Button
                 onClick={handleAddDns}
                 variant="outlined"
                 className="w-full"
               >
                 {t('dns.details.add')}
-              </ButtonNew>
+              </Button>
             </div>
           </div>
           {errorMessage && (
@@ -129,14 +129,14 @@ export function CustomDnsServers({
         </div>
       )}
 
-      <ButtonNew
+      <Button
         disabled={!hasUnsavedChanges || isApplyingDns}
         onClick={handleApply}
         variant="primary"
         loading={isApplyingDns}
       >
         <span>{t('dns.details.apply')}</span>
-      </ButtonNew>
+      </Button>
     </>
   );
 }
