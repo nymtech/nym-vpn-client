@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { Button as HuButton } from '@headlessui/react';
 import useEmblaCarousel from 'embla-carousel-react';
+import { useTranslation } from 'react-i18next';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { Button, ButtonIconNew, MsIcon } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
@@ -41,6 +42,8 @@ const ArrowButton = ({
 };
 
 function Onboarding() {
+  const { t } = useTranslation('onboarding');
+
   const uiTheme = useAppStore((s) => s.uiTheme);
 
   const navigate = useAnimatedNavigate();
