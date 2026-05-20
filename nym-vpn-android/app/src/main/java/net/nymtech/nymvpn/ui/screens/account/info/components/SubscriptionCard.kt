@@ -131,9 +131,6 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 
 			Spacer(Modifier.height(8.dp))
 
-			val remainingGb = maxOf(0f, bandwidth.totalGb - bandwidth.consumedGb)
-			val progress = if (bandwidth.totalGb > 0) remainingGb / bandwidth.totalGb else 0f
-
 			Box(
 				modifier = Modifier
 					.fillMaxWidth()
@@ -143,7 +140,7 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 			) {
 				Box(
 					modifier = Modifier
-						.fillMaxWidth(progress)
+						.fillMaxWidth(bandwidth.percentage)
 						.fillMaxHeight()
 						.background(MaterialTheme.colorScheme.tertiary),
 				)
@@ -157,7 +154,7 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 			) {
 				val format = java.text.NumberFormat.getNumberInstance(java.util.Locale.US)
 				Text(
-					text = "${format.format(remainingGb.toInt())} GB",
+					text = "${format.format(bandwidth.consumedGb.toInt())} GB",
 					style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onPrimaryContainer),
 				)
 				Text(

@@ -34,18 +34,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 
 @Composable
-fun NymAlertHost(modifier: Modifier = Modifier, previewMessage: NymAlertMessage? = null) {
-	val controllerMessage by NymAlertController.message.collectAsStateWithLifecycle()
+fun AlertHost(modifier: Modifier = Modifier, previewMessage: AlertMessage? = null) {
+	val controllerMessage by AlertController.message.collectAsStateWithLifecycle()
 	val message = previewMessage ?: controllerMessage
 
-	var lastMessage by remember { mutableStateOf<NymAlertMessage?>(null) }
+	var lastMessage by remember { mutableStateOf<AlertMessage?>(null) }
 	if (message != null) lastMessage = message
 
 	AnimatedVisibility(
@@ -55,7 +58,7 @@ fun NymAlertHost(modifier: Modifier = Modifier, previewMessage: NymAlertMessage?
 		modifier = modifier,
 	) {
 		lastMessage?.let { msg ->
-			NymAlert(message = msg, onDismiss = { NymAlertController.dismiss() })
+			Alert(message = msg, onDismiss = { AlertController.dismiss() })
 		}
 	}
 
@@ -63,16 +66,16 @@ fun NymAlertHost(modifier: Modifier = Modifier, previewMessage: NymAlertMessage?
 		val msg = message ?: return@LaunchedEffect
 		if (msg.duration < Long.MAX_VALUE) {
 			delay(msg.duration)
-			NymAlertController.dismiss()
+			AlertController.dismiss()
 		}
 	}
 }
 
 @Composable
-private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+private fun Alert(message: AlertMessage, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
 	val isError = message.type == AlertType.Error
 	val background = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.inverseSurface
-	val onAlertSurface = if (isError) MaterialTheme.colorScheme.onError else MaterialTheme.colorScheme.inverseOnSurface
+	val onAlertSurface = if (isError) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondary
 	val iconTint = when (message.type) {
 		AlertType.Confirmation -> MaterialTheme.colorScheme.primary
 		AlertType.Neutral -> onAlertSurface
@@ -90,8 +93,7 @@ private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: 
 		Column(
 			modifier = Modifier
 				.fillMaxWidth()
-				.padding(16.dp),
-			verticalArrangement = Arrangement.spacedBy(if (isError) 12.dp else 5.dp),
+				.padding(vertical = 12.dp, horizontal = 16.dp),
 		) {
 			Row(
 				modifier = Modifier.fillMaxWidth(),
@@ -122,19 +124,22 @@ private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: 
 					}
 				}
 				if (!isError) {
-					IconButton(onClick = onDismiss) {
+					IconButton(
+						onClick = onDismiss,
+						modifier = Modifier.size(24.dp),
+					) {
 						Icon(
 							imageVector = Icons.Filled.Close,
 							contentDescription = stringResource(R.string.close),
 							tint = onAlertSurface,
-							modifier = Modifier.size(24.dp),
+							modifier = Modifier.size(18.dp),
 						)
 					}
 				}
 			}
 			message.action?.let { action ->
 				Row(
-					modifier = Modifier.fillMaxWidth(),
+					modifier = Modifier.fillMaxWidth().padding(0.dp),
 					horizontalArrangement = Arrangement.End,
 				) {
 					OutlinedButton(
@@ -154,6 +159,23 @@ private fun NymAlert(message: NymAlertMessage, onDismiss: () -> Unit, modifier: 
 					}
 				}
 			}
+		}
+	}
+}
+
+@Preview(name = "Alerts - Light", showBackground = true)
+@Composable
+private fun PreviewAlerts() {
+	NymVPNTheme(Theme.default()) {
+		Column(
+			modifier = Modifier.padding(16.dp),
+			verticalArrangement = Arrangement.spacedBy(8.dp),
+		) {
+			AlertHost(previewMessage = AlertMessage(type = AlertType.Confirmation, title = "Connected", body = "VPN tunnel is active."))
+			AlertHost(previewMessage = AlertMessage(type = AlertType.Neutral, title = "Info", body = "Background location access is required."))
+			AlertHost(previewMessage = AlertMessage(type = AlertType.Negative, title = "Disconnected", body = "The connection was closed unexpectedly."))
+			AlertHost(previewMessage = AlertMessage(type = AlertType.Warning, title = "Unstable connection", body = "Your connection may be unreliable.", action = AlertAction("Retry") {}))
+			AlertHost(previewMessage = AlertMessage(type = AlertType.Error, title = "Authentication failed", body = "Could not verify credentials with the gateway."))
 		}
 	}
 }
