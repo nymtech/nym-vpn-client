@@ -31,20 +31,17 @@ public struct DrawerView<Tag: Hashable, Content: View>: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-            content()
-                .frame(maxWidth: .infinity)
-                .background(Color.Nym.backgroundCard)
-                .clipShape(RoundedRectangle(cornerRadius: NymSpacing.section))
-                .frame(maxWidth: NymSpacing.drawerMaxWidth)
-                .padding(.horizontal, NymSpacing.standard)
-                .padding(.bottom, NymSpacing.large)
-                .offset(y: offsetY)
-        }
-        .onChange(of: tag) { _, _ in
-            slideOut()
-        }
+        content()
+            .frame(maxWidth: .infinity)
+            .background(Color.Nym.backgroundCard)
+            .clipShape(RoundedRectangle(cornerRadius: NymSpacing.section))
+            .frame(maxWidth: NymSpacing.drawerMaxWidth)
+            .padding(.horizontal, NymSpacing.standard)
+            .padding(.bottom, NymSpacing.large)
+            .offset(y: offsetY)
+            .onChange(of: tag) { _, _ in
+                slideOut()
+            }
     }
 
     private func slideOut() {

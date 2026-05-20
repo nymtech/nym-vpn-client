@@ -14,6 +14,69 @@ extension ConnectionManager {
     }
 }
 
+// MARK: - First-launch bootstrap -
+extension ConnectionManager {
+    /// First-launch reconciliation with the daemon.
+    ///
+    /// Runs only when:
+    ///   1. `appSettings.didCompleteFirstLaunch == false`, and
+    ///   2. the stored ConnectionConfig is byte-identical to the freshly
+    ///      generated initial config (i.e. the user hasn't touched anything).
+    ///
+    /// Replaces the local config with the daemon's, then forces `entry` and
+    /// `exit` back to the app's initial values and pushes them to the daemon.
+    /// Sets the flag so subsequent launches no-op.
+    @MainActor public func bootstrapFromDaemonIfNeeded() async {
+        guard !appSettings.didCompleteFirstLaunch else { return }
+
+        // If the user has already modified the config, treat this as a returning
+        // user — just flip the flag and bail; their settings stay untouched.
+        guard connectionStorage.isUsingInitialConfig else {
+            appSettings.didCompleteFirstLaunch = true
+            return
+        }
+
+        await waitUntilDaemonServing()
+
+        guard let daemonConfig = await grpcManager.config() else { return }
+
+        // Adopt daemon config wholesale, then overwrite entry / exit / algorithm
+        // with the app's initial values. (Daemon decoder hardcodes the algorithm
+        // to `.auto`, so we can't trust it — keep the app's intended value.)
+        let initialConfig = connectionStorage.connectionConfig
+        var newConfig = daemonConfig
+        newConfig.gatewaySelectionAlgorithmConfig = initialConfig.gatewaySelectionAlgorithmConfig
+
+        // Propagate into ConnectionManager (sink persists to ConnectionStorage
+        // → AppSettings).
+        connectionConfig = newConfig
+        connectionType = newConfig.enableTwoHop ? .wireguard : .mixnet5hop
+        entryGateway = newConfig.entry
+        exitRouter = newConfig.exit
+
+        // Mirror to standalone AppSettings flags.
+        appSettings.isLanBypassEnabled = newConfig.allowLan
+        appSettings.isIPv6TrafficEnabled = !newConfig.disableIpv6
+        appSettings.isAdBlockerEnabled = newConfig.enableAdBlocking
+        appSettings.isQuicEnabled = newConfig.enableBridges
+        appSettings.customDns = newConfig.dns ?? []
+        appSettings.isCustomDnsEnabled = !(newConfig.dns?.isEmpty ?? true)
+
+        // Push the app's entry / exit to the daemon.
+        try? await grpcManager.setEntryPoint(newConfig.entry)
+        try? await grpcManager.setExitPoint(newConfig.exit)
+
+        appSettings.didCompleteFirstLaunch = true
+    }
+
+    @MainActor private func waitUntilDaemonServing() async {
+        guard !grpcManager.isServing else { return }
+        for await serving in grpcManager.$isServing.values where serving {
+            return
+        }
+    }
+}
+
 extension ConnectionManager {
     @MainActor public func connectDisconnect() async throws {
         switch grpcManager.tunnelStatus {

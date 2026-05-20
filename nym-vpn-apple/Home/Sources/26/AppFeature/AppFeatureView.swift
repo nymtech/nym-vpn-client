@@ -1,4 +1,8 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+import KeyboardManager
+#endif
 import AppSettings
 import ConfigurationManager
 import ConnectionManager
@@ -29,13 +33,12 @@ public struct AppFeatureView: View {
     @EnvironmentObject private var impactGenerator: ImpactGenerator
 #if os(iOS)
     @EnvironmentObject private var purchasesManager: PurchasesManager
+    @EnvironmentObject private var keyboardManager: KeyboardManager
 #elseif os(macOS)
     @EnvironmentObject private var grpcManager: GRPCManager
 #endif
 
     @State private var viewModel: AppFeatureViewModel
-    @State private var welcomeHeight: CGFloat = 0
-    @State private var drawerHeight: CGFloat = 0
     @Environment(\.colorScheme)
     private var colorScheme
     @Environment(\.scenePhase)
@@ -60,13 +63,21 @@ public struct AppFeatureView: View {
         NavigationStack(path: pathBinding) {
             ZStack {
                 background
-                connectionStatusBackdrop
-                VStack {
+                VStack(spacing: 0) {
                     navigationBar
-                    Spacer()
+                        .padding(.top, statusBarTopInset)
+                    Spacer(minLength: 0)
+                    ConnectionStatusBackdrop(viewModel: viewModel.connectionStatus)
+                    Spacer(minLength: 0)
                 }
-                drawer
             }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                drawer
+                    .padding(.bottom, keyboardBottomInset)
+                    .animation(keyboardAnimation, value: keyboardBottomInset)
+            }
+            .ignoresSafeArea(edges: .top)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             .animation(.spring, value: viewModel.drawerContent == nil)
             .navigationDestination(for: HomeLink.self, destination: linkDestination)
 #if os(iOS)
@@ -144,18 +155,33 @@ private extension AppFeatureView {
             .ignoresSafeArea()
     }
 
-    var connectionStatusBackdrop: some View {
-        VStack(spacing: 0) {
-            Color.clear
-                .frame(height: Constants.NavigationBar.totalHeight)
-                .accessibilityHidden(true)
-            Spacer(minLength: 0)
-            ConnectionStatusBackdrop(viewModel: viewModel.connectionStatus)
-            Spacer(minLength: 0)
-            Color.clear
-                .frame(height: Constants.Backdrop.drawerReserve)
-                .accessibilityHidden(true)
-        }
+    var statusBarTopInset: CGFloat {
+#if os(iOS)
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?
+            .windows
+            .first(where: { $0.isKeyWindow })?
+            .safeAreaInsets.top ?? 0
+#else
+        0
+#endif
+    }
+
+    var keyboardBottomInset: CGFloat {
+#if os(iOS)
+        keyboardManager.change.height
+#else
+        0
+#endif
+    }
+
+    var keyboardAnimation: Animation {
+#if os(iOS)
+        keyboardManager.change.animation
+#else
+        .default
+#endif
     }
 
     @ViewBuilder var drawer: some View {
@@ -165,7 +191,6 @@ private extension AppFeatureView {
                 onTransitionCompleted: { viewModel.drawerTransitionCompleted() },
                 content: drawerContent
             )
-            .padding(.top, Constants.NavigationBar.totalHeight)
             .ignoresSafeArea(.container, edges: .bottom)
             .transition(.move(edge: .bottom))
         }
@@ -179,18 +204,13 @@ private extension AppFeatureView {
                 WelcomeOptInsView(
                     onContinue: { viewModel.technicalOptInsContinueTapped() }
                 )
-                .trackHeight { drawerHeight = $0 }
                 .transition(.slideFade(from: .trailing))
             case .welcome:
                 welcomeContent
             case .processing:
                 if let processingViewModel = viewModel.processingViewModel {
-                    ProcessingAccountView(
-                        viewModel: processingViewModel,
-                        minHeight: welcomeHeight
-                    )
-                    .trackHeight { drawerHeight = $0 }
-                    .transition(.slideFade(from: .trailing))
+                    ProcessingAccountView(viewModel: processingViewModel)
+                        .transition(.slideFade(from: .trailing))
                 } else {
                     Color.clear.frame(height: 1)
                 }
@@ -200,7 +220,6 @@ private extension AppFeatureView {
                     onSelectEntry: { viewModel.path.append(HomeLink.entryGateways) },
                     onSelectExit: { viewModel.path.append(HomeLink.exitGateways) }
                 )
-                .trackHeight { drawerHeight = $0 }
             }
         }
         .animation(.easeInOut, value: viewModel.drawerTag)
@@ -211,10 +230,6 @@ private extension AppFeatureView {
             credentialsManager: viewModel.credentialsManager,
             onWillRegister: { flow in viewModel.pendingProcessingFlow = flow }
         )
-        .trackHeight { newHeight in
-            welcomeHeight = newHeight
-            drawerHeight = newHeight
-        }
         .transition(.slideFade(from: .trailing))
     }
 
@@ -335,7 +350,6 @@ private extension AppFeatureView {
     enum Constants {
         enum NavigationBar {
             static let height: CGFloat = 64
-            static let totalHeight: CGFloat = height + NymSpacing.small * 2
 
             enum LeadingIcon {
                 static let size: CGFloat = 24
@@ -350,11 +364,5 @@ private extension AppFeatureView {
             }
         }
 
-        enum Backdrop {
-            /// Fixed bottom reservation used by `connectionStatusBackdrop` so the
-            /// arc center stays stable regardless of the drawer's measured height.
-            /// Approximates a typical OneClick drawer card + bottom safe area.
-            static let drawerReserve: CGFloat = 200
-        }
     }
 }

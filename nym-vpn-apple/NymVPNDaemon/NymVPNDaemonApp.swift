@@ -159,6 +159,7 @@ private extension NymVPNDaemonApp {
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
+            await ConnectionManager.shared.bootstrapFromDaemonIfNeeded()
         }
     }
 }
