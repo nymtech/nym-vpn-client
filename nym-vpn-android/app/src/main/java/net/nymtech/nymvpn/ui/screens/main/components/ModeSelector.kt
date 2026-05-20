@@ -22,8 +22,8 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.IconSurfaceButton
 import net.nymtech.nymvpn.ui.common.labels.GroupLabel
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
-import net.nymtech.nymvpn.ui.common.snackbar.NymAlertController
-import net.nymtech.nymvpn.ui.common.snackbar.NymAlertMessage
+import net.nymtech.nymvpn.ui.common.snackbar.AlertController
+import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -37,7 +37,7 @@ fun ModeSelector(vpnMode: Tunnel.Mode, connectionState: ConnectionState, onTwoHo
 	fun handleModeClick(callback: () -> Unit) {
 		when (connectionState) {
 			ConnectionState.WaitingForConnection, is ConnectionState.Connecting ->
-				NymAlertController.show(NymAlertMessage(type = AlertType.Neutral, title = disabledWhileConnecting))
+				AlertController.show(AlertMessage(type = AlertType.Neutral, title = disabledWhileConnecting))
 			else -> callback()
 		}
 	}
