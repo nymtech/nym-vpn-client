@@ -4,13 +4,11 @@ import UIComponents
 
 struct ProcessingAccountView: View {
     @Bindable var viewModel: ProcessingAccountViewModel
-    let minHeight: CGFloat
 
     @State private var titleBlockHeight: CGFloat = 0
 
-    init(viewModel: ProcessingAccountViewModel, minHeight: CGFloat = 0) {
+    init(viewModel: ProcessingAccountViewModel) {
         self.viewModel = viewModel
-        self.minHeight = minHeight
     }
 
     var body: some View {
@@ -21,7 +19,6 @@ struct ProcessingAccountView: View {
         .padding(.horizontal, NymSpacing.component)
         .padding(.vertical, AuthLayout.verticalPadding)
         .frame(maxWidth: .infinity)
-        .frame(height: minHeight > 0 ? minHeight : nil)
         .task {
             viewModel.start()
         }

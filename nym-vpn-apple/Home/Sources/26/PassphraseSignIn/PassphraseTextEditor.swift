@@ -9,18 +9,20 @@ import AppKit
 
 struct PassphraseTextEditor: View {
     @Binding var text: String
+    var onSubmit: () -> Void = {}
 
     var body: some View {
-        Representable(text: $text)
+        Representable(text: $text, onSubmit: onSubmit)
     }
 }
 
 #if os(iOS)
 private struct Representable: UIViewRepresentable {
     @Binding var text: String
+    var onSubmit: () -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text)
+        Coordinator(text: $text, onSubmit: onSubmit)
     }
 
     func makeUIView(context: Context) -> UITextView {
@@ -38,11 +40,13 @@ private struct Representable: UIViewRepresentable {
         view.smartQuotesType = .no
         view.smartDashesType = .no
         view.keyboardType = .asciiCapable
+        view.returnKeyType = .continue
         view.adjustsFontForContentSizeCategory = false
         return view
     }
 
     func updateUIView(_ uiView: UITextView, context: Context) {
+        context.coordinator.onSubmit = onSubmit
         if uiView.text != text {
             uiView.text = text
         }
@@ -50,22 +54,38 @@ private struct Representable: UIViewRepresentable {
 
     final class Coordinator: NSObject, UITextViewDelegate {
         @Binding var text: String
+        var onSubmit: () -> Void
 
-        init(text: Binding<String>) {
+        init(text: Binding<String>, onSubmit: @escaping () -> Void) {
             self._text = text
+            self.onSubmit = onSubmit
         }
 
         func textViewDidChange(_ textView: UITextView) {
             text = textView.text
+        }
+
+        func textView(
+            _ textView: UITextView,
+            shouldChangeTextIn range: NSRange,
+            replacementText text: String
+        ) -> Bool {
+            if text == "\n" {
+                textView.resignFirstResponder()
+                onSubmit()
+                return false
+            }
+            return true
         }
     }
 }
 #elseif os(macOS)
 private struct Representable: NSViewRepresentable {
     @Binding var text: String
+    var onSubmit: () -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(text: $text)
+        Coordinator(text: $text, onSubmit: onSubmit)
     }
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -96,6 +116,7 @@ private struct Representable: NSViewRepresentable {
     }
 
     func updateNSView(_ nsView: NSScrollView, context: Context) {
+        context.coordinator.onSubmit = onSubmit
         guard let textView = nsView.documentView as? NSTextView else {
             return
         }
@@ -106,9 +127,11 @@ private struct Representable: NSViewRepresentable {
 
     final class Coordinator: NSObject, NSTextViewDelegate {
         @Binding var text: String
+        var onSubmit: () -> Void
 
-        init(text: Binding<String>) {
+        init(text: Binding<String>, onSubmit: @escaping () -> Void) {
             self._text = text
+            self.onSubmit = onSubmit
         }
 
         func textDidChange(_ notification: Notification) {
@@ -116,6 +139,15 @@ private struct Representable: NSViewRepresentable {
                 return
             }
             text = textView.string
+        }
+
+        func textView(_ textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
+            if commandSelector == #selector(NSResponder.insertNewline(_:)) {
+                textView.window?.makeFirstResponder(nil)
+                onSubmit()
+                return true
+            }
+            return false
         }
     }
 }

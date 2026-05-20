@@ -10,7 +10,6 @@ public struct OneClickView: View {
     @Environment(\.colorScheme)
     private var colorScheme
 
-    @State private var nerdSectionHeight: CGFloat = 0
     @State private var animatedDisplayMode: OneClickDisplayMode = .oneClick
 
     public init(
@@ -71,20 +70,16 @@ private extension OneClickView {
     var baseSection: some View {
         VStack(spacing: NymSpacing.medium) {
             VStack(alignment: .leading, spacing: 0) {
-                exitNodeLabel
+                if animatedDisplayMode == .nerd {
+                    exitNodeLabel
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 compactServerInfo
-                nerdEntrySection
-                    .fixedSize(horizontal: false, vertical: true)
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear
-                                .onAppear { nerdSectionHeight = geo.size.height }
-                                .onChange(of: geo.size.height) { _, newHeight in nerdSectionHeight = newHeight }
-                        }
-                    )
-                    .frame(height: animatedDisplayMode == .nerd ? nerdSectionHeight : 0, alignment: .top)
-                    .clipped()
-                    .accessibilityHidden(viewModel.displayMode != .nerd)
+                if animatedDisplayMode == .nerd {
+                    nerdEntrySection
+                        .accessibilityHidden(viewModel.displayMode != .nerd)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
             }
             connectButton
         }
@@ -98,10 +93,7 @@ private extension OneClickView {
             .nymTextStyle(.bodySmall)
             .foregroundStyle(Color.Nym.textSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: animatedDisplayMode == .nerd ? Constants.ExitLabel.visibleHeight : 0)
-            .padding(.bottom, animatedDisplayMode == .nerd ? NymSpacing.small : 0)
-            .opacity(animatedDisplayMode == .nerd ? 1 : 0)
-            .clipped()
+            .padding(.bottom, NymSpacing.small)
             .accessibilityHidden(viewModel.displayMode != .nerd)
     }
 
@@ -397,9 +389,6 @@ private extension OneClickView {
         }
         enum Gesture {
             static let dragThreshold: CGFloat = 40
-        }
-        enum ExitLabel {
-            static let visibleHeight: CGFloat = 20
         }
         enum ScoreBars {
             static let iconSize: CGFloat = 20
