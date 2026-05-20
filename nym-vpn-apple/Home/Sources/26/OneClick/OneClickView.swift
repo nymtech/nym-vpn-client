@@ -10,7 +10,6 @@ public struct OneClickView: View {
     @Environment(\.colorScheme)
     private var colorScheme
 
-    @State private var nerdSectionHeight: CGFloat = 0
     @State private var animatedDisplayMode: OneClickDisplayMode = .oneClick
 
     public init(
@@ -44,7 +43,6 @@ public struct OneClickView: View {
         .simultaneousGesture(
             DragGesture(minimumDistance: Constants.Gesture.dragThreshold)
                 .onEnded { value in
-                    guard viewModel.canChangeDisplayMode else { return }
                     if value.translation.height < 0 {
                         viewModel.upCaretTapped()
                     } else {
@@ -71,20 +69,16 @@ private extension OneClickView {
     var baseSection: some View {
         VStack(spacing: NymSpacing.medium) {
             VStack(alignment: .leading, spacing: 0) {
-                exitNodeLabel
+                if animatedDisplayMode == .nerd {
+                    exitNodeLabel
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 compactServerInfo
-                nerdEntrySection
-                    .fixedSize(horizontal: false, vertical: true)
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear
-                                .onAppear { nerdSectionHeight = geo.size.height }
-                                .onChange(of: geo.size.height) { _, newHeight in nerdSectionHeight = newHeight }
-                        }
-                    )
-                    .frame(height: animatedDisplayMode == .nerd ? nerdSectionHeight : 0, alignment: .top)
-                    .clipped()
-                    .accessibilityHidden(viewModel.displayMode != .nerd)
+                if animatedDisplayMode == .nerd {
+                    nerdEntrySection
+                        .accessibilityHidden(viewModel.displayMode != .nerd)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
             }
             connectButton
         }
@@ -98,10 +92,7 @@ private extension OneClickView {
             .nymTextStyle(.bodySmall)
             .foregroundStyle(Color.Nym.textSecondary)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .frame(height: animatedDisplayMode == .nerd ? Constants.ExitLabel.visibleHeight : 0)
-            .padding(.bottom, animatedDisplayMode == .nerd ? NymSpacing.small : 0)
-            .opacity(animatedDisplayMode == .nerd ? 1 : 0)
-            .clipped()
+            .padding(.bottom, NymSpacing.small)
             .accessibilityHidden(viewModel.displayMode != .nerd)
     }
 
@@ -127,7 +118,7 @@ private extension OneClickView {
     }
 
     func selectingRowCompact(score: OneClickServerScore, supportsPostQuantum: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: NymSpacing.extraExtraSmall) {
+        VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: NymSpacing.medium) {
                 scoreBars(score: score)
                 Text("oneClick.server.bestForLocation".localizedString)
@@ -143,6 +134,8 @@ private extension OneClickView {
                         )
                 }
                 upCaretView
+                    .opacity(animatedDisplayMode != .nerd ? 1 : 0)
+                    .accessibilityHidden(viewModel.displayMode == .nerd)
             }
             HStack(alignment: .center, spacing: NymSpacing.medium) {
                 scoreBars(score: score)
@@ -175,6 +168,8 @@ private extension OneClickView {
                 Text(primaryText)
                     .nymTextStyle(.bodySmall)
                     .foregroundStyle(Color.Nym.textPrimary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                 Spacer()
                 if showPostQuantum && info.supportsPostQuantum {
                     Image(systemName: "atom")
@@ -184,7 +179,11 @@ private extension OneClickView {
                             Text("oneClick.server.postQuantum.accessibilityLabel".localizedString)
                         )
                 }
-                if showCarets { upCaretView }
+                if showCarets {
+                    upCaretView
+                        .opacity(animatedDisplayMode != .nerd ? 1 : 0)
+                        .accessibilityHidden(viewModel.displayMode == .nerd)
+                }
             }
             if let secondaryText {
                 HStack(alignment: .center, spacing: NymSpacing.medium) {
@@ -196,6 +195,8 @@ private extension OneClickView {
                     Text(secondaryText)
                         .nymTextStyle(.bodySmall)
                         .foregroundStyle(Color.Nym.textSecondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                     Spacer()
                     if showCarets {
                         downCaretView
@@ -256,8 +257,6 @@ private extension OneClickView {
             viewModel.upCaretTapped()
         }
         .foregroundStyle(Color.Nym.textTertiary)
-        .opacity(caretOpacity(showWhen: animatedDisplayMode != .nerd))
-        .disabled(!viewModel.canChangeDisplayMode)
     }
 
     var downCaretView: some View {
@@ -272,13 +271,6 @@ private extension OneClickView {
             viewModel.downCaretTapped()
         }
         .foregroundStyle(Color.Nym.textTertiary)
-        .opacity(caretOpacity(showWhen: true))
-        .disabled(!viewModel.canChangeDisplayMode)
-    }
-
-    func caretOpacity(showWhen visible: Bool) -> Double {
-        guard visible else { return 0 }
-        return viewModel.canChangeDisplayMode ? 1 : 0.35
     }
 
     @ViewBuilder var nerdEntrySection: some View {
@@ -397,9 +389,6 @@ private extension OneClickView {
         }
         enum Gesture {
             static let dragThreshold: CGFloat = 40
-        }
-        enum ExitLabel {
-            static let visibleHeight: CGFloat = 20
         }
         enum ScoreBars {
             static let iconSize: CGFloat = 20

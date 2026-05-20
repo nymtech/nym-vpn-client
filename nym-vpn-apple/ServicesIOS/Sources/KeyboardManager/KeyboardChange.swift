@@ -1,6 +1,6 @@
 import SwiftUI
 
 public struct KeyboardChange {
-    let height: CGFloat
-    let animation: Animation
+    public let height: CGFloat
+    public let animation: Animation
 }

@@ -14,6 +14,56 @@ extension ConnectionManager {
     }
 }
 
+// MARK: - First-launch bootstrap -
+extension ConnectionManager {
+    /// First-launch reconciliation with the daemon.
+    ///
+    /// Runs only when:
+    ///   1. `appSettings.didCompleteFirstLaunch == false`, and
+    ///   2. the stored ConnectionConfig is byte-identical to the freshly
+    ///      generated initial config (i.e. the user hasn't touched anything).
+    ///
+    /// Replaces the local config with the daemon's, then forces `entry` and
+    /// `exit` back to the app's initial values and pushes them to the daemon.
+    /// Sets the flag so subsequent launches no-op.
+    @MainActor public func bootstrapFromDaemonIfNeeded() async {
+        guard !appSettings.didCompleteFirstLaunch else { return }
+
+        guard connectionStorage.isUsingInitialConfig
+        else {
+            appSettings.didCompleteFirstLaunch = true
+            return
+        }
+
+        await waitUntilDaemonServing()
+
+        guard let daemonConfig = await grpcManager.config() else { return }
+
+        let initialConfig = connectionStorage.connectionConfig
+
+        connectionConfig = daemonConfig
+        connectionType = daemonConfig.enableTwoHop ? .wireguard : .mixnet5hop
+        entryGateway = daemonConfig.entry
+        exitRouter = daemonConfig.exit
+
+        appSettings.isLanBypassEnabled = daemonConfig.allowLan
+        appSettings.isIPv6TrafficEnabled = !daemonConfig.disableIpv6
+        appSettings.isAdBlockerEnabled = daemonConfig.enableAdBlocking
+        appSettings.isQuicEnabled = daemonConfig.enableBridges
+        appSettings.customDns = daemonConfig.dns ?? []
+        appSettings.isCustomDnsEnabled = !(daemonConfig.dns?.isEmpty ?? true)
+
+        appSettings.didCompleteFirstLaunch = true
+    }
+
+    @MainActor private func waitUntilDaemonServing() async {
+        guard !grpcManager.isServing else { return }
+        for await serving in grpcManager.$isServing.values where serving {
+            return
+        }
+    }
+}
+
 extension ConnectionManager {
     @MainActor public func connectDisconnect() async throws {
         switch grpcManager.tunnelStatus {

@@ -38,15 +38,6 @@ public final class OneClickViewModel {
 
     var isTwoHop: Bool
 
-    var canChangeDisplayMode: Bool {
-        switch connectState {
-        case .disconnected, .noInternet, .noSubscription:
-            return true
-        case .connecting, .stop, .connected, .disconnecting:
-            return false
-        }
-    }
-
     /// Invoked when the daemon reports `.inactiveSubscription` or when the
     /// pre-flight gate detects an expired account. Routes the user into the
     /// purchase flow.
@@ -166,7 +157,6 @@ public final class OneClickViewModel {
     }
 
     func upCaretTapped() {
-        guard canChangeDisplayMode else { return }
         let next: OneClickDisplayMode
         switch displayMode {
         case .oneClick:
@@ -181,7 +171,6 @@ public final class OneClickViewModel {
     }
 
     func downCaretTapped() {
-        guard canChangeDisplayMode else { return }
         let next: OneClickDisplayMode
         switch displayMode {
         case .nerd:
@@ -319,12 +308,14 @@ private extension OneClickViewModel {
 
     func applyDisplayMode(_ mode: OneClickDisplayMode) {
         displayMode = mode
-        let next = NymGatewaySelectionAlgorithmConfig(
-            enableGeoLocation: true,
-            algorithm: mode.algorithm
-        )
-        if connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig != next {
-            connectionManager.setGatewaySelectionAlgorithm(next)
+        if !isLiveStatus(connectionManager.currentTunnelStatus) {
+            let next = NymGatewaySelectionAlgorithmConfig(
+                enableGeoLocation: true,
+                algorithm: mode.algorithm
+            )
+            if connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig != next {
+                connectionManager.setGatewaySelectionAlgorithm(next)
+            }
         }
         refreshSelection()
     }
@@ -341,11 +332,19 @@ private extension OneClickViewModel {
             guard let self else { return }
             if liveCandidate,
                let info,
-               let exitLive = livePhase(gatewayId: info.exitGatewayId, gatewayType: exitType) {
+               let exitLive = livePhase(
+                   gatewayId: info.exitGatewayId,
+                   gatewayType: exitType,
+                   displayMode: displayMode
+               ) {
                 isLiveConnection = true
                 selectionPhase = exitLive
                 if displayMode == .nerd {
-                    entrySelectionPhase = livePhase(gatewayId: info.entryGatewayId, gatewayType: entryType)
+                    entrySelectionPhase = livePhase(
+                        gatewayId: info.entryGatewayId,
+                        gatewayType: entryType,
+                        displayMode: displayMode
+                    )
                         ?? resolveEntryPhase(
                             entry: cfg.entry,
                             gatewayId: info.entryGatewayId ?? cfg.entry.gatewayId,
@@ -395,11 +394,21 @@ private extension OneClickViewModel {
         }
     }
 
-    func livePhase(gatewayId: String?, gatewayType: NodeType) -> OneClickSelectionPhase? {
+    func livePhase(
+        gatewayId: String?,
+        gatewayType: NodeType,
+        displayMode: OneClickDisplayMode
+    ) -> OneClickSelectionPhase? {
         guard let gatewayId,
               let gateway = gatewayManager.gateway(with: gatewayId, gatewayType: gatewayType)
         else { return nil }
-        let title = gateway.name ?? gateway.id
+        let title: String
+        switch displayMode {
+        case .nerd:
+            title = gateway.name ?? gateway.id
+        case .oneClick, .powerUser:
+            title = gateway.ipv4s.first ?? gateway.name ?? gateway.id
+        }
         let location = gateway.location
         let subtitle: String?
         if let location {
@@ -443,8 +452,13 @@ private extension OneClickViewModel {
 
     func resolveEntryPhase(entry: EntryGateway, gatewayId: String?, gatewayType: NodeType) -> OneClickSelectionPhase {
         let gateway = gatewayId.flatMap { gatewayManager.gateway(with: $0, gatewayType: gatewayType) }
-        let title = gatewayManager.userFriendlyTitle(with: entry)
-            ?? gateway?.location?.city ?? gateway?.name ?? gateway?.id ?? ""
+        let title: String
+        if case .random = entry {
+            title = "gatewaysView.random".localizedString
+        } else {
+            title = gatewayManager.userFriendlyTitle(with: entry)
+                ?? gateway?.location?.city ?? gateway?.name ?? gateway?.id ?? ""
+        }
         let subtitle = entrySubtitle(entry: entry, gateway: gateway)
         let countryCode = gatewayManager.countryCode(with: entry)
             ?? gateway?.location?.twoLetterIsoCountryCode ?? ""
@@ -459,8 +473,13 @@ private extension OneClickViewModel {
 
     func resolveExitPhase(exit: ExitRouter, gatewayId: String?, gatewayType: NodeType) -> OneClickSelectionPhase {
         let gateway = gatewayId.flatMap { gatewayManager.gateway(with: $0, gatewayType: gatewayType) }
-        let title = gatewayManager.userFriendlyTitle(with: exit)
-            ?? gateway?.location?.city ?? gateway?.name ?? gateway?.id ?? ""
+        let title: String
+        if case .random = exit {
+            title = "gatewaysView.random".localizedString
+        } else {
+            title = gatewayManager.userFriendlyTitle(with: exit)
+                ?? gateway?.location?.city ?? gateway?.name ?? gateway?.id ?? ""
+        }
         let subtitle = exitSubtitle(exit: exit, gateway: gateway)
         let countryCode = gatewayManager.countryCode(with: exit)
             ?? gateway?.location?.twoLetterIsoCountryCode ?? ""
