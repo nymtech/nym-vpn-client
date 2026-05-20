@@ -50,7 +50,7 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-swift
-          version: 0.11.0
+          version: ${{ env.CARGO_SWIFT_VERSION }}
 
       - name: Install cargo-edit
         uses: baptiste0928/cargo-install@v3
