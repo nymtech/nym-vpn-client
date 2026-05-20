@@ -23,6 +23,21 @@ public struct CustomNavBarButton: View {
                 nil
             }
         }
+
+        var accessibilityLabel: String? {
+            switch self {
+            case .back:
+                "navigation.back".localizedString
+            case .settings:
+                "navigation.settings".localizedString
+            case .info:
+                "navigation.info".localizedString
+            case .close:
+                "navigation.close".localizedString
+            case .empty:
+                nil
+            }
+        }
     }
     @State private var isHovered = false
 
@@ -64,5 +79,8 @@ private extension CustomNavBarButton {
             isHovered = newValue
         }
         .opacity(isHovered ? 0.7 : 1)
+        .accessibilityLabel(type.accessibilityLabel ?? "")
+        .accessibilityAddTraits([.isButton])
+        .accessibilityHidden(type == .empty)
     }
 }

@@ -2,6 +2,12 @@ import Foundation
 import SwiftUI
 import CredentialsManager
 
+public enum ProcessingFlow: Sendable {
+    case createAccount
+    case login
+    case postPurchase
+}
+
 @MainActor
 @Observable
 public final class ProcessingAccountViewModel {
@@ -12,13 +18,15 @@ public final class ProcessingAccountViewModel {
     @ObservationIgnored private var finalMessageTask: Task<Void, Never>?
     @ObservationIgnored public var onFinished: (() -> Void)?
 
+    let flow: ProcessingFlow
     var currentStep: Int = 1
     var didFinishAnimatingText = false
     var didShowFinalMessage = false
     private var didBecomeActive = false
 
-    public init(credentialsManager: CredentialsManager) {
+    public init(credentialsManager: CredentialsManager, flow: ProcessingFlow) {
         self.credentialsManager = credentialsManager
+        self.flow = flow
     }
 
     func start() {

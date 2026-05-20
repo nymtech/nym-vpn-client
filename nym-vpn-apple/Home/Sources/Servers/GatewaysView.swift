@@ -11,6 +11,20 @@ public struct GatewaysView: View {
     @ObservedObject private var viewModel: GatewaysViewModel
     @FocusState private var isSearchFocused: Bool
 
+    private var entryGatewayBinding: Binding<EntryGateway> {
+        Binding(
+            get: { viewModel.connectionManager.entryGateway },
+            set: { viewModel.connectionManager.setEntryGateway($0) }
+        )
+    }
+
+    private var exitRouterBinding: Binding<ExitRouter> {
+        Binding(
+            get: { viewModel.connectionManager.exitRouter },
+            set: { viewModel.connectionManager.setExitGateway($0) }
+        )
+    }
+
     public init(viewModel: GatewaysViewModel) {
         self.viewModel = viewModel
     }
@@ -96,6 +110,8 @@ private extension GatewaysView {
                         .nymTextStyle(.bodySmall)
                 }
             }
+            .padding(.horizontal, 16)
+            .frame(maxWidth: MagicNumbers.maxWidth)
             .environment(\.openURL, OpenURLAction { url in
                 if url == URL(string: "app://enable-quic") {
                     viewModel.path.append(HomeLink.settings)
@@ -148,8 +164,8 @@ private extension GatewaysView {
                         type: viewModel.type,
                         path: $viewModel.path,
                         scrollToModel: $viewModel.scrollToModel,
-                        entryGateway: $viewModel.connectionManager.entryGateway,
-                        exitRouter: $viewModel.connectionManager.exitRouter,
+                        entryGateway: entryGatewayBinding,
+                        exitRouter: exitRouterBinding,
                         infoButtonTapCompletion: { gateway in
                             viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
                         }
@@ -232,8 +248,8 @@ private extension GatewaysView {
                     type: viewModel.type,
                     path: $viewModel.path,
                     scrollToModel: $viewModel.scrollToModel,
-                    entryGateway: $viewModel.connectionManager.entryGateway,
-                    exitRouter: $viewModel.connectionManager.exitRouter,
+                    entryGateway: entryGatewayBinding,
+                    exitRouter: exitRouterBinding,
                     infoButtonTapCompletion: { gateway in
                         viewModel.path.append(HomeLink.gatewayDetails(gateway: gateway, hopType: viewModel.type))
                     },
@@ -272,8 +288,8 @@ private extension GatewaysView {
                     servers: servers,
                     infoButtonTapCompletion: { _ in },
                     path: $viewModel.path,
-                    entryGateway: $viewModel.connectionManager.entryGateway,
-                    exitRouter: $viewModel.connectionManager.exitRouter,
+                    entryGateway: entryGatewayBinding,
+                    exitRouter: exitRouterBinding,
                     scrollToModel: .constant(.empty)
                 )
             }

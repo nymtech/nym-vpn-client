@@ -13,7 +13,6 @@ import Home
 import ImpactGenerator
 import Extensions
 import KeyboardManager
-import MessagesManager
 import Migrations
 import NymLogger
 import NotificationsManager
@@ -66,6 +65,7 @@ struct NymVPNApp: App {
     )
 
     @State private var isSecureScreenVisible = false
+    @State private var splashScreenDidDisplay = false
 
     init() {
         setup()
@@ -73,8 +73,15 @@ struct NymVPNApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppFeatureView(viewModel: appFeatureViewModel)
-                .transition(.slide)
+            ZStack {
+                AppFeatureView(viewModel: appFeatureViewModel)
+                    .transition(.slide)
+                if !splashScreenDidDisplay {
+                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut, value: splashScreenDidDisplay)
             .onChange(of: scenePhase) { _, newPhase in
                 configureSecureScreen(with: newPhase)
             }
@@ -88,6 +95,9 @@ struct NymVPNApp: App {
             .preferredColorScheme(appearance.colorScheme)
             .onAppear {
                 configureScreenSize()
+                externalLinkManager.deeplinkHandler = { url in
+                    deeplinkManager.handle(url: url)
+                }
             }
             .onOpenURL { incomingURL in
                 if incomingURL.scheme == Constants.appUrlScheme.rawValue {
@@ -121,7 +131,6 @@ private extension NymVPNApp {
             CredentialsManager.shared.setup()
             FeatureFlagsManager.shared.setup()
             GatewayManager.shared.setup()
-            MessagesManager.shared.setup()
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()

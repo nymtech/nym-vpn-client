@@ -2,7 +2,6 @@
 import SwiftUI
 import Constants
 import Theme
-import MessageModels
 import ServiceManagement
 import UIComponents
 

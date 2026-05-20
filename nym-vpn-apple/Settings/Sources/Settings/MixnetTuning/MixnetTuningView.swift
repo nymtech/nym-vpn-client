@@ -489,10 +489,7 @@ private extension MixnetTuningView {
 
     func saveSettings() {
         guard let config else { return }
-        var connectionConfig = connectionManager.connectionConfig
-        connectionConfig.mixnetTuningConfig = config
-
-        connectionManager.connectionConfig = connectionConfig
+        connectionManager.setMixnetTuningConfig(config)
         updateIsSaveButtonEnabled()
 
         SnackbarManager.shared.enqueue(

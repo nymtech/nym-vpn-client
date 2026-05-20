@@ -84,8 +84,12 @@ import ConnectionTypes
         didSet { isAdBlockerEnabledPublisher = isAdBlockerEnabled}
     }
 
+#if os(macOS)
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
+#else
+    public var isStatisticsEnabled = false
+#endif
 
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0
@@ -98,10 +102,6 @@ import ConnectionTypes
     @AppStorage(AppSettingKey.stealthApi.rawValue)
     public var isStealthApiEnabled = false {
         didSet { isStealthApiEnabledPublisher = isStealthApiEnabled }
-    }
-    @AppStorage(AppSettingKey.shouldReconnect.rawValue)
-    public var shouldReconnect = false {
-        didSet { shouldReconnectPublisher = shouldReconnect }
     }
 
     @AppStorage(AppSettingKey.customDnsIsEnabled.rawValue)
@@ -162,7 +162,6 @@ import ConnectionTypes
     @Published public var isCredentialImportedPublisher: Bool
     @Published public var isQuicEnabledPublisher: Bool
     @Published public var isStealthApiEnabledPublisher: Bool
-    @Published public var shouldReconnectPublisher: Bool
     @Published public var isCustomDnsEnabledPublisher: Bool
     @Published public var customDnsPublisher: [String]
     @Published public var isIPv6TrafficEnabledPublisher: Bool
@@ -177,7 +176,6 @@ import ConnectionTypes
         self.isCredentialImportedPublisher = false
         self.isQuicEnabledPublisher = false
         self.isStealthApiEnabledPublisher = false
-        self.shouldReconnectPublisher = false
         self.isCustomDnsEnabledPublisher = false
         self.customDnsPublisher = []
         self.isIPv6TrafficEnabledPublisher = true
@@ -190,7 +188,6 @@ import ConnectionTypes
         self.isCredentialImportedPublisher = self.isCredentialImported
         self.isQuicEnabledPublisher = self.isQuicEnabled
         self.isStealthApiEnabledPublisher = self.isStealthApiEnabled
-        self.shouldReconnectPublisher = self.shouldReconnect
         self.isCustomDnsEnabledPublisher = self.isCustomDnsEnabled
         self.customDnsPublisher = self.customDns
         self.isIPv6TrafficEnabledPublisher = self.isIPv6TrafficEnabled
@@ -239,7 +236,6 @@ public enum AppSettingKey: String {
     case quic
     case stealthApi
     case lanBypass
-    case shouldReconnect
     case passphraseStored
     case connectionConfig
     case customDnsIsEnabled

@@ -238,7 +238,7 @@ private extension OneClickView {
     func scoreBars(score: OneClickServerScore) -> some View {
         Image(systemName: "cellularbars", variableValue: score.variableValue)
             .symbolRenderingMode(.palette)
-            .foregroundStyle(score.activeColor, Color.Nym.icon.opacity(0.35))
+            .foregroundStyle(score.activeColor, Color.Nym.textTertiary.opacity(0.35))
             .font(.system(size: Constants.ScoreBars.iconSize))
             .frame(width: Constants.ScoreBars.frameSize, height: Constants.ScoreBars.frameSize)
             .accessibilityHidden(true)
@@ -255,7 +255,7 @@ private extension OneClickView {
         ) {
             viewModel.upCaretTapped()
         }
-        .foregroundStyle(Color.Nym.gray1)
+        .foregroundStyle(Color.Nym.textTertiary)
         .opacity(caretOpacity(showWhen: animatedDisplayMode != .nerd))
         .disabled(!viewModel.canChangeDisplayMode)
     }
@@ -271,7 +271,7 @@ private extension OneClickView {
         ) {
             viewModel.downCaretTapped()
         }
-        .foregroundStyle(Color.Nym.gray1)
+        .foregroundStyle(Color.Nym.textTertiary)
         .opacity(caretOpacity(showWhen: true))
         .disabled(!viewModel.canChangeDisplayMode)
     }
@@ -360,6 +360,8 @@ private extension OneClickView {
             "stop".localizedString
         case .connected:
             "oneClick.connectButton.connected".localizedString
+        case .disconnecting:
+            "disconnecting".localizedString
         case .noInternet:
             "noInternet".localizedString
         case .noSubscription:
@@ -371,7 +373,7 @@ private extension OneClickView {
         switch viewModel.connectState {
         case .disconnected, .noSubscription:
             .primary
-        case .connecting, .noInternet:
+        case .connecting, .disconnecting, .noInternet:
             .connecting
         case .stop:
             .destructive
@@ -382,7 +384,7 @@ private extension OneClickView {
 
     var connectButtonDisabled: Bool {
         switch viewModel.connectState {
-        case .connecting, .noInternet:
+        case .connecting, .disconnecting, .noInternet:
             true
         case .disconnected, .stop, .connected, .noSubscription:
             false

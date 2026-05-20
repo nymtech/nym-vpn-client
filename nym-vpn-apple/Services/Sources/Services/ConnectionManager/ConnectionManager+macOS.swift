@@ -23,13 +23,6 @@ extension ConnectionManager {
             try await connect()
         }
     }
-
-    func updateConnectionConfig(forceReconnect: Bool = false) {
-        guard isReconnectNeeded(with: connectionStorage.previousConnectionConfig) || forceReconnect else { return }
-        Task {
-            try? await grpcManager.updateConfig(newConfig: connectionConfig)
-        }
-    }
 }
 
 // MARK: - Setup -
@@ -70,15 +63,6 @@ extension ConnectionManager {
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .assign(to: \.connectionInfoData, on: self)
-            .store(in: &cancellables)
-
-        appSettings.$isQuicEnabledPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] newValue in
-                self?.connectionConfig.enableBridges = newValue
-                guard let self, currentTunnelStatus == .connected, appSettings.shouldReconnect else { return }
-                updateConnectionConfig(forceReconnect: appSettings.shouldReconnect)
-            }
             .store(in: &cancellables)
     }
 }

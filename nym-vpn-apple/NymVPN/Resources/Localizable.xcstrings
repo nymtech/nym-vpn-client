@@ -1003,6 +1003,83 @@
         }
       }
     },
+    "accessibility.label.copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.connecting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connecting"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.disconnected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Disconnected"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.disconnecting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Disconnecting"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connection error"
+          }
+        }
+      }
+    },
+    "accessibility.tunnelStatus.offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No internet connection"
+          }
+        }
+      }
+    },
     "accountToken.empty" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2226,6 +2303,17 @@
         }
       }
     },
+    "arcProgress.anonymousModeProtection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anonymous mode protection"
+          }
+        }
+      }
+    },
     "arcProgress.connected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2424,6 +2512,28 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Connection failed"
+          }
+        }
+      }
+    },
+    "arcProgress.disconnecting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Disconnecting"
+          }
+        }
+      }
+    },
+    "arcProgress.fastModeProtection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast mode protection"
           }
         }
       }
@@ -3679,7 +3789,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Makes WireGuard traffic harder to detect. Introduces decoy packets that disrupt simple rules often used by Deep Packet Inspection (DPI) censorship systems, improving connection reliability in restrictive environments."
+            "value" : "Disguises WireGuard traffic with decoy packets to prevent VPN blocking."
           }
         }
       }
@@ -4330,7 +4440,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "How QUIC improves connections"
+            "value" : "Learn more"
           }
         },
         "es" : {
@@ -4633,7 +4743,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3). Traffic will appear as regular web browsing, defeating Deep Packet Inspection (DPI) censorship systems."
+            "value" : "Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3)."
           }
         },
         "es" : {
@@ -4936,7 +5046,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "How the Stealth API connect mode works"
+            "value" : "Learn more"
           }
         },
         "es" : {
@@ -5037,7 +5147,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disguises API requests behind popular, allowed domains to bypass VPN blocking. Automatically used by NymVPN when standard API connection attempts fail."
+            "value" : "Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail."
           }
         },
         "es" : {
@@ -12253,6 +12363,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nym 构建版本"
+          }
+        }
+      }
+    },
+    "gatewayInfo.copyIdentityKey" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Copy identity key"
           }
         }
       }
@@ -21370,6 +21491,50 @@
         }
       }
     },
+    "navigation.back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Back"
+          }
+        }
+      }
+    },
+    "navigation.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "navigation.info" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Information"
+          }
+        }
+      }
+    },
+    "navigation.settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
     "no" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22290,6 +22455,17 @@
         }
       }
     },
+    "onboarding.dot.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Page %d"
+          }
+        }
+      }
+    },
     "onboarding.next" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22297,6 +22473,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Next"
+          }
+        }
+      }
+    },
+    "onboarding.pager.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Feature overview"
+          }
+        }
+      }
+    },
+    "onboarding.pager.position" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Page %1$d of %2$d"
           }
         }
       }
@@ -24971,6 +25169,138 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "查看Sentry隐私政策"
+          }
+        }
+      }
+    },
+    "processingAccount.createAccount.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Creating keys that never leave your device"
+          }
+        }
+      }
+    },
+    "processingAccount.createAccount.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Establishing anonymous network credentials"
+          }
+        }
+      }
+    },
+    "processingAccount.createAccount.subtitle4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Encrypting credentials with your device key. Only you can unlock them."
+          }
+        }
+      }
+    },
+    "processingAccount.createAccount.title2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Generating cryptographic keypairs..."
+          }
+        }
+      }
+    },
+    "processingAccount.createAccount.title3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Creating your anonymous identity..."
+          }
+        }
+      }
+    },
+    "processingAccount.createAccount.title4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Securing your credentials locally..."
+          }
+        }
+      }
+    },
+    "processingAccount.login.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Deriving keys from your 24-word phrase on this device"
+          }
+        }
+      }
+    },
+    "processingAccount.login.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Re-establishing your anonymous network credentials"
+          }
+        }
+      }
+    },
+    "processingAccount.login.subtitle4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Encrypting credentials with your device key. Only you can unlock them."
+          }
+        }
+      }
+    },
+    "processingAccount.login.title2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Recovering your cryptographic keypairs..."
+          }
+        }
+      }
+    },
+    "processingAccount.login.title3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Restoring your anonymous identity..."
+          }
+        }
+      }
+    },
+    "processingAccount.login.title4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Securing your credentials locally..."
           }
         }
       }
@@ -28141,7 +28471,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use your account ID if you need to contact Nym customer support.  This is safe to share!"
+            "value" : "Safe to share. Use to contact Nym Support."
           }
         }
       }
@@ -28185,7 +28515,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Limit"
+            "value" : "Fair usage spent"
           }
         }
       }
@@ -34735,7 +35065,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "To the next generation of privacy infrastructure."
+            "value" : "To the world’s most private VPN"
           }
         },
         "es" : {
@@ -35521,6 +35851,72 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "our Terms"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.error.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Learn exactly what's shared"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.error.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Error & crash reports"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.stats.link" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View Privacy Policy"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.stats.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Anonymous network stats"
+          }
+        }
+      }
+    },
+    "welcomeOptIns.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Choose what anonymous data to share. All data is stripped of identifying information before being sent."
+          }
+        }
+      }
+    },
+    "welcomeOptIns.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Help us improve NymVPN"
           }
         }
       }

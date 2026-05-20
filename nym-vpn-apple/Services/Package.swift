@@ -31,7 +31,6 @@ let package = Package(
         .library(name: "PathManager", targets: ["PathManager"]),
         .library(name: "PurchasesManager", targets: ["PurchasesManager"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
-        .library(name: "MessagesManager", targets: ["MessagesManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"])
     ],
@@ -223,22 +222,10 @@ let package = Package(
             path: "Sources/Services/SentryManager"
         ),
         .target(
-            name: "MessagesManager",
-            dependencies: [
-                "AppSettings",
-                "ConfigurationManager",
-                .product(name: "MessageModels", package: "ServicesMutual"),
-                .product(name: "NymLogger", package: "ServicesMutual"),
-                .product(name: "DarwinNotificationCenter", package: "ServicesMutual"),
-                .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
-                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
-            ],
-            path: "Sources/Services/MessagesManager"
-        ),
-        .target(
             name: "Tunnels",
             dependencies: [
                 .product(name: "Constants", package: "ServicesMutual"),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 "Keychain",
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),

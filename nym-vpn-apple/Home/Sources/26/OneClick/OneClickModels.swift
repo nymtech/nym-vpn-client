@@ -7,6 +7,7 @@ public enum OneClickConnectState: Equatable {
     case connecting
     case stop
     case connected
+    case disconnecting
     case noInternet
     case noSubscription
 }
@@ -45,7 +46,7 @@ public enum OneClickServerScore: Equatable {
         case .low:
                 .red
         case .offline:
-            Color.Nym.icon
+            Color.Nym.textTertiary
         }
     }
 }

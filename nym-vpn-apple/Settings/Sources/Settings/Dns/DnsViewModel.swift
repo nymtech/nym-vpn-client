@@ -1,11 +1,9 @@
-#if os(iOS)
-import NymVPNLib
-#elseif os(macOS)
-import NymVPNRpc
+#if os(macOS)
 import GRPCManager
 #endif
 import SwiftUI
 import AppSettings
+import ConnectionManager
 import Network
 import UIComponents
 import ExternalLinkManager
@@ -14,9 +12,7 @@ import SnackbarManager
 
 @MainActor public final class DnsViewModel: ObservableObject {
     private let appSettings: AppSettings
-    #if os(macOS)
-    private let grpcManager: GRPCManager
-    #endif
+    private let connectionManager: ConnectionManager
     let maxDnsEntries = 5
     let disallowedDnsEntries = ["0.0.0.0", "255.255.255.255"]
 
@@ -56,13 +52,17 @@ import SnackbarManager
     @Published var isSaveChangesModalDisplayed = false
 
     #if os(macOS)
+    private let grpcManager: GRPCManager
+
     init(
         path: Binding<NavigationPath>,
         appSettings: AppSettings,
+        connectionManager: ConnectionManager,
         grpcManager: GRPCManager
     ) {
         _path = path
         self.appSettings = appSettings
+        self.connectionManager = connectionManager
         self.grpcManager = grpcManager
         self.customDns = appSettings.customDns
         self.isCustomDnsEnabled = appSettings.isCustomDnsEnabled
@@ -70,10 +70,12 @@ import SnackbarManager
     #elseif os(iOS)
     init(
         path: Binding<NavigationPath>,
-        appSettings: AppSettings
+        appSettings: AppSettings,
+        connectionManager: ConnectionManager
     ) {
         _path = path
         self.appSettings = appSettings
+        self.connectionManager = connectionManager
         self.customDns = appSettings.customDns
         self.isCustomDnsEnabled = appSettings.isCustomDnsEnabled
     }
@@ -139,22 +141,7 @@ extension DnsViewModel {
             await toggleCustomDns()
         }
 
-        appSettings.customDns = customDns
-        #if os(macOS)
-        do {
-            try await grpcManager.setCustomDns(dnsServers: customDns)
-        } catch {
-            SnackbarManager.shared.enqueue(
-                SnackbarItem(
-                    style: .negative,
-                    title: "generalNymError.somethingWentWrong".localizedString
-                )
-            )
-            return
-        }
-        #endif
-
-        appSettings.shouldReconnect = true
+        connectionManager.setCustomDns(customDns)
 
         SnackbarManager.shared.enqueue(
             SnackbarItem(
@@ -166,21 +153,7 @@ extension DnsViewModel {
 
     func toggleCustomDns() async {
         guard !appSettings.customDns.isEmpty else { return }
-        appSettings.isCustomDnsEnabled = isCustomDnsEnabled
-        #if os(macOS)
-        do {
-            try await grpcManager.setEnableCustomDns(enable: isCustomDnsEnabled)
-        } catch {
-            isCustomDnsEnabled.toggle()
-            SnackbarManager.shared.enqueue(
-                SnackbarItem(
-                    style: .negative,
-                    title: "generalNymError.somethingWentWrong".localizedString
-                )
-            )
-        }
-        #endif
-        appSettings.shouldReconnect = true
+        connectionManager.setCustomDnsEnabled(isCustomDnsEnabled)
     }
 
     func learnMore() {
