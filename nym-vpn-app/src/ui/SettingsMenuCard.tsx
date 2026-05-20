@@ -37,10 +37,10 @@ function SettingsMenuCard({
     <div
       className={clsx([
         // normal color
-        color === 'normal' && 'dark:bg-charcoal bg-white',
+        color === 'normal' && 'dark:bg-aph-light bg-white',
         color === 'normal' &&
           !noHoverEffect &&
-          'dark:hover:bg-charcoal/85 hover:bg-white/60',
+          'dark:hover:bg-aph-light/85 hover:bg-white/60',
         // red color
         color === 'red' &&
           'border-aphrodisiac bg-aphrodisiac/10 dark:bg-aphrodisiac/10 border',

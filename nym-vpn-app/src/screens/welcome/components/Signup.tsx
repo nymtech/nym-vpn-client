@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useCallback } from 'react';
 import { dispatch, useAppStore } from '../../../store';
-import { ButtonNew } from '../../../ui';
+import { Button } from '../../../ui';
 import { useDeepLink } from '../../../hooks';
 import { CCache } from '../../../cache';
 import { routes } from '../../../router';
@@ -63,9 +63,9 @@ export function Signup() {
         </h1>
       </div>
       <div className="flex w-full flex-col gap-3">
-        <ButtonNew onClick={handleCreateAccount}>
+        <Button onClick={handleCreateAccount}>
           {t('signup.signup-anonymous-button')}
-        </ButtonNew>
+        </Button>
         <PrivyButton label={t('signup.signup-social-button')} />
         <p className="text-bombay text-center text-xs leading-5">
           {t('signup.disclaimer')}

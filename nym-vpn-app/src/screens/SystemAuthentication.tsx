@@ -2,7 +2,7 @@ import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { ButtonIcon, ButtonNew, Dialog, MsIcon } from '../ui';
+import { Button, ButtonIcon, Dialog, MsIcon } from '../ui';
 import { useAppStore } from '../store';
 
 export function SystemAuthentication() {
@@ -50,9 +50,9 @@ export function SystemAuthentication() {
           <MsIcon icon="report" />
           <p>{t('modal.description')}</p>
         </div>
-        <ButtonNew onClick={handleAuthenticate} loading={loading}>
+        <Button onClick={handleAuthenticate} loading={loading}>
           {t('modal.authenticate-button')}
-        </ButtonNew>
+        </Button>
       </div>
     </Dialog>
   );

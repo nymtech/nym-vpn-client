@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ButtonNew, TextInput } from '../../../../ui';
+import { Button, TextInput } from '../../../../ui';
 import { portRegex } from '../utils';
 
 type MyInputProps = {
@@ -43,9 +43,9 @@ function ProxyPortInput({
         {error && <p className="text-aphrodisiac mt-2 text-xs">{error}</p>}
       </div>
       <div className="h-full">
-        <ButtonNew variant="outlined" disabled={disabled} onClick={handleReset}>
+        <Button variant="outlined" disabled={disabled} onClick={handleReset}>
           {t('app-proxy.reset-to-default')}
-        </ButtonNew>
+        </Button>
       </div>
     </div>
   );

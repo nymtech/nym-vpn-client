@@ -10,7 +10,7 @@ import { BackendError, TAccountMode } from '../../../types/index';
 import { routes } from '../../../router';
 import { CCache } from '../../../cache/index';
 
-import { ButtonNew, TextArea } from '../../../ui';
+import { Button, TextArea } from '../../../ui';
 
 export function PassphraseEnter() {
   const [phrase, setPhrase] = useState('');
@@ -109,13 +109,13 @@ export function PassphraseEnter() {
             error && 'border-aphrodisiac!',
           )}
         />
-        <ButtonNew
+        <Button
           onClick={handleLogin}
           loading={loading}
           disabled={daemonStatus === 'down' || state !== 'disconnected'}
         >
           {t('passphrase.login-button')}
-        </ButtonNew>
+        </Button>
       </div>
     </div>
   );

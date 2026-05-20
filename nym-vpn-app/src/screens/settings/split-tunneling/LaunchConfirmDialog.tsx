@@ -29,10 +29,10 @@ function LaunchConfirmDialog({ isOpen, appName, onConfirm, onCancel }: Props) {
       </div>
 
       <div className="flex flex-col gap-3">
-        <Button onClick={onConfirm}>
+        <Button onClick={onConfirm} variant="primary">
           {t('split-tunneling.launch-confirm-dialog.launch')}
         </Button>
-        <Button onClick={onCancel} color="gray" outline>
+        <Button onClick={onCancel} variant="outlined">
           {t('split-tunneling.launch-confirm-dialog.cancel')}
         </Button>
       </div>

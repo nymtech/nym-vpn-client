@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { type } from '@tauri-apps/plugin-os';
-import { Button, ButtonText, Dialog, MsIcon, Progress } from '../../ui';
+import { Button, Dialog, MsIcon, Progress } from '../../ui';
 import { DownloadUpdateEvent, UpdateMetadata } from '../../types';
 
 const updaterEnabled = window._APP.updaterEnabled;
@@ -138,16 +138,16 @@ function UpdateDialog() {
                 {t('app-update-available.button-update')}
               </span>
             </Button>
-            <ButtonText
+            <Button
               onClick={() => {
                 setIsOpen(false);
               }}
               className="mt-2"
               disabled={isUpdating}
-              color="transparent"
+              variant="outlined"
             >
               {t('app-update-available.button-close')}
-            </ButtonText>
+            </Button>
           </div>
         </>
       ) : (

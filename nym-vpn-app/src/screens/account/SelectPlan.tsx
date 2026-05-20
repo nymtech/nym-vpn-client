@@ -70,7 +70,7 @@ function SelectPlan() {
           />
         </div>
       </div>
-      <Button className="w-full" onClick={handleClick}>
+      <Button className="w-full" onClick={handleClick} variant="primary">
         <span className="flex items-center gap-2">
           {t('select-a-plan.button')}{' '}
           {autologinLoading ? <Spinner /> : <MsIcon icon="open_in_new" />}

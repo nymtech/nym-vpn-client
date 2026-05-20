@@ -30,6 +30,8 @@ function InfoData() {
             onClick={() => copy(daemonVersion)}
             truncate
             data-testid="daemon-version-value"
+            color="transparent"
+            className="text-text-secondary!"
           >
             {daemonVersion}
           </ButtonText>
@@ -47,6 +49,8 @@ function InfoData() {
             onClick={() => copy(networkEnv)}
             truncate
             data-testid="network-name-value"
+            color="transparent"
+            className="text-text-secondary!"
           >
             {networkEnv}
           </ButtonText>
@@ -77,6 +81,8 @@ function InfoData() {
             onDoubleClick={() => devMode && navigate(routes.dev)}
             truncate
             data-testid="client-version-value"
+            color="transparent"
+            className="text-text-secondary!"
           >
             {version}
           </ButtonText>

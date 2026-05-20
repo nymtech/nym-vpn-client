@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ButtonNew } from '../../../ui';
+import { Button } from '../../../ui';
 import { PrivyButton } from '../../../components/index';
 
 type Props = {
@@ -16,9 +16,9 @@ export function Login({ onPassphrase }: Props) {
         </h1>
       </div>
       <div className="flex w-full flex-col gap-3">
-        <ButtonNew onClick={onPassphrase}>
+        <Button onClick={onPassphrase}>
           {t('login.login-24-words-button')}
-        </ButtonNew>
+        </Button>
         <PrivyButton label={t('login.login-social-button')} />
         <p className="text-bombay text-center text-xs leading-5">
           {t('login.login-social-button-disclaimer')}

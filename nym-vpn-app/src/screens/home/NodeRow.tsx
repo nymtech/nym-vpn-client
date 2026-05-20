@@ -269,38 +269,20 @@ export function NodeRow({ type }: NodeRowProps) {
       </AnimatePresence>
       <Button
         onClick={handleClick}
-        className="group relative isolate w-full rounded-xl p-2"
+        className={clsx(
+          'group relative isolate w-full rounded-xl border border-transparent p-2 transition-all duration-150 ease-out',
+          algo !== 'auto' && 'hover:border-black dark:hover:border-white',
+        )}
       >
-        {/* Rotating gradient ring on hover — mask center with card bg so only border shows */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 rounded-xl opacity-0 transition-opacity duration-200 ease-out group-hover:opacity-100"
-        >
-          <div className="absolute inset-0 overflow-hidden rounded-[inherit]">
-            {/* Outer: translate only. Inner: rotate only — avoids transform override jump on spin */}
-            <div className="absolute top-1/2 left-1/2 size-[260%] -translate-x-1/2 -translate-y-1/2">
-              <div
-                className={clsx(
-                  'size-full will-change-transform backface-hidden',
-                  '[background:conic-gradient(from_0deg,var(--color-primary)_0%,var(--color-cornflower)_45%,var(--color-azur)_72%,var(--color-primary)_100%)]',
-                  'motion-safe:animate-[spin_3s_linear_infinite]',
-                )}
-              />
-            </div>
-          </div>
-          <div
-            className="absolute inset-[2px] rounded-[calc(0.75rem-2px)] bg-white dark:bg-[#1d1d1f]"
-            aria-hidden
-          />
-        </div>
-
-        <div className="relative z-10 flex flex-col items-start">
+        <div className="z-10 flex flex-col items-start">
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-1 items-center gap-2 overflow-hidden">
               <ScoreIndicatorContainer score={nodeDetails.score} />
               <AnimatePresence mode="wait">
                 {nodeDetails.countryCode &&
-                  (state === 'connected' || algo !== 'auto') && (
+                  (state === 'connected' ||
+                    state === 'connecting' ||
+                    algo !== 'auto') && (
                     <motion.div
                       key={nodeDetails.countryCode}
                       initial={{ opacity: 0, x: 14 }}

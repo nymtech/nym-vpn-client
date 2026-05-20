@@ -1,6 +1,6 @@
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
-import { ButtonNew, Dialog, MsIcon } from '../../../ui';
+import { Button, Dialog, MsIcon } from '../../../ui';
 import { capFirst } from '../../../util';
 import { NodeHop } from '../../../types';
 import { Details } from './Details';
@@ -40,13 +40,13 @@ function LocationDetailsDialog({ isOpen, onClose, node }: Props) {
         </DialogTitle>
       </div>
       <Details node={node} />
-      <ButtonNew
+      <Button
         onClick={onClose}
         className="mt-2"
         data-testid="location-details-close-button"
       >
         {capFirst(t('ok', { ns: 'glossary' }))}
-      </ButtonNew>
+      </Button>
     </Dialog>
   );
 }

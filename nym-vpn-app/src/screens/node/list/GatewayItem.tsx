@@ -60,7 +60,7 @@ const GatewayItem = ({
 
   const scrollToGatewayRef = useCallback(
     (htmlElement: HTMLDivElement) => {
-      if (!htmlElement || inSearchResult) return;
+      if (!htmlElement) return;
       if (focused?.type === 'gateway' && focused.key === gateway.id) {
         htmlElement.scrollIntoView({
           behavior: 'smooth',
@@ -68,7 +68,7 @@ const GatewayItem = ({
         });
       }
     },
-    [focused, gateway.id, inSearchResult],
+    [focused, gateway.id],
   );
 
   return (

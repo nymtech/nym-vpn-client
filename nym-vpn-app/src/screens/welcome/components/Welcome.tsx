@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ButtonNew } from '../../../ui';
+import { Button } from '../../../ui';
 
 type Props = {
   onSignup: () => void;
@@ -19,8 +19,8 @@ export function Welcome({ onSignup, onLogin }: Props) {
         </p>
       </div>
       <div className="flex w-full flex-col gap-3">
-        <ButtonNew onClick={onSignup}>{t('welcome.signup-button')}</ButtonNew>
-        <ButtonNew onClick={onLogin}>{t('welcome.login-button')}</ButtonNew>
+        <Button onClick={onSignup}>{t('welcome.signup-button')}</Button>
+        <Button onClick={onLogin}>{t('welcome.login-button')}</Button>
         <p className="text-bombay text-center text-xs leading-5">
           {t('welcome.terms-of-service')}
         </p>
