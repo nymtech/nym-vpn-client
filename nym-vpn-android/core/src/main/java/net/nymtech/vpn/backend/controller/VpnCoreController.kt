@@ -1,6 +1,7 @@
 package net.nymtech.vpn.backend.controller
 
 import android.content.Intent
+import android.os.UserManager
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.sync.Mutex
@@ -29,8 +30,11 @@ import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewaySelectionAlgorithmConfig
 import nym_vpn_lib_types.FrontingMode
+import nym_vpn_lib_types.GatewayIndependence
+import nym_vpn_lib_types.MixnetEvent
 import nym_vpn_lib_types.MixnetTrafficConfig
 import nym_vpn_lib_types.TunnelEvent
+import nym_vpn_lib_types.TunnelState
 import nym_vpn_lib_types.UserAgent
 import timber.log.Timber
 
@@ -259,13 +263,13 @@ class VpnCoreController(
 		if (coarse != state) publishState(coarse)
 
 		when (val ts = event.v1) {
-			is nym_vpn_lib_types.TunnelState.Connecting ->
+			is TunnelState.Connecting ->
 				events.tryEmit(VpnServiceEvent.EstablishConnection(ts.state, ts.connectionData))
 
-			is nym_vpn_lib_types.TunnelState.Connected ->
+			is TunnelState.Connected ->
 				events.tryEmit(VpnServiceEvent.Connected(ts.connectionData))
 
-			is nym_vpn_lib_types.TunnelState.Error ->
+			is TunnelState.Error ->
 				events.tryEmit(VpnServiceEvent.FatalError(ts.v1))
 
 			else -> Unit
@@ -276,7 +280,7 @@ class VpnCoreController(
 
 	private fun handleMixnetEvent(event: TunnelEvent.MixnetState) {
 		when (val mx = event.v1) {
-			is nym_vpn_lib_types.MixnetEvent.Connection ->
+			is MixnetEvent.Connection ->
 				events.tryEmit(VpnServiceEvent.MixnetConnectionEvent(mx.v1))
 
 			else ->
@@ -315,7 +319,7 @@ class VpnCoreController(
 	) {
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
-		val userManager = service.getSystemService(android.os.UserManager::class.java)
+		val userManager = service.getSystemService(UserManager::class.java)
 		if (userManager?.isUserUnlocked == false) {
 			Timber.tag(TAG).w("Device locked (Direct Boot phase). Aborting initialization to prevent mainnet fallback.")
 			throw IllegalStateException("Device is locked. CE storage is inaccessible.")
@@ -357,6 +361,7 @@ class VpnCoreController(
 			tunProvider = service,
 			connectivityMonitor = service,
 			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false, GatewaySelectionAlgorithm.AUTO),
+			gatewayIndependence = GatewayIndependence(differentNodeFamily = true, differentAsn = true),
 		)
 
 		val svc = NymVpnService.newService(initialConfig, env, service)
