@@ -158,6 +158,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
 	ErrorStateReason.SplitTunnel -> ""
 
 	is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error, this.v1)
+	ErrorStateReason.NeedsRelaxedIndependenceCriteria ->  ""
 }
 
 fun VpnException.toUserMessage(context: Context): String = when (this) {
