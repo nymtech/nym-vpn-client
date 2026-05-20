@@ -38,7 +38,7 @@ enum MenuItemId {
 }
 
 // Position of the entry item in the tray menu when visible:
-// show_hide(0), separator(1), status(2), mode(3), entry(4), exit(5), separator(6), quit(7)
+// show_hide(0), separator(1), status(2), mode(3), exit(4), entry(5), separator(6), quit(7)
 const ENTRY_MENU_POSITION: usize = 5;
 
 pub struct TrayManager {

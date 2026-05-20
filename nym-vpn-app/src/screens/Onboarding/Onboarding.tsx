@@ -113,7 +113,7 @@ function Onboarding() {
 
         <div className="flex w-full flex-col items-center gap-4">
           <Button onClick={() => handleNavigate(routes.welcome)}>
-            Get Started
+            {t('controls.get-started')}
           </Button>
         </div>
       </section>

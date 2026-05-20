@@ -68,13 +68,9 @@ export function PincodeDialog({
 
         <PinCodeDigits code={code} />
 
-        <Button
-          // className="mt-3 flex w-full items-center justify-center gap-2"
-          onClick={handleClick}
-          variant="primary"
-        >
+        <Button onClick={handleClick} variant="primary">
           <MsIcon icon="content_copy" className="text-xl" />
-          <span>{t('autologin.copy-code')}adfaf</span>
+          <span>{t('autologin.copy-code')}</span>
         </Button>
       </div>
     </Dialog>

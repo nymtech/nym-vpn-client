@@ -85,6 +85,7 @@ function Button({
         'cursor-default transition-colors select-none',
         'focus:outline-none',
         'data-disabled:pointer-events-none',
+        'focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2',
         disabled
           ? 'bg-aph-light text-text-secondary'
           : [...variantStyles[variant]],

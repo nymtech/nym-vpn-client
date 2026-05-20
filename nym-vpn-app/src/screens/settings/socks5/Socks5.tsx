@@ -163,7 +163,9 @@ function Socks5() {
                   ? 'text-primary'
                   : 'text-text-primary',
               )}
-            ></span>
+            >
+              {status?.activeConnections ?? 0}
+            </span>
           </CardDataRow>
         </CardNewBody>
       </CardNew>
