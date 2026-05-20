@@ -65,23 +65,16 @@ function MixnetTuning() {
 
       <div className="flex flex-col gap-2 justify-self-end">
         <Button
-          color="malachite"
+          variant="primary"
           disabled={!hasUnsavedSettings || loading}
           onClick={handleSaveCustomSettings}
-          spinner={loading}
+          loading={loading}
         >
           {t('mixnet-tuning.save-custom-settings')}
         </Button>
         {hasSettingsOtherThanDefaults && (
-          <Button
-            outline
-            color="gray"
-            onClick={restoreDefaults}
-            className="group border-iron dark:border-bombay border hover:ring-0! dark:hover:ring-0!"
-          >
-            <span className="text-black group-hover:text-black/50 dark:text-white dark:group-hover:text-white/80">
-              {t('mixnet-tuning.restore-default-settings')}
-            </span>
+          <Button variant="outlined" onClick={restoreDefaults}>
+            {t('mixnet-tuning.restore-default-settings')}
           </Button>
         )}
       </div>

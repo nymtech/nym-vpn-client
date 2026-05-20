@@ -49,7 +49,7 @@ function CardSwitch({
     <div
       className={clsx(
         'flex w-full flex-row items-center justify-between gap-4 select-none',
-        'dark:bg-charcoal min-h-16 rounded-t-lg bg-white px-5 py-4',
+        'dark:bg-aph-light min-h-16 rounded-t-lg bg-white px-5 py-4',
         !noHoverEffect && 'hover:bg-iron/5 dark:hover:bg-black/10',
         'cursor-default',
         disabled && 'pointer-events-none',

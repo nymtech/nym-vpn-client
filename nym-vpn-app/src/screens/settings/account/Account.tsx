@@ -5,7 +5,6 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { useNavigate } from 'react-router';
 import {
   Button,
-  ButtonNew,
   CardNew,
   CardNewBody,
   CardNewCopyableRow,
@@ -145,6 +144,7 @@ function Account() {
         <Button
           onClick={() => navigate(routes.selectPlan)}
           disabled={daemonStatus === 'down' || accountSyncing}
+          variant="primary"
         >
           {t('account.choose-plan')}
         </Button>
@@ -234,14 +234,14 @@ function Account() {
       </p>
 
       <div className="flex flex-col gap-2">
-        <ButtonNew
+        <Button
           variant="destructive-outlined"
           onClick={() => logout()}
           disabled={loading}
           loading={loading}
         >
           {t('account.logout')}
-        </ButtonNew>
+        </Button>
       </div>
     </PageAnim>
   );

@@ -6,7 +6,7 @@ import clsx from 'clsx';
 import { AnonNetworkStatsUrl, PrivacyPolicyUrl } from '../../constants';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
-import { ButtonNew, Link, Switch } from '../../ui';
+import { Button, Link, Switch } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import SettingsGroup from '../settings/SettingsGroup';
 import { dispatch, useAppStore } from '../../store';
@@ -119,7 +119,7 @@ function TechnicalOptin() {
           ]}
           data-testid="welcome-netstats-group"
         />
-        <ButtonNew onClick={handleContinue}>{t('continue-button')}</ButtonNew>
+        <Button onClick={handleContinue}>{t('continue-button')}</Button>
       </div>
     </InteractiveCard>
   );

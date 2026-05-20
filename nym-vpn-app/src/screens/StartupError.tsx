@@ -83,7 +83,7 @@ function StartupError({
         )}
 
         <Button
-          color="malachite"
+          variant="primary"
           onClick={() => {
             exit(0);
           }}

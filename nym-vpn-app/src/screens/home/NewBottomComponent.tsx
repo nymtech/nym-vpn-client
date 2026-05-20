@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { ButtonNew, ButtonVariant, MsIcon, type countryCode } from '../../ui';
+import { Button, ButtonVariant, MsIcon, type countryCode } from '../../ui';
 import {
   dispatch,
   useAppStore,
@@ -448,14 +448,13 @@ export function NewBottomComponent() {
 
         {/* Button ───────────────────────────────────────────────────────── */}
         <div className="z-10">
-          <ButtonNew
-            // disabled={daemonStatus === 'down'}
+          <Button
             disabled={getButtonDisabled()}
             variant={getButtonVariant()}
             onClick={handleConnect}
           >
             {getButtonText()}
-          </ButtonNew>
+          </Button>
         </div>
         {/* Button ───────────────────────────────────────────────────────── */}
       </InteractiveCard>
