@@ -384,6 +384,26 @@ pub struct DVpnGatewayPerformance {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NodeStaking {
+    // delegations + bond
+    pub total_stake: u128,
+    pub total_delegations: u128,
+    pub total_bond: u128,
+    // number of delegations
+    pub delegations: usize,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NodeFamily {
+    pub id: u32,
+    pub name: String,
+    pub description: String,
+    // in unym
+    pub family_stake: u128,
+    pub members: usize,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NymDirectoryGateway {
     pub identity_key: String,
     pub name: String,
@@ -405,6 +425,8 @@ pub struct NymDirectoryGateway {
     pub performance_v2: Option<DVpnGatewayPerformance>,
     pub build_information: Option<BuildInformation>,
     pub lewes_protocol_details: Option<LewesProtocolDetailsV1>,
+    pub node_staking: Option<NodeStaking>,
+    pub node_family: Option<NodeFamily>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

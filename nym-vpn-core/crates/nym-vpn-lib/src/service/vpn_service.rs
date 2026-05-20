@@ -45,7 +45,8 @@ use nym_vpn_lib_types::{
     LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
     ParsedAccountLinks, RegistrationReport, StoreAccountRequest, SystemMessage, TargetState,
-    TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig,
+    VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -73,7 +74,10 @@ use crate::{
     config::GlobalConfig,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     logging::LogFileRemoverHandle,
-    tunnel_state_machine::{NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine},
+    tunnel_state_machine::{
+        NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
+        tunnel::gateway_provider::GatewayProvider,
+    },
 };
 
 // Seed used to generate device identity keys
@@ -221,6 +225,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<RegistrationReport>,
         DiagnosticRegisterParams,
     ),
+    GetTentativeGateways(oneshot::Sender<TentativeGateways>, ()),
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     IsSplitTunnelSupported(oneshot::Sender<bool>, ()),
     #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -374,6 +379,12 @@ pub struct NymVpnService {
     // Split-tunnel join handle
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     split_tunnel_join_handle: JoinHandle<()>,
+
+    // Gateway provider
+    gateway_provider: GatewayProvider<GatewayCacheHandle>,
+
+    // Gateway provider join handle
+    gateway_provider_handle: JoinHandle<()>,
 
     #[cfg(target_os = "linux")]
     split_tunnel_pid_manager: nym_split_tunnel::PidManager,
@@ -640,6 +651,14 @@ impl NymVpnService {
             net_cls: split_tunnel_pid_manager.net_cls_classid(),
         };
 
+        let (gateway_provider, gateway_provider_handle) = GatewayProvider::new(
+            gateway_cache_handle.clone(),
+            nym_vpn_api_client,
+            tunnel_settings.clone(),
+            wireguard_keys_db,
+            state_machine_shutdown_token.child_token(),
+        );
+
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
             event_sender,
@@ -649,14 +668,12 @@ impl NymVpnService {
             account_command_tx.clone(),
             account_state_rx.clone(),
             statistics_event_sender.clone(),
-            gateway_cache_handle.clone(),
-            nym_vpn_api_client,
             topology_service.clone(),
             connectivity_handle,
             discovery_refresher_command_tx,
-            wireguard_keys_db,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             split_tunnel.clone(),
+            gateway_provider.clone(),
             #[cfg(target_os = "linux")]
             split_tunnel_config,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -706,6 +723,8 @@ impl NymVpnService {
             split_tunnel,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             split_tunnel_join_handle,
+            gateway_provider,
+            gateway_provider_handle,
             #[cfg(target_os = "linux")]
             split_tunnel_pid_manager,
         })
@@ -797,6 +816,10 @@ impl NymVpnService {
             if let Err(e) = self.split_tunnel_join_handle.await {
                 tracing::error!("Failed to join on split tunnel handle: {e}");
             }
+        }
+
+        if let Err(e) = self.gateway_provider_handle.await {
+            tracing::error!("Failed to join on gateway provider handle: {e}");
         }
 
         tracing::info!("Exiting vpn service run loop");
@@ -1175,6 +1198,9 @@ impl NymVpnService {
             }
             VpnServiceCommand::RegisterDiagnostic(tx, params) => {
                 let _ = tx.send(Box::pin(self.handle_register_diagnostic(params)).await);
+            }
+            VpnServiceCommand::GetTentativeGateways(tx, _) => {
+                let _ = tx.send(self.handle_get_tentative_gateways().await);
             }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             VpnServiceCommand::IsSplitTunnelSupported(tx, ()) => {
@@ -2198,6 +2224,10 @@ impl NymVpnService {
             Err(e) => tracing::error!("Error serializing report :{e}"),
         }
         report
+    }
+
+    async fn handle_get_tentative_gateways(&self) -> TentativeGateways {
+        self.gateway_provider.tentative_gateways().await
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

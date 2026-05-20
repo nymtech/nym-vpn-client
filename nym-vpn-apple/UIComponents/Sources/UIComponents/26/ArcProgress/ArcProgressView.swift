@@ -133,7 +133,7 @@ private extension ArcProgressView {
             TimelineView(.periodic(from: connectedDate, by: 1.0)) { context in
                 Text(verbatim: fastHMS(from: connectedDate, to: context.date))
                     .font(.system(size: Constants.labelFontSize))
-                    .foregroundColor(Color.Nym.primary)
+                    .foregroundColor(Color.Nym.secondary)
                     .monospacedDigit()
             }
             .id(connectedDate)
@@ -178,7 +178,7 @@ private extension ArcProgressView {
         guard state == .connected else { return .clear }
         switch mode {
         case .fast:
-            return Color.Nym.primary.opacity(0.55)
+            return Color.Nym.secondary.opacity(0.55)
         case .anonymous:
             return Color.Nym.gray1.opacity(0.35)
         }
@@ -209,7 +209,7 @@ private extension ArcProgressView {
     var labelColor: Color {
         switch state {
         case .failed:               return Constants.errorFill
-        case .connected, .step:     return Color.Nym.primary
+        case .connected, .step:     return Color.Nym.secondary
         case .disconnected, .canceling: return Color.Nym.textTertiary
         }
     }
@@ -304,7 +304,7 @@ private extension ArcProgressView {
 
         static let glowConnectedOpacity: Double = 0.55
 
-        static let fastFill      = Color.Nym.primary
+        static let fastFill      = Color.Nym.secondary
         static let anonymousFill = Color.Nym.anonymousArc.opacity(0.60)
         static let track         = Color.white.opacity(0.15)
         static let errorFill     = Color.Nym.error.opacity(0.60)

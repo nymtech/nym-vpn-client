@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
-import { ButtonNew, MsIcon } from '../../ui';
-import { dispatch, useMainState } from '../../store';
+import { Button, MsIcon } from '../../ui';
+import { dispatch, useAppStore } from '../../store';
 import { useDeepLink, useToast } from '../../hooks';
 import { routes } from '../../router';
 import { CCache } from '../../cache';
@@ -16,7 +16,7 @@ function PrivyButton({ label }: { label: string }) {
 
   const { add } = useToast();
   const { startListening } = useDeepLink();
-  const { welcomeChecked } = useMainState();
+  const technicalOptinSeen = useAppStore((state) => state.technicalOptinSeen);
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -42,8 +42,8 @@ function PrivyButton({ label }: { label: string }) {
         callbackUrl: deeplinkurl,
       });
 
-      if (!welcomeChecked) {
-        navigate(routes.welcome);
+      if (!technicalOptinSeen) {
+        navigate(routes.technicalOptin);
       } else {
         navigate(routes.root);
       }
@@ -72,7 +72,7 @@ function PrivyButton({ label }: { label: string }) {
   };
 
   return (
-    <ButtonNew
+    <Button
       variant="outlined"
       onClick={handlePrivy}
       className="group border-iron dark:border-bombay border hover:ring-0! dark:hover:ring-0!"
@@ -81,7 +81,7 @@ function PrivyButton({ label }: { label: string }) {
       <span className="flex items-center gap-2 whitespace-pre-wrap text-black group-hover:text-black/50 dark:text-white dark:group-hover:text-white/80">
         {label} <MsIcon icon="open_in_new" />
       </span>
-    </ButtonNew>
+    </Button>
   );
 }
 

@@ -51,7 +51,7 @@ function TextInput({
       case 'default':
         return 'bg-background';
       case 'gray':
-        return 'bg-white dark:bg-charcoal';
+        return 'bg-white dark:bg-aph-light';
     }
   };
 

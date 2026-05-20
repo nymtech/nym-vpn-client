@@ -49,6 +49,18 @@ pub struct VpnApiClient {
     skew_manager: Arc<RwLock<SkewManager>>,
 }
 
+impl AsRef<Client> for VpnApiClient {
+    fn as_ref(&self) -> &Client {
+        &self.inner
+    }
+}
+
+impl AsMut<Client> for VpnApiClient {
+    fn as_mut(&mut self) -> &mut Client {
+        &mut self.inner
+    }
+}
+
 impl VpnApiClient {
     pub fn new(urls: Vec<Url>, user_agent: Option<UserAgent>) -> Result<Self> {
         let inner =

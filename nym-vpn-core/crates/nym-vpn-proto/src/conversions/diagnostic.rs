@@ -31,6 +31,7 @@ impl From<proto::DiagnosticRunParams> for nym_vpn_lib_types::DiagnosticRunParams
             gateway: value.gateway.map(|g| g.id),
             skip_dns: value.skip_dns,
             skip_http: value.skip_http,
+            skip_hybrid_transport: value.skip_hybrid_transport,
         }
     }
 }
@@ -41,6 +42,7 @@ impl From<nym_vpn_lib_types::DiagnosticRunParams> for proto::DiagnosticRunParams
             gateway: value.gateway.map(|id| proto::GatewayId { id }),
             skip_dns: value.skip_dns,
             skip_http: value.skip_http,
+            skip_hybrid_transport: value.skip_hybrid_transport,
         }
     }
 }

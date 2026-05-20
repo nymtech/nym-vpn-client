@@ -44,10 +44,13 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          toolchain: ${{ env.RUST_VERSION }}
 
       - name: Install system dependencies
         run: |
@@ -70,23 +73,23 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ env.RUST_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-${{ vars.REQUIRED_RUSTC_VERSION }}-
+            ${{ runner.os }}-cargo-${{ env.RUST_VERSION }}-
 
       - name: Restore cargo build cache
         uses: actions/cache/restore@v5
         with:
           path: nym-vpn-core/target/
-          key: ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          key: ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
           restore-keys: |
-            ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
-            ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-
+            ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-
+            ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-
 
       - name: Install Go
         uses: actions/setup-go@v6
         with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION}}
+          go-version: ${{ env.GOLANG_VERSION}}
           cache-dependency-path: wireguard/libwg/go.sum
 
       - name: Build wireguard-go
@@ -111,14 +114,14 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-          key: ${{ runner.os }}-cargo-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ env.RUST_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}
 
       - name: Save cargo build cache
         if: always()
         uses: actions/cache/save@v5
         with:
           path: nym-vpn-core/target/
-          key: ${{ runner.os }}-cargo-build-${{ vars.REQUIRED_RUSTC_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
+          key: ${{ runner.os }}-cargo-build-${{ env.RUST_VERSION }}-${{ hashFiles('nym-vpn-core/Cargo.lock') }}-${{ hashFiles('nym-vpn-core/**/*.rs') }}
 
       - name: Save Go modules cache
         if: always()

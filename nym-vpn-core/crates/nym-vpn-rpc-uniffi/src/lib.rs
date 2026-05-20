@@ -462,6 +462,7 @@ impl RpcClient {
             gateway: None,
             skip_dns: false,
             skip_http: false,
+            skip_hybrid_transport: false,
         };
         Ok(self.inner.clone().run_diagnostic_raw(params).await?)
     }

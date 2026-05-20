@@ -9,53 +9,65 @@ public extension Color {
     enum Nym {
         // MARK: Brand
         /// Spring Green — primary action / accent
-        public static let primary      = Color("Nym.Primary", bundle: .module)      // #5BF0A0
+        public static let primary       = Color("Nym.Primary", bundle: .module)       // #5BF0A0
         /// Primary hover state
-        public static let primaryHover = Color("Nym.PrimaryHover", bundle: .module) // #4AD88C
+        public static let primaryHover  = Color("Nym.PrimaryHover", bundle: .module)  // #4AD88C
+        /// Primary active / pressed state
+        public static let primaryActive = Color("Nym.PrimaryActive", bundle: .module) // #44EE93
         /// Primary dark — gradient endpoint
-        public static let primaryDark  = Color("Nym.PrimaryDark", bundle: .module)  // #076B3E
+        public static let primaryDark   = Color("Nym.PrimaryDark", bundle: .module)   // #076B3E
+        /// Secondary brand green — appearance-adaptive (deeper in light, spring in dark)
+        public static let secondary     = Color("Nym.Secondary", bundle: .module)     // L #1A9B61  D #5BF0A0
 
         // MARK: Backgrounds
         /// Deepest background — Aztec
         public static let backgroundDeep     = Color("Nym.BackgroundDeep", bundle: .module)     // L #E8F2F0  D #091312
-        /// Default background — Woodsmoke
-        public static let background         = Color("Nym.Background", bundle: .module)         // L #F7F7FA  D #000000
+        /// Default background — palette `background`
+        public static let background         = Color("Nym.Background", bundle: .module)         // L #E5E5E5  D #090909
         /// Elevated surface — Shark
         public static let backgroundElevated = Color("Nym.BackgroundElevated", bundle: .module) // L #F2F2F7  D #18181F
         /// Hover/pressed surface
         public static let backgroundHover    = Color("Nym.BackgroundHover", bundle: .module)    // L #EBEBF0  D #211F2A
-        /// Card / inset surface — Baltic Sea
-        public static let backgroundCard     = Color("Nym.BackgroundCard", bundle: .module)     // L #FFFFFF  D #211F28
+        /// Card / inset surface — palette `surface`
+        public static let backgroundCard     = Color("Nym.BackgroundCard", bundle: .module)     // L #FFFFFF  D #1D1D1F
+        /// Disabled surface — palette `surface-disabled` (light-only)
+        public static let surfaceDisabled    = Color("Nym.SurfaceDisabled", bundle: .module)    // #D5D5D5
         /// Top nav bar surface
         public static let navBarBackground   = Color("Nym.NavBarBackground", bundle: .module)   // L #FFFFFF  D #1E1E1E
 
         // MARK: Text
-        /// Primary text on dark backgrounds
-        public static let textPrimary   = Color("Nym.TextPrimary", bundle: .module)   // L #111116  D #FFFFFF
-        /// Secondary text
-        public static let textSecondary = Color("Nym.TextSecondary", bundle: .module) // L #52525F  D #AEACB1
-        /// Tertiary text
-        public static let textTertiary  = Color("Nym.TextTertiary", bundle: .module)  // L #8A8A9A  D #8B8B90
+        /// Primary text — palette `primary-text`
+        public static let textPrimary   = Color("Nym.TextPrimary", bundle: .module)   // L #0B0B0B  D #FFFFFF
+        /// Secondary text — palette `text-secondary`
+        public static let textSecondary = Color("Nym.TextSecondary", bundle: .module) // L #6A7282  D #AEACB1
+        /// Tertiary text — palette `text-tertiary`
+        public static let textTertiary  = Color("Nym.TextTertiary", bundle: .module)  // L #8A8990  D #E5E5E5
         /// Disabled text
         public static let textDisabled  = Color("Nym.TextDisabled", bundle: .module)  // #6C6C6F
 
         // MARK: Semantic
         /// Error
-        public static let error   = Color("Nym.Error", bundle: .module)   // #E73E14
+        public static let error          = Color("Nym.Error", bundle: .module)          // #E73E14
         /// Warning
-        public static let warning = Color("Nym.Warning", bundle: .module) // #FFB400
+        public static let warning        = Color("Nym.Warning", bundle: .module)        // #FFB400
+        /// Warning surface — palette `warning-surface` (light-only)
+        public static let warningSurface = Color("Nym.WarningSurface", bundle: .module) // #FFF7E2
         /// Success
-        public static let success = Color("Nym.Success", bundle: .module) // #28C96C
+        public static let success        = Color("Nym.Success", bundle: .module)        // #28C96C
         /// Info
-        public static let info    = Color("Nym.Info", bundle: .module)    // #485ECA
+        public static let info           = Color("Nym.Info", bundle: .module)           // #485ECA
+        /// Illustration accent — palette `illustration-accent`
+        public static let illustrationAccent = Color("Nym.IllustrationAccent", bundle: .module) // #A3CDFF
 
         // MARK: Brand accent colors
         /// Orange — used for "expiring soon" urgency (matches `NymColor.orange` in legacy Theme)
         public static let orange = Color(red: 0.98, green: 0.43, blue: 0.31)          // #FA6E4F
 
         // MARK: UI Chrome
-        /// Divider / separator line
-        public static let divider = Color("Nym.Divider", bundle: .module) // L #D1D1D8  D #39393B
+        /// Divider / separator line — palette `divider`
+        public static let divider = Color("Nym.Divider", bundle: .module) // L #F3F4F6  D #3A3A3C
+        /// Border — palette `border`
+        public static let border  = Color("Nym.Border", bundle: .module)  // L #E5E7EB  D #3A3A3C
         /// Mid-gray — used for subtle icons and inactive carets
         public static let gray1   = Color("Nym.Gray1", bundle: .module)   // #B0ADB6
         /// Darker mid-gray — used for connected button border

@@ -28,11 +28,11 @@ import PathManager
     var deeplinks: NymDeeplinks?
 #endif
     private var cancellables = Set<AnyCancellable>()
-    private var isUpdatingAccountSummary = false
+    private var accountSummaryUpdateTask: Task<Void, Never>?
 
     public static let shared = CredentialsManager()
 
-    public var deviceIdentifier: String?
+    @Published public var deviceIdentifier: String?
     @Published public var accountIdentifier: String?
     @Published public var didReceiveAccountLinkCallback = false
     @Published public var didReceiveSubscriptionPayment = false
@@ -244,13 +244,28 @@ import PathManager
     }
 
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
-        guard !isUpdatingAccountSummary else { return }
-        if !force && accountSummary != nil && isAccountSummaryCacheFresh() && isAccountActive() {
+        // Drain the in-flight pass plus any follow-up pass another awaiter
+        // may have started before we resumed — otherwise siblings can each
+        // spawn a fresh `performAccountSummaryUpdate` in parallel.
+        while let inflight = accountSummaryUpdateTask {
+            await inflight.value
+        }
+        if !force, accountSummary != nil, isAccountSummaryCacheFresh(), isAccountActive() {
             return
         }
-        isUpdatingAccountSummary = true
-        defer { isUpdatingAccountSummary = false }
 
+        let task: Task<Void, Never> = Task { [weak self] in
+            guard let self else { return }
+            await performAccountSummaryUpdate(untilActive: untilActive)
+        }
+        accountSummaryUpdateTask = task
+        await task.value
+        if accountSummaryUpdateTask == task {
+            accountSummaryUpdateTask = nil
+        }
+    }
+
+    private func performAccountSummaryUpdate(untilActive: Bool) async {
         let delays: [Duration] = [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
 
         for delay in delays {

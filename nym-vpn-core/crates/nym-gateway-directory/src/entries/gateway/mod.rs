@@ -9,7 +9,7 @@ use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
 use nym_validator_client::models::{KeyRotationId, LewesProtocolDetailsV1, NymNodeDescriptionV2};
 use nym_vpn_api_client::{
-    response::{BridgeInformation, BridgeParameters},
+    response::{BridgeInformation, BridgeParameters, NodeFamily, NodeStaking},
     types::Percent,
 };
 use rand::seq::IteratorRandom;
@@ -67,6 +67,10 @@ pub struct Gateway {
     pub version: Option<String>,
     #[builder(default)]
     pub lewes_protocol_details: Option<LewesProtocolDetailsV1>,
+    #[builder(default)]
+    pub node_staking: Option<NodeStaking>,
+    #[builder(default)]
+    pub node_family: Option<NodeFamily>,
 }
 
 impl Gateway {
@@ -152,6 +156,8 @@ impl Gateway {
             performance: None,
             version,
             lewes_protocol_details,
+            node_staking: None,
+            node_family: None,
         })
     }
 
@@ -668,6 +674,8 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             performance,
             version: gateway.build_information.map(|info| info.build_version),
             lewes_protocol_details: gateway.lewes_protocol_details,
+            node_staking: gateway.node_staking,
+            node_family: gateway.node_family,
         })
     }
 }

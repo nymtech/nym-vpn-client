@@ -17,8 +17,8 @@ use nym_vpn_lib_types::{
     GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
     PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    StoredAccountMode, SystemMessage, TentativeGateways, TunnelEvent, TunnelState,
+    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
@@ -907,6 +907,16 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
         RegistrationReport::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn get_tentative_gateways(&mut self) -> Result<TentativeGateways> {
+        let response = self
+            .0
+            .get_tentative_gateways(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+        TentativeGateways::try_from(response).map_err(Error::InvalidResponse)
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

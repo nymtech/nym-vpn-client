@@ -80,12 +80,22 @@ struct NymVPNDaemonApp: App {
 
     var body: some Scene {
         Window(windowId, id: windowId) {
-            AppFeatureView(viewModel: appFeatureViewModel)
-                .transition(.slide)
-                .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
+            ZStack {
+                AppFeatureView(viewModel: appFeatureViewModel)
+                    .transition(.slide)
+                if !splashScreenDidDisplay {
+                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut, value: splashScreenDidDisplay)
+            .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
             .onAppear {
                 DispatchQueue.main.async {
                     appDelegate.bringWindowToFront()
+                }
+                externalLinkManager.deeplinkHandler = { url in
+                    deeplinkManager.handle(url: url)
                 }
             }
             .onDisappear {

@@ -9,8 +9,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { UiGateway, isSelectedNodeType } from '../../../types/node';
 import { useNodeListState } from '../../../store/nodeListState';
 import {
+  Button,
   ButtonIconNew,
-  ButtonNew,
   CardDataRow,
   CardDivider,
   CardNew,
@@ -403,7 +403,7 @@ function NodeDetails() {
               icon
               color="cornflower"
             />
-            <p className="text-secondary">
+            <p className="text-text-secondary">
               <Trans
                 i18nKey="node-details.links.explorer"
                 ns="node-location"
@@ -424,9 +424,9 @@ function NodeDetails() {
 
       {!isSelected && (
         <div className="p-4">
-          <ButtonNew onClick={handleSelect}>
+          <Button onClick={handleSelect}>
             {t('node-details.select-button')}
-          </ButtonNew>
+          </Button>
         </div>
       )}
     </PageAnim>

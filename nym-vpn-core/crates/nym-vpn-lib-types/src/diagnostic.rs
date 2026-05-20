@@ -1,6 +1,8 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::ApiUrl;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -68,6 +70,18 @@ pub struct DiagnosticReport {
     pub dns: Option<CompleteDnsReport>,
     pub http: Option<DiagnosticResult<HttpReport>>,
     pub gateway: Option<GatewayReport>,
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
+    pub hybrid_transport: Option<DiagnosticResult<HybridTransportReport>>,
+}
+
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone)]
+pub struct HybridTransportReport {
+    pub routing_id: String,
+    pub handshake_duration_ms: u128,
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -92,6 +106,14 @@ pub struct HttpReport {
     pub remote_time: DiagnosticResult<ApiTimeSkew>,
     pub health_response: DiagnosticResult<DiagnosticHealthResponse>,
     pub nb_nymnodes: DiagnosticResult<usize>,
+    pub by_endpoint: Vec<DiagnosticResult<DiagnosticEndpointResponse>>,
+}
+
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug)]
+pub struct DiagnosticEndpointResponse {
+    pub status: String,
+    pub url: ApiUrl,
 }
 
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -233,6 +255,7 @@ pub struct DiagnosticRunParams {
     pub gateway: Option<String>,
     pub skip_dns: bool,
     pub skip_http: bool,
+    pub skip_hybrid_transport: bool,
 }
 
 #[derive(Debug, Clone)]

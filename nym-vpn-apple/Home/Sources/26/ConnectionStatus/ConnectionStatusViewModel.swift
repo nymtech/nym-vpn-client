@@ -1,12 +1,14 @@
 import Combine
 import Foundation
 import ConnectionManager
+import ConnectionTypes
 import ErrorReason
 import Theme
 import TunnelStatus
 import UIComponents
 #if os(iOS)
 import ErrorHandler
+import UIKit
 #endif
 
 @Observable
@@ -69,6 +71,7 @@ private extension ConnectionStatusViewModel {
         status = connectionManager.currentTunnelStatus
         lastConnectingStep = connectionManager.tunnelConnectingState
         connectedDate = connectionManager.connectedDate
+        mode = arcMode(from: connectionManager.connectionType)
         let error = connectionManager.lastError
         hasFailure = error != nil
         lastErrorMessage = error.map { Self.userFacingMessage(from: $0) }
@@ -100,10 +103,16 @@ private extension ConnectionStatusViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.connectedDate = $0 }
             .store(in: &cancellables)
+
+        connectionManager.$connectionType
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.mode = arcMode(from: $0) }
+            .store(in: &cancellables)
     }
 
     func apply(status newStatus: TunnelStatus) {
         let wasConnecting = status.isConnectingLike
+        let statusChanged = status != newStatus
 
         if case .connecting = newStatus {
             hasFailure = false
@@ -113,6 +122,10 @@ private extension ConnectionStatusViewModel {
         }
 
         status = newStatus
+
+        if statusChanged {
+            announceStatusChange(newStatus)
+        }
 
         switch newStatus {
         case .connected:
@@ -214,6 +227,35 @@ private extension ConnectionStatusViewModel {
         queueTask?.cancel()
         queueTask = nil
     }
+
+    func announceStatusChange(_ newStatus: TunnelStatus) {
+#if os(iOS)
+        guard UIAccessibility.isVoiceOverRunning,
+              let key = accessibilityAnnouncementKey(for: newStatus) else { return }
+        UIAccessibility.post(notification: .announcement, argument: key.localizedString)
+#endif
+    }
+
+    func accessibilityAnnouncementKey(for status: TunnelStatus) -> String? {
+        switch status {
+        case .connected:
+            return "accessibility.tunnelStatus.connected"
+        case .connecting, .reasserting, .restarting:
+            return "accessibility.tunnelStatus.connecting"
+        case .disconnecting:
+            return "accessibility.tunnelStatus.disconnecting"
+        case .disconnected:
+            return "accessibility.tunnelStatus.disconnected"
+        case .offline, .offlineReconnect:
+            return "accessibility.tunnelStatus.offline"
+        case .error:
+            return "accessibility.tunnelStatus.error"
+        case .unknown:
+            return nil
+        @unknown default:
+            return nil
+        }
+    }
 }
 
 extension ConnectionStatusViewModel {
@@ -292,6 +334,15 @@ private extension TunnelStatus {
         default:
             return false
         }
+    }
+}
+
+private func arcMode(from connectionType: ConnectionType) -> ArcProgressMode {
+    switch connectionType {
+    case .wireguard:
+        return .fast
+    case .mixnet5hop:
+        return .anonymous
     }
 }
 

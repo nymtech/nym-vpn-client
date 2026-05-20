@@ -7,7 +7,6 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import duration from 'dayjs/plugin/duration';
 import App from './App';
-import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import {
   GatewaySelectionAlgorithmConfig,
@@ -86,11 +85,6 @@ if (!import.meta.env.DEV) {
   };
 }
 
-if (import.meta.env.MODE === 'dev-browser') {
-  console.log('Running in dev-browser mode. Mocking tauri window and IPCs');
-  mockTauriIPC();
-}
-
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
 dayjs.extend(localizedFormat);
@@ -133,7 +127,7 @@ dayjs.extend(localizedFormat);
     vpnd: (await invoke<VpndStatus | undefined>('daemon_status')) || 'down',
     vpnMode: config?.vpnMode || defaultVpnMode,
     uiTheme: await getTheme(),
-    welcomeChecked: (await kvGet<boolean>('welcome-screen-seen')) || false,
+    technicalOptinSeen: (await kvGet<boolean>('technical-optin-seen')) || false,
     entryNode: config?.entryNode || DefaultNode,
     exitNode: config?.exitNode || DefaultNode,
     quic: config?.bridges !== undefined ? config.bridges : defaultQuic,

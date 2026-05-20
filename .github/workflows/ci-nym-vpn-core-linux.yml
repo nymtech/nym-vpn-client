@@ -6,6 +6,7 @@ on:
     paths:
       - "nym-vpn-core/crates/**"
       - "nym-vpn-core/Cargo.toml"
+      - "nym-vpn-core/Cargo.lock"
       - ".github/workflows/ci-nym-vpn-core-linux.yml"
   workflow_dispatch:
 
@@ -35,12 +36,15 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
       - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
 
       - name: Install Protoc

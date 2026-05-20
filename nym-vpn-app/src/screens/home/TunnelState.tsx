@@ -9,7 +9,6 @@ import {
   useI18nProgressMsg,
   useI18nTunnelError,
 } from '../../hooks';
-import { ScrambleIn } from '../../ui/ScrambleIn';
 import { setToString } from '../../util';
 import ConnectionTimer from './ConnectionTimer';
 
@@ -255,18 +254,13 @@ export function TunnelState() {
             {label !== null && (
               <motion.div
                 key={label}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.15 }}
-                className="flex items-center justify-center"
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 12 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
+                className="text-text-secondary flex items-center justify-center text-lg"
               >
-                <ScrambleIn
-                  text={label}
-                  className="text-text-secondary text-lg"
-                  scrambledClassName="text-lg text-text-secondary"
-                  scrambleSpeed={20}
-                />
+                {label}
               </motion.div>
             )}
           </AnimatePresence>

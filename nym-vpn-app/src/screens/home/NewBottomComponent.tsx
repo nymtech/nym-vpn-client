@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { ButtonNew, ButtonVariant, MsIcon, type countryCode } from '../../ui';
+import { Button, ButtonVariant, MsIcon, type countryCode } from '../../ui';
 import {
   dispatch,
   useAppStore,
@@ -148,6 +148,7 @@ function ModeToggle() {
                 animate={{ opacity: 1, rotateX: 0 }}
                 exit={{ opacity: 0, rotateX: -90 }}
                 transition={{ duration: 0.1 }}
+                style={{ fontVariationSettings: "'FILL' 1" }}
                 className={clsx([
                   'font-icon inline-block text-2xl select-none rtl:-scale-x-100',
                   'shrink-0 text-xl!',
@@ -334,22 +335,22 @@ export function NewBottomComponent() {
       case 'connected':
         return t('status.connected');
       case 'disconnected':
+      case 'unknown':
         return t('status.disconnected');
       case 'connecting':
+      case 'offline-auto-reconnect':
         return t('status.connecting');
       case 'disconnecting':
         return t('status.disconnecting');
       case 'offline':
         return t('status.offline');
+      case 'error':
+        return t('stop', { ns: 'glossary' });
     }
   };
 
   const getButtonVariant = (): ButtonVariant => {
-    if (!account) {
-      return 'primary';
-    }
-
-    if (needAPlan) {
+    if (!account || needAPlan) {
       return 'primary';
     }
 
@@ -367,6 +368,17 @@ export function NewBottomComponent() {
       case 'unknown':
         return 'outlined';
     }
+  };
+
+  const getButtonDisabled = () => {
+    if (daemonStatus === 'auth-denied') return false;
+
+    return (
+      daemonStatus === 'down' ||
+      state === 'offline' ||
+      state === 'disconnecting' ||
+      accountState === 'pending-subscription'
+    );
   };
 
   return (
@@ -402,20 +414,13 @@ export function NewBottomComponent() {
           <div className="flex flex-row items-center gap-2">
             <motion.div className="flex w-full min-w-0 flex-col overflow-hidden">
               <div>
-                <NodeRow
-                  type={
-                    gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm ===
-                    'explicit'
-                      ? 'entry'
-                      : 'exit'
-                  }
-                />
+                <NodeRow type="exit" />
               </div>
               <AnimatePresence initial={false}>
                 {gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm ===
                   'explicit' && (
                   <motion.div
-                    key="exit-node"
+                    key="entry-node"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -423,7 +428,7 @@ export function NewBottomComponent() {
                     className="overflow-hidden"
                   >
                     <div className="pt-4">
-                      <NodeRow type="exit" />
+                      <NodeRow type="entry" />
                     </div>
                   </motion.div>
                 )}
@@ -443,13 +448,13 @@ export function NewBottomComponent() {
 
         {/* Button ───────────────────────────────────────────────────────── */}
         <div className="z-10">
-          <ButtonNew
-            disabled={daemonStatus === 'down'}
+          <Button
+            disabled={getButtonDisabled()}
             variant={getButtonVariant()}
             onClick={handleConnect}
           >
             {getButtonText()}
-          </ButtonNew>
+          </Button>
         </div>
         {/* Button ───────────────────────────────────────────────────────── */}
       </InteractiveCard>

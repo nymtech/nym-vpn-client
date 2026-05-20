@@ -38,8 +38,12 @@ public struct AppFeatureView: View {
     @State private var drawerHeight: CGFloat = 0
     @Environment(\.colorScheme)
     private var colorScheme
+    @Environment(\.scenePhase)
+    private var scenePhase
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     private var appearance: AppSetting.Appearance = .automatic
+    @AppStorage(AppSettingKey.credenitalExists.rawValue)
+    private var isCredentialImported = false
 
     public init(viewModel: AppFeatureViewModel) {
         _viewModel = State(wrappedValue: viewModel)
@@ -72,6 +76,17 @@ public struct AppFeatureView: View {
         .nymSnackbar(manager: viewModel.snackbarManager)
         .preferredColorScheme(appearance.colorScheme)
         .onAppear { wireOneClickNavigation() }
+        .onChange(of: isCredentialImported) { _, newValue in
+            viewModel.handleCredentialChange(imported: newValue)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                viewModel.handleSceneBecameActive()
+            }
+        }
+        .onChange(of: viewModel.connectionStatus.status) { oldValue, newValue in
+            viewModel.handleTunnelStatusChange(from: oldValue, to: newValue)
+        }
     }
 }
 
@@ -160,13 +175,14 @@ private extension AppFeatureView {
     func drawerContent() -> some View {
         ZStack(alignment: .top) {
             switch viewModel.drawerTag {
+            case .technicalOptIns:
+                WelcomeOptInsView(
+                    onContinue: { viewModel.technicalOptInsContinueTapped() }
+                )
+                .trackHeight { drawerHeight = $0 }
+                .transition(.slideFade(from: .trailing))
             case .welcome:
-                AuthFlowView(credentialsManager: viewModel.credentialsManager)
-                    .trackHeight { newHeight in
-                        welcomeHeight = newHeight
-                        drawerHeight = newHeight
-                    }
-                    .transition(.slideFade(from: .trailing))
+                welcomeContent
             case .processing:
                 if let processingViewModel = viewModel.processingViewModel {
                     ProcessingAccountView(
@@ -188,6 +204,18 @@ private extension AppFeatureView {
             }
         }
         .animation(.easeInOut, value: viewModel.drawerTag)
+    }
+
+    var welcomeContent: some View {
+        AuthFlowView(
+            credentialsManager: viewModel.credentialsManager,
+            onWillRegister: { flow in viewModel.pendingProcessingFlow = flow }
+        )
+        .trackHeight { newHeight in
+            welcomeHeight = newHeight
+            drawerHeight = newHeight
+        }
+        .transition(.slideFade(from: .trailing))
     }
 
     var navigationBar: some View {
@@ -224,7 +252,7 @@ private extension AppFeatureView {
             }
         }
         .clipped()
-        .background((colorScheme == .light ? Color.white : Color.Nym.background).ignoresSafeArea(edges: .top))
+        .background((colorScheme == .light ? Color.Nym.backgroundCard : Color.Nym.background).ignoresSafeArea(edges: .top))
         .animation(.easeInOut(duration: 0.35), value: viewModel.shouldShowLogo)
     }
 }

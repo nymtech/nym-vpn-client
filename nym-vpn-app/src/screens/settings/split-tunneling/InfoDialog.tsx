@@ -77,7 +77,7 @@ function InfoDialog({ isOpen, onClose }: Props) {
       </div>
 
       {/* Button */}
-      <Button onClick={onClose}>
+      <Button onClick={onClose} variant="primary">
         {t('split-tunneling.info-dialog.got-it')}
       </Button>
     </Dialog>

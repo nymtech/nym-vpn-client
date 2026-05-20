@@ -1,4 +1,5 @@
 import SwiftUI
+import Theme
 
 public struct PagerView<Page: View>: View {
     private let pageCount: Int
@@ -84,6 +85,14 @@ public struct PagerView<Page: View>: View {
                     }
             )
             .accessibilityElement(children: .combine)
+            .accessibilityLabel("onboarding.pager.label".localizedString)
+            .accessibilityValue(
+                String(
+                    format: "onboarding.pager.position".localizedString,
+                    currentIndex + 1,
+                    pageCount
+                )
+            )
             .accessibilityAdjustableAction { direction in
                 switch direction {
                 case .increment:

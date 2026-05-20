@@ -38,7 +38,7 @@ function Lang() {
       <div
         className={clsx(
           'sticky -top-4 right-0 left-0 mb-4 w-full pt-4',
-          'from-faded-lavender via-faded-lavender/98 dark:from-ash dark:via-ash/98 bg-linear-to-b to-transparent dark:to-transparent',
+          'dark:bg-background bg-white',
         )}
       >
         <SettingsMenuCard
@@ -51,7 +51,7 @@ function Lang() {
       </div>
 
       <ul
-        className="flex w-full flex-col items-stretch gap-1"
+        className="text-text-primary flex w-full flex-col items-stretch gap-1"
         data-testid="language-list"
       >
         <li
@@ -65,6 +65,7 @@ function Lang() {
               'flex w-full flex-row items-center justify-between',
               'hover:bg-iron/10 dark:hover:bg-bombay/10',
               'cursor-default rounded-lg px-3 py-1 transition duration-75',
+              isSystemLang && 'border-primary border',
             ])}
             onClick={handleSystemLang}
             data-testid="language-button-system"
@@ -75,15 +76,6 @@ function Lang() {
               data-testid="language-name-system"
             >
               {t('language-system', { ns: 'settings' })}
-            </div>
-            <div
-              className={clsx([
-                'ml-2 flex items-center pr-4 text-xs font-medium',
-                'text-text-secondary',
-              ])}
-              data-testid="language-selected-indicator-system"
-            >
-              {isSystemLang && t('selected', { ns: 'glossary' })}
             </div>
           </Button>
         </li>
@@ -100,6 +92,9 @@ function Lang() {
                 'flex w-full flex-row items-center justify-between',
                 'hover:bg-iron/10 dark:hover:bg-bombay/10',
                 'cursor-default rounded-lg px-3 py-1 transition duration-75',
+                !isSystemLang &&
+                  i18n.language === lang.code &&
+                  'border-primary border',
               ])}
               onClick={() => handleLangSelect(lang.code)}
               data-testid={`language-button-${lang.code}`}
@@ -110,17 +105,6 @@ function Lang() {
                 data-testid={`language-name-${lang.code}`}
               >
                 {lang.name}
-              </div>
-              <div
-                className={clsx([
-                  'ml-2 flex items-center pr-4 text-xs font-medium',
-                  'text-text-secondary',
-                ])}
-                data-testid={`language-selected-indicator-${lang.code}`}
-              >
-                {!isSystemLang &&
-                  i18n.language === lang.code &&
-                  t('selected', { ns: 'glossary' })}
               </div>
             </Button>
           </li>

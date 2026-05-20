@@ -8,12 +8,9 @@ use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
     TunnelSettings,
-    tunnel::{
-        self,
-        gateway_provider::{
-            SelectionResultSender, gateway_cache::GatewayCache, geo_ip::GeoIpProvider,
-            selector::select_gateways,
-        },
+    tunnel::gateway_provider::{
+        SelectionResultSender, gateway_cache::GatewayCache, geo_ip::GeoIpProvider,
+        selector::select_gateways,
     },
 };
 
@@ -43,8 +40,7 @@ async fn continuous_select<C: GatewayCache>(
             device_location.clone(),
             wg_keys_db.clone(),
         )
-        .await
-        .map_err(|err| tunnel::Error::SelectGateways(Box::new(err)));
+        .await;
         selection_tx.send(selection);
     }
 }

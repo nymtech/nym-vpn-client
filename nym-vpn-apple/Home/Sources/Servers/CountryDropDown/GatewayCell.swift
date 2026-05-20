@@ -12,6 +12,7 @@ public struct GatewayCell: View {
     private let server: GatewayNode
     private let hopType: HopType
     private let isSearching: Bool
+    private let bottomCornerRadius: CGFloat
 
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var gatewayManager: GatewayManager
@@ -41,11 +42,13 @@ public struct GatewayCell: View {
         path: Binding<NavigationPath>,
         scrollToModel: Binding<GatewayScrollToModel>,
         isSearching: Bool = false,
+        bottomCornerRadius: CGFloat = 0,
         infoButtonTapCompletion: (@Sendable @MainActor (GatewayNode) -> Void)?
     ) {
         self.server = server
         self.hopType = type
         self.isSearching = isSearching
+        self.bottomCornerRadius = bottomCornerRadius
         _path = path
         _scrollToModel = scrollToModel
         self.infoButtonTapCompletion = infoButtonTapCompletion
@@ -83,10 +86,15 @@ public struct GatewayCell: View {
         .frame(minHeight: 64)
         .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)
         .overlay {
-            Rectangle()
-                .inset(by: 0.5)
-                .stroke(isSelected ? Color.Nym.primary : .clear, lineWidth: 1)
-                .allowsHitTesting(false)
+            UnevenRoundedRectangle(
+                topLeadingRadius: 0,
+                bottomLeadingRadius: bottomCornerRadius,
+                bottomTrailingRadius: bottomCornerRadius,
+                topTrailingRadius: 0
+            )
+            .inset(by: 0.5)
+            .stroke(isSelected ? Color.Nym.primary : .clear, lineWidth: 1)
+            .allowsHitTesting(false)
         }
         .animation(.default, value: isSelected)
         .onHover { newValue in

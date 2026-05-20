@@ -44,7 +44,7 @@ function useNotify() {
       clearTimeout(id.current);
       id.current = setTimeout(() => {
         setLastNotification(null);
-      }, AntiSpamTimeout) as unknown as number;
+      }, AntiSpamTimeout);
     }
   }, [lastNotification]);
 

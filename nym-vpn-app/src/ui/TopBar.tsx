@@ -58,6 +58,16 @@ export default function TopBar() {
 
   const navBarData = useMemo<NavBarData>(() => {
     return {
+      '/technical-optin': {
+        leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',
+        handleLeftNav: () =>
+          handleThemeChange(uiTheme === 'dark' ? 'light' : 'dark'),
+        rightIcon: 'settings',
+        handleRightNav: () => {
+          navigate(routes.settings);
+        },
+        noBackground: true,
+      },
       '/welcome': {
         title: <TopNymLogo uiTheme={uiTheme} />,
         leftIcon: uiTheme === 'dark' ? 'dark_mode' : 'light_mode',

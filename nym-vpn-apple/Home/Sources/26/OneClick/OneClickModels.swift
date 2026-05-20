@@ -46,7 +46,7 @@ public enum OneClickServerScore: Equatable {
         case .low:
                 .red
         case .offline:
-            Color.Nym.icon
+            Color.Nym.textTertiary
         }
     }
 }

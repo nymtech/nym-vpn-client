@@ -5650,17 +5650,20 @@ dependencies = [
  "pnet_packet 0.35.0",
  "rand 0.8.5",
  "rand 0.9.2",
+ "rustls 0.23.40",
  "semver",
  "serde_json",
  "thiserror 2.0.18",
  "time",
  "tokio",
+ "tokio-rustls 0.26.4",
  "tokio-tungstenite 0.29.0",
  "tokio-util",
  "tracing",
  "tracing-subscriber",
  "url",
  "vergen-gitcl",
+ "webpki-roots 1.0.6",
 ]
 
 [[package]]

@@ -1,11 +1,14 @@
 import clsx from 'clsx';
+import { relaunch } from '@tauri-apps/plugin-process';
 import { Channel, invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { type } from '@tauri-apps/plugin-os';
-import { Button, ButtonText, Dialog, MsIcon, Progress } from '../../ui';
+import { Button, Dialog, MsIcon, Progress } from '../../ui';
 import { DownloadUpdateEvent, UpdateMetadata } from '../../types';
+import { dispatch, useAppStore } from '../../store';
+import { useToast } from '../../hooks';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const os = type();
@@ -19,6 +22,10 @@ function UpdateDialog() {
   const [progress, setProgress] = useState<number>(0); // 0% - 100%
   const version = update?.version || 'unknown';
 
+  // for Linux
+  const linuxAppUpdated = useAppStore((s) => s.linuxAppUpdated);
+  const { add, close } = useToast();
+
   const { t } = useTranslation('home');
 
   const fetchUpdate = async () => {
@@ -31,6 +38,27 @@ function UpdateDialog() {
       }
     } catch {}
   };
+
+  useEffect(() => {
+    if (!linuxAppUpdated || os !== 'linux') return;
+
+    add({
+      id: 'update-installed-restart-required',
+      title: t('update-installed-restart-required', { ns: 'notifications' }),
+      type: 'info',
+      timeout: 10000, // 10 seconds
+      onClose: () => {
+        dispatch({ type: 'set-linux-app-updated', updated: false });
+      },
+      actionProps: {
+        children: t('restart', { ns: 'common' }),
+        onClick: () => {
+          relaunch();
+          close('update-installed-restart-required');
+        },
+      },
+    });
+  }, [add, close, linuxAppUpdated, t]);
 
   useEffect(() => {
     if (initialized || os !== 'windows' || !updaterEnabled) {
@@ -138,16 +166,16 @@ function UpdateDialog() {
                 {t('app-update-available.button-update')}
               </span>
             </Button>
-            <ButtonText
+            <Button
               onClick={() => {
                 setIsOpen(false);
               }}
               className="mt-2"
               disabled={isUpdating}
-              color="transparent"
+              variant="outlined"
             >
               {t('app-update-available.button-close')}
-            </ButtonText>
+            </Button>
           </div>
         </>
       ) : (

@@ -296,6 +296,11 @@ message GatewaySelectionAlgorithmConfig {
   GatewaySelectionAlgorithm gateway_selection_algorithm = 2;
 }
 
+message GatewayIndependence {
+  bool different_node_family = 1;
+  bool different_asn = 2;
+}
+
 message VpnServiceConfig {
   EntryNode entry_point = 1;
   ExitNode exit_point = 2;
@@ -316,6 +321,7 @@ message VpnServiceConfig {
   GeoExclusionSettings geo_exclusion = 29;
   GatewaySelectionAlgorithmConfig gateway_selection_algorithm = 30;
   FrontingModes fronting_mode = 31;
+  GatewayIndependence gateway_independence = 32;
 }
 
 message NetworkStatsConfig {
@@ -549,6 +555,7 @@ message TunnelState {
     DEVICE_LOGGED_OUT = 16;
     NEED_FULL_DISK_PERMISSIONS = 22;
     SPLIT_TUNNEL = 23;
+    NEEDS_RELAXED_INDEPENDENCE_CRITERIA = 24;
     INTERNAL = 17;
   }
 
@@ -1047,6 +1054,7 @@ message DiagnosticRunParams {
   bool skip_dns = 1;
   bool skip_http = 2;
   optional GatewayId gateway = 3;
+  bool skip_hybrid_transport = 4;
 }
 
 message DiagnosticRegisterParams {
@@ -1065,6 +1073,20 @@ message DiagnosticReport {
 // Very nested struct and more often than not just used for logging, so JSON will do
 message RegistrationReport {
   string json = 1;
+}
+
+message TentativeGateways {
+  message Selected {
+    GatewayResponse entry = 1;
+    GatewayResponse exit = 2;
+  };
+  message NeedsRelaxedIndependenceCriteria {};
+  message NoGatewaysAvailable {};
+  oneof tentative_gateways {
+    Selected selected = 1;
+    NeedsRelaxedIndependenceCriteria needs_relaxed_independence_criteria = 2;
+    NoGatewaysAvailable no_gateways_available = 3;
+  }
 }
 
 message AutologinResponse {
@@ -1282,6 +1304,9 @@ service NymVpnService {
   // Diagnostic stuff
   rpc RunDiagnostic(DiagnosticRunParams) returns (DiagnosticReport) {}
   rpc RegisterDiagnostic(DiagnosticRegisterParams) returns (RegistrationReport) {}
+
+  // Get the most probable gateway pair that is going to be used with the set tunnel settings
+  rpc GetTentativeGateways(google.protobuf.Empty) returns (TentativeGateways) {}
 
   // Split-tunnel (all platforms)
   rpc IsSplitTunnelSupported(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}

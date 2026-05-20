@@ -64,6 +64,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57
 
@@ -78,7 +81,7 @@ jobs:
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          toolchain: ${{ env.RUST_VERSION }}
           targets: ${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || 'x86_64-pc-windows-msvc' }}
           components: rustfmt, clippy
 

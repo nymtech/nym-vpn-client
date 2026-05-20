@@ -21,6 +21,7 @@ import {
   DaemonEvent,
   MixnetEvent,
   TunnelStateEvent,
+  UpdatePendingEvent,
   VpnConfigEvent,
 } from '../constants';
 import { CCache } from '../cache';
@@ -71,7 +72,7 @@ export function useTauriEvents(
         }
       },
     );
-  }, [add]);
+  }, [add, close]);
 
   const registerTunnelStateListener = useCallback(() => {
     return listen<TunnelStatePayload>(TunnelStateEvent, (event) => {
@@ -123,6 +124,13 @@ export function useTauriEvents(
     });
   }, []);
 
+  const registerUpdatePendingListener = useCallback(() => {
+    return listen(UpdatePendingEvent, () => {
+      console.info('[update] new version installed, restart required');
+      dispatch({ type: 'set-linux-app-updated', updated: true });
+    });
+  }, []);
+
   // register/unregister event listeners
   useEffect(() => {
     const unlistenDaemon = registerDaemonListener();
@@ -131,6 +139,7 @@ export function useTauriEvents(
     const unlistenMixnetEvent = registerMixnetEventListener();
     const unlistenThemeChanges = registerThemeChangedListener();
     const unlistenVpnConfig = registerVpnConfigListener();
+    const unlistenUpdatePending = registerUpdatePendingListener();
 
     return () => {
       unlistenDaemon.then((f) => f());
@@ -139,6 +148,7 @@ export function useTauriEvents(
       unlistenMixnetEvent.then((f) => f());
       unlistenThemeChanges.then((f) => f());
       unlistenVpnConfig.then((f) => f());
+      unlistenUpdatePending.then((f) => f());
     };
   }, [
     registerDaemonListener,
@@ -147,5 +157,6 @@ export function useTauriEvents(
     registerMixnetEventListener,
     registerThemeChangedListener,
     registerVpnConfigListener,
+    registerUpdatePendingListener,
   ]);
 }

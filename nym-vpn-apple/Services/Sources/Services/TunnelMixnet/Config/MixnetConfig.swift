@@ -87,6 +87,7 @@ extension MixnetConfig {
             mixnetTraffic: mixnetTuning.mixnetTrafficConfig(),
             networkStats: nil,
             gatewaySelectionAlgorithmConfig: gatewaySelectionAlgorithmConfig.sdkValue,
+            gatewayIndependence: GatewayIndependence(differentNodeFamily: false, differentAsn: false),
             userAgent: .appUserAgent,
             tunProvider: tunProvider
         )

@@ -93,6 +93,7 @@ impl TryFrom<VpnServiceConfig> for nym_vpn_lib_types::VpnServiceConfig {
             split_tunnel,
             geo_exclusion,
             gateway_selection_algorithm_config,
+            ..Default::default()
         })
     }
 }

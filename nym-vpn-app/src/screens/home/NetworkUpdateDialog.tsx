@@ -79,13 +79,12 @@ function NetworkUpdateDialog({
         {description()} {t('update-dialog.description-2')}
       </p>
       <Button
+        variant="primary"
         onClick={handleClose}
         className="mt-2"
         data-testid="update-dialog-button"
       >
-        <span className="dark:text-baltic-sea text-lg text-black">
-          {t('update-dialog.button-update')}
-        </span>
+        {t('update-dialog.button-update')}
       </Button>
     </Dialog>
   );

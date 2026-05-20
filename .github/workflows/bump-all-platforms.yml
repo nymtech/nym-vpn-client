@@ -1,0 +1,224 @@
+name: bump-all-platforms
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (YYYY.{n} or YYYY.{n}.{p}, e.g. 2026.1 or 2026.1.1)"
+        type: string
+        required: true
+      is_beta:
+        description: "Append -beta to core/tauri version (applies only to core+tauri; apple/android always plain)"
+        type: boolean
+        required: true
+        default: true
+      dry_run:
+        description: "Print git diff only, do not commit or open PR"
+        type: boolean
+        required: true
+        default: true
+
+env:
+  CARGO_TERM_COLOR: always
+  GIT_USER: NYM CI
+  GIT_EMAIL: ci@nymtech.net
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bump-all:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Validate and normalize version
+        id: version
+        run: |
+          RAW='${{ inputs.version }}'
+          if ! echo "$RAW" | grep -Pq '^[0-9]{4}\.[0-9]{1,2}(\.[0-9]{1,2})?$'; then
+            echo "::error:: Invalid version format (expected YYYY.{n} or YYYY.{n}.{p}, got: $RAW)"
+            exit 1
+          fi
+          DOTS=$(echo -n "$RAW" | tr -cd '.' | wc -c)
+          if [ "$DOTS" -eq 1 ]; then
+            SEMVER="${RAW}.0"
+          else
+            SEMVER="$RAW"
+          fi
+
+          MAJOR=$(echo "$SEMVER" | cut -d. -f1)
+          MINOR=$(echo "$SEMVER" | cut -d. -f2)
+          PATCH=$(echo "$SEMVER" | cut -d. -f3)
+
+          if [ '${{ inputs.is_beta }}' == 'true' ]; then
+            CORE_VERSION="${SEMVER}-beta"
+            DEB_VERSION="${SEMVER}~beta"
+          else
+            CORE_VERSION="$SEMVER"
+            DEB_VERSION="$SEMVER"
+          fi
+
+          ANDROID_VERSION_NAME="v${SEMVER}"
+          # Formula supports MINOR 0-99 and PATCH 0-99; e.g. 2026.12.0 → 20261200, 2026.99.99 → 20269999
+          ANDROID_VERSION_CODE=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
+
+          echo "::notice:: semver=$SEMVER core=$CORE_VERSION deb=$DEB_VERSION android_name=$ANDROID_VERSION_NAME android_code=$ANDROID_VERSION_CODE"
+
+          echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
+          echo "core_version=$CORE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "deb_version=$DEB_VERSION" >> "$GITHUB_OUTPUT"
+          echo "android_version_name=$ANDROID_VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "android_version_code=$ANDROID_VERSION_CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git
+        run: |
+          git config --global user.name "${{ env.GIT_USER }}"
+          git config --global user.email "${{ env.GIT_EMAIL }}"
+
+      - name: Checkout selected branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          ref: ${{ github.ref }}
+
+      - name: Install Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install Ruby + bundler (for fastlane)
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: nym-vpn-apple
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Install toml-cli
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: toml-cli
+
+      # --- core (Rust workspace) ---
+      - name: Update nym-vpn-core/Cargo.toml
+        working-directory: nym-vpn-core
+        run: |
+          # cargo set-version refuses downgrades; patch toml directly to allow any direction
+          toml set Cargo.toml workspace.package.version "${{ steps.version.outputs.core_version }}" > Cargo-patched.toml
+          mv Cargo-patched.toml Cargo.toml
+          # update Cargo.lock with new workspace version (no other changes)
+          cargo update --dry-run
+
+      # --- tauri app (Linux + Windows) ---
+      - name: Update nym-vpn-app/src-tauri/Cargo.toml
+        working-directory: nym-vpn-app/src-tauri
+        run: |
+          toml set Cargo.toml package.version "${{ steps.version.outputs.core_version }}" > Cargo-patched.toml
+          mv Cargo-patched.toml Cargo.toml
+          cargo update --dry-run
+
+      - name: Update nym-vpn-app/vpnd_compat.toml
+        working-directory: nym-vpn-app
+        run: |
+          toml set vpnd_compat.toml version ">=${{ steps.version.outputs.core_version }}" > new_vpnd_compat.toml
+          mv new_vpnd_compat.toml vpnd_compat.toml
+
+      - name: Install npm dependencies
+        working-directory: nym-vpn-app
+        run: npm install
+
+      - name: Update nym-vpn-app/src-tauri/tauri.conf.json
+        working-directory: nym-vpn-app/src-tauri
+        run: |
+          QUERY=$(cat <<- 'EOD'
+              .bundle.linux.deb.depends[] |= if (. | startswith("nym-vpnd"))
+              then
+                  "nym-vpnd (>= ${{ steps.version.outputs.deb_version }})"
+              else
+                  .
+              end
+          EOD
+          )
+          jq -r "$QUERY" tauri.conf.json > new_tauri.conf.json
+          npx prettier --config ../prettier.config.js --write new_tauri.conf.json
+          mv new_tauri.conf.json tauri.conf.json
+
+      # --- android (Constants.kt) ---
+      - name: Update nym-vpn-android Constants.kt
+        env:
+          CONSTANTS: nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt
+          NEW_NAME: ${{ steps.version.outputs.android_version_name }}
+          NEW_CODE: ${{ steps.version.outputs.android_version_code }}
+        run: |
+          sed -i -E "s/(const val VERSION_NAME = \")[^\"]+(\")/\1${NEW_NAME}\2/" "$CONSTANTS"
+          sed -i -E "s/(const val VERSION_CODE = )[0-9]+/\1${NEW_CODE}/" "$CONSTANTS"
+          grep -E "VERSION_NAME|VERSION_CODE" "$CONSTANTS"
+
+      # --- apple (fastlane) ---
+      - name: Update nym-vpn-apple via fastlane
+        working-directory: nym-vpn-apple
+        run: |
+          bundle exec fastlane mac bump_version "${{ steps.version.outputs.semver }}"
+
+      # --- CHANGELOG ---
+      - name: Update nym-vpn-core/CHANGELOG.md
+        working-directory: nym-vpn-core
+        env:
+          NEW_VERSION: ${{ steps.version.outputs.core_version }}
+        run: |
+          if ! grep -q '^## \[Unreleased\]' CHANGELOG.md; then
+            echo "::error:: CHANGELOG.md is missing '## [Unreleased]' section"
+            exit 1
+          fi
+          TODAY=$(date +%Y-%m-%d)
+          # Rename existing [Unreleased] header to [version] - date, then insert fresh empty [Unreleased] block above it
+          awk -v ver="$NEW_VERSION" -v today="$TODAY" '
+            BEGIN { done = 0 }
+            /^## \[Unreleased\]/ && !done {
+              print "## [Unreleased]"
+              print ""
+              print "## [" ver "] - " today
+              done = 1
+              next
+            }
+            { print }
+          ' CHANGELOG.md > CHANGELOG.md.new
+          mv CHANGELOG.md.new CHANGELOG.md
+          echo "::notice:: Inserted CHANGELOG entry for v$NEW_VERSION ($TODAY)"
+          head -12 CHANGELOG.md
+
+      # --- diff + PR ---
+      - name: Show diff
+        run: git diff --stat && git diff
+
+      - name: Create PR
+        if: ${{ inputs.dry_run == false }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: "ci/bump-version-v${{ steps.version.outputs.semver }}${{ inputs.is_beta && '-beta' || '' }}"
+          BASE_BRANCH: ${{ github.ref_name }}
+        run: |
+          git checkout -b "$BRANCH_NAME"
+          git commit -a -m "ci: bump version to v${{ steps.version.outputs.core_version }} across all platforms"
+          git push origin "$BRANCH_NAME"
+          gh pr create \
+              --base "$BASE_BRANCH" \
+              --title "Bump version to \`v${{ steps.version.outputs.core_version }}\` across all platforms" \
+              --body "Unified version bump.
+
+          - **core** (\`nym-vpn-core/Cargo.toml\`): \`${{ steps.version.outputs.core_version }}\`
+          - **tauri app** (\`nym-vpn-app/src-tauri/Cargo.toml\`, \`vpnd_compat.toml\`, \`tauri.conf.json\`): \`${{ steps.version.outputs.core_version }}\` (deb \`${{ steps.version.outputs.deb_version }}\`)
+          - **android** (\`Constants.kt\`): \`VERSION_NAME = \"${{ steps.version.outputs.android_version_name }}\"\`, \`VERSION_CODE = ${{ steps.version.outputs.android_version_code }}\`
+          - **apple** (\`NymVPN.xcodeproj\`): \`MARKETING_VERSION = ${{ steps.version.outputs.semver }}\` (CURRENT_PROJECT_VERSION auto-bumped +1)"
+
+      - name: Dry-run summary
+        if: ${{ inputs.dry_run == true }}
+        run: |
+          echo "::warning:: Dry run — no commit or PR created."

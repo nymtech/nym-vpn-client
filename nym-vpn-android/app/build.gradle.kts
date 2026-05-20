@@ -94,10 +94,9 @@ android {
 		buildConfigField("Boolean", "IS_PRERELEASE", "false")
 		proguardFile("fdroid-rules.pro")
 
-		if (isBundleBuild()) {
-			ndk {
-				abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
-			}
+		ndk {
+			abiFilters.clear()
+			abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
 		}
 	}
 

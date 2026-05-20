@@ -51,6 +51,8 @@ mod events;
 mod fs;
 #[cfg(windows)]
 mod icon_extractor;
+#[cfg(target_os = "linux")]
+mod linux_update_watcher;
 mod log;
 mod sentry;
 mod startup_error;
@@ -182,6 +184,9 @@ async fn main() -> Result<()> {
                 app.manage(PendingUpdate(Mutex::new(None)));
             }
 
+            #[cfg(target_os = "linux")]
+            linux_update_watcher::spawn(app.handle().clone());
+
             app.manage(cli.clone());
 
             info!("Creating k/v embedded db");
@@ -289,6 +294,7 @@ async fn main() -> Result<()> {
             cmd_tray::update_tray_state,
             cmd_tray::update_tray_entry,
             cmd_tray::update_tray_exit,
+            cmd_tray::update_tray_entry_visible,
             tunnel::get_vpn_config,
             tunnel::set_vpn_mode,
             tunnel::get_tunnel_state,
