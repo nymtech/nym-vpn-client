@@ -87,4 +87,5 @@ fun ErrorStateReason.toHumanReadableString(context: Context): String = when (thi
 	ErrorStateReason.NeedFullDiskPermissions, ErrorStateReason.SplitTunnel -> ""
 
 	is ErrorStateReason.Internal -> context.getString(R.string.error_reason_internal, this.v1)
+	ErrorStateReason.NeedsRelaxedIndependenceCriteria -> ""
 }
