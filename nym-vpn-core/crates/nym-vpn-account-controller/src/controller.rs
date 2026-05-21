@@ -89,10 +89,23 @@ where
         let credential_storage =
             VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?;
 
-        let vpn_api_account = account_storage.load_vpn_account().await?;
-        let device_keys = account_storage.load_device_keys().await?;
-
-        let wireguard_keys_storage = WireguardKeysDb::init(Some(config.data_dir.clone())).await?;
+        // Load remaining state that may fail; close credential_storage on any error so the
+        // underlying db pool is released before we return.
+        let (vpn_api_account, device_keys, wireguard_keys_storage) = match async {
+            let vpn_api_account = account_storage.load_vpn_account().await?;
+            let device_keys = account_storage.load_device_keys().await?;
+            let wireguard_keys_storage =
+                WireguardKeysDb::init(Some(config.data_dir.clone())).await?;
+            Ok::<_, Error>((vpn_api_account, device_keys, wireguard_keys_storage))
+        }
+        .await
+        {
+            Ok(v) => v,
+            Err(e) => {
+                credential_storage.close().await;
+                return Err(e);
+            }
+        };
 
         // Shared_state
         let shared_state = SharedAccountState::new(
