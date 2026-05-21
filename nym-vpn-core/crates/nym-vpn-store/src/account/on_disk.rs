@@ -265,6 +265,9 @@ mod tests {
         let expected = StorableAccount {
             mnemonic: mnemonic_fixture(),
             mode: StoredAccountMode::Api,
+            is_locally_generated: false,
+            is_registered_with_api: false,
+            is_backup_confirmed: false,
         };
 
         let account_storage = OnDiskAccountStorage::new(path.clone());

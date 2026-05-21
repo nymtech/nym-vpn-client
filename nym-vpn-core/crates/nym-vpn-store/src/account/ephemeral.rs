@@ -55,6 +55,9 @@ impl AccountInformationStorage for InMemoryAccountStorage {
             .map(|stored| StorableAccount {
                 mnemonic: stored.mnemonic.clone(),
                 mode: stored.mode,
+                is_locally_generated: false,
+                is_registered_with_api: false,
+                is_backup_confirmed: false,
             }))
     }
 

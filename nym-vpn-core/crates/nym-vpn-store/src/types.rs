@@ -17,11 +17,36 @@ pub struct RawWireguardKeys {
 pub struct StorableAccount {
     pub mnemonic: bip39::Mnemonic,
     pub mode: StoredAccountMode,
+    #[serde(default)]
+    pub is_locally_generated: bool,
+    #[serde(default)]
+    pub is_registered_with_api: bool,
+    #[serde(default)]
+    pub is_backup_confirmed: bool,
 }
 
 impl StorableAccount {
     pub fn new(mnemonic: bip39::Mnemonic, mode: StoredAccountMode) -> StorableAccount {
-        StorableAccount { mnemonic, mode }
+        StorableAccount {
+            mnemonic,
+            mode,
+            is_locally_generated: false,
+            is_registered_with_api: false,
+            is_backup_confirmed: false,
+        }
+    }
+
+    pub fn new_locally_generated(
+        mnemonic: bip39::Mnemonic,
+        mode: StoredAccountMode,
+    ) -> StorableAccount {
+        StorableAccount {
+            mnemonic,
+            mode,
+            is_locally_generated: true,
+            is_registered_with_api: false,
+            is_backup_confirmed: false,
+        }
     }
 }
 
@@ -30,6 +55,9 @@ impl std::fmt::Debug for StorableAccount {
         f.debug_struct("StorableAccount")
             .field("mnemonic", &"[redacted]")
             .field("mode", &self.mode)
+            .field("is_locally_generated", &self.is_locally_generated)
+            .field("is_registered_with_api", &self.is_registered_with_api)
+            .field("is_backup_confirmed", &self.is_backup_confirmed)
             .finish()
     }
 }
@@ -61,5 +89,30 @@ mod tests {
     #[test]
     fn mnemonic_zeroize_feature_is_activated() {
         _assert_zeroize_on_drop::<bip39::Mnemonic>();
+    }
+}
+
+#[cfg(test)]
+mod flag_tests {
+    use super::*;
+
+    fn mnemonic() -> bip39::Mnemonic {
+        "kiwi ketchup mix canvas curve ribbon congress method feel frozen act annual aunt comfort side joy mesh palace tennis cannon orange name tortoise piece".parse().unwrap()
+    }
+
+    #[test]
+    fn new_storable_account_defaults_flags_to_false() {
+        let a = StorableAccount::new(mnemonic(), StoredAccountMode::Api);
+        assert!(!a.is_locally_generated);
+        assert!(!a.is_registered_with_api);
+        assert!(!a.is_backup_confirmed);
+    }
+
+    #[test]
+    fn locally_generated_constructor_sets_flag() {
+        let a = StorableAccount::new_locally_generated(mnemonic(), StoredAccountMode::Api);
+        assert!(a.is_locally_generated);
+        assert!(!a.is_registered_with_api);
+        assert!(!a.is_backup_confirmed);
     }
 }

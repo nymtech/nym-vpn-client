@@ -57,6 +57,9 @@ impl From<StoredAccount> for StorableAccount {
         StorableAccount {
             mnemonic: account.mnemonic,
             mode: account.mode,
+            is_locally_generated: false,
+            is_registered_with_api: false,
+            is_backup_confirmed: false,
         }
     }
 }
@@ -75,6 +78,9 @@ pub(crate) mod test_fixtures {
         StorableAccount {
             mnemonic: mnemonic_fixture(),
             mode: StoredAccountMode::Api,
+            is_locally_generated: false,
+            is_registered_with_api: false,
+            is_backup_confirmed: false,
         }
     }
 }
