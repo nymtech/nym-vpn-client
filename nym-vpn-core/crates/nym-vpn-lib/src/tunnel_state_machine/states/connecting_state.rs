@@ -701,7 +701,7 @@ impl TunnelStateHandler for ConnectingState {
                             self.reconnect(shared_state).await
                         }
                     }
-                    TunnelMonitorEvent::ConnectionFailed => {
+                    TunnelMonitorEvent::ConnectionFailed | TunnelMonitorEvent::RegistrationFailed=> {
                         // We have failed to connect repeatedly; let's blacklist the previously selected
                         // entry gateways for a while and force gateway re-selection.
                         if let Some(ref selected_gateways) = self.selected_gateways {
