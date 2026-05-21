@@ -252,7 +252,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         NextAccountControllerState::SameState(self)
                     }
                     SyncEvent::Failure(err) => {
-                        let err_str = err.to_string();
+                        // debug print the error so that it contains display information about sub error
+                        let err_str = format!("{err:?}");
                         match err.into_error_reason() {
                             None => {
                                 tracing::debug!("Subscription is pending, waiting before retrying");
