@@ -252,6 +252,7 @@ import PathManager
     }
 
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
+        guard isValidCredentialImported else { return }
         await Task { [weak self] in
             guard let self else { return }
             if let inflight = accountSummaryUpdateTask {
@@ -274,6 +275,7 @@ import PathManager
     }
 
     private func performAccountSummaryUpdate(untilActive: Bool) async {
+        guard isValidCredentialImported else { return }
         let delays: [Duration] = [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
 
         for delay in delays {
@@ -291,6 +293,7 @@ import PathManager
     }
 
     private func fetchAccountSummary() async {
+        guard isValidCredentialImported else { return }
 #if os(iOS)
         let envOpt = configurationManager.networkEnv
         let summary: VpnAccountSummary?
