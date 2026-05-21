@@ -57,6 +57,7 @@ import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
 import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchPrivateDnsSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
+import androidx.compose.foundation.layout.navigationBarsPadding
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import kotlin.Boolean
 
@@ -234,7 +235,8 @@ fun SettingsScreen(values: SettingsValues, actions: SettingsActions) {
 				.verticalScroll(rememberScrollState())
 				.fillMaxSize()
 				.padding(top = 24.dp)
-				.padding(horizontal = 24.dp.scaledWidth()),
+				.padding(horizontal = 24.dp.scaledWidth())
+				.navigationBarsPadding(),
 		) {
 			LoginSection(
 				isMnemonicStored = values.isMnemonicStored,
