@@ -23,7 +23,11 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "uniffi-bindings",
+    derive(uniffi::Record),
+    uniffi::export(Display, Eq)
+)]
 #[cfg_attr(
     feature = "typescript-bindings",
     derive(TS),
@@ -106,12 +110,8 @@ impl fmt::Display for VpnServiceConfig {
 impl Default for VpnServiceConfig {
     fn default() -> Self {
         Self {
-            entry_point: EntryPoint::Country {
-                two_letter_iso_country_code: "CH".to_owned(),
-            },
-            exit_point: ExitPoint::Country {
-                two_letter_iso_country_code: "CH".to_owned(),
-            },
+            entry_point: EntryPoint::Random,
+            exit_point: ExitPoint::Random,
             allow_lan: false,
             disable_ipv6: false,
             enable_two_hop: true,
@@ -132,6 +132,12 @@ impl Default for VpnServiceConfig {
             gateway_independence: Default::default(),
         }
     }
+}
+
+/// Returns the default `VpnServiceConfig`.
+#[cfg(feature = "uniffi-bindings")]
+pub fn default_vpn_service_config() -> VpnServiceConfig {
+    VpnServiceConfig::default()
 }
 
 #[cfg(feature = "uniffi-bindings")]
