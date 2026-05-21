@@ -592,6 +592,85 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn create_account(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        let result = self
+            .send_and_wait(VpnServiceCommand::CreateAccount, ())
+            .await?;
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
+        };
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn register_anonymous_account(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
+        #[cfg(any(target_os = "android", target_os = "ios", target_os = "linux"))]
+        {
+            let result = self
+                .send_and_wait(VpnServiceCommand::RegisterAnonymousAccount, ())
+                .await?;
+            // RegisterAccountResponse is currently discarded by the proto since
+            // AccountCommandResponse only carries an optional error.
+            let response = proto::AccountCommandResponse {
+                error: result.err().map(proto::AccountCommandError::from),
+            };
+            Ok(tonic::Response::new(response))
+        }
+        #[cfg(not(any(target_os = "android", target_os = "ios", target_os = "linux")))]
+        {
+            Err(tonic::Status::unimplemented(
+                "register_anonymous_account is not supported on this platform",
+            ))
+        }
+    }
+
+    async fn confirm_mnemonic_backup(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<()>> {
+        #[cfg(target_os = "linux")]
+        {
+            self.send_and_wait(VpnServiceCommand::ConfirmMnemonicBackup, ())
+                .await?
+                .map_err(|err| tonic::Status::internal(err.to_string()))?;
+            Ok(tonic::Response::new(()))
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Err(tonic::Status::unimplemented(
+                "confirm_mnemonic_backup is Linux-only",
+            ))
+        }
+    }
+
+    async fn get_stored_mnemonic(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<proto::GetStoredMnemonicResponse>> {
+        #[cfg(target_os = "linux")]
+        {
+            // TODO(phase 5): wrap with per-call polkit check.
+            let mnemonic = self
+                .send_and_wait(VpnServiceCommand::GetStoredMnemonic, ())
+                .await?
+                .map_err(|err| tonic::Status::internal(err.to_string()))?;
+            Ok(tonic::Response::new(proto::GetStoredMnemonicResponse {
+                mnemonic,
+            }))
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Err(tonic::Status::unimplemented(
+                "get_stored_mnemonic is Linux-only",
+            ))
+        }
+    }
+
     async fn account_balance(
         &self,
         _request: tonic::Request<()>,
