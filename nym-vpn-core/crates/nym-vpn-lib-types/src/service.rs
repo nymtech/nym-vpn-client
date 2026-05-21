@@ -134,6 +134,12 @@ impl Default for VpnServiceConfig {
     }
 }
 
+/// Returns the default `VpnServiceConfig`.
+#[cfg(feature = "uniffi-bindings")]
+pub fn default_vpn_service_config() -> VpnServiceConfig {
+    VpnServiceConfig::default()
+}
+
 #[cfg(feature = "uniffi-bindings")]
 pub type BoxedVpnServiceConfig = Box<VpnServiceConfig>;
 #[cfg(feature = "uniffi-bindings")]

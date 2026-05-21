@@ -97,6 +97,8 @@ pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
     ListGatewaysOptions, StoreAccountRequest,
 };
+#[cfg(feature = "uniffi-bindings")]
+pub use service::default_vpn_service_config;
 pub use service::{
     BackgroundCoverTrafficRate, ContinuousTrafficSendingRate, FrontingMode, GeoExclusionSettings,
     MixingDelay, MixnetTrafficConfig, MixnetTrafficConfigValidationError, MixnetTrafficDefaults,
