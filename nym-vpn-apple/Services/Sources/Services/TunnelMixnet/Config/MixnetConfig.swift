@@ -46,7 +46,7 @@ public struct MixnetConfig: Codable, Equatable {
         isLanBypassEnabled: Bool,
         isAdBlockingEnabled: Bool,
         isTwoHopEnabled: Bool = false,
-        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig,
+        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(),
         name: String = "NymVPN Mixnet"
     ) {
         self.entryGateway = entryGateway
