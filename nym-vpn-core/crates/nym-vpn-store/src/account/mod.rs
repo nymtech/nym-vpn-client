@@ -22,6 +22,13 @@ pub trait AccountInformationStorage {
             .await
             .map(|maybe_account| maybe_account.is_some())
     }
+
+    /// Apply an in-place mutation to the stored account and persist the result.
+    /// The mutator must not change `mnemonic` or `mode` — only the flag fields
+    /// (`is_locally_generated`, `is_registered_with_api`, `is_backup_confirmed`).
+    async fn update_account<F>(&self, f: F) -> Result<(), Self::StorageError>
+    where
+        F: FnOnce(&mut StorableAccount) + Send;
 }
 
 #[derive(Serialize, Deserialize, Clone)]

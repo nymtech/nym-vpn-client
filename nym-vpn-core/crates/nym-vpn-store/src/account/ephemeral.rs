@@ -68,6 +68,28 @@ impl AccountInformationStorage for InMemoryAccountStorage {
             Err(InMemoryAccountStorageError::NoMnemonicStored)
         }
     }
+
+    async fn update_account<F>(&self, f: F) -> Result<(), InMemoryAccountStorageError>
+    where
+        F: FnOnce(&mut StorableAccount) + Send,
+    {
+        let mut handle = self.account.lock().await;
+        let stored = handle
+            .as_mut()
+            .ok_or(InMemoryAccountStorageError::NoMnemonicStored)?;
+        let mut storable = StorableAccount {
+            mnemonic: stored.mnemonic.clone(),
+            mode: stored.mode.clone(),
+            is_locally_generated: stored.is_locally_generated,
+            is_registered_with_api: stored.is_registered_with_api,
+            is_backup_confirmed: stored.is_backup_confirmed,
+        };
+        f(&mut storable);
+        stored.is_locally_generated = storable.is_locally_generated;
+        stored.is_registered_with_api = storable.is_registered_with_api;
+        stored.is_backup_confirmed = storable.is_backup_confirmed;
+        Ok(())
+    }
 }
 
 #[cfg(test)]

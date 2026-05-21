@@ -166,6 +166,26 @@ impl AccountInformationStorage for OnDiskAccountStorage {
             .await
             .map_err(OnDiskMnemonicStorageError::RemoveError)
     }
+
+    async fn update_account<F>(&self, f: F) -> Result<(), OnDiskMnemonicStorageError>
+    where
+        F: FnOnce(&mut StorableAccount) + Send,
+    {
+        let mut account = self
+            .load_account()
+            .await?
+            .ok_or_else(|| {
+                OnDiskMnemonicStorageError::FileOpenError(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "no account stored",
+                ))
+            })?;
+        f(&mut account);
+        // Read-modify-write: delete the existing file then re-store (store_account
+        // rejects pre-existing files).
+        self.remove_account().await?;
+        self.store_account(account).await
+    }
 }
 
 #[cfg(test)]
@@ -278,6 +298,28 @@ mod tests {
         assert_eq!(Some(expected), loaded);
 
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn update_account_sets_flags() {
+        let account = account_fixture();
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("test.txt");
+        let storage = OnDiskAccountStorage::new(path);
+        storage.store_account(account.clone()).await.unwrap();
+
+        storage
+            .update_account(|a: &mut StorableAccount| {
+                a.is_registered_with_api = true;
+                a.is_backup_confirmed = true;
+            })
+            .await
+            .unwrap();
+
+        let loaded = storage.load_account().await.unwrap().unwrap();
+        assert!(loaded.is_registered_with_api);
+        assert!(loaded.is_backup_confirmed);
+        assert!(!loaded.is_locally_generated);
     }
 
     #[tokio::test]
