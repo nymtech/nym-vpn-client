@@ -1,3 +1,7 @@
 [bindings.kotlin]
 cdylib_name = "nym_vpn_lib"
 package_name = "nym_vpn_lib"
+
+[bindings.swift]
+module_name = "NymVPNLib"
+ffi_module_name = "NymVPNLibFFI"

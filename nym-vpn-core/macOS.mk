@@ -59,7 +59,7 @@ $(LIBWG_BUILD_DIR)/libwg.a: $(LIBWG_SOURCES)
 
 rpc-swift-package:
 	cd $(RPC_CRATE_DIR); \
-	$(ALL_IDEMPOTENT_FLAGS) $(CARGO) swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RELEASE_FLAG)
+	$(ALL_IDEMPOTENT_FLAGS) $(CARGO) swift package --accept-all --platforms macos --name NymVPNRpc $(RELEASE_FLAG)
 
 $(BIN_TARGETS): create-upload-dir
 	@echo "🔨 Building $@ binaries (x86_64)…"
