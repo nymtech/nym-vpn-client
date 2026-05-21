@@ -55,6 +55,18 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
+    pub async fn register_anonymous_account(
+        &self,
+        account: StorableAccount,
+    ) -> Result<RegisterAccountResponse, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::RegisterAnonymousAccount(tx, account))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
     pub async fn link_account(
         &self,
         privy_account: StorableAccount,

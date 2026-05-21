@@ -118,6 +118,46 @@ pub(crate) async fn handle_register_account<C: ConnectivityMonitor>(
     Ok(RegisterAccountResponse { account_token })
 }
 
+pub(crate) async fn handle_register_anonymous_account<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    account: StorableAccount,
+) -> Result<RegisterAccountResponse, AccountCommandError> {
+    if account.is_registered_with_api {
+        tracing::debug!("Anonymous account already registered; no-op");
+        return Ok(RegisterAccountResponse {
+            account_token: String::new(),
+        });
+    }
+
+    let vpn_account = VpnAccount::try_from(account.clone())
+        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
+    let _ = shared_state
+        .vpn_api_client
+        .register_anonymous_account(&vpn_account)
+        .await?;
+
+    let (tx, rx) = ReturnSender::new();
+    if shared_state
+        .storage_op_sender
+        .send(AccountStorageOp::UpdateAccountFlags(
+            tx,
+            Box::new(|a: &mut StorableAccount| a.is_registered_with_api = true),
+        ))
+        .is_ok()
+    {
+        match rx.await {
+            Ok(Ok(())) => {}
+            Ok(Err(e)) => tracing::error!("Failed to persist is_registered_with_api: {e:?}"),
+            Err(e) => tracing::error!("Failed to receive storage update result: {e}"),
+        }
+    }
+
+    tracing::debug!("Anonymous account registered with API");
+    Ok(RegisterAccountResponse {
+        account_token: String::new(),
+    })
+}
+
 pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {

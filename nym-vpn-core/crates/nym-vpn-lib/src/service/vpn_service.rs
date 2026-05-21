@@ -49,7 +49,9 @@ use nym_vpn_lib_types::{
     VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
-use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
+use nym_vpn_lib_types::RegisterAccountRequest;
+#[cfg(any(target_os = "android", target_os = "ios", target_os = "linux"))]
+use nym_vpn_lib_types::RegisterAccountResponse;
 use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
 use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
@@ -137,6 +139,11 @@ pub enum VpnServiceCommand {
     RegisterAccount(
         oneshot::Sender<Result<RegisterAccountResponse, AccountCommandError>>,
         RegisterAccountRequest,
+    ),
+    #[cfg(any(target_os = "android", target_os = "ios", target_os = "linux"))]
+    RegisterAnonymousAccount(
+        oneshot::Sender<Result<RegisterAccountResponse, AccountCommandError>>,
+        (),
     ),
     CreateAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     StoreAccount(
@@ -1064,6 +1071,10 @@ impl NymVpnService {
             VpnServiceCommand::RegisterAccount(tx, request) => {
                 let _ = tx.send(self.handle_register_account(request).await);
             }
+            #[cfg(any(target_os = "android", target_os = "ios", target_os = "linux"))]
+            VpnServiceCommand::RegisterAnonymousAccount(tx, ()) => {
+                let _ = tx.send(self.handle_register_anonymous_account().await);
+            }
             VpnServiceCommand::CreateAccount(tx, ()) => {
                 let _ = tx.send(self.handle_create_account().await);
             }
@@ -1804,6 +1815,21 @@ impl NymVpnService {
                 stored_account,
                 nym_vpn_api_client::types::Platform::from(request),
             )
+            .await
+    }
+
+    #[cfg(any(target_os = "android", target_os = "ios", target_os = "linux"))]
+    async fn handle_register_anonymous_account(
+        &self,
+    ) -> Result<RegisterAccountResponse, AccountCommandError> {
+        let stored_account = self
+            .account_command_tx
+            .get_stored_account()
+            .await?
+            .ok_or(AccountCommandError::NoAccountStored)?;
+
+        self.account_command_tx
+            .register_anonymous_account(stored_account)
             .await
     }
 

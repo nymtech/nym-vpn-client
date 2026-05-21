@@ -70,6 +70,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                         let res = handler::handle_register_account(shared_state, account, platform).await;
                         return_sender.send(res);
                     }
+                    AccountCommand::RegisterAnonymousAccount(return_sender, account) => {
+                        let res = handler::handle_register_anonymous_account(shared_state, account).await;
+                        return_sender.send(res);
+                    }
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
