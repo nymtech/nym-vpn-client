@@ -56,6 +56,7 @@ constructor(
 	companion object {
 		private const val TAG = "app-vm"
 		private const val ACCOUNT_INIT_TIMEOUT_MS = 30_000L
+		private const val DISCONNECT_AWAIT_TIMEOUT_MS = 10_000L
 	}
 
 	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
@@ -165,6 +166,10 @@ constructor(
 			if (backendManager.getState() != Tunnel.State.Down) {
 				Timber.tag(TAG).i("LogoutStoppingTunnel")
 				backendManager.stopTunnel()
+				val disconnected = withTimeoutOrNull(DISCONNECT_AWAIT_TIMEOUT_MS) {
+					backendManager.stateFlow.first { it.tunnelState == Tunnel.State.Down }
+				}
+				if (disconnected == null) Timber.tag(TAG).w("LogoutDisconnectTimeout")
 			}
 			performLogout(onComplete)
 			Timber.tag(TAG).i("LogoutSuccess")

@@ -173,7 +173,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	}
 
 	LaunchedEffect(showAuth) {
-		if (showAuth && !appUiState.managerState.isMnemonicStored && !appUiState.settings.isWelcomeShown) {
+		if (showAuth && !appUiState.managerState.isMnemonicStored) {
 			initialAuthRoute = AuthRoute.Welcome
 			showAuthSheet = true
 		}
@@ -463,11 +463,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		isMnemonicStored = appUiState.managerState.isMnemonicStored,
 		initialRoute = initialAuthRoute,
 		onDismissRequest = {
-			if(!appUiState.settings.isWelcomeShown) {
+			if (!appUiState.settings.isWelcomeShown) {
 				appViewModel.setWelcomeShown()
 			}
 			showAuthSheet = false
-						   },
+		},
 		onAuthSuccess = {
 			showAuthSheet = false
 		},
