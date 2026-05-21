@@ -136,7 +136,7 @@ jobs:
 
       - name: Send Zulip notification
         if: steps.scan.outputs.should_notify == 'true'
-        uses: zulip/github-actions-zulip/send-message@v1
+        uses: zulip/github-actions-zulip/send-message@v2
         with:
           api-key: ${{ secrets.TEST_HARNESS_ZULIP_BOT_API_KEY }}
           email: ${{ secrets.TEST_HARNESS_ZULIP_BOT_EMAIL }}

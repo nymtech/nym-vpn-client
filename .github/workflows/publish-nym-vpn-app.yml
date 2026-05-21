@@ -353,7 +353,7 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Send Zulip message
-        uses: zulip/github-actions-zulip/send-message@v1
+        uses: zulip/github-actions-zulip/send-message@v2
         with:
           api-key: ${{ secrets.ZULIP_APE_BOT_API_KEY }}
           email: ${{ secrets.ZULIP_APE_BOT_EMAIL }}
