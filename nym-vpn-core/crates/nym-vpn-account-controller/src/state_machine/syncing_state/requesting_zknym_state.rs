@@ -33,14 +33,11 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, warn};
 
-// The maximum number of zk-nym requests that can fail in a row
 const ZK_NYM_STATE_CONTEXT: &str = "ZK_NYM_STATE";
 
 /// RequestingZkNyms State
 /// That state gets ZK-nyms if needed.
 /// This is a substate of the Syncing State, it will disappear into the future Bandwidth Controller
-///
-/// A retry mechanism is in place, if the error is in the API requests. Other errors lead a single retry, then to the ErrorState since they are not recoverable.  
 ///
 /// Possible next state :
 /// - ReadyState : We have enough tickets already, or we managed to get enough tickets
