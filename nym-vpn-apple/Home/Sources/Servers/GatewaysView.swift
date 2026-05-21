@@ -46,6 +46,7 @@ public struct GatewaysView: View {
 
             ScrollViewReader { proxy in
                 ScrollView {
+                    randomRow()
                     countriesGatewaysList()
                     noSearchResultsView()
                     foundCountriesList()
@@ -149,6 +150,18 @@ private extension GatewaysView {
                 Spacer()
             }
             .padding(.horizontal, 16)
+        }
+    }
+
+    @ViewBuilder
+    func randomRow() -> some View {
+        if viewModel.searchText.count < viewModel.minimumSearchSymbols {
+            GatewayRandomCell(
+                type: viewModel.type,
+                path: $viewModel.path,
+                entryGateway: entryGatewayBinding,
+                exitRouter: exitRouterBinding
+            )
         }
     }
 

@@ -147,7 +147,7 @@ extension AddCredentialsViewModel {
         bottomPadding = error != .noError ? 4 : 8
 
         errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)
-        ?? (CredentialsManagerError.generalError("").localizedTitle ?? "Error".localizedString)
+        ?? (CredentialsManagerError.generalError("").localizedTitle ?? "error".localizedString)
     }
 
     @MainActor func credentialsDidAdd() {

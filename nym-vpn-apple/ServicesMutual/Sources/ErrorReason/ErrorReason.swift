@@ -232,7 +232,7 @@ private extension ErrorReason {
         case .invalidExitGatewayCountry:
             "errorReason.invalidExitGatewayCountry".localizedString
         case .invalidEntryGatewayIdentity:
-            "erroReason.invalidEntryGatewayIdentity".localizedString
+            "errorReason.invalidEntryGatewayIdentity".localizedString
         case .invalidExitGatewayIdentity:
             "errorReason.invalidExitGatewayIdentity".localizedString
         case .unknown:
@@ -250,7 +250,7 @@ private extension ErrorReason {
         case .inactiveSubscription:
             "errorReason.subscriptionExpired".localizedString
         case .registrationInProgress:
-            "errorReason.registrattionInProgress".localizedString
+            "errorReason.registrationInProgress".localizedString
         case let .internalError(message):
             message
         case .deviceTimeOutOfSync:
@@ -266,7 +266,7 @@ private extension ErrorReason {
         case .tunDevice:
             "errorReason.tunDevice".localizedString
         case .tunnelProvider:
-            "errorReason.tunProvider".localizedString
+            "errorReason.tunnelProvider".localizedString
         case .inactiveAccount:
             "errorReason.inactiveAccount".localizedString
         case .deviceLoggedOut:
