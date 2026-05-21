@@ -48,6 +48,9 @@ interface SettingsRepository {
 	suspend fun getLogsEnabled(): Boolean
 	suspend fun setLogsEnabled(enabled: Boolean)
 
+	suspend fun isWelcomeShown(): Boolean
+	suspend fun setWelcomeShown(shown: Boolean)
+
 	val settingsFlow: Flow<Settings>
 
 	suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig
