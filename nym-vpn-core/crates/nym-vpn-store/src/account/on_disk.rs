@@ -44,6 +44,70 @@ impl OnDiskAccountStorage {
             path: path.as_ref().to_path_buf(),
         }
     }
+
+    async fn write_to(
+        &self,
+        path: &Path,
+        account: &StoredAccount,
+    ) -> Result<(), OnDiskMnemonicStorageError> {
+        // Create parent directories
+        tracing::trace!("Creating parent directories for: {}", path.display());
+        if let Some(parent) = path.parent() {
+            tracing::trace!("Creating parent directory: {}", parent.display());
+            tokio::fs::create_dir_all(parent).await.map_err(|err| {
+                OnDiskMnemonicStorageError::FileCreateError {
+                    path: parent.to_path_buf(),
+                    source: err,
+                }
+            })?;
+
+            #[cfg(unix)]
+            {
+                // Set directory permissions to 700 (rwx------)
+                tracing::trace!("Set directory permissions to 700 (rwx------)");
+                let permissions = Permissions::from_mode(0o700);
+                tokio::fs::set_permissions(parent, permissions)
+                    .await
+                    .map_err(|source| OnDiskMnemonicStorageError::FileCreateError {
+                        path: parent.to_path_buf(),
+                        source,
+                    })?;
+            }
+
+            // TODO: same for windows
+        }
+
+        // Create the file
+        tracing::debug!("Creating file: {}", path.display());
+        let file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(path)
+            .map_err(|err| OnDiskMnemonicStorageError::FileCreateError {
+                path: path.to_path_buf(),
+                source: err,
+            })?;
+
+        serde_json::to_writer(file, account)
+            .map_err(OnDiskMnemonicStorageError::WriteError)?;
+
+        #[cfg(unix)]
+        {
+            // Set file permissions to 600 (rw------)
+            let permissions = Permissions::from_mode(0o600);
+            tokio::fs::set_permissions(path, permissions)
+                .await
+                .map_err(|source| OnDiskMnemonicStorageError::FileCreateError {
+                    path: path.to_path_buf(),
+                    source,
+                })?;
+        }
+
+        // TODO: same for windows
+
+        Ok(())
+    }
 }
 
 #[async_trait::async_trait]
@@ -75,62 +139,7 @@ impl AccountInformationStorage for OnDiskAccountStorage {
             });
         }
 
-        // Create parent directories
-        tracing::trace!("Creating parent directories for: {}", self.path.display());
-        if let Some(parent) = self.path.parent() {
-            tracing::trace!("Creating parent directory: {}", parent.display());
-            tokio::fs::create_dir_all(parent).await.map_err(|err| {
-                OnDiskMnemonicStorageError::FileCreateError {
-                    path: parent.to_path_buf(),
-                    source: err,
-                }
-            })?;
-
-            #[cfg(unix)]
-            {
-                // Set directory permissions to 700 (rwx------)
-                tracing::trace!("Set directory permissions to 700 (rwx------)");
-                let permissions = Permissions::from_mode(0o700);
-                tokio::fs::set_permissions(parent, permissions)
-                    .await
-                    .map_err(|source| OnDiskMnemonicStorageError::FileCreateError {
-                        path: parent.to_path_buf(),
-                        source,
-                    })?;
-            }
-
-            // TODO: same for windows
-        }
-
-        // Another layer of defense, only create the file if it doesn't already exist
-        tracing::debug!("Only creating the file if it doesn't already exist");
-        let file = OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .open(&self.path)
-            .map_err(|err| OnDiskMnemonicStorageError::FileCreateError {
-                path: self.path.clone(),
-                source: err,
-            })?;
-
-        serde_json::to_writer(file, &stored_account)
-            .map_err(OnDiskMnemonicStorageError::WriteError)?;
-
-        #[cfg(unix)]
-        {
-            // Set directory permissions to 600 (rw------)
-            let permissions = Permissions::from_mode(0o600);
-            tokio::fs::set_permissions(self.path.clone(), permissions)
-                .await
-                .map_err(|source| OnDiskMnemonicStorageError::FileCreateError {
-                    path: self.path.clone(),
-                    source,
-                })?;
-        }
-
-        // TODO: same for windows
-
-        Ok(())
+        self.write_to(&self.path, &stored_account).await
     }
 
     async fn load_account(&self) -> Result<Option<StorableAccount>, OnDiskMnemonicStorageError> {
@@ -181,10 +190,41 @@ impl AccountInformationStorage for OnDiskAccountStorage {
                 ))
             })?;
         f(&mut account);
-        // Read-modify-write: delete the existing file then re-store (store_account
-        // rejects pre-existing files).
-        self.remove_account().await?;
-        self.store_account(account).await
+
+        // Atomic rename: write to temp file, then rename to original.
+        // This avoids a crash window where the file doesn't exist.
+        let stored_account = StoredAccount {
+            name: "default".to_string(),
+            mnemonic: account.mnemonic,
+            mode: account.mode,
+            nonce: 0,
+            is_locally_generated: account.is_locally_generated,
+            is_registered_with_api: account.is_registered_with_api,
+            is_backup_confirmed: account.is_backup_confirmed,
+        };
+
+        let tmp_path = self.path.with_extension("tmp");
+
+        // Write to temp file
+        if let Err(e) = self.write_to(&tmp_path, &stored_account).await {
+            // Best-effort cleanup
+            let _ = tokio::fs::remove_file(&tmp_path).await;
+            return Err(e);
+        }
+
+        // Atomically rename temp file to original
+        tokio::fs::rename(&tmp_path, &self.path)
+            .await
+            .map_err(|source| {
+                // Best-effort cleanup on rename failure
+                let _ = tokio::spawn(async move {
+                    let _ = tokio::fs::remove_file(&tmp_path).await;
+                });
+                OnDiskMnemonicStorageError::FileCreateError {
+                    path: self.path.clone(),
+                    source,
+                }
+            })
     }
 }
 
@@ -342,5 +382,38 @@ mod tests {
         assert!(!loaded.is_registered_with_api);
         assert!(loaded.is_backup_confirmed);
         assert_eq!(loaded.mnemonic, mnemonic);
+    }
+
+    #[tokio::test]
+    async fn update_account_no_temp_file_leftover() {
+        let account = account_fixture();
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("test.txt");
+        let storage = OnDiskAccountStorage::new(path.clone());
+        storage.store_account(account.clone()).await.unwrap();
+
+        // Update the account with flag-flipping mutation
+        storage
+            .update_account(|a: &mut StorableAccount| {
+                a.is_registered_with_api = true;
+                a.is_backup_confirmed = true;
+            })
+            .await
+            .unwrap();
+
+        // Assert the original file still exists
+        assert!(path.exists(), "Original file should exist after update");
+
+        // Assert the updated flags
+        let loaded = storage.load_account().await.unwrap().unwrap();
+        assert!(loaded.is_registered_with_api);
+        assert!(loaded.is_backup_confirmed);
+
+        // Assert no temp file is left behind
+        let tmp_path = path.with_extension("tmp");
+        assert!(
+            !tmp_path.exists(),
+            "Temporary file should not exist after successful update"
+        );
     }
 }
