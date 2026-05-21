@@ -184,6 +184,10 @@ constructor(
 		}
 	}
 
+	fun setWelcomeShown() = viewModelScope.launch {
+		settingsRepository.setWelcomeShown(true)
+	}
+
 	fun onLocaleChange(localeTag: String) = viewModelScope.launch {
 		Timber.tag(TAG).i("LocaleChangeRequested")
 		settingsRepository.setLocale(localeTag)

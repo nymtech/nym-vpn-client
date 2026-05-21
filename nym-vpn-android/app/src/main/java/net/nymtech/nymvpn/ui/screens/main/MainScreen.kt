@@ -165,12 +165,15 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	LaunchedEffect(appUiState.managerState.isInitialized) {
 		if (appUiState.managerState.isInitialized && !authSheetChecked) {
 			authSheetChecked = true
-			showAuthSheet = !appUiState.managerState.isMnemonicStored
+			if (!appUiState.managerState.isMnemonicStored && !appUiState.settings.isWelcomeShown) {
+				initialAuthRoute = AuthRoute.Welcome
+				showAuthSheet = true
+			}
 		}
 	}
 
 	LaunchedEffect(showAuth) {
-		if (showAuth) {
+		if (showAuth && !appUiState.managerState.isMnemonicStored && !appUiState.settings.isWelcomeShown) {
 			initialAuthRoute = AuthRoute.Welcome
 			showAuthSheet = true
 		}
@@ -261,8 +264,10 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	}
 
 	fun onGetStartedPressed() {
-		initialAuthRoute = AuthRoute.Welcome
-		showAuthSheet = true
+		if (!appUiState.managerState.isMnemonicStored) {
+			initialAuthRoute = AuthRoute.Welcome
+			showAuthSheet = true
+		}
 	}
 
 	val entryAlertTitle = stringResource(R.string.disabled_while_connecting)
@@ -455,8 +460,14 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 
 	AuthBottomSheet(
 		isVisible = showAuthSheet,
+		isMnemonicStored = appUiState.managerState.isMnemonicStored,
 		initialRoute = initialAuthRoute,
-		onDismissRequest = { showAuthSheet = false },
+		onDismissRequest = {
+			if(!appUiState.settings.isWelcomeShown) {
+				appViewModel.setWelcomeShown()
+			}
+			showAuthSheet = false
+						   },
 		onAuthSuccess = {
 			showAuthSheet = false
 		},

@@ -28,6 +28,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val isStreamingServerBannerDisplayed = booleanPreferencesKey("STREAMING_SERVER_DISPLAYED")
 	private val isPerAppSecurityBannerDisplayed = booleanPreferencesKey("DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED")
 	private val logsEnabled = booleanPreferencesKey("LOGS_ENABLED")
+	private val welcomeShown = booleanPreferencesKey("WELCOME_SHOWN")
 
 	// Keys for Mixnet Configuration
 	private val mixnetPoissonRate = intPreferencesKey("MIXNET_POISSON_RATE")
@@ -126,6 +127,12 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(logsEnabled, enabled)
 	}
 
+	override suspend fun isWelcomeShown(): Boolean = dataStoreManager.getFromStore(welcomeShown) ?: Settings.DEFAULT_WELCOME_SHOWN
+
+	override suspend fun setWelcomeShown(shown: Boolean) {
+		dataStoreManager.saveToDataStore(welcomeShown, shown)
+	}
+
 	override suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig {
 		val poisson = dataStoreManager.getFromStore(mixnetPoissonRate)
 		val avgDelay = dataStoreManager.getFromStore(mixnetAvgPacketDelay)
@@ -183,6 +190,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						isPerAppSecurityBannerDisplayed = pref[isPerAppSecurityBannerDisplayed] ?: Settings.DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED,
 						logsEnabled = pref[logsEnabled] ?: Settings.DEFAULT_LOGS_ENABLED,
 						mixnetTrafficConfig = mixnetConfig,
+						isWelcomeShown = pref[welcomeShown] ?: Settings.DEFAULT_WELCOME_SHOWN,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)
