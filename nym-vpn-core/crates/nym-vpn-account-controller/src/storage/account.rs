@@ -134,6 +134,19 @@ where
             AccountStorageOp::ResetKeys(result_tx, seed) => {
                 result_tx.send(self.reset_and_load_keys(seed).await)
             }
+            AccountStorageOp::UpdateAccountFlags(result_tx, mutator) => {
+                // Bridge: the trait method `update_account` takes a generic
+                // `FnOnce(&mut StorableAccount) + Send`. We wrap the boxed
+                // closure so the generic bound is satisfied.
+                result_tx.send(
+                    self.storage
+                        .update_account(move |a: &mut StorableAccount| mutator(a))
+                        .await
+                        .map_err(|err| Error::AccountStore {
+                            source: Box::new(err),
+                        }),
+                )
+            }
         }
     }
 }
@@ -143,4 +156,8 @@ pub(crate) enum AccountStorageOp {
     StoreAccount(ReturnSender<Device, Error>, StorableAccount),
     ForgetAccount(ReturnSender<(), Error>),
     ResetKeys(ReturnSender<Device, Error>, Option<[u8; 32]>),
+    UpdateAccountFlags(
+        ReturnSender<(), Error>,
+        Box<dyn FnOnce(&mut StorableAccount) + Send>,
+    ),
 }
