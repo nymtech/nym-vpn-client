@@ -217,9 +217,9 @@ impl AccountInformationStorage for OnDiskAccountStorage {
             .await
             .map_err(|source| {
                 // Best-effort cleanup on rename failure
-                let _ = tokio::spawn(async move {
+                drop(tokio::spawn(async move {
                     let _ = tokio::fs::remove_file(&tmp_path).await;
-                });
+                }));
                 OnDiskMnemonicStorageError::FileCreateError {
                     path: self.path.clone(),
                     source,

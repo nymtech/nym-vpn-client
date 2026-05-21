@@ -111,6 +111,12 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                             return_sender.send(Ok(()))
                         }
                     },
+                    AccountCommand::GetStoredMnemonic(tx) => {
+                        let _ = tx.send(handler::handle_get_stored_mnemonic(shared_state).await);
+                    }
+                    AccountCommand::ConfirmMnemonicBackup(tx) => {
+                        let _ = tx.send(handler::handle_confirm_mnemonic_backup(shared_state).await);
+                    }
 
                 }
                 NextAccountControllerState::SameState(self)

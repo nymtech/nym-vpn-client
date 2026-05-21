@@ -85,7 +85,7 @@ pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
         .storage_op_sender
         .send(AccountStorageOp::StoreAccount(
             tx,
-            StorableAccount::new(mnemonic, vpn_account.mode().into()),
+            StorableAccount::new_locally_generated(mnemonic, vpn_account.mode().into()),
         ))
         .map_err(AccountCommandError::internal)?;
     let device = rx
@@ -285,4 +285,36 @@ pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     shared_state.device = Some(device);
 
     Ok(())
+}
+
+pub(crate) async fn handle_get_stored_mnemonic<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<String, AccountCommandError> {
+    let (tx, rx) = ReturnSender::new();
+    shared_state
+        .storage_op_sender
+        .send(AccountStorageOp::GetStoredAccount(tx))
+        .map_err(AccountCommandError::internal)?;
+    let account = rx
+        .await
+        .map_err(AccountCommandError::internal)?
+        .map_err(AccountCommandError::storage)?
+        .ok_or(AccountCommandError::NoAccountStored)?;
+    Ok(account.mnemonic.to_string())
+}
+
+pub(crate) async fn handle_confirm_mnemonic_backup<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+) -> Result<(), AccountCommandError> {
+    let (tx, rx) = ReturnSender::new();
+    shared_state
+        .storage_op_sender
+        .send(AccountStorageOp::UpdateAccountFlags(
+            tx,
+            Box::new(|a: &mut StorableAccount| a.is_backup_confirmed = true),
+        ))
+        .map_err(AccountCommandError::internal)?;
+    rx.await
+        .map_err(AccountCommandError::internal)?
+        .map_err(AccountCommandError::storage)
 }

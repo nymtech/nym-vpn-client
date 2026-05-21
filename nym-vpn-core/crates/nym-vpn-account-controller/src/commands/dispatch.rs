@@ -63,6 +63,13 @@ pub enum AccountCommand {
 
     /// Read-only commands
     Common(CommonCommand),
+
+    /// Read the stored mnemonic phrase out of the secure store. Caller is responsible
+    /// for any authentication gating (e.g. polkit at the gRPC boundary).
+    GetStoredMnemonic(ReturnSender<String, AccountCommandError>),
+
+    /// Mark the recovery phrase as backed up by the user. Idempotent.
+    ConfirmMnemonicBackup(ReturnSender<(), AccountCommandError>),
 }
 
 impl AccountCommand {
@@ -109,6 +116,8 @@ impl AccountCommand {
                     return_sender.send(Err(error))
                 }
             },
+            AccountCommand::GetStoredMnemonic(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::ConfirmMnemonicBackup(return_sender) => return_sender.send(Err(error)),
         }
     }
 }

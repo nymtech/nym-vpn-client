@@ -67,6 +67,9 @@ pub fn mock_account(mode: StoredAccountMode) -> StorableAccount {
     StorableAccount {
         mnemonic: Mnemonic::parse::<&str>("dash hungry rate famous lesson march suit refuse excite soul faith bid buddy tortoise melody advice dirt coffee fluid sure air decrease cargo work").unwrap(),
         mode,
+        is_locally_generated: false,
+        is_registered_with_api: false,
+        is_backup_confirmed: false,
     }
 }
 
@@ -158,6 +161,13 @@ impl AccountInformationStorage for MockEphemeralStorage {
 
     async fn remove_account(&self) -> Result<(), Self::StorageError> {
         self.mnemonic_storage.remove_account().await
+    }
+
+    async fn update_account<F>(&self, f: F) -> Result<(), Self::StorageError>
+    where
+        F: FnOnce(&mut StorableAccount) + Send,
+    {
+        self.mnemonic_storage.update_account(f).await
     }
 }
 

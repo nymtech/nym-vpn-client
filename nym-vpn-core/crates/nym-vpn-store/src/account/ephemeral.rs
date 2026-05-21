@@ -79,7 +79,7 @@ impl AccountInformationStorage for InMemoryAccountStorage {
             .ok_or(InMemoryAccountStorageError::NoMnemonicStored)?;
         let mut storable = StorableAccount {
             mnemonic: stored.mnemonic.clone(),
-            mode: stored.mode.clone(),
+            mode: stored.mode,
             is_locally_generated: stored.is_locally_generated,
             is_registered_with_api: stored.is_registered_with_api,
             is_backup_confirmed: stored.is_backup_confirmed,
