@@ -20,8 +20,16 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthBottomSheet(isVisible: Boolean, initialRoute: AuthRoute = AuthRoute.Welcome, onDismissRequest: () -> Unit, onAuthSuccess: () -> Unit, onSaveToPasswordManager: (passphrase: String) -> Unit) {
-	if (!isVisible) return
+fun AuthBottomSheet(
+	isVisible: Boolean,
+	isMnemonicStored: Boolean,
+	initialRoute: AuthRoute = AuthRoute.Welcome,
+	onDismissRequest: () -> Unit,
+	onAuthSuccess: () -> Unit,
+	onSaveToPasswordManager: (passphrase: String) -> Unit,
+	onWelcomeShown: () -> Unit = {},
+) {
+	if (!isVisible || isMnemonicStored) return
 
 	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -56,6 +64,7 @@ fun AuthBottomSheet(isVisible: Boolean, initialRoute: AuthRoute = AuthRoute.Welc
 				onDismissRequest()
 			},
 			onSaveToPasswordManager = onSaveToPasswordManager,
+			onWelcomeShown = onWelcomeShown,
 		)
 	}
 }
