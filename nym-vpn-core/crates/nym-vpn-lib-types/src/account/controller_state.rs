@@ -49,6 +49,28 @@ pub enum AccountControllerState {
     Error(AccountControllerErrorStateReason),
 }
 
+/// Full account controller state including per-account boolean flags, mirroring the
+/// `AccountControllerState` proto message returned by `GetAccountState`.
+#[derive(Debug, Clone, Eq, PartialEq)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct AccountControllerStateDetails {
+    pub state: AccountControllerState,
+    /// Account was generated locally (not imported from an existing mnemonic).
+    pub is_locally_generated: bool,
+    /// Account has been registered with the nym-vpn-api backend.
+    pub is_registered_with_api: bool,
+    /// User has confirmed they have backed up the recovery phrase.
+    pub is_backup_confirmed: bool,
+}
+
 impl fmt::Display for AccountControllerState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

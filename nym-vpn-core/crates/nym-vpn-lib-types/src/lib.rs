@@ -61,7 +61,7 @@ pub use account::{
     VpnAccountStatus, VpnAccountSummary, VpnApiError, VpnApiErrorResponse,
     controller_error::{AccountControllerError, AccountControllerErrorStateReason},
     controller_event::AccountControllerEvent,
-    controller_state::AccountControllerState,
+    controller_state::{AccountControllerState, AccountControllerStateDetails},
     deeplink::{AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams},
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
     ticketbooks::AvailableTickets,

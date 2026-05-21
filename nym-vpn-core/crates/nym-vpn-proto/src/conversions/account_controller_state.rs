@@ -1,7 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerState};
+use nym_vpn_lib_types::{
+    AccountControllerErrorStateReason, AccountControllerState, AccountControllerStateDetails,
+};
 
 use crate::{conversions::ConversionError, proto};
 
@@ -202,6 +204,23 @@ impl TryFrom<proto::AccountControllerState> for AccountControllerState {
             proto::account_controller_state::State::PendingSubscription(
                 proto::account_controller_state::PendingSubscription {},
             ) => Self::PendingSubscription,
+        })
+    }
+}
+
+impl TryFrom<proto::AccountControllerState> for AccountControllerStateDetails {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::AccountControllerState) -> Result<Self, ConversionError> {
+        let is_locally_generated = value.is_locally_generated;
+        let is_registered_with_api = value.is_registered_with_api;
+        let is_backup_confirmed = value.is_backup_confirmed;
+        let state = AccountControllerState::try_from(value)?;
+        Ok(AccountControllerStateDetails {
+            state,
+            is_locally_generated,
+            is_registered_with_api,
+            is_backup_confirmed,
         })
     }
 }

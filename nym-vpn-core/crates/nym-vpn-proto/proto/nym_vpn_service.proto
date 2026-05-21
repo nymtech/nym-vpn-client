@@ -758,6 +758,13 @@ message AccountControllerState {
     UpgradeMode upgrade_mode = 8;
     PendingSubscription pending_subscription = 9;
   }
+
+  // Account was generated locally (not imported from an existing mnemonic).
+  bool is_locally_generated = 10;
+  // Account has been registered with the nym-vpn-api backend.
+  bool is_registered_with_api = 11;
+  // User has confirmed they have backed up the recovery phrase.
+  bool is_backup_confirmed = 12;
 }
 
 message MinPerformance {
@@ -810,6 +817,10 @@ message DecentralisedObtainTicketbooksRequest {
 
 message AccountCommandResponse {
   optional AccountCommandError error = 1;
+}
+
+message GetStoredMnemonicResponse {
+  string mnemonic = 1;
 }
 
 message BalanceList {
@@ -1189,6 +1200,21 @@ service NymVpnService {
 
   // Store the recovery phrase, which is also the account identity and authentication
   rpc StoreAccount(StoreAccountRequest) returns (AccountCommandResponse) {}
+
+  // Generate a new mnemonic and store it locally. Does NOT register with the
+  // nym-vpn-api backend.
+  rpc CreateAccount(google.protobuf.Empty) returns (AccountCommandResponse) {}
+
+  // Register the locally-stored account with the nym-vpn-api. Idempotent:
+  // no-op if already registered.
+  rpc RegisterAnonymousAccount(google.protobuf.Empty) returns (AccountCommandResponse) {}
+
+  // Reveal the stored recovery phrase. On Linux the daemon performs a per-call
+  // polkit authentication check; on other platforms returns Unimplemented.
+  rpc GetStoredMnemonic(google.protobuf.Empty) returns (GetStoredMnemonicResponse) {}
+
+  // Mark the recovery phrase as backed up by the user.
+  rpc ConfirmMnemonicBackup(google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   /// Retrieve current, on-chain, account balance
   rpc AccountBalance(google.protobuf.Empty) returns (AccountBalanceResponse) {}
