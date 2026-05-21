@@ -224,8 +224,11 @@ impl RequestingZkNymsState {
         let join_result = match zknym_result {
             Ok(join_result) => join_result,
             Err(err) => {
-                error!("Failed to join on the fetching task : {err}");
-                return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
+                let msg = format!("Failed to join zknym fetching task : {err}");
+                error!(msg);
+                return NextAccountControllerState::NewState(ErrorState::enter(
+                    ZkNymError::internal(&msg).into(),
+                ));
             }
         };
 
