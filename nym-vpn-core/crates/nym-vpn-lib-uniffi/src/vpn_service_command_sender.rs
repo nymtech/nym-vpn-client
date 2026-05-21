@@ -317,6 +317,7 @@ impl NymVpnServiceCommandSender {
     pub async fn get_account_state(&self) -> Result<AccountControllerState> {
         self.send_and_wait(VpnServiceCommand::GetAccountState, ())
             .await
+            .map(|details| details.state)
     }
 
     pub async fn refresh_account(&self) -> Result<()> {

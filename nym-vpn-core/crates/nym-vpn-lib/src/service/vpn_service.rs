@@ -38,7 +38,8 @@ use nym_vpn_lib_types::SplitTunnelExcludedProcess;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
-    AccountBalanceResponse, AccountCommandError, AccountControllerState, AutologinResponse,
+    AccountBalanceResponse, AccountCommandError, AccountControllerState,
+    AccountControllerStateDetails, AutologinResponse,
     DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
     DiagnosticReport, DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint,
     FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams, ListGatewaysOptions,
@@ -183,7 +184,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<ParsedAccountLinks, AccountLinksError>>,
         Locale,
     ),
-    GetAccountState(oneshot::Sender<AccountControllerState>, ()),
+    GetAccountState(oneshot::Sender<AccountControllerStateDetails>, ()),
     RefreshAccountState(oneshot::Sender<()>, ()),
     GetAccountUsage(
         oneshot::Sender<Result<Vec<NymVpnUsage>, AccountCommandError>>,
@@ -1991,8 +1992,22 @@ impl NymVpnService {
             })
     }
 
-    async fn handle_get_account_state(&self) -> AccountControllerState {
-        self.account_state_rx.get_state()
+    async fn handle_get_account_state(&self) -> AccountControllerStateDetails {
+        let state = self.account_state_rx.get_state();
+        // Best-effort fetch of stored-account flags; if there's no account or the
+        // storage call fails, fall through with default-false flags.
+        let stored = self
+            .account_command_tx
+            .get_stored_account()
+            .await
+            .ok()
+            .flatten();
+        AccountControllerStateDetails {
+            state,
+            is_locally_generated: stored.as_ref().is_some_and(|a| a.is_locally_generated),
+            is_registered_with_api: stored.as_ref().is_some_and(|a| a.is_registered_with_api),
+            is_backup_confirmed: stored.as_ref().is_some_and(|a| a.is_backup_confirmed),
+        }
     }
 
     async fn handle_refresh_account_state(&self) {

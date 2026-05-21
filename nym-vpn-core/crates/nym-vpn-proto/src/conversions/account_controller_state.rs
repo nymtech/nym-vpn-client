@@ -164,7 +164,20 @@ impl From<AccountControllerState> for proto::AccountControllerState {
 
         proto::AccountControllerState {
             state: Some(proto_state),
+            is_locally_generated: false,
+            is_registered_with_api: false,
+            is_backup_confirmed: false,
         }
+    }
+}
+
+impl From<AccountControllerStateDetails> for proto::AccountControllerState {
+    fn from(details: AccountControllerStateDetails) -> Self {
+        let mut msg = proto::AccountControllerState::from(details.state);
+        msg.is_locally_generated = details.is_locally_generated;
+        msg.is_registered_with_api = details.is_registered_with_api;
+        msg.is_backup_confirmed = details.is_backup_confirmed;
+        msg
     }
 }
 
