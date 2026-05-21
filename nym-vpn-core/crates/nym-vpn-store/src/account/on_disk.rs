@@ -61,6 +61,9 @@ impl AccountInformationStorage for OnDiskAccountStorage {
             mnemonic: account.mnemonic,
             mode: account.mode,
             nonce,
+            is_locally_generated: account.is_locally_generated,
+            is_registered_with_api: account.is_registered_with_api,
+            is_backup_confirmed: account.is_backup_confirmed,
         };
 
         tracing::info!("Storing mnemonic to: {}", self.path.display());
@@ -275,5 +278,27 @@ mod tests {
         assert_eq!(Some(expected), loaded);
 
         Ok(())
+    }
+
+    #[tokio::test]
+    async fn on_disk_round_trips_new_flags() {
+        let mnemonic = mnemonic_fixture();
+        let account = StorableAccount {
+            mnemonic: mnemonic.clone(),
+            mode: StoredAccountMode::Api,
+            is_locally_generated: true,
+            is_registered_with_api: false,
+            is_backup_confirmed: true,
+        };
+        let tempdir = tempfile::tempdir().unwrap();
+        let path = tempdir.path().join("test.txt");
+        let storage = OnDiskAccountStorage::new(path);
+        storage.store_account(account.clone()).await.unwrap();
+
+        let loaded = storage.load_account().await.unwrap().unwrap();
+        assert!(loaded.is_locally_generated);
+        assert!(!loaded.is_registered_with_api);
+        assert!(loaded.is_backup_confirmed);
+        assert_eq!(loaded.mnemonic, mnemonic);
     }
 }

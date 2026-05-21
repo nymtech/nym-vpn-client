@@ -34,6 +34,9 @@ impl AccountInformationStorage for InMemoryAccountStorage {
             mnemonic: account.mnemonic,
             mode: account.mode,
             nonce,
+            is_locally_generated: account.is_locally_generated,
+            is_registered_with_api: account.is_registered_with_api,
+            is_backup_confirmed: account.is_backup_confirmed,
         };
         let mut handle = self.account.lock().await;
 
@@ -52,13 +55,7 @@ impl AccountInformationStorage for InMemoryAccountStorage {
             .lock()
             .await
             .as_ref()
-            .map(|stored| StorableAccount {
-                mnemonic: stored.mnemonic.clone(),
-                mode: stored.mode,
-                is_locally_generated: false,
-                is_registered_with_api: false,
-                is_backup_confirmed: false,
-            }))
+            .map(|stored| stored.clone().into()))
     }
 
     async fn remove_account(&self) -> Result<(), InMemoryAccountStorageError> {

@@ -24,7 +24,7 @@ pub trait AccountInformationStorage {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 struct StoredAccount {
     /// Identifier of the account.
     name: String,
@@ -39,6 +39,18 @@ struct StoredAccount {
 
     /// Nonce used to confirm the mnemonic
     nonce: Nonce,
+
+    /// True when the mnemonic was generated locally via CreateAccount (vs imported).
+    #[serde(default)]
+    is_locally_generated: bool,
+
+    /// True after a successful registration with nym-vpn-api.
+    #[serde(default)]
+    is_registered_with_api: bool,
+
+    /// True after the user has confirmed they saved the recovery phrase.
+    #[serde(default)]
+    is_backup_confirmed: bool,
 }
 
 impl std::fmt::Debug for StoredAccount {
@@ -48,6 +60,9 @@ impl std::fmt::Debug for StoredAccount {
             .field("mnemonic", &"[redacted]")
             .field("mode", &self.mode)
             .field("nonce", &self.nonce)
+            .field("is_locally_generated", &self.is_locally_generated)
+            .field("is_registered_with_api", &self.is_registered_with_api)
+            .field("is_backup_confirmed", &self.is_backup_confirmed)
             .finish()
     }
 }
@@ -57,9 +72,9 @@ impl From<StoredAccount> for StorableAccount {
         StorableAccount {
             mnemonic: account.mnemonic,
             mode: account.mode,
-            is_locally_generated: false,
-            is_registered_with_api: false,
-            is_backup_confirmed: false,
+            is_locally_generated: account.is_locally_generated,
+            is_registered_with_api: account.is_registered_with_api,
+            is_backup_confirmed: account.is_backup_confirmed,
         }
     }
 }
@@ -82,5 +97,28 @@ pub(crate) mod test_fixtures {
             is_registered_with_api: false,
             is_backup_confirmed: false,
         }
+    }
+}
+
+#[cfg(test)]
+mod stored_account_tests {
+    use super::*;
+
+    #[test]
+    fn stored_account_round_trips_new_flags() {
+        let mnemonic = test_fixtures::mnemonic_fixture();
+        let stored = StoredAccount {
+            name: "default".to_string(),
+            mnemonic: mnemonic.clone(),
+            mode: StoredAccountMode::Api,
+            nonce: 0,
+            is_locally_generated: true,
+            is_registered_with_api: true,
+            is_backup_confirmed: false,
+        };
+        let storable: StorableAccount = stored.into();
+        assert!(storable.is_locally_generated);
+        assert!(storable.is_registered_with_api);
+        assert!(!storable.is_backup_confirmed);
     }
 }
