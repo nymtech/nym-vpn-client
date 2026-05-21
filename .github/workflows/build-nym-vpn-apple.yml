@@ -1377,7 +1377,7 @@ jobs:
         if: >-
           ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship')
               && env.BUILD_IOS == 'true' }}
-        uses: zulip/github-actions-zulip/send-message@v1
+        uses: zulip/github-actions-zulip/send-message@v2
         with:
           api-key: ${{ secrets.ZULIP_BOT_APPLE_API_KEY }}
           email: ${{ secrets.ZULIP_BOT_APPLE_EMAIL }}
@@ -1414,7 +1414,7 @@ jobs:
         if: >-
           ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship')
               && env.BUILD_MACOS == 'true' }}
-        uses: zulip/github-actions-zulip/send-message@v1
+        uses: zulip/github-actions-zulip/send-message@v2
         with:
           api-key: ${{ secrets.ZULIP_BOT_APPLE_API_KEY }}
           email: ${{ secrets.ZULIP_BOT_APPLE_EMAIL }}

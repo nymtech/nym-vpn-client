@@ -201,7 +201,7 @@ jobs:
 
       - name: Send Zulip message (Android)
         if: ${{ inputs.release_type == 'prerelease' || inputs.release_type == 'release' }}
-        uses: zulip/github-actions-zulip/send-message@v1
+        uses: zulip/github-actions-zulip/send-message@v2
         with:
           api-key: ${{ secrets.ZULIP_BOT_ANDROID_API_KEY }}
           email: ${{ secrets.ZULIP_BOT_ANDROID_EMAIL }}
