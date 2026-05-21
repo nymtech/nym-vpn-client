@@ -3,8 +3,6 @@ import Theme
 
 private enum DrawerViewConstants {
     static let slideOutOffset: CGFloat = 800
-    static let slideOutDuration: Double = 0.25
-    static let slideInDuration: Double = 0.35
 }
 
 /// A bottom-anchored, floating card drawer that animates its content when `tag` changes.
@@ -31,28 +29,24 @@ public struct DrawerView<Tag: Hashable, Content: View>: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-            content()
-                .frame(maxWidth: .infinity)
-                .background(Color.Nym.backgroundCard)
-                .clipShape(RoundedRectangle(cornerRadius: NymSpacing.section))
-                .frame(maxWidth: NymSpacing.drawerMaxWidth)
-                .padding(.horizontal, NymSpacing.standard)
-                .padding(.bottom, NymSpacing.large)
-                .offset(y: offsetY)
-        }
-        .onChange(of: tag) { _, _ in
-            slideOut()
-        }
+        content()
+            .frame(maxWidth: .infinity)
+            .background(Color.Nym.backgroundCard)
+            .clipShape(RoundedRectangle(cornerRadius: NymSpacing.section))
+            .frame(maxWidth: NymSpacing.drawerMaxWidth)
+            .padding(.horizontal, NymSpacing.standard)
+            .offset(y: offsetY)
+            .onChange(of: tag) { _, _ in
+                slideOut()
+            }
     }
 
     private func slideOut() {
-        withAnimation(.easeIn(duration: DrawerViewConstants.slideOutDuration)) {
+        withAnimation(.easeIn) {
             offsetY = DrawerViewConstants.slideOutOffset
         } completion: {
             onTransitionCompleted()
-            withAnimation(.spring(duration: DrawerViewConstants.slideInDuration)) {
+            withAnimation(.spring) {
                 offsetY = 0
             }
         }

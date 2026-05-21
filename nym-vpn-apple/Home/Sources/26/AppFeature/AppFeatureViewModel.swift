@@ -39,7 +39,9 @@ import GRPCManager
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     @ObservationIgnored private var lastForegroundRefreshAt: Date?
+    @ObservationIgnored private var pendingPostDisconnectAccountRefresh: Task<Void, Never>?
     private static let foregroundRefreshMinInterval: TimeInterval = 300
+    private static let postDisconnectAccountRefreshDelay: TimeInterval = 10
 
 #if os(iOS)
     public init(
@@ -166,8 +168,23 @@ import GRPCManager
     }
 
     func handleTunnelStatusChange(from oldStatus: TunnelStatus, to newStatus: TunnelStatus) {
-        guard oldStatus != newStatus, newStatus == .disconnected else { return }
-        Task { await credentialsManager.updateAccountSummary(force: true) }
+        guard oldStatus != newStatus else { return }
+
+        if newStatus == .connecting || newStatus == .connected {
+            pendingPostDisconnectAccountRefresh?.cancel()
+            pendingPostDisconnectAccountRefresh = nil
+            return
+        }
+
+        guard newStatus == .disconnected else { return }
+
+        pendingPostDisconnectAccountRefresh?.cancel()
+        pendingPostDisconnectAccountRefresh = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.postDisconnectAccountRefreshDelay))
+            guard !Task.isCancelled, let self else { return }
+            await self.credentialsManager.updateAccountSummary(force: true)
+            self.pendingPostDisconnectAccountRefresh = nil
+        }
     }
 
     func handleCredentialChange(imported: Bool) {

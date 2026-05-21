@@ -6618,6 +6618,17 @@
         }
       }
     },
+    "Daemon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daemon"
+          }
+        }
+      }
+    },
     "daemonInstall.backToMainScreen" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8081,107 +8092,6 @@
         }
       }
     },
-    "erroReason.invalidEntryGatewayIdentity" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "خادم الإدخال غير متصل. اختر آخر وإعادة الاتصال."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Eintragsserver ist offline. Wählen Sie einen anderen und verbinden Sie ihn erneut."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entry server is offline. Choose another and reconnect."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El servidor de entrada está desconectado. Elija otro y vuelva a conectar."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "سرور ورودی آفلاین است. سرور دیگری انتخاب کرده و دوباره متصل شوید."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le serveur d'entrée est hors ligne. Choisissez un autre serveur et reconnectez-vous."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry server is offline. Choose another and reconnect."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il server degli elementi è offline. Scegliere un altro e riconnettersi."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entry server is offline. Choose another and reconnect."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O servidor de entrada está offline. Escolha outro e reconecte-se."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O servidor de entrada está offline. Escolha outro e reconecte-se."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сервер входа недоступен. Выберите другой и подключитесь повторно."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Giriş sunucusu çevrimdışı. Başka bir sunucu seçip yeniden bağlanın."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сервер входу не працює. Виберіть інший і підключіться знову."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Máy chủ vào ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "条目服务器处于离线状态。选择另一个并重新连接。"
-          }
-        }
-      }
-    },
     "errorReason.accountDecentralised" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8788,6 +8698,17 @@
         }
       }
     },
+    "errorReason.createLogFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to create log file"
+          }
+        }
+      }
+    },
     "errorReason.credentialWastedOnEntryGateway" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9289,6 +9210,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "DNS 配置失败"
+          }
+        }
+      }
+    },
+    "errorReason.existingAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account already exists"
           }
         }
       }
@@ -9798,6 +9730,107 @@
         }
       }
     },
+    "errorReason.invalidEntryGatewayIdentity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خادم الإدخال غير متصل. اختر آخر وإعادة الاتصال."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Eintragsserver ist offline. Wählen Sie einen anderen und verbinden Sie ihn erneut."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry server is offline. Choose another and reconnect."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor de entrada está desconectado. Elija otro y vuelva a conectar."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سرور ورودی آفلاین است. سرور دیگری انتخاب کرده و دوباره متصل شوید."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur d'entrée est hors ligne. Choisissez un autre serveur et reconnectez-vous."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Entry server is offline. Choose another and reconnect."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server degli elementi è offline. Scegliere un altro e riconnettersi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entry server is offline. Choose another and reconnect."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor de entrada está offline. Escolha outro e reconecte-se."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O servidor de entrada está offline. Escolha outro e reconecte-se."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер входа недоступен. Выберите другой и подключитесь повторно."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giriş sunucusu çevrimdışı. Başka bir sunucu seçip yeniden bağlanın."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сервер входу не працює. Виберіть інший і підключіться знову."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy chủ vào ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "条目服务器处于离线状态。选择另一个并重新连接。"
+          }
+        }
+      }
+    },
     "errorReason.invalidExitGatewayCountry" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9996,6 +10029,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "退出服务器离线。选择另一个并重新连接。"
+          }
+        }
+      }
+    },
+    "errorReason.ipv6Unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6 is unavailable"
           }
         }
       }
@@ -10624,6 +10668,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法连接到退出服务器。请尝试其他服务器！"
+          }
+        }
+      }
+    },
+    "errorReason.registrationInProgress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registration in progress"
           }
         }
       }
@@ -14721,6 +14776,17 @@
         }
       }
     },
+    "gatewaysView.random" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Random"
+          }
+        }
+      }
+    },
     "general.off" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14919,6 +14985,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打开"
+          }
+        }
+      }
+    },
+    "generalNymError.authorizationDenied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorization denied"
           }
         }
       }
@@ -17650,6 +17727,28 @@
         }
       }
     },
+    "home.navigationBar.settings.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
+    "home.navigationBar.theme.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toggle appearance"
+          }
+        }
+      }
+    },
     "home.serverDetails" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -18476,6 +18575,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用条款"
+          }
+        }
+      }
+    },
+    "Library" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Library"
           }
         }
       }
@@ -28274,6 +28384,17 @@
         }
       }
     },
+    "servers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "servers"
+          }
+        }
+      }
+    },
     "settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -33128,103 +33249,13 @@
         }
       }
     },
-    "tunnel" : {
+    "Tunnel" : {
       "extractionState" : "manual",
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "نفق"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "tunnel"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tunnel"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "túnel"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تونل"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tunnel"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "टनल "
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tunnel"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "トンネル"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "túnel"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "túnel"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "туннель"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tünel"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "тунель"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tunnel"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "隧道"
+            "value" : "Tunnel"
           }
         }
       }
@@ -33831,6 +33862,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "选择最佳服务器 (4/6)"
+          }
+        }
+      }
+    },
+    "tunnelConnectingState.unrecognized" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting..."
           }
         }
       }

@@ -2,6 +2,10 @@ import SwiftUI
 import Theme
 import UIComponents
 
+#if os(iOS)
+import UIKit
+#endif
+
 public struct PassphraseSignInView: View {
     @Bindable var viewModel: PassphraseSignInViewModel
     private let minHeight: CGFloat
@@ -35,6 +39,17 @@ public struct PassphraseSignInView: View {
         .padding(.vertical, AuthLayout.verticalPadding)
         .frame(maxWidth: .infinity)
         .frame(minHeight: minHeight)
+        .contentShape(Rectangle())
+#if os(iOS)
+        .onTapGesture {
+            UIApplication.shared.sendAction(
+                #selector(UIResponder.resignFirstResponder),
+                to: nil,
+                from: nil,
+                for: nil
+            )
+        }
+#endif
     }
 }
 
@@ -72,7 +87,9 @@ private extension PassphraseSignInView {
                         .foregroundStyle(Color.Nym.textSecondary)
                         .allowsHitTesting(false)
                 }
-                PassphraseTextEditor(text: $viewModel.passphraseText)
+                PassphraseTextEditor(text: $viewModel.passphraseText) {
+                    viewModel.loginButtonTapped()
+                }
             }
             .padding(NymSpacing.large)
         }

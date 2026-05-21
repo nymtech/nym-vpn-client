@@ -47,7 +47,16 @@ import GatewayManager
     }
 }
 
-private extension ConnectionStorage {
+extension ConnectionStorage {
+    /// True when the in-memory ConnectionConfig is byte-identical to the
+    /// freshly generated initial config — i.e. nothing has been changed yet.
+    /// Used by the macOS first-launch bootstrap to detect a fresh install.
+    public var isUsingInitialConfig: Bool {
+        connectionConfig == Self.generateInitialConfig()
+    }
+}
+
+extension ConnectionStorage {
     static func decodeStoredConfig(appSettings: AppSettings) -> ConnectionConfig {
         guard let storedConfig = appSettings.connectionConfig,
               let decodedConfig = ConnectionConfig.from(jsonString: storedConfig)
