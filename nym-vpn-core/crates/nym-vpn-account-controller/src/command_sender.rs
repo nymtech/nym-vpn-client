@@ -67,6 +67,24 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
+    pub async fn get_stored_mnemonic(&self) -> Result<String, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::GetStoredMnemonic(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
+    pub async fn confirm_mnemonic_backup(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::ConfirmMnemonicBackup(tx))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
     pub async fn link_account(
         &self,
         privy_account: StorableAccount,
