@@ -145,11 +145,22 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<RegisterAccountResponse, AccountCommandError>>,
         (),
     ),
+    #[cfg(target_os = "linux")]
+    GetStoredMnemonic(
+        oneshot::Sender<Result<String, AccountCommandError>>,
+        (),
+    ),
+    #[cfg(target_os = "linux")]
+    ConfirmMnemonicBackup(
+        oneshot::Sender<Result<(), AccountCommandError>>,
+        (),
+    ),
     CreateAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     StoreAccount(
         oneshot::Sender<Result<(), AccountCommandError>>,
         StoreAccountRequest,
     ),
+    #[cfg(not(target_os = "linux"))]
     GetStoredMnemonic(oneshot::Sender<Result<String, AccountCommandError>>, ()),
     DecentralisedBalance(oneshot::Sender<AccountBalanceResponse>, ()),
     DecentralisedObtainTicketbooks(
@@ -1075,12 +1086,21 @@ impl NymVpnService {
             VpnServiceCommand::RegisterAnonymousAccount(tx, ()) => {
                 let _ = tx.send(self.handle_register_anonymous_account().await);
             }
+            #[cfg(target_os = "linux")]
+            VpnServiceCommand::GetStoredMnemonic(tx, ()) => {
+                let _ = tx.send(self.handle_get_stored_mnemonic().await);
+            }
+            #[cfg(target_os = "linux")]
+            VpnServiceCommand::ConfirmMnemonicBackup(tx, ()) => {
+                let _ = tx.send(self.handle_confirm_mnemonic_backup().await);
+            }
             VpnServiceCommand::CreateAccount(tx, ()) => {
                 let _ = tx.send(self.handle_create_account().await);
             }
             VpnServiceCommand::StoreAccount(tx, account) => {
                 let _ = tx.send(self.handle_store_account(account).await);
             }
+            #[cfg(not(target_os = "linux"))]
             VpnServiceCommand::GetStoredMnemonic(tx, ()) => {
                 let _ = tx.send(self.handle_get_stored_mnemonic().await);
             }
@@ -1846,6 +1866,17 @@ impl NymVpnService {
         self.account_command_tx.store_account(account).await
     }
 
+    #[cfg(target_os = "linux")]
+    async fn handle_get_stored_mnemonic(&self) -> Result<String, AccountCommandError> {
+        self.account_command_tx.get_stored_mnemonic().await
+    }
+
+    #[cfg(target_os = "linux")]
+    async fn handle_confirm_mnemonic_backup(&self) -> Result<(), AccountCommandError> {
+        self.account_command_tx.confirm_mnemonic_backup().await
+    }
+
+    #[cfg(not(target_os = "linux"))]
     async fn handle_get_stored_mnemonic(&mut self) -> Result<String, AccountCommandError> {
         let stored_account = self
             .account_command_tx
