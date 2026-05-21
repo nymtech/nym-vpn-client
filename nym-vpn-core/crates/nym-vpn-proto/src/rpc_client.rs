@@ -416,6 +416,44 @@ impl RpcClient {
         AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
+    pub async fn create_account(&mut self) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .create_account(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn register_anonymous_account(&mut self) -> Result<AccountCommandResponse> {
+        let response = self
+            .0
+            .register_anonymous_account(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn get_stored_mnemonic(&mut self) -> Result<String> {
+        let response = self
+            .0
+            .get_stored_mnemonic(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(response.mnemonic)
+    }
+
+    pub async fn confirm_mnemonic_backup(&mut self) -> Result<()> {
+        self.0
+            .confirm_mnemonic_backup(())
+            .await
+            .map_err(Error::Rpc)?;
+        Ok(())
+    }
+
     pub async fn is_account_stored(&mut self) -> Result<bool> {
         self.0
             .is_account_stored(())
