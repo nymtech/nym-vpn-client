@@ -55,7 +55,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await);
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                     }
                     AccountCommand::StoreAccount(return_sender, storable_account) => {
                         return if let Err(e) = handler::handle_store_account(shared_state, storable_account).await{
@@ -63,7 +63,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             NextAccountControllerState::SameState(self)
                         } else {
                             return_sender.send(Ok(()));
-                            NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                            NextAccountControllerState::NewState(SyncingState::enter(shared_state))
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),

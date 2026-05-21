@@ -119,7 +119,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                 if connectivity.is_offline() {
                     NextAccountControllerState::SameState(self)
                 } else {
-                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                    NextAccountControllerState::NewState(SyncingState::enter(shared_state))
                 }
             }
             _ = shutdown_token.cancelled() => {

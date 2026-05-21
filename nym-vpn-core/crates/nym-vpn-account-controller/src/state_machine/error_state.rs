@@ -66,7 +66,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                     tracing::debug!("VPN API is firewalled, timed account syncing skipped");
                     return NextAccountControllerState::NewState(ErrorState::enter(self.reason));
                 } else {
-                    return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                    return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                 }
             },
             Some(command) = command_rx.recv() => {
@@ -82,7 +82,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         let error = res.is_err();
                         return_sender.send(res);
                         if error {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                         } else {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
@@ -104,7 +104,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         if error {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
@@ -112,7 +112,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         if shared_state.firewall_active {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                         }
                     },
 

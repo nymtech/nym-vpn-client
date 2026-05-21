@@ -117,7 +117,7 @@ where
         let (current_state_handler, initial_state) = if is_offline {
             OfflineState::enter()
         } else {
-            SyncingState::enter(&shared_state, 0)
+            SyncingState::enter(&shared_state)
         };
 
         let public_initial_state = AccountControllerState::from(initial_state);

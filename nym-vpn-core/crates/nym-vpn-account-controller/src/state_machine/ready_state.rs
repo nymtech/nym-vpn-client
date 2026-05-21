@@ -60,7 +60,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                     tracing::debug!("VPN API is firewalled, timed account syncing skipped");
                     return NextAccountControllerState::NewState(ReadyState::enter());
                 } else {
-                    return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                    return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                 }
             },
             Some(command) = command_rx.recv() => {
@@ -97,7 +97,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                         if error {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
@@ -105,7 +105,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                         if shared_state.firewall_active {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                         }
                     },
 

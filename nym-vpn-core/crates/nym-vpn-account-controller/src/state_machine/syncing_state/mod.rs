@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use crate::{
     SharedAccountState,
@@ -9,7 +9,7 @@ use crate::{
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
         NextAccountControllerState, OfflineState, PendingSubscriptionState,
-        PrivateAccountControllerState,
+        PrivateAccountControllerState, ReadyState,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -25,16 +25,11 @@ use nym_vpn_lib_types::{
 use requesting_zknym_state::RequestingZkNymsState;
 use tokio::sync::mpsc;
 use tokio_util::sync::{CancellationToken, DropGuard};
-use tracing::warn;
+use tracing::{debug, warn};
 
 pub(super) mod requesting_zknym_state;
 
-const MAX_SYNCING_ATTEMPTS: u32 = 2;
 const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
-
-// bounded exponential backoff for retries [2, 4] = 6s max wait for 2 retries
-const RETRY_BACKOFF: Duration = Duration::from_secs(2);
-const BACKOFF_BASE: u32 = 2;
 
 enum SyncEvent {
     /// Account summary is received
@@ -66,7 +61,6 @@ enum SyncEvent {
 /// - OfflineState : the connectivity monitor is telling we're not connected
 /// - DecentralisedState : The loaded account is set to "decentralised" mode
 pub struct SyncingState {
-    attempts: u32,
     event_rx: mpsc::UnboundedReceiver<SyncEvent>,
     sync_cancel_token: Option<DropGuard>,
 }
@@ -74,7 +68,6 @@ pub struct SyncingState {
 impl SyncingState {
     pub fn enter<C: ConnectivityMonitor>(
         shared_state: &SharedAccountState<C>,
-        attempts: u32,
     ) -> (
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
@@ -100,18 +93,11 @@ impl SyncingState {
         // This handle does not need to be awaited since event channel and cancellation token are sufficient.
         let _syncing_state_handle =
             tokio::spawn(sync_cancel_token.child_token().run_until_cancelled_owned(
-                SyncingState::sync_account(
-                    event_tx,
-                    vpn_api_client,
-                    vpn_api_account,
-                    device,
-                    attempts,
-                ),
+                SyncingState::sync_account(event_tx, vpn_api_client, vpn_api_account, device),
             ));
 
         (
             Box::new(Self {
-                attempts,
                 event_rx,
                 sync_cancel_token: Some(sync_cancel_token.drop_guard()),
             }),
@@ -124,12 +110,7 @@ impl SyncingState {
         vpn_api_client: VpnApiClient,
         vpn_api_account: Arc<VpnAccount>,
         device: Device,
-        attempts: u32,
     ) {
-        if attempts > 0 {
-            tokio::time::sleep(Self::get_delay(attempts)).await;
-        }
-
         let final_event =
             Self::sync_account_inner(event_tx.clone(), vpn_api_client, vpn_api_account, device)
                 .await
@@ -249,11 +230,6 @@ impl SyncingState {
             .await?;
         Ok(()) // We can register a device, we have fair usage
     }
-
-    /// The attempt retries should  start with attempt 1
-    fn get_delay(attempts: u32) -> Duration {
-        RETRY_BACKOFF * BACKOFF_BASE.pow(attempts - 1)
-    }
 }
 
 #[async_trait::async_trait]
@@ -276,25 +252,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         NextAccountControllerState::SameState(self)
                     }
                     SyncEvent::Failure(err) => {
-                        let is_retryable = err.is_retryable();
                         let err_str = err.to_string();
                         match err.into_error_reason() {
                             None => {
                                 tracing::debug!("Subscription is pending, waiting before retrying");
                                 NextAccountControllerState::NewState(PendingSubscriptionState::enter())
-                            }
-                            Some(reason) if is_retryable => {
-                                if self.attempts >= MAX_SYNCING_ATTEMPTS {
-                                    tracing::debug!("Error trying to get account summary, exhausted retries : {err_str}");
-                                    NextAccountControllerState::NewState(ErrorState::enter(reason))
-                                } else {
-                                    tracing::debug!(
-                                        "Error trying to get account summary attempt {}, retrying after {:?} : {err_str}",
-                                        self.attempts,
-                                        Self::get_delay(self.attempts + 1),
-                                    );
-                                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
-                                }
                             }
                             Some(reason) => {
                                 tracing::debug!("Error trying to get account summary, not retrying : {err_str}");
@@ -303,7 +265,19 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         }
                     }
                     SyncEvent::Finished => {
-                        NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, false))
+                        if let Ok(true) =
+                            // If we already have sufficient tickets skip to ready state.
+                            // tickets should be handled by top-up after once connected.
+                            shared_state
+                                .credential_storage
+                                .is_all_ticket_types_above_minimal_threshold().await {
+
+                            debug!("proceeding with existing tickets");
+                            NextAccountControllerState::NewState(ReadyState::enter())
+                        } else {
+                            NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, false))
+                        }
+
                     }
                 }
             }
@@ -340,12 +314,12 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         return if shared_state.firewall_active {
                             NextAccountControllerState::SameState(self)
                         } else {
-                            NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                            NextAccountControllerState::NewState(SyncingState::enter(shared_state))
                         }
                     },
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state,0));
+                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                     },
 
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
@@ -353,7 +327,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         // No-op if the firewall was already down
                         if shared_state.firewall_active {
                             shared_state.firewall_active = false;
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts));
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                         }
                     },
 
@@ -407,15 +381,6 @@ enum SyncError {
 }
 
 impl SyncError {
-    fn is_retryable(&self) -> bool {
-        matches!(
-            self,
-            SyncError::ApiRequestError(_)
-                | SyncError::DeviceTimeDesynced
-                | SyncError::InactiveSubscription // in the case of IAP, it might take a while for the subscription to become active
-        )
-    }
-
     /// Returns the corresponding error reason for the error state, or `None` if the error
     /// should not result in an error state (e.g. pending subscription has its own state).
     fn into_error_reason(self) -> Option<AccountControllerErrorStateReason> {

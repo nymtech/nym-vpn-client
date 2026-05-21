@@ -73,7 +73,7 @@ impl UpgradeModeState {
                     // instead of crashing
                     if until_expiration.is_negative() {
                         info!("the retrieved upgrade mode JWT expired immediately");
-                        return SyncingState::enter(shared_state, 0);
+                        return SyncingState::enter(shared_state);
                     }
                     until_expiration.unsigned_abs()
                 } else {
@@ -164,7 +164,7 @@ impl UpgradeModeState {
                     if let Err(error_state) = Self::on_exit(shared_state).await {
                         return error_state.into();
                     }
-                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                    NextAccountControllerState::NewState(SyncingState::enter(shared_state))
                 };
             }
             AccountCommand::RefreshAccountState(return_sender) => {
@@ -176,10 +176,7 @@ impl UpgradeModeState {
                     if let Err(error_state) = Self::on_exit(shared_state).await {
                         return error_state.into();
                     }
-                    return NextAccountControllerState::NewState(SyncingState::enter(
-                        shared_state,
-                        0,
-                    ));
+                    return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                 }
             }
             AccountCommand::VpnApiFirewallDown(return_sender) => {
@@ -202,10 +199,7 @@ impl UpgradeModeState {
                     if let Err(error_state) = Self::on_exit(shared_state).await {
                         return error_state.into();
                     }
-                    return NextAccountControllerState::NewState(SyncingState::enter(
-                        shared_state,
-                        0,
-                    ));
+                    return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
                 }
             },
         }
@@ -230,7 +224,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for UpgradeModeSta
             _ = &mut self.refresh_timer => {
                 debug!("attempting to retrieve a zk-nym/refresh upgrade mode attestation");
                 // note: we wouldn't have entered `UpgradeModeState` if we didn't have any fair usage left
-                return NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, 0, true))
+                return NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, true))
             }
             Some(command) = command_rx.recv() => {
                 self.handle_account_command(command, shared_state).await
