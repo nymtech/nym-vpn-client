@@ -2124,10 +2124,8 @@ impl NymVpnService {
             .derive_deeplink_mnemonic(deeplink_url)
             .await?;
 
-        let account = StorableAccount {
-            mnemonic: deeplink_mnemonic.mnemonic,
-            mode: StoredAccountMode::Privy,
-        };
+        // Privy / deeplink import — explicitly not locally generated.
+        let account = StorableAccount::new(deeplink_mnemonic.mnemonic, StoredAccountMode::Privy);
 
         match deeplink_mnemonic.kind {
             DeeplinkKind::Privy | DeeplinkKind::CreateAccount => {

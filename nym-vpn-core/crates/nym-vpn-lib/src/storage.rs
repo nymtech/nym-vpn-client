@@ -74,4 +74,11 @@ impl AccountInformationStorage for VpnClientOnDiskStorage {
     async fn remove_account(&self) -> Result<(), Self::StorageError> {
         self.account_storage.remove_account().await
     }
+
+    async fn update_account<F>(&self, mutator: F) -> Result<(), Self::StorageError>
+    where
+        F: FnOnce(&mut StorableAccount) + Send,
+    {
+        self.account_storage.update_account(mutator).await
+    }
 }
