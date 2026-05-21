@@ -23,7 +23,11 @@ use crate::{
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "uniffi-bindings",
+    derive(uniffi::Record),
+    uniffi::export(Display, Eq)
+)]
 #[cfg_attr(
     feature = "typescript-bindings",
     derive(TS),
