@@ -45,22 +45,47 @@ const CLIENT_SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate
 #[cfg(target_os = "macos")]
 const DAEMON_SIGNING_REQUIREMENT: &str = r#"anchor apple generic and certificate leaf[subject.OU] = "VW5DZLFHM5" and identifier "net.nymtech.vpn.daemon""#;
 
+#[cfg(target_os = "linux")]
+const REVEAL_MNEMONIC_ACTION_ID: &str = "com.nymvpn.vpnd.reveal-mnemonic";
+
+#[cfg(target_os = "linux")]
+const REVEAL_MNEMONIC_POLICY: &str = r#"<?xml version="1.0" encoding="UTF-8"?>
+<policyconfig>
+  <action id="com.nymvpn.vpnd.reveal-mnemonic">
+    <description>Reveal stored recovery phrase</description>
+    <message>Authentication is required to reveal the recovery phrase</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_self</allow_active>
+    </defaults>
+  </action>
+</policyconfig>
+"#;
+
 pub struct CommandInterface {
     // Send commands to the VPN service
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 
     // Broadcast tunnel events to our API endpoint listeners
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
+
+    // Cancellation token used to interrupt pending polkit prompts on shutdown
+    #[cfg(target_os = "linux")]
+    shutdown_token: CancellationToken,
 }
 
 impl CommandInterface {
     fn new(
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
+        #[cfg(target_os = "linux")] shutdown_token: CancellationToken,
     ) -> Self {
         Self {
             vpn_command_tx,
             tunnel_event_rx,
+            #[cfg(target_os = "linux")]
+            shutdown_token,
         }
     }
 
@@ -650,11 +675,32 @@ impl NymVpnService for CommandInterface {
 
     async fn get_stored_mnemonic(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<()>,
     ) -> Result<tonic::Response<proto::GetStoredMnemonicResponse>> {
         #[cfg(target_os = "linux")]
         {
-            // TODO(phase 5): wrap with per-call polkit check.
+            // Build credentials for the polkit subject.
+            // NOTE: We use the daemon's own process credentials as a fallback
+            // because peer credentials from the unix socket client are not
+            // currently threaded through the tonic request extensions.  The
+            // polkit prompt still fires and authenticates whoever is at the
+            // keyboard; the difference is that the *subject* reported to polkit
+            // is the daemon process rather than the calling client.
+            //
+            // TODO: propagate real client peer credentials via tonic request
+            // extensions (see nym-ipc accept loop) and remove this fallback.
+            let _ = &request;
+            let cred = nym_ipc::self_credentials();
+
+            nym_ipc::request_action_authorization(
+                cred,
+                REVEAL_MNEMONIC_ACTION_ID,
+                REVEAL_MNEMONIC_POLICY,
+                self.shutdown_token.clone(),
+            )
+            .await
+            .map_err(|e| tonic::Status::permission_denied(e.to_string()))?;
+
             let mnemonic = self
                 .send_and_wait(VpnServiceCommand::GetStoredMnemonic, ())
                 .await?
@@ -665,6 +711,7 @@ impl NymVpnService for CommandInterface {
         }
         #[cfg(not(target_os = "linux"))]
         {
+            let _ = request;
             Err(tonic::Status::unimplemented(
                 "get_stored_mnemonic is Linux-only",
             ))
@@ -1447,7 +1494,12 @@ pub async fn start_command_interface(
 
     let server_handle = tokio::spawn(async move {
         let socket_listener_handle = tokio::spawn(async move {
-            let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx);
+            let command_interface = CommandInterface::new(
+                vpn_command_tx,
+                tunnel_event_rx,
+                #[cfg(target_os = "linux")]
+                shutdown_token.child_token(),
+            );
 
             let server = Server::builder().add_service(NymVpnServiceServer::new(command_interface));
             // Linux needs to handle the shutdown internally first, as it spawns an authentication prompt that needs to

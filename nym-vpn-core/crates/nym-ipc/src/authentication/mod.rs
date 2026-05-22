@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(target_os = "linux")]
-mod linux;
+pub mod linux;
 #[cfg(target_os = "linux")]
 pub(crate) use linux::{Transport, incoming, is_authenticated};
 

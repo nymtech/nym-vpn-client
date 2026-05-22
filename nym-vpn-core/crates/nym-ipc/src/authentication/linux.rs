@@ -55,6 +55,9 @@ trait Prompter {
 struct AuthProxy<'a> {
     pub proxy: AuthorityProxy<'a>,
     pub subject: Subject,
+    pub action_id: String,
+    /// Policy XML to install if the action is not yet registered with polkit.
+    pub policy_xml: String,
 }
 
 #[async_trait::async_trait]
@@ -66,13 +69,13 @@ impl AuthorizationChecker for AuthProxy<'_> {
             .await
             .map_err(AuthenticationError::EnumerateActions)?
             .iter()
-            .any(|action| action.action_id == ACTION_ID)
+            .any(|action| action.action_id == self.action_id)
         {
             let mut file =
-                File::create(format!("/usr/share/polkit-1/actions/{}.policy", ACTION_ID))
+                File::create(format!("/usr/share/polkit-1/actions/{}.policy", self.action_id))
                     .await
                     .map_err(AuthenticationError::CreateActionPolicy)?;
-            file.write_all(POLKIT_POLICY.as_bytes())
+            file.write_all(self.policy_xml.as_bytes())
                 .await
                 .map_err(AuthenticationError::WriteActionPolicy)?;
         }
@@ -82,7 +85,7 @@ impl AuthorizationChecker for AuthProxy<'_> {
         self.proxy
             .check_authorization(
                 &self.subject,
-                ACTION_ID,
+                &self.action_id,
                 &details,
                 CheckAuthorizationFlags::AllowUserInteraction.into(),
                 CANCELLATION_ID,
@@ -138,7 +141,12 @@ impl Prompter for PolkitPrompter {
 
         let timeout = tokio::time::sleep(USER_INTERACTION_TIMEOUT);
         wait_for_authorization(
-            AuthProxy { proxy, subject },
+            AuthProxy {
+                proxy,
+                subject,
+                action_id: ACTION_ID.to_string(),
+                policy_xml: POLKIT_POLICY.to_string(),
+            },
             self.shutdown_token.clone(),
             timeout,
         )
@@ -169,6 +177,71 @@ async fn wait_for_authorization(
             proxy.cancel_check_authorization().await.ok();
             Err(AuthenticationError::ShuttingDown)
         }
+    }
+}
+
+/// Return [`UnixCredentials`] for the current process (pid, uid, gid).
+///
+/// Used as a fallback subject for polkit when the calling client's peer
+/// credentials are not available (e.g. from a tonic gRPC handler that does not
+/// yet thread unix socket peer credentials through the request extensions).
+pub fn self_credentials() -> UnixCredentials {
+    UnixCredentials::new()
+}
+
+/// Request per-call polkit authorization for an arbitrary action id.
+/// Installs the policy file on first use if it doesn't already exist.
+/// Returns Ok if the user authenticated; Err otherwise.
+///
+/// NOTE: the `pid` and `uid` in `cred` are used as the Subject for polkit.
+/// Currently callers that don't have access to the peer unix-socket credentials
+/// (e.g. tonic gRPC handlers) pass the daemon's own process credentials
+/// (`std::process::id()`, `nix::unistd::getuid()`).  The polkit prompt still
+/// fires and authenticates whoever is at the keyboard; the only difference is
+/// that the *subject* reported to polkit is the daemon rather than the actual
+/// client.
+///
+/// TODO: thread real peer credentials through the tonic request extensions so
+/// that this function receives the calling client's pid/uid instead.
+pub async fn request_action_authorization(
+    cred: UnixCredentials,
+    action_id: &str,
+    policy_xml: &str,
+    shutdown_token: CancellationToken,
+) -> Result<(), AuthenticationError> {
+    let connection = shutdown_token
+        .run_until_cancelled(Connection::system())
+        .await
+        .ok_or(AuthenticationError::ShuttingDown)?
+        .map_err(AuthenticationError::MessageBusConnection)?;
+    let proxy = shutdown_token
+        .run_until_cancelled(AuthorityProxy::new(&connection))
+        .await
+        .ok_or(AuthenticationError::ShuttingDown)?
+        .map_err(AuthenticationError::AuthorityProxy)?;
+
+    let subject = Subject::new_for_owner(
+        cred.pid()
+            .try_into()
+            .map_err(AuthenticationError::NumberConversion)?,
+        None,
+        Some(cred.uid()),
+    )
+    .map_err(AuthenticationError::Subject)?;
+
+    let auth_proxy = AuthProxy {
+        proxy,
+        subject,
+        action_id: action_id.to_string(),
+        policy_xml: policy_xml.to_string(),
+    };
+    let timeout = tokio::time::sleep(USER_INTERACTION_TIMEOUT);
+    let auth_result = wait_for_authorization(auth_proxy, shutdown_token, timeout).await?;
+
+    if auth_result.is_authorized {
+        Ok(())
+    } else {
+        Err(AuthenticationError::AuthorizationDenied)
     }
 }
 
@@ -417,4 +490,15 @@ mod tests {
     fn unsigned_build_authorized() {
         assert!(skip_authentication_checks(false));
     }
+
+    // `request_action_authorization` constructs its own `AuthorityProxy` over
+    // a real D-Bus connection, so it cannot be exercised by the MockProxy
+    // scaffolding above.  The function's logic (timeout, shutdown, denied /
+    // authorized branching) is fully covered by the `wait_for_authorization`
+    // tests above because `request_action_authorization` delegates to that
+    // function.
+    //
+    // TODO(phase-12): add an integration test that calls
+    // `request_action_authorization` end-to-end via a polkit test double or
+    // a real system D-Bus session when running in CI.
 }

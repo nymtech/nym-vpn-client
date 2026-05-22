@@ -16,6 +16,10 @@ mod authentication;
 pub use authentication::AuthenticationMaterial;
 #[cfg(all(target_os = "macos", feature = "daemon"))]
 pub use authentication::SigningRequirements;
+#[cfg(all(target_os = "linux", feature = "daemon"))]
+pub use authentication::linux::request_action_authorization;
+#[cfg(all(target_os = "linux", feature = "daemon"))]
+pub use authentication::linux::self_credentials;
 
 #[cfg(any(
     target_os = "linux",
