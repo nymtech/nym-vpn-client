@@ -511,6 +511,66 @@ impl VpndClient {
         }
     }
 
+    /// Create a new local account (Linux only)
+    #[cfg(target_os = "linux")]
+    #[instrument(skip_all)]
+    pub async fn create_account(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let response = vpnd
+            .create_account()
+            .or_else(async |e| self.handle_rpc_error("create_account", e).await)
+            .await?;
+
+        debug!("create account response: {response:?}");
+        if let Some(error) = response.error.map(BackendError::from) {
+            Err(VpndError::Response(error))
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Register an anonymous account (Linux only)
+    #[cfg(target_os = "linux")]
+    #[instrument(skip_all)]
+    pub async fn register_anonymous_account(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let response = vpnd
+            .register_anonymous_account()
+            .or_else(async |e| self.handle_rpc_error("register_anonymous_account", e).await)
+            .await?;
+
+        debug!("register anonymous account response: {response:?}");
+        if let Some(error) = response.error.map(BackendError::from) {
+            Err(VpndError::Response(error))
+        } else {
+            Ok(())
+        }
+    }
+
+    /// Get the stored mnemonic (Linux only)
+    #[cfg(target_os = "linux")]
+    #[instrument(skip_all)]
+    pub async fn get_stored_mnemonic(&self) -> Result<String, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.get_stored_mnemonic()
+            .or_else(async |e| self.handle_rpc_error("get_stored_mnemonic", e).await)
+            .await
+    }
+
+    /// Confirm that the mnemonic has been backed up (Linux only)
+    #[cfg(target_os = "linux")]
+    #[instrument(skip_all)]
+    pub async fn confirm_mnemonic_backup(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.confirm_mnemonic_backup()
+            .or_else(async |e| self.handle_rpc_error("confirm_mnemonic_backup", e).await)
+            .await
+    }
+
     /// Removes everything related to the account, including the device identity,
     /// credential storage, mixnet keys, gateway registrations
     #[instrument(skip_all)]
