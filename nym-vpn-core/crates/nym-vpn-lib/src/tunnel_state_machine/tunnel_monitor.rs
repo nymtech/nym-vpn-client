@@ -472,7 +472,7 @@ impl TunnelMonitor {
             .mixnet_client_config(mixnet_client_config)
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)
-            .enable_lp_registration(self.tunnel_parameters.tunnel_settings.enable_lewes_protocol)
+            .enable_lp_registration(true)
             .user_agent(user_agent)
             .custom_topology_provider(Box::new(
                 self.custom_topology_provider.make_topology_provider(),
