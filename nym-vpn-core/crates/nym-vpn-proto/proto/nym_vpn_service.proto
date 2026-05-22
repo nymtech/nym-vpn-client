@@ -308,7 +308,6 @@ message VpnServiceConfig {
   bool disable_ipv6 = 14;
   bool enable_two_hop = 5;
   bool enable_bridges = 21;
-  bool enable_lewes_protocol = 26;
   bool enable_ad_blocking = 27;
   bool residential_exit = 15;
   bool netstack = 13;
@@ -1138,7 +1137,6 @@ service NymVpnService {
   rpc SetDisableIpv6(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableTwoHop(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableBridges(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
-  rpc SetEnableLewesProtocol(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableAdBlocking(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetNetstack(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetAllowLan(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}

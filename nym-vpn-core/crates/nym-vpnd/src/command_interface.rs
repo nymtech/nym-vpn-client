@@ -173,14 +173,6 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
-    async fn set_enable_lewes_protocol(
-        &self,
-        _request: tonic::Request<bool>,
-    ) -> Result<tonic::Response<()>> {
-        // Lewes protocol is now always enabled; this RPC is kept for backwards compatibility.
-        Ok(tonic::Response::new(()))
-    }
-
     async fn set_enable_ad_blocking(
         &self,
         request: tonic::Request<bool>,
