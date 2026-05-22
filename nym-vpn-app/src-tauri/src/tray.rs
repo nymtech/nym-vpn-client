@@ -27,49 +27,43 @@ fn show_window(app: &AppHandle, toggle: bool) -> Result<()> {
 
     if !window.is_visible() {
         trace!("showing main window");
-        window
+        let _ = window
             .0
             .show()
-            .inspect_err(|e| warn!("failed to show main window: {e}"))
-            .ok();
-        window
+            .inspect_err(|e| warn!("failed to show main window: {e}"));
+        let _ = window
             .0
             .set_focus()
-            .inspect_err(|e| warn!("failed to focus main window: {e}"))
-            .ok();
+            .inspect_err(|e| warn!("failed to focus main window: {e}"));
         return Ok(());
     }
 
     if window.is_visible() && !window.is_minimized() && toggle {
         trace!("hiding main window");
-        window
+        let _ = window
             .0
             .hide()
-            .inspect_err(|e| warn!("failed to hide main window: {e}"))
-            .ok();
+            .inspect_err(|e| warn!("failed to hide main window: {e}"));
         return Ok(());
     }
 
     if window.is_minimized() {
         trace!("unminimizing main window");
-        window
+        let _ = window
             .0
             .unminimize()
-            .inspect_err(|e| warn!("failed to unminimize main window: {e}"))
-            .ok();
-        window
+            .inspect_err(|e| warn!("failed to unminimize main window: {e}"));
+        let _ = window
             .0
             .set_focus()
-            .inspect_err(|e| warn!("failed to focus main window: {e}"))
-            .ok();
+            .inspect_err(|e| warn!("failed to focus main window: {e}"));
         return Ok(());
     }
 
-    window
+    let _ = window
         .0
         .set_focus()
-        .inspect_err(|e| warn!("failed to focus main window: {e}"))
-        .ok();
+        .inspect_err(|e| warn!("failed to focus main window: {e}"));
 
     Ok(())
 }
@@ -88,7 +82,7 @@ fn quit_app(app: AppHandle) {
         | TunnelState::Error(_) = app_state.tunnel
         {
             drop(app_state);
-            vpnd.vpn_disconnect().await.ok();
+            let _ = vpnd.vpn_disconnect().await;
         }
 
         info!("app exit");
@@ -218,9 +212,9 @@ mod desktop {
                 .on_menu_event(Self::on_menu_event)
                 .build(app)?;
 
-            tray.set_tooltip(Some(APP_NAME))
-                .inspect_err(|e| error!("failed to set tray tooltip {e}"))
-                .ok();
+            let _ = tray
+                .set_tooltip(Some(APP_NAME))
+                .inspect_err(|e| error!("failed to set tray tooltip {e}"));
 
             Ok(Self {
                 app: app.clone(),
@@ -244,7 +238,7 @@ mod desktop {
                 TunnelState::Disconnected => DISCONNECTED_ICON,
                 TunnelState::Error(_) | TunnelState::Offline { .. } => ERROR_ICON,
             };
-            self.tray.set_icon(Some(icon)).ok();
+            let _ = self.tray.set_icon(Some(icon));
         }
 
         #[instrument(skip_all)]
@@ -262,27 +256,27 @@ mod desktop {
         }
 
         pub async fn update_tray_show_hide(&self, show_hide: String) {
-            self.show_hide.set_text(show_hide).ok();
+            let _ = self.show_hide.set_text(show_hide);
         }
 
         pub async fn update_tray_quit(&self, quit: String) {
-            self.quit.set_text(quit).ok();
+            let _ = self.quit.set_text(quit);
         }
 
         pub async fn update_tray_mode(&self, mode: String) {
-            self.mode.set_text(mode).ok();
+            let _ = self.mode.set_text(mode);
         }
 
         pub async fn update_tray_state(&self, state: String) {
-            self.status.set_text(state).ok();
+            let _ = self.status.set_text(state);
         }
 
         pub async fn update_tray_entry(&self, entry: String) {
-            self.entry.set_text(entry).ok();
+            let _ = self.entry.set_text(entry);
         }
 
         pub async fn update_tray_exit(&self, exit: String) {
-            self.exit.set_text(exit).ok();
+            let _ = self.exit.set_text(exit);
         }
 
         pub async fn update_tray_entry_visible(&self, visible: bool) {
@@ -310,7 +304,7 @@ mod desktop {
             } = event
             {
                 trace!("tray event left click");
-                show_window(tray_icon.app_handle(), true).ok();
+                let _ = show_window(tray_icon.app_handle(), true);
             }
         }
 
@@ -321,7 +315,7 @@ mod desktop {
             match event.id().as_ref() {
                 x if x == MenuItemId::ShowHide.as_ref() => {
                     trace!("show/hide menu clicked");
-                    show_window(app, true).ok();
+                    let _ = show_window(app, true);
                 }
                 x if x == MenuItemId::Quit.as_ref() => {
                     trace!("quit menu clicked");
@@ -459,12 +453,12 @@ mod linux {
 
         fn activate(&mut self, _x: i32, _y: i32) {
             trace!("tray activate (left-click)");
-            show_window(&self.app, true).ok();
+            let _ = show_window(&self.app, true);
         }
 
         fn secondary_activate(&mut self, _x: i32, _y: i32) {
             trace!("tray secondary_activate (middle-click)");
-            show_window(&self.app, true).ok();
+            let _ = show_window(&self.app, true);
         }
 
         fn menu(&self) -> Vec<ksni::MenuItem<Self>> {
@@ -477,7 +471,7 @@ mod linux {
                     label: self.show_hide.clone(),
                     activate: Box::new(|t: &mut Self| {
                         trace!("show/hide menu clicked");
-                        show_window(&t.app, true).ok();
+                        let _ = show_window(&t.app, true);
                     }),
                     ..Default::default()
                 }
