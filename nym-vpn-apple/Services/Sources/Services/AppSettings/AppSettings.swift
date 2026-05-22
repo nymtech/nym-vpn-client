@@ -137,6 +137,9 @@ import ConnectionTypes
     @AppStorage(AppSettingKey.accountSummaryLastFetchedAt.rawValue)
     public var accountSummaryLastFetchedAt: Double = 0
 
+    @AppStorage(AppSettingKey.oneClickDisplayMode.rawValue)
+    public var oneClickDisplayModeRaw: String = "powerUser"
+
     public var accountSummary: AccountSummary? {
         get {
             guard let json = accountSummaryCache,
@@ -251,6 +254,7 @@ public enum AppSettingKey: String {
     case expiryWarningSoonDismissedAt
     case accountSummaryCache
     case accountSummaryLastFetchedAt
+    case oneClickDisplayMode
 }
 
 extension Array: @retroactive RawRepresentable where Element: Codable {

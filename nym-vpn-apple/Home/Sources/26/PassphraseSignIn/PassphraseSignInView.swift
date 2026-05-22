@@ -75,7 +75,7 @@ private extension PassphraseSignInView {
     var textArea: some View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.Nym.backgroundCard)
+                .fill(Color.Nym.surfaceElev)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(borderColor, lineWidth: 1)
@@ -115,7 +115,7 @@ private extension PassphraseSignInView {
 
     var borderColor: Color {
         if viewModel.submissionState == .failed {
-            return Color.Nym.error
+            return Color.Nym.statusError
         }
         return colorScheme == .dark
             ? Color.Nym.textPrimary.opacity(0.4)

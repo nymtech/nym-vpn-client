@@ -101,18 +101,18 @@ public final class SettingsListItemViewModel: ObservableObject, Hashable {
         public var backgroundColor: Color {
             switch self {
             case .regular:
-                Color.Nym.backgroundCard
+                Color.Nym.surfaceElev
             case .destructive:
-                Color.Nym.error.opacity(0.1)
+                Color.Nym.statusError.opacity(0.1)
             }
         }
 
         public var strokeColor: Color {
             switch self {
             case .regular:
-                Color.Nym.backgroundCard
+                Color.Nym.surfaceElev
             case .destructive:
-                Color.Nym.error
+                Color.Nym.statusError
             }
         }
     }

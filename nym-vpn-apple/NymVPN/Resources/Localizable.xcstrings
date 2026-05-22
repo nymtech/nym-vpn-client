@@ -14776,6 +14776,17 @@
         }
       }
     },
+    "gatewaysView.bestServer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Best server"
+          }
+        }
+      }
+    },
     "gatewaysView.random" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22796,13 +22807,24 @@
         }
       }
     },
+    "oneClick.entryDisabled.accessibilityHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Entry server is automatic in Auto mode"
+          }
+        }
+      }
+    },
     "oneClick.entryNode.label" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nym entry server"
+            "value" : "Entry server"
           }
         }
       }
@@ -22813,7 +22835,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nym exit server"
+            "value" : "Exit server"
           }
         }
       }
@@ -22824,7 +22846,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Best server for my location"
+            "value" : "Use best server"
+          }
+        }
+      }
+    },
+    "oneClick.server.details.accessibilityLabel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Server details"
           }
         }
       }
@@ -22836,17 +22869,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Post-quantum"
-          }
-        }
-      }
-    },
-    "oneClick.server.searching" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Searching best location"
           }
         }
       }
@@ -22879,7 +22901,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anonymous"
+            "value" : "Mixnet"
+          }
+        }
+      }
+    },
+    "oneClick.speedMode.auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto"
           }
         }
       }

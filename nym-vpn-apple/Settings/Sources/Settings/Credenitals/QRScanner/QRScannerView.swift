@@ -22,7 +22,7 @@ public struct QRScannerView: View {
             bottomView()
         }
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
         .navigationBarBackButtonHidden(true)
@@ -58,7 +58,7 @@ private extension QRScannerView {
         }
         .frame(height: 120)
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
     }

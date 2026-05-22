@@ -27,13 +27,13 @@ public struct LogsView: View {
             }
             .frame(maxWidth: .infinity)
             .background {
-                Color.Nym.background
+                Color.Nym.surfaceBg
             }
             buttonsSection()
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.Nym.background)
+        .background(Color.Nym.surfaceBg)
         .overlay {
             if viewModel.isDeleteDialogDisplayed {
                 LogsDeleteConfirmationDialog(
@@ -79,7 +79,7 @@ private extension LogsView {
     func exportButton() -> some View {
         button(systemImageName: "square.and.arrow.up", title: viewModel.exportLocalizedString)
             .background(
-                isExportButtonHovered ? Color.Nym.backgroundHover : Color.Nym.backgroundCard,
+                isExportButtonHovered ? Color.Nym.backgroundHover : Color.Nym.surfaceElev,
                 in: RoundedRectangle(cornerRadius: 12)
             )
             .opacity(viewModel.isPreparingExport ? 0.5 : 1.0)
@@ -105,7 +105,7 @@ private extension LogsView {
                 }
             }
             .background(
-                isDeleteButtonHovered ? Color.Nym.backgroundHover : Color.Nym.backgroundCard,
+                isDeleteButtonHovered ? Color.Nym.backgroundHover : Color.Nym.surfaceElev,
                 in: RoundedRectangle(cornerRadius: 12)
             )
     }
@@ -125,7 +125,7 @@ private extension LogsView {
             Spacer()
         }
         .background {
-            Color.Nym.backgroundCard
+            Color.Nym.surfaceElev
         }
         .frame(minHeight: 80)
     }
@@ -161,12 +161,12 @@ private extension LogsView {
                 } label: {
                     Text("Load older entries")
                         .nymTextStyle(.bodyDefault)
-                        .foregroundStyle(Color.Nym.info)
+                        .foregroundStyle(Color.Nym.statusInfo)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                 }
                 .buttonStyle(.plain)
-                .background(Color.Nym.backgroundCard)
+                .background(Color.Nym.surfaceElev)
             }
 
             LogTextView(

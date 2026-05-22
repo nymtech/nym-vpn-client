@@ -13,7 +13,7 @@ public struct SettingButtonViewModel {
     }
 
     var selectionStrokeColor: Color {
-        isSelected ? Color.Nym.primary : .clear
+        isSelected ? Color.Nym.brandPrimary : .clear
     }
 
     var selectionImageName: String {
@@ -21,6 +21,6 @@ public struct SettingButtonViewModel {
     }
 
     var selectionImageColor: Color {
-        isSelected ? Color.Nym.primary : Color.Nym.textSecondary
+        isSelected ? Color.Nym.brandPrimary : Color.Nym.textSecondary
     }
 }

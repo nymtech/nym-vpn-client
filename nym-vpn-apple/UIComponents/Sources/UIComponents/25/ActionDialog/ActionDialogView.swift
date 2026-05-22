@@ -118,7 +118,7 @@ private extension ActionDialogView {
     func noButton(text: String) -> some View {
         GenericButton(
             title: text,
-            titleColor: viewModel.configuration.isNoDestructive ? Color.Nym.error : nil,
+            titleColor: viewModel.configuration.isNoDestructive ? Color.Nym.statusError : nil,
             style: .textOnly
         )
         .onTapGesture {
