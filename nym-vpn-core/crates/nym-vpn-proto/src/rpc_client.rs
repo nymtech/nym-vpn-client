@@ -137,15 +137,6 @@ impl RpcClient {
         Ok(())
     }
 
-    pub async fn set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) -> Result<()> {
-        self.0
-            .set_enable_lewes_protocol(enable_lewes_protocol)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
     pub async fn set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) -> Result<()> {
         self.0
             .set_enable_ad_blocking(enable_ad_blocking)

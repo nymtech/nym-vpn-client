@@ -31,10 +31,6 @@ pub struct SetParams {
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     two_hop: Option<BooleanOption>,
 
-    /// Enable or disable lewes-protocol
-    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
-    lewes_protocol: Option<BooleanOption>,
-
     /// Enable or disable netstack in two-hop mode
     /// Normally this is only used for testing purposes and should always be off
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
@@ -103,10 +99,6 @@ impl Command {
                 let config = rpc_client.get_config().await?;
                 println!("IPv6: {}", display_on_off(!config.disable_ipv6));
                 println!("Two-hop: {}", display_on_off(config.enable_two_hop));
-                println!(
-                    "Lewes protocol: {}",
-                    display_on_off(config.enable_lewes_protocol)
-                );
                 println!("Netstack: {}", display_on_off(config.netstack));
                 println!(
                     "Circumvention transports: {}",
@@ -123,12 +115,6 @@ impl Command {
             Command::Set(params) => {
                 if let Some(two_hop) = params.two_hop {
                     rpc_client.set_enable_two_hop(*two_hop).await?;
-                }
-
-                if let Some(lewes_protocol) = params.lewes_protocol {
-                    rpc_client
-                        .set_enable_lewes_protocol(*lewes_protocol)
-                        .await?;
                 }
 
                 if let Some(netstack) = params.netstack {

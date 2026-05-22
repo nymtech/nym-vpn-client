@@ -175,20 +175,9 @@ impl NymVpnService for CommandInterface {
 
     async fn set_enable_lewes_protocol(
         &self,
-        request: tonic::Request<bool>,
+        _request: tonic::Request<bool>,
     ) -> Result<tonic::Response<()>> {
-        let enable_lewes_protocol = request.into_inner();
-
-        let _ = self
-            .send_and_wait(
-                VpnServiceCommand::SetEnableLewesProtocol,
-                enable_lewes_protocol,
-            )
-            .await
-            .map_err(|e| {
-                tonic::Status::internal(format!("Failed to set lewes-protocol config: {e}"))
-            })?;
-
+        // Lewes protocol is now always enabled; this RPC is kept for backwards compatibility.
         Ok(tonic::Response::new(()))
     }
 
