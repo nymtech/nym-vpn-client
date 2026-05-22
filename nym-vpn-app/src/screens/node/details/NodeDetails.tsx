@@ -45,12 +45,14 @@ function NodeDetails() {
     entryNode,
     exitNode,
     quic: quicSetting,
+    algoConfig,
   } = useAppStore(
     useShallow((s) => ({
       backendFlags: s.backendFlags,
       entryNode: s.entryNode,
       exitNode: s.exitNode,
       quic: s.quic,
+      algoConfig: s.gatewaySelectionAlgorithmConfig,
     })),
   );
   const location = useLocation() as H.Location<RouteState>;
@@ -117,6 +119,27 @@ function NodeDetails() {
         type: 'set-node',
         payload: { hop, node },
       });
+      // Mirror of Node.tsx: picking an exit while in 'auto' flips us into
+      // 'autoEntryExplicitExit'. Keep both in sync.
+      if (hop === 'exit' && algoConfig.gatewaySelectionAlgorithm === 'auto') {
+        try {
+          await invoke('set_gateway_selection_algorithm', {
+            algorithm: 'autoEntryExplicitExit',
+          });
+          dispatch({
+            type: 'set-gateway-selection-algorithm-config',
+            config: {
+              ...algoConfig,
+              gatewaySelectionAlgorithm: 'autoEntryExplicitExit',
+            },
+          });
+        } catch (error: unknown) {
+          console.error(
+            'failed to set gateway selection algorithm to [autoEntryExplicitExit]',
+            error,
+          );
+        }
+      }
     } catch {
       add({
         id: 'node-select-error',
