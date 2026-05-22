@@ -9,7 +9,7 @@ use crate::{
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
         NextAccountControllerState, OfflineState, PendingSubscriptionState,
-        PrivateAccountControllerState, ReadyState,
+        PrivateAccountControllerState,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -25,7 +25,7 @@ use nym_vpn_lib_types::{
 use requesting_zknym_state::RequestingZkNymsState;
 use tokio::sync::mpsc;
 use tokio_util::sync::{CancellationToken, DropGuard};
-use tracing::{debug, warn};
+use tracing::warn;
 
 pub(super) mod requesting_zknym_state;
 
@@ -266,19 +266,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
                         }
                     }
                     SyncEvent::Finished => {
-                        if let Ok(true) =
-                            // If we already have sufficient tickets skip to ready state.
-                            // tickets should be handled by top-up after once connected.
-                            shared_state
-                                .credential_storage
-                                .is_all_ticket_types_above_minimal_threshold().await {
-
-                            debug!("proceeding with existing tickets");
-                            NextAccountControllerState::NewState(ReadyState::enter())
-                        } else {
-                            NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, false))
-                        }
-
+                        NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, false))
                     }
                 }
             }
