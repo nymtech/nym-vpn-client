@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix panic when restoring default routes (https://github.com/nymtech/nym-vpn-client/pull/5225)
 - Fix adblocker deactivation caused by remote returning embedded HTTP errors (https://github.com/nymtech/nym-vpn-client/pull/5302)
+- Don't reuse entry gateway when registering fails (https://github.com/nymtech/nym-vpn-client/pull/5379)
 
 
 ## [1.29.2] - 2026-05-04

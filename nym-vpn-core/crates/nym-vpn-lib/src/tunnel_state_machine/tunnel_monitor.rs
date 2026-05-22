@@ -155,6 +155,9 @@ pub enum TunnelMonitorEvent {
     /// Registering with gateways
     RegisteringWithGateways,
 
+    /// Registration with gateways failed
+    RegistrationFailed,
+
     /// Finished gateway registration
     RegisteredWithGateways {
         /// Connection data
@@ -491,7 +494,9 @@ impl TunnelMonitor {
         let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
 
         let registration_client = Box::pin(rc_builder.build()).await?;
-        let registration_result = Box::pin(registration_client.register()).await?;
+        let registration_result = Box::pin(registration_client.register())
+            .await
+            .inspect_err(|_| self.send_event(TunnelMonitorEvent::RegistrationFailed))?;
 
         // Send event upon successful gateway registration
         // The receiver should handle the event and add firewall exceptions for entry gateway
