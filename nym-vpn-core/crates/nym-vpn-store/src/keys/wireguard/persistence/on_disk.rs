@@ -6,6 +6,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use nym_sqlx_pool_guard::SqlitePoolGuard;
 use sqlx::{
     ConnectOptions,
     sqlite::{SqliteAutoVacuum, SqliteSynchronous},
@@ -22,7 +23,7 @@ use crate::{
 
 #[derive(Debug, Clone)]
 pub struct OnDiskKeys {
-    connection_pool: sqlx::SqlitePool,
+    connection_pool: SqlitePoolGuard,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -104,22 +105,27 @@ impl OnDiskKeys {
             .create_if_missing(true)
             .disable_statement_logging();
 
-        let connection_pool = sqlx::SqlitePool::connect_with(opts)
-            .await
-            .map_err(|source| {
-                tracing::error!("Failed to connect to SQLx database: {source}");
-                OnDiskKeysError::DatabaseConnectionError { source }
-            })?;
+        let connection_pool = SqlitePoolGuard::new(
+            sqlx::SqlitePool::connect_with(opts)
+                .await
+                .map_err(|source| {
+                    tracing::error!("Failed to connect to SQLx database: {source}");
+                    OnDiskKeysError::DatabaseConnectionError { source }
+                })?,
+        );
 
-        sqlx::migrate!("./migrations")
-            .run(&connection_pool)
-            .await
-            .inspect_err(|err| {
-                tracing::error!("Failed to initialize SQLx database: {err}");
-            })?;
+        if let Err(err) = sqlx::migrate!("./migrations").run(&*connection_pool).await {
+            tracing::error!("Failed to initialize SQLx database: {err}");
+            connection_pool.close().await;
+            return Err(err.into());
+        }
 
         tracing::debug!("Database migration finished!");
         Ok(OnDiskKeys { connection_pool })
+    }
+
+    pub async fn close(&self) {
+        self.connection_pool.close().await;
     }
 
     pub(crate) async fn get_keys(
@@ -128,7 +134,7 @@ impl OnDiskKeys {
     ) -> Result<Option<RawWireguardKeys>, sqlx::Error> {
         sqlx::query_as("SELECT * FROM wireguard_gateway_keys WHERE gateway_id_bs58 = ?")
             .bind(gateway_id)
-            .fetch_optional(&self.connection_pool)
+            .fetch_optional(&*self.connection_pool)
             .await
     }
 
@@ -152,7 +158,7 @@ impl OnDiskKeys {
             keys.expiration_time,
             keys.gateway_id_bs58,
         )
-        .execute(&self.connection_pool)
+        .execute(&*self.connection_pool)
         .await?;
         Ok(())
     }
@@ -163,7 +169,7 @@ impl OnDiskKeys {
                 DELETE FROM wireguard_gateway_keys;
             "#,
         )
-        .execute(&self.connection_pool)
+        .execute(&*self.connection_pool)
         .await?;
         Ok(())
     }

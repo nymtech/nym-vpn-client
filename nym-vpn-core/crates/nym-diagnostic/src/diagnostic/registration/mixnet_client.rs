@@ -144,7 +144,13 @@ impl MixnetClientRegistration {
 
         tracing::info!("Registering...");
 
-        match Self::wireguard_registration(mixnet_client, &registration_config).await {
+        let registration_result =
+            Self::wireguard_registration(mixnet_client, &registration_config).await;
+        // Explicitly close the credential storage before registration_config is dropped so
+        // that the underlying SQLite pool releases OS file handles promptly (Windows).
+        registration_config.bandwidth_provider.close().await;
+
+        match registration_result {
             Ok(response) => {
                 registration_report.mixnet_based_dvpn_registration =
                     Some(DiagnosticResult::from_value((&response).into()));

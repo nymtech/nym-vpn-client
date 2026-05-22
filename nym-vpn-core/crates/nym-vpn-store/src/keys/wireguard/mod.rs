@@ -41,6 +41,13 @@ impl WireguardKeysDb {
         };
         Ok(db)
     }
+
+    pub async fn close(&self) {
+        match self {
+            WireguardKeysDb::OnDisk(on_disk_keys) => on_disk_keys.close().await,
+            WireguardKeysDb::Ephemeral(_) => {}
+        }
+    }
 }
 
 #[async_trait::async_trait]

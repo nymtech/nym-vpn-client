@@ -16,6 +16,7 @@ async-trait.workspace = true
 bip39 = { workspace = true, features = ["zeroize"] }
 nym-crypto = { workspace = true, features = ["rand", "asymmetric", "serde"] }
 nym-pemstore.workspace = true
+nym-sqlx-pool-guard.workspace = true
 rand.workspace = true
 rand_chacha.workspace = true
 serde = { workspace = true, features = ["derive"] }

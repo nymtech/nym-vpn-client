@@ -9,8 +9,7 @@ use crate::{
 use nym_http_api_client::{Client, ClientBuilder, FrontPolicy, Url};
 use nym_platform_metadata::new_user_agent;
 use nym_validator_client::nym_api::NymApiClientExt;
-use nym_vpn_api_client::VpnApiClient;
-use nym_vpn_api_client::api_urls_to_urls;
+use nym_vpn_api_client::{VpnApiClient, api_urls_to_urls};
 use nym_vpn_lib_types::{
     ApiTimeSkew, ApiUrl, DiagnosticEndpointResponse, DiagnosticResult, HttpReport,
 };

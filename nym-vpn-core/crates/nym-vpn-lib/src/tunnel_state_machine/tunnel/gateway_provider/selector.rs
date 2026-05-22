@@ -308,7 +308,7 @@ pub async fn select_gateways(
     blacklisted_entry_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     device_location: Option<Location>,
-    wg_keys_db: WireguardKeysDb,
+    wg_keys_db: &WireguardKeysDb,
 ) -> Result<SelectedGateways, GatewayProviderError> {
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
@@ -504,7 +504,7 @@ mod tests {
             &BlacklistedGateways::new(),
             &settings,
             None,
-            WireguardKeysDb::Ephemeral(Default::default()),
+            &WireguardKeysDb::Ephemeral(Default::default()),
         )
         .await;
 
@@ -533,7 +533,7 @@ mod tests {
             &BlacklistedGateways::new(),
             &settings,
             None,
-            WireguardKeysDb::Ephemeral(Default::default()),
+            &WireguardKeysDb::Ephemeral(Default::default()),
         )
         .await;
 
@@ -561,7 +561,7 @@ mod tests {
             &BlacklistedGateways::new(),
             &settings,
             None,
-            WireguardKeysDb::Ephemeral(Default::default()),
+            &WireguardKeysDb::Ephemeral(Default::default()),
         )
         .await;
 
