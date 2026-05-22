@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.11.0] - TBD
+
 ### Added
 
 - Node family restriction and possibility to check for probable gateway selection before connection (https://github.com/nymtech/nym-vpn-client/pull/5285)
