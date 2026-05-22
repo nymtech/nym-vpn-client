@@ -223,7 +223,6 @@ impl TryFrom<&nym_vpn_lib_types::VpnServiceConfig> for VpnServiceConfigExt {
             disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
             enable_bridges: value.enable_bridges,
-            enable_lewes_protocol: value.enable_lewes_protocol,
             enable_ad_blocking: value.enable_ad_blocking,
             fronting_mode,
             netstack: value.netstack,

@@ -43,7 +43,6 @@ pub struct VpnServiceConfig {
     pub disable_ipv6: bool,
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
-    pub enable_lewes_protocol: bool,
     pub enable_ad_blocking: bool,
     pub fronting_mode: FrontingMode,
     pub netstack: bool,
@@ -73,8 +72,8 @@ impl fmt::Display for VpnServiceConfig {
         )?;
         writeln!(
             f,
-            "enable_lewes_protocol: {}, enable_ad_blocking: {}, netstack: {}",
-            self.enable_lewes_protocol, self.enable_ad_blocking, self.netstack
+            "enable_ad_blocking: {}, netstack: {}",
+            self.enable_ad_blocking, self.netstack
         )?;
 
         writeln!(
@@ -116,7 +115,6 @@ impl Default for VpnServiceConfig {
             disable_ipv6: false,
             enable_two_hop: true,
             enable_bridges: false,
-            enable_lewes_protocol: false,
             enable_ad_blocking: false,
             fronting_mode: FrontingMode::default(),
             netstack: false,

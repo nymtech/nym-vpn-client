@@ -97,7 +97,6 @@ pub enum VpnServiceCommand {
     SetNetstack(oneshot::Sender<()>, bool),
     SetAllowLan(oneshot::Sender<()>, bool),
     SetEnableBridges(oneshot::Sender<()>, bool),
-    SetEnableLewesProtocol(oneshot::Sender<()>, bool),
     SetEnableAdBlocking(oneshot::Sender<()>, bool),
     SetFrontingMode(oneshot::Sender<()>, nym_vpn_lib_types::FrontingMode),
     SetResidentialExit(oneshot::Sender<()>, bool),
@@ -974,11 +973,6 @@ impl NymVpnService {
                 self.handle_set_enable_two_hop(enable_two_hop).await;
                 let _ = tx.send(());
             }
-            VpnServiceCommand::SetEnableLewesProtocol(tx, enable_lewes_protocol) => {
-                self.handle_set_enable_lewes_protocol(enable_lewes_protocol)
-                    .await;
-                let _ = tx.send(());
-            }
             VpnServiceCommand::SetEnableAdBlocking(tx, enable_ad_blocking) => {
                 self.handle_set_enable_ad_blocking(enable_ad_blocking).await;
                 let _ = tx.send(());
@@ -1320,13 +1314,6 @@ impl NymVpnService {
 
     async fn handle_set_enable_bridges(&mut self, enable_bridges: bool) {
         self.config_manager.set_enable_bridges(enable_bridges).await;
-        self.update_tunnel_settings_with_throttle();
-    }
-
-    async fn handle_set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
-        self.config_manager
-            .set_enable_lewes_protocol(enable_lewes_protocol)
-            .await;
         self.update_tunnel_settings_with_throttle();
     }
 

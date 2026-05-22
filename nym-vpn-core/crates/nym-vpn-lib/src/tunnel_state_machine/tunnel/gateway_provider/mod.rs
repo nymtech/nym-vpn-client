@@ -298,7 +298,6 @@ pub mod tests {
             allow_lan: false,
             enable_ad_blocking: false,
             residential_exit: false,
-            enable_lewes_protocol: false,
             mixnet_tunnel_options: Default::default(),
             wireguard_tunnel_options: Default::default(),
             gateway_performance_options: Default::default(),

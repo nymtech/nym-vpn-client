@@ -158,13 +158,6 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_enable_lewes_protocol(&mut self, enable_lewes_protocol: bool) {
-        if self.config.enable_lewes_protocol != enable_lewes_protocol {
-            self.config.enable_lewes_protocol = enable_lewes_protocol;
-            self.save_config_and_send_event().await;
-        }
-    }
-
     pub async fn set_enable_ad_blocking(&mut self, enable_ad_blocking: bool) {
         if self.config.enable_ad_blocking != enable_ad_blocking {
             self.config.enable_ad_blocking = enable_ad_blocking;
@@ -528,7 +521,6 @@ impl VpnServiceConfigManager {
             enable_ad_blocking: self.config.enable_ad_blocking,
             residential_exit: self.config.residential_exit,
             tunnel_type,
-            enable_lewes_protocol: self.config.enable_lewes_protocol,
             mixnet_tunnel_options: MixnetTunnelOptions { mtu: None },
             wireguard_tunnel_options: WireguardTunnelOptions {
                 #[cfg(not(any(target_os = "android", target_os = "ios")))]

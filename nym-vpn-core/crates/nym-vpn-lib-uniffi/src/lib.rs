@@ -252,7 +252,6 @@ pub struct VPNConfig {
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,
     pub enable_bridges: bool,
-    pub enable_lewes_protocol: bool,
     pub residential_exit: bool,
     pub enable_ad_blocking: bool,
 
@@ -287,7 +286,6 @@ impl VPNConfig {
             disable_ipv6: false,
             enable_two_hop: self.enable_two_hop,
             enable_bridges: self.enable_bridges,
-            enable_lewes_protocol: self.enable_lewes_protocol,
 
             enable_ad_blocking: self.enable_ad_blocking,
             fronting_mode: self.fronting_mode,
