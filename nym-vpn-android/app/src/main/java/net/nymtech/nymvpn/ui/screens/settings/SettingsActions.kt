@@ -17,7 +17,6 @@ data class SettingsActions(
 	val onAdBlockingEnable: (enabled: Boolean) -> Unit = {},
 	val onSupportIPv6Enable: (enabled: Boolean) -> Unit = {},
 	val onAutoselectServerEnable: (enabled: Boolean) -> Unit = {},
-	val onLewesEnable: (enabled: Boolean) -> Unit = {},
 	val onKillSwitchClick: () -> Unit = {},
 	val onCensorshipClick: () -> Unit = {},
 	val onDnsClick: () -> Unit = {},

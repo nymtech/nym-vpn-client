@@ -21,7 +21,6 @@ data class CoreVpnConfig(
 	val network: Tunnel.Environment = Tunnel.Environment.MAINNET,
 	val debugLog: Boolean = false,
 	val sentry: Boolean = false,
-	val lewes: Boolean = false,
 	val adBlockingEnabled: Boolean = false,
 	val stealthMode: Boolean = false,
 	val algorithm: GatewaySelectionAlgorithm = GatewaySelectionAlgorithm.AUTO,

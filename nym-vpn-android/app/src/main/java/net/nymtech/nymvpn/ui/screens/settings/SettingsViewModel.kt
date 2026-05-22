@@ -62,15 +62,6 @@ class SettingsViewModel @Inject constructor(
 		}
 	}
 
-	fun onLewesProtocolSelected(selected: Boolean) = viewModelScope.launch {
-		runCatching {
-			notifyReconnectIfConnected()
-			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetLewes(selected))
-		}.onFailure {
-			Timber.e(it, "Failed to update Lewes setting")
-		}
-	}
-
 	fun onAdBlockingSelected(selected: Boolean) = viewModelScope.launch {
 		runCatching {
 			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetAdBlockingEnabled(selected))
