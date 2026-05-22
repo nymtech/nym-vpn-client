@@ -101,7 +101,6 @@ class VpnCoreController(
 				userAgent = currentUserAgent,
 				useMainnetFallback = false,
 				mixnetParamConfig = null,
-				enableLewesProtocol = savedConfig.lewes,
 				adBlockingEnabled = savedConfig.adBlockingEnabled,
 				stealthMode = savedConfig.stealthMode,
 			)
@@ -121,7 +120,6 @@ class VpnCoreController(
 				userAgent = ua,
 				useMainnetFallback = false,
 				mixnetParamConfig = req.mixnetParamConfig,
-				enableLewesProtocol = config.lewes,
 				adBlockingEnabled = config.adBlockingEnabled,
 				stealthMode = config.stealthMode,
 			)
@@ -181,7 +179,6 @@ class VpnCoreController(
 				userAgent = ua,
 				useMainnetFallback = false,
 				mixnetParamConfig = null,
-				enableLewesProtocol = cfg.lewes,
 				adBlockingEnabled = cfg.adBlockingEnabled,
 				stealthMode = cfg.stealthMode,
 			)
@@ -313,7 +310,6 @@ class VpnCoreController(
 		userAgent: UserAgent,
 		useMainnetFallback: Boolean,
 		mixnetParamConfig: MixnetTrafficConfig?,
-		enableLewesProtocol: Boolean,
 		adBlockingEnabled: Boolean,
 		stealthMode: Boolean,
 	) {
@@ -351,7 +347,6 @@ class VpnCoreController(
 			enableTwoHop = false,
 			enableBridges = false,
 			frontingMode = if (stealthMode) FrontingMode.ALWAYS else FrontingMode.ON_RETRY,
-			enableLewesProtocol = enableLewesProtocol,
 			customDns = emptyList(),
 			residentialExit = false,
 			enableAdBlocking = adBlockingEnabled,
