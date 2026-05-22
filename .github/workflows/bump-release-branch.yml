@@ -1,4 +1,4 @@
-name: bump-core-final-release
+name: bump-release-branch
 
 on:
   workflow_dispatch:
