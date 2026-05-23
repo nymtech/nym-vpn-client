@@ -343,6 +343,14 @@ async fn main() -> Result<()> {
             account::get_autologin_deeplink,
             account::get_account_summary,
             account::handle_subscription_payment,
+            #[cfg(target_os = "linux")]
+            account::create_local_account,
+            #[cfg(target_os = "linux")]
+            account::register_anonymous_account,
+            #[cfg(target_os = "linux")]
+            account::get_stored_mnemonic,
+            #[cfg(target_os = "linux")]
+            account::confirm_mnemonic_backup,
             cmd_daemon::daemon_status,
             cmd_daemon::set_network,
             cmd_daemon::system_messages,

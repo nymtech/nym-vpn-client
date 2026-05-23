@@ -7,7 +7,19 @@ use crate::vpnd::account::{AutologinResponse, StoredAccountMode};
 use crate::vpnd::account_links::AccountLinks;
 use crate::vpnd::deeplink::DeeplinkKind;
 use crate::vpnd::tunnel::TunnelState;
-use crate::{error::BackendError, vpnd::client::VpndClient};
+use crate::{error::{BackendError, ErrorKey}, vpnd::client::VpndClient};
+
+#[cfg(target_os = "linux")]
+use crate::vpnd::error::VpndError;
+
+#[cfg(target_os = "linux")]
+fn is_permission_denied(err: &VpndError) -> bool {
+    use nym_vpn_proto::rpc_client::Error as RpcError;
+    matches!(
+        err,
+        VpndError::RpcClient(RpcError::Rpc(status)) if status.code() == tonic::Code::PermissionDenied
+    )
+}
 
 #[instrument(skip_all)]
 #[tauri::command]
@@ -215,6 +227,66 @@ pub async fn get_account_summary(
 pub async fn handle_subscription_payment(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {
     vpnd.handle_subscription_payment().await.map_err(|e| {
         error!("failed to handle subscription payment: {e}");
+        e.into()
+    })
+}
+
+#[cfg(target_os = "linux")]
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn create_local_account(
+    vpnd: State<'_, VpndClient>,
+    app_state: State<'_, SharedAppState>,
+) -> Result<(), BackendError> {
+    let state = app_state.lock().await;
+    if !matches!(state.tunnel, TunnelState::Disconnected) {
+        return Err(BackendError::internal(
+            &format!("cannot create account from state {}", state.tunnel),
+            None,
+        ));
+    };
+    drop(state);
+
+    vpnd.create_account().await.map_err(|e| {
+        error!("failed to create local account: {e}");
+        e.into()
+    })
+}
+
+#[cfg(target_os = "linux")]
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn register_anonymous_account(
+    vpnd: State<'_, VpndClient>,
+) -> Result<(), BackendError> {
+    vpnd.register_anonymous_account().await.map_err(|e| {
+        error!("failed to register anonymous account: {e}");
+        e.into()
+    })
+}
+
+#[cfg(target_os = "linux")]
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn get_stored_mnemonic(vpnd: State<'_, VpndClient>) -> Result<String, BackendError> {
+    vpnd.get_stored_mnemonic().await.map_err(|e| {
+        if is_permission_denied(&e) {
+            BackendError::new("polkit authentication failed", ErrorKey::MnemonicRevealDenied)
+        } else {
+            error!("failed to get stored mnemonic: {e}");
+            e.into()
+        }
+    })
+}
+
+#[cfg(target_os = "linux")]
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn confirm_mnemonic_backup(
+    vpnd: State<'_, VpndClient>,
+) -> Result<(), BackendError> {
+    vpnd.confirm_mnemonic_backup().await.map_err(|e| {
+        error!("failed to confirm mnemonic backup: {e}");
         e.into()
     })
 }

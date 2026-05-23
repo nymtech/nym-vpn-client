@@ -147,6 +147,12 @@ pub enum ErrorKey {
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
     GetWgCountriesQuery,
+    // Mnemonic reveal was denied (polkit authentication cancelled or refused)
+    MnemonicRevealDenied,
+    // Mnemonic is not available (no account stored, or backup not yet confirmed)
+    // Not yet used on the Rust side but exported to the frontend via ts-rs
+    #[allow(dead_code)]
+    MnemonicNotAvailable,
 }
 
 impl From<GatewayType> for ErrorKey {

@@ -97,6 +97,7 @@ procfs = "0.18.0"
 freedesktop-desktop-entry = "0.8"
 freedesktop-icons = "0.4"
 notify = "6.1"
+tonic = "0.14.6"
 
 [profile.release]
 codegen-units = 1
