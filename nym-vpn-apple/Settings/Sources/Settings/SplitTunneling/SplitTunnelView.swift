@@ -45,7 +45,7 @@ public struct SplitTunnelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
         .overlay {
@@ -185,7 +185,7 @@ private extension SplitTunnelView {
         let third = AttributedString("splitTunnel.systemSettings".localizedString)
         let forth = AttributedString("splitTunnel.enableSystemSettings".localizedString)
         second.underlineStyle = .single
-        second.foregroundColor = Color.Nym.primary
+        second.foregroundColor = Color.Nym.brandPrimary
         second.link = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
         return first + AttributedString("\n") + second + AttributedString(" ") + third + AttributedString(" ") + forth
     }
@@ -205,7 +205,7 @@ private extension SplitTunnelView {
                     .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.Nym.backgroundCard)
+                            .fill(Color.Nym.surfaceElev)
                     )
                     .id(section.id)
 
@@ -213,7 +213,7 @@ private extension SplitTunnelView {
                         appCell(for: app)
                     }
                 }
-                .background(Color.Nym.background)
+                .background(Color.Nym.surfaceBg)
             }
         }
     }
@@ -254,7 +254,7 @@ private extension SplitTunnelView {
             Spacer()
                 .frame(height: 12)
         }
-        .background(Color.Nym.background)
+        .background(Color.Nym.surfaceBg)
         .clipShape(Rectangle())
     }
 
@@ -265,11 +265,11 @@ private extension SplitTunnelView {
                     if isEnabled {
                         Color.clear
                     } else {
-                        Color.Nym.error.opacity(0.10)
+                        Color.Nym.statusError.opacity(0.10)
                     }
                     Image(systemName: "slash.circle.fill")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isEnabled ? Color.Nym.textSecondary : Color.Nym.error)
+                        .foregroundStyle(isEnabled ? Color.Nym.textSecondary : Color.Nym.statusError)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -279,18 +279,18 @@ private extension SplitTunnelView {
 
                 ZStack {
                     if isEnabled {
-                        Color.Nym.primary.opacity(0.10)
+                        Color.Nym.brandPrimary.opacity(0.10)
                     } else {
                         Color.clear
                     }
                     Image(systemName: "shield.fill")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isEnabled ? Color.Nym.primary : Color.Nym.textSecondary)
+                        .foregroundStyle(isEnabled ? Color.Nym.brandPrimary : Color.Nym.textSecondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(width: 84, height: 24)
-            .background(Color.Nym.backgroundCard)
+            .background(Color.Nym.surfaceElev)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)

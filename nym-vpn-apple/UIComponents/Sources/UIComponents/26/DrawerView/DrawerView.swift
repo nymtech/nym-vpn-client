@@ -31,7 +31,7 @@ public struct DrawerView<Tag: Hashable, Content: View>: View {
     public var body: some View {
         content()
             .frame(maxWidth: .infinity)
-            .background(Color.Nym.backgroundCard)
+            .background(Color.Nym.surfaceElev)
             .clipShape(RoundedRectangle(cornerRadius: NymSpacing.section))
             .frame(maxWidth: NymSpacing.drawerMaxWidth)
             .padding(.horizontal, NymSpacing.standard)

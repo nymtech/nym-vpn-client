@@ -269,11 +269,11 @@ private extension SettingsViewModel {
                 }
             } else if accountSummary.subscription?.status == .pending {
                 var confirmingPayment = AttributedString("confirmingPayment".localizedString)
-                confirmingPayment.foregroundColor = Color.Nym.error
+                confirmingPayment.foregroundColor = Color.Nym.statusError
                 subtitle = confirmingPayment
             } else {
                 var first = AttributedString("noActivePlan".localizedString)
-                first.foregroundColor = Color.Nym.error
+                first.foregroundColor = Color.Nym.statusError
                 subtitle = first
             }
         } else {

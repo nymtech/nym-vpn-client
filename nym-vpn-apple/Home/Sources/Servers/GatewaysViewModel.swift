@@ -63,6 +63,47 @@ import UIComponents
     }
 }
 
+// MARK: - Selection apply -
+extension GatewaysViewModel {
+    func applyEntrySelection(_ entry: EntryGateway) {
+        connectionManager.setEntryGateway(entry)
+    }
+
+    func applyExitBestServerTap() {
+        let cfg = connectionManager.connectionConfig
+        connectionManager.setExitGateway(.random)
+        if cfg.gatewaySelectionAlgorithmConfig.algorithm != .auto {
+            connectionManager.setGatewaySelectionAlgorithm(
+                NymGatewaySelectionAlgorithmConfig(
+                    enableGeoLocation: cfg.gatewaySelectionAlgorithmConfig.enableGeoLocation,
+                    algorithm: .auto
+                )
+            )
+        }
+    }
+
+    func applyExitRandomTap() {
+        let cfg = connectionManager.connectionConfig
+        let inAutoTab: Bool
+        switch cfg.gatewaySelectionAlgorithmConfig.algorithm {
+        case .auto, .autoEntryExplicitExit:
+            inAutoTab = true
+        case .explicit:
+            inAutoTab = false
+        }
+        if inAutoTab {
+            let geo = cfg.gatewaySelectionAlgorithmConfig.enableGeoLocation
+            connectionManager.setGatewaySelectionAlgorithm(
+                NymGatewaySelectionAlgorithmConfig(enableGeoLocation: geo, algorithm: .explicit)
+            )
+            if !cfg.enableTwoHop {
+                connectionManager.setTwoHop(true)
+            }
+        }
+        connectionManager.setExitGateway(.random)
+    }
+}
+
 extension GatewaysViewModel {
     func gatewaysInCountry(with countryCode: String) -> [GatewayNode] {
         gateways.filter {

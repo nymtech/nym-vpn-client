@@ -21,10 +21,10 @@ extension AccountAndDevicesView {
             } else {
                 accountStatusInactive()
                 sectionDivider()
-                renewNowRow(color: Color.Nym.error, isVisible: true)
+                renewNowRow(color: Color.Nym.statusError, isVisible: true)
             }
         }
-        .background(Color.Nym.backgroundCard)
+        .background(Color.Nym.surfaceElev)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
@@ -32,17 +32,17 @@ extension AccountAndDevicesView {
         VStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.Nym.error.opacity(0.1))
+                    .fill(Color.Nym.statusError.opacity(0.1))
                     .frame(width: 56, height: 56)
                 Circle()
-                    .stroke(Color.Nym.error, lineWidth: 1)
+                    .stroke(Color.Nym.statusError, lineWidth: 1)
                     .frame(width: 56, height: 56)
                 GenericImage(systemImageName: "xmark.circle")
                     .frame(width: 24, height: 24)
-                    .foregroundStyle(Color.Nym.error)
+                    .foregroundStyle(Color.Nym.statusError)
             }
             Text("settings.account.noActivePlan".localizedString)
-                .foregroundStyle(Color.Nym.error)
+                .foregroundStyle(Color.Nym.statusError)
                 .nymTextStyle(.bodyLarge)
         }
         .frame(maxWidth: .infinity)
@@ -72,7 +72,7 @@ extension AccountAndDevicesView {
         VStack(spacing: 8) {
             HStack {
                 Text("settings.account.bandwidthUsed".localizedString)
-                    .foregroundStyle(Color.Nym.primary)
+                    .foregroundStyle(Color.Nym.brandPrimary)
                     .nymTextStyle(.bodySmall)
                 Spacer()
                 Text("settings.account.bandwidthLimit".localizedString)
@@ -83,12 +83,12 @@ extension AccountAndDevicesView {
             bandwidthProgressBar(
                 used: accountSummary.trafficUsedGb,
                 limit: accountSummary.trafficLimitGb,
-                color: Color.Nym.primary
+                color: Color.Nym.brandPrimary
             )
 
             HStack {
                 Text(bandwidthUsedText(used: accountSummary.trafficUsedGb))
-                    .foregroundStyle(Color.Nym.primary)
+                    .foregroundStyle(Color.Nym.brandPrimary)
                     .nymTextStyle(.bodySmall)
                 Spacer()
                 Text(bandwidthLimitText(limit: accountSummary.trafficLimitGb))
@@ -142,7 +142,7 @@ extension AccountAndDevicesView {
     func sectionDivider() -> some View {
         Divider()
             .frame(height: 1)
-            .overlay(Color.Nym.divider)
+            .overlay(Color.Nym.surfaceHair)
     }
 
     func bandwidthProgressBar(used: Int?, limit: Int?, color: Color) -> some View {

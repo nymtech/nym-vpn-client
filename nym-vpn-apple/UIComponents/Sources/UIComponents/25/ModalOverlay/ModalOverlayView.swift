@@ -42,7 +42,7 @@ public struct ModalOverlayView<Content: View>: View {
                     .frame(width: horizontalPadding)
 
                 content
-                    .background(Color.Nym.backgroundCard)
+                    .background(Color.Nym.surfaceElev)
                     .cornerRadius(16)
 
                 Spacer()

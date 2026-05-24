@@ -13,7 +13,7 @@ public struct NymButton: View {
         var backgroundColor: Color {
             switch self {
             case .primary:
-                .Nym.primary
+                .Nym.brandPrimary
             case .connecting:
                 .Nym.gray1
             case .secondary,
@@ -27,16 +27,16 @@ public struct NymButton: View {
         var foregroundColor: Color {
             switch self {
             case .primary:
-                .Nym.black
+                .Nym.brandOnPrimary
             case .connecting:
                 .Nym.gray12
             case .secondary,
                  .textOnly:
-                .Nym.primary
+                .Nym.brandPrimary
             case .connected:
                 .Nym.textPrimary
             case .destructive:
-                .Nym.error
+                .Nym.statusError
             }
         }
 
@@ -45,9 +45,9 @@ public struct NymButton: View {
             case .primary, .textOnly, .connecting:
                 .clear
             case .secondary:
-                .Nym.primary
+                .Nym.brandPrimary
             case .destructive:
-                .Nym.error
+                .Nym.statusError
             case .connected:
                 .Nym.gray2
             }
@@ -184,6 +184,6 @@ private extension NymButton {
         NymButton("Disabled", style: .primary, isDisabled: true) {}
     }
     .padding(NymSpacing.section)
-    .background(Color.Nym.background)
+    .background(Color.Nym.surfaceBg)
 }
 #endif

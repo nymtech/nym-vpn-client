@@ -6,12 +6,14 @@ import UIComponents
 /// `ConnectionStatusFeatureView`.
 struct ConnectionStatusBackdrop: View {
     @State var viewModel: ConnectionStatusViewModel
+    var availableHeight: CGFloat?
 
     var body: some View {
         ArcProgressView(
             state: viewModel.arcProgressState,
             mode: viewModel.mode,
-            connectedDate: viewModel.connectedDate
+            connectedDate: viewModel.connectedDate,
+            availableHeight: availableHeight
         )
     }
 }

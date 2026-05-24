@@ -60,7 +60,7 @@ public struct AccountWelcomeView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
         .alert(alertTitle, isPresented: $isDisplayingAlert) {

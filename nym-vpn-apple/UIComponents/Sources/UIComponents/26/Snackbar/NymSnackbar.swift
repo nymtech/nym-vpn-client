@@ -145,10 +145,10 @@ private extension SnackbarItem.Style {
     var iconColor: Color {
         switch self {
         case .critical:     .white
-        case .confirmation: Color.Nym.success
+        case .confirmation: Color.Nym.statusSuccess
         case .neutral:      Color.Nym.snackbarText
-        case .negative:     Color.Nym.error
-        case .warning:      Color.Nym.warning
+        case .negative:     Color.Nym.statusError
+        case .warning:      Color.Nym.statusWarning
         }
     }
 
@@ -225,7 +225,7 @@ private struct NymSnackbarManagerModifier: ViewModifier {
 #if DEBUG
 #Preview("Critical (action)") {
     ZStack {
-        Color.Nym.background.ignoresSafeArea()
+        Color.Nym.surfaceBg.ignoresSafeArea()
         NymSnackbar(
             item: .init(
                 style: .critical,
@@ -244,7 +244,7 @@ private struct NymSnackbarManagerModifier: ViewModifier {
 
 #Preview("Confirmation") {
     ZStack {
-        Color.Nym.background.ignoresSafeArea()
+        Color.Nym.surfaceBg.ignoresSafeArea()
         NymSnackbar(
             item: .init(
                 style: .confirmation,
@@ -261,7 +261,7 @@ private struct NymSnackbarManagerModifier: ViewModifier {
 
 #Preview("Warning") {
     ZStack {
-        Color.Nym.background.ignoresSafeArea()
+        Color.Nym.surfaceBg.ignoresSafeArea()
         NymSnackbar(
             item: .init(
                 style: .warning,
@@ -277,7 +277,7 @@ private struct NymSnackbarManagerModifier: ViewModifier {
 
 #Preview("Neutral (action)") {
     ZStack {
-        Color.Nym.background.ignoresSafeArea()
+        Color.Nym.surfaceBg.ignoresSafeArea()
         NymSnackbar(
             item: .init(
                 style: .neutral,
@@ -296,7 +296,7 @@ private struct NymSnackbarManagerModifier: ViewModifier {
 
 #Preview("Negative (action)") {
     ZStack {
-        Color.Nym.background.ignoresSafeArea()
+        Color.Nym.surfaceBg.ignoresSafeArea()
         NymSnackbar(
             item: .init(
                 style: .negative,

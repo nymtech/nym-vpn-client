@@ -84,7 +84,7 @@ public struct GatewayCell: View {
                 }
         }
         .frame(minHeight: 64)
-        .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)
+        .background(isButtonHovered ? Color.Nym.surfaceBg.opacity(0.3) : Color.clear)
         .overlay {
             UnevenRoundedRectangle(
                 topLeadingRadius: 0,
@@ -93,7 +93,7 @@ public struct GatewayCell: View {
                 topTrailingRadius: 0
             )
             .inset(by: 0.5)
-            .stroke(isSelected ? Color.Nym.primary : .clear, lineWidth: 1)
+            .stroke(isSelected ? Color.Nym.brandPrimary : .clear, lineWidth: 1)
             .allowsHitTesting(false)
         }
         .animation(.default, value: isSelected)
