@@ -73,7 +73,7 @@ import Theme
 #endif
         .autologinOverlay(state: autologinState, onRetry: { navigateToAccount() })
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
         .overlay {
@@ -161,7 +161,7 @@ extension AccountAndDevicesView {
         let accountSummary = credentialsManager.accountSummary
         if accountSummary?.subscription?.status == .pending {
             var confirmingPayment = AttributedString("confirmingPayment".localizedString)
-            confirmingPayment.foregroundColor = Color.Nym.error
+            confirmingPayment.foregroundColor = Color.Nym.statusError
             return confirmingPayment
         } else {
             return credentialsManager.accountSummary?.planValidUntilAttributedString

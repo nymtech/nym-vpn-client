@@ -57,9 +57,9 @@ private extension CustomNavBar {
             return backgroundColorOverride
         }
         if useElevationBackground {
-            return Color.Nym.background
+            return Color.Nym.surfaceBg
         } else {
-            return Color.Nym.backgroundCard
+            return Color.Nym.surfaceElev
         }
     }
 }

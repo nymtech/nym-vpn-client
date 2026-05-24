@@ -76,7 +76,7 @@ private extension WelcomeView {
         Text(tosAttributedString)
             .nymTextStyle(.bodySmall)
             .foregroundStyle(Color.Nym.textSecondary)
-            .tint(Color.Nym.primary)
+            .tint(Color.Nym.brandPrimary)
             .multilineTextAlignment(.center)
     }
 
@@ -96,6 +96,6 @@ private extension WelcomeView {
 #if DEBUG
 #Preview {
     WelcomeView(onSignInTapped: {}, onSignUpTapped: {})
-        .background(Color.Nym.backgroundCard)
+        .background(Color.Nym.surfaceElev)
 }
 #endif

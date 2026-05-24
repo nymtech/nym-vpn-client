@@ -14,7 +14,7 @@ public struct GatewaysView: View {
     private var entryGatewayBinding: Binding<EntryGateway> {
         Binding(
             get: { viewModel.connectionManager.entryGateway },
-            set: { viewModel.connectionManager.setEntryGateway($0) }
+            set: { viewModel.applyEntrySelection($0) }
         )
     }
 
@@ -71,7 +71,7 @@ public struct GatewaysView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
         .overlay {
@@ -84,7 +84,9 @@ public struct GatewaysView: View {
         .onTapGesture {
             isSearchFocused = false
         }
-        .onAppear {
+        .task {
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            guard !Task.isCancelled else { return }
             isSearchFocused = true
         }
     }
@@ -94,9 +96,20 @@ private extension GatewaysView {
     func navbar() -> some View {
         CustomNavBar(
             title: viewModel.type.hopLocalizedTitle,
-            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateHome() }),
+            leftButton: CustomNavBarButton(type: .back, action: { navigateBack() }),
             rightButton: CustomNavBarButton(type: .info, action: { viewModel.displayInfoTooltip() })
         )
+    }
+
+    func navigateBack() {
+        if isSearchFocused {
+            isSearchFocused = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                viewModel.navigateHome()
+            }
+        } else {
+            viewModel.navigateHome()
+        }
     }
 
     @ViewBuilder
@@ -156,12 +169,36 @@ private extension GatewaysView {
     @ViewBuilder
     func randomRow() -> some View {
         if viewModel.searchText.count < viewModel.minimumSearchSymbols {
-            GatewayRandomCell(
-                type: viewModel.type,
-                path: $viewModel.path,
-                entryGateway: entryGatewayBinding,
-                exitRouter: exitRouterBinding
-            )
+            switch viewModel.type {
+            case .entry:
+                GatewayRandomCell(
+                    type: .entry,
+                    kind: .random,
+                    path: $viewModel.path,
+                    entryGateway: entryGatewayBinding,
+                    exitRouter: exitRouterBinding,
+                    algorithm: viewModel.connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm
+                )
+            case .exit:
+                GatewayRandomCell(
+                    type: .exit,
+                    kind: .bestServer,
+                    path: $viewModel.path,
+                    entryGateway: entryGatewayBinding,
+                    exitRouter: exitRouterBinding,
+                    algorithm: viewModel.connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm,
+                    onTap: { viewModel.applyExitBestServerTap() }
+                )
+                GatewayRandomCell(
+                    type: .exit,
+                    kind: .random,
+                    path: $viewModel.path,
+                    entryGateway: entryGatewayBinding,
+                    exitRouter: exitRouterBinding,
+                    algorithm: viewModel.connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm,
+                    onTap: { viewModel.applyExitRandomTap() }
+                )
+            }
         }
     }
 

@@ -29,7 +29,7 @@ public struct GatewayRegionCell: View {
                 ForEach(Array(servers.enumerated()), id: \.element.id) { index, server in
                     Divider()
                         .frame(height: 1)
-                        .overlay(Color.Nym.divider)
+                        .overlay(Color.Nym.surfaceHair)
                     GatewayCell(
                         server: server,
                         type: hopType,
@@ -122,7 +122,7 @@ private extension GatewayRegionCell {
         }
         .frame(height: 56)
         .padding(.leading, NymSpacing.medium)
-        .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)
+        .background(isButtonHovered ? Color.Nym.surfaceBg.opacity(0.3) : Color.clear)
         .overlay {
             let radius = isExpanded ? 0 : bottomCornerRadius
             UnevenRoundedRectangle(
@@ -132,7 +132,7 @@ private extension GatewayRegionCell {
                 topTrailingRadius: 0
             )
             .inset(by: 0.5)
-            .stroke(isRegionSelected ? Color.Nym.primary : .clear, lineWidth: 1)
+            .stroke(isRegionSelected ? Color.Nym.brandPrimary : .clear, lineWidth: 1)
             .allowsHitTesting(false)
         }
         .animation(.default, value: isRegionSelected)
@@ -144,7 +144,7 @@ private extension GatewayRegionCell {
     func chevron() -> some View {
         Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
             .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(isExpanded ? Color.Nym.primary : Color.Nym.textSecondary)
+            .foregroundStyle(isExpanded ? Color.Nym.brandPrimary : Color.Nym.textSecondary)
             .frame(width: 24, height: 24)
             .animation(.easeInOut(duration: 0.2), value: isExpanded)
     }

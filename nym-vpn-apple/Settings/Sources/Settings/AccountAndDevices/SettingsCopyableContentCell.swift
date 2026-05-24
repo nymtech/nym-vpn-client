@@ -36,7 +36,7 @@ public struct SettingsCopyableContentCell: View {
         }
         .frame(maxWidth: .infinity)
         .padding(16)
-        .background(Color.Nym.backgroundCard)
+        .background(Color.Nym.surfaceElev)
         .cornerRadius(8)
     }
 

@@ -142,8 +142,8 @@ extension AddCredentialsViewModel {
     @MainActor func configureError() {
         let error = error as? CredentialsManagerError
 
-        textFieldStrokeColor = error == .noError ? Color.Nym.gray2 : Color.Nym.error
-        credentialSubtitleColor = error == .noError ? Color.Nym.textPrimary : Color.Nym.error
+        textFieldStrokeColor = error == .noError ? Color.Nym.gray2 : Color.Nym.statusError
+        credentialSubtitleColor = error == .noError ? Color.Nym.textPrimary : Color.Nym.statusError
         bottomPadding = error != .noError ? 4 : 8
 
         errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)

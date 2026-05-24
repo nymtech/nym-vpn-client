@@ -45,16 +45,16 @@ private extension PinCodeView {
 
     func lockIcon() -> some View {
         RoundedRectangle(cornerRadius: 12)
-            .fill(Color.Nym.primary.opacity(0.15))
+            .fill(Color.Nym.brandPrimary.opacity(0.15))
             .frame(width: 56, height: 56)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.Nym.primary, lineWidth: 1)
+                    .stroke(Color.Nym.brandPrimary, lineWidth: 1)
             )
             .overlay(
                 GenericImage(systemImageName: "lock.fill")
                     .frame(width: 24, height: 24)
-                    .foregroundStyle(Color.Nym.primary)
+                    .foregroundStyle(Color.Nym.brandPrimary)
             )
     }
 
@@ -90,7 +90,7 @@ private extension PinCodeView {
                 ForEach(Array(digits.enumerated()), id: \.offset) { index, digit in
                     if index > 0 {
                         Circle()
-                            .fill(Color.Nym.primary)
+                            .fill(Color.Nym.brandPrimary)
                             .frame(width: 6, height: 6)
                             .padding(.horizontal, 8)
                     }

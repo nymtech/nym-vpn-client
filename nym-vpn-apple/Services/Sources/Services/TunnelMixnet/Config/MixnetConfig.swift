@@ -79,7 +79,7 @@ extension MixnetConfig {
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
             enableBridges: isQuicEnabled,
-            enableLewesProtocol: false,
+            enableLewesProtocol: true,
             residentialExit: false,
             enableAdBlocking: isAdBlockingEnabled,
             frontingMode: isStealthApiEnabled ? .always : .onRetry,

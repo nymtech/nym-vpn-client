@@ -144,7 +144,7 @@ private extension MixnetTuningView {
                 .nymTextStyle(.bodyDefault)
             Spacer()
             Text(subtitle)
-                .foregroundStyle(Color.Nym.primary)
+                .foregroundStyle(Color.Nym.brandPrimary)
                 .nymTextStyle(.bodyDefault)
         }
     }
@@ -190,7 +190,7 @@ private extension MixnetTuningView {
 
     @ViewBuilder var backgroundCoverTrafficSection: some View {
         Text("⚠️ \("mixnetTuning.sendTraffic.off".localizedString)")
-            .nymText(color: Color.Nym.warning, style: .Body.Small.regular)
+            .nymText(color: Color.Nym.statusWarning, style: .Body.Small.regular)
         Spacer()
             .frame(height: 16)
         Text("mixnetTuning.backgroundCoverTrafficState.title".localizedString)
@@ -217,7 +217,7 @@ private extension MixnetTuningView {
         Spacer()
             .frame(height: 16)
         Slider(value: $coverTrafficIndex, in: 0.0...Double(coverTrafficOptions.count - 1), step: 1)
-            .tint(Color.Nym.primary)
+            .tint(Color.Nym.brandPrimary)
             .accessibilityLabel("mixnetTuning.backgroundCoverTrafficState.title".localizedString)
             .accessibilityValue(coverTrafficAccessibilityValue)
             .accessibilityAdjustableAction { direction in
@@ -259,7 +259,7 @@ private extension MixnetTuningView {
         Spacer()
             .frame(height: 16)
         Slider(value: $continuousTrafficIndex, in: 0.0...Double(continuousTrafficOptions.count - 1), step: 1)
-            .tint(Color.Nym.primary)
+            .tint(Color.Nym.brandPrimary)
             .accessibilityLabel("mixnetTuning.sendTrafficContinously".localizedString)
             .accessibilityValue(continuousTrafficAccessibilityValue)
             .accessibilityAdjustableAction { direction in
@@ -292,7 +292,7 @@ private extension MixnetTuningView {
                 .frame(height: 16)
             if mixingDelayIndex == 0 {
                 Text("⚠️ \("mixnetTuning.mixingDelay.off".localizedString)")
-                    .nymText(color: Color.Nym.warning, style: .Body.Small.regular)
+                    .nymText(color: Color.Nym.statusWarning, style: .Body.Small.regular)
             } else {
                 Text("mixnetTuning.mixingDelay.on".localizedString)
                     .nymText(color: Color.Nym.textSecondary, style: .Body.Small.regular)
@@ -319,7 +319,7 @@ private extension MixnetTuningView {
             in: Double(mixnetDefaults.defaultMixingDelay().minValue)...Double(mixnetDefaults.defaultMixingDelay().maxValue),
             step: 1
         )
-            .tint(Color.Nym.primary)
+            .tint(Color.Nym.brandPrimary)
             .accessibilityLabel("mixnetTuning.mixingDelays".localizedString)
             .accessibilityValue(mixingDelayAccessibilityValue)
             .accessibilityAdjustableAction { direction in
@@ -341,11 +341,11 @@ private extension MixnetTuningView {
             Spacer()
             if mixingDelayIndex != Double(defaultDelay.defaultValue) {
                 Text("\("mixnetTuning.current".localizedString)\n \(Int(mixingDelayIndex)) ms")
-                    .nymText(color: Color.Nym.info, style: .Body.Medium.regular)
+                    .nymText(color: Color.Nym.statusInfo, style: .Body.Medium.regular)
                     .multilineTextAlignment(.center)
             } else {
                 Text("\("mixnetTuning.default".localizedString)\n\(defaultDelay.defaultValue) ms")
-                    .nymText(color: Color.Nym.info, style: .Body.Medium.regular)
+                    .nymText(color: Color.Nym.statusInfo, style: .Body.Medium.regular)
                     .multilineTextAlignment(.center)
             }
             Spacer()

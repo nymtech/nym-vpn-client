@@ -35,7 +35,7 @@ struct DiagnosticToolView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
     }
@@ -90,7 +90,7 @@ private extension DiagnosticToolView {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
-            .background(Color.Nym.backgroundCard)
+            .background(Color.Nym.surfaceElev)
             .cornerRadius(8)
         }
     }
