@@ -205,11 +205,12 @@ private extension AppFeatureView {
 
     @ViewBuilder var drawerColumn: some View {
         VStack(spacing: NymSpacing.medium) {
-            if viewModel.drawerTag == .oneClick {
+            if viewModel.drawerContent?.isOneClick == true {
                 speedModeSelector
             }
             drawer
         }
+        .animation(.spring, value: viewModel.drawerContent?.isOneClick == true)
     }
 
     var speedModeSelector: some View {

@@ -511,7 +511,8 @@ private extension OneClickViewModel {
             subtitle: subtitle,
             score: score(for: gateway),
             gateway: gateway,
-            hopType: hopType
+            hopType: hopType,
+            showsInfoButton: true
         ))
     }
 
@@ -528,12 +529,15 @@ private extension OneClickViewModel {
         let countryCode = gatewayManager.countryCode(with: entry)
             ?? gateway?.location?.twoLetterIsoCountryCode ?? ""
         let scoreGateway = scoreGateway(forEntry: entry, fallback: gateway, gatewayType: gatewayType)
+        let isExplicitGateway: Bool
+        if case .gateway = entry { isExplicitGateway = true } else { isExplicitGateway = false }
         return makePhase(
             title: title,
             subtitle: subtitle,
             countryCode: countryCode,
             scoreGateway: scoreGateway,
-            hopType: .entry
+            hopType: .entry,
+            showsInfoButton: isExplicitGateway
         )
     }
 
@@ -550,12 +554,15 @@ private extension OneClickViewModel {
         let countryCode = gatewayManager.countryCode(with: exit)
             ?? gateway?.location?.twoLetterIsoCountryCode ?? ""
         let scoreGateway = scoreGateway(forExit: exit, fallback: gateway, gatewayType: gatewayType)
+        let isExplicitGateway: Bool
+        if case .gateway = exit { isExplicitGateway = true } else { isExplicitGateway = false }
         return makePhase(
             title: title,
             subtitle: subtitle,
             countryCode: countryCode,
             scoreGateway: scoreGateway,
-            hopType: .exit
+            hopType: .exit,
+            showsInfoButton: isExplicitGateway
         )
     }
 
@@ -582,7 +589,8 @@ private extension OneClickViewModel {
         subtitle: String?,
         countryCode: String,
         scoreGateway: GatewayNode?,
-        hopType: HopType
+        hopType: HopType,
+        showsInfoButton: Bool = false
     ) -> OneClickSelectionPhase {
         if title.isEmpty && (subtitle?.isEmpty ?? true) {
             return .selecting
@@ -593,7 +601,8 @@ private extension OneClickViewModel {
             subtitle: subtitle,
             score: scoreGateway.map { score(for: $0) } ?? .offline,
             gateway: scoreGateway,
-            hopType: hopType
+            hopType: hopType,
+            showsInfoButton: showsInfoButton
         ))
     }
 
