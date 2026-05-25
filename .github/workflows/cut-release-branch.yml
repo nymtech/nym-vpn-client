@@ -34,10 +34,10 @@ concurrency:
 jobs:
   push-release-branch:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     outputs:
-      next_version: ${{ steps.next_version.outputs.next_version }}
+      major: ${{ steps.next_version.outputs.major }}
+      minor: ${{ steps.next_version.outputs.minor }}
+      patch: ${{ steps.next_version.outputs.patch }}
     steps:
       - name: Install cargo-get
         uses: baptiste0928/cargo-install@v3
@@ -92,8 +92,6 @@ jobs:
             ;;
           esac
 
-          NEXT_VERSION="$MAJOR.$MINOR.$PATCH-beta.1"
-
           echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
           echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
           echo "patch=$PATCH" >> "$GITHUB_OUTPUT"
@@ -121,11 +119,8 @@ jobs:
           fi
 
   bump-develop:
-    needs: push-release-branch
     uses: ./.github/workflows/bump-all-platforms.yml
-    permissions:
-      contents: write
-      pull-requests: write
+    needs: push-release-branch
     with:
       branch: develop
       major: ${{ needs.push-release-branch.outputs.major }}
