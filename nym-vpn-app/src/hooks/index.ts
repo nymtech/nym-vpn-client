@@ -15,3 +15,4 @@ export { default as useLogout } from './useLogout';
 export { default as useToast } from './useToast';
 
 export * from './useToast';
+export { useIsLinux } from './useIsLinux';
