@@ -5,7 +5,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { useCallback } from 'react';
 import { dispatch, useAppStore } from '../../../store';
 import { Button } from '../../../ui';
-import { useDeepLink } from '../../../hooks';
+import { useDeepLink, useIsLinux } from '../../../hooks';
 import { CCache } from '../../../cache';
 import { routes } from '../../../router';
 import { PrivyButton } from '../../../components';
@@ -16,6 +16,7 @@ export function Signup() {
   const technicalOptinSeen = useAppStore((state) => state.technicalOptinSeen);
 
   const { startListening } = useDeepLink();
+  const isLinux = useIsLinux();
 
   const handleNavigate = useCallback(() => {
     if (!technicalOptinSeen) {
@@ -26,6 +27,24 @@ export function Signup() {
   }, [technicalOptinSeen, navigate]);
 
   const handleCreateAccount = async () => {
+    if (isLinux) {
+      try {
+        await invoke('create_local_account');
+        dispatch({ type: 'set-account', stored: true });
+        await CCache.del('cache-account-id');
+        await CCache.del('cache-device-id');
+        dispatch({ type: 'reset-error' });
+        handleNavigate();
+      } catch (error) {
+        console.error('[Signup] create_local_account failed:', error);
+        // Stay on the Signup screen on failure; an error toast or similar UI
+        // affordance can be added later. For now logging + no-nav matches the
+        // existing failure UX of nothing-happens-visibly.
+      }
+      return;
+    }
+
+    // Non-Linux: existing web-deeplink flow, verbatim.
     const url = await invoke<string>('get_deep_link', {
       locale: i18n.language,
       kind: 'CreateAccount',
@@ -49,8 +68,6 @@ export function Signup() {
       handleNavigate();
     } catch (error) {
       console.error('[Signup] Create account error: ', error);
-      // if error, then most likely the deeplink call timed out.
-      // But the user might still finish the purchase on the website.
       handleNavigate();
     }
   };
