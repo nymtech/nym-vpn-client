@@ -15,6 +15,7 @@ import notifications from '../en/notifications.json';
 import login from '../en/login.json';
 import tray from '../en/tray.json';
 import systemAuthentication from '../en/system-authentication.json';
+import recoveryPhrase from '../en/recovery-phrase.json';
 
 export const en = {
   account,
@@ -34,4 +35,5 @@ export const en = {
   login,
   tray,
   'system-authentication': systemAuthentication,
+  'recovery-phrase': recoveryPhrase,
 } as const;

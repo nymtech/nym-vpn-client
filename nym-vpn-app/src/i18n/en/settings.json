@@ -298,7 +298,8 @@
     "bandwidth-exceeded": "Bandwidth exceeded",
     "max-device-reached": "Max devices reached",
     "status-inactive": "Account is inactive",
-    "requesting-zknyms": "Requesting ZkNyms"
+    "requesting-zknyms": "Requesting ZkNyms",
+    "recovery-phrase": "Recovery phrase"
   },
   "diagnostic": {
     "title": "Diagnostic tool",

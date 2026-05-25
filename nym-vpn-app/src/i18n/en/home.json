@@ -89,5 +89,14 @@
   },
   "gateway-selection-algorithm": {
     "error": "Failed to set gateway selection algorithm"
+  },
+  "backup-banner": {
+    "title": "Save your recovery phrase",
+    "description": "It's the only way to recover your account. Save it now.",
+    "action": "Reveal"
+  },
+  "get-plan": {
+    "button": "Get a plan",
+    "error": "Could not start checkout. Try again."
   }
 }

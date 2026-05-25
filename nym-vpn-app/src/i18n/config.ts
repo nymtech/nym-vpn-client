@@ -24,6 +24,7 @@ export const ns = [
   'onboarding',
   'tray',
   'system-authentication',
+  'recovery-phrase',
 ] as const;
 
 export const languages = [
