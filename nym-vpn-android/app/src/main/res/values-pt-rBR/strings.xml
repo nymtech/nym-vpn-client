@@ -158,8 +158,7 @@
 	<string name="button_next">Próximo</string>
 	<string name="skip">Pular</string>
 	<string name="get_started">Vamos começar</string>
-	<string name="random_text">Aleatório</string>
-	<string name="title_retry">Repetir</string>
+    <string name="title_retry">Repetir</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Tela de transmissão</string>
 	<string name="streaming_server_banner_title">Novo: Descubra servidores \notimizados para streaming (▶️)</string>

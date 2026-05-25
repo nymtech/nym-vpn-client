@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -57,8 +56,11 @@ import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.auth.AuthBottomSheet
 import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
-import net.nymtech.nymvpn.ui.screens.main.components.ConnectPanel
-import net.nymtech.nymvpn.ui.screens.main.components.PanelState
+import net.nymtech.nymvpn.ui.screens.main.panel.ConnectAction
+import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
+import net.nymtech.nymvpn.ui.screens.main.panel.ConnectPanel
+import net.nymtech.nymvpn.ui.screens.main.panel.ConnectPanelState
+import net.nymtech.nymvpn.ui.screens.main.panel.PanelState
 import net.nymtech.nymvpn.ui.screens.main.modal.BatteryModal
 import net.nymtech.nymvpn.ui.screens.main.modal.CompatibilityModal
 import net.nymtech.nymvpn.ui.screens.main.modal.NetworkStatsModal
@@ -71,14 +73,14 @@ import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
-import net.nymtech.nymvpn.util.extensions.toPanelState
+import net.nymtech.nymvpn.util.extensions.toConnectMode
 import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import androidx.compose.ui.res.stringResource
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
-import net.nymtech.nymvpn.ui.screens.main.components.ServerNode
+import net.nymtech.nymvpn.ui.screens.main.panel.ServerNode
 import nym_vpn_lib_types.Score
 
 @Composable
@@ -386,17 +388,36 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		connectionState = uiState.connectionState,
 		appUiState = appUiState,
 		connectionTime = connectionTime,
-		initialPanelState = appUiState.vpnConfig.algorithm.toPanelState(),
-		onConnect = ::onConnectPressed,
-		onDisconnect = ::onDisconnectPressed,
-		onStopKillSwitch = ::onStopKillSwitchPressed,
-		onGetStartedClick = ::onGetStartedPressed,
-		onFastModeClick = { viewModel.onTwoHopSelected() },
-		onAnonModeClick = { viewModel.onFiveHopSelected() },
+		initialPanelState = if (appUiState.settings.panelCollapsed) PanelState.COLLAPSED else PanelState.FULL,
+		onAction = { action ->
+			when (action) {
+				ConnectAction.CONNECT -> onConnectPressed()
+				ConnectAction.DISCONNECT -> onDisconnectPressed()
+				ConnectAction.STOP_KILL_SWITCH -> onStopKillSwitchPressed()
+				ConnectAction.GET_STARTED -> onGetStartedPressed()
+			}
+		},
+		onModeChange = { mode ->
+			when (mode) {
+				ConnectMode.AUTO -> viewModel.onAutoSelected()
+				ConnectMode.FAST -> viewModel.onTwoHopSelected()
+				ConnectMode.MIXNET -> viewModel.onFiveHopSelected()
+			}
+		},
 		onPanelStateChange = { viewModel.onPanelStateChanged(it) },
 		contentPadding = padding,
 		onExitNodeClick = { onExitClick() },
 		onEntryNodeClick = { onEntryClick() },
+		onExitInfoClick = {
+			appUiState.exitPointGateway?.identity?.let {
+				navController.goFromRoot(Route.ServerDetails(it, "EXIT"))
+			}
+		},
+		onEntryInfoClick = {
+			appUiState.entryPointGateway?.identity?.let {
+				navController.goFromRoot(Route.ServerDetails(it, "ENTRY"))
+			}
+		},
 	)
 
 	ShowInfoModal(
@@ -485,19 +506,43 @@ private fun MainScreenContent(
 	appUiState: AppUiState,
 	connectionTime: String?,
 	initialPanelState: PanelState,
-	onConnect: () -> Unit,
-	onDisconnect: () -> Unit,
-	onStopKillSwitch: () -> Unit,
-	onGetStartedClick: () -> Unit,
-	onFastModeClick: () -> Unit,
-	onAnonModeClick: () -> Unit,
+	onAction: (ConnectAction) -> Unit,
+	onModeChange: (ConnectMode) -> Unit,
 	onExitNodeClick: () -> Unit,
 	onEntryNodeClick: () -> Unit,
-	onPanelStateChange: (state: PanelState) -> Unit,
+	onExitInfoClick: () -> Unit,
+	onEntryInfoClick: () -> Unit,
+	onPanelStateChange: (PanelState) -> Unit,
 	modifier: Modifier = Modifier,
 	contentPadding: PaddingValues = PaddingValues(),
 	previewAlertMessage: AlertMessage? = null,
 ) {
+	val connectMode = appUiState.vpnConfig.algorithm.toConnectMode(appUiState.vpnConfig.mode)
+	val panelState = ConnectPanelState(
+		connectionState = connectionState,
+		accountState = appUiState.managerState.accountState,
+		isMnemonicStored = appUiState.managerState.isMnemonicStored,
+		connectMode = connectMode,
+		exitNode = ServerNode(
+			id = appUiState.exitPointGateway?.identity ?: "",
+			name = appUiState.exitPointName,
+			countryCode = appUiState.exitPointCountry,
+			location = appUiState.exitPointLocation,
+			score = appUiState.exitPointGateway?.wgScore ?: Score.HIGH,
+		),
+		entryNode = ServerNode(
+			id = appUiState.entryPointGateway?.identity ?: "",
+			name = appUiState.entryPointName,
+			countryCode = appUiState.entryPointCountry,
+			location = appUiState.entryPointLocation,
+			score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
+		),
+		exitIsAutoBest = connectMode == ConnectMode.AUTO &&
+			appUiState.vpnConfig.algorithm == nym_vpn_lib_types.GatewaySelectionAlgorithm.AUTO &&
+			appUiState.isExitPointRandom,
+		initialPanelState = initialPanelState,
+	)
+
 	Box(
 		modifier = modifier
 			.fillMaxSize()
@@ -519,43 +564,22 @@ private fun MainScreenContent(
 		}
 
 		Surface(
-			shape = RoundedCornerShape(16.dp),
-			color = MaterialTheme.colorScheme.surface,
+			color = MaterialTheme.colorScheme.background,
 			modifier = Modifier
 				.align(Alignment.BottomCenter)
 				.fillMaxWidth()
-				.padding(horizontal = 20.dp)
-				.padding(bottom = 16.dp),
+				.padding(horizontal = 16.dp)
+				.padding(bottom = 20.dp, top = 8.dp),
 		) {
 			ConnectPanel(
-				connectionState = connectionState,
-				accountState = appUiState.managerState.accountState,
-				isMnemonicStored = appUiState.managerState.isMnemonicStored,
-				vpnMode = appUiState.vpnConfig.mode,
-				exitNode = ServerNode(
-					name = appUiState.exitPointName,
-					countryCode = appUiState.exitPointCountry,
-					location = appUiState.exitPointLocation,
-					isRandom = appUiState.isExitPointRandom,
-					score = appUiState.exitPointGateway?.wgScore ?: Score.HIGH,
-				),
-				entryNode = ServerNode(
-					name = appUiState.entryPointName,
-					countryCode = appUiState.entryPointCountry,
-					location = appUiState.entryPointLocation,
-					isRandom = appUiState.isEntryPointRandom,
-					score = appUiState.entryPointGateway?.wgScore ?: Score.HIGH,
-				),
-				initialPanelState = initialPanelState,
-				onFastModeClick = onFastModeClick,
-				onAnonModeClick = onAnonModeClick,
-				onConnect = onConnect,
-				onDisconnect = onDisconnect,
-				onStopKillSwitch = onStopKillSwitch,
-				onGetStartedClick = onGetStartedClick,
+				state = panelState,
+				onModeChange = onModeChange,
+				onAction = onAction,
 				onPanelStateChange = onPanelStateChange,
 				onEntryNodeClick = onEntryNodeClick,
 				onExitNodeClick = onExitNodeClick,
+				onExitInfoClick = onExitInfoClick,
+				onEntryInfoClick = onEntryInfoClick,
 			)
 		}
 
@@ -577,16 +601,14 @@ private fun MainScreenPreviewAlertCritical() {
 			connectionState = ConnectionState.Disconnected,
 			appUiState = AppUiState(),
 			connectionTime = null,
-			initialPanelState = PanelState.COLLAPSED,
-			onConnect = {},
-			onDisconnect = {},
-			onStopKillSwitch = {},
-			onGetStartedClick = {},
-			onFastModeClick = {},
-			onAnonModeClick = {},
+			initialPanelState = PanelState.FULL,
+			onAction = {},
+			onModeChange = {},
 			onPanelStateChange = {},
 			onExitNodeClick = {},
 			onEntryNodeClick = {},
+			onExitInfoClick = {},
+			onEntryInfoClick = {},
 			previewAlertMessage = AlertMessage(
 				type = AlertType.Error,
 				title = "Secure your secret passphrase",
@@ -606,16 +628,14 @@ private fun MainScreenPreviewDisconnected() {
 			connectionState = ConnectionState.Disconnected,
 			appUiState = AppUiState(),
 			connectionTime = null,
-			initialPanelState = PanelState.COLLAPSED,
-			onConnect = {},
-			onDisconnect = {},
-			onStopKillSwitch = {},
-			onGetStartedClick = {},
-			onFastModeClick = {},
-			onAnonModeClick = {},
+			initialPanelState = PanelState.FULL,
+			onAction = {},
+			onModeChange = {},
 			onPanelStateChange = {},
 			onExitNodeClick = {},
 			onEntryNodeClick = {},
+			onExitInfoClick = {},
+			onEntryInfoClick = {},
 		)
 	}
 }
@@ -628,16 +648,14 @@ private fun MainScreenPreviewConnected() {
 			connectionState = ConnectionState.Connected,
 			appUiState = AppUiState(),
 			connectionTime = "01:23:45",
-			initialPanelState = PanelState.COLLAPSED,
-			onConnect = {},
-			onDisconnect = {},
-			onStopKillSwitch = {},
-			onGetStartedClick = {},
-			onFastModeClick = {},
-			onAnonModeClick = {},
+			initialPanelState = PanelState.FULL,
+			onAction = {},
+			onModeChange = {},
 			onPanelStateChange = {},
 			onExitNodeClick = {},
 			onEntryNodeClick = {},
+			onExitInfoClick = {},
+			onEntryInfoClick = {},
 		)
 	}
 }

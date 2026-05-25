@@ -158,8 +158,7 @@
 	<string name="button_next">Далее</string>
 	<string name="skip">Пропустить</string>
 	<string name="get_started">Начало работы</string>
-	<string name="random_text">Случайный</string>
-	<string name="title_retry">Повторить</string>
+    <string name="title_retry">Повторить</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Показ стриминга</string>
 	<string name="streaming_server_banner_title">Новинка: Откройте для себя серверы,\nоптимизированные для стриминга (▶️)</string>
