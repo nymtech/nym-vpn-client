@@ -7,10 +7,32 @@ on:
         description: "Git branch to run against (uses github ref if not set)"
         type: string
         required: false
-      version:
-        description: "Release version (YYYY.{n} or YYYY.{n}.{p} or YYYY.{n}.{p}-beta.{y}, e.g. 2026.1 or 2026.1.1 or 2026.1.0-beta.1)"
-        type: string
+      major:
+        type: number
+        description: "Major version"
         required: true
+      minor:
+        type: number
+        description: "Minor version"
+        required: true
+      patch:
+        type: number
+        description: "Patch version"
+        required: false
+        default: 0
+      release_kind:
+        type: choice
+        description: "Release kind"
+        required: true
+        options:
+          - stable
+          - beta
+        default: "beta"
+      pre_release_ident:
+        type: number
+        description: "Pre-release identifier starting at 1 (only used for non-stable releases)"
+        required: false
+        default: 1
       update_linux_installer:
         description: "Update linux installer script"
         type: boolean
@@ -32,10 +54,28 @@ on:
         description: "Git branch to run against (uses github ref if not set)"
         type: string
         required: false
-      version:
-        description: "Release version (YYYY.{n} or YYYY.{n}.{p} or YYYY.{n}.{p}-beta.{y}, e.g. 2026.1 or 2026.1.1 or 2026.1.0-beta.1)"
-        type: string
+      major:
+        type: number
+        description: "Major version"
         required: true
+      minor:
+        type: number
+        description: "Minor version"
+        required: true
+      patch:
+        type: number
+        description: "Patch version"
+        required: false
+        default: 0
+      release_kind:
+        type: string
+        description: "Release kind"
+        required: true
+      pre_release_ident:
+        type: number
+        description: "Pre-release identifier starting at 1 (only used for non-stable releases)"
+        required: false
+        default: 1
       update_linux_installer:
         description: "Update linux installer script"
         type: boolean
@@ -109,37 +149,48 @@ jobs:
       - name: Validate and normalize version
         id: version
         working-directory: nym-vpn-core
+        env:
+          MAJOR: ${{ inputs.major }}
+          MINOR: ${{ inputs.minor }}
+          PATCH: ${{ inputs.patch }}
+          RELEASE_KIND: ${{ inputs.release_kind }}
+          PRE_RELEASE_IDENT: ${{ inputs.pre_release_ident }}
         run: |
-          RAW='${{ inputs.version }}'
-          if ! echo "$RAW" | grep -Pq '^[0-9]{4}\.[0-9]{1,2}(\.[0-9]{1,2})?(-beta\.[1-9][0-9]?)?$'; then
-            echo "::error:: Invalid version format (expected YYYY.{n} or YYYY.{n}.{p} or YYYY.{n}.{p}-beta.{y}, got: $RAW)"
-            exit 1
+          if ! grep -P '^[2-9][0-9]{3}$' <<< "${{ env.MAJOR }}" ; then
+              echo "::error:: major must be an integer."
+              exit 1
           fi
 
-          SEMVER=$(echo "$RAW" | cut -d- -f1)
-
-          HYPHENS=$(echo -n "$RAW" | tr -cd '-' | wc -c)
-          if [ "$HYPHENS" -eq 0 ]; then
-            BETA_SUFFIX=""
-          else
-            BETA_SUFFIX=$(echo "$RAW" | cut -d- -f2)
+          if ! grep -P '^[1-9]+$' <<< "${{ env.MINOR }}"; then
+              echo "::error:: minor must be an integer."
+              exit 1
           fi
 
-          DOTS=$(echo -n "$SEMVER" | tr -cd '.' | wc -c)
-          if [ "$DOTS" -eq 1 ]; then
-            SEMVER="${SEMVER}.0"
-          else
-            SEMVER="$SEMVER"
+          if ! grep -P '^[0-9]+$' <<< "${{ env.PATCH }}" ; then
+              echo "::error:: patch must be an integer."
+              exit 1
           fi
 
-          MAJOR=$(echo "$SEMVER" | cut -d. -f1)
-          MINOR=$(echo "$SEMVER" | cut -d. -f2)
-          PATCH=$(echo "$SEMVER" | cut -d. -f3)
+          if ! grep -P '^[1-9][0-9]?$' <<< "${{ env.PRE_RELEASE_IDENT }}" ; then
+              echo "::error:: pre-release identifier must be an integer."
+              exit 1
+          fi
 
-          if [[ -n "$BETA_SUFFIX" ]]; then
-            CORE_VERSION="${SEMVER}-${BETA_SUFFIX}"
-            DEB_VERSION="${SEMVER}~${BETA_SUFFIX}"
-            ANDROID_VERSION_NAME="v${SEMVER}-${BETA_SUFFIX}"
+          SEMVER="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.PATCH }}"
+
+          case "${{ env.RELEASE_KIND }}" in
+            stable) PRE_RELEASE_SUFFIX="" ;;
+            beta) PRE_RELEASE_SUFFIX="beta.${{ env.PRE_RELEASE_IDENT }}" ;;
+            *)
+              echo "::error:: invalid release kind: ${{ env.RELEASE_KIND }}"
+              exit 1
+            ;;
+          esac
+
+          if [[ -n "$PRE_RELEASE_SUFFIX" ]]; then
+            CORE_VERSION="${SEMVER}-${PRE_RELEASE_SUFFIX}"
+            DEB_VERSION="${SEMVER}~${PRE_RELEASE_SUFFIX}"
+            ANDROID_VERSION_NAME="v${SEMVER}-${PRE_RELEASE_SUFFIX}"
           else
             CORE_VERSION="$SEMVER"
             DEB_VERSION="$SEMVER"
@@ -153,7 +204,7 @@ jobs:
 
           CURRENT_RELEASE_VERSION=$(cargo get workspace.package.version --major --minor --patch --delimiter '.')
 
-          echo "::notice:: input_version=$RAW core=$CORE_VERSION deb=$DEB_VERSION android_name=$ANDROID_VERSION_NAME android_code=$ANDROID_VERSION_CODE apple_version=$APPLE_VERSION"
+          echo "::notice:: core=$CORE_VERSION deb=$DEB_VERSION android_name=$ANDROID_VERSION_NAME android_code=$ANDROID_VERSION_CODE apple_version=$APPLE_VERSION"
 
           echo "current_release_version=$CURRENT_RELEASE_VERSION"
           echo "core_version=$CORE_VERSION" >> "$GITHUB_OUTPUT"
@@ -239,6 +290,7 @@ jobs:
         working-directory: nym-vpn-core
         env:
           NEW_VERSION: ${{ steps.version.outputs.core_version }}
+          BRANCH: ${{ inputs.branch || github.ref_name }}
         run: |
           if ! grep -q '^## \[Unreleased\]' CHANGELOG.md; then
             echo "::error:: CHANGELOG.md is missing '## [Unreleased]' section"
@@ -246,7 +298,7 @@ jobs:
           fi
 
           # Commit the workspace version of release branch when running against develop
-          if [ "${{ inputs.branch || github.ref_name }}" = "develop" ]; then
+          if [ "${{ env.BRANCH }}" = "develop" ]; then
             RELEASE_DATE="TBD"
             VERSION="${{ steps.version.outputs.current_release_version }}"
           else
@@ -266,7 +318,7 @@ jobs:
         if: ${{ inputs.dry_run == false }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH_NAME: "ci/bump-version-v${{ inputs.version }}"
+          BRANCH_NAME: "ci/bump-version-v${{ steps.version.outputs.core_version }}"
           BASE_BRANCH: ${{ inputs.branch || github.ref_name }}
         run: |
           git checkout -b "$BRANCH_NAME"
@@ -274,7 +326,7 @@ jobs:
           git push origin "$BRANCH_NAME"
           gh pr create \
               --base "$BASE_BRANCH" \
-              --title "Bump version to \`v${{ inputs.version }}\` across all platforms" \
+              --title "Bump version to \`v${{ steps.version.outputs.core_version }}\` across all platforms" \
               --body "Unified version bump.
 
           - **core** (\`nym-vpn-core/Cargo.toml\`): \`${{ steps.version.outputs.core_version }}\`

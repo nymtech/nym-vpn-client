@@ -32,9 +32,12 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     outputs:
-      next_version: ${{ steps.version.outputs.next_version }}
+      major: ${{ steps.version.outputs.major }}
+      minor: ${{ steps.version.outputs.minor }}
+      patch: ${{ steps.version.outputs.patch }}
+      release_kind: ${{ steps.version.outputs.release_kind }}
+      pre_release_ident: ${{ steps.version.outputs.pre_release_ident }}
     env:
       GIT_BRANCH: ${{ inputs.branch || github.ref_name }}
     steps:
@@ -68,7 +71,10 @@ jobs:
           CURRENT_VERSION=$(cargo get workspace.package.version)
           echo "::notice:: Current version: $CURRENT_VERSION"
 
-          NEXT_VERSION=$(cargo get workspace.package.version --major --minor --patch --delimiter '.')
+          MAJOR=$(cargo get workspace.package.version --major)
+          MINOR=$(cargo get workspace.package.version --minor)
+          PATCH=$(cargo get workspace.package.version --patch)
+
           PRE=$(cargo get workspace.package.version --pre)
 
           # This must not be the case once develop contains "-beta.1" in Cargo.toml
@@ -81,20 +87,34 @@ jobs:
 
           # Increment beta version if not a release bump
           if [ "${{ inputs.is_release_bump }}" = "false" ]; then
-            SEQ=$(echo "$PRE" | cut -d. -f2)
-            SEQ=$(($SEQ + 1))
-            NEXT_VERSION="$NEXT_VERSION-beta.$SEQ"
+            PRE_RELEASE_IDENT=$(echo "$PRE" | cut -d. -f2)
+            PRE_RELEASE_IDENT=$(($PRE_RELEASE_IDENT + 1))
+            RELEASE_KIND="beta"
+            echo "::notice:: Next version: $MAJOR.$MINOR.$PATCH-$RELEASE_KIND.$PRE_RELEASE_IDENT" >> "$GITHUB_OUTPUT"
+          else
+            RELEASE_KIND="stable"
+            echo "::notice:: Next version: $MAJOR.$MINOR.$PATCH" >> "$GITHUB_OUTPUT"
           fi
 
-          echo "::notice:: Next version: $NEXT_VERSION"
-          echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
+          echo "patch=$PATCH" >> "$GITHUB_OUTPUT"
+          echo "release_kind=$RELEASE_KIND" >> "$GITHUB_OUTPUT"
+          echo "pre_release_ident=$PRE_RELEASE_IDENT" >> "$GITHUB_OUTPUT"
 
   bump-release-branch:
     needs: next-release-version
     uses: ./.github/workflows/bump-all-platforms.yml
+    permissions:
+      contents: write
+      pull-requests: write
     with:
       branch: ${{ inputs.branch || github.ref_name }}
-      version: ${{ needs.next-release-version.outputs.next_version }}
+      major: ${{ needs.next-release-version.outputs.major }}
+      minor: ${{ needs.next-release-version.outputs.minor }}
+      patch: ${{ needs.next-release-version.outputs.patch }}
+      release_kind: ${{ needs.next-release-version.outputs.release_kind }}
+      pre_release_ident: ${{ needs.next-release-version.outputs.pre_release_ident }}
       update_linux_installer: ${{ inputs.is_release_bump }}
       update_changelog: ${{ inputs.is_release_bump }}
       dry_run: ${{ inputs.dry_run }}

@@ -94,7 +94,9 @@ jobs:
 
           NEXT_VERSION="$MAJOR.$MINOR.$PATCH-beta.1"
 
-          echo "next_version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
+          echo "patch=$PATCH" >> "$GITHUB_OUTPUT"
           echo "release_branch=$RELEASE_BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Create release branch
@@ -121,9 +123,16 @@ jobs:
   bump-develop:
     needs: push-release-branch
     uses: ./.github/workflows/bump-all-platforms.yml
+    permissions:
+      contents: write
+      pull-requests: write
     with:
       branch: develop
-      version: ${{ needs.push-release-branch.outputs.next_version }}
+      major: ${{ needs.push-release-branch.outputs.major }}
+      minor: ${{ needs.push-release-branch.outputs.minor }}
+      patch: ${{ needs.push-release-branch.outputs.patch }}
+      release_kind: beta
+      pre_release_ident: 1
       update_linux_installer: false
       update_changelog: true
       dry_run: ${{ inputs.dry_run }}
