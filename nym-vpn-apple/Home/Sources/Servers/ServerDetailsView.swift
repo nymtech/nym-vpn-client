@@ -31,10 +31,12 @@ public struct ServerDetailsView: View {
             ScrollView {
                 Spacer()
                     .frame(height: 16)
-                selectServerButton()
-                    .padding(.horizontal, 16)
-                Spacer()
-                    .frame(height: 24)
+                if !isCurrentlyConnectedHopGateway {
+                    selectServerButton()
+                        .padding(.horizontal, 16)
+                    Spacer()
+                        .frame(height: 24)
+                }
                 scrollViewContent()
             }
             .scrollIndicators(.never)
@@ -592,6 +594,16 @@ private extension ServerDetailsView {
 
 // MARK: - Actions
 private extension ServerDetailsView {
+    var isCurrentlyConnectedHopGateway: Bool {
+        guard let info = connectionManager.connectionInfoData else { return false }
+        switch hopType {
+        case .entry:
+            return info.entryGatewayId == gateway.id
+        case .exit:
+            return info.exitGatewayId == gateway.id
+        }
+    }
+
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
     }
