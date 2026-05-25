@@ -12,14 +12,14 @@ import {
   FeatureFlags,
   NetworkCompat,
   TAccountMode,
-  TAccountState,
+  TAccountStateDetails,
   TAccountSummary,
   TTunnelState,
   ThemeMode,
   UiTheme,
 } from '../types';
 import { dispatch } from '../store';
-import { updateAccountState, updateTunnel } from './update';
+import { updateAccountStateDetails, updateTunnel } from './update';
 import { TauriReq, fireRequests } from './helper';
 
 const defaultNetStats = window._APP.defaultNetstats;
@@ -45,16 +45,17 @@ export async function initFirstBatch() {
     },
   };
 
-  const getAccountStateRq: TauriReq<() => Promise<TAccountState | undefined>> =
-    {
-      name: 'getAccountStateRq',
-      request: () => invoke<TAccountState>('get_account_state'),
-      onFulfilled: (state) => {
-        if (state) {
-          updateAccountState(state);
-        }
-      },
-    };
+  const getAccountStateRq: TauriReq<
+    () => Promise<TAccountStateDetails | undefined>
+  > = {
+    name: 'getAccountStateRq',
+    request: () => invoke<TAccountStateDetails>('get_account_state'),
+    onFulfilled: (details) => {
+      if (details) {
+        updateAccountStateDetails(details);
+      }
+    },
+  };
 
   const getAccountModeRq: TauriReq<() => Promise<TAccountMode | undefined>> = {
     name: 'getAccountModeRq',

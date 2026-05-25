@@ -56,6 +56,32 @@ impl AccountState {
     }
 }
 
+/// Wrapper returned by the `get_account_state` Tauri command, containing
+/// the account state enum plus per-account boolean flags.
+#[derive(Default, Serialize, Clone, Debug, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TAccountStateDetails")]
+#[serde(rename_all = "camelCase")]
+pub struct AccountStateDetails {
+    pub state: AccountState,
+    /// Account was generated locally (not imported from an existing mnemonic).
+    pub is_locally_generated: bool,
+    /// Account has been registered with the nym-vpn-api backend.
+    pub is_registered_with_api: bool,
+    /// User has confirmed they have backed up the recovery phrase.
+    pub is_backup_confirmed: bool,
+}
+
+impl AccountStateDetails {
+    pub fn from_lib(details: lib::AccountControllerStateDetails) -> Self {
+        AccountStateDetails {
+            state: AccountState::from_lib(details.state),
+            is_locally_generated: details.is_locally_generated,
+            is_registered_with_api: details.is_registered_with_api,
+            is_backup_confirmed: details.is_backup_confirmed,
+        }
+    }
+}
+
 #[instrument]
 pub fn log_account_state(state: &lib::AccountControllerState) {
     match state {

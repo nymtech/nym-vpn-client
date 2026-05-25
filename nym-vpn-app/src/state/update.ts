@@ -1,5 +1,6 @@
 import {
   TAccountState,
+  TAccountStateDetails,
   TTunnelState,
   isAccountError,
   isTunnelConnected,
@@ -47,6 +48,11 @@ export function updateTunnel(state: TTunnelState) {
     dispatch({ type: 'set-tunnel-inerror', error: state.error });
     return;
   }
+}
+
+export function updateAccountStateDetails(details: TAccountStateDetails) {
+  console.log(`account state update (details): ${JSON.stringify(details)}`);
+  dispatch({ type: 'set-account-state-details', details });
 }
 
 export function updateAccountState(state: TAccountState) {

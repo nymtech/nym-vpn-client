@@ -2,7 +2,7 @@ use tauri::State;
 use tracing::{error, info, instrument, warn};
 
 use crate::state::SharedAppState;
-use crate::vpnd::account::{AccountState, AccountSummary};
+use crate::vpnd::account::{AccountState, AccountStateDetails, AccountSummary};
 use crate::vpnd::account::{AutologinResponse, StoredAccountMode};
 use crate::vpnd::account_links::AccountLinks;
 use crate::vpnd::deeplink::DeeplinkKind;
@@ -25,9 +25,9 @@ fn is_permission_denied(err: &VpndError) -> bool {
 #[tauri::command]
 pub async fn get_account_state(
     app: State<'_, SharedAppState>,
-) -> Result<AccountState, BackendError> {
+) -> Result<AccountStateDetails, BackendError> {
     let state = app.lock().await;
-    Ok(state.account_state.clone())
+    Ok(state.account_state_details())
 }
 
 #[instrument(skip_all)]

@@ -10,7 +10,7 @@ use crate::env::{DEV_MODE, VPND_COMPAT_REQ};
 use crate::events::AppHandleEventEmitter;
 use crate::state::SharedAppState;
 use crate::sys::OsInfo;
-use crate::vpnd::account::AccountState;
+use crate::vpnd::account::{AccountState, AccountStateDetails};
 use crate::vpnd::client::{NetworkCompatVersions, VersionCheck};
 use crate::vpnd::tunnel::TunnelState;
 use crate::{
@@ -48,8 +48,23 @@ pub struct AppState {
     pub vpnd_info: Option<VpndInfo>,
     pub tunnel: TunnelState,
     pub account_state: AccountState,
+    /// Per-account boolean flags, updated alongside `account_state`.
+    pub account_is_locally_generated: bool,
+    pub account_is_registered_with_api: bool,
+    pub account_is_backup_confirmed: bool,
     pub network_compat: Option<NetworkCompat>,
     pub sentry_client: SentryClient,
+}
+
+impl AppState {
+    pub fn account_state_details(&self) -> AccountStateDetails {
+        AccountStateDetails {
+            state: self.account_state.clone(),
+            is_locally_generated: self.account_is_locally_generated,
+            is_registered_with_api: self.account_is_registered_with_api,
+            is_backup_confirmed: self.account_is_backup_confirmed,
+        }
+    }
 }
 
 impl AppState {

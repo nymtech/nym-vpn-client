@@ -95,6 +95,9 @@ export type AppState = {
   codeDepsRust: CodeDependency[];
   // just a boolean for now to indicate if the user has added an account
   account: boolean;
+  accountIsLocallyGenerated: boolean;
+  accountIsRegisteredWithApi: boolean;
+  accountIsBackupConfirmed: boolean;
   accountLinks?: AccountLinks | null;
   networkCompat?: NetworkCompat | null;
   ipv6Support: boolean;

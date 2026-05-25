@@ -81,6 +81,9 @@ export const useMainState = (): AppState =>
       codeDepsJs: s.codeDepsJs,
       codeDepsRust: s.codeDepsRust,
       account: s.account,
+      accountIsLocallyGenerated: s.accountIsLocallyGenerated,
+      accountIsRegisteredWithApi: s.accountIsRegisteredWithApi,
+      accountIsBackupConfirmed: s.accountIsBackupConfirmed,
       accountLinks: s.accountLinks,
       networkCompat: s.networkCompat,
       ipv6Support: s.ipv6Support,
@@ -118,6 +121,14 @@ export const useGateways = (): GatewaysState =>
 export const useFetchGateways = () => useAppStore((s) => s.fetchGateways);
 
 export const useLookupGw = () => useAppStore((s) => s.lookupGw);
+
+// account flags
+export const useAccountLocallyGenerated = () =>
+  useAppStore((s) => s.accountIsLocallyGenerated);
+export const useAccountRegisteredWithApi = () =>
+  useAppStore((s) => s.accountIsRegisteredWithApi);
+export const useAccountBackupConfirmed = () =>
+  useAppStore((s) => s.accountIsBackupConfirmed);
 
 // socks5 state
 export const useSocks5 = () =>

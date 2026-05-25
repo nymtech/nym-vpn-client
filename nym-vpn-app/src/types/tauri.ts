@@ -341,6 +341,26 @@ export type TAccountState =
   | 'requesting-zk-nyms'
   | { error: TBackendError };
 
+/**
+ * Wrapper returned by the `get_account_state` Tauri command, containing
+ * the account state enum plus per-account boolean flags.
+ */
+export type TAccountStateDetails = {
+  state: TAccountState;
+  /**
+   * Account was generated locally (not imported from an existing mnemonic).
+   */
+  isLocallyGenerated: boolean;
+  /**
+   * Account has been registered with the nym-vpn-api backend.
+   */
+  isRegisteredWithApi: boolean;
+  /**
+   * User has confirmed they have backed up the recovery phrase.
+   */
+  isBackupConfirmed: boolean;
+};
+
 export type TAccountSummary = {
   trafficUsedGb: bigint;
   trafficLimitGb: bigint;

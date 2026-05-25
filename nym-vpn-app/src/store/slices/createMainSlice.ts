@@ -24,6 +24,7 @@ import {
   SelectedNode,
   SplitApp,
   TAccountMode,
+  TAccountStateDetails,
   TAccountSummary,
   ThemeMode,
   Tunnel,
@@ -33,6 +34,7 @@ import {
   VpnMode,
   VpndConfig,
   VpndInfo,
+  isAccountError,
 } from '../../types';
 import type { BoundStore } from '../types';
 
@@ -77,6 +79,7 @@ export type StateAction =
   | { type: 'set-enable-ad-blocking'; enabled: boolean }
   | { type: 'set-network-stats'; enabled: boolean }
   | { type: 'set-account-state'; state: AccountState }
+  | { type: 'set-account-state-details'; details: TAccountStateDetails }
   | { type: 'set-account-mode'; mode: TAccountMode }
   | { type: 'set-account-syncing'; syncing: boolean }
   | { type: 'set-technical-optin-seen'; seen: boolean }
@@ -124,6 +127,9 @@ export const initialState: AppState = {
   codeDepsRust: [],
   codeDepsJs: [],
   account: false,
+  accountIsLocallyGenerated: false,
+  accountIsRegisteredWithApi: false,
+  accountIsBackupConfirmed: false,
   ipv6Support: true,
   networkStats: false,
   technicalOptinSeen: false,
@@ -428,6 +434,36 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
       case 'set-account-state':
         set({ accountState: action.state });
         break;
+
+      case 'set-account-state-details': {
+        const { details } = action;
+        // Extract the AccountState enum from the details wrapper, mirroring
+        // the logic in updateAccountState() for the event-based path.
+        const raw = details.state;
+        const flags = {
+          accountIsLocallyGenerated: details.isLocallyGenerated,
+          accountIsRegisteredWithApi: details.isRegisteredWithApi,
+          accountIsBackupConfirmed: details.isBackupConfirmed,
+        };
+        if (raw === 'syncing') {
+          set({ accountSyncing: true, ...flags });
+        } else if (isAccountError(raw)) {
+          set({
+            accountSyncing: false,
+            accountError: raw.error,
+            accountState: 'error',
+            ...flags,
+          });
+        } else {
+          set({
+            accountSyncing: false,
+            accountState: raw,
+            accountError: null,
+            ...flags,
+          });
+        }
+        break;
+      }
 
       case 'set-account-mode':
         set({ accountMode: action.mode });
