@@ -18,7 +18,7 @@ import { CCache } from '../../../cache';
 import { useAutologin } from '../../../contexts';
 import { useMainState } from '../../../store';
 import { routes } from '../../../router';
-import { useDeepLink, useLogout, useToast } from '../../../hooks';
+import { useDeepLink, useIsLinux, useLogout, useToast } from '../../../hooks';
 import { DeeplinkTimeout } from '../../../errors';
 import { AccountStatus } from './account-status';
 import { AccountDescription } from './AccountDescription';
@@ -47,6 +47,7 @@ function Account() {
 
   const { startListening } = useDeepLink();
   const { add } = useToast();
+  const isLinux = useIsLinux();
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -164,6 +165,19 @@ function Account() {
           },
         ]}
       />
+
+      {isLinux && account && (
+        <SettingsGroup
+          settings={[
+            {
+              title: t('account.recovery-phrase'),
+              leadingIcon: 'key',
+              trailingIcon: 'chevron_right',
+              onClick: () => navigate(routes.revealMnemonic),
+            },
+          ]}
+        />
+      )}
 
       <div className="flex flex-row items-center gap-2">
         <div className="bg-status-warning h-4 w-4 rounded-full"></div>
