@@ -110,6 +110,13 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/account/recovery-phrase': {
+        title: t('account.recovery-phrase', { ns: 'settings' }),
+        leftIcon: 'keyboard_arrow_left',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/settings/appearance': {
         title: t('appearance'),
         leftIcon: 'keyboard_arrow_left',

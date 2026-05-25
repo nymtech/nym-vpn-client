@@ -22,6 +22,7 @@ import {
   NodeDetails,
   NodeLocation,
   Onboarding,
+  RevealMnemonic,
   SelectPlan,
   Settings,
   SettingsRouteIndex,
@@ -64,6 +65,7 @@ export const routes = {
   onboarding: '/hideout/onboarding',
   mixnetTuning: '/settings/mixnet-tuning',
   accountSettings: '/settings/account',
+  revealMnemonic: '/settings/account/recovery-phrase',
   welcome: '/welcome',
   technicalOptin: '/technical-optin',
 } as const;
@@ -114,6 +116,11 @@ const router = createBrowserRouter([
           {
             path: routes.accountSettings,
             Component: AccountScreen,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.revealMnemonic,
+            Component: RevealMnemonic,
             errorElement: <Error />,
           },
           {
