@@ -1,4 +1,5 @@
 import SwiftUI
+import ConnectionTypes
 import Theme
 import UIComponents
 
@@ -6,32 +7,24 @@ public struct OneClickView: View {
     @Bindable var viewModel: OneClickViewModel
     private let onSelectEntry: () -> Void
     private let onSelectExit: () -> Void
+    private let onShowGatewayDetails: (GatewayNode, HopType) -> Void
 
-    @Environment(\.colorScheme)
-    private var colorScheme
-
-    @State private var animatedDisplayMode: OneClickDisplayMode = .oneClick
+    @State private var animatedDisplayMode: OneClickDisplayMode = .powerUser
 
     public init(
         viewModel: OneClickViewModel,
         onSelectEntry: @escaping () -> Void = {},
-        onSelectExit: @escaping () -> Void = {}
+        onSelectExit: @escaping () -> Void = {},
+        onShowGatewayDetails: @escaping (GatewayNode, HopType) -> Void = { _, _ in }
     ) {
         self.viewModel = viewModel
         self.onSelectEntry = onSelectEntry
         self.onSelectExit = onSelectExit
+        self.onShowGatewayDetails = onShowGatewayDetails
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            if animatedDisplayMode != .oneClick {
-                powerUserSection
-                    .transition(
-                        .move(edge: .top).combined(with: .opacity)
-                    )
-            }
-            baseSection
-        }
+        baseSection
         .clipped()
         .onAppear { animatedDisplayMode = viewModel.displayMode }
         .onChange(of: viewModel.displayMode) { _, newMode in
@@ -55,19 +48,8 @@ public struct OneClickView: View {
 }
 
 private extension OneClickView {
-    var powerUserSection: some View {
-        VStack(spacing: NymSpacing.medium) {
-            speedModeToggle
-            NymDivider()
-        }
-        .padding(.horizontal, NymSpacing.standard)
-        .padding(.top, NymSpacing.component)
-        .padding(.bottom, NymSpacing.medium)
-        .accessibilityHidden(viewModel.displayMode == .oneClick)
-    }
-
     var baseSection: some View {
-        VStack(spacing: NymSpacing.medium) {
+        VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
                 if animatedDisplayMode == .nerd {
                     exitNodeLabel
@@ -80,11 +62,18 @@ private extension OneClickView {
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
+            connectDivider
             connectButton
         }
         .padding(.horizontal, NymSpacing.standard)
         .padding(.top, NymSpacing.medium)
         .padding(.bottom, NymSpacing.component)
+    }
+
+    var connectDivider: some View {
+        Divider()
+            .background(Color.Nym.textTertiary.opacity(0.35))
+            .padding(.vertical, NymSpacing.standard)
     }
 
     var exitNodeLabel: some View {
@@ -102,122 +91,87 @@ private extension OneClickView {
             case .selecting:
                 selectingRowCompact(score: .offline)
             case let .selected(info):
-                if viewModel.displayMode == .oneClick && !viewModel.isLiveConnection {
-                    selectingRowCompact(score: info.score, supportsPostQuantum: info.supportsPostQuantum)
-                } else {
-                    selectedRowCompact(info: info, showCarets: true)
-                }
+                selectedRowCompact(info: info, showCarets: true)
             }
         }
         .contentShape(Rectangle())
-        .onTapGesture {
-            guard viewModel.displayMode != .oneClick else { return }
-            onSelectExit()
-        }
-        .accessibilityAddTraits(viewModel.displayMode != .oneClick ? .isButton : [])
+        .onTapGesture { onSelectExit() }
+        .accessibilityAddTraits(.isButton)
     }
 
-    func selectingRowCompact(score: OneClickServerScore, supportsPostQuantum: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .center, spacing: NymSpacing.medium) {
-                scoreBars(score: score)
-                Text("oneClick.server.bestForLocation".localizedString)
-                    .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.textPrimary)
-                Spacer()
-                if supportsPostQuantum {
-                    Image(systemName: "atom")
-                        .foregroundStyle(colorScheme == .dark ? Color.Nym.primary : Color.Nym.textPrimary)
-                        .frame(width: 16, height: 16)
-                        .accessibilityLabel(
-                            Text("oneClick.server.postQuantum.accessibilityLabel".localizedString)
-                        )
-                }
-                upCaretView
-                    .opacity(animatedDisplayMode != .nerd ? 1 : 0)
-                    .accessibilityHidden(viewModel.displayMode == .nerd)
-            }
-            HStack(alignment: .center, spacing: NymSpacing.medium) {
-                scoreBars(score: score)
-                    .hidden()
-                    .accessibilityHidden(true)
-                HStack(spacing: NymSpacing.extraSmall) {
-                    Image(systemName: "globe")
-                        .font(.system(size: Constants.GlobeIcon.fontSize))
-                        .foregroundStyle(Color.Nym.textSecondary)
-                        .accessibilityHidden(true)
-                    Text("oneClick.server.searching".localizedString)
-                        .nymTextStyle(.bodySmall)
-                        .foregroundStyle(Color.Nym.textSecondary)
-                }
-                Spacer()
-                downCaretView
-                    .opacity(animatedDisplayMode != .oneClick ? 1 : 0)
-                    .accessibilityHidden(viewModel.displayMode == .oneClick)
-            }
+    func selectingRowCompact(score: OneClickServerScore) -> some View {
+        HStack(alignment: .center, spacing: NymSpacing.medium) {
+            scoreBars(score: score)
+            autoStar
+            Text("oneClick.server.bestForLocation".localizedString)
+                .nymTextStyle(.bodySmall)
+                .foregroundStyle(Color.Nym.textPrimary)
+            Spacer()
+            caretColumn
         }
     }
 
-    func selectedRowCompact(info: OneClickServerInfo, showCarets: Bool, showPostQuantum: Bool = true) -> some View {
+    var autoStar: some View {
+        Image(systemName: "star.fill")
+            .font(.system(size: Constants.FlagImage.size))
+            .foregroundStyle(Color.yellow)
+            .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
+            .accessibilityHidden(true)
+    }
+
+    @ViewBuilder var caretColumn: some View {
+        if animatedDisplayMode == .nerd {
+            downCaretView
+        } else {
+            upCaretView
+        }
+    }
+
+    func selectedRowCompact(info: OneClickServerInfo, showCarets: Bool) -> some View {
         let primaryText = info.title
         let secondaryText: String? = (info.subtitle?.isEmpty ?? true) ? nil : info.subtitle
-        return VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .center, spacing: NymSpacing.medium) {
-                scoreBars(score: info.score)
+        return HStack(alignment: .center, spacing: NymSpacing.medium) {
+            scoreBars(score: info.score)
+            if info.isAutoBest {
+                autoStar
+            } else {
                 flagImage(countryCode: info.countryCode)
+            }
+            VStack(alignment: .leading, spacing: 0) {
                 Text(primaryText)
                     .nymTextStyle(.bodySmall)
                     .foregroundStyle(Color.Nym.textPrimary)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                Spacer()
-                if showPostQuantum && info.supportsPostQuantum {
-                    Image(systemName: "atom")
-                        .foregroundStyle(colorScheme == .dark ? Color.Nym.primary : Color.Nym.textPrimary)
-                        .frame(width: 16, height: 16)
-                        .accessibilityLabel(
-                            Text("oneClick.server.postQuantum.accessibilityLabel".localizedString)
-                        )
-                }
-                if showCarets {
-                    upCaretView
-                        .opacity(animatedDisplayMode != .nerd ? 1 : 0)
-                        .accessibilityHidden(viewModel.displayMode == .nerd)
-                }
-            }
-            if let secondaryText {
-                HStack(alignment: .center, spacing: NymSpacing.medium) {
-                    scoreBars(score: info.score)
-                        .hidden()
-                        .accessibilityHidden(true)
-                    Color.clear
-                        .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
+                if let secondaryText {
                     Text(secondaryText)
                         .nymTextStyle(.bodySmall)
                         .foregroundStyle(Color.Nym.textSecondary)
                         .lineLimit(1)
                         .truncationMode(.tail)
-                    Spacer()
-                    if showCarets {
-                        downCaretView
-                            .opacity(animatedDisplayMode != .oneClick ? 1 : 0)
-                            .accessibilityHidden(viewModel.displayMode == .oneClick)
-                    }
-                }
-            } else if showCarets {
-                HStack(alignment: .center, spacing: NymSpacing.medium) {
-                    scoreBars(score: info.score)
-                        .hidden()
-                        .accessibilityHidden(true)
-                    Color.clear
-                        .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
-                    Spacer()
-                    downCaretView
-                        .opacity(animatedDisplayMode != .oneClick ? 1 : 0)
-                        .accessibilityHidden(viewModel.displayMode == .oneClick)
                 }
             }
+            Spacer()
+            if info.showsInfoButton, let gateway = info.gateway, let hopType = info.hopType {
+                gatewayDetailsButton(gateway: gateway, hopType: hopType)
+            }
+            if showCarets {
+                caretColumn
+            }
         }
+    }
+
+    func gatewayDetailsButton(gateway: GatewayNode, hopType: HopType) -> some View {
+        Button {
+            onShowGatewayDetails(gateway, hopType)
+        } label: {
+            Image(systemName: "info.circle")
+                .foregroundStyle(Color.Nym.textSecondary)
+                .frame(width: Constants.InfoIcon.size, height: Constants.InfoIcon.size)
+        }
+        .buttonStyle(.plain)
+        .contentShape(Rectangle())
+        .accessibilityLabel(Text("oneClick.server.details.accessibilityLabel".localizedString))
     }
 
     @ViewBuilder
@@ -274,6 +228,7 @@ private extension OneClickView {
     }
 
     @ViewBuilder var nerdEntrySection: some View {
+        let entryDisabled = viewModel.speedMode == .auto
         VStack(alignment: .leading, spacing: 0) {
             Text("oneClick.entryNode.label".localizedString)
                 .nymTextStyle(.bodySmall)
@@ -281,53 +236,36 @@ private extension OneClickView {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, animatedDisplayMode == .nerd ? NymSpacing.small : 0)
                 .padding(.top, NymSpacing.medium)
+                .opacity(entryDisabled ? Constants.DisabledEntry.opacity : 1)
             Group {
                 switch viewModel.entrySelectionPhase {
                 case .selecting:
                     selectingEntryRowCompact
                 case let .selected(info):
-                    selectedRowCompact(info: info, showCarets: false, showPostQuantum: false)
+                    selectedRowCompact(info: info, showCarets: false)
                 }
             }
+            .opacity(entryDisabled ? Constants.DisabledEntry.opacity : 1)
             .contentShape(Rectangle())
             .onTapGesture {
-                guard viewModel.displayMode == .nerd else { return }
+                guard viewModel.displayMode == .nerd, !entryDisabled else { return }
                 onSelectEntry()
             }
-            .accessibilityAddTraits(viewModel.displayMode == .nerd ? .isButton : [])
+            .accessibilityAddTraits(
+                viewModel.displayMode == .nerd && !entryDisabled ? .isButton : []
+            )
+            .accessibilityHint(entryDisabled ? "oneClick.entryDisabled.accessibilityHint".localizedString : "")
         }
     }
 
     var selectingEntryRowCompact: some View {
-        VStack(alignment: .leading, spacing: NymSpacing.extraExtraSmall) {
-            HStack(alignment: .center, spacing: NymSpacing.medium) {
-                scoreBars(score: .offline)
-                Text("oneClick.server.bestForLocation".localizedString)
-                    .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.textPrimary)
-                Spacer()
-            }
-            HStack(alignment: .center, spacing: NymSpacing.medium) {
-                scoreBars(score: .offline)
-                    .hidden()
-                    .accessibilityHidden(true)
-                HStack(spacing: NymSpacing.extraSmall) {
-                    Image(systemName: "globe")
-                        .font(.system(size: Constants.GlobeIcon.fontSize))
-                        .foregroundStyle(Color.Nym.textSecondary)
-                        .accessibilityHidden(true)
-                    Text("oneClick.server.searching".localizedString)
-                        .nymTextStyle(.bodySmall)
-                        .foregroundStyle(Color.Nym.textSecondary)
-                }
-                Spacer()
-            }
-        }
-    }
-
-    var speedModeToggle: some View {
-        SpeedModeToggle(isFast: viewModel.isTwoHop) { newValue in
-            viewModel.setTwoHop(newValue)
+        HStack(alignment: .center, spacing: NymSpacing.medium) {
+            scoreBars(score: .offline)
+            autoStar
+            Text("oneClick.server.bestForLocation".localizedString)
+                .nymTextStyle(.bodySmall)
+                .foregroundStyle(Color.Nym.textPrimary)
+            Spacer()
         }
     }
 
@@ -397,8 +335,8 @@ private extension OneClickView {
         enum FlagImage {
             static let size: CGFloat = 20
         }
-        enum GlobeIcon {
-            static let fontSize: CGFloat = 8
+        enum InfoIcon {
+            static let size: CGFloat = 20
         }
         enum CaretButton {
             static let imageSize: CGFloat = 20
@@ -407,6 +345,9 @@ private extension OneClickView {
         }
         enum ConnectButton {
             static let cornerRadius: CGFloat = 100
+        }
+        enum DisabledEntry {
+            static let opacity: CGFloat = 0.4
         }
     }
 }

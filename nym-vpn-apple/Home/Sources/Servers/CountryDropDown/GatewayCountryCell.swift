@@ -67,7 +67,7 @@ public struct GatewayCountryCell: View {
                         topTrailingRadius: cornerRadius
                     )
                     .inset(by: 0.5)
-                    .stroke(isCountrySelected ? Color.Nym.primary : .clear, lineWidth: 1)
+                    .stroke(isCountrySelected ? Color.Nym.brandPrimary : .clear, lineWidth: 1)
                     .allowsHitTesting(false)
                 }
                 .animation(.default, value: isCountrySelected)
@@ -78,7 +78,7 @@ public struct GatewayCountryCell: View {
         }
         .background {
             RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(Color.Nym.backgroundCard)
+                .fill(Color.Nym.surfaceElev)
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
         .padding(.horizontal, NymSpacing.large)
@@ -91,14 +91,14 @@ private extension GatewayCountryCell {
     func expandedContent() -> some View {
         Divider()
             .frame(height: 1)
-            .overlay(Color.Nym.divider)
+            .overlay(Color.Nym.surfaceHair)
 
         if !country.regions.isEmpty && gatewayManager.shouldDisplayRegion(with: country.code) {
             ForEach(Array(country.regions.enumerated()), id: \.element.self) { index, region in
                 if index > 0 {
                     Divider()
                         .frame(height: 1)
-                        .overlay(Color.Nym.divider)
+                        .overlay(Color.Nym.surfaceHair)
                 }
                 GatewayRegionCell(
                     hopType: hopType,
@@ -125,7 +125,7 @@ private extension GatewayCountryCell {
                 if index > 0 {
                     Divider()
                         .frame(height: 1)
-                        .overlay(Color.Nym.divider)
+                        .overlay(Color.Nym.surfaceHair)
                 }
                 GatewayCell(
                     server: server,
@@ -182,7 +182,7 @@ private extension GatewayCountryCell {
                 }
         }
         .frame(height: 64)
-        .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)
+        .background(isButtonHovered ? Color.Nym.surfaceBg.opacity(0.3) : Color.clear)
         .onHover { newValue in
             isButtonHovered = newValue
         }
@@ -191,7 +191,7 @@ private extension GatewayCountryCell {
     func chevron() -> some View {
         Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
             .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(isExpanded ? Color.Nym.primary : Color.Nym.textSecondary)
+            .foregroundStyle(isExpanded ? Color.Nym.brandPrimary : Color.Nym.textSecondary)
             .frame(width: 24, height: 24)
             .animation(.easeInOut(duration: 0.2), value: isExpanded)
     }

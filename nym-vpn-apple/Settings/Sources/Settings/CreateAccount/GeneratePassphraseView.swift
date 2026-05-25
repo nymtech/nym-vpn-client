@@ -68,7 +68,7 @@ public struct GeneratePassphraseView: View {
         .padding(16)
         .navigationBarBackButtonHidden(true)
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
         .task {
@@ -137,11 +137,11 @@ private extension GeneratePassphraseView {
             Spacer()
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.Nym.primary.opacity(0.15))
+                    .fill(Color.Nym.brandPrimary.opacity(0.15))
                     .frame(width: 68, height: 68)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.Nym.primary.opacity(0.25), lineWidth: 1)
+                            .stroke(Color.Nym.brandPrimary.opacity(0.25), lineWidth: 1)
                     )
 
                 GenericImage(imageName: "checkmarkCircle")
@@ -189,11 +189,11 @@ private extension GeneratePassphraseView {
         HStack(spacing: 8) {
             if let systemImageName {
                 GenericImage(systemImageName: systemImageName)
-                    .foregroundStyle(Color.Nym.primary)
+                    .foregroundStyle(Color.Nym.brandPrimary)
                     .frame(width: 24, height: 24)
             } else if let imageName {
                 GenericImage(imageName: imageName)
-                    .foregroundStyle(Color.Nym.primary)
+                    .foregroundStyle(Color.Nym.brandPrimary)
                     .frame(width: 24, height: 24)
             }
             Text(title)

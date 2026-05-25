@@ -29,7 +29,7 @@ public struct ProxyView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
         .task {
@@ -111,7 +111,7 @@ private extension ProxyView {
             .padding(.bottom, 12)
             Divider()
                 .frame(height: 1)
-                .overlay(Color.Nym.divider)
+                .overlay(Color.Nym.surfaceHair)
             detailsSection(
                 title: "proxy.activeConnections".localizedString,
                 details: proxyActiveConnectionsText(),
@@ -155,9 +155,9 @@ private extension ProxyView {
         } else {
             switch viewModel.proxyStatus?.state {
             case .none, .some(.disabled), .some(.error):
-                Color.Nym.error
+                Color.Nym.statusError
             case .some(.idle), .some(.connected):
-                Color.Nym.primary
+                Color.Nym.brandPrimary
             }
         }
     }

@@ -1,6 +1,8 @@
 import Foundation
 import SwiftUI
+import ConnectionTypes
 import Theme
+import UIComponents
 
 public enum OneClickConnectState: Equatable {
     case disconnected
@@ -13,9 +15,14 @@ public enum OneClickConnectState: Equatable {
 }
 
 public enum OneClickDisplayMode: String, Codable, Equatable, Sendable, CaseIterable {
-    case nerd
-    case oneClick
     case powerUser
+    case nerd
+}
+
+public enum OneClickSpeedMode: String, Codable, Equatable, Sendable, CaseIterable {
+    case auto
+    case fast
+    case anonymous
 }
 
 public enum OneClickServerScore: Equatable {
@@ -56,7 +63,30 @@ public struct OneClickServerInfo: Equatable {
     public var title: String
     public var subtitle: String?
     public var score: OneClickServerScore
-    public var supportsPostQuantum: Bool
+    public var isAutoBest: Bool
+    public var gateway: GatewayNode?
+    public var hopType: HopType?
+    public var showsInfoButton: Bool
+
+    public init(
+        countryCode: String,
+        title: String,
+        subtitle: String?,
+        score: OneClickServerScore,
+        isAutoBest: Bool = false,
+        gateway: GatewayNode? = nil,
+        hopType: HopType? = nil,
+        showsInfoButton: Bool = false
+    ) {
+        self.countryCode = countryCode
+        self.title = title
+        self.subtitle = subtitle
+        self.score = score
+        self.isAutoBest = isAutoBest
+        self.gateway = gateway
+        self.hopType = hopType
+        self.showsInfoButton = showsInfoButton
+    }
 }
 
 public enum OneClickSelectionPhase: Equatable {

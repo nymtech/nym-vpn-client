@@ -42,7 +42,7 @@ public struct DnsView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
         .overlay {
@@ -198,7 +198,7 @@ private extension DnsView {
                         .padding(.horizontal, 16)
                         Divider()
                             .frame(height: 1)
-                            .overlay(Color.Nym.divider)
+                            .overlay(Color.Nym.surfaceHair)
                             .frame(maxWidth: .infinity)
                             .padding(.horizontal, 8)
                     }
@@ -243,8 +243,8 @@ private extension DnsView {
                         .alignmentGuide(.listRowSeparatorLeading) { _ in 0 }
                     }
                     .frame(height: DnsView.dnsEntryHeight)
-                    .listRowSeparatorTint(Color.Nym.divider)
-                    .listRowBackground(Color.Nym.backgroundCard)
+                    .listRowSeparatorTint(Color.Nym.surfaceHair)
+                    .listRowBackground(Color.Nym.surfaceElev)
                 }
                 .onMove { from, to in
                     viewModel.customDns.move(fromOffsets: from, toOffset: to)
@@ -259,7 +259,7 @@ private extension DnsView {
                 )
             }
             .listStyle(.plain)
-            .background(Color.Nym.backgroundCard)
+            .background(Color.Nym.surfaceElev)
             .scrollContentBackground(.hidden)
             .scrollDisabled(true)
             .frame(maxWidth: .infinity)
@@ -281,7 +281,7 @@ private extension DnsView {
             .padding(.horizontal, 16)
             Divider()
                 .frame(height: 1)
-                .overlay(Color.Nym.divider)
+                .overlay(Color.Nym.surfaceHair)
                 .padding(.horizontal, 16)
         }
     }
@@ -301,7 +301,7 @@ private extension DnsView {
                     HStack {
                         Text(validationError)
                             .nymTextStyle(.bodyDefault)
-                            .foregroundStyle(Color.Nym.error)
+                            .foregroundStyle(Color.Nym.statusError)
                         Spacer()
                     }
                 }
@@ -318,9 +318,9 @@ private extension DnsView {
             strokeColor: viewModel.customDnsValidationError != nil
                 && !isCustomDnsTextFieldFocused
                 && isCustomDnsTextFieldDirty
-                    ? Color.Nym.error
+                    ? Color.Nym.statusError
                     : Color.Nym.textPrimary,
-            backgroundColor: Color.Nym.backgroundCard
+            backgroundColor: Color.Nym.surfaceElev
         ) {
             HStack {
                 ZStack(alignment: .leading) {

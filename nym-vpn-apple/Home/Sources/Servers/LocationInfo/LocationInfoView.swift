@@ -39,7 +39,7 @@ struct LocationInfoView: View {
                     okButton()
                 }
                 .padding(.horizontal, 24)
-                .background(Color.Nym.backgroundCard)
+                .background(Color.Nym.surfaceElev)
                 .cornerRadius(16)
 
                 Spacer()

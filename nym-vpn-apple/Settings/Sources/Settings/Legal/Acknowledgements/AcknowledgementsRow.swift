@@ -21,7 +21,7 @@ public struct AcknowledgementsRow: View {
             }
         }
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
     }

@@ -39,6 +39,7 @@ public struct AppFeatureView: View {
     @State private var viewModel: AppFeatureViewModel
     @State private var drawerHeight: CGFloat = 0
     @State private var welcomeHeight: CGFloat = 0
+    @State private var bottomSafeAreaInset: CGFloat = 0
     @Environment(\.colorScheme)
     private var colorScheme
     @Environment(\.scenePhase)
@@ -52,46 +53,69 @@ public struct AppFeatureView: View {
         _viewModel = State(wrappedValue: viewModel)
     }
 
-    private var pathBinding: Binding<NavigationPath> {
-        Binding(
-            get: { viewModel.path },
-            set: { viewModel.path = $0 }
-        )
-    }
-
     public var body: some View {
-        NavigationStack(path: pathBinding) {
-            GeometryReader { geometry in
-                VStack(spacing: 0) {
-                    navigationBar
-                    ZStack {
-                        background
-                        GeometryReader { innerGeometry in
-                            let effectiveDrawerHeight = viewModel.drawerContent == nil ? 0 : drawerHeight
-                            ConnectionStatusBackdrop(viewModel: viewModel.connectionStatus)
-                                .position(
-                                    x: innerGeometry.size.width / 2,
-                                    y: max(0, (innerGeometry.size.height - effectiveDrawerHeight) / 2)
-                                )
-                        }
+        @Bindable var viewModel = viewModel
+        NavigationStack(path: $viewModel.path) {
+            VStack(spacing: 0) {
+                navigationBar
+                ZStack {
+                    background
+                    GeometryReader { innerGeometry in
+                        let effectiveDrawerHeight = viewModel.drawerContent == nil ? 0 : drawerHeight
+                        // Drawer ignores bottom safe area; innerGeometry does not. Add it back
+                        // so availableHeight reflects ZStack-top → drawer-top, not an
+                        // under-reported value that triggers needless extra shrink.
+                        let availableHeight = max(
+                            0,
+                            innerGeometry.size.height + bottomSafeAreaInset - effectiveDrawerHeight
+                        )
+                        ConnectionStatusBackdrop(
+                            viewModel: viewModel.connectionStatus,
+                            availableHeight: availableHeight
+                        )
+                            .position(
+                                x: innerGeometry.size.width / 2,
+                                y: availableHeight / 2
+                            )
+                            .animation(
+                                .spring(response: 0.35, dampingFraction: 0.85),
+                                value: effectiveDrawerHeight
+                            )
                     }
-                    .clipped()
                 }
-                .overlay(alignment: .bottom) {
+                .clipped()
+            }
+            .overlay(alignment: .bottom) {
 #if os(iOS)
-                    KeyboardHostView(bottomSafeAreaInset: geometry.safeAreaInsets.bottom) {
-                        drawer
-                            .trackHeight { drawerHeight = $0 }
-                    }
-#else
-                    drawer
+                KeyboardHostView(
+                    bottomSafeAreaInset: bottomSafeAreaInset,
+                    isEnabled: viewModel.drawerTag.isWelcome
+                ) {
+                    Spacer()
+                    drawerColumn
                         .trackHeight { drawerHeight = $0 }
+                        .padding(.bottom, bottomSafeAreaInset == 0 ? NymSpacing.standard : 0)
+                }
+#else
+                drawerColumn
+                    .trackHeight { drawerHeight = $0 }
+                    .padding(.bottom, NymSpacing.standard)
 #endif
+            }
+            .background {
+                GeometryReader { proxy in
+                    Color.clear
+                        .onAppear { bottomSafeAreaInset = proxy.safeAreaInsets.bottom }
+                        .onChange(of: proxy.safeAreaInsets.bottom) { _, newValue in
+                            bottomSafeAreaInset = newValue
+                        }
                 }
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
             .animation(.spring, value: viewModel.drawerContent == nil)
-            .navigationDestination(for: HomeLink.self, destination: linkDestination)
+            .navigationDestination(for: HomeLink.self) { link in
+                linkDestination(link: link, path: $viewModel.path)
+            }
 #if os(iOS)
             .toolbar(.hidden, for: .navigationBar)
 #endif
@@ -163,7 +187,7 @@ private extension AppFeatureView {
     }
 
     var background: some View {
-        Color.Nym.background
+        Color.Nym.surfaceBg
             .ignoresSafeArea()
     }
 
@@ -177,6 +201,25 @@ private extension AppFeatureView {
             .ignoresSafeArea(.container, edges: .bottom)
             .transition(.move(edge: .bottom))
         }
+    }
+
+    @ViewBuilder var drawerColumn: some View {
+        VStack(spacing: NymSpacing.medium) {
+            if viewModel.drawerContent?.isOneClick == true {
+                speedModeSelector
+            }
+            drawer
+        }
+        .animation(.spring, value: viewModel.drawerContent?.isOneClick == true)
+    }
+
+    var speedModeSelector: some View {
+        SpeedModeSegmentedControl(selection: viewModel.oneClick.speedMode) { mode in
+            viewModel.oneClick.setSpeedMode(mode)
+        }
+        .frame(maxWidth: NymSpacing.drawerMaxWidth)
+        .padding(.horizontal, NymSpacing.standard)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
     @ViewBuilder
@@ -204,7 +247,12 @@ private extension AppFeatureView {
                 OneClickView(
                     viewModel: viewModel.oneClick,
                     onSelectEntry: { viewModel.path.append(HomeLink.entryGateways) },
-                    onSelectExit: { viewModel.path.append(HomeLink.exitGateways) }
+                    onSelectExit: { viewModel.path.append(HomeLink.exitGateways) },
+                    onShowGatewayDetails: { gateway, hopType in
+                        viewModel.path.append(
+                            HomeLink.gatewayDetails(gateway: gateway, hopType: hopType)
+                        )
+                    }
                 )
             }
         }
@@ -254,22 +302,22 @@ private extension AppFeatureView {
             }
         }
         .clipped()
-        .background((colorScheme == .light ? Color.Nym.backgroundCard : Color.Nym.background).ignoresSafeArea(edges: .top))
+        .background((colorScheme == .light ? Color.Nym.surfaceElev : Color.Nym.surfaceBg).ignoresSafeArea(edges: .top))
         .animation(.easeInOut(duration: 0.35), value: viewModel.shouldShowLogo)
     }
 }
 
 private extension AppFeatureView {
     @ViewBuilder
-    func linkDestination(link: HomeLink) -> some View {
+    func linkDestination(link: HomeLink, path: Binding<NavigationPath>) -> some View {
         switch link {
         case .settings:
-            settingsDestination()
+            settingsDestination(path: path)
         case .entryGateways:
             GatewaysView(
                 viewModel: GatewaysViewModel(
                     type: .entry,
-                    path: pathBinding,
+                    path: path,
                     appSettings: appSettings,
                     connectionManager: connectionManager,
                     gatewayManager: gatewayManager,
@@ -280,7 +328,7 @@ private extension AppFeatureView {
             GatewaysView(
                 viewModel: GatewaysViewModel(
                     type: .exit,
-                    path: pathBinding,
+                    path: path,
                     appSettings: appSettings,
                     connectionManager: connectionManager,
                     gatewayManager: gatewayManager,
@@ -289,7 +337,7 @@ private extension AppFeatureView {
             )
         case let .gatewayDetails(gateway: gateway, hopType: hopType):
             ServerDetailsView(
-                path: pathBinding,
+                path: path,
                 gateway: gateway,
                 hopType: hopType,
                 externalLinkManager: externalLinkManager
@@ -300,11 +348,11 @@ private extension AppFeatureView {
     }
 
     @ViewBuilder
-    func settingsDestination() -> some View {
+    func settingsDestination(path: Binding<NavigationPath>) -> some View {
 #if os(iOS)
         SettingsView(
             viewModel: SettingsViewModel(
-                path: pathBinding,
+                path: path,
                 appSettings: appSettings,
                 configurationManager: configurationManager,
                 connectionManager: connectionManager,
@@ -319,7 +367,7 @@ private extension AppFeatureView {
         SettingsView(
             viewModel: SettingsViewModel(
                 isServing: $grpcManager.isServing,
-                path: pathBinding,
+                path: path,
                 appSettings: appSettings,
                 configurationManager: configurationManager,
                 connectionManager: connectionManager,

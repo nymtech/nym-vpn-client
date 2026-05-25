@@ -30,7 +30,7 @@ public struct ProcessingAccountView: View {
         .padding(16)
         .navigationBarBackButtonHidden(true)
         .background {
-            Color.Nym.background
+            Color.Nym.surfaceBg
                 .ignoresSafeArea()
         }
         .onChange(of: didFinishAnimatingText) { _, _ in

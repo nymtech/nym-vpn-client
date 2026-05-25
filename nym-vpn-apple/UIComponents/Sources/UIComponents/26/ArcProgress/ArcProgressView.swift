@@ -11,6 +11,7 @@ public struct ArcProgressView: View {
     public let state: ArcProgressState
     public let mode: ArcProgressMode
     public let connectedDate: Date?
+    public let availableHeight: CGFloat?
 
     @State private var lastStep: ArcProgressState.Step?
     @Environment(\.colorScheme) private var colorScheme
@@ -18,11 +19,13 @@ public struct ArcProgressView: View {
     public init(
         state: ArcProgressState,
         mode: ArcProgressMode = .fast,
-        connectedDate: Date? = nil
+        connectedDate: Date? = nil,
+        availableHeight: CGFloat? = nil
     ) {
         self.state = state
         self.mode = mode
         self.connectedDate = connectedDate
+        self.availableHeight = availableHeight
     }
 
     public var body: some View {
@@ -40,6 +43,8 @@ public struct ArcProgressView: View {
         .overlay(alignment: .top) {
             timerOverlay
         }
+        .scaleEffect(contentScale, anchor: .center)
+        .animation(.easeInOut(duration: 0.2), value: contentScale)
         .onAppear { recordStepIfActive(state) }
         .onChange(of: state) { _, newValue in
             recordStepIfActive(newValue)
@@ -81,8 +86,8 @@ private extension ArcProgressView {
             AnyShapeStyle(
                 RadialGradient(
                     colors: [
-                        Color.Nym.sphereGradientTop,
-                        Color.Nym.sphereGradientBottom
+                        Color.Nym.connectionSphereHi,
+                        Color.Nym.connectionSphere
                     ],
                     center: UnitPoint(x: 0.3, y: 0.3),
                     startRadius: 0,
@@ -133,7 +138,7 @@ private extension ArcProgressView {
             TimelineView(.periodic(from: connectedDate, by: 1.0)) { context in
                 Text(verbatim: fastHMS(from: connectedDate, to: context.date))
                     .font(.system(size: Constants.labelFontSize))
-                    .foregroundColor(Color.Nym.secondary)
+                    .foregroundColor(Color.Nym.brandPrimary)
                     .monospacedDigit()
             }
             .id(connectedDate)
@@ -178,7 +183,7 @@ private extension ArcProgressView {
         guard state == .connected else { return .clear }
         switch mode {
         case .fast:
-            return Color.Nym.secondary.opacity(0.55)
+            return Color.Nym.brandPrimary.opacity(0.55)
         case .anonymous:
             return Color.Nym.gray1.opacity(0.35)
         }
@@ -209,7 +214,7 @@ private extension ArcProgressView {
     var labelColor: Color {
         switch state {
         case .failed:               return Constants.errorFill
-        case .connected, .step:     return Color.Nym.secondary
+        case .connected, .step:     return Color.Nym.brandPrimary
         case .disconnected, .canceling: return Color.Nym.textTertiary
         }
     }
@@ -259,6 +264,19 @@ private extension ArcProgressView {
         StrokeStyle(lineWidth: Constants.strokeWidth, lineCap: .round)
     }
 
+    /// Uniform scale applied to the whole arc+label+timer block so it
+    /// fits within `availableHeight` when the drawer eats most of the
+    /// screen. The arc is `.position`-centered in the parent, so timer
+    /// (sitting below the VStack) sets the binding constraint:
+    /// twice the below-VStack extent + the VStack height must clear the
+    /// available height.
+    var contentScale: CGFloat {
+        guard let availableHeight, availableHeight > 0 else { return 1 }
+        let required = Constants.requiredCenteredHeight
+        guard required > 0 else { return 1 }
+        return min(1, max(Constants.minContentScale, availableHeight / required))
+    }
+
     func fastHMS(from start: Date, to now: Date) -> String {
         let total = max(0, Int(now.timeIntervalSince(start)))
         let hours = total / 3600
@@ -302,13 +320,30 @@ private extension ArcProgressView {
         /// parent layout (overlay isn't clipped by default).
         static let timerTopOffset: CGFloat = canvasSize + labelTopSpacing + labelMinHeight + 4
 
+        /// Height required so the arc's visual bounds (VStack + timer
+        /// overlay) fit when `.position`-centered in the parent. Timer
+        /// extends past the VStack bottom by `timerTopOffset + timer
+        /// height - vstackHeight`; doubling that overhang and adding
+        /// the VStack itself yields the minimum centered envelope.
+        static var requiredCenteredHeight: CGFloat {
+            let vstackHeight = canvasSize + labelTopSpacing + labelMinHeight
+            let timerOverhang = max(0, timerTopOffset + labelMinHeight - vstackHeight)
+            let safety: CGFloat = 36
+            return vstackHeight + 2 * timerOverhang + 2 * safety
+        }
+
+        /// Floor on `scaleEffect` so the arc remains recognizable when
+        /// available room is tiny. Below this we accept a small overlap
+        /// behind the opaque drawer rather than render an illegible mark.
+        static let minContentScale: CGFloat = 0.4
+
         static let glowConnectedOpacity: Double = 0.55
 
-        static let fastFill      = Color.Nym.secondary
-        static let anonymousFill = Color.Nym.anonymousArc.opacity(0.60)
+        static let fastFill      = Color.Nym.brandPrimary
+        static let anonymousFill = Color.Nym.connectionArcAnon.opacity(0.60)
         static let track         = Color.white.opacity(0.15)
-        static let errorFill     = Color.Nym.error.opacity(0.60)
-        static let errorTint     = Color.Nym.error.opacity(0.08)
+        static let errorFill     = Color.Nym.statusError.opacity(0.60)
+        static let errorTint     = Color.Nym.statusError.opacity(0.08)
     }
 }
 
