@@ -156,8 +156,7 @@
 	<string name="button_next">Suivant</string>
 	<string name="skip">Ignorer</string>
 	<string name="get_started">Commencer</string>
-	<string name="random_text">Aléatoire</string>
-	<string name="title_retry">Réessayer</string>
+    <string name="title_retry">Réessayer</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Affichage du flux</string>
 	<string name="streaming_server_banner_title">Nouveau : Découvrez le streaming-\nserveurs optimisés (▶️)</string>

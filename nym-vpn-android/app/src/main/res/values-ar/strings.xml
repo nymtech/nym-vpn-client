@@ -158,8 +158,7 @@
 	<string name="button_next">التالي</string>
 	<string name="skip">تخطي</string>
 	<string name="get_started">بدء التشغيل</string>
-	<string name="random_text">عشوائي</string>
-	<string name="title_retry">إعادة المحاولة</string>
+    <string name="title_retry">إعادة المحاولة</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">عرض البث</string>
 	<string name="streaming_server_banner_title">جديد: اكتشف البث -\nخوادم محسنة (▶️)</string>

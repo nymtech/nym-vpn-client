@@ -16,10 +16,10 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
-import net.nymtech.nymvpn.ui.screens.main.components.PanelState
-import net.nymtech.nymvpn.util.extensions.toAlgorithm
+import net.nymtech.nymvpn.ui.screens.main.panel.PanelState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import timber.log.Timber
 
 @HiltViewModel
@@ -63,30 +63,49 @@ constructor(
 		_expiryBannerDismissed.value = true
 	}
 
-	fun onTwoHopSelected() = viewModelScope.launch {
-		Timber.tag(TAG).i("VpnModeChangeRequested mode=TWO_HOP_MIXNET")
+	fun onAutoSelected() = viewModelScope.launch {
+		Timber.tag(TAG).i("ConnectModeChangeRequested mode=AUTO")
 		runCatching {
-			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.TWO_HOP_MIXNET))
+			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.AUTO))
 		}.onFailure { t ->
-			Timber.tag(TAG).e(t, "VpnModeChangeFailed mode=TWO_HOP_MIXNET")
+			Timber.tag(TAG).e(t, "ConnectModeChangeFailed mode=AUTO")
+		}
+	}
+
+	fun onTwoHopSelected() = viewModelScope.launch {
+		Timber.tag(TAG).i("ConnectModeChangeRequested mode=FAST")
+		runCatching {
+			vpnConfigRepository.apply(
+				listOf(
+					CoreVpnConfigUpdate.SetMode(Tunnel.Mode.TWO_HOP_MIXNET),
+					CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.EXPLICIT),
+				),
+			)
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "ConnectModeChangeFailed mode=FAST")
 		}
 	}
 
 	fun onFiveHopSelected() = viewModelScope.launch {
-		Timber.tag(TAG).i("VpnModeChangeRequested mode=FIVE_HOP_MIXNET")
+		Timber.tag(TAG).i("ConnectModeChangeRequested mode=MIXNET")
 		runCatching {
-			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetMode(Tunnel.Mode.FIVE_HOP_MIXNET))
+			vpnConfigRepository.apply(
+				listOf(
+					CoreVpnConfigUpdate.SetMode(Tunnel.Mode.FIVE_HOP_MIXNET),
+					CoreVpnConfigUpdate.SetAlgorithm(GatewaySelectionAlgorithm.EXPLICIT),
+				),
+			)
 		}.onFailure { t ->
-			Timber.tag(TAG).e(t, "VpnModeChangeFailed mode=FIVE_HOP_MIXNET")
+			Timber.tag(TAG).e(t, "ConnectModeChangeFailed mode=MIXNET")
 		}
 	}
 
 	fun onPanelStateChanged(state: PanelState) = viewModelScope.launch {
 		Timber.tag(TAG).i("ConnectionPanelStateChanged state=$state")
 		runCatching {
-			vpnConfigRepository.apply(CoreVpnConfigUpdate.SetAlgorithm(state.toAlgorithm()))
+			settingsRepository.setPanelCollapsed(state == PanelState.COLLAPSED)
 		}.onFailure { t ->
-			Timber.tag(TAG).e(t, "VpnAlgorithmChangeFailed state=$state")
+			Timber.tag(TAG).e(t, "PanelStateChangeFailed state=$state")
 		}
 	}
 

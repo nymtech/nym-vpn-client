@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -79,6 +80,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.AsnKind
+import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewayType
 import java.util.Locale
 
@@ -158,6 +160,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 			appUiState.settings.quicEnabled
 	}
 
+	val showBestOption = remember(appUiState.vpnConfig.algorithm) {
+		gatewayLocation == GatewayLocation.EXIT &&
+			appUiState.vpnConfig.algorithm != GatewaySelectionAlgorithm.EXPLICIT
+	}
+
 	LaunchedEffect(gatewayType, initialGateways) {
 		viewModel.initializeGateways(initialGateways, gatewayLocation == GatewayLocation.EXIT)
 		viewModel.updateCountryCache(gatewayType)
@@ -173,6 +180,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 		selectedKey = selectedKey,
 		gatewayType = gatewayType,
 		canShowQuicLabel = canShowQuicLabel,
+		showBestOption = showBestOption,
+		algorithm = appUiState.vpnConfig.algorithm,
 		gatewayLocation = gatewayLocation,
 		initialGatewaysEmpty = initialGateways.isEmpty(),
 		isRefreshing = refreshing,
@@ -196,6 +205,8 @@ internal fun HopScreenContent(
 	selectedKey: String?,
 	gatewayType: GatewayType,
 	canShowQuicLabel: Boolean,
+	showBestOption: Boolean,
+	algorithm: GatewaySelectionAlgorithm,
 	gatewayLocation: GatewayLocation,
 	initialGatewaysEmpty: Boolean,
 	isRefreshing: Boolean,
@@ -271,8 +282,29 @@ internal fun HopScreenContent(
 			}
 
 			item {
-				SurfaceSelectionGroupButton(
-					items = listOf(
+				val isBestSelected = showBestOption && selectedKey == null && algorithm == GatewaySelectionAlgorithm.AUTO
+				val isRandomSelected = !showBestOption && selectedKey == null
+
+				val items = buildList {
+					if (showBestOption) {
+						add(
+							SelectionItem(
+								onClick = { onSelect("Best") },
+								leading = {
+									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+										Icon(
+											imageVector = Icons.Rounded.Star,
+											contentDescription = null,
+											modifier = Modifier.size(iconSize),
+										)
+									}
+								},
+								title = { Text(stringResource(R.string.gateway_best), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
+								selected = isBestSelected,
+							),
+						)
+					}
+					add(
 						SelectionItem(
 							onClick = { onSelect("Random") },
 							leading = {
@@ -284,10 +316,14 @@ internal fun HopScreenContent(
 									)
 								}
 							},
-							title = { Text(stringResource(R.string.random_text), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
-							selected = selectedKey == null,
+							title = { Text(stringResource(R.string.gateway_random), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimaryContainer) },
+							selected = isRandomSelected,
 						),
-					),
+					)
+				}
+
+				SurfaceSelectionGroupButton(
+					items = items,
 					shape = RectangleShape,
 					background = MaterialTheme.colorScheme.surface,
 					anchorsPadding = 0.dp,
@@ -466,7 +502,9 @@ internal fun HopScreenPreview() {
 				selectedKey = null,
 				gatewayType = GatewayType.WG,
 				canShowQuicLabel = false,
-				gatewayLocation = GatewayLocation.ENTRY,
+				showBestOption = true,
+				algorithm = GatewaySelectionAlgorithm.AUTO,
+				gatewayLocation = GatewayLocation.EXIT,
 				initialGatewaysEmpty = true,
 				isRefreshing = false,
 				onRefresh = {},
