@@ -158,8 +158,7 @@
 	<string name="button_next">Siguiente</string>
 	<string name="skip">Saltar</string>
 	<string name="get_started">Empezar</string>
-	<string name="random_text">Aleatorio</string>
-	<string name="title_retry">Reintentar</string>
+    <string name="title_retry">Reintentar</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Pantalla de flujo</string>
 	<string name="streaming_server_banner_title">Nuevo: Descubre streaming-\nservidores optimizados (▶️)</string>

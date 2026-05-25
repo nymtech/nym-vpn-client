@@ -55,4 +55,7 @@ interface SettingsRepository {
 
 	suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig
 	suspend fun setMixnetTrafficConfig(config: MixnetTrafficConfig)
+
+	suspend fun getPanelCollapsed(): Boolean
+	suspend fun setPanelCollapsed(collapsed: Boolean)
 }

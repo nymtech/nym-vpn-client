@@ -156,8 +156,7 @@
 	<string name="button_next">পরবর্তী</string>
 	<string name="skip">বাদ দিন</string>
 	<string name="get_started">শুরু করুন</string>
-	<string name="random_text">এলোমেলো</string>
-	<string name="title_retry">পুনরায় চেষ্টা করুন</string>
+    <string name="title_retry">পুনরায় চেষ্টা করুন</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display"></string>
 	<string name="streaming_server_banner_title"></string>

@@ -19,6 +19,7 @@ data class Settings(
 	val logsEnabled: Boolean = DEFAULT_LOGS_ENABLED,
 	val mixnetTrafficConfig: MixnetTrafficConfig = MIXNET_CONFIG_DEFAULT,
 	val isWelcomeShown: Boolean = DEFAULT_WELCOME_SHOWN,
+	val panelCollapsed: Boolean = DEFAULT_PANEL_COLLAPSED,
 ) {
 	companion object {
 		const val AUTO_START_DEFAULT = false
@@ -32,6 +33,7 @@ data class Settings(
 		const val DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED = false
 		const val DEFAULT_LOGS_ENABLED = false
 		const val DEFAULT_WELCOME_SHOWN = false
+		const val DEFAULT_PANEL_COLLAPSED = false
 
 		val MIXNET_CONFIG_DEFAULT = MixnetTrafficConfig(
 			poissonParameterForLoopCoverStream = 200u,

@@ -21,6 +21,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BridgeParameter
@@ -227,6 +228,13 @@ fun Score.displayText(): String = when (this) {
 	Score.MEDIUM -> stringResource(R.string.score_text_medium)
 	Score.LOW -> stringResource(R.string.score_text_low)
 	Score.OFFLINE -> stringResource(R.string.score_text_offline)
+}
+
+@Composable
+fun getModeIcon(mode: ConnectMode): ImageVector = when (mode) {
+	ConnectMode.AUTO -> ImageVector.vectorResource(R.drawable.ic_mode_auto)
+	ConnectMode.FAST -> ImageVector.vectorResource(R.drawable.ic_mode_fast)
+	ConnectMode.MIXNET -> ImageVector.vectorResource(R.drawable.ic_mode_mixnet)
 }
 
 fun relativeTimeSpan(utcString: String?): String = try {

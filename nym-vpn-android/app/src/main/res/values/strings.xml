@@ -177,7 +177,6 @@
 	<string name="button_next">Next</string>
 	<string name="skip">Skip</string>
 	<string name="get_started">Get started</string>
-	<string name="random_text">Random</string>
     <string name="title_retry">Retry</string>
 	<string name="button_back">Back</string>
     <!-- Dialogs & info messaged -->
@@ -220,15 +219,20 @@
 	<string name="connection_state_connecting_tunnel">Establishing server connection (6/6)</string>
 	<string name="main_button_select_plan">Select plan</string>
 	<!-- One-click mode -->
-	<string name="one_click_auto_server">Best server for my location</string>
+	<string name="one_click_auto_server">Use best server</string>
 	<string name="one_click_searching">Searching best location</string>
 	<string name="one_click_mode_fast">Fast</string>
-	<string name="one_click_nym_exit_node">Nym exit node</string>
-	<string name="one_click_nym_entry_node">Nym entry node</string>
+	<string name="connect_mode_auto">Auto</string>
+	<string name="connect_mode_mixnet">Mixnet</string>
+	<string name="one_click_nym_exit_node">Exit server</string>
+	<string name="one_click_nym_entry_node">Entry server</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Not protected</string>
 	<string name="connection_status_fast_mode">Fast mode protection</string>
 	<string name="connection_status_anonymous">Anonymous protection</string>
+	<!-- Hop Screen -->
+	<string name="gateway_best">Best server</string>
+	<string name="gateway_random">Random server</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Welcome!</string>
 	<string name="auth_welcome_description">To the world’s most private VPN</string>

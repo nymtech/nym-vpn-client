@@ -156,8 +156,7 @@
 	<string name="button_next">Sonra</string>
 	<string name="skip">Atla</string>
 	<string name="get_started">Başlayın</string>
-	<string name="random_text">Rastgele</string>
-	<string name="title_retry">Yeniden Dene</string>
+    <string name="title_retry">Yeniden Dene</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Akış ekranı</string>
 	<string name="streaming_server_banner_title">Yeni: Yayın\niçin optimize edilmiş sunucuları keşfedin</string>

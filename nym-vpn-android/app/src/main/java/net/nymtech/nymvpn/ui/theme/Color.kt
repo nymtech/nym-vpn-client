@@ -5,18 +5,20 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 internal object DarkSchemeBaseColors {
-	val primary = Color(0xFF59F09F)
-	val onPrimary = Color(0xFF1C1B1F)
+	val primary = Color(0xFF5BF0A0)
+	val onPrimary = Color(0xFF0A0A0A)
+
 	val primaryContainer = Color(0xFF2E2E2E)
 	val onPrimaryContainer = Color(0xFFFFFFFF)
 	val secondary = Color(0xFFB0ADB6)
 	val onSecondary = Color(0xFF1C1B1F)
 	val tertiary = Color(0xFF76FFB1)
-	val background = Color(0xFF090909)
+	val background = Color(0xFF0A0A0A)
 	val onBackground = Color(0xFFAEACB1)
 	val surface = Color(0xFF1D1D1F)
 	val onSurface = Color(0xFFAEACB1)
-	val surfaceContainer = Color(0xFF313033)
+	val surfaceVariant = Color(0xFF050505)
+	val onSurfaceVariant = Color(0xFF8B8B90)
 	val inverseSurface = Color(0xFFEEEEEE)
 	val error = Color(0xFFFF4444)
 	val errorContainer = Color(0xFFCD2C3C)
@@ -25,18 +27,20 @@ internal object DarkSchemeBaseColors {
 }
 
 internal object LightSchemeBaseColors {
-	val primary = Color(0xFF5BF0A0)
-	val onPrimary = Color(0xFF1C1B1F)
+	val primary = Color(0xFF1A9B61)
+	val onPrimary = Color(0xFFFFFFFF)
+
 	val primaryContainer = Color(0xFFFFFFFF)
 	val onPrimaryContainer = Color(0xFF111111)
 	val secondary = Color(0xFFB0ADB6)
 	val onSecondary = Color(0xFF1C1B1F)
 	val tertiary = Color(0xFF28C96C)
-	val background = Color(0xFFD5D5D5)
+	val background = Color(0xFFFFFFFF)
 	val onBackground = Color(0xFF8A8990)
-	val surface = Color(0xFFFFFFFF)
+	val surface = Color(0xFFF6F6F7)
 	val onSurface = Color(0xFF6A7282)
-	val surfaceContainer = Color(0xFFFFFFFF)
+	val surfaceVariant = Color(0xBFEDEDEE)
+	val onSurfaceVariant = Color(0xFF8B8B90)
 	val inverseSurface = Color(0xFFEEEEEE)
 	val error = Color(0xFFFF4444)
 	val errorContainer = Color(0xFFCD2C3C)

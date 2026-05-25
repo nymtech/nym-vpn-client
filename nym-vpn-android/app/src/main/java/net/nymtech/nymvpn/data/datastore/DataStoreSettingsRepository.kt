@@ -29,6 +29,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val isPerAppSecurityBannerDisplayed = booleanPreferencesKey("DEFAULT_PER_APP_SECURITY_BANNER_DISPLAYED")
 	private val logsEnabled = booleanPreferencesKey("LOGS_ENABLED")
 	private val welcomeShown = booleanPreferencesKey("WELCOME_SHOWN")
+	private val panelCollapsed = booleanPreferencesKey("PANEL_COLLAPSED")
 
 	// Keys for Mixnet Configuration
 	private val mixnetPoissonRate = intPreferencesKey("MIXNET_POISSON_RATE")
@@ -133,6 +134,12 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(welcomeShown, shown)
 	}
 
+	override suspend fun getPanelCollapsed(): Boolean = dataStoreManager.getFromStore(panelCollapsed) ?: Settings.DEFAULT_PANEL_COLLAPSED
+
+	override suspend fun setPanelCollapsed(collapsed: Boolean) {
+		dataStoreManager.saveToDataStore(panelCollapsed, collapsed)
+	}
+
 	override suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig {
 		val poisson = dataStoreManager.getFromStore(mixnetPoissonRate)
 		val avgDelay = dataStoreManager.getFromStore(mixnetAvgPacketDelay)
@@ -191,6 +198,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						logsEnabled = pref[logsEnabled] ?: Settings.DEFAULT_LOGS_ENABLED,
 						mixnetTrafficConfig = mixnetConfig,
 						isWelcomeShown = pref[welcomeShown] ?: Settings.DEFAULT_WELCOME_SHOWN,
+						panelCollapsed = pref[panelCollapsed] ?: Settings.DEFAULT_PANEL_COLLAPSED,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

@@ -158,8 +158,7 @@
 	<string name="button_next">بعدی</string>
 	<string name="skip">بیخیال</string>
 	<string name="get_started">شروع کنید</string>
-	<string name="random_text">تصادفی</string>
-	<string name="title_retry">تلاش مجدد</string>
+    <string name="title_retry">تلاش مجدد</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">نمایش جریان</string>
 	<string name="streaming_server_banner_title">جدید: سرورهای بهینه شده برای استریمینگ، بیشتر بدانید (▶️)</string>
