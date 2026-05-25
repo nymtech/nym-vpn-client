@@ -8,18 +8,18 @@ on:
         type: string
         required: false
       major:
-        type: number
+        type: string
         description: "Major version"
         required: true
       minor:
-        type: number
+        type: string
         description: "Minor version"
         required: true
       patch:
-        type: number
+        type: string
         description: "Patch version"
         required: false
-        default: 0
+        default: "0"
       release_kind:
         type: choice
         description: "Release kind"
@@ -29,10 +29,10 @@ on:
           - beta
         default: "beta"
       pre_release_ident:
-        type: number
+        type: string
         description: "Pre-release identifier starting at 1 (only used for non-stable releases)"
         required: false
-        default: 1
+        default: "1"
       update_linux_installer:
         description: "Update linux installer script"
         type: boolean
@@ -55,27 +55,27 @@ on:
         type: string
         required: false
       major:
-        type: number
+        type: string
         description: "Major version"
         required: true
       minor:
-        type: number
+        type: string
         description: "Minor version"
         required: true
       patch:
-        type: number
+        type: string
         description: "Patch version"
         required: false
-        default: 0
+        default: "0"
       release_kind:
         type: string
         description: "Release kind"
         required: true
       pre_release_ident:
-        type: number
+        type: string
         description: "Pre-release identifier starting at 1 (only used for non-stable releases)"
         required: false
-        default: 1
+        default: "1"
       update_linux_installer:
         description: "Update linux installer script"
         type: boolean
@@ -92,6 +92,10 @@ on:
         required: true
         default: true
 
+permissions:
+  contents: write
+  pull-requests: write
+
 env:
   CARGO_TERM_COLOR: always
   GIT_USER: NYM CI
@@ -104,9 +108,6 @@ concurrency:
 jobs:
   bump-all:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - name: Configure git
         run: |
@@ -157,17 +158,17 @@ jobs:
           PRE_RELEASE_IDENT: ${{ inputs.pre_release_ident }}
         run: |
           if ! grep -P '^[2-9][0-9]{3}$' <<< "${{ env.MAJOR }}" ; then
-              echo "::error:: major must be an integer."
+              echo "::error:: major must be an integer"
               exit 1
           fi
 
-          if ! grep -P '^[1-9]+$' <<< "${{ env.MINOR }}"; then
-              echo "::error:: minor must be an integer."
+          if ! grep -P '^[1-9][0-9]?$' <<< "${{ env.MINOR }}"; then
+              echo "::error:: minor must be an integer"
               exit 1
           fi
 
           if ! grep -P '^[0-9]+$' <<< "${{ env.PATCH }}" ; then
-              echo "::error:: patch must be an integer."
+              echo "::error:: patch must be an integer"
               exit 1
           fi
 
@@ -206,7 +207,7 @@ jobs:
 
           echo "::notice:: core=$CORE_VERSION deb=$DEB_VERSION android_name=$ANDROID_VERSION_NAME android_code=$ANDROID_VERSION_CODE apple_version=$APPLE_VERSION"
 
-          echo "current_release_version=$CURRENT_RELEASE_VERSION"
+          echo "current_release_version=$CURRENT_RELEASE_VERSION" >> "$GITHUB_OUTPUT"
           echo "core_version=$CORE_VERSION" >> "$GITHUB_OUTPUT"
           echo "deb_version=$DEB_VERSION" >> "$GITHUB_OUTPUT"
           echo "android_version_name=$ANDROID_VERSION_NAME" >> "$GITHUB_OUTPUT"
@@ -303,7 +304,7 @@ jobs:
             VERSION="${{ steps.version.outputs.current_release_version }}"
           else
             RELEASE_DATE=$(date "+%F")
-            VERSION="$NEW_VERSION"
+            VERSION="${{ env.NEW_VERSION }}"
           fi
 
           sed -i -e "s/\[Unreleased\]/[Unreleased]\n\n## [$VERSION] - $RELEASE_DATE/" CHANGELOG.md
@@ -327,6 +328,7 @@ jobs:
           gh pr create \
               --base "$BASE_BRANCH" \
               --title "Bump version to \`v${{ steps.version.outputs.core_version }}\` across all platforms" \
+              --milestone "no-milestone" \
               --body "Unified version bump.
 
           - **core** (\`nym-vpn-core/Cargo.toml\`): \`${{ steps.version.outputs.core_version }}\`

@@ -9,7 +9,7 @@ on:
         type: boolean
         default: false
       branch:
-        description: "Git branch to run against (uses github ref if not set). Unless testing, leave it blank, select the branch from dropdown instead"
+        description: "Git branch to run against (uses github ref if not set)"
         type: string
         required: false
       dry_run:
@@ -90,10 +90,11 @@ jobs:
             PRE_RELEASE_IDENT=$(echo "$PRE" | cut -d. -f2)
             PRE_RELEASE_IDENT=$(($PRE_RELEASE_IDENT + 1))
             RELEASE_KIND="beta"
-            echo "::notice:: Next version: $MAJOR.$MINOR.$PATCH-$RELEASE_KIND.$PRE_RELEASE_IDENT" >> "$GITHUB_OUTPUT"
+            echo "::notice:: Next version: $MAJOR.$MINOR.$PATCH-$RELEASE_KIND.$PRE_RELEASE_IDENT"
           else
             RELEASE_KIND="stable"
-            echo "::notice:: Next version: $MAJOR.$MINOR.$PATCH" >> "$GITHUB_OUTPUT"
+            PRE_RELEASE_IDENT="1" # unused but keeps workflow_call happy
+            echo "::notice:: Next version: $MAJOR.$MINOR.$PATCH"
           fi
 
           echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
@@ -105,9 +106,6 @@ jobs:
   bump-release-branch:
     needs: next-release-version
     uses: ./.github/workflows/bump-all-platforms.yml
-    permissions:
-      contents: write
-      pull-requests: write
     with:
       branch: ${{ inputs.branch || github.ref_name }}
       major: ${{ needs.next-release-version.outputs.major }}
