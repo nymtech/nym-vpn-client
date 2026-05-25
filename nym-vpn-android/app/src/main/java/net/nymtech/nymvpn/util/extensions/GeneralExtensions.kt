@@ -2,7 +2,8 @@ package net.nymtech.nymvpn.util.extensions
 
 import android.content.Context
 import android.provider.Settings
-import net.nymtech.nymvpn.ui.screens.main.components.PanelState
+import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
+import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import java.util.Locale
@@ -37,14 +38,8 @@ fun isVpnAlwaysOn(context: Context): Boolean = try {
 	false
 }
 
-fun PanelState.toAlgorithm(): GatewaySelectionAlgorithm = when (this) {
-	PanelState.COLLAPSED -> GatewaySelectionAlgorithm.AUTO
-	PanelState.MODE -> GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT
-	PanelState.FULL -> GatewaySelectionAlgorithm.EXPLICIT
-}
-
-fun GatewaySelectionAlgorithm.toPanelState(): PanelState = when (this) {
-	GatewaySelectionAlgorithm.AUTO -> PanelState.COLLAPSED
-	GatewaySelectionAlgorithm.AUTO_ENTRY_EXPLICIT_EXIT -> PanelState.MODE
-	GatewaySelectionAlgorithm.EXPLICIT -> PanelState.FULL
+fun GatewaySelectionAlgorithm.toConnectMode(vpnMode: Tunnel.Mode): ConnectMode = when {
+	this == GatewaySelectionAlgorithm.EXPLICIT && vpnMode == Tunnel.Mode.TWO_HOP_MIXNET -> ConnectMode.FAST
+	this == GatewaySelectionAlgorithm.EXPLICIT && vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET -> ConnectMode.MIXNET
+	else -> ConnectMode.AUTO
 }

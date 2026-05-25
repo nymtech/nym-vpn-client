@@ -48,6 +48,8 @@ private val DarkColorScheme = darkColorScheme(
 	errorContainer = DarkSchemeBaseColors.errorContainer,
 	onErrorContainer = DarkSchemeBaseColors.onErrorContainer,
 	outline = DarkSchemeBaseColors.outline,
+	surfaceVariant = DarkSchemeBaseColors.surfaceVariant,
+	onSurfaceVariant = DarkSchemeBaseColors.onSurfaceVariant,
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -67,6 +69,8 @@ private val LightColorScheme = lightColorScheme(
 	errorContainer = LightSchemeBaseColors.errorContainer,
 	onErrorContainer = LightSchemeBaseColors.onErrorContainer,
 	outline = LightSchemeBaseColors.outline,
+	surfaceVariant = LightSchemeBaseColors.surfaceVariant,
+	onSurfaceVariant = LightSchemeBaseColors.onSurfaceVariant,
 )
 
 @Composable

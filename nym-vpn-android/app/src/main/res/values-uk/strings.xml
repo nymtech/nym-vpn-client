@@ -156,8 +156,7 @@
 	<string name="button_next">Далі</string>
 	<string name="skip">Пропустити</string>
 	<string name="get_started">Почати</string>
-	<string name="random_text">Випадковий</string>
-	<string name="title_retry">Повторити спробу</string>
+    <string name="title_retry">Повторити спробу</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Показ стріму</string>
 	<string name="streaming_server_banner_title">Нове: Відкрийте для себе сервери, оптимізовані для потокового передавання (▶️)</string>
