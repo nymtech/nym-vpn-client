@@ -131,7 +131,9 @@ export type ErrorKey =
   | 'device-time-desync'
   | 'get-mixnet-entry-countries-query'
   | 'get-mixnet-exit-countries-query'
-  | 'get-wg-countries-query';
+  | 'get-wg-countries-query'
+  | 'mnemonic-reveal-denied'
+  | 'mnemonic-not-available';
 
 export type FeatureFlags = {
   quic: boolean;
