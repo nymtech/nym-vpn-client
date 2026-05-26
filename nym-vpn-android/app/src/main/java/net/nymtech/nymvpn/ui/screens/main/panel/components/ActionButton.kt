@@ -23,7 +23,14 @@ import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.ErrorStateReason
 
 @Composable
-internal fun ActionButton(connectionState: ConnectionState, accountState: AccountControllerState, isMnemonicStored: Boolean, onAction: (ConnectAction) -> Unit, modifier: Modifier = Modifier) {
+internal fun ActionButton(
+	connectionState: ConnectionState,
+	accountState: AccountControllerState,
+	isMnemonicStored: Boolean,
+	isSubscriptionExpired: Boolean,
+	onAction: (ConnectAction) -> Unit,
+	modifier: Modifier = Modifier,
+) {
 	val context = LocalContext.current
 	val buttonModifier = modifier.fillMaxWidth().height(48.dp.scaledHeight())
 	val buttonShape = RoundedCornerShape(50)
@@ -32,12 +39,19 @@ internal fun ActionButton(connectionState: ConnectionState, accountState: Accoun
 		ConnectionState.Disconnected,
 		ConnectionState.Offline,
 		ConnectionState.WaitingForConnection,
-		-> MainStyledButton(
-			onClick = { onAction(if (isMnemonicStored) ConnectAction.CONNECT else ConnectAction.GET_STARTED) },
-			content = { Text(stringResource(if (isMnemonicStored) R.string.connect else R.string.get_started), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimary) },
-			modifier = buttonModifier,
-			shape = buttonShape,
-		)
+		-> {
+			val label = when {
+				isSubscriptionExpired -> R.string.error_expired_subscription_button
+				isMnemonicStored -> R.string.connect
+				else -> R.string.get_started
+			}
+			MainStyledButton(
+				onClick = { onAction(if (isMnemonicStored && !isSubscriptionExpired) ConnectAction.CONNECT else ConnectAction.GET_STARTED) },
+				content = { Text(stringResource(label), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimary) },
+				modifier = buttonModifier,
+				shape = buttonShape,
+			)
+		}
 
 		is ConnectionState.Connecting -> MainStyledButton(
 			onClick = { onAction(ConnectAction.DISCONNECT) },

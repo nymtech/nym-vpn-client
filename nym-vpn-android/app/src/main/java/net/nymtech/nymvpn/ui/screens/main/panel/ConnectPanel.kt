@@ -133,6 +133,7 @@ fun ConnectPanel(
 				connectionState = state.connectionState,
 				accountState = state.accountState,
 				isMnemonicStored = state.isMnemonicStored,
+				isSubscriptionExpired = state.isSubscriptionExpired,
 				onAction = onAction,
 			)
 		}

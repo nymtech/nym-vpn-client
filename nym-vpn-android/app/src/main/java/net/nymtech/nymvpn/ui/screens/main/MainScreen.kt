@@ -152,6 +152,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	var initialAuthRoute by remember { mutableStateOf<AuthRoute>(AuthRoute.Welcome) }
 	var authSheetChecked by rememberSaveable { mutableStateOf(false) }
 	var isShowingConnectionErrorAlert by remember { mutableStateOf(false) }
+	var isShowingExpiredAlert by remember { mutableStateOf(false) }
+	var expiredAlertShown by rememberSaveable { mutableStateOf(false) }
 	val activity = context as? MainActivity
 
 	val connectionTime = remember(connectionSeconds) {
@@ -266,7 +268,9 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	}
 
 	fun onGetStartedPressed() {
-		if (!appUiState.managerState.isMnemonicStored) {
+		if (appUiState.subscription?.expiryState == ExpiryState.EXPIRED && appUiState.managerState.isMnemonicStored) {
+			navController.goFromRoot(Route.SelectPlan)
+		} else if (!appUiState.managerState.isMnemonicStored) {
 			initialAuthRoute = AuthRoute.Welcome
 			showAuthSheet = true
 		}
@@ -336,6 +340,29 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					onDismiss = { viewModel.dismissExpiryBanner() },
 				),
 			)
+		}
+	}
+
+	val expiredAlertTitle = stringResource(R.string.error_expired_subscription_title)
+	val expiredAlertBody = stringResource(R.string.error_expired_subscription_description)
+	val expiredAlertAction = stringResource(R.string.error_expired_subscription_button)
+	LaunchedEffect(expiryState) {
+		if (expiryState == ExpiryState.EXPIRED && !expiredAlertShown) {
+			expiredAlertShown = true
+			AlertController.show(
+				AlertMessage(
+					type = AlertType.Error,
+					title = expiredAlertTitle,
+					body = expiredAlertBody,
+					action = AlertAction(expiredAlertAction) { navController.goFromRoot(Route.SelectPlan) },
+					duration = Long.MAX_VALUE,
+					onDismiss = { isShowingExpiredAlert = false },
+				),
+			)
+			isShowingExpiredAlert = true
+		} else if (isShowingExpiredAlert && expiryState != ExpiryState.EXPIRED) {
+			AlertController.dismiss()
+			isShowingExpiredAlert = false
 		}
 	}
 
@@ -541,6 +568,7 @@ private fun MainScreenContent(
 			appUiState.vpnConfig.algorithm == nym_vpn_lib_types.GatewaySelectionAlgorithm.AUTO &&
 			appUiState.isExitPointRandom,
 		initialPanelState = initialPanelState,
+		isSubscriptionExpired = appUiState.subscription?.expiryState == ExpiryState.EXPIRED,
 	)
 
 	Box(
@@ -586,7 +614,7 @@ private fun MainScreenContent(
 		AlertHost(
 			modifier = Modifier
 				.align(Alignment.TopCenter)
-				.padding(top = contentPadding.calculateTopPadding() + 8.dp)
+				.padding(8.dp)
 				.padding(horizontal = 16.dp),
 			previewMessage = previewAlertMessage,
 		)
