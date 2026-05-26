@@ -371,7 +371,8 @@ jobs:
           echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
 
-      - name: Build iOS (Release, signed)
+      - name: Resolve iOS build number (qa/ship only)
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_IOS == 'true' }}
         working-directory: nym-vpn-apple
         env:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
@@ -379,10 +380,6 @@ jobs:
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-
-          echo "🚜 Resolve build number (only bump if needed)"
-          LATEST="$(app-store-connect get-latest-testflight-build-number 6471254143 --platform=IOS)"
-          REQUIRED=$((LATEST + 1))
 
           PROJECT="$(
             xcodebuild -showBuildSettings \
@@ -392,6 +389,17 @@ jobs:
             awk '/CURRENT_PROJECT_VERSION/ { print $3; exit }'
           )"
 
+          echo "🚜 Resolve build number (max across all TestFlight versions)"
+          LATEST="$(
+            app-store-connect builds list \
+              --app-id 6471254143 \
+              --platform IOS \
+              --silent \
+              --no-color \
+              --json 2>/dev/null \
+            | jq '[.[].attributes.version | tonumber] | max // 0'
+          )"
+          REQUIRED=$((LATEST + 1))
           TARGET=$(( PROJECT > REQUIRED ? PROJECT : REQUIRED ))
 
           if (( TARGET != PROJECT )); then
@@ -401,8 +409,34 @@ jobs:
             echo "✅ Keep build: $PROJECT (TestFlight latest=$LATEST)"
           fi
 
-          # Export iOS build number for later steps (Zulip)
+          # Export for downstream steps (build, Zulip)
           echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"
+          echo "IOS_TESTFLIGHT_LATEST=$LATEST" >> "$GITHUB_ENV"
+
+      - name: Resolve iOS build number (PR only)
+        if: ${{ env.RELEASE_TYPE == 'pr' && env.BUILD_IOS == 'true' }}
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+
+          IOS_BUILD_NUMBER="$(
+            xcodebuild -showBuildSettings \
+              -workspace "NymVPN.xcworkspace" \
+              -scheme "NymVPN" \
+              -configuration "Release" 2>/dev/null |
+            awk '/CURRENT_PROJECT_VERSION/ { print $3; exit }'
+          )"
+          echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "🔢 PR build number (no bump): $IOS_BUILD_NUMBER"
+
+      - name: Build iOS (Release, signed)
+        working-directory: nym-vpn-apple
+        env:
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
 
           echo "🚜 Update signing (iOS only)"
           # Save project.pbxproj before use-profiles mutates it, so macOS
@@ -422,7 +456,7 @@ jobs:
             2>&1 | xcbeautify --renderer github-actions
 
           echo "✅ Signed archive + .ipa exported"
-          echo "🔢 Build used: $TARGET (TestFlight latest=$LATEST)"
+          echo "🔢 Build used: $IOS_BUILD_NUMBER (TestFlight latest=${IOS_TESTFLIGHT_LATEST:-n/a})"
 
           # Capture iOS version (MARKETING_VERSION) for later steps (Zulip)
           IOS_VERSION=$(
@@ -439,7 +473,7 @@ jobs:
           fi
 
           echo "IOS_VERSION=$IOS_VERSION" >> "$GITHUB_ENV"
-          echo "✅ iOS version captured: $IOS_VERSION ($TARGET)"
+          echo "✅ iOS version captured: $IOS_VERSION ($IOS_BUILD_NUMBER)"
 
       - name: Generate what to test notes for iOS
         if: ${{ env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true' }}
