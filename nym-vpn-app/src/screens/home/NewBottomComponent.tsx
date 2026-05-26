@@ -9,6 +9,7 @@ import { routes } from '../../router';
 import { Score } from '../../types';
 import { InteractiveCard } from './InteractiveCard';
 import { ModeToggle } from './ModeToggle';
+import { MnemonicBackupBanner } from './MnemonicBackupBanner';
 import { NodeRow } from './NodeRow';
 
 export type FoldState = 0 | 1 | 2;
@@ -163,6 +164,8 @@ export function NewBottomComponent() {
 
   return (
     <div className="flex flex-col">
+      <MnemonicBackupBanner />
+
       {/* ── Main card ─────────────────────────────────────────────────────── */}
 
       <motion.div
