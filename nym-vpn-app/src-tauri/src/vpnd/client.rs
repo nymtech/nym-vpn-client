@@ -37,7 +37,7 @@ use crate::{
     error::BackendError,
     events::AppHandleEventEmitter,
     state::SharedAppState,
-    vpnd::account::{AccountState, log_account_state},
+    vpnd::account::{AccountState, AccountStateDetails, log_account_state},
 };
 
 #[derive(Debug, Clone)]
@@ -569,6 +569,20 @@ impl VpndClient {
         vpnd.confirm_mnemonic_backup()
             .or_else(async |e| self.handle_rpc_error("confirm_mnemonic_backup", e).await)
             .await
+    }
+
+    /// Get the account state along with the per-account flags
+    /// (`is_locally_generated`, `is_registered_with_api`, `is_backup_confirmed`).
+    #[instrument(skip_all)]
+    pub async fn account_state_details(&self) -> Result<AccountStateDetails, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let details = vpnd
+            .get_account_state_details()
+            .or_else(async |e| self.handle_rpc_error("get_account_state_details", e).await)
+            .await?;
+
+        Ok(AccountStateDetails::from_lib(details))
     }
 
     /// Removes everything related to the account, including the device identity,

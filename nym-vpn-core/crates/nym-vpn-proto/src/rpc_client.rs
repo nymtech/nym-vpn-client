@@ -12,7 +12,8 @@ use nym_vpn_lib_types::SplitApp;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
-    AccountBalanceResponse, AccountCommandResponse, AccountControllerState, AutologinResponse,
+    AccountBalanceResponse, AccountCommandResponse, AccountControllerState,
+    AccountControllerStateDetails, AutologinResponse,
     AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
@@ -561,6 +562,17 @@ impl RpcClient {
             .into_inner();
 
         AccountControllerState::try_from(state).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn get_account_state_details(&mut self) -> Result<AccountControllerStateDetails> {
+        let state = self
+            .0
+            .get_account_state(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        AccountControllerStateDetails::try_from(state).map_err(Error::InvalidResponse)
     }
 
     pub async fn refresh_account_state(&mut self) -> Result<()> {

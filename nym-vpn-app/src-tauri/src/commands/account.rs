@@ -2,7 +2,7 @@ use tauri::State;
 use tracing::{error, info, instrument, warn};
 
 use crate::state::SharedAppState;
-use crate::vpnd::account::{AccountState, AccountStateDetails, AccountSummary};
+use crate::vpnd::account::{AccountStateDetails, AccountSummary};
 use crate::vpnd::account::{AutologinResponse, StoredAccountMode};
 use crate::vpnd::account_links::AccountLinks;
 use crate::vpnd::deeplink::DeeplinkKind;
@@ -24,10 +24,26 @@ fn is_permission_denied(err: &VpndError) -> bool {
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn get_account_state(
+    vpnd: State<'_, VpndClient>,
     app: State<'_, SharedAppState>,
 ) -> Result<AccountStateDetails, BackendError> {
-    let state = app.lock().await;
-    Ok(state.account_state_details())
+    // Fetch fresh details (enum + flags) from the daemon. The daemon's
+    // account-state event stream only carries the bare enum, so this is the
+    // only path that brings the per-account flags to the frontend.
+    match vpnd.account_state_details().await {
+        Ok(details) => {
+            let mut state = app.lock().await;
+            state.set_account_state_details(&details);
+            Ok(details)
+        }
+        Err(e) => {
+            // Fall back to the cached state if the daemon call fails, so the UI
+            // still has something to render.
+            warn!("failed to fetch account state details: {e}");
+            let state = app.lock().await;
+            Ok(state.account_state_details())
+        }
+    }
 }
 
 #[instrument(skip_all)]

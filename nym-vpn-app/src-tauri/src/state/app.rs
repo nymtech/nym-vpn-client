@@ -104,6 +104,17 @@ impl AppState {
         Ok(())
     }
 
+    /// Cache the full account-state details (enum + flags). The flags only
+    /// reach the frontend through this path, since the daemon's account-state
+    /// event stream carries the bare enum without the flags.
+    #[instrument(skip(self))]
+    pub fn set_account_state_details(&mut self, details: &AccountStateDetails) {
+        self.account_state = details.state.clone();
+        self.account_is_locally_generated = details.is_locally_generated;
+        self.account_is_registered_with_api = details.is_registered_with_api;
+        self.account_is_backup_confirmed = details.is_backup_confirmed;
+    }
+
     #[instrument(skip(self))]
     pub fn set_vpnd_status(&mut self, info: &VpndInfo) {
         let Some(ver_req) = VPND_COMPAT_REQ else {
