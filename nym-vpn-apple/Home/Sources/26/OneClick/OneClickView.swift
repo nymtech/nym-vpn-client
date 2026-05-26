@@ -152,7 +152,7 @@ private extension OneClickView {
                 }
             }
             Spacer()
-            if let gateway = info.gateway, let hopType = info.hopType {
+            if info.showsInfoButton, let gateway = info.gateway, let hopType = info.hopType {
                 gatewayDetailsButton(gateway: gateway, hopType: hopType)
             }
             if showCarets {

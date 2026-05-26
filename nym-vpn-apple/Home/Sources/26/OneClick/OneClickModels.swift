@@ -66,6 +66,7 @@ public struct OneClickServerInfo: Equatable {
     public var isAutoBest: Bool
     public var gateway: GatewayNode?
     public var hopType: HopType?
+    public var showsInfoButton: Bool
 
     public init(
         countryCode: String,
@@ -74,7 +75,8 @@ public struct OneClickServerInfo: Equatable {
         score: OneClickServerScore,
         isAutoBest: Bool = false,
         gateway: GatewayNode? = nil,
-        hopType: HopType? = nil
+        hopType: HopType? = nil,
+        showsInfoButton: Bool = false
     ) {
         self.countryCode = countryCode
         self.title = title
@@ -83,6 +85,7 @@ public struct OneClickServerInfo: Equatable {
         self.isAutoBest = isAutoBest
         self.gateway = gateway
         self.hopType = hopType
+        self.showsInfoButton = showsInfoButton
     }
 }
 
