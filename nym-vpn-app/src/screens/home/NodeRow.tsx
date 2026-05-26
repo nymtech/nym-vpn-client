@@ -337,18 +337,9 @@ export function NodeRow({ type }: NodeRowProps) {
 
   return (
     <div>
-      <AnimatePresence initial={false}>
-        <motion.p
-          key="label"
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: 'auto', opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          className="text-text-secondary overflow-hidden text-xs leading-5 tracking-wide"
-        >
-          {label}
-        </motion.p>
-      </AnimatePresence>
+      <p className="text-text-secondary text-xs leading-5 tracking-wide">
+        {label}
+      </p>
       <div
         role={rowDisabled ? undefined : 'button'}
         tabIndex={rowDisabled ? undefined : 0}
