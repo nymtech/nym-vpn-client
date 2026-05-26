@@ -27,7 +27,6 @@ pub struct DnsDiagnostic {
 }
 
 impl DnsDiagnostic {
-    #[cfg(not(target_os = "android"))]
     fn system() -> Result<TokioResolver, DnsDiagnosticError> {
         Self::build_resolver(Resolver::builder_tokio()?)
     }
@@ -60,18 +59,12 @@ impl DnsDiagnostic {
     pub async fn run_diagnostic(network: &Network) -> CompleteDnsReport {
         tracing::info!("Running DNS diagnostic");
 
-        #[cfg(not(target_os = "android"))]
         let system_dns = hickory_resolver::system_conf::read_system_conf()
             .inspect_err(|err| {
                 tracing::warn!("Failed to obtain system dns config: {err}");
             })
             .map(|(resolver_config, _opts)| resolver_config.name_servers)
             .unwrap_or_default();
-        // Hickory fails due to missing JavaVM context
-        // See: https://github.com/hickory-dns/hickory-dns/issues/3625
-        // TODO: FIXME
-        #[cfg(target_os = "android")]
-        let system_dns = vec![];
 
         let many_diagnostic = DnsDiagnostic {
             hostnames: hostnames(network),
@@ -84,17 +77,12 @@ impl DnsDiagnostic {
         );
 
         tracing::debug!("System DNS diagnostic");
-        #[cfg(not(target_os = "android"))]
-        let system = match DnsDiagnostic::system() {
+        let system_resolver = DnsDiagnostic::system();
+        let system = match system_resolver {
             Ok(resolver) => Ok(many_diagnostic.resolve(&resolver).await),
             Err(e) => Err(e),
         }
         .into();
-        // Hickory fails due to missing JavaVM context
-        // See: https://github.com/hickory-dns/hickory-dns/issues/3625
-        // TODO: FIXME
-        #[cfg(target_os = "android")]
-        let system = DiagnosticResult::from_err("hickory system resolver not working currently");
 
         let single_hostname = many_diagnostic.hostnames[0].clone();
         let ns_diagnostic = DnsDiagnostic {

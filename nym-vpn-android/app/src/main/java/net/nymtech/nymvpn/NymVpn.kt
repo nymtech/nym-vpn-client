@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn
 
 import android.app.Application
+import android.content.Context
 import android.os.Build
 import android.os.StrictMode
 import android.util.Log
@@ -37,6 +38,13 @@ import net.nymtech.nymvpn.util.timber.NoLogTree
 import net.nymtech.nymvpn.util.timber.ReleaseTree
 import timber.log.Timber
 import javax.inject.Inject
+
+object NymVpnLib {
+	init {
+		System.loadLibrary("nym_vpn_lib")
+	}
+	external fun initContext(context: Context)
+}
 
 @HiltAndroidApp
 class NymVpn : Application() {
@@ -96,6 +104,7 @@ class NymVpn : Application() {
 	override fun onCreate() {
 		GraphicsFallback.applyIfNeeded()
 		super.onCreate()
+		NymVpnLib.initContext(applicationContext)
 
 		instance = this
 		AppLifecycleObserver.init()
