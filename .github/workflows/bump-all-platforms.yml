@@ -37,17 +37,14 @@ on:
         description: "Update linux installer script"
         type: boolean
         required: true
-        default: false
       update_changelog:
         description: "Whether to add unreleased section to the changelog"
         type: boolean
         required: true
-        default: false
       dry_run:
         description: "Print git diff only, do not commit or open PR"
         type: boolean
         required: true
-        default: true
   workflow_call:
     inputs:
       branch:
