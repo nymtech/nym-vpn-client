@@ -86,7 +86,6 @@ export type StateAction =
   | { type: 'set-custom-dns-enabled'; enabled: boolean }
   | { type: 'set-custom-dns'; dns: string[] }
   | { type: 'set-default-dns'; dns: string[] }
-  | { type: 'set-enable-lewes-protocol'; enabled: boolean }
   | { type: 'set-mixnet-traffic-config'; config: MixnetTrafficConfig }
   | { type: 'set-account-summary'; summary: TAccountSummary | null }
   | { type: 'set-enable-split-tunnel'; enabled: boolean }
@@ -139,7 +138,6 @@ export const initialState: AppState = {
   customDnsEnabled: false,
   customDns: [],
   defaultDns: [],
-  enableLewesProtocol: false,
   mixnetTrafficConfig: {
     poissonParameterForLoopCoverStream: null,
     averagePacketDelay: null,
@@ -226,7 +224,6 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
           frontingMode: action.config.frontingMode,
           ipv6Support: !action.config.disableIpv6,
           allowLan: action.config.allowLan,
-          enableLewesProtocol: action.config.enableLewesProtocol,
           customDnsEnabled: action.config.enableCustomDns,
           customDns: action.config.customDns ?? [],
           mixnetTrafficConfig: action.config.mixnetTraffic,
@@ -464,10 +461,6 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-default-dns':
         set({ defaultDns: action.dns });
-        break;
-
-      case 'set-enable-lewes-protocol':
-        set({ enableLewesProtocol: action.enabled });
         break;
 
       case 'set-mixnet-traffic-config':

@@ -43,7 +43,6 @@ const defaultVpnMode = window._APP.defaultVpnMode;
 const defaultQuic = window._APP.defaultQuic;
 const defaultNoIpv6 = false;
 const defaultAllowLan = false;
-const defaultEnableLewesProtocol = false;
 const ErrorWindowLabel = 'error';
 const defaultMixnetTrafficConfig = {
   poissonParameterForLoopCoverStream: null,
@@ -140,10 +139,6 @@ dayjs.extend(localizedFormat);
     customDnsEnabled:
       config?.enableCustomDns !== undefined ? config.enableCustomDns : false,
     customDns: !config?.customDns ? [] : config.customDns,
-    enableLewesProtocol:
-      config?.enableLewesProtocol !== undefined
-        ? config.enableLewesProtocol
-        : defaultEnableLewesProtocol,
     mixnetTrafficConfig: config?.mixnetTraffic || defaultMixnetTrafficConfig,
     mixnetTrafficDefaults:
       config?.mixnetTrafficDefaults || defaultMixnetTrafficDefaults,
