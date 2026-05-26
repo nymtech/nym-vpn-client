@@ -68,8 +68,8 @@ extension ConnectionStorage {
 
     static func generateInitialConfig() -> ConnectionConfig {
         ConnectionConfig(
-            entry: .country("CH"),
-            exit: .country("CH"),
+            entry: .random,
+            exit: .random,
             dns: nil,
             allowLan: false,
             disableIpv6: false,

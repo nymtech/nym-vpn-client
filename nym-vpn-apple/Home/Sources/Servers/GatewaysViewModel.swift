@@ -38,6 +38,11 @@ import UIComponents
         && appSettings.isQuicEnabled
     }
 
+    var isFastTab: Bool {
+        connectionManager.connectionType == .wireguard
+        && connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm == .explicit
+    }
+
     public init(
         type: HopType,
         path: Binding<NavigationPath>,
@@ -79,6 +84,9 @@ extension GatewaysViewModel {
                     algorithm: .auto
                 )
             )
+        }
+        if !cfg.enableTwoHop {
+            connectionManager.setTwoHop(true)
         }
     }
 
