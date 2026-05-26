@@ -45,8 +45,10 @@ jobs:
           crate: cargo-get
 
       - name: Validate input
+        env:
+          RELEASE_NAME: ${{ inputs.release_name }}
         run: |
-          if ! echo "${{ inputs.release_name }}" | grep -Pq '^[a-z]+$'; then
+          if ! echo "$RELEASE_NAME" | grep -Pq '^[a-z]+$'; then
             echo "::error:: Invalid release name format (expected lowercase letters only)"
             exit 2
           fi
