@@ -80,7 +80,7 @@ export const SelectedNodeDisplay = memo<SelectedNodeDisplayProps>(
         {(showQuic || showStreamOptimized) && (
           <div className="mr-1 flex flex-1 items-center justify-end gap-3">
             {showStreamOptimized && (
-              <MsIcon icon="smart_display" className="text-cornflower" />
+              <MsIcon icon="smart_display" className="text-status-info" />
             )}
             {showQuic && <QuicTag />}
           </div>

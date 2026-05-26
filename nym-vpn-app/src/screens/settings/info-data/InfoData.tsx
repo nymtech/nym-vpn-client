@@ -64,7 +64,7 @@ function InfoData() {
       <div
         className={clsx([
           'select-none',
-          'text-iron dark:text-iron flex grow flex-col justify-end text-sm',
+          'text-text-secondary flex grow flex-col justify-end text-sm',
           'mb-4 cursor-default leading-tight font-medium tracking-tight',
         ])}
         data-testid="info-data-container"

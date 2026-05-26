@@ -65,7 +65,7 @@ function Diagnostic() {
             >
               {t('diagnostic.share')}
             </Button>
-            <div className="dark:bg-charcoal flex min-h-0 flex-1 flex-col space-y-4 rounded-lg bg-white p-6 font-mono text-xs">
+            <div className="dark:bg-surface-elev flex min-h-0 flex-1 flex-col space-y-4 rounded-lg bg-white p-6 font-mono text-xs">
               <div className="flex items-center justify-between">
                 <span className="text-text-primary text-sm font-semibold">
                   {t('diagnostic.report-title')}
@@ -81,7 +81,7 @@ function Diagnostic() {
               </div>
               <Separator
                 orientation="horizontal"
-                className="bg-bombay dark:bg-iron h-px w-full"
+                className="bg-text-tertiary dark:bg-text-secondary h-px w-full"
               />
               <div className="min-h-0 flex-1 overflow-y-auto">
                 <pre className="text-text-secondary wrap-break-word whitespace-pre-wrap">

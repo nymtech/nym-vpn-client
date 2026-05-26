@@ -10,6 +10,7 @@ export { default as CheckCircleIcon } from './check-circle.svg?react';
 export { default as LewesIcon } from './lewes.svg?react';
 export { default as LewesLightIcon } from './lewes-light.svg?react';
 export { default as SmileyIcon } from './smiley.svg?react';
+export { default as SmileyLightIcon } from './smiley-light.svg?react';
 
 export * from './node-score';
 export * from './gateway-mode';

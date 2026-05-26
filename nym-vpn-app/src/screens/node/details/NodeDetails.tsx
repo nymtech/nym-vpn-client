@@ -198,7 +198,7 @@ function NodeDetails() {
             </CardNewHeader>
             <CardDivider />
             <CardNewBody className="flex-col gap-3 py-4">
-              <p className="text-baltic-sea text-sm font-medium underline dark:text-white">
+              <p className="text-text-primary text-sm font-medium underline dark:text-white">
                 {serverLocation()}
               </p>
               {gateway.description && (
@@ -212,7 +212,7 @@ function NodeDetails() {
           {/* Card 2: Node features */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-baltic-sea text-sm dark:text-white">
+              <p className="text-text-primary text-sm dark:text-white">
                 {t('node-details.data.node-features')}
               </p>
             </CardNewHeader>
@@ -221,9 +221,9 @@ function NodeDetails() {
               <CardDataRow label={t('node-details.data.advanced-privacy')}>
                 <MsIcon
                   icon="visibility_off"
-                  className="text-primary text-xl"
+                  className="text-brand-primary text-xl"
                 />
-                <p className="text-baltic-sea whitespace-nowrap dark:text-white">
+                <p className="text-text-primary whitespace-nowrap dark:text-white">
                   {t('node-details.data.with-mixnet')}
                 </p>
               </CardDataRow>
@@ -234,10 +234,10 @@ function NodeDetails() {
                   icon={isGoodIp ? 'smart_display' : 'dns'}
                   className={clsx(
                     'text-xl',
-                    isGoodIp ? 'text-cornflower' : 'text-text-secondary',
+                    isGoodIp ? 'text-status-info' : 'text-text-secondary',
                   )}
                 />
-                <p className="text-baltic-sea whitespace-nowrap dark:text-white">
+                <p className="text-text-primary whitespace-nowrap dark:text-white">
                   {isGoodIp
                     ? t('node-details.data.ip-residential')
                     : t('node-details.data.ip-datacenter')}
@@ -247,7 +247,7 @@ function NodeDetails() {
               {/* Post-quantum secure keys */}
               <CardDataRow label={t('node-details.data.lewes-protocol-label')}>
                 <LewesIcon className="text-text-secondary text-xl" />
-                <p className="text-baltic-sea whitespace-nowrap dark:text-white">
+                <p className="text-text-primary whitespace-nowrap dark:text-white">
                   {t('node-details.data.lewes-protocol')}
                 </p>
               </CardDataRow>
@@ -261,7 +261,7 @@ function NodeDetails() {
                       icon={quic ? 'package_2' : 'circle'}
                       className="text-text-secondary text-xl"
                     />
-                    <p className="text-baltic-sea whitespace-nowrap dark:text-white">
+                    <p className="text-text-primary whitespace-nowrap dark:text-white">
                       {quic
                         ? t('node-details.data.quic-protocol')
                         : t('node-details.data.standard-protocol')}
@@ -278,7 +278,7 @@ function NodeDetails() {
                     ns="node-location"
                   >
                     <Link
-                      className="text-cornflower! underline"
+                      className="text-status-info! underline"
                       to={routes.antiCensorship}
                     >
                       Enable &quot;QUIC protocol&quot;
@@ -293,7 +293,7 @@ function NodeDetails() {
           {/* Card 3: Performance metrics */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-baltic-sea text-sm dark:text-white">
+              <p className="text-text-primary text-sm dark:text-white">
                 {t('node-details.data.performance-metrics')}
               </p>
             </CardNewHeader>
@@ -352,7 +352,7 @@ function NodeDetails() {
           {showCard3 && (
             <CardNew>
               <CardNewHeader>
-                <p className="text-baltic-sea text-sm dark:text-white">
+                <p className="text-text-primary text-sm dark:text-white">
                   {t('node-details.data.connection-details')}
                 </p>
               </CardNewHeader>
@@ -390,7 +390,7 @@ function NodeDetails() {
                   <>
                     <CardDivider />
                     <CardDataRow label={t('node-details.data.asn')}>
-                      <p className="text-baltic-sea truncate dark:text-white">
+                      <p className="text-text-primary truncate dark:text-white">
                         {asnValue}
                       </p>
                     </CardDataRow>
@@ -401,7 +401,7 @@ function NodeDetails() {
                   <>
                     <CardDivider />
                     <CardDataRow label={t('node-details.data.asn-name')}>
-                      <p className="text-baltic-sea truncate dark:text-white">
+                      <p className="text-text-primary truncate dark:text-white">
                         {asnName}
                       </p>
                     </CardDataRow>
@@ -414,7 +414,7 @@ function NodeDetails() {
           {/* Card 5: Build information */}
           <CardNew>
             <CardNewHeader>
-              <p className="text-baltic-sea text-sm dark:text-white">
+              <p className="text-text-primary text-sm dark:text-white">
                 {t('node-details.data.build-information')}
               </p>
             </CardNewHeader>
@@ -422,7 +422,7 @@ function NodeDetails() {
               {buildVersion && (
                 <>
                   <CardDataRow label={t('node-details.data.build-version')}>
-                    <p className="text-baltic-sea truncate dark:text-white">
+                    <p className="text-text-primary truncate dark:text-white">
                       {buildVersion}
                     </p>
                   </CardDataRow>

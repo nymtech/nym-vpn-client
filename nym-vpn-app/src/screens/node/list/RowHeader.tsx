@@ -55,15 +55,15 @@ function RowHeader({
         'p-2',
         'flex flex-row items-center justify-between transition-all duration-100',
         sub
-          ? 'bg-gainsboro dark:bg-aph-light/40 hover:bg-gainsboro/60 hover:dark:bg-aph-light/20'
-          : 'dark:bg-aph-light dark:hover:bg-aph-light/75 bg-white hover:bg-white/60',
+          ? 'bg-surface-bg hover:bg-surface-hair'
+          : 'bg-surface-bg hover:bg-surface-hair',
         !sub && !open && 'rounded-2xl',
         !sub && open && 'rounded-2xl rounded-b-none',
         open && 'rounded-b-none!',
         'group-last/region:rounded-b-2xl',
         isSelected && 'border-2',
         (isSelected === hop || isSelected === 'entry-and-exit') &&
-          'border-primary-active',
+          'border-brand-primary-active',
         isSelected && isSelected !== hop && 'border-text-secondary',
       )}
     >

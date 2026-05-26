@@ -14,7 +14,7 @@ function PinCodeDigits({ code }: { code: string }) {
             {digit}
           </span>
           {i < digits.length - 1 && (
-            <span className="text-primary text-3xl leading-none">·</span>
+            <span className="text-brand-primary text-3xl leading-none">·</span>
           )}
         </div>
       ))}
@@ -52,8 +52,8 @@ export function PincodeDialog({
         />
 
         <div className="flex flex-col items-center gap-3">
-          <div className="bg-malachite-moss/10 border-malachite-moss flex items-center justify-center rounded-xl border p-3">
-            <MsIcon icon="lock" className="text-primary leading-none" />
+          <div className="bg-brand-primary/10 border-brand-primary flex items-center justify-center rounded-xl border p-3">
+            <MsIcon icon="lock" className="text-brand-primary leading-none" />
           </div>
           <DialogTitle
             as="h3"
@@ -61,7 +61,7 @@ export function PincodeDialog({
           >
             {t('autologin.title')}
           </DialogTitle>
-          <p className="text-ash text-center text-lg dark:text-white">
+          <p className="text-surface-bg text-center text-lg dark:text-white">
             {t('autologin.description')}
           </p>
         </div>

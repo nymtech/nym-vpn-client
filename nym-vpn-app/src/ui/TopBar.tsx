@@ -31,7 +31,7 @@ function TopNymLogo({ uiTheme }: { uiTheme: UiTheme }) {
     <NymVpnTextLogo
       className={clsx(
         'h-6 w-24',
-        uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+        uiTheme === 'dark' ? 'fill-white' : 'fill-text-primary',
       )}
     />
   );
@@ -256,7 +256,7 @@ export default function TopBar() {
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
+          'text-text-secondary hover:text-text-primary dark:hover:text-white',
         handleRightNav: () => {
           show('location-info');
         },
@@ -269,7 +269,7 @@ export default function TopBar() {
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
+          'text-text-secondary hover:text-text-primary dark:hover:text-white',
         handleRightNav: () => {
           show('location-info');
         },
@@ -282,7 +282,7 @@ export default function TopBar() {
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
+          'text-text-secondary hover:text-text-primary dark:hover:text-white',
         handleRightNav: () => {
           show('location-info');
         },
@@ -350,8 +350,9 @@ export default function TopBar() {
         'z-30 h-16 cursor-default text-xl select-none',
         'px-4 py-2',
         currentNavLocation.noBackground
-          ? 'dark:bg-background bg-gray'
-          : 'dark:bg-surface bg-white',
+          ? 'bg-surface-elev'
+          : // ? 'dark:bg-surface-bg bg-text-tertiary'
+            'dark:bg-surface-elev bg-white',
       ])}
       data-testid="top-bar"
       data-test-route={location.pathname}

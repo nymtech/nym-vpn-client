@@ -149,8 +149,8 @@ export function CardHeaderSwitch({
     <div
       className={clsx(
         'flex w-full flex-row items-center justify-between gap-4 select-none',
-        'dark:bg-aph-light min-h-16 rounded-t-lg bg-white px-4 py-4',
-        !noHoverEffect && 'hover:bg-iron/5 dark:hover:bg-black/10',
+        'dark:bg-surface-elev min-h-16 rounded-t-lg bg-white px-4 py-4',
+        !noHoverEffect && 'hover:bg-text-secondary/5 dark:hover:bg-black/10',
         'cursor-default',
         disabled && 'pointer-events-none',
         'overflow-hidden',
@@ -174,7 +174,7 @@ export function CardHeaderSwitch({
               'text-sm select-none',
               subheaderColor === 'default'
                 ? 'text-text-secondary'
-                : 'text-cheddar dark:text-king-nacho',
+                : 'text-status-warning',
             )}
           >
             {subheader}
@@ -207,7 +207,7 @@ export function CardNew({ children, disabled, className }: CardNewProps) {
       className={clsx([
         '',
         'flex flex-col overflow-hidden select-none',
-        'dark:bg-aph-light min-h-16 rounded-2xl bg-white',
+        'bg-surface-bg min-h-16 rounded-2xl',
         'cursor-default transition',
         disabled && 'pointer-events-none opacity-50',
         className,

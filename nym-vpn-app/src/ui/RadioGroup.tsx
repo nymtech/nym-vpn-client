@@ -57,7 +57,7 @@ function RadioGroup<K extends Key>({
     if (checked) {
       return (
         <span
-          className="font-icon text-primary text-2xl"
+          className="font-icon text-brand-primary text-2xl"
           data-testid={`${testId}-checked-icon`}
         >
           radio_button_checked
@@ -106,21 +106,21 @@ function RadioGroup<K extends Key>({
                 value={option.key}
                 className={({ checked }) =>
                   clsx([
-                    'dark:bg-aph-light relative flex rounded-lg bg-white px-5 py-2 focus:outline-hidden',
+                    'dark:bg-surface-elev relative flex rounded-lg bg-white px-5 py-2 focus:outline-hidden',
                     checked &&
-                      'border-malachite-moss hover:border-malachite-moss border',
+                      'border-brand-primary hover:border-brand-primary border',
                     checked &&
-                      'dark:border-malachite dark:hover:border-malachite',
-                    !checked && 'dark:border-aph-light border border-white',
+                      'dark:border-brand-primary dark:hover:border-brand-primary',
+                    !checked && 'dark:border-surface-elev border border-white',
                     !option.disabled &&
                       !checked &&
-                      'dark:hover:border-aph-light/85 hover:border-transparent',
+                      'dark:hover:border-surface-elev/85 hover:border-transparent',
                     !option.disabled &&
-                      'dark:hover:bg-aph-light/85 hover:bg-white/60',
+                      'dark:hover:bg-surface-elev/85 hover:bg-white/60',
                     'transition-noborder cursor-default',
                     option.tooltip && 'attach-tooltip',
                     disabled &&
-                      'hover dark:hover:bg-charcoal! opacity-50 hover:bg-white! dark:opacity-60',
+                      'hover dark:hover:bg-surface-elev! opacity-50 hover:bg-white! dark:opacity-60',
                   ])
                 }
                 disabled={option.disabled}

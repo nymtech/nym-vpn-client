@@ -26,17 +26,17 @@ function ButtonText({
 }: ButtonTextProps) {
   const colors = {
     rain: [
-      'bg-faded-lavender dark:bg-ash',
-      'data-hover:text-baltic-sea data-hover:bg-iron/20',
-      'dark:data-hover:text-bombay dark:data-hover:bg-charcoal/65',
+      'bg-surface-bg',
+      'data-hover:text-text-primary data-hover:bg-text-secondary/20',
+      'dark:data-hover:text-text-tertiary dark:data-hover:bg-surface-elev/65',
     ],
     transparent: [
       'text-black dark:text-white',
       'data-hover:underline decoration-2',
     ],
     malachite: [
-      'text-primary',
-      'data-hover:text-malachite-moss/80 dark:data-hover:text-malachite/80',
+      'text-brand-primary',
+      'data-hover:text-brand-primary/80 dark:data-hover:text-brand-primary/80',
     ],
   };
 

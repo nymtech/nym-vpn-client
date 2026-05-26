@@ -106,7 +106,7 @@ export function PassphraseEnter() {
           placeholder={t('passphrase.description')}
           className={clsx(
             'sentry-ignore rounded-xl',
-            error && 'border-aphrodisiac!',
+            error && 'border-status-error!',
           )}
         />
         <Button

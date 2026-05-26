@@ -65,13 +65,13 @@ function TechnicalOptin() {
         <NymVpnTextLogo
           className={clsx(
             'h-6 w-24',
-            uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+            uiTheme === 'dark' ? 'fill-white' : 'fill-surface-bg',
           )}
         />
         {/* Title & description */}
         <div className="space-y-2 text-center">
           <h1 className="text-text-primary text-2xl">{t('title')}</h1>
-          <p className="text-bombay text-sm">{t('description')}</p>
+          <p className="text-text-tertiary text-sm">{t('description')}</p>
         </div>
 
         {/* Buttons */}

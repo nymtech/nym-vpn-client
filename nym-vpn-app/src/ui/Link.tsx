@@ -52,10 +52,10 @@ function Link({
       className={clsx([
         'cursor-default select-none focus:outline-hidden',
         'inline-flex flex-row items-center gap-1',
-        color === 'malachite' && 'text-primary',
+        color === 'malachite' && 'text-brand-primary',
         color === 'iron' && 'text-text-secondary',
         color === 'primary' && 'text-text-primary',
-        color === 'cornflower' && 'text-cornflower',
+        color === 'cornflower' && 'text-status-info',
         className && className,
         selectable && 'select-text!',
       ])}

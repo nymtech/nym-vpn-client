@@ -16,7 +16,7 @@ type View = 'welcome' | 'signup' | 'login' | 'passphrase';
 
 // 1 = forward, -1 = backward
 // enter: forward → from right (+100%), backward → from left (-100%)
-// exit:  forward → to left (−100%),   backward → to right (+100%)
+// exit: forward → to left (−100%), backward → to right (+100%)
 const slideVariants: Variants = {
   enter: (dir: number) => ({ x: dir > 0 ? '100%' : '-100%' }),
   visible: { x: 0 },
@@ -55,13 +55,13 @@ function WelcomeScreenContainer() {
               initialAnimation={true}
               icon="arrow_back"
               onClick={() => navigate(backAction.target, -1)}
-              className="text-bombay hover:text-baltic-sea transition-noborder absolute left-0 cursor-default dark:hover:text-white"
+              className="text-text-tertiary hover:text-text-primary transition-noborder absolute left-0 cursor-default dark:hover:text-white"
             />
           )}
           <NymVpnTextLogo
             className={clsx(
               'h-[27px] w-[100px]',
-              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+              uiTheme === 'dark' ? 'fill-white' : 'fill-surface-bg',
             )}
           />
           <ButtonIconNew

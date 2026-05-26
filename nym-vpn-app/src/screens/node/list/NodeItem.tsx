@@ -60,7 +60,7 @@ export const NodeItem = memo(function NodeItem({
         {country.code.toLowerCase() === 'us' ? (
           regions.map((region) => (
             <Collapsible.Root
-              className="group/region border-divider border-b first:pt-0 last:border-b-0"
+              className="group/region border-surface-hair border-b first:pt-0 last:border-b-0"
               key={region.name}
               open={expanded.includes(region.name)}
               onOpenChange={(open) => onExpandChange(region.name, open)}

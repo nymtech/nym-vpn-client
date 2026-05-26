@@ -10,7 +10,7 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
   const getBadgeStyle = (state: TunnelState) => {
     switch (state) {
       case 'connected':
-        return ['text-primary bg-malachite/10!'];
+        return ['text-brand-primary bg-brand-primary/10!'];
       case 'disconnected':
         return ['text-text-secondary'];
       case 'connecting':
@@ -20,7 +20,7 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       case 'offline':
       case 'offline-auto-reconnect':
       case 'unknown':
-        return ['text-baltic-sea bg-aphrodisiac!'];
+        return ['text-text-primary bg-status-error!'];
     }
   };
 
@@ -50,7 +50,7 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       transition={{ duration: 0.1, ease: 'easeOut' }}
       className={clsx([
         'flex min-w-36 items-center justify-center gap-4 tracking-normal',
-        'bg-mercury dark:bg-mine-shaft',
+        'bg-surface-elev',
         ...getBadgeStyle(state),
         'rounded-full px-6 py-3 text-lg font-medium tracking-normal',
       ])}

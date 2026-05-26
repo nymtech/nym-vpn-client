@@ -16,52 +16,11 @@
 
 @theme {
   --breakpoint-xs: 30rem;
-  /* override default color palette */
+  /* override default color palette — only literals here; semantic tokens live below */
   --color-*: initial;
-  /*****************/
   --color-transparent: transparent;
-  /* [D] main text */
-  /* [L] layer2 bg */
   --color-white: #fff;
   --color-black: #000;
-  /* [L] main text */
-  --color-baltic-sea: #1c1b1f;
-  /* [D] base bg */
-  --color-ash: #242b2d;
-  /* [L] base bg */
-  --color-faded-lavender: #ebeef4;
-  /* [D] layer2 bg */
-  --color-charcoal: #374042;
-  /* [L] connection badge bg */
-  --color-mercury: #e2e4ea;
-  /* [D] connection badge bg */
-  --color-mine-shaft: #2b3234;
-  /* [D] gray1 */
-  /* [L] gray2 */
-  --color-bombay: #b0adb6;
-  /* [D] gray2 */
-  /* [L] gray1 */
-  --color-iron: #606060;
-  --color-malachite: #14e76f;
-  --color-malachite-moss: #0b8a42;
-  --color-aphrodisiac: #ed5060;
-  --color-king-nacho: #ffb400;
-  --color-cheddar: #e48212;
-  --color-cornflower: #9189ff;
-  --color-aph: #090909;
-  --color-aph-light: #2e2e2e;
-  --color-gray: #d5d5d5;
-  /* quic tag */
-  --color-ozone: #00a3f5;
-  --color-azur: #98ddff;
-  /* [L] region node bg & hover */
-  --color-gainsboro: #e1e5ee;
-  --color-nordic-breeze: #d5dae7;
-
-  /* daemon dot (dev mode) */
-  --color-vert-menthe: #2bc761;
-  --color-rouge-ecarlate: #e02c4d;
-  --color-liquid-lava: #f97316;
 
   --font-sans:
     LabGrotesque, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
@@ -70,69 +29,87 @@
   --font-icon--font-variation-settings: 'opsz' 24;
 }
 
-/* ─── semantic tokens — Figma "VPN color palette" ───────────────────────────
- * Use these instead of raw palette colors. Each class (bg-primary, text-surface,
- * border-border, etc.) resolves to the correct shade for the active theme.
+/* ─── semantic tokens — Figma "Brand_palette_v2" ────────────────────────────
+ * Mirrors the Figma palette 1:1. Use these (bg-brand-primary, text-text-primary,
+ * border-surface-hair, …) instead of raw palette colors. Each class resolves to
+ * the correct value for the active theme.
  * ──────────────────────────────────────────────────────────────────────────── */
 :root {
-  /* primary action */
-  --nv-primary: #0b8a42;
-  --nv-primary-hover: #0a7838;
-  --nv-primary-active: #0a7838;
-  --nv-primary-text: #0a0a0a;
-  /* surfaces & structure */
-  --nv-surface: #ffffff;
-  --nv-border: #e2e4ea;
-  --nv-divider: #e2e4ea;
-  --nv-background: #ebeef4;
-  --nv-background-secondary: #e1e5ee;
-  /* text hierarchy */
-  --nv-text-primary: #1c1b1f;
-  --nv-text-secondary: #606060;
-  --nv-text-tertiary: #b0adb6;
-  /* status (same in both modes) */
-  --nv-info: #485eca;
-  --nv-success: #28c96c;
-  --nv-warning: #ffcc33;
-  --nv-error: #e73e14;
+  /* brand — green (forest on light, mint on dark) */
+  --nv-brand-primary: #1a9b61;
+  --nv-brand-primary-hover: #158551;
+  --nv-brand-primary-active: #0f6e42;
+  --nv-brand-on-primary: #ffffff;
+  /* surface — backgrounds and hairlines */
+  --nv-surface-bg: #ffffff;
+  --nv-surface-elev: #f6f6f7;
+  --nv-surface-sunken: #ededee;
+  --nv-surface-hair: rgba(10, 10, 10, 0.1);
+  /* text — three rungs */
+  --nv-text-primary: #0a0a0a;
+  --nv-text-secondary: #5a5a60;
+  --nv-text-tertiary: #8b8b90;
+  /* status — semantic state */
+  --nv-status-success: #1a9b61;
+  --nv-status-warning: #c77a00;
+  --nv-status-error: #e73e14;
+  --nv-status-info: #3548a3;
+  /* connection — arc / sphere visuals */
+  --nv-connection-arc-track: rgba(10, 10, 10, 0.12);
+  --nv-connection-arc-anon: rgba(107, 107, 112, 0.6);
+  --nv-connection-sphere: #0a0a0a;
+  --nv-connection-sphere-hi: #2a2a2e;
+  --nv-connection-error-tint: rgba(231, 62, 20, 0.08);
+  /* illustration — art-direction only */
+  --nv-illustration-accent: #a3cdff;
 }
 
 .dark {
-  --nv-primary: #5bf0a0;
-  --nv-primary-hover: #44ee93;
-  --nv-primary-active: #44ee93;
-  --nv-primary-text: #ffffff;
-  --nv-surface: #1d1d1f;
-  --nv-border: #3a3a3c;
-  --nv-divider: #3a3a3c;
-  --nv-background: #090909;
-  --nv-background-secondary: #2b3234;
+  --nv-brand-primary: #5bf0a0;
+  --nv-brand-primary-hover: #4ad88c;
+  --nv-brand-primary-active: #44ee93;
+  --nv-brand-on-primary: #0a0a0a;
+  --nv-surface-bg: #0a0a0a;
+  --nv-surface-elev: #1a1a1c;
+  --nv-surface-sunken: #050505;
+  --nv-surface-hair: rgba(255, 255, 255, 0.08);
   --nv-text-primary: #ffffff;
   --nv-text-secondary: #aeacb1;
-  --nv-text-tertiary: #e5e5e5;
-  --nv-info: #485eca;
-  --nv-success: #28c96c;
-  --nv-warning: #ffcc33;
-  --nv-error: #e73e14;
+  --nv-text-tertiary: #8b8b90;
+  --nv-status-success: #28c96c;
+  --nv-status-warning: #ffb400;
+  --nv-status-error: #e73e14;
+  --nv-status-info: #485eca;
+  --nv-connection-arc-track: rgba(255, 255, 255, 0.15);
+  --nv-connection-arc-anon: rgba(139, 139, 144, 0.6);
+  --nv-connection-sphere: #0a0a0a;
+  --nv-connection-sphere-hi: #2a2a2e;
+  --nv-connection-error-tint: rgba(231, 62, 20, 0.08);
+  --nv-illustration-accent: #a3cdff;
 }
 
 @theme inline {
-  --color-primary: var(--nv-primary);
-  --color-primary-hover: var(--nv-primary-hover);
-  --color-primary-active: var(--nv-primary-active);
-  --color-primary-text: var(--nv-primary-text);
-  --color-surface: var(--nv-surface);
-  --color-border: var(--nv-border);
-  --color-divider: var(--nv-divider);
-  --color-background: var(--nv-background);
-  --color-background-secondary: var(--nv-background-secondary);
+  --color-brand-primary: var(--nv-brand-primary);
+  --color-brand-primary-hover: var(--nv-brand-primary-hover);
+  --color-brand-primary-active: var(--nv-brand-primary-active);
+  --color-brand-on-primary: var(--nv-brand-on-primary);
+  --color-surface-bg: var(--nv-surface-bg);
+  --color-surface-elev: var(--nv-surface-elev);
+  --color-surface-sunken: var(--nv-surface-sunken);
+  --color-surface-hair: var(--nv-surface-hair);
   --color-text-primary: var(--nv-text-primary);
   --color-text-secondary: var(--nv-text-secondary);
   --color-text-tertiary: var(--nv-text-tertiary);
-  --color-info: var(--nv-info);
-  --color-success: var(--nv-success);
-  --color-warning: var(--nv-warning);
-  --color-error: var(--nv-error);
+  --color-status-success: var(--nv-status-success);
+  --color-status-warning: var(--nv-status-warning);
+  --color-status-error: var(--nv-status-error);
+  --color-status-info: var(--nv-status-info);
+  --color-connection-arc-track: var(--nv-connection-arc-track);
+  --color-connection-arc-anon: var(--nv-connection-arc-anon);
+  --color-connection-sphere: var(--nv-connection-sphere);
+  --color-connection-sphere-hi: var(--nv-connection-sphere-hi);
+  --color-connection-error-tint: var(--nv-connection-error-tint);
+  --color-illustration-accent: var(--nv-illustration-accent);
 }
 
 @utility transition-noborder {
@@ -171,7 +148,7 @@
    *    <div class="tooltip">Tooltip content</div>
    *  </div>
    */
-  @apply dark:bg-ash invisible absolute rounded-sm bg-white p-2 px-3 text-sm opacity-0 shadow-md transition-opacity duration-200 ease-out;
+  @apply bg-surface-elev invisible absolute rounded-sm p-2 px-3 text-sm opacity-0 shadow-md transition-opacity duration-200 ease-out;
 
   .attach-tooltip:hover & {
     @apply visible z-50 opacity-100;
@@ -194,14 +171,18 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: var(--color-bombay);
+    background: var(--color-text-tertiary);
     background-clip: content-box;
     border: 4px solid transparent;
     border-radius: 40px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in oklab, var(--color-bombay) 70%, transparent);
+    background: color-mix(
+      in oklab,
+      var(--color-text-tertiary) 70%,
+      transparent
+    );
     background-clip: content-box;
     border: 4px solid transparent;
     border-radius: 40px;

@@ -33,7 +33,7 @@ export function InteractiveCard({
           ease: 'easeOut',
         }}
         className={clsx(
-          'z-20 flex flex-col overflow-hidden rounded-2xl bg-white p-5 dark:bg-[#1d1d1f]',
+          'bg-surface-bg z-20 flex flex-col overflow-hidden rounded-2xl p-5',
           className,
         )}
       >

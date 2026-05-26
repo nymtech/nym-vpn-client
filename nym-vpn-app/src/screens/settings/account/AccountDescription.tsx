@@ -10,9 +10,9 @@ import {
 } from './utils';
 
 const statusColors = {
-  amber: 'text-liquid-lava',
-  yellow: 'text-cheddar dark:text-king-nacho',
-  green: 'text-primary',
+  amber: 'text-status-warning',
+  yellow: 'text-status-warning',
+  green: 'text-brand-primary',
 } as const;
 
 export function AccountDescription() {

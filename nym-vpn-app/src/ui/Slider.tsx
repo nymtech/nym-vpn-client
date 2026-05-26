@@ -85,10 +85,10 @@ function Slider({
           className="relative flex w-full touch-none items-center select-none"
         >
           <HuSlider.Control className="w-full">
-            <HuSlider.Track className="bg-bombay dark:bg-iron relative h-2 w-full rounded-full">
+            <HuSlider.Track className="bg-text-tertiary dark:bg-text-secondary relative h-2 w-full rounded-full">
               <HuSlider.Indicator
                 className={clsx([
-                  'bg-primary absolute h-full rounded-full',
+                  'bg-brand-primary absolute h-full rounded-full',
                   'transition-[width] duration-300 ease-out',
                 ])}
               />
@@ -96,7 +96,7 @@ function Slider({
                 aria-label={ariaLabel}
                 getAriaValueText={(_formattedValue, val) => val.toString()}
                 className={clsx([
-                  'group border-bombay dark:border-iron active:bg-faded-lavender hover:bg-faded-lavender focus:ring-malachite block h-6 w-6 rounded-full border bg-white shadow-md focus:ring-2 focus:outline-none',
+                  'group border-text-tertiary dark:border-text-secondary active:bg-surface-bg hover:bg-surface-bg focus:ring-brand-primary block h-6 w-6 rounded-full border bg-white shadow-md focus:ring-2 focus:outline-none',
                   'transition-[inset] duration-300 ease-out',
                 ])}
               />
@@ -107,7 +107,7 @@ function Slider({
 
       <div className="relative">
         {valueIndicator && (
-          <div className="text-cornflower absolute left-1/2 flex -translate-x-1/2 flex-col items-center justify-between text-sm">
+          <div className="text-status-info absolute left-1/2 flex -translate-x-1/2 flex-col items-center justify-between text-sm">
             <span className="whitespace-nowrap">
               {internalValue === defaultValue ? t('default') : t('current')}
             </span>

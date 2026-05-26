@@ -67,7 +67,7 @@ export function Signup() {
           {t('signup.signup-anonymous-button')}
         </Button>
         <PrivyButton label={t('signup.signup-social-button')} />
-        <p className="text-bombay text-center text-xs leading-5">
+        <p className="text-text-tertiary text-center text-xs leading-5">
           {t('signup.disclaimer')}
         </p>
       </div>

@@ -9,6 +9,7 @@ import {
   FlagIcon,
   MsIcon,
   Skeleton,
+  SmileyIcon,
   type countryCode,
 } from '../../ui';
 import { useAppStore, useLookupGw } from '../../store';
@@ -25,7 +26,6 @@ import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
-import { SmileyIcon } from '../../assets/index';
 import { isBridgeMode, regionToCountryCode } from './util';
 import { ScoreIndicatorContainer } from './ScoreIndicatorContainer';
 
@@ -432,7 +432,7 @@ export function NodeRow({ type }: NodeRowProps) {
                 <MsIcon
                   icon="smart_display"
                   className={clsx(
-                    'text-cornflower transition-opacity',
+                    'text-status-info transition-opacity',
                     rowDimmed && 'opacity-60',
                   )}
                 />

@@ -33,7 +33,7 @@ function BackgroundCoverTrafficRateSlider({
 
   return (
     <div className="w-full space-y-5">
-      <p className="text-cheddar dark:text-king-nacho text-sm whitespace-pre-line">
+      <p className="text-status-warning text-sm whitespace-pre-line">
         {t('mixnet-tuning.continuous-traffic.background-cover-traffic.warning')}
       </p>
 

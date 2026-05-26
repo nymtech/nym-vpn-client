@@ -61,7 +61,9 @@ function Support() {
             onClick: () => {
               openUrl(GitHubIssuesUrl);
             },
-            leadingComponent: <GitHubIcon className="fill-bombay h-6 w-6" />,
+            leadingComponent: (
+              <GitHubIcon className="fill-text-tertiary h-6 w-6" />
+            ),
             trailingIcon: 'open_in_new',
           },
           {
@@ -69,7 +71,9 @@ function Support() {
             onClick: () => {
               openUrl(MatrixRoomUrl);
             },
-            leadingComponent: <ElementIcon className="fill-bombay h-6 w-6" />,
+            leadingComponent: (
+              <ElementIcon className="fill-text-tertiary h-6 w-6" />
+            ),
             trailingIcon: 'open_in_new',
           },
           {
@@ -77,7 +81,9 @@ function Support() {
             onClick: () => {
               openUrl(DiscordInviteUrl);
             },
-            leadingComponent: <DiscordIcon className="fill-bombay h-6 w-6" />,
+            leadingComponent: (
+              <DiscordIcon className="fill-text-tertiary h-6 w-6" />
+            ),
             trailingIcon: 'open_in_new',
           },
           {
@@ -85,7 +91,9 @@ function Support() {
             onClick: () => {
               openUrl(TelegramUrl);
             },
-            leadingComponent: <TelegramIcon className="fill-bombay h-6 w-6" />,
+            leadingComponent: (
+              <TelegramIcon className="fill-text-tertiary h-6 w-6" />
+            ),
             trailingIcon: 'open_in_new',
           },
         ]}

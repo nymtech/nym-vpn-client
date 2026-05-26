@@ -51,19 +51,19 @@ export function RenewButton({
 
   const getStatusColor = () => {
     if (status === 'green' || status === 'yellow') {
-      return 'bg-malachite-moss/10 hover:bg-malachite-moss/20 dark:bg-malachite/10 dark:hover:bg-malachite/20 text-primary';
+      return 'bg-brand-primary/10 hover:bg-brand-primary/20/10 dark:hover:bg-brand-primary/20 text-brand-primary';
     }
     if (status === 'amber') {
-      return 'bg-cheddar/10 hover:bg-cheddar/20 dark:bg-king-nacho/10 dark:hover:bg-king-nacho/20 text-cheddar dark:text-king-nacho';
+      return 'bg-status-warning/10 hover:bg-status-warning/20/10 dark:hover:bg-status-warning/20 text-status-warning';
     }
   };
 
   const getSpinnerColor = () => {
     if (status === 'green' || status === 'yellow') {
-      return 'border-malachite-moss dark:border-malachite';
+      return 'border-brand-primary';
     }
     if (status === 'amber') {
-      return 'border-cheddar dark:border-king-nacho';
+      return 'border-status-warning';
     }
   };
 

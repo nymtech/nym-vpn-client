@@ -89,10 +89,10 @@ function Socks5() {
     switch (status?.state) {
       case 'idle':
       case 'connected':
-        return 'text-primary';
+        return 'text-brand-primary';
       case 'error':
       case 'disabled':
-        return 'text-aphrodisiac';
+        return 'text-status-error';
       default:
         return 'text-text-primary';
     }
@@ -160,7 +160,7 @@ function Socks5() {
             <span
               className={clsx(
                 status?.state === 'connected'
-                  ? 'text-primary'
+                  ? 'text-brand-primary'
                   : 'text-text-primary',
               )}
             >

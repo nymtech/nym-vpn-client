@@ -138,7 +138,7 @@ export const ModeToggle = () => {
   };
 
   return (
-    <div className="bg-gray dark:bg-background relative flex items-center gap-2 rounded-full p-0.5">
+    <div className="bg-surface-elev relative flex items-center gap-2 rounded-full p-0.5">
       {MODES.map((mode) => {
         const isSelected = selected === mode.id;
         return (
@@ -150,13 +150,13 @@ export const ModeToggle = () => {
               'relative flex flex-1 cursor-default items-center justify-center gap-1.5 rounded-full px-4.5 py-2.5 text-sm font-bold transition-colors',
               isSelected
                 ? 'text-primary'
-                : 'text-text-secondary hover:bg-surface/50',
+                : 'text-text-secondary hover:bg-surface-sunken',
             )}
           >
             {isSelected && (
               <motion.div
                 layoutId="mode-toggle-pill"
-                className="bg-surface absolute inset-0 rounded-full"
+                className="bg-surface-bg absolute inset-0 rounded-full"
                 transition={{ duration: 0.3, ease: 'easeOut' }}
               />
             )}

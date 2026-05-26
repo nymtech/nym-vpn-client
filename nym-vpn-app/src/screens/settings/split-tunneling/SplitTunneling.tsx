@@ -182,7 +182,7 @@ function SplitTunneling() {
       </p>
 
       {/* Exclude warning */}
-      <p className="text-cheddar dark:text-king-nacho bg-mercury/40 dark:bg-mine-shaft/60 rounded-lg p-3 text-sm">
+      <p className="text-status-warning bg-surface-elev/40/60 rounded-lg p-3 text-sm">
         {t('split-tunneling.exclude-warning')}
       </p>
 
@@ -213,7 +213,7 @@ function SplitTunneling() {
                     }}
                   >
                     {/* Section divider */}
-                    <div className="bg-mercury/40 dark:bg-mine-shaft/60 px-4 py-1">
+                    <div className="bg-surface-elev/40/60 px-4 py-1">
                       <span className="text-text-secondary text-xs select-none">
                         {letter}
                       </span>
@@ -229,7 +229,7 @@ function SplitTunneling() {
                           onLaunch={handleLaunch}
                         />
                         {i < groupedApps[letter].length - 1 && (
-                          <div className="bg-mercury/60 mx-4 h-px dark:bg-white/5" />
+                          <div className="bg-surface-elev/60 mx-4 h-px dark:bg-white/5" />
                         )}
                       </div>
                     ))}
@@ -244,7 +244,7 @@ function SplitTunneling() {
                     key={letter}
                     className={clsx(
                       'h-4 w-full cursor-default text-center text-xs select-none',
-                      'text-text-secondary hover:text-baltic-sea dark:hover:text-white',
+                      'text-text-secondary hover:text-text-primary dark:hover:text-white',
                       'transition-noborder',
                     )}
                     onClick={() => scrollToSection(letter)}
