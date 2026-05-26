@@ -11,45 +11,45 @@ export type ButtonVariant =
 
 const variantStyles: Record<ButtonVariant, string[]> = {
   primary: [
-    'bg-primary text-baltic-sea',
-    'hover:bg-primary-hover',
-    'data-active:bg-primary-active',
+    'bg-brand-primary text-brand-on-primary',
+    'hover:bg-brand-primary-hover',
+    'data-active:bg-brand-primary-active',
     'data-disabled:bg-secondary',
   ],
   outlined: [
     'border-1 border-black dark:border-white',
     'text-text-primary',
-    'hover:bg-baltic-sea/10 dark:hover:bg-white/10',
+    'hover:bg-text-primary/10 dark:hover:bg-white/10',
     'data-active:bg-transparent',
     'data-disabled:border-black/50 data-disabled:text-black/50 data-disabled:cursor-not-allowed',
     'dark:data-disabled:border-white/50 dark:data-disabled:text-white/50',
   ],
   destructive: [
-    'bg-aphrodisiac text-white',
-    'hover:bg-aphrodisiac/80',
-    'data-active:bg-aphrodisiac/90',
+    'bg-status-error text-white',
+    'hover:bg-status-error/80',
+    'data-active:bg-status-error/90',
     'data-disabled:bg-secondary',
   ],
   'destructive-outlined': [
-    'border-1 border-aphrodisiac text-aphrodisiac',
-    'hover:bg-aphrodisiac/10',
-    'data-active:bg-aphrodisiac/20',
-    'data-disabled:border-aphrodisiac/50 data-disabled:text-aphrodisiac/50',
+    'border-1 border-status-error text-status-error',
+    'hover:bg-status-error/10',
+    'data-active:bg-status-error/20',
+    'data-disabled:border-status-error/50 data-disabled:text-status-error/50',
   ],
 };
 
 const loadingStyles: Record<ButtonVariant, string[]> = {
   primary: [
-    'group-data-disabled:border-baltic-sea dark:group-data-disabled:border-baltic-sea group-data-disabled:border-b-transparent dark:group-data-disabled:border-b-transparent',
+    'group-data-disabled:border-text-primary dark:group-data-disabled:border-text-primary group-data-disabled:border-b-transparent dark:group-data-disabled:border-b-transparent',
   ],
   outlined: [
     'group-data-disabled:border-black/50 group-data-disabled:border-b-transparent',
   ],
   destructive: [
-    'group-data-disabled:border-aphrodisiac/50 group-data-disabled:border-b-transparent',
+    'group-data-disabled:border-status-error/50 group-data-disabled:border-b-transparent',
   ],
   'destructive-outlined': [
-    'group-data-disabled:border-aphrodisiac/50 group-data-disabled:border-b-transparent',
+    'group-data-disabled:border-status-error/50 group-data-disabled:border-b-transparent',
   ],
 };
 export type ButtonNewProps = {
@@ -85,9 +85,9 @@ function Button({
         'cursor-default transition-colors select-none',
         'focus:outline-none',
         'data-disabled:pointer-events-none',
-        'focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2',
+        'focus-visible:outline-brand-primary focus-visible:outline-2 focus-visible:outline-offset-2',
         disabled
-          ? 'bg-gray dark:bg-aph-light text-text-secondary'
+          ? 'bg-text-tertiary dark:bg-surface-elev text-text-secondary'
           : [...variantStyles[variant]],
         className,
       ])}

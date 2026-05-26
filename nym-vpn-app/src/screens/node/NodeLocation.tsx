@@ -78,14 +78,14 @@ function NodeLocation() {
       onValueChange={handleTabChange}
       className="flex h-full flex-col"
     >
-      <Tabs.List className="bg-gray dark:bg-background flex px-4 select-none">
+      <Tabs.List className="bg-surface-sunken dark:bg-surface-bg flex px-4 select-none">
         {!hideEntryTab && (
           <Tabs.Tab
             value="entry"
             className="group text-text-secondary data-active:text-text-primary flex flex-1 flex-col items-center gap-2 py-2 text-base font-medium tracking-tight focus-visible:outline-none"
           >
             <span>{t('tab-entry')}</span>
-            <span className="bg-border group-data-active:bg-primary h-[1.5px] w-full" />
+            <span className="bg-surface-hair group-data-active:bg-brand-primary h-[1.5px] w-full" />
           </Tabs.Tab>
         )}
         <Tabs.Tab
@@ -93,7 +93,7 @@ function NodeLocation() {
           className="group text-text-secondary data-active:text-text-primary flex flex-1 flex-col items-center gap-2 py-2 text-base font-medium tracking-tight focus-visible:outline-none"
         >
           <span>{t('tab-exit')}</span>
-          <span className="bg-border group-data-active:bg-primary h-[1.5px] w-full" />
+          <span className="bg-surface-hair group-data-active:bg-brand-primary h-[1.5px] w-full" />
         </Tabs.Tab>
       </Tabs.List>
       {!hideEntryTab && (

@@ -12,11 +12,11 @@ function DaemonDot({ status, ...rest }: DaemonDotProps) {
   const bgColor = () => {
     switch (status) {
       case 'ok':
-        return 'bg-vert-menthe';
+        return 'bg-status-success';
       case 'non-compat':
-        return 'bg-liquid-lava';
+        return 'bg-status-warning';
       default:
-        return 'bg-rouge-ecarlate';
+        return 'bg-status-error';
     }
   };
 

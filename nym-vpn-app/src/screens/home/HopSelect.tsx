@@ -188,7 +188,7 @@ export default function HopSelect({
       className={clsx([
         'flex h-[3.75rem] w-full flex-row items-center justify-between',
         'text-text-primary',
-        'border-bombay dark:border-iron rounded-lg border',
+        'border-text-tertiary dark:border-text-secondary rounded-lg border',
         'relative cursor-default transition select-none',
         disabled && 'opacity-50',
       ])}
@@ -197,7 +197,7 @@ export default function HopSelect({
       <div
         className={clsx([
           'absolute -top-2 left-3 px-1',
-          'bg-background text-xs',
+          'bg-surface-bg text-xs',
           disabled && 'cursor-default',
         ])}
       >
@@ -207,7 +207,7 @@ export default function HopSelect({
       <Button
         className={clsx([
           'flex h-full flex-1 items-center justify-center overflow-hidden rounded-none rounded-l-lg py-3 ps-4',
-          !disabled && 'hover:text-baltic-sea/80 dark:hover:text-white/80',
+          !disabled && 'hover:text-text-primary/80 dark:hover:text-white/80',
         ])}
         onClick={handleClick}
         onKeyDown={handleClick}
@@ -218,7 +218,7 @@ export default function HopSelect({
         <Button
           className={clsx(
             'my-2 me-2 flex h-11 w-11 items-center justify-center rounded-full',
-            !disabled && 'hover:bg-mercury dark:hover:bg-mine-shaft',
+            !disabled && 'hover:bg-surface-elev dark:hover:bg-surface-elev',
           )}
           onClick={handleDetailsClick}
           onKeyDown={handleDetailsClick}

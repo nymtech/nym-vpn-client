@@ -76,10 +76,10 @@ const GatewayItem = ({
       ref={scrollToGatewayRef}
       className={clsx(
         'flex flex-row items-center justify-between p-2 select-none',
-        'hover:bg-gainsboro/45 hover:dark:bg-aph-light/80',
-        'last:border-azur',
+        'hover:bg-surface-hair',
+        'last:border-illustration-accent',
         'group-last/region:last:rounded-b-2xl',
-        'border-divider border-b last:border-b-0',
+        'border-surface-hair border-b last:border-b-0',
       )}
     >
       <Button
@@ -89,8 +89,8 @@ const GatewayItem = ({
         <div
           className={clsx(
             'w-1 shrink-0 self-stretch rounded-r-sm',
-            isSelected === node && 'bg-primary',
-            isSelected && isSelected !== node && 'bg-iron',
+            isSelected === node && 'bg-brand-primary',
+            isSelected && isSelected !== node && 'bg-text-secondary',
           )}
         />
         <div className="flex flex-row items-center gap-4 overflow-hidden p-2">
@@ -105,13 +105,13 @@ const GatewayItem = ({
       </Button>
       {quicLabel && gateway.quic && <QuicTag />}
       {streamOptimized && (
-        <MsIcon icon="smart_display" className="text-cornflower" />
+        <MsIcon icon="smart_display" className="text-status-info" />
       )}
       <div className="flex items-center self-stretch p-2">
         <ButtonIcon
           color="chalk"
           icon="chevron_right"
-          iconClassName="flex! items-center justify-center hover:text-primary"
+          iconClassName="flex! items-center justify-center hover:text-brand-primary"
           onClick={() => onNodeDetails(gateway)}
         />
       </div>

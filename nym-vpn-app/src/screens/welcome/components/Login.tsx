@@ -20,7 +20,7 @@ export function Login({ onPassphrase }: Props) {
           {t('login.login-24-words-button')}
         </Button>
         <PrivyButton label={t('login.login-social-button')} />
-        <p className="text-bombay text-center text-xs leading-5">
+        <p className="text-text-tertiary text-center text-xs leading-5">
           {t('login.login-social-button-disclaimer')}
         </p>
       </div>

@@ -8,12 +8,12 @@ function IntroSplash({ theme }: { theme: 'light' | 'dark' }) {
       <motion.div
         className={clsx([
           'absolute z-200 flex h-full w-full min-w-44 items-center justify-center',
-          'bg-faded-lavender dark:bg-ash scroll-none overflow-hidden',
+          'bg-surface-bg scroll-none overflow-hidden',
         ])}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
       >
-        <NymSplash className="fill-baltic-sea w-36 dark:fill-white" />
+        <NymSplash className="fill-text-primary w-36 dark:fill-white" />
       </motion.div>
     </div>
   );
