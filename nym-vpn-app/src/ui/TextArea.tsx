@@ -62,10 +62,10 @@ function TextArea({
         value={value}
         aria-multiline={true}
         className={clsx([
-          'bg-faded-lavender dark:bg-ash text-base transition',
+          'bg-surface-bg text-base transition',
           'flex w-full flex-row items-center justify-between px-4 py-4',
           'text-text-primary',
-          'placeholder:text-iron dark:placeholder:text-bombay',
+          'placeholder:text-text-secondary dark:placeholder:text-text-tertiary',
           ...inputStates,
           resize && getResizeClass(resize),
           label && 'relative',
@@ -84,7 +84,7 @@ function TextArea({
           className={clsx([
             'absolute -top-2 left-3 px-1 select-none',
             'dark:text-white',
-            'bg-faded-lavender dark:bg-ash text-xs',
+            'bg-surface-bg text-xs',
           ])}
           data-testid={`${testId}-label`}
         >

@@ -38,8 +38,8 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
   return (
     <div
       className={clsx(
-        'dark:bg-charcoal flex items-center gap-3 bg-white px-4 py-3',
-        os === 'linux' && 'dark:hover:bg-charcoal/75 hover:bg-black/10',
+        'dark:bg-surface-elev flex items-center gap-3 bg-white px-4 py-3',
+        os === 'linux' && 'dark:hover:bg-surface-elev/75 hover:bg-black/10',
         isProblematic && 'cursor-not-allowed opacity-50',
       )}
       onClick={handleClick}
@@ -53,17 +53,17 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
           />
         )}
         {!app.icon && (
-          <div className="bg-faded-lavender dark:bg-ash text-text-primary flex h-full w-full items-center justify-center rounded-md text-sm leading-none">
+          <div className="bg-surface-bg text-text-primary flex h-full w-full items-center justify-center rounded-md text-sm leading-none">
             {app.name[0].toUpperCase()}
           </div>
         )}
         {os === 'linux' && (
           <div
             className={clsx(
-              'bg-malachite-moss absolute right-0 bottom-0 h-2 w-2 rounded-full',
+              'bg-brand-primary absolute right-0 bottom-0 h-2 w-2 rounded-full',
               {
-                'bg-malachite-moss animate-pulse duration-1000': isRunning,
-                'bg-ash dark:bg-mercury': !isRunning,
+                'bg-brand-primary animate-pulse duration-1000': isRunning,
+                'bg-surface-bg dark:bg-surface-elev': !isRunning,
               },
             )}
           ></div>
@@ -74,23 +74,26 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
           {app.name}
         </span>
         {isProblematic && (
-          <span className="text-cheddar dark:text-king-nacho text-xs">
+          <span className="text-status-warning text-xs">
             {t('split-tunneling.problematic-app')}
           </span>
         )}
       </div>
       {os === 'linux' && (
-        <MsIcon icon="open_in_new" className="text-bombay shrink-0 text-base" />
+        <MsIcon
+          icon="open_in_new"
+          className="text-text-tertiary shrink-0 text-base"
+        />
       )}
       {/* Only Windows can include/exclude apps from inside the app */}
       {/* Linux uses custom app launcher to launch the app and immediately exclude it from the tunnel */}
       {os === 'windows' && (
-        <div className="border-iron dark:border-bombay flex items-center rounded-lg border">
+        <div className="border-text-secondary dark:border-text-tertiary flex items-center rounded-lg border">
           <button
             className={clsx(
               'transition-noborder border-r-iron dark:border-r-bombay flex h-full w-full cursor-default items-center justify-center rounded-l-lg border-r px-2',
               app.state === 'included'
-                ? 'bg-aphrodisiac/20 text-aphrodisiac'
+                ? 'bg-status-error/20 text-status-error'
                 : 'text-text-secondary',
             )}
             onClick={() => onStateChange(app, 'included')}
@@ -102,7 +105,7 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
             className={clsx(
               'transition-noborder flex h-full w-full cursor-default items-center justify-center rounded-r-lg px-2',
               app.state === 'excluded'
-                ? 'bg-malachite-moss/15 dark:bg-malachite/15 text-primary'
+                ? 'bg-brand-primary/15 text-brand-primary'
                 : 'text-text-secondary',
             )}
             onClick={() => onStateChange(app, 'excluded')}

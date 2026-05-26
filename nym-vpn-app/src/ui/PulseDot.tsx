@@ -9,11 +9,11 @@ function PulseDot({ color = 'cornflower', ...rest }: PulseDotProps) {
   const dotColor = () => {
     switch (color) {
       case 'cornflower':
-        return 'bg-cornflower';
+        return 'bg-status-info';
       case 'red':
-        return 'bg-rouge-ecarlate';
+        return 'bg-status-error';
       case 'yellow':
-        return 'bg-[#f59e0b] dark:bg-king-nacho';
+        return 'bg-[#f59e0b] dark:bg-status-warning';
     }
   };
 

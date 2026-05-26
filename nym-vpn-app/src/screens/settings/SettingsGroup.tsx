@@ -41,11 +41,11 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
             onClick={setting.onClick}
             className={clsx([
               'cursor-default',
-              'dark:bg-aph-light relative flex min-h-16 bg-white px-5 py-2 focus:outline-hidden',
-              'dark:hover:bg-charcoal/85 hover:bg-white/60',
+              'relative flex min-h-16 px-5 py-2 focus:outline-hidden',
+              'bg-surface-bg hover:bg-surface-hair',
               'transition duration-75',
               index === 0 && 'rounded-t-2xl',
-              index !== 0 && 'border-faded-lavender dark:border-ash border-t',
+              index !== 0 && 'border-surface-bg border-t',
               index === items.length - 1 && 'rounded-b-2xl',
               setting.desc ? 'py-2' : 'py-4',
               setting.disabled &&
@@ -81,7 +81,7 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
                 </Description>
               </div>
               {setting.trailingIcon && (
-                <span className="font-icon text-bombay text-xl select-none">
+                <span className="font-icon text-text-tertiary text-xl select-none">
                   {setting.trailingIcon}
                 </span>
               )}

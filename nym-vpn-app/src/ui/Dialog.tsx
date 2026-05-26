@@ -54,7 +54,7 @@ function Dialog({ open, onClose, children, className, ...rest }: DialogProps) {
             className={clsx(
               [
                 'min-w-80 overflow-x-hidden text-base',
-                'dark:bg-charcoal max-w-md rounded-xl bg-white p-6',
+                'dark:bg-surface-elev max-w-md rounded-xl bg-white p-6',
                 'duration-200 ease-out data-closed:opacity-0',
               ],
               className,

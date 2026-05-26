@@ -24,6 +24,7 @@ export { default as Skeleton } from './Skeleton';
 export { default as Toast } from './Toast';
 export { default as ConfirmationDialog } from './ConfirmationDialog';
 export { default as Spinner } from './Spinner';
+export { default as SmileyIcon } from './SmileyIcon';
 export * from './ButtonIcon';
 export * from './Button';
 export * from './ButtonText';

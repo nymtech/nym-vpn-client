@@ -17,13 +17,13 @@ export const getAccountDescriptionColor = (
     state === 'error' ||
     state === 'pending-subscription'
   ) {
-    return 'text-aphrodisiac';
+    return 'text-status-error';
   }
   if (state === 'offline' || state === 'status-not-active') {
-    return 'text-cheddar dark:text-king-nacho ';
+    return 'text-status-warning';
   }
   if (!accountSummary?.isSubscriptionActive) {
-    return 'text-aphrodisiac';
+    return 'text-status-error';
   }
   return 'text-text-secondary';
 };

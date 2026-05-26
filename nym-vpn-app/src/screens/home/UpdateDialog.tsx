@@ -162,7 +162,7 @@ function UpdateDialog() {
           </p>
           <div className={clsx('flex w-full flex-col items-center gap-2')}>
             <Button onClick={onUpdate} className="mt-2" disabled={isUpdating}>
-              <span className="dark:text-baltic-sea text-lg text-black">
+              <span className="dark:text-text-primary text-lg text-black">
                 {t('app-update-available.button-update')}
               </span>
             </Button>

@@ -40,7 +40,7 @@ function ProxyPortInput({
           disabled={disabled}
           onChange={handleChange}
         />
-        {error && <p className="text-aphrodisiac mt-2 text-xs">{error}</p>}
+        {error && <p className="text-status-error mt-2 text-xs">{error}</p>}
       </div>
       <div className="h-full">
         <Button variant="outlined" disabled={disabled} onClick={handleReset}>

@@ -36,9 +36,8 @@ export function ButtonIconNew({
     <Button
       className={clsx([
         'flex items-center justify-center rounded-full transition-colors',
-        'text-iron hover:text-baltic-sea',
-        'dark:text-bombay dark:hover:text-white',
-        !noDefaultSize && 'hover:bg-baltic-sea/20 dark:hover:bg-baltic-sea',
+        'text-text-secondary hover:bg-surface-sunken',
+        'dark:text-text-tertiary',
         !noDefaultSize && 'h-10 w-10',
         className && className,
       ])}
@@ -63,7 +62,7 @@ export function ButtonIconNew({
             <MsIcon
               icon="check"
               className={clsx([
-                'text-primary leading-none',
+                'text-brand-primary leading-none',
                 size === 'small' && 'text-2xl',
                 size === 'base' && 'text-3xl',
               ])}
@@ -134,11 +133,11 @@ function ButtonIcon({
       className={clsx([
         'flex items-center justify-center rounded-full',
         color === 'malachite' && [
-          'text-malachite-moss/80 data-hover:text-malachite-moss',
-          'dark:text-malachite/80 data-hover:dark:text-malachite',
+          'text-brand-primary/80 data-hover:text-brand-primary',
+          'dark:text-brand-primary/80 data-hover:dark:text-brand-primary',
         ],
         color === 'chalk' && [
-          'text-baltic-sea data-hover:text-baltic-sea/70',
+          'text-text-primary data-hover:text-text-primary/70',
           'dark:text-white data-hover:dark:text-white/80',
         ],
         'focus:outline-hidden',
@@ -172,7 +171,7 @@ function ButtonIcon({
           <MsIcon
             icon={clickedIcon}
             className={clsx([
-              'text-primary text-2xl',
+              'text-brand-primary text-2xl',
               !noDefaultSize && 'h-10 min-h-10 w-10 min-w-10',
               clickedIconClassName,
             ])}

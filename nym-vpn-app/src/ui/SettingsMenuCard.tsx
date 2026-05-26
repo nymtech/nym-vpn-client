@@ -37,21 +37,20 @@ function SettingsMenuCard({
     <div
       className={clsx([
         // normal color
-        color === 'normal' && 'dark:bg-aph-light bg-white',
+        color === 'normal' && 'dark:bg-surface-elev bg-white',
         color === 'normal' &&
           !noHoverEffect &&
-          'dark:hover:bg-aph-light/85 hover:bg-white/60',
+          'dark:hover:bg-surface-elev/85 hover:bg-white/60',
         // red color
-        color === 'red' &&
-          'border-aphrodisiac bg-aphrodisiac/10 dark:bg-aphrodisiac/10 border',
+        color === 'red' && 'border-status-error bg-status-error/10 border',
         color === 'red' &&
           !noHoverEffect &&
-          'hover:bg-aphrodisiac/20 dark:hover:bg-aphrodisiac/20',
+          'hover:bg-status-error/20 dark:hover:bg-status-error/20',
         // gray color
-        color === 'gray' && 'dark:bg-mine-shaft bg-white',
+        color === 'gray' && 'dark:bg-surface-elev bg-white',
         color === 'gray' &&
           !noHoverEffect &&
-          'dark:hover:bg-mine-shaft/85 hover:bg-white/60',
+          'dark:hover:bg-surface-elev/85 hover:bg-white/60',
         'flex flex-row items-center justify-between gap-4 select-none',
         'min-h-16 rounded-lg px-5',
         description ? 'py-2' : 'py-4',
@@ -85,8 +84,8 @@ function SettingsMenuCard({
               className={clsx(
                 'truncate text-sm select-none',
                 descriptionColor === 'normal' && 'text-text-secondary',
-                descriptionColor === 'red' && 'text-aphrodisiac',
-                descriptionColor === 'yellow' && 'text-king-nacho',
+                descriptionColor === 'red' && 'text-status-error',
+                descriptionColor === 'yellow' && 'text-status-warning',
               )}
             >
               {description}
@@ -95,7 +94,7 @@ function SettingsMenuCard({
         </div>
       </div>
       {trailingIcon && (
-        <MsIcon icon={trailingIcon} className="text-bombay text-xl" />
+        <MsIcon icon={trailingIcon} className="text-text-tertiary text-xl" />
       )}
       {trailingComponent && <div>{trailingComponent}</div>}
     </div>

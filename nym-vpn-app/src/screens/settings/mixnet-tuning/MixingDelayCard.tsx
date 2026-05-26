@@ -77,7 +77,7 @@ export function MixingDelayCard() {
       <CardNewBody className="pb-5">
         <p
           className={clsx('text-sm whitespace-pre-line', {
-            'text-cheddar dark:text-king-nacho': value === 0,
+            'text-status-warning': value === 0,
             'text-text-secondary': value !== 0,
           })}
         >

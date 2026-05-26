@@ -99,11 +99,12 @@ function Toast({
               className={clsx(
                 'mx-auto w-full max-w-lg px-5 py-4',
                 'flex cursor-default items-center justify-between rounded-lg select-none',
-                'dark:text-baltic-sea bg-charcoal text-white dark:bg-white',
+                'dark:text-text-primary bg-surface-elev text-white dark:bg-white',
                 type === 'error' &&
-                  'text-aphrodisiac! dark:text-aphrodisiac! border-aphrodisiac border-2',
-                type === 'warn' && 'border-king-nacho border-2',
-                type === 'info' && 'dark:border-iron border-bombay border-2',
+                  'text-status-error! dark:text-status-error! border-status-error border-2',
+                type === 'warn' && 'border-status-warning border-2',
+                type === 'info' &&
+                  'dark:border-text-secondary border-text-tertiary border-2',
                 type === 'ghost' && 'border-2 border-transparent',
               )}
               initial={{ opacity: 0, y: -10 }}

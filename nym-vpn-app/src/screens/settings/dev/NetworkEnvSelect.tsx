@@ -47,7 +47,7 @@ function NetworkEnvSelect({ current }: Props) {
       >
         <MsIcon
           icon="priority_high"
-          className="text-liquid-lava"
+          className="text-status-warning"
           data-testid="network-env-warning-icon"
         />
         <p className="text-text-secondary truncate">
@@ -93,7 +93,7 @@ function NetworkEnvSelect({ current }: Props) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.15, ease: 'easeInOut' }}
           className={clsx([
-            'text-aphrodisiac mt-3 max-h-16 overflow-y-scroll break-words',
+            'text-status-error mt-3 max-h-16 overflow-y-scroll break-words',
             'select-none',
           ])}
           data-testid="network-env-error"

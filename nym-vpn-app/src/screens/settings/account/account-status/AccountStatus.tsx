@@ -25,7 +25,7 @@ export function AccountStatus() {
   return (
     <>
       <CardNew>
-        <CardNewHeader className="border-bombay/30 dark:border-ash border-b">
+        <CardNewHeader className="border-text-tertiary/30 dark:border-surface-bg border-b">
           <div className="flex flex-row items-center gap-2">
             <MsIcon icon="speed" className="text-text-secondary" />
             <p className="text-text-primary truncate text-left text-base select-none">

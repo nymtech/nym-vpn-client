@@ -12,7 +12,7 @@ import {
   UiGateway,
   uiNodeToSelectedNode,
 } from '../../types/node';
-import { Link, MsIcon, PageAnim, TextInput } from '../../ui';
+import { Link, MsIcon, PageAnim, SmileyIcon, TextInput } from '../../ui';
 import { useI18nError, useToast } from '../../hooks';
 import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
@@ -22,7 +22,7 @@ import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
 const QUICK_PICK_CLASSES =
-  'dark:bg-aph-light dark:hover:bg-aph-light/75 flex cursor-default flex-row items-center gap-3 rounded-2xl bg-white p-4 transition-all duration-100 hover:bg-white/60';
+  'dark:bg-surface-elev dark:hover:bg-surface-elev/75 flex cursor-default flex-row items-center gap-3 rounded-2xl bg-white p-4 transition-all duration-100 hover:bg-white/60';
 
 function Node({ node }: { node: NodeHop }) {
   const daemonStatus = useAppStore((s) => s.daemonStatus);
@@ -274,7 +274,7 @@ function Node({ node }: { node: NodeHop }) {
           data-testid="node-error-message"
         >
           <p
-            className="text-aphrodisiac font-medium"
+            className="text-status-error font-medium"
             data-testid="node-error-title"
           >
             An error occurred
@@ -351,7 +351,7 @@ function Node({ node }: { node: NodeHop }) {
                 <Button
                   onClick={handleRandom}
                   className={clsx(QUICK_PICK_CLASSES, {
-                    'border-primary-active border-2': randomActive,
+                    'border-brand-primary-active border-2': randomActive,
                   })}
                 >
                   <MsIcon icon="shuffle" className="text-text-primary" />
@@ -363,10 +363,10 @@ function Node({ node }: { node: NodeHop }) {
                   <Button
                     onClick={handleBestServer}
                     className={clsx(QUICK_PICK_CLASSES, {
-                      'border-primary-active border-2': bestServerActive,
+                      'border-brand-primary-active border-2': bestServerActive,
                     })}
                   >
-                    <MsIcon icon="auto_awesome" className="text-text-primary" />
+                    <SmileyIcon className="h-6 w-6" />
                     <span className="text-text-primary text-base">
                       {t('quick-pick.best-server')}
                     </span>

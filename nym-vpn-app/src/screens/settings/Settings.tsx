@@ -81,7 +81,7 @@ function Settings() {
             leadingIcon: 'chat_bubble',
             onClick: () => navigate(routes.support),
             trailing: (
-              <MsIcon icon="chevron_right" className="dark:text-white" />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
         ]}
@@ -123,7 +123,7 @@ function Settings() {
             leadingIcon: 'dns',
             onClick: () => navigate(routes.dns),
             trailing: (
-              <MsIcon icon="chevron_right" className="dark:text-white" />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
           backendFlags.mixnetTuning && {
@@ -132,7 +132,7 @@ function Settings() {
             leadingIcon: 'visibility_off',
             onClick: () => navigate(routes.mixnetTuning),
             trailing: (
-              <MsIcon icon="chevron_right" className="dark:text-white" />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
           {
@@ -143,7 +143,7 @@ function Settings() {
                 state: { resetScroll: true },
               }),
             trailing: (
-              <MsIcon icon="chevron_right" className="dark:text-white" />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
           {
@@ -151,7 +151,7 @@ function Settings() {
             leadingIcon: 'campaign',
             onClick: () => navigate(routes.antiCensorship),
             trailing: (
-              <MsIcon icon="chevron_right" className="dark:text-white" />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
           {
@@ -160,7 +160,7 @@ function Settings() {
             leadingIcon: 'lan',
             onClick: () => navigate(routes.socks5),
             trailing: (
-              <MsIcon icon="chevron_right" className="dark:text-white" />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
         ]}
@@ -184,7 +184,7 @@ function Settings() {
             leadingIcon: 'view_comfy',
             onClick: () => navigate(routes.appearance),
             trailing: (
-              <MsIcon icon="chevron_right" className="dark:text-white" />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
           {
@@ -208,7 +208,7 @@ function Settings() {
             onClick: () =>
               navigate(routes.dataPrivacy, { state: { resetScroll: true } }),
             trailing: (
-              <MsIcon icon="chevron_right" className="dark:text-white" />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
         ]}
@@ -219,7 +219,7 @@ function Settings() {
             title: t('legal.title'),
             onClick: () => navigate(routes.legal),
             trailing: (
-              <MsIcon icon="chevron_right" className="dark:text-white" />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
         ]}

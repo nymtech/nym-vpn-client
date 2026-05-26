@@ -18,8 +18,8 @@ function Separator() {
     <Menu.Separator
       className={clsx(
         'h-px',
-        uiTheme === 'light' && 'bg-faded-lavender',
-        uiTheme === 'dark' && 'bg-iron',
+        uiTheme === 'light' && 'bg-surface-bg',
+        uiTheme === 'dark' && 'bg-text-secondary',
       )}
     />
   );
@@ -42,15 +42,15 @@ function MenuItem({
       className={clsx(
         'flex cursor-default items-center gap-2 px-3 py-2 text-sm select-none',
         'hover:bg-black/5 first:hover:rounded-t-sm last:hover:rounded-b-sm',
-        uiTheme === 'light' && 'text-baltic-sea',
+        uiTheme === 'light' && 'text-text-primary',
         uiTheme === 'dark' && 'text-white',
       )}
     >
       <MsIcon
         icon={icon}
         className={clsx(
-          uiTheme === 'light' && 'text-iron',
-          uiTheme === 'dark' && 'text-bombay',
+          uiTheme === 'light' && 'text-text-secondary',
+          uiTheme === 'dark' && 'text-text-tertiary',
         )}
       />
       {text}
@@ -148,7 +148,7 @@ function ActionMenu() {
           className={clsx(
             'mx-4 flex items-center justify-center rounded-md',
             'focus-visible:outline focus-visible:-outline-offset-1',
-            'hover:text-baltic-sea/70 dark:hover:text-white/80',
+            'hover:text-text-primary/70 dark:hover:text-white/80',
           )}
         >
           <MsIcon icon="more_vert" />
@@ -159,9 +159,9 @@ function ActionMenu() {
               className={clsx(
                 'origin-(--transform-origin) rounded-md text-gray-900 shadow-lg shadow-gray-200 outline transition-[transform,scale,opacity] data-ending-style:scale-90 data-ending-style:opacity-0 data-starting-style:scale-90 data-starting-style:opacity-0',
                 uiTheme === 'dark' &&
-                  'bg-charcoal outline-iron text-white shadow-none -outline-offset-1',
+                  'bg-surface-elev outline-text-secondary text-white shadow-none -outline-offset-1',
                 uiTheme === 'light' &&
-                  'text-iron outline-faded-lavender bg-white',
+                  'text-text-secondary outline-surface-bg bg-white',
               )}
             >
               <MenuItem

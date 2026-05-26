@@ -36,7 +36,7 @@ function CardSwitch({
             'text-sm select-none',
             subheaderColor === 'default'
               ? 'text-text-secondary'
-              : 'text-cheddar dark:text-king-nacho',
+              : 'text-status-warning',
           )}
         >
           {subheader}
@@ -49,8 +49,8 @@ function CardSwitch({
     <div
       className={clsx(
         'flex w-full flex-row items-center justify-between gap-4 select-none',
-        'dark:bg-aph-light min-h-16 rounded-t-lg bg-white px-5 py-4',
-        !noHoverEffect && 'hover:bg-iron/5 dark:hover:bg-black/10',
+        'dark:bg-surface-elev min-h-16 rounded-t-lg bg-white px-5 py-4',
+        !noHoverEffect && 'hover:bg-text-secondary/5 dark:hover:bg-black/10',
         'cursor-default',
         disabled && 'pointer-events-none',
         'overflow-hidden',
