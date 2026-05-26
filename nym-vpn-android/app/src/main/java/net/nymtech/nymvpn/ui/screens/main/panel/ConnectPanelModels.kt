@@ -21,4 +21,5 @@ data class ConnectPanelState(
 	val entryNode: ServerNode,
 	val exitIsAutoBest: Boolean,
 	val initialPanelState: PanelState,
+	val isSubscriptionExpired: Boolean = false,
 )
