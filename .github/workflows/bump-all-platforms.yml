@@ -165,7 +165,7 @@ jobs:
               exit 1
           fi
 
-          if ! grep -P '^[0-9]+$' <<< "$PATCH" ; then
+          if ! grep -P '^[0-9]{1,2}$' <<< "$PATCH" ; then
               echo "::error:: patch must be an integer"
               exit 1
           fi
