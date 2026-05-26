@@ -278,7 +278,7 @@ function FlagIcon({ code, alt, className, ...rest }: FlagIconProps) {
     return (
       <MsIcon
         icon="broken_image"
-        className={clsx(['h-7 w-7 min-w-7', className && className])}
+        className={clsx(['h-6 w-6 min-w-6', className && className])}
         data-testid={`${testId}-broken`}
       />
     );
@@ -286,13 +286,13 @@ function FlagIcon({ code, alt, className, ...rest }: FlagIconProps) {
 
   return (
     <div
-      className="flex w-7 min-w-7 items-center justify-center"
+      className="flex w-6 min-w-6 items-center justify-center"
       data-testid={`${testId}-container`}
     >
       <img
         src={`./flags/${code}.svg`}
         className={clsx([
-          'pointer-events-none h-7 scale-90 fill-current',
+          'pointer-events-none h-6 scale-90 fill-current',
           className && className,
         ])}
         alt={alt}

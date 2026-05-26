@@ -50,7 +50,6 @@ function Home() {
         className="flex h-full flex-col"
       >
         <TunnelState />
-
         <div className="flex grow flex-col justify-end">
           <NewBottomComponent />
         </div>
