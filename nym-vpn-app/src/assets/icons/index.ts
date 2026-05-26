@@ -9,7 +9,7 @@ export { default as NymSplash } from './nym-splash.svg?react';
 export { default as CheckCircleIcon } from './check-circle.svg?react';
 export { default as LewesIcon } from './lewes.svg?react';
 export { default as LewesLightIcon } from './lewes-light.svg?react';
-export { default as StarIcon } from './star.svg?react';
+export { default as SmileyIcon } from './smiley.svg?react';
 
 export * from './node-score';
 export * from './gateway-mode';

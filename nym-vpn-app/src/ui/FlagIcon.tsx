@@ -292,7 +292,7 @@ function FlagIcon({ code, alt, className, ...rest }: FlagIconProps) {
       <img
         src={`./flags/${code}.svg`}
         className={clsx([
-          'pointer-events-none h-6 scale-90 fill-current',
+          'pointer-events-none h-6 fill-current',
           className && className,
         ])}
         alt={alt}

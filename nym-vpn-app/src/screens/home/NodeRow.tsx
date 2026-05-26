@@ -25,7 +25,7 @@ import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
-import { StarIcon } from '../../assets/index';
+import { SmileyIcon } from '../../assets/index';
 import { isBridgeMode, regionToCountryCode } from './util';
 import { ScoreIndicatorContainer } from './ScoreIndicatorContainer';
 
@@ -409,7 +409,9 @@ export function NodeRow({ type }: NodeRowProps) {
                     }}
                     className="text-text-primary flex min-w-0 flex-1 gap-2 truncate overflow-hidden text-start text-base leading-6 tracking-[-0.08px]"
                   >
-                    {daemonPicked && !gateway && <StarIcon />}
+                    {daemonPicked && !gateway && (
+                      <SmileyIcon className="h-6 w-6" />
+                    )}
                     {textLabel}
                   </motion.span>
                 </AnimatePresence>
