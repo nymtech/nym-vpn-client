@@ -10,14 +10,8 @@ export const VpnConfigEvent = 'vpn-config';
 export const UpdatePendingEvent = 'update-pending';
 // ⚠ keep this value in sync with the one declared in `index.html`
 export const DefaultRootFontSize = 14; // in px
-// NOTE: when fresh country data is get from daemon, the selected countries
-// are checked against it and if needed it is automatically switched to
-// available ones
-export const DefaultNode: SelectedNode = {
-  country: {
-    code: 'CH',
-  },
-};
+
+export const DefaultNode: SelectedNode = 'random';
 export const DefaultThemeMode = 'system';
 // ⚠ keep those in sync with the theme definition in `styles.css`
 export const ColorMainBgLight = '#242b2d';

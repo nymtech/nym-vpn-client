@@ -2,6 +2,11 @@
   "tab-entry": "Entry",
   "tab-exit": "Exit",
   "loading": "Loading…",
+  "quick-pick": {
+    "random": "Random",
+    "best-server": "Best server",
+    "select-error": "Failed to update server selection"
+  },
   "none-found": "No results found. Please try another search",
   "list-loading": "The location list is loading…",
   "selected": "Selected",
