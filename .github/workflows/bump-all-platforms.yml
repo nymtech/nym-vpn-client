@@ -301,11 +301,10 @@ jobs:
             RELEASE_DATE="TBD"
             VERSION="${{ steps.version.outputs.current_release_version }}"
           else
-            RELEASE_DATE=$(date "+%F")
+            RELEASE_DATE=$(date -u "+%F")
             VERSION="${{ env.NEW_VERSION }}"
           fi
-
-          sed -i -e "s/\[Unreleased\]/[Unreleased]\n\n## [$VERSION] - $RELEASE_DATE/" CHANGELOG.md
+          sed -i -E "s|^##\s*\[Unreleased\]$|## [Unreleased]\n\n## [$VERSION] - $RELEASE_DATE|" CHANGELOG.md
           echo "::notice:: Inserted CHANGELOG entry for v$VERSION ($RELEASE_DATE)"
           head -12 CHANGELOG.md
 
