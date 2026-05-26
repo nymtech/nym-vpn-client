@@ -380,8 +380,14 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "🚜 Resolve build number (only bump if needed)"
-          LATEST="$(app-store-connect get-latest-testflight-build-number 6471254143 --platform=IOS)"
+          echo "🚜 Resolve build number (max across all TestFlight versions)"
+          LATEST="$(
+            app-store-connect list-builds \
+              --app-id 6471254143 \
+              --platform IOS \
+              --json 2>/dev/null \
+            | jq '[.[].attributes.version | tonumber] | max // 0'
+          )"
           REQUIRED=$((LATEST + 1))
 
           PROJECT="$(
