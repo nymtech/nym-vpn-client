@@ -46,9 +46,8 @@ use crate::{
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
 
+use hickory_resolver::config::{NameServerConfig, ProtocolConfig};
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
-#[cfg(not(any(target_os = "android")))]
-use nym_dns::ResolvedDnsConfig;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;
@@ -60,8 +59,6 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 
-#[cfg(not(any(target_os = "android")))]
-use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
@@ -206,34 +203,107 @@ impl TunnelSettings {
         }
     }
 
-    #[cfg(not(any(target_os = "android")))]
-    /// Returns resolved DNS config resolved against default DNS IPs.
-    pub fn resolved_dns_config(&self) -> ResolvedDnsConfig {
-        self.dns.to_dns_config().resolve(
-            &self.dns_ips(),
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            53,
-        )
+    pub fn resolver_config(&self) -> Vec<NameServerConfig> {
+        let defaults = || crate::DEFAULT_DNS_SERVERS_CONFIG.clone();
+
+        let mut config = match self.dns {
+            DnsOptions::Default => defaults(),
+            DnsOptions::Custom(ref addrs) => {
+                if addrs.is_empty() {
+                    defaults()
+                } else {
+                    addrs
+                        .iter()
+                        .cloned()
+                        .map(NameServerConfig::udp_and_tcp)
+                        .collect()
+                }
+            }
+        };
+        config.retain(|ns| ns.ip.is_ipv4() || (ns.ip.is_ipv6() && self.enable_ipv6));
+        config
     }
 
-    /// Returns DNS IPs filtering out IPv6 addresses when IPv6 is disabled.
-    pub fn dns_ips(&self) -> Vec<IpAddr> {
-        match self.dns {
-            DnsOptions::Custom(ref addrs) => addrs
+    /// Returns IP addresses of the DNS servers disregarding protocols or ports.
+    ///
+    /// This is primarily used for Android because it does not support extended DNS configuration.
+    /// On Android, if Private DNS is enabled, these IPs will be probed for DoT before falling back to UDP/TCP.
+    pub fn tunnel_dns(&self) -> Vec<IpAddr> {
+        let defaults = || {
+            crate::DEFAULT_DNS_SERVERS_CONFIG
                 .iter()
-                .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
-                .copied()
-                .collect(),
-            DnsOptions::Default => self.default_dns_ips(),
+                .map(|ns| ns.ip)
+                .collect()
+        };
+
+        let mut addrs = match self.dns {
+            DnsOptions::Default => defaults(),
+            DnsOptions::Custom(ref addrs) => {
+                if addrs.is_empty() {
+                    defaults()
+                } else {
+                    addrs.clone()
+                }
+            }
+        };
+        addrs.retain(|v| v.is_ipv4() || (v.is_ipv6() && self.enable_ipv6));
+        addrs
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    pub fn allowed_dns_endpoints(&self) -> Vec<nym_firewall::Endpoint> {
+        match self.dns {
+            DnsOptions::Custom(ref addrs) => {
+                if addrs.is_empty() {
+                    self.allowed_default_dns_endpoints()
+                } else {
+                    addrs
+                        .iter()
+                        .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
+                        .copied()
+                        .flat_map(|ip| {
+                            // todo: add support for DoH/DoT in custom DNS options
+                            vec![
+                                nym_firewall::Endpoint {
+                                    address: SocketAddr::new(ip, 53),
+                                    protocol: nym_firewall::TransportProtocol::Udp,
+                                },
+                                nym_firewall::Endpoint {
+                                    address: SocketAddr::new(ip, 53),
+                                    protocol: nym_firewall::TransportProtocol::Tcp,
+                                },
+                            ]
+                        })
+                        .collect()
+                }
+            }
+            DnsOptions::Default => self.allowed_default_dns_endpoints(),
         }
     }
 
-    pub fn default_dns_ips(&self) -> Vec<IpAddr> {
-        crate::DEFAULT_DNS_SERVERS
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    pub fn allowed_default_dns_endpoints(&self) -> Vec<nym_firewall::Endpoint> {
+        crate::DEFAULT_DNS_SERVERS_CONFIG
             .iter()
-            .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
-            .copied()
-            .collect()
+            .filter(|ns| ns.ip.is_ipv4() || (ns.ip.is_ipv6() && self.enable_ipv6))
+            .flat_map(|ns| {
+                ns.connections.iter().map(|conn| {
+                    let proto = match conn.protocol {
+                        ProtocolConfig::Udp | ProtocolConfig::Quic { .. } => {
+                            nym_firewall::TransportProtocol::Udp
+                        }
+                        ProtocolConfig::Tcp
+                        | ProtocolConfig::Https { .. }
+                        | ProtocolConfig::Tls { .. }
+                        | ProtocolConfig::H3 { .. } => nym_firewall::TransportProtocol::Tcp,
+                    };
+                    nym_firewall::Endpoint::from_socket_address(
+                        SocketAddr::new(ns.ip, conn.port),
+                        proto,
+                    )
+                })
+            })
+            .collect::<Vec<_>>()
     }
 
     pub fn bridges_enabled(&self) -> bool {
@@ -484,35 +554,6 @@ pub enum DnsOptions {
     #[default]
     Default,
     Custom(Vec<IpAddr>),
-}
-
-impl DnsOptions {
-    /// Convert dns options into [DnsConfig].
-    #[cfg(not(any(target_os = "android")))]
-    fn to_dns_config(&self) -> DnsConfig {
-        match self {
-            Self::Default => DnsConfig::default(),
-            Self::Custom(addrs) => {
-                if addrs.is_empty() {
-                    DnsConfig::default()
-                } else {
-                    let (non_tunnel_config, tunnel_config): (Vec<_>, Vec<_>) = addrs
-                        .iter()
-                        // Private IP ranges should not be tunneled
-                        .partition(|&addr| nym_firewall_config::is_local_address(addr));
-                    DnsConfig::from_addresses(&tunnel_config, &non_tunnel_config)
-                }
-            }
-        }
-    }
-
-    #[cfg(any(target_os = "ios", target_os = "android"))]
-    pub fn ip_addresses<'a>(&'a self, default_addresses: &'a [IpAddr]) -> &'a [IpAddr] {
-        match self {
-            Self::Default => default_addresses,
-            Self::Custom(addrs) => addrs.as_slice(),
-        }
-    }
 }
 
 #[derive(Debug)]

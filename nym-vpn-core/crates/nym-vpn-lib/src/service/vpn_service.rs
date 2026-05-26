@@ -70,7 +70,7 @@ use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
-    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
+    DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
     config::GlobalConfig,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     logging::LogFileRemoverHandle,
@@ -1456,7 +1456,8 @@ impl NymVpnService {
     }
 
     async fn handle_get_default_dns(&self) -> Vec<IpAddr> {
-        DEFAULT_DNS_SERVERS.clone()
+        // todo: return protocols too!
+        DEFAULT_DNS_SERVERS_CONFIG.iter().map(|v| v.ip).collect()
     }
 
     async fn handle_list_gateways(
