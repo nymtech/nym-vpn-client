@@ -68,6 +68,8 @@ jobs:
       - name: Compute next version for develop branch
         id: next_version
         working-directory: nym-vpn-core
+        env:
+          RELEASE_NAME: ${{ inputs.release_name }}
         run: |
           MAJOR=$(cargo get workspace.package.version --major)
           MINOR=$(cargo get workspace.package.version --minor)
@@ -78,7 +80,7 @@ jobs:
           if [ "$PATCH" -ne 0 ]; then
             RELEASE_BRANCH_NAME="${RELEASE_BRANCH_NAME}.${PATCH}"
           fi
-          RELEASE_BRANCH_NAME="$RELEASE_BRANCH_NAME-${{ inputs.release_name }}"
+          RELEASE_BRANCH_NAME="$RELEASE_BRANCH_NAME-$RELEASE_NAME"
 
           case "${{ inputs.bump_type }}" in
             major)
