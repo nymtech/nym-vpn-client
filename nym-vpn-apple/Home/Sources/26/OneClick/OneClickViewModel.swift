@@ -249,7 +249,6 @@ private extension OneClickViewModel {
                     algorithm: config.gatewaySelectionAlgorithmConfig.algorithm,
                     isTwoHop: config.enableTwoHop
                 )
-                reconcileAutoAlgorithm(for: config)
                 refreshSelection()
             }
             .store(in: &cancellables)
@@ -334,23 +333,6 @@ private extension OneClickViewModel {
         displayMode = mode
         appSettings.oneClickDisplayModeRaw = mode.rawValue
         refreshSelection()
-    }
-
-    func reconcileAutoAlgorithm(for config: ConnectionConfig) {
-        guard speedMode == .auto else { return }
-        let desired: NymGatewaySelectionAlgorithm
-        if case .random = config.exit {
-            desired = .auto
-        } else {
-            desired = .autoEntryExplicitExit
-        }
-        guard config.gatewaySelectionAlgorithmConfig.algorithm != desired else { return }
-        connectionManager.setGatewaySelectionAlgorithm(
-            NymGatewaySelectionAlgorithmConfig(
-                enableGeoLocation: config.gatewaySelectionAlgorithmConfig.enableGeoLocation,
-                algorithm: desired
-            )
-        )
     }
 
     func refreshSelection() {

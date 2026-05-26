@@ -137,19 +137,27 @@ private extension OneClickView {
             } else {
                 flagImage(countryCode: info.countryCode)
             }
-            VStack(alignment: .leading, spacing: 0) {
-                Text(primaryText)
-                    .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.textPrimary)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                Text(secondaryText ?? " ")
-                    .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.textSecondary)
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .opacity(secondaryText == nil ? 0 : 1)
-                    .accessibilityHidden(secondaryText == nil)
+            ZStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("X")
+                    Text("X")
+                }
+                .nymTextStyle(.bodySmall)
+                .hidden()
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(primaryText)
+                        .nymTextStyle(.bodySmall)
+                        .foregroundStyle(Color.Nym.textPrimary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                    if let secondaryText {
+                        Text(secondaryText)
+                            .nymTextStyle(.bodySmall)
+                            .foregroundStyle(Color.Nym.textSecondary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                }
             }
             Spacer()
             if info.showsInfoButton, let gateway = info.gateway, let hopType = info.hopType {
