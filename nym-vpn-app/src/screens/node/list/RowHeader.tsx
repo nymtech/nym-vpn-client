@@ -54,9 +54,7 @@ function RowHeader({
       className={clsx(
         'p-2',
         'flex flex-row items-center justify-between transition-all duration-100',
-        sub
-          ? 'bg-surface-bg hover:bg-surface-hair'
-          : 'bg-surface-bg hover:bg-surface-hair',
+        'bg-surface-bg hover:bg-surface-hair',
         !sub && !open && 'rounded-2xl',
         !sub && open && 'rounded-2xl rounded-b-none',
         open && 'rounded-b-none!',
