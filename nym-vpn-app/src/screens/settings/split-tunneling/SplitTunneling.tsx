@@ -78,6 +78,11 @@ function SplitTunneling() {
 
   const handleLaunch = useCallback(
     async (app: AppEntry) => {
+      const isDisabled = PROBLEMATIC_APPS.DISABLED.has(
+        app.executable_path.split('/').pop() || '',
+      );
+      if (isDisabled) return;
+
       const hasRunningPids = (runningApps[app.name]?.length ?? 0) > 0;
       const isProblematic = PROBLEMATIC_APPS.WITH_WARNING.has(
         app.executable_path.split('/').pop() || '',
@@ -213,7 +218,7 @@ function SplitTunneling() {
                     }}
                   >
                     {/* Section divider */}
-                    <div className="bg-surface-elev/40 px-4 py-1">
+                    <div className="bg-surface-hair px-4 py-1">
                       <span className="text-text-secondary text-xs select-none">
                         {letter}
                       </span>
@@ -229,7 +234,7 @@ function SplitTunneling() {
                           onLaunch={handleLaunch}
                         />
                         {i < groupedApps[letter].length - 1 && (
-                          <div className="bg-surface-elev/60 mx-4 h-px dark:bg-white/5" />
+                          <div className="bg-surface-hair mx-4 h-px" />
                         )}
                       </div>
                     ))}
@@ -244,7 +249,7 @@ function SplitTunneling() {
                     key={letter}
                     className={clsx(
                       'h-4 w-full cursor-default text-center text-xs select-none',
-                      'text-text-secondary hover:text-text-primary dark:hover:text-white',
+                      'text-text-secondary hover:text-text-primary',
                       'transition-noborder',
                     )}
                     onClick={() => scrollToSection(letter)}

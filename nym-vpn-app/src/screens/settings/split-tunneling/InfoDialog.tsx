@@ -63,10 +63,10 @@ function InfoDialog({ isOpen, onClose }: Props) {
         <div className="flex flex-col gap-2 text-sm">
           <div className="flex items-center gap-2">
             {os === 'linux' && (
-              <div className="bg-surface-bg dark:bg-surface-elev h-2 w-2 rounded-full"></div>
+              <div className="h-2 w-2 rounded-full bg-black"></div>
             )}
             {os === 'windows' && (
-              <MsIcon icon="shield" className="text-text-primary" />
+              <MsIcon icon="shield" className="text-black" />
             )}
             <span className="text-text-primary font-bold">
               {t('split-tunneling.info-dialog.via-nym-vpn.label')}

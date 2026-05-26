@@ -350,7 +350,7 @@ export default function TopBar() {
         'z-30 h-16 cursor-default text-xl select-none',
         'px-4 py-2',
         currentNavLocation.noBackground
-          ? 'bg-surface-elev'
+          ? 'bg-surface-bg'
           : 'dark:bg-surface-elev bg-white',
       ])}
       data-testid="top-bar"

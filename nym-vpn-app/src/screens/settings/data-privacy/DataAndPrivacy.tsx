@@ -53,7 +53,9 @@ function DataAndPrivacy() {
           {
             title: t('logs.title'),
             leadingIcon: 'sort',
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="text-text-primary" />
+            ),
             onClick: () => navigate(routes.logs),
           },
         ]}
@@ -63,7 +65,9 @@ function DataAndPrivacy() {
           {
             title: t('diagnostic.title'),
             leadingIcon: 'monitor_heart',
-            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
+            trailing: (
+              <MsIcon icon="chevron_right" className="text-text-primary" />
+            ),
             onClick: () => navigate(routes.diagnostic),
           },
         ]}
