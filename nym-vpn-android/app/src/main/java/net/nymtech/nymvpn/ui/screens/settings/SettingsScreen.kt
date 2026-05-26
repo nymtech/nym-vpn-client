@@ -34,6 +34,7 @@ import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.common.snackbar.AlertController
 import net.nymtech.nymvpn.ui.screens.settings.components.AccountSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppVersionSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppearanceSection
@@ -94,6 +95,7 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 		onDismiss = { showLogoutDialog = false },
 		onConfirm = {
 			loggingOut = true
+			AlertController.dismiss()
 			appViewModel.logout {
 				navController.navigate(Route.Main()) {
 					popUpTo(0) { inclusive = true }

@@ -139,7 +139,7 @@ private fun Alert(message: AlertMessage, onDismiss: () -> Unit, modifier: Modifi
 			}
 			message.action?.let { action ->
 				Row(
-					modifier = Modifier.fillMaxWidth().padding(0.dp),
+					modifier = Modifier.fillMaxWidth().padding(0.dp).padding(top = 8.dp),
 					horizontalArrangement = Arrangement.End,
 				) {
 					OutlinedButton(
@@ -175,7 +175,7 @@ private fun PreviewAlerts() {
 			AlertHost(previewMessage = AlertMessage(type = AlertType.Neutral, title = "Info", body = "Background location access is required."))
 			AlertHost(previewMessage = AlertMessage(type = AlertType.Negative, title = "Disconnected", body = "The connection was closed unexpectedly."))
 			AlertHost(previewMessage = AlertMessage(type = AlertType.Warning, title = "Unstable connection", body = "Your connection may be unreliable.", action = AlertAction("Retry") {}))
-			AlertHost(previewMessage = AlertMessage(type = AlertType.Error, title = "Authentication failed", body = "Could not verify credentials with the gateway."))
+			AlertHost(previewMessage = AlertMessage(type = AlertType.Error, title = "Authentication failed", body = "Could not verify credentials with the gateway.", action = AlertAction("Retry") {}))
 		}
 	}
 }
