@@ -33,6 +33,7 @@ concurrency:
 
 jobs:
   push-release-branch:
+    name: Push release branch
     runs-on: ubuntu-latest
     outputs:
       major: ${{ steps.next_version.outputs.major }}
@@ -119,6 +120,7 @@ jobs:
           fi
 
   bump-develop:
+    name: Create PR updating version in develop branch
     uses: ./.github/workflows/bump-all-platforms.yml
     needs: push-release-branch
     secrets: inherit

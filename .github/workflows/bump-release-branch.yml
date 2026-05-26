@@ -29,6 +29,7 @@ concurrency:
 
 jobs:
   next-release-version:
+    name: Compute ${{ case(inputs.is_release_bump, 'release', 'next beta') }} version
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -104,6 +105,7 @@ jobs:
           echo "pre_release_ident=$PRE_RELEASE_IDENT" >> "$GITHUB_OUTPUT"
 
   bump-release-branch:
+    name: Create PR updating version in ${{ inputs.branch || github.ref_name }} branch
     needs: next-release-version
     uses: ./.github/workflows/bump-all-platforms.yml
     permissions:
