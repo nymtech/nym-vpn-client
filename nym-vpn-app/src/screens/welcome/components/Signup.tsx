@@ -9,6 +9,8 @@ import { useDeepLink, useIsLinux } from '../../../hooks';
 import { CCache } from '../../../cache';
 import { routes } from '../../../router';
 import { PrivyButton } from '../../../components';
+import { updateAccountStateDetails } from '../../../state/update';
+import type { TAccountStateDetails } from '../../../types/tauri';
 
 export function Signup() {
   const { t, i18n } = useTranslation('login');
@@ -34,6 +36,15 @@ export function Signup() {
         await CCache.del('cache-account-id');
         await CCache.del('cache-device-id');
         dispatch({ type: 'reset-error' });
+        // Refresh the account flags (is_locally_generated etc.) so the store
+        // reflects the freshly-created local account right away.
+        try {
+          const details =
+            await invoke<TAccountStateDetails>('get_account_state');
+          updateAccountStateDetails(details);
+        } catch (e) {
+          console.warn('[Signup] failed to refresh account state:', e);
+        }
         handleNavigate();
       } catch (error) {
         console.error('[Signup] create_local_account failed:', error);
