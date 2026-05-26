@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonVariant, type countryCode } from '../../ui';
 import { dispatch, useMainState } from '../../store';
-import { useToast } from '../../hooks';
+import { useIsLinux, useToast } from '../../hooks';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { routes } from '../../router';
 import { Score } from '../../types';
+import type { TAutologinResponse } from '../../types';
 import { InteractiveCard } from './InteractiveCard';
 import { ModeToggle } from './ModeToggle';
 import { MnemonicBackupBanner } from './MnemonicBackupBanner';
@@ -31,8 +34,10 @@ export type SelectedNodeDisplayProps = {
 
 export function NewBottomComponent() {
   const navigate = useAnimatedNavigate();
-  const { t } = useTranslation('home');
+  const { t, i18n } = useTranslation('home');
   const { state, daemonStatus, accountState, account } = useMainState();
+  const isLinux = useIsLinux();
+  const [planLoading, setPlanLoading] = useState(false);
 
   const daemonUnavailable =
     daemonStatus === 'auth-denied' || daemonStatus === 'down';
@@ -44,6 +49,30 @@ export function NewBottomComponent() {
       accountState === 'bandwidth-exceeded');
 
   const { add } = useToast();
+
+  // On Linux, "Get a plan" registers the anonymous account then opens the
+  // autologin checkout URL. On other platforms we navigate to the in-app plan
+  // selection screen (existing behaviour).
+  const linuxNeedsPlan = isLinux && needAPlan;
+
+  const handleGetPlan = async () => {
+    setPlanLoading(true);
+    try {
+      await invoke('register_anonymous_account');
+      const result = await invoke<TAutologinResponse | null>(
+        'get_autologin_deeplink',
+        { locale: i18n.language, kind: 'createAccount' },
+      );
+      if (result?.url) {
+        await openUrl(result.url);
+      }
+    } catch (e) {
+      console.error('[NewBottomComponent] get-plan failed:', e);
+      add({ id: 'get-plan-error', title: t('get-plan.error'), type: 'error' });
+    } finally {
+      setPlanLoading(false);
+    }
+  };
 
   const handleConnect = async () => {
     if (daemonStatus === 'auth-denied') {
@@ -59,7 +88,11 @@ export function NewBottomComponent() {
     }
 
     if (needAPlan) {
-      navigate(routes.selectPlan);
+      if (linuxNeedsPlan) {
+        await handleGetPlan();
+      } else {
+        navigate(routes.selectPlan);
+      }
       return;
     }
 
@@ -106,6 +139,10 @@ export function NewBottomComponent() {
 
     if (!account) {
       return t('get-started');
+    }
+
+    if (linuxNeedsPlan) {
+      return t('get-plan.button');
     }
 
     if (needAPlan) {
@@ -197,6 +234,7 @@ export function NewBottomComponent() {
             disabled={getButtonDisabled()}
             variant={getButtonVariant()}
             onClick={handleConnect}
+            loading={linuxNeedsPlan ? planLoading : undefined}
           >
             {getButtonText()}
           </Button>
