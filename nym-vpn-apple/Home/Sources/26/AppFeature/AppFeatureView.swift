@@ -40,6 +40,7 @@ public struct AppFeatureView: View {
     @State private var drawerHeight: CGFloat = 0
     @State private var welcomeHeight: CGFloat = 0
     @State private var bottomSafeAreaInset: CGFloat = 0
+    @State private var drawerOffsetY: CGFloat = 0
     @Environment(\.colorScheme)
     private var colorScheme
     @Environment(\.scenePhase)
@@ -193,24 +194,34 @@ private extension AppFeatureView {
 
     @ViewBuilder var drawer: some View {
         if viewModel.drawerContent != nil {
-            DrawerView(
-                tag: viewModel.drawerSlideID,
-                onTransitionCompleted: { viewModel.drawerTransitionCompleted() },
-                content: drawerContent
-            )
-            .ignoresSafeArea(.container, edges: .bottom)
-            .transition(.move(edge: .bottom))
+            DrawerView(content: drawerContent)
+                .ignoresSafeArea(.container, edges: .bottom)
+                .transition(.move(edge: .bottom))
         }
     }
 
     @ViewBuilder var drawerColumn: some View {
-        VStack(spacing: NymSpacing.medium) {
-            if viewModel.drawerContent?.isOneClick == true {
+        VStack(spacing: 0) {
+            if viewModel.drawerTag == .oneClick {
                 speedModeSelector
             }
             drawer
         }
-        .animation(.spring, value: viewModel.drawerContent?.isOneClick == true)
+        .offset(y: drawerOffsetY)
+        .onChange(of: viewModel.drawerSlideID) { _, _ in
+            slideDrawer()
+        }
+    }
+
+    func slideDrawer() {
+        withAnimation(.easeIn) {
+            drawerOffsetY = DrawerSlide.offset
+        } completion: {
+            viewModel.drawerTransitionCompleted()
+            withAnimation(.spring) {
+                drawerOffsetY = 0
+            }
+        }
     }
 
     var speedModeSelector: some View {
@@ -219,7 +230,6 @@ private extension AppFeatureView {
         }
         .frame(maxWidth: NymSpacing.drawerMaxWidth)
         .padding(.horizontal, NymSpacing.standard)
-        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
     @ViewBuilder

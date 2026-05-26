@@ -25,24 +25,24 @@ public struct OneClickView: View {
 
     public var body: some View {
         baseSection
-        .clipped()
-        .onAppear { animatedDisplayMode = viewModel.displayMode }
-        .onChange(of: viewModel.displayMode) { _, newMode in
-            withAnimation(Constants.Animation.spring) {
-                animatedDisplayMode = newMode
-            }
-        }
-#if os(iOS)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: Constants.Gesture.dragThreshold)
-                .onEnded { value in
-                    if value.translation.height < 0 {
-                        viewModel.upCaretTapped()
-                    } else {
-                        viewModel.downCaretTapped()
-                    }
+            .clipped()
+            .onAppear { animatedDisplayMode = viewModel.displayMode }
+            .onChange(of: viewModel.displayMode) { _, newMode in
+                withAnimation(Constants.Animation.spring) {
+                    animatedDisplayMode = newMode
                 }
-        )
+            }
+#if os(iOS)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: Constants.Gesture.dragThreshold)
+                    .onEnded { value in
+                        if value.translation.height < 0 {
+                            viewModel.upCaretTapped()
+                        } else {
+                            viewModel.downCaretTapped()
+                        }
+                    }
+            )
 #endif
     }
 }
@@ -143,13 +143,13 @@ private extension OneClickView {
                     .foregroundStyle(Color.Nym.textPrimary)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                if let secondaryText {
-                    Text(secondaryText)
-                        .nymTextStyle(.bodySmall)
-                        .foregroundStyle(Color.Nym.textSecondary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                }
+                Text(secondaryText ?? " ")
+                    .nymTextStyle(.bodySmall)
+                    .foregroundStyle(Color.Nym.textSecondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .opacity(secondaryText == nil ? 0 : 1)
+                    .accessibilityHidden(secondaryText == nil)
             }
             Spacer()
             if info.showsInfoButton, let gateway = info.gateway, let hopType = info.hopType {
