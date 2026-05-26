@@ -12,13 +12,12 @@ import {
   UiGateway,
   uiNodeToSelectedNode,
 } from '../../types/node';
-import { Link, MsIcon, PageAnim, TextInput } from '../../ui';
+import { Link, MsIcon, PageAnim, SmileyIcon, TextInput } from '../../ui';
 import { useI18nError, useToast } from '../../hooks';
 import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
 import { dispatch, useAppStore, useFetchGateways } from '../../store';
 import { useNodeListState } from '../../store/nodeListState';
-import { SmileyIcon } from '../../ui';
 import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
