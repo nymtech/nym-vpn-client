@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{cmp::min, sync::Arc, time::Duration};
+use std::{cmp::min, sync::Arc, time::{Duration, Instant}};
 
 use crate::{
     SharedAccountState,
@@ -25,7 +25,7 @@ use nym_vpn_lib_types::{
 use requesting_zknym_state::RequestingZkNymsState;
 use tokio::sync::mpsc;
 use tokio_util::sync::{CancellationToken, DropGuard};
-use tracing::warn;
+use tracing::{debug, warn};
 
 pub(super) mod requesting_zknym_state;
 
@@ -36,6 +36,8 @@ const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
 const RETRY_BACKOFF: Duration = Duration::from_millis(250);
 const MAX_BACKOFF_EXPONENT: u32 = 5;
 const BACKOFF_BASE: u32 = 2;
+
+const NON_FORCED_ACCOUNT_UPDATE_CHECK_DELAY: Duration = Duration::from_mins(15);
 
 enum SyncEvent {
     /// Account summary is received
@@ -86,12 +88,26 @@ impl SyncingState {
         if vpn_api_account.mode().is_decentralised() {
             return DecentralisedState::enter();
         }
+
         let Some(device) = shared_state.device.clone() else {
             return ErrorState::enter(AccountControllerErrorStateReason::Internal {
                 context: SYNCING_STATE_CONTEXT.into(),
                 details: "Logged in, but no device keys".into(),
             });
         };
+
+        let (event_tx, event_rx) = mpsc::unbounded_channel();
+        let sync_cancel_token = CancellationToken::new();
+
+        if let Some(summary) = shared_state.vpn_account_summary.as_ref() {
+            if Self::sufficiency_checks(summary, device) {
+                debug!(
+                    "stored account & device information sufficiently timely and relevant - skipping API"
+                );
+                event_tx.send(SyncEvent::Finished);
+            }
+            return RequestingZkNymsState::enter(shared_state, attempts, false);
+        }
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
 
@@ -151,25 +167,61 @@ impl SyncingState {
             .await
             .map_err(Self::map_vpn_api_error)?;
 
-        if remote_time.is_acceptable_synced() {
-            let summary = vpn_api_client
-                .get_account_summary_with_device(&vpn_api_account, &device)
-                .await
-                .map_err(Self::map_vpn_api_error)?;
-
-            tracing::debug!("{summary:#?}");
-
-            Self::handle_received_account_summary(
-                event_tx.clone(),
-                vpn_api_client,
-                &vpn_api_account,
-                &device,
-                summary,
-            )
-            .await
-        } else {
-            Err(SyncError::DeviceTimeDesynced)
+        if !remote_time.is_acceptable_synced() {
+            return Err(SyncError::DeviceTimeDesynced);
         }
+
+        // If the information in the stored shared state was updated recently enough and indicates
+        // that the account is in good state proceed without a network access.
+        if self.stored_account_sufficiency_check() {
+            // If the device information is relevant and timely proceed without a network access
+            if self.stored_device_sufficiency_check() {
+                return Ok(());
+            }
+
+            // Move to device registration / information
+            return SyncingState::register_device(&vpn_api_client, &vpn_api_account, &device).await;
+        }
+
+        // Stored account summary is potentially out of date, insufficient, or a update is forced.
+        // Go to network to ensure fresh information.
+        let summary = vpn_api_client
+            .get_account_summary_with_device(&vpn_api_account, &device)
+            .await
+            .map_err(Self::map_vpn_api_error)?;
+
+        tracing::debug!("{summary:#?}");
+
+        Self::handle_received_account_summary(
+            event_tx.clone(),
+            vpn_api_client,
+            &vpn_api_account,
+            &device,
+            summary,
+        )
+        .await
+    }
+
+    fn sufficiency_checks(summary: &VpnAccountSummary, device: &Device) -> bool {
+        if Instant::now() - summary.received_at > NON_FORCED_ACCOUNT_UPDATE_CHECK_DELAY {
+            return false
+        }
+
+        if Instant::now() - device.received_at > NON_FORCED_ACCOUNT_UPDATE_CHECK_DELAY {
+            return false
+        }
+
+        Self::stored_account_sufficiency_check(summary)
+            && Self::stored_device_sufficiency_check(device)
+    }
+
+    fn stored_account_sufficiency_check(summary: &VpnAccountSummary) -> bool {
+        let account_active = summary.subscription.account_active;
+        account_active && summary.is_subscription_active() && summary.fair_usage_left()
+    }
+
+    fn stored_device_sufficiency_check(device: &Device) -> bool {
+        false
     }
 
     async fn handle_received_account_summary(

@@ -10,7 +10,7 @@ pub mod ticketbooks;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
-use time::OffsetDateTime;
+use time::{Instant, OffsetDateTime};
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
@@ -276,6 +276,9 @@ pub struct VpnAccountSummary {
     pub account_mode: Option<StoredAccountMode>,
     pub subscription: Option<Subscription>,
     pub is_subscription_stacked: bool,
+
+    pub account_active: bool,
+    pub received_at: Instant,
 }
 
 // Exported methods
@@ -322,6 +325,8 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
     fn try_from(
         value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
     ) -> Result<Self, Self::Error> {
+        use nym_vpn_api_client::response::NymVpnAccountSummaryResponse;
+
         let traffic_reset_time = value
             .fair_usage
             .resetsOnUtc
@@ -352,6 +357,7 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
         };
 
         Ok(Self {
+            account_active: value.account.status == NymVpnAccountStatusResponse::Active,
             traffic_used_gb: value.fair_usage.usedGB,
             traffic_limit_gb: value.fair_usage.limitGB,
             traffic_reset_time,
@@ -362,6 +368,7 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             account_mode: None,
             subscription,
             is_subscription_stacked: value.subscription.is_stacked,
+            received_at: Instant::now(),
         })
     }
 }
@@ -904,6 +911,8 @@ mod fair_usage_left_semantics_tests {
         traffic_used_gb: u64,
     ) -> VpnAccountSummary {
         VpnAccountSummary {
+            received_at: Instant::now(),
+            account_active: true,
             traffic_used_gb,
             traffic_limit_gb,
             traffic_reset_time: None,
