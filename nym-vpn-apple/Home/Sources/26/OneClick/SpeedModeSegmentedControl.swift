@@ -73,22 +73,22 @@ private extension SpeedModeSegmentedControl {
     func icon(for mode: OneClickSpeedMode, tint: Color) -> some View {
         switch mode {
         case .auto:
-            Text("N")
-                .font(NymFont.labGrotesque(size: Constants.iconSize, weight: .bold).font)
+            GenericImage(imageName: "nLogo")
                 .foregroundStyle(tint)
                 .frame(width: Constants.iconSize, height: Constants.iconSize)
+                .padding(Constants.iconPadding)
                 .accessibilityHidden(true)
         case .fast:
-            Image(systemName: "bolt.fill")
-                .font(.system(size: Constants.iconSize, weight: .semibold))
+            GenericImage(systemImageName: "bolt.fill")
                 .foregroundStyle(tint)
                 .frame(width: Constants.iconSize, height: Constants.iconSize)
+                .padding(Constants.iconPadding)
                 .accessibilityHidden(true)
         case .anonymous:
-            Image(systemName: "eye.slash.fill")
-                .font(.system(size: Constants.iconSize, weight: .semibold))
+            GenericImage(systemImageName: "eye.slash.fill")
                 .foregroundStyle(tint)
                 .frame(width: Constants.iconSize, height: Constants.iconSize)
+                .padding(Constants.iconPadding)
                 .accessibilityHidden(true)
         }
     }
@@ -109,7 +109,8 @@ private extension SpeedModeSegmentedControl {
         static let outerPadding: CGFloat = 2
         static let segmentGap: CGFloat = 0
         static let iconLabelGap: CGFloat = 6
-        static let iconSize: CGFloat = 16
+        static let iconSize: CGFloat = 12
+        static let iconPadding: CGFloat = 4
         static let segmentVerticalPadding: CGFloat = 8
         static let animationDuration: Double = 0.2
     }
