@@ -27,7 +27,7 @@ const ArrowButton = ({
       onClick={onClick}
       className={clsx(
         'bg-surface-elev my-2 mr-2 flex h-11 w-11 items-center justify-center rounded-full',
-        !disabled && 'hover:bg-text-tertiary dark:hover:bg-surface-elev',
+        !disabled && 'hover:bg-surface-elev/70',
       )}
     >
       <MsIcon
@@ -100,7 +100,7 @@ function Onboarding() {
                   key={index}
                   onClick={() => onDotButtonClick(index)}
                   className={clsx(
-                    'bg-text-tertiary dark:bg-surface-elev tap-highlight-transparent m-0 flex h-2 w-2 cursor-pointer touch-manipulation appearance-none items-center justify-center rounded-full border-0 p-0 no-underline',
+                    'bg-surface-hair tap-highlight-transparent m-0 flex h-2 w-2 cursor-pointer touch-manipulation appearance-none items-center justify-center rounded-full border-0 p-0 no-underline',
                     index === selectedIndex ? 'bg-white' : '',
                   )}
                 />

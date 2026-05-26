@@ -351,8 +351,7 @@ export default function TopBar() {
         'px-4 py-2',
         currentNavLocation.noBackground
           ? 'bg-surface-elev'
-          : // ? 'dark:bg-surface-bg bg-text-tertiary'
-            'dark:bg-surface-elev bg-white',
+          : 'dark:bg-surface-elev bg-white',
       ])}
       data-testid="top-bar"
       data-test-route={location.pathname}

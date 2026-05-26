@@ -25,8 +25,7 @@ function ToastList() {
             ],
             {
               'bg-status-error text-white': toast.type === 'error',
-              'bg-surface-elev dark:text-text-primary text-white dark:bg-white':
-                toast.type !== 'error',
+              'bg-surface-bg text-text-primary': toast.type !== 'error',
             },
           )}
         >
@@ -48,7 +47,8 @@ function ToastList() {
                 'relative flex h-6 w-6 items-center justify-center rounded-lg p-0',
                 'bg-transparent',
                 'hover:bg-text-secondary dark:hover:bg-surface-elev',
-                'dark:text-text-primary text-white',
+                'text-text-primary',
+                // 'dark:text-text-primary text-white',
               ])}
               aria-label={t('close')}
             >

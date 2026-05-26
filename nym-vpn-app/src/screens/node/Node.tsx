@@ -367,7 +367,6 @@ function Node({ node }: { node: NodeHop }) {
                       'border-brand-primary-active border-2': bestServerActive,
                     })}
                   >
-                    {/* <MsIcon icon="auto_awesome" className="text-text-primary" /> */}
                     <SmileyIcon className="h-6 w-6" />
                     <span className="text-text-primary text-base">
                       {t('quick-pick.best-server')}
