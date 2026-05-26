@@ -309,6 +309,33 @@ impl VPNConfig {
     }
 }
 
+/// Initialize JNI global Android context.
+///
+/// This is necessary for NDK libraries which use the global context.
+#[cfg(target_os = "android")]
+#[unsafe(no_mangle)]
+pub extern "C" fn Java_net_nymtech_nymvpn_NymVpnLib_initContext<'caller>(
+    mut unowned_env: jni::EnvUnowned<'caller>,
+    _class: jni::objects::JClass,
+    ctx: jni::objects::JObject<'caller>,
+) {
+    unowned_env
+        .with_env(|env| -> jni::errors::Result<_> {
+            let vm = env.get_java_vm()?;
+            // `ctx` is a local JNI reference, only valid for the duration of this call.
+            // Here we create a globally valid one and leak it.
+            let global_ctx = std::mem::ManuallyDrop::new(env.new_global_ref(ctx)?);
+            unsafe {
+                ndk_context::initialize_android_context(
+                    vm.get_raw() as *mut std::ffi::c_void,
+                    global_ctx.as_raw() as *mut std::ffi::c_void,
+                );
+            }
+            Ok(())
+        })
+        .resolve::<jni::errors::ThrowRuntimeExAndDefault>();
+}
+
 #[cfg(target_os = "android")]
 mod android_tls {
     use nym_http_api_client::{ReqwestClientBuilder, registry::ConfigRecord};
