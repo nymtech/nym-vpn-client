@@ -40,7 +40,7 @@ const PROGRESS_STEPS = {
 // ─── Colors ───────────────────────────────────────────────────────────────────
 const TRACK = 'var(--color-connection-arc-anon)';
 const FILL_FAST = 'var(--color-brand-primary)';
-const FILL_ANON = 'rgba(139,139,144,0.60)';
+const FILL_ANON = 'var(--color-connection-arc-anon)';
 const ERROR_CLR = 'var(--color-status-error)';
 
 type Phase =

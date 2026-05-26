@@ -176,8 +176,7 @@ export function NewBottomComponent() {
       </motion.div>
 
       <InteractiveCard>
-        {/* <div className="relative z-20 mb-4 flex flex-col bg-white dark:bg-[#1d1d1f]"> */}
-        <div className="bg-surface-bg relative z-20 mb-4 flex flex-col">
+        <div className="relative z-20 mb-4 flex flex-col">
           <div className="flex flex-row items-center gap-2">
             <motion.div className="flex w-full min-w-0 flex-col overflow-hidden">
               <div className="space-y-4">

@@ -61,7 +61,7 @@ function WelcomeScreenContainer() {
           <NymVpnTextLogo
             className={clsx(
               'h-[27px] w-[100px]',
-              uiTheme === 'dark' ? 'fill-white' : 'fill-surface-bg',
+              uiTheme === 'dark' ? 'fill-white' : 'fill-black',
             )}
           />
           <ButtonIconNew
