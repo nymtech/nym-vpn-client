@@ -202,9 +202,7 @@ public final class OneClickViewModel {
         }
 
         switch mode {
-        case .auto:
-            break
-        case .fast:
+        case .auto, .fast:
             if !cfg.enableTwoHop {
                 connectionManager.setTwoHop(true)
             }

@@ -84,19 +84,21 @@ private extension PacketTunnelProvider {
             case let .connecting(
                 retryAttempt: attempt,
                 state: establishConnectionState,
-                tunnelType: _,
+                tunnelType: tunnelType,
                 connectionData: connectionData
             ):
                 retryAttempt = Int(attempt)
                 tunnelConnectingState = TunnelConnectingState(with: establishConnectionState)
                 connectionInfoData = ConnectionInfoData(
                     entryGatewayId: connectionData?.entryGateway.id,
-                    exitGatewayId: connectionData?.exitGateway.id
+                    exitGatewayId: connectionData?.exitGateway.id,
+                    tunnelType: ConnectionTunnelType(tunnelType)
                 )
             case let .connected(connectionData: connectionData):
                 connectionInfoData = ConnectionInfoData(
                     entryGatewayId: connectionData.entryGateway.id,
-                    exitGatewayId: connectionData.exitGateway.id
+                    exitGatewayId: connectionData.exitGateway.id,
+                    tunnelType: ConnectionTunnelType(connectionData.tunnel)
                 )
             case let .disconnecting(afterDisconnect: action):
                 afterDisconnectAction = AfterDisconnectAction.convert(from: action)
@@ -121,6 +123,26 @@ private extension PacketTunnelProvider {
         } catch {
             logger.error("AppMessage: \(error.localizedDescription)")
             return nil
+        }
+    }
+}
+
+private extension ConnectionTunnelType {
+    init(_ tunnelType: NymVPNLib.TunnelType) {
+        switch tunnelType {
+        case .mixnet:
+            self = .mixnet
+        case .wireguard:
+            self = .wireguard
+        }
+    }
+
+    init(_ data: TunnelConnectionData) {
+        switch data {
+        case .mixnet:
+            self = .mixnet
+        case .wireguard:
+            self = .wireguard
         }
     }
 }
