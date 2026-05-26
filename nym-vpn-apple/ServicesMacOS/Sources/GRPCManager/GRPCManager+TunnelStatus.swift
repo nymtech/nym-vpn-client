@@ -63,15 +63,17 @@ extension GRPCManager {
             tunnelStatus = .connected
             connectionInfoData = ConnectionInfoData(
                 entryGatewayId: details.entryGateway.id,
-                exitGatewayId: details.exitGateway.id
+                exitGatewayId: details.exitGateway.id,
+                tunnelType: ConnectionTunnelType(details.tunnel)
             )
-        case let .connecting(retryAttempt: retryAttempt, state: state, tunnelType: _, connectionData: connectionData):
+        case let .connecting(retryAttempt: retryAttempt, state: state, tunnelType: tunnelType, connectionData: connectionData):
             connectionRetryAttempt = Int(retryAttempt)
             tunnelStatus = .connecting
             tunnelConnectingState = TunnelConnectingState(with: state)
             connectionInfoData = ConnectionInfoData(
                 entryGatewayId: connectionData?.entryGateway.id,
-                exitGatewayId: connectionData?.exitGateway.id
+                exitGatewayId: connectionData?.exitGateway.id,
+                tunnelType: ConnectionTunnelType(tunnelType)
             )
         case .disconnected:
             tunnelStatus = .disconnected
@@ -213,6 +215,26 @@ extension ErrorReason {
     }
 }
 #endif
+
+private extension ConnectionTunnelType {
+    init(_ tunnelType: NymVPNRpc.TunnelType) {
+        switch tunnelType {
+        case .mixnet:
+            self = .mixnet
+        case .wireguard:
+            self = .wireguard
+        }
+    }
+
+    init(_ data: NymVPNRpc.TunnelConnectionData) {
+        switch data {
+        case .mixnet:
+            self = .mixnet
+        case .wireguard:
+            self = .wireguard
+        }
+    }
+}
 
 private extension TunnelConnectingState {
     init(with state: EstablishConnectionState) {

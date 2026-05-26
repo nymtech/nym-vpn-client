@@ -71,7 +71,10 @@ private extension ConnectionStatusViewModel {
         status = connectionManager.currentTunnelStatus
         lastConnectingStep = connectionManager.tunnelConnectingState
         connectedDate = connectionManager.connectedDate
-        mode = arcMode(from: connectionManager.connectionType)
+        mode = resolvedArcMode(
+            liveTunnelType: connectionManager.connectionInfoData?.tunnelType,
+            connectionType: connectionManager.connectionType
+        )
         let error = connectionManager.lastError
         hasFailure = error != nil
         lastErrorMessage = error.map { Self.userFacingMessage(from: $0) }
@@ -106,7 +109,24 @@ private extension ConnectionStatusViewModel {
 
         connectionManager.$connectionType
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] in self?.mode = arcMode(from: $0) }
+            .sink { [weak self] connectionType in
+                guard let self else { return }
+                self.mode = resolvedArcMode(
+                    liveTunnelType: self.connectionManager.connectionInfoData?.tunnelType,
+                    connectionType: connectionType
+                )
+            }
+            .store(in: &cancellables)
+
+        connectionManager.$connectionInfoData
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] info in
+                guard let self else { return }
+                self.mode = resolvedArcMode(
+                    liveTunnelType: info?.tunnelType,
+                    connectionType: self.connectionManager.connectionType
+                )
+            }
             .store(in: &cancellables)
     }
 
@@ -337,7 +357,18 @@ private extension TunnelStatus {
     }
 }
 
-private func arcMode(from connectionType: ConnectionType) -> ArcProgressMode {
+private func resolvedArcMode(
+    liveTunnelType: ConnectionTunnelType?,
+    connectionType: ConnectionType
+) -> ArcProgressMode {
+    if let liveTunnelType {
+        switch liveTunnelType {
+        case .wireguard:
+            return .fast
+        case .mixnet:
+            return .anonymous
+        }
+    }
     switch connectionType {
     case .wireguard:
         return .fast
