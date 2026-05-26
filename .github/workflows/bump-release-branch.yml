@@ -106,6 +106,9 @@ jobs:
   bump-release-branch:
     needs: next-release-version
     uses: ./.github/workflows/bump-all-platforms.yml
+    permissions:
+      contents: write
+      pull-requests: write
     with:
       branch: ${{ inputs.branch || github.ref_name }}
       major: ${{ needs.next-release-version.outputs.major }}
