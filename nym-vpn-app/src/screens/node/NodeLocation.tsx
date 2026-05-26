@@ -16,14 +16,20 @@ type LocationState = {
 function NodeLocation() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { entryNode, exitNode } = useAppStore(
+  const { entryNode, exitNode, algo } = useAppStore(
     useShallow((s) => ({
       entryNode: s.entryNode,
       exitNode: s.exitNode,
+      algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
     })),
   );
+  // In auto modes the daemon owns the entry hop, so the Entry tab is hidden
+  // and the list is locked to Exit.
+  const hideEntryTab = algo === 'auto' || algo === 'autoEntryExplicitExit';
   const locationState = location.state as LocationState | null;
-  const initialTab: NodeHop = locationState?.tab ?? 'exit';
+  const initialTab: NodeHop = hideEntryTab
+    ? 'exit'
+    : (locationState?.tab ?? 'exit');
   const [activeTab, setActiveTab] = useState<NodeHop>(initialTab);
   const { reset, setFocused, addToExpanded } = useNodeListState();
   const lookupGw = useLookupGw();
@@ -73,13 +79,15 @@ function NodeLocation() {
       className="flex h-full flex-col"
     >
       <Tabs.List className="bg-gray dark:bg-background flex px-4 select-none">
-        <Tabs.Tab
-          value="entry"
-          className="group text-text-secondary data-active:text-text-primary flex flex-1 flex-col items-center gap-2 py-2 text-base font-medium tracking-tight focus-visible:outline-none"
-        >
-          <span>{t('tab-entry')}</span>
-          <span className="bg-border group-data-active:bg-primary h-[1.5px] w-full" />
-        </Tabs.Tab>
+        {!hideEntryTab && (
+          <Tabs.Tab
+            value="entry"
+            className="group text-text-secondary data-active:text-text-primary flex flex-1 flex-col items-center gap-2 py-2 text-base font-medium tracking-tight focus-visible:outline-none"
+          >
+            <span>{t('tab-entry')}</span>
+            <span className="bg-border group-data-active:bg-primary h-[1.5px] w-full" />
+          </Tabs.Tab>
+        )}
         <Tabs.Tab
           value="exit"
           className="group text-text-secondary data-active:text-text-primary flex flex-1 flex-col items-center gap-2 py-2 text-base font-medium tracking-tight focus-visible:outline-none"
@@ -88,9 +96,11 @@ function NodeLocation() {
           <span className="bg-border group-data-active:bg-primary h-[1.5px] w-full" />
         </Tabs.Tab>
       </Tabs.List>
-      <Tabs.Panel value="entry" className="min-h-0 flex-1">
-        <Node node="entry" />
-      </Tabs.Panel>
+      {!hideEntryTab && (
+        <Tabs.Panel value="entry" className="min-h-0 flex-1">
+          <Node node="entry" />
+        </Tabs.Panel>
+      )}
       <Tabs.Panel value="exit" className="min-h-0 flex-1">
         <Node node="exit" />
       </Tabs.Panel>
