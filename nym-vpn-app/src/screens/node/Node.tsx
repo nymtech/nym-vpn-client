@@ -6,7 +6,7 @@ import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
 import { Button } from '@headlessui/react';
 import { useDialog } from '../../contexts';
-import { NodeHop, isGateway } from '../../types';
+import { GatewaySelectionAlgorithm, NodeHop, isGateway } from '../../types';
 import {
   SelectedUiNode,
   UiGateway,
@@ -90,6 +90,21 @@ function Node({ node }: { node: NodeHop }) {
     if (searchRef.current) searchRef.current.focus({ preventScroll: true });
   }, []);
 
+  const rollbackAlgo = async (algorithm: GatewaySelectionAlgorithm) => {
+    try {
+      await invoke('set_gateway_selection_algorithm', { algorithm });
+      dispatch({
+        type: 'set-gateway-selection-algorithm-config',
+        config: { ...algoConfig, gatewaySelectionAlgorithm: algorithm },
+      });
+    } catch (rollbackError: unknown) {
+      console.error(
+        `failed to rollback gateway selection algorithm to [${algorithm}]`,
+        rollbackError,
+      );
+    }
+  };
+
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
     if (
@@ -97,6 +112,42 @@ function Node({ node }: { node: NodeHop }) {
       (selected.isSelected === 'exit' || selected.isSelected === 'entry')
     ) {
       return;
+    }
+
+    // Picking an exit while in 'auto' (daemon picks both) means the user is
+    // now explicit about the exit — flip to 'autoEntryExplicitExit'. The
+    // entry hop stays daemon-picked. The mirror flip 'non-explicit → explicit'
+    // on entry-pick is gone: the entry list is only reachable from
+    // 'explicit', where that flip would be a no-op.
+    // Algorithm change is applied first so a failure aborts before the node
+    // state diverges from the daemon. If the node update later fails, the
+    // algorithm change is rolled back.
+    const needsAlgoFlip =
+      node === 'exit' && algoConfig.gatewaySelectionAlgorithm === 'auto';
+    if (needsAlgoFlip) {
+      try {
+        await invoke('set_gateway_selection_algorithm', {
+          algorithm: 'autoEntryExplicitExit',
+        });
+        dispatch({
+          type: 'set-gateway-selection-algorithm-config',
+          config: {
+            ...algoConfig,
+            gatewaySelectionAlgorithm: 'autoEntryExplicitExit',
+          },
+        });
+      } catch (error: unknown) {
+        console.error(
+          'failed to set gateway selection algorithm to [autoEntryExplicitExit]',
+          error,
+        );
+        add({
+          id: 'node-select-error',
+          title: t('quick-pick.select-error'),
+          type: 'error',
+        });
+        return;
+      }
     }
 
     try {
@@ -108,30 +159,6 @@ function Node({ node }: { node: NodeHop }) {
         type: 'set-node',
         payload: { hop: node, node: selectedNode },
       });
-      // Picking an exit while in 'auto' (daemon picks both) means the user is
-      // now explicit about the exit — flip to 'autoEntryExplicitExit'. The
-      // entry hop stays daemon-picked. The mirror flip 'non-explicit → explicit'
-      // on entry-pick is gone: the entry list is only reachable from
-      // 'explicit', where that flip would be a no-op.
-      if (node === 'exit' && algoConfig.gatewaySelectionAlgorithm === 'auto') {
-        try {
-          await invoke('set_gateway_selection_algorithm', {
-            algorithm: 'autoEntryExplicitExit',
-          });
-          dispatch({
-            type: 'set-gateway-selection-algorithm-config',
-            config: {
-              ...algoConfig,
-              gatewaySelectionAlgorithm: 'autoEntryExplicitExit',
-            },
-          });
-        } catch (error: unknown) {
-          console.error(
-            'failed to set gateway selection algorithm to [autoEntryExplicitExit]',
-            error,
-          );
-        }
-      }
     } catch (error: unknown) {
       console.error('failed to set node', error);
       add({
@@ -139,6 +166,9 @@ function Node({ node }: { node: NodeHop }) {
         title: t('quick-pick.select-error'),
         type: 'error',
       });
+      if (needsAlgoFlip) {
+        await rollbackAlgo('auto');
+      }
       return;
     }
     navigate(routes.root);
@@ -150,24 +180,12 @@ function Node({ node }: { node: NodeHop }) {
   };
 
   const handleBestServer = async () => {
-    // Clear the stored exit pick so it isn't re-applied next time the user
-    // visits Auto (ModeToggle derives algo from exitNode now).
-    try {
-      await invoke('set_node', { node: 'random', hop: node });
-      dispatch({
-        type: 'set-node',
-        payload: { hop: node, node: 'random' },
-      });
-    } catch (error: unknown) {
-      console.error('failed to clear exit node selection', error);
-      add({
-        id: 'node-select-error',
-        title: t('quick-pick.select-error'),
-        type: 'error',
-      });
-      return;
-    }
-    if (algoConfig.gatewaySelectionAlgorithm !== 'auto') {
+    // Switch the algorithm to 'auto' first so a failure aborts before the
+    // stored node is cleared. If the node clear later fails, the algorithm
+    // change is rolled back to the previous value.
+    const previousAlgo = algoConfig.gatewaySelectionAlgorithm;
+    const needsAlgoFlip = previousAlgo !== 'auto';
+    if (needsAlgoFlip) {
       try {
         await invoke('set_gateway_selection_algorithm', { algorithm: 'auto' });
         dispatch({
@@ -189,6 +207,27 @@ function Node({ node }: { node: NodeHop }) {
         });
         return;
       }
+    }
+
+    // Clear the stored exit pick so it isn't re-applied next time the user
+    // visits Auto (ModeToggle derives algo from exitNode now).
+    try {
+      await invoke('set_node', { node: 'random', hop: node });
+      dispatch({
+        type: 'set-node',
+        payload: { hop: node, node: 'random' },
+      });
+    } catch (error: unknown) {
+      console.error('failed to clear exit node selection', error);
+      add({
+        id: 'node-select-error',
+        title: t('quick-pick.select-error'),
+        type: 'error',
+      });
+      if (needsAlgoFlip) {
+        await rollbackAlgo(previousAlgo);
+      }
+      return;
     }
     navigate(routes.root);
     resetSaved(node);

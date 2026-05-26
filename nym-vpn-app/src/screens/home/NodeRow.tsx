@@ -2,7 +2,6 @@ import { useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@base-ui/react';
 import { useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import {
@@ -294,7 +293,7 @@ export function NodeRow({ type }: NodeRowProps) {
 
   const textLabel = useMemo(() => {
     if (daemonPicked) {
-      return nodeDetails.ip ?? t('best-server-for-my-location');
+      return nodeDetails.ip || t('best-server-for-my-location');
     }
     switch (algo) {
       case 'autoEntryExplicitExit':
@@ -350,8 +349,21 @@ export function NodeRow({ type }: NodeRowProps) {
           {label}
         </motion.p>
       </AnimatePresence>
-      <Button
+      <div
+        role={rowDisabled ? undefined : 'button'}
+        tabIndex={rowDisabled ? undefined : 0}
+        aria-disabled={rowDisabled || undefined}
         onClick={rowDisabled ? undefined : handleClick}
+        onKeyDown={
+          rowDisabled
+            ? undefined
+            : (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleClick();
+                }
+              }
+        }
         className={clsx(
           'group relative isolate w-full rounded-xl border border-transparent p-2 transition-all duration-150 ease-out',
           !rowDisabled && 'hover:border-black dark:hover:border-white',
@@ -469,7 +481,7 @@ export function NodeRow({ type }: NodeRowProps) {
             )}
           </AnimatePresence>
         </div>
-      </Button>
+      </div>
     </div>
   );
 }

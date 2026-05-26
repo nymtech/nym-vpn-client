@@ -122,25 +122,21 @@ function NodeDetails() {
       // Mirror of Node.tsx: picking an exit while in 'auto' flips us into
       // 'autoEntryExplicitExit'. Keep both in sync.
       if (hop === 'exit' && algoConfig.gatewaySelectionAlgorithm === 'auto') {
-        try {
-          await invoke('set_gateway_selection_algorithm', {
-            algorithm: 'autoEntryExplicitExit',
-          });
-          dispatch({
-            type: 'set-gateway-selection-algorithm-config',
-            config: {
-              ...algoConfig,
-              gatewaySelectionAlgorithm: 'autoEntryExplicitExit',
-            },
-          });
-        } catch (error: unknown) {
-          console.error(
-            'failed to set gateway selection algorithm to [autoEntryExplicitExit]',
-            error,
-          );
-        }
+        await invoke('set_gateway_selection_algorithm', {
+          algorithm: 'autoEntryExplicitExit',
+        });
+        dispatch({
+          type: 'set-gateway-selection-algorithm-config',
+          config: {
+            ...algoConfig,
+            gatewaySelectionAlgorithm: 'autoEntryExplicitExit',
+          },
+        });
       }
-    } catch {
+      navigate(routes.root);
+      resetSaved(hop);
+    } catch (error: unknown) {
+      console.error('failed to select node', error);
       add({
         id: 'node-select-error',
         title: t('node-details.error.title'),
@@ -148,8 +144,6 @@ function NodeDetails() {
         type: 'error',
       });
     }
-    navigate(routes.root);
-    resetSaved(hop);
   };
 
   return (
