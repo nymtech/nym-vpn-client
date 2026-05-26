@@ -14,10 +14,10 @@ use nym_credentials_interface::TicketType;
 use nym_gateway_directory::Gateway;
 
 use crate::tunnel_state_machine::tunnel::SelectedGateways;
+use nym_common::trace_err_chain;
 use nym_vpn_account_controller::AccountCommandSender;
 use nym_wg_metadata_client::{MetadataClient, TunUpReceiver, error::MetadataClientError};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
-use tracing::{debug, error, info, trace, warn};
 use url::Url;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
@@ -103,7 +103,7 @@ pub enum SpecificGatewayError {
     UpgradeModeRecheck {
         gateway_id: String,
         #[source]
-        source: Box<nym_wg_metadata_client::error::MetadataClientError>,
+        source: Box<MetadataClientError>,
     },
 
     #[error("timed-out while communicating with gateway: {gateway_id}")]
@@ -608,7 +608,10 @@ impl BandwidthController {
             .query_upgrade_mode_enabled()
             .await
             .inspect_err(|err| {
-                error!("critical failure: failed to resolve account controller query: {err}")
+                trace_err_chain!(
+                    err,
+                    "critical failure: failed to resolve account controller query"
+                )
             })
             .unwrap_or_default()
     }
@@ -715,14 +718,16 @@ impl BandwidthController {
     }
 
     async fn handle_bandwidth_query_error(&mut self, entry: bool, err: SpecificGatewayError) {
-        tracing::warn!("{err}");
+        trace_err_chain!(err, "query error");
         let gateway_id = self.gateway_id(entry);
         if (entry && self.entry_previous_error_query) || (!entry && self.exit_previous_error_query)
         {
-            tracing::error!("gateway {gateway_id} is erroring out",);
             // For now let's keep the old behavior of stopping, but only if we've had a successful check before
             if self.successful_checks != 0 {
+                tracing::error!("Gateway {gateway_id} is erroring out; shutting-down the tunnel");
                 self.shutdown_token.cancel();
+            } else {
+                tracing::warn!("Gateway {gateway_id} is erroring out");
             }
         } else {
             if entry {
@@ -765,7 +770,7 @@ impl BandwidthController {
             .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
         {
             Err(e) => {
-                tracing::warn!("Error while updating query coefficients: {e:?}");
+                trace_err_chain!(e, "error while updating query coefficients");
                 return None;
             }
             Ok(Some(new_duration)) => {
@@ -782,11 +787,13 @@ impl BandwidthController {
         match gw_upgrade_mode {
             None => {
                 // no UM support - we have to attempt to send zk-nym otherwise we won't be able to communicate with it much longer
-                warn!("gateway {gateway_id} is outdated and does not support upgrade mode queries")
+                tracing::warn!(
+                    "gateway {gateway_id} is outdated and does not support upgrade mode queries"
+                )
             }
             Some(true) => {
                 // gateway informed us it is currently in upgrade mode - we don't have to do anything
-                debug!(
+                tracing::debug!(
                     "gateway {gateway_id} is already in upgrade mode - no need to perform bandwidth top up"
                 );
                 if !got_um_data {
@@ -794,7 +801,9 @@ impl BandwidthController {
                     // from VPN API and thus hasn't received UM JWT
                     // this can happen for clients with a lot of stored ticketbooks. there's nothing
                     // inherently wrong with it
-                    debug!("however, we do not possess a corresponding upgrade mode attestation");
+                    tracing::debug!(
+                        "however, we do not possess a corresponding upgrade mode attestation"
+                    );
                 }
                 self.upgrade_mode_enabled_on_last_check = true;
                 return None;
@@ -803,7 +812,7 @@ impl BandwidthController {
                 if got_um_data && !self.upgrade_mode_enabled_on_last_check {
                     // if we have relevant attestation and the gateway is not in upgrade mode,
                     // we need to trigger it to perform internal state refresh
-                    info!(
+                    tracing::info!(
                         "gateway {gateway_id} is not aware of the upgrade mode that has been triggered"
                     );
                     // there are some legit EDGE CASES where this can fail. consider the following scenario:
@@ -815,16 +824,18 @@ impl BandwidthController {
                     // so I guess that's a long way of saying, if this fails, don't shut down,
                     // but instead treat it as a retryable failure
                     if let Err(err) = self.request_upgrade_mode_recheck(entry).await {
-                        warn!("Error requesting upgrade mode recheck: {err:?}");
+                        trace_err_chain!(err, "error requesting upgrade mode recheck");
                     }
                     // since we didn't manage to trigger gateway to go into the upgrade mode,
                     // if we want to continue the connection we have to attempt to send a zk-nym instead
                     // (so we exit the match statement)
                 } else if got_um_data && self.upgrade_mode_enabled_on_last_check {
                     // UM is over - we inform AC and top up bandwidth as normal
-                    info!("gateway {gateway_id} has informed us the upgrade mode has finished");
+                    tracing::info!(
+                        "gateway {gateway_id} has informed us the upgrade mode has finished"
+                    );
                     if let Err(err) = self.account_command_tx.send_disable_upgrade_mode().await {
-                        error!("error sending message to the account controller: {err}");
+                        trace_err_chain!(err, "error sending message to the account controller");
                         // we need to trigger a shutdown here because this message must not fail,
                         // if it did, AC won't exit upgrade mode state and won't resume acquiring zk-nyms
                         self.shutdown_token.cancel();
@@ -835,13 +846,13 @@ impl BandwidthController {
                     // if we got here it means we don't have any attestation data and gateway said
                     // it's not in upgrade mode, meaning it's business as usual
                     // so continue and attempt to top-up bandwidth with a zk-nym
-                    trace!("upgrade mode is not enabled anywhere in the system");
+                    tracing::trace!("upgrade mode is not enabled anywhere in the system");
                 }
             }
         }
 
         if let Err(e) = self.top_up_bandwidth(entry).await {
-            tracing::warn!("Error topping up with more bandwidth {e:?}");
+            trace_err_chain!(e, "error topping up with more bandwidth");
             // TODO: try to return this error in the JoinHandle instead
             // For now let's keep the old behavior of stopping
             self.shutdown_token.cancel();
