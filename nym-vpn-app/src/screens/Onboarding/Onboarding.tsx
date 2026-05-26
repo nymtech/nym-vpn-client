@@ -26,15 +26,15 @@ const ArrowButton = ({
     <HuButton
       onClick={onClick}
       className={clsx(
-        'bg-mercury dark:bg-mine-shaft my-2 mr-2 flex h-11 w-11 items-center justify-center rounded-full',
-        !disabled && 'hover:bg-bombay dark:hover:bg-charcoal',
+        'bg-surface-elev my-2 mr-2 flex h-11 w-11 items-center justify-center rounded-full',
+        !disabled && 'hover:bg-surface-elev/70',
       )}
     >
       <MsIcon
         icon={icon}
         className={clsx(
           'leading-none',
-          !disabled ? 'text-text-primary' : 'text-bombay',
+          !disabled ? 'text-text-primary' : 'text-text-tertiary',
         )}
       />
     </HuButton>
@@ -63,14 +63,14 @@ function Onboarding() {
           <NymVpnTextLogo
             className={clsx(
               'h-[27px] w-[100px]',
-              uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
+              uiTheme === 'dark' ? 'fill-white' : 'fill-surface-bg',
             )}
           />
           <ButtonIconNew
             initialAnimation={true}
             icon="close"
             onClick={() => navigate(routes.root)}
-            className="text-bombay hover:text-baltic-sea transition-noborder absolute right-0 cursor-default dark:hover:text-white"
+            className="text-text-tertiary hover:text-text-primary transition-noborder absolute right-0 cursor-default dark:hover:text-white"
           />
         </div>
       </div>
@@ -94,14 +94,14 @@ function Onboarding() {
               onClick={() => emblaApi?.scrollPrev()}
               disabled={!emblaApi?.canScrollPrev()}
             />
-            <div className="bg-mercury dark:bg-mine-shaft flex flex-row gap-2 rounded-2xl px-3 py-2">
+            <div className="bg-surface-elev flex flex-row gap-2 rounded-2xl px-3 py-2">
               {scrollSnaps.map((_, index) => (
                 <DotButton
                   key={index}
                   onClick={() => onDotButtonClick(index)}
                   className={clsx(
-                    'bg-bombay dark:bg-charcoal tap-highlight-transparent m-0 flex h-2 w-2 cursor-pointer touch-manipulation appearance-none items-center justify-center rounded-full border-0 p-0 no-underline',
-                    index === selectedIndex ? 'bg-white dark:bg-white' : '',
+                    'bg-surface-hair tap-highlight-transparent m-0 flex h-2 w-2 cursor-pointer touch-manipulation appearance-none items-center justify-center rounded-full border-0 p-0 no-underline',
+                    index === selectedIndex ? 'bg-white' : '',
                   )}
                 />
               ))}

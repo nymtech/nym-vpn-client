@@ -49,9 +49,9 @@ function TextInput({
   const getColorClass = () => {
     switch (color) {
       case 'default':
-        return 'bg-background';
+        return 'bg-surface-bg';
       case 'gray':
-        return 'bg-white dark:bg-aph-light';
+        return 'bg-white dark:bg-surface-elev';
     }
   };
 
@@ -71,7 +71,7 @@ function TextInput({
           ...inputStates,
           !disabled && 'text-text-primary',
           disabled && 'text-text-secondary',
-          'placeholder:text-iron dark:placeholder:text-bombay',
+          'placeholder:text-text-secondary dark:placeholder:text-text-tertiary',
           getColorClass(),
           className,
           leftIcon && 'pl-11',
@@ -87,14 +87,14 @@ function TextInput({
       {leftIcon && (
         <MsIcon
           icon={leftIcon}
-          className="text-baltic-sea dark:text-bombay absolute left-3 hover:cursor-text"
+          className="text-text-primary dark:text-text-tertiary absolute left-3 hover:cursor-text"
         />
       )}
       {clearable && !!value && (
         <ButtonIcon
           color="chalk"
           icon="cancel"
-          className="text-baltic-sea dark:text-bombay absolute top-2.5 right-1 hover:cursor-pointer"
+          className="text-text-primary dark:text-text-tertiary absolute top-2.5 right-1 hover:cursor-pointer"
           onClick={handleClear}
         />
       )}

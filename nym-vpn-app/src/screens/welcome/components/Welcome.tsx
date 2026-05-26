@@ -14,14 +14,14 @@ export function Welcome({ onSignup, onLogin }: Props) {
         <h1 className="text-text-primary text-2xl font-medium tracking-tight">
           {t('welcome.title')}
         </h1>
-        <p className="text-bombay w-[281px] text-center text-sm">
+        <p className="text-text-tertiary w-[281px] text-center text-sm">
           {t('welcome.description')}
         </p>
       </div>
       <div className="flex w-full flex-col gap-3">
         <Button onClick={onSignup}>{t('welcome.signup-button')}</Button>
         <Button onClick={onLogin}>{t('welcome.login-button')}</Button>
-        <p className="text-bombay text-center text-xs leading-5">
+        <p className="text-text-tertiary text-center text-xs leading-5">
           {t('welcome.terms-of-service')}
         </p>
       </div>

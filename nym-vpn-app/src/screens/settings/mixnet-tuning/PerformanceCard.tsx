@@ -36,16 +36,16 @@ export function PerformanceCard() {
       </CardNewHeader>
       <CardNewBody>
         <CardDataRow label={t('mixnet-tuning.performance.speed.title')}>
-          <p className="text-primary font-medium">
+          <p className="text-brand-primary font-medium">
             {t('mixnet-tuning.performance.speed.value', { value: speed })}
           </p>
         </CardDataRow>
         <Separator
           orientation="horizontal"
-          className="bg-bombay dark:bg-iron h-px w-full"
+          className="bg-text-tertiary dark:bg-text-secondary h-px w-full"
         />
         <CardDataRow label={t('mixnet-tuning.performance.privacy.title')}>
-          <p className="text-primary font-medium">
+          <p className="text-brand-primary font-medium">
             {t('mixnet-tuning.performance.privacy.value', { value: privacy })}
           </p>
         </CardDataRow>

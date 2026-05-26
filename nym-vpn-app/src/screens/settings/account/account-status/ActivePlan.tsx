@@ -35,16 +35,16 @@ export function ActivePlan({
           className="grid w-full grid-cols-2 gap-y-2"
           value={bandwidthRemainingProgress}
         >
-          <Progress.Label className="text-primary text-sm font-medium">
+          <Progress.Label className="text-brand-primary text-sm font-medium">
             {t('account-status.bandwidth-remaining')}
           </Progress.Label>
           <Progress.Label className="text-text-secondary text-right text-sm font-medium">
             {t('account-status.limit')}
           </Progress.Label>
-          <Progress.Track className="bg-mercury dark:bg-ash col-span-full h-1 overflow-hidden rounded">
-            <Progress.Indicator className="bg-primary block transition-all duration-500" />
+          <Progress.Track className="bg-surface-elev dark:bg-surface-bg col-span-full h-1 overflow-hidden rounded">
+            <Progress.Indicator className="bg-brand-primary block transition-all duration-500" />
           </Progress.Track>
-          <Progress.Label className="text-primary text-sm font-medium">
+          <Progress.Label className="text-brand-primary text-sm font-medium">
             {formatGb(accountSummary.trafficUsedGb)}
           </Progress.Label>
           <Progress.Label className="text-text-secondary text-right text-sm font-medium">
@@ -53,7 +53,7 @@ export function ActivePlan({
         </Progress.Root>
         <Separator
           orientation="horizontal"
-          className="bg-mercury dark:bg-ash h-px w-full"
+          className="bg-surface-elev dark:bg-surface-bg h-px w-full"
         />
         <div className="flex w-full items-center justify-between pt-3">
           <p className="text-text-secondary text-sm select-none">

@@ -38,10 +38,10 @@ const PROGRESS_STEPS = {
 } as const;
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
-const TRACK = 'rgba(255,255,255,0.15)';
-const FILL_FAST = 'var(--color-primary)';
+const TRACK = 'var(--color-connection-arc-anon)';
+const FILL_FAST = 'var(--color-brand-primary)';
 const FILL_ANON = 'rgba(139,139,144,0.60)';
-const ERROR_CLR = 'var(--color-error)';
+const ERROR_CLR = 'var(--color-status-error)';
 
 type Phase =
   | 'disconnected'
@@ -265,7 +265,9 @@ export function TunnelState() {
             )}
           </AnimatePresence>
           {phase === 'error' && (
-            <div className="text-error text-center text-lg">{getError()}</div>
+            <div className="text-status-error text-center text-lg">
+              {getError()}
+            </div>
           )}
         </div>
       </div>

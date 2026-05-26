@@ -44,8 +44,9 @@ function MainLayout({
     <div
       className={clsx([
         'flex h-full min-w-64 flex-col',
-        'bg-gray dark:bg-background',
-        'text-primary',
+        'bg-surface-elev',
+        // 'bg-text-tertiary dark:bg-surface-bg',
+        'text-brand-primary',
       ])}
     >
       <SystemAuthentication />

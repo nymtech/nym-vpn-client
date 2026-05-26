@@ -37,8 +37,7 @@ function Lang() {
     >
       <div
         className={clsx(
-          'sticky -top-4 right-0 left-0 mb-4 w-full pt-4',
-          'dark:bg-background bg-white',
+          'bg-surface-elev sticky -top-4 right-0 left-0 mb-4 w-full pt-4',
         )}
       >
         <SettingsMenuCard
@@ -63,9 +62,9 @@ function Lang() {
             role="presentation"
             className={clsx([
               'flex w-full flex-row items-center justify-between',
-              'hover:bg-iron/10 dark:hover:bg-bombay/10',
+              'hover:bg-text-secondary/10 dark:hover:bg-text-tertiary/10',
               'cursor-default rounded-lg px-3 py-1 transition duration-75',
-              isSystemLang && 'border-primary border',
+              isSystemLang && 'border-brand-primary border',
             ])}
             onClick={handleSystemLang}
             data-testid="language-button-system"
@@ -90,11 +89,11 @@ function Lang() {
               role="presentation"
               className={clsx([
                 'flex w-full flex-row items-center justify-between',
-                'hover:bg-iron/10 dark:hover:bg-bombay/10',
+                'hover:bg-text-secondary/10 dark:hover:bg-text-tertiary/10',
                 'cursor-default rounded-lg px-3 py-1 transition duration-75',
                 !isSystemLang &&
                   i18n.language === lang.code &&
-                  'border-primary border',
+                  'border-brand-primary border',
               ])}
               onClick={() => handleLangSelect(lang.code)}
               data-testid={`language-button-${lang.code}`}

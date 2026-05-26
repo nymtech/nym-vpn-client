@@ -23,7 +23,7 @@ function Switch({
       checked={checked}
       onChange={onChange}
       className={clsx([
-        checked ? 'bg-primary' : 'bg-bombay dark:bg-iron',
+        checked ? 'bg-brand-primary' : 'bg-surface-hair',
         'relative inline-flex h-7 w-11 min-w-11 cursor-default items-center rounded-full',
         className,
       ])}
@@ -38,7 +38,7 @@ function Switch({
             ? 'translate-x-5 rtl:-translate-x-5'
             : 'translate-x-1 rtl:-translate-x-1',
           'h-5 w-5',
-          'bg-gray dark:bg-background',
+          'bg-surface-bg',
           'inline-block transform rounded-full transition',
         ])}
         data-testid={`${testId}-thumb`}

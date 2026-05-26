@@ -44,7 +44,7 @@ function StartupError({
     >
       <div
         className={clsx([
-          'dark:bg-charcoal text-text-primary min-w-64 bg-white',
+          'dark:bg-surface-elev text-text-primary min-w-64 bg-white',
           'flex h-full flex-col items-center justify-between gap-4',
           'cursor-default p-6 px-6 select-none',
         ])}
@@ -76,7 +76,7 @@ function StartupError({
             className="max-h-44 w-full overflow-auto text-balance break-words select-text"
             data-testid="startup-error-details"
           >
-            <p className="text-aphrodisiac cursor-auto text-center">
+            <p className="text-status-error cursor-auto text-center">
               {error.detail}
             </p>
           </div>

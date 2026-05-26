@@ -10,22 +10,22 @@ function useScore() {
       switch (score) {
         case 'offline':
           return {
-            color: 'text-iron',
+            color: 'text-text-secondary',
             label: t('node-details.perf-score.offline'),
           };
         case 'low':
           return {
-            color: 'text-aphrodisiac',
+            color: 'text-status-error',
             label: t('node-details.perf-score.low'),
           };
         case 'medium':
           return {
-            color: 'text-cheddar dark:text-king-nacho',
+            color: 'text-status-warning',
             label: t('node-details.perf-score.medium'),
           };
         case 'high':
           return {
-            color: 'text-primary',
+            color: 'text-brand-primary',
             label: t('node-details.perf-score.high'),
           };
       }
@@ -43,17 +43,17 @@ function useScore() {
           };
         case 'low':
           return {
-            color: 'text-primary',
+            color: 'text-brand-primary',
             label: t('node-details.server-load-score.low'),
           };
         case 'medium':
           return {
-            color: 'text-cheddar dark:text-king-nacho',
+            color: 'text-status-warning',
             label: t('node-details.server-load-score.medium'),
           };
         case 'high':
           return {
-            color: 'text-aphrodisiac',
+            color: 'text-status-error',
             label: t('node-details.server-load-score.high'),
           };
       }

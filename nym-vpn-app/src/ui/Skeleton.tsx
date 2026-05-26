@@ -16,7 +16,7 @@ function Skeleton({ className, rounded = true }: SkeletonProps) {
     <div
       className={clsx([
         'animate-pulse',
-        'bg-iron dark:bg-bombay',
+        'bg-text-secondary dark:bg-text-tertiary',
         getRoundedClass(),
         className,
       ])}

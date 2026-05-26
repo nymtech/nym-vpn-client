@@ -37,8 +37,8 @@ export function SystemAuthentication() {
           icon="close"
           onClick={() => setIsOpen(false)}
         />
-        <div className="bg-malachite-moss/10 border-malachite-moss flex items-center justify-center rounded-xl border p-3">
-          <MsIcon icon="lock" className="text-primary leading-none" />
+        <div className="bg-brand-primary/10 border-brand-primary flex items-center justify-center rounded-xl border p-3">
+          <MsIcon icon="lock" className="text-brand-primary leading-none" />
         </div>
         <DialogTitle
           as="h3"
@@ -46,7 +46,7 @@ export function SystemAuthentication() {
         >
           {t('modal.title')}
         </DialogTitle>
-        <div className="border-cheddar dark:border-king-nacho text-cheddar dark:text-king-nacho bg-cheddar/10 dark:bg-king-nacho/10 flex flex-row items-center gap-3 rounded-lg border p-3">
+        <div className="border-status-warning text-status-warning bg-status-warning/10 flex flex-row items-center gap-3 rounded-lg border p-3">
           <MsIcon icon="report" />
           <p>{t('modal.description')}</p>
         </div>

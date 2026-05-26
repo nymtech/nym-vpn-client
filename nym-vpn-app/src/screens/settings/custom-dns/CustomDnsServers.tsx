@@ -124,7 +124,7 @@ export function CustomDnsServers({
             </div>
           </div>
           {errorMessage && (
-            <p className="text-aphrodisiac text-xs">{errorMessage}</p>
+            <p className="text-status-error text-xs">{errorMessage}</p>
           )}
         </div>
       )}

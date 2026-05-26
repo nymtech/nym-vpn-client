@@ -23,8 +23,8 @@ export default function Progress({
         </BuiProgress.Label>
         <BuiProgress.Value className="text-sm" />
       </div>
-      <BuiProgress.Track className="bg-faded-lavender dark:bg-ash h-1.5 rounded-full border-none">
-        <BuiProgress.Indicator className="bg-malachite rounded-full border-none transition-all duration-150" />
+      <BuiProgress.Track className="bg-surface-bg h-1.5 rounded-full border-none">
+        <BuiProgress.Indicator className="bg-brand-primary rounded-full border-none transition-all duration-150" />
       </BuiProgress.Track>
     </BuiProgress.Root>
   );

@@ -166,7 +166,7 @@ function Account() {
       />
 
       <div className="flex flex-row items-center gap-2">
-        <div className="bg-warning h-4 w-4 rounded-full"></div>
+        <div className="bg-status-warning h-4 w-4 rounded-full"></div>
         <span className="text-text-secondary text-sm">
           {accountSummary?.isLinked ? (
             t('account.account-linked')
@@ -177,7 +177,7 @@ function Account() {
               components={{
                 button: (
                   <button
-                    className="hover:text-shadow-baltic-sea underline dark:hover:text-white"
+                    className="hover:text-shadow-text-primary underline dark:hover:text-white"
                     onClick={handleAccountLink}
                   />
                 ),
