@@ -155,33 +155,33 @@ jobs:
           RELEASE_KIND: ${{ inputs.release_kind }}
           PRE_RELEASE_IDENT: ${{ inputs.pre_release_ident }}
         run: |
-          if ! grep -P '^[2-9][0-9]{3}$' <<< "${{ env.MAJOR }}" ; then
+          if ! grep -P '^[2-9][0-9]{3}$' <<< "$MAJOR" ; then
               echo "::error:: major must be an integer"
               exit 1
           fi
 
-          if ! grep -P '^[1-9][0-9]?$' <<< "${{ env.MINOR }}"; then
+          if ! grep -P '^[1-9][0-9]?$' <<< "$MINOR"; then
               echo "::error:: minor must be an integer"
               exit 1
           fi
 
-          if ! grep -P '^[0-9]+$' <<< "${{ env.PATCH }}" ; then
+          if ! grep -P '^[0-9]+$' <<< "$PATCH" ; then
               echo "::error:: patch must be an integer"
               exit 1
           fi
 
-          if ! grep -P '^[1-9][0-9]?$' <<< "${{ env.PRE_RELEASE_IDENT }}" ; then
+          if ! grep -P '^[1-9][0-9]?$' <<< "$PRE_RELEASE_IDENT" ; then
               echo "::error:: pre-release identifier must be an integer."
               exit 1
           fi
 
-          SEMVER="${{ env.MAJOR }}.${{ env.MINOR }}.${{ env.PATCH }}"
+          SEMVER="${MAJOR}.${MINOR}.${PATCH}"
 
-          case "${{ env.RELEASE_KIND }}" in
+          case "$RELEASE_KIND" in
             stable) PRE_RELEASE_SUFFIX="" ;;
-            beta) PRE_RELEASE_SUFFIX="beta.${{ env.PRE_RELEASE_IDENT }}" ;;
+            beta) PRE_RELEASE_SUFFIX="beta.${PRE_RELEASE_IDENT}" ;;
             *)
-              echo "::error:: invalid release kind: ${{ env.RELEASE_KIND }}"
+              echo "::error:: invalid release kind: $RELEASE_KIND"
               exit 1
             ;;
           esac
