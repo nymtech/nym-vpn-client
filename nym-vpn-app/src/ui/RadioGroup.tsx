@@ -120,7 +120,7 @@ function RadioGroup<K extends Key>({
                     'transition-noborder cursor-default',
                     option.tooltip && 'attach-tooltip',
                     disabled &&
-                      'hover dark:hover:bg-surface-elev! opacity-50 hover:bg-white! dark:opacity-60',
+                      'dark:hover:bg-surface-elev! opacity-50 hover:bg-white! dark:opacity-60',
                   ])
                 }
                 disabled={option.disabled}

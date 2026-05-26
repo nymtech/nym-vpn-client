@@ -394,6 +394,7 @@ export default function TopBar() {
             <ButtonIconNew
               icon={currentNavLocation.rightIcon}
               onClick={currentNavLocation.handleRightNav!}
+              className={currentNavLocation.rightIconClassName}
             />
           )}
         </motion.div>

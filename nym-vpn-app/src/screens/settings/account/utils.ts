@@ -20,7 +20,7 @@ export const getAccountDescriptionColor = (
     return 'text-status-error';
   }
   if (state === 'offline' || state === 'status-not-active') {
-    return 'text-status-warning ';
+    return 'text-status-warning';
   }
   if (!accountSummary?.isSubscriptionActive) {
     return 'text-status-error';

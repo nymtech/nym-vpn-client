@@ -51,10 +51,10 @@ export function RenewButton({
 
   const getStatusColor = () => {
     if (status === 'green' || status === 'yellow') {
-      return 'bg-brand-primary/10 hover:bg-brand-primary/20/10 dark:hover:bg-brand-primary/20 text-brand-primary';
+      return 'bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary';
     }
     if (status === 'amber') {
-      return 'bg-status-warning/10 hover:bg-status-warning/20/10 dark:hover:bg-status-warning/20 text-status-warning';
+      return 'bg-status-warning/10 hover:bg-status-warning/20 text-status-warning';
     }
   };
 

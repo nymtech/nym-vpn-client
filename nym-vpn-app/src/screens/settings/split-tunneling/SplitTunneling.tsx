@@ -182,7 +182,7 @@ function SplitTunneling() {
       </p>
 
       {/* Exclude warning */}
-      <p className="text-status-warning bg-surface-elev/40/60 rounded-lg p-3 text-sm">
+      <p className="text-status-warning bg-surface-elev/40 rounded-lg p-3 text-sm">
         {t('split-tunneling.exclude-warning')}
       </p>
 
@@ -213,7 +213,7 @@ function SplitTunneling() {
                     }}
                   >
                     {/* Section divider */}
-                    <div className="bg-surface-elev/40/60 px-4 py-1">
+                    <div className="bg-surface-elev/40 px-4 py-1">
                       <span className="text-text-secondary text-xs select-none">
                         {letter}
                       </span>
