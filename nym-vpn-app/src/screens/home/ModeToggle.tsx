@@ -109,9 +109,32 @@ export const ModeToggle = () => {
     // Apply algorithm first: it's the higher-level intent. If it fails we
     // bail without touching vpnMode so the UI stays in its previous coherent
     // state instead of half-applying the user's intent.
+    const previousAlgorithm = algo;
     const algoOk = await applyAlgorithm(algorithmToSet);
     if (!algoOk) return;
-    await applyVpnMode(vpnModeToSet);
+    const vpnOk = await applyVpnMode(vpnModeToSet);
+    if (!vpnOk && algorithmToSet !== previousAlgorithm) {
+      // vpnMode failed after algorithm changed: roll back so the UI doesn't
+      // sit in a half-applied state. applyAlgorithm's early-return guard
+      // compares against the captured `algo` so we can't reuse it here.
+      try {
+        await invoke('set_gateway_selection_algorithm', {
+          algorithm: previousAlgorithm,
+        });
+        dispatch({
+          type: 'set-gateway-selection-algorithm-config',
+          config: {
+            ...gatewaySelectionAlgorithmConfig,
+            gatewaySelectionAlgorithm: previousAlgorithm,
+          },
+        });
+      } catch (error: unknown) {
+        console.error(
+          `failed to rollback gateway selection algorithm to [${previousAlgorithm}]`,
+          error,
+        );
+      }
+    }
   };
 
   return (
