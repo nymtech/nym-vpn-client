@@ -638,7 +638,7 @@ private extension ServerDetailsView {
         case .entry:
             connectionManager.setEntryGateway(.gateway(gateway.id))
         case .exit:
-            connectionManager.setExitGateway(.gateway(gateway.id))
+            connectionManager.applyExplicitExit(.gateway(gateway.id))
         }
         path = .init()
     }

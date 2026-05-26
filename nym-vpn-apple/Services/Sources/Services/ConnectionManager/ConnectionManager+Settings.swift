@@ -90,6 +90,22 @@ extension ConnectionManager {
         }
     }
 
+    public func applyExplicitExit(_ exit: ExitRouter) {
+        let algoCfg = connectionConfig.gatewaySelectionAlgorithmConfig
+        setExitGateway(exit)
+        if case .random = exit { return }
+        guard algoCfg.algorithm == .auto
+        else {
+            return
+        }
+        setGatewaySelectionAlgorithm(
+            NymGatewaySelectionAlgorithmConfig(
+                enableGeoLocation: algoCfg.enableGeoLocation,
+                algorithm: .autoEntryExplicitExit
+            )
+        )
+    }
+
     public func setGatewaySelectionAlgorithm(_ config: NymGatewaySelectionAlgorithmConfig) {
         connectionConfig.gatewaySelectionAlgorithmConfig = config
         Task {
