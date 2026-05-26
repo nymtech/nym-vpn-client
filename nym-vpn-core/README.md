@@ -303,9 +303,6 @@ make -C nym-vpn-core -f Android.mk
         - `netsh`: use the `netsh` program
         - `tcpip`: set TCP/IP parameters in the registry
 
-- `NYM_DISABLE_LOCAL_DNS_RESOLVER` - Set this variable to `1` to disable the local DNS resolver
-  (macOS only).
-
 - `NYM_DISABLE_OFFLINE_MONITOR` - Set to `1` to forces the daemon to always assume the host is online.
 
 - `NYM_USE_PATH_MONITOR` - Set to `1` to use Apple Network framework for offline monitoring. (macOS only)
