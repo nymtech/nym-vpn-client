@@ -61,11 +61,9 @@ data class NymColors(
 	val borderCyan: Color = Color.Unspecified,
 	val buttonErrorBorder: Color = Color.Unspecified,
 	val buttonErrorText: Color = Color.Unspecified,
-	val trackDefaultBackground: Color = Color.Unspecified,
 	val navBarTitleBackground: Color = Color.Unspecified,
 	val navBarIconTint: Color = Color.Unspecified,
 	val switchBackground: Color = Color.Unspecified,
-	val connectionFillColor: Color = Color.Unspecified,
 )
 
 val DarkNymColors = NymColors(
@@ -80,11 +78,9 @@ val DarkNymColors = NymColors(
 	borderCyan = Color(0x8098DDFF),
 	buttonErrorBorder = Color(0x99FF4444),
 	buttonErrorText = Color(0xFFE73E14),
-	trackDefaultBackground = Color(0x26FFFFFF),
 	navBarTitleBackground = Color(0xFF090909),
 	navBarIconTint = Color(0xFFAEACB1),
 	switchBackground = Color(0xFF66656A),
-	connectionFillColor = Color(0xFF5BF0A0),
 )
 
 val LightNymColors = NymColors(
@@ -99,11 +95,9 @@ val LightNymColors = NymColors(
 	borderCyan = Color(0x8000A3F5),
 	buttonErrorBorder = Color(0x99FF4444),
 	buttonErrorText = Color(0xFFE73E14),
-	trackDefaultBackground = Color(0x1F0A0A0A),
 	navBarTitleBackground = Color(0xFFFFFFFF),
 	navBarIconTint = Color(0xFF111111),
 	switchBackground = Color(0xFFD5D5D5),
-	connectionFillColor = Color(0xFF1A9B61),
 )
 
 val LocalNymColors = staticCompositionLocalOf { DarkNymColors }
