@@ -4,7 +4,12 @@ import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonVariant, type countryCode } from '../../ui';
-import { dispatch, useMainState } from '../../store';
+import {
+  dispatch,
+  useAccountLocallyGenerated,
+  useAccountRegisteredWithApi,
+  useMainState,
+} from '../../store';
 import { useIsLinux, useToast } from '../../hooks';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { routes } from '../../router';
@@ -37,6 +42,8 @@ export function NewBottomComponent() {
   const { t, i18n } = useTranslation('home');
   const { state, daemonStatus, accountState, account } = useMainState();
   const isLinux = useIsLinux();
+  const isLocallyGenerated = useAccountLocallyGenerated();
+  const isRegisteredWithApi = useAccountRegisteredWithApi();
   const [planLoading, setPlanLoading] = useState(false);
 
   const daemonUnavailable =
@@ -48,12 +55,29 @@ export function NewBottomComponent() {
     (accountState === 'no-subscription' ||
       accountState === 'bandwidth-exceeded');
 
+  // A freshly-created local account (Linux) hasn't been registered with the
+  // backend yet, so the API has no record of it and its account state can be
+  // `error` / `status-not-active` rather than `no-subscription`. Treat that as
+  // "needs a plan" too, keyed off the persisted flags, so the user always has a
+  // way to register and reach checkout.
+  const linuxUnregisteredLocal = Boolean(
+    isLinux &&
+    !daemonUnavailable &&
+    state === 'disconnected' &&
+    account &&
+    isLocallyGenerated &&
+    !isRegisteredWithApi,
+  );
+
+  // Master gate for showing the "Get a plan" / "Choose plan" affordance.
+  const showGetPlan = Boolean(needAPlan) || linuxUnregisteredLocal;
+
   const { add } = useToast();
 
   // On Linux, "Get a plan" registers the anonymous account then opens the
   // autologin checkout URL. On other platforms we navigate to the in-app plan
   // selection screen (existing behaviour).
-  const linuxNeedsPlan = isLinux && needAPlan;
+  const linuxNeedsPlan = isLinux && showGetPlan;
 
   const handleGetPlan = async () => {
     setPlanLoading(true);
@@ -87,7 +111,7 @@ export function NewBottomComponent() {
       return;
     }
 
-    if (needAPlan) {
+    if (showGetPlan) {
       if (linuxNeedsPlan) {
         await handleGetPlan();
       } else {
@@ -145,7 +169,7 @@ export function NewBottomComponent() {
       return t('get-plan.button');
     }
 
-    if (needAPlan) {
+    if (showGetPlan) {
       return t('choose-plan');
     }
 
@@ -168,7 +192,7 @@ export function NewBottomComponent() {
   };
 
   const getButtonVariant = (): ButtonVariant => {
-    if (!account || needAPlan) {
+    if (!account || showGetPlan) {
       return 'primary';
     }
 
