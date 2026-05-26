@@ -30,7 +30,7 @@ use tokio::sync::Mutex;
 
 use nym_routing::debounce::BurstGuard;
 
-use super::ResolvedDnsConfig;
+use super::DnsConfig;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -402,9 +402,9 @@ impl super::DnsMonitorT for DnsMonitor {
         })
     }
 
-    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<()> {
+    async fn set(&mut self, interface: &str, config: DnsConfig) -> Result<()> {
         let port = config.port;
-        let servers: Vec<_> = config.addresses().collect();
+        let servers: Vec<_> = config.addresses;
 
         let mut state = self.state.lock().await;
         state.apply_new_config(&self.store, interface, &servers, port)

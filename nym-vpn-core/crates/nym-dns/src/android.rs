@@ -2,7 +2,7 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::ResolvedDnsConfig;
+use crate::DnsConfig;
 
 /// Stub error type for DNS errors on Android.
 #[derive(Debug, thiserror::Error)]
@@ -18,11 +18,7 @@ impl super::DnsMonitorT for DnsMonitor {
         Ok(DnsMonitor)
     }
 
-    async fn set(
-        &mut self,
-        _interface: &str,
-        _servers: ResolvedDnsConfig,
-    ) -> Result<(), Self::Error> {
+    async fn set(&mut self, _interface: &str, _servers: DnsConfig) -> Result<(), Self::Error> {
         Ok(())
     }
 

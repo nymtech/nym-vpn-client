@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
+    collections::HashSet,
     net::IpAddr,
     path::PathBuf,
     pin::{Pin, pin},
@@ -70,7 +71,7 @@ use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
-    DEFAULT_DNS_SERVERS, NodeIdentity, UserAgent, VpnTopologyService,
+    DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
     config::GlobalConfig,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     logging::LogFileRemoverHandle,
@@ -1039,7 +1040,7 @@ impl NymVpnService {
                 let _ = tx.send(result);
             }
             VpnServiceCommand::GetDefaultDns(tx, ()) => {
-                let result = self.handle_get_default_dns().await;
+                let result = self.handle_get_default_dns();
                 let _ = tx.send(result);
             }
             VpnServiceCommand::ListGateways(tx, options) => {
@@ -1455,8 +1456,14 @@ impl NymVpnService {
             .map(FeatureFlags::from)
     }
 
-    async fn handle_get_default_dns(&self) -> Vec<IpAddr> {
-        DEFAULT_DNS_SERVERS.clone()
+    fn handle_get_default_dns(&self) -> Vec<IpAddr> {
+        // todo: return protocols too!
+        let mut seen = HashSet::with_capacity(DEFAULT_DNS_SERVERS_CONFIG.len());
+        DEFAULT_DNS_SERVERS_CONFIG
+            .iter()
+            .map(|v| v.ip)
+            .filter(|ip| seen.insert(*ip))
+            .collect()
     }
 
     async fn handle_list_gateways(

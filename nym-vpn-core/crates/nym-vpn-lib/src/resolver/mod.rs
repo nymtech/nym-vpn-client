@@ -15,7 +15,6 @@
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 mod unix;
 
-use hickory_resolver::config::NameServerConfig;
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 pub(crate) use unix::flush_system_cache;
 
@@ -46,10 +45,11 @@ use std::{
 };
 
 use async_trait::async_trait;
+use hickory_resolver::config::NameServerConfig;
 use hickory_server::{
     net::runtime::Time,
     proto::{
-        op::{Header, HeaderCounts, LowerQuery, MessageType, Metadata, OpCode},
+        op::{Header, HeaderCounts, LowerQuery, MessageType, Metadata, OpCode, ResponseCode},
         rr::{LowerName, RData, Record, RecordType, domain::Name, rdata},
     },
     resolver::{
@@ -60,6 +60,8 @@ use hickory_server::{
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo, Server},
     zone_handler::{AuthLookup, MessageRequest, MessageResponse, MessageResponseBuilder},
 };
+#[cfg(not(target_os = "ios"))]
+use hickory_server::{net::runtime::TokioRuntimeProvider, resolver::TokioResolver};
 use tokio::{
     net::{TcpListener, UdpSocket},
     sync::{mpsc, oneshot},
@@ -68,9 +70,6 @@ use tokio_util::{either::Either, sync::CancellationToken};
 
 #[cfg(target_os = "ios")]
 use apple_connection_provider::{AppleConnectionProvider, TokioResolver};
-use hickory_server::proto::op::ResponseCode;
-#[cfg(not(target_os = "ios"))]
-use hickory_server::{net::runtime::TokioRuntimeProvider, resolver::TokioResolver};
 
 #[async_trait]
 #[cfg_attr(target_os = "ios", allow(unused))]
@@ -85,21 +84,6 @@ pub type BoxedLoopbackAlias = Box<dyn LoopbackAlias>;
 pub use crate::dns_filter::{
     DnsFilter, DnsFilterDecision, DnsFilterStrategy, DnsFilterT, NullDnsFilter,
 };
-
-/// If a local DNS resolver should be used.
-///
-/// Local DNS resolver is used to work around Apple's captive portals check.
-/// More info can be found at <https://github.com/mullvad/mullvadvpn-app/blob/main/docs/allow-macos-network-check.md>
-pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
-    let disable_local_dns_resolver = std::env::var("NYM_DISABLE_LOCAL_DNS_RESOLVER")
-        .map(|v| v != "0")
-        // Use the local DNS resolver by default.
-        .unwrap_or(false);
-    if !disable_local_dns_resolver {
-        tracing::info!("Using local DNS resolver");
-    }
-    !disable_local_dns_resolver
-});
 
 /// Local DNS resolver listen port.
 const DNS_LISTEN_PORT: u16 = if cfg!(test) { 1053 } else { 53 };
@@ -195,8 +179,8 @@ enum Config {
 
     /// Forward DNS queries to a configured server
     Forwarding {
-        /// Remote DNS server to use
-        dns_servers: Vec<IpAddr>,
+        /// Remote DNS servers to use
+        dns_servers: Vec<NameServerConfig>,
 
         /// Interface to bind client socket to.
         /// iOS only
@@ -338,7 +322,7 @@ impl ResolverHandle {
     /// Set the DNS servers to forward queries to `dns_servers`.
     pub async fn enable_forward(
         &self,
-        dns_servers: Vec<IpAddr>,
+        dns_servers: Vec<NameServerConfig>,
         #[cfg(target_os = "ios")] bind_interface: Option<String>,
     ) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
@@ -569,7 +553,7 @@ impl LocalResolver {
                 bind_interface,
             } => {
                 // make sure not to accidentally forward queries to ourselves
-                dns_servers.retain(|addr| *addr != self.bound_to.ip());
+                dns_servers.retain(|addr| addr.ip != self.bound_to.ip());
                 self.forwarding(
                     dns_servers,
                     #[cfg(target_os = "ios")]
@@ -587,15 +571,10 @@ impl LocalResolver {
     /// Turn into a forwarding resolver (forward DNS queries to [dns_servers]).
     fn forwarding(
         &mut self,
-        dns_servers: Vec<IpAddr>,
+        dns_servers: Vec<NameServerConfig>,
         #[cfg(target_os = "ios")] bind_interface: Option<String>,
     ) -> Result<(), Error> {
-        let forward_server_config = dns_servers
-            .into_iter()
-            .map(NameServerConfig::udp_and_tcp)
-            .collect::<Vec<_>>();
-
-        let forward_config = ResolverConfig::from_parts(None, vec![], forward_server_config);
+        let forward_config = ResolverConfig::from_parts(None, vec![], dns_servers);
 
         #[cfg(target_os = "ios")]
         let connection_provider = AppleConnectionProvider::new(bind_interface);

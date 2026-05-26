@@ -15,8 +15,10 @@ use libc::{c_int, sysctlbyname};
 use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS};
 use pfctl::{DropAction, FilterRuleAction, Ip, Uid};
 
+use crate::Endpoint;
+
 use super::{
-    DNS_TCP_PORTS, FirewallArguments, FirewallPolicy,
+    FirewallArguments, FirewallPolicy,
     net::{
         AllowedEndpoint, AllowedTunnelTraffic, TransportProtocol, TunnelInterface, TunnelMetadata,
     },
@@ -154,18 +156,9 @@ impl Firewall {
 
         // Do not reset state for non-tunnel DNS traffic
         if policy.dns_config().is_some_and(|dns| {
-            let is_non_tunnel_dns = dns.non_tunnel_config().iter().any(|ip| {
-                *ip == remote_address.ip() && DNS_TCP_PORTS.contains(&remote_address.port())
-            }) && proto == pfctl::Proto::Tcp;
-
-            // Local DNS resolver is configured with the same hosts
-            // as non-tunnel DNS but uses TCP/UDP port 53
-            let is_local_resolver_dns = dns
-                .non_tunnel_config()
+            dns.non_tunnel_dns()
                 .iter()
-                .any(|ip| *ip == remote_address.ip() && remote_address.port() == 53);
-
-            is_non_tunnel_dns || is_local_resolver_dns
+                .any(|ep| ep.address == remote_address && as_pfctl_proto(ep.protocol) == proto)
         }) {
             return Ok(false);
         }
@@ -429,8 +422,8 @@ impl Firewall {
             } => {
                 let mut rules = Vec::new();
 
-                for server in dns_config.non_tunnel_config() {
-                    rules.append(&mut self.get_allow_dns_rules_when_connecting(*server)?);
+                for dns_endpoint in dns_config.non_tunnel_dns() {
+                    rules.push(self.get_allow_dns_rules_when_connecting(dns_endpoint)?);
                 }
 
                 for peer_endpoint in peer_endpoints {
@@ -507,15 +500,19 @@ impl Firewall {
                     TunnelInterface::Two { entry, exit, .. } => (Some(entry), exit),
                 };
 
-                for server in dns_config.tunnel_config() {
+                // Do not create rules for any other ports but 53 because "block all dns" targets port 53 specifically
+                for dns_endpoint in dns_config.tunnel_dns() {
+                    if dns_endpoint.address.port() == 53 {
+                        rules.push(self.get_allow_tunnel_dns_rules_when_connected(
+                            exit_tunnel,
+                            dns_endpoint,
+                        )?);
+                    }
+                }
+                for dns_endpoint in dns_config.non_tunnel_dns() {
                     rules.append(
                         &mut self
-                            .get_allow_tunnel_dns_rules_when_connected(exit_tunnel, *server)?,
-                    );
-                }
-                for server in dns_config.non_tunnel_config() {
-                    rules.append(
-                        &mut self.get_allow_local_dns_rules_when_connected(exit_tunnel, *server)?,
+                            .get_allow_local_dns_rules_when_connected(exit_tunnel, dns_endpoint)?,
                     );
                 }
 
@@ -599,35 +596,31 @@ impl Firewall {
 
     fn get_allow_dns_rules_when_connecting(
         &self,
-        server: IpAddr,
-    ) -> Result<Vec<pfctl::FilterRule>> {
-        let mut rules = Vec::with_capacity(DNS_TCP_PORTS.len());
-
-        for tcp_port in DNS_TCP_PORTS {
-            let allow_nontunnel_tcp = self
-                .create_rule_builder(FilterRuleAction::Pass)
-                .direction(pfctl::Direction::Out)
-                .quick(true)
-                .proto(pfctl::Proto::Tcp)
-                .keep_state(pfctl::StatePolicy::Keep)
-                .tcp_flags(Self::get_tcp_flags())
-                .to(pfctl::Endpoint::new(server, tcp_port))
-                .user(Uid::from(super::ROOT_UID))
-                .build()?;
-            rules.push(allow_nontunnel_tcp);
-        }
-
-        Ok(rules)
+        dns_endpoint: &Endpoint,
+    ) -> Result<pfctl::FilterRule> {
+        let pfctl_proto = as_pfctl_proto(dns_endpoint.protocol);
+        let allow_nontunnel_dns = self
+            .create_rule_builder(FilterRuleAction::Pass)
+            .direction(pfctl::Direction::Out)
+            .quick(true)
+            .proto(pfctl_proto)
+            .keep_state(pfctl::StatePolicy::Keep)
+            .tcp_flags(Self::get_tcp_flags())
+            .to(pfctl::Endpoint::from(dns_endpoint.address))
+            .user(Uid::from(super::ROOT_UID))
+            .build()?;
+        Ok(allow_nontunnel_dns)
     }
 
     fn get_allow_local_dns_rules_when_connected(
         &self,
         tunnel: &TunnelMetadata,
-        server: IpAddr,
+        dns_endpoint: &Endpoint,
     ) -> Result<Vec<pfctl::FilterRule>> {
         let mut rules = Vec::with_capacity(4);
 
         // Block requests on the tunnel interface
+        // Disregard dns endpoint protocol, block both tcp and udp since some servers may run on both
         let block_tunnel_tcp = self
             .create_rule_builder(FilterRuleAction::Drop(DropAction::Return))
             .direction(pfctl::Direction::Out)
@@ -635,7 +628,7 @@ impl Firewall {
             .interface(&tunnel.interface)
             .proto(pfctl::Proto::Tcp)
             .keep_state(pfctl::StatePolicy::None)
-            .to(pfctl::Endpoint::new(server, 53))
+            .to(pfctl::Endpoint::from(dns_endpoint.address))
             .build()?;
         rules.push(block_tunnel_tcp);
         let block_tunnel_udp = self
@@ -645,7 +638,7 @@ impl Firewall {
             .interface(&tunnel.interface)
             .proto(pfctl::Proto::Udp)
             .keep_state(pfctl::StatePolicy::None)
-            .to(pfctl::Endpoint::new(server, 53))
+            .to(pfctl::Endpoint::from(dns_endpoint.address))
             .build()?;
         rules.push(block_tunnel_udp);
 
@@ -657,7 +650,7 @@ impl Firewall {
             .proto(pfctl::Proto::Tcp)
             .keep_state(pfctl::StatePolicy::Keep)
             .tcp_flags(Self::get_tcp_flags())
-            .to(pfctl::Endpoint::new(server, 53))
+            .to(pfctl::Endpoint::from(dns_endpoint.address))
             .build()?;
         rules.push(allow_nontunnel_tcp);
         let allow_nontunnel_udp = self
@@ -666,7 +659,7 @@ impl Firewall {
             .quick(true)
             .proto(pfctl::Proto::Udp)
             .keep_state(pfctl::StatePolicy::Keep)
-            .to(pfctl::Endpoint::new(server, 53))
+            .to(pfctl::Endpoint::from(dns_endpoint.address))
             .build()?;
         rules.push(allow_nontunnel_udp);
 
@@ -676,34 +669,20 @@ impl Firewall {
     fn get_allow_tunnel_dns_rules_when_connected(
         &self,
         tunnel: &TunnelMetadata,
-        server: IpAddr,
-    ) -> Result<Vec<pfctl::FilterRule>> {
-        let mut rules = Vec::with_capacity(2);
-
+        dns_endpoint: &Endpoint,
+    ) -> Result<pfctl::FilterRule> {
         // Allow outgoing requests on the tunnel interface only
-        let allow_tunnel_tcp = self
+        let allow_tunnel_dns = self
             .create_rule_builder(FilterRuleAction::Pass)
             .direction(pfctl::Direction::Out)
             .quick(true)
             .interface(&tunnel.interface)
-            .proto(pfctl::Proto::Tcp)
+            .proto(as_pfctl_proto(dns_endpoint.protocol))
             .keep_state(pfctl::StatePolicy::Keep)
             .tcp_flags(Self::get_tcp_flags())
-            .to(pfctl::Endpoint::new(server, 53))
+            .to(pfctl::Endpoint::from(dns_endpoint.address))
             .build()?;
-        rules.push(allow_tunnel_tcp);
-
-        let allow_tunnel_udp = self
-            .create_rule_builder(FilterRuleAction::Pass)
-            .direction(pfctl::Direction::Out)
-            .quick(true)
-            .interface(&tunnel.interface)
-            .proto(pfctl::Proto::Udp)
-            .to(pfctl::Endpoint::new(server, 53))
-            .build()?;
-        rules.push(allow_tunnel_udp);
-
-        Ok(rules)
+        Ok(allow_tunnel_dns)
     }
 
     /// Allow traffic to relay_endpoint on the correct ip/port/protocol, for the root-user only.

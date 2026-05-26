@@ -34,6 +34,9 @@ hickory-resolver = { workspace = true, features = [
     "tokio",
     "tls-ring",
     "https-ring",
+    "h3-ring",
+    "quic-ring",
+    "webpki-roots",
 ] }
 hyper = { workspace = true, features = ["server", "http1"] }
 hyper-util = { workspace = true, features = ["tokio"] }
