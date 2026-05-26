@@ -579,7 +579,7 @@ private fun MainScreenContent(
 		Box(
 			modifier = Modifier
 				.fillMaxWidth()
-				.fillMaxHeight(0.5f)
+				.fillMaxHeight(0.40f)
 				.align(Alignment.TopCenter),
 			contentAlignment = Alignment.BottomCenter,
 		) {

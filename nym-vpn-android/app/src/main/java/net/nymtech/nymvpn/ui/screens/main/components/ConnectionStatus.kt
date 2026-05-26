@@ -35,15 +35,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.EstablishConnectionState
 
-private const val OUTER_RADIUS = 92.4f
-private const val MIDDLE_RADIUS = 78.4f
-private const val INNER_RADIUS = 64.4f
+private const val OUTER_RADIUS = 45f
+private const val MIDDLE_RADIUS = 31f
+private const val INNER_RADIUS = 17f
 private const val ARC_STROKE = 6f
 private const val LABEL_OFFSET = 14f
 
@@ -55,8 +54,8 @@ fun ConnectionStatus(
 	connectionTime: String? = null,
 	modifier: Modifier = Modifier,
 ) {
-	val nymColors = LocalNymColors.current
 	val context = LocalContext.current
+	val bg = MaterialTheme.colorScheme.surface
 
 	val isError = connectionState is ConnectionState.Error || connectionState is ConnectionState.StartFailure
 	val isConnected = connectionState == ConnectionState.Connected
@@ -126,7 +125,7 @@ fun ConnectionStatus(
 
 	val fillColor = when {
 		isError -> MaterialTheme.colorScheme.error.copy(alpha = errorPulse)
-		else -> LocalNymColors.current.connectionFillColor
+		else -> MaterialTheme.colorScheme.primary
 	}
 
 	val connectedLabel = if (vpnMode.isTwoHop()) stringResource(R.string.connection_status_fast_mode) else stringResource(R.string.connection_status_anonymous)
@@ -178,7 +177,7 @@ fun ConnectionStatus(
 			for (radius in floatArrayOf(OUTER_RADIUS, MIDDLE_RADIUS, INNER_RADIUS)) {
 				val rPx = radius.dp.toPx()
 				drawArc(
-					color = nymColors.trackDefaultBackground,
+					color = bg,
 					startAngle = -90f,
 					sweepAngle = 360f,
 					useCenter = false,
@@ -239,7 +238,7 @@ fun ConnectionStatus(
 				style = MaterialTheme.typography.labelSmall,
 				color = when {
 					isError -> MaterialTheme.colorScheme.error
-					isConnected -> LocalNymColors.current.connectionFillColor
+					isConnected -> MaterialTheme.colorScheme.primary
 					else -> MaterialTheme.colorScheme.onSurfaceVariant
 				},
 			)
@@ -247,7 +246,7 @@ fun ConnectionStatus(
 			Text(
 				text = connectionTime ?: "",
 				style = MaterialTheme.typography.labelSmall,
-				color = LocalNymColors.current.connectionFillColor,
+				color = MaterialTheme.colorScheme.primary,
 				modifier = Modifier.alpha(timeAlpha),
 			)
 		}
@@ -259,7 +258,7 @@ private fun DrawScope.drawArcGlow(color: Color, sweepAngle: Float, topLeft: Offs
 	if (sweepAngle <= 0.5f || glowIntensity <= 0.01f) return
 	val base = color.alpha
 	drawArc(
-		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.18f)),
+		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.1f)),
 		startAngle = -90f,
 		sweepAngle = sweepAngle,
 		useCenter = false,
@@ -268,7 +267,7 @@ private fun DrawScope.drawArcGlow(color: Color, sweepAngle: Float, topLeft: Offs
 		style = Stroke(width = strokePx * 5f),
 	)
 	drawArc(
-		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.40f)),
+		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.1f)),
 		startAngle = -90f,
 		sweepAngle = sweepAngle,
 		useCenter = false,

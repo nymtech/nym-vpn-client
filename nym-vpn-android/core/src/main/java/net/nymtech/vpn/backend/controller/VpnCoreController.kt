@@ -384,6 +384,10 @@ class VpnCoreController(
 				sender.setEnableTwoHop(cfg.mode.isTwoHop())
 			}
 
+			if (force || prev?.algorithm != cfg.algorithm) {
+				sender.setGatewaySelectionAlgorithm(cfg.algorithm)
+			}
+
 			if (force || prev?.enableBridges != cfg.enableBridges) {
 				sender.setEnableBridges(cfg.enableBridges)
 			}
