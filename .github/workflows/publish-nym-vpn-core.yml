@@ -99,7 +99,7 @@ jobs:
       - name: Install toml
         uses: baptiste0928/cargo-install@v3
         with:
-          crate: cargo-get
+          crate: toml-cli
 
       - name: Install cargo-edit
         uses: baptiste0928/cargo-install@v3
