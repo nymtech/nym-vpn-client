@@ -107,6 +107,7 @@ concurrency:
 
 jobs:
   bump-all:
+    name: Update all software versions
     runs-on: ubuntu-latest
     steps:
       - name: Configure git
