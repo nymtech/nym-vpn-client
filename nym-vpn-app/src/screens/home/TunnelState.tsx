@@ -38,10 +38,10 @@ const PROGRESS_STEPS = {
 } as const;
 
 // ─── Colors ───────────────────────────────────────────────────────────────────
-const TRACK = 'var(--color-connection-arc-anon)';
-const FILL_FAST = 'var(--color-brand-primary)';
-const FILL_ANON = 'var(--color-connection-arc-anon)';
-const ERROR_CLR = 'var(--color-status-error)';
+const TRACK = 'var(--nv-connection-arc-track)';
+const FILL_FAST = 'var(--nv-brand-primary)';
+const FILL_ANON = 'var(--nv-connection-arc-anon)';
+const ERROR_CLR = 'var(--nv-status-error)';
 
 type Phase =
   | 'disconnected'
@@ -203,9 +203,9 @@ export function TunnelState() {
               cy={CX}
               r={r}
               fill="none"
-              stroke={TRACK}
               strokeWidth={STROKE}
               strokeLinecap="round"
+              style={{ stroke: TRACK }}
             />
           ))}
 
@@ -217,13 +217,12 @@ export function TunnelState() {
               cy={CX}
               r={r}
               fill="none"
-              stroke={strokeColor}
               strokeOpacity={strokeOpacity}
               strokeWidth={STROKE}
               strokeLinecap="round"
               strokeDasharray={CIRCS[i]}
               strokeDashoffset={effectiveOffsets[i]}
-              style={{ transition: ringTransition }}
+              style={{ stroke: strokeColor, transition: ringTransition }}
             />
           ))}
         </svg>
