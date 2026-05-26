@@ -1,17 +1,19 @@
 import { useDeferredValue, useEffect, useMemo, useRef } from 'react';
+import clsx from 'clsx';
 import { useNavigate } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
+import { Button } from '@headlessui/react';
 import { useDialog } from '../../contexts';
-import { NodeHop, isGateway } from '../../types';
+import { GatewaySelectionAlgorithm, NodeHop, isGateway } from '../../types';
 import {
   SelectedUiNode,
   UiGateway,
   uiNodeToSelectedNode,
 } from '../../types/node';
-import { Link, PageAnim, TextInput } from '../../ui';
-import { useI18nError } from '../../hooks';
+import { Link, MsIcon, PageAnim, TextInput } from '../../ui';
+import { useI18nError, useToast } from '../../hooks';
 import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
 import { dispatch, useAppStore, useFetchGateways } from '../../store';
@@ -19,8 +21,15 @@ import { useNodeListState } from '../../store/nodeListState';
 import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
+const QUICK_PICK_CLASSES =
+  'dark:bg-aph-light dark:hover:bg-aph-light/75 flex cursor-default flex-row items-center gap-3 rounded-2xl bg-white p-4 transition-all duration-100 hover:bg-white/60';
+
 function Node({ node }: { node: NodeHop }) {
   const daemonStatus = useAppStore((s) => s.daemonStatus);
+  const algoConfig = useAppStore((s) => s.gatewaySelectionAlgorithmConfig);
+  const storedNode = useAppStore((s) =>
+    node === 'entry' ? s.entryNode : s.exitNode,
+  );
   const fetchGateways = useFetchGateways();
 
   const {
@@ -50,6 +59,7 @@ function Node({ node }: { node: NodeHop }) {
 
   const { tE } = useI18nError();
   const navigate = useNavigate();
+  const { add } = useToast();
   const { t } = useTranslation('node-location');
 
   const { filter, nodes, gateways } = useFilterList(
@@ -80,6 +90,21 @@ function Node({ node }: { node: NodeHop }) {
     if (searchRef.current) searchRef.current.focus({ preventScroll: true });
   }, []);
 
+  const rollbackAlgo = async (algorithm: GatewaySelectionAlgorithm) => {
+    try {
+      await invoke('set_gateway_selection_algorithm', { algorithm });
+      dispatch({
+        type: 'set-gateway-selection-algorithm-config',
+        config: { ...algoConfig, gatewaySelectionAlgorithm: algorithm },
+      });
+    } catch (rollbackError: unknown) {
+      console.error(
+        `failed to rollback gateway selection algorithm to [${algorithm}]`,
+        rollbackError,
+      );
+    }
+  };
+
   const handleSelect = async (selected: SelectedUiNode) => {
     const selectedNode = uiNodeToSelectedNode(selected);
     if (
@@ -87,6 +112,42 @@ function Node({ node }: { node: NodeHop }) {
       (selected.isSelected === 'exit' || selected.isSelected === 'entry')
     ) {
       return;
+    }
+
+    // Picking an exit while in 'auto' (daemon picks both) means the user is
+    // now explicit about the exit — flip to 'autoEntryExplicitExit'. The
+    // entry hop stays daemon-picked. The mirror flip 'non-explicit → explicit'
+    // on entry-pick is gone: the entry list is only reachable from
+    // 'explicit', where that flip would be a no-op.
+    // Algorithm change is applied first so a failure aborts before the node
+    // state diverges from the daemon. If the node update later fails, the
+    // algorithm change is rolled back.
+    const needsAlgoFlip =
+      node === 'exit' && algoConfig.gatewaySelectionAlgorithm === 'auto';
+    if (needsAlgoFlip) {
+      try {
+        await invoke('set_gateway_selection_algorithm', {
+          algorithm: 'autoEntryExplicitExit',
+        });
+        dispatch({
+          type: 'set-gateway-selection-algorithm-config',
+          config: {
+            ...algoConfig,
+            gatewaySelectionAlgorithm: 'autoEntryExplicitExit',
+          },
+        });
+      } catch (error: unknown) {
+        console.error(
+          'failed to set gateway selection algorithm to [autoEntryExplicitExit]',
+          error,
+        );
+        add({
+          id: 'node-select-error',
+          title: t('quick-pick.select-error'),
+          type: 'error',
+        });
+        return;
+      }
     }
 
     try {
@@ -98,12 +159,96 @@ function Node({ node }: { node: NodeHop }) {
         type: 'set-node',
         payload: { hop: node, node: selectedNode },
       });
-    } catch {
-      /* TODO notify the user something went wrong */
+    } catch (error: unknown) {
+      console.error('failed to set node', error);
+      add({
+        id: 'node-select-error',
+        title: t('quick-pick.select-error'),
+        type: 'error',
+      });
+      if (needsAlgoFlip) {
+        await rollbackAlgo('auto');
+      }
+      return;
     }
     navigate(routes.root);
     resetSaved(node);
   };
+
+  const handleRandom = () => {
+    handleSelect({ nodeType: 'random', isSelected: false });
+  };
+
+  const handleBestServer = async () => {
+    // Switch the algorithm to 'auto' first so a failure aborts before the
+    // stored node is cleared. If the node clear later fails, the algorithm
+    // change is rolled back to the previous value.
+    const previousAlgo = algoConfig.gatewaySelectionAlgorithm;
+    const needsAlgoFlip = previousAlgo !== 'auto';
+    if (needsAlgoFlip) {
+      try {
+        await invoke('set_gateway_selection_algorithm', { algorithm: 'auto' });
+        dispatch({
+          type: 'set-gateway-selection-algorithm-config',
+          config: {
+            ...algoConfig,
+            gatewaySelectionAlgorithm: 'auto',
+          },
+        });
+      } catch (error: unknown) {
+        console.error(
+          'failed to set gateway selection algorithm to [auto]',
+          error,
+        );
+        add({
+          id: 'node-select-error',
+          title: t('quick-pick.select-error'),
+          type: 'error',
+        });
+        return;
+      }
+    }
+
+    // Clear the stored exit pick so it isn't re-applied next time the user
+    // visits Auto (ModeToggle derives algo from exitNode now).
+    try {
+      await invoke('set_node', { node: 'random', hop: node });
+      dispatch({
+        type: 'set-node',
+        payload: { hop: node, node: 'random' },
+      });
+    } catch (error: unknown) {
+      console.error('failed to clear exit node selection', error);
+      add({
+        id: 'node-select-error',
+        title: t('quick-pick.select-error'),
+        type: 'error',
+      });
+      if (needsAlgoFlip) {
+        await rollbackAlgo(previousAlgo);
+      }
+      return;
+    }
+    navigate(routes.root);
+    resetSaved(node);
+  };
+
+  const showBestServer =
+    node === 'exit' &&
+    (algoConfig.gatewaySelectionAlgorithm === 'auto' ||
+      algoConfig.gatewaySelectionAlgorithm === 'autoEntryExplicitExit');
+
+  const bestServerActive =
+    node === 'exit' && algoConfig.gatewaySelectionAlgorithm === 'auto';
+
+  // Random is only "active" when the user actually owns this hop's selection;
+  // in daemon-picked algos the stored 'random' is treated as no selection
+  // (mirrors useNodeListData).
+  const randomActive =
+    storedNode === 'random' &&
+    (node === 'entry'
+      ? algoConfig.gatewaySelectionAlgorithm === 'explicit'
+      : algoConfig.gatewaySelectionAlgorithm !== 'auto');
 
   const handleNodeDetails = (gateway: UiGateway) => {
     navigate(routes.nodeDetails, {
@@ -201,17 +346,45 @@ function Node({ node }: { node: NodeHop }) {
             </motion.div>
           )}
           {!loading && (
-            <NodeList
-              nodes={deferredNodes}
-              gateways={deferredGateways}
-              onSelect={handleSelect}
-              onNodeDetails={handleNodeDetails}
-              hop={node}
-              vpnMode={vpnMode}
-              quicFilter={quicFilter}
-              expanded={expanded}
-              focused={focused}
-            />
+            <>
+              <div className="flex w-full flex-col gap-3 px-3 pt-3">
+                <Button
+                  onClick={handleRandom}
+                  className={clsx(QUICK_PICK_CLASSES, {
+                    'border-primary-active border-2': randomActive,
+                  })}
+                >
+                  <MsIcon icon="shuffle" className="text-text-primary" />
+                  <span className="text-text-primary text-base">
+                    {t('quick-pick.random')}
+                  </span>
+                </Button>
+                {showBestServer && (
+                  <Button
+                    onClick={handleBestServer}
+                    className={clsx(QUICK_PICK_CLASSES, {
+                      'border-primary-active border-2': bestServerActive,
+                    })}
+                  >
+                    <MsIcon icon="auto_awesome" className="text-text-primary" />
+                    <span className="text-text-primary text-base">
+                      {t('quick-pick.best-server')}
+                    </span>
+                  </Button>
+                )}
+              </div>
+              <NodeList
+                nodes={deferredNodes}
+                gateways={deferredGateways}
+                onSelect={handleSelect}
+                onNodeDetails={handleNodeDetails}
+                hop={node}
+                vpnMode={vpnMode}
+                quicFilter={quicFilter}
+                expanded={expanded}
+                focused={focused}
+              />
+            </>
           )}
         </div>
       </PageAnim>

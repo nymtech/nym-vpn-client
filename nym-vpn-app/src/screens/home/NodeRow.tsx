@@ -2,13 +2,13 @@ import { useCallback, useMemo } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@base-ui/react';
 import { useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import {
+  ButtonIconNew,
   FlagIcon,
-  LewesIconComponent,
   MsIcon,
+  Skeleton,
   type countryCode,
 } from '../../ui';
 import { useAppStore, useLookupGw } from '../../store';
@@ -25,6 +25,7 @@ import { countriesWithRegions } from '../../constants';
 import { QuicTag } from '../index';
 import { routes } from '../../router';
 import { useNodeListState } from '../../store/nodeListState';
+import { StarIcon } from '../../assets/index';
 import { isBridgeMode, regionToCountryCode } from './util';
 import { ScoreIndicatorContainer } from './ScoreIndicatorContainer';
 
@@ -55,16 +56,35 @@ export type SelectedNodeDisplayProps = {
 export function NodeRow({ type }: NodeRowProps) {
   const { setFocused, addToExpanded, reset } = useNodeListState();
 
-  const { algo, state, userSelectedNode, tunnel, connectingState } =
-    useAppStore(
-      useShallow((s) => ({
-        algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
-        state: s.state,
-        userSelectedNode: type === 'entry' ? s.entryNode : s.exitNode,
-        tunnel: s.tunnel,
-        connectingState: s.connectingState,
-      })),
-    );
+  const {
+    algo,
+    state,
+    userSelectedNode,
+    tunnel,
+    connectingState,
+    vpnMode,
+    wgLoading,
+    mxEntryLoading,
+    mxExitLoading,
+    wg,
+    mxEntry,
+    mxExit,
+  } = useAppStore(
+    useShallow((s) => ({
+      algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
+      state: s.state,
+      userSelectedNode: type === 'entry' ? s.entryNode : s.exitNode,
+      tunnel: s.tunnel,
+      connectingState: s.connectingState,
+      vpnMode: s.vpnMode,
+      wgLoading: s.wgLoading,
+      mxEntryLoading: s.mxEntryLoading,
+      mxExitLoading: s.mxExitLoading,
+      wg: s.wg,
+      mxEntry: s.mxEntry,
+      mxExit: s.mxExit,
+    })),
+  );
 
   const navigate = useNavigate();
   const lookupGw = useLookupGw();
@@ -74,8 +94,6 @@ export function NodeRow({ type }: NodeRowProps) {
   const label = type === 'entry' ? t('nym-entry-server') : t('nym-exit-server');
 
   const handleClick = () => {
-    if (algo === 'auto') return;
-
     reset(type);
 
     if (isCountry(userSelectedNode)) {
@@ -171,7 +189,7 @@ export function NodeRow({ type }: NodeRowProps) {
       if (selected === 'random') {
         return {
           name: t('random', { ns: 'common' }),
-          location: 'Random server',
+          location: t('random-server'),
           ip: '',
           ...gwFlags(gw),
         };
@@ -190,23 +208,35 @@ export function NodeRow({ type }: NodeRowProps) {
     [getGatewayInfo, getLocationInfo, gwFlags, t],
   );
 
+  // The daemon picks both hops in 'auto' and the entry hop in
+  // 'autoEntryExplicitExit'. For those slots the stored userSelectedNode is
+  // stale UI state left over from earlier modes — ignore it and derive the
+  // row from the daemon-reported gateway only.
+  const daemonPicked =
+    algo === 'auto' || (algo === 'autoEntryExplicitExit' && type === 'entry');
+
+  // `lookupGw` is a stable store function — depending on it alone won't re-run
+  // this memo when the underlying wg/mx lists arrive after a mode switch.
+  // Include the list refs so the row updates as soon as gateways load.
   const gateway = useMemo(() => {
     const gw =
       type === 'entry'
         ? tunnel?.entryGwId || connectingState?.entryGwId
         : tunnel?.exitGwId || connectingState?.exitGwId;
 
-    switch (algo) {
-      case 'auto':
-        return gw ? lookupGw(gw, type) : null;
-      case 'autoEntryExplicitExit':
-      case 'explicit':
-        if (isGateway(userSelectedNode))
-          return lookupGw(userSelectedNode.gateway.id, type);
-        return gw ? lookupGw(gw, type) : null;
+    if (daemonPicked) {
+      return gw ? lookupGw(gw, type) : null;
     }
+    if (isGateway(userSelectedNode)) {
+      return lookupGw(userSelectedNode.gateway.id, type);
+    }
+    return gw ? lookupGw(gw, type) : null;
+    // lookupGw is a stable store function that reads wg/mxEntry/mxExit via
+    // get() — exhaustive-deps can't see that dependency, but we need to
+    // re-run the memo when those lists arrive after a mode switch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    algo,
+    daemonPicked,
     connectingState?.entryGwId,
     connectingState?.exitGwId,
     lookupGw,
@@ -214,75 +244,137 @@ export function NodeRow({ type }: NodeRowProps) {
     tunnel?.exitGwId,
     type,
     userSelectedNode,
+    wg,
+    mxEntry,
+    mxExit,
   ]);
 
   const nodeDetails = useMemo(() => {
-    switch (algo) {
-      case 'auto':
-        return getGatewayInfo(gateway?.id ?? '', gateway);
-      case 'autoEntryExplicitExit':
-      case 'explicit':
-        return nodeData(userSelectedNode, gateway);
+    if (daemonPicked) {
+      return getGatewayInfo(gateway?.id ?? '', gateway);
     }
-  }, [algo, gateway, getGatewayInfo, nodeData, userSelectedNode]);
+    // 'random' is a "let the daemon pick each time" selection; once we're
+    // connecting/connected we know which gateway it picked — show that
+    // instead of the generic "Random server" placeholder.
+    if (
+      userSelectedNode === 'random' &&
+      (state === 'connecting' || state === 'connected') &&
+      gateway
+    ) {
+      return getGatewayInfo(gateway.id, gateway);
+    }
+    return nodeData(userSelectedNode, gateway);
+  }, [
+    daemonPicked,
+    gateway,
+    getGatewayInfo,
+    nodeData,
+    state,
+    userSelectedNode,
+  ]);
+
+  // After switching vpnMode the new gateway list may not be loaded yet —
+  // lookupGw returns null and we'd otherwise render raw IDs. Show a Loading
+  // placeholder until the relevant list (wg / mx-entry / mx-exit) is ready.
+  const listLoading =
+    (vpnMode === 'wg' && wgLoading) ||
+    (vpnMode === 'mixnet' && type === 'entry' && mxEntryLoading) ||
+    (vpnMode === 'mixnet' && type === 'exit' && mxExitLoading);
+
+  const hasGatewayIdToResolve =
+    Boolean(
+      type === 'entry'
+        ? tunnel?.entryGwId || connectingState?.entryGwId
+        : tunnel?.exitGwId || connectingState?.exitGwId,
+    ) ||
+    (!daemonPicked && isGateway(userSelectedNode));
+
+  const showLoading = listLoading && !gateway && hasGatewayIdToResolve;
 
   const textLabel = useMemo(() => {
+    if (daemonPicked) {
+      return nodeDetails.ip || t('best-server-for-my-location');
+    }
     switch (algo) {
-      case 'auto':
-        return nodeDetails.ip ?? 'Best server for my location';
       case 'autoEntryExplicitExit':
         return state === 'connected' ? nodeDetails.ip : nodeDetails.name;
       case 'explicit':
         return state === 'connected'
           ? (gateway?.name ?? nodeDetails.name)
           : nodeDetails.name;
+      default:
+        return nodeDetails.name;
     }
-  }, [algo, gateway, nodeDetails, state]);
+  }, [
+    algo,
+    daemonPicked,
+    gateway?.name,
+    nodeDetails.ip,
+    nodeDetails.name,
+    state,
+    t,
+  ]);
 
   const descriptionLabel = useMemo(() => {
-    switch (algo) {
-      case 'auto':
-        return nodeDetails.location;
-      case 'autoEntryExplicitExit':
-      case 'explicit':
-        return isGateway(userSelectedNode) || state === 'connected'
-          ? nodeDetails.location
-          : null;
+    if (showLoading) return null;
+    if (daemonPicked) {
+      return nodeDetails.location;
     }
-  }, [algo, nodeDetails, state, userSelectedNode]);
+    return isGateway(userSelectedNode) || state === 'connected'
+      ? nodeDetails.location
+      : null;
+  }, [daemonPicked, nodeDetails, showLoading, state, userSelectedNode]);
+
+  // Only the entry hop is locked away from the user — in 'auto' /
+  // 'autoEntryExplicitExit' the daemon owns it, so the row is unclickable.
+  // The exit row stays interactive in every algo: in 'auto' picking an exit
+  // is what flips us into 'autoEntryExplicitExit' (see Node.tsx).
+  // When connecting/connected we also dim the row's content (but not the
+  // info button) to reinforce the non-interactive state.
+  const rowDisabled = daemonPicked && type === 'entry';
+  const rowDimmed =
+    rowDisabled && (state === 'connecting' || state === 'connected');
 
   return (
-    <>
-      <AnimatePresence initial={false}>
-        {algo !== 'auto' && (
-          <motion.p
-            key="label"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="text-text-secondary overflow-hidden text-xs leading-5 tracking-wide"
-          >
-            {label}
-          </motion.p>
-        )}
-      </AnimatePresence>
-      <Button
-        onClick={handleClick}
+    <div>
+      <p className="text-text-secondary text-xs leading-5 tracking-wide">
+        {label}
+      </p>
+      <div
+        role={rowDisabled ? undefined : 'button'}
+        tabIndex={rowDisabled ? undefined : 0}
+        aria-disabled={rowDisabled || undefined}
+        onClick={rowDisabled ? undefined : handleClick}
+        onKeyDown={
+          rowDisabled
+            ? undefined
+            : (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleClick();
+                }
+              }
+        }
         className={clsx(
           'group relative isolate w-full rounded-xl border border-transparent p-2 transition-all duration-150 ease-out',
-          algo !== 'auto' && 'hover:border-black dark:hover:border-white',
+          !rowDisabled && 'hover:border-black dark:hover:border-white',
+          rowDisabled && 'cursor-default',
         )}
       >
         <div className="z-10 flex flex-col items-start">
           <div className="flex w-full items-center justify-between gap-4">
-            <div className="flex flex-1 items-center gap-2 overflow-hidden">
+            <div
+              className={clsx(
+                'flex flex-1 items-center gap-2 overflow-hidden transition-opacity',
+                rowDimmed && 'opacity-60',
+              )}
+            >
               <ScoreIndicatorContainer score={nodeDetails.score} />
               <AnimatePresence mode="wait">
                 {nodeDetails.countryCode &&
                   (state === 'connected' ||
                     state === 'connecting' ||
-                    algo !== 'auto') && (
+                    !daemonPicked) && (
                     <motion.div
                       key={nodeDetails.countryCode}
                       initial={{ opacity: 0, x: 14 }}
@@ -300,27 +392,64 @@ export function NodeRow({ type }: NodeRowProps) {
                     </motion.div>
                   )}
               </AnimatePresence>
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={textLabel}
-                  custom={textLabel}
-                  variants={TEXT_VARIANTS}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  transition={{ duration: DURATION, ease: [0.32, 0.72, 0, 1] }}
-                  className="text-text-primary block min-w-0 flex-1 truncate overflow-hidden text-start text-base leading-6 tracking-[-0.08px]"
-                >
-                  {textLabel}
-                </motion.span>
-              </AnimatePresence>
+              {showLoading ? (
+                <Skeleton className="h-5 w-40" />
+              ) : (
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={textLabel}
+                    custom={textLabel}
+                    variants={TEXT_VARIANTS}
+                    initial="initial"
+                    animate="animate"
+                    exit="exit"
+                    transition={{
+                      duration: DURATION,
+                      ease: [0.32, 0.72, 0, 1],
+                    }}
+                    className="text-text-primary flex min-w-0 flex-1 gap-2 truncate overflow-hidden text-start text-base leading-6 tracking-[-0.08px]"
+                  >
+                    {daemonPicked && !gateway && <StarIcon />}
+                    {textLabel}
+                  </motion.span>
+                </AnimatePresence>
+              )}
             </div>
             <div className="flex flex-row items-center justify-center gap-3">
-              {nodeDetails.showQuic && <QuicTag />}
-              {nodeDetails.showStreamOptimized && (
-                <MsIcon icon="smart_display" className="text-cornflower" />
+              {nodeDetails.showQuic && (
+                <div
+                  className={clsx(
+                    'transition-opacity',
+                    rowDimmed && 'opacity-60',
+                  )}
+                >
+                  <QuicTag />
+                </div>
               )}
-              {gateway && <LewesIconComponent />}
+              {nodeDetails.showStreamOptimized && (
+                <MsIcon
+                  icon="smart_display"
+                  className={clsx(
+                    'text-cornflower transition-opacity',
+                    rowDimmed && 'opacity-60',
+                  )}
+                />
+              )}
+              {gateway && (
+                <ButtonIconNew
+                  size="small"
+                  icon="info"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(routes.nodeDetails, {
+                      state: {
+                        gateway: gateway,
+                      },
+                    });
+                  }}
+                />
+              )}
             </div>
           </div>
           <AnimatePresence initial={false}>
@@ -331,7 +460,10 @@ export function NodeRow({ type }: NodeRowProps) {
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                className="overflow-hidden"
+                className={clsx(
+                  'overflow-hidden transition-opacity',
+                  rowDimmed && 'opacity-60',
+                )}
               >
                 <p className="text-text-secondary text-xs leading-5 tracking-[0.18px]">
                   {descriptionLabel}
@@ -340,7 +472,7 @@ export function NodeRow({ type }: NodeRowProps) {
             )}
           </AnimatePresence>
         </div>
-      </Button>
-    </>
+      </div>
+    </div>
   );
 }

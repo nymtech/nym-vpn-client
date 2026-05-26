@@ -7,7 +7,7 @@ import { sleep } from '../util';
 import { MsIcon } from './index';
 
 export type ButtonIconNewProps = {
-  onClick: () => void;
+  onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
   icon: string;
   size?: 'small' | 'base';
   className?: string;
@@ -42,11 +42,11 @@ export function ButtonIconNew({
         !noDefaultSize && 'h-10 w-10',
         className && className,
       ])}
-      onClick={() => {
+      onClick={(e) => {
         if (clickFeedback) {
           clickAnim();
         }
-        onClick();
+        onClick(e);
       }}
     >
       <AnimatePresence mode="wait" initial={initialAnimation}>

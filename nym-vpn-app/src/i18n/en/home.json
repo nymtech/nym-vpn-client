@@ -15,12 +15,23 @@
   "offline-reconnect-message": "Will connect once the device goes online",
   "last-hop": "Exit",
   "first-hop": "Entry",
-  "nym-entry-server": "Nym entry server",
-  "nym-exit-server": "Nym exit server",
+  "nym-entry-server": "Entry server",
+  "nym-exit-server": "Exit server",
   "connecting-message": "Establishing connection",
   "connection-time": "Connection time",
   "select-mode-label": "Select mode",
   "select-node-title": "Connect to",
+  "best-server-for-my-location": "Use best server",
+  "random-server": "Random server",
+  "mode-toggle": {
+    "auto": "Auto",
+    "fast": "Fast",
+    "mixnet": "Mixnet"
+  },
+  "node-quick-pick": {
+    "random": "Random",
+    "best-server": "Best server"
+  },
   "privacy-mode": {
     "title": "Anonymous (mixnet)",
     "desc": "Maximum privacy for sensitive tasks"
