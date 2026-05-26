@@ -131,7 +131,7 @@ private extension GatewayCell {
         case .entry:
             connectionManager.setEntryGateway(.gateway(server.id))
         case .exit:
-            connectionManager.setExitGateway(.gateway(server.id))
+            connectionManager.applyExplicitExit(.gateway(server.id))
         }
         path = .init()
     }
