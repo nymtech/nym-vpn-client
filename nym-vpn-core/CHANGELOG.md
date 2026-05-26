@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Change default entry and exit points to random (https://github.com/nymtech/nym-vpn-client/pull/5378)
 
+### Fixed
+
+- [Android] Diagnostic doesn't panic because of uninitialized context (https://github.com/nymtech/nym-vpn-client/pull/5415)
+
 
 ## [1.30] - 2026-05-29
 
