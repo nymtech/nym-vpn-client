@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable domain fronting toggle (https://github.com/nymtech/nym-vpn-client/pull/5272)
 - Add checks for Private DNS state and show dialog when it's not off when turning on the Ad-block toggle (https://github.com/nymtech/nym-vpn-client/pull/5308)
 - Add pulsing effect for app logo (https://github.com/nymtech/nym-vpn-client/pull/5308)
+- Add alert when subscription expired (https://github.com/nymtech/nym-vpn-client/pull/5416)
 
 ### Changed
 - Update App theme, colors, typography (https://github.com/nymtech/nym-vpn-client/pull/5236)
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove reconnect on Ad-block toggle (https://github.com/nymtech/nym-vpn-client/pull/5269)
 - Remove PQ toggle (https://github.com/nymtech/nym-vpn-client/pull/5272)
 - Allow back press on Passphrase screen when passphrase revealed (https://github.com/nymtech/nym-vpn-client/pull/5276)
+- Update App icons (https://github.com/nymtech/nym-vpn-client/pull/5416)
 
 ### Fixed
 - Fix spinner position for Auto login dialog (https://github.com/nymtech/nym-vpn-client/pull/5287)
@@ -30,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix jumping logo on Splash screen (https://github.com/nymtech/nym-vpn-client/pull/5308)
 - Fix Connection Status view jumps when the connection time showed (https://github.com/nymtech/nym-vpn-client/pull/5308)
 - Fix wrapping of app count label on Split tunneling screen (https://github.com/nymtech/nym-vpn-client/pull/5308)
+- Don't allow user to connect when subscription expired (https://github.com/nymtech/nym-vpn-client/pull/5416)
 
 ## [3.4.0] - 8.05.2026
 
