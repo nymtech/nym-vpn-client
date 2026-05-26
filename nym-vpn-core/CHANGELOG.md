@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Change default entry and exit points to random (https://github.com/nymtech/nym-vpn-client/pull/5378)
+- Enable secure DNS for requests forwarded by local resolver (https://github.com/nymtech/nym-vpn-client/pull/5458)
 
 ### Fixed
 

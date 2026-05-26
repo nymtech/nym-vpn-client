@@ -20,7 +20,6 @@ libc.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
-nym-dns.workspace = true
 nym-common.workspace = true
 nym-firewall-config.workspace = true
 
