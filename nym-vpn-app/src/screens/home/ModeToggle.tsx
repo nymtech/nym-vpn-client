@@ -6,14 +6,14 @@ import { useShallow } from 'zustand/react/shallow';
 import {
   GatewayAnonymousIcon,
   GatewayFastIcon,
-  GatewayModeAutoIcon,
+  // GatewayModeAutoIcon,
 } from '../../assets/icons/gateway-mode';
 import { dispatch, useAppStore, useFetchGateways } from '../../store';
 import { useToast } from '../../hooks';
 import { GatewaySelectionAlgorithm, VpnMode } from '../../types';
 
 const MODES = [
-  { id: 'auto', Icon: GatewayModeAutoIcon },
+  // { id: 'auto', Icon: GatewayModeAutoIcon },
   { id: 'fast', Icon: GatewayFastIcon },
   { id: 'mixnet', Icon: GatewayAnonymousIcon },
 ] as const;
@@ -25,22 +25,21 @@ export const ModeToggle = () => {
   const { add } = useToast();
   const fetchGateways = useFetchGateways();
 
-  const { algo, vpnMode, gatewaySelectionAlgorithmConfig, exitNode } =
+  const { algo, vpnMode, gatewaySelectionAlgorithmConfig /*, exitNode */ } =
     useAppStore(
       useShallow((s) => ({
         algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
         vpnMode: s.vpnMode,
         gatewaySelectionAlgorithmConfig: s.gatewaySelectionAlgorithmConfig,
-        exitNode: s.exitNode,
+        // exitNode: s.exitNode,
       })),
     );
 
   const selected: Mode =
-    algo === 'auto' || algo === 'autoEntryExplicitExit'
-      ? 'auto'
-      : vpnMode === 'wg'
-        ? 'fast'
-        : 'mixnet';
+    // algo === 'auto' || algo === 'autoEntryExplicitExit'
+    //   ? 'auto'
+    //   :
+    vpnMode === 'wg' ? 'fast' : 'mixnet';
 
   const applyAlgorithm = async (
     algorithm: GatewaySelectionAlgorithm,
@@ -95,17 +94,19 @@ export const ModeToggle = () => {
 
   const handleSelect = async (mode: Mode) => {
     if (mode === selected) return;
-    const vpnModeToSet = mode === 'auto' || mode === 'fast' ? 'wg' : 'mixnet';
+    const vpnModeToSet =
+      /* mode === 'auto' || */ mode === 'fast' ? 'wg' : 'mixnet';
     // For Auto, preserve any explicit exit pick: if exitNode is a real
     // selection (country/region/gateway), use 'autoEntryExplicitExit' so the
     // exit row keeps showing it. Only fall back to plain 'auto' when there's
     // no user-picked exit ('random' is the "no pick" sentinel).
     const algorithmToSet: GatewaySelectionAlgorithm =
-      mode === 'auto'
-        ? exitNode === 'random'
-          ? 'auto'
-          : 'autoEntryExplicitExit'
-        : 'explicit';
+      // mode === 'auto'
+      //   ? exitNode === 'random'
+      //     ? 'auto'
+      //     : 'autoEntryExplicitExit'
+      //   :
+      'explicit';
     // Apply algorithm first: it's the higher-level intent. If it fails we
     // bail without touching vpnMode so the UI stays in its previous coherent
     // state instead of half-applying the user's intent.
