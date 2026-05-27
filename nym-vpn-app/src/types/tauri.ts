@@ -394,12 +394,6 @@ export type TCompleteDnsReport = {
   byNameserver: Array<TDiagnosticResult<Array<TDnsResolution>>>;
 };
 
-export type TDiagnosticEndpointResponse = {
-  status: string;
-  url: string;
-  frontHosts: Array<string> | null;
-};
-
 export type TDiagnosticGateway = {
   identityKey: string;
   name: string;
@@ -415,7 +409,6 @@ export type TDiagnosticReport = {
   dns: TCompleteDnsReport | null;
   http: TDiagnosticResult<THttpReport> | null;
   gateway: TGatewayReport | null;
-  hybridTransport: TDiagnosticResult<THybridTransportReport> | null;
 };
 
 export type TDiagnosticResult<T> = {
@@ -428,7 +421,6 @@ export type TDiagnosticRunParams = {
   gateway: string | null;
   skipDns: boolean;
   skipHttp: boolean;
-  skipHybridTransport: boolean;
 };
 
 export type TDnsResolution = {
@@ -443,19 +435,12 @@ export type TGatewayReport = {
   tcp: TDiagnosticResult<null> | null;
   websocket: TDiagnosticResult<null> | null;
   websocketRequest: TDiagnosticResult<string> | null;
-  lpHandshake: TDiagnosticResult<null> | null;
 };
 
 export type THttpReport = {
   remoteTime: TDiagnosticResult<TApiTimeSkew>;
   healthResponse: TDiagnosticResult<TDiagnosticHealthResponse>;
   nbNymnodes: TDiagnosticResult<number>;
-  byEndpoint: Array<TDiagnosticResult<TDiagnosticEndpointResponse>>;
-};
-
-export type THybridTransportReport = {
-  routingId: string;
-  handshakeDurationMs: bigint;
 };
 
 export type TNymVpnSubscription = {
@@ -530,8 +515,7 @@ export type TunnelError =
   | 'credential-wasted-on-entry-gateway'
   | 'credential-wasted-on-exit-gateway'
   | 'need-full-disk-permissions'
-  | 'split-tunnel'
-  | 'needs-relaxed-independence-criteria';
+  | 'split-tunnel';
 
 export type TunnelStateEvent = {
   state: TTunnelState;
