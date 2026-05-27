@@ -38,11 +38,6 @@ import UIComponents
         && appSettings.isQuicEnabled
     }
 
-    var isFastTab: Bool {
-        connectionManager.connectionType == .wireguard
-        && connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm == .explicit
-    }
-
     public init(
         type: HopType,
         path: Binding<NavigationPath>,
@@ -74,39 +69,7 @@ extension GatewaysViewModel {
         connectionManager.setEntryGateway(entry)
     }
 
-    func applyExitBestServerTap() {
-        let cfg = connectionManager.connectionConfig
-        if cfg.gatewaySelectionAlgorithmConfig.algorithm != .auto {
-            connectionManager.setGatewaySelectionAlgorithm(
-                NymGatewaySelectionAlgorithmConfig(
-                    enableGeoLocation: cfg.gatewaySelectionAlgorithmConfig.enableGeoLocation,
-                    algorithm: .auto
-                )
-            )
-        }
-        if !cfg.enableTwoHop {
-            connectionManager.setTwoHop(true)
-        }
-    }
-
     func applyExitRandomTap() {
-        let cfg = connectionManager.connectionConfig
-        let inAutoTab: Bool
-        switch cfg.gatewaySelectionAlgorithmConfig.algorithm {
-        case .auto, .autoEntryExplicitExit:
-            inAutoTab = true
-        case .explicit:
-            inAutoTab = false
-        }
-        if inAutoTab {
-            let geo = cfg.gatewaySelectionAlgorithmConfig.enableGeoLocation
-            connectionManager.setGatewaySelectionAlgorithm(
-                NymGatewaySelectionAlgorithmConfig(enableGeoLocation: geo, algorithm: .explicit)
-            )
-            if !cfg.enableTwoHop {
-                connectionManager.setTwoHop(true)
-            }
-        }
         connectionManager.setExitGateway(.random)
     }
 }
