@@ -4,6 +4,12 @@
 
 use std::{io, sync::Arc, time::Duration};
 
+/// How long to wait after a route is added before announcing "Connected".
+/// Windows adds routes to the routing table before the NIC/DHCP/stack is
+/// fully functional after resume from sleep, causing false-positive online
+/// signals. This small grace period lets the stack stabilise.
+const ONLINE_STABILIZATION_DELAY: Duration = Duration::from_secs(3);
+
 use tokio::sync::{Mutex, watch};
 use tokio_util::sync::CancellationToken;
 
@@ -46,6 +52,7 @@ impl BroadcastListener {
                 suspended: false,
             },
             notify_tx,
+            pending_online_cancel: None,
         }));
 
         let state = system_state.clone();
@@ -176,6 +183,8 @@ enum StateChange {
 struct SystemState {
     connectivity: ConnectivityInner,
     notify_tx: watch::Sender<Connectivity>,
+    /// Cancels a pending "Connected" notification during the stabilisation delay.
+    pending_online_cancel: Option<CancellationToken>,
 }
 
 impl SystemState {
@@ -195,9 +204,39 @@ impl SystemState {
 
         let new_state = self.connectivity.is_offline();
         if old_state != new_state {
-            tracing::info!("Connectivity changed: {}", is_offline_str(new_state));
-            if let Err(e) = self.notify_tx.send(self.connectivity.into_connectivity()) {
-                tracing::error!("Failed to send new offline state to daemon: {}", e);
+            if new_state {
+                // Going offline: cancel any pending "Connected" notification and notify immediately.
+                if let Some(cancel) = self.pending_online_cancel.take() {
+                    cancel.cancel();
+                }
+                tracing::info!("Connectivity changed: {}", is_offline_str(new_state));
+                if let Err(e) = self.notify_tx.send(self.connectivity.into_connectivity()) {
+                    tracing::error!("Failed to send new offline state to daemon: {}", e);
+                }
+            } else {
+                // Going online: debounce before notifying. Windows adds routes to the
+                // routing table before the NIC/network stack is fully functional after
+                // resume from sleep, so we wait a short period to avoid false positives.
+                if let Some(cancel) = self.pending_online_cancel.take() {
+                    cancel.cancel();
+                }
+                let cancel = CancellationToken::new();
+                self.pending_online_cancel = Some(cancel.clone());
+                let notify_tx = self.notify_tx.clone();
+                let online_connectivity = self.connectivity.into_connectivity();
+                tokio::spawn(async move {
+                    tokio::select! {
+                        _ = tokio::time::sleep(ONLINE_STABILIZATION_DELAY) => {
+                            tracing::info!("Connectivity changed: Connected");
+                            if let Err(e) = notify_tx.send(online_connectivity) {
+                                tracing::error!("Failed to send online state to daemon: {}", e);
+                            }
+                        }
+                        _ = cancel.cancelled() => {
+                            tracing::debug!("Pending online notification cancelled (went offline during stabilisation)");
+                        }
+                    }
+                });
             }
         }
     }
