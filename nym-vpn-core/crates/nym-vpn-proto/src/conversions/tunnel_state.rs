@@ -59,6 +59,7 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::NeedFullDiskPermissions => Self::NeedFullDiskPermissions,
             Reason::SplitTunnel => Self::SplitTunnel,
             Reason::NeedsRelaxedIndependenceCriteria => Self::NeedsRelaxedIndependenceCriteria,
+            Reason::ExplicitEntryGatewayNotWorking => Self::ExplicitEntryGatewayNotWorking,
             Reason::Internal => Self::Internal(value.message.unwrap_or_default()),
         })
     }
@@ -163,6 +164,10 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
             },
             ErrorStateReason::NeedsRelaxedIndependenceCriteria => Self {
                 reason: Reason::NeedsRelaxedIndependenceCriteria.into(),
+                message: None,
+            },
+            ErrorStateReason::ExplicitEntryGatewayNotWorking => Self {
+                reason: Reason::ExplicitEntryGatewayNotWorking.into(),
                 message: None,
             },
             ErrorStateReason::Internal(message) => Self {

@@ -30,4 +30,7 @@ pub enum GatewayProviderError {
 
     #[error("gateway pair can be found if user agrees to relax the gateway independence criteria")]
     NeedsRelaxedIndependenceCriteria,
+
+    #[error("explicit entry gateway selection is not working")]
+    ExplicitEntryGatewayNotWorking { identity: String },
 }
