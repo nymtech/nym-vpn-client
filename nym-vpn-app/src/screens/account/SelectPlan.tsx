@@ -33,6 +33,11 @@ function SelectPlan() {
     try {
       await autologin('autologinRenew');
 
+      // The PIN dialog is now showing and the user continues there / in the
+      // browser. Stop the button spinner while we wait for the checkout
+      // callback in the background.
+      setAutologinLoading(false);
+
       await startListening(600000);
 
       await invoke<void>('handle_subscription_payment');
