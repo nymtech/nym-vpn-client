@@ -140,6 +140,9 @@ import ConnectionTypes
     @AppStorage(AppSettingKey.oneClickDisplayMode.rawValue)
     public var oneClickDisplayModeRaw: String = "powerUser"
 
+    @AppStorage(AppSettingKey.oneClickAutoAlgorithm.rawValue)
+    public var oneClickAutoAlgorithmRaw: String = "auto"
+
     public var accountSummary: AccountSummary? {
         get {
             guard let json = accountSummaryCache,
@@ -255,6 +258,7 @@ public enum AppSettingKey: String {
     case accountSummaryCache
     case accountSummaryLastFetchedAt
     case oneClickDisplayMode
+    case oneClickAutoAlgorithm
 }
 
 extension Array: @retroactive RawRepresentable where Element: Codable {
