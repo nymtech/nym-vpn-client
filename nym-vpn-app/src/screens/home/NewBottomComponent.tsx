@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
-import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonVariant, type countryCode } from '../../ui';
 import {
@@ -14,7 +13,6 @@ import { useIsLinux, useToast } from '../../hooks';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { routes } from '../../router';
 import { Score } from '../../types';
-import type { TAutologinResponse } from '../../types';
 import { InteractiveCard } from './InteractiveCard';
 import { ModeToggle } from './ModeToggle';
 import { MnemonicBackupBanner } from './MnemonicBackupBanner';
@@ -39,7 +37,7 @@ export type SelectedNodeDisplayProps = {
 
 export function NewBottomComponent() {
   const navigate = useAnimatedNavigate();
-  const { t, i18n } = useTranslation('home');
+  const { t } = useTranslation('home');
   const { state, daemonStatus, accountState, account } = useMainState();
   const isLinux = useIsLinux();
   const isLocallyGenerated = useAccountLocallyGenerated();
@@ -74,22 +72,18 @@ export function NewBottomComponent() {
 
   const { add } = useToast();
 
-  // On Linux, "Get a plan" registers the anonymous account then opens the
-  // autologin checkout URL. On other platforms we navigate to the in-app plan
-  // selection screen (existing behaviour).
+  // On Linux, "Get a plan" first registers the locally-generated anonymous
+  // account with the backend (so the website can sign the user in), then routes
+  // to the standard plan-selection screen which drives the autologin checkout
+  // (PIN dialog + deeplink). On other platforms we navigate there directly.
   const linuxNeedsPlan = isLinux && showGetPlan;
 
   const handleGetPlan = async () => {
     setPlanLoading(true);
     try {
+      // Idempotent: no-op if already registered.
       await invoke('register_anonymous_account');
-      const result = await invoke<TAutologinResponse | null>(
-        'get_autologin_deeplink',
-        { locale: i18n.language, kind: 'createAccount' },
-      );
-      if (result?.url) {
-        await openUrl(result.url);
-      }
+      navigate(routes.selectPlan);
     } catch (e) {
       console.error('[NewBottomComponent] get-plan failed:', e);
       add({ id: 'get-plan-error', title: t('get-plan.error'), type: 'error' });
