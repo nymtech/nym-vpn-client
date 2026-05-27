@@ -74,7 +74,7 @@ const defaultSplitTunnel = {
 
 const defaultGatewaySelectionAlgorithmConfig = {
   enableGeoLocation: true,
-  gatewaySelectionAlgorithm: 'auto',
+  gatewaySelectionAlgorithm: 'explicit',
 } as GatewaySelectionAlgorithmConfig;
 
 if (!import.meta.env.DEV) {
