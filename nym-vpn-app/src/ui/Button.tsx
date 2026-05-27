@@ -87,7 +87,7 @@ function Button({
         'data-disabled:pointer-events-none',
         'focus-visible:outline-brand-primary focus-visible:outline-2 focus-visible:outline-offset-2',
         disabled
-          ? 'bg-text-tertiary dark:bg-surface-elev text-text-secondary'
+          ? 'text-text-secondary bg-surface-hair'
           : [...variantStyles[variant]],
         className,
       ])}
