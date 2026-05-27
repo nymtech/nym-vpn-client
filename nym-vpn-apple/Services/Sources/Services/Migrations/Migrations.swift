@@ -6,6 +6,9 @@ import AppSettings
 import ConfigurationManager
 import ConnectionTypes
 import ConnectionTypes
+#if os(iOS)
+import TunnelMixnet
+#endif
 
 @MainActor public final class Migrations {
     private let appSettings: AppSettings
@@ -26,6 +29,9 @@ import ConnectionTypes
 
     public func setup() {
         migrateToMainnet()
+#if os(iOS)
+        MixnetConfigStorage.migrateFromKeychainIfNeeded()
+#endif
     }
 }
 

@@ -151,6 +151,14 @@ extension ConnectionManager {
     }
 
     func fetchConnectionConfig() async {}
+
+    @MainActor
+    func sendAfterPersistingConfig(_ message: TunnelProviderMessage) async {
+        if let cfg = try? generateConfig() {
+            MixnetConfigStorage.save(cfg)
+        }
+        await tunnelsManager.send(message)
+    }
 }
 
 extension ConnectionManager {

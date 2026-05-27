@@ -3,7 +3,6 @@ import NetworkExtension
 import Logging
 import Constants
 import ErrorReason
-import Keychain
 #if os(iOS)
 import ErrorHandler
 #endif
@@ -60,7 +59,6 @@ extension TunnelsManager {
                     }
                     managers.remove(at: idx)
                 }
-                Keychain.deleteReferences(except: [])
                 try await loadTunnels()
             } catch {
                 logger.error("Failed to reset VPN profile: \(error.localizedDescription)")
@@ -99,39 +97,7 @@ extension TunnelsManager {
 private extension TunnelsManager {
     func loadAllTunnelManagers() async throws -> [Tunnel] {
         do {
-            var managers = try await NETunnelProviderManager.loadAllFromPreferences()
-            var refs: Set<Data> = []
-            var tunnelNames: Set<String> = []
-
-            for (idx, manager) in managers.enumerated().reversed() {
-                if let name = manager.localizedDescription { tunnelNames.insert(name) }
-
-                guard let proto = manager.protocolConfiguration as? NETunnelProviderProtocol else { continue }
-
-#if os(iOS)
-                let passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
-#elseif os(macOS)
-                let passwordRef: Data?
-                if proto.providerConfiguration?["UID"] as? uid_t == getuid() {
-                    passwordRef = proto.verifyConfigurationReference() ? proto.passwordReference : nil
-                } else {
-                    // Multiple users on macOS: skip verification to avoid false negatives
-                    passwordRef = proto.passwordReference
-                }
-#else
-#error("Unimplemented")
-#endif
-
-                if let ref = passwordRef {
-                    refs.insert(ref)
-                } else {
-                    manager.removeFromPreferences { _ in }
-                    managers.remove(at: idx)
-                }
-            }
-
-            Keychain.deleteReferences(except: refs)
-
+            let managers = try await NETunnelProviderManager.loadAllFromPreferences()
             return managers.map { Tunnel(tunnel: $0) }
         } catch {
             throw TunnelsManagerError.tunnelList(error: error)
