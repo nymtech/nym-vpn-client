@@ -70,10 +70,8 @@ public final class OneClickViewModel {
         self.impactGenerator = impactGenerator
         self.networkMonitor = networkMonitor
 
-        let storedAlgorithm = connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm
         self.displayMode = OneClickDisplayMode(rawValue: appSettings.oneClickDisplayModeRaw) ?? .powerUser
         self.speedMode = OneClickSpeedMode(
-            algorithm: storedAlgorithm,
             isTwoHop: connectionManager.connectionConfig.enableTwoHop
         )
 
@@ -100,10 +98,8 @@ public final class OneClickViewModel {
         self.networkMonitor = networkMonitor
         self.grpcManager = grpcManager
 
-        let storedAlgorithm = connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm
         self.displayMode = OneClickDisplayMode(rawValue: appSettings.oneClickDisplayModeRaw) ?? .powerUser
         self.speedMode = OneClickSpeedMode(
-            algorithm: storedAlgorithm,
             isTwoHop: connectionManager.connectionConfig.enableTwoHop
         )
 
@@ -181,23 +177,8 @@ public final class OneClickViewModel {
         speedMode = mode
 
         let cfg = connectionManager.connectionConfig
-        let nextAlgorithm: NymGatewaySelectionAlgorithm
         switch mode {
-        case .auto:
-            nextAlgorithm = NymGatewaySelectionAlgorithm(rawValue: appSettings.oneClickAutoAlgorithmRaw) ?? .auto
-        case .fast, .anonymous:
-            nextAlgorithm = .explicit
-        }
-        if cfg.gatewaySelectionAlgorithmConfig.algorithm != nextAlgorithm {
-            connectionManager.setGatewaySelectionAlgorithm(
-                NymGatewaySelectionAlgorithmConfig(
-                    enableGeoLocation: cfg.gatewaySelectionAlgorithmConfig.enableGeoLocation,
-                    algorithm: nextAlgorithm
-                )
-            )
-        }
-        switch mode {
-        case .auto, .fast:
+        case .fast:
             if !cfg.enableTwoHop {
                 connectionManager.setTwoHop(true)
             }
@@ -240,17 +221,7 @@ private extension OneClickViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] config in
                 guard let self else { return }
-                let algo = config.gatewaySelectionAlgorithmConfig.algorithm
-                speedMode = OneClickSpeedMode(
-                    algorithm: algo,
-                    isTwoHop: config.enableTwoHop
-                )
-                switch algo {
-                case .auto, .autoEntryExplicitExit:
-                    appSettings.oneClickAutoAlgorithmRaw = algo.rawValue
-                case .explicit:
-                    break
-                }
+                speedMode = OneClickSpeedMode(isTwoHop: config.enableTwoHop)
                 refreshSelection()
             }
             .store(in: &cancellables)
@@ -375,80 +346,27 @@ private extension OneClickViewModel {
                 return
             }
             isLiveConnection = false
-            let isAuto = speedMode == .auto
             switch displayMode {
             case .powerUser:
                 entrySelectionPhase = .selecting
-                selectionPhase = resolveExitPhaseForMode(
+                selectionPhase = resolveExitPhase(
                     exit: cfg.exit,
-                    gatewayType: exitType,
-                    isAuto: isAuto
+                    gatewayId: cfg.exit.gatewayId,
+                    gatewayType: exitType
                 )
             case .nerd:
-                entrySelectionPhase = resolveEntryPhaseForMode(
+                entrySelectionPhase = resolveEntryPhase(
                     entry: cfg.entry,
-                    gatewayType: entryType,
-                    isAuto: isAuto
+                    gatewayId: cfg.entry.gatewayId,
+                    gatewayType: entryType
                 )
-                selectionPhase = resolveExitPhaseForMode(
+                selectionPhase = resolveExitPhase(
                     exit: cfg.exit,
-                    gatewayType: exitType,
-                    isAuto: isAuto
+                    gatewayId: cfg.exit.gatewayId,
+                    gatewayType: exitType
                 )
             }
         }
-    }
-
-    func resolveExitPhaseForMode(
-        exit: ExitRouter,
-        gatewayType: NodeType,
-        isAuto: Bool
-    ) -> OneClickSelectionPhase {
-        let algo = connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm
-        if isAuto && algo == .auto {
-            return autoBestPhase(matchingExit: .random, gatewayType: gatewayType, hopType: .exit)
-        }
-        return resolveExitPhase(
-            exit: exit,
-            gatewayId: exit.gatewayId,
-            gatewayType: gatewayType
-        )
-    }
-
-    func resolveEntryPhaseForMode(
-        entry: EntryGateway,
-        gatewayType: NodeType,
-        isAuto: Bool
-    ) -> OneClickSelectionPhase {
-        // Auto mode: ignore stored entry; always show "Use best server" with
-        // star (view dims the row when speedMode == .auto). Fast/Anonymous
-        // surface the actual selected entry.
-        if isAuto {
-            let best = gatewayManager.bestGateway(matching: EntryGateway.random, gatewayType: gatewayType)
-            return .selected(makeAutoBestInfo(from: best, hopType: .entry))
-        }
-        return resolveEntryPhase(
-            entry: entry,
-            gatewayId: entry.gatewayId,
-            gatewayType: gatewayType
-        )
-    }
-
-    func autoBestPhase(matchingExit exit: ExitRouter, gatewayType: NodeType, hopType: HopType) -> OneClickSelectionPhase {
-        let best = gatewayManager.bestGateway(matching: exit, gatewayType: gatewayType)
-        return .selected(makeAutoBestInfo(from: best, hopType: hopType))
-    }
-
-    func makeAutoBestInfo(from gateway: GatewayNode?, hopType: HopType) -> OneClickServerInfo {
-        OneClickServerInfo(
-            countryCode: gateway?.location?.twoLetterIsoCountryCode ?? "",
-            title: "oneClick.server.bestForLocation".localizedString,
-            subtitle: nil,
-            score: gateway.map { score(for: $0) } ?? .offline,
-            isAutoBest: true,
-            gateway: gateway,
-            hopType: hopType
-        )
     }
 
     func isLiveStatus(_ status: TunnelStatus) -> Bool {
@@ -697,12 +615,7 @@ private extension OneClickViewModel {
 }
 
 private extension OneClickSpeedMode {
-    init(algorithm: NymGatewaySelectionAlgorithm, isTwoHop: Bool) {
-        switch algorithm {
-        case .auto, .autoEntryExplicitExit:
-            self = .auto
-        case .explicit:
-            self = isTwoHop ? .fast : .anonymous
-        }
+    init(isTwoHop: Bool) {
+        self = isTwoHop ? .fast : .anonymous
     }
 }
