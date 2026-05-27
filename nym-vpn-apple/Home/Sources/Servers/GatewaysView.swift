@@ -173,31 +173,16 @@ private extension GatewaysView {
             case .entry:
                 GatewayRandomCell(
                     type: .entry,
-                    kind: .random,
                     path: $viewModel.path,
                     entryGateway: entryGatewayBinding,
-                    exitRouter: exitRouterBinding,
-                    algorithm: viewModel.connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm
+                    exitRouter: exitRouterBinding
                 )
             case .exit:
-                if !viewModel.isFastTab {
-                    GatewayRandomCell(
-                        type: .exit,
-                        kind: .bestServer,
-                        path: $viewModel.path,
-                        entryGateway: entryGatewayBinding,
-                        exitRouter: exitRouterBinding,
-                        algorithm: viewModel.connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm,
-                        onTap: { viewModel.applyExitBestServerTap() }
-                    )
-                }
                 GatewayRandomCell(
                     type: .exit,
-                    kind: .random,
                     path: $viewModel.path,
                     entryGateway: entryGatewayBinding,
                     exitRouter: exitRouterBinding,
-                    algorithm: viewModel.connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm,
                     onTap: { viewModel.applyExitRandomTap() }
                 )
             }
