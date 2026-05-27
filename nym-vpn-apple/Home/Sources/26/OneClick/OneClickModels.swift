@@ -20,7 +20,6 @@ public enum OneClickDisplayMode: String, Codable, Equatable, Sendable, CaseItera
 }
 
 public enum OneClickSpeedMode: String, Codable, Equatable, Sendable, CaseIterable {
-    case auto
     case fast
     case anonymous
 }
@@ -63,7 +62,6 @@ public struct OneClickServerInfo: Equatable {
     public var title: String
     public var subtitle: String?
     public var score: OneClickServerScore
-    public var isAutoBest: Bool
     public var gateway: GatewayNode?
     public var hopType: HopType?
     public var showsInfoButton: Bool
@@ -73,7 +71,6 @@ public struct OneClickServerInfo: Equatable {
         title: String,
         subtitle: String?,
         score: OneClickServerScore,
-        isAutoBest: Bool = false,
         gateway: GatewayNode? = nil,
         hopType: HopType? = nil,
         showsInfoButton: Bool = false
@@ -82,7 +79,6 @@ public struct OneClickServerInfo: Equatable {
         self.title = title
         self.subtitle = subtitle
         self.score = score
-        self.isAutoBest = isAutoBest
         self.gateway = gateway
         self.hopType = hopType
         self.showsInfoButton = showsInfoButton

@@ -10,7 +10,7 @@ public struct NymGatewaySelectionAlgorithmConfig: Codable, Equatable, Sendable {
 
     public init(
         enableGeoLocation: Bool = true,
-        algorithm: NymGatewaySelectionAlgorithm = .auto
+        algorithm: NymGatewaySelectionAlgorithm = .explicit
     ) {
         self.enableGeoLocation = enableGeoLocation
         self.algorithm = algorithm
