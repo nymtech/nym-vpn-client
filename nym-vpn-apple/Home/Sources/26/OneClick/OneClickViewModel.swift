@@ -184,11 +184,7 @@ public final class OneClickViewModel {
         let nextAlgorithm: NymGatewaySelectionAlgorithm
         switch mode {
         case .auto:
-            if case .random = cfg.exit {
-                nextAlgorithm = .auto
-            } else {
-                nextAlgorithm = .autoEntryExplicitExit
-            }
+            nextAlgorithm = NymGatewaySelectionAlgorithm(rawValue: appSettings.oneClickAutoAlgorithmRaw) ?? .auto
         case .fast, .anonymous:
             nextAlgorithm = .explicit
         }
@@ -200,7 +196,6 @@ public final class OneClickViewModel {
                 )
             )
         }
-
         switch mode {
         case .auto, .fast:
             if !cfg.enableTwoHop {
@@ -245,10 +240,17 @@ private extension OneClickViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] config in
                 guard let self else { return }
+                let algo = config.gatewaySelectionAlgorithmConfig.algorithm
                 speedMode = OneClickSpeedMode(
-                    algorithm: config.gatewaySelectionAlgorithmConfig.algorithm,
+                    algorithm: algo,
                     isTwoHop: config.enableTwoHop
                 )
+                switch algo {
+                case .auto, .autoEntryExplicitExit:
+                    appSettings.oneClickAutoAlgorithmRaw = algo.rawValue
+                case .explicit:
+                    break
+                }
                 refreshSelection()
             }
             .store(in: &cancellables)
@@ -402,7 +404,8 @@ private extension OneClickViewModel {
         gatewayType: NodeType,
         isAuto: Bool
     ) -> OneClickSelectionPhase {
-        if isAuto, case .random = exit {
+        let algo = connectionManager.connectionConfig.gatewaySelectionAlgorithmConfig.algorithm
+        if isAuto && algo == .auto {
             return autoBestPhase(matchingExit: .random, gatewayType: gatewayType, hopType: .exit)
         }
         return resolveExitPhase(
