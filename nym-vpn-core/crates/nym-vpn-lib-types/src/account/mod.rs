@@ -8,10 +8,10 @@ pub mod deeplink;
 pub mod request_zknym;
 pub mod ticketbooks;
 
+use serde::{Deserialize, Serialize};
 #[cfg(feature = "serde")]
 use std::time::Instant;
-use serde::{Deserialize, Serialize};
-use time::{OffsetDateTime};
+use time::OffsetDateTime;
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 

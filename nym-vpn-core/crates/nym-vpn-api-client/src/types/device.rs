@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, sync::Arc, time::Instant};
+use std::{fmt, sync::Arc};
 
 use nym_crypto::asymmetric::ed25519;
 use sha2::Digest as _;
@@ -13,7 +13,6 @@ use super::VpnApiTime;
 #[derive(Clone)]
 pub struct Device {
     keypair: Arc<ed25519::KeyPair>,
-    last_checked: Instant,
 }
 
 impl Device {
@@ -41,10 +40,6 @@ impl Device {
     pub fn sign_identity_key(&self) -> DeviceSignature {
         self.sign(self.identity_key().to_base58_string())
     }
-
-    pub fn last_checked(&self) -> Instant {
-        self.last_checked
-    }
 }
 
 impl fmt::Display for Device {
@@ -65,7 +60,7 @@ impl fmt::Debug for Device {
 
 impl From<Arc<ed25519::KeyPair>> for Device {
     fn from(keypair: Arc<ed25519::KeyPair>) -> Self {
-        Self { keypair, last_checked: Instant::now() }
+        Self { keypair }
     }
 }
 
@@ -73,7 +68,6 @@ impl From<ed25519::KeyPair> for Device {
     fn from(keypair: ed25519::KeyPair) -> Self {
         Self {
             keypair: Arc::new(keypair),
-            last_checked: Instant::now()
         }
     }
 }
