@@ -18,8 +18,6 @@ pub use authentication::AuthenticationMaterial;
 pub use authentication::SigningRequirements;
 #[cfg(all(target_os = "linux", feature = "daemon"))]
 pub use authentication::linux::request_action_authorization;
-#[cfg(all(target_os = "linux", feature = "daemon"))]
-pub use authentication::linux::self_credentials;
 
 #[cfg(any(
     target_os = "linux",

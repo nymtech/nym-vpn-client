@@ -180,31 +180,18 @@ async fn wait_for_authorization(
     }
 }
 
-/// Return [`UnixCredentials`] for the current process (pid, uid, gid).
+/// Request per-call polkit authorization for an arbitrary action id, on behalf
+/// of the calling client identified by its unix-socket peer credentials
+/// (`pid`/`uid`). Installs the policy file on first use if it doesn't already
+/// exist. Returns Ok if the user authenticated; Err otherwise.
 ///
-/// Used as a fallback subject for polkit when the calling client's peer
-/// credentials are not available (e.g. from a tonic gRPC handler that does not
-/// yet thread unix socket peer credentials through the request extensions).
-pub fn self_credentials() -> UnixCredentials {
-    UnixCredentials::new()
-}
-
-/// Request per-call polkit authorization for an arbitrary action id.
-/// Installs the policy file on first use if it doesn't already exist.
-/// Returns Ok if the user authenticated; Err otherwise.
-///
-/// NOTE: the `pid` and `uid` in `cred` are used as the Subject for polkit.
-/// Currently callers that don't have access to the peer unix-socket credentials
-/// (e.g. tonic gRPC handlers) pass the daemon's own process credentials
-/// (`std::process::id()`, `nix::unistd::getuid()`).  The polkit prompt still
-/// fires and authenticates whoever is at the keyboard; the only difference is
-/// that the *subject* reported to polkit is the daemon rather than the actual
-/// client.
-///
-/// TODO: thread real peer credentials through the tonic request extensions so
-/// that this function receives the calling client's pid/uid instead.
+/// The `pid`/`uid` MUST be the credentials of the *client* (e.g. extracted from
+/// the tonic `UdsConnectInfo` peer credentials), not the daemon's own. polkit
+/// uses them as the authorization Subject; using the (root) daemon's own
+/// credentials would auto-authorize without prompting.
 pub async fn request_action_authorization(
-    cred: UnixCredentials,
+    pid: i32,
+    uid: u32,
     action_id: &str,
     policy_xml: &str,
     shutdown_token: CancellationToken,
@@ -221,11 +208,9 @@ pub async fn request_action_authorization(
         .map_err(AuthenticationError::AuthorityProxy)?;
 
     let subject = Subject::new_for_owner(
-        cred.pid()
-            .try_into()
-            .map_err(AuthenticationError::NumberConversion)?,
+        pid.try_into().map_err(AuthenticationError::NumberConversion)?,
         None,
-        Some(cred.uid()),
+        Some(uid),
     )
     .map_err(AuthenticationError::Subject)?;
 

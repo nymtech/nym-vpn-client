@@ -679,21 +679,25 @@ impl NymVpnService for CommandInterface {
     ) -> Result<tonic::Response<proto::GetStoredMnemonicResponse>> {
         #[cfg(target_os = "linux")]
         {
-            // Build credentials for the polkit subject.
-            // NOTE: We use the daemon's own process credentials as a fallback
-            // because peer credentials from the unix socket client are not
-            // currently threaded through the tonic request extensions.  The
-            // polkit prompt still fires and authenticates whoever is at the
-            // keyboard; the difference is that the *subject* reported to polkit
-            // is the daemon process rather than the calling client.
-            //
-            // TODO: propagate real client peer credentials via tonic request
-            // extensions (see nym-ipc accept loop) and remove this fallback.
-            let _ = &request;
-            let cred = nym_ipc::self_credentials();
+            // Use the calling client's unix-socket peer credentials as the polkit
+            // Subject so the prompt targets the (unprivileged) GUI user. Using the
+            // daemon's own credentials would auto-authorize, since the daemon runs
+            // as root.
+            let peer_cred = request
+                .extensions()
+                .get::<tonic::transport::server::UdsConnectInfo>()
+                .and_then(|info| info.peer_cred)
+                .ok_or_else(|| {
+                    tonic::Status::unauthenticated("no peer credentials available")
+                })?;
+            let pid = peer_cred.pid().ok_or_else(|| {
+                tonic::Status::unauthenticated("peer credentials missing pid")
+            })?;
+            let uid = peer_cred.uid();
 
             nym_ipc::request_action_authorization(
-                cred,
+                pid,
+                uid,
                 REVEAL_MNEMONIC_ACTION_ID,
                 REVEAL_MNEMONIC_POLICY,
                 self.shutdown_token.clone(),
