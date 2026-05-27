@@ -40,10 +40,10 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
 import nym_vpn_lib_types.EstablishConnectionState
 
-private const val OUTER_RADIUS = 45f
-private const val MIDDLE_RADIUS = 31f
-private const val INNER_RADIUS = 17f
-private const val ARC_STROKE = 6f
+private const val OUTER_RADIUS = 82.4f
+private const val MIDDLE_RADIUS = 68.4f
+private const val INNER_RADIUS = 54.4f
+private const val ARC_STROKE = 5.5f
 private const val LABEL_OFFSET = 14f
 
 @Composable
@@ -258,7 +258,7 @@ private fun DrawScope.drawArcGlow(color: Color, sweepAngle: Float, topLeft: Offs
 	if (sweepAngle <= 0.5f || glowIntensity <= 0.01f) return
 	val base = color.alpha
 	drawArc(
-		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.1f)),
+		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.12f)),
 		startAngle = -90f,
 		sweepAngle = sweepAngle,
 		useCenter = false,
@@ -267,7 +267,7 @@ private fun DrawScope.drawArcGlow(color: Color, sweepAngle: Float, topLeft: Offs
 		style = Stroke(width = strokePx * 5f),
 	)
 	drawArc(
-		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.1f)),
+		color = color.copy(alpha = minOf(1f, base * glowIntensity * 0.3f)),
 		startAngle = -90f,
 		sweepAngle = sweepAngle,
 		useCenter = false,
