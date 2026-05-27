@@ -59,7 +59,7 @@ function AccountSettingRow() {
             leadingIcon: 'person',
             onClick: () => navigate(routes.accountSettings),
             trailing: (
-              <MsIcon icon="chevron_right" className="dark:text-white" />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
         ]}

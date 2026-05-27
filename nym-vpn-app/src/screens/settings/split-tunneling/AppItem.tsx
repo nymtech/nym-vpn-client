@@ -38,8 +38,8 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
   return (
     <div
       className={clsx(
-        'dark:bg-surface-elev flex items-center gap-3 bg-white px-4 py-3',
-        os === 'linux' && 'dark:hover:bg-surface-elev/75 hover:bg-black/10',
+        'bg-surface-bg flex items-center gap-3 px-4 py-3',
+        os === 'linux' && 'hover:bg-surface-elev',
         isProblematic && 'cursor-not-allowed opacity-50',
       )}
       onClick={handleClick}

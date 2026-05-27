@@ -22,7 +22,7 @@ import { LocationDetailsDialog } from './location-details-dialog';
 import { NodeList, useFilterList } from './list';
 
 const QUICK_PICK_CLASSES =
-  'dark:bg-surface-elev dark:hover:bg-surface-elev/75 flex cursor-default flex-row items-center gap-3 rounded-2xl bg-white p-4 transition-all duration-100 hover:bg-white/60';
+  'bg-surface-bg hover:bg-surface-hair flex cursor-default flex-row items-center gap-3 rounded-2xl p-4 transition-all duration-100';
 
 function Node({ node }: { node: NodeHop }) {
   const daemonStatus = useAppStore((s) => s.daemonStatus);

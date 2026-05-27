@@ -42,7 +42,7 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
             className={clsx([
               'cursor-default',
               'relative flex min-h-16 px-5 py-2 focus:outline-hidden',
-              'bg-surface-bg hover:bg-surface-hair',
+              'bg-surface-elev hover:bg-surface-hair',
               'transition duration-75',
               index === 0 && 'rounded-t-2xl',
               index !== 0 && 'border-surface-bg border-t',

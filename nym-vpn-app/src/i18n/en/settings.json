@@ -24,13 +24,6 @@
       "failed": "Failed to enable LAN bypass"
     }
   },
-  "lewes": {
-    "title": "Post-quantum",
-    "desc": "Always prefer post-quantum gateways",
-    "errors": {
-      "failed": "Failed to enable Post-quantum"
-    }
-  },
   "notifications": {
     "title": "Desktop notifications"
   },
