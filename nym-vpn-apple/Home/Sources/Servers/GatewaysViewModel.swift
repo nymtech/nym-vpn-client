@@ -76,7 +76,6 @@ extension GatewaysViewModel {
 
     func applyExitBestServerTap() {
         let cfg = connectionManager.connectionConfig
-        connectionManager.setExitGateway(.random)
         if cfg.gatewaySelectionAlgorithmConfig.algorithm != .auto {
             connectionManager.setGatewaySelectionAlgorithm(
                 NymGatewaySelectionAlgorithmConfig(

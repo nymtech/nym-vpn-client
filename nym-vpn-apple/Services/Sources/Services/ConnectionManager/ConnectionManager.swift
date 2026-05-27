@@ -154,6 +154,9 @@ private extension ConnectionManager {
 public extension ConnectionManager {
     func resetVpnProfile() {
         tunnelsManager.resetVpnProfile()
+#if os(iOS)
+        MixnetConfigStorage.delete()
+#endif
     }
 }
 

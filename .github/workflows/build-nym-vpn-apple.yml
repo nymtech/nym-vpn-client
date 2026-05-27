@@ -372,7 +372,7 @@ jobs:
           sh BuildCore.sh
 
       - name: Resolve iOS build number (qa/ship only)
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_IOS == 'true' }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
         working-directory: nym-vpn-apple
         env:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
@@ -414,7 +414,7 @@ jobs:
           echo "IOS_TESTFLIGHT_LATEST=$LATEST" >> "$GITHUB_ENV"
 
       - name: Resolve iOS build number (PR only)
-        if: ${{ env.RELEASE_TYPE == 'pr' && env.BUILD_IOS == 'true' }}
+        if: ${{ env.RELEASE_TYPE == 'pr' }}
         working-directory: nym-vpn-apple
         run: |
           set -euo pipefail

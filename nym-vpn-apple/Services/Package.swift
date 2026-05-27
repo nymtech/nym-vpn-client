@@ -169,7 +169,8 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "ConfigurationManager",
-                .product(name: "ConnectionTypes", package: "ServicesMutual")
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .target(name: "TunnelMixnet", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/Migrations"
         ),
@@ -226,7 +227,6 @@ let package = Package(
             dependencies: [
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
-                "Keychain",
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
@@ -246,6 +246,7 @@ let package = Package(
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
+                "PathManager",
                 "Tunnels"
             ],
             path: "Sources/Services/TunnelMixnet"
