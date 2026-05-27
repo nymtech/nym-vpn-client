@@ -41,6 +41,7 @@ type SelectedGatewaysStream =
 #[derive(Clone)]
 pub struct GatewayProvider<C: GatewayCache> {
     gateway_cache: C,
+    latest_tunnel_settings: TunnelSettings,
     tunnel_settings_tx: mpsc::Sender<SelectAndSend>,
     selected_gateways_stream: SelectedGatewaysStream,
     blacklisted_entry_gateways: BlacklistedGateways,
@@ -72,6 +73,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
     ) -> (Self, JoinHandle<()>) {
+        let latest_tunnel_settings = tunnel_settings.clone();
         let (tunnel_settings_tx, tunnel_settings_rx) = mpsc::channel(1);
         let blacklisted_entry_gateways = BlacklistedGateways::new();
         let (query_control_tx, query_control_rx) = mpsc::unbounded_channel();
@@ -119,6 +121,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         (
             Self {
                 gateway_cache,
+                latest_tunnel_settings,
                 tunnel_settings_tx,
                 selected_gateways_stream,
                 blacklisted_entry_gateways,
@@ -245,13 +248,19 @@ impl<C: GatewayCache> GatewayProvider<C> {
         self.gateway_cache.refresh_all().await.ok();
     }
 
-    pub fn clear_blacklisted_entry_gateways(&self) {
+    pub async fn clear_blacklisted_entry_gateways(&self) {
         match self.blacklisted_entry_gateways.is_empty() {
             Ok(is_empty) => {
                 if !is_empty {
                     tracing::info!("Clearing blacklisted entry gateways");
                     if let Err(e) = self.blacklisted_entry_gateways.clear() {
                         tracing::error!("Failed to clear blacklisted entry gateway list: {e}");
+                    } else {
+                        let _ = self.set_tunnel_settings(self.latest_tunnel_settings.clone())
+                            .await
+                            .inspect_err(|err| {
+                                tracing::warn!("Could not re-create gateway selection stream after blacklisting a gateway: {err:?}");
+                        });
                     }
                 }
             }
@@ -259,7 +268,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         }
     }
 
-    pub fn add_blacklisted_entry_gateway(&self, entry_gateway_identifier: NodeIdentity) {
+    pub async fn add_blacklisted_entry_gateway(&self, entry_gateway_identifier: NodeIdentity) {
         if let Err(e) = self
             .blacklisted_entry_gateways
             .add(entry_gateway_identifier)
@@ -273,6 +282,13 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 "Blacklisted entry gateway {} due to repeated connection failure",
                 entry_gateway_identifier
             );
+            let _ = self.set_tunnel_settings(self.latest_tunnel_settings.clone())
+                .await
+                .inspect_err(|err| {
+                    tracing::warn!(
+                        "Could not re-create gateway selection stream after blacklisting a gateway: {err:?}"
+                    )
+                });
         }
     }
 }
