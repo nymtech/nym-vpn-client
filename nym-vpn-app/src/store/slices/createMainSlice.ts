@@ -160,7 +160,7 @@ export const initialState: AppState = {
   splitTunnel: { enabled: false, apps: [] },
   gatewaySelectionAlgorithmConfig: {
     enableGeoLocation: true,
-    gatewaySelectionAlgorithm: 'auto',
+    gatewaySelectionAlgorithm: 'explicit',
   },
 };
 
