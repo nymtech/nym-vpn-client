@@ -237,7 +237,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         )
         .await;
 
-        let (latest_tunnel_settings, selected_gateways_stream) = (
+        let (mut latest_tunnel_settings, mut selected_gateways_stream) = (
             self.latest_tunnel_settings.lock().await,
             self.selected_gateways_stream.lock().await,
         );
