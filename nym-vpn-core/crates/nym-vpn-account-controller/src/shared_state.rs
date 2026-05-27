@@ -6,7 +6,7 @@ use nym_vpn_api_client::{
     VpnApiClient,
     types::{Device, VpnAccount},
 };
-use nym_vpn_lib_types::VpnAccountSummary;
+use nym_vpn_lib_types::StoredVpnAccountSummary;
 use std::sync::Arc;
 
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
@@ -45,7 +45,7 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     pub(crate) vpn_api_account: Option<Arc<VpnAccount>>,
 
     /// Account summary
-    pub(crate) vpn_account_summary: Option<VpnAccountSummary>,
+    pub(crate) vpn_account_summary: Option<StoredVpnAccountSummary>,
 
     /// Registered device
     pub(crate) device: Option<Device>,

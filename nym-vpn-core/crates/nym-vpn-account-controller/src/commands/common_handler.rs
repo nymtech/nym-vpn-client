@@ -203,7 +203,11 @@ pub(crate) async fn handle_get_available_tickets<C: ConnectivityMonitor>(
 pub(crate) async fn handle_get_account_summary<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<VpnAccountSummary>, AccountCommandError> {
-    Ok(shared_state.vpn_account_summary.clone())
+    Ok(shared_state
+        .vpn_account_summary
+        .as_ref()
+        .map(AsRef::as_ref)
+        .cloned())
 }
 
 pub(crate) async fn handle_get_deeplink<C: ConnectivityMonitor>(

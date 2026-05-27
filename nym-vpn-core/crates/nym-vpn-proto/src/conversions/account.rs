@@ -302,6 +302,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             account_mode,
             subscription,
             is_subscription_stacked: value.is_subscription_stacked,
+            account_active: false,
         })
     }
 }

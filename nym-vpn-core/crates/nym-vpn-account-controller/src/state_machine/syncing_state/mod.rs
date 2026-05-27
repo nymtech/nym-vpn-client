@@ -1,7 +1,11 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{cmp::min, sync::Arc, time::{Duration, Instant}};
+use std::{
+    cmp::min,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use crate::{
     SharedAccountState,
@@ -20,7 +24,8 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AccountControllerErrorStateReason, VpnAccountSummary,
+    AccountCommandError, AccountControllerErrorStateReason, StoredVpnAccountSummary,
+    VpnAccountSummary,
 };
 use requesting_zknym_state::RequestingZkNymsState;
 use tokio::sync::mpsc;
@@ -41,7 +46,7 @@ const NON_FORCED_ACCOUNT_UPDATE_CHECK_DELAY: Duration = Duration::from_mins(15);
 
 enum SyncEvent {
     /// Account summary is received
-    AccountSummary(Box<VpnAccountSummary>),
+    AccountSummary(Box<StoredVpnAccountSummary>),
 
     /// Failure to complete synchronization
     Failure(SyncError),
@@ -100,19 +105,16 @@ impl SyncingState {
         let sync_cancel_token = CancellationToken::new();
 
         if let Some(summary) = shared_state.vpn_account_summary.as_ref() {
-            if Self::sufficiency_checks(summary, device) {
+            if Self::stored_account_sufficiency_check(summary) {
                 debug!(
                     "stored account & device information sufficiently timely and relevant - skipping API"
                 );
-                event_tx.send(SyncEvent::Finished);
+                let _ = event_tx.send(SyncEvent::Finished);
             }
             return RequestingZkNymsState::enter(shared_state, attempts, false);
         }
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
-
-        let (event_tx, event_rx) = mpsc::unbounded_channel();
-        let sync_cancel_token = CancellationToken::new();
 
         // This handle does not need to be awaited since event channel and cancellation token are sufficient.
         let _syncing_state_handle =
@@ -171,18 +173,6 @@ impl SyncingState {
             return Err(SyncError::DeviceTimeDesynced);
         }
 
-        // If the information in the stored shared state was updated recently enough and indicates
-        // that the account is in good state proceed without a network access.
-        if self.stored_account_sufficiency_check() {
-            // If the device information is relevant and timely proceed without a network access
-            if self.stored_device_sufficiency_check() {
-                return Ok(());
-            }
-
-            // Move to device registration / information
-            return SyncingState::register_device(&vpn_api_client, &vpn_api_account, &device).await;
-        }
-
         // Stored account summary is potentially out of date, insufficient, or a update is forced.
         // Go to network to ensure fresh information.
         let summary = vpn_api_client
@@ -202,26 +192,14 @@ impl SyncingState {
         .await
     }
 
-    fn sufficiency_checks(summary: &VpnAccountSummary, device: &Device) -> bool {
+    fn stored_account_sufficiency_check(summary: &StoredVpnAccountSummary) -> bool {
         if Instant::now() - summary.received_at > NON_FORCED_ACCOUNT_UPDATE_CHECK_DELAY {
-            return false
+            return false;
         }
-
-        if Instant::now() - device.received_at > NON_FORCED_ACCOUNT_UPDATE_CHECK_DELAY {
-            return false
-        }
-
-        Self::stored_account_sufficiency_check(summary)
-            && Self::stored_device_sufficiency_check(device)
-    }
-
-    fn stored_account_sufficiency_check(summary: &VpnAccountSummary) -> bool {
-        let account_active = summary.subscription.account_active;
-        account_active && summary.is_subscription_active() && summary.fair_usage_left()
-    }
-
-    fn stored_device_sufficiency_check(device: &Device) -> bool {
-        false
+        let account_active = summary.summary.account_active;
+        account_active
+            && summary.as_ref().is_subscription_active()
+            && summary.as_ref().fair_usage_left()
     }
 
     async fn handle_received_account_summary(
@@ -242,7 +220,7 @@ impl SyncingState {
 
         // Propagate account summary even if sync eventually fails.
         let _ = event_tx.send(SyncEvent::AccountSummary(Box::new(
-            vpn_account_summary.clone(),
+            vpn_account_summary.clone().into(),
         )));
 
         // Checking that the account is active

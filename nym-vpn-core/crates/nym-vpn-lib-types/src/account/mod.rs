@@ -9,8 +9,9 @@ pub mod request_zknym;
 pub mod ticketbooks;
 
 #[cfg(feature = "serde")]
+use std::time::Instant;
 use serde::{Deserialize, Serialize};
-use time::{Instant, OffsetDateTime};
+use time::{OffsetDateTime};
 #[cfg(feature = "typescript-bindings")]
 use ts_rs::TS;
 
@@ -248,6 +249,39 @@ impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiErrorRespons
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct StoredVpnAccountSummary {
+    pub summary: VpnAccountSummary,
+    pub received_at: Instant,
+}
+
+impl From<VpnAccountSummary> for StoredVpnAccountSummary {
+    fn from(value: VpnAccountSummary) -> Self {
+        Self {
+            summary: value,
+            received_at: Instant::now(),
+        }
+    }
+}
+
+impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse>
+    for StoredVpnAccountSummary
+{
+    type Error = nym_vpn_api_client::error::VpnApiClientError;
+
+    fn try_from(
+        value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
+    ) -> Result<Self, Self::Error> {
+        Ok(Self::from(VpnAccountSummary::try_from(value)?))
+    }
+}
+
+impl AsRef<VpnAccountSummary> for StoredVpnAccountSummary {
+    fn as_ref(&self) -> &VpnAccountSummary {
+        &self.summary
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(
     feature = "typescript-bindings",
@@ -276,9 +310,7 @@ pub struct VpnAccountSummary {
     pub account_mode: Option<StoredAccountMode>,
     pub subscription: Option<Subscription>,
     pub is_subscription_stacked: bool,
-
     pub account_active: bool,
-    pub received_at: Instant,
 }
 
 // Exported methods
@@ -325,8 +357,6 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
     fn try_from(
         value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
     ) -> Result<Self, Self::Error> {
-        use nym_vpn_api_client::response::NymVpnAccountSummaryResponse;
-
         let traffic_reset_time = value
             .fair_usage
             .resetsOnUtc
@@ -357,7 +387,7 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
         };
 
         Ok(Self {
-            account_active: value.account.status == NymVpnAccountStatusResponse::Active,
+            account_active: false, // value.account.status == NymVpnAccountStatusResponse::Active,
             traffic_used_gb: value.fair_usage.usedGB,
             traffic_limit_gb: value.fair_usage.limitGB,
             traffic_reset_time,
@@ -368,7 +398,6 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             account_mode: None,
             subscription,
             is_subscription_stacked: value.subscription.is_stacked,
-            received_at: Instant::now(),
         })
     }
 }

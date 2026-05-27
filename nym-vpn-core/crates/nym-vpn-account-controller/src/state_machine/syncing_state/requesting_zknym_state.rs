@@ -82,7 +82,7 @@ impl RequestingZkNymsState {
         };
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
-        let fair_usage_left = vpn_account_summary.fair_usage_left();
+        let fair_usage_left = vpn_account_summary.as_ref().fair_usage_left();
 
         // can we make that unique to that state?
         let storage = shared_state.credential_storage.clone();
