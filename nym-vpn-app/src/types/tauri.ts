@@ -563,7 +563,6 @@ export type VpndConfig = {
   frontingMode: FrontingMode;
   minGatewayVpnPerformance: number | null;
   residentialExit: boolean;
-  enableLewesProtocol: boolean;
   mixnetTraffic: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;

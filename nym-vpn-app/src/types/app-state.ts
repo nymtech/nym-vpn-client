@@ -47,7 +47,6 @@ export type InitState = {
   enableAdBlocking: boolean;
   customDnsEnabled: boolean;
   customDns: string[];
-  enableLewesProtocol: boolean;
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
@@ -109,7 +108,6 @@ export type AppState = {
   customDnsEnabled: boolean;
   customDns: string[];
   defaultDns: string[];
-  enableLewesProtocol: boolean;
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
