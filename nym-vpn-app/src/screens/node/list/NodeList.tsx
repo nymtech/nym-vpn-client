@@ -64,7 +64,7 @@ const NodeList = memo(function NodeList({
 
   if (nodes.length === 0 && gateways.length === 0) {
     return (
-      <div className="space-y-4 px-6">
+      <div className="space-y-4 px-6 py-4">
         <p className="text-text-primary truncate">
           {t('no-results-found.title')}
         </p>

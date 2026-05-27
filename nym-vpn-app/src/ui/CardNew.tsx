@@ -149,10 +149,11 @@ export function CardHeaderSwitch({
     <div
       className={clsx(
         'flex w-full flex-row items-center justify-between gap-4 select-none',
-        'dark:bg-surface-elev min-h-16 rounded-t-lg bg-white px-4 py-4',
-        !noHoverEffect && 'hover:bg-text-secondary/5 dark:hover:bg-black/10',
+        'min-h-16 rounded-t-lg px-4 py-4',
+        'bg-surface-bg',
+        !noHoverEffect && 'hover:bg-surface-hair',
         'cursor-default',
-        disabled && 'pointer-events-none',
+        disabled && 'pointer-events-none opacity-50',
         'overflow-hidden',
         className,
       )}
@@ -205,9 +206,8 @@ export function CardNew({ children, disabled, className }: CardNewProps) {
   return (
     <div
       className={clsx([
-        '',
         'flex flex-col overflow-hidden select-none',
-        'bg-surface-bg min-h-16 rounded-2xl',
+        'bg-surface-elev min-h-16 rounded-2xl',
         'cursor-default transition',
         disabled && 'pointer-events-none opacity-50',
         className,

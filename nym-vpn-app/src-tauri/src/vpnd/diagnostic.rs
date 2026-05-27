@@ -42,6 +42,8 @@ pub struct DiagnosticReport {
     pub http: Option<DiagnosticResult<HttpReport>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub gateway: Option<GatewayReport>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hybrid_transport: Option<DiagnosticResult<HybridTransportReport>>,
 }
 
 impl From<lib::DiagnosticReport> for DiagnosticReport {
@@ -52,6 +54,26 @@ impl From<lib::DiagnosticReport> for DiagnosticReport {
                 .http
                 .map(|r| DiagnosticResult::from_lib(r, HttpReport::from)),
             gateway: report.gateway.map(GatewayReport::from),
+            hybrid_transport: report
+                .hybrid_transport
+                .map(|r| DiagnosticResult::from_lib(r, HybridTransportReport::from)),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "THybridTransportReport")]
+#[serde(rename_all = "camelCase")]
+pub struct HybridTransportReport {
+    pub routing_id: String,
+    pub handshake_duration_ms: u64,
+}
+
+impl From<lib::HybridTransportReport> for HybridTransportReport {
+    fn from(report: lib::HybridTransportReport) -> Self {
+        Self {
+            routing_id: report.routing_id,
+            handshake_duration_ms: report.handshake_duration_ms as u64,
         }
     }
 }
@@ -113,6 +135,7 @@ pub struct HttpReport {
     pub remote_time: DiagnosticResult<ApiTimeSkew>,
     pub health_response: DiagnosticResult<DiagnosticHealthResponse>,
     pub nb_nymnodes: DiagnosticResult<usize>,
+    pub by_endpoint: Vec<DiagnosticResult<DiagnosticEndpointResponse>>,
 }
 
 impl From<lib::HttpReport> for HttpReport {
@@ -131,6 +154,31 @@ impl From<lib::HttpReport> for HttpReport {
                 error: report.health_response.error,
             },
             nb_nymnodes: report.nb_nymnodes.into(),
+            by_endpoint: report
+                .by_endpoint
+                .into_iter()
+                .map(|r| DiagnosticResult::from_lib(r, DiagnosticEndpointResponse::from))
+                .collect(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
+#[ts(export, export_to = "tauri.ts", rename = "TDiagnosticEndpointResponse")]
+#[serde(rename_all = "camelCase")]
+pub struct DiagnosticEndpointResponse {
+    pub status: String,
+    pub url: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub front_hosts: Option<Vec<String>>,
+}
+
+impl From<lib::DiagnosticEndpointResponse> for DiagnosticEndpointResponse {
+    fn from(r: lib::DiagnosticEndpointResponse) -> Self {
+        Self {
+            status: r.status,
+            url: r.url.url,
+            front_hosts: r.url.front_hosts,
         }
     }
 }
@@ -173,6 +221,8 @@ pub struct GatewayReport {
     pub websocket: Option<DiagnosticResult<()>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub websocket_request: Option<DiagnosticResult<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lp_handshake: Option<DiagnosticResult<()>>,
 }
 
 impl From<lib::GatewayReport> for GatewayReport {
@@ -184,6 +234,7 @@ impl From<lib::GatewayReport> for GatewayReport {
             tcp: report.tcp.map(DiagnosticResult::from),
             websocket: report.websocket.map(DiagnosticResult::from),
             websocket_request: report.websocket_request.map(DiagnosticResult::from),
+            lp_handshake: report.lp_handshake.map(DiagnosticResult::from),
         }
     }
 }

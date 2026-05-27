@@ -37,7 +37,7 @@ function Lang() {
     >
       <div
         className={clsx(
-          'bg-surface-elev sticky -top-4 right-0 left-0 mb-4 w-full pt-4',
+          'bg-surface-bg sticky -top-4 right-0 left-0 mb-4 w-full pt-4',
         )}
       >
         <SettingsMenuCard

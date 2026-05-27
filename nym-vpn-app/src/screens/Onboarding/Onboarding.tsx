@@ -26,8 +26,8 @@ const ArrowButton = ({
     <HuButton
       onClick={onClick}
       className={clsx(
-        'bg-surface-elev my-2 mr-2 flex h-11 w-11 items-center justify-center rounded-full',
-        !disabled && 'hover:bg-surface-elev/70',
+        'bg-surface-bg my-2 mr-2 flex h-11 w-11 items-center justify-center rounded-full',
+        !disabled && 'hover:bg-surface-hair',
       )}
     >
       <MsIcon

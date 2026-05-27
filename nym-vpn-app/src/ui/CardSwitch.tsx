@@ -49,10 +49,11 @@ function CardSwitch({
     <div
       className={clsx(
         'flex w-full flex-row items-center justify-between gap-4 select-none',
-        'dark:bg-surface-elev min-h-16 rounded-t-lg bg-white px-5 py-4',
-        !noHoverEffect && 'hover:bg-text-secondary/5 dark:hover:bg-black/10',
+        'min-h-16 rounded-t-lg px-5 py-4',
+        'bg-surface-elev',
+        !noHoverEffect && 'hover:bg-surface-hair',
         'cursor-default',
-        disabled && 'pointer-events-none',
+        disabled && 'pointer-events-none opacity-50',
         'overflow-hidden',
         className,
       )}
