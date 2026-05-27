@@ -31,6 +31,7 @@ pub enum TunnelError {
     NeedFullDiskPermissions,
     SplitTunnel,
     NeedsRelaxedIndependenceCriteria,
+    ExplicitEntryGatewayNotWorking,
 }
 
 impl From<lib::ErrorStateReason> for TunnelError {
@@ -70,6 +71,9 @@ impl From<lib::ErrorStateReason> for TunnelError {
             lib::ErrorStateReason::SplitTunnel => TunnelError::SplitTunnel,
             lib::ErrorStateReason::NeedsRelaxedIndependenceCriteria => {
                 TunnelError::NeedsRelaxedIndependenceCriteria
+            }
+            lib::ErrorStateReason::ExplicitEntryGatewayNotWorking => {
+                TunnelError::ExplicitEntryGatewayNotWorking
             }
         }
     }
