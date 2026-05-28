@@ -8,6 +8,8 @@ class CoreVpnConfigRepository(context: Context) {
 
 	private val store = CoreVpnConfigStore(context)
 
+	suspend fun migrate() = store.migrateAlgorithmIfNeeded()
+
 	suspend fun get(): CoreVpnConfig = store.configFlow.first()
 
 	suspend fun applyUpdate(update: CoreVpnConfigUpdate): CoreVpnConfig = applyUpdates(listOf(update))
