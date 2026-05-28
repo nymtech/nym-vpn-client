@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Node family restriction and possibility to check for probable gateway selection before connection (https://github.com/nymtech/nym-vpn-client/pull/5285)
+- Enable detection for bad gateways even when specifically selected (https://github.com/nymtech/nym-vpn-client/pull/5429)
 
 ### Changed
 
