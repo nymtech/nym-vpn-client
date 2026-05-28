@@ -140,6 +140,10 @@ import ConnectionTypes
     @AppStorage(AppSettingKey.oneClickDisplayMode.rawValue)
     public var oneClickDisplayModeRaw: String = "powerUser"
 
+    // No persisted appIcon: UIApplication.shared.alternateIconName is the
+    // single source of truth and survives launches. Persisting it via
+    // @AppStorage would only create a second source that nothing reads.
+
     public var accountSummary: AccountSummary? {
         get {
             guard let json = accountSummaryCache,

@@ -26,6 +26,10 @@ struct SettingsFlowCoordinator<Content: View>: View {
             appearanceDestination()
         case .displayTheme:
             displayThemeDestination()
+#if os(iOS)
+        case .appIcon:
+            appIconDestination()
+#endif
         case .support:
             supportDestination()
         case .legal:
@@ -99,6 +103,15 @@ private extension SettingsFlowCoordinator {
             )
         )
     }
+
+#if os(iOS)
+    @ViewBuilder
+    func appIconDestination() -> some View {
+        AppIconView(
+            viewModel: AppIconViewModel(path: $flowState.path)
+        )
+    }
+#endif
 
     @ViewBuilder
     func supportDestination() -> some View {

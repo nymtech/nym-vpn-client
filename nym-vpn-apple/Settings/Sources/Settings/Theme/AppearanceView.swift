@@ -25,6 +25,12 @@ public struct AppearanceView: View {
                     .frame(height: 24)
                 theme()
                     .frame(maxWidth: MagicNumbers.maxWidth)
+#if os(iOS)
+                Spacer()
+                    .frame(height: 24)
+                appIcon()
+                    .frame(maxWidth: MagicNumbers.maxWidth)
+#endif
 #if os(macOS)
                 Spacer()
                     .frame(height: 24)
@@ -80,6 +86,22 @@ extension AppearanceView {
             )
         )
     }
+
+#if os(iOS)
+    func appIcon() -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.appIcon.title".localizedString,
+                systemImageName: "square.grid.2x2",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {
+                    navigateToAppIcon()
+                }
+            )
+        )
+    }
+#endif
 }
 
 #if os(macOS)
