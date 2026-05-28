@@ -669,7 +669,7 @@ impl TunnelStateHandler for ConnectingState {
                     }
                     TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
                         // We have successfully connected, clear any blacklisted entry gateways
-                        shared_state.gateway_provider.clear_blacklisted_entry_gateways();
+                        shared_state.gateway_provider.clear_blacklisted_entry_gateways().await;
 
                         NextTunnelState::NewState(ConnectedState::enter(
                             tunnel_interface,
@@ -706,7 +706,7 @@ impl TunnelStateHandler for ConnectingState {
                         // entry gateways for a while and force gateway re-selection.
                         if let Some(ref selected_gateways) = self.selected_gateways {
                             let entry_gateway_identifier = selected_gateways.entry_gateway().identity;
-                            shared_state.gateway_provider.add_blacklisted_entry_gateway(entry_gateway_identifier);
+                            shared_state.gateway_provider.add_blacklisted_entry_gateway(entry_gateway_identifier).await;
                             self.selected_gateways = None;
                         }
                         NextTunnelState::SameState(self)

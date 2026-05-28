@@ -337,13 +337,50 @@ fn test_low_performance_fallback_for_country_selection() {
     );
 
     // Without Low fallback, this would fail
-    let base_filters = GatewayFilters::from(&[GatewayFilter::MinScore(ScoreValue::Low)]);
-    let result = gateways.find_entry_gateway(&entry_point, &base_filters);
+    let optional_filters = GatewayFilters::from(&[GatewayFilter::MinScore(ScoreValue::Low)]);
+    let result =
+        gateways.find_entry_gateway(&entry_point, &GatewayFilters::default(), &optional_filters);
     assert!(result.is_ok());
     assert_eq!(
         result.unwrap().performance.as_ref().unwrap().score,
         ScoreValue::Low
     );
+}
+
+#[test]
+fn test_direct_selection_with_blacklisting() {
+    let gateway = create_test_gateway(
+        "DoezvC92kAVDhFpBbsRj52rErhikj2vtPi1Lup2EhbZ4",
+        "VN",
+        ScoreValue::Offline,
+    );
+
+    let entry_point = EntryPoint::Gateway {
+        identity: gateway.identity,
+    };
+
+    let gateways = GatewayList::new(Some(GatewayType::Wg), vec![gateway.clone()]);
+
+    let base_filters = GatewayFilters::default();
+    let optional_filters = GatewayFilters::from(&[GatewayFilter::MinScore(ScoreValue::Low)]);
+
+    // Performance is not taken into account for direct selections because it's an optional filter
+    let result = gateways.find_entry_gateway(&entry_point, &base_filters, &optional_filters);
+    assert!(result.is_ok());
+    assert_eq!(
+        result.unwrap().performance.as_ref().unwrap().score,
+        ScoreValue::Offline
+    );
+
+    // Base fitering like blacklisting is always taken into consideration
+    let blacklisted_gateways = BlacklistedGateways::new();
+    blacklisted_gateways.add(gateway.identity).unwrap();
+    let base_filters = GatewayFilters::from(&[GatewayFilter::NotBlacklisted(blacklisted_gateways)]);
+    let result = gateways.find_entry_gateway(&entry_point, &base_filters, &optional_filters);
+    assert!(matches!(
+        result,
+        Err(Error::MatchingEntryGatewayNotWorking { .. })
+    ));
 }
 
 #[test]

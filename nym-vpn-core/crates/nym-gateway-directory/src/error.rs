@@ -4,6 +4,8 @@
 use nym_http_api_client::HttpClientError;
 use nym_validator_client::nym_api::error::NymAPIError;
 
+use crate::GatewayFilters;
+
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("identity not formatted correctly: {identity}")]
@@ -44,6 +46,12 @@ pub enum Error {
 
     #[error("no matching gateway found: {requested_identity}")]
     NoMatchingGateway { requested_identity: String },
+
+    #[error("matching entry gateway {identity} is not passing mandatory filters {filters:?}")]
+    MatchingEntryGatewayNotWorking {
+        identity: String,
+        filters: GatewayFilters,
+    },
 
     #[error(
         "no entry gateway available for location {requested_location}, available countries: {available_countries:?}"
