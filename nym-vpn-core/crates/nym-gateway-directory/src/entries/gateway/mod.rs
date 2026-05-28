@@ -807,7 +807,7 @@ impl GatewayList {
             EntryPoint::Gateway { identity } => {
                 tracing::debug!("Selecting gateway by identity: {identity}");
 
-                self.gateway_with_identity_filtered(identity, &base_filters)
+                self.gateway_with_identity_filtered(identity, base_filters)
                     .ok_or_else(|| {
                         if self.gateway_with_identity(identity).is_some() {
                             Error::MatchingEntryGatewayNotWorking {
