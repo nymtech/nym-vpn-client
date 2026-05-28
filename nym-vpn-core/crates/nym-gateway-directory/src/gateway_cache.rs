@@ -295,9 +295,12 @@ impl GatewayCache {
 
     async fn perform_initial_fetch_once(&mut self) {
         if !self.is_performed_initial_refresh {
-            tracing::debug!("Performing initial gateway refresh");
-            self.is_performed_initial_refresh = true;
-            self.refresh_all().await;
+            self.is_performed_initial_refresh = self.refresh_all().await;
+            if self.is_performed_initial_refresh {
+                tracing::debug!("Initial gateway refresh completed successfully");
+            } else {
+                tracing::warn!("Initial gateway refresh failed");
+            }
         }
     }
 
@@ -322,12 +325,14 @@ impl GatewayCache {
         self.is_performed_initial_refresh = false;
     }
 
-    async fn refresh_all(&mut self) {
+    async fn refresh_all(&mut self) -> bool {
         let gw_types = self.get_stale_gateway_list_types();
 
         if !gw_types.is_empty() {
             tracing::debug!("Refreshing gateways: {:?}", gw_types,);
-            self.refresh(gw_types).await;
+            self.refresh(gw_types).await
+        } else {
+            false
         }
     }
 
@@ -337,10 +342,10 @@ impl GatewayCache {
             .collect()
     }
 
-    async fn refresh(&mut self, gw_list_types: Vec<GatewayType>) {
+    async fn refresh(&mut self, gw_list_types: Vec<GatewayType>) -> bool {
         if self.connectivity_handle.connectivity().await.is_offline() {
             tracing::debug!("Not refreshing gateways because we are not connected");
-            return;
+            return false;
         }
 
         tracing::debug!("Refreshing gateway lists: {gw_list_types:?}");
@@ -355,6 +360,8 @@ impl GatewayCache {
             });
         }
 
+        let mut ok = false;
+
         while let Some(res) = tasks.join_next().await {
             match res {
                 Ok((gw_type, r)) => match r {
@@ -362,6 +369,7 @@ impl GatewayCache {
                         tracing::debug!("Refreshed gateways for {gw_type:?}");
                         self.cached_gateways
                             .insert(gw_type, (refreshed_gateways, Instant::now()));
+                        ok = true;
                     }
                     Err(err) => {
                         tracing::debug!("Failed to refresh gateways for {gw_type:?}: {err}");
@@ -372,6 +380,8 @@ impl GatewayCache {
                 }
             }
         }
+
+        ok
     }
 
     fn is_gateways_current(&self, gw_type: &GatewayType) -> bool {
