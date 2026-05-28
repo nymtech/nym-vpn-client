@@ -205,21 +205,8 @@ fn select_entry(
         }
     };
 
-    let gateway = find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters)
-        .map_err(GatewayProviderError::EntryGatewayUnavailable)?;
-    if entry_filters.iter().any(|f| {
-        if let GatewayFilter::NotBlacklisted(blacklist) = f {
-            blacklist.exists(&gateway.identity()).unwrap_or(false)
-        } else {
-            false
-        }
-    }) {
-        Err(GatewayProviderError::ExplicitEntryGatewayNotWorking {
-            identity: gateway.identity().to_string(),
-        })
-    } else {
-        Ok(gateway)
-    }
+    find_best_entry_gateway(&entry_gateways, entry_ordering_criteria, &entry_filters)
+        .map_err(GatewayProviderError::EntryGatewayUnavailable)
 }
 
 fn select_exit(

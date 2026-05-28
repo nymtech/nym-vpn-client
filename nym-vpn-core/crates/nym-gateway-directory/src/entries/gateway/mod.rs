@@ -735,6 +735,17 @@ impl GatewayList {
         self.node_with_identity(identity)
     }
 
+    pub fn gateway_with_identity_filtered(
+        &self,
+        identity: &NodeIdentity,
+        filters: &GatewayFilters,
+    ) -> Option<Gateway> {
+        self.filter(filters)
+            .iter()
+            .find(|node| &node.identity() == identity)
+            .cloned()
+    }
+
     pub fn choose_random(&self, filters: &GatewayFilters) -> Option<Gateway> {
         self.filter(filters)
             .into_iter()
@@ -790,15 +801,25 @@ impl GatewayList {
         &self,
         entry_point: &EntryPoint,
         base_filters: &GatewayFilters,
+        optional_filters: &GatewayFilters,
     ) -> Result<Gateway> {
         match &entry_point {
             EntryPoint::Gateway { identity } => {
                 tracing::debug!("Selecting gateway by identity: {identity}");
-                self.gateway_with_identity(identity)
-                    .ok_or_else(|| Error::NoMatchingGateway {
-                        requested_identity: identity.to_string(),
+
+                self.gateway_with_identity_filtered(identity, &base_filters)
+                    .ok_or_else(|| {
+                        if self.gateway_with_identity(identity).is_some() {
+                            Error::MatchingEntryGatewayNotWorking {
+                                identity: identity.to_string(),
+                                filters: base_filters.clone(),
+                            }
+                        } else {
+                            Error::NoMatchingGateway {
+                                requested_identity: identity.to_string(),
+                            }
+                        }
                     })
-                    .cloned()
             }
             EntryPoint::Country {
                 two_letter_iso_country_code,
@@ -808,6 +829,7 @@ impl GatewayList {
                 );
 
                 let filters = base_filters
+                    .with(optional_filters.iter())
                     .with(&[GatewayFilter::Country(two_letter_iso_country_code.clone())]);
 
                 self.choose_random(&filters).ok_or_else(|| {
@@ -821,7 +843,7 @@ impl GatewayList {
                 tracing::debug!("Selecting entry gateway by region/state: {region}");
 
                 // Currently only supported in the US
-                let filters = base_filters.with(&[
+                let filters = base_filters.with(optional_filters.iter()).with(&[
                     GatewayFilter::Country(COUNTRY_WITH_REGION_SELECTOR.to_string()),
                     GatewayFilter::Region(region.to_string()),
                 ]);
@@ -836,7 +858,9 @@ impl GatewayList {
             EntryPoint::Random => {
                 tracing::debug!("Selecting a random entry gateway");
 
-                self.choose_random(base_filters)
+                let filters = base_filters.with(optional_filters.iter());
+
+                self.choose_random(&filters)
                     .ok_or_else(|| Error::FailedToSelectGatewayRandomly)
             }
         }
@@ -852,9 +876,9 @@ impl GatewayList {
         for score in [ScoreValue::High, ScoreValue::Medium, ScoreValue::Low] {
             tracing::debug!("Looking for entry gateway with minimum score: {score}");
 
-            let filters = base_filters.with(&[GatewayFilter::MinScore(score)]);
+            let optional_filters = GatewayFilters::from(&[GatewayFilter::MinScore(score)]);
 
-            match self.find_entry_gateway(entry_point, &filters) {
+            match self.find_entry_gateway(entry_point, base_filters, &optional_filters) {
                 Ok(gateway) => {
                     return Ok(gateway);
                 }
@@ -1186,13 +1210,13 @@ pub enum GatewayFilter {
 pub struct GatewayFilters(HashSet<GatewayFilter>);
 
 impl GatewayFilters {
-    pub fn from(filters: &[GatewayFilter]) -> Self {
-        GatewayFilters(filters.iter().cloned().collect())
+    pub fn from<'a>(filters: impl IntoIterator<Item = &'a GatewayFilter>) -> Self {
+        GatewayFilters(filters.into_iter().cloned().collect())
     }
 
-    pub fn with(&self, other: &[GatewayFilter]) -> Self {
+    pub fn with<'a>(&self, other: impl IntoIterator<Item = &'a GatewayFilter>) -> Self {
         let mut new_self = self.clone();
-        for filter in other {
+        for filter in other.into_iter() {
             new_self.0.insert(filter.clone());
         }
         new_self

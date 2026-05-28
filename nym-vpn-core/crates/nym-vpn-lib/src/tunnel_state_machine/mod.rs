@@ -1329,9 +1329,6 @@ impl tunnel::Error {
                 GatewayProviderError::NeedsRelaxedIndependenceCriteria => {
                     Some(ErrorStateReason::NeedsRelaxedIndependenceCriteria)
                 }
-                GatewayProviderError::ExplicitEntryGatewayNotWorking { .. } => {
-                    Some(ErrorStateReason::ExplicitEntryGatewayNotWorking)
-                }
                 _ => None,
             },
             Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {

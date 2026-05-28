@@ -337,8 +337,9 @@ fn test_low_performance_fallback_for_country_selection() {
     );
 
     // Without Low fallback, this would fail
-    let base_filters = GatewayFilters::from(&[GatewayFilter::MinScore(ScoreValue::Low)]);
-    let result = gateways.find_entry_gateway(&entry_point, &base_filters);
+    let optional_filters = GatewayFilters::from(&[GatewayFilter::MinScore(ScoreValue::Low)]);
+    let result =
+        gateways.find_entry_gateway(&entry_point, &GatewayFilters::default(), &optional_filters);
     assert!(result.is_ok());
     assert_eq!(
         result.unwrap().performance.as_ref().unwrap().score,
