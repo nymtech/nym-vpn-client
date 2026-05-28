@@ -44,17 +44,17 @@ pub(crate) mod v9 {
         fn from(value: &nym_vpn_lib_types::GatewaySelectionAlgorithmConfig) -> Self {
             Self {
                 enable_geo_location: value.enable_geo_location,
-                gateway_selection_algorithm: value.gateway_selection_algorithm.into(),
+                gateway_selection_algorithm: value.gateway_selection_algorithm().into(),
             }
         }
     }
 
     impl From<GatewaySelectionAlgorithmConfig> for nym_vpn_lib_types::GatewaySelectionAlgorithmConfig {
         fn from(value: GatewaySelectionAlgorithmConfig) -> Self {
-            Self {
-                enable_geo_location: value.enable_geo_location,
-                gateway_selection_algorithm: value.gateway_selection_algorithm.into(),
-            }
+            Self::new(
+                value.enable_geo_location,
+                value.gateway_selection_algorithm.into(),
+            )
         }
     }
 }

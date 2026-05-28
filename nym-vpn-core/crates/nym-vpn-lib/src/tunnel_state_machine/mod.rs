@@ -199,7 +199,7 @@ impl TunnelSettings {
     pub fn tunnel_type_used(&self) -> TunnelType {
         if matches!(
             self.gateway_selection_algorithm_config
-                .gateway_selection_algorithm,
+                .gateway_selection_algorithm(),
             GatewaySelectionAlgorithm::Auto
         ) {
             TunnelType::Wireguard
@@ -318,10 +318,10 @@ impl TunnelSettings {
         }
         if self
             .gateway_selection_algorithm_config
-            .gateway_selection_algorithm
+            .gateway_selection_algorithm()
             != other
                 .gateway_selection_algorithm_config
-                .gateway_selection_algorithm
+                .gateway_selection_algorithm()
         {
             diff.add(TunnelSettingsDiffFields::GatewaySelectionAlgorithm);
         }
