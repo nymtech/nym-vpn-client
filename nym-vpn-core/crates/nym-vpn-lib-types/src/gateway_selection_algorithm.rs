@@ -20,12 +20,12 @@ use ts_rs::TS;
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum GatewaySelectionAlgorithm {
     /// Select gateways explicitly using the entry and exit selectors.
+    #[default]
     Explicit,
 
     /// Select gateways explicitly using the exit selector and automatically finding an entry gateway.
     AutoEntryExplicitExit,
 
-    #[default]
     /// Select gateways by automatically finding an entry and an exit gateway.
     /// The hop mode is also automatically set to 2-hop
     Auto,
