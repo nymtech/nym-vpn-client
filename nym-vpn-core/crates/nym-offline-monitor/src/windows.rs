@@ -204,22 +204,20 @@ impl SystemState {
 
         let new_state = self.connectivity.is_offline();
         if old_state != new_state {
+            // If going offline: cancel any pending "Connected" notification and notify immediately.
+            // If going online: debounce before notifying. Windows adds routes to the routing table
+            // before the network stack is fully functional after resume from sleep, so we wait a
+            // short period to avoid false positives.
+            if let Some(cancel) = self.pending_online_cancel.take() {
+                cancel.cancel();
+            }
+
             if new_state {
-                // Going offline: cancel any pending "Connected" notification and notify immediately.
-                if let Some(cancel) = self.pending_online_cancel.take() {
-                    cancel.cancel();
-                }
                 tracing::info!("Connectivity changed: {}", is_offline_str(new_state));
                 if let Err(e) = self.notify_tx.send(self.connectivity.into_connectivity()) {
                     tracing::error!("Failed to send new offline state to daemon: {}", e);
                 }
             } else {
-                // Going online: debounce before notifying. Windows adds routes to the
-                // routing table before the NIC/network stack is fully functional after
-                // resume from sleep, so we wait a short period to avoid false positives.
-                if let Some(cancel) = self.pending_online_cancel.take() {
-                    cancel.cancel();
-                }
                 let cancel = CancellationToken::new();
                 self.pending_online_cancel = Some(cancel.clone());
                 let notify_tx = self.notify_tx.clone();
