@@ -185,7 +185,7 @@ location = "BE"
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -263,7 +263,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -346,7 +346,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -418,7 +418,7 @@ exit_point = "Random"
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -497,7 +497,7 @@ async fn test_service_config_migrate_from_v1() {
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -585,7 +585,7 @@ async fn test_service_config_migrate_from_v2() {
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -679,7 +679,7 @@ async fn test_service_config_migrate_from_v3() {
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -789,7 +789,7 @@ async fn test_service_config_migrate_from_v4() {
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -904,7 +904,7 @@ async fn test_service_config_migrate_from_v5() {
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -1009,7 +1009,7 @@ async fn test_service_config_migrate_from_v6() {
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -1182,7 +1182,7 @@ async fn test_service_config_migrate_from_v7() {
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -1349,7 +1349,7 @@ async fn test_service_config_migrate_from_v9() {
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   }
 }"#;
 

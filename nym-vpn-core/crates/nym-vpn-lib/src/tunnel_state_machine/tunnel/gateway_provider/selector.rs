@@ -184,7 +184,7 @@ fn select_entry(
 
     let gateway_selection_algorithm = tunnel_settings
         .gateway_selection_algorithm_config
-        .gateway_selection_algorithm;
+        .gateway_selection_algorithm();
 
     let entry_ordering_criteria = match (device_location, gateway_selection_algorithm) {
         (_, GatewaySelectionAlgorithm::Explicit) | (None, _) => {

@@ -55,7 +55,7 @@ impl From<nym_vpn_lib_types::GatewaySelectionAlgorithmConfig>
         Self {
             enable_geo_location: value.enable_geo_location,
             gateway_selection_algorithm: Some(proto::GatewaySelectionAlgorithm::from(
-                value.gateway_selection_algorithm,
+                value.gateway_selection_algorithm(),
             )),
         }
     }
@@ -73,9 +73,9 @@ impl TryFrom<proto::GatewaySelectionAlgorithmConfig>
                 "GatewaySelectionAlgorithmConfig.gateway_selection_algorithm",
             ))?
             .try_into()?;
-        Ok(Self {
-            enable_geo_location: value.enable_geo_location,
+        Ok(Self::new(
+            value.enable_geo_location,
             gateway_selection_algorithm,
-        })
+        ))
     }
 }
