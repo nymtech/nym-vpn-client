@@ -163,6 +163,11 @@ fun NavBar(
 				onBack = { navController.safePopBackStack() },
 			)
 
+			route.startsWith(Route.AppIcon::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.app_icon,
+				onBack = { navController.safePopBackStack() },
+			)
+
 			route.startsWith(Route.Language::class.qualifiedName!!) -> NavBarState.WithBack(
 				titleRes = R.string.language,
 				onBack = { navController.safePopBackStack() },

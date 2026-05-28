@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Calculator body -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M30,22 L78,22 A4,4 0 0 1 82,26 L82,86 A4,4 0 0 1 78,90 L30,90 A4,4 0 0 1 26,86 L26,26 A4,4 0 0 1 30,22 Z"/>
+    <!-- Screen -->
+    <path android:fillColor="#2B313F"
+        android:pathData="M32,28 L76,28 L76,42 L32,42 Z"/>
+    <!-- Button grid (4 rows x 4 cols, small rounded squares) -->
+    <path android:fillColor="#E2E5EA"
+        android:pathData="M34,48h8v8h-8z M46,48h8v8h-8z M58,48h8v8h-8z M70,48h6v8h-6z M34,60h8v8h-8z M46,60h8v8h-8z M58,60h8v8h-8z M70,60h6v8h-6z M34,72h8v8h-8z M46,72h8v8h-8z M58,72h8v8h-8z M70,72h6v8h-6z"/>
+    <!-- Equals key (orange) -->
+    <path android:fillColor="#F5A623"
+        android:pathData="M34,84h22v4h-22z M60,84h16v4h-16z"/>
+</vector>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Notepad page -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M28,30 L80,30 A2,2 0 0 1 82,32 L82,90 A2,2 0 0 1 80,92 L28,92 A2,2 0 0 1 26,90 L26,32 A2,2 0 0 1 28,30 Z"/>
+    <!-- Top binding stripe -->
+    <path android:fillColor="#D4A12A"
+        android:pathData="M26,30 L82,30 L82,38 L26,38 Z"/>
+    <!-- Spiral binding holes -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M33,32 a2,2 0 1 1 0.001,0 M44,32 a2,2 0 1 1 0.001,0 M55,32 a2,2 0 1 1 0.001,0 M66,32 a2,2 0 1 1 0.001,0 M75,32 a2,2 0 1 1 0.001,0"/>
+    <!-- Text lines -->
+    <path android:fillColor="#A0A6B0"
+        android:pathData="M32,48h44v3h-44z M32,58h44v3h-44z M32,68h36v3h-36z M32,78h40v3h-40z"/>
+</vector>

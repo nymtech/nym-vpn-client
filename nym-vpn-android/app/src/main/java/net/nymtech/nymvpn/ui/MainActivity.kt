@@ -66,6 +66,7 @@ import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.scanner.ScannerScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
+import net.nymtech.nymvpn.ui.screens.settings.appearance.appicon.AppIconScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
 import net.nymtech.nymvpn.ui.screens.settings.censorship.CensorshipScreen
@@ -300,6 +301,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Appearance> { AppearanceScreen() }
 								composable<Route.Privacy> { PrivacyScreen(appState) }
 								composable<Route.Display> { DisplayScreen(appState) }
+								composable<Route.AppIcon> { AppIconScreen(appState) }
 								composable<Route.Language> { LanguageScreen(appState, appViewModel) }
 								composable<Route.Developer> { DeveloperScreen(appState, appViewModel) }
 								composable<Route.LoginScanner> { ScannerScreen() }

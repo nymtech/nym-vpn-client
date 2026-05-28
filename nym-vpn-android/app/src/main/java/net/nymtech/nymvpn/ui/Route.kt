@@ -35,6 +35,9 @@ sealed class Route {
 	data object Display : Route()
 
 	@Serializable
+	data object AppIcon : Route()
+
+	@Serializable
 	data object Language : Route()
 
 	@Serializable

@@ -18,6 +18,20 @@
 	<string name="select_mode">Select mode</string>
 	<string name="connect_to">Connect to</string>
 	<string name="display_theme">Display theme</string>
+	<string name="app_icon">App icon</string>
+	<string name="app_icon_default">Default</string>
+	<string name="app_icon_dark">Dark</string>
+	<string name="app_icon_calculator">Calculator</string>
+	<string name="app_icon_notes">Notes</string>
+	<!-- Launcher labels used by the activity-alias entries; shown under the
+	     home-screen icon. Kept untranslatable so the disguise stays consistent. -->
+	<string name="app_icon_label_calculator" translatable="false">Calculator</string>
+	<string name="app_icon_label_notes" translatable="false">Notes</string>
+	<string name="app_icon_disconnect_first">Disconnect the VPN to change the app icon.</string>
+	<string name="app_icon_change_title">Change app icon?</string>
+	<string name="app_icon_change_body">The app will close briefly to apply the new icon. Your home-screen icon will refresh once the system updates.</string>
+	<string name="app_icon_change_confirm">Change icon</string>
+	<string name="app_icon_change_cancel">Cancel</string>
 	<string name="light_theme">Light theme</string>
 	<string name="dark_theme">Dark theme</string>
 	<string name="automatic">Automatic</string>
