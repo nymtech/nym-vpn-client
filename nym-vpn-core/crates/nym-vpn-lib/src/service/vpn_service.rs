@@ -994,9 +994,9 @@ impl NymVpnService {
                     .await;
                 let _ = tx.send(res);
             }
-            VpnServiceCommand::SetGatewaySelectionAlgorithm(tx, gateway_selection_algorithm) => {
-                self.handle_set_gateway_selection_algorithm(gateway_selection_algorithm)
-                    .await;
+            VpnServiceCommand::SetGatewaySelectionAlgorithm(tx, _gateway_selection_algorithm) => {
+                // self.handle_set_gateway_selection_algorithm(gateway_selection_algorithm)
+                //     .await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetEnableGeoLocation(tx, enable_geo_location) => {
@@ -1366,12 +1366,12 @@ impl NymVpnService {
         Ok(())
     }
 
-    async fn handle_set_gateway_selection_algorithm(
+    async fn _handle_set_gateway_selection_algorithm(
         &mut self,
         gateway_selection_algorithm: GatewaySelectionAlgorithm,
     ) {
         self.config_manager
-            .set_gateway_selection_algorithm(gateway_selection_algorithm)
+            ._set_gateway_selection_algorithm(gateway_selection_algorithm)
             .await;
         self.update_tunnel_settings_with_throttle();
     }

@@ -14765,17 +14765,6 @@
         }
       }
     },
-    "gatewaysView.bestServer" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Best server"
-          }
-        }
-      }
-    },
     "gatewaysView.random" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22796,17 +22785,6 @@
         }
       }
     },
-    "oneClick.entryDisabled.accessibilityHint" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry server is automatic in Auto mode"
-          }
-        }
-      }
-    },
     "oneClick.entryNode.label" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22825,17 +22803,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exit server"
-          }
-        }
-      }
-    },
-    "oneClick.server.bestForLocation" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use best server"
           }
         }
       }
@@ -22891,17 +22858,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mixnet"
-          }
-        }
-      }
-    },
-    "oneClick.speedMode.auto" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auto"
           }
         }
       }

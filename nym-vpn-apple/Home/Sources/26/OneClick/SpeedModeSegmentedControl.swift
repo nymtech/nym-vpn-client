@@ -72,12 +72,6 @@ private extension SpeedModeSegmentedControl {
     @ViewBuilder
     func icon(for mode: OneClickSpeedMode, tint: Color) -> some View {
         switch mode {
-        case .auto:
-            GenericImage(imageName: "nLogo")
-                .foregroundStyle(tint)
-                .frame(width: Constants.iconSize, height: Constants.iconSize)
-                .padding(Constants.iconPadding)
-                .accessibilityHidden(true)
         case .fast:
             GenericImage(systemImageName: "bolt.fill")
                 .foregroundStyle(tint)
@@ -95,8 +89,6 @@ private extension SpeedModeSegmentedControl {
 
     func label(for mode: OneClickSpeedMode) -> String {
         switch mode {
-        case .auto:
-            "oneClick.speedMode.auto".localizedString
         case .fast:
             "oneClick.speedMode.fast".localizedString
         case .anonymous:

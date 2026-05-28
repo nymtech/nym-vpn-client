@@ -12,7 +12,7 @@ import {
   UiGateway,
   uiNodeToSelectedNode,
 } from '../../types/node';
-import { Link, MsIcon, PageAnim, SmileyIcon, TextInput } from '../../ui';
+import { Link, MsIcon, PageAnim, /* SmileyIcon, */ TextInput } from '../../ui';
 import { useI18nError, useToast } from '../../hooks';
 import { useNodeListData } from '../../hooks/useNodeListData';
 import { routes } from '../../router';
@@ -179,6 +179,7 @@ function Node({ node }: { node: NodeHop }) {
     handleSelect({ nodeType: 'random', isSelected: false });
   };
 
+  /*
   const handleBestServer = async () => {
     // Switch the algorithm to 'auto' first so a failure aborts before the
     // stored node is cleared. If the node clear later fails, the algorithm
@@ -240,6 +241,7 @@ function Node({ node }: { node: NodeHop }) {
 
   const bestServerActive =
     node === 'exit' && algoConfig.gatewaySelectionAlgorithm === 'auto';
+  */
 
   // Random is only "active" when the user actually owns this hop's selection;
   // in daemon-picked algos the stored 'random' is treated as no selection
@@ -359,7 +361,7 @@ function Node({ node }: { node: NodeHop }) {
                     {t('quick-pick.random')}
                   </span>
                 </Button>
-                {showBestServer && (
+                {/* {showBestServer && (
                   <Button
                     onClick={handleBestServer}
                     className={clsx(QUICK_PICK_CLASSES, {
@@ -371,7 +373,7 @@ function Node({ node }: { node: NodeHop }) {
                       {t('quick-pick.best-server')}
                     </span>
                   </Button>
-                )}
+                )} */}
               </div>
               <NodeList
                 nodes={deferredNodes}

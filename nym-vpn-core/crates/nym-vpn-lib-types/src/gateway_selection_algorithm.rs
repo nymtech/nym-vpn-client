@@ -20,12 +20,12 @@ use ts_rs::TS;
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum GatewaySelectionAlgorithm {
     /// Select gateways explicitly using the entry and exit selectors.
+    #[default]
     Explicit,
 
     /// Select gateways explicitly using the exit selector and automatically finding an entry gateway.
     AutoEntryExplicitExit,
 
-    #[default]
     /// Select gateways by automatically finding an entry and an exit gateway.
     /// The hop mode is also automatically set to 2-hop
     Auto,
@@ -56,7 +56,31 @@ pub struct GatewaySelectionAlgorithmConfig {
     /// Whether selection algorithm uses geo-location is enabled.
     pub enable_geo_location: bool,
     /// The gateway selection algorithm that should be used.
-    pub gateway_selection_algorithm: GatewaySelectionAlgorithm,
+    gateway_selection_algorithm: GatewaySelectionAlgorithm,
+}
+
+impl GatewaySelectionAlgorithmConfig {
+    pub fn new(
+        enable_geo_location: bool,
+        gateway_selection_algorithm: GatewaySelectionAlgorithm,
+    ) -> Self {
+        Self {
+            enable_geo_location,
+            gateway_selection_algorithm,
+        }
+    }
+
+    pub fn gateway_selection_algorithm(&self) -> GatewaySelectionAlgorithm {
+        // hard-code the algorithm to explicit to make sure that disabling it works, regardless of what value might have been persisted
+        GatewaySelectionAlgorithm::Explicit
+    }
+
+    pub fn set_gateway_selection_algorithm(
+        &mut self,
+        gateway_selection_algorithm: GatewaySelectionAlgorithm,
+    ) {
+        self.gateway_selection_algorithm = gateway_selection_algorithm;
+    }
 }
 
 impl Default for GatewaySelectionAlgorithmConfig {

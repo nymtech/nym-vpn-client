@@ -102,8 +102,8 @@ private extension OneClickView {
     func selectingRowCompact(score: OneClickServerScore) -> some View {
         HStack(alignment: .center, spacing: NymSpacing.medium) {
             scoreBars(score: score)
-            autoStar
-            Text("oneClick.server.bestForLocation".localizedString)
+            randomGlyph
+            Text("gatewaysView.random".localizedString)
                 .nymTextStyle(.bodySmall)
                 .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
@@ -111,10 +111,10 @@ private extension OneClickView {
         }
     }
 
-    var autoStar: some View {
-        Image(systemName: "star.fill")
+    var randomGlyph: some View {
+        Image(systemName: "shuffle")
             .font(.system(size: Constants.FlagImage.size))
-            .foregroundStyle(Color.yellow)
+            .foregroundStyle(Color.Nym.textPrimary)
             .frame(width: Constants.FlagImage.size, height: Constants.FlagImage.size)
             .accessibilityHidden(true)
     }
@@ -132,11 +132,7 @@ private extension OneClickView {
         let secondaryText: String? = (info.subtitle?.isEmpty ?? true) ? nil : info.subtitle
         return HStack(alignment: .center, spacing: NymSpacing.medium) {
             scoreBars(score: info.score)
-            if info.isAutoBest {
-                autoStar
-            } else {
-                flagImage(countryCode: info.countryCode)
-            }
+            flagImage(countryCode: info.countryCode)
             ZStack(alignment: .leading) {
                 VStack(alignment: .leading, spacing: 0) {
                     Text("X")
@@ -236,7 +232,6 @@ private extension OneClickView {
     }
 
     @ViewBuilder var nerdEntrySection: some View {
-        let entryDisabled = viewModel.speedMode == .auto
         VStack(alignment: .leading, spacing: 0) {
             Text("oneClick.entryNode.label".localizedString)
                 .nymTextStyle(.bodySmall)
@@ -244,7 +239,6 @@ private extension OneClickView {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, animatedDisplayMode == .nerd ? NymSpacing.small : 0)
                 .padding(.top, NymSpacing.medium)
-                .opacity(entryDisabled ? Constants.DisabledEntry.opacity : 1)
             Group {
                 switch viewModel.entrySelectionPhase {
                 case .selecting:
@@ -253,24 +247,20 @@ private extension OneClickView {
                     selectedRowCompact(info: info, showCarets: false)
                 }
             }
-            .opacity(entryDisabled ? Constants.DisabledEntry.opacity : 1)
             .contentShape(Rectangle())
             .onTapGesture {
-                guard viewModel.displayMode == .nerd, !entryDisabled else { return }
+                guard viewModel.displayMode == .nerd else { return }
                 onSelectEntry()
             }
-            .accessibilityAddTraits(
-                viewModel.displayMode == .nerd && !entryDisabled ? .isButton : []
-            )
-            .accessibilityHint(entryDisabled ? "oneClick.entryDisabled.accessibilityHint".localizedString : "")
+            .accessibilityAddTraits(viewModel.displayMode == .nerd ? .isButton : [])
         }
     }
 
     var selectingEntryRowCompact: some View {
         HStack(alignment: .center, spacing: NymSpacing.medium) {
             scoreBars(score: .offline)
-            autoStar
-            Text("oneClick.server.bestForLocation".localizedString)
+            randomGlyph
+            Text("gatewaysView.random".localizedString)
                 .nymTextStyle(.bodySmall)
                 .foregroundStyle(Color.Nym.textPrimary)
             Spacer()
@@ -353,9 +343,6 @@ private extension OneClickView {
         }
         enum ConnectButton {
             static let cornerRadius: CGFloat = 100
-        }
-        enum DisabledEntry {
-            static let opacity: CGFloat = 0.4
         }
     }
 }

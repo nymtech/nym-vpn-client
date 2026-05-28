@@ -240,7 +240,7 @@ impl From<lib::GatewaySelectionAlgorithmConfig> for GatewaySelectionAlgorithmCon
     fn from(config: lib::GatewaySelectionAlgorithmConfig) -> Self {
         GatewaySelectionAlgorithmConfig {
             enable_geo_location: config.enable_geo_location,
-            gateway_selection_algorithm: config.gateway_selection_algorithm.into(),
+            gateway_selection_algorithm: config.gateway_selection_algorithm().into(),
         }
     }
 }
