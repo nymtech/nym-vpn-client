@@ -57,6 +57,15 @@ class CoreVpnConfigStore(private val context: Context) {
 
 	suspend fun get(): CoreVpnConfig = throw UnsupportedOperationException("Use CoreVpnConfigRepository.get() instead")
 
+	suspend fun migrateAlgorithmIfNeeded() {
+		context.dataStore.edit { prefs ->
+			val raw = prefs[KEY_ALGORITHM]
+			if (raw == "AUTO" || raw == "AUTO_ENTRY_EXPLICIT_EXIT") {
+				prefs[KEY_ALGORITHM] = GatewaySelectionAlgorithm.EXPLICIT.name
+			}
+		}
+	}
+
 	suspend fun update(transform: (CoreVpnConfig) -> CoreVpnConfig) {
 		context.dataStore.edit { prefs ->
 			val current = prefs.toCoreConfig()
@@ -89,7 +98,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		val lewes = this[KEY_LEWES] ?: false
 		val adBlockingEnabled = this[KEY_AD_BLOCKING] ?: false
 		val stealthMode = this[KEY_STEALTH_MODE] ?: false
-		val algorithm: GatewaySelectionAlgorithm = this[KEY_ALGORITHM]?.let { runCatching { it.asAlgorithm() }.getOrNull() } ?: GatewaySelectionAlgorithm.AUTO
+		val algorithm: GatewaySelectionAlgorithm = this[KEY_ALGORITHM]?.let { runCatching { it.asAlgorithm() }.getOrNull() } ?: GatewaySelectionAlgorithm.EXPLICIT
 
 		return CoreVpnConfig(
 			entryPoint = entry,

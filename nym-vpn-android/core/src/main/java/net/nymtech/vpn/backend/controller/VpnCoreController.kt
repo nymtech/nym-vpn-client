@@ -107,6 +107,7 @@ class VpnCoreController(
 
 	suspend fun init(req: ConnectInitRequest): ConnectResult = coreMutex.withLock {
 		runCatching {
+			configRepo.migrate()
 			val config = configRepo.get()
 			val ua = appConfigProvider.getUserAgent()
 			val net = config.network
