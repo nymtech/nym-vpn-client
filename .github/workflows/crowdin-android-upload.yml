@@ -24,7 +24,7 @@ jobs:
         uses: crowdin/github-action@v2
         with:
           upload_sources: true
-          upload_translations: true
+          upload_translations: false
           download_translations: false
           config: "crowdin-configs/android.yml"
         env:

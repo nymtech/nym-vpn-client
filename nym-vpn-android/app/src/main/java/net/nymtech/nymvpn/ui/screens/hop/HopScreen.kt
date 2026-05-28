@@ -160,10 +160,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appUiState: AppUiState, navBarEv
 			appUiState.settings.quicEnabled
 	}
 
-	val showBestOption = remember(appUiState.vpnConfig.algorithm) {
-		gatewayLocation == GatewayLocation.EXIT &&
-			appUiState.vpnConfig.algorithm != GatewaySelectionAlgorithm.EXPLICIT
-	}
+	// `remember(appUiState.vpnConfig.algorithm) { gatewayLocation == GatewayLocation.EXIT && appUiState.vpnConfig.algorithm != GatewaySelectionAlgorithm.EXPLICIT }` — hidden while Auto mode is disabled
+	val showBestOption = false
 
 	LaunchedEffect(gatewayType, initialGateways) {
 		viewModel.initializeGateways(initialGateways, gatewayLocation == GatewayLocation.EXIT)
