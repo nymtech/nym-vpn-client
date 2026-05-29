@@ -1,1 +1,1 @@
-VPNای غیر متمرکز خصوصی سوئیس. WireGuard، میکس‌نت، پروکسی غیر‌متمرکز، بدون نیاز به ایمیل.
+VPN suisse, privé et sécurisé. WireGuard, mixnet, proxy décentralisé, sans email
