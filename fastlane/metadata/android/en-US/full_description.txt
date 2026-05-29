@@ -23,8 +23,8 @@ NymVPN accepts more cryptocurrencies than any other VPN, plus cash payments. Pay
 • Zero-knowledge architecture: your identity invisible even to Nym
 • No logs by architecture: the network can't keep meaningful traffic logs
 • Decentralized proxy network: no central server can compromise or surveil your traffic
-• Swiss jurisdiction: outside the 14 Eyes surveillance alliance, protected by the strongest privacy laws in the world
-• WireGuard and mixnet protocols: a fast VPN and the most private way to be online
+• Swiss jurisdiction: outside the 14 Eyes, protected by strongest privacy laws in the world
+• WireGuard and mixnet protocols: a fast VPN + the most private way to be online
 • No email signup: no personal data required
 • Fully open source: audited by independent security researchers
 • 70+ countries: servers worldwide for global streaming and access
@@ -51,7 +51,7 @@ NymVPN accepts more cryptocurrencies than any other VPN, plus cash payments. Pay
 
 🇨🇭 SWISS PRIVACY, BY DESIGN
 
-NymVPN operates under Swiss law, with the strongest privacy protections in the world. Switzerland sits outside the 14 Eyes surveillance alliance, with constitutionally protected privacy rights and no mandatory data retention. With a decentralized, no-logs architecture, your data is protected by both law and design: not by a promise that could be broken or quietly changed in a privacy policy.
+NymVPN operates under Swiss law, with the strongest privacy protections in the world. Switzerland sits outside the 14 Eyes surveillance alliance, with constitutionally protected privacy rights and no mandatory data retention. With a decentralized, no-logs architecture, your data is protected by both law and design, not by a promise.
 
 🎓 BUILT BY ACADEMIC CRYPTOGRAPHERS
 
