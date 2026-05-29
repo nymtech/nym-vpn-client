@@ -6,123 +6,95 @@ import AppKit
 #endif
 
 public extension Color {
+    /// Nym 2.0 semantic color tokens — mirrors the Figma `Colors` collection
+    /// (Dark & Light modes). Source of truth: `nym-color-tokens` spec, 2026-05-29.
     enum Nym {
-        // MARK: - Brand (Figma `color/brand/*`)
-        /// `brand/primary` — Spring Green CTA. D #5BF0A0 / L #1A9B61
-        public static let brandPrimary       = Color("Nym.BrandPrimary", bundle: .module)
-        /// `brand/primary-hover` — pointer-over. D #4AD88C / L #158551
-        public static let brandPrimaryHover  = Color("Nym.BrandPrimaryHover", bundle: .module)
-        /// `brand/primary-active` — pressed. D #44EE93 / L #0F6E42
-        public static let brandPrimaryActive = Color("Nym.BrandPrimaryActive", bundle: .module)
-        /// `brand/on-primary` — fg on brand fill. D #0A0A0A / L #FFFFFF
-        public static let brandOnPrimary     = Color("Nym.BrandOnPrimary", bundle: .module)
+        // MARK: - Brand · Primary
+        /// `primary` — Spring Green CTA. D #5BF0A0 / L #1ED674
+        public static let primary         = Color("Nym.Primary", bundle: .module)
+        /// `primary-hover` — pointer-over. D #4AD88C / L #158551
+        public static let primaryHover    = Color("Nym.PrimaryHover", bundle: .module)
+        /// `primary-pressed` — pressed. D #2DE783 / L #0F6E42
+        public static let primaryPressed  = Color("Nym.PrimaryPressed", bundle: .module)
+        /// `primary-active` — active/selected. #1ED674 universal
+        public static let primaryActive   = Color("Nym.PrimaryActive", bundle: .module)
+        /// `primary-disabled` — muted CTA. #B4DAC6 universal
+        public static let primaryDisabled = Color("Nym.PrimaryDisabled", bundle: .module)
+        /// `primary-text` — fg/icon on primary fill. #0B0B0B universal
+        public static let primaryText     = Color("Nym.PrimaryText", bundle: .module)
 
-        // MARK: - Surface (Figma `color/surface/*`)
-        /// `surface/bg` — page. D #0A0A0A / L #FFFFFF
-        public static let surfaceBg     = Color("Nym.SurfaceBg", bundle: .module)
-        /// `surface/elev` — card / panel / modal. D #1A1A1C / L #F6F6F7
-        public static let surfaceElev   = Color("Nym.SurfaceElev", bundle: .module)
-        /// `surface/sunken` — input wells. D #050505 / L #EDEDEE
-        public static let surfaceSunken = Color("Nym.SurfaceSunken", bundle: .module)
-        /// `surface/hair` — 1px dividers. D rgba(255,255,255,0.08) / L rgba(10,10,10,0.10)
-        public static let surfaceHair   = Color("Nym.SurfaceHair", bundle: .module)
+        // MARK: - Surface & Structure
+        /// `background` — page. D #090909 / L #FFFFFF
+        public static let background      = Color("Nym.Background", bundle: .module)
+        /// `surface` — card / panel / modal. D #1D1D1F / L #F5F5FA
+        public static let surface         = Color("Nym.Surface", bundle: .module)
+        /// `surface-alt` — raised / hover surface. D #262628 / L #EEEEF6
+        public static let surfaceAlt      = Color("Nym.SurfaceAlt", bundle: .module)
+        /// `surface-pressed` — pressed / sunken surface. D #141414 / L #E8E8F2
+        public static let surfacePressed  = Color("Nym.SurfacePressed", bundle: .module)
+        /// `border` — outline / stroke. D #3A3A3C / L #DCDCE6
+        public static let border          = Color("Nym.Border", bundle: .module)
+        /// `divider` — 1px separators. D #3A3A3C / L #EBEBF2
+        public static let divider         = Color("Nym.Divider", bundle: .module)
 
-        // MARK: - Text (Figma `color/text/*`)
-        /// `text/primary` — body + headings. D #FFFFFF / L #0A0A0A
-        public static let textPrimary   = Color("Nym.TextPrimary", bundle: .module)
-        /// `text/secondary` — labels, meta. D #AEACB1 / L #5A5A60
-        public static let textSecondary = Color("Nym.TextSecondary", bundle: .module)
-        /// `text/tertiary` — state, hint, disabled. #8B8B90 universal
-        public static let textTertiary  = Color("Nym.TextTertiary", bundle: .module)
+        // MARK: - Typography
+        /// `text-primary` — body + headings. D #FFFFFF / L #0A0A0A
+        public static let textPrimary     = Color("Nym.TextPrimary", bundle: .module)
+        /// `text-secondary` — labels, meta. D #AEACB1 / L #5A5A60
+        public static let textSecondary   = Color("Nym.TextSecondary", bundle: .module)
+        /// `text-tertiary` — state, hint. D #8B8B90 / L #70707A
+        public static let textTertiary    = Color("Nym.TextTertiary", bundle: .module)
+        /// `text-disabled` — disabled copy. D #6C6C6F / L #A8A8B0
+        public static let textDisabled    = Color("Nym.TextDisabled", bundle: .module)
 
-        // MARK: - Status (Figma `color/status/*`)
-        /// `status/success` — connected, ok. D #28C96C / L #1A9B61
-        public static let statusSuccess = Color("Nym.StatusSuccess", bundle: .module)
-        /// `status/warning` — caution. D #FFB400 / L #C77A00
-        public static let statusWarning = Color("Nym.StatusWarning", bundle: .module)
-        /// `status/error` — failure. #E73E14 universal
-        public static let statusError   = Color("Nym.StatusError", bundle: .module)
-        /// `status/info` — info, neutral accent. D #485ECA / L #3548A3
-        public static let statusInfo    = Color("Nym.StatusInfo", bundle: .module)
+        // MARK: - Status · Success
+        /// `success` — connected, ok. #28C96C universal
+        public static let success         = Color("Nym.Success", bundle: .module)
+        /// `success-hover` — #22B460 universal
+        public static let successHover    = Color("Nym.SuccessHover", bundle: .module)
+        /// `success-pressed` — #1C9E55 universal
+        public static let successPressed  = Color("Nym.SuccessPressed", bundle: .module)
+        /// `success-disabled` — #AEEBC8 universal
+        public static let successDisabled = Color("Nym.SuccessDisabled", bundle: .module)
 
-        // MARK: - Connection (Figma `color/connection/*`)
-        /// `connection/arc-track` — idle ring stroke. D rgba(255,255,255,0.15) / L rgba(10,10,10,0.12)
-        public static let connectionArcTrack  = Color("Nym.ConnectionArcTrack", bundle: .module)
-        /// `connection/arc-anon` — anon-mode arc fill. D rgba(139,139,144,0.60) / L rgba(107,107,112,0.60)
-        public static let connectionArcAnon   = Color("Nym.ConnectionArcAnon", bundle: .module)
-        /// `connection/sphere` — centre sphere base. #0A0A0A universal
-        public static let connectionSphere    = Color("Nym.ConnectionSphere", bundle: .module)
-        /// `connection/sphere-hi` — sphere highlight stop. #2A2A2E universal
-        public static let connectionSphereHi  = Color("Nym.ConnectionSphereHi", bundle: .module)
-        /// `connection/error-tint` — sphere ambient in error. rgba(231,62,20,0.08) universal
-        public static let connectionErrorTint = Color("Nym.ConnectionErrorTint", bundle: .module)
+        // MARK: - Status · Warning
+        /// `warning` — caution. #FFCC33 universal
+        public static let warning         = Color("Nym.Warning", bundle: .module)
+        /// `warning-hover` — #E6B82E universal
+        public static let warningHover    = Color("Nym.WarningHover", bundle: .module)
+        /// `warning-pressed` — #CC9F27 universal
+        public static let warningPressed  = Color("Nym.WarningPressed", bundle: .module)
+        /// `warning-disabled` — #FFF2BF universal
+        public static let warningDisabled = Color("Nym.WarningDisabled", bundle: .module)
 
-        // MARK: - Illustration (Figma `color/illustration/*`)
-        /// `illustration/accent` — cool blue, drawings. #A3CDFF universal
-        public static let illustrationAccent = Color("Nym.IllustrationAccent", bundle: .module)
+        // MARK: - Status · Error
+        /// `error` — failure. #E73E14 universal
+        public static let error           = Color("Nym.Error", bundle: .module)
+        /// `error-hover` — #D33712 universal
+        public static let errorHover      = Color("Nym.ErrorHover", bundle: .module)
+        /// `error-pressed` — #C03110 universal
+        public static let errorPressed    = Color("Nym.ErrorPressed", bundle: .module)
+        /// `error-disabled` — #F0B8AB universal
+        public static let errorDisabled   = Color("Nym.ErrorDisabled", bundle: .module)
 
-        // MARK: - Off-palette holdovers (not in Figma 21-token set)
-        /// Legacy elevated surface — pre-Figma-token-cleanup
-        public static let backgroundElevated = Color("Nym.BackgroundElevated", bundle: .module)
-        /// Hover/pressed surface utility
-        public static let backgroundHover    = Color("Nym.BackgroundHover", bundle: .module)
-        /// Disabled surface — light-only
-        public static let surfaceDisabled    = Color("Nym.SurfaceDisabled", bundle: .module)
-        /// Top nav bar surface
-        public static let navBarBackground   = Color("Nym.NavBarBackground", bundle: .module)
-        /// Border / outline — no Figma equivalent (use `.surfaceHair` for hairlines)
-        public static let border             = Color("Nym.Border", bundle: .module)
-        /// Disabled text — Figma has only 3 text rungs; prefer `.textTertiary`
-        public static let textDisabled       = Color("Nym.TextDisabled", bundle: .module)
-        /// Warning surface — light-only fill
-        public static let warningSurface     = Color("Nym.WarningSurface", bundle: .module)
-        /// Orange — used for "expiring soon" urgency (matches `NymColor.orange` in legacy Theme)
-        public static let orange             = Color(red: 0.98, green: 0.43, blue: 0.31)
+        // MARK: - Status · Info
+        /// `info` — info, neutral accent. #485ECA universal
+        public static let info            = Color("Nym.Info", bundle: .module)
+        /// `info-hover` — #3F53B7 universal
+        public static let infoHover       = Color("Nym.InfoHover", bundle: .module)
+        /// `info-pressed` — #3748A3 universal
+        public static let infoPressed     = Color("Nym.InfoPressed", bundle: .module)
+        /// `info-disabled` — #C5CDF8 universal
+        public static let infoDisabled    = Color("Nym.InfoDisabled", bundle: .module)
 
-        // MARK: - Raw palette holdovers
-        public static let gray1   = Color("Nym.Gray1", bundle: .module)
-        public static let gray2   = Color("Nym.Gray2", bundle: .module)
-        public static let gray12  = Color("Nym.Gray12", bundle: .module)
-        public static let icon    = Color("Nym.Icon", bundle: .module)
-        public static let black   = Color("Nym.Black", bundle: .module)
-        public static let white   = Color("Nym.White", bundle: .module)
-        public static let white6  = Color("Nym.White6", bundle: .module)
-        public static let white8  = Color("Nym.White8", bundle: .module)
-
-        // MARK: - Primary alpha utilities (not Figma tokens)
-        public static let primary8  = Color("Nym.Primary8", bundle: .module)
-        public static let primary10 = Color("Nym.Primary10", bundle: .module)
-        public static let primary22 = Color("Nym.Primary22", bundle: .module)
-        public static let primary40 = Color("Nym.Primary40", bundle: .module)
-
-        // MARK: - Snackbar (universal-only by design)
-        public static let snackbarSurface  = Color("Nym.SnackbarSurface", bundle: .module)
-        public static let snackbarText     = Color("Nym.SnackbarText", bundle: .module)
-        public static let snackbarCritical = Color("Nym.SnackbarCritical", bundle: .module)
-
-        // MARK: - Alert (system-adaptive)
-        public static let alertSurface: Color = {
-#if canImport(UIKit)
-            return Color(UIColor.secondarySystemBackground)
-#else
-            return Color(NSColor.windowBackgroundColor)
-#endif
-        }()
-
-        public static let alertPrimaryText: Color = {
-#if canImport(UIKit)
-            return Color(UIColor.label)
-#else
-            return Color(NSColor.labelColor)
-#endif
-        }()
-
-        public static let alertSecondaryText: Color = {
-#if canImport(UIKit)
-            return Color(UIColor.secondaryLabel)
-#else
-            return Color(NSColor.secondaryLabelColor)
-#endif
-        }()
+        // MARK: - Link
+        /// `link` — hyperlink. #2D7BFF universal
+        public static let link            = Color("Nym.Link", bundle: .module)
+        /// `link-hover` — #2366D6 universal
+        public static let linkHover       = Color("Nym.LinkHover", bundle: .module)
+        /// `link-pressed` — #1A50AA universal
+        public static let linkPressed     = Color("Nym.LinkPressed", bundle: .module)
+        /// `link-visited` — #6A66FF universal
+        public static let linkVisited     = Color("Nym.LinkVisited", bundle: .module)
     }
 }

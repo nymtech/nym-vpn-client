@@ -99,7 +99,7 @@ private extension ImageButton {
     }
 
     var hoverColor: Color {
-        colorScheme == .dark ? Color.Nym.white8 : Color.Nym.backgroundHover.opacity(0.15)
+        colorScheme == .dark ? Color.Nym.divider : Color.Nym.surfaceAlt.opacity(0.15)
     }
 
     var tapTargetInset: CGFloat {

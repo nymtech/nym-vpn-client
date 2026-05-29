@@ -44,7 +44,7 @@ public struct ServerDetailsView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            Color.Nym.surfaceBg
+            Color.Nym.background
                 .ignoresSafeArea()
         }
     }
@@ -101,7 +101,7 @@ private extension ServerDetailsView {
     func sectionHeader(with title: String) -> some View {
         HStack(spacing: 0) {
             Text(title)
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .nymTextStyle(.bodyDefault)
             Spacer()
         }
@@ -121,7 +121,7 @@ private extension ServerDetailsView {
             .padding(.top, 16)
 
             Rectangle()
-                .foregroundColor(Color.Nym.gray2)
+                .foregroundColor(Color.Nym.textSecondary)
                 .frame(height: 1)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 12)
@@ -142,15 +142,15 @@ private extension ServerDetailsView {
             .padding(.bottom, 16)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(Color.Nym.surfaceElev)
+        .background(Color.Nym.surface)
         .cornerRadius(12)
     }
 
     func missingInfoText() -> some View {
         HStack(spacing: 0) {
             Text(missingInfoAttributedString() ?? "")
-                .tint(Color.Nym.statusInfo)
-                .foregroundStyle(Color.Nym.statusInfo)
+                .tint(Color.Nym.info)
+                .foregroundStyle(Color.Nym.info)
                 .nymTextStyle(.bodyDefault)
                 .underline()
             exportImage()
@@ -192,7 +192,7 @@ private extension ServerDetailsView {
         guard var explorerMarkdownString = try? AttributedString(markdown: markdown) else { return nil }
         for run in explorerMarkdownString.runs where run.link != nil {
             explorerMarkdownString[run.range].underlineStyle = .single
-            explorerMarkdownString[run.range].foregroundColor = Color.Nym.statusInfo
+            explorerMarkdownString[run.range].foregroundColor = Color.Nym.info
         }
         return explorerMarkdownString
     }
@@ -209,7 +209,7 @@ private extension ServerDetailsView {
 
     func separatorLine() -> some View {
         Rectangle()
-            .foregroundColor(Color.Nym.gray2)
+            .foregroundColor(Color.Nym.textSecondary)
             .frame(height: 1)
             .padding(.vertical, 12)
     }
@@ -229,7 +229,7 @@ private extension ServerDetailsView {
     func exportImage() -> some View {
         GenericImage(imageName: "export")
             .frame(width: 16, height: 16)
-            .foregroundStyle(Color.Nym.statusInfo)
+            .foregroundStyle(Color.Nym.info)
     }
 }
 
@@ -237,7 +237,7 @@ private extension ServerDetailsView {
     func capabilitiesSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("gatewayInfo.section.serverFeatures".localizedString)
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .nymTextStyle(.bodyDefault)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 16)
@@ -254,7 +254,7 @@ private extension ServerDetailsView {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(Color.Nym.surfaceElev)
+        .background(Color.Nym.surface)
         .cornerRadius(12)
     }
 
@@ -264,7 +264,7 @@ private extension ServerDetailsView {
             Spacer()
             GenericImage(imageName: "quantum")
                 .frame(width: 15, height: 15)
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .padding(.trailing, 6)
             rowSubtite(with: "gatewayInfo.lewesProtocol".localizedString)
         }
@@ -276,7 +276,7 @@ private extension ServerDetailsView {
             Spacer()
             GenericImage(imageName: "mixnet26")
                 .frame(width: 15, height: 15)
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .padding(.trailing, 6)
             rowSubtite(with: "gatewayInfo.mixnet".localizedString)
         }
@@ -290,7 +290,7 @@ private extension ServerDetailsView {
             case .residential:
                 GenericImage(imageName: "smartDisplay")
                     .frame(width: 15, height: 15)
-                    .foregroundStyle(Color.Nym.statusInfo)
+                    .foregroundStyle(Color.Nym.info)
                     .padding(.trailing, 6)
                 rowSubtite(with: "gatewayInfo.residentialIp".localizedString)
             case .other, nil:
@@ -316,7 +316,7 @@ private extension ServerDetailsView {
             } else {
                 GenericImage(systemImageName: "circle.fill")
                     .frame(width: 10, height: 10)
-                    .foregroundStyle(Color.Nym.statusWarning)
+                    .foregroundStyle(Color.Nym.warning)
                     .padding(.trailing, 6)
             }
 
@@ -349,7 +349,7 @@ private extension ServerDetailsView {
         let second = "gatewayInfo.enableQuic2".localizedString
         var firstAttr = AttributedString(first)
         firstAttr.underlineStyle = .single
-        firstAttr.foregroundColor = Color.Nym.statusInfo
+        firstAttr.foregroundColor = Color.Nym.info
         firstAttr.link = URL(string: "app://enable-quic")
         let secondAttr = AttributedString(second)
         return firstAttr + AttributedString(" ") + secondAttr
@@ -361,7 +361,7 @@ private extension ServerDetailsView {
     func performanceSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("gatewayInfo.section.performanceMetrics".localizedString)
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .nymTextStyle(.bodyDefault)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 16)
@@ -378,7 +378,7 @@ private extension ServerDetailsView {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(Color.Nym.surfaceElev)
+        .background(Color.Nym.surface)
         .cornerRadius(12)
     }
 
@@ -433,7 +433,7 @@ private extension ServerDetailsView {
     func serverInfoSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("gatewayInfo.section.buildInformation".localizedString)
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .nymTextStyle(.bodyDefault)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 16)
@@ -443,7 +443,7 @@ private extension ServerDetailsView {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(Color.Nym.surfaceElev)
+        .background(Color.Nym.surface)
         .cornerRadius(12)
     }
 
@@ -488,7 +488,7 @@ private extension ServerDetailsView {
                     Spacer()
                     Text(messageOverlayText)
                         .padding(8)
-                        .background(Color.Nym.surfaceBg)
+                        .background(Color.Nym.background)
                         .foregroundColor(Color.Nym.textSecondary)
                         .cornerRadius(12)
                         .transition(.opacity)
@@ -505,7 +505,7 @@ private extension ServerDetailsView {
     func ipSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("gatewayInfo.section.connectionDetails".localizedString)
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .nymTextStyle(.bodyDefault)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, 16)
@@ -517,7 +517,7 @@ private extension ServerDetailsView {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(Color.Nym.surfaceElev)
+        .background(Color.Nym.surface)
         .cornerRadius(12)
     }
 
@@ -556,7 +556,7 @@ private extension ServerDetailsView {
     func ipRowCell(with ip: String) -> some View {
         HStack(spacing: 8) {
             Text(ip)
-                .foregroundStyle(Color.Nym.statusInfo)
+                .foregroundStyle(Color.Nym.info)
                 .nymTextStyle(.bodyDefault)
                 .underline()
             exportImage()
@@ -663,11 +663,11 @@ private extension ServerDetailsView {
         case .noScore:
             Color.Nym.textSecondary
         case .low:
-            Color.Nym.statusError
+            Color.Nym.error
         case .medium:
-            Color.Nym.statusWarning
+            Color.Nym.warning
         case .high:
-            Color.Nym.brandPrimary
+            Color.Nym.primary
         case .offline:
             Color.Nym.textSecondary
         }
@@ -678,11 +678,11 @@ private extension ServerDetailsView {
         case .noScore:
             Color.Nym.textSecondary
         case .low:
-            Color.Nym.brandPrimary
+            Color.Nym.primary
         case .medium:
-            Color.Nym.statusWarning
+            Color.Nym.warning
         case .high:
-            Color.Nym.statusError
+            Color.Nym.error
         case .offline:
             Color.Nym.textSecondary
         }

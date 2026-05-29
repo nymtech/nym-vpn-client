@@ -33,7 +33,7 @@ public struct SettingButton: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 64, maxHeight: 64)
-        .background(Color.Nym.surfaceElev.opacity(isHovered ? 0.7 : 1))
+        .background(Color.Nym.surface.opacity(isHovered ? 0.7 : 1))
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)

@@ -20,7 +20,7 @@ public struct TermsAndConditionsView: View {
 
     public var body: some View {
         Text(privacyPolicyAttributtedString ?? "")
-            .tint(Color.Nym.brandPrimary)
+            .tint(Color.Nym.primary)
             .foregroundStyle(Color.Nym.textSecondary)
             .textStyle(.Body.Small.regular)
             .multilineTextAlignment(.center)

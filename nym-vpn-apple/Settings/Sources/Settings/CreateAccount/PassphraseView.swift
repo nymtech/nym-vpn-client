@@ -68,7 +68,7 @@ public struct PassphraseView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            Color.Nym.surfaceBg
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .overlay {
@@ -137,12 +137,12 @@ private extension PassphraseView {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 290)
-        .background(Color.Nym.surfaceElev)
+        .background(Color.Nym.surface)
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .inset(by: 0.5)
-                .stroke(Color.Nym.gray2, lineWidth: 1)
+                .stroke(Color.Nym.textSecondary, lineWidth: 1)
             )
     }
 
@@ -213,7 +213,7 @@ private extension PassphraseView {
     var copyButton: some View {
         Text("passphrase.copy".localizedString)
             .nymTextStyle(.bodyDefault)
-            .foregroundStyle(Color.Nym.brandPrimary)
+            .foregroundStyle(Color.Nym.primary)
             .frame(maxWidth: .infinity)
             .onTapGesture {
                 copyToPasteboard()
@@ -226,13 +226,13 @@ private extension PassphraseView {
     var separatorView: some View {
         Rectangle()
             .frame(width: 1, height: 20)
-            .background(Color.Nym.gray2)
+            .background(Color.Nym.textSecondary)
     }
 
     var keychainButton: some View {
         Text("passphrase.saveToKeychain".localizedString)
             .nymTextStyle(.bodyDefault)
-            .foregroundStyle(Color.Nym.brandPrimary)
+            .foregroundStyle(Color.Nym.primary)
             .frame(maxWidth: .infinity)
             .onTapGesture {
                 storeInKeychain()

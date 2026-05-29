@@ -75,7 +75,7 @@ private extension PassphraseSignInView {
     var textArea: some View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color.Nym.surfaceElev)
+                .fill(Color.Nym.surface)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
                         .stroke(borderColor, lineWidth: 1)
@@ -101,10 +101,10 @@ private extension PassphraseSignInView {
         if viewModel.submissionState == .loading {
             ZStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.Nym.gray1)
+                    .fill(Color.Nym.textTertiary)
                     .frame(height: 45)
                 ProgressView()
-                    .tint(Color.Nym.gray12)
+                    .tint(Color.Nym.surface)
             }
         } else {
             NymButton("passphraseSignIn.loginButton".localizedString, style: .primary) {
@@ -115,7 +115,7 @@ private extension PassphraseSignInView {
 
     var borderColor: Color {
         if viewModel.submissionState == .failed {
-            return Color.Nym.statusError
+            return Color.Nym.error
         }
         return colorScheme == .dark
             ? Color.Nym.textPrimary.opacity(0.4)

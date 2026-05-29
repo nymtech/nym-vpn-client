@@ -13,20 +13,20 @@ public struct GenericButton: View {
         func backgroundColor(isDisabled: Bool) -> Color {
             switch self {
             case .normal:
-                isDisabled ? Color.Nym.textSecondary : Color.Nym.brandPrimary
+                isDisabled ? Color.Nym.textSecondary : Color.Nym.primary
             case .accentBorderOnly, .textOnly, .primaryBorderOnly, .borderless:
                 .clear
             case .destructive:
-                Color.Nym.statusError.opacity(0.1)
+                Color.Nym.error.opacity(0.1)
             }
         }
 
         var imageForegroundColor: Color {
             switch self {
             case .normal, .borderless:
-                Color.Nym.brandOnPrimary
+                Color.Nym.primaryText
             case .accentBorderOnly, .textOnly:
-                Color.Nym.brandPrimary
+                Color.Nym.primary
             case .primaryBorderOnly, .destructive:
                 Color.Nym.textPrimary
             }
@@ -35,11 +35,11 @@ public struct GenericButton: View {
         func textTitleColor(isDisabled: Bool) -> Color {
             switch self {
             case .normal:
-                Color.Nym.brandOnPrimary
+                Color.Nym.primaryText
             case .borderless:
                 Color.Nym.textPrimary
             case .accentBorderOnly:
-                Color.Nym.brandPrimary
+                Color.Nym.primary
             case .textOnly, .primaryBorderOnly, .destructive:
                 isDisabled ? Color.Nym.textSecondary : Color.Nym.textPrimary
             }
@@ -59,11 +59,11 @@ public struct GenericButton: View {
             case .normal, .textOnly, .borderless:
                 .clear
             case .accentBorderOnly:
-                Color.Nym.brandPrimary
+                Color.Nym.primary
             case .primaryBorderOnly:
                 isDisabled ? Color.Nym.textSecondary : Color.Nym.textPrimary
             case .destructive:
-                Color.Nym.statusError
+                Color.Nym.error
             }
         }
     }

@@ -90,20 +90,20 @@ private extension WelcomeOptInsView {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Toggle("", isOn: isOn)
                     .labelsHidden()
-                    .tint(Color.Nym.brandPrimary)
+                    .tint(Color.Nym.primary)
                     .accessibilityLabel(Text(title))
             }
             if let linkURL {
                 Link(destination: linkURL) {
                     Text(linkTitle)
                         .nymTextStyle(.bodySmall)
-                        .foregroundStyle(Color.Nym.statusInfo)
+                        .foregroundStyle(Color.Nym.info)
                         .underline()
                 }
             } else {
                 Text(linkTitle)
                     .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.statusInfo)
+                    .foregroundStyle(Color.Nym.info)
                     .underline()
             }
         }
@@ -111,7 +111,7 @@ private extension WelcomeOptInsView {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.Nym.backgroundHover)
+                .fill(Color.Nym.surfaceAlt)
         )
     }
 
@@ -126,6 +126,6 @@ private extension WelcomeOptInsView {
 #if DEBUG
 #Preview {
     WelcomeOptInsView(onContinue: {})
-        .background(Color.Nym.surfaceElev)
+        .background(Color.Nym.surface)
 }
 #endif

@@ -37,7 +37,7 @@ public struct SantasView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            Color.Nym.surfaceBg
+            Color.Nym.background
                 .ignoresSafeArea()
         }
     }
@@ -55,7 +55,7 @@ private extension SantasView {
     func enivironmentDetails() -> some View {
         VStack {
             Text("Environment Details:")
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .bold()
                 .padding(4)
             Text("App environment: \(viewModel.currentAppEnv)")
@@ -76,7 +76,7 @@ private extension SantasView {
     func environmentSection() -> some View {
         VStack {
             Text("Environment:")
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .bold()
                 .padding(4)
 #if os(macOS)
@@ -99,14 +99,14 @@ private extension SantasView {
             Toggle(isOn: $appSettings.isMixnetTuningEnabled) {
                 Text("Mixnet tuning")
             }
-            .tint(Color.Nym.brandPrimary)
+            .tint(Color.Nym.primary)
         }.padding()
     }
 
     func snackbarSection() -> some View {
         VStack(spacing: 8) {
             Text("Snackbar tests:")
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .bold()
                 .padding(4)
             Text("Tap, then pop back to Home to see them play.")
@@ -114,7 +114,7 @@ private extension SantasView {
                 .padding(4)
 
             Text("Style coverage")
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .padding(.top, 4)
             Button("Queue all 5 styles") {
                 SantasView.styleFixtures.forEach { SnackbarManager.shared.enqueue($0.item) }
@@ -126,7 +126,7 @@ private extension SantasView {
             }
 
             Text("Real scenarios")
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .padding(.top, 8)
             Button("Queue all real scenarios") {
                 SantasView.realFixtures.forEach { SnackbarManager.shared.enqueue($0.item) }
@@ -148,7 +148,7 @@ private extension SantasView {
     func logsSection() -> some View {
         VStack {
             Text("Logs:")
-                .foregroundStyle(Color.Nym.brandPrimary)
+                .foregroundStyle(Color.Nym.primary)
                 .bold()
                 .padding(4)
             Text("Logs size: \(viewModel.logFilesSize)")

@@ -19,7 +19,7 @@ struct SpeedModeSegmentedControl: View {
         }
         .padding(Constants.outerPadding)
         .background(
-            Capsule().fill(Color.Nym.surfaceSunken)
+            Capsule().fill(Color.Nym.surfacePressed)
         )
         .frame(height: Constants.pillHeight)
         .accessibilityElement(children: .contain)
@@ -44,7 +44,7 @@ private extension SpeedModeSegmentedControl {
             .padding(.vertical, Constants.segmentVerticalPadding)
             .background(
                 Capsule()
-                    .fill(isSelected ? Color.Nym.surfaceElev : Color.clear)
+                    .fill(isSelected ? Color.Nym.surface : Color.clear)
             )
             .contentShape(Capsule())
         }
@@ -64,9 +64,9 @@ private extension SpeedModeSegmentedControl {
 
     func tintColor(isSelected: Bool, isHovered: Bool) -> Color {
         if isHovered {
-            return Color.Nym.brandPrimaryHover
+            return Color.Nym.primaryHover
         }
-        return isSelected ? Color.Nym.brandPrimary : Color.Nym.textSecondary
+        return isSelected ? Color.Nym.primary : Color.Nym.textSecondary
     }
 
     @ViewBuilder

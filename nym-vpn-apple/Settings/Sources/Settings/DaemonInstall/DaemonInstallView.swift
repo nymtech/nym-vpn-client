@@ -37,7 +37,7 @@ public struct DaemonInstallView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity)
         .background {
-            Color.Nym.surfaceBg
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .overlay {
@@ -110,7 +110,7 @@ extension DaemonInstallView {
         if let thirdStepText = thirdStepAttributedString() {
             HStack {
                 Text("3. \(thirdStepText)")
-                    .tint(Color.Nym.brandPrimary)
+                    .tint(Color.Nym.primary)
                     .nymTextStyle(.bodyDefault)
                     .foregroundStyle(Color.Nym.textSecondary)
                     .multilineTextAlignment(.leading)
@@ -153,7 +153,7 @@ private extension DaemonInstallView {
     func successInstallActionDialogConfiguration() -> ActionDialogConfiguration {
         ActionDialogConfiguration(
             systemIconImageName: "checkmark",
-            systemIconImageColor: Color.Nym.brandPrimary,
+            systemIconImageColor: Color.Nym.primary,
             titleLocalizedString: "daemonInstall.successModal.title".localizedString,
             subtitleLocalizedString: "daemonInstall.successModal.subtitle".localizedString,
             yesLocalizedString: "daemonInstall.backToMainScreen".localizedString,

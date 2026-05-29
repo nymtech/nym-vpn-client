@@ -49,7 +49,7 @@ private extension SettingsView {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            Color.Nym.surfaceBg
+            Color.Nym.background
                 .ignoresSafeArea()
         }
 #if os(macOS)
@@ -73,7 +73,7 @@ private extension SettingsView {
     func navbar() -> some View {
         CustomNavBar(
             title: viewModel.settingsTitle,
-            backgroundColorOverride: Color.Nym.navBarBackground,
+            backgroundColorOverride: Color.Nym.background,
             leftButton: CustomNavBarButton(type: .empty, action: {}),
             rightButton: CustomNavBarButton(type: .close, action: { viewModel.navigateBack() })
         )

@@ -15,7 +15,7 @@ public struct LaunchView: View {
             .navigationBarBackButtonHidden(true)
             .opacity(logoOpacity)
             .background {
-                Color.Nym.surfaceBg
+                Color.Nym.background
                     .ignoresSafeArea()
             }
             .task {

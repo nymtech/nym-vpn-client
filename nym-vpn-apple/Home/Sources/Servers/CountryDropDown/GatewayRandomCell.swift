@@ -54,15 +54,15 @@ public struct GatewayRandomCell: View {
         .frame(height: 64)
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
-        .background(isButtonHovered ? Color.Nym.surfaceBg.opacity(0.3) : Color.clear)
+        .background(isButtonHovered ? Color.Nym.background.opacity(0.3) : Color.clear)
         .background {
             RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(Color.Nym.surfaceElev)
+                .fill(Color.Nym.surface)
         }
         .overlay {
             RoundedRectangle(cornerRadius: cornerRadius)
                 .inset(by: 0.5)
-                .stroke(isSelected ? Color.Nym.brandPrimary : .clear, lineWidth: 1)
+                .stroke(isSelected ? Color.Nym.primary : .clear, lineWidth: 1)
                 .allowsHitTesting(false)
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius))

@@ -93,7 +93,7 @@ private extension SettingsListItem {
         if !viewModel.position.isLast {
             Divider()
                 .frame(height: 1)
-                .overlay(Color.Nym.surfaceHair)
+                .overlay(Color.Nym.divider)
         }
     }
 
@@ -145,7 +145,7 @@ private extension SettingsListItem {
         if case let .toggle(_, isDisabled) = viewModel.accessory {
             Toggle("", isOn: $isToggleOn)
                 .toggleStyle(.switch)
-                .tint(Color.Nym.brandPrimary)
+                .tint(Color.Nym.primary)
                 .labelsHidden()
                 .disabled(isDisabled)
                 .padding(.trailing, NymSpacing.large)

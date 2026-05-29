@@ -40,7 +40,7 @@ struct AddCredentialsView: View {
         .ignoresSafeArea(edges: [.bottom])
 #endif
         .background {
-            Color.Nym.surfaceBg
+            Color.Nym.background
                 .ignoresSafeArea()
         }
 #if os(iOS)
@@ -192,7 +192,7 @@ private extension AddCredentialsView {
                 .foregroundStyle(viewModel.credentialSubtitleColor)
                 .nymTextStyle(.bodySmall)
                 .padding(4)
-                .background(Color.Nym.surfaceBg)
+                .background(Color.Nym.background)
                 .position(x: 70, y: 0)
         }
         .padding(EdgeInsets(top: 12, leading: 0, bottom: viewModel.bottomPadding, trailing: 0))
@@ -202,7 +202,7 @@ private extension AddCredentialsView {
     func errorMessageView(title: String) -> some View {
         HStack {
             Text(title)
-                .foregroundStyle(Color.Nym.statusError)
+                .foregroundStyle(Color.Nym.error)
                 .multilineTextAlignment(.leading)
                 .lineLimit(nil)
                 .nymTextStyle(.bodySmall)
@@ -236,7 +236,7 @@ private extension AddCredentialsView {
     func createAccount() -> some View {
         if let createAccountAttributedString = viewModel.createAnAccountAttributedString() {
             Text(createAccountAttributedString)
-                .tint(Color.Nym.brandPrimary)
+                .tint(Color.Nym.primary)
                 .foregroundStyle(Color.Nym.textPrimary)
                 .nymTextStyle(.bodyLarge)
                 .multilineTextAlignment(.center)

@@ -223,10 +223,10 @@ private extension SignUpRootContent {
     var loadingButton: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.Nym.gray1)
+                .fill(Color.Nym.textTertiary)
                 .frame(height: 45)
             ProgressView()
-                .tint(Color.Nym.gray12)
+                .tint(Color.Nym.surface)
         }
     }
 
