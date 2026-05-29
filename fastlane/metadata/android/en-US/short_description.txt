@@ -1,1 +1,1 @@
-Private, secure Swiss dVPN. WireGuard, mixnet, decentralized proxy, no email.
+VPN suisse, privé et sécurisé. WireGuard, mixnet, proxy décentralisé, sans email
