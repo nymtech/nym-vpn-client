@@ -36920,7 +36920,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iOS will show a system alert confirming the change. Your home-screen icon will refresh momentarily."
+            "value" : "iOS will show a system alert confirming the change. Your home-screen icon will refresh momentarily.\n\nOnly the icon image changes — the app name below it stays \"NymVPN\" (iOS does not allow renaming). Notifications, Spotlight, App Library, Screen Time, and Siri also still show NymVPN."
           }
         }
       }

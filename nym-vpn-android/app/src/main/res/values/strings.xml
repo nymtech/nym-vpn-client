@@ -30,7 +30,7 @@
 	<string name="app_icon_label_notes" translatable="false">Notes</string>
 	<string name="app_icon_disconnect_first">Disconnect the VPN to change the app icon.</string>
 	<string name="app_icon_change_title">Change app icon?</string>
-	<string name="app_icon_change_body">The app will close briefly to apply the new icon. Your home-screen icon will refresh once the system updates.</string>
+	<string name="app_icon_change_body">The app will close briefly to apply the new icon. Your home-screen icon will refresh once the system updates.\n\nOnly the home-screen icon and label change. Notifications and system search still show NymVPN.</string>
 	<string name="app_icon_change_confirm">Change icon</string>
 	<string name="app_icon_change_cancel">Cancel</string>
 	<string name="light_theme">Light theme</string>
