@@ -28,7 +28,7 @@
 	<string name="auto_connect_description">Kết nối khi khởi động lại</string>
 	<string name="logs">Nhật Ký</string>
 	<string name="support">Hỗ trợ</string>
-    <string name="terms_of_use">Điều khoản sử dụng</string>
+	<string name="terms_of_use">Điều khoản sử dụng</string>
 	<string name="privacy_policy">Tuyên bố về quyền riêng tư</string>
 	<string name="licenses">Giấy phép</string>
 	<string name="open_github">Mở một issue trên GitHub</string>
@@ -43,11 +43,11 @@
 	<string name="okay">Okay</string>
 	<string name="two_hop">2 bước nhảy</string>
 	<string name="country_load_failure">Không tải được các quốc gia bước nhảy</string>
-    <string name="disabled_while_connected">Đã tắt trong khi đã kết nối đến VPN</string>
+	<string name="disabled_while_connected">Đã tắt trong khi đã kết nối đến VPN</string>
 	<string name="permission_required">Yêu cầu cấp quyền</string>
 	<string name="permission_message">Để đảm bảo ứng dụng hoạt động đúng trên thiết bị của bạn, vui lòng cho phép các quyền sau. Đây là những quyền cần thiết để ứng dụng có thể hoạt động.</string>
-    <string name="notification_permission_required">Vui lòng bật quyền thông báo để ứng dụng hoạt động bình thường</string>
-    <string name="mode_selection">Chọn chế độ</string>
+	<string name="notification_permission_required">Vui lòng bật quyền thông báo để ứng dụng hoạt động bình thường</string>
+	<string name="mode_selection">Chọn chế độ</string>
 	<string name="five_hop_explanation">Tận hưởng quyền riêng tư tối đa thông qua định tuyến 5 bước nhảy (lên đến 1-5 Mbps). Lưu lượng giả và che giấu thời gian để nâng cao tính ẩn danh. Hoàn hảo cho các hoạt động nhạy cảm cao như thanh toán, email và tin nhắn.</string>
 	<string name="continue_reading">Tiếp tục đọc</string>
 	<string name="appearance">Giao diện</string>
@@ -89,6 +89,8 @@
 	<string name="mnemonic_example">ví dụ: smoke artefact velvet skull pop palace tortoise damage rough...</string>
 	<string name="dynamic">Động</string>
 	<string name="system_wallpaper">Giao diện hình nền hệ thống</string>
+	<string name="nym_v2_theme">Nym 2.0</string>
+	<string name="nym_v2_theme_desc">Bản xem trước thiết kế mới</string>
 	<string name="initializing">Đang khởi tạo</string>
 	<string name="stop">Dừng</string>
 	<string name="version">Phiên bản</string>
@@ -140,7 +142,7 @@
 	<string name="bars_3">3 thanh</string>
 	<string name="bars_2">2 thanh</string>
 	<string name="bars_1">1 thanh</string>
-    <string name="account_id">ID tài khoản:</string>
+	<string name="account_id">ID tài khoản:</string>
 	<string name="developer">Nhà phát triển</string>
 	<string name="get_help">Trợ giúp</string>
 	<string name="join_telegram">Tham gia Telegram của chúng tôi</string>
@@ -156,7 +158,8 @@
 	<string name="button_next">Tiếp theo</string>
 	<string name="skip">Bỏ qua</string>
 	<string name="get_started">Bắt đầu</string>
-    <string name="title_retry">Thử lại</string>
+	<string name="title_retry">Thử lại</string>
+	<string name="button_back">Quay Lại</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Hiển thị trực tuyến</string>
 	<string name="streaming_server_banner_title">Mới: Khám phá các máy chủ-\nđược tối ưu hóa cho phát trực tuyến (▶️)</string>
@@ -188,6 +191,12 @@
 	<string name="error_gateway_unavailable_exit">Không thể kết nối với máy chủ thoát. Vui lòng thử máy chủ khác!</string>
 	<string name="error_invalid_entry_gateway_identity">Máy chủ vào ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại.</string>
 	<string name="error_invalid_exit_gateway_identity">Máy chủ thoát ngoại tuyến. Vui lòng chọn máy chủ khác và kết nối lại.</string>
+	<string name="error_expired_subscription_title">Your subscription has expired</string>
+	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
+	<string name="error_expired_subscription_button">Renew Now</string>
+	<string name="error_passphrase_title">Passphrase not recognized!</string>
+	<string name="error_passphrase_description">Double check your words and input settings</string>
+	<string name="error_passphrase_button">Try again</string>
 	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">Đang khởi tạo NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Đang thiết lập tài khoản của bạn (2/6)</string>
@@ -196,15 +205,44 @@
 	<string name="connection_state_connecting_mixnet_client">Đang đăng ký ẩn danh với các máy chủ (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Đang thiết lập kết nối máy chủ (6/6)</string>
 	<string name="main_button_select_plan">Chọn gói</string>
+	<!-- One-click mode -->
+	<string name="one_click_auto_server">Sử dụng máy chủ tốt nhất</string>
+	<string name="one_click_searching">Tìm kiếm vị trí tốt nhất</string>
+	<string name="one_click_mode_fast">Nhanh</string>
+	<string name="connect_mode_auto">Tự động</string>
+	<string name="connect_mode_mixnet">Mixnet</string>
+	<string name="one_click_nym_exit_node">Máy chủ thoát</string>
+	<string name="one_click_nym_entry_node">Máy chủ vào</string>
+	<!-- Connection status -->
+	<string name="connection_status_not_protected">Không được bảo vệ</string>
+	<string name="connection_status_fast_mode">Bảo vệ bởi chế độ Nhanh</string>
+	<string name="connection_status_anonymous">Bảo vệ bởi chế độ Ẩn danh</string>
+	<!-- Hop Screen -->
+	<string name="gateway_best">Máy chủ tốt nhất</string>
+	<string name="gateway_random">Máy chủ ngẫu nhiên</string>
+	<!-- Auth component -->
+	<string name="auth_welcome_title">Chào mừng!</string>
+	<string name="auth_welcome_description">Vào VPN riêng tư nhất thế giới</string>
+	<string name="auth_welcome_login_button">Đăng nhập vào tài khoản của tôi</string>
+	<string name="auth_sign_up_title">Đăng Ký</string>
+	<string name="auth_sign_up_account_button">Tài khoản ẩn danh</string>
+	<string name="auth_sign_up_social_button">Đăng ký bằng tài khoản mạng xã hội *</string>
+	<string name="auth_sign_up_info">* Việc đăng ký bằng tài khoản mạng xã hội hiện có \nsẽ làm giảm tính ẩn danh của bạn.</string>
+	<string name="auth_log_in_title">Đăng nhập</string>
+	<string name="auth_log_in_passphrase_button">Đăng nhập bằng cụm 24 từ</string>
+	<string name="auth_log_in_social_button">Đăng nhập bằng tài khoản mạng xã hội *</string>
+	<string name="auth_log_in_info">* Bạn cần liên kết tài khoản mạng xã hội với tài khoản hiện có \ntrước khi có thể sử dụng chúng để đăng nhập. </string>
+	<string name="auth_passphrase_login_button">Đăng nhập</string>
+	<string name="auth_passphrase_input_placeholder">cụm từ mật khẩu 24 từ</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Chống kiểm duyệt</string>
 	<string name="settings_passphrase_title">Cụm từ mật khẩu</string>
 	<string name="settings_dns_title">Tùy chỉnh DNS</string>
 	<string name="settings_ipv6_title">Hỗ trợ IPv6</string>
 	<string name="settings_ipv6_description">Cho phép kết nối IPv6</string>
-    <string name="settings_auto_select_title">Tự động chọn máy chủ vào</string>
+	<string name="settings_auto_select_title">Tự động chọn máy chủ vào</string>
 	<string name="settings_auto_select_description">Cho phép ứng dụng chọn vị trí vào tốt nhất</string>
-    <string name="settings_system_tray_title">Chạy trong khay hệ thống</string>
+	<string name="settings_system_tray_title">Chạy trong khay hệ thống</string>
 	<string name="settings_system_tray_description">Giữ ứng dụng chạy khi đóng</string>
 	<string name="settings_reset_app_title">Đặt lại dữ liệu ứng dụng</string>
 	<string name="settings_system_status_title">Trạng thái hệ thống</string>
@@ -216,8 +254,21 @@
 	<string name="settings_language_help_title">Hỗ trợ dịch</string>
 	<string name="settings_language_help_description">Tối ưu ứng dụng theo ngôn ngữ của bạn.</string>
 	<string name="settings_event_lan_reconnecting">Đang kết nối lại để áp dụng cài đặt mạng LAN...</string>
-	<string name="settings_lewes_title">Bật giao thức Lewes</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">Hậu lượng tử</string>
+	<string name="settings_lewes_description">Luôn ưu tiên các cổng hậu lượng tử</string>
+	<string name="settings_ad_blocking_title">Chặn quảng cáo</string>
+	<string name="settings_kill_switch_title">Kill switch</string>
+	<string name="settings_kill_switch_description">Ngắt kết nối nếu internet bị rớt</string>
+	<string name="settings_bypass_lan_title">Bỏ qua LAN</string>
+	<string name="settings_bypass_lan_description">Cho phép truy cập mạng cục bộ trực tiếp</string>
+	<string name="settings_split_tunneling_title">Split tunneling</string>
+	<string name="settings_startup_title">Tự khởi chạy khi mở máy</string>
+	<string name="settings_notifications_title">Thông báo</string>
+	<string name="settings_power_managment_title">Quản lý năng lượng</string>
+	<string name="settings_shortcuts_title">Phím tắt ứng dụng</string>
+	<string name="settings_logs_title">Nhật ký &amp; dữ liệu</string>
+	<string name="settings_legal_title">Pháp lý</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Cần khóa màn hình để sử dụng các phím tắt.</string>
 	<string name="shortcut_title">Xác nhận hành động</string>
 	<string name="shortcut_subtitle_stop">Mở khóa để ngắt kết nối VPN</string>
@@ -311,19 +362,20 @@
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">Bật các tính năng này nếu bạn gặp sự cố kết nối hoặc NymVPN bị chặn tại vị trí của bạn.</string>
+	<string name="censorship_learn_more_link_text">Tìm hiểu thêm</string>
 	<string name="censorship_quic_title">Kết nối nâng cao (QUIC)</string>
 	<string name="censorship_quic_changes">Thay đổi sẽ có hiệu lực sau khi kết nối lại</string>
-	<string name="censorship_quic_description">Cải thiện độ ổn định của chế độ Nhanh trong các mạng hạn chế bằng cách gói lưu lượng WireGuard trong QUIC (HTTP/3) để hiển thị như trình duyệt web thông thường.\n\nLưu ý: Giới hạn tùy chọn máy chủ vào chỉ dành cho các cổng tương thích với QUIC.</string>
-    <string name="censorship_quic_link">https://nym.com/features/quic</string>
+	<string name="censorship_quic_description">Cải thiện kết nối trên các mạng bị hạn chế bằng cách tích hợp WireGuard vào QUIC (HTTP/3).\n\nLưu ý: Giới hạn các tùy chọn máy chủ đầu vào chỉ dành cho các máy chủ tương thích với QUIC.</string>
+	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Kết nối API Ẩn danh</string>
-	<string name="censorship_stealth_description">Ẩn yêu cầu API phía sau các tên miền phổ biến, được phép để vượt qua chặn VPN. Tự động được NymVPN sử dụng sau khi kết nối API tiêu chuẩn thất bại.</string>
-    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_stealth_description">Bảo vệ khỏi việc bị chặn VPN bằng cách sử dụng các tên miền giả. Bật tùy chọn này để sử dụng mọi lúc, hoặc tắt để sử dụng khi các kết nối thông thường gặp sự cố.</string>
+	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">Đang kết nối lại để áp dụng các cài đặt QUIC…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Chỉ hiển thị các vị trí trong chế độ Nhanh và máy chủ hỗ trợ giao thức QUIC. Để hiển thị tất cả máy chủ, hãy tắt QUIC</string>
 	<string name="censorship_amnezia_title">Mức độ che giấu tối thiểu (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Giúp lưu lượng WireGuard khó bị phát hiện hơn. Đưa vào các gói tin mồi nhử phá vỡ các quy tắc đơn giản thường được sử dụng bởi các hệ thống kiểm duyệt Kiểm tra gói sâu (DPI), cải thiện độ tin cậy của kết nối trong các môi trường hạn chế. \n\nLưu ý: Chỉ được triển khai ở phía máy khách.</string>
-    <string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+	<string name="censorship_amnezia_description">Che giấu lưu lượng WireGuard bằng các gói tin giả để ngăn việc chặn VPN. \n\nLưu ý: Chỉ được triển khai ở phía máy khách.</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡ Nhanh chóng &amp; ẩn danh </string>
 	<string name="account_welcome_create_description">Chỉ một chạm để thanh toán. Tài khoản ẩn danh được tạo trên thiết bị của bạn. Không cần mật khẩu, không tiết lộ thông tin cá nhân.</string>
@@ -389,11 +441,11 @@
 	<string name="account_info_link_warning">⚠️ Việc liên kết tài khoản mạng xã hội với tài khoản Nym của bạn sẽ làm giảm tính ẩn danh. Các thay đổi sẽ có hiệu lực sau khi bạn đăng xuất và đăng nhập lại bằng tài khoản mạng xã hội đã chọn. </string>
 	<string name="account_info_linked_info">⚡ Tài khoản này được liên kết với phương thức đăng nhập bằng tài khoản mạng xã hội thông qua Privy.  </string>
 	<string name="account_info_id_title">ID tài khoản</string>
-	<string name="account_info_id_info">Hãy sử dụng ID tài khoản của bạn nếu cần liên hệ với bộ phận hỗ trợ khách hàng của Nym. Thông tin này hoàn toàn an toàn để chia sẻ!</string>
+	<string name="account_info_id_info">Bạn có thể chia sẻ thông tin này một cách an toàn. Sử dụng để liên hệ với bộ phận hỗ trợ của Nym.</string>
 	<string name="account_info_device_title">ID thiết bị</string>
 	<string name="account_info_device_info">Sử dụng thông tin này để liên kết thiết bị này với tài khoản của bạn trên nym.com</string>
 	<string name="account_info_status_title">Trạng thái tài khoản</string>
-	<string name="account_info_bandwidth_title">Băng thông còn lại</string>
+	<string name="account_info_bandwidth_title">Lưu lượng đã sử dụng</string>
 	<string name="account_info_limit_text">Giới hạn</string>
 	<string name="account_info_reset_text">Đặt lại</string>
 	<string name="account_info_contact_support_action">Kết nối với bộ phận hỗ trợ</string>
@@ -404,9 +456,14 @@
 	<string name="account_info_renew_text">Gia hạn ngay để tiếp tục được bảo vệ</string>
 	<string name="banner_renew_text">Gia hạn ngay\nđể tiếp tục được bảo vệ</string>
 	<string name="account_info_auto_renew_text">*Tự động gia hạn</string>
-	<string name="account_info_no_plan">Không có gói dịch vụ khả dụng</string>
+	<string name="account_info_no_plan">Không phát hiện gói đăng ký đang hoạt động</string>
+	<string name="account_info_confirming_payment">Xác nhận thanh toán</string>
+	<string name="account_info_updating">Đang cập nhật trạng thái tài khoản…</string>
 	<string name="account_info_autologin_fetching">Đang lấy mã truy cập…</string>
 	<string name="account_info_autologin_error">Không thể lấy mã truy cập. Vui lòng thử lại.</string>
+	<string name="account_info_add_social_action">Thêm đăng nhập bằng tài khoản mạng xã hội</string>
+	<string name="account_info_add_social_suffix">\u0020phương thức truy cập vào tài khoản của bạn.</string>
+	<string name="account_info_backup">Phương thức đăng nhập dự phòng được liên kết thông qua Privy</string>
 	<string name="pin_code_title">Mã Pin</string>
 	<string name="pin_code_subtitle">Nhập mã này trên trang web</string>
 	<string name="pin_code_copy_and_open">Sao chép mã và mở trang web</string>
@@ -434,7 +491,7 @@
 	<string name="logs_download_button">Vẫn lưu dưới dạng tệp</string>
 	<string name="logs_saved">Nhật ký được lưu vào thư mục tải xuống\"</string>
 	<!-- Split tunneling screen -->
-    <string name="split_tunneling_info_msg">Thiết lập từng ứng dụng để sử dụng NymVPN hoặc kết nối trực tiếp.</string>
+	<string name="split_tunneling_info_msg">Thiết lập từng ứng dụng để sử dụng NymVPN hoặc kết nối trực tiếp.</string>
 	<string name="split_tunneling_info_desc">Thay đổi sẽ có hiệu lực sau khi kết nối lại</string>
 	<string name="split_tunneling_search_apps_hint">Tìm kiếm ứng dụng</string>
 	<string name="split_tunneling_apps">Ứng Dụng</string>
@@ -519,4 +576,7 @@
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Bảo vệ bản thân khỏi lừa đảo</string>
 	<string name="support_protect_description">Chỉ liên hệ với bộ phận hỗ trợ của NymVPN qua các kênh chính thức được liệt kê bên dưới. Chúng tôi sẽ không bao giờ yêu cầu mật khẩu hoặc liên hệ với bạn trước qua tin nhắn trực tiếp.\n\nBạn nhận được liên hệ đáng ngờ? Rất có thể đây là lừa đảo.</string>
+	<!-- Private DNS modal -->
+	<string name="private_dns_title">Tắt DNS riêng tư để sử dụng trình chặn quảng cáo.</string>
+	<string name="private_dns_button">Mở cài đặt</string>
 </resources>

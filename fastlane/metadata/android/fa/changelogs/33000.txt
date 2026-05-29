@@ -1,4 +1,4 @@
 موارد اضافه شده:
-- Settings: Added Lewes protocol toggle.
-- UI Updates: Cleaned up the Settings, Support, and Hop screens.
-- Technical Improvements: Added fallback for system logging.
+- تنظیمات: گزینه فعال/غیرفعال‌سازی پروتکل Lewes اضافه شد.
+- به‌روزرسانی رابط کاربری: صفحات تنظیمات، پشتیبانی و Hop بازطراحی شدند.
+- بهبودهای فنی: راهکار جایگزین برای لاگ‌گیری سیستم اضافه شد.

@@ -1,4 +1,4 @@
 क्या नया है:
-- Settings: Added Lewes protocol toggle.
-- UI Updates: Cleaned up the Settings, Support, and Hop screens.
-- Technical Improvements: Added fallback for system logging.
+- सेटिंग्स: Lewes प्रोटोकॉल टॉगल जोड़ा गया।
+- UI अपडेट: सेटिंग्स, सपोर्ट और हॉप स्क्रीन को साफ-सुथरा बनाया गया है।
+- तकनीकी सुधार: सिस्टम लॉगिंग के लिए फ़ॉलबैक जोड़ा गया।

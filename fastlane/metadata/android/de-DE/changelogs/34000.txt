@@ -1,0 +1,4 @@
+Was ist Neu:
+- Neues Feature Werbeblockierung (Beta) zum Blockieren von Werbung, Trackern und Malware
+- Neue Benachrichtigung für ausstehende Abos
+- Verbesserung der Anmeldezeiten

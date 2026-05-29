@@ -28,7 +28,7 @@
 	<string name="auto_connect_description">Підключатися при відкритті програми</string>
 	<string name="logs">Журнали</string>
 	<string name="support">Служба підтримки</string>
-    <string name="terms_of_use">Умови використання</string>
+	<string name="terms_of_use">Умови використання</string>
 	<string name="privacy_policy">Положення про конфіденційність</string>
 	<string name="licenses">Ліцензії</string>
 	<string name="open_github">Відкрити GitHub запит</string>
@@ -43,11 +43,11 @@
 	<string name="okay">Добре</string>
 	<string name="two_hop">2-ланки</string>
 	<string name="country_load_failure">Не вдалось завантажити країну</string>
-    <string name="disabled_while_connected">Вимкнено при підключенні до VPN</string>
+	<string name="disabled_while_connected">Вимкнено при підключенні до VPN</string>
 	<string name="permission_required">Необхідний дозвіл</string>
 	<string name="permission_message">Щоб забезпечити коректну роботу додатку на вашому пристрої, будь ласка, надайте наступні дозволи.</string>
-    <string name="notification_permission_required">Будь ласка, увімкніть дозвіл на сповіщення для правильної роботи програми</string>
-    <string name="mode_selection">Режим вибрано</string>
+	<string name="notification_permission_required">Будь ласка, увімкніть дозвіл на сповіщення для правильної роботи програми</string>
+	<string name="mode_selection">Режим вибрано</string>
 	<string name="five_hop_explanation">Максимальна конфіденційність завдяки 5-ступеневій маршрутизації (до 1-5 Мбіт/с). Фальшивий трафік і заплутування часу для підвищення анонімності. Ідеально підходить для дуже конфіденційних дій, таких як платежі, електронні листи та повідомлення.</string>
 	<string name="continue_reading">Продовжити читання</string>
 	<string name="appearance">Зовнішній вигляд</string>
@@ -89,6 +89,8 @@
 	<string name="mnemonic_example">наприклад, дим артефакт оксамитовий череп поп палац черепаха пошкодження грубий...</string>
 	<string name="dynamic">Динамічний</string>
 	<string name="system_wallpaper">Тема системних шпалер</string>
+	<string name="nym_v2_theme">Nym 2.0</string>
+	<string name="nym_v2_theme_desc">Попередній перегляд нового дизайну</string>
 	<string name="initializing">Ініціалізація</string>
 	<string name="stop">Стоп</string>
 	<string name="version">Версія</string>
@@ -140,7 +142,7 @@
 	<string name="bars_3">3 смужки</string>
 	<string name="bars_2">2 смужки</string>
 	<string name="bars_1">1 смужка</string>
-    <string name="account_id">Ідентифікатор облікового запису:</string>
+	<string name="account_id">Ідентифікатор облікового запису:</string>
 	<string name="developer">Розробник</string>
 	<string name="get_help">Зверніться по допомогу</string>
 	<string name="join_telegram">Приєднуйтесь до нас у Telegram</string>
@@ -156,7 +158,8 @@
 	<string name="button_next">Далі</string>
 	<string name="skip">Пропустити</string>
 	<string name="get_started">Почати</string>
-    <string name="title_retry">Повторити спробу</string>
+	<string name="title_retry">Повторити спробу</string>
+	<string name="button_back">Назад</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Показ стріму</string>
 	<string name="streaming_server_banner_title">Нове: Відкрийте для себе сервери, оптимізовані для потокового передавання (▶️)</string>
@@ -188,6 +191,12 @@
 	<string name="error_gateway_unavailable_exit">Не вдається підключитися до сервера виходу. Спробуйте інший!</string>
 	<string name="error_invalid_entry_gateway_identity">Сервер входу не працює. Виберіть інший і підключіться знову.</string>
 	<string name="error_invalid_exit_gateway_identity">Сервер виходу не працює. Виберіть інший і підключіться знову.</string>
+	<string name="error_expired_subscription_title">Термін дії вашої передплати скінчився</string>
+	<string name="error_expired_subscription_description">Спосіб оплати з регулярними платежами було відхилено</string>
+	<string name="error_expired_subscription_button">Поновити зараз</string>
+	<string name="error_passphrase_title">Пароль не розпізнано!</string>
+	<string name="error_passphrase_description">Перевірте ще раз свої слова та налаштування введення</string>
+	<string name="error_passphrase_button">Спробувати ще раз</string>
 	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">Ініціалізація NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Налаштування облікового запису (2/6)</string>
@@ -196,15 +205,44 @@
 	<string name="connection_state_connecting_mixnet_client">Анонімна реєстрація на серверах (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Встановлення з\'єднання з сервером (6/6)</string>
 	<string name="main_button_select_plan">Виберіть план</string>
+	<!-- One-click mode -->
+	<string name="one_click_auto_server">Використовуйте найкращий сервер</string>
+	<string name="one_click_searching">Пошук найкращого місця</string>
+	<string name="one_click_mode_fast">Швидкий</string>
+	<string name="connect_mode_auto">Автоматично</string>
+	<string name="connect_mode_mixnet">Mixnet</string>
+	<string name="one_click_nym_exit_node">Вийти з сервера</string>
+	<string name="one_click_nym_entry_node">Вхідний сервер</string>
+	<!-- Connection status -->
+	<string name="connection_status_not_protected">Не захищено</string>
+	<string name="connection_status_fast_mode">Захист у швидкому режимі</string>
+	<string name="connection_status_anonymous">Захист анонімності</string>
+	<!-- Hop Screen -->
+	<string name="gateway_best">Найкращий сервер</string>
+	<string name="gateway_random">Випадковий сервер</string>
+	<!-- Auth component -->
+	<string name="auth_welcome_title">Ласкаво просимо!</string>
+	<string name="auth_welcome_description">До найбезпечнішого VPN у світі</string>
+	<string name="auth_welcome_login_button">Увійти в мій обліковий запис</string>
+	<string name="auth_sign_up_title">Зареєструватися</string>
+	<string name="auth_sign_up_account_button">Анонімний акаунт</string>
+	<string name="auth_sign_up_social_button">Зареєструватися через соцмережі *</string>
+	<string name="auth_sign_up_info">* Реєстрація за допомогою наявного профілю в соціальній мережі \n зменшує вашу анонімність.</string>
+	<string name="auth_log_in_title">Увійдіть в систему</string>
+	<string name="auth_log_in_passphrase_button">Увійти за допомогою 24 слів</string>
+	<string name="auth_log_in_social_button">Увійти через соціальні мережі *</string>
+	<string name="auth_log_in_info">* Щоб використовувати соціальні мережі для входу, \n спочатку потрібно прив’язати їх до наявного облікового запису. </string>
+	<string name="auth_passphrase_login_button">Логін</string>
+	<string name="auth_passphrase_input_placeholder">24 фраза-пароль</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Проти цензури</string>
 	<string name="settings_passphrase_title">Кодова фраза</string>
 	<string name="settings_dns_title">Налаштування DNS</string>
 	<string name="settings_ipv6_title">Підтримка IPv6</string>
 	<string name="settings_ipv6_description">Вимкнути, щоб використовувати тільки IPv4</string>
-    <string name="settings_auto_select_title">Автоматичний вибір сервера входу</string>
+	<string name="settings_auto_select_title">Автоматичний вибір сервера входу</string>
 	<string name="settings_auto_select_description">Дозвольте додатку вибрати найкраще місце для входу</string>
-    <string name="settings_system_tray_title">Запустити в системному треї</string>
+	<string name="settings_system_tray_title">Запустити в системному треї</string>
 	<string name="settings_system_tray_description">Зберігати роботу програми після закриття</string>
 	<string name="settings_reset_app_title">Скинути дані програми</string>
 	<string name="settings_system_status_title">Стан системи</string>
@@ -216,8 +254,21 @@
 	<string name="settings_language_help_title">Допоможіть з перекладом</string>
 	<string name="settings_language_help_description">Покращуйте додаток своєю мовою.</string>
 	<string name="settings_event_lan_reconnecting">Повторне підключення для застосування налаштувань LAN…</string>
-	<string name="settings_lewes_title">Увімкнути протокол Lewes</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">Постквантовий</string>
+	<string name="settings_lewes_description">Завжди віддавайте перевагу постквантовим шлюзам</string>
+	<string name="settings_ad_blocking_title">Блокування реклами</string>
+	<string name="settings_kill_switch_title">Kill switch</string>
+	<string name="settings_kill_switch_description">Відключіться, якщо зникне інтернет</string>
+	<string name="settings_bypass_lan_title">Обхід локальної мережі</string>
+	<string name="settings_bypass_lan_description">Дозволити прямий доступ до локальної мережі</string>
+	<string name="settings_split_tunneling_title">Роздільне тунелювання</string>
+	<string name="settings_startup_title">Запускати при завантаженні</string>
+	<string name="settings_notifications_title">Сповіщення</string>
+	<string name="settings_power_managment_title">Керування живленням</string>
+	<string name="settings_shortcuts_title">Ярлик додатку</string>
+	<string name="settings_logs_title">Журнали &amp; та дані</string>
+	<string name="settings_legal_title">Правові</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Для використання ярликів необхідне блокування екрану.</string>
 	<string name="shortcut_title">Підтвердити дію</string>
 	<string name="shortcut_subtitle_stop">Розблокувати, щоб відключити VPN</string>
@@ -312,19 +363,20 @@
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">Розширені функції для поліпшення зв\'язку в обмежених мережах або при блокуванні NymVPN.</string>
+	<string name="censorship_learn_more_link_text">Дізнатися більше</string>
 	<string name="censorship_quic_title">Покращене з\'єднання (QUIC)</string>
 	<string name="censorship_quic_changes">Зміни будуть застосовані після повторного підключення</string>
-	<string name="censorship_quic_description">Покращує надійність швидкого режиму в обмежувальних мережах, обертаючи трафік WireGuard в QUIC (HTTP/3). Трафік буде виглядати як звичайний веб-перегляд, обходячи системи цензури Deep Packet Inspection (DPI).\n\nПримітка: обмежує опції вхідного сервера тільки шлюзами, сумісними з QUIC.</string>
-    <string name="censorship_quic_link">https://nym.com/features/quic</string>
+	<string name="censorship_quic_description">Покращує з\'єднання в мережах з обмеженим доступом завдяки використанню протоколу QUIC (HTTP/3) для WireGuard.\n\nПримітка: Обмежує вибір серверів входу лише тими, що підтримують QUIC.</string>
+	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Приховане підключення API</string>
-	<string name="censorship_stealth_description">Маскує запити API за популярними, дозволеними доменами, щоб обійти блокування VPN. Автоматично використовується NymVPN, коли стандартні спроби підключення не вдаються.</string>
-    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="censorship_event_reconnecting">Повторне підключення для застосування налаштувань QUIC...</string>
+	<string name="censorship_stealth_description">Захищає від блокування VPN за допомогою прикривальних доменів. Увімкніть цю функцію, щоб використовувати її завжди, або вимкніть, щоб використовувати її лише у разі, якщо звичайні з’єднання не працюють.</string>
+	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_event_reconnecting">Відновлюємо з\'єднання для застосування налаштувань…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Відображаються лише локації в швидкому режимі та сервери, що підтримують протокол QUIC. Щоб відобразити всі сервери, вимкніть QUIC.</string>
 	<string name="censorship_amnezia_title">Мінімальне заплутування (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">Ускладнює виявлення трафіку WireGuard. Впроваджує пакети-приманки, які порушують прості правила, що часто використовуються системами цензури Deep Packet Inspection (DPI), покращуючи надійність з\'єднання в обмежувальних середовищах. \n\nПримітка: реалізовано тільки на стороні клієнта.</string>
-    <string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+	<string name="censorship_amnezia_description">Маскує трафік WireGuard за допомогою пакетів-приманок, щоб запобігти блокуванню VPN. \n\n Примітка: реалізовано лише на стороні клієнта.</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡ Миттєво та анонімно </string>
 	<string name="account_welcome_create_description">Одне натискання для оформлення замовлення. Анонімний обліковий запис, створений на вашому пристрої. Без пароля, без особистої інформації.</string>
@@ -390,11 +442,11 @@
 	<string name="account_info_link_warning">⚠️ Прив\'язка соціального облікового запису до вашого облікового запису Nym знижує ваш рівень анонімності. Зміни набувають чинності після виходу з системи та повторного входу за допомогою обраного соціального облікового запису. </string>
 	<string name="account_info_linked_info">⚡ Цей обліковий запис пов\'язаний із методом соціального входу через Privy.  </string>
 	<string name="account_info_id_title">ID облікового запису</string>
-	<string name="account_info_id_info">Використовуйте ідентифікатор свого облікового запису, якщо вам потрібно зв\'язатися зі службою підтримки клієнтів Nym.  Цю інформацію можна безпечно надавати!</string>
+	<string name="account_info_id_info">Цю інформацію можна безпечно передавати. Використовуйте її для звернення до служби підтримки Nym.</string>
 	<string name="account_info_device_title">Ідентифікатор пристрою</string>
 	<string name="account_info_device_info">Використовуйте це, щоб пов\'язати цей пристрій зі своїм обліковим записом на nym.com</string>
 	<string name="account_info_status_title">Статус облікового запису</string>
-	<string name="account_info_bandwidth_title">Залишок пропускної здатності</string>
+	<string name="account_info_bandwidth_title">Витрати на справедливе використання</string>
 	<string name="account_info_limit_text">Ліміт</string>
 	<string name="account_info_reset_text">Скидання налаштувань</string>
 	<string name="account_info_contact_support_action">Зв\'язатися з підтримкою</string>
@@ -405,9 +457,14 @@
 	<string name="account_info_renew_text">Поновіть зараз, щоб залишатися захищеним</string>
 	<string name="banner_renew_text">Поновіть зараз\nщоб залишатися захищеним</string>
 	<string name="account_info_auto_renew_text">*Автоматичне поновлення</string>
-	<string name="account_info_no_plan">Немає активного плану</string>
+	<string name="account_info_no_plan">Активної підписки не виявлено</string>
+	<string name="account_info_confirming_payment">Підтвердження оплати</string>
+	<string name="account_info_updating">Оновлення стану облікового запису…</string>
 	<string name="account_info_autologin_fetching">Отримання коду доступу…</string>
 	<string name="account_info_autologin_error">Не вдалося отримати код доступу. Спробуйте ще раз.</string>
+	<string name="account_info_add_social_action">Додати вхід через соціальні мережі</string>
+	<string name="account_info_add_social_suffix">\u0020 Спосіб до вашого облікового запису.</string>
+	<string name="account_info_backup">Резервний спосіб входу, підключений через Privy.</string>
 	<string name="pin_code_title">PIN-код</string>
 	<string name="pin_code_subtitle">Введіть цей код на веб-сайті</string>
 	<string name="pin_code_copy_and_open">Скопіюйте код і відкрийте веб-сторінку</string>
@@ -435,7 +492,7 @@
 	<string name="logs_download_button">Все одно зберегти як файл</string>
 	<string name="logs_saved">Логи збережені в папці завантажень</string>
 	<!-- Split tunneling screen -->
-    <string name="split_tunneling_info_msg">Налаштуйте кожну програму на використання NymVPN або підключіться безпосередньо.</string>
+	<string name="split_tunneling_info_msg">Налаштуйте кожну програму на використання NymVPN або підключіться безпосередньо.</string>
 	<string name="split_tunneling_info_desc">Зміни будуть застосовані після повторного підключення</string>
 	<string name="split_tunneling_search_apps_hint">Пошук додатків</string>
 	<string name="split_tunneling_apps">Додатки</string>
@@ -520,4 +577,7 @@
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Захистіть себе від шахрайства</string>
 	<string name="support_protect_description">Звертайтеся до служби підтримки NymVPN тільки через офіційні канали, зазначені нижче. Ми ніколи не будемо запитувати ваш пароль і не будемо зв\'язуватися з вами першими через прямі повідомлення.\n\nОтримали несподіваний дзвінок? Швидше за все, це шахрайство.</string>
+	<!-- Private DNS modal -->
+	<string name="private_dns_title">Вимкніть приватний DNS, щоб використовувати блокувальник реклами.</string>
+	<string name="private_dns_button">Відкрити налаштування</string>
 </resources>

@@ -1,5 +1,5 @@
 موارد اضافه شده:
-- Added subscription checks, account summaries, and social linking.
-- Masked password inputs and resolved login errors.
-- Removed logout from settings and fixed main screen error alerts.
-- Fixed device startup (boot receiver) bugs.
+- بررسی اشتراک، خلاصه حساب و اتصال اجتماعی اضافه شد.
+- ورودی‌های رمز عبور مخفی شد و خطاهای ورود برطرف شدند.
+- خروج از حساب از تنظیمات حذف شد و هشدارهای خطای صفحه اصلی اصلاح شدند.
+- باگ‌های راه‌اندازی دستگاه (boot receiver) رفع شدند.

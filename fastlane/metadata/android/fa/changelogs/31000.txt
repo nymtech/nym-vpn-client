@@ -1,5 +1,5 @@
 موارد اضافه شده:
-- Account Info: Added subscription and bandwidth details.
-- UI Updates: Refreshed welcome screen images.
-- Technical Improvements: Updated AGP version and streamlined QUIC settings.
-- Bug Fixes: Fixed the exit server details button and language list.
+- اطلاعات حساب: جزئیات اشتراک و پهنای باند اضافه شد.
+- به‌روزرسانی رابط کاربری: تصاویر صفحه خوش‌آمدگویی بازطراحی شدند.
+- بهبودهای فنی: نسخه AGP به‌روزرسانی شد و تنظیمات QUIC بهینه شدند.
+- رفع باگ‌ها: دکمه جزئیات سرور خروج و فهرست زبان‌ها اصلاح شدند.
