@@ -1,0 +1,5 @@
+Was ist Neu:
+- Merkmale: 1-Click und Domain Fronting Toggle. PQ-Schalter entfernt.
+- UI Updates: Neues App-Theme, Farben, Typografie und Authentifizierung.
+- Funktionalität: Automatische Wiederverbindung für Anzeigenblock-Umschalter entfernt und unbenutzte Bildschirme bereinigt.
+- Fehlerbehebung: Auto-Login-Position korrigiert.

@@ -1,0 +1,5 @@
+Novidades:
+- Recursos: Adicionado com um clique e alternância de início do domínio. Alternador de PQ removido.
+- Atualizações da UI: Novo tema do aplicativo, cores, tipografia e visualização de autenticação.
+- Funcionalidade: Reconectar automaticamente para alternar bloco de anúncios e limpar telas não utilizadas.
+- Correções de bugs: posição fixada de giros de auto-login.

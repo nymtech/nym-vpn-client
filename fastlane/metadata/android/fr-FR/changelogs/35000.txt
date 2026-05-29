@@ -1,0 +1,5 @@
+Nouveautés :
+- Fonctionnalités : Ajout de l'interrupteur d'affichage en 1 clic et de la fenêtre de domaine. Interrupteur QP supprimé.
+- Mises à jour de l'interface utilisateur : nouveau thème de l'application, couleurs, typographie et affichage d'authentification.
+- Fonctionnalité : Suppression de la reconnexion automatique pour le basculement du bloc publicitaire et nettoyage des écrans inutilisés.
+- Corrections de bugs : correction de la position de rotation de la connexion automatique.
