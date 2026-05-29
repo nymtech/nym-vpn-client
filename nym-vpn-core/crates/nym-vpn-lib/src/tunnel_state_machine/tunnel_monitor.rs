@@ -1636,18 +1636,17 @@ impl TunnelMonitor {
     fn get_mobile_dns_addresses(&self) -> Vec<IpAddr> {
         #[cfg(target_os = "ios")]
         {
-            // Use local filtering resolver if ad blocking is enabled
-            // todo: set custom DNS for forwarding in local resolver
-            if self.tunnel_parameters.tunnel_settings.enable_ad_blocking {
-                return vec![self.tunnel_parameters.filtering_resolver_addr.ip()];
-            }
+            vec![self.tunnel_parameters.filtering_resolver_addr.ip()]
         }
 
-        self.tunnel_parameters
-            .tunnel_settings
-            .dns
-            .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-            .to_vec()
+        #[cfg(target_os = "android")]
+        {
+            self.tunnel_parameters
+                .tunnel_settings
+                .dns
+                .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
+                .to_vec()
+        }
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
