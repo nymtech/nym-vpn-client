@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Foreground: Nym brand "N" glyph from Nym_dark.svg, rendered in brand green
-  on the dark background. The path uses the source SVG's 120x120 viewport;
-  the centred glyph sits well inside the 72dp adaptive-icon safe zone.
+  Foreground: Nym brand "N" glyph from Nym_mono_light.svg, monochrome black
+  on the white background.
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -10,6 +9,6 @@
     android:viewportWidth="120"
     android:viewportHeight="120">
     <path
-        android:fillColor="#5BF0A0"
+        android:fillColor="#000000"
         android:pathData="M75.5357,83.6929L62.5157,35.187C61.4945,31.1023 57.9204,28.2941 53.8357,28.2941H39.5392C34.4333,28.2941 30.3486,32.3788 30.3486,37.4847V89.5647H45.6663V34.4211C45.6663,33.6552 46.6875,33.3999 46.9427,34.4211L59.9627,82.927C60.9839,87.0117 64.558,89.82 68.898,89.82H83.1945C88.3004,89.82 92.3851,85.7352 92.3851,80.6294V28.2941H77.0675V83.4376C77.0675,84.2035 76.0463,84.4588 75.791,83.4376L75.5357,83.6929Z" />
 </vector>

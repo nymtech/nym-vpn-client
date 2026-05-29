@@ -19,6 +19,11 @@ enum class AppIcon(
         previewDrawable = R.mipmap.ic_launcher_dark,
         labelRes = R.string.app_icon_dark,
     ),
+    LIGHT(
+        componentName = "net.nymtech.nymvpn.ui.MainActivityLight",
+        previewDrawable = R.mipmap.ic_launcher_light,
+        labelRes = R.string.app_icon_light,
+    ),
     CALCULATOR(
         componentName = "net.nymtech.nymvpn.ui.MainActivityCalculator",
         previewDrawable = R.mipmap.ic_launcher_calculator,

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Dark variant: brand "N" in Nym green on dark grey. Background fills the
-  full 108dp canvas — the system masks it to the launcher's preferred
+  Light variant: monochrome brand "N" in black on white. Background fills
+  the full 108dp canvas; the system masks it to the launcher's preferred
   shape (square / circle / squircle).
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
@@ -10,6 +10,6 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="#1C1C1E"
+        android:fillColor="#FFFFFF"
         android:pathData="M0,0h108v108h-108z" />
 </vector>

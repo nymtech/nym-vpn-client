@@ -5,6 +5,7 @@ import Theme
 public enum AppIcon: String, CaseIterable, Identifiable {
     case `default` = "default"
     case dark = "dark"
+    case light = "light"
     case calculator = "calculator"
     case notes = "notes"
 
@@ -16,6 +17,7 @@ public enum AppIcon: String, CaseIterable, Identifiable {
         switch self {
         case .default: return nil
         case .dark: return "AppIcon-Dark"
+        case .light: return "AppIcon-Light"
         case .calculator: return "AppIcon-Calculator"
         case .notes: return "AppIcon-Notes"
         }
@@ -26,6 +28,7 @@ public enum AppIcon: String, CaseIterable, Identifiable {
         switch self {
         case .default: return "AppIcon"
         case .dark: return "AppIcon-Dark"
+        case .light: return "AppIcon-Light"
         case .calculator: return "AppIcon-Calculator"
         case .notes: return "AppIcon-Notes"
         }
@@ -36,6 +39,7 @@ public enum AppIcon: String, CaseIterable, Identifiable {
         switch self {
         case .default: return "settings.appIcon.default"
         case .dark: return "settings.appIcon.dark"
+        case .light: return "settings.appIcon.light"
         case .calculator: return "settings.appIcon.calculator"
         case .notes: return "settings.appIcon.notes"
         }

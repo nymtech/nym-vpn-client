@@ -36870,6 +36870,17 @@
         }
       }
     },
+    "settings.appIcon.light" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light"
+          }
+        }
+      }
+    },
     "settings.appIcon.calculator" : {
       "extractionState" : "manual",
       "localizations" : {

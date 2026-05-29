@@ -21,6 +21,7 @@
 	<string name="app_icon">App icon</string>
 	<string name="app_icon_default">Default</string>
 	<string name="app_icon_dark">Dark</string>
+	<string name="app_icon_light">Light</string>
 	<string name="app_icon_calculator">Calculator</string>
 	<string name="app_icon_notes">Notes</string>
 	<!-- Launcher labels used by the activity-alias entries; shown under the
