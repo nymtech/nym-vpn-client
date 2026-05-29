@@ -28,7 +28,7 @@
 	<string name="auto_connect_description">اتصال خودکار هنگام اجرای نرم‌افزار</string>
 	<string name="logs">گزارش‌ها</string>
 	<string name="support">پشتیبانی</string>
-    <string name="terms_of_use">شرایط استفاده از</string>
+	<string name="terms_of_use">شرایط استفاده از</string>
 	<string name="privacy_policy">اعلامیه حریم خصوصی</string>
 	<string name="licenses">مجوزها</string>
 	<string name="open_github">مطرح کردن مشکل در GitHub</string>
@@ -43,11 +43,11 @@
 	<string name="okay">باشه</string>
 	<string name="two_hop">پرش دو گرهی</string>
 	<string name="country_load_failure">خطا در بارگذاری سرور کشورهای در مسیر عبوری</string>
-    <string name="disabled_while_connected">در هنگام اتصال به وی‌پی‌ان غیر‌فعال می‌باشد</string>
+	<string name="disabled_while_connected">در هنگام اتصال به وی‌پی‌ان غیر‌فعال می‌باشد</string>
 	<string name="permission_required">نیازمند دسترسی است</string>
 	<string name="permission_message">برای اطمینان از کارکرد درست برنامه در دستگاه، لطفاً دسترسی‌های زیر را فعال کنید. این دسترسی‌ها برای اجرای برنامه لازم هستند.</string>
-    <string name="notification_permission_required">لطفاً برای عملکرد صحیح برنامه اجازه اعلان‌ها را فعال کنید</string>
-    <string name="mode_selection">انتخاب حالت</string>
+	<string name="notification_permission_required">لطفاً برای عملکرد صحیح برنامه اجازه اعلان‌ها را فعال کنید</string>
+	<string name="mode_selection">انتخاب حالت</string>
 	<string name="five_hop_explanation">حریم خصوصی حداکثری با مسیر پنج-پرشی (۱ تا ۵ مگابیت بر ثانیه). ترافیک ساختگی و مبهم‌سازی زمان‌بندی برای افزایش ناشناسی. مناسب برای فعالیت‌های بسیار حساس مانند پرداخت‌ها، ایمیل‌ها و پیام‌ها.</string>
 	<string name="continue_reading">ادامه مطلب</string>
 	<string name="appearance">نمای ظاهری</string>
@@ -89,6 +89,8 @@
 	<string name="mnemonic_example">برای مثال: smoke artefact velvet skull pop palace tortoise damage rough...</string>
 	<string name="dynamic">پویا</string>
 	<string name="system_wallpaper">تم تصویر زمینه دستگاه</string>
+	<string name="nym_v2_theme">Nym 2.0</string>
+	<string name="nym_v2_theme_desc">پیش‌نمایش طراحی جدید</string>
 	<string name="initializing">درحال راه‌اندازی</string>
 	<string name="stop">توقف</string>
 	<string name="version">نسخه</string>
@@ -142,7 +144,7 @@
 	<string name="bars_3">۳ خط</string>
 	<string name="bars_2">۲ خط</string>
 	<string name="bars_1">۱ خط</string>
-    <string name="account_id">شناسه حساب کاربری:</string>
+	<string name="account_id">شناسه حساب کاربری:</string>
 	<string name="developer">توسعه‌دهنده</string>
 	<string name="get_help">کمک گرفتن</string>
 	<string name="join_telegram">در تلگرام به ما بپیوندید</string>
@@ -158,7 +160,8 @@
 	<string name="button_next">بعدی</string>
 	<string name="skip">بیخیال</string>
 	<string name="get_started">شروع کنید</string>
-    <string name="title_retry">تلاش مجدد</string>
+	<string name="title_retry">تلاش مجدد</string>
+	<string name="button_back">قبلی</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">نمایش جریان</string>
 	<string name="streaming_server_banner_title">جدید: سرورهای بهینه شده برای استریمینگ، بیشتر بدانید (▶️)</string>
@@ -190,6 +193,12 @@
 	<string name="error_gateway_unavailable_exit">نمی‌توان به سرور خروجی دسترسی پیدا کرد. سرور دیگری را امتحان کنید!</string>
 	<string name="error_invalid_entry_gateway_identity">گره ورودی آفلاین است. گره دیگری انتخاب کرده و دوباره متصل شوید.</string>
 	<string name="error_invalid_exit_gateway_identity">گره خروجی آفلاین است. گره دیگری انتخاب کرده و دوباره متصل شوید.</string>
+	<string name="error_expired_subscription_title">Your subscription has expired</string>
+	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
+	<string name="error_expired_subscription_button">Renew Now</string>
+	<string name="error_passphrase_title">Passphrase not recognized!</string>
+	<string name="error_passphrase_description">Double check your words and input settings</string>
+	<string name="error_passphrase_button">Try again</string>
 	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">در حال آماده‌سازی NymVPN ‏(۱/۶)</string>
 	<string name="connection_state_awaiting_readiness">در حال تنظیم حساب کاربری شما ‏(۲/۶)</string>
@@ -198,15 +207,44 @@
 	<string name="connection_state_connecting_mixnet_client">در حال ثبت‌نام ناشناس در سرورها ‏(۵/۶)</string>
 	<string name="connection_state_connecting_tunnel">در حال برقراری اتصال با سرور ‏(۶/۶)</string>
 	<string name="main_button_select_plan">انتخاب طرح</string>
+	<!-- One-click mode -->
+	<string name="one_click_auto_server">Use best server</string>
+	<string name="one_click_searching">Searching best location</string>
+	<string name="one_click_mode_fast">Fast</string>
+	<string name="connect_mode_auto">Auto</string>
+	<string name="connect_mode_mixnet">Mixnet</string>
+	<string name="one_click_nym_exit_node">Exit server</string>
+	<string name="one_click_nym_entry_node">Entry server</string>
+	<!-- Connection status -->
+	<string name="connection_status_not_protected">Not protected</string>
+	<string name="connection_status_fast_mode">محافظت حالت سریع</string>
+	<string name="connection_status_anonymous">محافظت ناشناس</string>
+	<!-- Hop Screen -->
+	<string name="gateway_best">Best server</string>
+	<string name="gateway_random">Random server</string>
+	<!-- Auth component -->
+	<string name="auth_welcome_title">Welcome!</string>
+	<string name="auth_welcome_description">To the world’s most private VPN</string>
+	<string name="auth_welcome_login_button">Login to my account</string>
+	<string name="auth_sign_up_title">Sign Up</string>
+	<string name="auth_sign_up_account_button">Anonymous account</string>
+	<string name="auth_sign_up_social_button">ثبت‌نام با حساب‌های اجتماعی*</string>
+	<string name="auth_sign_up_info">*ثبت‌نام با یک حساب اجتماعی موجود\nمیزان ناشناس‌بودن شما را کاهش می‌دهد.</string>
+	<string name="auth_log_in_title">ورود به حساب کاربری</string>
+	<string name="auth_log_in_passphrase_button">ورود با ۲۴ کلمه</string>
+	<string name="auth_log_in_social_button">ورود با حساب‌های اجتماعی*</string>
+	<string name="auth_log_in_info">*برای استفاده از حساب‌های اجتماعی جهت ورود، \nابتدا باید آن‌ها را به یک حساب موجود متصل کنید. </string>
+	<string name="auth_passphrase_login_button">ورود</string>
+	<string name="auth_passphrase_input_placeholder">۲۴ کلمه-عبارت عبور</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">ضد سانسور</string>
 	<string name="settings_passphrase_title">عبارت عبور</string>
 	<string name="settings_dns_title">سفارشی‌سازی DNS</string>
 	<string name="settings_ipv6_title">پشتیبانی از IPv6</string>
 	<string name="settings_ipv6_description">اتصالات IPv6 را مجاز کنید</string>
-    <string name="settings_auto_select_title">انتخاب-خودکار سرور ورودی</string>
+	<string name="settings_auto_select_title">انتخاب-خودکار سرور ورودی</string>
 	<string name="settings_auto_select_description">اجازه دهید برنامه بهترین مکان ورود را انتخاب کند</string>
-    <string name="settings_system_tray_title">اجرا در بخش System Tray</string>
+	<string name="settings_system_tray_title">اجرا در بخش System Tray</string>
 	<string name="settings_system_tray_description">ادامه اجرای برنامه بعد از بسته شدن</string>
 	<string name="settings_reset_app_title">تنظیم مجدد داده‌های برنامه</string>
 	<string name="settings_system_status_title">وضعیت سیستم</string>
@@ -218,8 +256,21 @@
 	<string name="settings_language_help_title">کمک‌کردن به ترجمه</string>
 	<string name="settings_language_help_description">ترجمه برنامه را به زبان خودتان بهتر کنید.</string>
 	<string name="settings_event_lan_reconnecting">در حال اتصال مجدد برای اعمال تنظیمات LAN…</string>
-	<string name="settings_lewes_title">Enable Lewes Protocol</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">پساکوانتومی</string>
+	<string name="settings_lewes_description">همیشه دروازه‌های پساکوانتومی را ترجیح دهید</string>
+	<string name="settings_ad_blocking_title">مسدود کننده تبلیغات</string>
+	<string name="settings_kill_switch_title">کلید قطع اضطراری</string>
+	<string name="settings_kill_switch_description">در صورت قطع اینترنت، اتصال را قطع کن</string>
+	<string name="settings_bypass_lan_title">دور زدن LAN</string>
+	<string name="settings_bypass_lan_description">دسترسی مستقیم به شبکه محلی را مجاز کنید</string>
+	<string name="settings_split_tunneling_title">اسپلیت تونلینگ</string>
+	<string name="settings_startup_title">اجرا هنگام راه‌اندازی</string>
+	<string name="settings_notifications_title">اعلان‌ها</string>
+	<string name="settings_power_managment_title">مدیریت مصرف انرژی</string>
+	<string name="settings_shortcuts_title">میانبرهای برنامه</string>
+	<string name="settings_logs_title">لاگ‌ها &amp; و داده‌ها</string>
+	<string name="settings_legal_title">قوانین و مقررات</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">برای استفاده از میانبرها ایجاد قفل صفحه لازم است.</string>
 	<string name="shortcut_title">تأیید عملیات</string>
 	<string name="shortcut_subtitle_stop">برای قطع VPN آنلاک کنید</string>
@@ -231,7 +282,7 @@
 	<string name="battery_opt">بهینه‌سازی مصرف باتری</string>
 	<string name="battery_opt_settings_text">تنظیمات بهینه‌سازی باتری را می‌توان هر زمان در تنظیمات برنامه تغییر داد.</string>
 	<!-- Data & Privacy screen -->
-	<string name="privacy_title">داده‌ &amp; خصوصی</string>
+	<string name="privacy_title">داده، حریم خصوصی &amp; گزارشها</string>
 	<string name="privacy_anonymous_stats_title">آمار ناشناس شبکه</string>
 	<string name="privacy_anonymous_stats_description">به ما از طریق اشتراک گذاری داده‌های عملکرد به صورت ناشناس از منطقه خود، کمک کنید تا شبکه‌ای سریع تر بسازیم. ما از این داده‌ها برای بهینه‌سازی سرعت‌ها، کاهش قطع ارتباط، و هدایت پوشش سرورها به مناطقی که بیشترین نیاز را دارند استفاده می کنیم. \n\n هرگز فعالیت مرورگر یا داده‌های شخصی شما به اشتراک گذاشته نمی‌شود – فقط داده‌های عملکرد شبکه.</string>
 	<string name="privacy_anonymous_stats_link_text">دقیقاً بدانید چه چیزی به اشتراک گذاشته شده است</string>
@@ -249,7 +300,7 @@
 	<string name="notification_improve_title">به بهبود سرعت \nاتصال خود کمک کنید</string>
 	<string name="notification_improve_button">همین حالا بهبود دهید</string>
 	<string name="notification_stats_enabled">آمار فعال شد! داده‌های ناشناس شما به بهینه‌سازی عملکرد شبکه ما کمک می‌کند.</string>
-	<string name="privacy_diagnostic_tool">Diagnostic tool</string>
+	<string name="privacy_diagnostic_tool">ابزار عیب‌یابی</string>
 	<!-- Welcome screen -->
 	<string name="welcome_continue">ادامه</string>
 	<string name="welcome_title">به ما کمک کنید NymVPN را بهبود دهیم</string>
@@ -314,20 +365,20 @@
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">اگر در محل شما مشکل اتصال وجود دارد یا NymVPN مسدود شده است، این ویژگی‌ها را فعال کنید.</string>
+	<string name="censorship_learn_more_link_text">Learn more</string>
 	<string name="censorship_quic_title">اتصال بهبود یافته (QUIC)</string>
 	<string name="censorship_quic_changes">تغییرات پس از اتصال مجدد اعمال خواهند شد</string>
 	<string name="censorship_quic_description">باعث افزایش پایداری حالت Fast در شبکه‌های محدودکننده می‌شود، زیرا ترافیک WireGuard را در داخل QUIC ‏(HTTP/3) بسته‌بندی می‌کند تا شبیه وبگردی معمولی دیده شود.\n\nتوجه: سرورهای ورودی را فقط به گیِت‌وی‌های سازگار با QUIC محدود می‌کند.</string>
-    <string name="censorship_quic_link">https://nym.com/features/quic</string>
+	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
-	<string name="censorship_stealth_description">درخواست‌های API را پشت دامنه‌های محبوب و مجاز مخفی می‌کند تا از مسدودسازی توسط VPN عبور کنند.
-وقتی تلاش‌های استاندارد برای اتصال به API ناموفق باشد، NymVPN به‌صورت خودکار از این روش استفاده می‌کند.</string>
-    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
+	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">برای اعمال تنظیمات QUIC، در حال اتصال مجدد هستیم…</string>
 	<string name="quic">QUIC </string>
 	<string name="quic_gateway_filter_info_msg">فقط مکان‌های حالت Fast و سرورهایی که از پروتکل QUIC پشتیبانی می‌کنند نمایش داده می‌شوند. برای نمایش همهٔ سرورها، QUIC را خاموش کنید</string>
 	<string name="censorship_amnezia_title">حداقل ابهام (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">تشخیص ترافیک WireGuard را دشوارتر می‌کند. بسته‌های فریب‌دهنده را وارد ترافیک می‌کند که قوانین سادهٔ مورد استفاده در سامانه‌های سانسور مبتنی بر بازرسی عمیق بسته‌ها (DPI) را مختل کرده و پایداری اتصال را در محیط‌های محدودکننده افزایش می‌دهد.\n\nتوجه: فقط در سمت کاربر (Client-side) پیاده‌سازی شده است.</string>
-    <string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡ سریع &amp; ناشناس </string>
 	<string name="account_welcome_create_description">یک ضربه برای پرداخت. حساب ناشناس بر روی دستگاه شما ایجاد شد. بدون رمز عبور، بدون اطلاعات شخصی.</string>
@@ -351,7 +402,7 @@
 	<string name="account_generating_description_2">ایجاد گواهی‌ اتصال شبکه ناشناس</string>
 	<string name="account_generating_description_3">در حال رمزگذاری اعتبارنامه‌ها با کلید دستگاه شما; فقط شما می‌توانید آن‌ها را بازگشایی کنید</string>
 	<string name="account_generating_error">ثبت نام حساب کاربری ناموفق بود. لطفا بعدا دوباره امتحان کنید.</string>
-	<string name="account_generating_deeplink_title">در حال ورود به حساب...</string>
+	<string name="account_generating_deeplink_title">در حال ورود به حساب…</string>
 	<string name="account_generating_deeplink_description">لطفا صبر کنید تا حساب کاربری شما تایید شود</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">در حال پردازش پرداخت شما به صورت امن…</string>
@@ -393,28 +444,33 @@
 	<string name="account_info_link_warning">⚠️ اتصال یک حساب شبکه‌اجتماعی به حساب Nym شما سطح ناشناسی‌تان را کاهش می‌دهد. تغییرات پس از خروج و ورود مجدد با حساب شبکه‌اجتماعی انتخاب‌شده اعمال می‌شود. </string>
 	<string name="account_info_linked_info">⚡ این حساب از طریق یک روش ورود توسط privy به حساب اجتماعی متصل شده است.  </string>
 	<string name="account_info_id_title">شناسه حساب‌کاربری</string>
-	<string name="account_info_id_info">در صورت نیاز به تماس با پشتیبانی Nym از شناسه حساب خود استفاده کنید. اشتراک‌گذاری آن امن است.</string>
+	<string name="account_info_id_info">Safe to share. Use to contact Nym Support.</string>
 	<string name="account_info_device_title">شناسه دستگاه</string>
 	<string name="account_info_device_info">از این گزینه برای اتصال این دستگاه به حساب خود در nym.com استفاده کنید.</string>
-	<string name="account_info_status_title">Account status</string>
-	<string name="account_info_bandwidth_title">Bandwidth remaining</string>
-	<string name="account_info_limit_text">Limit</string>
-	<string name="account_info_reset_text">Resets on</string>
-	<string name="account_info_contact_support_action">Contact our support</string>
-	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
-	<string name="account_info_valid_text">Plan valid until %s</string>
-	<string name="account_info_expires_text">Plan expires on %s</string>
-	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
-	<string name="account_info_renew_text">Renew now to stay protected</string>
-	<string name="banner_renew_text">Renew now\nto stay protected</string>
-	<string name="account_info_auto_renew_text">*Auto-renews</string>
-	<string name="account_info_no_plan">طرح فعال وجود ندارد</string>
-	<string name="account_info_autologin_fetching">Fetching access code…</string>
-	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>
-	<string name="pin_code_title">Pin code</string>
-	<string name="pin_code_subtitle">Enter this code on web</string>
-	<string name="pin_code_copy_and_open">Copy code and open web</string>
-	<string name="pin_code_copied">Copied!</string>
+	<string name="account_info_status_title">وضعیت حساب کاربری</string>
+	<string name="account_info_bandwidth_title">Fair usage spent</string>
+	<string name="account_info_limit_text">محدودیت</string>
+	<string name="account_info_reset_text">بازنشانی</string>
+	<string name="account_info_contact_support_action">با تیم پشتیبانی ما تماس بگیرید</string>
+	<string name="account_info_contact_support_suffix">\u0020تیم شدن برای دریافت پهنای باند بیشتر.</string>
+	<string name="account_info_valid_text">اشتراک تا %s معتبر است</string>
+	<string name="account_info_expires_text">اشتراک در:\n%s منقضی می‌شود</string>
+	<string name="banner_plan_expires_text">اشتراک در:\n%s منقضی می‌شود</string>
+	<string name="account_info_renew_text">همین حالا تمدید کنید تا محافظت بشوید</string>
+	<string name="banner_renew_text">همین حالا تمدید کنید\nتا محافظت بشوید</string>
+	<string name="account_info_auto_renew_text">*تمدید-خودکار</string>
+	<string name="account_info_no_plan">No active subscription</string>
+	<string name="account_info_confirming_payment">در حال تأیید پرداخت</string>
+	<string name="account_info_updating">در حال به‌روزرسانی وضعیت حساب…</string>
+	<string name="account_info_autologin_fetching">در حال دریافت کد دسترسی…</string>
+	<string name="account_info_autologin_error">دریافت کد دسترسی ناموفق بود. لطفاً دوباره تلاش کنید.</string>
+	<string name="account_info_add_social_action">افزودن ورود اجتماعی</string>
+	<string name="account_info_add_social_suffix">\u0020روش را به حساب خود اضافه کنید.</string>
+	<string name="account_info_backup">Backup login method linked via Privy.</string>
+	<string name="pin_code_title">پین کد</string>
+	<string name="pin_code_subtitle">این کد را در وب وارد کنید</string>
+	<string name="pin_code_copy_and_open">کپی کد و باز کردن وب</string>
+	<string name="pin_code_copied">کپی شد!</string>
 	<!-- Logs screen -->
 	<string name="logs_enable_title">فعال‌سازی ثبت لاگ</string>
 	<string name="logs_enable_description">برای عیب‌یابی فعال کنید. برای حریم خصوصی غیرفعال کنید. لاگ‌ها روی دستگاه شما می‌مانند. Nym هرگز دسترسی ندارد.</string>
@@ -438,7 +494,7 @@
 	<string name="logs_download_button">در هر صورت به عنوان فایل ذخیره کنید</string>
 	<string name="logs_saved">گزارش‌ها در پوشه دانلود ذخیره شد</string>
 	<!-- Split tunneling screen -->
-    <string name="split_tunneling_info_msg">هر برنامه را طوری تنظیم کنید که از NymVPN استفاده کند یا بدون آن مستقیماً متصل شود.</string>
+	<string name="split_tunneling_info_msg">هر برنامه را طوری تنظیم کنید که از NymVPN استفاده کند یا بدون آن مستقیماً متصل شود.</string>
 	<string name="split_tunneling_info_desc">تغییرات پس از اتصال مجدد اعمال خواهد شد</string>
 	<string name="split_tunneling_search_apps_hint">جستجوی برنامه‌ها</string>
 	<string name="split_tunneling_apps">برنامه‌ها</string>
@@ -494,33 +550,36 @@
 	<string name="mixnet_tuning_traffic_on_description">برای یکنواخت نگه‌داشتن الگو، ترافیک پوششی همواره ارسال می‌شود. میزان ارسال بسته‌ها را تنظیم کنید.</string>
 	<string name="mixnet_tuning_traffic_off_description">ما همچنان مستقل از ترافیک واقعی شما، ترافیک پوششی ارسال می‌کنیم. میزان ترافیک پوششی را تعیین کنید. </string>
 	<string name="mixnet_tuning_traffic_min">بهینه برای مصرف باتری &amp; و داده</string>
-	<string name="mixnet_tuning_traffic_on_low">کم\n0.7 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_low">آهسته\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">زیاد\n2 Mbps</string>
-	<string name="mixnet_tuning_traffic_on_balanced">Balanced\n1 Mbps</string>
+	<string name="mixnet_tuning_traffic_on_balanced">بالانس\n1 Mbps</string>
 	<string name="mixnet_tuning_traffic_off_low">پایه</string>
-	<string name="mixnet_tuning_traffic_off_high">High\n20x</string>
-	<string name="mixnet_tuning_traffic_off_balanced">Balanced\n5x</string>
-	<string name="mixnet_tuning_traffic_off_medium">Medium\n10x</string>
+	<string name="mixnet_tuning_traffic_off_high">زیاد\n20x</string>
+	<string name="mixnet_tuning_traffic_off_balanced">متعادل\n۵بار</string>
+	<string name="mixnet_tuning_traffic_off_medium">متوسط\n۱۰بار</string>
 	<string name="mixnet_tuning_delays_title">تأخیرهای اختلاط</string>
 	<string name="mixnet_tuning_delays_description">با تنظیم تأخیر زمانی، میزان اختلاط بسته‌های خود را تغییر دهید.</string>
 	<string name="mixnet_tuning_delays_warning">⚠️ محافظت زمانی در حال حاضر غیرفعال است. این موضوع می‌تواند حریم خصوصی شما را در معرض خطر قرار دهد.</string>
 	<string name="mixnet_tuning_delays_min">سرعت بیشتر</string>
-	<string name="mixnet_tuning_delays_low">Low\n0m</string>
-	<string name="mixnet_tuning_delays_high">High\n200 ms</string>
-	<string name="mixnet_tuning_delays_default">Default\n15 ms</string>
-	<string name="mixnet_tuning_delays_current">Current\n%1$s</string>
+	<string name="mixnet_tuning_delays_low">پایین\n0m</string>
+	<string name="mixnet_tuning_delays_high">زیاد\n200 ms</string>
+	<string name="mixnet_tuning_delays_default">پیش‌فرض\n15 ms</string>
+	<string name="mixnet_tuning_delays_current">فعلی\n%1$s</string>
 	<string name="mixnet_tuning_max">حداکثر ناشناسی</string>
 	<string name="mixnet_tuning_link_text">اطلاعات بیشتر درباره پارامترهای mixnet</string>
 	<string name="mixnet_tuning_save_button">ذخیره تنظیمات سفارشی</string>
 	<string name="mixnet_tuning_restore_button">بازگردانی تنظیمات پیش‌فرض</string>
 	<!-- Diagnostic screen -->
-	<string name="diagnostic_run_button">Run diagnostics</string>
-	<string name="diagnostic_share_button">Share report</string>
-	<string name="diagnostic_report_title">Diagnostic report</string>
-	<string name="diagnostic_copy_report">Copy report</string>
+	<string name="diagnostic_run_button">اجرای عیب‌یابی</string>
+	<string name="diagnostic_share_button">اشتراک‌گذاری گزارش</string>
+	<string name="diagnostic_report_title">گزارش عیب‌یابی</string>
+	<string name="diagnostic_copy_report">کپی گزارش</string>
 	<string name="diagnostic_copied">کپی شده به کلیپ‌بورد</string>
-	<string name="diagnostic_error">Diagnostics failed</string>
+	<string name="diagnostic_error">عیب‌یابی ناموفق بود</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ از خود در برابر کلاهبرداری محافظت کنید</string>
-	<string name="support_protect_description">Only contact NymVPN support through the official channels listed below. We will never ask for your passphrase or contact you first via direct messages.\n\nReceived unexpected contact? It\'s likely a scam.</string>
+	<string name="support_protect_description">فقط از طریق کانال‌های رسمی زیر با پشتیبانی NymVPN تماس بگیرید. ما هرگز عبارت عبور شما را درخواست نمی‌کنیم و هرگز از طریق دایرکت یا پیام شخصی با شما تماس نخواهیم گرفت.\n\nاگرچه تماس غیرمنتظره دریافت کرده‌اید؟ احتمالاً کلاهبرداری است.</string>
+	<!-- Private DNS modal -->
+	<string name="private_dns_title">Disable Private DNS to use ad blocker.</string>
+	<string name="private_dns_button">تنظیمات را باز کنید</string>
 </resources>
