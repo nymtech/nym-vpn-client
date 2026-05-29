@@ -1,0 +1,5 @@
+Novedades:
+- Características: Añadido conmutador frontal de dominio y 1-clic. Interruptor PQ eliminado.
+- Actualizaciones de UI: Nuevo tema de aplicaciones, colores, tipografía y vista de autoría.
+- Funcionalidad: Se ha eliminado la reconexión automática para el interruptor de bloque de anuncios y se han limpiado las pantallas no utilizadas.
+- Corrección de errores: Se ha corregido la posición del giro de inicio automático de sesión.

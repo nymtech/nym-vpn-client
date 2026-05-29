@@ -1,0 +1,5 @@
+Có gì mới:
+- Features: Added 1-click and domain fronting toggle. Removed PQ toggle.
+- UI Updates: New app theme, colors, typography, and auth view.
+- Functionality: Removed automatic reconnect for ad-block toggle and cleaned up unused screens.
+- Bug Fixes: Fixed auto-login spinner position.
