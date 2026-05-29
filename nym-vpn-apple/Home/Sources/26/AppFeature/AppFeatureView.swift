@@ -188,7 +188,7 @@ private extension AppFeatureView {
     }
 
     var background: some View {
-        Color.Nym.surfaceBg
+        Color.Nym.background
             .ignoresSafeArea()
     }
 
@@ -312,7 +312,7 @@ private extension AppFeatureView {
             }
         }
         .clipped()
-        .background((colorScheme == .light ? Color.Nym.surfaceElev : Color.Nym.surfaceBg).ignoresSafeArea(edges: .top))
+        .background((colorScheme == .light ? Color.Nym.surface : Color.Nym.background).ignoresSafeArea(edges: .top))
         .animation(.easeInOut(duration: 0.35), value: viewModel.shouldShowLogo)
     }
 }

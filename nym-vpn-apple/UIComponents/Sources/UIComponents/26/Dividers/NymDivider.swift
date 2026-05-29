@@ -4,7 +4,7 @@ import Theme
 public struct NymDivider: View {
     private let color: Color
 
-    public init(color: Color = .Nym.surfaceHair) {
+    public init(color: Color = .Nym.divider) {
         self.color = color
     }
 
@@ -20,10 +20,10 @@ public struct NymDivider: View {
 #Preview {
     VStack(spacing: NymSpacing.medium) {
         NymDivider()
-        NymDivider(color: .Nym.white6)
-        NymDivider(color: .Nym.brandPrimary)
+        NymDivider(color: .Nym.divider)
+        NymDivider(color: .Nym.primary)
     }
     .padding(NymSpacing.section)
-    .background(Color.Nym.surfaceBg)
+    .background(Color.Nym.background)
 }
 #endif

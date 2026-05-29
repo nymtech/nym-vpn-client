@@ -60,7 +60,7 @@ public struct AccountWelcomeView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            Color.Nym.surfaceBg
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .alert(alertTitle, isPresented: $isDisplayingAlert) {
@@ -183,7 +183,7 @@ private extension AccountWelcomeView {
 
     var separatorLine: some View {
         Rectangle()
-            .foregroundColor(Color.Nym.gray2)
+            .foregroundColor(Color.Nym.textSecondary)
             .frame(height: 1)
             .padding(.horizontal, 24)
     }

@@ -20,8 +20,8 @@ public struct SearchView: View {
         StrokeBorderView(
             strokeTitle: strokeTitle,
             isHovered: $isHovered,
-            backgroundColor: Color.Nym.surfaceBg,
-            backgroundColorHover: Color.Nym.surfaceBg
+            backgroundColor: Color.Nym.background,
+            backgroundColorHover: Color.Nym.background
         ) {
             HStack {
                 searchImage()

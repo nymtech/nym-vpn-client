@@ -18,7 +18,7 @@ struct LocationInfoView: View {
     var body: some View {
         ZStack {
             Rectangle()
-                .foregroundColor(Color.Nym.black)
+                .foregroundColor(Color.Nym.primaryText)
                 .opacity(0.3)
                 .background(Color.clear)
                 .contentShape(Rectangle())
@@ -39,7 +39,7 @@ struct LocationInfoView: View {
                     okButton()
                 }
                 .padding(.horizontal, 24)
-                .background(Color.Nym.surfaceElev)
+                .background(Color.Nym.surface)
                 .cornerRadius(16)
 
                 Spacer()

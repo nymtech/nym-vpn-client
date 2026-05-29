@@ -45,7 +45,7 @@ public struct SplitTunnelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: [.bottom])
         .background {
-            Color.Nym.surfaceBg
+            Color.Nym.background
                 .ignoresSafeArea()
         }
         .overlay {
@@ -185,7 +185,7 @@ private extension SplitTunnelView {
         let third = AttributedString("splitTunnel.systemSettings".localizedString)
         let forth = AttributedString("splitTunnel.enableSystemSettings".localizedString)
         second.underlineStyle = .single
-        second.foregroundColor = Color.Nym.brandPrimary
+        second.foregroundColor = Color.Nym.primary
         second.link = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")
         return first + AttributedString("\n") + second + AttributedString(" ") + third + AttributedString(" ") + forth
     }
@@ -205,7 +205,7 @@ private extension SplitTunnelView {
                     .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.Nym.surfaceElev)
+                            .fill(Color.Nym.surface)
                     )
                     .id(section.id)
 
@@ -213,7 +213,7 @@ private extension SplitTunnelView {
                         appCell(for: app)
                     }
                 }
-                .background(Color.Nym.surfaceBg)
+                .background(Color.Nym.background)
             }
         }
     }
@@ -254,7 +254,7 @@ private extension SplitTunnelView {
             Spacer()
                 .frame(height: 12)
         }
-        .background(Color.Nym.surfaceBg)
+        .background(Color.Nym.background)
         .clipShape(Rectangle())
     }
 
@@ -265,36 +265,36 @@ private extension SplitTunnelView {
                     if isEnabled {
                         Color.clear
                     } else {
-                        Color.Nym.statusError.opacity(0.10)
+                        Color.Nym.error.opacity(0.10)
                     }
                     Image(systemName: "slash.circle.fill")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isEnabled ? Color.Nym.textSecondary : Color.Nym.statusError)
+                        .foregroundStyle(isEnabled ? Color.Nym.textSecondary : Color.Nym.error)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                 Rectangle()
-                    .fill(Color.Nym.gray2)
+                    .fill(Color.Nym.textSecondary)
                     .frame(width: 1)
 
                 ZStack {
                     if isEnabled {
-                        Color.Nym.brandPrimary.opacity(0.10)
+                        Color.Nym.primary.opacity(0.10)
                     } else {
                         Color.clear
                     }
                     Image(systemName: "shield.fill")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isEnabled ? Color.Nym.brandPrimary : Color.Nym.textSecondary)
+                        .foregroundStyle(isEnabled ? Color.Nym.primary : Color.Nym.textSecondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(width: 84, height: 24)
-            .background(Color.Nym.surfaceElev)
+            .background(Color.Nym.surface)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(Color.Nym.gray2, lineWidth: 1)
+                    .stroke(Color.Nym.textSecondary, lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -422,7 +422,7 @@ private struct SectionIndexOverlay: View {
         }
         return sections.contains(where: { $0.title == letter })
             ? Color.Nym.textSecondary
-            : Color.Nym.gray2
+            : Color.Nym.textSecondary
     }
 
     private func letterAtLocation(_ location: CGPoint) -> String {

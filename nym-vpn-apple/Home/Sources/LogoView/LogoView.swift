@@ -15,7 +15,7 @@ public struct LogoView: View {
             Spacer()
         }
         .background {
-            Color.Nym.surfaceBg
+            Color.Nym.background
                 .ignoresSafeArea()
         }
     }

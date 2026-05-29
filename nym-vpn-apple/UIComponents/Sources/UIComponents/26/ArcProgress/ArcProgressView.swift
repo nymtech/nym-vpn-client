@@ -86,8 +86,8 @@ private extension ArcProgressView {
             AnyShapeStyle(
                 RadialGradient(
                     colors: [
-                        Color.Nym.connectionSphereHi,
-                        Color.Nym.connectionSphere
+                        Color.Nym.surfaceAlt,
+                        Color.Nym.background
                     ],
                     center: UnitPoint(x: 0.3, y: 0.3),
                     startRadius: 0,
@@ -138,7 +138,7 @@ private extension ArcProgressView {
             TimelineView(.periodic(from: connectedDate, by: 1.0)) { context in
                 Text(verbatim: fastHMS(from: connectedDate, to: context.date))
                     .font(.system(size: Constants.labelFontSize))
-                    .foregroundColor(Color.Nym.brandPrimary)
+                    .foregroundColor(Color.Nym.primary)
                     .monospacedDigit()
             }
             .id(connectedDate)
@@ -183,9 +183,9 @@ private extension ArcProgressView {
         guard state == .connected else { return .clear }
         switch mode {
         case .fast:
-            return Color.Nym.brandPrimary.opacity(0.55)
+            return Color.Nym.primary.opacity(0.55)
         case .anonymous:
-            return Color.Nym.gray1.opacity(0.35)
+            return Color.Nym.textTertiary.opacity(0.35)
         }
     }
 
@@ -214,7 +214,7 @@ private extension ArcProgressView {
     var labelColor: Color {
         switch state {
         case .failed:               return Constants.errorFill
-        case .connected, .step:     return Color.Nym.brandPrimary
+        case .connected, .step:     return Color.Nym.primary
         case .disconnected, .canceling: return Color.Nym.textTertiary
         }
     }
@@ -339,11 +339,11 @@ private extension ArcProgressView {
 
         static let glowConnectedOpacity: Double = 0.55
 
-        static let fastFill      = Color.Nym.brandPrimary
-        static let anonymousFill = Color.Nym.connectionArcAnon.opacity(0.60)
+        static let fastFill      = Color.Nym.primary
+        static let anonymousFill = Color.Nym.textTertiary.opacity(0.60)
         static let track         = Color.white.opacity(0.15)
-        static let errorFill     = Color.Nym.statusError.opacity(0.60)
-        static let errorTint     = Color.Nym.statusError.opacity(0.08)
+        static let errorFill     = Color.Nym.error.opacity(0.60)
+        static let errorTint     = Color.Nym.error.opacity(0.08)
     }
 }
 

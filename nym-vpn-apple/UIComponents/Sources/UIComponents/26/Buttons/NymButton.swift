@@ -13,9 +13,9 @@ public struct NymButton: View {
         var backgroundColor: Color {
             switch self {
             case .primary:
-                .Nym.brandPrimary
+                .Nym.primary
             case .connecting:
-                .Nym.gray1
+                .Nym.textTertiary
             case .secondary,
                  .textOnly,
                  .destructive,
@@ -27,16 +27,16 @@ public struct NymButton: View {
         var foregroundColor: Color {
             switch self {
             case .primary:
-                .Nym.brandOnPrimary
+                .Nym.primaryText
             case .connecting:
-                .Nym.gray12
+                .Nym.surface
             case .secondary,
                  .textOnly:
-                .Nym.brandPrimary
+                .Nym.primary
             case .connected:
                 .Nym.textPrimary
             case .destructive:
-                .Nym.statusError
+                .Nym.error
             }
         }
 
@@ -45,11 +45,11 @@ public struct NymButton: View {
             case .primary, .textOnly, .connecting:
                 .clear
             case .secondary:
-                .Nym.brandPrimary
+                .Nym.primary
             case .destructive:
-                .Nym.statusError
+                .Nym.error
             case .connected:
-                .Nym.gray2
+                .Nym.textSecondary
             }
         }
 
@@ -147,7 +147,7 @@ private extension NymButton {
 
     var effectiveForeground: Color {
         if !isEnabled && style == .connecting {
-            return .Nym.gray12
+            return .Nym.surface
         }
         return isEnabled ? (foregroundColorOverride ?? style.foregroundColor) : .Nym.textDisabled
     }
@@ -156,7 +156,7 @@ private extension NymButton {
         guard isEnabled else {
             switch style {
             case .connecting:
-                return .Nym.gray1
+                return .Nym.textTertiary
             case .primary:
                 return .Nym.textDisabled.opacity(0.3)
             default:
@@ -184,6 +184,6 @@ private extension NymButton {
         NymButton("Disabled", style: .primary, isDisabled: true) {}
     }
     .padding(NymSpacing.section)
-    .background(Color.Nym.surfaceBg)
+    .background(Color.Nym.background)
 }
 #endif
