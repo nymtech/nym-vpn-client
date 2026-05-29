@@ -1,5 +1,5 @@
 নতুন কি আছে:
-- Account Info: Added subscription and bandwidth details.
-- UI Updates: Refreshed welcome screen images.
-- Technical Improvements: Updated AGP version and streamlined QUIC settings.
-- Bug Fixes: Fixed the exit server details button and language list.
+- অ্যাকাউন্ট তথ্য: সাবস্ক্রিপশন ও ব্যান্ডউইথের বিস্তারিত যোগ করা হয়েছে।
+- UI আপডেট: ওয়েলকাম স্ক্রিনের ছবিগুলো নতুনভাবে সাজানো হয়েছে।
+- প্রযুক্তিগত উন্নয়ন: AGP ভার্সন আপডেট করা হয়েছে এবং QUIC সেটিংস আরও সহজ করা হয়েছে।
+বাগ ফিক্স: এক্সিট সার্ভারের বিস্তারিত বাটন ও ভাষার তালিকার সমস্যা সমাধান করা হয়েছে।

@@ -1,1 +1,1 @@
-Das privateste VPN der Welt
+Privates, sicheres Schweizer dVPN. WireGuard, Mixnet, dezentraler Proxy, ohne E-Mail.

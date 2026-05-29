@@ -1,5 +1,5 @@
 Novedades:
-- Información del cliente: detalles de suscripción y ancho de banda.
-- Actualizaciones de UI: Actualizaciones actualizadas de pantalla de bienvenida.
-- Mejoras técnicas: Versión actualizada de AGP y configuración de QUIC en streaming.
+- Información de la cuenta: se agregaron detalles de suscripción y ancho de banda.
+- Actualizaciones de UI: Se actualizaron las imágenes de pantalla de bienvenida.
+- Mejoras técnicas: se actualizó la versión actualizada de AGP y configuración de QUIC en streaming.
 - Corrección de errores: Se corrigió el botón de salida del servidor y la lista de idiomas.

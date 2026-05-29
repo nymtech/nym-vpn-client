@@ -1,0 +1,4 @@
+Novedades:
+- Nuevo bloqueador de anuncios (beta) para bloquear anuncios, rastreadores y malware
+- Nueva notificación de suscripciones pendientes
+- Mejoras a los tiempos de inicio de sesión

@@ -1,6 +1,6 @@
 موارد اضافه شده:
-- Implemented auto-login functionality and interface.
-- Introduced a Diagnostic tool.
-- Added a "Random" option for Entry and Exit locations.
-- Added an info banner displaying your current subscription state.
-- Technical Improvements: Optimized Privy connection checks.
+- عملکرد و رابط ورود خودکار پیاده‌سازی شد.
+- ابزار عیب‌یابی اضافه شد.
+- گزینه «تصادفی» برای موقعیت‌های ورودی و خروجی اضافه شد.
+- بنر اطلاعاتی برای نمایش وضعیت فعلی اشتراک شما اضافه شد.
+- بهبودهای فنی: بررسی‌های اتصال Privy بهینه شدند.
