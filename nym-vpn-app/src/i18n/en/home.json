@@ -64,5 +64,11 @@
     "disable-reminders": "Disable reminders in <settingsLink>notification settings</settingsLink>.",
     "cancel": "Cancel",
     "connect-anyway": "Connect anyway"
+  },
+  "another-vpn": {
+    "title": "Another VPN is active",
+    "description": "Detected another VPN tunnel on this device ({{vpns}}). NymVPN may fail to connect through another tunnel. For a reliable connection, disconnect the other VPN in your system settings first.",
+    "connect-anyway": "Try anyway",
+    "close": "Close"
   }
 }

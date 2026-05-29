@@ -1,12 +1,19 @@
 import { motion } from 'motion/react';
 import { invoke } from '@tauri-apps/api/core';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, ButtonVariant, type countryCode } from '../../ui';
+import {
+  Button,
+  ButtonVariant,
+  ConfirmationDialog,
+  type countryCode,
+} from '../../ui';
 import { dispatch, useMainState } from '../../store';
-import { useConnect, useToast } from '../../hooks';
+import { useToast } from '../../hooks';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { routes } from '../../router';
 import { Score } from '../../types';
+import type { TActiveVpn } from '../../types/tauri';
 import { InteractiveCard } from './InteractiveCard';
 import { ModeToggle } from './ModeToggle';
 import { NodeRow } from './NodeRow';
@@ -43,7 +50,42 @@ export function NewBottomComponent() {
       accountState === 'bandwidth-exceeded');
 
   const { add } = useToast();
-  const connect = useConnect();
+
+  // Pre-connect: if the daemon refuses because another VPN is already active
+  // on the host, surface a confirmation dialog rather than just failing.
+  const [conflictVpns, setConflictVpns] = useState<TActiveVpn[] | null>(null);
+  const [forcing, setForcing] = useState(false);
+
+  const tryConnect = async (force: boolean) => {
+    try {
+      await invoke('connect', force ? { force: true } : undefined);
+      // Only flip the local UI to "connecting" once the daemon accepted the
+      // request. If we did this optimistically and the daemon rejected with
+      // AnotherVpnActive, the UI would be stuck on "Connecting" forever (no
+      // daemon event ever arrives to take it back to disconnected).
+      dispatch({ type: 'connect' });
+      setConflictVpns(null);
+    } catch (error: unknown) {
+      // Tauri rejects with the serialized BackendError shape.
+      const err = error as { key?: string; data?: { vpns?: string } } | string;
+      if (typeof err === 'object' && err?.key === 'another-vpn-active') {
+        let vpns: TActiveVpn[] = [];
+        try {
+          vpns = JSON.parse(err.data?.vpns ?? '[]') as TActiveVpn[];
+        } catch {
+          vpns = [];
+        }
+        setConflictVpns(vpns);
+        return;
+      }
+      console.error('failed to connect', error);
+      add({
+        id: 'connect-error',
+        title: 'Failed to connect',
+        type: 'error',
+      });
+    }
+  };
 
   const handleConnect = async () => {
     if (daemonStatus === 'auth-denied') {
@@ -84,17 +126,8 @@ export function NewBottomComponent() {
     }
     if (state === 'disconnected') {
       console.info('connect attempt');
-      try {
-        await connect();
-      } catch (error: unknown) {
-        console.error('failed to connect', error);
-        dispatch({ type: 'set-tunnel-disconnected' });
-        add({
-          id: 'connect-error',
-          title: 'Failed to connect',
-          type: 'error',
-        });
-      }
+      dispatch({ type: 'reset-error' });
+      await tryConnect(false);
     }
   };
 
@@ -200,6 +233,35 @@ export function NewBottomComponent() {
         </div>
         {/* Button ───────────────────────────────────────────────────────── */}
       </InteractiveCard>
+
+      <ConfirmationDialog
+        icon="warning"
+        title={t('another-vpn.title')}
+        description={
+          conflictVpns?.length
+            ? t('another-vpn.description', {
+                vpns: conflictVpns
+                  .map((v) =>
+                    v.isDefaultRoute ? `${v.interface} (default)` : v.interface,
+                  )
+                  .join(', '),
+              })
+            : ''
+        }
+        confirmButtonText={t('another-vpn.connect-anyway')}
+        cancelButtonText={t('another-vpn.close')}
+        isOpen={conflictVpns !== null}
+        isLoading={forcing}
+        onConfirm={async () => {
+          setForcing(true);
+          try {
+            await tryConnect(true);
+          } finally {
+            setForcing(false);
+          }
+        }}
+        onCancel={() => setConflictVpns(null)}
+      />
     </div>
   );
 }

@@ -65,6 +65,7 @@ mod sys;
 mod tray;
 #[cfg(windows)]
 mod updater;
+mod vpn_detection;
 mod vpnd;
 mod vpnd_check;
 mod window;
@@ -330,6 +331,7 @@ async fn main() -> Result<()> {
             tunnel::set_vpn_mode,
             tunnel::get_tunnel_state,
             tunnel::connect,
+            tunnel::detect_active_vpns_cmd,
             tunnel::disconnect,
             tunnel::reconnect,
             tunnel::set_node,

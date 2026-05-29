@@ -132,7 +132,8 @@ export type ErrorKey =
   | 'insufficient-funds'
   | 'get-mixnet-entry-countries-query'
   | 'get-mixnet-exit-countries-query'
-  | 'get-wg-countries-query';
+  | 'get-wg-countries-query'
+  | 'another-vpn-active';
 
 export type Favorite =
   | { country: { code: string } }
@@ -364,6 +365,12 @@ export type TAccountSummary = {
   isSubscriptionStacked: boolean;
 };
 
+export type TActiveVpn = {
+  interface: string;
+  kind: TVpnKind;
+  isDefaultRoute: boolean;
+};
+
 export type TApiTimeSkew = {
   localTime: string;
   estimatedRemoteTime: string;
@@ -496,6 +503,8 @@ export type TTunnelState =
   | { offline: { reconnect: boolean } };
 
 export type TVpnAccountStatus = 'active' | 'inactive' | 'delete-me';
+
+export type TVpnKind = 'wireguard' | 'tun' | 'mullvad' | 'nord-lynx' | 'proton';
 
 export type TVpnSubscriptionKind =
   'one-month' | 'one-year' | 'two-years' | 'freepass' | { other: string };

@@ -5,6 +5,7 @@ use crate::{
     events::AppHandleEventEmitter,
     fs::app_discovery::{App, custom_apps, get_installed_apps},
     state::{SharedAppState, app::VpnMode},
+    vpn_detection::{ActiveVpn, detect_active_vpns},
     vpnd::{
         client::{Node, VpndClient, VpndError},
         config::{MixnetTrafficConfig, MixnetTrafficDefaults, VpndConfig},
@@ -12,10 +13,17 @@ use crate::{
         tunnel::{ConnectingState, FrontingMode, SplitApp, TunnelState},
     },
 };
+use std::collections::HashMap;
 use std::net::IpAddr;
 use tauri::{Manager, State};
 use tauri_plugin_dialog::DialogExt;
 use tracing::{debug, info, instrument, warn};
+
+#[instrument]
+#[tauri::command]
+pub fn detect_active_vpns_cmd() -> Vec<ActiveVpn> {
+    detect_active_vpns()
+}
 
 #[instrument(skip_all)]
 #[tauri::command]
@@ -41,6 +49,7 @@ pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
     vpnd: State<'_, VpndClient>,
+    force: Option<bool>,
 ) -> Result<TunnelState, BackendError> {
     {
         let mut app_state = state.lock().await;
@@ -49,6 +58,33 @@ pub async fn connect(
             warn!(msg);
             return Err(BackendError::internal(&msg, None));
         };
+
+        // Pre-connect: refuse if another VPN is already up (unless caller
+        // explicitly opts out via `force`). nym-vpnd's firewall rules don't
+        // currently compose with a pre-existing default-route tunnel — every
+        // outbound connection gets RST'd because the allow-rules are scoped
+        // to the physical interface that's no longer the egress.
+        if !force.unwrap_or(false) {
+            let other = detect_active_vpns();
+            if !other.is_empty() {
+                let names: Vec<String> =
+                    other.iter().map(|v| v.interface.clone()).collect();
+                let msg = format!(
+                    "another VPN is active on this host: {}",
+                    names.join(", ")
+                );
+                warn!(msg);
+                let mut data: HashMap<String, String> = HashMap::new();
+                if let Ok(json) = serde_json::to_string(&other) {
+                    data.insert("vpns".to_string(), json);
+                }
+                return Err(BackendError {
+                    message: msg,
+                    key: ErrorKey::AnotherVpnActive,
+                    data: Some(data),
+                });
+            }
+        }
 
         // manually switch to "Connecting" state
         debug!("update connection state [Connecting]");

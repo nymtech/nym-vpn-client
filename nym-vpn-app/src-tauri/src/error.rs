@@ -150,6 +150,10 @@ pub enum ErrorKey {
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
     GetWgCountriesQuery,
+    /// Pre-connect detected another active VPN tunnel on the host.
+    /// `data["vpns"]` contains a JSON-encoded array of `TActiveVpn`
+    /// so the frontend can name the interface(s) in its warning.
+    AnotherVpnActive,
 }
 
 impl From<GatewayType> for ErrorKey {
