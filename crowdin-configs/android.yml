@@ -58,6 +58,19 @@ files:
   # Full description — long version (3950 chars) for zh-CN only (EN is source)
   - source: "fastlane/metadata/android/en-US/full_description.txt"
     translation: "fastlane/metadata/android/%locale%/full_description.txt"
+    excluded_target_languages:
+      - ar
+      - bn
+      - de
+      - es-ES
+      - fa
+      - fr
+      - hi
+      - pt-BR
+      - ru
+      - tr
+      - uk
+      - vi
     languages_mapping:
       locale:
         zh-CN: zh-CN
