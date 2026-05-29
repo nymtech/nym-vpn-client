@@ -1,0 +1,4 @@
+Có gì mới:
+- Tính năng chặn quảng cáo mới (phiên bản beta) để chặn quảng cáo, trình theo dõi và phần mềm độc hại
+- Thông báo mới cho các đăng ký đang chờ xử lý
+- Cải thiện thời gian đăng nhập

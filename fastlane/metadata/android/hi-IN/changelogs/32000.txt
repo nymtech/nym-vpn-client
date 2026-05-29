@@ -1,6 +1,6 @@
 क्या नया है:
-- Implemented auto-login functionality and interface.
-- Introduced a Diagnostic tool.
-- Added a "Random" option for Entry and Exit locations.
-- Added an info banner displaying your current subscription state.
-- Technical Improvements: Optimized Privy connection checks.
+- ऑटो-लॉगिन कार्यक्षमता और इंटरफ़ेस लागू किया गया।
+- एक डायग्नोस्टिक टूल पेश किया गया।
+- प्रवेश और निकास स्थानों के लिए "रैंडम" विकल्प जोड़ा गया है।
+- आपकी वर्तमान सब्स्क्रिप्शन स्थिति प्रदर्शित करने वाला एक सूचना बैनर जोड़ा गया है।
+- तकनीकी सुधार: Privy कनेक्शन जांच को अनुकूलित किया गया।

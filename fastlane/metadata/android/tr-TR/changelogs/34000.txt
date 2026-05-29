@@ -1,0 +1,4 @@
+Yenilikler:
+- Reklamları, izleyicileri ve kötü amaçlı yazılımları engellemek için yeni reklam engelleyici (beta) özelliği
+- Bekleyen abonelikler için yeni bildirim
+- Giriş sürelerinde iyileştirmeler

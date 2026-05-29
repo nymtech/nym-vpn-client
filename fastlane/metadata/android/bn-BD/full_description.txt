@@ -1,74 +1,70 @@
-7 day free trial: All features, no ads, cancel anytime. Plans starting at $2.39 / month.
+NymVPN: বিশ্বের সবচেয়ে প্রাইভেট VPN। একটি সুরক্ষিত, বিকেন্দ্রীভূত, বেনামী সুইস dVPN — কোনো লগ ছাড়াই। WireGuard-এর গতি, Noise Generating Mixnet-এর গোপনীয়তা। ইমেইল সাইনআপের প্রয়োজন নেই। কোনো বিজ্ঞাপন নেই।
 
-একমাত্র এমন VPN অ্যাপ যা আপনাকে নজর রাখতে পারে না সুইজারল্যান্ডে তৈরি প্রাইভেসি-অ্যাডভোকেটরা তৈরি করেছে The world's first mixnet for online anonymity.
+🎁 ৭ দিনের ফ্রি VPN ট্রায়াল ও প্ল্যান শুরু মাত্র $2.39/মাস থেকে
 
-- NO-NAME SIGNUP: No email required. জিরো-নলেজ অ্যাকাউন্ট যেকোনো VPN-এ সবচেয়ে বেশি ক্রিপ্টো স্বীকৃত সম্পূর্ণ অ্যানোনিমিটির জন্য নগদ পেমেন্টও গ্রহণযোগ্য
-- DECENTRALIZED VPN technology
-- MOST CRYPTOCURRENCIES ACCEPTED of any VPN
-- 70+ COUNTRIES with hundreds of independent servers
-- UP TO 10 DEVICES with one anonymous code
+কোনো বাধ্যবাধকতা ছাড়াই ৭ দিন ফ্রি ব্যবহার করে দেখুন। ক্রিপ্টো, কার্ড বা নগদে পেমেন্ট করুন — সিদ্ধান্ত আপনার।
 
-### BROWSE WITHOUT A TRACE
+🛡 ডিজাইনেই গোপনীয়তা
 
-Tired of wondering who's watching you? কোম্পানিগুলো কি আপনার ডেটা সংগ্রহ করছে? আপনি যেখানে আছেন সেখানে তথ্য নিষিদ্ধ থাকায় কি প্রবেশ পাচ্ছেন না?
+বেশিরভাগ VPN “no logs” শুধু নীতিমালা হিসেবে দাবি করে — তারা লগ রাখতে পারে, শুধু না রাখার প্রতিশ্রুতি দেয়। ফ্রি VPN গুলো আপনার ডেটা বিক্রি করার জন্য আপনাকে ট্র্যাক করে। NymVPN-এর স্থাপত্য অর্থপূর্ণ ট্রাফিক লগ রাখা অসম্ভব করে তোলে: কোনো একক সার্ভার একসাথে আপনি কে এবং আপনি কী করছেন তা দেখতে পায় না।
 
-While other VPNs promise not to keep logs, with NymVPN there is no point on the decentralized network that can connect your IP address with what you do online. আপনার গোপনীয়তা ডিফল্টভাবে সুরক্ষিত Your online activity cannot be tied back to you by advertisers, network operators, or centralized infrastructure. You can browse and communicate without leaving a data trail  across the internet.
+⚡ দুইটি VPN মোড, একটি অ্যাপ
 
-### CHOOSE YOUR PRIVACY LEVEL
+• ফাস্ট মোড: AmneziaWG (WireGuard)-ভিত্তিক ২-হপ dVPN। দ্রুত স্ট্রিমিং এবং ব্রাউজিং।
+• বেনামী মোড: ৫-হপ Noise Generating Mixnet — Tor-এর আরও প্রাইভেট উত্তরসূরি। সবচেয়ে বেনামী কনজিউমার VPN। ক্রিপ্টো, ইমেইল এবং Signal-এর মতো প্রাইভেট মেসেজিংয়ের জন্য আদর্শ।
 
-Fast Mode
+💰 ক্রিপ্টো বা নগদে অ্যানোনিমাসভাবে পেমেন্ট করুন
 
-- High-speed browsing and streaming
-- 2-hop decentralized VPN
-- AmneziaWG (WireGuard) protection
+NymVPN অন্য যেকোনো VPN-এর তুলনায় বেশি ক্রিপ্টোকারেন্সি গ্রহণ করে, পাশাপাশি নগদ পেমেন্টও। Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM এবং আরও অনেক মাধ্যমে পেমেন্ট করুন। জিরো-নলেজ ক্রেডেনশিয়াল আপনার পেমেন্টকে VPN ব্যবহারের সাথে বিচ্ছিন্ন রাখে: অ্যানোনিমাসভাবে পেমেন্ট করুন, অ্যানোনিমাসভাবেই ব্যবহার করুন।
 
-Anonymous Mode (গোপন মোড)
+💎 NYMVPN কেন আলাদা
 
-- Maximum anonymity for messaging, email, and financial transactions
-- 5-hop Noise Generating Mixnet
-- Resists advanced traffic analysis
+• জিরো-নলেজ আর্কিটেকচার: পরিচয় Nym-এর কাছেও অদৃশ্য
+আর্কিটেকচার অনুযায়ী কোনো লগ নেই: নেটওয়ার্ক অর্থবহ ট্রাফিক লগ রাখতে পারে না
+• বিকেন্দ্রীভূত প্রক্সি নেটওয়ার্ক: কোনো কেন্দ্রীয় সার্ভার নেই
+• সুইস বিচারব্যবস্থা: 14 Eyes জোটের বাইরে
+• WireGuard ও Mixnet প্রোটোকল
+• ইমেইল সাইনআপের প্রয়োজন নেই: অ্যানোনিমাস অ্যাকাউন্ট তৈরি
+• সম্পূর্ণ ওপেন সোর্স, স্বাধীন নিরাপত্তা গবেষকদের দ্বারা অডিটকৃত
+• ৭০টিরও বেশি দেশ: বিশ্বব্যাপী সার্ভার নেটওয়ার্ক
+• একটি অ্যাকাউন্টে সর্বোচ্চ ১০টি ডিভাইস করতে পারবেন
 
-### ESSENTIAL FEATURES
+🔒 গোপনীয়তা ও নিরাপত্তা বৈশিষ্ট্য
 
-- Entry & exit server selection
-- Multi-layer encryption
-- dVPN AmneziaWG (WireGuard) support
-- Kill switch prevents data leaks
-- Advanced anti-censorship technology
-- Split tunneling
-- Custom DNS
-- Key rotation for cryptographic security
-- Completely ad-free experience
-- 100% open source software
+• বিল্ট-ইন কিল সুইচ
+• সেন্সরশিপ প্রতিরোধ: QUIC, AmneziaWG এবং আরও প্রযুক্তি VPN ব্লকিং প্রতিরোধ করে
+• মাল্টি-লেয়ার অনিয়ন এনক্রিপশন
+• এন্ট্রি ও এক্সিট সার্ভার নির্বাচন
+• স্প্লিট টানেলিং: শুধুমাত্র নির্বাচিত অ্যাপগুলো VPN-এর মাধ্যমে রাউট করুন
+• কাস্টম DNS: আপনি যেকোনো বিশ্বস্ত DNS সার্ভার ব্যবহার করতে পারেন
+• অ্যাড ও ট্র্যাকার ব্লকার
 
-### WHY NYMVPN IS DIFFERENT
+🌍 NYMVPN দিয়ে আপনি যা করতে পারেন
 
-Most VPNs rely on centralized servers and ask you to trust their "no-logs" promises. NymVPN ভিন্নভাবে নির্মিত
+• ট্রেস না রেখে অ্যানোনিমাসভাবে ব্রাউজ করুন
+• বিশ্বজুড়ে সার্ভার থেকে কনটেন্ট স্ট্রিম করুন
+• পাবলিক Wi-Fi-তে আপনার ট্রাফিক এনক্রিপ্ট করুন
+• সীমাবদ্ধ অঞ্চলে ইন্টারনেট সেন্সরশিপ এড়িয়ে চলুন
+• সাংবাদিকতা ও অ্যাক্টিভিজমের জন্য সংবেদনশীল যোগাযোগ সুরক্ষিত রাখুন
+• ISP-কে আপনার ব্রাউজিং প্রোফাইল করা থেকে বিরত রাখুন
+• ক্ষতিকর সাইট, ট্র্যাকার ও বিজ্ঞাপন ব্লক করুন
 
-- Decentralized VPN (dVPN) architecture: Traffic is routed through independently operated servers. No one can see both who you are and what you do online.
+🇨🇭 সুইস প্রাইভেসি, ডিজাইন থেকেই সুরক্ষিত
 
-- Metadata protection: NymVPN protects traffic patterns, timing, and routing information. এমনকি এনক্রিপ্ট করা ডেটাও মেটাডেটা ফাঁস করতে পারে Nym prevents that.
+NymVPN সুইস আইনের অধীনে পরিচালিত হয়: যা 14 Eyes নজরদারি জোটের বাইরে, যেখানে সাংবিধানিকভাবে গোপনীয়তার অধিকার সুরক্ষিত এবং তথ্য সংরক্ষণের কোনো বাধ্যবাধকতা নেই। আপনার ডেটা আইন এবং ডিজাইন—উভয়ের মাধ্যমেই সুরক্ষিত।
 
-- Two privacy modes, one app: The FAST  mode uses a high-performance 2-hop decentralized VPN. The ANONYMOUS  mode uses a 5-hop mixnet for maximum anonymity.
+🎓 একাডেমিক ক্রিপ্টোগ্রাফারদের দ্বারা নির্মিত
 
-- Noise Generating Mixnet technology: Your traffic is mixed with cover traffic, making correlation and AI-driven traffic analysis extremely difficult.
+Nym-এর দ্বারা নির্মিত। বিশ্বজুড়ে সাংবাদিক, অ্যাক্টিভিস্ট এবং গোপনীয়তা-সচেতন ব্যবহারকারীদের কাছে বিশ্বস্ত।
 
-ডিজাইনে জিরো-নলেজ অ্যাকাউন্ট: ইমেল সাইনআপ প্রয়োজন নেই কোনো ব্যক্তিগত তথ্য নেই অ্যাকাউন্টগুলো ব্যবহার থেকে আলাদা (unlinkable) থাকে পূর্ণ অ্যানোনিমিটির জন্য ক্রিপ্টো ও নগদ পেমেন্ট সমর্থন করে
+🚫 আমরা যা করি না
 
-পূর্ণ অ্যানোনিমিটির জন্য ক্রিপ্টো ও নগদ পেমেন্ট সমর্থন করে
+• আমরা আপনার ইমেইল বা নাম জিজ্ঞেস করি না
+• আপনি কোন সাইট ভিজিট করেন তা আমরা ট্র্যাক করতে পারি না
+• আমরা আপনার ডেটা বিক্রি, শেয়ার বা ভাড়া দিতে পারি না
 
-- Open-source and independently audited.
-- Built by academic cryptographers
+📲 শুরু করুন
 
-### NYMVPN IS PERFECT FOR:
+NymVPN ডাউনলোড করুন, ইমেইল বা এমনকি নাম ছাড়াই একটি বেনামি একাউন্ট তৈরি করুন, এবং প্রাইভেটভাবে ব্রাউজিং শুরু করুন।
 
-- Streaming and browsing without being tracked
-- Secure public WiFi connections
-- Anyone in restrictive countries needing reliable access
-- People who want true anonymity, not just hidden IP addresses
-- Journalists and activists needing untraceable communication
-- Featured in PCMag, TechRadar, Forbes, Bloomberg, Tom's Guide
-
-এখনই ডাউনলোড করুন। গোপনীয়ভাবে সাইনআপ করুন NymVPN নিয়ে অনলাইনে অদৃশ্য হয়ে যান
-
-ব্যবহারের শর্তাবলি: https://nym.com/vpn-terms
+আজই NymVPN ব্যবহার করে দেখুন।
