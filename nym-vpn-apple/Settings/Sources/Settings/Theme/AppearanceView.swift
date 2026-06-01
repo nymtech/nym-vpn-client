@@ -7,6 +7,9 @@ public struct AppearanceView: View {
     let externalLinkManager: ExternalLinkManager = .shared
 
     @Binding var path: NavigationPath
+#if os(macOS)
+    @StateObject private var launchAtStartupManager = LaunchAtStartupManager()
+#endif
 
     public init(path: Binding<NavigationPath>) {
         _path = path
@@ -29,6 +32,10 @@ public struct AppearanceView: View {
                 Spacer()
                     .frame(height: 24)
                 appMode()
+                    .frame(maxWidth: MagicNumbers.maxWidth)
+                Spacer()
+                    .frame(height: 24)
+                launchAtStartup()
                     .frame(maxWidth: MagicNumbers.maxWidth)
 #endif
                 Spacer()
@@ -102,6 +109,26 @@ private extension AppearanceView {
 
     @MainActor func navigateToAppMode() {
         path.append(SettingLink.appMode)
+    }
+
+    func launchAtStartup() -> some View {
+        let toggleBinding = Binding<Bool>(
+            get: { launchAtStartupManager.isEnabled },
+            set: { newValue in
+                launchAtStartupManager.isEnabled = newValue
+                launchAtStartupManager.apply(newValue)
+            }
+        )
+        return SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .toggle(isOn: toggleBinding),
+                title: "settings.launchAtStartup".localizedString,
+                imageName: "launchAtStartup",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {}
+            )
+        )
+        .id(launchAtStartupManager.isEnabled)
     }
 }
 #endif
