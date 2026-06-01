@@ -1,19 +1,50 @@
 {
   "fill" : {
-    "automatic-gradient" : "display-p3:0.07843,0.90588,0.43529,1.00000"
+    "solid" : "display-p3:0.96097,0.96091,0.97852,1.00000"
   },
   "groups" : [
     {
       "layers" : [
         {
-          "glass" : true,
-          "image-name" : "Union.svg",
-          "name" : "Union",
+          "glass" : false,
+          "hidden-specializations" : [
+            {
+              "value" : false
+            },
+            {
+              "appearance" : "dark",
+              "value" : true
+            }
+          ],
+          "image-name" : "logoLight.svg",
+          "name" : "logoLight",
           "position" : {
-            "scale" : 22.5,
+            "scale" : 1,
             "translation-in-points" : [
-              0,
-              0
+              -13.220085499999982,
+              9.091491500000075
+            ]
+          }
+        },
+        {
+          "blend-mode" : "normal",
+          "glass" : false,
+          "hidden-specializations" : [
+            {
+              "value" : false
+            },
+            {
+              "appearance" : "light",
+              "value" : true
+            }
+          ],
+          "image-name" : "logo.svg",
+          "name" : "logo",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -13.220085499999982,
+              9.091491500000075
             ]
           }
         }
