@@ -51,20 +51,25 @@ runs:
 
     - name: Overlay config files into workspace
       shell: bash
+      env:
+        REPOSITORY: ${{ inputs.repository }}
+        SOURCE_PATH: ${{ inputs.source_path }}
+        TARGET_PATH: ${{ inputs.target_path }}
+        CLEAN_TARGET: ${{ inputs.clean_target }}
       run: |
         set -euo pipefail
 
-        src=".tmp/nym-config-override/${{ inputs.source_path }}"
-        dst="${{ inputs.target_path }}"
+        src=".tmp/nym-config-override/${SOURCE_PATH}"
+        dst="${TARGET_PATH}"
 
         if [[ ! -d "$src" ]]; then
-          echo "::error::Source path '$src' does not exist in '${{ inputs.repository }}'"
+          echo "::error::Source path '$src' does not exist in '${REPOSITORY}'"
           exit 1
         fi
 
         mkdir -p "$dst"
 
-        if [[ "${{ inputs.clean_target }}" == "true" ]]; then
+        if [[ "${CLEAN_TARGET}" == "true" ]]; then
           rm -rf -- "$dst"
           mkdir -p "$dst"
         fi
