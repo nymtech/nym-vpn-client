@@ -11,7 +11,6 @@ type NetworkOption = { value: NetworkEnv; label: string };
 const options: NetworkOption[] = [
   { value: 'mainnet', label: 'Mainnet' },
   { value: 'canary', label: 'Canary' },
-  { value: 'evil', label: 'Evil' },
   { value: 'sandbox', label: 'Sandbox' },
 ];
 

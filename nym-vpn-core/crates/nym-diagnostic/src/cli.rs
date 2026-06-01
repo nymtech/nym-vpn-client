@@ -22,7 +22,7 @@ pub(crate) struct CliArgs {
     pub no_log: bool,
 
     /// Env to run the diagnostic in
-    #[arg(short, long, global = true, value_parser = ["mainnet", "sandbox", "canary","evil"], default_value = "mainnet")]
+    #[arg(short, long, global = true, value_parser = ["mainnet", "sandbox", "canary"], default_value = "mainnet")]
     pub network: String,
 
     /// Subcommand to execute

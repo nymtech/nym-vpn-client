@@ -9,6 +9,9 @@ use crate::Result;
 
 static DEFAULT_ENVS_JSON: &[u8] = include_bytes!("../default/envs.json");
 
+/// Retired network names that may still appear in wellknown envs until the VPN API deploys.
+const RETIRED_NETWORKS: &[&str] = &["evil"];
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RegisteredNetworks {
     inner: HashSet<String>,
@@ -21,6 +24,13 @@ impl RegisteredNetworks {
 
     pub fn names(&self) -> &HashSet<String> {
         &self.inner
+    }
+
+    pub(crate) fn without_retired(mut self) -> Self {
+        for name in RETIRED_NETWORKS {
+            self.inner.remove(*name);
+        }
+        self
     }
 }
 
@@ -80,6 +90,15 @@ mod tests {
     fn test_registered_networks_default() {
         let registered_networks = RegisteredNetworks::default();
         assert!(registered_networks.inner.contains("mainnet"));
+        assert!(!registered_networks.inner.contains("evil"));
+    }
+
+    #[test]
+    fn test_without_retired_drops_evil() {
+        let networks =
+            RegisteredNetworks::new(HashSet::from(["mainnet".to_string(), "evil".to_string()]));
+        let filtered = networks.without_retired();
+        assert_eq!(filtered.inner, HashSet::from(["mainnet".to_string()]));
     }
 
     #[tokio::test]

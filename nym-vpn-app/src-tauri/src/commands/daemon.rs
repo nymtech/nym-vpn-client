@@ -21,7 +21,6 @@ pub const DEFAULT_VPND_LOG_DIR: &str = "C:\\ProgramData\\nym-vpnd\\log";
 pub enum NetworkEnv {
     Mainnet,
     Canary,
-    Evil,
     Sandbox,
 }
 

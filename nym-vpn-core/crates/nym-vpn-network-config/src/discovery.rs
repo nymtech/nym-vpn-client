@@ -10,7 +10,6 @@ use nym_vpn_api_client::response::{ApiUrl, NymWellknownDiscoveryItemResponse};
 static MAINNET_DISCOVERY_JSON: &[u8] = include_bytes!("../default/mainnet_discovery.json");
 static SANDBOX_DISCOVERY_JSON: &[u8] = include_bytes!("../default/sandbox_discovery.json");
 static CANARY_DISCOVERY_JSON: &[u8] = include_bytes!("../default/canary_discovery.json");
-static EVIL_DISCOVERY_JSON: &[u8] = include_bytes!("../default/evil_discovery.json");
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct Discovery {
@@ -54,18 +53,11 @@ impl Discovery {
             .expect("failed to parse default canary discovery")
     }
 
-    /// Default evil discovery
-    pub fn default_evil() -> Self {
-        #[allow(clippy::expect_used)]
-        serde_json::from_slice(EVIL_DISCOVERY_JSON).expect("failed to parse default evil discovery")
-    }
-
     pub fn default_discovery(network_name: &str) -> Option<Self> {
         Some(match network_name {
             "mainnet" => Self::default_mainnet(),
             "sandbox" => Self::default_sandbox(),
             "canary" => Self::default_canary(),
-            "evil" => Self::default_evil(),
             _ => None?,
         })
     }
@@ -206,13 +198,6 @@ mod tests {
     #[tokio::test]
     async fn test_canary_discovery_same_as_fetched() {
         test_discovery_equality(Discovery::default_canary()).await;
-    }
-
-    // todo: remove ignore once evil discovery is back online
-    #[tokio::test]
-    #[ignore]
-    async fn test_evil_discovery_same_as_fetched() {
-        test_discovery_equality(Discovery::default_evil()).await;
     }
 
     async fn test_discovery_equality(discovery: Discovery) {
