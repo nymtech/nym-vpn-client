@@ -25936,28 +25936,6 @@
         }
       }
     },
-    "settings.account.renewNow.line1" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Renew now to"
-          }
-        }
-      }
-    },
-    "settings.account.renewNow.line2" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "stay protected"
-          }
-        }
-      }
-    },
     "settings.account.resetsOn" : {
       "extractionState" : "manual",
       "localizations" : {

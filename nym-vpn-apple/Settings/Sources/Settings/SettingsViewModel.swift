@@ -104,9 +104,11 @@ import Theme
     }
 
     func navigateToSantasMenu() {
+#if SANTA
         guard configurationManager.isSantaClaus else { return }
         impactGenerator.impact()
         path.append(SettingLink.santasMenu)
+#endif
     }
 
     /// Use to reload sections and acc renewal info

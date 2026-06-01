@@ -37,12 +37,12 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>IsCiBuild</key>
 	<string>$(IS_CI_BUILD)</string>
+	<key>LSUIElement</key>
+	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string></string>
 	<key>SUFeedURL</key>
 	<string>https://nymtech.net/.wellknown/macos-vpn/appcast.xml</string>
-	<key>LSUIElement</key>
-	<true/>
 	<key>SUPublicEDKey</key>
 	<string>9OobPkT0p5WGp0wf2aSbADivVllEKZaz0gKhElMocU0=</string>
 </dict>

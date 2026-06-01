@@ -52,8 +52,10 @@ struct SettingsFlowCoordinator<Content: View>: View {
                     externalLinkManager: .shared
                 )
             )
+#if SANTA
         case .santasMenu:
             santasMenuDestination()
+#endif
 #if os(macOS)
         case .proxy:
             proxyDestination()
@@ -186,6 +188,7 @@ private extension SettingsFlowCoordinator {
         )
     }
 
+#if SANTA
     @ViewBuilder
     func santasMenuDestination() -> some View {
 #if os(iOS)
@@ -207,6 +210,7 @@ private extension SettingsFlowCoordinator {
         )
 #endif
     }
+#endif
 
 #if os(macOS)
     @ViewBuilder

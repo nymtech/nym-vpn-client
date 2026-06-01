@@ -39,6 +39,12 @@ import PathManager
     /// True when the last `fetchAccountSummary` attempt failed (use for UI signal).
     @Published public private(set) var accountSummaryLastFetchFailed = false
 
+#if SANTA
+    /// QA only: when true, `accountSummary` holds a Santa's-menu fake and real
+    /// fetches are suppressed. Set exclusively via `applyDebugAccountSummary`.
+    @Published public private(set) var isAccountSummaryOverridden = false
+#endif
+
     @Published public var accountSummary: AccountSummary? = AppSettings.shared.accountSummary {
         didSet { appSettings.accountSummary = accountSummary }
     }
@@ -151,6 +157,9 @@ import PathManager
 #endif
         checkCredentialImport()
         appSettings.accountToken = nil
+#if SANTA
+        isAccountSummaryOverridden = false
+#endif
         accountSummary = nil
     }
 
@@ -252,6 +261,9 @@ import PathManager
     }
 
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
+#if SANTA
+        guard !isAccountSummaryOverridden else { return }
+#endif
         guard isValidCredentialImported else { return }
         await Task { [weak self] in
             guard let self else { return }
@@ -273,6 +285,26 @@ import PathManager
             }
         }.value
     }
+
+#if SANTA
+    /// QA only (Santa's menu): swap in a fabricated summary and pin it so polling
+    /// and forced refreshes don't clobber it. Gated to TestFlight/CI builds; a
+    /// no-op in App Store release so it can never get stuck on a fake.
+    public func applyDebugAccountSummary(_ summary: AccountSummary) {
+        guard configurationManager.isSantaClaus else { return }
+        accountSummaryUpdateTask?.cancel()
+        accountSummaryUpdateTask = nil
+        isAccountSummaryOverridden = true
+        accountSummary = summary
+    }
+
+    /// QA only: drop the fake and refetch the real summary.
+    public func clearDebugAccountSummary() {
+        guard isAccountSummaryOverridden else { return }
+        isAccountSummaryOverridden = false
+        Task { await updateAccountSummary(force: true) }
+    }
+#endif
 
     private func performAccountSummaryUpdate(untilActive: Bool) async {
         guard isValidCredentialImported else { return }

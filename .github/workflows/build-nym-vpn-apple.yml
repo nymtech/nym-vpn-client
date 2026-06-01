@@ -108,15 +108,22 @@ jobs:
             fi
           fi
 
+          # Santa's-menu QA code is gated behind `#if SANTA`. Compile it in for
+          # `qa` only; left OUT of `pr` and `ship` so it is physically absent
+          # from App Store binaries.
+          if [[ "$mode" == "qa" ]]; then santa=1; else santa=0; fi
+
           # Export environment variables for later steps
           echo "RELEASE_TYPE=$mode" >> "$GITHUB_ENV"
           echo "BUILD_IOS=$ios" >> "$GITHUB_ENV"
           echo "BUILD_MACOS=$macos" >> "$GITHUB_ENV"
+          echo "NYM_SANTA=$santa" >> "$GITHUB_ENV"
 
           echo "✅ Environment successfully configured:"
           echo "   RELEASE_TYPE=$mode"
           echo "   BUILD_IOS=$ios"
           echo "   BUILD_MACOS=$macos"
+          echo "   NYM_SANTA=$santa"
           echo "--------------------------------------------------"
 
       - name: Show selected release type
@@ -195,7 +202,7 @@ jobs:
           if /usr/libexec/PlistBuddy -c "Print :IsCiBuild" "NymVPNDaemon/Resources/Info.plist" >/dev/null 2>&1; then
             /usr/libexec/PlistBuddy -c "Set :IsCiBuild true" "NymVPNDaemon/Resources/Info.plist"
           else
-            /usr/libexec/PlistBuddy -c "Add :IsCiBuild bool true" "NymVPNDaemon/Resources/Info.plist"
+            /usr/libexec/PlistBuddy -c "Add :IsCiBuild string true" "NymVPNDaemon/Resources/Info.plist"
           fi
 
           echo "✅ Updated Info.plist contents:"
@@ -377,53 +384,68 @@ jobs:
       - name: Tests
         if: ${{ env.RELEASE_TYPE == 'pr' }}
         working-directory: nym-vpn-apple/ServicesMutual
-        run: |
-          set -euo pipefail
-          xcodebuild test \
-            -scheme ServicesMutual-Package \
-            -destination 'platform=macOS' \
-            -only-testing:ConnectionTypesTests \
-            -resultBundlePath TestResults.xcresult \
-            | xcbeautify --renderer github-actions
-
-      - name: Test summary
-        if: ${{ env.RELEASE_TYPE == 'pr' && (success() || failure()) }}
-        working-directory: nym-vpn-apple/ServicesMutual
+        env:
+          ACCOUNT_REPORT_PATH: ${{ github.workspace }}/account-report.md
         run: |
           set -uo pipefail
           which jq >/dev/null || brew install jq
+
+          # Run tests — don't abort on failure, we still want summary + report
+          set +e
+          xcodebuild test \
+            -scheme ServicesMutual-Package \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            -only-testing:ConnectionTypesTests \
+            -resultBundlePath TestResults.xcresult \
+            | xcbeautify --renderer github-actions
+          TEST_STATUS=${PIPESTATUS[0]}
+          set -e
+
+          # Test summary → step summary
           BUNDLE="TestResults.xcresult"
-          if [[ ! -d "$BUNDLE" ]]; then
-            echo "⚠️ No test results bundle found." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          JSON="$(xcrun xcresulttool get test-results summary --path "$BUNDLE" --format json 2>/dev/null)"
-          RESULT=$(jq -r '.result // "Unknown"' <<<"$JSON")
-          PASSED=$(jq -r '.passedTests // 0' <<<"$JSON")
-          FAILED=$(jq -r '.failedTests // 0' <<<"$JSON")
-          SKIPPED=$(jq -r '.skippedTests // 0' <<<"$JSON")
-          ICON="✅"; [[ "$RESULT" != "Passed" ]] && ICON="❌"
-          {
-            echo "## 🧪 ConnectionTypes tests"
-            echo ""
-            echo "$ICON **$RESULT** — ${PASSED} passed, ${FAILED} failed, ${SKIPPED} skipped"
-          } >> "$GITHUB_STEP_SUMMARY"
-          if [[ "$FAILED" != "0" ]]; then
+          if [[ -d "$BUNDLE" ]]; then
+            JSON="$(xcrun xcresulttool get test-results summary --path "$BUNDLE" --format json 2>/dev/null)"
+            RESULT=$(jq -r '.result // "Unknown"' <<<"$JSON")
+            PASSED=$(jq -r '.passedTests // 0' <<<"$JSON")
+            FAILED=$(jq -r '.failedTests // 0' <<<"$JSON")
+            SKIPPED=$(jq -r '.skippedTests // 0' <<<"$JSON")
+            ICON="✅"; [[ "$RESULT" != "Passed" ]] && ICON="❌"
             {
+              echo "## 🧪 ConnectionTypes tests"
               echo ""
-              echo "| Test | Failure |"
-              echo "| --- | --- |"
-              jq -r '.testFailures[]? | "| \(.testName) | \((.failureText // "") | gsub("[\r\n]+"; " ")) |"' <<<"$JSON"
+              echo "$ICON **$RESULT** — ${PASSED} passed, ${FAILED} failed, ${SKIPPED} skipped"
             } >> "$GITHUB_STEP_SUMMARY"
+            if [[ "$FAILED" != "0" ]]; then
+              {
+                echo ""
+                echo "| Test | Failure |"
+                echo "| --- | --- |"
+                jq -r '.testFailures[]? | "| \(.testName) | \((.failureText // "") | gsub("[\r\n]+"; " ")) |"' <<<"$JSON"
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            echo "⚠️ No test results bundle found." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Upload test results
-        if: ${{ env.RELEASE_TYPE == 'pr' && (success() || failure()) }}
+          # Account report → step summary
+          if [[ -f "$ACCOUNT_REPORT_PATH" ]]; then
+            cat "$ACCOUNT_REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "account-report.md not produced" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          exit "$TEST_STATUS"
+
+      - name: Upload test artifacts
+        if: ${{ always() && env.RELEASE_TYPE == 'pr' }}
         uses: actions/upload-artifact@v7
         with:
-          name: test-results-connectiontypes
-          path: nym-vpn-apple/ServicesMutual/TestResults.xcresult
-          if-no-files-found: ignore
+          name: connectiontypes-tests
+          path: |
+            nym-vpn-apple/ServicesMutual/TestResults.xcresult
+            account-report.md
+          if-no-files-found: warn
           retention-days: 1
 
       - name: Clean up test results

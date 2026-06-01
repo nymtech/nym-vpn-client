@@ -15,7 +15,9 @@ public enum SettingLink: Hashable, Identifiable {
     case systemStatus
     case acknowledgments
     case licence(details: LicenceDetails)
+#if SANTA
     case santasMenu
+#endif
     case privacyAndData
     case dns
     case mixnetTuning

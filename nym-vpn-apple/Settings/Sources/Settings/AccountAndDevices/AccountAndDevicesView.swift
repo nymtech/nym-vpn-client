@@ -279,7 +279,7 @@ extension AccountAndDevicesView {
     func updateIsAccountLinkAvailable() async {
         await credentialsManager.updateAccountSummary()
         guard let accountSummary = credentialsManager.accountSummary else { return }
-        isLinkAccountAvailable = !accountSummary.isLinked
+        isLinkAccountAvailable = accountSummary.shouldShowLinkAccountRow
     }
 }
 
