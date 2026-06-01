@@ -15,7 +15,8 @@ pub struct CreateAndroidAccountRequestBody {
     pub account_addr: String,
     pub pub_key: String,
     pub signature_base64: String,
-    pub purchase_token: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub purchase_token: Option<String>,
     pub kind: AccountKind,
 }
 

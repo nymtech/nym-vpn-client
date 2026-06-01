@@ -26,8 +26,10 @@ use ts_rs::TS;
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 #[cfg(any(target_os = "ios", target_os = "android"))]
 pub struct RegisterAccountRequest {
+    /// Present for Google Play in-app purchases
+    /// Omitted for anonymous registration
     #[cfg(target_os = "android")]
-    pub purchase_token: String,
+    pub purchase_token: Option<String>,
 }
 
 #[cfg(feature = "nym-type-conversions")]
