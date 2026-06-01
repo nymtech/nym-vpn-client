@@ -108,15 +108,22 @@ jobs:
             fi
           fi
 
+          # Santa's-menu QA code is gated behind `#if SANTA`. Compile it in for
+          # `qa` only; left OUT of `pr` and `ship` so it is physically absent
+          # from App Store binaries.
+          if [[ "$mode" == "qa" ]]; then santa=1; else santa=0; fi
+
           # Export environment variables for later steps
           echo "RELEASE_TYPE=$mode" >> "$GITHUB_ENV"
           echo "BUILD_IOS=$ios" >> "$GITHUB_ENV"
           echo "BUILD_MACOS=$macos" >> "$GITHUB_ENV"
+          echo "NYM_SANTA=$santa" >> "$GITHUB_ENV"
 
           echo "✅ Environment successfully configured:"
           echo "   RELEASE_TYPE=$mode"
           echo "   BUILD_IOS=$ios"
           echo "   BUILD_MACOS=$macos"
+          echo "   NYM_SANTA=$santa"
           echo "--------------------------------------------------"
 
       - name: Show selected release type
