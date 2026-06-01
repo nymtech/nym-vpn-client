@@ -16,11 +16,7 @@ enum InnerMonitor {
 }
 
 impl InnerMonitor {
-    async fn set(
-        &mut self,
-        interface: &str,
-        config: DnsConfig,
-    ) -> Result<(), super::Error> {
+    async fn set(&mut self, interface: &str, config: DnsConfig) -> Result<(), super::Error> {
         match self {
             InnerMonitor::Iphlpapi(monitor) => monitor.set(interface, config).await?,
             InnerMonitor::Netsh(monitor) => monitor.set(interface, config).await?,

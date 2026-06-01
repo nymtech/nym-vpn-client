@@ -859,7 +859,7 @@ struct ConnectingPolicyParameters {
     api_endpoints: Vec<SocketAddr>,
 
     /// Non-tunnel DNS servers
-    dns_servers: Vec<nym_firewall::Endpoint>,
+    dns_servers: Vec<Endpoint>,
 
     /// Tunnel interface
     tunnel_interface: Option<TunnelInterface>,
