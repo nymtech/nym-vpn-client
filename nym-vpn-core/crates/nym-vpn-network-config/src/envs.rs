@@ -95,15 +95,10 @@ mod tests {
 
     #[test]
     fn test_without_retired_drops_evil() {
-        let networks = RegisteredNetworks::new(HashSet::from([
-            "mainnet".to_string(),
-            "evil".to_string(),
-        ]));
+        let networks =
+            RegisteredNetworks::new(HashSet::from(["mainnet".to_string(), "evil".to_string()]));
         let filtered = networks.without_retired();
-        assert_eq!(
-            filtered.inner,
-            HashSet::from(["mainnet".to_string()])
-        );
+        assert_eq!(filtered.inner, HashSet::from(["mainnet".to_string()]));
     }
 
     #[tokio::test]
