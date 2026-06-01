@@ -4,5 +4,5 @@
 #[derive(Clone, Debug)]
 pub enum Platform {
     Apple,
-    Android { purchase_token: String },
+    Android { purchase_token: Option<String> },
 }
