@@ -30,23 +30,14 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Checkout config repo (default ref)
-      if: ${{ inputs.ref == '' }}
-      uses: actions/checkout@v6
-      with:
-        repository: ${{ inputs.repository }}
-        path: .tmp/nym-config-override
-        fetch-depth: 1
-        token: ${{ inputs.checkout_token != '' && inputs.checkout_token || github.token }}
-
-    - name: Checkout config repo (custom ref)
-      if: ${{ inputs.ref != '' }}
+    - name: Checkout config repo
       uses: actions/checkout@v6
       with:
         repository: ${{ inputs.repository }}
         ref: ${{ inputs.ref }}
         path: .tmp/nym-config-override
         fetch-depth: 1
+        persist-credentials: false
         token: ${{ inputs.checkout_token != '' && inputs.checkout_token || github.token }}
 
     - name: Overlay config files into workspace
