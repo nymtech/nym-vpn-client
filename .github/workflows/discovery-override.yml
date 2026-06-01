@@ -45,7 +45,7 @@ on:
       source_path:
         required: false
         type: string
-        default: .
+        default: build/discovery
       target_path:
         required: false
         type: string
