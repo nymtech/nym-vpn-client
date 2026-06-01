@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{iphlpapi, netsh, tcpip};
-use crate::{DnsMonitorT, ResolvedDnsConfig};
+use crate::{DnsConfig, DnsMonitorT};
 use windows::Win32::System::Rpc::RPC_S_SERVER_UNAVAILABLE;
 
 pub struct DnsMonitor {
@@ -19,7 +19,7 @@ impl InnerMonitor {
     async fn set(
         &mut self,
         interface: &str,
-        config: ResolvedDnsConfig,
+        config: DnsConfig,
     ) -> Result<(), super::Error> {
         match self {
             InnerMonitor::Iphlpapi(monitor) => monitor.set(interface, config).await?,
@@ -61,7 +61,7 @@ impl DnsMonitorT for DnsMonitor {
         Ok(Self { current_monitor })
     }
 
-    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Self::Error> {
+    async fn set(&mut self, interface: &str, config: DnsConfig) -> Result<(), Self::Error> {
         let result = self.current_monitor.set(interface, config.clone()).await;
         if self.fallback_due_to_dnscache(&result) {
             return Box::pin(self.set(interface, config)).await;

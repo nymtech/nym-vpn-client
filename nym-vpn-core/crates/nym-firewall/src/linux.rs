@@ -6,7 +6,7 @@ use std::{
     env,
     ffi::CStr,
     fs, io,
-    net::{IpAddr, Ipv4Addr, SocketAddr},
+    net::{IpAddr, Ipv4Addr},
     sync::LazyLock,
 };
 
@@ -25,7 +25,7 @@ use super::{
 use nym_cgroup::v2::CGroup2;
 use nym_firewall_config::{ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS, SPLIT_TUNNEL_MARK};
 
-use crate::{AllowedClients, DNS_TCP_PORTS, TunnelInterface};
+use crate::{AllowedClients, TunnelInterface};
 
 /// Priority for rules that tag split tunneling packets. Equals NF_IP_PRI_MANGLE.
 const MANGLE_CHAIN_PRIORITY: i32 = libc::NF_IP_PRI_MANGLE;
@@ -261,21 +261,6 @@ impl Firewall {
     }
 }
 
-fn get_allow_dns_endpoints_when_connecting(server: IpAddr) -> Vec<AllowedEndpoint> {
-    let mut allowed_endpoints = Vec::with_capacity(DNS_TCP_PORTS.len());
-
-    // Allow requests on other interfaces
-    for tcp_port in DNS_TCP_PORTS {
-        let address = SocketAddr::new(server, tcp_port);
-        let allowed_endpoint = AllowedEndpoint::new(
-            Endpoint::from_socket_address(address, TransportProtocol::Tcp),
-            AllowedClients::Root,
-        );
-        allowed_endpoints.push(allowed_endpoint);
-    }
-
-    allowed_endpoints
-}
 
 struct PolicyBatch<'a> {
     batch: Batch,
@@ -416,20 +401,13 @@ impl<'a> PolicyBatch<'a> {
             tunnel, dns_config, ..
         } = policy
         {
-            for server in dns_config.tunnel_config() {
+            for ep in dns_config.tunnel_dns() {
                 let tunnel = tunnel.exit_metadata();
                 let allow_rule = allow_tunnel_dns_rule(
                     &self.mangle_chain,
                     &tunnel.interface,
-                    TransportProtocol::Udp,
-                    *server,
-                )?;
-                self.batch.add(&allow_rule, nftnl::MsgType::Add);
-                let allow_rule = allow_tunnel_dns_rule(
-                    &self.mangle_chain,
-                    &tunnel.interface,
-                    TransportProtocol::Tcp,
-                    *server,
+                    ep.protocol,
+                    ep.address.ip(),
                 )?;
                 self.batch.add(&allow_rule, nftnl::MsgType::Add);
             }
@@ -671,9 +649,9 @@ impl<'a> PolicyBatch<'a> {
                 allowed_exit_tunnel_traffic,
             } => {
                 let dns_endpoints = dns_config
-                    .non_tunnel_config()
+                    .non_tunnel_dns()
                     .iter()
-                    .flat_map(|server| get_allow_dns_endpoints_when_connecting(*server))
+                    .map(|ep| AllowedEndpoint::new(ep.clone(), AllowedClients::Root))
                     .collect::<Vec<_>>();
 
                 peer_endpoints
@@ -758,28 +736,18 @@ impl<'a> PolicyBatch<'a> {
                     .iter()
                     .for_each(|endpoint| self.add_allow_tunnel_endpoint_rules(endpoint, fwmark));
 
-                for server in dns_config.tunnel_config() {
+                for ep in dns_config.tunnel_dns() {
                     self.add_allow_tunnel_dns_rule(
                         &tunnel.exit_metadata().interface,
-                        TransportProtocol::Udp,
-                        *server,
-                    )?;
-                    self.add_allow_tunnel_dns_rule(
-                        &tunnel.exit_metadata().interface,
-                        TransportProtocol::Tcp,
-                        *server,
+                        ep.protocol,
+                        ep.address.ip(),
                     )?;
                 }
-                for server in dns_config.non_tunnel_config() {
+                for ep in dns_config.non_tunnel_dns() {
                     self.add_allow_local_dns_rule(
                         &tunnel.exit_metadata().interface,
-                        TransportProtocol::Udp,
-                        *server,
-                    )?;
-                    self.add_allow_local_dns_rule(
-                        &tunnel.exit_metadata().interface,
-                        TransportProtocol::Tcp,
-                        *server,
+                        ep.protocol,
+                        ep.address.ip(),
                     )?;
                 }
 

@@ -4,7 +4,7 @@
 
 use std::{env, fmt};
 
-use super::{DnsMonitorT, ResolvedDnsConfig};
+use super::{DnsConfig, DnsMonitorT};
 
 mod auto;
 mod dnsapi;
@@ -52,12 +52,12 @@ impl DnsMonitorT for DnsMonitor {
         Ok(DnsMonitor { inner })
     }
 
-    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
+    async fn set(&mut self, interface: &str, servers: DnsConfig) -> Result<(), Self::Error> {
         match self.inner {
-            DnsMonitorHolder::Auto(ref mut inner) => inner.set(interface, config).await?,
-            DnsMonitorHolder::Iphlpapi(ref mut inner) => inner.set(interface, config).await?,
-            DnsMonitorHolder::Netsh(ref mut inner) => inner.set(interface, config).await?,
-            DnsMonitorHolder::Tcpip(ref mut inner) => inner.set(interface, config).await?,
+            DnsMonitorHolder::Auto(ref mut inner) => inner.set(interface, servers).await?,
+            DnsMonitorHolder::Iphlpapi(ref mut inner) => inner.set(interface, servers).await?,
+            DnsMonitorHolder::Netsh(ref mut inner) => inner.set(interface, servers).await?,
+            DnsMonitorHolder::Tcpip(ref mut inner) => inner.set(interface, servers).await?,
         }
         Ok(())
     }

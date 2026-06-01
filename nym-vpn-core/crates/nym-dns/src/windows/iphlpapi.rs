@@ -7,7 +7,7 @@
 //! it requires at least Windows 10, build 19041. For that reason, use run-time linking and fall
 //! back on other methods if it is not available.
 
-use crate::{DnsMonitorT, ResolvedDnsConfig};
+use crate::{DnsConfig, DnsMonitorT};
 use nym_windows::net::{guid_from_luid, luid_from_alias};
 use once_cell::sync::OnceCell;
 use std::{
@@ -126,8 +126,8 @@ impl DnsMonitorT for DnsMonitor {
         Ok(DnsMonitor { current_guid: None })
     }
 
-    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
-        let servers = config.tunnel_config();
+    async fn set(&mut self, interface: &str, config: DnsConfig) -> Result<(), Error> {
+        let servers = &config.addresses;
         let guid = guid_from_luid(&luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?)
             .map_err(Error::ObtainInterfaceGuid)?;
 

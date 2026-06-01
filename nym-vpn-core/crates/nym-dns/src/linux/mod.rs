@@ -15,7 +15,7 @@ use self::{
     network_manager::NetworkManager, resolvconf::Resolvconf, static_resolv_conf::StaticResolvConf,
     systemd_resolved::SystemdResolved,
 };
-use super::ResolvedDnsConfig;
+use super::DnsConfig;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -58,8 +58,8 @@ impl super::DnsMonitorT for DnsMonitor {
         })
     }
 
-    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<()> {
-        let servers = config.tunnel_config();
+    async fn set(&mut self, interface: &str, config: DnsConfig) -> Result<()> {
+        let servers = &config.addresses;
         self.reset().await?;
         // Creating a new DNS monitor for each set, in case the system changed how it manages DNS.
         let mut inner = DnsMonitorHolder::new()?;

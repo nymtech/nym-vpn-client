@@ -190,7 +190,10 @@ impl ConnectedState {
             // Point the tunnel interface DNS at the local filtering resolver so that the OS actually
             // sends DNS queries to it.
             let listen_addr = shared_state.filtering_resolver.listen_addr();
-            let system_dns = DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
+            let system_dns = DnsConfig {
+                addresses: vec![listen_addr.ip()],
+                port: listen_addr.port(),
+            };
             shared_state
                 .dns_handler
                 .set(&tunnel_metadata.interface, system_dns)
