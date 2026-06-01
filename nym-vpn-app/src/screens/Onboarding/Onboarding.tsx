@@ -7,7 +7,6 @@ import { Button, ButtonIconNew, MsIcon } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import { routes } from '../../router';
 import { InteractiveCard } from '../home/InteractiveCard';
-import { useAppStore } from '../../store/index';
 import { Speed, Tracking, Welcome, ZeroKnowledge } from './slides';
 import { DotButton, useDotButton } from './CarouselDotButton';
 
@@ -44,8 +43,6 @@ const ArrowButton = ({
 function Onboarding() {
   const { t } = useTranslation('onboarding');
 
-  const uiTheme = useAppStore((s) => s.uiTheme);
-
   const navigate = useAnimatedNavigate();
   const [emblaRef, emblaApi] = useEmblaCarousel({
     duration: 20,
@@ -60,12 +57,7 @@ function Onboarding() {
     <InteractiveCard className="h-full">
       <div className="mb-12">
         <div className="relative flex h-[27px] items-center justify-center">
-          <NymVpnTextLogo
-            className={clsx(
-              'h-[27px] w-[100px]',
-              uiTheme === 'dark' ? 'fill-white' : 'fill-surface-bg',
-            )}
-          />
+          <NymVpnTextLogo className="fill-text-primary h-[27px] w-[100px]" />
           <ButtonIconNew
             initialAnimation={true}
             icon="close"

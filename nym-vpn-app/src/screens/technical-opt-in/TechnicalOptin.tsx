@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
-import clsx from 'clsx';
 import { AnonNetworkStatsUrl, PrivacyPolicyUrl } from '../../constants';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { Button, Link, Switch } from '../../ui';
 import { NymVpnTextLogo } from '../../assets';
 import SettingsGroup from '../settings/SettingsGroup';
-import { dispatch, useAppStore } from '../../store';
+import { dispatch } from '../../store';
 import { InteractiveCard } from '../home/InteractiveCard';
 
 const defaultSentry = window._APP.defaultSentry;
@@ -18,7 +17,6 @@ const defaultNetstats = window._APP.defaultNetstats;
 function TechnicalOptin() {
   const [monitoring, setMonitoring] = useState<boolean>(defaultSentry);
   const [netstats, setNetstats] = useState<boolean>(defaultNetstats);
-  const uiTheme = useAppStore((state) => state.uiTheme);
   const navigate = useNavigate();
   const { t } = useTranslation('welcome');
 
@@ -62,12 +60,7 @@ function TechnicalOptin() {
   return (
     <InteractiveCard>
       <div className="flex flex-col items-center justify-center gap-4">
-        <NymVpnTextLogo
-          className={clsx(
-            'h-6 w-24',
-            uiTheme === 'dark' ? 'fill-white' : 'fill-surface-bg',
-          )}
-        />
+        <NymVpnTextLogo className="fill-text-primary h-6 w-24" />
         {/* Title & description */}
         <div className="space-y-2 text-center">
           <h1 className="text-text-primary text-2xl">{t('title')}</h1>

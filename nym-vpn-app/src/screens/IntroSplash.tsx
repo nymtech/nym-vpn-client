@@ -13,7 +13,7 @@ function IntroSplash({ theme }: { theme: 'light' | 'dark' }) {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
       >
-        <NymSplash className="fill-text-primary w-36 dark:fill-white" />
+        <NymSplash className="fill-text-primary w-36" />
       </motion.div>
     </div>
   );
