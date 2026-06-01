@@ -53,6 +53,7 @@ impl Fetcher {
             .await
             .map_err(Error::GetWellKnownEnvs)
             .map(RegisteredNetworks::new)
+            .map(RegisteredNetworks::without_retired)
     }
 
     /// Fetch discovery information from the API.
