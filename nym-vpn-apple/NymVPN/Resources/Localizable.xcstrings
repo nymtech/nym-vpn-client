@@ -30857,6 +30857,17 @@
         }
       }
     },
+    "settings.launchAtStartup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Launch at startup"
+          }
+        }
+      }
+    },
     "settings.loggingOut" : {
       "extractionState" : "manual",
       "localizations" : {
