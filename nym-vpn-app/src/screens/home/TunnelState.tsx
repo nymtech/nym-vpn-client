@@ -185,7 +185,7 @@ export function TunnelState() {
   };
 
   return (
-    <div className="inline-flex h-full flex-col items-center justify-center gap-2 rounded-lg p-3.5">
+    <div className="inline-flex flex-col items-center justify-center gap-2 rounded-lg p-3.5">
       {/* Ring area */}
       <div style={{ position: 'relative', width: SIZE, height: SIZE }}>
         {/* SVG rings: rotated so arc starts at top (12 o'clock) */}
@@ -246,7 +246,7 @@ export function TunnelState() {
         )}
       </div>
 
-      <div className="flex h-0 w-full flex-col items-center overflow-visible">
+      <div className="flex w-full flex-col items-center">
         <ConnectionTimer />
         <div className="min-h-8 w-full">
           <AnimatePresence mode="wait">
