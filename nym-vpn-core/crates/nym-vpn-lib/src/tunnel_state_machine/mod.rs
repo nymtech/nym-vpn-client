@@ -47,7 +47,7 @@ use crate::{
 };
 
 use hickory_resolver::config::NameServerConfig;
-#[cfg(target_os = "android")]
+#[cfg(not(target_os = "ios"))]
 use hickory_resolver::config::ProtocolConfig;
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_offline_monitor::ConnectivityHandle;
