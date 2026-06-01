@@ -46,7 +46,9 @@ use crate::{
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
 
-use hickory_resolver::config::{NameServerConfig, ProtocolConfig};
+use hickory_resolver::config::NameServerConfig;
+#[cfg(target_os = "android")]
+use hickory_resolver::config::ProtocolConfig;
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;

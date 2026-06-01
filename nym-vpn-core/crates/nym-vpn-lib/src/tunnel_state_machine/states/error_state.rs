@@ -68,7 +68,11 @@ impl ErrorState {
 
         #[cfg(target_os = "ios")]
         {
-            Self::set_blocking_network_settings(shared_state.tun_provider.clone()).await;
+            Self::set_blocking_network_settings(
+                shared_state.tun_provider.clone(),
+                shared_state.filtering_resolver.listen_addr().ip(),
+            )
+            .await;
         }
 
         // todo: activate kill switch on Android
@@ -144,11 +148,14 @@ impl ErrorState {
 
     /// Configure tunnel with network settings blocking all traffic
     #[cfg(target_os = "ios")]
-    async fn set_blocking_network_settings(tun_provider: Arc<dyn OSTunProvider>) {
+    async fn set_blocking_network_settings(
+        tun_provider: Arc<dyn OSTunProvider>,
+        dns_server: IpAddr,
+    ) {
         let tunnel_network_settings = TunnelSettings {
             remote_addresses: vec![],
             interface_addresses: BLOCKING_INTERFACE_ADDRS.map(IpNetwork::from).to_vec(),
-            dns_servers: vec![shared_state.filtering_resolver.listen_addr().ip()],
+            dns_servers: vec![dns_server],
             mtu: MIN_IPV6_MTU,
         };
 
