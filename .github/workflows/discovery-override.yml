@@ -1,0 +1,76 @@
+name: discovery-override
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: "Override repository in owner/repo format"
+        required: false
+        type: string
+        default: nymtech/nym-config
+      ref:
+        description: "Optional branch, tag, or commit"
+        required: false
+        type: string
+        default: ""
+      source_path:
+        description: "Path inside override repository to copy"
+        required: false
+        type: string
+        default: build/discovery
+      target_path:
+        description: "Target path in this repository"
+        required: false
+        type: string
+        default: nym-vpn-core/crates/nym-vpn-network-config/default
+      clean_target:
+        description: "Remove existing files in target before copy"
+        required: false
+        type: boolean
+        default: false
+
+  workflow_call:
+    inputs:
+      repository:
+        required: false
+        type: string
+        default: nymtech/nym-config
+      ref:
+        required: false
+        type: string
+        default: ""
+      source_path:
+        required: false
+        type: string
+        default: .
+      target_path:
+        required: false
+        type: string
+        default: nym-vpn-core/crates/nym-vpn-network-config/default
+      clean_target:
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  prepare-discovery-override:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Apply nym-config override
+        uses: ./.github/actions/apply-nym-config-override
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          source_path: ${{ inputs.source_path }}
+          target_path: ${{ inputs.target_path }}
+          clean_target: ${{ inputs.clean_target }}
+          checkout_token: ${{ secrets.NYM_CONFIG_GITHUB_TOKEN }}
+ 
+      - name: Verify Mainnet
+        run: |
+            cat nym-vpn-core/crates/nym-vpn-network-config/default/mainnet_discovery.json
