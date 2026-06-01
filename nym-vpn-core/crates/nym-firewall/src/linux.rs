@@ -261,7 +261,6 @@ impl Firewall {
     }
 }
 
-
 struct PolicyBatch<'a> {
     batch: Batch,
     in_chain: Chain<'a>,
@@ -651,7 +650,7 @@ impl<'a> PolicyBatch<'a> {
                 let dns_endpoints = dns_config
                     .non_tunnel_dns()
                     .iter()
-                    .map(|ep| AllowedEndpoint::new(ep.clone(), AllowedClients::Root))
+                    .map(|ep| AllowedEndpoint::new(*ep, AllowedClients::Root))
                     .collect::<Vec<_>>();
 
                 peer_endpoints
