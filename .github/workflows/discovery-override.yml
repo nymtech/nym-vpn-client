@@ -75,5 +75,7 @@ jobs:
           checkout_token: ${{ secrets.NYM_CONFIG_GITHUB_TOKEN }}
  
       - name: Verify Mainnet
+        env:
+          TARGET_PATH: ${{ inputs.target_path }}
         run: |
-            cat nym-vpn-core/crates/nym-vpn-network-config/default/mainnet_discovery.json
+            cat "${TARGET_PATH}/mainnet_discovery.json"
