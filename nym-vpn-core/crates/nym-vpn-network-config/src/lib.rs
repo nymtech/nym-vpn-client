@@ -363,7 +363,7 @@ impl NetworkCache {
     // Clean up change introduced in https://github.com/nymtech/nym-vpn-client/pull/4226
     // Network files were moved from <cache_dir>/networks/<env> to <cache_dir>/<env>
     async fn clean_up_change_introduced_in_pr4226(cache_dir: &Path) {
-        for env in ["mainnet", "sandbox", "canary", "evil"] {
+        for env in ["mainnet", "sandbox", "canary"] {
             let path = cache_dir.join(env);
 
             tokio::fs::remove_file(path.join(format!("{env}.json",)))
@@ -526,7 +526,7 @@ mod tests {
     async fn test_network_cache_handles_cleanup_pr4226() {
         let cache_dir = tempdir().unwrap();
 
-        let envs = ["mainnet", "sandbox", "canary", "evil"];
+        let envs = ["mainnet", "sandbox", "canary"];
 
         for env in envs {
             let base_dir = cache_dir.path().join(env);

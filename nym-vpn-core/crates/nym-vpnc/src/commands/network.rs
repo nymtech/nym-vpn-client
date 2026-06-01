@@ -12,7 +12,7 @@ pub enum Command {
 
     /// Set Nym network.
     Set {
-        /// Network name (i.e: mainnet, sandbox, canary, evil)
+        /// Network name (i.e: mainnet, sandbox, canary)
         #[arg(index = 1)]
         network_name: String,
     },

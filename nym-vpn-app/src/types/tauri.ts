@@ -253,7 +253,7 @@ export type MixnetTrafficDefaults = {
 
 export type NetworkCompat = { core: boolean | null; tauri: boolean | null };
 
-export type NetworkEnv = 'mainnet' | 'canary' | 'evil' | 'sandbox';
+export type NetworkEnv = 'mainnet' | 'canary' | 'sandbox';
 
 export type OsInfo = {
   /**

@@ -30,7 +30,6 @@ interface Tunnel {
 
 	enum class Environment {
 		CANARY,
-		EVIL,
 		MAINNET,
 		SANDBOX,
 		;
