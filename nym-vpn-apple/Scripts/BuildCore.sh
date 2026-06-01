@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Parse flags
-RELEASE="true"
+RELEASE="${RELEASE:-true}"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --debug)
@@ -33,6 +32,27 @@ CORE_ROOT="$(cd -- "${CLIENT_ROOT}/nym-vpn-core" && pwd)"
 echo "[BuildCore] CORE_ROOT=${CORE_ROOT}"
 echo "[BuildCore] APPLE_ROOT=${APPLE_ROOT}"
 echo "[BuildCore] CLIENT_ROOT=${CLIENT_ROOT}"
+
+# Santa's menu runtime gate (isSantaClaus reads IsCiBuild). A debug build flips
+# it to true so the menu is reachable locally; a release build restores the
+# $(IS_CI_BUILD) build-setting placeholder so the tracked plist stays clean.
+# (The compile-time #if SANTA is handled by Package.swift: debug config defines
+# it locally, ship Release-without-NYM_SANTA strips it.)
+DAEMON_PLIST="${APPLE_ROOT}/NymVPNDaemon/Resources/Info.plist"
+if [[ -f "${DAEMON_PLIST}" ]]; then
+  if [[ "${RELEASE}" == "false" ]]; then
+    # String, not bool: isRunningOnCI reads this via `as? String` (a bool cast
+    # fails → Santa silently off). Tracked plist + CI Set both keep it a string.
+    /usr/libexec/PlistBuddy -c "Set :IsCiBuild true" "${DAEMON_PLIST}" 2>/dev/null \
+      || /usr/libexec/PlistBuddy -c "Add :IsCiBuild string true" "${DAEMON_PLIST}"
+    echo "[BuildCore] 🎅 Santa's menu enabled (IsCiBuild=true)"
+  else
+    /usr/libexec/PlistBuddy -c 'Set :IsCiBuild $(IS_CI_BUILD)' "${DAEMON_PLIST}" 2>/dev/null || true
+    echo "[BuildCore] Santa's menu plist flag restored to \$(IS_CI_BUILD)"
+  fi
+else
+  echo "[BuildCore] ⚠️ ${DAEMON_PLIST} not found, skipping Santa plist flag"
+fi
 
 # Configure sccache if available
 if command -v sccache &>/dev/null; then
