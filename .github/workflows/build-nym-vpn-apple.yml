@@ -1191,7 +1191,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: nym-vpn-macOS-v${{ env.MACOS_VERSION }}
+          tag_name: nym-vpn-macos-v${{ env.MACOS_VERSION }}
           name: "NymVPN macOS v${{ env.MACOS_VERSION }}"
           prerelease: false
           draft: false
