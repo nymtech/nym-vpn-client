@@ -48,10 +48,10 @@ function Home() {
         transition={{ duration: 0.2, ease: 'easeOut' }}
         className="flex h-full flex-col"
       >
-        <TunnelState />
-        <div className="flex grow flex-col justify-end">
-          <NewBottomComponent />
+        <div className="flex min-h-0 grow flex-col items-center justify-center">
+          <TunnelState />
         </div>
+        <NewBottomComponent />
       </motion.div>
     </>
   );

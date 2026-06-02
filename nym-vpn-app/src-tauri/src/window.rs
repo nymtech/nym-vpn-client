@@ -81,7 +81,14 @@ impl AppWindow {
         .center()
         .focused(true)
         .inner_size(328.0, 710.0)
-        .min_inner_size(250.0, 200.0)
+        .min_inner_size(
+            if cfg!(target_os = "linux") {
+                290.0
+            } else {
+                250.0
+            },
+            200.0,
+        )
         .max_inner_size(800.0, 1400.0)
         .initialization_script(format!("window._APP = {win_env};"))
         .build()

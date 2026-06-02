@@ -144,7 +144,11 @@ async fn main() -> Result<()> {
         ))
         .plugin(
             tauri_plugin_window_state::Builder::new()
-                .with_state_flags(StateFlags::SIZE | StateFlags::POSITION)
+                .with_state_flags(if cfg!(target_os = "windows") {
+                    StateFlags::POSITION
+                } else {
+                    StateFlags::SIZE | StateFlags::POSITION
+                })
                 .with_denylist(&[ERROR_WINDOW_LABEL])
                 .build(),
         )
