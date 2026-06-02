@@ -776,7 +776,6 @@ pub struct NymWellknownDiscoveryItemResponse {
     pub feature_flags: Option<serde_json::Value>,
     pub system_messages: Option<Vec<SystemMessageResponse>>,
     pub system_configuration: Option<SystemConfigurationResponse>,
-    pub network_compatibility: Option<NetworkCompatibilityResponse>,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]

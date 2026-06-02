@@ -73,13 +73,6 @@
     },
     "statistics_api": "https://nym-statistics-api-staging.nymte.ch"
   },
-  "network_compatibility": {
-    "core": "1.21.0",
-    "macos": "2.15.1",
-    "ios": "2.15.1",
-    "tauri": "1.21.0",
-    "android": "2.6.0"
-  },
   "feature_flags": {
     "domain_fronting": {
       "enabled": "true"
