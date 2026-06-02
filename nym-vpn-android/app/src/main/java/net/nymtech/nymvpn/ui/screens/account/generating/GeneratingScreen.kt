@@ -21,22 +21,33 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.animations.PulsingDotsWave
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.ui.common.snackbar.AlertController
+import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
+import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.theme.*
-import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 
 @Composable
 fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
-	val success by viewModel.success.collectAsStateWithLifecycle(null)
+	val pendingNavigation by viewModel.pendingNavigation.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
 	val mode = viewModel.mode
+	val errorText = stringResource(R.string.account_generating_error)
+	var animationEnded by remember { mutableStateOf(false) }
 
-	if (mode == GeneratingMode.CreateAccount) {
-		LaunchedEffect(success) {
-			if (success == false) {
-				SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
-				navController.replaceCurrentWith(Route.CreateAccount)
+	LaunchedEffect(Unit) {
+		viewModel.error.collect {
+			AlertController.show(AlertMessage(type = AlertType.Error, title = errorText))
+			navController.goFromRoot(Route.Main(showAuth = true))
+		}
+	}
+
+	LaunchedEffect(animationEnded, pendingNavigation) {
+		if (animationEnded && pendingNavigation != null) {
+			when (pendingNavigation) {
+				Route.SelectPlan -> navController.replaceCurrentWith(Route.SelectPlan)
+				else -> navController.goFromRoot(Route.Main())
 			}
 		}
 	}
@@ -44,8 +55,8 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 	GeneratingContent(
 		mode = mode,
 		onAnimationEnd = {
-			if (mode == GeneratingMode.CreateAccount && success == true) {
-				navController.replaceCurrentWith(Route.SelectPlan)
+			if (mode == GeneratingMode.CreateAccount) {
+				animationEnded = true
 			}
 		},
 	)
@@ -95,7 +106,9 @@ fun GeneratingContent(mode: GeneratingMode, onAnimationEnd: () -> Unit) {
 @Composable
 private fun GeneratingBaseLayout(title: String, description: String, topContent: @Composable (() -> Unit)?) {
 	Column(
-		modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+		modifier = Modifier
+			.fillMaxSize()
+			.background(MaterialTheme.colorScheme.background),
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
 		topContent?.invoke()
@@ -105,7 +118,8 @@ private fun GeneratingBaseLayout(title: String, description: String, topContent:
 		) {
 			val nymColors = LocalNymColors.current
 			Box(
-				modifier = Modifier.size(56.dp)
+				modifier = Modifier
+					.size(56.dp)
 					.background(nymColors.iconBackground, RoundedCornerShape(8.dp))
 					.border(1.dp, nymColors.iconBorder, RoundedCornerShape(8.dp)),
 				contentAlignment = Alignment.Center,
@@ -131,13 +145,18 @@ private fun GeneratingBaseLayout(title: String, description: String, topContent:
 @Composable
 private fun StepProgressBar(step: Int) {
 	Row(
-		modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(4.dp),
+		modifier = Modifier
+			.padding(horizontal = 16.dp)
+			.fillMaxWidth()
+			.height(4.dp),
 		horizontalArrangement = Arrangement.spacedBy(4.dp),
 	) {
 		repeat(4) { i ->
 			val active = i < 3 && step >= i
 			Box(
-				modifier = Modifier.weight(1f).fillMaxHeight()
+				modifier = Modifier
+					.weight(1f)
+					.fillMaxHeight()
 					.background(
 						if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainer,
 						RoundedCornerShape(4.dp),

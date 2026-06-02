@@ -29,7 +29,7 @@ interface BackendManager {
 	suspend fun getSystemMessages(): List<SystemMessage>
 	suspend fun getGateways(gatewayType: GatewayType): List<NymGateway>
 	suspend fun createAccount()
-	suspend fun registerAccount(purchaseToken: String): String
+	suspend fun registerAccount(purchaseToken: String?): String
 	suspend fun refreshAccount()
 	suspend fun getMnemonic(): List<String>
 	suspend fun getAccountState(): AccountControllerState

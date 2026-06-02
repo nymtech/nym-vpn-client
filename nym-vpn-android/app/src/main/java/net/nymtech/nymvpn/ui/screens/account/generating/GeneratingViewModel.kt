@@ -5,13 +5,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import timber.log.Timber
 import javax.inject.Inject
@@ -19,33 +25,48 @@ import javax.inject.Inject
 @HiltViewModel
 class GeneratingViewModel
 @Inject
-constructor(private val backendManager: BackendManager, savedStateHandle: SavedStateHandle) : ViewModel() {
+constructor(private val backendManager: BackendManager, savedStateHandle: SavedStateHandle, private val billingManager: BillingManager) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-generate-account-vm"
 	}
 
-	private val _success = MutableSharedFlow<Boolean?>()
-	val success = _success.asSharedFlow()
-
 	val mode: GeneratingMode = GeneratingMode.valueOf(savedStateHandle.toRoute<Route.Generating>().mode)
+
+	private val _error = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+	val error = _error.asSharedFlow()
+
+	private val _pendingNavigation = MutableStateFlow<Route?>(null)
+	val pendingNavigation = _pendingNavigation.asStateFlow()
 
 	init {
 		if (mode == GeneratingMode.CreateAccount) {
 			viewModelScope.launch {
-				Timber.tag(TAG).i("CreateAccountRequested")
+				val billingAvailable = checkBillingAvailable()
+				Timber.tag(TAG).i("CreateAccountRequested billingAvailable=$billingAvailable")
+
 				runCatching {
 					backendManager.createAccount()
 					Timber.tag(TAG).i("CreateAccountSuccess")
-					_success.emit(true)
+
+					if (billingAvailable) {
+						_pendingNavigation.value = Route.SelectPlan
+					} else {
+						_pendingNavigation.value = Route.Main()
+					}
 				}.onFailure { t ->
-					Timber.tag(TAG).e(t, "CreateAccountFailed")
-					_success.emit(false)
+					Timber.tag(TAG).e(t, "AccountSetupFailed")
+					_error.emit(Unit)
 					SnackbarController.showMessage(StringValue.StringResource(R.string.account_generating_error))
 				}
 			}
 		} else {
 			Timber.tag(TAG).i("GeneratingScreen started in Login mode. Waiting for external logic.")
 		}
+	}
+
+	private fun checkBillingAvailable(): Boolean {
+		val billingAllowed = BuildConfig.APPLICATION_ID == Constants.APP_ID
+		return billingAllowed && billingManager.isAvailable()
 	}
 }

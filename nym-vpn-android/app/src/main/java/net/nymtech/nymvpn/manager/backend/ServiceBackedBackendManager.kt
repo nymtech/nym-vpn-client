@@ -216,7 +216,7 @@ class ServiceBackedBackendManager @Inject constructor(
 		serviceConnectionManager.withApi { it.createAccount() }
 		refreshIdentityState()
 	}
-	override suspend fun registerAccount(purchaseToken: String): String = serviceConnectionManager.withApi { it.registerAccount(purchaseToken) }
+	override suspend fun registerAccount(purchaseToken: String?): String = serviceConnectionManager.withApi { it.registerAccount(purchaseToken) }
 	override suspend fun refreshAccount() {
 		serviceConnectionManager.withApi { it.refreshAccount() }
 		refreshAccountSummary()

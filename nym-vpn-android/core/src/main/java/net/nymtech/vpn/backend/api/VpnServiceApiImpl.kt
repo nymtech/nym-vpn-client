@@ -68,7 +68,7 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 		core.requireCoreSender { it.createAccount() }
 	}
 
-	override suspend fun registerAccount(token: String): String {
+	override suspend fun registerAccount(token: String?): String {
 		Timber.tag(TAG).d("registerAccount requested")
 		return core.requireCoreSender { it.registerAccount(RegisterAccountRequest(token)).accountToken }
 	}
