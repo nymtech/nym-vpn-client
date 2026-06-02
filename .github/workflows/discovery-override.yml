@@ -4,6 +4,11 @@ permissions:
   contents: read
 
 on:
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+      - reopened
   workflow_dispatch:
     inputs:
       repository:
@@ -67,11 +72,11 @@ jobs:
       - name: Apply nym-config override
         uses: ./.github/actions/apply-nym-config-override
         with:
-          repository: ${{ inputs.repository }}
-          ref: ${{ inputs.ref }}
-          source_path: ${{ inputs.source_path }}
-          target_path: ${{ inputs.target_path }}
-          clean_target: ${{ inputs.clean_target }}
+          repository: ${{ inputs.repository || 'nymtech/nym-config' }}
+          ref: ${{ inputs.ref || '' }}
+          source_path: ${{ inputs.source_path || 'build/discovery' }}
+          target_path: ${{ inputs.target_path || 'nym-vpn-core/crates/nym-vpn-network-config/default' }}
+          clean_target: ${{ inputs.clean_target || false }}
           checkout_token: ${{ secrets.NYM_CONFIG_GITHUB_TOKEN }}
  
       - name: Verify Mainnet
