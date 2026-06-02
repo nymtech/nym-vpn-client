@@ -82,6 +82,6 @@ jobs:
  
       - name: Verify Mainnet
         env:
-          TARGET_PATH: ${{ inputs.target_path }}
+          TARGET_PATH: ${{ inputs.target_path || 'nym-vpn-core/crates/nym-vpn-network-config/default' }}
         run: |
-            cat "${TARGET_PATH}/mainnet_discovery.json"
+          cat "${TARGET_PATH}/mainnet_discovery.json"
