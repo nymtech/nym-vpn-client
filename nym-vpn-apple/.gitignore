@@ -20,6 +20,9 @@ xcshareddata/swiftpm/
 
 .build/
 
+# Xcode test result bundles (e.g. CI -resultBundlePath)
+*.xcresult
+
 NymVPNLib
 NymVPNRpc
 

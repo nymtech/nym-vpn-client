@@ -39,7 +39,9 @@ extension ConnectionManager {
 
         guard let daemonConfig = await grpcManager.config() else { return }
 
+        let preservedCustomAppPaths = connectionConfig.splitTunnelConfig.customAppPaths
         connectionConfig = daemonConfig
+        connectionConfig.splitTunnelConfig.customAppPaths = preservedCustomAppPaths
         connectionType = daemonConfig.enableTwoHop ? .wireguard : .mixnet5hop
         entryGateway = daemonConfig.entry
         exitRouter = daemonConfig.exit
