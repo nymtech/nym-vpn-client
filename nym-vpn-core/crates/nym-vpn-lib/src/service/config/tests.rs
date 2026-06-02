@@ -1286,7 +1286,7 @@ async fn test_service_config_migrate_from_v8() {
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
@@ -1402,7 +1402,7 @@ async fn test_service_config_migrate_from_v9() {
   },
   "gateway_selection_algorithm_config": {
     "enable_geo_location": true,
-    "gateway_selection_algorithm": "auto"
+    "gateway_selection_algorithm": "explicit"
   },
   "gateway_independence": {
     "different_node_family": true,
