@@ -19,6 +19,7 @@ import net.nymtech.nymvpn.ui.screens.main.panel.ConnectAction
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.isVpnAlwaysOn
 import net.nymtech.nymvpn.util.extensions.scaledHeight
+import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.ErrorStateReason
 
@@ -40,13 +41,16 @@ internal fun ActionButton(
 		ConnectionState.Offline,
 		ConnectionState.WaitingForConnection,
 		-> {
+			val isAccountNotActive = accountState is AccountControllerState.Error &&
+				accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
 			val label = when {
+				isAccountNotActive -> R.string.get_started
 				isSubscriptionExpired -> R.string.error_expired_subscription_button
 				isMnemonicStored -> R.string.connect
 				else -> R.string.get_started
 			}
 			MainStyledButton(
-				onClick = { onAction(if (isMnemonicStored && !isSubscriptionExpired) ConnectAction.CONNECT else ConnectAction.GET_STARTED) },
+				onClick = { onAction(if (!isAccountNotActive && isMnemonicStored && !isSubscriptionExpired) ConnectAction.CONNECT else ConnectAction.GET_STARTED) },
 				content = { Text(stringResource(label), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimary) },
 				modifier = buttonModifier,
 				shape = buttonShape,

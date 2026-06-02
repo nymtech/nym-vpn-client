@@ -5,10 +5,16 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.connectivity.NetworkService
@@ -16,9 +22,14 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
+import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
+import net.nymtech.nymvpn.ui.model.ConnectionState
 import net.nymtech.nymvpn.ui.screens.main.panel.PanelState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
+import nym_vpn_lib_types.AccountControllerState
+import nym_vpn_lib_types.ErrorStateReason
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import timber.log.Timber
 
@@ -42,6 +53,16 @@ constructor(
 	private val _expiryBannerDismissed = MutableStateFlow(false)
 	val expiryBannerDismissed: StateFlow<Boolean> = _expiryBannerDismissed.asStateFlow()
 
+	private val _registerAccountNavigation = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+	val registerAccountNavigation = _registerAccountNavigation.asSharedFlow()
+
+	val uiState: StateFlow<MainUiState> = combine(
+		backendManager.stateFlow,
+		networkService.networkStatus,
+	) { managerState, networkStatus ->
+		MainUiState(connectionState = resolveConnectionState(managerState, networkStatus))
+	}.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), MainUiState())
+
 	val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground
 
 	private var timerJob: Job? = null
@@ -57,10 +78,26 @@ constructor(
 				}
 			}
 		}
+		viewModelScope.launch {
+			backendManager.stateFlow.collect { state ->
+				handleTunnelStateChange(state.tunnelState, state.connectionData?.connectedAt)
+			}
+		}
 	}
 
 	fun dismissExpiryBanner() {
 		_expiryBannerDismissed.value = true
+	}
+
+	fun registerAccount() = viewModelScope.launch {
+		Timber.tag(TAG).i("RegisterAccountRequested")
+		_registerAccountNavigation.tryEmit(Unit)
+		runCatching {
+			backendManager.registerAccount(null)
+			Timber.tag(TAG).i("RegisterAccountSuccess")
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "RegisterAccountFailed")
+		}
 	}
 
 	fun onAutoSelected() = viewModelScope.launch {
@@ -144,25 +181,50 @@ constructor(
 		settingsRepository.setIsPerAppSecurityBannerDisplayed(true)
 	}
 
-	fun onTunnelStateChanged(tunnelState: Tunnel.State, connectedAt: Long?, networkStatus: NetworkStatus) {
-		handleTunnelStateChange(tunnelState, connectedAt, networkStatus)
+	private fun resolveConnectionState(managerState: TunnelManagerState, networkStatus: NetworkStatus): ConnectionState {
+		val baseState = when {
+			managerState.isRestarting && networkStatus == NetworkStatus.Disconnected ->
+				ConnectionState.Offline
+			managerState.isRestarting && managerState.tunnelState == Tunnel.State.Down ->
+				ConnectionState.Disconnecting
+			managerState.isRestarting ->
+				ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
+			managerState.tunnelState !is Tunnel.State.Down &&
+				managerState.tunnelState !is Tunnel.State.Error &&
+				networkStatus == NetworkStatus.Disconnected ->
+				ConnectionState.WaitingForConnection
+			managerState.tunnelState == Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected ->
+				ConnectionState.Offline
+			else ->
+				ConnectionState.from(managerState.tunnelState, managerState.establishConnectionState)
+		}
+
+		return when (val event = managerState.backendUiEvent) {
+			is BackendUiEvent.BandwidthAlert, null -> baseState
+			is BackendUiEvent.Failure -> {
+				val isSubError = event.reason is ErrorStateReason.InactiveSubscription ||
+					event.reason is ErrorStateReason.InactiveAccount
+				val isAccountReady = managerState.accountState is AccountControllerState.ReadyToConnect ||
+					managerState.accountState is AccountControllerState.Decentralised ||
+					managerState.accountState is AccountControllerState.UpgradeMode
+				if (isSubError && isAccountReady) baseState else ConnectionState.Error(event.reason)
+			}
+			is BackendUiEvent.StartFailure -> ConnectionState.StartFailure(event.exception)
+		}
 	}
 
-	private fun handleTunnelStateChange(tunnelState: Tunnel.State, connectedAt: Long?, networkStatus: NetworkStatus) {
+	private fun handleTunnelStateChange(tunnelState: Tunnel.State, connectedAt: Long?) {
 		when (tunnelState) {
 			is Tunnel.State.Up -> {
-				val effectiveConnectedAt = connectedAt
-				if (effectiveConnectedAt != null) {
-					lastConnectedAt = effectiveConnectedAt
-					startConnectionTimer(effectiveConnectedAt)
+				if (connectedAt != null) {
+					lastConnectedAt = connectedAt
+					startConnectionTimer(connectedAt)
 				}
 			}
-
 			is Tunnel.State.Disconnecting -> {
 				lastConnectedAt = null
 				stopConnectionTimerInternal()
 			}
-
 			is Tunnel.State.InitializingClient,
 			is Tunnel.State.EstablishingConnection,
 			is Tunnel.State.Offline,
@@ -175,7 +237,6 @@ constructor(
 					stopConnectionTimerInternal()
 				}
 			}
-
 			is Tunnel.State.Down,
 			is Tunnel.State.Error,
 			-> {
@@ -187,23 +248,16 @@ constructor(
 
 	private fun startConnectionTimer(connectedAtSeconds: Long) {
 		timerJob?.cancel()
-
 		Timber.tag(TAG).d("ConnectionTimerStart")
-
 		timerJob = viewModelScope.launch {
 			var currentNetworkStatus: NetworkStatus = NetworkStatus.Unknown
-
 			launch {
-				networkService.networkStatus.collect { status ->
-					currentNetworkStatus = status
-				}
+				networkService.networkStatus.collect { currentNetworkStatus = it }
 			}
-
 			while (true) {
 				if (currentNetworkStatus == NetworkStatus.Connected) {
 					val nowSeconds = System.currentTimeMillis() / 1000L
-					val elapsedSeconds = nowSeconds - connectedAtSeconds
-					_connectionSeconds.value = elapsedSeconds.coerceAtLeast(0)
+					_connectionSeconds.value = (nowSeconds - connectedAtSeconds).coerceAtLeast(0)
 				}
 				delay(1000)
 			}

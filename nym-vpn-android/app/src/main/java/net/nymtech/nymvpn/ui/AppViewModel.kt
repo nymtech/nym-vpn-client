@@ -108,6 +108,16 @@ constructor(
 			AppUiState(),
 		)
 
+	fun registerAccountInBackground() = viewModelScope.launch {
+		Timber.tag(TAG).i("RegisterAccountInBackgroundRequested")
+		runCatching {
+			backendManager.registerAccount(null)
+			Timber.tag(TAG).i("RegisterAccountInBackgroundSuccess")
+		}.onFailure { t ->
+			Timber.tag(TAG).e(t, "RegisterAccountInBackgroundFailed")
+		}
+	}
+
 	fun fetchAutologin(kind: DeeplinkKind) {
 		autologinJob?.cancel()
 		autologinJob = viewModelScope.launch {

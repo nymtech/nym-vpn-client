@@ -68,6 +68,8 @@ import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
+import nym_vpn_lib_types.AccountControllerErrorStateReason
+import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
@@ -123,6 +125,10 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		AutologinState.Idle -> {}
 	}
 
+	val accountState = appUiState.managerState.accountState
+	val isAccountNotActive = accountState is AccountControllerState.Error &&
+		accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
+
 	AccountInfoScreenContent(
 		accountId = uiState.accountId,
 		deviceId = uiState.deviceId,
@@ -130,7 +136,14 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		isMnemonicStored = uiState.isMnemonicStored,
 		subscriptionState = appUiState.subscription,
 		bandwidthState = uiState.bandwidth,
-		onManageClick = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW) },
+		onManageClick = {
+			if (isAccountNotActive) {
+				appViewModel.registerAccountInBackground()
+				navController.goFromRoot(Route.SelectPlan)
+			} else {
+				appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_VIEW)
+			}
+		},
 		onRenewClick = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
 		onLinkAccountClick = {
 			uiState.accountLinkUrl?.let {
@@ -158,6 +171,7 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 			showLogoutDialog = true
 		},
 		onSelectPlanClick = {
+			if (isAccountNotActive) appViewModel.registerAccountInBackground()
 			navController.goFromRoot(Route.SelectPlan)
 		},
 		onContactSupportClick = {

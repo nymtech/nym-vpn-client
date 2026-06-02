@@ -56,15 +56,8 @@ fun AuthComponent(
 					}
 				}
 				is AuthEvent.NavigateToGenerating -> {
-					if (!uiState.isBillingAvailable && uiState.signUpLink != null) {
-						context.openWebUrl(uiState.signUpLink!!)
-						localNavController.navigate(AuthRoute.Login) {
-							popUpTo(AuthRoute.Welcome)
-						}
-					} else {
-						onAuthSuccess()
-						rootNavController.navigate(Route.Generating())
-					}
+					onAuthSuccess()
+					rootNavController.navigate(Route.Generating())
 				}
 			}
 		}

@@ -54,7 +54,7 @@ internal val ConnectMode.labelRes: Int
 internal fun ModeTabs(selected: ConnectMode, onSelect: (ConnectMode) -> Unit, modifier: Modifier = Modifier) {
 	// ConnectMode.entries — AUTO tab hidden until the feature is re-enabled
 	val modes = ConnectMode.entries.filter { it != ConnectMode.AUTO }
-	val selectedIndex = modes.indexOf(selected)
+	var selectedIndex = modes.indexOf(selected)
 	val indicatorPadding = 2.dp
 
 	BoxWithConstraints(
