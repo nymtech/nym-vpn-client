@@ -2,13 +2,13 @@
 <resources>
 	<string name="vpn_notification_title">NymVPN</string>
 	<string name="channel_name">NymVPN 频道</string>
-	<string name="channel_description">VPN 相关通知的通道。</string>
+	<string name="channel_description">与 VPN 通知相关的通道。</string>
 	<string name="disconnect">断开</string>
 	<string name="state_connected">已连接</string>
 	<string name="state_error">错误</string>
 	<string name="state_disconnected">未连接</string>
 	<string name="state_initializing">初始化客户端…</string>
-	<string name="state_establishing">正在建立连接……</string>
+	<string name="state_establishing">正在建立连接…</string>
 	<string name="notification_entry">入口: %1$s</string>
 	<string name="notification_exit">出口: %1$s</string>
 	<string name="error_reason_set_firewall_policy">防火墙策略配置失败。</string>
@@ -16,7 +16,7 @@
 	<string name="error_reason_set_dns">配置 DNS 设置失败。</string>
 	<string name="error_reason_tun_device">初始化 VPN 隧道接口失败。</string>
 	<string name="error_reason_tunnel_provider">数据包隧道提供程序配置失败。</string>
-	<string name="error_reason_ipv6_unavailable">此系统禁用IPv6。</string>
+	<string name="error_reason_ipv6_unavailable">此系统禁用 IPv6。</string>
 	<string name="error_reason_same_entry_and_exit_gateway">入口和出口网关不能相同。</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">未找到符合条件的入口网关。</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">未找到符合条件的出口网关。</string>

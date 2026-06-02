@@ -1,1 +1,1 @@
-The world's most private VPN
+প্রাইভেট সুইস dVPN। WireGuard, Mixnet, বিকেন্দ্রীভূত প্রক্সি, ইমেইল ছাড়াই

@@ -28,7 +28,7 @@
 	<string name="auto_connect_description">Beim Start der App automatisch verbinden</string>
 	<string name="logs">Logs</string>
 	<string name="support">Support</string>
-    <string name="terms_of_use">Nutzungsbedingungen</string>
+	<string name="terms_of_use">Nutzungsbedingungen</string>
 	<string name="privacy_policy">Datenschutzerklärung</string>
 	<string name="licenses">Lizenzen</string>
 	<string name="open_github">Problem auf GitHub melden</string>
@@ -43,11 +43,11 @@
 	<string name="okay">Okay</string>
 	<string name="two_hop">2-hop</string>
 	<string name="country_load_failure">Fehler beim Laden der Ein- und Austrittsregionen</string>
-    <string name="disabled_while_connected">Deaktiviert während einer VPN-Verbindung</string>
+	<string name="disabled_while_connected">Deaktiviert während einer VPN-Verbindung</string>
 	<string name="permission_required">Berechtigung erforderlich</string>
 	<string name="permission_message">Um sicherzustellen, dass die App auf deinem Gerät ordnungsgemäß funktioniert, erlaube bitte die folgenden Berechtigungen. Diese Berechtigungen sind erforderlich, damit diese App funktioniert.</string>
-    <string name="notification_permission_required">Für die ordnungsgemäße App-Funktionalität aktivere bitte die Berechtigung für Benachrichtigungen</string>
-    <string name="mode_selection">Modus auswählen</string>
+	<string name="notification_permission_required">Für die ordnungsgemäße App-Funktionalität aktivere bitte die Berechtigung für Benachrichtigungen</string>
+	<string name="mode_selection">Modus auswählen</string>
 	<string name="five_hop_explanation">Maximale Privatsphäre durch 5-Hop-Routing (bis zu 1-5 Mbit/s). Dummy-Traffic und Timing-Verschleierung für verbesserte Anonymität. Perfekt für hochsensible Aktivitäten wie Zahlungen, E-Mails und Nachrichten.</string>
 	<string name="continue_reading">Weiter lesen</string>
 	<string name="appearance">Erscheinungsbild</string>
@@ -89,6 +89,8 @@
 	<string name="mnemonic_example">z.B. smoke artefact velvet skull pop palace tortoise damage rough...</string>
 	<string name="dynamic">Dynamisch</string>
 	<string name="system_wallpaper">System-Hintergrund-Design</string>
+	<string name="nym_v2_theme">Nym 2.0</string>
+	<string name="nym_v2_theme_desc">Vorschau des neuen Designs</string>
 	<string name="initializing">Initialisiere</string>
 	<string name="stop">Stoppen</string>
 	<string name="version">Version</string>
@@ -142,7 +144,7 @@
 	<string name="bars_3">3 Balken</string>
 	<string name="bars_2">2 Balken</string>
 	<string name="bars_1">1 Balken</string>
-    <string name="account_id">Konto-ID:</string>
+	<string name="account_id">Konto-ID:</string>
 	<string name="developer">Entwickler</string>
 	<string name="get_help">Hilfe erhalten</string>
 	<string name="join_telegram">Begleite uns auf Telegram</string>
@@ -158,7 +160,8 @@
 	<string name="button_next">Weiter</string>
 	<string name="skip">Überspringen</string>
 	<string name="get_started">Los geht\'s</string>
-    <string name="title_retry">Wiederholen</string>
+	<string name="title_retry">Wiederholen</string>
+	<string name="button_back">Zurück</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream-Anzeige</string>
 	<string name="streaming_server_banner_title">Neu: Entdecke Streaming-\noptimierte Server (▶️)</string>
@@ -190,6 +193,12 @@
 	<string name="error_gateway_unavailable_exit">Kann den Austrittsserver nicht erreichen. Versuche einen anderen!</string>
 	<string name="error_invalid_entry_gateway_identity">Der Eintrittsserver ist offline. Wähle einen anderen und stelle die Verbindung erneut her.</string>
 	<string name="error_invalid_exit_gateway_identity">Der Austrittsserver ist offline. Wähle einen anderen und stelle die Verbindung erneut her.</string>
+	<string name="error_expired_subscription_title">Ihr Abonnement ist abgelaufen</string>
+	<string name="error_expired_subscription_description">Wiederkehrende Zahlungsart wurde abgelehnt</string>
+	<string name="error_expired_subscription_button">Jetzt erneuern</string>
+	<string name="error_passphrase_title">Passwort nicht erkannt!</string>
+	<string name="error_passphrase_description">Überprüfen Sie Ihre Wörter und Eingabeeinstellungen doppelt</string>
+	<string name="error_passphrase_button">Erneut versuchen</string>
 	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">Initialisiere NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Einrichtung deines Kontos (2/6)</string>
@@ -198,15 +207,44 @@
 	<string name="connection_state_connecting_mixnet_client">Anonym bei Servern registrieren (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Serververbindung wird hergestellt (6/6)</string>
 	<string name="main_button_select_plan">Wähle ein Abonnement</string>
+	<!-- One-click mode -->
+	<string name="one_click_auto_server">Besten Server verwenden</string>
+	<string name="one_click_searching">Bester Standort wird gesucht</string>
+	<string name="one_click_mode_fast">Schnell</string>
+	<string name="connect_mode_auto">Auto</string>
+	<string name="connect_mode_mixnet">Mixnet</string>
+	<string name="one_click_nym_exit_node">Server beenden</string>
+	<string name="one_click_nym_entry_node">Eintragsserver</string>
+	<!-- Connection status -->
+	<string name="connection_status_not_protected">Nicht geschützt</string>
+	<string name="connection_status_fast_mode">Schnellmodus Schutz</string>
+	<string name="connection_status_anonymous">Anonymer Schutz</string>
+	<!-- Hop Screen -->
+	<string name="gateway_best">Bester Server</string>
+	<string name="gateway_random">Zufälliger Server</string>
+	<!-- Auth component -->
+	<string name="auth_welcome_title">Willkommen!</string>
+	<string name="auth_welcome_description">Zum privatsten VPN der Welt</string>
+	<string name="auth_welcome_login_button">Bei meinem Konto anmelden</string>
+	<string name="auth_sign_up_title">Registrieren</string>
+	<string name="auth_sign_up_account_button">Anonymes Konto</string>
+	<string name="auth_sign_up_social_button">Mit Sozial-Media-Konto registrieren *</string>
+	<string name="auth_sign_up_info">* Die Registrierung mit einem bestehenden Sozial-Media-Konto verringert deine Anonymität.</string>
+	<string name="auth_log_in_title">Anmelden</string>
+	<string name="auth_log_in_passphrase_button">Anmelden mit 24 Wörtern</string>
+	<string name="auth_log_in_social_button">Anmelden mit Sozial-Media-Konto *</string>
+	<string name="auth_log_in_info">* Du musst zuerst ein Sozial-Media-Konto mit einem bestehenden \nKonto verknüpfen, bevor du es für den Login nutzen kannst.</string>
+	<string name="auth_passphrase_login_button">Anmelden</string>
+	<string name="auth_passphrase_input_placeholder">24-Wort-Passphrase</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Zensurumgehung</string>
 	<string name="settings_passphrase_title">Passphrase</string>
 	<string name="settings_dns_title">DNS-Anpassung</string>
-	<string name="settings_ipv6_title">IPv6 unterstützen</string>
+	<string name="settings_ipv6_title">IPv6-Unterstützung</string>
 	<string name="settings_ipv6_description">IPv6-Verbindungen erlauben</string>
-    <string name="settings_auto_select_title">Eintrittsserver automatisch wählen</string>
+	<string name="settings_auto_select_title">Eintrittsserver automatisch wählen</string>
 	<string name="settings_auto_select_description">Der App den besten Eintrittsserver auswählen lassen</string>
-    <string name="settings_system_tray_title">In der Systemleiste ausführen</string>
+	<string name="settings_system_tray_title">In der Systemleiste ausführen</string>
 	<string name="settings_system_tray_description">App beim Schließen laufen lassen</string>
 	<string name="settings_reset_app_title">App-Daten zurücksetzen</string>
 	<string name="settings_system_status_title">Systemstatus</string>
@@ -218,8 +256,21 @@
 	<string name="settings_language_help_title">Hilf bei der Übersetzung</string>
 	<string name="settings_language_help_description">Verbessere die App in deiner Sprache.</string>
 	<string name="settings_event_lan_reconnecting">Erneut verbinden, um die LAN-Einstellungen zu übernehmen…</string>
-	<string name="settings_lewes_title">Lewes-Protokoll aktivieren</string>
-    <!-- Shortcuts activity -->
+	<string name="settings_lewes_title">Post-Quanten</string>
+	<string name="settings_lewes_description">Bevorzuge immer Post-Quanten-Gateways</string>
+	<string name="settings_ad_blocking_title">Werbeblockierung</string>
+	<string name="settings_kill_switch_title">Schalter beenden</string>
+	<string name="settings_kill_switch_description">Trenne die Verbindung, wenn das Internet abfällt</string>
+	<string name="settings_bypass_lan_title">LAN bypass</string>
+	<string name="settings_bypass_lan_description">Direktzugriff auf lokales Netzwerk erlauben</string>
+	<string name="settings_split_tunneling_title">Tunnelaufteilung</string>
+	<string name="settings_startup_title">Beim Start starten</string>
+	<string name="settings_notifications_title">Notifications</string>
+	<string name="settings_power_managment_title">Energieverwaltung</string>
+	<string name="settings_shortcuts_title">App-Verknüpfungen</string>
+	<string name="settings_logs_title">Protokolliert &amp; Daten</string>
+	<string name="settings_legal_title">Rechtlich</string>
+	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Bildschirmsperre erforderlich, um Verknüpfungen zu verwenden.</string>
 	<string name="shortcut_title">Vorgang bestätigen</string>
 	<string name="shortcut_subtitle_stop">Entsperren, um die VPN-Verbindung zu trennen</string>
@@ -313,19 +364,20 @@
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">Erweiterte Funktionen zur Verbesserung der Konnektivität in restriktiven Netzwerken oder bei Blockierung von NymVPN.</string>
+	<string name="censorship_learn_more_link_text">Mehr erfahren</string>
 	<string name="censorship_quic_title">Verbesserte Verbindung (QUIC)</string>
 	<string name="censorship_quic_changes">Änderungen werden nach dem erneuten Verbinden übernommen</string>
 	<string name="censorship_quic_description">Verbessert die Zuverlässigkeit des schnellen Modus in restriktiven Netzwerken, indem WireGuard-Datenverkehr in QUIC (HTTP/3) eingehüllt wird. Der Datenverkehr erscheint wie normales Webbrowsing im Internet und umgeht so Deep Packet Inspection (DPI)-Zensursysteme.\n\nHinweis: Beschränkt die Optionen für Eintrittsserver auf QUIC-kompatible Server.</string>
-    <string name="censorship_quic_link">https://nym.com/features/quic</string>
+	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth-API-Verbindung</string>
-	<string name="censorship_stealth_description">Versteckt API-Anfragen hinter beliebten, zugelassenen Domains, um VPN-Blockierungen zu umgehen. Wird von NymVPN automatisch verwendet, wenn Standard-API Verbindungsversuche fehlschlagen.</string>
-    <string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
+	<string name="censorship_stealth_description">Schützt vor VPN-Blockierung durch Verwendung von Cover-Domains. Schaltet immer ein oder schaltet die Verwendung aus, wenn normale Verbindungen fehlschlagen.</string>
+	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="censorship_event_reconnecting">Erneut verbinden, um die QUIC-Einstellungen zu übernehmen…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Es werden nur Server angezeigt, die den Schnellmodus und das QUIC-Protokoll unterstützen. Um alle Server anzuzeigen, deaktiviere QUIC</string>
 	<string name="censorship_amnezia_title">Minimale Verschleierung (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Erschwert die Erkennung von WireGuard Datenverkehr. Führt Scheinpakete ein, die einfache Regeln stören, die häufig von Deep Packet Inspection (DPI)-Zensursystemen verwendet werden. So wird die Verbindungszuverlässigkeit in restriktiven Umgebungen verbessert. \n\nHinweis: Nur clientseitig implementiert.</string>
-    <string name="censorship_amnezia_link">https://support.nym.com/hc/de-de/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
+	<string name="censorship_amnezia_link">https://support.nym.com/hc/de-de/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡ Sofort &amp; anonym </string>
 	<string name="account_welcome_create_description">Mit einem Tipp zum Kauf. Ein anonymes Konto wird auf deinem Gerät erstellt. Kein Passwort, keine persönlichen Daten.</string>
@@ -391,11 +443,11 @@
 	<string name="account_info_link_warning">⚠️ Durch die Verknüpfung eines Social-Media-Kontos mit deinem Nym-Konto wird deine Anonymität eingeschränkt. Die Änderungen werden wirksam, nachdem du dich abgemeldet und mit dem ausgewählten Social-Media-Konto wieder angemeldet hast. </string>
 	<string name="account_info_linked_info">⚡ Dieses Konto ist über Privy mit einer Social-Login-Methode verknüpft.  </string>
 	<string name="account_info_id_title">Konto-ID</string>
-	<string name="account_info_id_info">Verwende deine Konto-ID, wenn du den Kundensupport von Nym kontaktieren musst. Diese Angabe kann bedenkenlos weitergegeben werden!</string>
+	<string name="account_info_id_info">Sicher zum teilen. Benutzen, um den Nym Support zu kontaktieren.</string>
 	<string name="account_info_device_title">Geräte-ID</string>
 	<string name="account_info_device_info">Verwende dies, um dieses Gerät mit deinem Konto auf nym.com zu verknüpfen</string>
 	<string name="account_info_status_title">Kontostatus</string>
-	<string name="account_info_bandwidth_title">Verbleibende Bandbreite</string>
+	<string name="account_info_bandwidth_title">Faire Nutzung ausgegeben</string>
 	<string name="account_info_limit_text">Limit</string>
 	<string name="account_info_reset_text">Setzt sich zurück am</string>
 	<string name="account_info_contact_support_action">Kontaktiere unseren Support</string>
@@ -406,9 +458,14 @@
 	<string name="account_info_renew_text">Jetzt erneuern, um geschützt zu bleiben</string>
 	<string name="banner_renew_text">Jetzt erneuern\num geschützt zu bleiben</string>
 	<string name="account_info_auto_renew_text">*Auto-Erneuerung</string>
-	<string name="account_info_no_plan">Du hast kein aktives Abonnement</string>
+	<string name="account_info_no_plan">Kein aktives Abonnement</string>
+	<string name="account_info_confirming_payment">Zahlung wird bestätigt</string>
+	<string name="account_info_updating">Aktualisiere Kontostatus…</string>
 	<string name="account_info_autologin_fetching">Zugriffscode abrufen…</string>
 	<string name="account_info_autologin_error">Der Zugangscode konnte nicht abgeholt werden. Bitte versuche es erneut.</string>
+	<string name="account_info_add_social_action">Social Login hinzufügen</string>
+	<string name="account_info_add_social_suffix">\u0020Methode für Ihr Konto.</string>
+	<string name="account_info_backup">Backup-Login-Methode via Privy verknüpft.</string>
 	<string name="pin_code_title">Pin Code</string>
 	<string name="pin_code_subtitle">Gib diesen Code im Web ein</string>
 	<string name="pin_code_copy_and_open">Code kopieren und Web öffnen</string>
@@ -436,7 +493,7 @@
 	<string name="logs_download_button">Trotzdem als Datei speichern</string>
 	<string name="logs_saved">Logs wurden im Download-Ordner gespeichert</string>
 	<!-- Split tunneling screen -->
-    <string name="split_tunneling_info_msg">Konfiguriere bei jeder App, ob sie sich über NymVPN verbinden soll oder direkt eine Verbindung herstellt.</string>
+	<string name="split_tunneling_info_msg">Konfiguriere bei jeder App, ob sie sich über NymVPN verbinden soll oder direkt eine Verbindung herstellt.</string>
 	<string name="split_tunneling_info_desc">Änderungen werden nach dem erneuten Verbinden übernommen</string>
 	<string name="split_tunneling_search_apps_hint">Apps suchen</string>
 	<string name="split_tunneling_apps">Apps</string>
@@ -521,4 +578,7 @@
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Schütze dich vor Betrug</string>
 	<string name="support_protect_description">Wende dich ausschließlich über die unten aufgeführten offiziellen Kanäle an den NymVPN-Support. Wir werden dich niemals nach deiner Passphrase fragen oder dich von uns aus per Direktnachricht kontaktieren.\n\nHast du eine unerwartete Nachricht erhalten? Dabei handelt es sich höchstwahrscheinlich um Betrug (Scam).</string>
+	<!-- Private DNS modal -->
+	<string name="private_dns_title">Private DNS deaktivieren, um Werbeblocker zu verwenden.</string>
+	<string name="private_dns_button">Einstellungen öffnen</string>
 </resources>

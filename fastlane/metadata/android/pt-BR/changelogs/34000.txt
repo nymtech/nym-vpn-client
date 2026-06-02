@@ -1,0 +1,4 @@
+Novidades:
+- Novo bloqueio de anúncios (beta) recurso para bloquear anúncios, rastreadores e malware
+- Nova notificação para inscrições pendentes
+- Melhorias nos tempos de login

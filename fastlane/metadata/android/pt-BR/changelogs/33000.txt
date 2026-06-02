@@ -1,4 +1,4 @@
 Novidades:
-- Configurações: Alteração no protocolo sobre Vazios.
+- Configurações: adição do botão protocolo Lewes.
 - Atualizações de IU: Limpeza das configurações, suporte e salto.
 - Melhorias Técnicas: Adicionado recurso para registro do sistema.
