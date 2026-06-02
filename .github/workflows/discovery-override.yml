@@ -68,6 +68,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Apply nym-config override
         uses: ./.github/actions/apply-nym-config-override
