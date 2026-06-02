@@ -16,6 +16,10 @@ public final class AppDiscoveryService {
                 lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
             }
     }
+
+    public func foundApp(at url: URL) -> FoundApp {
+        makeFoundApp(from: url)
+    }
 }
 
 private extension AppDiscoveryService {

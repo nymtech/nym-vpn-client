@@ -1,6 +1,7 @@
 #if os(macOS)
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 import AppDiscoveryService
 import ConnectionManager
 import ConnectionTypes
@@ -23,6 +24,9 @@ public struct SplitTunnelView: View {
     @State private var foundApps: [FoundApp]?
     @State private var isFullDiskAccessEnabled = true
     @State private var isInfoModalDisplayed = false
+    @State private var swipedAppPath: String?
+    @State private var isImporterPresented = false
+    @State private var pendingScrollID: String?
 
     private var splitTunnelConfig: SplitTunnelConfig {
         connectionManager.connectionConfig.splitTunnelConfig
@@ -120,9 +124,46 @@ private extension SplitTunnelView {
         }
     }
 
+    var addApplicationButton: some View {
+        Button {
+            isImporterPresented = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "plus")
+                    .font(.system(size: 14, weight: .semibold))
+                    .accessibilityHidden(true)
+                Text("splitTunnel.addApplication".localizedString)
+                    .nymTextStyle(.bodyDefaultBold)
+            }
+            .foregroundStyle(Color.Nym.primary)
+            .frame(maxWidth: .infinity)
+            .frame(height: 56)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        Color.Nym.primary,
+                        style: StrokeStyle(lineWidth: 1, dash: [6, 4])
+                    )
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .fileImporter(
+            isPresented: $isImporterPresented,
+            allowedContentTypes: [.application],
+            allowsMultipleSelection: false
+        ) { result in
+            if case let .success(urls) = result, let url = urls.first {
+                addCustomApp(at: url)
+            }
+        }
+        .fileDialogDefaultDirectory(URL(filePath: "/Applications"))
+        .fileDialogConfirmationLabel("splitTunnel.addApplication.prompt".localizedString)
+    }
+
     @ViewBuilder var scrollContent: some View {
         if let foundApps {
-            let sections = splitTunnelConfig.isEnabled ? makeSections(from: foundApps) : []
+            let sections = splitTunnelConfig.isEnabled ? makeSections(from: displayApps(discovered: foundApps)) : []
 
             ScrollViewReader { proxy in
                 ScrollView {
@@ -135,6 +176,15 @@ private extension SplitTunnelView {
                             sections: sections,
                             scrollProxy: proxy
                         )
+                    }
+                }
+                .onChange(of: pendingScrollID) { _, target in
+                    guard let target else { return }
+                    DispatchQueue.main.async {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            proxy.scrollTo(target, anchor: .top)
+                        }
+                        pendingScrollID = nil
                     }
                 }
             }
@@ -164,6 +214,10 @@ private extension SplitTunnelView {
                 appsText
                 Spacer()
                     .frame(height: 8)
+                addApplicationButton
+                    .padding(.trailing, 16)
+                Spacer()
+                    .frame(height: 16)
                 sectionList(sections: sections)
                     .padding(.trailing, 16)
             }
@@ -211,6 +265,7 @@ private extension SplitTunnelView {
 
                     ForEach(Array(section.apps.enumerated()), id: \.offset) { _, app in
                         appCell(for: app)
+                            .id(app.executablePath ?? app.name)
                     }
                 }
                 .background(Color.Nym.background)
@@ -219,7 +274,39 @@ private extension SplitTunnelView {
     }
 
     func appCell(for app: FoundApp) -> some View {
-        VStack(spacing: 0) {
+        let path = app.executablePath
+        let isSwiped = path != nil && swipedAppPath == path
+        let canRemove = isCustomApp(app)
+
+        return ZStack(alignment: .trailing) {
+            if canRemove {
+                Button {
+                    withAnimation { swipedAppPath = nil }
+                    removeCustomApp(app)
+                } label: {
+                    Text("splitTunnel.removeApplication".localizedString)
+                        .nymTextStyle(.bodyDefaultBold)
+                        .foregroundStyle(Color.Nym.error)
+                        .frame(width: 80)
+                        .frame(maxHeight: .infinity)
+                }
+                .buttonStyle(.plain)
+            }
+
+            cellContent(for: app)
+                .background(Color.Nym.background)
+                .offset(x: isSwiped ? -80 : 0)
+                .gesture(canRemove ? swipeGesture(path: path) : nil)
+                .onTapGesture {
+                    if isSwiped { withAnimation { swipedAppPath = nil } }
+                }
+        }
+        .clipShape(Rectangle())
+    }
+
+    @ViewBuilder
+    func cellContent(for app: FoundApp) -> some View {
+        let row = VStack(spacing: 0) {
             Spacer()
                 .frame(height: 12)
             HStack(spacing: 0) {
@@ -254,8 +341,40 @@ private extension SplitTunnelView {
             Spacer()
                 .frame(height: 12)
         }
-        .background(Color.Nym.background)
-        .clipShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(app.name)
+        .accessibilityValue(accessibilityValue(for: app))
+        .accessibilityHint("splitTunnel.accessibility.toggleHint".localizedString)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { toggleAppState(app: app) }
+
+        if isCustomApp(app) {
+            row.accessibilityAction(named: Text("splitTunnel.removeApplication".localizedString)) {
+                removeCustomApp(app)
+            }
+        } else {
+            row
+        }
+    }
+
+    func accessibilityValue(for app: FoundApp) -> String {
+        isAppExcluded(app)
+            ? "splitTunnel.accessibility.excluded".localizedString
+            : "splitTunnel.accessibility.protected".localizedString
+    }
+
+    func swipeGesture(path: String?) -> some Gesture {
+        DragGesture(minimumDistance: 10)
+            .onEnded { value in
+                guard let path else { return }
+                withAnimation {
+                    if value.translation.width < -30 {
+                        swipedAppPath = path
+                    } else if value.translation.width > 30 {
+                        swipedAppPath = nil
+                    }
+                }
+            }
     }
 
     func appEnabledButton(isEnabled: Bool, onTap: @escaping () -> Void) -> some View {
@@ -296,6 +415,15 @@ private extension SplitTunnelView {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(Color.Nym.textSecondary, lineWidth: 1)
             )
+            // Tooltip lives on the filled label content (solid hover region);
+            // on the outer plain Button it didn't register. State-dependent:
+            // protected → "Exclude", excluded → "Include".
+            .contentShape(Rectangle())
+            .help(
+                isEnabled
+                    ? "splitTunnel.exclude.tooltip".localizedString
+                    : "splitTunnel.include.tooltip".localizedString
+            )
         }
         .buttonStyle(.plain)
     }
@@ -309,12 +437,14 @@ private struct AppSection: Identifiable {
 }
 
 private extension SplitTunnelView {
+    func sectionKey(for app: FoundApp) -> String {
+        guard let first = app.name.first else { return "#" }
+        let uppercased = String(first).uppercased()
+        return uppercased.range(of: "^[A-Z]$", options: .regularExpression) != nil ? uppercased : "#"
+    }
+
     func makeSections(from apps: [FoundApp]) -> [AppSection] {
-        let groupedApps = Dictionary(grouping: apps) { app -> String in
-            guard let first = app.name.first else { return "#" }
-            let uppercased = String(first).uppercased()
-            return uppercased.range(of: "^[A-Z]$", options: .regularExpression) != nil ? uppercased : "#"
-        }
+        let groupedApps = Dictionary(grouping: apps) { sectionKey(for: $0) }
 
         let sortedKeys = groupedApps.keys.sorted { lhs, rhs in
             switch (lhs, rhs) {
@@ -345,27 +475,81 @@ private extension SplitTunnelView {
     func toggleAppState(app: FoundApp) {
         guard let path = app.executablePath else { return }
         var next = splitTunnelConfig
-        if let index = next.appPaths.firstIndex(of: path) {
-            next.appPaths.remove(at: index)
+        if next.appPaths.contains(path) {
+            next.appPaths.remove(path)
         } else {
-            next.appPaths.append(path)
+            next.appPaths.insert(path)
         }
         connectionManager.setSplitTunnelConfig(next)
     }
 
-    func appBundlePath(for app: FoundApp) -> String? {
-        guard let executablePath = app.executablePath else { return nil }
-        let executableURL = URL(filePath: executablePath)
+    func isCustomApp(_ app: FoundApp) -> Bool {
+        guard let path = app.executablePath else { return false }
+        return splitTunnelConfig.customAppPaths.contains(path)
+    }
 
-        // MyApp.app/Contents/MacOS/MyApp -> MyApp.app
+    func removeCustomApp(_ app: FoundApp) {
+        guard let path = app.executablePath else { return }
+        var next = splitTunnelConfig
+        next.customAppPaths.remove(path)
+        next.appPaths.remove(path)
+        connectionManager.setSplitTunnelConfig(next)
+    }
+
+    func addCustomApp(at url: URL) {
+        guard url.lastPathComponent != "NymVPN.app" else { return }
+
+        let didAccess = url.startAccessingSecurityScopedResource()
+        defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
+
+        let app = appDiscoveryService.foundApp(at: url)
+        guard let path = app.executablePath else { return }
+
+        var next = splitTunnelConfig
+        next.customAppPaths.insert(path)
+        next.appPaths.insert(path)
+        connectionManager.setSplitTunnelConfig(next)
+
+        // Scroll to the new app's section
+        pendingScrollID = "section-\(sectionKey(for: app))"
+    }
+
+    func bundleURL(fromExecutablePath executablePath: String) -> URL? {
+        let executableURL = URL(filePath: executablePath)
         guard executableURL.pathComponents.count >= 4 else { return nil }
         let bundleURL = executableURL
             .deletingLastPathComponent() // MacOS
             .deletingLastPathComponent() // Contents
-            .deletingLastPathComponent() // MyApp.app
+            .deletingLastPathComponent() // Foo.app
+        return bundleURL.pathExtension == "app" ? bundleURL : nil
+    }
 
-        guard bundleURL.pathExtension == "app" else { return nil }
-        return bundleURL.path
+    func appBundlePath(for app: FoundApp) -> String? {
+        guard let executablePath = app.executablePath else { return nil }
+        return bundleURL(fromExecutablePath: executablePath)?.path
+    }
+
+    func bundleURL(forExecutable executablePath: String) -> URL {
+        bundleURL(fromExecutablePath: executablePath) ?? URL(filePath: executablePath)
+    }
+
+    func displayApps(discovered: [FoundApp]) -> [FoundApp] {
+        var byPath: [String: FoundApp] = [:]
+        for app in discovered {
+            if let path = app.executablePath { byPath[path] = app }
+        }
+        for path in splitTunnelConfig.customAppPaths where byPath[path] == nil {
+            let resolved = appDiscoveryService.foundApp(at: bundleURL(forExecutable: path))
+            if resolved.executablePath != nil {
+                byPath[path] = resolved
+            } else {
+                // Bundle no longer resolvable (e.g. deleted) — keep a removable placeholder
+                // that still carries the config path so isCustomApp/removeCustomApp work.
+                let name = bundleURL(forExecutable: path).deletingPathExtension().lastPathComponent
+                byPath[path] = FoundApp(name: name, executablePath: path, icon: resolved.icon)
+            }
+        }
+        return Array(byPath.values)
     }
 
     func navigateBack() {
@@ -414,15 +598,15 @@ private struct SectionIndexOverlay: View {
                 }
         )
         .padding(.trailing, -9)
+        .accessibilityHidden(true)
     }
 
     private func letterColor(for letter: String) -> Color {
-        if letter == draggedLetter {
-            return Color.Nym.textPrimary
+        guard sections.contains(where: { $0.title == letter })
+        else {
+            return Color.Nym.textDisabled
         }
-        return sections.contains(where: { $0.title == letter })
-            ? Color.Nym.textSecondary
-            : Color.Nym.textSecondary
+        return letter == draggedLetter ? Color.Nym.textPrimary : Color.Nym.textSecondary
     }
 
     private func letterAtLocation(_ location: CGPoint) -> String {
