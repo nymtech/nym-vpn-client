@@ -79,6 +79,11 @@ let package = Package(
                 "ErrorReason"
             ],
             path: "Sources/TunnelStatus"
+        ),
+        .testTarget(
+            name: "ConnectionTypesTests",
+            dependencies: ["ConnectionTypes"],
+            path: "Tests/ConnectionTypesTests"
         )
     ]
 )

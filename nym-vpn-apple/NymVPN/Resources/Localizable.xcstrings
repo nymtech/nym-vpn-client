@@ -28879,6 +28879,61 @@
         }
       }
     },
+    "splitTunnel.accessibility.excluded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Excluded from VPN"
+          }
+        }
+      }
+    },
+    "splitTunnel.accessibility.protected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Protected by VPN"
+          }
+        }
+      }
+    },
+    "splitTunnel.accessibility.toggleHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double tap to toggle VPN protection"
+          }
+        }
+      }
+    },
+    "splitTunnel.addApplication" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Add application"
+          }
+        }
+      }
+    },
+    "splitTunnel.addApplication.prompt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Add"
+          }
+        }
+      }
+    },
     "splitTunnel.apps" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28923,6 +28978,17 @@
         }
       }
     },
+    "splitTunnel.exclude.tooltip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Exclude from VPN"
+          }
+        }
+      }
+    },
     "splitTunnel.fullDiskAccess" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28930,6 +28996,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This feature requires Full Disk Access."
+          }
+        }
+      }
+    },
+    "splitTunnel.include.tooltip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Include in VPN"
           }
         }
       }
@@ -29029,6 +29106,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open"
+          }
+        }
+      }
+    },
+    "splitTunnel.removeApplication" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Remove"
           }
         }
       }

@@ -174,6 +174,9 @@ jobs:
           echo "${RUBY_PREFIX}/bin" >> "$GITHUB_PATH"
           export PATH="${RUBY_PREFIX}/bin:$PATH"
 
+          # Ensure xcbeautify is available for xcodebuild output formatting
+          which xcbeautify || brew install xcbeautify
+
           # Show versions for debugging
           brew --version
           ruby --version
@@ -370,6 +373,63 @@ jobs:
         run: |
           echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
+
+      - name: Tests
+        if: ${{ env.RELEASE_TYPE == 'pr' }}
+        working-directory: nym-vpn-apple/ServicesMutual
+        run: |
+          set -euo pipefail
+          xcodebuild test \
+            -scheme ServicesMutual-Package \
+            -destination 'platform=macOS' \
+            -only-testing:ConnectionTypesTests \
+            -resultBundlePath TestResults.xcresult \
+            | xcbeautify --renderer github-actions
+
+      - name: Test summary
+        if: ${{ env.RELEASE_TYPE == 'pr' && (success() || failure()) }}
+        working-directory: nym-vpn-apple/ServicesMutual
+        run: |
+          set -uo pipefail
+          which jq >/dev/null || brew install jq
+          BUNDLE="TestResults.xcresult"
+          if [[ ! -d "$BUNDLE" ]]; then
+            echo "⚠️ No test results bundle found." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          JSON="$(xcrun xcresulttool get test-results summary --path "$BUNDLE" --format json 2>/dev/null)"
+          RESULT=$(jq -r '.result // "Unknown"' <<<"$JSON")
+          PASSED=$(jq -r '.passedTests // 0' <<<"$JSON")
+          FAILED=$(jq -r '.failedTests // 0' <<<"$JSON")
+          SKIPPED=$(jq -r '.skippedTests // 0' <<<"$JSON")
+          ICON="✅"; [[ "$RESULT" != "Passed" ]] && ICON="❌"
+          {
+            echo "## 🧪 ConnectionTypes tests"
+            echo ""
+            echo "$ICON **$RESULT** — ${PASSED} passed, ${FAILED} failed, ${SKIPPED} skipped"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$FAILED" != "0" ]]; then
+            {
+              echo ""
+              echo "| Test | Failure |"
+              echo "| --- | --- |"
+              jq -r '.testFailures[]? | "| \(.testName) | \((.failureText // "") | gsub("[\r\n]+"; " ")) |"' <<<"$JSON"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload test results
+        if: ${{ env.RELEASE_TYPE == 'pr' && (success() || failure()) }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-connectiontypes
+          path: nym-vpn-apple/ServicesMutual/TestResults.xcresult
+          if-no-files-found: ignore
+          retention-days: 1
+
+      - name: Clean up test results
+        if: ${{ always() && env.RELEASE_TYPE == 'pr' }}
+        working-directory: nym-vpn-apple/ServicesMutual
+        run: rm -rf TestResults.xcresult
 
       - name: Resolve iOS build number (qa/ship only)
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
