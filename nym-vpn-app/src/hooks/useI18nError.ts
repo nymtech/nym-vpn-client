@@ -61,6 +61,11 @@ function useI18nError() {
           return t('account.device-time-out-of-sync');
         case 'bandwidth-exceeded':
           return t('account.bandwidth-exceeded');
+        // split tunnel custom app errors
+        case 'split-tunnel-app-invalid':
+          return t('split-tunnel.app-invalid');
+        case 'split-tunnel-app-duplicate':
+          return t('split-tunnel.app-duplicate');
       }
 
       console.warn('unhandled backend error', error);

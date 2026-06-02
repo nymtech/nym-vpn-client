@@ -109,7 +109,7 @@ impl From<VpndError> for BackendError {
 
 /// Enum of the possible specialized errors emitted by the daemon
 /// or the app backend side, to be passed to the UI layer
-#[derive(Debug, Serialize, TS, Clone)]
+#[derive(Debug, Serialize, TS, Clone, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 #[ts(export, export_to = "tauri.ts")]
 pub enum ErrorKey {
@@ -143,6 +143,9 @@ pub enum ErrorKey {
     NoSubscription,
     MaxDeviceReached,
     DeviceTimeDesync,
+    // Custom split tunnel app errors (app backend layer)
+    SplitTunnelAppInvalid,
+    SplitTunnelAppDuplicate,
     // Failure when querying countries from daemon
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,

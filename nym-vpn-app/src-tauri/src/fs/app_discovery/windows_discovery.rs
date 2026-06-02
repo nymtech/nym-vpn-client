@@ -102,6 +102,7 @@ fn parse_lnk(lnk_path: &Path) -> Option<App> {
         name,
         icon: Some(target.clone()),
         executable_path: target,
+        is_custom: false,
     })
 }
 

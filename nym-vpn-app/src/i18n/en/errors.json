@@ -70,6 +70,8 @@
     }
   },
   "split-tunnel": {
-    "failed-to-get-app-list": "Failed to get app list"
+    "failed-to-get-app-list": "Failed to get app list",
+    "app-invalid": "The selected file is not a valid application",
+    "app-duplicate": "This app is already in the list"
   }
 }

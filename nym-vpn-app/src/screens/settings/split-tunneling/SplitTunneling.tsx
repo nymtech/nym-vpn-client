@@ -12,6 +12,7 @@ import { Spinner } from '../../../ui';
 import { useToast } from '../../../hooks/index';
 import InfoDialog from './InfoDialog';
 import LaunchConfirmDialog from './LaunchConfirmDialog';
+import RemoveConfirmDialog from './RemoveConfirmDialog';
 import AppItem, { AppEntry } from './AppItem';
 import { parseExecArgs, useSplitTunnel } from './utils';
 import { PROBLEMATIC_APPS } from './utils/constants';
@@ -23,11 +24,23 @@ function SplitTunneling() {
   const { isOpen, close } = useDialog();
   const { add: addToast } = useToast();
 
-  const { apps, enabled, loading, setEnabled, add, remove, isSupported } =
-    useSplitTunnel();
+  const {
+    apps,
+    enabled,
+    loading,
+    setEnabled,
+    add,
+    addCustomApp,
+    remove,
+    removeCustomApp,
+    isSupported,
+  } = useSplitTunnel();
 
   const [runningApps, setRunningApps] = useState<Record<string, number[]>>({});
   const [pendingLaunchApp, setPendingLaunchApp] = useState<AppEntry | null>(
+    null,
+  );
+  const [pendingRemoveApp, setPendingRemoveApp] = useState<AppEntry | null>(
     null,
   );
 
@@ -108,6 +121,21 @@ function SplitTunneling() {
     setPendingLaunchApp(null);
   }, []);
 
+  const handleRemove = useCallback((app: AppEntry) => {
+    setPendingRemoveApp(app);
+  }, []);
+
+  const handleRemoveConfirm = useCallback(async () => {
+    if (pendingRemoveApp) {
+      await removeCustomApp(pendingRemoveApp);
+    }
+    setPendingRemoveApp(null);
+  }, [pendingRemoveApp, removeCustomApp]);
+
+  const handleRemoveCancel = useCallback(() => {
+    setPendingRemoveApp(null);
+  }, []);
+
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const groupedApps = useMemo(() => {
@@ -167,6 +195,13 @@ function SplitTunneling() {
         onCancel={handleLaunchCancel}
       />
 
+      <RemoveConfirmDialog
+        isOpen={pendingRemoveApp !== null}
+        appName={pendingRemoveApp?.name ?? ''}
+        onConfirm={handleRemoveConfirm}
+        onCancel={handleRemoveCancel}
+      />
+
       {/* Enable split tunneling on Windows only*/}
       {os === 'windows' && (
         <SettingsMenuCard
@@ -190,6 +225,15 @@ function SplitTunneling() {
       <p className="text-status-warning bg-surface-elev/40 rounded-lg p-3 text-sm">
         {t('split-tunneling.exclude-warning')}
       </p>
+
+      {/* Exclude a custom app via native file dialog */}
+      {(enabled || os === 'linux') && (
+        <SettingsMenuCard
+          title={t('split-tunneling.add-custom-app')}
+          leadingIcon="add"
+          onClick={addCustomApp}
+        />
+      )}
 
       {/* Apps section */}
       <AnimatePresence initial={false}>
@@ -232,6 +276,7 @@ function SplitTunneling() {
                           onStateChange={handleStateChange}
                           isRunning={(runningApps[app.name]?.length ?? 0) > 0}
                           onLaunch={handleLaunch}
+                          onRemove={handleRemove}
                         />
                         {i < groupedApps[letter].length - 1 && (
                           <div className="bg-surface-hair mx-4 h-px" />

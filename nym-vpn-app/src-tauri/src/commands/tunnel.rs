@@ -1,8 +1,9 @@
 use crate::commands::gateway::Hop;
 use crate::{
+    db::Db,
     error::{BackendError, ErrorKey},
     events::AppHandleEventEmitter,
-    fs::app_discovery::{App, get_installed_apps},
+    fs::app_discovery::{App, custom_apps, get_installed_apps},
     state::{SharedAppState, app::VpnMode},
     vpnd::{
         client::{Node, VpndClient, VpndError},
@@ -13,6 +14,7 @@ use crate::{
 };
 use std::net::IpAddr;
 use tauri::{Manager, State};
+use tauri_plugin_dialog::DialogExt;
 use tracing::{debug, info, instrument, warn};
 
 #[instrument(skip_all)]
@@ -247,10 +249,15 @@ pub async fn set_enable_split_tunnel(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_app_list(app: tauri::AppHandle) -> Result<Vec<App>, BackendError> {
-    tokio::task::spawn_blocking(move || get_installed_apps(app))
+pub async fn get_app_list(
+    app: tauri::AppHandle,
+    db: State<'_, Db>,
+) -> Result<Vec<App>, BackendError> {
+    let discovered = tokio::task::spawn_blocking(move || get_installed_apps(app))
         .await
-        .map_err(|e| BackendError::internal(&e.to_string(), None))?
+        .map_err(|e| BackendError::internal(&e.to_string(), None))??;
+    let custom = custom_apps::load(&db)?;
+    Ok(custom_apps::merge(discovered, custom))
 }
 
 #[instrument(skip_all)]
@@ -279,6 +286,44 @@ pub async fn remove_app_from_split_tunnel(
 pub async fn is_split_tunnel_supported(vpnd: State<'_, VpndClient>) -> Result<bool, BackendError> {
     let is_supported = vpnd.is_split_tunnel_supported().await?;
     Ok(is_supported)
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn add_custom_split_tunnel_app(
+    app: tauri::AppHandle,
+    db: State<'_, Db>,
+) -> Result<Option<App>, BackendError> {
+    let Some(file_path) = app.dialog().file().blocking_pick_file() else {
+        info!("user cancelled custom split tunnel app dialog");
+        return Ok(None);
+    };
+
+    let path = file_path
+        .as_path()
+        .ok_or_else(|| BackendError::internal("failed to resolve picked file path", None))?
+        .to_path_buf();
+    info!("[command] add_custom_split_tunnel_app: {}", path.display());
+
+    let new_app = custom_apps::build_custom_app(&path)?;
+    let mut apps = custom_apps::load(&db)?;
+    custom_apps::insert_unique(&mut apps, new_app.clone())?;
+    custom_apps::save(&db, &apps)?;
+
+    Ok(Some(new_app))
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn remove_custom_split_tunnel_app(
+    db: State<'_, Db>,
+    path: String,
+) -> Result<(), BackendError> {
+    info!("[command] remove_custom_split_tunnel_app: {path}");
+    let mut apps = custom_apps::load(&db)?;
+    custom_apps::remove(&mut apps, &path);
+    custom_apps::save(&db, &apps)?;
+    Ok(())
 }
 
 #[instrument(skip(vpnd))]

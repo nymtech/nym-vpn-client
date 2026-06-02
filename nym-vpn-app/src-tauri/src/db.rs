@@ -33,6 +33,8 @@ pub enum Key {
     DesktopNotifications,
     LastNetworkEnv,
     NetworkStatsEnabled,
+    // user-added custom split tunnel apps (app-side state, Linux)
+    CustomSplitTunnelApps,
     // some data cache (no semantic difference)
     CacheMxEntryGateways,
     CacheMxExitGateways,
