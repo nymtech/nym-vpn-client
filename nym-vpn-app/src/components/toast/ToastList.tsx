@@ -32,9 +32,9 @@ function ToastList() {
           <Toast.Content className="relative flex flex-row items-start justify-start gap-4 overflow-hidden transition-opacity duration-250 data-behind:pointer-events-none data-behind:opacity-0 data-expanded:pointer-events-auto data-expanded:opacity-100">
             <ToastIcon type={toast.type as ToastAddData['type']} />
 
-            <div className="flex w-full flex-col items-start justify-center gap-1">
+            <div className="flex min-w-0 flex-1 flex-col items-start justify-center gap-1">
               <Toast.Title className="text-sm leading-5 font-medium" />
-              <Toast.Description className="text-xs leading-5 font-normal text-white dark:text-gray-700" />
+              <Toast.Description className="text-text-secondary text-xs leading-5 font-normal wrap-break-word break-all" />
               <Toast.Action
                 className={clsx([
                   'self-end rounded-2xl border-[1.5px] bg-transparent px-3 py-1.5 text-xs font-bold',
@@ -44,7 +44,7 @@ function ToastList() {
             </div>
             <Toast.Close
               className={clsx([
-                'relative flex h-6 w-6 items-center justify-center rounded-lg p-0',
+                'relative flex h-6 w-6 shrink-0 items-center justify-center rounded-lg p-0',
                 'bg-transparent',
                 'hover:bg-text-secondary dark:hover:bg-surface-elev',
                 'text-text-primary',

@@ -30,6 +30,7 @@ pub fn get_linux_apps() -> Result<Vec<App>, BackendError> {
                 name,
                 executable_path,
                 icon,
+                is_custom: false,
             })
         })
         .collect();
@@ -54,6 +55,46 @@ fn resolve_icon(icon_name: &str) -> Option<String> {
     std::fs::canonicalize(&path)
         .ok()
         .map(|p| p.to_string_lossy().into_owned())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::path::PathBuf;
+
+    fn scratch_dir(tag: &str) -> PathBuf {
+        let dir =
+            std::env::temp_dir().join(format!("nymvpn-linux-disc-{}-{}", std::process::id(), tag));
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn resolve_icon_returns_none_for_missing_absolute_path() {
+        assert!(resolve_icon("/tmp/nymvpn-test-definitely-missing-icon-xyz123.png").is_none());
+    }
+
+    #[test]
+    fn resolve_icon_resolves_existing_absolute_path_to_canonical_form() {
+        let dir = scratch_dir("icon");
+        let file = dir.join("app-icon.png");
+        fs::write(&file, b"fake png data").unwrap();
+
+        let canonical = fs::canonicalize(&file)
+            .unwrap()
+            .to_string_lossy()
+            .into_owned();
+        assert_eq!(resolve_icon(&file.to_string_lossy()), Some(canonical));
+
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn resolve_icon_returns_none_for_unknown_theme_icon_name() {
+        // A bare name (no leading '/') that is absent from every installed icon theme.
+        assert!(resolve_icon("nymvpn-definitely-nonexistent-icon-xyzzy").is_none());
+    }
 }
 
 /// Cleanup the executable path for Linux
