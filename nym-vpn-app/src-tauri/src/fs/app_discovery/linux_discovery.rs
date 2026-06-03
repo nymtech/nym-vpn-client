@@ -64,8 +64,8 @@ mod tests {
     use std::path::PathBuf;
 
     fn scratch_dir(tag: &str) -> PathBuf {
-        let dir = std::env::temp_dir()
-            .join(format!("nymvpn-linux-disc-{}-{}", std::process::id(), tag));
+        let dir =
+            std::env::temp_dir().join(format!("nymvpn-linux-disc-{}-{}", std::process::id(), tag));
         fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -81,7 +81,10 @@ mod tests {
         let file = dir.join("app-icon.png");
         fs::write(&file, b"fake png data").unwrap();
 
-        let canonical = fs::canonicalize(&file).unwrap().to_string_lossy().into_owned();
+        let canonical = fs::canonicalize(&file)
+            .unwrap()
+            .to_string_lossy()
+            .into_owned();
         assert_eq!(resolve_icon(&file.to_string_lossy()), Some(canonical));
 
         fs::remove_dir_all(&dir).ok();

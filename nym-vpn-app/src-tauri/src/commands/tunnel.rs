@@ -278,10 +278,14 @@ pub async fn get_app_list(
         };
 
         if !daemon_paths.is_empty() {
-            let discovered_set: HashSet<String> =
-                discovered.iter().map(|a| a.executable_path.to_ascii_lowercase()).collect();
-            let custom_set: HashSet<String> =
-                custom.iter().map(|a| a.executable_path.to_ascii_lowercase()).collect();
+            let discovered_set: HashSet<String> = discovered
+                .iter()
+                .map(|a| a.executable_path.to_ascii_lowercase())
+                .collect();
+            let custom_set: HashSet<String> = custom
+                .iter()
+                .map(|a| a.executable_path.to_ascii_lowercase())
+                .collect();
 
             let paths_to_import: Vec<String> = daemon_paths
                 .into_iter()
@@ -297,10 +301,7 @@ pub async fn get_app_list(
                     paths_to_import
                         .iter()
                         .filter_map(|path| {
-                            match custom_apps::build_custom_app(
-                                Path::new(path),
-                                Some(&app_clone),
-                            ) {
+                            match custom_apps::build_custom_app(Path::new(path), Some(&app_clone)) {
                                 Ok(new_app) => {
                                     info!(
                                         "importing daemon split-tunnel app into custom list: {path}"

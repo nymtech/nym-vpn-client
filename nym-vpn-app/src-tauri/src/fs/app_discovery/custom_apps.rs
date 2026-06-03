@@ -1,5 +1,4 @@
 /// Storage and logic for custom (user-added) split-tunnel apps.
-
 use std::path::Path;
 
 use crate::db::{Db, DbError, Key};
@@ -67,9 +66,15 @@ fn paths_equal(a: &str, b: &str) -> bool {
 }
 
 pub fn insert_unique(list: &mut Vec<App>, app: App) -> Result<(), BackendError> {
-    if list.iter().any(|a| paths_equal(&a.executable_path, &app.executable_path)) {
+    if list
+        .iter()
+        .any(|a| paths_equal(&a.executable_path, &app.executable_path))
+    {
         return Err(BackendError::new(
-            &format!("app '{}' is already in the custom split tunnel list", app.executable_path),
+            &format!(
+                "app '{}' is already in the custom split tunnel list",
+                app.executable_path
+            ),
             ErrorKey::SplitTunnelAppDuplicate,
         ));
     }
@@ -83,7 +88,10 @@ pub fn remove(list: &mut Vec<App>, path: &str) {
 
 pub fn merge(mut discovered: Vec<App>, custom: Vec<App>) -> Vec<App> {
     for app in custom {
-        if !discovered.iter().any(|a| paths_equal(&a.executable_path, &app.executable_path)) {
+        if !discovered
+            .iter()
+            .any(|a| paths_equal(&a.executable_path, &app.executable_path))
+        {
             discovered.push(app);
         }
     }
@@ -113,7 +121,8 @@ mod tests {
     use std::path::PathBuf;
 
     fn scratch_dir(tag: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("nymvpn-custom-apps-{}-{}", std::process::id(), tag));
+        let dir =
+            std::env::temp_dir().join(format!("nymvpn-custom-apps-{}-{}", std::process::id(), tag));
         fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -189,7 +198,10 @@ mod tests {
 
     #[test]
     fn merge_dedups_by_path_and_sorts_by_name() {
-        let discovered = vec![app("Zed", "/usr/bin/zed"), app("Firefox", "/usr/bin/firefox")];
+        let discovered = vec![
+            app("Zed", "/usr/bin/zed"),
+            app("Firefox", "/usr/bin/firefox"),
+        ];
         let custom = vec![
             app("Firefox copy", "/usr/bin/firefox"), // same path as discovered -> dropped
             app("Custom", "/opt/custom/app"),
@@ -200,7 +212,10 @@ mod tests {
         let names: Vec<&str> = merged.iter().map(|a| a.name.as_str()).collect();
         assert_eq!(names, vec!["Custom", "Firefox", "Zed"]);
         assert_eq!(
-            merged.iter().filter(|a| a.executable_path == "/usr/bin/firefox").count(),
+            merged
+                .iter()
+                .filter(|a| a.executable_path == "/usr/bin/firefox")
+                .count(),
             1
         );
     }

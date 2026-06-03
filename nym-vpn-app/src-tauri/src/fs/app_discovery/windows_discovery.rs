@@ -114,8 +114,8 @@ mod tests {
     use std::path::PathBuf;
 
     fn scratch_dir(tag: &str) -> PathBuf {
-        let dir = std::env::temp_dir()
-            .join(format!("nymvpn-win-disc-{}-{}", std::process::id(), tag));
+        let dir =
+            std::env::temp_dir().join(format!("nymvpn-win-disc-{}-{}", std::process::id(), tag));
         fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -200,7 +200,10 @@ mod tests {
 
         let mut apps: HashMap<String, App> = HashMap::new();
         scan_lnk_dir(&dir, &mut apps);
-        assert!(apps.is_empty(), "uninstall/remove shortcuts must be excluded");
+        assert!(
+            apps.is_empty(),
+            "uninstall/remove shortcuts must be excluded"
+        );
         fs::remove_dir_all(&dir).ok();
     }
 
