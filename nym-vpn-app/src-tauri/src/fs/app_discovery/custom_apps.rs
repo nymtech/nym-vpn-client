@@ -58,8 +58,16 @@ pub fn build_custom_app(path: &Path, app: Option<&tauri::AppHandle>) -> Result<A
     })
 }
 
+fn paths_equal(a: &str, b: &str) -> bool {
+    if cfg!(windows) {
+        a.eq_ignore_ascii_case(b)
+    } else {
+        a == b
+    }
+}
+
 pub fn insert_unique(list: &mut Vec<App>, app: App) -> Result<(), BackendError> {
-    if list.iter().any(|a| a.executable_path == app.executable_path) {
+    if list.iter().any(|a| paths_equal(&a.executable_path, &app.executable_path)) {
         return Err(BackendError::new(
             &format!("app '{}' is already in the custom split tunnel list", app.executable_path),
             ErrorKey::SplitTunnelAppDuplicate,
@@ -70,16 +78,16 @@ pub fn insert_unique(list: &mut Vec<App>, app: App) -> Result<(), BackendError> 
 }
 
 pub fn remove(list: &mut Vec<App>, path: &str) {
-    list.retain(|a| a.executable_path != path);
+    list.retain(|a| !paths_equal(&a.executable_path, path));
 }
 
 pub fn merge(mut discovered: Vec<App>, custom: Vec<App>) -> Vec<App> {
     for app in custom {
-        if !discovered.iter().any(|a| a.executable_path == app.executable_path) {
+        if !discovered.iter().any(|a| paths_equal(&a.executable_path, &app.executable_path)) {
             discovered.push(app);
         }
     }
-    discovered.sort_by_key(|a| a.name.to_lowercase());
+    discovered.sort_by_cached_key(|a| a.name.to_lowercase());
     discovered
 }
 

@@ -278,30 +278,50 @@ pub async fn get_app_list(
         };
 
         if !daemon_paths.is_empty() {
-            let discovered_set: HashSet<&str> =
-                discovered.iter().map(|a| a.executable_path.as_str()).collect();
+            let discovered_set: HashSet<String> =
+                discovered.iter().map(|a| a.executable_path.to_ascii_lowercase()).collect();
             let custom_set: HashSet<String> =
-                custom.iter().map(|a| a.executable_path.clone()).collect();
+                custom.iter().map(|a| a.executable_path.to_ascii_lowercase()).collect();
 
-            let mut added = 0usize;
-            for path in &daemon_paths {
-                if discovered_set.contains(path.as_str()) || custom_set.contains(path) {
-                    continue;
-                }
-                match custom_apps::build_custom_app(Path::new(path), Some(&app)) {
-                    Ok(new_app) => {
-                        info!("importing daemon split-tunnel app into custom list: {path}");
-                        custom.push(new_app);
-                        added += 1;
-                    }
-                    Err(e) => {
-                        warn!("skipping daemon split-tunnel app '{path}': {e}");
-                    }
-                }
-            }
+            let paths_to_import: Vec<String> = daemon_paths
+                .into_iter()
+                .filter(|p| {
+                    let key = p.to_ascii_lowercase();
+                    !discovered_set.contains(&key) && !custom_set.contains(&key)
+                })
+                .collect();
 
-            if added > 0 {
-                custom_apps::save(&db, &custom)?;
+            if !paths_to_import.is_empty() {
+                let app_clone = app.clone();
+                let new_apps: Vec<App> = tokio::task::spawn_blocking(move || {
+                    paths_to_import
+                        .iter()
+                        .filter_map(|path| {
+                            match custom_apps::build_custom_app(
+                                Path::new(path),
+                                Some(&app_clone),
+                            ) {
+                                Ok(new_app) => {
+                                    info!(
+                                        "importing daemon split-tunnel app into custom list: {path}"
+                                    );
+                                    Some(new_app)
+                                }
+                                Err(e) => {
+                                    warn!("skipping daemon split-tunnel app '{path}': {e}");
+                                    None
+                                }
+                            }
+                        })
+                        .collect()
+                })
+                .await
+                .map_err(|e| BackendError::internal(&e.to_string(), None))?;
+
+                if !new_apps.is_empty() {
+                    custom.extend(new_apps);
+                    custom_apps::save(&db, &custom)?;
+                }
             }
         }
     }
@@ -343,10 +363,16 @@ pub async fn add_custom_split_tunnel_app(
     app: tauri::AppHandle,
     db: State<'_, Db>,
 ) -> Result<Option<App>, BackendError> {
-    let picker = app.dialog().file();
-    #[cfg(windows)]
-    let picker = picker.add_filter("Executable files", &["exe"]);
-    let Some(file_path) = picker.blocking_pick_file() else {
+    let app_clone = app.clone();
+    let file_path = tokio::task::spawn_blocking(move || {
+        let picker = app_clone.dialog().file();
+        #[cfg(windows)]
+        let picker = picker.add_filter("Executable files", &["exe"]);
+        picker.blocking_pick_file()
+    })
+    .await
+    .map_err(|e| BackendError::internal(&e.to_string(), None))?;
+    let Some(file_path) = file_path else {
         info!("user cancelled custom split tunnel app dialog");
         return Ok(None);
     };
@@ -368,25 +394,36 @@ pub async fn add_custom_split_tunnel_app(
 #[instrument(skip_all)]
 #[tauri::command]
 pub async fn remove_custom_split_tunnel_app(
+    app: tauri::AppHandle,
     vpnd: State<'_, VpndClient>,
     db: State<'_, Db>,
     path: String,
 ) -> Result<(), BackendError> {
     info!("[command] remove_custom_split_tunnel_app: {path}");
+    #[cfg(windows)]
+    {
+        let is_in_daemon_list = {
+            let s_state = app.state::<SharedAppState>();
+            let state = s_state.lock().await;
+            state
+                .vpnd_config
+                .as_ref()
+                .map(|c| {
+                    c.split_tunnel
+                        .apps
+                        .iter()
+                        .any(|a| a.path.eq_ignore_ascii_case(&path))
+                })
+                .unwrap_or(false)
+        };
+        if is_in_daemon_list {
+            vpnd.remove_app_from_split_tunnel(SplitApp { path: path.clone() })
+                .await?;
+        }
+    }
     let mut apps = custom_apps::load(&db)?;
     custom_apps::remove(&mut apps, &path);
     custom_apps::save(&db, &apps)?;
-    // On Windows the daemon owns the live exclude list; clean it up so the
-    // removed app doesn't continue to bypass the VPN silently.
-    #[cfg(windows)]
-    {
-        if let Err(e) = vpnd
-            .remove_app_from_split_tunnel(SplitApp { path: path.clone() })
-            .await
-        {
-            warn!("failed to remove {path} from daemon split tunnel list: {e}");
-        }
-    }
     Ok(())
 }
 

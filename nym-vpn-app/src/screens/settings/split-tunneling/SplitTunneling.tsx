@@ -85,13 +85,12 @@ function SplitTunneling() {
             Date.now() - spawnedAt < LAUNCH_FAILURE_WINDOW_MS;
           if (exitedAbnormally && exitedQuickly) {
             const maxLen = 300;
-            let detail = stderrLines.join('\n').slice(0, maxLen);
-            if (stderrLines.join('\n').length > maxLen) {
-              detail += '...';
-            }
+            const joined = stderrLines.join('\n');
+            const detail =
+              joined.length > maxLen ? joined.slice(0, maxLen) + '...' : joined;
 
             addToast({
-              id: `launch-failed-${app.name}`,
+              id: `launch-failed-${app.executable_path}`,
               title: t('split-tunneling.error.launch-failed', {
                 name: app.name,
               }),
