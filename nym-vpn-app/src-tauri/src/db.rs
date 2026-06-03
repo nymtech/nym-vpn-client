@@ -198,6 +198,8 @@ impl Db {
         if key.starts_with("cache-") {
             // some cached data like gateways list are BIG, skip them
             debug!("set key [{key}]");
+        } else if Self::is_sensitive_key(key) {
+            debug!("set key [{key}] value=<redacted_paths>");
         } else {
             debug!("set key [{key}] value={:?}", value);
         }
@@ -249,6 +251,8 @@ impl Db {
             Ok(Some(v)) => {
                 if key.starts_with("cache") {
                     debug!("get key [{key}] SOMEVAL");
+                } else if Self::is_sensitive_key(key) {
+                    debug!("get key [{key}] <redacted_paths>");
                 } else {
                     debug!("get key [{key}] {v:?}");
                 }
@@ -260,5 +264,9 @@ impl Db {
                 error!("failed to get key [{key}]: {e}");
             }
         }
+    }
+
+    fn is_sensitive_key(key: &str) -> bool {
+        key == Key::CustomSplitTunnelApps.as_ref()
     }
 }
