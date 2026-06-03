@@ -1471,25 +1471,25 @@ impl NymVpnService {
         completion_tx: oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
     ) {
         let gateway_client = self.gateway_cache_handle.clone();
+        let gw_type = options.gw_type;
+
+        let mut filters = GatewayFilters::default();
         let blacklisted = self.gateway_provider.blacklisted_gateways();
+        if !blacklisted.is_empty().unwrap_or(true) {
+            filters.add(GatewayFilter::NotBlacklisted(blacklisted));
+        }
+        let filters = nym_gateway_directory::LookupGatewayFilters {
+            gw_type: nym_gateway_directory::GatewayType::from(gw_type),
+            filters,
+        };
 
         tokio::spawn(async move {
             // todo: pass options.user_agent with request
             let result = gateway_client
-                .lookup_gateways(nym_gateway_directory::GatewayType::from(options.gw_type))
+                .lookup_filtered_gateways(filters)
                 .await
-                .map_err(|source| ListGatewaysError::GetGateways {
-                    gw_type: options.gw_type,
-                    source,
-                })
-                .map(|gateways| {
-                    let blacklisted_ids = blacklisted.get_active_ids();
-                    gateways
-                        .into_iter()
-                        .filter(|gw| !blacklisted_ids.contains(&gw.identity))
-                        .map(Gateway::from)
-                        .collect::<Vec<_>>()
-                });
+                .map_err(|source| ListGatewaysError::GetGateways { gw_type, source })
+                .map(|gateways| gateways.into_iter().map(Gateway::from).collect::<Vec<_>>());
 
             completion_tx.send(result).ok();
         });
@@ -1502,21 +1502,22 @@ impl NymVpnService {
     ) {
         let gateway_client = self.gateway_cache_handle.clone();
         let gw_type = filters.gw_type;
+        let mut filters: nym_gateway_directory::LookupGatewayFilters = filters.into();
+
+        // Exclude blacklisted gateways by adding a filter rather than post-filtering the results.
         let blacklisted = self.gateway_provider.blacklisted_gateways();
+        if !blacklisted.is_empty().unwrap_or(true) {
+            filters
+                .filters
+                .add(GatewayFilter::NotBlacklisted(blacklisted));
+        }
 
         tokio::spawn(async move {
             let result = gateway_client
-                .lookup_filtered_gateways(filters.into())
+                .lookup_filtered_gateways(filters)
                 .await
                 .map_err(|source| ListGatewaysError::GetFilteredGateways { gw_type, source })
-                .map(|gateways| {
-                    let blacklisted_ids = blacklisted.get_active_ids();
-                    gateways
-                        .into_iter()
-                        .filter(|gw| !blacklisted_ids.contains(&gw.identity))
-                        .map(Gateway::from)
-                        .collect::<Vec<_>>()
-                });
+                .map(|gateways| gateways.into_iter().map(Gateway::from).collect::<Vec<_>>());
 
             completion_tx.send(result).ok();
         });
