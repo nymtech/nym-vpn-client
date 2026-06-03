@@ -260,16 +260,25 @@ async fn wait_for_exit_handshake(
     tunnel_handle: &connected_tunnel::TunnelHandle,
     shutdown_token: &CancellationToken,
 ) {
-    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(30);
+    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
     const POLL_INTERVAL: Duration = Duration::from_millis(200);
+
+    let started = std::time::Instant::now();
 
     let result = tokio::time::timeout(HANDSHAKE_TIMEOUT, async {
         loop {
-            if tunnel_handle
-                .get_exit_stats()
-                .is_some_and(|s| s.all_peers_connected())
-            {
-                return;
+            match tunnel_handle.get_exit_stats() {
+                None => {
+                    tracing::debug!(
+                        "Exit WireGuard stats unavailable, still waiting for handshake"
+                    );
+                }
+                Some(stats) if stats.all_peers_connected() => {
+                    return;
+                }
+                Some(_) => {
+                    tracing::debug!("Exit WireGuard peer not yet connected, waiting for handshake");
+                }
             }
             tokio::select! {
                 _ = tokio::time::sleep(POLL_INTERVAL) => {}
@@ -279,14 +288,15 @@ async fn wait_for_exit_handshake(
     })
     .await;
 
+    let elapsed = started.elapsed();
     match result {
         Ok(()) => {
-            tracing::debug!("Exit WireGuard handshake completed");
+            tracing::debug!("Exit WireGuard handshake completed in {elapsed:.2?}");
         }
         Err(_) => {
             tracing::warn!(
-                "Exit WireGuard handshake did not complete within {}s, proceeding",
-                HANDSHAKE_TIMEOUT.as_secs()
+                "Exit WireGuard handshake did not complete within {:.1}s, proceeding",
+                elapsed.as_secs_f32()
             );
         }
     }
