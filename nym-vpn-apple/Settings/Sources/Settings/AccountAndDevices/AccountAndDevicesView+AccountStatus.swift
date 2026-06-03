@@ -71,13 +71,10 @@ extension AccountAndDevicesView {
     func accountStatusBandwidth(accountSummary: AccountSummary) -> some View {
         VStack(spacing: 8) {
             HStack {
-                Text("settings.account.bandwidthUsed".localizedString)
+                Text("settings.account.bandwidthLimit".localizedString)
                     .foregroundStyle(Color.Nym.primary)
                     .nymTextStyle(.bodySmall)
                 Spacer()
-                Text("settings.account.bandwidthLimit".localizedString)
-                    .foregroundStyle(Color.Nym.textSecondary)
-                    .nymTextStyle(.bodySmall)
             }
 
             bandwidthProgressBar(
