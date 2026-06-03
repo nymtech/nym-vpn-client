@@ -545,6 +545,7 @@ pub enum AsnKind {
 pub struct Asn {
     pub asn: String,
     pub name: String,
+    pub route: String,
     pub kind: AsnKind,
 }
 

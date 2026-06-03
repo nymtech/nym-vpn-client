@@ -299,6 +299,7 @@ message GatewaySelectionAlgorithmConfig {
 message GatewayIndependence {
   bool different_node_family = 1;
   bool different_asn = 2;
+  bool different_subnet = 3;
 }
 
 message VpnServiceConfig {

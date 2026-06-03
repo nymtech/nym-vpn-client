@@ -4,6 +4,7 @@
 #[cfg(test)]
 mod tests;
 
+use ipnetwork::IpNetwork;
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
@@ -325,6 +326,7 @@ pub enum AsnKind {
 pub struct Asn {
     pub asn: String,
     pub name: String,
+    pub route: IpNetwork,
     pub kind: AsnKind,
 }
 
@@ -465,32 +467,41 @@ impl From<nym_vpn_api_client::response::AsnKind> for AsnKind {
     }
 }
 
-impl From<nym_vpn_api_client::response::Asn> for Asn {
-    fn from(location: nym_vpn_api_client::response::Asn) -> Self {
-        Asn {
+impl TryFrom<nym_vpn_api_client::response::Asn> for Asn {
+    type Error = Error;
+
+    fn try_from(
+        location: nym_vpn_api_client::response::Asn,
+    ) -> std::result::Result<Self, Self::Error> {
+        Ok(Asn {
             asn: location.asn,
             name: location.name,
+            route: location
+                .route
+                .parse()
+                .map_err(|source| Error::AsnRouteFormattingError {
+                    route: location.route,
+                    source,
+                })?,
             kind: location.kind.into(),
-        }
+        })
     }
 }
 
-impl From<nym_vpn_api_client::response::Location> for Location {
-    fn from(location: nym_vpn_api_client::response::Location) -> Self {
-        Location {
+impl TryFrom<nym_vpn_api_client::response::Location> for Location {
+    type Error = Error;
+
+    fn try_from(
+        location: nym_vpn_api_client::response::Location,
+    ) -> std::result::Result<Self, Self::Error> {
+        Ok(Location {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
             longitude: location.longitude,
             city: location.city,
             region: location.region,
-            asn: location.asn.map(Into::into),
-        }
-    }
-}
-
-impl From<nym_vpn_api_client::response::NymUserGeoIpLocationResponse> for Location {
-    fn from(response: nym_vpn_api_client::response::NymUserGeoIpLocationResponse) -> Self {
-        response.location.into()
+            asn: location.asn.map(TryInto::try_into).transpose()?,
+        })
     }
 }
 
@@ -660,7 +671,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             identity,
             name: gateway.name,
             description: gateway.description,
-            location: Some(gateway.location.into()),
+            location: Some(gateway.location.try_into()?),
             ipr_address,
             authenticator_address,
             nr_address: None,

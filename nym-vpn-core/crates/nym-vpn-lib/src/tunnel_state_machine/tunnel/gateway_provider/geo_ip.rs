@@ -167,8 +167,12 @@ impl GeoIpFetcher {
                 ret = self.client.latest_geo_ip(), if self.state == State::FetchInProgress => {
                     self.state = State::Nothing;
                     match ret {
-                        Ok(location) => {
-                            let _ = self.update_location_tx.send(location.into());
+                        Ok(geo_ip_location) => {
+                            let Ok(location) = geo_ip_location.location.try_into() else {
+                                tracing::warn!("Failed to convert geo ip location response into location");
+                                continue;
+                            };
+                            let _ = self.update_location_tx.send(location);
                         }
                         Err(err) => tracing::warn!("Failed to query VPN API: {err:?}"),
                     }

@@ -316,6 +316,7 @@ pub mod tests {
             gateway_independence: GatewayIndependence {
                 different_asn: false,
                 different_node_family: false,
+                different_subnet: false,
             },
         }
     }
