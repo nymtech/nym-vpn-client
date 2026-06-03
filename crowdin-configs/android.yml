@@ -44,29 +44,9 @@ files:
   - source: "fastlane/metadata/android/en-US/changelogs/*.txt"
     translation: "fastlane/metadata/android/%locale%/changelogs/%original_file_name%"
     languages_mapping: { locale: *play-locale }
-  # Translate standard Play Store metadata (title, short_description) to all languages
-  # Excludes description files (handled separately below) and non-translatable files
+  # Translate all .txt files except video.txt
   - source: "fastlane/metadata/android/en-US/*.txt"
     ignore:
       - "fastlane/metadata/android/en-US/video.txt"
-      - "fastlane/metadata/android/en-US/store_images.txt"
-      - "fastlane/metadata/android/en-US/full_description.txt"
-      - "fastlane/metadata/android/en-US/full_description_medium.txt"
-      - "fastlane/metadata/android/en-US/full_description_short.txt"
     translation: "fastlane/metadata/android/%locale%/%original_file_name%"
     languages_mapping: { locale: *play-locale }
-  # Full description — long version (3950 chars) for zh-CN only (EN is source)
-  - source: "fastlane/metadata/android/en-US/full_description.txt"
-    translation: "fastlane/metadata/android/%locale%/full_description.txt"
-    languages_mapping:
-      locale: *play-locale
-  # Full description — medium version (3300 chars) for ru, uk, tr, fr, es-ES, pt-BR, vi, ar
-  - source: "fastlane/metadata/android/en-US/full_description_medium.txt"
-    translation: "fastlane/metadata/android/%locale%/full_description.txt"
-    languages_mapping:
-      locale: *play-locale
-  # Full description — short version (2750 chars) for de, hi, bn, fa
-  - source: "fastlane/metadata/android/en-US/full_description_short.txt"
-    translation: "fastlane/metadata/android/%locale%/full_description.txt"
-    languages_mapping:
-      locale: *play-locale
