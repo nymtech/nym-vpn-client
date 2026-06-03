@@ -10,8 +10,10 @@ use nym_vpn_api_client::{
     response::NymErrorResponse,
     types::{DeviceStatus, Platform, VpnAccount},
 };
-use nym_vpn_lib_types::{AccountCommandError, RegisterAccountResponse, VpnApiError};
-use nym_vpn_store::{account::StorableAccount, keys::wireguard::WireguardKeyStore};
+use nym_vpn_lib_types::{
+    AccountCommandError, RegisterAccountResponse, StorableAccount, VpnApiError,
+};
+use nym_vpn_store::keys::wireguard::WireguardKeyStore;
 
 // The onus of making sure the conditions are right to call these handlers is on the caller
 

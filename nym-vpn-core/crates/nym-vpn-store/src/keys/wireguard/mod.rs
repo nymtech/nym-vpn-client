@@ -8,6 +8,7 @@ mod persistence;
 use std::path::{Path, PathBuf};
 
 pub use key_store::WireguardKeyStore;
+pub(crate) use keys::RawWireguardKeys;
 pub use keys::WireguardKeys;
 use persistence::{
     ephemeral::{EphemeralKeysError, InMemEphemeralKeys},

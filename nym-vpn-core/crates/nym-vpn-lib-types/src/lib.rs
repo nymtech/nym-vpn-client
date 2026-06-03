@@ -64,6 +64,7 @@ pub use account::{
     controller_state::AccountControllerState,
     deeplink::{AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams},
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
+    storage::{Mnemonic, StorableAccount},
     ticketbooks::AvailableTickets,
 };
 pub use connection_data::{

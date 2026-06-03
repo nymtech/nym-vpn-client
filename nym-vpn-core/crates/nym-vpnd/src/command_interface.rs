@@ -642,8 +642,7 @@ impl NymVpnService for CommandInterface {
     ) -> Result<tonic::Response<proto::GetAccountModeResponse>> {
         let mode = self
             .send_and_wait(VpnServiceCommand::GetAccountMode, ())
-            .await?
-            .map(nym_vpn_lib_types::StoredAccountMode::from);
+            .await?;
 
         Ok(tonic::Response::new(mode.into()))
     }

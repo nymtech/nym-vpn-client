@@ -6,10 +6,18 @@ use std::sync::Arc;
 use nym_crypto::asymmetric::x25519;
 use rand::{CryptoRng, RngCore};
 use serde::{Deserialize, Serialize};
-
-use crate::types::RawWireguardKeys;
+use sqlx::FromRow;
+use time::OffsetDateTime;
 
 use super::key_store::WireguardKeyStore;
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub(crate) struct RawWireguardKeys {
+    pub gateway_id_bs58: String,
+    pub entry_private_key_bs58: String,
+    pub exit_private_key_bs58: String,
+    pub expiration_time: OffsetDateTime,
+}
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct WireguardKeys {

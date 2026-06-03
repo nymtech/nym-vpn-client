@@ -11,9 +11,9 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, RegisterAccountResponse, VpnAccountSummary,
+    AccountCommandError, AutologinResponse, RegisterAccountResponse, StorableAccount,
+    StoredAccountMode, VpnAccountSummary,
 };
-use nym_vpn_store::{account::StorableAccount, types::StoredAccountMode};
 use tokio::sync::oneshot;
 
 #[derive(Debug, strum::Display)]

@@ -7,8 +7,8 @@ use nym_vpn_account_controller::AvailableTicketbooks;
 use nym_vpn_api_client::response::NymVpnDeviceStatus;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
+    StoredAccountMode,
 };
-use nym_vpn_store::account::StoredAccountMode;
 
 #[tokio::test]
 async fn logged_out_state_command() -> anyhow::Result<()> {

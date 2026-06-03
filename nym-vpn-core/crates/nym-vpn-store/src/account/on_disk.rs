@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{AccountInformationStorage, StoredAccount};
-use crate::types::StorableAccount;
+use nym_vpn_lib_types::StorableAccount;
 #[cfg(unix)]
 use std::{fs::Permissions, os::unix::fs::PermissionsExt};
 use std::{
@@ -168,14 +168,12 @@ impl AccountInformationStorage for OnDiskAccountStorage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        account::{
-            Nonce,
-            test_fixtures::{account_fixture, mnemonic_fixture},
-        },
-        types::StoredAccountMode,
+    use crate::account::{
+        Nonce,
+        test_fixtures::{account_fixture, mnemonic_fixture},
     };
     use bip39::Mnemonic;
+    use nym_vpn_lib_types::StoredAccountMode;
     use serde::{Deserialize, Serialize};
 
     #[tokio::test]

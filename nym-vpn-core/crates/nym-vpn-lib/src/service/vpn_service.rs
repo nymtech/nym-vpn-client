@@ -45,14 +45,13 @@ use nym_vpn_lib_types::{
     FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams, ListGatewaysOptions,
     LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, RegistrationReport, StoreAccountRequest, SystemMessage, TargetState,
-    TentativeGateways, TunnelEvent, TunnelState, VpnAccountSummary, VpnServiceConfig,
-    VpnServiceInfo,
+    ParsedAccountLinks, RegistrationReport, StorableAccount, StoreAccountRequest,
+    StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelEvent, TunnelState,
+    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
 use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
-use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
 
 use super::{
     Socks5Error, Socks5Service, Socks5Status,

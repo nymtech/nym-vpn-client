@@ -29,10 +29,12 @@ sqlx = { workspace = true, features = [
     "time",
 ] }
 thiserror.workspace = true
-time = {workspace = true, features=["serde"]}
+time = { workspace = true, features = ["serde"] }
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 zeroize.workspace = true
+
+nym-vpn-lib-types.workspace = true
 
 [build-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }

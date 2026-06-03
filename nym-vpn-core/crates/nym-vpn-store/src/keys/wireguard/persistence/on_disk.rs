@@ -13,12 +13,9 @@ use sqlx::{
 };
 use time::OffsetDateTime;
 
-use crate::{
-    keys::wireguard::{
-        WireguardKeyStore, WireguardKeys,
-        persistence::{is_expired, random_keys, random_timestamp_from},
-    },
-    types::RawWireguardKeys,
+use crate::keys::wireguard::{
+    RawWireguardKeys, WireguardKeyStore, WireguardKeys,
+    persistence::{is_expired, random_keys, random_timestamp_from},
 };
 
 #[derive(Debug, Clone)]

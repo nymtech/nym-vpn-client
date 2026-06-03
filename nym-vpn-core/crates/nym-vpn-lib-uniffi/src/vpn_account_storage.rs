@@ -15,12 +15,12 @@ use nym_vpn_api_client::{
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams, ParsedAccountLinks,
-    RegisterAccountResponse, StoreAccountRequest, VpnAccountSummary,
+    RegisterAccountResponse, StorableAccount, StoreAccountRequest, StoredAccountMode,
+    VpnAccountSummary,
 };
 use nym_vpn_store::{
     account::AccountInformationStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
-    types::{StorableAccount, StoredAccountMode},
 };
 
 use crate::{NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic};
@@ -320,7 +320,7 @@ impl NymVpnAccountStorage {
         else {
             return Ok(None);
         };
-        let account_mode = nym_vpn_lib_types::StoredAccountMode::from(account.mode);
+        let account_mode = account.mode;
 
         let vpn_account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
 
@@ -350,7 +350,7 @@ impl NymVpnAccountStorage {
             })?
             .ok_or(VpnError::NoAccountStored)?;
 
-        Ok(nym_vpn_lib_types::StoredAccountMode::from(account.mode))
+        Ok(account.mode)
     }
 
     /// Load the account mnemonic stored locally and register it.

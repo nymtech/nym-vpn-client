@@ -7,8 +7,7 @@ use std::error::Error;
 pub mod ephemeral;
 pub mod on_disk;
 
-pub use crate::types::{StorableAccount, StoredAccountMode};
-pub use bip39::Mnemonic;
+use nym_vpn_lib_types::{Mnemonic, StorableAccount, StoredAccountMode};
 
 #[async_trait::async_trait]
 pub trait AccountInformationStorage {

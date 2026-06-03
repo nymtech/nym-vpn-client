@@ -10,17 +10,16 @@ use nym_vpn_account_controller::{
     NyxdClient,
 };
 use nym_vpn_api_client::{VpnApiClient, types::VpnAccount};
-use nym_vpn_lib_types::AccountControllerState;
+use nym_vpn_lib_types::{AccountControllerState, Mnemonic, StorableAccount, StoredAccountMode};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
-    account::{AccountInformationStorage, Mnemonic, ephemeral::InMemoryAccountStorageError},
+    account::{AccountInformationStorage, ephemeral::InMemoryAccountStorageError},
     keys::device::{DeviceKeyStore, DeviceKeys},
 };
 use wiremock::{Mock, MockServer};
 
 use crate::common::credential_proxy::MockCredentialProxy;
 use nym_vpn_api_client::api_urls_to_urls;
-use nym_vpn_store::account::{StorableAccount, StoredAccountMode};
 use tokio::{sync::watch, task::JoinHandle};
 use tokio_util::sync::{CancellationToken, DropGuard};
 

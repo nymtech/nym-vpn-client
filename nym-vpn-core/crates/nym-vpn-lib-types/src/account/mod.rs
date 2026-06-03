@@ -6,6 +6,7 @@ pub mod controller_event;
 pub mod controller_state;
 pub mod deeplink;
 pub mod request_zknym;
+pub mod storage;
 pub mod ticketbooks;
 
 #[cfg(feature = "serde")]
@@ -592,7 +593,7 @@ impl From<nym_vpn_api_client::response::NymVpnAccountStatusResponse> for VpnAcco
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(
     feature = "typescript-bindings",
@@ -600,36 +601,47 @@ impl From<nym_vpn_api_client::response::NymVpnAccountStatusResponse> for VpnAcco
     ts(export),
     ts(export_to = "bindings.ts")
 )]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub enum StoredAccountMode {
+    /// Account works in the API mode, i.e. the subscription is managed
+    /// by the VPN API which provides required ticketbooks
+    #[default]
     Api,
+
+    /// Account works in the decentralised mode, i.e. there is no associated subscription
+    /// and the account uses its own funds for obtaining required ticketbooks
     Decentralised,
+
+    /// Account works in the API mode, but the mnemonic is derived from the Privy
+    /// wallet private key.
     Privy,
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_store::types::StoredAccountMode> for StoredAccountMode {
-    fn from(value: nym_vpn_store::types::StoredAccountMode) -> Self {
-        match value {
-            nym_vpn_store::types::StoredAccountMode::Api => StoredAccountMode::Api,
-            nym_vpn_store::types::StoredAccountMode::Decentralised => {
-                StoredAccountMode::Decentralised
-            }
-            nym_vpn_store::types::StoredAccountMode::Privy => StoredAccountMode::Privy,
+impl From<StoredAccountMode> for nym_vpn_api_client::types::VpnAccountMode {
+    fn from(mode: StoredAccountMode) -> Self {
+        use nym_vpn_api_client::types::VpnAccountMode;
+        match mode {
+            StoredAccountMode::Api => VpnAccountMode::Api,
+            StoredAccountMode::Decentralised => VpnAccountMode::Decentralised,
+            StoredAccountMode::Privy => VpnAccountMode::Privy,
         }
     }
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<StoredAccountMode> for nym_vpn_store::types::StoredAccountMode {
-    fn from(value: StoredAccountMode) -> Self {
-        match value {
-            StoredAccountMode::Api => nym_vpn_store::types::StoredAccountMode::Api,
-            StoredAccountMode::Decentralised => {
-                nym_vpn_store::types::StoredAccountMode::Decentralised
-            }
-            StoredAccountMode::Privy => nym_vpn_store::types::StoredAccountMode::Privy,
+impl From<nym_vpn_api_client::types::VpnAccountMode> for StoredAccountMode {
+    fn from(mode: nym_vpn_api_client::types::VpnAccountMode) -> Self {
+        use nym_vpn_api_client::types::VpnAccountMode;
+        match mode {
+            VpnAccountMode::Api => StoredAccountMode::Api,
+            VpnAccountMode::Decentralised => StoredAccountMode::Decentralised,
+            VpnAccountMode::Privy => StoredAccountMode::Privy,
         }
     }
 }

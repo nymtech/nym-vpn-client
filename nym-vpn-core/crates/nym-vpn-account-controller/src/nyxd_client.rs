@@ -5,9 +5,8 @@ use nym_validator_client::{
     DirectSigningHttpRpcNyxdClient,
     nyxd::{Coin, Config, CosmWasmClient, cosmwasm_client::types::Account},
 };
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::{AccountCommandError, Mnemonic};
 use nym_vpn_network_config::Network;
-use nym_vpn_store::account::Mnemonic;
 use std::str::FromStr;
 
 pub struct NyxdClient {

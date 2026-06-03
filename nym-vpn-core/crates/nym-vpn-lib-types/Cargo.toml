@@ -17,7 +17,6 @@ workspace = true
 [features]
 default = []
 nym-type-conversions = [
-    "dep:bip39",
     "dep:nym-bandwidth-controller",
     "dep:nym-gateway-directory",
     "dep:nym-network-defaults",
@@ -27,14 +26,13 @@ nym-type-conversions = [
     "dep:nym-validator-client",
     "dep:nym-vpn-api-client",
     "dep:nym-vpn-network-config",
-    "dep:nym-vpn-store",
 ]
 uniffi-bindings = ["dep:uniffi", "ipnetwork"]
 typescript-bindings = ["dep:ts-rs", "serde"]
 serde = ["dep:serde"]
 
 [dependencies]
-bip39 = { workspace = true, optional = true }
+bip39 = { workspace = true }
 si-scale = { workspace = true, features = ["lossy-conversions"] }
 strum.workspace = true
 strum_macros.workspace = true
@@ -56,7 +54,6 @@ nym-statistics-common = { workspace = true, optional = true }
 nym-validator-client = { workspace = true, optional = true }
 nym-vpn-api-client = { workspace = true, optional = true }
 nym-vpn-network-config = { workspace = true, optional = true }
-nym-vpn-store = { workspace = true, optional = true }
 nym-network-defaults = { workspace = true, optional = true }
 
 [build-dependencies]
