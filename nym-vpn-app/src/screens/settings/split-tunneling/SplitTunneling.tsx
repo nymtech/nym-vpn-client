@@ -50,10 +50,25 @@ function SplitTunneling() {
         const command = Command.create(
           'nym-exclude',
           parseExecArgs(app.executable_path),
+          // nym-vpn-app runs with GDK_BACKEND=wayland (injected by its GTK/WebKit
+          // runtime). nym-exclude passes the environment straight through, and
+          // some apps (e.g. Electron/GTK AppImages) can't open a display under
+          // the forced Wayland backend, failing with "cannot open display: :0".
+          // Override it so the launched app uses X11 (Xwayland), matching a
+          // normal terminal launch.
+          { env: { GDK_BACKEND: 'wayland,x11' } },
+        );
+
+        // Surface the launched process' stderr so launch failures aren't silent.
+        command.stderr.on('data', (line) =>
+          console.error('[nym-exclude][stderr]', line),
         );
 
         command.on('close', (data) => {
-          console.info('[nym-exclude] process closed with code', data.code);
+          console.info('[nym-exclude] process closed', {
+            code: data.code,
+            signal: data.signal,
+          });
           setRunningApps((prev) => {
             const pids = prev[app.name];
             if (!pids) return prev;
