@@ -687,13 +687,19 @@ impl TunnelMonitor {
             tracing::warn!("Interface up reply timeout");
         }
 
-        // The firewall now allows traffic through the tunnel. Wait for the exit WG handshake
-        // before starting the connection monitor so ICMP probes don't race the session.
-        // We proceed even on timeout: a handshake that completes just after the deadline
-        // will still allow ICMP to succeed, while a genuinely dead session will be caught
-        // by the ICMP monitor failing.
-        if let Some(wg_handle) = tunnel_handle.as_wireguard() {
-            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await;
+        // The firewall now allows traffic through the tunnel. Wait for the exit WG handshake.
+        let handshake_ok = if let Some(wg_handle) = tunnel_handle.as_wireguard() {
+            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await
+        } else {
+            true
+        };
+
+        if !handshake_ok {
+            tracing::info!("Exit WireGuard handshake timed out; skipping connectivity check");
+            tunnel_handle.cancel();
+            tunnel_handle.wait().await.ok();
+            self.send_event(TunnelMonitorEvent::ConnectionFailed);
+            return Ok(Tombstone::default());
         }
 
         // Send metadata endpoint data to the bandwidth controller

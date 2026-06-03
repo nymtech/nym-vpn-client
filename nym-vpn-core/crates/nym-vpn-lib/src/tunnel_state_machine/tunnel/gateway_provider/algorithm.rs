@@ -23,7 +23,7 @@ pub struct SelectAndSend {
 async fn continuous_select<C: GatewayCache>(
     select_and_send: SelectAndSend,
     gateway_cache: C,
-    blacklisted_entry_gateways: &BlacklistedGateways,
+    blacklisted_gateways: &BlacklistedGateways,
     device_location: Option<Location>,
     wg_keys_db: &WireguardKeysDb,
 ) {
@@ -35,7 +35,7 @@ async fn continuous_select<C: GatewayCache>(
         };
         let selection = select_gateways(
             gateway_cache.clone(),
-            blacklisted_entry_gateways,
+            blacklisted_gateways,
             &select_and_send.tunnel_settings,
             device_location.clone(),
             wg_keys_db,
@@ -49,7 +49,7 @@ pub struct SelectionAlgorithm<C: GatewayCache> {
     tunnel_settings_rx: mpsc::Receiver<SelectAndSend>,
     gateway_cache: C,
     geo_ip_provider: GeoIpProvider,
-    blacklisted_entry_gateways: BlacklistedGateways,
+    blacklisted_gateways: BlacklistedGateways,
     wg_keys_db: WireguardKeysDb,
     shutdown_token: CancellationToken,
 }
@@ -59,7 +59,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
         tunnel_settings_rx: mpsc::Receiver<SelectAndSend>,
         gateway_cache: C,
         geo_ip_provider: GeoIpProvider,
-        blacklisted_entry_gateways: BlacklistedGateways,
+        blacklisted_gateways: BlacklistedGateways,
         wg_keys_db: WireguardKeysDb,
         shutdown_token: CancellationToken,
     ) -> Self {
@@ -67,7 +67,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
             tunnel_settings_rx,
             gateway_cache,
             geo_ip_provider,
-            blacklisted_entry_gateways,
+            blacklisted_gateways,
             wg_keys_db,
             shutdown_token,
         }
@@ -90,7 +90,7 @@ impl<C: GatewayCache> SelectionAlgorithm<C> {
                 _ = continuous_select(
                         latest_tunnel_settings.clone(),
                         self.gateway_cache.clone(),
-                        &self.blacklisted_entry_gateways,
+                        &self.blacklisted_gateways,
                         latest_location.clone(),
                         &self.wg_keys_db,
                     ) => {},
