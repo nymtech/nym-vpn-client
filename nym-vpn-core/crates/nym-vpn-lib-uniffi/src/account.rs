@@ -13,10 +13,9 @@ use nym_vpn_api_client::types::Platform;
 use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_lib_types::{
     AccountControllerState, AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams,
-    RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest, StoredAccountMode,
-    UserAgent, VpnAccountSummary,
+    RegisterAccountRequest, RegisterAccountResponse, StorableAccount, StoreAccountRequest,
+    StoredAccountMode, UserAgent, VpnAccountSummary,
 };
-use nym_vpn_store::types::StorableAccount;
 
 struct State {
     join_handle: JoinHandle<()>,
