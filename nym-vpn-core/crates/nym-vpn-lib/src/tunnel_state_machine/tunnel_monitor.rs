@@ -202,10 +202,7 @@ pub enum TunnelMonitorEvent {
     },
 
     /// Connection has failed
-    ConnectionFailed {
-        /// The gateway that caused the failure
-        gateway_id: NodeIdentity,
-    },
+    ConnectionFailed { exit_gateway_id: NodeIdentity },
 }
 
 pub struct TunnelMonitorHandle {
@@ -778,7 +775,7 @@ impl TunnelMonitor {
                             ConnectionStatusEvent::Failed => {
                                 tracing::info!("Tunnel connection is down. Exiting");
                                 self.send_event(TunnelMonitorEvent::ConnectionFailed {
-                                    gateway_id: selected_gateways.exit_gateway().identity(),
+                                    exit_gateway_id: selected_gateways.exit_gateway().identity(),
                                 });
                                 break;
                             }

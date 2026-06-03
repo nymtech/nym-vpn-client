@@ -1471,6 +1471,7 @@ impl NymVpnService {
         completion_tx: oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
     ) {
         let gateway_client = self.gateway_cache_handle.clone();
+        let blacklisted = self.gateway_provider.blacklisted_gateways();
 
         tokio::spawn(async move {
             // todo: pass options.user_agent with request
@@ -1481,7 +1482,14 @@ impl NymVpnService {
                     gw_type: options.gw_type,
                     source,
                 })
-                .map(|gateways| gateways.into_iter().map(Gateway::from).collect::<Vec<_>>());
+                .map(|gateways| {
+                    let blacklisted_ids = blacklisted.get_active_ids();
+                    gateways
+                        .into_iter()
+                        .filter(|gw| !blacklisted_ids.contains(&gw.identity))
+                        .map(Gateway::from)
+                        .collect::<Vec<_>>()
+                });
 
             completion_tx.send(result).ok();
         });
@@ -1494,13 +1502,21 @@ impl NymVpnService {
     ) {
         let gateway_client = self.gateway_cache_handle.clone();
         let gw_type = filters.gw_type;
+        let blacklisted = self.gateway_provider.blacklisted_gateways();
 
         tokio::spawn(async move {
             let result = gateway_client
                 .lookup_filtered_gateways(filters.into())
                 .await
                 .map_err(|source| ListGatewaysError::GetFilteredGateways { gw_type, source })
-                .map(|gateways| gateways.into_iter().map(Gateway::from).collect::<Vec<_>>());
+                .map(|gateways| {
+                    let blacklisted_ids = blacklisted.get_active_ids();
+                    gateways
+                        .into_iter()
+                        .filter(|gw| !blacklisted_ids.contains(&gw.identity))
+                        .map(Gateway::from)
+                        .collect::<Vec<_>>()
+                });
 
             completion_tx.send(result).ok();
         });

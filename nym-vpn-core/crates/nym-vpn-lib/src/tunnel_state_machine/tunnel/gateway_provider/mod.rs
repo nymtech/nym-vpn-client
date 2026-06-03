@@ -254,6 +254,10 @@ impl<C: GatewayCache> GatewayProvider<C> {
         self.gateway_cache.refresh_all().await.ok();
     }
 
+    pub fn blacklisted_gateways(&self) -> BlacklistedGateways {
+        self.blacklisted_gateways.clone()
+    }
+
     pub async fn add_blacklisted_gateway(&self, gateway_identifier: NodeIdentity) {
         if let Err(e) = self.blacklisted_gateways.add(gateway_identifier) {
             tracing::error!(
