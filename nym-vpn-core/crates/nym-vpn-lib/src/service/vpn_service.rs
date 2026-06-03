@@ -5,15 +5,15 @@ use std::{
     collections::HashSet,
     net::IpAddr,
     path::PathBuf,
-    pin::{Pin, pin},
+    pin::{pin, Pin},
     sync::Arc,
 };
 
-use futures::{FutureExt, StreamExt, future::Fuse};
+use futures::{future::Fuse, FutureExt, StreamExt};
 use nym_diagnostic::DiagnosticHandler;
-use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
-    sync::{RwLock, broadcast, mpsc, oneshot, watch},
+    sync::{broadcast, mpsc, oneshot, watch, RwLock},
     task::JoinHandle,
     time::{Duration, Instant},
 };
@@ -54,14 +54,14 @@ use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
 use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
 
 use super::{
-    Socks5Error, Socks5Service, Socks5Status,
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
+    config::{NetworkEnvironments, VpnServiceConfigManager}, error::{
         AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
-    },
-    socks5::Socks5EnableConfig,
-    socks5_idle_timeout, socks5_request_timeout,
+    }, socks5::Socks5EnableConfig,
+    socks5_idle_timeout,
+    socks5_request_timeout,
+    Socks5Error,
+    Socks5Service, Socks5Status,
 };
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
@@ -70,14 +70,14 @@ use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
-    DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
-    config::GlobalConfig,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
-    logging::LogFileRemoverHandle,
-    tunnel_state_machine::{
-        NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
-        tunnel::gateway_provider::GatewayProvider,
+    config::GlobalConfig, gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, logging::LogFileRemoverHandle, tunnel_state_machine::{
+        tunnel::gateway_provider::GatewayProvider, NymConfig, TunnelCommand, TunnelConstants,
+        TunnelStateMachine,
     },
+    NodeIdentity,
+    UserAgent,
+    VpnTopologyService,
+    DEFAULT_DNS_SERVERS_CONFIG,
 };
 
 // Seed used to generate device identity keys
@@ -1472,7 +1472,6 @@ impl NymVpnService {
     ) {
         let gateway_client = self.gateway_cache_handle.clone();
         let gw_type = options.gw_type;
-
         let mut filters = GatewayFilters::default();
         let blacklisted = self.gateway_provider.blacklisted_gateways();
         if !blacklisted.is_empty().unwrap_or(true) {
@@ -1503,8 +1502,6 @@ impl NymVpnService {
         let gateway_client = self.gateway_cache_handle.clone();
         let gw_type = filters.gw_type;
         let mut filters: nym_gateway_directory::LookupGatewayFilters = filters.into();
-
-        // Exclude blacklisted gateways by adding a filter rather than post-filtering the results.
         let blacklisted = self.gateway_provider.blacklisted_gateways();
         if !blacklisted.is_empty().unwrap_or(true) {
             filters
