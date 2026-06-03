@@ -1,5 +1,6 @@
 import com.android.build.api.variant.BuildConfigField
 import com.android.build.api.variant.ResValue
+import com.android.build.api.variant.impl.VariantOutputImpl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -26,18 +27,8 @@ val languagesArray: Provider<String> = providers.provider {
 	languageList().joinToString(separator = ", ") { "\"$it\"" }
 }
 
-val versionNameProvider: Provider<String> = providers.provider {
-	val taskName = getBuildTaskName().lowercase()
-	if (taskName.contains(Constants.NIGHTLY) || taskName.contains(Constants.PRERELEASE)) {
-		val hash = currentAbbreviatedHash.getOrElse("unknown")
-		"${Constants.VERSION_NAME}-$hash"
-	} else {
-		Constants.VERSION_NAME
-	}
-}
-
 base {
-	archivesName.set(versionNameProvider.map { v: String -> "${Constants.APP_NAME}-$v" })
+	archivesName.set(Constants.APP_NAME)
 }
 
 kotlin {
@@ -82,7 +73,7 @@ android {
 		minSdk = Constants.MIN_SDK
 		targetSdk = Constants.TARGET_SDK
 		versionCode = Constants.VERSION_CODE
-		versionName = versionNameProvider.get()
+		versionName = Constants.VERSION_NAME
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 		vectorDrawables {
@@ -189,8 +180,15 @@ androidComponents {
 	onVariants { variant ->
 		val flavor = variant.flavorName ?: ""
 		val type = variant.buildType ?: ""
-		val version = variant.outputs.first().versionName.getOrElse("")
+		val version = when (type) {
+			Constants.NIGHTLY, Constants.PRERELEASE -> "${Constants.VERSION_NAME}-${currentAbbreviatedHash.getOrElse("unknown")}"
+			else -> Constants.VERSION_NAME
+		}
 		val fullName = "${Constants.APP_NAME}-$flavor-$type-$version"
+
+		variant.outputs.forEach { output ->
+			(output as? VariantOutputImpl)?.outputFileName?.set("$fullName.apk")
+		}
 
 		variant.buildConfigFields?.put("APP_NAME", BuildConfigField("String", "\"$fullName\"", "App Name"))
 		variant.resValues.put(variant.makeResValueKey("string", "fullVersionName"), ResValue(fullName))
@@ -266,5 +264,3 @@ dependencies {
 	// credentials
 	implementation(libs.credentials)
 }
-
-fun determineVersionName(): String = versionNameProvider.get()
