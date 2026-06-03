@@ -170,7 +170,7 @@ class VpnService :
 		foreground.cancelForegroundNotificationSafely()
 
 		tun.closeInterfaceSafely()
-		ioScope.launch { core.disconnectBestEffort("revoke") }
+		runBlocking(Dispatchers.IO) { runCatching { core.disconnectBestEffort("revoke") } }
 
 		super.onRevoke()
 	}

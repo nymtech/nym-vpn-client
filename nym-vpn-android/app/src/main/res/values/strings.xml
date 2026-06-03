@@ -201,7 +201,7 @@
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Not protected</string>
 	<string name="connection_status_fast_mode">Fast mode protection</string>
-	<string name="connection_status_anonymous">Anonymous protection</string>
+	<string name="connection_status_anonymous">Mixnet protection</string>
 	<!-- Hop Screen -->
 	<string name="gateway_best">Best server</string>
 	<string name="gateway_random">Random server</string>
