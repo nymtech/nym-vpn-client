@@ -3,7 +3,7 @@
 
 use crate::{commands::ReturnSender, error::Error};
 use nym_vpn_api_client::types::{Device, VpnAccount};
-use nym_vpn_lib_types::StorableAccount;
+use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 use nym_vpn_store::VpnStorage;
 
 #[derive(Debug)]
@@ -99,6 +99,33 @@ where
             })
     }
 
+    pub(crate) async fn load_account_summary(&self) -> Result<Option<VpnAccountSummary>, Error> {
+        self.storage
+            .load_summary()
+            .await
+            .map_err(|err| Error::AccountSummaryStore {
+                source: Box::new(err),
+            })
+    }
+
+    async fn store_account_summary(&self, summary: VpnAccountSummary) -> Result<(), Error> {
+        self.storage
+            .store_summary(summary)
+            .await
+            .map_err(|err| Error::AccountSummaryStore {
+                source: Box::new(err),
+            })
+    }
+
+    async fn remove_account_summary(&self) -> Result<(), Error> {
+        self.storage
+            .remove_summary()
+            .await
+            .map_err(|err| Error::AccountSummaryStore {
+                source: Box::new(err),
+            })
+    }
+
     async fn init_account(&self, account: StorableAccount) -> Result<Device, Error> {
         self.init_keys().await?;
         let device = self
@@ -118,7 +145,12 @@ where
 
     async fn forget_account(&self) -> Result<(), Error> {
         self.remove_account().await?;
-        self.remove_device_keys().await
+        self.remove_device_keys().await?;
+        // The cached summary is non-critical; don't fail the whole forget if its removal fails.
+        if let Err(err) = self.remove_account_summary().await {
+            tracing::warn!("Failed to remove cached account summary on forget: {err}");
+        }
+        Ok(())
     }
 
     pub(crate) async fn handle_storage_op(&self, op: AccountStorageOp) {
@@ -135,6 +167,17 @@ where
             AccountStorageOp::ResetKeys(result_tx, seed) => {
                 result_tx.send(self.reset_and_load_keys(seed).await)
             }
+            // Summary persistence is a best-effort cache: log failures rather than surfacing them.
+            AccountStorageOp::StoreAccountSummary(summary) => {
+                if let Err(err) = self.store_account_summary(*summary).await {
+                    tracing::warn!("Failed to persist account summary: {err}");
+                }
+            }
+            AccountStorageOp::RemoveAccountSummary => {
+                if let Err(err) = self.remove_account_summary().await {
+                    tracing::warn!("Failed to remove cached account summary: {err}");
+                }
+            }
         }
     }
 }
@@ -144,4 +187,8 @@ pub(crate) enum AccountStorageOp {
     StoreAccount(ReturnSender<Device, Error>, StorableAccount),
     ForgetAccount(ReturnSender<(), Error>),
     ResetKeys(ReturnSender<Device, Error>, Option<[u8; 32]>),
+    /// Persist the latest account summary to the cache (best-effort, fire-and-forget).
+    StoreAccountSummary(Box<VpnAccountSummary>),
+    /// Drop the cached account summary (best-effort, fire-and-forget).
+    RemoveAccountSummary,
 }

@@ -8,7 +8,8 @@ use crate::{
     commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
     state_machine::{
         ACCOUNT_UPDATE_INTERVAL, AccountControllerStateHandler, LoggedOutState,
-        NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncingState,
+        NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncMode,
+        SyncingNetworkState, syncing_state,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -25,7 +26,8 @@ use tracing::warn;
 /// Crucially, we are online and an account is stored.
 ///
 /// Possible next state :
-/// - SyncingState : We go into that state on a timer, to see if the problem persists. The refresh account commands allows for manually go there
+/// - SyncingNetworkState : On a timer or a refresh command we optimistically re-sync to see if the
+///   problem persists; a force refresh drops the cached summary and re-syncs in mandatory mode
 /// - OfflineState : the connectivity monitor is telling we're not connected
 /// - LoggedOutState : We successfully handled a forget_account command
 pub struct ErrorState {
@@ -66,7 +68,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                     tracing::debug!("VPN API is firewalled, timed account syncing skipped");
                     return NextAccountControllerState::NewState(ErrorState::enter(self.reason));
                 } else {
-                    return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
                 }
             },
             Some(command) = command_rx.recv() => {
@@ -82,7 +84,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         let error = res.is_err();
                         return_sender.send(res);
                         if error {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
                         } else {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
@@ -104,7 +106,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         if error {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
@@ -112,7 +114,15 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         if shared_state.firewall_active {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                        }
+                    },
+                    AccountCommand::ForceRefreshAccountState(return_sender) => {
+                        return_sender.send(Ok(()));
+                        if shared_state.firewall_active {
+                            return NextAccountControllerState::SameState(self);
+                        } else {
+                            return syncing_state::force_refresh(shared_state);
                         }
                     },
 

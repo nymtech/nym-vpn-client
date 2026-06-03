@@ -6,8 +6,8 @@ use crate::{
     shared_state::SharedAccountState,
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
-        PrivateAccountControllerState, RequestingZkNymsState, SyncingState,
-        UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL,
+        PrivateAccountControllerState, RequestingZkNymsState, SyncMode, SyncingNetworkState,
+        UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL, syncing_state,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -29,7 +29,7 @@ const UM_STATE_CONTEXT: &str = "UPGRADE_MODE_STATE";
 ///   to make sure the above still holds and so that we could refresh our JWT if it's close to expiry.
 /// - ErrorState : An error happened, preventing us to proceed.
 /// - LoggedOutState : A successful forget account command was handled
-/// - SyncingState : A successful disable upgrade mode command was handled
+/// - SyncingNetworkState : A successful disable upgrade mode command was handled
 pub struct UpgradeModeState {
     refresh_timer: Pin<Box<Sleep>>,
 }
@@ -73,7 +73,7 @@ impl UpgradeModeState {
                     // instead of crashing
                     if until_expiration.is_negative() {
                         info!("the retrieved upgrade mode JWT expired immediately");
-                        return SyncingState::enter(shared_state, 0);
+                        return SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic);
                     }
                     until_expiration.unsigned_abs()
                 } else {
@@ -164,7 +164,11 @@ impl UpgradeModeState {
                     if let Err(error_state) = Self::on_exit(shared_state).await {
                         return error_state.into();
                     }
-                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                    NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                        shared_state,
+                        0,
+                        SyncMode::Optimistic,
+                    ))
                 };
             }
             AccountCommand::RefreshAccountState(return_sender) => {
@@ -176,10 +180,23 @@ impl UpgradeModeState {
                     if let Err(error_state) = Self::on_exit(shared_state).await {
                         return error_state.into();
                     }
-                    return NextAccountControllerState::NewState(SyncingState::enter(
+                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(
                         shared_state,
                         0,
+                        SyncMode::Optimistic,
                     ));
+                }
+            }
+            AccountCommand::ForceRefreshAccountState(return_sender) => {
+                return_sender.send(Ok(()));
+                if shared_state.firewall_active {
+                    warn!("firewall is active - unable to refresh account state");
+                    return NextAccountControllerState::SameState(self);
+                } else {
+                    if let Err(error_state) = Self::on_exit(shared_state).await {
+                        return error_state.into();
+                    }
+                    return syncing_state::force_refresh(shared_state);
                 }
             }
             AccountCommand::VpnApiFirewallDown(return_sender) => {
@@ -202,9 +219,10 @@ impl UpgradeModeState {
                     if let Err(error_state) = Self::on_exit(shared_state).await {
                         return error_state.into();
                     }
-                    return NextAccountControllerState::NewState(SyncingState::enter(
+                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(
                         shared_state,
                         0,
+                        SyncMode::Optimistic,
                     ));
                 }
             },

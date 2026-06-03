@@ -8,7 +8,7 @@ use crate::{
     },
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState,
-        PrivateAccountControllerState, SyncingState,
+        PrivateAccountControllerState, SyncMode, SyncingNetworkState,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -27,7 +27,7 @@ use tracing::warn;
 ///
 ///
 /// Possible next state :
-/// - SyncingState : A successful store_account command handling leads us into SyncingState, to determine where we are at
+/// - SyncingNetworkState : A successful store_account command handling leads us into SyncingNetworkState, to determine where we are at
 /// - OfflineState : the connectivity monitor is telling we're not connected
 ///
 pub struct LoggedOutState;
@@ -55,7 +55,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await);
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
                     }
                     AccountCommand::StoreAccount(return_sender, storable_account) => {
                         return if let Err(e) = handler::handle_store_account(shared_state, storable_account).await{
@@ -63,7 +63,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
                             NextAccountControllerState::SameState(self)
                         } else {
                             return_sender.send(Ok(()));
-                            NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                            NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic))
                         }
                     },
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
@@ -76,6 +76,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState
 
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_account(return_sender),
                     AccountCommand::RefreshAccountState(return_sender) => return_no_account(return_sender),
+                    AccountCommand::ForceRefreshAccountState(return_sender) => return_no_account(return_sender),
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
                         shared_state.firewall_active = false;
                         return_sender.send(Ok(()));

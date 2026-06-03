@@ -175,6 +175,12 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
             AccountCommandError::Storage(source.to_string())
         })?; // Handling account removal error
 
+    // Removing account summary
+    shared_state
+        .storage_op_sender
+        .send(AccountStorageOp::RemoveAccountSummary)
+        .map_err(AccountCommandError::internal)?;
+
     // Once we have removed or reset all storage, we need to reset the account state
     shared_state.vpn_api_account = None;
     shared_state.device = None;

@@ -252,10 +252,23 @@ async fn ready_state_command() -> anyhow::Result<()> {
         .assert_state(AccountControllerState::ReadyToConnect)
         .await;
 
+    // A local refresh re-evaluates the cached summary and lands back in the ready state.
     assert_eq!(
         test_bench
             .command_sender
             .background_refresh_account_state()
+            .await,
+        Ok(())
+    );
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    // A force refresh re-syncs with the VPN API, going through the syncing state.
+    assert_eq!(
+        test_bench
+            .command_sender
+            .force_refresh_account_state()
             .await,
         Ok(())
     );
@@ -360,10 +373,25 @@ async fn error_state_command() -> anyhow::Result<()> {
         ))
         .await;
 
+    // A local refresh re-evaluates the cached summary and lands back in the error state.
     assert_eq!(
         test_bench
             .command_sender
             .background_refresh_account_state()
+            .await,
+        Ok(())
+    );
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::MaxDeviceReached,
+        ))
+        .await;
+
+    // A force refresh re-syncs with the VPN API, going through the syncing state.
+    assert_eq!(
+        test_bench
+            .command_sender
+            .force_refresh_account_state()
             .await,
         Ok(())
     );

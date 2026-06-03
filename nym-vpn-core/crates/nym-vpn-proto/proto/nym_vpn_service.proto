@@ -932,6 +932,11 @@ message VpnAccountSummary {
   optional Subscription subscription = 12;
   bool is_subscription_stacked = 13;
   bool fair_usage_data_unavailable = 14;
+  VpnAccountStatus account_status = 15;
+  uint64 remaining_devices = 16;
+  bool is_device_active = 17;
+  optional google.protobuf.Timestamp last_synced_utc = 18;
+  bool time_synced = 19;
 }
 
 message NymVpnSubscription {

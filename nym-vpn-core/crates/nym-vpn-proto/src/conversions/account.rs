@@ -8,6 +8,8 @@ use nym_vpn_lib_types::{
     VpnApiError, VpnApiErrorResponse,
 };
 
+use time::OffsetDateTime;
+
 use crate::{
     conversions::{
         ConversionError,
@@ -291,6 +293,20 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
 
         let subscription = value.subscription.map(Subscription::try_from).transpose()?;
 
+        let account_status: VpnAccountStatus = proto::VpnAccountStatus::try_from(value.account_status)
+            .map(VpnAccountStatus::from)
+            .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.account_status"))?;
+
+        let last_synced_utc = value
+            .last_synced_utc
+            .map(|ts| {
+                prost_timestamp_into_offset_datetime(ts).map_err(|e| {
+                    ConversionError::ConvertTime("VpnAccountSummary.last_synced_utc", e)
+                })
+            })
+            .transpose()?
+            .unwrap_or_else(OffsetDateTime::now_utc);
+
         Ok(Self {
             traffic_used_gb: value.traffic_used_gb,
             traffic_limit_gb: value.traffic_limit_gb,
@@ -302,6 +318,11 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             account_mode,
             subscription,
             is_subscription_stacked: value.is_subscription_stacked,
+            account_status,
+            remaining_devices: value.remaining_devices,
+            is_device_active: value.is_device_active,
+            last_synced_utc,
+            time_synced: value.time_synced,
         })
     }
 }
@@ -325,6 +346,9 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
 
         let subscription = value.subscription.map(proto::Subscription::from);
 
+        let account_status = proto::VpnAccountStatus::from(value.account_status) as i32;
+        let last_synced_utc = Some(offset_datetime_into_proto_timestamp(value.last_synced_utc));
+
         Self {
             traffic_used_gb: value.traffic_used_gb,
             traffic_limit_gb: value.traffic_limit_gb,
@@ -336,6 +360,11 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             account_mode,
             subscription,
             is_subscription_stacked: value.is_subscription_stacked,
+            account_status,
+            remaining_devices: value.remaining_devices,
+            is_device_active: value.is_device_active,
+            last_synced_utc,
+            time_synced: value.time_synced,
         }
     }
 }

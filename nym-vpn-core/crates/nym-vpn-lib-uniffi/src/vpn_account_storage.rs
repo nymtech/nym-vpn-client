@@ -335,6 +335,7 @@ impl NymVpnAccountStorage {
         let mut vpn_account_summary =
             VpnAccountSummary::try_from(&summary.account_summary).map_err(VpnError::internal)?;
         vpn_account_summary.account_mode = Some(account_mode);
+        vpn_account_summary.is_device_active = summary.active_device.is_some();
 
         Ok(Some(vpn_account_summary))
     }
