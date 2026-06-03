@@ -106,6 +106,128 @@ fn parse_lnk(lnk_path: &Path) -> Option<App> {
     })
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+    use std::fs;
+    use std::path::PathBuf;
+
+    fn scratch_dir(tag: &str) -> PathBuf {
+        let dir = std::env::temp_dir()
+            .join(format!("nymvpn-win-disc-{}-{}", std::process::id(), tag));
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    // --- parse_lnk name filtering ---
+    // The "uninstall" / "remove" check fires before any COM call, so these
+    // tests do not need a real .lnk file on disk.
+
+    #[test]
+    fn parse_lnk_rejects_names_containing_uninstall() {
+        for name in &[
+            "Uninstall App.lnk",
+            "uninstall.lnk",
+            "UNINSTALL Me.lnk",
+            "App Uninstaller.lnk",
+        ] {
+            assert!(
+                parse_lnk(Path::new(name)).is_none(),
+                "{name} should be filtered out"
+            );
+        }
+    }
+
+    #[test]
+    fn parse_lnk_rejects_names_containing_remove() {
+        for name in &["Remove App.lnk", "remove.lnk", "REMOVE This.lnk"] {
+            assert!(
+                parse_lnk(Path::new(name)).is_none(),
+                "{name} should be filtered out"
+            );
+        }
+    }
+
+    // For completeness: a non-filtered name also returns None when the file
+    // does not exist (COM resolution fails gracefully).
+    #[test]
+    fn parse_lnk_returns_none_for_nonexistent_lnk() {
+        assert!(parse_lnk(Path::new("ValidApp.lnk")).is_none());
+    }
+
+    // --- scan_lnk_dir directory walking ---
+
+    #[test]
+    fn scan_lnk_dir_empty_directory_yields_no_apps() {
+        let dir = scratch_dir("scan-empty");
+        let mut apps: HashMap<String, App> = HashMap::new();
+        scan_lnk_dir(&dir, &mut apps);
+        assert!(apps.is_empty());
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn scan_lnk_dir_ignores_non_lnk_files() {
+        let dir = scratch_dir("scan-nonlnk");
+        fs::write(dir.join("app.exe"), b"").unwrap();
+        fs::write(dir.join("readme.txt"), b"").unwrap();
+        fs::write(dir.join("config.ini"), b"").unwrap();
+
+        let mut apps: HashMap<String, App> = HashMap::new();
+        scan_lnk_dir(&dir, &mut apps);
+        assert!(apps.is_empty());
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn scan_lnk_dir_skips_malformed_lnk_files() {
+        // Files with a .lnk extension that aren't real shortcuts are silently skipped.
+        let dir = scratch_dir("scan-invalid");
+        fs::write(dir.join("MyApp.lnk"), b"not a real lnk").unwrap();
+
+        let mut apps: HashMap<String, App> = HashMap::new();
+        scan_lnk_dir(&dir, &mut apps);
+        assert!(apps.is_empty());
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn scan_lnk_dir_filters_uninstall_lnk_by_name() {
+        let dir = scratch_dir("scan-filter");
+        fs::write(dir.join("Uninstall App.lnk"), b"dummy").unwrap();
+        fs::write(dir.join("Remove Old Version.lnk"), b"dummy").unwrap();
+
+        let mut apps: HashMap<String, App> = HashMap::new();
+        scan_lnk_dir(&dir, &mut apps);
+        assert!(apps.is_empty(), "uninstall/remove shortcuts must be excluded");
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn scan_lnk_dir_handles_nonexistent_directory_gracefully() {
+        let nonexistent = Path::new(r"C:\NymVPNTest\Definitely\Does\Not\Exist");
+        let mut apps: HashMap<String, App> = HashMap::new();
+        scan_lnk_dir(nonexistent, &mut apps);
+        assert!(apps.is_empty());
+    }
+
+    // --- start_menu_dirs shape ---
+
+    #[test]
+    fn start_menu_dirs_are_nonempty_and_all_reference_start_menu() {
+        let dirs = start_menu_dirs();
+        assert!(!dirs.is_empty());
+        for dir in dirs {
+            let s = dir.to_string_lossy();
+            assert!(
+                s.contains("Start Menu"),
+                "expected 'Start Menu' in path: {s}"
+            );
+        }
+    }
+}
+
 // COM / IShellLink
 
 /// Resolve the target `.exe` path of a `.lnk` file via the Windows Shell COM API.
