@@ -344,6 +344,7 @@
     },
     "error": {
       "failed-to-open-app": "Failed to open app",
+      "launch-failed": "Couldn't launch {{name}}",
       "failed-to-enable-split-tunneling": "Failed to enable split tunneling",
       "failed-to-add-app-to-split-tunneling": "Failed to add app to split tunneling",
       "failed-to-remove-app-from-split-tunneling": "Failed to remove app from split tunneling",

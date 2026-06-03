@@ -17,6 +17,8 @@ import AppItem, { AppEntry } from './AppItem';
 import { parseExecArgs, useSplitTunnel } from './utils';
 import { PROBLEMATIC_APPS } from './utils/constants';
 
+const LAUNCH_FAILURE_WINDOW_MS = 2500;
+
 function SplitTunneling() {
   const os = type();
 
@@ -46,6 +48,11 @@ function SplitTunneling() {
 
   const spawnApp = useCallback(
     async (app: AppEntry) => {
+      // Buffer stderr and remember when we launched, so an early non-zero exit
+      // can be surfaced to the user as a failed launch
+      const stderrLines: string[] = [];
+      const spawnedAt = Date.now();
+
       try {
         const command = Command.create(
           'nym-exclude',
@@ -59,16 +66,40 @@ function SplitTunneling() {
           { env: { GDK_BACKEND: 'wayland,x11' } },
         );
 
-        // Surface the launched process' stderr so launch failures aren't silent.
-        command.stderr.on('data', (line) =>
-          console.error('[nym-exclude][stderr]', line),
-        );
+        command.stderr.on('data', (line) => {
+          console.error('[nym-exclude][stderr]', line);
+          const trimmed = line.trim();
+          if (trimmed) stderrLines.push(trimmed);
+        });
 
         command.on('close', (data) => {
           console.info('[nym-exclude] process closed', {
             code: data.code,
             signal: data.signal,
           });
+
+          // Detect a failed launch: non-zero exit code, or killed by a signal
+          const exitedAbnormally =
+            data.code === null ? data.signal !== null : data.code !== 0;
+          const exitedQuickly =
+            Date.now() - spawnedAt < LAUNCH_FAILURE_WINDOW_MS;
+          if (exitedAbnormally && exitedQuickly) {
+            const maxLen = 300;
+            let detail = stderrLines.join('\n').slice(0, maxLen);
+            if (stderrLines.join('\n').length > maxLen) {
+              detail += '...';
+            }
+
+            addToast({
+              id: `launch-failed-${app.name}`,
+              title: t('split-tunneling.error.launch-failed', {
+                name: app.name,
+              }),
+              description: detail || undefined,
+              type: 'error',
+            });
+          }
+
           setRunningApps((prev) => {
             const pids = prev[app.name];
             if (!pids) return prev;
