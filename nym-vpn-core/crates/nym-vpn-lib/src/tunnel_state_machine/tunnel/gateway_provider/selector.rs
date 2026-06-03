@@ -168,18 +168,16 @@ fn find_best_exit_gateway(
 
 fn select_entry(
     mut entry_gateways: GatewayList,
-    blacklisted_entry_gateways: &BlacklistedGateways,
+    blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
     let entry_point = EntryPoint::from(*tunnel_settings.entry_point.clone());
 
-    let entry_filters = if blacklisted_entry_gateways.is_empty().unwrap_or(true) {
+    let entry_filters = if blacklisted_gateways.is_empty().unwrap_or(true) {
         GatewayFilters::default()
     } else {
-        GatewayFilters::from(&[GatewayFilter::NotBlacklisted(
-            blacklisted_entry_gateways.clone(),
-        )])
+        GatewayFilters::from(&[GatewayFilter::NotBlacklisted(blacklisted_gateways.clone())])
     };
 
     let gateway_selection_algorithm = tunnel_settings
@@ -212,7 +210,7 @@ fn select_entry(
 fn select_exit(
     entry_gateway: &Gateway,
     mut exit_gateways: GatewayList,
-    blacklisted_exit_gateways: &BlacklistedGateways,
+    blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
@@ -265,10 +263,8 @@ fn select_exit(
         exit_filter_items.push(GatewayFilter::Residential);
         exit_filter_items.push(GatewayFilter::Exit);
     }
-    if !blacklisted_exit_gateways.is_empty().unwrap_or(true) {
-        exit_filter_items.push(GatewayFilter::NotBlacklisted(
-            blacklisted_exit_gateways.clone(),
-        ));
+    if !blacklisted_gateways.is_empty().unwrap_or(true) {
+        exit_filter_items.push(GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()));
     }
     let exit_filters = GatewayFilters::from(&exit_filter_items);
 
