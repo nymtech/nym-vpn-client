@@ -14,6 +14,7 @@ use nym_vpn_lib_types::{GatewayIndependence, GatewaySelectionAlgorithm};
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
 use crate::tunnel_state_machine::{
+    TunnelSettings, TunnelType,
     tunnel::{
         self,
         gateway_provider::{
@@ -22,8 +23,7 @@ use crate::tunnel_state_machine::{
             geo_ip::{closest_gateway, same_jurisdiction},
             independence::gateways_are_independent,
         },
-    }, TunnelSettings,
-    TunnelType,
+    },
 };
 
 #[derive(Clone)]
