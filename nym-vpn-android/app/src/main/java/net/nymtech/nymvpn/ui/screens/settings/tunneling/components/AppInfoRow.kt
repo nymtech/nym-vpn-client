@@ -71,7 +71,7 @@ fun AppInfoRow(appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableI
 				modifier = Modifier
 					.size(50.dp.scaledHeight(), 24.dp.scaledHeight())
 					.background(
-						color = if (!appInfo.passThroughVpn) scheme.errorContainer else scheme.background,
+						color = if (!appInfo.passThroughVpn) scheme.errorContainer else scheme.secondary,
 						shape = RoundedCornerShape(24.dp.scaledHeight()),
 					),
 				contentAlignment = Alignment.Center,
@@ -88,7 +88,7 @@ fun AppInfoRow(appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableI
 				modifier = Modifier
 					.size(50.dp.scaledHeight(), 24.dp.scaledHeight())
 					.background(
-						color = if (appInfo.passThroughVpn) scheme.primaryContainer else scheme.background,
+						color = if (appInfo.passThroughVpn) scheme.primary else scheme.secondary,
 						shape = RoundedCornerShape(24.dp.scaledHeight()),
 					),
 				contentAlignment = Alignment.Center,
@@ -97,7 +97,7 @@ fun AppInfoRow(appInfo: AppInfo, onTogglePassThrough: (String) -> Unit, mutableI
 					imageVector = Icons.Filled.Shield,
 					contentDescription = null,
 					modifier = Modifier.size(16.dp.scaledHeight()),
-					tint = if (appInfo.passThroughVpn) scheme.primary else scheme.onPrimaryContainer,
+					tint = if (appInfo.passThroughVpn) scheme.onPrimary else scheme.onSecondary,
 				)
 			}
 		}
