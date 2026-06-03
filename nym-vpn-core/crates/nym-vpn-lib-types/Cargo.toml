@@ -17,7 +17,6 @@ workspace = true
 [features]
 default = []
 nym-type-conversions = [
-    "dep:bip39",
     "dep:nym-bandwidth-controller",
     "dep:nym-gateway-directory",
     "dep:nym-network-defaults",
@@ -33,7 +32,7 @@ typescript-bindings = ["dep:ts-rs", "serde"]
 serde = ["dep:serde"]
 
 [dependencies]
-bip39 = { workspace = true, optional = true }
+bip39 = { workspace = true }
 si-scale = { workspace = true, features = ["lossy-conversions"] }
 strum.workspace = true
 strum_macros.workspace = true
