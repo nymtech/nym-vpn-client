@@ -212,6 +212,7 @@ fn select_entry(
 fn select_exit(
     entry_gateway: &Gateway,
     mut exit_gateways: GatewayList,
+    blacklisted_exit_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     device_location: Option<&Location>,
 ) -> Result<Gateway, GatewayProviderError> {
@@ -259,11 +260,17 @@ fn select_exit(
         }
     };
 
-    let exit_filters = if tunnel_settings.residential_exit {
-        GatewayFilters::from(&[GatewayFilter::Residential, GatewayFilter::Exit])
-    } else {
-        GatewayFilters::default()
-    };
+    let mut exit_filter_items: Vec<GatewayFilter> = Vec::new();
+    if tunnel_settings.residential_exit {
+        exit_filter_items.push(GatewayFilter::Residential);
+        exit_filter_items.push(GatewayFilter::Exit);
+    }
+    if !blacklisted_exit_gateways.is_empty().unwrap_or(true) {
+        exit_filter_items.push(GatewayFilter::NotBlacklisted(
+            blacklisted_exit_gateways.clone(),
+        ));
+    }
+    let exit_filters = GatewayFilters::from(&exit_filter_items);
 
     find_best_exit_gateway(&exit_gateways, exit_ordering_criteria, &exit_filters)
         .map_err(GatewayProviderError::ExitGatewayUnavailable)
@@ -272,7 +279,7 @@ fn select_exit(
 fn loop_select(
     mut entry_gateways: GatewayList,
     exit_gateways: GatewayList,
-    blacklisted_entry_gateways: &BlacklistedGateways,
+    blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     device_location: Option<&Location>,
 ) -> Result<(Gateway, Gateway), GatewayProviderError> {
@@ -280,7 +287,7 @@ fn loop_select(
     loop {
         let entry_gateway = select_entry(
             entry_gateways.clone(),
-            blacklisted_entry_gateways,
+            blacklisted_gateways,
             tunnel_settings,
             device_location,
         )
@@ -290,6 +297,7 @@ fn loop_select(
         match select_exit(
             &entry_gateway,
             exit_gateways.clone(),
+            blacklisted_gateways,
             tunnel_settings,
             device_location,
         ) {
@@ -305,7 +313,7 @@ fn loop_select(
 
 pub async fn select_gateways(
     gateway_cache: impl GatewayCache,
-    blacklisted_entry_gateways: &BlacklistedGateways,
+    blacklisted_gateways: &BlacklistedGateways,
     tunnel_settings: &TunnelSettings,
     device_location: Option<Location>,
     wg_keys_db: &WireguardKeysDb,
@@ -372,7 +380,7 @@ pub async fn select_gateways(
         if let Ok(pair) = loop_select(
             entry_gateways.clone(),
             exit_gateways.clone(),
-            blacklisted_entry_gateways,
+            blacklisted_gateways,
             tunnel_settings,
             device_location.as_ref(),
         ) {
@@ -387,7 +395,7 @@ pub async fn select_gateways(
             loop_select(
                 entry_gateways,
                 exit_gateways,
-                blacklisted_entry_gateways,
+                blacklisted_gateways,
                 &no_gateway_independence_settings,
                 device_location.as_ref(),
             )?;
@@ -397,13 +405,14 @@ pub async fn select_gateways(
     } else {
         let entry_gateway = select_entry(
             entry_gateways,
-            blacklisted_entry_gateways,
+            blacklisted_gateways,
             tunnel_settings,
             device_location.as_ref(),
         )?;
         let exit_gateway = select_exit(
             &entry_gateway,
             exit_gateways,
+            blacklisted_gateways,
             tunnel_settings,
             device_location.as_ref(),
         )?;
