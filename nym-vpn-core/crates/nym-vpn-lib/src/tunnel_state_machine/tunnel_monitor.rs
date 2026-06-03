@@ -251,12 +251,10 @@ pub struct TunnelMonitor {
 }
 
 /// Poll the exit WireGuard peer's UAPI stats until the handshake completes or we time out.
-///
-/// Returns `true` if the handshake completed, `false` if the timeout was reached.
 async fn wait_for_exit_handshake(
     tunnel_handle: &connected_tunnel::TunnelHandle,
     shutdown_token: &CancellationToken,
-) -> bool {
+) {
     const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(30);
     const POLL_INTERVAL: Duration = Duration::from_millis(200);
 
@@ -279,14 +277,12 @@ async fn wait_for_exit_handshake(
     match result {
         Ok(()) => {
             tracing::debug!("Exit WireGuard handshake completed");
-            true
         }
         Err(_) => {
             tracing::warn!(
-                "Exit WireGuard handshake did not complete within {}s",
+                "Exit WireGuard handshake did not complete within {}s, proceeding",
                 HANDSHAKE_TIMEOUT.as_secs()
             );
-            false
         }
     }
 }
@@ -688,18 +684,8 @@ impl TunnelMonitor {
         }
 
         // The firewall now allows traffic through the tunnel. Wait for the exit WG handshake.
-        let handshake_ok = if let Some(wg_handle) = tunnel_handle.as_wireguard() {
-            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await
-        } else {
-            true
-        };
-
-        if !handshake_ok {
-            tracing::info!("Exit WireGuard handshake timed out; skipping connectivity check");
-            tunnel_handle.cancel();
-            tunnel_handle.wait().await.ok();
-            self.send_event(TunnelMonitorEvent::ConnectionFailed);
-            return Ok(Tombstone::default());
+        if let Some(wg_handle) = tunnel_handle.as_wireguard() {
+            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await;
         }
 
         // Send metadata endpoint data to the bandwidth controller
