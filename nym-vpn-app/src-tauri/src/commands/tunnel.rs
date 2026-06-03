@@ -257,6 +257,7 @@ pub async fn get_app_list(
     let discovered = tokio::task::spawn_blocking(move || get_installed_apps(app_handle))
         .await
         .map_err(|e| BackendError::internal(&e.to_string(), None))??;
+    #[cfg_attr(not(windows), allow(unused_mut))]
     let mut custom = custom_apps::load(&db)?;
 
     #[cfg(windows)]
@@ -394,6 +395,7 @@ pub async fn add_custom_split_tunnel_app(
 
 #[instrument(skip_all)]
 #[tauri::command]
+#[cfg_attr(not(windows), allow(unused_variables))]
 pub async fn remove_custom_split_tunnel_app(
     app: tauri::AppHandle,
     vpnd: State<'_, VpndClient>,
