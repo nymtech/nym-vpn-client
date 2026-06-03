@@ -7,7 +7,7 @@ use std::{
     ffi::{CStr, CString, c_char, c_void},
     fmt,
     net::SocketAddr,
-    sync::Arc,
+    sync::{Arc, RwLock},
     time::{Duration, SystemTime},
 };
 
@@ -144,7 +144,7 @@ pub struct TunnelConfig {
 /// Classic WireGuard tunnel.
 #[derive(Debug)]
 pub struct Tunnel {
-    tunnel_handle: i32,
+    tunnel_handle: Arc<RwLock<i32>>, // Handle is shared between Tunnel and TunnelStatsReader
     #[cfg(windows)]
     wintun_interface: WintunInterface,
 }
@@ -193,7 +193,9 @@ impl Tunnel {
         };
 
         if tunnel_handle >= 0 {
-            Ok(Self { tunnel_handle })
+            Ok(Self {
+                tunnel_handle: Arc::new(RwLock::new(tunnel_handle)),
+            })
         } else {
             Err(Error::StartTunnel(tunnel_handle))
         }
@@ -256,7 +258,7 @@ impl Tunnel {
             };
 
             Ok(Self {
-                tunnel_handle,
+                tunnel_handle: Arc::new(RwLock::new(tunnel_handle)),
                 wintun_interface,
             })
         } else {
@@ -285,7 +287,9 @@ impl Tunnel {
         };
 
         if tunnel_handle >= 0 {
-            Ok(Self { tunnel_handle })
+            Ok(Self {
+                tunnel_handle: Arc::new(RwLock::new(tunnel_handle)),
+            })
         } else {
             Err(Error::StartTunnel(tunnel_handle))
         }
@@ -307,7 +311,10 @@ impl Tunnel {
     /// Typically used on default route change.
     #[cfg(target_os = "ios")]
     pub fn bump_sockets(&mut self) {
-        unsafe { wgBumpSockets(self.tunnel_handle) }
+        let handle = self.tunnel_handle.read().unwrap();
+        if *handle >= 0 {
+            unsafe { wgBumpSockets(*handle) }
+        }
     }
 
     /// Re-bind tunnel socket to the new network interface.
@@ -325,7 +332,12 @@ impl Tunnel {
         }
         let settings = CString::new(config_builder.into_bytes())
             .map_err(|_| Error::ConvertToCString("peer update config"))?;
-        let ret_code = unsafe { wgSetConfig(self.tunnel_handle, settings.as_ptr()) };
+        let handle = self.tunnel_handle.read().unwrap();
+        let ret_code = if *handle >= 0 {
+            unsafe { wgSetConfig(*handle, settings.as_ptr()) }
+        } else {
+            99
+        };
 
         if ret_code == 0 {
             Ok(())
@@ -337,15 +349,17 @@ impl Tunnel {
     /// Create a stats reader that can query live peer stats without owning the tunnel.
     pub fn stats_reader(&self) -> TunnelStatsReader {
         TunnelStatsReader {
-            tunnel_handle: self.tunnel_handle,
+            tunnel_handle: self.tunnel_handle.clone(),
         }
     }
 
     fn stop_inner(&mut self) {
-        if self.tunnel_handle >= 0 {
-            unsafe { wgTurnOff(self.tunnel_handle) };
-            self.tunnel_handle = -1;
+        let handle = self.tunnel_handle.read().unwrap();
+        if *handle >= 0 {
+            unsafe { wgTurnOff(*handle) };
         }
+        drop(handle);
+        *self.tunnel_handle.write().unwrap() = -1;
     }
 }
 
@@ -392,7 +406,7 @@ impl TunnelStats {
 /// in practice this is guaranteed because [`TunnelHandle`] holds both the reader and the
 /// tunnel lifetime token.
 pub struct TunnelStatsReader {
-    tunnel_handle: i32,
+    tunnel_handle: Arc<RwLock<i32>>, // Handle is shared between Tunnel and TunnelStatsReader
 }
 
 impl TunnelStatsReader {
@@ -400,13 +414,16 @@ impl TunnelStatsReader {
     pub fn get_stats(&self) -> Option<TunnelStats> {
         // SAFETY: wgGetConfig is safe to call concurrently on a live tunnel handle; wireguard-go
         // holds a read lock internally. The handle remains valid for the TunnelHandle lifetime.
-        let raw = unsafe { wgGetConfig(self.tunnel_handle) };
-        if raw.is_null() {
-            return None;
+        let handle = self.tunnel_handle.read().unwrap();
+        if *handle >= 0 {
+            let raw = unsafe { wgGetConfig(*handle) };
+            if !raw.is_null() {
+                let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
+                unsafe { wgFreePtr(raw as *mut c_void) };
+                return Some(Self::parse_tunnel_stats(&s));
+            }
         }
-        let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
-        unsafe { wgFreePtr(raw as *mut c_void) };
-        Some(Self::parse_tunnel_stats(&s))
+        None
     }
 
     /// Parse the UAPI GET response into a [`TunnelStats`].
