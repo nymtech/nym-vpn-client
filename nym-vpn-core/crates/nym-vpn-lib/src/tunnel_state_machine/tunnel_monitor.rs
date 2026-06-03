@@ -18,11 +18,11 @@ use std::{
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-use futures::{FutureExt, StreamExt, future::Fuse};
+use futures::{future::Fuse, FutureExt, StreamExt};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
-use nix::sys::socket::{SetSockOpt, sockopt::Mark};
+use nix::sys::socket::{sockopt::Mark, SetSockOpt};
 use nym_gateway_directory::{
     GatewayCacheHandle, GatewayClient, GatewayMinPerformance, NodeIdentity,
 };
@@ -38,7 +38,7 @@ use tun::AsyncDevice;
 use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
-use nym_common::{ErrorExt, trace_err_chain};
+use nym_common::{trace_err_chain, ErrorExt};
 use nym_connection_monitor::{
     ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
     TcpProbe, TcpProbeConfig, TimingConfig,
@@ -65,35 +65,35 @@ use super::tunnel::wireguard::connected_tunnel::TunTunTunnelOptions;
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
 use super::{
-    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{
-        self, AnyTunnelHandle, SelectedGateways, Tombstone,
-        wireguard::{
+        self, wireguard::{
             connected_tunnel,
             connected_tunnel::{NetstackTunnelOptions, TunnelOptions},
-        },
-    },
+        }, AnyTunnelHandle, SelectedGateways,
+        Tombstone,
+    }, Error, NymConfig, Result, TunnelInterface, TunnelMetadata,
+    TunnelSettings,
 };
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
-    bandwidth_controller::BandwidthController,
-    mixnet::VpnTopologyServiceHandle,
-    tunnel_state_machine::{
-        TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
-        tunnel::{
+    bandwidth_controller::BandwidthController, mixnet::VpnTopologyServiceHandle, tunnel_state_machine::{
+        account, ipv6_availability, tunnel::{
             gateway_provider::GatewayProvider,
             mixnet,
             transports::{self, TransportError},
             wireguard::{
-                ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
-                connected_tunnel::ConnectedTunnel,
+                connected_tunnel::ConnectedTunnel, ConnectionData as WgConnectionData, MetadataEvent,
+                MetadataReceiver,
             },
-        },
+        }, TunnelConstants,
+        WireguardMultihopMode,
     },
+    UserAgent,
+    DEFAULT_MIN_GATEWAY_PERFORMANCE,
+    DEFAULT_MIN_MIXNODE_PERFORMANCE,
 };
 
 /// Default MTU for mixnet tun device.
@@ -260,26 +260,19 @@ async fn wait_for_exit_handshake(
     tunnel_handle: &connected_tunnel::TunnelHandle,
     shutdown_token: &CancellationToken,
 ) {
-    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(5);
-    const POLL_INTERVAL: Duration = Duration::from_millis(200);
+    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(6);
+    const POLL_INTERVAL: Duration = Duration::from_millis(500);
 
     let started = std::time::Instant::now();
 
     let result = tokio::time::timeout(HANDSHAKE_TIMEOUT, async {
         loop {
-            match tunnel_handle.get_exit_stats() {
-                None => {
-                    tracing::debug!(
-                        "Exit WireGuard stats unavailable, still waiting for handshake"
-                    );
-                }
-                Some(stats) if stats.all_peers_connected() => {
-                    return;
-                }
-                Some(_) => {
-                    tracing::debug!("Exit WireGuard peer not yet connected, waiting for handshake");
-                }
+            if let Some(stats) = tunnel_handle.get_exit_stats()
+                && stats.all_peers_connected()
+            {
+                return;
             }
+
             tokio::select! {
                 _ = tokio::time::sleep(POLL_INTERVAL) => {}
                 _ = shutdown_token.cancelled() => return,

@@ -369,7 +369,6 @@ impl Drop for Tunnel {
     }
 }
 
-/// Stats for a single WireGuard peer, parsed from the UAPI GET response.
 #[derive(Debug, Clone)]
 pub struct PeerStats {
     pub public_key: [u8; 32],
@@ -380,13 +379,11 @@ pub struct PeerStats {
 }
 
 impl PeerStats {
-    /// Returns true if the WireGuard handshake with this peer has completed at least once.
     pub fn has_completed_handshake(&self) -> bool {
         self.last_handshake_time.is_some()
     }
 }
 
-/// Stats for a WireGuard tunnel, parsed from the UAPI GET response.
 #[derive(Debug, Clone)]
 pub struct TunnelStats {
     pub listen_port: Option<u16>,
@@ -394,42 +391,31 @@ pub struct TunnelStats {
 }
 
 impl TunnelStats {
-    /// Returns true if all peers have completed their initial handshake.
     pub fn all_peers_connected(&self) -> bool {
         !self.peers.is_empty() && self.peers.iter().all(|p| p.has_completed_handshake())
     }
 }
 
-/// Provides read-only access to a running tunnel's live stats via `wgGetConfig`.
-///
-/// Obtained from [`Tunnel::stats_reader`]. Only valid while the parent tunnel is alive —
-/// in practice this is guaranteed because [`TunnelHandle`] holds both the reader and the
-/// tunnel lifetime token.
 pub struct TunnelStatsReader {
     tunnel_handle: Arc<RwLock<i32>>, // Handle is shared between Tunnel and TunnelStatsReader
 }
 
 impl TunnelStatsReader {
-    /// Query the current tunnel stats. Returns `None` if the tunnel handle is invalid.
     pub fn get_stats(&self) -> Option<TunnelStats> {
-        // SAFETY: wgGetConfig is safe to call concurrently on a live tunnel handle; wireguard-go
-        // holds a read lock internally. The handle remains valid for the TunnelHandle lifetime.
         let handle = self.tunnel_handle.read().unwrap();
         if *handle >= 0 {
             let raw = unsafe { wgGetConfig(*handle) };
             if !raw.is_null() {
                 let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
                 unsafe { wgFreePtr(raw as *mut c_void) };
+                tracing::trace!("TunnelStats: '{s}'");
                 return Some(Self::parse_tunnel_stats(&s));
             }
         }
+        tracing::error!("Failed to get TunnelStats");
         None
     }
 
-    /// Parse the UAPI GET response into a [`TunnelStats`].
-    ///
-    /// The UAPI response has interface-level keys first, followed by zero or more peer blocks
-    /// each starting with a `public_key=` line.
     fn parse_tunnel_stats(response: &str) -> TunnelStats {
         let mut listen_port: Option<u16> = None;
         let mut peers: Vec<PeerStats> = Vec::new();

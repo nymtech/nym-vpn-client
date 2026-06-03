@@ -14,7 +14,6 @@ use nym_vpn_lib_types::{GatewayIndependence, GatewaySelectionAlgorithm};
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
 use crate::tunnel_state_machine::{
-    TunnelSettings, TunnelType,
     tunnel::{
         self,
         gateway_provider::{
@@ -23,7 +22,8 @@ use crate::tunnel_state_machine::{
             geo_ip::{closest_gateway, same_jurisdiction},
             independence::gateways_are_independent,
         },
-    },
+    }, TunnelSettings,
+    TunnelType,
 };
 
 #[derive(Clone)]
@@ -258,8 +258,9 @@ fn select_exit(
         }
     };
 
-    let mut exit_filter_items: Vec<GatewayFilter> = vec![GatewayFilter::Exit];
+    let mut exit_filter_items: Vec<GatewayFilter> = Vec::new();
     if tunnel_settings.residential_exit {
+        exit_filter_items.push(GatewayFilter::Exit);
         exit_filter_items.push(GatewayFilter::Residential);
     }
     if !blacklisted_gateways.is_empty().unwrap_or(true) {
