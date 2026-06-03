@@ -258,10 +258,9 @@ fn select_exit(
         }
     };
 
-    let mut exit_filter_items: Vec<GatewayFilter> = Vec::new();
+    let mut exit_filter_items: Vec<GatewayFilter> = vec![GatewayFilter::Exit];
     if tunnel_settings.residential_exit {
         exit_filter_items.push(GatewayFilter::Residential);
-        exit_filter_items.push(GatewayFilter::Exit);
     }
     if !blacklisted_gateways.is_empty().unwrap_or(true) {
         exit_filter_items.push(GatewayFilter::NotBlacklisted(blacklisted_gateways.clone()));
