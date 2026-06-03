@@ -26,6 +26,13 @@ impl From<WireguardTunnelHandle> for AnyTunnelHandle {
 }
 
 impl AnyTunnelHandle {
+    pub fn as_wireguard(&self) -> Option<&WireguardTunnelHandle> {
+        match self {
+            Self::Wireguard(handle) => Some(handle),
+            _ => None,
+        }
+    }
+
     pub fn cancel(&mut self) {
         tracing::trace!("Cancelling tunnel handle");
         match self {
