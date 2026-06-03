@@ -51,7 +51,6 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
-import net.nymtech.nymvpn.ui.screens.account.create.CreateAccountScreen
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingMode
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
@@ -63,7 +62,6 @@ import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
-import net.nymtech.nymvpn.ui.screens.scanner.ScannerScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
@@ -74,7 +72,6 @@ import net.nymtech.nymvpn.ui.screens.settings.diagnostic.DiagnosticScreen
 import net.nymtech.nymvpn.ui.screens.settings.dns.DnsScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
-import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
@@ -281,11 +278,6 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Support> { SupportScreen() }
 								composable<Route.Legal> { LegalScreen() }
 
-								composable<Route.Login>(
-									enterTransition = { fadeIn() },
-									exitTransition = { fadeOut() },
-								) { LoginScreen(appState, appViewModel) }
-
 								composable<Route.Licenses> { LicensesScreen() }
 								composable<Route.Censorship> { CensorshipScreen(appState) }
 
@@ -302,10 +294,8 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Display> { DisplayScreen(appState) }
 								composable<Route.Language> { LanguageScreen(appState, appViewModel) }
 								composable<Route.Developer> { DeveloperScreen(appState, appViewModel) }
-								composable<Route.LoginScanner> { ScannerScreen() }
 								composable<Route.Technical> { TechnicalOptScreen(appState) }
 								composable<Route.SelectPlan> { SelectPlanScreen(appViewModel) }
-								composable<Route.CreateAccount> { CreateAccountScreen(appState) }
 
 								composable<Route.Generating> {
 									GeneratingScreen()

@@ -75,7 +75,7 @@
 			android:theme="@style/Theme.NymVPN.Transparent" />
 
 		<service
-			android:name=".service.android.tile.VpnQuickTile"
+			android:name=".service.tile.VpnQuickTile"
 			android:exported="true"
 			android:icon="@drawable/ic_stat_name"
 			android:label="@string/app_name"

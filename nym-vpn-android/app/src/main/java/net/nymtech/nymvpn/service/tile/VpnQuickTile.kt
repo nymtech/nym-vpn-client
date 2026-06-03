@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.service.android.tile
+package net.nymtech.nymvpn.service.tile
 
 import android.os.Build
 import android.service.quicksettings.Tile
@@ -55,7 +55,7 @@ class VpnQuickTile :
 			if (!backendManager.isMnemonicStored()) return@launch setUnavailable()
 
 			backendManager.stateFlow.catch { error ->
-				Timber.e(error, "Error collecting VPN state flow in tile")
+				Timber.Forest.e(error, "Error collecting VPN state flow in tile")
 				setUnavailable()
 			}.collect {
 				updateTileForState(it.tunnelState)
@@ -130,7 +130,7 @@ class VpnQuickTile :
 	}
 
 	private suspend fun setTileText() {
-		kotlin.runCatching {
+		runCatching {
 			val entryPoint = vpnConfigRepository.getConfig().entryPoint
 			val exitPoint = vpnConfigRepository.getConfig().exitPoint
 			val mode = vpnConfigRepository.getConfig().mode
@@ -168,35 +168,35 @@ class VpnQuickTile :
 	}
 
 	private fun setActive() {
-		kotlin.runCatching {
+		runCatching {
 			qsTile.state = Tile.STATE_ACTIVE
 			qsTile.updateTile()
 		}
 	}
 
 	private fun setTitle(title: String) {
-		kotlin.runCatching {
+		runCatching {
 			qsTile.label = title
 			qsTile.updateTile()
 		}
 	}
 
 	private fun setInactive() {
-		kotlin.runCatching {
+		runCatching {
 			qsTile.state = Tile.STATE_INACTIVE
 			qsTile.updateTile()
 		}
 	}
 
 	private fun setUnavailable() {
-		kotlin.runCatching {
+		runCatching {
 			qsTile.state = Tile.STATE_UNAVAILABLE
 			qsTile.updateTile()
 		}
 	}
 
 	private fun setTileDescription(description: String) {
-		kotlin.runCatching {
+		runCatching {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 				qsTile.subtitle = description
 			}

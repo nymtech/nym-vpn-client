@@ -14,9 +14,7 @@
 	<string name="disconnect">Disconnect</string>
 	<string name="init_client">Initializing client…</string>
 	<string name="establishing_connection">Establishing connection</string>
-	<string name="connection_time">Connection time</string>
 	<string name="select_mode">Select mode</string>
-	<string name="connect_to">Connect to</string>
 	<string name="display_theme">Display theme</string>
 	<string name="light_theme">Light theme</string>
 	<string name="dark_theme">Dark theme</string>
@@ -26,8 +24,6 @@
 	<string name="search_country">Search country</string>
 	<string name="is_selected">Selected</string>
 	<string name="fastest">Fastest</string>
-	<string name="auto_connect">Auto-connect</string>
-	<string name="auto_connect_description">Connect when app opens</string>
 	<string name="logs">Logs</string>
 	<string name="support">Support</string>
 	<string name="privacy_link" translatable="false">https://nym.com/vpn-privacy-statement</string>
@@ -38,14 +34,12 @@
 	<string name="check_faq">Check the FAQ</string>
 	<string name="join_matrix">Join us on Matrix</string>
 	<string name="join_discord">Join us on Discord</string>
-	<string name="create_account_url" translatable="false">https://nym.com/account/create</string>
 	<string name="matrix_url" translatable="false">https://nym.com/go/matrix</string>
 	<string name="discord_url" translatable="false">https://nym.com/go/discord</string>
 	<string name="faq_url" translatable="false">https://support.nym.com/hc</string>
 	<string name="contact_url" translatable="false">https://support.nym.com/hc/requests/new</string>
 	<string name="github_issues_url" translatable="false">https://nym.com/go/github/nym-vpn-client/issues</string>
 	<string name="download_url" translatable="false">https://nym.com/download/android</string>
-	<string name="login">Login</string>
 	<string name="unknown">Unknown</string>
 	<string name="no_scm_found">Source code url not found</string>
 	<string name="terms_link" translatable="false">https://nym.com/vpn-terms</string>
@@ -54,12 +48,11 @@
 	<string name="okay">Okay</string>
 	<string name="two_hop">2-hop</string>
 	<string name="country_load_failure">Failed to load hop countries</string>
-	<string name="disabled_while_connected">Disabled while connected to VPN</string>
 	<string name="permission_required">Permission required</string>
 	<string name="permission_message">To ensure the app works correctly on your device, please allow the following permissions. These permissions are required for that app to function.</string>
 	<string name="notification_permission_required">Please enable notification permission for proper app functionality</string>
 	<string name="mode_selection">Mode selection</string>
-	<string name="five_hop_explanation">Maximum privacy through 5-hop routing (up to 1-5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages.</string>
+	<string name="five_hop_explanation">Maximum privacy through 5–hop routing (up to 1–5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages.</string>
 	<string name="continue_reading">Continue reading</string>
 	<string name="appearance">Appearance</string>
 	<string name="language">Language</string>
@@ -85,10 +78,7 @@
 	<string name="network_error">A network connection issue occurred. Please check your network connection and try again.</string>
 	<string name="vpn_alerts_channel_id">NymVPN Alerts Channel</string>
 	<string name="vpn_alerts_channel_description">A channel for app related alert notifications.</string>
-	<string name="bandwidth_alert">Data allowance alert</string>
-	<string name="no_bandwidth">No data allowance remaining</string>
 	<string name="connection_failed">Connection failed</string>
-	<string name="low_bandwidth">"Low bandwidth! Bandwidth remaining: "</string>
 	<string name="vpn_permission_missing">Vpn permission has not been accepted or is being used by another app.</string>
 	<string name="action_requires_tunnel_down">Action requires tunnel down</string>
 	<string name="device_added_success">Device successfully added to your account</string>
@@ -98,31 +88,22 @@
 	<string name="log_out">Log out</string>
 	<string name="new_to_nym">New to NymVPN?</string>
 	<string name="account">Account</string>
-	<string name="mnemonic_example">e.g. smoke artefact velvet skull pop palace tortoise damage rough...</string>
+	<string name="mnemonic_example">e.g. smoke artifact velvet skull pop palace tortoise damage rough…</string>
 	<string name="dynamic">Dynamic</string>
 	<string name="system_wallpaper">System wallpaper theme</string>
-	<string name="nym_v2_theme">Nym 2.0</string>
-	<string name="nym_v2_theme_desc">New design preview</string>
 	<string name="initializing">Initializing</string>
 	<string name="stop">Stop</string>
-	<string name="version">Version</string>
 	<string name="app_restart_required">App restart required</string>
-	<string name="max_devices_reached_title">You’ve reached the maximum number of devices for your account</string>
+	<string name="max_devices_reached_title">You\'ve reached the maximum number of devices for your account</string>
 	<string name="credential_modal_description">To add this device, go to your account\'s \'Devices\' page, remove one of the existing devices, and then log in on this device with your recovery passphrase.</string>
 	<string name="manage_devices">Manage your devices</string>
 	<string name="close">Close</string>
 	<string name="enter_access_code">Enter or paste your passphrase: 24 words separated by spaces</string>
-	<string name="welcome_to_nym">Welcome to NymVPN</string>
-	<string name="get_access_code">Get Passphrase</string>
-	<string name="access_code">24-word-access-code</string>
 	<string name="support_and_feedback" translatable="false"><![CDATA[Support & feedback]]></string>
 	<string name="get_in_touch">Contact support</string>
-	<string name="device_id">Device ID:</string>
 	<string name="location_support_link" translatable="false">https://support.nym.com/hc/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string name="loading">Loading</string>
 	<string name="offline">No internet</string>
-	<string name="no_internet">Your device has no internet connection</string>
-	<string name="waiting_for_connection">Will connect once the device goes online</string>
 	<string name="two_hop_explanation">High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing, and downloads.</string>
 	<string name="two_hop_title">Fast (WireGuard)</string>
 	<string name="disabled_while_connecting">Disabled while connecting to VPN</string>
@@ -137,21 +118,19 @@
 	<string name="servers">servers</string>
 	<string name="local_logs">Logs (stored locally)</string>
 	<string name="logging_out">Logging out..</string>
-	<string name="identity_key">Identity key:</string>
 	<string name="app_update_required">Your app is no longer supported. Please update to the latest version to continue
         using NymVPN.
     </string>
 	<string name="update_required">Update required!</string>
 	<string name="update">Update</string>
 	<string name="log_out_title">Log out of this device?</string>
-	<string name="log_out_body">You’ll need your 24-word passphrase to sign in again.</string>
+	<string name="log_out_body">You\'ll need your 24-word passphrase to sign in again.</string>
 	<string name="cancel">Cancel</string>
 	<string name="info">Info</string>
 	<string name="collapse">Collapse</string>
 	<string name="expand">Expand</string>
 	<string name="country_flag">Flag of %1$s</string>
 	<string name="anonymous">Anonymous</string>
-	<string name="scroll_down">Scroll down</string>
 	<string name="back">Back</string>
 	<string name="rotate">Rotate</string>
 	<string name="refresh">Refresh</string>
@@ -159,8 +138,6 @@
 	<string name="bars_3">3 bars</string>
 	<string name="bars_2">2 bars</string>
 	<string name="bars_1">1 bar</string>
-	<string name="pricing_url" translatable="false">https://nym.com/pricing</string>
-	<string name="account_id">Account ID:</string>
 	<string name="developer">Developer</string>
 	<string name="get_help">Get help</string>
 	<string name="telegram_url" translatable="false">https://nym.com/go/telegram</string>
@@ -174,18 +151,13 @@
 	<string name="score_text_medium">Medium</string>
 	<string name="score_text_low">Low</string>
 	<string name="score_text_offline">Offline</string>
-	<string name="button_next">Next</string>
 	<string name="skip">Skip</string>
 	<string name="get_started">Get started</string>
-    <string name="title_retry">Retry</string>
 	<string name="button_back">Back</string>
-    <!-- Dialogs & info messaged -->
+	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Stream display</string>
-	<string name="streaming_server_banner_title">New: Discover streaming-\noptimized servers (▶️)</string>
-	<string name="streaming_server_banner_action">Check new\nexit servers</string>
 	<!-- Status pill -->
 	<string name="pill_error">Error</string>
-	<string name="pill_subscription_expired">Subscription expired</string>
 	<!-- Error State -->
 	<string name="error_same_entry_exit">Cannot connect with the same entry and exit server. Change either the entry or exit server and reconnect.</string>
 	<string name="unexpected_error">An unexpected error occurred:</string>
@@ -202,8 +174,7 @@
 	<string name="error_set_routing">Failed to configure routing.</string>
 	<string name="error_tun_device">Failed to configure tunnel device.</string>
 	<string name="error_tunnel_provider">Failed to configure packet tunnel provider.</string>
-	<string name="error_kill_switch">Kill switch protects you. Tap Stop and \nrenew your plan.</string>
-	<string name="error_active_plan">You don’t have an active plan. Tap Get started to begin anonymous browsing.</string>
+	<string name="error_active_plan">You don\'t have an active plan. Tap Get started to begin anonymous browsing.</string>
 	<string name="error_bandwidth_entry">Entry server is not responding or responding badly to a bandwidth increase.</string>
 	<string name="error_bandwidth_exit">Exit server is not responding or responding badly to a bandwidth increase.</string>
 	<string name="error_gateway_unavailable_entry">Can\'t reach entry server. Try another!</string>
@@ -213,9 +184,6 @@
 	<string name="error_expired_subscription_title">Your subscription has expired</string>
 	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
 	<string name="error_expired_subscription_button">Renew Now</string>
-	<string name="error_passphrase_title">Passphrase not recognized!</string>
-	<string name="error_passphrase_description">Double check your words and input settings</string>
-	<string name="error_passphrase_button">Try again</string>
 	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">Initializing NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Setting up your account (2/6)</string>
@@ -223,10 +191,8 @@
 	<string name="connection_state_selecting_gateways">Choosing best servers (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">Registering anonymously with servers (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Establishing server connection (6/6)</string>
-	<string name="main_button_select_plan">Select plan</string>
 	<!-- One-click mode -->
 	<string name="one_click_auto_server">Use best server</string>
-	<string name="one_click_searching">Searching best location</string>
 	<string name="one_click_mode_fast">Fast</string>
 	<string name="connect_mode_auto">Auto</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
@@ -241,7 +207,7 @@
 	<string name="gateway_random">Random server</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Welcome!</string>
-	<string name="auth_welcome_description">To the world’s most private VPN</string>
+	<string name="auth_welcome_description">To the world\'s most private VPN</string>
 	<string name="auth_welcome_login_button">Login to my account</string>
 	<string name="auth_sign_up_title">Sign Up</string>
 	<string name="auth_sign_up_account_button">Anonymous account</string>
@@ -259,8 +225,6 @@
 	<string name="settings_dns_title">Customize DNS</string>
 	<string name="settings_ipv6_title">Support IPv6</string>
 	<string name="settings_ipv6_description">Allow IPv6 connections</string>
-	<string name="settings_auto_select_title">Auto-select entry server</string>
-	<string name="settings_auto_select_description">Let app choose best entry location</string>
 	<string name="settings_system_tray_title">Run in system tray</string>
 	<string name="settings_system_tray_description">Keep app running when closed</string>
 	<string name="settings_reset_app_title">Reset app data</string>
@@ -274,8 +238,6 @@
 	<string name="settings_language_help_title">Help with translation</string>
 	<string name="settings_language_help_description">Make the app better in your language.</string>
 	<string name="settings_event_lan_reconnecting">Reconnecting to apply LAN settings…</string>
-	<string name="settings_lewes_title">Post-quantum</string>
-	<string name="settings_lewes_description">Always prefer post-quantum gateways</string>
 	<string name="settings_ad_blocking_title">Ad blocking</string>
 	<string name="settings_kill_switch_title">Kill switch</string>
 	<string name="settings_kill_switch_description">Disconnect if the internet drops</string>
@@ -306,7 +268,7 @@
 	<string name="privacy_anonymous_stats_link_text">Learn exactly what\'s shared</string>
 	<string name="privacy_anonymous_stats_link">https://nym.com/anonymous-stats</string>
 	<string name="privacy_error_reports_title">Error &amp; crash reports</string>
-	<string name="privacy_error_reports_description">Send crash info to help us fix bugs faster. Reports go through Sentry’s secure system and include technical debugging data only.</string>
+	<string name="privacy_error_reports_description">Send crash info to help us fix bugs faster. Reports go through Sentry\'s secure system and include technical debugging data only.</string>
 	<string name="privacy_error_reports_link_text">View Sentry Privacy Policy</string>
 	<string name="privacy_error_reports_link">https://sentry.io/privacy/</string>
 	<string name="privacy_error_reports_restart">Changes will apply after app restart.</string>
@@ -330,14 +292,6 @@
 	<string name="welcome_usage_title">Share usage analytics</string>
 	<string name="welcome_usage_description">Helps us improve the Nym network. No logging or activity tracked.</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_title_2">Speed when you need it.\nPrivacy when it matters.</string>
-	<string name="onboarding_title_3">Stop being tracked online</string>
-	<string name="onboarding_title_4">Anonymity from payment to web</string>
-	<string name="onboarding_description_base">The world’s most private VPN</string>
-	<string name="onboarding_description_1">The world’s most private VPN\nTry for 7 days free:\nAll features included, no ads.</string>
-	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
-	<string name="onboarding_description_3">Nym’s decentralized network makes "no-log"\n promises obsolete.</string>
-	<string name="onboarding_description_4">Pay with card, crypto, or cash—no email required. Zero-knowledge proofs make your payments unlinkable to your online activities.</string>
 	<string name="onboarding_create_account_button">Create account</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">Choose your \nsubscription plan</string>
@@ -348,8 +302,6 @@
 	<string name="select_plan_button">Choose my NymVPN plan</string>
 	<string name="select_plan_modal_title">Choose your plan. All features, cancel anytime.</string>
 	<string name="select_plan_modal_free_trial">7-day free trial starts today</string>
-	<string name="select_plan_modal_free_trial_starts_today">Starts: today</string>
-	<string name="select_plan_modal_free_trial_starts">Starts: %1$s</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Server details</string>
 	<string name="details_select_server_button">Select server</string>
@@ -361,11 +313,10 @@
 	<string name="details_anti_censorship">Anti-censorship</string>
 	<string name="details_quic_protocol">QUIC protocol</string>
 	<string name="details_standard_protocol">Standard protocol</string>
-	<string name="details_enable_quic_start">Enable “QUIC protocol”</string>
+	<string name="details_enable_quic_start">Enable "QUIC protocol"</string>
 	<string name="details_enable_quic_end">in Anti-censorship Settings to use this feature</string>
 	<string name="details_overall_performance">Overall performance</string>
 	<string name="details_server_load">Server load</string>
-	<string name="details_speed">Speed</string>
 	<string name="details_uptime">Uptime</string>
 	<string name="not_applicable">N/A</string>
 	<string name="details_performance_calculated">Performance score calculated from server load and uptime. Uptime as last 24-hours average. Last update %1$s.</string>
@@ -375,7 +326,6 @@
 	<string name="details_asn">ASN</string>
 	<string name="details_asn_name">ASN name</string>
 	<string name="details_build_version">Nym build version</string>
-	<string name="details_identity_key">Identity key: </string>
 	<string name="details_missing_incorrect_info">Why is there missing or incorrect info</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string name="details_more_details_start">More details in the</string>
@@ -385,13 +335,11 @@
 	<string name="censorship_description">Advanced features to improve connectivity in restrictive networks or when experiencing NymVPN blocking.</string>
 	<string name="censorship_learn_more_link_text">Learn more</string>
 	<string name="censorship_quic_title">Enhanced connection (QUIC)</string>
-	<string name="censorship_quic_changes">Changes will apply after reconnect</string>
 	<string name="censorship_quic_description">Improves connections on restricted networks by wrapping WireGuard in QUIC (HTTP/3).\n\nNote: Limits entry server options to QUIC-compatible servers only.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
 	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-	<string name="censorship_event_reconnecting">Reconnecting to apply settings…</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC</string>
 	<string name="censorship_amnezia_title">Minimal obfuscation (AmneziaWG)</string>
@@ -405,11 +353,10 @@
 	<string name="account_welcome_social_description">Privately sign in with email, Google, or crypto wallet, through our partner Privy.</string>
 	<string name="account_welcome_social_button">Continue with social account</string>
 	<string name="account_welcome_login_title">Already have an account?</string>
-	<string name="account_welcome_login_button">Log in with 24-word passphrase</string>
-	<string name="account_welcome_privacy_start">By continuing, you agree to NymVPN’s  </string>
+	<string name="account_welcome_privacy_start">By continuing, you agree to NymVPN\'s  </string>
 	<string name="account_welcome_privacy_middle">and</string>
 	<!-- Existing subscription -->
-	<string name="account_subscription_title">You’re already subscribed!</string>
+	<string name="account_subscription_title">You\'re already subscribed!</string>
 	<string name="account_subscription_description">We found an active subscription linked to your Google Play account. Skip the signup and jump straight into using NymVPN. Just have your 24-word passphrase ready.</string>
 	<string name="account_subscription_button">Log in with Nym passphrase</string>
 	<!-- Account Generating screen -->
@@ -445,22 +392,18 @@
 	<string name="passphrase_never">Never share them with anyone, including Nym Support.</string>
 	<string name="passphrase_saved">I have saved these 24 words securely and will never share them</string>
 	<string name="passphrase_info_title">What is passphrase</string>
-	<string name="passphrase_info_description">It’s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it—there’s no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
-	<string name="passphrase_info_privacy_removed">For your privacy, we’ve removed:</string>
+	<string name="passphrase_info_description">It\'s a unique set of 24 words, generated on your device, that acts as your secure login. Only you have access to it—there\'s no backup, reset, or recovery.\n\n ⚠️ Keep it safe: this passphrase is the only way to access your account.</string>
+	<string name="passphrase_info_privacy_removed">For your privacy, we\'ve removed:</string>
 	<string name="passphrase_info_stored_accounts">Centrally-stored accounts</string>
 	<string name="passphrase_info_personal_logins">Personal data-based logins</string>
 	<string name="passphrase_info_access_resets">Admin-controlled access resets</string>
-	<string name="passphrase_info_use">You’ll use a 24-word passphrase that:</string>
+	<string name="passphrase_info_use">You\'ll use a 24-word passphrase that:</string>
 	<string name="passphrase_info_secure_login">Works as your secure login</string>
 	<string name="passphrase_info_keeps_anonymous">Keeps you anonymous</string>
 	<string name="passphrase_info_belongs">Belongs only to you (self-custody)</string>
 	<!-- Account screen -->
 	<string name="account_title">Account and devices</string>
 	<string name="account_info_manage_button">Manage your subscription</string>
-	<string name="account_info_account_button">Account on nym.com</string>
-	<string name="account_info_link_description">Link a social account for effortless login.</string>
-	<string name="account_info_link_warning">⚠️ Linking a social account with your Nym account reduces your anonymity. Changes take effect after logging out and logging back in with the chosen social. </string>
-	<string name="account_info_linked_info">⚡ This account is linked with a social login method via privy.  </string>
 	<string name="account_info_id_title">Account ID</string>
 	<string name="account_info_id_info">Safe to share. Use to contact Nym Support.</string>
 	<string name="account_info_device_title">Device ID</string>
@@ -469,9 +412,6 @@
 	<string name="account_info_bandwidth_title">Fair usage spent</string>
 	<string name="account_info_limit_text">Limit</string>
 	<string name="account_info_reset_text">Resets on</string>
-	<string name="account_info_contact_support_icon" translatable="false">⚡ </string>
-	<string name="account_info_contact_support_action">Contact our support</string>
-	<string name="account_info_contact_support_suffix">\u0020team for extra bandwidth.</string>
 	<string name="account_info_valid_text">Plan valid until %s</string>
 	<string name="account_info_expires_text">Plan expires on %s</string>
 	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
@@ -480,11 +420,10 @@
 	<string name="account_info_auto_renew_text">*Auto-renews</string>
 	<string name="account_info_no_plan">No active subscription</string>
 	<string name="account_info_confirming_payment">Confirming payment</string>
-	<string name="account_info_updating">Updating account status…</string>
 	<string name="account_info_autologin_fetching">Fetching access code…</string>
 	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>
 	<string name="account_info_add_social_action">Add a social login</string>
-	<string name="account_info_add_social_suffix">\u0020method to your account.</string>
+	<string name="account_info_add_social_suffix"> method to your account.</string>
 	<string name="account_info_backup">Backup login method linked via Privy.</string>
 	<string name="pin_code_title">Pin code</string>
 	<string name="pin_code_subtitle">Enter this code on web</string>
@@ -514,25 +453,20 @@
 	<string name="logs_saved">Logs saved to your Downloads folder"</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Set each app to use NymVPN or connect directly.</string>
-	<string name="split_tunneling_info_desc">Changes will apply after reconnect</string>
 	<string name="split_tunneling_search_apps_hint">Search apps</string>
 	<string name="split_tunneling_apps">Apps</string>
 	<string name="split_tunneling_direct">Direct</string>
 	<string name="split_tunneling_direct_desc">Bypass NymVPN</string>
 	<string name="split_tunneling_via_vpn">Via NymVPN</string>
 	<string name="split_tunneling_via_desc">Protected when connected</string>
-	<string name="split_tunneling_nym_vpn">NymVPN</string>
 	<string name="split_tunneling_system_applications">System applications</string>
 	<string name="split_tunnel_info_modal_title">Using split tunneling</string>
 	<string name="split_tunnel_info_modal_desc">Split tunneling lets you optimize each app for either maximum speed or maximum privacy. You can easily change these settings anytime.</string>
 	<string name="split_tunnel_info_direct_desc">For services like banking, smart home devices, or work applications.</string>
-	<string name="split_tunnel_info_via_vpn_desc">Recommended setting. Will use the then-current mode (Fast or Anonymous), based on your needs.</string>
 	<string name="split_tunnel_changes_confirm_modal_title">Apply split tunneling settings?</string>
 	<string name="split_tunnel_changes_confirm_modal_desc">Split tunneling updated. Reconnect to apply changes.\n\nYour data stays protected during reconnection.</string>
 	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Reconnect now</string>
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Apply on next connection</string>
-	<string name="split_tunneling_per_app_security_banner_title">🔀 New: Choose per-app protection or direct connection for speed</string>
-	<string name="split_tunneling_per_app_security_banner_action">Configure\napps</string>
 	<string name="split_tunneling_event_saved">Split tunneling settings saved</string>
 	<string name="split_tunneling_event_reconnecting">Reconnecting to apply split tunneling settings…</string>
 	<!-- DNS customization screen -->
@@ -547,16 +481,14 @@
 	<string name="dns_custom_list_entries">Custom DNS servers (%1$s/5)</string>
 	<string name="dns_custom_list_hint">IPv4 or IPv6 address</string>
 	<string name="dns_custom_list_error">Invalid DNS address format</string>
-	<string name="dns_custom_button_add">Add</string>
 	<string name="dns_custom_button_save">Save changes</string>
 	<string name="dns_custom_button_save_reconnect">Save changes &amp; reconnect</string>
-	<string name="dns_custom_saved">Custom DNS saved.</string>
 	<string name="dns_save_dialog_title">Save changes?</string>
 	<string name="dns_save_dialog_description">You have unsaved changes.</string>
 	<string name="dns_learn_more_text">Learn more about DNS</string>
 	<string name="dns_learn_more_link" translatable="false">https://nymtechnologiessa.zendesk.com/hc/en-us/articles/41140533515665</string>
 	<string name="dns_event_saved">Custom DNS saved</string>
-	<string name="dns_event_reconnecting">Reconnecting to apply custom DNS settings...</string>
+	<string name="dns_event_reconnecting">Reconnecting to apply custom DNS settings…</string>
 	<!-- Mixnet tuning screen -->
 	<string name="mixnet_tuning_description">Customize your mixnet traffic patterns</string>
 	<string name="mixnet_tuning_current_title">Expected performance of current settings:</string>
@@ -568,7 +500,7 @@
 	<string name="mixnet_tuning_traffic_off_title">Background cover traffic rate</string>
 	<string name="mixnet_tuning_traffic_warning">⚠️ Continuous traffic is turned off. Your packets will be sent as they become available. This could reveal traffic patterns.</string>
 	<string name="mixnet_tuning_traffic_on_description">Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.</string>
-	<string name="mixnet_tuning_traffic_off_description">We’ll still send cover traffic independently of your real traffic.  Choose how much cover you need. </string>
+	<string name="mixnet_tuning_traffic_off_description">We\'ll still send cover traffic independently of your real traffic.  Choose how much cover you need. </string>
 	<string name="mixnet_tuning_traffic_min">Use less battery &amp; data</string>
 	<string name="mixnet_tuning_traffic_on_low">Low\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">High\n2 Mbps</string>
@@ -579,7 +511,6 @@
 	<string name="mixnet_tuning_traffic_off_medium">Medium\n10x</string>
 	<string name="mixnet_tuning_delays_title">Mixing delays</string>
 	<string name="mixnet_tuning_delays_description">Adjust timing delays to change how well your packets are mixed.</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ Timing protection is currently turned off. This could put your privacy at risk.</string>
 	<string name="mixnet_tuning_delays_min">Faster speed</string>
 	<string name="mixnet_tuning_delays_low">Low\n0m</string>
 	<string name="mixnet_tuning_delays_high">High\n200 ms</string>

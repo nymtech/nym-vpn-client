@@ -16,7 +16,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
-import net.nymtech.nymvpn.ui.screens.settings.login.MnemonicError
+import net.nymtech.nymvpn.ui.screens.auth.components.MnemonicError
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import nym_vpn_lib_types.DeeplinkKind

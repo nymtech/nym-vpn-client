@@ -20,7 +20,7 @@ class AppConfigProvider @Inject constructor(@ApplicationContext private val cont
 		return UserAgent(
 			application = Constants.APP_PROJECT_NAME,
 			version = BuildConfig.VERSION_NAME,
-			platform = "$platform; ${Build.VERSION.SDK_INT}; ${NymVpn.Companion.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
+			platform = "$platform; ${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
 			gitCommit = BuildConfig.COMMIT_HASH,
 		)
 	}

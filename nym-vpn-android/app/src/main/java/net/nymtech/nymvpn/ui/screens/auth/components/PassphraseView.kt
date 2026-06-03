@@ -25,7 +25,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
-import net.nymtech.nymvpn.ui.screens.settings.login.MnemonicError
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -148,6 +147,10 @@ fun PassphraseView(
 			shape = RoundedCornerShape(12.dp),
 		)
 	}
+}
+
+enum class MnemonicError {
+	INVALID_RECOVERY_PHRASE,
 }
 
 @Preview(name = "PassphraseViewPreview", uiMode = Configuration.UI_MODE_NIGHT_YES)

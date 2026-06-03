@@ -15,7 +15,6 @@ jobs:
       - name: Checkout target branch
         uses: actions/checkout@v6
         with:
-          fetch-depth: 1
           ref: ${{ github.ref_name }}
 
       - name: crowdin action

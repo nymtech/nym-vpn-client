@@ -12,10 +12,8 @@
 	<string name="disconnect">إلغاء الاتصال</string>
 	<string name="init_client">جارِ تهيئة العميل…</string>
 	<string name="establishing_connection">جارِ إنشاء الاتصال</string>
-	<string name="connection_time">مدة الاتصال</string>
-	<string name="select_mode">اختيار الوضع</string>
-	<string name="connect_to">الاتصال بـ</string>
-	<string name="display_theme">سِمة العرض</string>
+    <string name="select_mode">اختيار الوضع</string>
+    <string name="display_theme">سِمة العرض</string>
 	<string name="light_theme">سِّمة فاتحة</string>
 	<string name="dark_theme">سِّمة داكنة</string>
 	<string name="automatic">وضع تلقائي</string>
@@ -24,9 +22,7 @@
 	<string name="search_country">البحث عن دولة</string>
 	<string name="is_selected">مختار</string>
 	<string name="fastest">الأسرع</string>
-	<string name="auto_connect">الاتصال التلقائي</string>
-	<string name="auto_connect_description">الاتصال تلقائيًا عند فتح التطبيق</string>
-	<string name="logs">السجلات</string>
+    <string name="logs">السجلات</string>
 	<string name="support">الدعم</string>
 	<string name="terms_of_use">شروط الاستخدام</string>
 	<string name="privacy_policy">بيان الخصوصية</string>
@@ -35,16 +31,14 @@
 	<string name="check_faq">الأسئلة الشائعة</string>
 	<string name="join_matrix">انضم إلينا على Matrix</string>
 	<string name="join_discord">انضم إلينا على Discord</string>
-	<string name="login">تسجيل الدخول</string>
-	<string name="unknown">غير معروف</string>
+    <string name="unknown">غير معروف</string>
 	<string name="no_scm_found">تعذّر العثور على رابط الشيفرة المصدرية</string>
 	<string name="five_hop">مسار بخمس قفزات</string>
 	<string name="mode">الوضع</string>
 	<string name="okay">حسنًا</string>
 	<string name="two_hop">مسار بقفزتين</string>
 	<string name="country_load_failure">تعذّر تحميل الدول الخاصة بالقفزات</string>
-	<string name="disabled_while_connected">معطّل عند الاتصال بالـVPN</string>
-	<string name="permission_required">الإذن مطلوب</string>
+    <string name="permission_required">الإذن مطلوب</string>
 	<string name="permission_message">للتأكد من أن التطبيق يعمل بشكل صحيح على جهازك، يرجى السماح بالأذويات</string>
 	<string name="notification_permission_required">الرجاء تمكين إذن الإشعار لوظيفة التطبيق الصحيح</string>
 	<string name="mode_selection">اختيار النمط</string>
@@ -73,11 +67,8 @@
 	<string name="network_error">حدثت مشكلة في اتصال الشبكة. يُرجى التحقق من اتصالك بالشبكة والمحاولة مرة أخرى.</string>
 	<string name="vpn_alerts_channel_id">قناة تنبيهات NymVPN</string>
 	<string name="vpn_alerts_channel_description">قناة مخصّصة للتنبيهات المرتبطة بالتطبيق.</string>
-	<string name="bandwidth_alert">تنبيه لاستهلاك البيانات</string>
-	<string name="no_bandwidth">انتهى رصيد استخدام البيانات</string>
-	<string name="connection_failed">فشل الاتصال</string>
-	<string name="low_bandwidth">"انخفاض في النطاق الترددي! المتبقّي:"</string>
-	<string name="vpn_permission_missing">لم يتم قبول إذن الـVPN أو أنه قيد الاستخدام من قِبل تطبيق آخر.</string>
+    <string name="connection_failed">فشل الاتصال</string>
+    <string name="vpn_permission_missing">لم يتم قبول إذن الـVPN أو أنه قيد الاستخدام من قِبل تطبيق آخر.</string>
 	<string name="action_requires_tunnel_down">الإجراء يتطلّب إيقاف النفق</string>
 	<string name="device_added_success">تمت إضافة الجهاز الى حسابك بنجاح</string>
 	<string name="invalid_recovery_phrase">عبارة الاسترداد غير صالحة</string>
@@ -89,27 +80,18 @@
 	<string name="mnemonic_example">مثال: دخان، قطعة أثرية، مخمل، جمجمة، بوب، قصر، سلحفاة، ضرر، خشن…</string>
 	<string name="dynamic">ديناميكية</string>
 	<string name="system_wallpaper">خلفية النظام (السمة)</string>
-	<string name="nym_v2_theme">نيم 2.0</string>
-	<string name="nym_v2_theme_desc">معاينة تصميم جديد</string>
-	<string name="initializing">يتم الآن التهيئة</string>
+    <string name="initializing">يتم الآن التهيئة</string>
 	<string name="stop">توقف</string>
-	<string name="version">الإصدار</string>
-	<string name="app_restart_required">مطلوب إعادة تشغيل التطبيق</string>
+    <string name="app_restart_required">مطلوب إعادة تشغيل التطبيق</string>
 	<string name="max_devices_reached_title">لقد وصلت إلى الحد الأقصى لعدد الأجهزة لحسابك</string>
 	<string name="credential_modal_description">لإضافة هذا الجهاز، انتقل إلى صفحة \"الأجهزة\" في حسابك، وأزِل أحد الأجهزة الحالية، ثم سجّل الدخول على هذا الجهاز باستخدام عبارة الاستعادة الخاصة بك.</string>
 	<string name="manage_devices">إدارة الأجهزة</string>
 	<string name="close">أغلق</string>
 	<string name="enter_access_code">الرجاء إدخال رمز الوصول الخاص بك مجهول.</string>
-	<string name="welcome_to_nym">مرحبا بكم في NymVPN</string>
-	<string name="get_access_code">الحصول على عبارة المرور</string>
-	<string name="access_code">رمز الوصول المكوّن من 24 كلمة</string>
-	<string name="get_in_touch">التواصل مع فريق الدعم</string>
-	<string name="device_id">رقم تعريف الجهاز:</string>
-	<string name="loading">جاري التحميل</string>
+    <string name="get_in_touch">التواصل مع فريق الدعم</string>
+    <string name="loading">جاري التحميل</string>
 	<string name="offline">لا يوجد إنترنت</string>
-	<string name="no_internet">جهازك ليس لديه اتصال بالإنترنت</string>
-	<string name="waiting_for_connection">سيتم الاتصال بمجرد وصول الجهاز إلى الإنترنت</string>
-	<string name="two_hop_explanation">تصفّح عالي السرعة (250+ ميجابت/ثانية) مع توجيه عبر قفزتين. يستخدم AmneziaWG، وهو إصدار مقاوم للرقابة من WireGuard، ومثالي للبث والتصفّح السريع والتنزيلات.</string>
+    <string name="two_hop_explanation">تصفّح عالي السرعة (250+ ميجابت/ثانية) مع توجيه عبر قفزتين. يستخدم AmneziaWG، وهو إصدار مقاوم للرقابة من WireGuard، ومثالي للبث والتصفّح السريع والتنزيلات.</string>
 	<string name="two_hop_title">الوضع السريع (WireGuard)</string>
 	<string name="disabled_while_connecting">مُعطَّل أثناء الاتصال بشبكة VPN</string>
 	<string name="exit_location">موقع الخروج</string>
@@ -122,8 +104,7 @@
 	<string name="servers">خوادم</string>
 	<string name="local_logs">السجلات</string>
 	<string name="logging_out">تسجيل الخروج..</string>
-	<string name="identity_key">مفتاح الهوية:</string>
-	<string name="app_update_required">لم يعد التطبيق الخاص بك مدعوماً. الرجاء التحديث إلى أحدث إصدار للمتابعة
+    <string name="app_update_required">لم يعد التطبيق الخاص بك مدعوماً. الرجاء التحديث إلى أحدث إصدار للمتابعة
         باستخدام NymVPN.
     </string>
 	<string name="update_required">التحديث مطلوب!</string>
@@ -136,16 +117,14 @@
 	<string name="expand">توسيع</string>
 	<string name="country_flag">علم %1$s</string>
 	<string name="anonymous">مجهول</string>
-	<string name="scroll_down">التمرير لأسفل</string>
-	<string name="back">الرجوع</string>
+    <string name="back">الرجوع</string>
 	<string name="rotate">تدوير</string>
 	<string name="refresh">تحديث</string>
 	<string name="go">الذهاب</string>
 	<string name="bars_3">3 أشرطة</string>
 	<string name="bars_2">2 أشرطة</string>
 	<string name="bars_1">1 شريط</string>
-	<string name="account_id">معرف الحساب:</string>
-	<string name="developer">المطور</string>
+    <string name="developer">المطور</string>
 	<string name="get_help">الحصول على المساعدة</string>
 	<string name="join_telegram">انضم إلينا على تيليجرام</string>
 	<!-- Common -->
@@ -157,19 +136,14 @@
 	<string name="score_text_medium">متوسط</string>
 	<string name="score_text_low">منخفض</string>
 	<string name="score_text_offline">غير متصل</string>
-	<string name="button_next">التالي</string>
-	<string name="skip">تخطي</string>
+    <string name="skip">تخطي</string>
 	<string name="get_started">بدء التشغيل</string>
-	<string name="title_retry">إعادة المحاولة</string>
-	<string name="button_back">الرجوع</string>
+    <string name="button_back">الرجوع</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">عرض البث</string>
-	<string name="streaming_server_banner_title">جديد: اكتشف البث -\nخوادم محسنة (▶️)</string>
-	<string name="streaming_server_banner_action">تحقق من خوادم خروج\nجديدة</string>
-	<!-- Status pill -->
+    <!-- Status pill -->
 	<string name="pill_error">خطأ</string>
-	<string name="pill_subscription_expired">انتهت صلاحية الاشتراك</string>
-	<!-- Error State -->
+    <!-- Error State -->
 	<string name="error_same_entry_exit">لا يمكن الاتصال بنفس خادم الدخول والخروج. قم بتغيير خادم الدخول أو الخروج وإعادة الاتصال.</string>
 	<string name="unexpected_error">حدث خطأ غير متوقع:</string>
 	<string name="error_invalid_entry_gateway_country">البلد غير صالح لخادم الدخول. اختر آخر وإعادة الاتصال.</string>
@@ -185,8 +159,7 @@
 	<string name="error_set_routing">فشل في تكوين المسار.</string>
 	<string name="error_tun_device">فشل في تكوين جهاز النفق.</string>
 	<string name="error_tunnel_provider">فشل في تكوين موفر نفق الحزمة.</string>
-	<string name="error_kill_switch">قتل التبديل يحميك. اضغط على إيقاف و \nتجديد خطتك.</string>
-	<string name="error_active_plan">ليس لديك خطة نشطة. انقر على بدء تشغيل تصفح مجهول.</string>
+    <string name="error_active_plan">ليس لديك خطة نشطة. انقر على بدء تشغيل تصفح مجهول.</string>
 	<string name="error_bandwidth_entry">خادم الدخول لا يستجيب أو يستجيب بشكل سيئ لزيادة عرض النطاق الترددي.</string>
 	<string name="error_bandwidth_exit">خروج الخادم لا يستجيب أو يستجيب بشكل سيئ لزيادة عرض الترددات.</string>
 	<string name="error_gateway_unavailable_entry">لا يمكن الوصول إلى خادم الدخول. جرب آخر!</string>
@@ -196,21 +169,16 @@
 	<string name="error_expired_subscription_title">انتهت صلاحية الاشتراك الخاص بك</string>
 	<string name="error_expired_subscription_description">تم رفض طريقة الدفع المتكررة</string>
 	<string name="error_expired_subscription_button">تجديد الآن</string>
-	<string name="error_passphrase_title">كلمة المرور غير معترف بها!</string>
-	<string name="error_passphrase_description">تحقق من كلماتك وإعدادات الإدخال المزدوج</string>
-	<string name="error_passphrase_button">حاول مرة أخرى</string>
-	<!-- Main Screen -->
+    <!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">تهيئة NymVPN (1/6)</string>
 	<string name="connection_state_awaiting_readiness">إعداد حسابك (2/6)</string>
 	<string name="connection_state_refreshing_gateways">تحديث قائمة الخوادم (3/6)</string>
 	<string name="connection_state_selecting_gateways">اختيار أفضل الخوادم (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">تسجيل مجهول مع الخوادم (5/6)</string>
 	<string name="connection_state_connecting_tunnel">إنشاء اتصال بالخادم (6/6)</string>
-	<string name="main_button_select_plan">حدد الخطة</string>
-	<!-- One-click mode -->
+    <!-- One-click mode -->
 	<string name="one_click_auto_server">استخدام أفضل خادم</string>
-	<string name="one_click_searching">البحث عن أفضل موقع</string>
-	<string name="one_click_mode_fast">سريع</string>
+    <string name="one_click_mode_fast">سريع</string>
 	<string name="connect_mode_auto">تلقائي</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">الخروج من الخادم</string>
@@ -242,9 +210,7 @@
 	<string name="settings_dns_title">تخصيص DNS</string>
 	<string name="settings_ipv6_title">دعم IPv6</string>
 	<string name="settings_ipv6_description">السماح باتصالات IPv6</string>
-	<string name="settings_auto_select_title">تحديد تلقائي لخادم الدخول</string>
-	<string name="settings_auto_select_description">السماح للتطبيق باختيار أفضل موقع للدخول</string>
-	<string name="settings_system_tray_title">تشغيل في صالة النظام</string>
+    <string name="settings_system_tray_title">تشغيل في صالة النظام</string>
 	<string name="settings_system_tray_description">إبقاء التطبيق قيد التشغيل عند إغلاقه</string>
 	<string name="settings_reset_app_title">إعادة تعيين بيانات التطبيق</string>
 	<string name="settings_system_status_title">حالة النظام</string>
@@ -256,9 +222,7 @@
 	<string name="settings_language_help_title">المساعدة في الترجمة</string>
 	<string name="settings_language_help_description">جعل التطبيق أفضل بلغتك.</string>
 	<string name="settings_event_lan_reconnecting">إعادة الاتصال لتطبيق إعدادات الشبكة المحلية...</string>
-	<string name="settings_lewes_title">تمكين بروتوكول Lewes</string>
-	<string name="settings_lewes_description">يفضل دائماً بوابات ما بعد الكم</string>
-	<string name="settings_ad_blocking_title">حجب الإعلانات</string>
+    <string name="settings_ad_blocking_title">حجب الإعلانات</string>
 	<string name="settings_kill_switch_title">اقتل التبديل</string>
 	<string name="settings_kill_switch_description">قطع الاتصال إذا انخفض الإنترنت</string>
 	<string name="settings_bypass_lan_title">LAN bypass</string>
@@ -311,15 +275,7 @@
 	<string name="welcome_usage_title">مشاركة تحليلات الاستخدام</string>
 	<string name="welcome_usage_description">يساعدنا على تحسين شبكة نيم. لا تسجيل أو تتبع النشاط.</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_title_2">السرعة عندما تحتاجها.\nالخصوصية عندما يكون الأمر مهمًا.</string>
-	<string name="onboarding_title_3">إيقاف التتبع عبر الإنترنت</string>
-	<string name="onboarding_title_4">إخفاء الهوية من الدفع إلى الويب</string>
-	<string name="onboarding_description_base">شبكة VPN الأكثر خصوصية في العالم</string>
-	<string name="onboarding_description_1">شبكة VPN الأكثر خصوصية في العالم</string>
-	<string name="onboarding_description_2">Fast: 250+ Mbps with dVPN.\nAnonymous: 5-hop Noise Generating Mixnet.</string>
-	<string name="onboarding_description_3">Nym’s decentralized network makes \"no-log\"\n promises obsolete.</string>
-	<string name="onboarding_description_4">الدفع بالبطاقة أو التشفير أو النقود - ليس هناك بريد إلكتروني مطلوب. أدلة المعرفة الصفرية تجعل مدفوعاتك غير مرتبطة بأنشطتك عبر الإنترنت.</string>
-	<string name="onboarding_create_account_button">إنشاء حساب</string>
+    <string name="onboarding_create_account_button">إنشاء حساب</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">اختر مستوى الحماية \nالخاص بك 🛡️</string>
 	<string name="select_plan_line_0">تجربة مجانية 7 أيام</string>
@@ -329,9 +285,7 @@
 	<string name="select_plan_button">اختر خطة NymVPN الخاصة بي</string>
 	<string name="select_plan_modal_title">اختر خطة NymVPN الخاصة بك</string>
 	<string name="select_plan_modal_free_trial">تجربة مجانية: أسبوع واحد</string>
-	<string name="select_plan_modal_free_trial_starts_today">يبدأ: اليوم</string>
-	<string name="select_plan_modal_free_trial_starts">يبدأ: %1$s</string>
-	<!-- Server Details screen -->
+    <!-- Server Details screen -->
 	<string name="details_title">تفاصيل الخادم</string>
 	<string name="details_select_server_button">حدد الخادم</string>
 	<string name="details_advanced_privacy">الخصوصية المتقدمة</string>
@@ -346,8 +300,7 @@
 	<string name="details_enable_quic_end">في إعدادات مكافحة الرقابة لاستخدام هذه الميزة</string>
 	<string name="details_overall_performance">الأداء العام</string>
 	<string name="details_server_load">تحميل الخادم</string>
-	<string name="details_speed">السرعة</string>
-	<string name="details_uptime">وقت التحديث</string>
+    <string name="details_uptime">وقت التحديث</string>
 	<string name="not_applicable">لا</string>
 	<string name="details_performance_calculated">نتيجة الأداء محسوبة من تحميل الخادم وأكثر. التحديث كآخر 24 ساعة. آخر تحديث %1$s.</string>
 	<string name="details_exit_ipv4">الخروج IPv4</string>
@@ -356,8 +309,7 @@
 	<string name="details_asn">آشن</string>
 	<string name="details_asn_name">اسم ASN</string>
 	<string name="details_build_version">إصدار بناء Nym</string>
-	<string name="details_identity_key">مفتاح الهوية: </string>
-	<string name="details_missing_incorrect_info">لماذا هناك معلومات مفقودة أو غير صحيحة</string>
+    <string name="details_missing_incorrect_info">لماذا هناك معلومات مفقودة أو غير صحيحة</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-byNymVPN</string>
 	<string name="details_more_details_start">المزيد من التفاصيل في</string>
 	<string name="details_more_details_end">مستكشف شبكة Nym</string>
@@ -366,14 +318,12 @@
 	<string name="censorship_description">ميزات متقدمة لتحسين الاتصال في الشبكات التقييدية أو عند تجربة حظر NymVPN.</string>
 	<string name="censorship_learn_more_link_text">اعرف المزيد</string>
 	<string name="censorship_quic_title">تحسين الاتصال (QUIC)</string>
-	<string name="censorship_quic_changes">سيتم تطبيق التغييرات بعد إعادة الاتصال</string>
-	<string name="censorship_quic_description">تحسين موثوقية النمط السريع في الشبكات التقييدية عن طريق تغليف حركة WireGuard في QUIC (HTTP/3). ستظهر حركة المرور كتصفح منتظم على شبكة الانترنت، وهزيمة أنظمة الرقابة على التفتيش العميق.\n\nملاحظة: حدود خيارات خادم الدخول إلى بوابات متوافقة مع QUIC-فقط.</string>
+    <string name="censorship_quic_description">تحسين موثوقية النمط السريع في الشبكات التقييدية عن طريق تغليف حركة WireGuard في QUIC (HTTP/3). ستظهر حركة المرور كتصفح منتظم على شبكة الانترنت، وهزيمة أنظمة الرقابة على التفتيش العميق.\n\nملاحظة: حدود خيارات خادم الدخول إلى بوابات متوافقة مع QUIC-فقط.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">توصيل API الثري</string>
 	<string name="censorship_stealth_description">يحمي من حظر VPN باستخدام نطاقات التغطية. تبديل للاستخدام دائما، أو إيقاف الاستخدام عند فشل الاتصالات العادية.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-Connect</string>
-	<string name="censorship_event_reconnecting">إعادة الاتصال لتطبيق إعدادات QUIC…</string>
-	<string name="quic">QUIC</string>
+    <string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">عرض مواقع الوضع السريع والخوادم التي تدعم بروتوكول QUIC فقط. للكشف عن جميع الخوادم، إيقاف تشغيل QUIC</string>
 	<string name="censorship_amnezia_title">الحد الأدنى من التشويش</string>
 	<string name="censorship_amnezia_description">يجعل حركة مرور WireGuard أكثر صعوبة لكشفها. يقدم حزم مفككة تعطل القواعد البسيطة التي كثيرا ما تستخدمها نظم الرقابة على عمليات التفتيش العميقة (Deep Packet)، مما يحسن موثوقية الاتصال في البيئات التقييدية. \n\nملاحظة: تم تنفيذ جانب العميل فقط.</string>
@@ -386,8 +336,7 @@
 	<string name="account_welcome_social_description">استخدم حساب موجود مثل محفظة Google أو crypto من خلال شريكنا في تسجيل الدخول الخصوصية</string>
 	<string name="account_welcome_social_button">المتابعة مع الحساب الاجتماعي</string>
 	<string name="account_welcome_login_title">لديك حساب بالفعل؟</string>
-	<string name="account_welcome_login_button">تسجيل الدخول بعبارة سر 24 كلمة</string>
-	<string name="account_welcome_privacy_start">بالمتابعة، فإنك توافق على NymVPN  </string>
+    <string name="account_welcome_privacy_start">بالمتابعة، فإنك توافق على NymVPN  </string>
 	<string name="account_welcome_privacy_middle">و</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">أنت مشترك بالفعل!</string>
@@ -438,11 +387,7 @@
 	<!-- Account screen -->
 	<string name="account_title">الحساب والأجهزة</string>
 	<string name="account_info_manage_button">إدارة اشتراكك</string>
-	<string name="account_info_account_button">حساب على nym.com</string>
-	<string name="account_info_link_description">ربط حساب اجتماعي لتسجيل الدخول بلا جهد.</string>
-	<string name="account_info_link_warning">⚠️ ربط حساب اجتماعي بحساب Nym الخاص بك يقلل من إخفاء هويتك. تصبح التغييرات سارية المفعول بعد تسجيل الخروج وتسجيل الدخول مرة أخرى مع الاجتماع المختار. </string>
-	<string name="account_info_linked_info">⚡ هذا الحساب مرتبط بطريقة تسجيل الدخول الاجتماعي عبر الخصوصية.  </string>
-	<string name="account_info_id_title">معرف الحساب</string>
+    <string name="account_info_id_title">معرف الحساب</string>
 	<string name="account_info_id_info">آمن للمشاركة. استخدم للاتصال بمساندة نيم.</string>
 	<string name="account_info_device_title">معرف الجهاز</string>
 	<string name="account_info_device_info">استخدم هذا لربط هذا الجهاز بحسابك على nym.com</string>
@@ -450,9 +395,7 @@
 	<string name="account_info_bandwidth_title">استخدام منصف</string>
 	<string name="account_info_limit_text">الحد</string>
 	<string name="account_info_reset_text">إعادة تعيين في</string>
-	<string name="account_info_contact_support_action">اتصل بالدعم</string>
-	<string name="account_info_contact_support_suffix">\u0020فريق لعرض النطاق الترددي الإضافي.</string>
-	<string name="account_info_valid_text">خطة صالحة حتى %s</string>
+    <string name="account_info_valid_text">خطة صالحة حتى %s</string>
 	<string name="account_info_expires_text">الخطة تنتهي في %s</string>
 	<string name="banner_plan_expires_text">الخطة تنتهي في:\n%s</string>
 	<string name="account_info_renew_text">التجديد الآن للبقاء محمي</string>
@@ -460,8 +403,7 @@
 	<string name="account_info_auto_renew_text">* التجديدات التلقائية</string>
 	<string name="account_info_no_plan">لا يوجد اشتراك نشط</string>
 	<string name="account_info_confirming_payment">تأكيد الدفع</string>
-	<string name="account_info_updating">تحديث حالة الحساب…</string>
-	<string name="account_info_autologin_fetching">جلب رمز الوصول…</string>
+    <string name="account_info_autologin_fetching">جلب رمز الوصول…</string>
 	<string name="account_info_autologin_error">فشل في جلب رمز الوصول. الرجاء المحاولة مرة أخرى.</string>
 	<string name="account_info_add_social_action">إضافة تسجيل دخول اجتماعي</string>
 	<string name="account_info_add_social_suffix">\u0020method to your account.</string>
@@ -494,26 +436,21 @@
 	<string name="logs_saved">Logs saved to downloads folder</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">تعيين كل تطبيق لاستخدام NymVPN أو الاتصال مباشرة.</string>
-	<string name="split_tunneling_info_desc">سيتم تطبيق التغييرات بعد إعادة الاتصال</string>
-	<string name="split_tunneling_search_apps_hint">البحث عن التطبيقات</string>
+    <string name="split_tunneling_search_apps_hint">البحث عن التطبيقات</string>
 	<string name="split_tunneling_apps">التطبيقات</string>
 	<string name="split_tunneling_direct">مباشر</string>
 	<string name="split_tunneling_direct_desc">تجاوز NymVPN</string>
 	<string name="split_tunneling_via_vpn">Via NymVPN</string>
 	<string name="split_tunneling_via_desc">محمي عند الاتصال</string>
-	<string name="split_tunneling_nym_vpn">NymVPN</string>
-	<string name="split_tunneling_system_applications">تطبيقات النظام</string>
+    <string name="split_tunneling_system_applications">تطبيقات النظام</string>
 	<string name="split_tunnel_info_modal_title">استخدام انقسام نفقي</string>
 	<string name="split_tunnel_info_modal_desc">تقسيم النفق يتيح لك تحسين كل تطبيق سواء لأقصى سرعة أو لأقصى قدر من الخصوصية. يمكنك بسهولة تغيير هذه الإعدادات في أي وقت.</string>
 	<string name="split_tunnel_info_direct_desc">لخدمات مثل الخدمات المصرفية أو الأجهزة المنزلية الذكية أو تطبيقات العمل.</string>
-	<string name="split_tunnel_info_via_vpn_desc">الإعداد الموصى به. سيتم استخدام الوضع الحالي آنذاك (سريع أو مجهول)، بناء على احتياجاتك.</string>
-	<string name="split_tunnel_changes_confirm_modal_title">تطبيق إعدادات تقسيم النفق؟</string>
+    <string name="split_tunnel_changes_confirm_modal_title">تطبيق إعدادات تقسيم النفق؟</string>
 	<string name="split_tunnel_changes_confirm_modal_desc">تم تحديث خاصية تقسيم النفق. أعد الإتصال لتثبيت التغيرات.\n\nبيناتك تبقى محمية أثناء إعادة الإتصال.</string>
 	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">إعادة الاتصال الآن</string>
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">تطبيق على الاتصال التالي</string>
-	<string name="split_tunneling_per_app_security_banner_title">🔀 جديد: اختر الحماية لكل تطبيق أو الاتصال المباشر للسرعة</string>
-	<string name="split_tunneling_per_app_security_banner_action">تكوين\nتطبيقات</string>
-	<string name="split_tunneling_event_saved">تقسيم إعدادات النفق المحفوظة</string>
+    <string name="split_tunneling_event_saved">تقسيم إعدادات النفق المحفوظة</string>
 	<string name="split_tunneling_event_reconnecting">إعادة الاتصال لتطبيق إعدادات الأنفاق المقسمة…</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">تخصيص DNS</string>
@@ -527,11 +464,9 @@
 	<string name="dns_custom_list_entries">خوادم DNS مخصصة (%1$s/5)</string>
 	<string name="dns_custom_list_hint">عنوان IPv4 أو IPv6</string>
 	<string name="dns_custom_list_error">تنسيق عنوان DNS غير صالح</string>
-	<string name="dns_custom_button_add">إضافة</string>
-	<string name="dns_custom_button_save">حفظ التغييرات</string>
+    <string name="dns_custom_button_save">حفظ التغييرات</string>
 	<string name="dns_custom_button_save_reconnect">حفظ التغييرات &amp; إعادة الاتصال</string>
-	<string name="dns_custom_saved">تم حفظ DNS مخصص.</string>
-	<string name="dns_save_dialog_title">حفظ التغييرات؟</string>
+    <string name="dns_save_dialog_title">حفظ التغييرات؟</string>
 	<string name="dns_save_dialog_description">لديك تغييرات غير محفوظة.</string>
 	<string name="dns_learn_more_text">تعرف على المزيد حول DNS</string>
 	<string name="dns_event_saved">تم حفظ DNS مخصص</string>
@@ -558,8 +493,7 @@
 	<string name="mixnet_tuning_traffic_off_medium">متوسط\n10x</string>
 	<string name="mixnet_tuning_delays_title">خلط التأخيرات</string>
 	<string name="mixnet_tuning_delays_description">ضبط تأخير التوقيت لتغيير مدى خلط الحزم الخاصة بك.</string>
-	<string name="mixnet_tuning_delays_warning">⚠️ تم إيقاف حماية التوقيت حاليا. هذا يمكن أن يعرض خصوصيتك للخطر.</string>
-	<string name="mixnet_tuning_delays_min">سرعة أسرع</string>
+    <string name="mixnet_tuning_delays_min">سرعة أسرع</string>
 	<string name="mixnet_tuning_delays_low">منخفض\n0 دقيقة</string>
 	<string name="mixnet_tuning_delays_high">عالي\n200 مللي ثانية</string>
 	<string name="mixnet_tuning_delays_default">إفتراضي\n15 مللي ثانية</string>

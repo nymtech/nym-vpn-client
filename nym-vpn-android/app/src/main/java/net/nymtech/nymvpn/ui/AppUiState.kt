@@ -162,11 +162,11 @@ private fun NymGateway?.serverLocationOnCountrySelection(twoLetterIsoCountryCode
 	return this?.let { listOfNotNull(it.city, region).joinToString(", ") + " (${it.name})" }
 }
 
-private fun NymGateway.serverLocationOnGatewaySelection(twoLetterIsoCountryCode: String): String? {
+private fun NymGateway.serverLocationOnGatewaySelection(twoLetterIsoCountryCode: String): String {
 	val region = this.region.takeIf { countryCodesForRegionSupport.contains(twoLetterIsoCountryCode.lowercase()) }
 	return listOfNotNull(this.city, region, toDisplayCountry(twoLetterIsoCountryCode)).joinToString(", ")
 }
 
-private fun NymGateway.serverLocationOnRegionSelection(): String? = this.city.orEmpty() + " (${this.name})"
+private fun NymGateway.serverLocationOnRegionSelection(): String = this.city.orEmpty() + " (${this.name})"
 
 private fun NymGateway.entryPointNameForRegion(): String = listOfNotNull(toDisplayCountry(this.twoLetterCountryISO.orEmpty()), region).joinToString(", ")

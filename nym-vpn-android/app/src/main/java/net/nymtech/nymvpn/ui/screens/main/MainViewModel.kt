@@ -173,14 +173,6 @@ constructor(
 		settingsRepository.setStatsDialogSkipped(true)
 	}
 
-	fun onStreamingServerBannerDisplayed() = viewModelScope.launch {
-		settingsRepository.setIsStreamServerBannerDisplayed(true)
-	}
-
-	fun onPerAppSecurityBannerDisplayed() = viewModelScope.launch {
-		settingsRepository.setIsPerAppSecurityBannerDisplayed(true)
-	}
-
 	private fun resolveConnectionState(managerState: TunnelManagerState, networkStatus: NetworkStatus): ConnectionState {
 		val baseState = when {
 			managerState.isRestarting && networkStatus == NetworkStatus.Disconnected ->
