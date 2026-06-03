@@ -185,8 +185,7 @@ impl SyncingState {
             })?;
 
         // todo: refactor, this should not be here.
-        vpn_account_summary.account_mode =
-            Some(nym_vpn_store::types::StoredAccountMode::from(vpn_api_account.mode()).into());
+        vpn_account_summary.account_mode = Some(vpn_api_account.mode().into());
 
         // Propagate account summary even if sync eventually fails.
         let _ = event_tx.send(SyncEvent::AccountSummary(Box::new(

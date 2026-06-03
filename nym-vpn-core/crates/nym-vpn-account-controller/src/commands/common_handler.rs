@@ -6,7 +6,10 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::VpnAccountMode,
 };
-use nym_vpn_lib_types::{AccountCommandError, AutologinResponse, DeeplinkKind, VpnAccountSummary};
+use nym_vpn_lib_types::{
+    AccountCommandError, AutologinResponse, DeeplinkKind, StorableAccount, StoredAccountMode,
+    VpnAccountSummary,
+};
 
 use crate::{
     AvailableTicketbooks, SharedAccountState,
@@ -14,7 +17,6 @@ use crate::{
     deeplink::{CreateDeeplinkParams, DeeplinkMnemonic},
     storage::AccountStorageOp,
 };
-use nym_vpn_store::{account::StorableAccount, types::StoredAccountMode};
 
 pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
     command: CommonCommand,

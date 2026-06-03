@@ -3,7 +3,8 @@
 
 use crate::{commands::ReturnSender, error::Error};
 use nym_vpn_api_client::types::{Device, VpnAccount};
-use nym_vpn_store::{VpnStorage, account::StorableAccount};
+use nym_vpn_lib_types::StorableAccount;
+use nym_vpn_store::VpnStorage;
 
 #[derive(Debug)]
 pub(crate) struct AccountStorage<S>

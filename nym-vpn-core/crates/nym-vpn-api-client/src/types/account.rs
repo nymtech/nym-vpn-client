@@ -8,7 +8,7 @@ use nym_validator_client::{
     nyxd::{AccountId, bip32::DerivationPath},
     signing::signer::OfflineSigner as _,
 };
-use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
+
 use std::fmt;
 use time::{Duration, OffsetDateTime};
 use zeroize::Zeroizing;
@@ -60,26 +60,6 @@ impl VpnAccountMode {
 
     pub fn is_privy(&self) -> bool {
         matches!(self, Self::Privy)
-    }
-}
-
-impl From<StoredAccountMode> for VpnAccountMode {
-    fn from(mode: StoredAccountMode) -> Self {
-        match mode {
-            StoredAccountMode::Api => VpnAccountMode::Api,
-            StoredAccountMode::Decentralised => VpnAccountMode::Decentralised,
-            StoredAccountMode::Privy => VpnAccountMode::Privy,
-        }
-    }
-}
-
-impl From<VpnAccountMode> for StoredAccountMode {
-    fn from(mode: VpnAccountMode) -> Self {
-        match mode {
-            VpnAccountMode::Api => StoredAccountMode::Api,
-            VpnAccountMode::Decentralised => StoredAccountMode::Decentralised,
-            VpnAccountMode::Privy => StoredAccountMode::Privy,
-        }
     }
 }
 
@@ -194,14 +174,6 @@ impl VpnAccount {
     pub fn sign(&self, message: &str) -> Result<String, Error> {
         let signature = self.wallet.sign_raw(&self.id, message.as_bytes())?;
         Ok(hex::encode(signature.to_bytes()))
-    }
-}
-
-impl TryFrom<StorableAccount> for VpnAccount {
-    type Error = Error;
-
-    fn try_from(account: StorableAccount) -> Result<Self, Self::Error> {
-        Self::new(account.mnemonic, account.mode.into())
     }
 }
 

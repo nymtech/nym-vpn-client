@@ -7,10 +7,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 #[cfg(feature = "nym-type-conversions")]
-use nym_vpn_store::{
-    account::Mnemonic,
-    types::{StorableAccount, StoredAccountMode},
-};
+use crate::{Mnemonic, StorableAccount, StoredAccountMode};
 
 use crate::{GatewayType, UserAgent};
 

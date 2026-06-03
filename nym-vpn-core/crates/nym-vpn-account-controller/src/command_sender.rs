@@ -12,10 +12,10 @@ use nym_vpn_api_client::{
     types::Platform,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, AutologinResponse, DeeplinkKind, RegisterAccountResponse,
-    VpnAccountSummary,
+    AccountCommandError, AutologinResponse, DeeplinkKind, RegisterAccountResponse, StorableAccount,
+    StoredAccountMode, VpnAccountSummary,
 };
-use nym_vpn_store::types::{StorableAccount, StoredAccountMode};
+
 use tokio::sync::mpsc::UnboundedSender;
 use tracing::instrument;
 use url::Url;

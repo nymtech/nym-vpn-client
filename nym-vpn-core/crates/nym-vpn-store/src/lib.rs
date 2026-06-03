@@ -3,6 +3,5 @@
 
 pub mod account;
 pub mod keys;
-pub mod types;
 
 pub trait VpnStorage: account::AccountInformationStorage + keys::device::DeviceKeyStore {}

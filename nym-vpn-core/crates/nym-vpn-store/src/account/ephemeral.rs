@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{AccountInformationStorage, StoredAccount};
-use crate::types::StorableAccount;
+use nym_vpn_lib_types::StorableAccount;
 use tokio::sync::Mutex;
 
 #[derive(Default)]

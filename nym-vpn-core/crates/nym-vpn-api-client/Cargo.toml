@@ -28,7 +28,6 @@ nym-crypto = { workspace = true, features = ["asymmetric", "stream_cipher"] }
 nym-http-api-client.workspace = true
 nym-network-defaults = { workspace = true, optional = true }
 nym-validator-client.workspace = true
-nym-vpn-store.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 sha2.workspace = true

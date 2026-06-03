@@ -27,7 +27,6 @@ nym-type-conversions = [
     "dep:nym-validator-client",
     "dep:nym-vpn-api-client",
     "dep:nym-vpn-network-config",
-    "dep:nym-vpn-store",
 ]
 uniffi-bindings = ["dep:uniffi", "ipnetwork"]
 typescript-bindings = ["dep:ts-rs", "serde"]
@@ -56,7 +55,6 @@ nym-statistics-common = { workspace = true, optional = true }
 nym-validator-client = { workspace = true, optional = true }
 nym-vpn-api-client = { workspace = true, optional = true }
 nym-vpn-network-config = { workspace = true, optional = true }
-nym-vpn-store = { workspace = true, optional = true }
 nym-network-defaults = { workspace = true, optional = true }
 
 [build-dependencies]
