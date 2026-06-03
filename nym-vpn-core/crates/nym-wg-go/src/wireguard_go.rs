@@ -6,7 +6,9 @@ use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 use std::{
     ffi::{CStr, CString, c_char, c_void},
     fmt,
+    net::SocketAddr,
     sync::Arc,
+    time::{Duration, SystemTime},
 };
 
 use nym_crypto::asymmetric::x25519;
@@ -344,6 +346,167 @@ impl Drop for Tunnel {
     fn drop(&mut self) {
         self.stop_inner()
     }
+}
+
+/// Stats for a single WireGuard peer, parsed from the UAPI GET response.
+#[derive(Debug, Clone)]
+pub struct PeerStats {
+    pub public_key: [u8; 32],
+    pub endpoint: Option<SocketAddr>,
+    pub last_handshake_time: Option<SystemTime>,
+    pub rx_bytes: u64,
+    pub tx_bytes: u64,
+}
+
+impl PeerStats {
+    /// Returns true if the WireGuard handshake with this peer has completed at least once.
+    pub fn has_completed_handshake(&self) -> bool {
+        self.last_handshake_time.is_some()
+    }
+}
+
+/// Stats for a WireGuard tunnel, parsed from the UAPI GET response.
+#[derive(Debug, Clone)]
+pub struct TunnelStats {
+    pub listen_port: Option<u16>,
+    pub peers: Vec<PeerStats>,
+}
+
+impl TunnelStats {
+    /// Returns true if all peers have completed their initial handshake.
+    pub fn all_peers_connected(&self) -> bool {
+        !self.peers.is_empty() && self.peers.iter().all(|p| p.has_completed_handshake())
+    }
+}
+
+/// Provides read-only access to a running tunnel's live stats via `wgGetConfig`.
+///
+/// Obtained from [`Tunnel::stats_reader`]. Only valid while the parent tunnel is alive —
+/// in practice this is guaranteed because [`TunnelHandle`] holds both the reader and the
+/// tunnel lifetime token.
+pub struct TunnelStatsReader {
+    tunnel_handle: i32,
+}
+
+impl TunnelStatsReader {
+    /// Query the current tunnel stats. Returns `None` if the tunnel handle is invalid.
+    pub fn get_stats(&self) -> Option<TunnelStats> {
+        // SAFETY: wgGetConfig is safe to call concurrently on a live tunnel handle; wireguard-go
+        // holds a read lock internally. The handle remains valid for the TunnelHandle lifetime.
+        let raw = unsafe { wgGetConfig(self.tunnel_handle) };
+        if raw.is_null() {
+            return None;
+        }
+        let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
+        unsafe { wgFreePtr(raw as *mut c_void) };
+        Some(parse_tunnel_stats(&s))
+    }
+}
+
+impl Tunnel {
+    /// Create a stats reader that can query live peer stats without owning the tunnel.
+    pub fn stats_reader(&self) -> TunnelStatsReader {
+        TunnelStatsReader {
+            tunnel_handle: self.tunnel_handle,
+        }
+    }
+}
+
+struct PeerBuilder {
+    public_key: [u8; 32],
+    endpoint: Option<SocketAddr>,
+    handshake_sec: u64,
+    handshake_nsec: u32,
+    rx_bytes: u64,
+    tx_bytes: u64,
+}
+
+impl PeerBuilder {
+    fn new(public_key: [u8; 32]) -> Self {
+        Self {
+            public_key,
+            endpoint: None,
+            handshake_sec: 0,
+            handshake_nsec: 0,
+            rx_bytes: 0,
+            tx_bytes: 0,
+        }
+    }
+
+    fn finish(self) -> PeerStats {
+        let last_handshake_time = if self.handshake_sec > 0 {
+            SystemTime::UNIX_EPOCH
+                .checked_add(Duration::new(self.handshake_sec, self.handshake_nsec))
+        } else {
+            None
+        };
+        PeerStats {
+            public_key: self.public_key,
+            endpoint: self.endpoint,
+            last_handshake_time,
+            rx_bytes: self.rx_bytes,
+            tx_bytes: self.tx_bytes,
+        }
+    }
+}
+
+/// Parse the UAPI GET response into a [`TunnelStats`].
+///
+/// The UAPI response has interface-level keys first, followed by zero or more peer blocks
+/// each starting with a `public_key=` line.
+fn parse_tunnel_stats(response: &str) -> TunnelStats {
+    let mut listen_port: Option<u16> = None;
+    let mut peers: Vec<PeerStats> = Vec::new();
+    let mut current: Option<PeerBuilder> = None;
+
+    for line in response.lines() {
+        let Some((key, value)) = line.split_once('=') else {
+            continue;
+        };
+        match key {
+            "listen_port" => listen_port = value.parse().ok(),
+            "public_key" => {
+                if let Some(builder) = current.take() {
+                    peers.push(builder.finish());
+                }
+                current = hex::decode(value)
+                    .ok()
+                    .and_then(|b| b.try_into().ok())
+                    .map(PeerBuilder::new);
+            }
+            "endpoint" => {
+                if let Some(ref mut b) = current {
+                    b.endpoint = value.parse().ok();
+                }
+            }
+            "last_handshake_time_sec" => {
+                if let Some(ref mut b) = current {
+                    b.handshake_sec = value.parse().unwrap_or(0);
+                }
+            }
+            "last_handshake_time_nsec" => {
+                if let Some(ref mut b) = current {
+                    b.handshake_nsec = value.parse().unwrap_or(0);
+                }
+            }
+            "rx_bytes" => {
+                if let Some(ref mut b) = current {
+                    b.rx_bytes = value.parse().unwrap_or(0);
+                }
+            }
+            "tx_bytes" => {
+                if let Some(ref mut b) = current {
+                    b.tx_bytes = value.parse().unwrap_or(0);
+                }
+            }
+            _ => {}
+        }
+    }
+    if let Some(builder) = current {
+        peers.push(builder.finish());
+    }
+
+    TunnelStats { listen_port, peers }
 }
 
 unsafe extern "C" {

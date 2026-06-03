@@ -18,11 +18,11 @@ use std::{
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-use futures::{future::Fuse, FutureExt, StreamExt};
+use futures::{FutureExt, StreamExt, future::Fuse};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
-use nix::sys::socket::{sockopt::Mark, SetSockOpt};
+use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_gateway_directory::{GatewayCacheHandle, GatewayClient, GatewayMinPerformance};
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -36,7 +36,7 @@ use tun::AsyncDevice;
 use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
-use nym_common::{trace_err_chain, ErrorExt};
+use nym_common::{ErrorExt, trace_err_chain};
 use nym_connection_monitor::{
     ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
     TcpProbe, TcpProbeConfig, TimingConfig,
@@ -63,32 +63,35 @@ use super::tunnel::wireguard::connected_tunnel::TunTunTunnelOptions;
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
 use super::{
+    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{
-        self, wireguard::connected_tunnel::{NetstackTunnelOptions, TunnelOptions}, AnyTunnelHandle, SelectedGateways,
-        Tombstone,
-    }, Error, NymConfig, Result, TunnelInterface, TunnelMetadata,
-    TunnelSettings,
+        self, AnyTunnelHandle, SelectedGateways, Tombstone,
+        wireguard::{
+            connected_tunnel,
+            connected_tunnel::{NetstackTunnelOptions, TunnelOptions},
+        },
+    },
 };
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    bandwidth_controller::BandwidthController, mixnet::VpnTopologyServiceHandle, tunnel_state_machine::{
-        account, ipv6_availability, tunnel::{
+    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
+    bandwidth_controller::BandwidthController,
+    mixnet::VpnTopologyServiceHandle,
+    tunnel_state_machine::{
+        TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
+        tunnel::{
             gateway_provider::GatewayProvider,
             mixnet,
             transports::{self, TransportError},
             wireguard::{
-                connected_tunnel::ConnectedTunnel, ConnectionData as WgConnectionData, MetadataEvent,
-                MetadataReceiver,
+                ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
+                connected_tunnel::ConnectedTunnel,
             },
-        }, TunnelConstants,
-        WireguardMultihopMode,
+        },
     },
-    UserAgent,
-    DEFAULT_MIN_GATEWAY_PERFORMANCE,
-    DEFAULT_MIN_MIXNODE_PERFORMANCE,
 };
 
 /// Default MTU for mixnet tun device.
@@ -245,6 +248,43 @@ pub struct TunnelMonitor {
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     custom_topology_provider: VpnTopologyServiceHandle,
     shutdown_token: CancellationToken,
+}
+
+/// Poll the exit WireGuard peer's UAPI stats until the handshake completes or we time out.
+///
+/// This prevents the ICMP connection monitor from running before the exit WireGuard session
+/// is established — a race that causes spurious disconnects when the two-hop handshake is
+/// slower than the initial ICMP probe timeout.
+async fn wait_for_exit_handshake(
+    tunnel_handle: &connected_tunnel::TunnelHandle,
+    shutdown_token: &CancellationToken,
+) {
+    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(30);
+    const POLL_INTERVAL: Duration = Duration::from_millis(200);
+
+    let result = tokio::time::timeout(HANDSHAKE_TIMEOUT, async {
+        loop {
+            if tunnel_handle
+                .get_exit_stats()
+                .is_some_and(|s| s.all_peers_connected())
+            {
+                return;
+            }
+            tokio::select! {
+                _ = tokio::time::sleep(POLL_INTERVAL) => {}
+                _ = shutdown_token.cancelled() => return,
+            }
+        }
+    })
+    .await;
+
+    match result {
+        Ok(()) => tracing::debug!("Exit WireGuard handshake completed"),
+        Err(_) => tracing::warn!(
+            "Exit WireGuard handshake did not complete within {}s, proceeding",
+            HANDSHAKE_TIMEOUT.as_secs()
+        ),
+    }
 }
 
 impl TunnelMonitor {
@@ -641,6 +681,12 @@ impl TunnelMonitor {
 
         if tokio::time::timeout(REPLY_TIMEOUT, reply_rx).await.is_err() {
             tracing::warn!("Interface up reply timeout");
+        }
+
+        // The firewall now allows traffic through the tunnel. Wait for the exit WG
+        // handshake before starting the connection monitor so ICMP probes don't race the session.
+        if let Some(wg_handle) = tunnel_handle.as_wireguard() {
+            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await;
         }
 
         // Send metadata endpoint data to the bandwidth controller
