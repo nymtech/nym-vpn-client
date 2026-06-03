@@ -286,11 +286,7 @@ impl NymAccountController {
 
     /// Get the account mode
     pub async fn get_account_mode(&self) -> Result<Option<StoredAccountMode>, VpnError> {
-        Ok(self
-            .command_sender
-            .get_account_mode()
-            .await?
-            .map(StoredAccountMode::from))
+        Ok(self.command_sender.get_account_mode().await?)
     }
 
     /// Check if the account mnemonic is stored

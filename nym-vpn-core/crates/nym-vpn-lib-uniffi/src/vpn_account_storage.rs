@@ -320,7 +320,7 @@ impl NymVpnAccountStorage {
         else {
             return Ok(None);
         };
-        let account_mode = nym_vpn_lib_types::StoredAccountMode::from(account.mode);
+        let account_mode = account.mode;
 
         let vpn_account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
 
@@ -350,7 +350,7 @@ impl NymVpnAccountStorage {
             })?
             .ok_or(VpnError::NoAccountStored)?;
 
-        Ok(nym_vpn_lib_types::StoredAccountMode::from(account.mode))
+        Ok(account.mode)
     }
 
     /// Load the account mnemonic stored locally and register it.
