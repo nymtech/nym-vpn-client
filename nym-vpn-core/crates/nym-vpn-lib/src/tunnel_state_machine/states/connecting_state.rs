@@ -692,24 +692,18 @@ impl TunnelStateHandler for ConnectingState {
                             self.reconnect(shared_state).await
                         }
                     }
-                    TunnelMonitorEvent::ConnectionFailed => {
+                    TunnelMonitorEvent::ConnectionFailed { gateway_id } => {
                         // Exit WG handshake timed out or ICMP connectivity check failed; blacklist
                         // the exit gateway so a different one is selected on the next attempt.
-                        if let Some(ref selected_gateways) = self.selected_gateways {
-                            let exit_gateway_identifier = selected_gateways.exit_gateway().identity;
-                            shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_identifier).await;
-                            self.selected_gateways = None;
-                        }
+                        shared_state.gateway_provider.add_blacklisted_gateway(gateway_id).await;
+                        self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
-                    TunnelMonitorEvent::RegistrationFailed => {
+                    TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
                         // Registration with the entry gateway failed; blacklist it to avoid
                         // re-selecting the same failing gateway.
-                        if let Some(ref selected_gateways) = self.selected_gateways {
-                            let entry_gateway_identifier = selected_gateways.entry_gateway().identity;
-                            shared_state.gateway_provider.add_blacklisted_gateway(entry_gateway_identifier).await;
-                            self.selected_gateways = None;
-                        }
+                        shared_state.gateway_provider.add_blacklisted_gateway(gateway_id).await;
+                        self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
                 }

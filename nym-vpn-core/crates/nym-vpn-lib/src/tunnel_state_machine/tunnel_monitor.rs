@@ -23,7 +23,9 @@ use futures::{FutureExt, StreamExt, future::Fuse};
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-use nym_gateway_directory::{GatewayCacheHandle, GatewayClient, GatewayMinPerformance};
+use nym_gateway_directory::{
+    GatewayCacheHandle, GatewayClient, GatewayMinPerformance, NodeIdentity,
+};
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -159,7 +161,10 @@ pub enum TunnelMonitorEvent {
     RegisteringWithGateways,
 
     /// Registration with gateways failed
-    RegistrationFailed,
+    RegistrationFailed {
+        /// The gateway that failed registration
+        gateway_id: NodeIdentity,
+    },
 
     /// Finished gateway registration
     RegisteredWithGateways {
@@ -197,7 +202,10 @@ pub enum TunnelMonitorEvent {
     },
 
     /// Connection has failed
-    ConnectionFailed,
+    ConnectionFailed {
+        /// The gateway that caused the failure
+        gateway_id: NodeIdentity,
+    },
 }
 
 pub struct TunnelMonitorHandle {
@@ -534,9 +542,14 @@ impl TunnelMonitor {
         let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
 
         let registration_client = Box::pin(rc_builder.build()).await?;
-        let registration_result = Box::pin(registration_client.register())
-            .await
-            .inspect_err(|_| self.send_event(TunnelMonitorEvent::RegistrationFailed))?;
+        let registration_result =
+            Box::pin(registration_client.register())
+                .await
+                .inspect_err(|_| {
+                    self.send_event(TunnelMonitorEvent::RegistrationFailed {
+                        gateway_id: selected_gateways.entry_gateway().identity(),
+                    })
+                })?;
 
         // Send event upon successful gateway registration
         // The receiver should handle the event and add firewall exceptions for entry gateway
@@ -764,7 +777,9 @@ impl TunnelMonitor {
                             }
                             ConnectionStatusEvent::Failed => {
                                 tracing::info!("Tunnel connection is down. Exiting");
-                                self.send_event(TunnelMonitorEvent::ConnectionFailed);
+                                self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                                    gateway_id: selected_gateways.exit_gateway().identity(),
+                                });
                                 break;
                             }
                         }
