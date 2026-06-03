@@ -2,7 +2,7 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DnsMonitorT, ResolvedDnsConfig};
+use crate::{DnsConfig, DnsMonitorT};
 use nym_common::ErrorExt;
 use nym_windows::net::{guid_from_luid, luid_from_alias};
 use std::{io, net::IpAddr};
@@ -48,8 +48,8 @@ impl DnsMonitorT for DnsMonitor {
         })
     }
 
-    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
-        let servers = config.tunnel_config();
+    async fn set(&mut self, interface: &str, config: DnsConfig) -> Result<(), Error> {
+        let servers = &config.addresses;
 
         let guid = guid_from_luid(&luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?)
             .map_err(Error::ObtainInterfaceGuid)?;

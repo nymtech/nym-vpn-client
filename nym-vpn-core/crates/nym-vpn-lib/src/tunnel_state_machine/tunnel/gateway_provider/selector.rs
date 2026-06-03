@@ -494,10 +494,10 @@ mod tests {
 
         let identity: nym_vpn_lib_types::NodeIdentity = GW_ID_1.parse().unwrap();
         let mut settings = default_tunnel_settings();
-        settings.entry_point = Box::new(EntryPoint::Gateway {
+        *settings.entry_point = EntryPoint::Gateway {
             identity: identity.clone(),
-        });
-        settings.exit_point = Box::new(ExitPoint::Gateway { identity });
+        };
+        *settings.exit_point = ExitPoint::Gateway { identity };
 
         let result = select_gateways(
             gateway_cache,

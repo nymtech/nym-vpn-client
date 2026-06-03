@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use std::net::IpAddr;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::SocketAddr;
 use std::time::Duration;
 
@@ -11,11 +9,11 @@ use futures::{
     FutureExt,
     future::{BoxFuture, Fuse},
 };
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_firewall::AllowedDns;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(target_os = "macos")]
-use crate::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use crate::tunnel_state_machine::Error;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -32,7 +30,7 @@ use crate::tunnel_state_machine::{
 };
 
 use nym_common::trace_err_chain;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{
@@ -145,8 +143,8 @@ impl ConnectingState {
                     .map(|v| v.entry_gateway().lp_endpoints())
                     .unwrap_or_default(),
                 api_endpoints: Vec::new(),
-                // Allow default DNS servers since hickory does not rely on custom DNS
-                dns_servers: shared_state.tunnel_settings.default_dns_ips(),
+                // Allow default DNS servers when connecting since those are used by http/client
+                dns_servers: shared_state.tunnel_settings.allowed_default_dns_endpoints(),
                 tunnel_interface: None,
                 #[cfg(target_os = "macos")]
                 redirect_interface,
@@ -214,20 +212,16 @@ impl ConnectingState {
 
     #[cfg(target_os = "macos")]
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
-        if *LOCAL_DNS_RESOLVER {
-            // Set system DNS to our local DNS resolver
-            let system_dns = DnsConfig::default().resolve(
-                &[shared_state.filtering_resolver.listen_addr().ip()],
-                shared_state.filtering_resolver.listen_addr().port(),
-            );
-            shared_state
-                .dns_handler
-                .set("lo", system_dns)
-                .await
-                .map_err(Error::SetDns)
-        } else {
-            Ok(())
-        }
+        // Set system DNS to our local DNS resolver
+        let system_dns = DnsConfig {
+            addresses: vec![shared_state.filtering_resolver.listen_addr().ip()],
+            port: shared_state.filtering_resolver.listen_addr().port(),
+        };
+        shared_state
+            .dns_handler
+            .set("lo", system_dns)
+            .await
+            .map_err(Error::SetDns)
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -864,8 +858,8 @@ struct ConnectingPolicyParameters {
     /// API endpoints
     api_endpoints: Vec<SocketAddr>,
 
-    /// DNS servers
-    dns_servers: Vec<IpAddr>,
+    /// Non-tunnel DNS servers
+    dns_servers: Vec<Endpoint>,
 
     /// Tunnel interface
     tunnel_interface: Option<TunnelInterface>,
@@ -963,13 +957,7 @@ impl ConnectingPolicyParameters {
             .clone()
             .map(nym_firewall::TunnelInterface::from);
 
-        // Set non-tunnel DNS to allow api client to use those DNS servers.
-        let dns_config = DnsConfig::from_addresses(&[], &self.dns_servers).resolve(
-            // pass empty because we already override the config with non-tunnel addresses.
-            &[],
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            53,
-        );
+        let dns_config = AllowedDns::new(vec![], self.dns_servers.clone());
 
         FirewallPolicy::Connecting {
             peer_endpoints,

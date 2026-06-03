@@ -4,18 +4,13 @@
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use std::net::SocketAddr;
 
-#[cfg(any(target_os = "windows", target_os = "linux"))]
+#[cfg(any(target_os = "linux", target_os = "windows"))]
 use nym_dns::DnsConfig;
-
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_dns::ResolvedDnsConfig;
 
 use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(not(any(target_os = "android")))]
-use crate::resolver::LOCAL_DNS_RESOLVER;
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::Result;
 use crate::tunnel_state_machine::{
@@ -30,7 +25,9 @@ use crate::tunnel_state_machine::{Error, Result, gateway_ext::GatewayExt};
 #[cfg(not(any(target_os = "android")))]
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
+use nym_firewall::{
+    AllowedClients, AllowedDns, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol,
+};
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 
@@ -40,7 +37,10 @@ pub struct ConnectedState {
     tunnel_monitor_handle: TunnelMonitorHandle,
     tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
     selected_gateways: SelectedGateways,
-    #[cfg_attr(any(target_os = "android", target_os = "ios"), allow(unused))]
+    #[cfg_attr(
+        not(any(target_os = "linux", target_os = "windows", target_os = "ios")),
+        allow(unused)
+    )]
     tunnel_interface: TunnelInterface,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     firewall_policy_params: ConnectedPolicyParameters,
@@ -85,7 +85,9 @@ impl ConnectedState {
                 allow_lan: shared_state.tunnel_settings.allow_lan,
                 wg_entry_endpoint,
                 ws_entry_endpoints: ws_endpoints,
-                dns_config: shared_state.tunnel_settings.resolved_dns_config(),
+                dns_config: AllowedDns::new_with_tunnel_dns(
+                    shared_state.tunnel_settings.allowed_dns_endpoints(),
+                ),
                 tunnel_interface: tunnel_interface.clone(),
                 #[cfg(target_os = "macos")]
                 redirect_interface,
@@ -149,50 +151,54 @@ impl ConnectedState {
 
     #[cfg(not(target_os = "android"))]
     async fn set_dns(&self, shared_state: &mut SharedState) -> Result<()> {
-        let dns_config = shared_state.tunnel_settings.resolved_dns_config();
-        #[cfg(not(any(target_os = "android")))]
+        let dns_config = shared_state.tunnel_settings.resolver_config();
+
+        #[cfg(any(target_os = "linux", target_os = "windows", target_os = "ios"))]
         let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
 
-        // We do not want to forward DNS queries to *our* local resolver if we do not run a local
-        // DNS resolver *or* if the DNS config points to a loopback address.
-        if *LOCAL_DNS_RESOLVER {
-            let ips = dns_config.addresses().collect::<Vec<_>>();
-            tracing::debug!("Enabling local DNS forwarder to: {ips:?}");
-            if let Err(err) = shared_state
-                .filtering_resolver
-                .enable_forward(
-                    ips,
-                    #[cfg(target_os = "ios")]
-                    Some(tunnel_metadata.interface.clone()),
-                )
-                .await
-            {
-                trace_err_chain!(err, "failed to enable dns forwarding");
-            }
+        tracing::debug!(
+            "Enabling local DNS forwarder to: {}",
+            dns_config
+                .iter()
+                .map(|ns| {
+                    let protos = ns
+                        .connections
+                        .iter()
+                        .map(|conn| format!("{}/{}", conn.port, conn.protocol.to_protocol()))
+                        .collect::<Vec<_>>()
+                        .join(",");
+                    format!("{} ({})", ns.ip, protos)
+                })
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
 
-            #[cfg(any(target_os = "linux", target_os = "windows"))]
-            {
-                // Point the tunnel interface DNS at the local filtering resolver so that the OS actually
-                // sends DNS queries to it.
-                let listen_addr = shared_state.filtering_resolver.listen_addr();
-                let system_dns =
-                    DnsConfig::default().resolve(&[listen_addr.ip()], listen_addr.port());
-                shared_state
-                    .dns_handler
-                    .set(&tunnel_metadata.interface, system_dns)
-                    .await
-                    .map_err(Error::SetDns)?;
-            }
-        } else {
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            {
-                tracing::debug!("Not enabling local DNS resolver");
-                shared_state
-                    .dns_handler
-                    .set(&tunnel_metadata.interface, dns_config)
-                    .await
-                    .map_err(Error::SetDns)?;
-            }
+        if let Err(err) = shared_state
+            .filtering_resolver
+            .enable_forward(
+                dns_config,
+                #[cfg(target_os = "ios")]
+                Some(tunnel_metadata.interface.clone()),
+            )
+            .await
+        {
+            trace_err_chain!(err, "failed to enable dns forwarding");
+        }
+
+        #[cfg(any(target_os = "linux", target_os = "windows"))]
+        {
+            // Point the tunnel interface DNS at the local filtering resolver so that the OS actually
+            // sends DNS queries to it.
+            let listen_addr = shared_state.filtering_resolver.listen_addr();
+            let system_dns = DnsConfig {
+                addresses: vec![listen_addr.ip()],
+                port: listen_addr.port(),
+            };
+            shared_state
+                .dns_handler
+                .set(&tunnel_metadata.interface, system_dns)
+                .await
+                .map_err(Error::SetDns)?;
         }
 
         Ok(())
@@ -200,15 +206,8 @@ impl ConnectedState {
 
     #[cfg(not(target_os = "android"))]
     async fn reset_dns(shared_state: &mut SharedState) {
-        if *LOCAL_DNS_RESOLVER {
-            if let Err(err) = shared_state.filtering_resolver.disable_forward().await {
-                trace_err_chain!(err, "failed to disable dns forwarding");
-            }
-        } else {
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            if let Err(error) = shared_state.dns_handler.reset().await {
-                trace_err_chain!(error, "Failed to reset DNS");
-            }
+        if let Err(err) = shared_state.filtering_resolver.disable_forward().await {
+            trace_err_chain!(err, "failed to disable dns forwarding");
         }
 
         #[cfg(any(target_os = "linux", target_os = "windows"))]
@@ -427,7 +426,7 @@ struct ConnectedPolicyParameters {
     ws_entry_endpoints: Vec<SocketAddr>,
 
     /// Resolved DNS configuration including in-tunnel and out-of-tunnel DNS servers
-    dns_config: ResolvedDnsConfig,
+    dns_config: nym_firewall::AllowedDns,
 
     /// Tunnel interface
     tunnel_interface: TunnelInterface,
@@ -496,7 +495,6 @@ impl ConnectedPolicyParameters {
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod tests {
     use super::*;
-    use nym_dns::DnsConfig;
     use std::net::{IpAddr, Ipv4Addr};
 
     fn create_mock_gateway_with_websocket_endpoints(
@@ -552,11 +550,20 @@ mod tests {
         };
         let tunnel_interface = TunnelInterface::One(tunnel_metadata);
 
-        // Create ResolvedDnsConfig using DnsConfig::default().resolve()
-        let dns_config = DnsConfig::default().resolve(
-            &[IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1))],
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            53,
+        let dns_config = AllowedDns::new(
+            vec![
+                Endpoint::new(
+                    IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)),
+                    53,
+                    TransportProtocol::Tcp,
+                ),
+                Endpoint::new(
+                    IpAddr::V4(Ipv4Addr::new(10, 0, 0, 1)),
+                    53,
+                    TransportProtocol::Udp,
+                ),
+            ],
+            vec![],
         );
 
         let params = ConnectedPolicyParameters {

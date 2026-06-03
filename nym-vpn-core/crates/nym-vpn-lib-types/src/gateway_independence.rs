@@ -45,6 +45,13 @@ impl Default for GatewayIndependence {
     }
 }
 
+impl fmt::Display for GatewayIndependence {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "different node family: {}; ", self.different_node_family)?;
+        write!(f, "different ASN: {}", self.different_asn)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -89,12 +96,5 @@ mod tests {
             different_node_family: true,
         };
         assert!(gi.active());
-    }
-}
-
-impl fmt::Display for GatewayIndependence {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "different node family: {}; ", self.different_node_family)?;
-        write!(f, "different ASN: {}", self.different_asn)
     }
 }

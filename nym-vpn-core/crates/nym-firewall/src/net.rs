@@ -281,3 +281,46 @@ impl TunnelInterface {
         }
     }
 }
+
+/// Describes DNS allowed on tunnel and non-tunnel interfaces.
+#[cfg(not(target_os = "android"))]
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct AllowedDns {
+    /// DNS addresses allowed on the tunnel interface
+    tunnel_dns: Vec<Endpoint>,
+
+    /// DNS addresses allowed on the non-tunnel interface
+    non_tunnel_dns: Vec<Endpoint>,
+}
+
+impl AllowedDns {
+    /// Initialize `AllowedDns` with two separate sets of tunnel and non-tunnel DNS.
+    /// No sanity checks are performed on the input.
+    pub fn new(tunnel_dns: Vec<Endpoint>, non_tunnel_dns: Vec<Endpoint>) -> Self {
+        Self {
+            tunnel_dns,
+            non_tunnel_dns,
+        }
+    }
+
+    /// Initialize `AllowedDns` with tunnel DNS endpoints, automatically moving endpoints with private IPs to non-tunnel DNS.
+    pub fn new_with_tunnel_dns(endpoints: Vec<Endpoint>) -> Self {
+        let (non_tunnel_dns, tunnel_dns): (Vec<_>, Vec<_>) = endpoints
+            .into_iter()
+            .partition(|ep| nym_firewall_config::is_local_address(&ep.address.ip()));
+        Self {
+            non_tunnel_dns,
+            tunnel_dns,
+        }
+    }
+
+    /// Returns the tunnel DNS endpoints.
+    pub fn tunnel_dns(&self) -> &[Endpoint] {
+        &self.tunnel_dns
+    }
+
+    /// Returns the non-tunnel DNS endpoints.
+    pub fn non_tunnel_dns(&self) -> &[Endpoint] {
+        &self.non_tunnel_dns
+    }
+}

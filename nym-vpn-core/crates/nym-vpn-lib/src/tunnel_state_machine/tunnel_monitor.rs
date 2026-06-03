@@ -1150,11 +1150,10 @@ impl TunnelMonitor {
             exit: WireguardNode::from(&conn_data.exit),
         });
 
-        let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             metadata_proxy_tx: entry_metadata_tx,
             exit_tun,
-            dns: dns_config.tunnel_config().to_vec(),
+            dns: vec![], // we configure system resolver ourselves
         });
 
         let tunnel_metadata = TunnelMetadata {
@@ -1228,13 +1227,12 @@ impl TunnelMonitor {
         #[cfg(not(target_os = "linux"))]
         let entry_endpoint = conn_data.effective_remote_entry_endpoint();
 
-        let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             metadata_proxy_tx: entry_metadata_tx,
             exit_tun_name: WG_EXIT_WINTUN_NAME.to_owned(),
             exit_tun_guid: WG_EXIT_WINTUN_GUID.to_owned(),
             wintun_tunnel_type: WINTUN_TUNNEL_TYPE.to_owned(),
-            dns: dns_config.tunnel_config().to_vec(),
+            dns: vec![], // we configure system resolver ourselves
         });
 
         let mut tunnel_handle = connected_tunnel
@@ -1377,11 +1375,10 @@ impl TunnelMonitor {
             exit: WireguardNode::from(&conn_data.exit),
         });
 
-        let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
             entry_tun,
             exit_tun,
-            dns: dns_config.tunnel_config().to_vec(),
+            dns: vec![], // we configure system resolver ourselves
         });
 
         let tunnel_handle = connected_tunnel
@@ -1459,14 +1456,13 @@ impl TunnelMonitor {
             exit: WireguardNode::from(&conn_data.exit),
         });
 
-        let dns_config = self.tunnel_parameters.tunnel_settings.resolved_dns_config();
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
             entry_tun_name: WG_ENTRY_WINTUN_NAME.to_owned(),
             entry_tun_guid: WG_ENTRY_WINTUN_GUID.to_owned(),
             exit_tun_name: WG_EXIT_WINTUN_NAME.to_owned(),
             exit_tun_guid: WG_EXIT_WINTUN_GUID.to_owned(),
             wintun_tunnel_type: WINTUN_TUNNEL_TYPE.to_owned(),
-            dns: dns_config.tunnel_config().to_vec(),
+            dns: vec![], // we configure system resolver ourselves
         });
 
         let mut tunnel_handle = connected_tunnel
@@ -1632,21 +1628,14 @@ impl TunnelMonitor {
         })
     }
 
-    #[cfg(any(target_os = "ios", target_os = "android"))]
+    #[cfg(target_os = "ios")]
     fn get_mobile_dns_addresses(&self) -> Vec<IpAddr> {
-        #[cfg(target_os = "ios")]
-        {
-            vec![self.tunnel_parameters.filtering_resolver_addr.ip()]
-        }
+        vec![self.tunnel_parameters.filtering_resolver_addr.ip()]
+    }
 
-        #[cfg(target_os = "android")]
-        {
-            self.tunnel_parameters
-                .tunnel_settings
-                .dns
-                .ip_addresses(&self.tunnel_parameters.tunnel_settings.dns_ips())
-                .to_vec()
-        }
+    #[cfg(target_os = "android")]
+    fn get_mobile_dns_addresses(&self) -> Vec<IpAddr> {
+        self.tunnel_parameters.tunnel_settings.android_tunnel_dns()
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

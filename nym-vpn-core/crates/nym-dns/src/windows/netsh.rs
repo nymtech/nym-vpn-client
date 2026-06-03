@@ -21,7 +21,7 @@ use windows::Win32::{Foundation::MAX_PATH, System::SystemInformation::GetSystemD
 use nym_common::trace_err_chain;
 use nym_windows::net::{index_from_luid, luid_from_alias};
 
-use crate::{DnsMonitorT, ResolvedDnsConfig};
+use crate::{DnsConfig, DnsMonitorT};
 
 const NETSH_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -74,8 +74,8 @@ impl DnsMonitorT for DnsMonitor {
         })
     }
 
-    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
-        let servers = config.tunnel_config();
+    async fn set(&mut self, interface: &str, config: DnsConfig) -> Result<(), Error> {
+        let servers = &config.addresses;
         let interface_luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
         let interface_index =
             index_from_luid(&interface_luid).map_err(Error::ObtainInterfaceIndex)?;

@@ -7,8 +7,6 @@ use std::{borrow::Cow, fmt, net::IpAddr};
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use ipnetwork::Ipv6Network;
-#[cfg(not(target_os = "android"))]
-use nym_dns::ResolvedDnsConfig;
 
 #[cfg(target_os = "linux")]
 use nym_cgroup::v2::CGroup2;
@@ -34,6 +32,8 @@ mod imp;
 mod imp;
 
 mod net;
+#[cfg(not(target_os = "android"))]
+pub use net::AllowedDns;
 pub use net::{
     AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol,
     TunnelInterface, TunnelMetadata,
@@ -71,16 +71,7 @@ const DHCPV6_CLIENT_PORT: u16 = 546;
 #[cfg(all(unix, not(any(target_os = "android", target_os = "ios"))))]
 const ROOT_UID: u32 = 0;
 
-/// Allowed TCP ports to DNS servers when connecting.
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-const DNS_TCP_PORTS: [u16; 2] = [443, 853];
-
 /// A enum that describes network security strategy
-///
-/// # Firewall block/allow specification.
-///
-/// See the [security](../../../docs/security.md) document for the specification on how to
-/// implement these policies and what should and should not be allowed to flow.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum FirewallPolicy {
     /// Allow traffic only to server
@@ -93,7 +84,7 @@ pub enum FirewallPolicy {
         allow_lan: bool,
         /// Servers that are allowed to respond to DNS requests.
         #[cfg(not(target_os = "android"))]
-        dns_config: ResolvedDnsConfig,
+        dns_config: AllowedDns,
         /// Hosts that should be reachable while connecting.
         allowed_endpoints: Vec<AllowedEndpoint>,
         /// Networks for which to permit entry in-tunnel traffic.
@@ -116,7 +107,7 @@ pub enum FirewallPolicy {
         allow_lan: bool,
         /// Servers that are allowed to respond to DNS requests.
         #[cfg(not(target_os = "android"))]
-        dns_config: ResolvedDnsConfig,
+        dns_config: AllowedDns,
         /// Interface to redirect (VPN tunnel) traffic to
         #[cfg(target_os = "macos")]
         redirect_interface: Option<String>,
@@ -214,7 +205,7 @@ impl FirewallPolicy {
     }
 
     #[cfg(not(target_os = "android"))]
-    pub fn dns_config(&self) -> Option<&ResolvedDnsConfig> {
+    pub fn dns_config(&self) -> Option<&AllowedDns> {
         match self {
             FirewallPolicy::Connecting { dns_config, .. }
             | FirewallPolicy::Connected { dns_config, .. } => Some(dns_config),
@@ -313,14 +304,14 @@ impl fmt::Display for FirewallPolicy {
 }
 
 #[cfg(not(target_os = "android"))]
-fn display_allowed_non_tunnel_dns(dns_config: &ResolvedDnsConfig) -> String {
-    if dns_config.non_tunnel_config().is_empty() {
+fn display_allowed_non_tunnel_dns(dns_config: &AllowedDns) -> String {
+    if dns_config.non_tunnel_dns().is_empty() {
         "none".to_owned()
     } else {
         dns_config
-            .non_tunnel_config()
+            .non_tunnel_dns()
             .iter()
-            .map(|ip| ip.to_string())
+            .map(|ep| ep.to_string())
             .collect::<Vec<_>>()
             .join(",")
     }

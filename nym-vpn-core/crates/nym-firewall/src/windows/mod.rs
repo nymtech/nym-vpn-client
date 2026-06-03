@@ -5,8 +5,7 @@
 #[macro_use]
 mod ffi;
 
-use crate::{AllowedClients, DNS_TCP_PORTS, Endpoint, TransportProtocol, TunnelInterface};
-use nym_dns::ResolvedDnsConfig;
+use crate::{AllowedClients, AllowedDns, TunnelInterface};
 
 use std::{ffi::CStr, net::IpAddr, ptr, sync::LazyLock};
 
@@ -232,7 +231,7 @@ impl Firewall {
         endpoints: &[AllowedEndpoint],
         winfw_settings: &WinFwSettings,
         tunnel_interface: Option<&TunnelInterface>,
-        dns_config: &ResolvedDnsConfig,
+        dns_config: &AllowedDns,
         allowed_endpoints: &[AllowedEndpoint],
         allowed_entry_tunnel_traffic: AllowedTunnelTraffic,
         allowed_exit_tunnel_traffic: AllowedTunnelTraffic,
@@ -270,23 +269,11 @@ impl Firewall {
         let allowed_exit_tunnel_traffic_bridge =
             AllowedTunnelTrafficBridge::from(allowed_exit_tunnel_traffic);
 
-        let non_tunnel_dns_servers =
-            dns_config
-                .non_tunnel_config()
-                .iter()
-                .cloned()
-                .flat_map(|dns_ip| {
-                    DNS_TCP_PORTS
-                        .iter()
-                        .copied()
-                        .map(|tcp_port| {
-                            AllowedEndpoint::new(
-                                Endpoint::new(dns_ip, tcp_port, TransportProtocol::Tcp),
-                                AllowedClients::current_exe(),
-                            )
-                        })
-                        .collect::<Vec<_>>()
-                });
+        let non_tunnel_dns_servers = dns_config
+            .non_tunnel_dns()
+            .iter()
+            .cloned()
+            .map(|ep| AllowedEndpoint::new(ep, AllowedClients::current_exe()));
 
         let allowed_endpoint_containers = allowed_endpoints
             .iter()
@@ -330,7 +317,7 @@ impl Firewall {
         endpoints: &[AllowedEndpoint],
         winfw_settings: &WinFwSettings,
         tunnel_interface: &TunnelInterface,
-        dns_config: &ResolvedDnsConfig,
+        dns_config: &AllowedDns,
     ) -> Result<(), Error> {
         tracing::trace!("Applying 'connected' firewall policy");
 
@@ -360,18 +347,16 @@ impl Firewall {
         };
 
         let tunnel_dns_servers: Vec<WideCString> = dns_config
-            .tunnel_config()
+            .tunnel_dns()
             .iter()
-            .cloned()
-            .map(widestring_ip)
+            .map(|ep| widestring_ip(ep.address.ip()))
             .collect();
         let tunnel_dns_servers_refs: Vec<*const u16> =
             tunnel_dns_servers.iter().map(|ip| ip.as_ptr()).collect();
         let non_tunnel_dns_servers: Vec<WideCString> = dns_config
-            .non_tunnel_config()
+            .non_tunnel_dns()
             .iter()
-            .cloned()
-            .map(widestring_ip)
+            .map(|ep| widestring_ip(ep.address.ip()))
             .collect();
         let non_tunnel_dns_servers_refs: Vec<*const u16> = non_tunnel_dns_servers
             .iter()
