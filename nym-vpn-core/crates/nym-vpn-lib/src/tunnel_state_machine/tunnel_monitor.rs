@@ -252,13 +252,11 @@ pub struct TunnelMonitor {
 
 /// Poll the exit WireGuard peer's UAPI stats until the handshake completes or we time out.
 ///
-/// This prevents the ICMP connection monitor from running before the exit WireGuard session
-/// is established; a race that causes spurious disconnects when the two-hop handshake is
-/// slower than the initial ICMP probe timeout.
+/// Returns `true` if the handshake completed, `false` if the timeout was reached.
 async fn wait_for_exit_handshake(
     tunnel_handle: &connected_tunnel::TunnelHandle,
     shutdown_token: &CancellationToken,
-) {
+) -> bool {
     const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(30);
     const POLL_INTERVAL: Duration = Duration::from_millis(200);
 
@@ -279,11 +277,17 @@ async fn wait_for_exit_handshake(
     .await;
 
     match result {
-        Ok(()) => tracing::debug!("Exit WireGuard handshake completed"),
-        Err(_) => tracing::warn!(
-            "Exit WireGuard handshake did not complete within {}s, proceeding",
-            HANDSHAKE_TIMEOUT.as_secs()
-        ),
+        Ok(()) => {
+            tracing::debug!("Exit WireGuard handshake completed");
+            true
+        }
+        Err(_) => {
+            tracing::warn!(
+                "Exit WireGuard handshake did not complete within {}s",
+                HANDSHAKE_TIMEOUT.as_secs()
+            );
+            false
+        }
     }
 }
 
@@ -683,8 +687,11 @@ impl TunnelMonitor {
             tracing::warn!("Interface up reply timeout");
         }
 
-        // The firewall now allows traffic through the tunnel. Wait for the exit WG
-        // handshake before starting the connection monitor so ICMP probes don't race the session.
+        // The firewall now allows traffic through the tunnel. Wait for the exit WG handshake
+        // before starting the connection monitor so ICMP probes don't race the session.
+        // We proceed even on timeout: a handshake that completes just after the deadline
+        // will still allow ICMP to succeed, while a genuinely dead session will be caught
+        // by the ICMP monitor failing.
         if let Some(wg_handle) = tunnel_handle.as_wireguard() {
             wait_for_exit_handshake(wg_handle, &self.shutdown_token).await;
         }
