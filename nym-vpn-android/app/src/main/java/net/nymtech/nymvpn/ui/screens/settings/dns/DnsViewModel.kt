@@ -20,9 +20,6 @@ import javax.inject.Inject
 @HiltViewModel
 class DnsViewModel @Inject constructor(private val backendManager: BackendManager, private val vpnConfigRepository: VpnConfigRepository) : ViewModel() {
 
-	private val _defaultDns = MutableStateFlow<List<String>>(emptyList())
-	val defaultDns: StateFlow<List<String>> = _defaultDns
-
 	private val _customDns = MutableStateFlow<List<String>>(emptyList())
 	val customDns: StateFlow<List<String>> = _customDns
 
@@ -37,7 +34,6 @@ class DnsViewModel @Inject constructor(private val backendManager: BackendManage
 
 	init {
 		viewModelScope.launch {
-			_defaultDns.value = DEFAULT_DNS_SERVERS
 			_customDns.value = vpnConfigRepository.getConfig().customDns
 		}
 

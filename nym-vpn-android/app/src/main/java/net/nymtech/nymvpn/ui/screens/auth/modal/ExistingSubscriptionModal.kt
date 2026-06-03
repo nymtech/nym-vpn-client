@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.account.create.modal
+package net.nymtech.nymvpn.ui.screens.auth.modal
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.fillMaxWidth

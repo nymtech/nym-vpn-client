@@ -7,7 +7,6 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import java.util.Locale
-import kotlin.math.round
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -19,11 +18,6 @@ fun Long.convertSecondsToTimeString(): String {
 }
 
 fun String.capitalize(locale: Locale): String = this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
-
-fun Long.toMB(): String {
-	val mb = this / 1024.0 * 1024.0
-	return "%.2f".format(round(mb * 100) / 100)
-}
 
 fun String.truncateWithEllipsis(length: Int): String = if (this.length <= length) this else "${take(length)}..."
 

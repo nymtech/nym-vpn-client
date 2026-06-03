@@ -10,14 +10,13 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.service.quicksettings.TileService
-import android.widget.Toast
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.core.net.toUri
 import androidx.credentials.CreatePasswordRequest
 import androidx.credentials.CredentialManager
 import net.nymtech.nymvpn.NymVpn.Companion.instance
-import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
+import net.nymtech.nymvpn.service.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
 import timber.log.Timber
 
@@ -38,17 +37,9 @@ fun Context.openWebUrl(url: String): Result<Unit> = kotlin.runCatching {
 	}
 }
 
-fun Context.showToast(resId: Int) {
-	Toast.makeText(
-		this,
-		this.getString(resId),
-		Toast.LENGTH_LONG,
-	).show()
-}
-
 fun Context.launchVpnSettings(): Result<Unit> = kotlin.runCatching {
 	val intent = Intent(Constants.VPN_SETTINGS_PACKAGE).apply {
-		setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+		flags = Intent.FLAG_ACTIVITY_NEW_TASK
 	}
 	startActivity(intent)
 }
@@ -103,8 +94,8 @@ fun Context.requestTileServiceStateUpdate() {
 
 fun Context.launchShareFile(file: Uri) {
 	val shareIntent = Intent().apply {
-		setAction(Intent.ACTION_SEND)
-		setType("*/*")
+		action = Intent.ACTION_SEND
+		type = "*/*"
 		putExtra(Intent.EXTRA_STREAM, file)
 		addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 	}
@@ -169,13 +160,11 @@ fun Context.launchAppSettings() {
 	kotlin.runCatching {
 		val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
 			data = Uri.fromParts("package", packageName, null)
-			setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+			flags = Intent.FLAG_ACTIVITY_NEW_TASK
 		}
 		startActivity(intent)
 	}
 }
-
-fun Context.isAndroidTV(): Boolean = packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
 
 suspend fun savePasswordToManager(context: Context, password: String) {
 	val credentialManager = CredentialManager.create(context)

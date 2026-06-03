@@ -17,7 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.screens.account.create.modal.ExistingSubscriptionModal
+import net.nymtech.nymvpn.ui.screens.auth.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.screens.auth.components.LoginView
 import net.nymtech.nymvpn.ui.screens.auth.components.PassphraseView
 import net.nymtech.nymvpn.ui.screens.auth.components.SignUpView

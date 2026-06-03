@@ -34,9 +34,7 @@ object DeviceAuthHelper {
 	) {
 		val bm = BiometricManager.from(activity)
 		val authenticators = allowedAuthenticatorsForPrompt()
-		val res = bm.canAuthenticate(authenticators)
-
-		when (res) {
+		when (val res = bm.canAuthenticate(authenticators)) {
 			BiometricManager.BIOMETRIC_SUCCESS -> {
 				Timber.tag(TAG).d("AuthPromptLaunching")
 

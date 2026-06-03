@@ -66,8 +66,7 @@ fun NavBar(
 		navBarState = when {
 			route.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState.Empty
 
-			route.startsWith(Route.LoginScanner::class.qualifiedName!!) ||
-				route.startsWith(Route.Technical::class.qualifiedName!!) -> NavBarState.Hidden
+			route.startsWith(Route.Technical::class.qualifiedName!!) -> NavBarState.Hidden
 
 			route.startsWith(Route.Generating::class.qualifiedName!!) ||
 				route.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState.Empty
@@ -77,19 +76,9 @@ fun NavBar(
 				onSettingsClick = currentMainSettingsClick,
 			)
 
-			route.startsWith(Route.Login::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = null,
-				onBack = { navController.safePopBackStack() },
-			)
-
 			route.startsWith(Route.SelectPlan::class.qualifiedName!!) -> NavBarState.WithBack(
 				titleRes = null,
 				onBack = { navController.replaceCurrentWith(Route.Main()) },
-			)
-
-			route.startsWith(Route.CreateAccount::class.qualifiedName!!) -> NavBarState.WithBack(
-				titleRes = null,
-				onBack = { navController.safePopBackStack() },
 			)
 
 			route.startsWith(Route.Settings::class.qualifiedName!!) -> NavBarState.WithClose(

@@ -11,7 +11,6 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.extensions.scaled
 
 private val sans = FontFamily(Font(R.font.lab_grotesque_regular))
-private val monoFont = FontFamily(Font(R.font.lab_grotesque_mono))
 
 // ── Material 3 type scale ─────────────────────────────────────────────────────
 
@@ -148,15 +147,6 @@ object CustomTypography {
 		fontWeight = FontWeight.Medium,
 		fontSize = 16.sp.scaled(),
 		lineHeight = 22.4.sp.scaled(),
-		letterSpacing = 0.sp,
-	)
-
-	// For account IDs, device IDs, IP addresses.
-	val mono = TextStyle(
-		fontFamily = monoFont,
-		fontWeight = FontWeight.Normal,
-		fontSize = 13.sp.scaled(),
-		lineHeight = 18.sp.scaled(),
 		letterSpacing = 0.sp,
 	)
 }
