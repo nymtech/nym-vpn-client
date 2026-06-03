@@ -169,7 +169,7 @@ impl NymAccountController {
 
         let privy_account = StorableAccount {
             mnemonic: deeplink_mnemonic.mnemonic.clone(),
-            mode: nym_vpn_store::types::StoredAccountMode::Privy,
+            mode: StoredAccountMode::Privy,
         };
 
         match deeplink_mnemonic.kind {
