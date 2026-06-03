@@ -330,6 +330,7 @@
       },
       "got-it": "Got it!"
     },
+    "remove-app": "Remove {{name}}",
     "remove-confirm-dialog": {
       "title": "Remove {{appName}}?",
       "description": "This removes the app from your custom split tunneling list. It won't uninstall the app, and you can add it again later.",

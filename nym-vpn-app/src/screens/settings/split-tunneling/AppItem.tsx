@@ -92,7 +92,7 @@ function AppItem({
             e.stopPropagation();
             onRemove?.(app);
           }}
-          aria-label={`Remove ${app.name}`}
+          aria-label={t('split-tunneling.remove-app', { name: app.name })}
           className="text-text-tertiary hover:text-status-error transition-noborder flex cursor-default items-center justify-center"
         >
           <MsIcon icon="close" className="text-base" />
