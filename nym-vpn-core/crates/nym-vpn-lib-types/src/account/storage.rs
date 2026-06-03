@@ -1,13 +1,15 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
 use crate::StoredAccountMode;
 
 pub use bip39::Mnemonic;
 
-#[derive(Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct StorableAccount {
     pub mnemonic: Mnemonic,
     pub mode: StoredAccountMode,
