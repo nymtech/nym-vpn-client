@@ -12,9 +12,12 @@ import { Spinner } from '../../../ui';
 import { useToast } from '../../../hooks/index';
 import InfoDialog from './InfoDialog';
 import LaunchConfirmDialog from './LaunchConfirmDialog';
+import RemoveConfirmDialog from './RemoveConfirmDialog';
 import AppItem, { AppEntry } from './AppItem';
 import { parseExecArgs, useSplitTunnel } from './utils';
 import { PROBLEMATIC_APPS } from './utils/constants';
+
+const LAUNCH_FAILURE_WINDOW_MS = 2500;
 
 function SplitTunneling() {
   const os = type();
@@ -23,24 +26,80 @@ function SplitTunneling() {
   const { isOpen, close } = useDialog();
   const { add: addToast } = useToast();
 
-  const { apps, enabled, loading, setEnabled, add, remove, isSupported } =
-    useSplitTunnel();
+  const {
+    apps,
+    enabled,
+    loading,
+    setEnabled,
+    add,
+    addCustomApp,
+    remove,
+    removeCustomApp,
+    isSupported,
+  } = useSplitTunnel();
 
   const [runningApps, setRunningApps] = useState<Record<string, number[]>>({});
   const [pendingLaunchApp, setPendingLaunchApp] = useState<AppEntry | null>(
     null,
   );
+  const [pendingRemoveApp, setPendingRemoveApp] = useState<AppEntry | null>(
+    null,
+  );
 
   const spawnApp = useCallback(
     async (app: AppEntry) => {
+      // Buffer stderr and remember when we launched, so an early non-zero exit
+      // can be surfaced to the user as a failed launch
+      const stderrLines: string[] = [];
+      const spawnedAt = Date.now();
+
       try {
         const command = Command.create(
           'nym-exclude',
           parseExecArgs(app.executable_path),
+          // nym-vpn-app runs with GDK_BACKEND=wayland (injected by its GTK/WebKit
+          // runtime). nym-exclude passes the environment straight through, and
+          // some apps (e.g. Electron/GTK AppImages) can't open a display under
+          // the forced Wayland backend, failing with "cannot open display: :0".
+          // Override it so the launched app uses X11 (Xwayland), matching a
+          // normal terminal launch.
+          { env: { GDK_BACKEND: 'wayland,x11' } },
         );
 
+        command.stderr.on('data', (line) => {
+          console.error('[nym-exclude][stderr]', line);
+          const trimmed = line.trim();
+          if (trimmed) stderrLines.push(trimmed);
+        });
+
         command.on('close', (data) => {
-          console.info('[nym-exclude] process closed with code', data.code);
+          console.info('[nym-exclude] process closed', {
+            code: data.code,
+            signal: data.signal,
+          });
+
+          // Detect a failed launch: non-zero exit code, or killed by a signal
+          const exitedAbnormally =
+            data.code === null ? data.signal !== null : data.code !== 0;
+          const exitedQuickly =
+            Date.now() - spawnedAt < LAUNCH_FAILURE_WINDOW_MS;
+          if (exitedAbnormally && exitedQuickly) {
+            const maxLen = 300;
+            let detail = stderrLines.join('\n').slice(0, maxLen);
+            if (stderrLines.join('\n').length > maxLen) {
+              detail += '...';
+            }
+
+            addToast({
+              id: `launch-failed-${app.name}`,
+              title: t('split-tunneling.error.launch-failed', {
+                name: app.name,
+              }),
+              description: detail || undefined,
+              type: 'error',
+            });
+          }
+
           setRunningApps((prev) => {
             const pids = prev[app.name];
             if (!pids) return prev;
@@ -108,6 +167,21 @@ function SplitTunneling() {
     setPendingLaunchApp(null);
   }, []);
 
+  const handleRemove = useCallback((app: AppEntry) => {
+    setPendingRemoveApp(app);
+  }, []);
+
+  const handleRemoveConfirm = useCallback(async () => {
+    if (pendingRemoveApp) {
+      await removeCustomApp(pendingRemoveApp);
+    }
+    setPendingRemoveApp(null);
+  }, [pendingRemoveApp, removeCustomApp]);
+
+  const handleRemoveCancel = useCallback(() => {
+    setPendingRemoveApp(null);
+  }, []);
+
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const groupedApps = useMemo(() => {
@@ -167,6 +241,13 @@ function SplitTunneling() {
         onCancel={handleLaunchCancel}
       />
 
+      <RemoveConfirmDialog
+        isOpen={pendingRemoveApp !== null}
+        appName={pendingRemoveApp?.name ?? ''}
+        onConfirm={handleRemoveConfirm}
+        onCancel={handleRemoveCancel}
+      />
+
       {/* Enable split tunneling on Windows only*/}
       {os === 'windows' && (
         <SettingsMenuCard
@@ -190,6 +271,15 @@ function SplitTunneling() {
       <p className="text-status-warning bg-surface-elev/40 rounded-lg p-3 text-sm">
         {t('split-tunneling.exclude-warning')}
       </p>
+
+      {/* Exclude a custom app via native file dialog */}
+      {(enabled || os === 'linux') && (
+        <SettingsMenuCard
+          title={t('split-tunneling.add-custom-app')}
+          leadingIcon="add"
+          onClick={addCustomApp}
+        />
+      )}
 
       {/* Apps section */}
       <AnimatePresence initial={false}>
@@ -232,6 +322,7 @@ function SplitTunneling() {
                           onStateChange={handleStateChange}
                           isRunning={(runningApps[app.name]?.length ?? 0) > 0}
                           onLaunch={handleLaunch}
+                          onRemove={handleRemove}
                         />
                         {i < groupedApps[letter].length - 1 && (
                           <div className="bg-surface-hair mx-4 h-px" />

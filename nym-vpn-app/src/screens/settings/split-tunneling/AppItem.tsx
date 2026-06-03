@@ -19,9 +19,16 @@ type AppItemProps = {
   ) => Promise<void>;
   isRunning?: boolean;
   onLaunch?: (app: AppEntry) => Promise<void>;
+  onRemove?: (app: AppEntry) => void;
 };
 
-function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
+function AppItem({
+  app,
+  onStateChange,
+  isRunning,
+  onLaunch,
+  onRemove,
+}: AppItemProps) {
   const { t } = useTranslation('settings');
   const os = type();
 
@@ -79,11 +86,22 @@ function AppItem({ app, onStateChange, isRunning, onLaunch }: AppItemProps) {
           </span>
         )}
       </div>
+      {app.is_custom && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove?.(app);
+          }}
+          aria-label={`Remove ${app.name}`}
+          className="text-text-tertiary hover:text-status-error transition-noborder flex cursor-default items-center justify-center"
+        >
+          <MsIcon icon="close" className="text-base" />
+        </button>
+      )}
       {os === 'linux' && (
-        <MsIcon
-          icon="open_in_new"
-          className="text-text-tertiary shrink-0 text-base"
-        />
+        <div className="flex shrink-0 items-center gap-2">
+          <MsIcon icon="open_in_new" className="text-text-tertiary text-base" />
+        </div>
       )}
       {/* Only Windows can include/exclude apps from inside the app */}
       {/* Linux uses custom app launcher to launch the app and immediately exclude it from the tunnel */}

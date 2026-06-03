@@ -1,8 +1,9 @@
 use crate::commands::gateway::Hop;
 use crate::{
+    db::Db,
     error::{BackendError, ErrorKey},
     events::AppHandleEventEmitter,
-    fs::app_discovery::{App, get_installed_apps},
+    fs::app_discovery::{App, custom_apps, get_installed_apps},
     state::{SharedAppState, app::VpnMode},
     vpnd::{
         client::{Node, VpndClient, VpndError},
@@ -13,6 +14,7 @@ use crate::{
 };
 use std::net::IpAddr;
 use tauri::{Manager, State};
+use tauri_plugin_dialog::DialogExt;
 use tracing::{debug, info, instrument, warn};
 
 #[instrument(skip_all)]
@@ -247,10 +249,64 @@ pub async fn set_enable_split_tunnel(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn get_app_list(app: tauri::AppHandle) -> Result<Vec<App>, BackendError> {
-    tokio::task::spawn_blocking(move || get_installed_apps(app))
+pub async fn get_app_list(
+    app: tauri::AppHandle,
+    db: State<'_, Db>,
+) -> Result<Vec<App>, BackendError> {
+    let app_handle = app.clone();
+    let discovered = tokio::task::spawn_blocking(move || get_installed_apps(app_handle))
         .await
-        .map_err(|e| BackendError::internal(&e.to_string(), None))?
+        .map_err(|e| BackendError::internal(&e.to_string(), None))??;
+    let mut custom = custom_apps::load(&db)?;
+
+    #[cfg(windows)]
+    {
+        use std::collections::HashSet;
+        use std::path::Path;
+
+        use crate::state::SharedAppState;
+        use tauri::Manager as _;
+
+        let daemon_paths: Vec<String> = {
+            let s_state = app.state::<SharedAppState>();
+            let state = s_state.lock().await;
+            state
+                .vpnd_config
+                .as_ref()
+                .map(|c| c.split_tunnel.apps.iter().map(|a| a.path.clone()).collect())
+                .unwrap_or_default()
+        };
+
+        if !daemon_paths.is_empty() {
+            let discovered_set: HashSet<&str> =
+                discovered.iter().map(|a| a.executable_path.as_str()).collect();
+            let custom_set: HashSet<String> =
+                custom.iter().map(|a| a.executable_path.clone()).collect();
+
+            let mut added = 0usize;
+            for path in &daemon_paths {
+                if discovered_set.contains(path.as_str()) || custom_set.contains(path) {
+                    continue;
+                }
+                match custom_apps::build_custom_app(Path::new(path)) {
+                    Ok(new_app) => {
+                        info!("importing daemon split-tunnel app into custom list: {path}");
+                        custom.push(new_app);
+                        added += 1;
+                    }
+                    Err(e) => {
+                        warn!("skipping daemon split-tunnel app '{path}': {e}");
+                    }
+                }
+            }
+
+            if added > 0 {
+                custom_apps::save(&db, &custom)?;
+            }
+        }
+    }
+
+    Ok(custom_apps::merge(discovered, custom))
 }
 
 #[instrument(skip_all)]
@@ -279,6 +335,59 @@ pub async fn remove_app_from_split_tunnel(
 pub async fn is_split_tunnel_supported(vpnd: State<'_, VpndClient>) -> Result<bool, BackendError> {
     let is_supported = vpnd.is_split_tunnel_supported().await?;
     Ok(is_supported)
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn add_custom_split_tunnel_app(
+    app: tauri::AppHandle,
+    db: State<'_, Db>,
+) -> Result<Option<App>, BackendError> {
+    let picker = app.dialog().file();
+    #[cfg(windows)]
+    let picker = picker.add_filter("Executable files", &["exe"]);
+    let Some(file_path) = picker.blocking_pick_file() else {
+        info!("user cancelled custom split tunnel app dialog");
+        return Ok(None);
+    };
+
+    let path = file_path
+        .as_path()
+        .ok_or_else(|| BackendError::internal("failed to resolve picked file path", None))?
+        .to_path_buf();
+    info!("[command] add_custom_split_tunnel_app: {}", path.display());
+
+    let new_app = custom_apps::build_custom_app(&path)?;
+    let mut apps = custom_apps::load(&db)?;
+    custom_apps::insert_unique(&mut apps, new_app.clone())?;
+    custom_apps::save(&db, &apps)?;
+
+    Ok(Some(new_app))
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn remove_custom_split_tunnel_app(
+    vpnd: State<'_, VpndClient>,
+    db: State<'_, Db>,
+    path: String,
+) -> Result<(), BackendError> {
+    info!("[command] remove_custom_split_tunnel_app: {path}");
+    let mut apps = custom_apps::load(&db)?;
+    custom_apps::remove(&mut apps, &path);
+    custom_apps::save(&db, &apps)?;
+    // On Windows the daemon owns the live exclude list; clean it up so the
+    // removed app doesn't continue to bypass the VPN silently.
+    #[cfg(windows)]
+    {
+        if let Err(e) = vpnd
+            .remove_app_from_split_tunnel(SplitApp { path: path.clone() })
+            .await
+        {
+            warn!("failed to remove {path} from daemon split tunnel list: {e}");
+        }
+    }
+    Ok(())
 }
 
 #[instrument(skip(vpnd))]

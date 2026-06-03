@@ -33,6 +33,7 @@ pub enum Key {
     DesktopNotifications,
     LastNetworkEnv,
     NetworkStatsEnabled,
+    CustomSplitTunnelApps,
     // some data cache (no semantic difference)
     CacheMxEntryGateways,
     CacheMxExitGateways,

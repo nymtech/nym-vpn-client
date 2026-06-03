@@ -313,6 +313,8 @@
     "description-linux": "⚡ Launch any app from here to be excluded from the NymVPN funnel and connect directly to the internet!",
     "exclude-warning": "⚠️  Excluding an app will leave it unprotected.",
     "apps": "Apps",
+    "add-custom-app": "Exclude custom app",
+    "custom-app-added": "Added {{name}}",
     "problematic-app": "App isn't available for split tunneling",
     "info-dialog": {
       "title": "Using split tunneling",
@@ -328,6 +330,12 @@
       },
       "got-it": "Got it!"
     },
+    "remove-confirm-dialog": {
+      "title": "Remove {{appName}}?",
+      "description": "This removes the app from your custom split tunneling list. It won't uninstall the app, and you can add it again later.",
+      "remove": "Remove",
+      "cancel": "Cancel"
+    },
     "launch-confirm-dialog": {
       "title": "Launching {{appName}}",
       "description": "The app will be launched outside of the VPN tunnel and will connect directly to the internet (unprotected by NymVPN).\n\nBefore proceeding, please make sure the app is not already running. If it is, close all instances first, then launch the app from here.",
@@ -336,9 +344,12 @@
     },
     "error": {
       "failed-to-open-app": "Failed to open app",
+      "launch-failed": "Couldn't launch {{name}}",
       "failed-to-enable-split-tunneling": "Failed to enable split tunneling",
       "failed-to-add-app-to-split-tunneling": "Failed to add app to split tunneling",
-      "failed-to-remove-app-from-split-tunneling": "Failed to remove app from split tunneling"
+      "failed-to-remove-app-from-split-tunneling": "Failed to remove app from split tunneling",
+      "failed-to-add-custom-app": "Failed to add custom app",
+      "failed-to-remove-custom-app": "Failed to remove custom app"
     }
   }
 }

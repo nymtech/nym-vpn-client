@@ -18,6 +18,10 @@ export type App = {
    * Absolute path to the cached icon PNG, when available. Stored in tauri app cache directory.
    */
   icon: string | null;
+  /**
+   * Whether this app was added by the user via the file dialog (custom) or discovered.
+   */
+  is_custom: boolean;
 };
 
 export type Asn = { asn: string; name: string; type: AsnType };
@@ -84,6 +88,7 @@ export type DbKey =
   | 'desktop-notifications'
   | 'last-network-env'
   | 'network-stats-enabled'
+  | 'custom-split-tunnel-apps'
   | 'cache-mx-entry-gateways'
   | 'cache-mx-exit-gateways'
   | 'cache-wg-gateways'
@@ -129,6 +134,8 @@ export type ErrorKey =
   | 'no-subscription'
   | 'max-device-reached'
   | 'device-time-desync'
+  | 'split-tunnel-app-invalid'
+  | 'split-tunnel-app-duplicate'
   | 'get-mixnet-entry-countries-query'
   | 'get-mixnet-exit-countries-query'
   | 'get-wg-countries-query';

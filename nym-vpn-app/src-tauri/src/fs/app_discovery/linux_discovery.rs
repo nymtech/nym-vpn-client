@@ -30,6 +30,7 @@ pub fn get_linux_apps() -> Result<Vec<App>, BackendError> {
                 name,
                 executable_path,
                 icon,
+                is_custom: false,
             })
         })
         .collect();
