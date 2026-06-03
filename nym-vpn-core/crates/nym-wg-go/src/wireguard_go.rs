@@ -334,6 +334,13 @@ impl Tunnel {
         }
     }
 
+    /// Create a stats reader that can query live peer stats without owning the tunnel.
+    pub fn stats_reader(&self) -> TunnelStatsReader {
+        TunnelStatsReader {
+            tunnel_handle: self.tunnel_handle,
+        }
+    }
+
     fn stop_inner(&mut self) {
         if self.tunnel_handle >= 0 {
             unsafe { wgTurnOff(self.tunnel_handle) };
@@ -399,16 +406,66 @@ impl TunnelStatsReader {
         }
         let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
         unsafe { wgFreePtr(raw as *mut c_void) };
-        Some(parse_tunnel_stats(&s))
+        Some(Self::parse_tunnel_stats(&s))
     }
-}
 
-impl Tunnel {
-    /// Create a stats reader that can query live peer stats without owning the tunnel.
-    pub fn stats_reader(&self) -> TunnelStatsReader {
-        TunnelStatsReader {
-            tunnel_handle: self.tunnel_handle,
+    /// Parse the UAPI GET response into a [`TunnelStats`].
+    ///
+    /// The UAPI response has interface-level keys first, followed by zero or more peer blocks
+    /// each starting with a `public_key=` line.
+    fn parse_tunnel_stats(response: &str) -> TunnelStats {
+        let mut listen_port: Option<u16> = None;
+        let mut peers: Vec<PeerStats> = Vec::new();
+        let mut current: Option<PeerBuilder> = None;
+
+        for line in response.lines() {
+            let Some((key, value)) = line.split_once('=') else {
+                continue;
+            };
+            match key {
+                "listen_port" => listen_port = value.parse().ok(),
+                "public_key" => {
+                    if let Some(builder) = current.take() {
+                        peers.push(builder.build());
+                    }
+                    current = hex::decode(value)
+                        .ok()
+                        .and_then(|b| b.try_into().ok())
+                        .map(PeerBuilder::new);
+                }
+                "endpoint" => {
+                    if let Some(ref mut b) = current {
+                        b.endpoint = value.parse().ok();
+                    }
+                }
+                "last_handshake_time_sec" => {
+                    if let Some(ref mut b) = current {
+                        b.handshake_sec = value.parse().unwrap_or(0);
+                    }
+                }
+                "last_handshake_time_nsec" => {
+                    if let Some(ref mut b) = current {
+                        b.handshake_nsec = value.parse().unwrap_or(0);
+                    }
+                }
+                "rx_bytes" => {
+                    if let Some(ref mut b) = current {
+                        b.rx_bytes = value.parse().unwrap_or(0);
+                    }
+                }
+                "tx_bytes" => {
+                    if let Some(ref mut b) = current {
+                        b.tx_bytes = value.parse().unwrap_or(0);
+                    }
+                }
+                _ => {}
+            }
         }
+        if let Some(builder) = current {
+            peers.push(builder.build());
+        }
+
+        TunnelStats { listen_port, peers }
     }
 }
 
@@ -433,7 +490,7 @@ impl PeerBuilder {
         }
     }
 
-    fn finish(self) -> PeerStats {
+    fn build(self) -> PeerStats {
         let last_handshake_time = if self.handshake_sec > 0 {
             SystemTime::UNIX_EPOCH
                 .checked_add(Duration::new(self.handshake_sec, self.handshake_nsec))
@@ -448,65 +505,6 @@ impl PeerBuilder {
             tx_bytes: self.tx_bytes,
         }
     }
-}
-
-/// Parse the UAPI GET response into a [`TunnelStats`].
-///
-/// The UAPI response has interface-level keys first, followed by zero or more peer blocks
-/// each starting with a `public_key=` line.
-fn parse_tunnel_stats(response: &str) -> TunnelStats {
-    let mut listen_port: Option<u16> = None;
-    let mut peers: Vec<PeerStats> = Vec::new();
-    let mut current: Option<PeerBuilder> = None;
-
-    for line in response.lines() {
-        let Some((key, value)) = line.split_once('=') else {
-            continue;
-        };
-        match key {
-            "listen_port" => listen_port = value.parse().ok(),
-            "public_key" => {
-                if let Some(builder) = current.take() {
-                    peers.push(builder.finish());
-                }
-                current = hex::decode(value)
-                    .ok()
-                    .and_then(|b| b.try_into().ok())
-                    .map(PeerBuilder::new);
-            }
-            "endpoint" => {
-                if let Some(ref mut b) = current {
-                    b.endpoint = value.parse().ok();
-                }
-            }
-            "last_handshake_time_sec" => {
-                if let Some(ref mut b) = current {
-                    b.handshake_sec = value.parse().unwrap_or(0);
-                }
-            }
-            "last_handshake_time_nsec" => {
-                if let Some(ref mut b) = current {
-                    b.handshake_nsec = value.parse().unwrap_or(0);
-                }
-            }
-            "rx_bytes" => {
-                if let Some(ref mut b) = current {
-                    b.rx_bytes = value.parse().unwrap_or(0);
-                }
-            }
-            "tx_bytes" => {
-                if let Some(ref mut b) = current {
-                    b.tx_bytes = value.parse().unwrap_or(0);
-                }
-            }
-            _ => {}
-        }
-    }
-    if let Some(builder) = current {
-        peers.push(builder.finish());
-    }
-
-    TunnelStats { listen_port, peers }
 }
 
 unsafe extern "C" {
