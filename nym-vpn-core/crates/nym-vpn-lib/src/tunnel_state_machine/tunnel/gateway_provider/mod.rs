@@ -254,29 +254,6 @@ impl<C: GatewayCache> GatewayProvider<C> {
         self.gateway_cache.refresh_all().await.ok();
     }
 
-    pub async fn clear_blacklisted_gateways(&mut self) {
-        match self.blacklisted_gateways.is_empty() {
-            Ok(is_empty) => {
-                if !is_empty {
-                    tracing::info!("Clearing blacklisted gateways");
-                    if let Err(e) = self.blacklisted_gateways.clear() {
-                        tracing::error!("Failed to clear blacklisted gateway list: {e}");
-                    } else {
-                        let latest_tunnel_settings =
-                            self.latest_tunnel_settings.lock().await.clone();
-                        // Re-create gateway selection stream to reflect the cleared blacklist.
-                        let _ = self.set_tunnel_settings(latest_tunnel_settings)
-                            .await
-                            .inspect_err(|err| {
-                                tracing::warn!("Could not re-create gateway selection stream after clearing blacklist: {err:?}");
-                        });
-                    }
-                }
-            }
-            Err(e) => tracing::error!("Failed to read blacklisted gateway list: {e}"),
-        }
-    }
-
     pub async fn add_blacklisted_gateway(&self, gateway_identifier: NodeIdentity) {
         if let Err(e) = self.blacklisted_gateways.add(gateway_identifier) {
             tracing::error!(
@@ -285,11 +262,11 @@ impl<C: GatewayCache> GatewayProvider<C> {
             );
         } else {
             tracing::warn!(
-                "Blacklisted gateway {} due to connection failure",
+                "Blacklisted gateway {} due to connection or registration failure",
                 gateway_identifier
             );
-            let latest_tunnel_settings = self.latest_tunnel_settings.lock().await.clone();
             // Re-create gateway selection stream to reflect the addition to the blacklist.
+            let latest_tunnel_settings = self.latest_tunnel_settings.lock().await.clone();
             let _ = self.set_tunnel_settings(latest_tunnel_settings)
                 .await
                 .inspect_err(|err| {
