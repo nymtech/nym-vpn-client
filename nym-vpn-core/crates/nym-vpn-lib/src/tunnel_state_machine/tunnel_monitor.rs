@@ -253,7 +253,7 @@ pub struct TunnelMonitor {
 /// Poll the exit WireGuard peer's UAPI stats until the handshake completes or we time out.
 ///
 /// This prevents the ICMP connection monitor from running before the exit WireGuard session
-/// is established — a race that causes spurious disconnects when the two-hop handshake is
+/// is established; a race that causes spurious disconnects when the two-hop handshake is
 /// slower than the initial ICMP probe timeout.
 async fn wait_for_exit_handshake(
     tunnel_handle: &connected_tunnel::TunnelHandle,
