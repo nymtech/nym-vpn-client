@@ -7,7 +7,7 @@ use crate::error::{BackendError, ErrorKey};
 
 use super::App;
 
-pub fn build_custom_app(path: &Path) -> Result<App, BackendError> {
+pub fn build_custom_app(path: &Path, app: Option<&tauri::AppHandle>) -> Result<App, BackendError> {
     let metadata = std::fs::metadata(path).map_err(|e| {
         BackendError::new(
             &format!("cannot access selected file '{}': {e}", path.display()),
@@ -27,10 +27,33 @@ pub fn build_custom_app(path: &Path) -> Result<App, BackendError> {
         .map(|s| s.to_string_lossy().into_owned())
         .unwrap_or_else(|| path.to_string_lossy().into_owned());
 
+    let executable_path = path.to_string_lossy().into_owned();
+
+    #[cfg(windows)]
+    let icon = app.and_then(|handle| {
+        use tauri::Manager as _;
+        handle
+            .path()
+            .app_cache_dir()
+            .ok()
+            .and_then(|cache_dir| {
+                crate::icon_extractor::extract_icon_to_cache(
+                    &executable_path,
+                    &cache_dir.join("icons"),
+                )
+            })
+            .map(|p| p.to_string_lossy().into_owned())
+    });
+    #[cfg(not(windows))]
+    let icon = {
+        let _ = app;
+        None
+    };
+
     Ok(App {
         name,
-        executable_path: path.to_string_lossy().into_owned(),
-        icon: None,
+        executable_path,
+        icon,
         is_custom: true,
     })
 }
@@ -102,7 +125,7 @@ mod tests {
         let file = dir.join("my-binary");
         fs::write(&file, b"#!/bin/sh\n").unwrap();
 
-        let result = build_custom_app(&file).unwrap();
+        let result = build_custom_app(&file, None).unwrap();
         assert_eq!(result.name, "my-binary");
         assert_eq!(result.executable_path, file.to_string_lossy().into_owned());
         assert_eq!(result.icon, None);
@@ -117,7 +140,7 @@ mod tests {
         let file = dir.join("Cursor.AppImage");
         fs::write(&file, b"x").unwrap();
 
-        let result = build_custom_app(&file).unwrap();
+        let result = build_custom_app(&file, None).unwrap();
         assert_eq!(result.name, "Cursor");
 
         fs::remove_dir_all(&dir).ok();
@@ -126,7 +149,7 @@ mod tests {
     #[test]
     fn build_custom_app_rejects_directory() {
         let dir = scratch_dir("build-dir");
-        let err = build_custom_app(&dir).unwrap_err();
+        let err = build_custom_app(&dir, None).unwrap_err();
         assert_eq!(err.key, ErrorKey::SplitTunnelAppInvalid);
         fs::remove_dir_all(&dir).ok();
     }
@@ -134,7 +157,7 @@ mod tests {
     #[test]
     fn build_custom_app_rejects_missing_path() {
         let missing = std::env::temp_dir().join("nymvpn-custom-apps-definitely-missing-xyz");
-        let err = build_custom_app(&missing).unwrap_err();
+        let err = build_custom_app(&missing, None).unwrap_err();
         assert_eq!(err.key, ErrorKey::SplitTunnelAppInvalid);
     }
 

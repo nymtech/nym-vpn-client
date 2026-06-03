@@ -288,7 +288,7 @@ pub async fn get_app_list(
                 if discovered_set.contains(path.as_str()) || custom_set.contains(path) {
                     continue;
                 }
-                match custom_apps::build_custom_app(Path::new(path)) {
+                match custom_apps::build_custom_app(Path::new(path), Some(&app)) {
                     Ok(new_app) => {
                         info!("importing daemon split-tunnel app into custom list: {path}");
                         custom.push(new_app);
@@ -357,7 +357,7 @@ pub async fn add_custom_split_tunnel_app(
         .to_path_buf();
     info!("[command] add_custom_split_tunnel_app: {}", path.display());
 
-    let new_app = custom_apps::build_custom_app(&path)?;
+    let new_app = custom_apps::build_custom_app(&path, Some(&app))?;
     let mut apps = custom_apps::load(&db)?;
     custom_apps::insert_unique(&mut apps, new_app.clone())?;
     custom_apps::save(&db, &apps)?;
