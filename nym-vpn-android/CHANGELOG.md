@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2026.10.0]
+
+### Added
+- Add local account creation flow for de-googled version (https://github.com/nymtech/nym-vpn-client/pull/5474)
+
+### Changed
+- Remove unused strings from strings.xml (https://github.com/nymtech/nym-vpn-client/pull/5480)
+- Code clean up (https://github.com/nymtech/nym-vpn-client/pull/5480)
+- Change colors for Split Tunneling screen (https://github.com/nymtech/nym-vpn-client/pull/5482)
+- Change .apk naming format to match F-droid (https://github.com/nymtech/nym-vpn-client/pull/5482)
+
+### Fixed
+- Fix VPN revoke race and idle disconnect (https://github.com/nymtech/nym-vpn-client/pull/5483)
+
 ## [3.5.0]
 
 ### Added

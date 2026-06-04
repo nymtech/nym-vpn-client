@@ -1,0 +1,4 @@
+What's New:
+- DoH (DNS over HTTPS) and DoT (DNS over TLS) to enhance ad blocking 
+- De-googled Android in-app account creation 
+- Fixed Hickory system resolver panicking
