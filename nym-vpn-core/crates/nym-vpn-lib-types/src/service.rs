@@ -559,7 +559,7 @@ impl Default for GeoExclusionSettings {
         let enabled = false;
         Self {
             enabled,
-            listen_port: 1080,
+            listen_port: 1081,
             excluded_countries: vec!["CN".to_string()],
         }
     }
