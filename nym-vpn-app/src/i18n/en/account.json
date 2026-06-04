@@ -14,7 +14,8 @@
     "bandwidth-remaining": "Fair usage spent",
     "limit": "Limit",
     "resets-on": "Resets on",
-    "renew-now": "Renew now to stay protected"
+    "renew-now": "Renew now to stay protected",
+    "contact-customer-support": "<support>Contact Customer Support</support> if you reach your limit"
   },
   "autologin": {
     "title": "Pin code",

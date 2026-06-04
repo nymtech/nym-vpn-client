@@ -6,7 +6,7 @@
     "offline": "PC is offline"
   },
   "logout": {
-    "success": "Logout successfull",
+    "success": "Log out successfull",
     "error": "An error occurred while logging out"
   },
   "copied-to-clipboard": "Copied to clipboard",
