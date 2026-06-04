@@ -15,7 +15,7 @@
     "limit": "Limit",
     "resets-on": "Resets on",
     "renew-now": "Renew now to stay protected",
-    "contact-support": "⚡️ <1>Contact our support</1> team for extra bandwidth."
+    "contact-customer-support": "⚡️ <support>Contact Customer Support</support> if you reach your limit"
   },
   "autologin": {
     "title": "Pin code",

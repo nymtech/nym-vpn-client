@@ -1,6 +1,4 @@
 {
-  "connect": "Connect",
-  "disconnect": "Disconnect",
   "failed-to-disconnect": "Failed to disconnect",
   "not-protected": "Not protected",
   "status": {
@@ -17,32 +15,12 @@
   "first-hop": "Entry",
   "nym-entry-server": "Entry server",
   "nym-exit-server": "Exit server",
-  "connecting-message": "Establishing connection",
   "connection-time": "Connection time",
-  "select-mode-label": "Select mode",
-  "select-node-title": "Connect to",
   "best-server-for-my-location": "Use best server",
   "random-server": "Random server",
   "mode-toggle": {
-    "auto": "Auto",
     "fast": "Fast",
     "mixnet": "Mixnet"
-  },
-  "node-quick-pick": {
-    "random": "Random",
-    "best-server": "Best server"
-  },
-  "privacy-mode": {
-    "title": "Anonymous (mixnet)",
-    "desc": "Maximum privacy for sensitive tasks"
-  },
-  "fast-mode": {
-    "title": "Fast (WireGuard)",
-    "desc": "Browsing, streaming, downloads"
-  },
-  "last-node-select": {
-    "label": "Last hop",
-    "text": "Quick connect ({{country}})"
   },
   "snackbar-disabled-message": {
     "connected": "Disabled while connected to VPN",
@@ -50,12 +28,6 @@
     "disconnecting": "Disabled while disconnecting from VPN",
     "offline": "Disabled when there is no internet connection",
     "error": "Disabled when there is an error"
-  },
-  "modes-dialog": {
-    "title": "Mode selection",
-    "privacy-description": "Maximum privacy through 5-hop routing (up to 1-5 Mbps). Dummy traffic and timing obfuscation for enhanced anonymity. Perfect for highly sensitive activities like payments, emails, and messages.",
-    "fast-description": "High-speed browsing (250+ Mbps) with 2-hop routing. Uses AmneziaWG, a censorship-resistant version of WireGuard, ideal for streaming, fast browsing, and downloads.",
-    "link": "Continue reading"
   },
   "update-dialog": {
     "title": "Update required!",
@@ -82,10 +54,7 @@
   "choose-plan": "Choose plan",
   "authenticate": "Authenticate",
   "toggle-vpn-mode": {
-    "fast": "Fast",
-    "anonymous": "Anonymous",
-    "error": "Failed to toggle VPN mode",
-    "aria-label": "Toggle VPN mode"
+    "error": "Failed to toggle VPN mode"
   },
   "gateway-selection-algorithm": {
     "error": "Failed to set gateway selection algorithm"

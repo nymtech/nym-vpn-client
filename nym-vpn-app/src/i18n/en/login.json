@@ -1,23 +1,5 @@
 {
   "privy": {
-    "title": "Welcome to NymVPN",
-    "login-button": "Continue with social account",
-    "use-existing-login": {
-      "title": "🔑️ Use existing login",
-      "description": "Privately sign in with email, Google or crypto wallet, through our partner Privy"
-    },
-    "maximum-privacy": {
-      "title": "🔒 Maximum privacy",
-      "description": "Create an anonymous Nym account, no personal info required"
-    },
-    "quick-setup": {
-      "title": "⚡️ Quick setup",
-      "description": "Use existing account like Google or crypto wallet through our login partner Privy"
-    },
-    "already-have-an-account": {
-      "title": "Already have an account?",
-      "button": "Log in with 24-word passphrase"
-    },
     "error": {
       "login": "Failed to login using social account",
       "timeout": "Login timed out"
@@ -47,10 +29,5 @@
     "title": "Log in",
     "description": "Enter your 24-word passphrase...",
     "login-button": "Login"
-  },
-  "social-account-button": "Continue with social account",
-  "create-account": "Start anonymously",
-  "notification": {
-    "added": "Device successfully added to your account"
   }
 }
