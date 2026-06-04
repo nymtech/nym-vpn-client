@@ -156,7 +156,7 @@ mod tests {
         let dir = scratch_dir("build-ok");
         let file = dir.join("my-binary");
         fs::write(&file, b"#!/bin/sh\n").unwrap();
-        #[cfg(unix)]
+        #[cfg(target_os = "linux")]
         {
             use std::os::unix::fs::PermissionsExt;
             fs::set_permissions(&file, fs::Permissions::from_mode(0o755)).unwrap();
@@ -176,7 +176,7 @@ mod tests {
         let dir = scratch_dir("build-ext");
         let file = dir.join("Cursor.AppImage");
         fs::write(&file, b"x").unwrap();
-        #[cfg(unix)]
+        #[cfg(target_os = "linux")]
         {
             use std::os::unix::fs::PermissionsExt;
             fs::set_permissions(&file, fs::Permissions::from_mode(0o755)).unwrap();
@@ -196,7 +196,7 @@ mod tests {
         fs::remove_dir_all(&dir).ok();
     }
 
-    #[cfg(unix)]
+    #[cfg(target_os = "linux")]
     #[test]
     fn build_custom_app_rejects_non_executable_file() {
         use std::os::unix::fs::PermissionsExt;
