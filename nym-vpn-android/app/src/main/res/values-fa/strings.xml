@@ -12,8 +12,8 @@
 	<string name="disconnect">قطع اتصال</string>
 	<string name="init_client">درحال راه‌اندازی کلاینت…</string>
 	<string name="establishing_connection">در حال برقراری اتصال</string>
-    <string name="select_mode">انتخاب حالت </string>
-    <string name="display_theme">تم نمایش</string>
+	<string name="select_mode">انتخاب حالت </string>
+	<string name="display_theme">تم نمایش</string>
 	<string name="light_theme">تم روشن</string>
 	<string name="dark_theme">تم شب</string>
 	<string name="automatic">خودکار</string>
@@ -22,7 +22,7 @@
 	<string name="search_country">جستجوی کشور</string>
 	<string name="is_selected">انتخاب شده</string>
 	<string name="fastest">سریع‌ترین</string>
-    <string name="logs">گزارش‌ها</string>
+	<string name="logs">گزارش‌ها</string>
 	<string name="support">پشتیبانی</string>
 	<string name="terms_of_use">شرایط استفاده از</string>
 	<string name="privacy_policy">اعلامیه حریم خصوصی</string>
@@ -31,14 +31,14 @@
 	<string name="check_faq">سوالات متداول</string>
 	<string name="join_matrix">در Matrix به ما بپیوندید</string>
 	<string name="join_discord">در Discord به ما پیوندید</string>
-    <string name="unknown">نامشخص</string>
+	<string name="unknown">نامشخص</string>
 	<string name="no_scm_found">آدرس URL سورس برنامه یافت نشد</string>
 	<string name="five_hop">پنج-پرشی</string>
 	<string name="mode">حالت</string>
 	<string name="okay">باشه</string>
 	<string name="two_hop">پرش دو گرهی</string>
 	<string name="country_load_failure">خطا در بارگذاری سرور کشورهای در مسیر عبوری</string>
-    <string name="permission_required">نیازمند دسترسی است</string>
+	<string name="permission_required">نیازمند دسترسی است</string>
 	<string name="permission_message">برای اطمینان از کارکرد درست برنامه در دستگاه، لطفاً دسترسی‌های زیر را فعال کنید. این دسترسی‌ها برای اجرای برنامه لازم هستند.</string>
 	<string name="notification_permission_required">لطفاً برای عملکرد صحیح برنامه اجازه اعلان‌ها را فعال کنید</string>
 	<string name="mode_selection">انتخاب حالت</string>
@@ -67,8 +67,8 @@
 	<string name="network_error">مشکلی در اتصال شبکه رخ داده است. لطفاً اتصال شبکه خود را بررسی کرده و دوباره تلاش کنید.</string>
 	<string name="vpn_alerts_channel_id">کانال اطلاع رسانی هشدارها و اطلاعیه‌های NymVPN</string>
 	<string name="vpn_alerts_channel_description">کانال اطلاع رسانی اعلانات هشداری نرم‌افزار.</string>
-    <string name="connection_failed">اتصال بر قرار نشد</string>
-    <string name="vpn_permission_missing">به وی پی ان اجازه دسترسی داده نشده است و یا اتصال وی‌پی‌ان توسط نرم‌افزار دیگری استفاده می‌شود.</string>
+	<string name="connection_failed">اتصال بر قرار نشد</string>
+	<string name="vpn_permission_missing">به وی پی ان اجازه دسترسی داده نشده است و یا اتصال وی‌پی‌ان توسط نرم‌افزار دیگری استفاده می‌شود.</string>
 	<string name="action_requires_tunnel_down">برای انجام این کار باید اتصال تونل قطع شده باشد</string>
 	<string name="device_added_success">دستگاه فوق با موفقیت به حساب شما اضافه شد</string>
 	<string name="invalid_recovery_phrase">عبارت بازیابی نامعتبر است</string>
@@ -80,18 +80,18 @@
 	<string name="mnemonic_example">برای مثال: smoke artefact velvet skull pop palace tortoise damage rough...</string>
 	<string name="dynamic">پویا</string>
 	<string name="system_wallpaper">تم تصویر زمینه دستگاه</string>
-    <string name="initializing">درحال راه‌اندازی</string>
+	<string name="initializing">درحال راه‌اندازی</string>
 	<string name="stop">توقف</string>
-    <string name="app_restart_required">باید برنامه دوباره راه‌اندازی شود</string>
-	<string name="max_devices_reached_title">شما به حداکثر تعداد دستگاه‌های مجاز متصل به حساب کاربری‌تان رسیدید</string>
+	<string name="app_restart_required">باید برنامه دوباره راه‌اندازی شود</string>
+	<string name="max_devices_reached_title">شما به حداکثر تعداد مجاز دستگاه‌های متصل به حساب کاربری‌تان رسیدید</string>
 	<string name="credential_modal_description">برای افزودن این دستگاه، به صفحه \"دستگاه‌ها\"ی حساب خود بروید، یکی از دستگاه‌های موجود را حذف کنید و سپس با این دستگاه با وارد کردن عبارت عبور خود وارد شوید.</string>
 	<string name="manage_devices">مدیریت دستگاه‌های شما</string>
 	<string name="close">بستن</string>
 	<string name="enter_access_code">عبارت عبور خود را وارد کنید یا الصاق کنید: ۲۴ کلمه جدا شده با فاصله</string>
-    <string name="get_in_touch">با ما در ارتباط باشید</string>
-    <string name="loading">در حال بارگذاری</string>
+	<string name="get_in_touch">با ما در ارتباط باشید</string>
+	<string name="loading">در حال بارگذاری</string>
 	<string name="offline">اینترنت وجود ندارد</string>
-    <string name="two_hop_explanation">بیشترین سرعت وبگردی (۲۵۰ مگابیت بر ثانیه) با مسیر دو-پرشی. از AmneziaWG بهره می‌برد؛ نسخه‌ای ضد‌سانسور از WireGuard که برای استریم، وبگردی با سرعت بالا و دانلود بسیار مناسب است.</string>
+	<string name="two_hop_explanation">بیشترین سرعت وبگردی (۲۵۰ مگابیت بر ثانیه) با مسیر دو-پرشی. از AmneziaWG بهره می‌برد؛ نسخه‌ای ضد‌سانسور از WireGuard که برای استریم، وبگردی با سرعت بالا و دانلود بسیار مناسب است.</string>
 	<string name="two_hop_title">پر سرعت (WireGuard)</string>
 	<string name="disabled_while_connecting">در زمان برقراری اتصال به وی‌پی‌ان غیرفعال است</string>
 	<string name="exit_location">منطقه خروجی</string>
@@ -104,7 +104,7 @@
 	<string name="servers">سرورها</string>
 	<string name="local_logs">گزارش‌ها (موجود در حافظه دستگاه)</string>
 	<string name="logging_out">در حال خروج..</string>
-    <string name="app_update_required">این برنامه دیگر پشتیبانی نمی‌شود. لطفا برای استفاده مجدد به آخرین نسخه، به‌روز‌رسانی کنید.
+	<string name="app_update_required">این برنامه دیگر پشتیبانی نمی‌شود. لطفا برای استفاده مجدد به آخرین نسخه، به‌روز‌رسانی کنید.
          در حال استفاده از NymVPN
     </string>
 	<string name="update_required">به‌روزرسانی لازم است!</string>
@@ -117,14 +117,14 @@
 	<string name="expand">باز کردن</string>
 	<string name="country_flag">پرچم %1$s</string>
 	<string name="anonymous">ناشناس</string>
-    <string name="back">قبلی</string>
+	<string name="back">قبلی</string>
 	<string name="rotate">چرخش</string>
 	<string name="refresh">رفرش</string>
 	<string name="go">برو</string>
 	<string name="bars_3">۳ خط</string>
 	<string name="bars_2">۲ خط</string>
 	<string name="bars_1">۱ خط</string>
-    <string name="developer">توسعه‌دهنده</string>
+	<string name="developer">توسعه‌دهنده</string>
 	<string name="get_help">کمک گرفتن</string>
 	<string name="join_telegram">در تلگرام به ما بپیوندید</string>
 	<!-- Common -->
@@ -136,14 +136,14 @@
 	<string name="score_text_medium">متوسط</string>
 	<string name="score_text_low">پایین</string>
 	<string name="score_text_offline">آفلاین</string>
-    <string name="skip">بیخیال</string>
+	<string name="skip">بیخیال</string>
 	<string name="get_started">شروع کنید</string>
-    <string name="button_back">قبلی</string>
+	<string name="button_back">قبلی</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">نمایش جریان</string>
-    <!-- Status pill -->
+	<!-- Status pill -->
 	<string name="pill_error">خطا</string>
-    <!-- Error State -->
+	<!-- Error State -->
 	<string name="error_same_entry_exit">نمی‌توان با همان گره ورودی و خروجی متصل شد. محل گره ورودی یا خروجی را تغییر دهید.</string>
 	<string name="unexpected_error">یک خطای غیر‌منتظره رخ داد:</string>
 	<string name="error_invalid_entry_gateway_country">گره کشور خروجی نامعتبر است، گره محل خروجی را تغییر دهید و دوباره متصل شوید.</string>
@@ -159,43 +159,43 @@
 	<string name="error_set_routing">پیکربندی مسیریابی با خطا مواجه شد.</string>
 	<string name="error_tun_device">پیکربندی تونل دستگاه با خطا مواجه شد.</string>
 	<string name="error_tunnel_provider">پیکربندی بسته تونل ارائه دهنده با خطا مواجه شد.</string>
-    <string name="error_active_plan">شما طرح فعالی ندارید. برای شروع وب‌گردی ناشناس، روی شروع ضربه بزنید.</string>
+	<string name="error_active_plan">شما طرح فعالی ندارید. برای شروع وب‌گردی ناشناس، روی شروع ضربه بزنید.</string>
 	<string name="error_bandwidth_entry">سرور ورودی پاسخ نمی‌دهد یا به افزایش پهنای باند به درستی پاسخ نمی‌دهد.</string>
 	<string name="error_bandwidth_exit">سرور خروجی پاسخ نمی‌دهد یا به افزایش پهنای باند به درستی پاسخ نمی‌دهد.</string>
 	<string name="error_gateway_unavailable_entry">نمی‌توان به سرور ورودی دسترسی پیدا کرد. سرور دیگری را امتحان کنید!</string>
 	<string name="error_gateway_unavailable_exit">نمی‌توان به سرور خروجی دسترسی پیدا کرد. سرور دیگری را امتحان کنید!</string>
 	<string name="error_invalid_entry_gateway_identity">گره ورودی آفلاین است. گره دیگری انتخاب کرده و دوباره متصل شوید.</string>
 	<string name="error_invalid_exit_gateway_identity">گره خروجی آفلاین است. گره دیگری انتخاب کرده و دوباره متصل شوید.</string>
-	<string name="error_expired_subscription_title">Your subscription has expired</string>
-	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
-	<string name="error_expired_subscription_button">Renew Now</string>
-    <!-- Main Screen -->
+	<string name="error_expired_subscription_title">اشتراک شما منقضی شده است</string>
+	<string name="error_expired_subscription_description">روش پرداخت دوره‌ای رد شده است</string>
+	<string name="error_expired_subscription_button">همین حالا تمدید کنید</string>
+	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">در حال آماده‌سازی NymVPN ‏(۱/۶)</string>
 	<string name="connection_state_awaiting_readiness">در حال تنظیم حساب کاربری شما ‏(۲/۶)</string>
 	<string name="connection_state_refreshing_gateways">در حال به‌روزرسانی لیست سرورها ‏(۳/۶)</string>
 	<string name="connection_state_selecting_gateways">در حال انتخاب بهترین سرورها ‏(۴/۶)</string>
 	<string name="connection_state_connecting_mixnet_client">در حال ثبت‌نام ناشناس در سرورها ‏(۵/۶)</string>
 	<string name="connection_state_connecting_tunnel">در حال برقراری اتصال با سرور ‏(۶/۶)</string>
-    <!-- One-click mode -->
-	<string name="one_click_auto_server">Use best server</string>
-    <string name="one_click_mode_fast">Fast</string>
-	<string name="connect_mode_auto">Auto</string>
-	<string name="connect_mode_mixnet">Mixnet</string>
-	<string name="one_click_nym_exit_node">Exit server</string>
-	<string name="one_click_nym_entry_node">Entry server</string>
+	<!-- One-click mode -->
+	<string name="one_click_auto_server">استفاده از بهترین سرور</string>
+	<string name="one_click_mode_fast">سریع</string>
+	<string name="connect_mode_auto">خودکار</string>
+	<string name="connect_mode_mixnet">میکس‌نت</string>
+	<string name="one_click_nym_exit_node">سرور خروجی</string>
+	<string name="one_click_nym_entry_node">سرور ورودی</string>
 	<!-- Connection status -->
-	<string name="connection_status_not_protected">Not protected</string>
+	<string name="connection_status_not_protected">محافظت نشده</string>
 	<string name="connection_status_fast_mode">محافظت حالت سریع</string>
-	<string name="connection_status_anonymous">محافظت ناشناس</string>
+	<string name="connection_status_anonymous">محافظت میکس‌نتی</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">Best server</string>
-	<string name="gateway_random">Random server</string>
+	<string name="gateway_best">بهترین سرور</string>
+	<string name="gateway_random">سرور تصادفی</string>
 	<!-- Auth component -->
-	<string name="auth_welcome_title">Welcome!</string>
-	<string name="auth_welcome_description">To the world’s most private VPN</string>
-	<string name="auth_welcome_login_button">Login to my account</string>
-	<string name="auth_sign_up_title">Sign Up</string>
-	<string name="auth_sign_up_account_button">Anonymous account</string>
+	<string name="auth_welcome_title">خوش آمدید!</string>
+	<string name="auth_welcome_description">خصوصی‌ترین VPN حال حاضر جهان</string>
+	<string name="auth_welcome_login_button">ورود به حساب من</string>
+	<string name="auth_sign_up_title">ثبت‌نام</string>
+	<string name="auth_sign_up_account_button">حساب ناشناس</string>
 	<string name="auth_sign_up_social_button">ثبت‌نام با حساب‌های اجتماعی*</string>
 	<string name="auth_sign_up_info">*ثبت‌نام با یک حساب اجتماعی موجود\nمیزان ناشناس‌بودن شما را کاهش می‌دهد.</string>
 	<string name="auth_log_in_title">ورود به حساب کاربری</string>
@@ -210,7 +210,7 @@
 	<string name="settings_dns_title">سفارشی‌سازی DNS</string>
 	<string name="settings_ipv6_title">پشتیبانی از IPv6</string>
 	<string name="settings_ipv6_description">اتصالات IPv6 را مجاز کنید</string>
-    <string name="settings_system_tray_title">اجرا در بخش System Tray</string>
+	<string name="settings_system_tray_title">اجرا در بخش System Tray</string>
 	<string name="settings_system_tray_description">ادامه اجرای برنامه بعد از بسته شدن</string>
 	<string name="settings_reset_app_title">تنظیم مجدد داده‌های برنامه</string>
 	<string name="settings_system_status_title">وضعیت سیستم</string>
@@ -222,7 +222,7 @@
 	<string name="settings_language_help_title">کمک‌کردن به ترجمه</string>
 	<string name="settings_language_help_description">ترجمه برنامه را به زبان خودتان بهتر کنید.</string>
 	<string name="settings_event_lan_reconnecting">در حال اتصال مجدد برای اعمال تنظیمات LAN…</string>
-    <string name="settings_ad_blocking_title">مسدود کننده تبلیغات</string>
+	<string name="settings_ad_blocking_title">مسدود کننده تبلیغات</string>
 	<string name="settings_kill_switch_title">کلید قطع اضطراری</string>
 	<string name="settings_kill_switch_description">در صورت قطع اینترنت، اتصال را قطع کن</string>
 	<string name="settings_bypass_lan_title">دور زدن LAN</string>
@@ -276,7 +276,7 @@
 	<string name="welcome_usage_title">آمار استفاده را به اشتراک بگذارید</string>
 	<string name="welcome_usage_description">به ما کمک می‌کند شبکهٔ Nym را بهبود دهیم. هیچ لاگ‌گیری انجام نمی‌شود و هیچ فعالیتی ردیابی نمی‌گردد.</string>
 	<!-- Onboarding screen -->
-    <string name="onboarding_create_account_button">ایجاد حساب‌کاربری</string>
+	<string name="onboarding_create_account_button">ایجاد حساب‌کاربری</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">طرح اشتراک\n خود را انتخاب کنید</string>
 	<string name="select_plan_line_0">آزمایش رایگان ۷ روزه</string>
@@ -286,7 +286,7 @@
 	<string name="select_plan_button">بسته خرید NymVPN خود را انتخاب کنید</string>
 	<string name="select_plan_modal_title">طرح خود را انتخاب کنید. با تمام امکانات آن، می‌تونی هر زمان کنسل کنی.</string>
 	<string name="select_plan_modal_free_trial">۷-روز آزمایشی رایگان از امروز شروع می‌شود</string>
-    <!-- Server Details screen -->
+	<!-- Server Details screen -->
 	<string name="details_title">جزئیات سرور</string>
 	<string name="details_select_server_button">انتخاب سرور</string>
 	<string name="details_advanced_privacy">حریم خصوصی پیشرفته</string>
@@ -301,7 +301,7 @@
 	<string name="details_enable_quic_end">در تنظیمات ضد سانسور برای استفاده از این ویژگی</string>
 	<string name="details_overall_performance">عملکرد کلی</string>
 	<string name="details_server_load">بارگذاری سرور</string>
-    <string name="details_uptime">مدت زمان فعالیت</string>
+	<string name="details_uptime">مدت زمان فعالیت</string>
 	<string name="not_applicable">غیر قابل اجرا</string>
 	<string name="details_performance_calculated">امتیاز عملکرد از بارگذاری سرور و مدت زمان فعال بودن محاسبه میگردد. مدت زمان فعال بودن به صورت میانگین ۲۴ ساعت آخر است. آخرین به‌روزرسانی %1$s.</string>
 	<string name="details_exit_ipv4">خروج از IPv4</string>
@@ -310,24 +310,24 @@
 	<string name="details_asn">ASN</string>
 	<string name="details_asn_name">نام ASN</string>
 	<string name="details_build_version">نسخه ساخت Nym</string>
-    <string name="details_missing_incorrect_info">چرا اطلاعات ناقص یا نادرست وجود دارد</string>
+	<string name="details_missing_incorrect_info">چرا اطلاعات ناقص یا نادرست وجود دارد</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string name="details_more_details_start">جزئیات بیشتر در</string>
 	<string name="details_more_details_end">کاوشگر شبکه Nym</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">اگر در محل شما مشکل اتصال وجود دارد یا NymVPN مسدود شده است، این ویژگی‌ها را فعال کنید.</string>
-	<string name="censorship_learn_more_link_text">Learn more</string>
+	<string name="censorship_learn_more_link_text">بیشتر بدانید</string>
 	<string name="censorship_quic_title">اتصال بهبود یافته (QUIC)</string>
-    <string name="censorship_quic_description">باعث افزایش پایداری حالت Fast در شبکه‌های محدودکننده می‌شود، زیرا ترافیک WireGuard را در داخل QUIC ‏(HTTP/3) بسته‌بندی می‌کند تا شبیه وبگردی معمولی دیده شود.\n\nتوجه: سرورهای ورودی را فقط به گیِت‌وی‌های سازگار با QUIC محدود می‌کند.</string>
+	<string name="censorship_quic_description">اتصال در شبکه‌های محدودشده را با قرار دادن WireGuard داخل QUIC ‏(HTTP/3) بهبود می‌بخشد.\n\nتوجه: گزینه‌های سرور ورودی را فقط به سرورهای سازگار با QUIC محدود می‌کند.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API connect</string>
-	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
+	<string name="censorship_stealth_description">با استفاده از دامنه‌های پوششی از مسدودسازی VPN جلوگیری می‌کند. آن را روشن کنید تا همیشه استفاده شود، یا خاموش بگذارید تا فقط هنگام عدم موفقیت اتصال عادی فعال شود.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-    <string name="quic">QUIC </string>
+	<string name="quic">QUIC </string>
 	<string name="quic_gateway_filter_info_msg">فقط مکان‌های حالت Fast و سرورهایی که از پروتکل QUIC پشتیبانی می‌کنند نمایش داده می‌شوند. برای نمایش همهٔ سرورها، QUIC را خاموش کنید</string>
 	<string name="censorship_amnezia_title">حداقل ابهام (AmneziaWG)</string>
-	<string name="censorship_amnezia_description">تشخیص ترافیک WireGuard را دشوارتر می‌کند. بسته‌های فریب‌دهنده را وارد ترافیک می‌کند که قوانین سادهٔ مورد استفاده در سامانه‌های سانسور مبتنی بر بازرسی عمیق بسته‌ها (DPI) را مختل کرده و پایداری اتصال را در محیط‌های محدودکننده افزایش می‌دهد.\n\nتوجه: فقط در سمت کاربر (Client-side) پیاده‌سازی شده است.</string>
+	<string name="censorship_amnezia_description">ترافیک WireGuard را با بسته‌های فریبنده پنهان می‌کند تا از مسدود شدن VPN جلوگیری شود.\n\nتوجه: این قابلیت فقط در سمت کاربر (Client-side) پیاده‌سازی شده است.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/en-us/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
 	<string name="account_welcome_create_title">⚡ سریع &amp; ناشناس </string>
@@ -337,7 +337,7 @@
 	<string name="account_welcome_social_description">از طریق شریک ما Privy، به‌صورت خصوصی با ایمیل، Google یا کیف پول ارز دیجیتال وارد شوید.</string>
 	<string name="account_welcome_social_button">ادامه دادن با حساب اجتماعی موجود</string>
 	<string name="account_welcome_login_title">از قبل حساب کاریری دارید؟</string>
-    <string name="account_welcome_privacy_start">با ادامه، شما با NymVPN موافقت می‌کنید  </string>
+	<string name="account_welcome_privacy_start">با ادامه، شما با NymVPN موافقت می‌کنید  </string>
 	<string name="account_welcome_privacy_middle">و</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">شما در حال حاضر مشترک هستید!</string>
@@ -388,27 +388,27 @@
 	<!-- Account screen -->
 	<string name="account_title">حساب کاربری و دستگاه‌ها</string>
 	<string name="account_info_manage_button">مدیریت اشتراک</string>
-    <string name="account_info_id_title">شناسه حساب‌کاربری</string>
-	<string name="account_info_id_info">Safe to share. Use to contact Nym Support.</string>
+	<string name="account_info_id_title">شناسه حساب‌کاربری</string>
+	<string name="account_info_id_info">اشتراک‌گذاری آن امن است. برای تماس با پشتیبانی Nym استفاده کنید.</string>
 	<string name="account_info_device_title">شناسه دستگاه</string>
 	<string name="account_info_device_info">از این گزینه برای اتصال این دستگاه به حساب خود در nym.com استفاده کنید.</string>
 	<string name="account_info_status_title">وضعیت حساب کاربری</string>
-	<string name="account_info_bandwidth_title">Fair usage spent</string>
+	<string name="account_info_bandwidth_title">حجم مصرف‌شده از سهمیه مصرف منصفانه</string>
 	<string name="account_info_limit_text">محدودیت</string>
 	<string name="account_info_reset_text">بازنشانی</string>
-    <string name="account_info_valid_text">اشتراک تا %s معتبر است</string>
+	<string name="account_info_valid_text">اشتراک تا %s معتبر است</string>
 	<string name="account_info_expires_text">اشتراک در:\n%s منقضی می‌شود</string>
 	<string name="banner_plan_expires_text">اشتراک در:\n%s منقضی می‌شود</string>
 	<string name="account_info_renew_text">همین حالا تمدید کنید تا محافظت بشوید</string>
 	<string name="banner_renew_text">همین حالا تمدید کنید\nتا محافظت بشوید</string>
 	<string name="account_info_auto_renew_text">*تمدید-خودکار</string>
-	<string name="account_info_no_plan">No active subscription</string>
+	<string name="account_info_no_plan">اشتراک فعالی وجود ندارد</string>
 	<string name="account_info_confirming_payment">در حال تأیید پرداخت</string>
-    <string name="account_info_autologin_fetching">در حال دریافت کد دسترسی…</string>
+	<string name="account_info_autologin_fetching">در حال دریافت کد دسترسی…</string>
 	<string name="account_info_autologin_error">دریافت کد دسترسی ناموفق بود. لطفاً دوباره تلاش کنید.</string>
 	<string name="account_info_add_social_action">افزودن ورود اجتماعی</string>
-	<string name="account_info_add_social_suffix">\u0020روش را به حساب خود اضافه کنید.</string>
-	<string name="account_info_backup">Backup login method linked via Privy.</string>
+	<string name="account_info_add_social_suffix"> روش به حساب کاربری شما.</string>
+	<string name="account_info_backup">روش ورود پشتیبان از طریق Privy متصل شده است.</string>
 	<string name="pin_code_title">پین کد</string>
 	<string name="pin_code_subtitle">این کد را در وب وارد کنید</string>
 	<string name="pin_code_copy_and_open">کپی کد و باز کردن وب</string>
@@ -437,21 +437,21 @@
 	<string name="logs_saved">گزارش‌ها در پوشه دانلود ذخیره شد</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">هر برنامه را طوری تنظیم کنید که از NymVPN استفاده کند یا بدون آن مستقیماً متصل شود.</string>
-    <string name="split_tunneling_search_apps_hint">جستجوی برنامه‌ها</string>
+	<string name="split_tunneling_search_apps_hint">جستجوی برنامه‌ها</string>
 	<string name="split_tunneling_apps">برنامه‌ها</string>
 	<string name="split_tunneling_direct">مستقیم</string>
 	<string name="split_tunneling_direct_desc">دور زدن NymVPN</string>
 	<string name="split_tunneling_via_vpn">از طریق NymVPN</string>
 	<string name="split_tunneling_via_desc">هنگام اتصال محافظت می‌شود</string>
-    <string name="split_tunneling_system_applications">برنامه‌های کاربردی سیستم</string>
+	<string name="split_tunneling_system_applications">برنامه‌های کاربردی سیستم</string>
 	<string name="split_tunnel_info_modal_title">استفاده از تونل سازی اسپلیت</string>
 	<string name="split_tunnel_info_modal_desc">تونل‌سازی اسپلیت به شما امکان می‌دهد هر برنامه را برای حداکثر سرعت یا حداکثر حریم خصوصی بهینه کنید. شما می‌توانید به راحتی این تنظیمات را در هر زمان تغییر دهید.</string>
 	<string name="split_tunnel_info_direct_desc">برای خدماتی مانند بانکداری، تجهیزات خانهٔ هوشمند یا برنامه‌های کاری.</string>
-    <string name="split_tunnel_changes_confirm_modal_title">تنظیمات Split Tunneling اعمال شود؟</string>
+	<string name="split_tunnel_changes_confirm_modal_title">تنظیمات Split Tunneling اعمال شود؟</string>
 	<string name="split_tunnel_changes_confirm_modal_desc">تونل سازی اسپلیت به روز شد. برای اعمال تغییرات، دوباره متصل شوید.\n\nاطلاعات شما در طول اتصال مجدد محافظت شده باقی می‌ماند.</string>
 	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">اکنون دوباره وصل شوید</string>
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">اعمال QUIC در اتصال بعدی</string>
-    <string name="split_tunneling_event_saved">تنظیمات Split Tunneling ذخیره شد</string>
+	<string name="split_tunneling_event_saved">تنظیمات Split Tunneling ذخیره شد</string>
 	<string name="split_tunneling_event_reconnecting">در حال اتصال مجدد برای اعمال تنظیمات تونل‌سازی تفکیکی…</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">سفارشی‌سازی DNS</string>
@@ -465,13 +465,13 @@
 	<string name="dns_custom_list_entries">سرورهای DNS انتخابی (%1$s/5)</string>
 	<string name="dns_custom_list_hint">آدرس IPv4 یا IPv6</string>
 	<string name="dns_custom_list_error">فرمت آدرس DNS نامعتبر است</string>
-    <string name="dns_custom_button_save">ذخیرهٔ تغییرات</string>
+	<string name="dns_custom_button_save">ذخیرهٔ تغییرات</string>
 	<string name="dns_custom_button_save_reconnect">ذخیرهٔ تغییرات &amp; اتصال مجدد</string>
-    <string name="dns_save_dialog_title">تغییرات ذخیره شوند؟</string>
+	<string name="dns_save_dialog_title">تغییرات ذخیره شوند؟</string>
 	<string name="dns_save_dialog_description">تغییرات ذخیره‌ نشده دارید.</string>
 	<string name="dns_learn_more_text">دربارهٔ DNS بیشتر بدانید</string>
 	<string name="dns_event_saved">DNS دلخواه ذخیره شد</string>
-	<string name="dns_event_reconnecting">در حال اتصال مجدد برای اعمال تنظیمات DNS انتخابی...</string>
+	<string name="dns_event_reconnecting">در حال اتصال مجدد برای اعمال تنظیمات DNS انتخابی…</string>
 	<!-- Mixnet tuning screen -->
 	<string name="mixnet_tuning_description">الگوهای ترافیک mixnet خود را تنظیم کنید</string>
 	<string name="mixnet_tuning_current_title">عملکرد مورد انتظارِ تنظیمات فعلی:</string>
@@ -494,7 +494,7 @@
 	<string name="mixnet_tuning_traffic_off_medium">متوسط\n۱۰بار</string>
 	<string name="mixnet_tuning_delays_title">تأخیرهای اختلاط</string>
 	<string name="mixnet_tuning_delays_description">با تنظیم تأخیر زمانی، میزان اختلاط بسته‌های خود را تغییر دهید.</string>
-    <string name="mixnet_tuning_delays_min">سرعت بیشتر</string>
+	<string name="mixnet_tuning_delays_min">سرعت بیشتر</string>
 	<string name="mixnet_tuning_delays_low">پایین\n0m</string>
 	<string name="mixnet_tuning_delays_high">زیاد\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">پیش‌فرض\n15 ms</string>
@@ -514,6 +514,6 @@
 	<string name="support_protect_title">⚠️ از خود در برابر کلاهبرداری محافظت کنید</string>
 	<string name="support_protect_description">فقط از طریق کانال‌های رسمی زیر با پشتیبانی NymVPN تماس بگیرید. ما هرگز عبارت عبور شما را درخواست نمی‌کنیم و هرگز از طریق دایرکت یا پیام شخصی با شما تماس نخواهیم گرفت.\n\nاگرچه تماس غیرمنتظره دریافت کرده‌اید؟ احتمالاً کلاهبرداری است.</string>
 	<!-- Private DNS modal -->
-	<string name="private_dns_title">Disable Private DNS to use ad blocker.</string>
+	<string name="private_dns_title">برای استفاده از مسدودکننده تبلیغات، Private DNS را غیرفعال کنید.</string>
 	<string name="private_dns_button">تنظیمات را باز کنید</string>
 </resources>

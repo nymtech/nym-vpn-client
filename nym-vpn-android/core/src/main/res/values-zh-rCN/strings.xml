@@ -5,7 +5,6 @@
 	<string name="channel_description">与 VPN 通知相关的通道。</string>
 	<string name="disconnect">断开</string>
 	<string name="state_connected">已连接</string>
-	<string name="state_error">错误</string>
 	<string name="state_disconnected">未连接</string>
 	<string name="state_initializing">初始化客户端…</string>
 	<string name="state_establishing">正在建立连接…</string>

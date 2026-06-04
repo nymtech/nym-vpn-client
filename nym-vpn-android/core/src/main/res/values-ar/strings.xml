@@ -5,7 +5,6 @@
 	<string name="channel_description">قناة للإشعارات المتعلقة بـ VPN.</string>
 	<string name="disconnect">ألغاء الاتصال</string>
 	<string name="state_connected">متصل</string>
-	<string name="state_error">خطأ</string>
 	<string name="state_disconnected">انفصال</string>
 	<string name="state_initializing">تهيئة العميل…</string>
 	<string name="state_establishing">إنشاء اتصال…</string>

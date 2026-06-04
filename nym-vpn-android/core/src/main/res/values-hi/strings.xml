@@ -5,11 +5,10 @@
 	<string name="channel_description">VPN से संबंधित सूचनाओं के लिए चैनल।</string>
 	<string name="disconnect">डिस्कनेक्ट करें</string>
 	<string name="state_connected">कनेक्शन सफल हुआ</string>
-	<string name="state_error">त्रुटि</string>
 	<string name="state_disconnected">डिस्कनेक्टेड</string>
 	<string name="state_initializing">क्लाइंट प्रारंभ हो रहा है…</string>
 	<string name="state_establishing">कनेक्शन स्थापित किया जा रहा है…</string>
-	<string name="notification_entry">प्रवेश: %1$s</string>
+	<string name="notification_entry">एंट्री: %1$s</string>
 	<string name="notification_exit">बाहर निकलें: %1$s</string>
 	<string name="error_reason_set_firewall_policy">फ़ायरवॉल नीति लागू नहीं हो सकी।</string>
 	<string name="error_reason_set_routing">नेटवर्क रूटिंग कॉन्फ़िगर नहीं हो सकी।</string>
