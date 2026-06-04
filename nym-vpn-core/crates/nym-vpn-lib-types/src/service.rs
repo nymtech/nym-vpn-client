@@ -555,11 +555,11 @@ impl fmt::Display for GeoExclusionSettings {
 
 impl Default for GeoExclusionSettings {
     fn default() -> Self {
-        // Temporary, until there is a way to turn Geo Exclusion on.
-        let enabled = true;
+        // Temporary, until there is a way to control it.
+        let enabled = false;
         Self {
             enabled,
-            listen_port: 1080,
+            listen_port: 1081,
             excluded_countries: vec!["CN".to_string()],
         }
     }
