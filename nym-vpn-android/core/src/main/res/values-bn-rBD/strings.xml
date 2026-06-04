@@ -5,7 +5,6 @@
 	<string name="channel_description">NymVPN চ্যানেল অনুসন্ধান করুন</string>
 	<string name="disconnect">সংযোগ বিচ্ছিন্ন করুন</string>
 	<string name="state_connected">সংযুক্ত</string>
-	<string name="state_error">ত্রুটি</string>
 	<string name="state_disconnected">সংযুক্তি বিচ্ছিন্ন</string>
 	<string name="state_initializing">ক্লায়েন্ট ইনিশিয়ালাইজ করা হচ্ছে</string>
 	<string name="state_establishing">সংযোগ স্থাপন করা হচ্ছে</string>

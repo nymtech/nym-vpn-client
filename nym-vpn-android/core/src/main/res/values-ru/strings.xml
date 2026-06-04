@@ -5,7 +5,6 @@
 	<string name="channel_description">Канал для связанных с VPN уведомлений.</string>
 	<string name="disconnect">Отключиться</string>
 	<string name="state_connected">Подключено</string>
-	<string name="state_error">Ошибка</string>
 	<string name="state_disconnected">Отключено</string>
 	<string name="state_initializing">Инициализация клиента…</string>
 	<string name="state_establishing">Устанавливаем соединение…</string>
