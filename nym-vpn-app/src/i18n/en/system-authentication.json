@@ -1,8 +1,6 @@
 {
   "title": "System Authentication",
-  "heading": "You need to authenticate with your system in order to use the app",
   "description": "click the button to authenticate using default system password prompt",
-  "authenticate-button": "Authenticate",
   "modal": {
     "title": "Authentication required",
     "description": "You need to authenticate with your password to secure your connection.",
