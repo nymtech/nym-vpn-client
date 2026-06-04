@@ -1,8 +1,4 @@
 {
-  "auto-connect": {
-    "title": "Auto-connect",
-    "desc": "Auto connect at app startup"
-  },
   "ad-block": {
     "title": "Block ads",
     "desc": "Blocking ads and tracker",
@@ -27,7 +23,6 @@
   "notifications": {
     "title": "Desktop notifications"
   },
-  "monitoring-alert": "You should restart the app and daemon service for the change to take effect.",
   "support": {
     "intro": {
       "title": "⚠️ Protect yourself from scams",
@@ -56,7 +51,6 @@
       "description": "Configure your own DNS for ad-blocking, content filtering, or preferred providers. Drag to reorder priority. ⚠️  May limit Nym connectivity.",
       "list-header": "Custom DNS servers",
       "add": "Add",
-      "input-label": "DNS address",
       "input-placeholder": "IPv4 or IPv6 address",
       "apply": "Save changes",
       "link": "Learn more about DNS",
@@ -71,8 +65,7 @@
   "confirmation-dialog": {
     "title": "Save changes?",
     "description": "You have unsaved changes.",
-    "save": "Save changes",
-    "cancel": "Discard"
+    "save": "Save changes"
   },
   "legal": {
     "title": "Legal",
@@ -188,7 +181,6 @@
     },
     "stealth-api": {
       "label": "Stealth API connect",
-      "warning": "Changes will apply after reconnect",
       "content": "Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.",
       "link": "Learn more",
       "error": "Failed to enable Stealth API connect"
@@ -201,22 +193,13 @@
     "snackbar-switch-on": "Enhanced connection (QUIC protocol) will activate when you reconnect.",
     "snackbar-switch-off": "Enhanced connection (QUIC protocol) will deactivate when you reconnect."
   },
-  "faq": "FAQ",
   "display-theme": "Display mode",
   "language-system": "System language",
-  "logout-confirmation": {
-    "title": "Log out of this device?",
-    "description": "You’ll need your 24-word passphrase to sign in again.",
-    "logging-out": "Logging out"
-  },
   "quit": "Quit NymVPN",
-  "login-button": "Connect device",
   "info": {
     "client-version": "App version",
     "daemon-version": "Daemon version",
-    "network-name": "Network",
-    "account-id": "Account ID",
-    "device-id": "Device ID"
+    "network-name": "Network"
   },
   "autostart": {
     "title": "Launch on device startup",
@@ -229,7 +212,6 @@
   "app-proxy": {
     "title": "App & wallet proxy (beta)",
     "menu-desc": "Route app traffic through mixnet",
-    "label": "App & wallet proxy",
     "switch-title": "Enable proxy",
     "proxy-status": "Proxy status:",
     "active-connections": "Active connections:",
@@ -252,12 +234,10 @@
       "info": "ℹ️ Use this in MetaMask or other Web3 wallets to make RPC calls through the Nym mixnet. Replace <your-provider-url> with your actual RPC endpoint."
     },
     "invalid-port": "Invalid port number",
-    "listen-port": "Listen port",
     "reset-to-default": "Reset to default",
     "intro": "Route app & wallet traffic through the Nym mixnet for enhanced privacy. This feature creates a local SOCKS5 proxy for apps, and a HTTP RPC proxy for wallets.",
     "error-gateway-not-supported": "Server does not support SOCKS5",
     "error-unknown": "Failed to toggle SOCKS5 proxy",
-    "error-vpn-not-connected": "Please connect VPN first before enabling SOCKS5 proxy",
     "snackbar-enabled": "Proxy successfully enabled",
     "snackbar-disabled": "Proxy successfully disabled"
   },
@@ -280,14 +260,11 @@
     "planValidUntil": "Plan valid until {{date}}",
     "auto-renews": "Auto-renews",
     "manage-subscriptoin": "Manage your subscription",
-    "account-link-social-description": "Link a social account for effortless login.",
-    "account-on-nym": "Account on nym.com",
     "account-id": "Account ID",
     "account-id-description": "Safe to share. Use to contact Nym Support.",
     "device-id": "Device ID",
     "device-id-description": "Use this to link this device to your account on nym.com",
     "logout": "Log out",
-    "forget-me": "Forget me - SSO logout",
     "title": "Account",
     "account-linked": "Backup login method linked via Privy.",
     "account-not-linked": "<button>Add a social login</button> method to your account.",

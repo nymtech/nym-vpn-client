@@ -7,12 +7,8 @@
     "best-server": "Best server",
     "select-error": "Failed to update server selection"
   },
-  "none-found": "No results found. Please try another search",
-  "list-loading": "The location list is loading…",
-  "selected": "Selected",
   "search-country": "Search location",
   "countries-nodes": "{{countriesCount}} countries · {{nodesCount}} nodes",
-  "input-label": "Search",
   "quic-filter-note": "Only showing Fast mode locations and servers supporting the QUIC protocol. To reveal all servers, turn off QUIC <here />.",
   "location-details": {
     "streaming": {
@@ -30,12 +26,7 @@
     "entry-title": "Choosing entry servers",
     "exit-title": "Choosing exit locations"
   },
-  "location-not-available": {
-    "entry": "Selected entry location not available, switched to {{location}}",
-    "exit": "Selected exit location not available, switched to {{location}}"
-  },
   "node-details": {
-    "id-label": "Identity key:",
     "data": {
       "node-features": "Node features",
       "advanced-privacy": "Advanced privacy",
@@ -51,7 +42,6 @@
       "overall-performance": "Overall performance",
       "performance-metrics": "Performance metrics",
       "server-load": "Server load",
-      "speed": "Speed",
       "uptime": "Uptime",
       "connection-details": "Connection details",
       "exit-ipv4": "Exit IPv4",

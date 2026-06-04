@@ -2,7 +2,6 @@
   "title": "Help us improve NymVPN",
   "description": "Choose what anonymous data to share. All data is stripped of identifying information before being sent.",
   "anonymous-network-stats-toggle-desc": "View Sentry Privacy Policy",
-  "tos-notice": "By continuing, you agree to NymVPN's <tosLink /> and acknowledge NymVPN's <privacyLink />.",
   "continue-button": "Continue",
   "anonymous-network-stats": "Anonymous network stats",
   "error-and-crash-reports": "Error & crash reports",
