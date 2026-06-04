@@ -172,6 +172,12 @@ void FailPendedRequest(PENDED_CLASSIFICATION* Record, bool ReauthOnFailure = tru
 // So we don't have the luxury of re-authing requests that can't be failed.
 //
 void FailAllPendedRequests(CONTEXT* Context) {
+    LIST_ENTRY toFail;
+
+    InitializeListHead(&toFail);
+
+    WdfSpinLockAcquire(Context->Lock);
+
     for (auto rawRecord = Context->Classifications.Flink; rawRecord != &Context->Classifications;
          /* no post-condition */) {
         auto record = (PENDED_CLASSIFICATION*)rawRecord;
@@ -179,7 +185,14 @@ void FailAllPendedRequests(CONTEXT* Context) {
         rawRecord = rawRecord->Flink;
 
         RemoveEntryList(&record->ListEntry);
+        InsertTailList(&toFail, &record->ListEntry);
+    }
 
+    WdfSpinLockRelease(Context->Lock);
+
+    for (auto rawRecord = toFail.Flink; rawRecord != &toFail; /* no post-condition */) {
+        auto record = (PENDED_CLASSIFICATION*)rawRecord;
+        rawRecord = rawRecord->Flink;
         FailPendedRequest(record, false);
     }
 }
