@@ -1,3 +1,4 @@
+#if SANTA
 import SwiftUI
 import AppSettings
 import Constants
@@ -26,6 +27,8 @@ public struct SantasView: View {
                     togglesSection()
                     santasSpacer()
                     snackbarSection()
+                    santasSpacer()
+                    accountSummarySection()
                     santasSpacer()
                     logsSection()
                 }
@@ -143,6 +146,53 @@ private extension SantasView {
             .padding(.top, 8)
         }
         .padding(16)
+    }
+
+    func accountSummarySection() -> some View {
+        VStack(spacing: 8) {
+            Text("Account summary fakes:")
+                .foregroundStyle(Color.Nym.primary)
+                .bold()
+                .padding(4)
+            Text("Fakes subscription expiry. Check Settings + Account & Devices.")
+                .font(.caption)
+                .padding(4)
+
+            Toggle(isOn: $viewModel.fakeAutoRenew) {
+                Text("isAutoRenewEnabled")
+            }
+            .tint(Color.Nym.primary)
+            .padding(.horizontal, 4)
+
+            Text("Yearly plan")
+                .foregroundStyle(Color.Nym.primary)
+                .padding(.top, 4)
+            presetRow(viewModel.yearlyPresets)
+
+            Text("Monthly plan")
+                .foregroundStyle(Color.Nym.primary)
+                .padding(.top, 4)
+            presetRow(viewModel.monthlyPresets)
+
+            Button("Clear override") {
+                viewModel.clearAccountSummaryOverride()
+            }
+            .padding(.top, 8)
+        }
+        .padding(16)
+    }
+
+    func presetRow(_ presets: [SantasViewModel.AccountSummaryPreset]) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(presets, id: \.label) { preset in
+                    Button(preset.label) {
+                        viewModel.applyAccountSummaryPreset(preset)
+                    }
+                }
+            }
+            .padding(.horizontal, 4)
+        }
     }
 
     func logsSection() -> some View {
@@ -305,3 +355,4 @@ private extension SantasView {
         return reason + "\n\n" + tail
     }
 }
+#endif

@@ -14,7 +14,7 @@ extension AccountAndDevicesView {
                 accountStatusBandwidth(accountSummary: accountSummary)
                 sectionDivider()
                 accountStatusResetDate(accountSummary: accountSummary)
-                if !accountSummary.isAutoRenewEnabled {
+                if accountSummary.shouldShowRenewRow {
                     sectionDivider()
                     renewNowRow(color: accountSummary.statusColor, isVisible: true)
                 }
