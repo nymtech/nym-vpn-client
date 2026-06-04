@@ -144,23 +144,25 @@ void ReauthPendedRequest(PENDED_CLASSIFICATION* Record) {
     ExFreePoolWithTag(Record, ST_POOL_TAG);
 }
 
-void FailPendedRequest(PENDED_CLASSIFICATION* Record, bool ReauthOnFailure = true) {
+void FailPendedRequest(PENDED_CLASSIFICATION* Record) {
     DbgPrint("Failing pended request in layer %s for process %p\n", LayerToString(Record->LayerId), Record->ProcessId);
 
-    auto const status = FailRequest(Record->FilterId, Record->LayerId, &Record->ClassifyOut, Record->ClassifyHandle);
+    //
+    // Do NOT call FwpsApplyModifiedLayerData0 on a pended classify handle.
+    //
+    // Calling FwpsApplyModifiedLayerData0(H) updates H's classify context to use the
+    // modified data pointer. FwpsCompleteClassify0 then processes the bind, during which
+    // tcpip frees that layer data. H's context is left with a dangling pointer, and the
+    // subsequent FwpsReleaseClassifyHandle0(H) call crashes in the cleanup routine
+    // (AlepFreeCloneBindRedirectLayerData) because the pointer is no longer valid.
+    //
+    // Complete with hard permit and the original (unmodified) bind/connect data instead.
+    // The process is timed out or departing, so this is acceptable.
+    //
 
-    if (NT_SUCCESS(status)) {
-        FwpsCompleteClassify0(Record->ClassifyHandle, 0, &Record->ClassifyOut);
-        FwpsReleaseClassifyHandle0(Record->ClassifyHandle);
-    } else {
-        DbgPrint("FailRequest() failed 0x%X\n", status);
-
-        if (ReauthOnFailure) {
-            ReauthPendedRequest(Record);
-
-            return;
-        }
-    }
+    ClassificationApplyHardPermit(&Record->ClassifyOut);
+    FwpsCompleteClassify0(Record->ClassifyHandle, 0, &Record->ClassifyOut);
+    FwpsReleaseClassifyHandle0(Record->ClassifyHandle);
 
     ExFreePoolWithTag(Record, ST_POOL_TAG);
 }
@@ -169,15 +171,10 @@ void FailPendedRequest(PENDED_CLASSIFICATION* Record, bool ReauthOnFailure = tru
 // FailAllPendedRequests()
 //
 // This function is used during tear down.
-// So we don't have the luxury of re-authing requests that can't be failed.
+// HandleProcessEvent is already unregistered before this is called, so no
+// concurrent access to the list is possible and no lock is needed.
 //
 void FailAllPendedRequests(CONTEXT* Context) {
-    LIST_ENTRY toFail;
-
-    InitializeListHead(&toFail);
-
-    WdfSpinLockAcquire(Context->Lock);
-
     for (auto rawRecord = Context->Classifications.Flink; rawRecord != &Context->Classifications;
          /* no post-condition */) {
         auto record = (PENDED_CLASSIFICATION*)rawRecord;
@@ -185,15 +182,7 @@ void FailAllPendedRequests(CONTEXT* Context) {
         rawRecord = rawRecord->Flink;
 
         RemoveEntryList(&record->ListEntry);
-        InsertTailList(&toFail, &record->ListEntry);
-    }
-
-    WdfSpinLockRelease(Context->Lock);
-
-    for (auto rawRecord = toFail.Flink; rawRecord != &toFail; /* no post-condition */) {
-        auto record = (PENDED_CLASSIFICATION*)rawRecord;
-        rawRecord = rawRecord->Flink;
-        FailPendedRequest(record, false);
+        FailPendedRequest(record);
     }
 }
 
@@ -218,11 +207,9 @@ void HandleProcessEvent(HANDLE ProcessId, bool Arriving, void* Context) {
 
     LIST_ENTRY toReauth;
     LIST_ENTRY toFail;
-    LIST_ENTRY toFailNoReauth;
 
     InitializeListHead(&toReauth);
     InitializeListHead(&toFail);
-    InitializeListHead(&toFailNoReauth);
 
     WdfSpinLockAcquire(context->Lock);
 
@@ -249,7 +236,7 @@ void HandleProcessEvent(HANDLE ProcessId, bool Arriving, void* Context) {
         if (Arriving) {
             InsertTailList(&toReauth, &record->ListEntry);
         } else {
-            InsertTailList(&toFailNoReauth, &record->ListEntry);
+            InsertTailList(&toFail, &record->ListEntry);
         }
     }
 
@@ -265,12 +252,6 @@ void HandleProcessEvent(HANDLE ProcessId, bool Arriving, void* Context) {
         auto record = (PENDED_CLASSIFICATION*)rawRecord;
         rawRecord = rawRecord->Flink;
         FailPendedRequest(record);
-    }
-
-    for (auto rawRecord = toFailNoReauth.Flink; rawRecord != &toFailNoReauth; /* no post-condition */) {
-        auto record = (PENDED_CLASSIFICATION*)rawRecord;
-        rawRecord = rawRecord->Flink;
-        FailPendedRequest(record, false);
     }
 }
 
