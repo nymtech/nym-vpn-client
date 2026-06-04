@@ -1,7 +1,7 @@
 use crate::NodeIdentity;
 use anyhow::{Result, anyhow};
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     hash::Hash,
     sync::{Arc, RwLock},
     time::{Duration, Instant},
@@ -65,21 +65,6 @@ impl BlacklistedGateways {
         match self.0.read() {
             Ok(map) => Ok(map.is_empty()),
             Err(e) => Err(anyhow!("Failed to acquire read lock: {e}")),
-        }
-    }
-
-    /// Returns the set of currently active (non-expired) blacklisted identities.
-    /// Acquires the read lock once so callers can do bulk membership checks cheaply.
-    pub fn get_active_ids(&self) -> HashSet<NodeIdentity> {
-        match self.0.read() {
-            Ok(map) => {
-                let now = Instant::now();
-                map.iter()
-                    .filter(|(_, expiry)| **expiry > now)
-                    .map(|(id, _)| *id)
-                    .collect()
-            }
-            Err(_) => HashSet::new(),
         }
     }
 }
