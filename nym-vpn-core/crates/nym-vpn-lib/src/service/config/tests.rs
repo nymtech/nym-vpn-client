@@ -177,8 +177,8 @@ location = "BE"
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -256,8 +256,8 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -340,8 +340,8 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -413,8 +413,8 @@ exit_point = "Random"
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -493,8 +493,8 @@ async fn test_service_config_migrate_from_v1() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -582,8 +582,8 @@ async fn test_service_config_migrate_from_v2() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -677,8 +677,8 @@ async fn test_service_config_migrate_from_v3() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -736,8 +736,8 @@ async fn test_service_config_migrate_from_v4() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -788,8 +788,8 @@ async fn test_service_config_migrate_from_v4() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -852,8 +852,8 @@ async fn test_service_config_migrate_from_v5() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -904,8 +904,8 @@ async fn test_service_config_migrate_from_v5() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -1010,8 +1010,8 @@ async fn test_service_config_migrate_from_v6() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -1090,7 +1090,7 @@ async fn test_service_config_serialize_full() {
         },
         geo_exclusion: GeoExclusionSettings {
             enabled: true,
-            listen_port: 1080,
+            listen_port: 1081,
             excluded_countries: vec!["CN".to_string(), "RU".to_string()],
         },
         gateway_selection_algorithm_config:
@@ -1185,8 +1185,8 @@ async fn test_service_config_migrate_from_v7() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -1290,8 +1290,8 @@ async fn test_service_config_migrate_from_v8() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -1354,8 +1354,8 @@ async fn test_service_config_migrate_from_v9() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
@@ -1407,8 +1407,8 @@ async fn test_service_config_migrate_from_v9() {
     "apps": []
   },
   "geo_exclusion": {
-    "enabled": true,
-    "listen_port": 1080,
+    "enabled": false,
+    "listen_port": 1081,
     "excluded_countries": [
       "CN"
     ]
