@@ -3,9 +3,7 @@
   "internal": "Internal error",
   "daemon": {
     "not-connected": "Can't connect to the daemon (vpnd). Relaunch the daemon or restart the app.",
-    "auth-denied": "Authentication required. Click the Authenticate button to secure your connection.",
-    "internal": "Daemon internal error",
-    "invalid-network": "Invalid network"
+    "auth-denied": "Authentication required. Click the Authenticate button to secure your connection."
   },
   "vpnd-client": "Internal Vpnd Client error",
   "tunnel": {
@@ -37,8 +35,6 @@
     "max-devices-reached": "Account device limit exceeded.",
     "bandwidth-exceeded": "Monthly data limit reached. Contact Support for a quick data boost.",
     "invalid-recovery-phrase": "Invalid passphrase",
-    "storage": "Storage backend error",
-    "is-connected": "Unable to proceed while connected",
     "no-account-stored": "No account stored",
     "no-device-stored": "No device stored",
     "existing-account": "Account already exists",

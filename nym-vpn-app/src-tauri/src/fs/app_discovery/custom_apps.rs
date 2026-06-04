@@ -20,6 +20,21 @@ pub fn build_custom_app(path: &Path, app: Option<&tauri::AppHandle>) -> Result<A
         ));
     }
 
+    // On Unix there is no canonical executable extension, so we cannot filter the
+    // file picker by name. Instead require the executable permission bit here: the
+    // path is handed to `nym-exclude` which `execvp`s it, so a non-executable file
+    // would only fail later at launch time.
+    #[cfg(target_os = "linux")]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if metadata.permissions().mode() & 0o111 == 0 {
+            return Err(BackendError::new(
+                &format!("selected file '{}' is not executable", path.display()),
+                ErrorKey::SplitTunnelAppInvalid,
+            ));
+        }
+    }
+
     let name = path
         .file_stem()
         .or_else(|| path.file_name())
@@ -141,6 +156,11 @@ mod tests {
         let dir = scratch_dir("build-ok");
         let file = dir.join("my-binary");
         fs::write(&file, b"#!/bin/sh\n").unwrap();
+        #[cfg(target_os = "linux")]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&file, fs::Permissions::from_mode(0o755)).unwrap();
+        }
 
         let result = build_custom_app(&file, None).unwrap();
         assert_eq!(result.name, "my-binary");
@@ -156,6 +176,11 @@ mod tests {
         let dir = scratch_dir("build-ext");
         let file = dir.join("Cursor.AppImage");
         fs::write(&file, b"x").unwrap();
+        #[cfg(target_os = "linux")]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(&file, fs::Permissions::from_mode(0o755)).unwrap();
+        }
 
         let result = build_custom_app(&file, None).unwrap();
         assert_eq!(result.name, "Cursor");
@@ -168,6 +193,22 @@ mod tests {
         let dir = scratch_dir("build-dir");
         let err = build_custom_app(&dir, None).unwrap_err();
         assert_eq!(err.key, ErrorKey::SplitTunnelAppInvalid);
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn build_custom_app_rejects_non_executable_file() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = scratch_dir("build-noexec");
+        let file = dir.join("notes.txt");
+        fs::write(&file, b"just text, not runnable\n").unwrap();
+        fs::set_permissions(&file, fs::Permissions::from_mode(0o644)).unwrap();
+
+        let err = build_custom_app(&file, None).unwrap_err();
+        assert_eq!(err.key, ErrorKey::SplitTunnelAppInvalid);
+
         fs::remove_dir_all(&dir).ok();
     }
 
