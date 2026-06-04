@@ -1,0 +1,3054 @@
+[
+  {
+    "id": "5XjrYTRu5j5npwtMenq5vanVtDBREu3iX5yymS8qxnu9",
+    "name": "🐬 Oceanus Staking AE 2",
+    "cc": "AE",
+    "asn": "AS8849",
+    "route": "89.36.162.0/24"
+  },
+  {
+    "id": "5ZWdDN9pQ18vYkYYs5ZERh4P4JLtMiijscZ6FvwSfVxR",
+    "name": ".123 Suspicious Looking Dirt",
+    "cc": "AE",
+    "asn": "AS9009",
+    "route": "176.97.78.0/24"
+  },
+  {
+    "id": "4X7zJBWts5VmB3bFbK7RUo37w2U2AqLKn7Z3fDaWHoy4",
+    "name": "NLD Node Zagreb",
+    "cc": "AL",
+    "asn": "AS136258",
+    "route": "185.186.77.0/24"
+  },
+  {
+    "id": "GN2h2HZjLyfdCjB7ikYNkio53RHAMr2Ee9LYBfbHfntJ",
+    "name": "onchainaustria.at-exit-AL01",
+    "cc": "AL",
+    "asn": "AS48014",
+    "route": "87.121.162.0/24"
+  },
+  {
+    "id": "27GwHdmXLULVieyXmxZ6v9DHzRJtTEjfode1dzbptEAK",
+    "name": "💥Petroff Staking |AM#1💥",
+    "cc": "AM",
+    "asn": "AS209847",
+    "route": "45.83.143.0/24"
+  },
+  {
+    "id": "8jFCkcCJus7cHg8LVQiTwbEuKqzmMm6EwYezNx2cKArB",
+    "name": "[bumpmeup] Eridatus AM",
+    "cc": "AM",
+    "asn": "AS209847",
+    "route": "185.234.57.0/24"
+  },
+  {
+    "id": "9YXwpcfBdA7cT5f1FmW3CGcF4D2LDfVkCdatgj63RBJp",
+    "name": "j4ck-gw-01",
+    "cc": "AR",
+    "asn": "AS58061",
+    "route": "38.180.185.0/24"
+  },
+  {
+    "id": "EQ4EBTTtufKV5SVch5jV5SGZjgUSz59QSJqF2HQxszk6",
+    "name": "bwnym-teckel-AR",
+    "cc": "AR",
+    "asn": "AS58061",
+    "route": "38.180.185.0/24"
+  },
+  {
+    "id": "2RmEBKhQHsqvw5sjnnt2Bhpy96MPDUkbfWkT6r2RWNCR",
+    "name": "PrivacyMeow #04",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "89.58.16.0/21"
+  },
+  {
+    "id": "2xU4CBE6QiiYt6EyBXSALwxkNvM7gqJfjHXaMkjiFmYW",
+    "name": "nymtech (mainnet-gateway3.nymte.ch)",
+    "cc": "AT",
+    "asn": "AS61098",
+    "route": "194.182.172.0/22"
+  },
+  {
+    "id": "48NY1cv8S3MgRi2khxUjAbWFzozeYauTG6czMkiHWp9m",
+    "name": "Aether-gw-at-01",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.108.0/22"
+  },
+  {
+    "id": "6mMs1GQkDRa7rPPtzG9vkFscmEBmAvQX4zjLSoaDg9Wa",
+    "name": "t-lab | AU",
+    "cc": "AT",
+    "asn": "AS63473",
+    "route": "185.175.58.0/24"
+  },
+  {
+    "id": "8UhUrSJ15NTywqwdXYXM9fdjrCRgMdCt1mQkPUqGMkyB",
+    "name": "Aether-gw-at-04",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.64.0/22"
+  },
+  {
+    "id": "98FmUvDdQYEeV1ioi5NpFK7DoeHphVECndaG7fkRUsaF",
+    "name": "💫Hermes Stakepool Austria - AT01💫",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.92.0/22"
+  },
+  {
+    "id": "9biL12LvrHQbzduFYFckT18mhxF84LFzMYe6BrNQgtJD",
+    "name": "Aether-gw-at-02",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.48.0/22"
+  },
+  {
+    "id": "9p8fWUVBRjcGTr9XZ5pjVi57Ne386LEUm5tT7kVjXGk8",
+    "name": "Pierrot Gateway | Austria1 🇦🇹",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.0.0/22"
+  },
+  {
+    "id": "B4ekPHjPALDFfSkxdJdvJ9XCK7QAVyt4AcYtgkdv4z5a",
+    "name": "🐬 Oceanus Staking AT 1",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.92.0/22"
+  },
+  {
+    "id": "BHGiqs5N6wfUK9U3zjdafGPsaRyBN7jAXuc979KpP93m",
+    "name": "dma",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.0.0/22"
+  },
+  {
+    "id": "Em9QUZTghpSUgLwAP17oHQ2nypVgab3ucHUEAnqktgTs",
+    "name": "t-lab | AU II",
+    "cc": "AT",
+    "asn": "AS63473",
+    "route": "185.175.58.0/24"
+  },
+  {
+    "id": "FmbUngD26tUGvJN8QqL78iK96bZYV2bWkjWZU7fDwBN1",
+    "name": "💫Hermes Stakepool Austria - AT02💫",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "188.172.228.0/23"
+  },
+  {
+    "id": "GH9HWLvPYJyaoPvPTHB4QY6LAykVYTG7YR6t6LPWu8gJ",
+    "name": "onchainaustria.at-exit-AT01",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.0.0/22"
+  },
+  {
+    "id": "GND5vnWKHG9NojMbqjiApRXpH2cuJ1sW4aVMuCZXguLr",
+    "name": "Aether-gw-at-03",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.92.0/22"
+  },
+  {
+    "id": "H1McRpRR8NJZ1tqCmg6VaQnBdf7z9TfxywsiiYe9RwQ3",
+    "name": "Pierrot Gateway | Austria 🇦🇹",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.0.0/22"
+  },
+  {
+    "id": "mKqbb3JYUqGGRHkteZuZ7ZxJcndTHNrF1oXZtnU1G39",
+    "name": "PrivacyMeow #03",
+    "cc": "AT",
+    "asn": "AS197540",
+    "route": "152.53.32.0/22"
+  },
+  {
+    "id": "3jEJirKzCJhR2GpP8LzCY1P3bDCWA7joa16jbrcsMoUq",
+    "name": "mku1tra - EntryNode #4",
+    "cc": "AU",
+    "asn": "AS141995",
+    "route": "46.250.240.0/21"
+  },
+  {
+    "id": "5P8MmJTdmoS4rhV8VHArABkyPE3M9RMrZsiX3qYkJ6u",
+    "name": "TupiNymQuim supermeia3",
+    "cc": "AU",
+    "asn": "AS395092",
+    "route": "203.96.176.0/22"
+  },
+  {
+    "id": "8QsVHWnKT5VhctvrKuWEVNVcn3Bmd4zQAh8nLGAWE2Sw",
+    "name": "🐬 Oceanus Staking AU 1",
+    "cc": "AU",
+    "asn": "AS63473",
+    "route": "103.73.64.0/23"
+  },
+  {
+    "id": "8g616KUzunb8fqFFGYzYtjk9jH5n9Zo72B2o9NV88K1m",
+    "name": "mku1tra - EntryNode #2",
+    "cc": "AU",
+    "asn": "AS141995",
+    "route": "154.26.152.0/21"
+  },
+  {
+    "id": "AG1jucgspds2xXJAftZHr7tqf3haPNjWLyRsn9NzfWje",
+    "name": "TupiNymQuim supermeia4",
+    "cc": "AU",
+    "asn": "AS395092",
+    "route": "203.96.176.0/22"
+  },
+  {
+    "id": "B6docD8mkjfBWh9vuYw63BbzDfgEzCxARokK4jWfqN3K",
+    "name": "t-lab | AUS II",
+    "cc": "AU",
+    "asn": "AS63473",
+    "route": "85.155.188.0/23"
+  },
+  {
+    "id": "GLsWfzw1cXDBiCjVadxTAtu9buXgGPdkYxKXGYLcQZtt",
+    "name": "t-lab | AUS I",
+    "cc": "AU",
+    "asn": "AS63473",
+    "route": "85.155.188.0/23"
+  },
+  {
+    "id": "GZEPaLJQ7dJMkMNF56FdrJmtoRZqKYXvnKBJ3S6JA5mc",
+    "name": "💥Petroff Staking |AU#1💥",
+    "cc": "AU",
+    "asn": "AS141995",
+    "route": "46.250.240.0/21"
+  },
+  {
+    "id": "iS5UXKJcZ7j8h6mqyyjSTzxCTfPBctZPCk9Nx3cFBps",
+    "name": "TupiNymQuim supermeia12",
+    "cc": "AZ",
+    "asn": "AS199524",
+    "route": "92.223.62.0/24"
+  },
+  {
+    "id": "3ts3snXyuyJLw9vCMXfQQ4BWV8nqPzPuVpQFHw1jnAaF",
+    "name": "GWLaAlagovac",
+    "cc": "BA",
+    "asn": "AS200698",
+    "route": "185.99.2.0/24"
+  },
+  {
+    "id": "2JAVMSBKVvV5DAw8fsdsUjtaaTcwjzPvm4jMzaLGVzJJ",
+    "name": "💫Hermes Stakepool Belgium - BE01💫",
+    "cc": "BE",
+    "asn": "AS16276",
+    "route": "141.227.186.0/24"
+  },
+  {
+    "id": "6amXvGQR81fuHz9qgWhLBDLZoXwWxAvLb2Tw2PciNS2p",
+    "name": "t-lab | BE",
+    "cc": "BE",
+    "asn": "AS6696",
+    "route": "128.127.180.0/24"
+  },
+  {
+    "id": "A87Dg2wJ9zjd9tQ568oCUcRYSi6EcxMPSgDb1gdFWdKn",
+    "name": "t-lab | BE",
+    "cc": "BE",
+    "asn": "AS6696",
+    "route": "128.127.180.0/24"
+  },
+  {
+    "id": "DYS4pwgTxKznx93mWCTsmJKXHgDDwdS3N4urXyngDn6B",
+    "name": "Pierrot Gateway | Bulgaria 🇧🇬",
+    "cc": "BG",
+    "asn": "AS203380",
+    "route": "94.72.140.0/24"
+  },
+  {
+    "id": "DbufxY7wZuARAGwEqMwLqxU5GqzPjeGtDbcWE9yEhfyn",
+    "name": "xAlex.Vigilance | 0 costs",
+    "cc": "BG",
+    "asn": "AS200019",
+    "route": "5.181.1.0/24"
+  },
+  {
+    "id": "GD9GX9Qb4poPf2JTf3Z9iggABxojVfPB3AgY59RXKu6n",
+    "name": "onchainaustria.at-exit-BG01",
+    "cc": "BG",
+    "asn": "AS56630",
+    "route": "213.183.63.0/24"
+  },
+  {
+    "id": "2RFtU5BwxvJJXagAWAEuaPgb5ZVPRoy2542TT93Edw6v",
+    "name": "GwLaCondenacion",
+    "cc": "BO",
+    "asn": "AS136258",
+    "route": "185.93.173.0/24"
+  },
+  {
+    "id": "CigQNee3iCs3zoXjf5c9WbEScaEwWGwoNPt2rdnKvZmP",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "BR",
+    "asn": "AS396356",
+    "route": "77.111.101.0/24"
+  },
+  {
+    "id": "EGjiDxYgnApuMSi8eHi5qHCm2RWGb3Xub7yPo2QqPYgw",
+    "name": "🐬 Oceanus Staking BR 1",
+    "cc": "BR",
+    "asn": "AS268581",
+    "route": "157.254.54.0/24"
+  },
+  {
+    "id": "FWaDpqJDYkCYGsSySniBwUaAwDfQ6CbU14Qy95vPRrti",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "BR",
+    "asn": "AS396356",
+    "route": "77.111.101.0/24"
+  },
+  {
+    "id": "J3Wfpxca9mwnbipScWTkKCrbNnZ9J5M4YmjKCFTnXwWN",
+    "name": ".123 Fallen Star Victim",
+    "cc": "BR",
+    "asn": "AS58061",
+    "route": "149.33.22.0/24"
+  },
+  {
+    "id": "4zabxHCZtiHm9eKDfDkccqvtMYnrniAeagGAdZpeKZct",
+    "name": "🇨🇭 Swiss Crypto Nodes | Neptune",
+    "cc": "CA",
+    "asn": "AS16276",
+    "route": "148.113.128.0/17"
+  },
+  {
+    "id": "5DniVTMsnyHBEhhsd51Tojnv6XLmxgnTaaEgNYu7pdMP",
+    "name": "BwNymGama",
+    "cc": "CA",
+    "asn": "AS136258",
+    "route": "23.95.76.0/24"
+  },
+  {
+    "id": "6tGNU195QKNMaTxkvm917d3NNGLkpTp8mTfxqLzATbtB",
+    "name": "mku1tra - EntryNode #3",
+    "cc": "CA",
+    "asn": "AS16276",
+    "route": "148.113.128.0/17"
+  },
+  {
+    "id": "9fWseSZYnMpkjfmk8VQ16Me2Nw62ekzc84WAzXKwvn3Q",
+    "name": "Pierrot Gateway | Canada 🇨🇦",
+    "cc": "CA",
+    "asn": "AS32489",
+    "route": "96.9.226.0/24"
+  },
+  {
+    "id": "A3eXE8MuRLQux91YNgS2QEYVV2mdLa7foyTAg9vb2hq2",
+    "name": "DAOariwas Hackan",
+    "cc": "CA",
+    "asn": "AS16276",
+    "route": "51.222.0.0/16"
+  },
+  {
+    "id": "Aef3pQQrpQNqeA2s2S7VieeYjF3v5PKR5j7ZErJXnCVd",
+    "name": "ON-six",
+    "cc": "CA",
+    "asn": "AS400596",
+    "route": "23.132.28.0/24"
+  },
+  {
+    "id": "B4r2xMJYc4VgoEhPmccmNSawQWdYP9zGp9DJqjcz6PoX",
+    "name": "🐬 Oceanus Staking CA 1",
+    "cc": "CA",
+    "asn": "AS16276",
+    "route": "158.69.0.0/16"
+  },
+  {
+    "id": "B8bX5x5yKa7oQMCNioLS9seYwNCio3U9jYPxgCZoKjk5",
+    "name": "VIRGINIA2",
+    "cc": "CA",
+    "asn": "AS16276",
+    "route": "148.113.128.0/17"
+  },
+  {
+    "id": "DfNMqQRy6pPkU8Z5rBsxRwzDUzAMXHPFwMhjF16ScZqn",
+    "name": "NodesGuruShipyard",
+    "cc": "CA",
+    "asn": "AS63949",
+    "route": "172.105.0.0/19"
+  },
+  {
+    "id": "GQ246UMJv6d1MHRz7rXT2AB6igBseKinfC35TfV6gcK3",
+    "name": "ON-two",
+    "cc": "CA",
+    "asn": "AS400596",
+    "route": "23.132.28.0/24"
+  },
+  {
+    "id": "2BuMSfMW3zpeAjKXyKLhmY4QW1DXurrtSPEJ6CjX3SEh",
+    "name": "nymtech (mainnet-gateway2.nymte.ch)",
+    "cc": "CH",
+    "asn": "AS61098",
+    "route": "194.182.188.0/22"
+  },
+  {
+    "id": "2L7jtonY8fuXvfy2kytCA9uypkWxoSbxfqZVETMAWLYT",
+    "name": "Aether-gw-ch-01",
+    "cc": "CH",
+    "asn": "AS63473",
+    "route": "188.244.117.0/24"
+  },
+  {
+    "id": "2aZj5UjC4N3SMjfJNjFiaHPqg1sgKDBYwaLozxGePQxW",
+    "name": "SpectreDAO - CH-18",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "3VDNUm8iVtQycwN4XwXTT62JxbYj6VixscvMsFsP1rN4",
+    "name": "SpectreDAO - CH-11",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "4M6Q21MyEmXtGBh7sb1Hcq4EsPMB57gzfuLLDeobGLky",
+    "name": "SpectreDAO - CH-17",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "5aWBDvVJScXz1nGt48qpAJ4uimenCuo9EpehcpULzG9G",
+    "name": "SpectreDAO - CH-3",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "5efbg5vicoXocEbjBXtqFCFydbMAVSmeXyV73PkuUY2x",
+    "name": "SpectreDAO - CH-14",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "64LaDQefP7dbC8F37HhCnXGP2KstcfqM3hmPiw1KwezA",
+    "name": "💫Hermes Stakepool Switzerland - CH02💫",
+    "cc": "CH",
+    "asn": "AS16276",
+    "route": "141.227.148.0/22"
+  },
+  {
+    "id": "6KZ96sPW6BBcgmghYb7c7BtCXgAEr1nmwnJzzRsszyhe",
+    "name": "💫Hermes Stakepool Switzerland - CH01💫",
+    "cc": "CH",
+    "asn": "AS16276",
+    "route": "141.227.148.0/22"
+  },
+  {
+    "id": "6PayRu8Ysum7bqGfkLj7GxyWwNXfFvesRYsWoyUvV1eq",
+    "name": "SpectreDAO - CH-10",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "6Rg6qQmaGwF4gRtc52B5FL4tUBgwUwFBAUY5TVBcMoSP",
+    "name": "DoubleOnion CH",
+    "cc": "CH",
+    "asn": "AS63473",
+    "route": "103.63.30.0/24"
+  },
+  {
+    "id": "6ghMcxHE8foUdAYDisQTPLSyqqnyH1mmbimfQHGPUDj1",
+    "name": "Aether-gw-ch-02",
+    "cc": "CH",
+    "asn": "AS211507",
+    "route": "45.141.119.0/24"
+  },
+  {
+    "id": "77aRs7y33css1aE9Xc5HNXYCtMbDEq9mNZjob7Y4jDVD",
+    "name": "SpectreDAO - CH-9",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "AwWwYN2CKrpkHt6AqyAfra4HTfJ5SoQE85Dn3RjGLtji",
+    "name": "SpectreDAO - CH-2",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "BSFuVD5nCpEV7Ebzi15Yh8Jzeziq8oiGEx6b4r1PMUKD",
+    "name": "SpectreDAO - CH-6",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "BZEZjvJBA3r3xgLGX3moPMqDGhRHcCZdMigJtfSnnwbM",
+    "name": "SpectreDAO - CH-16",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "C4ZfsMeVSr82PoZ4LVvPLKEm7ZbUk22MPavK6kYDHDmE",
+    "name": "SpectreDAO - CH-4",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "DASDLLKZGUQQNK8dK2qjspR7jFeBQwT5EWfQMXp5bmVY",
+    "name": "SpectreDAO - CH-13",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "E2eDvXzkh1sYeirRnjE5VDoKTkE9CufJ6RfF3sCrS8eV",
+    "name": "SpectreDAO - CH-7",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "EDEtSQ6dVEE6JQqQLZFMdLETCx9NNgqoxkbvoyvfQR48",
+    "name": "PhantomGate JP IV",
+    "cc": "CH",
+    "asn": "AS63473",
+    "route": "45.91.92.0/24"
+  },
+  {
+    "id": "EG3ZYhYs4ZT3bngcyLaKyzFz9bV2GyxHA6MEj9h7eAPD",
+    "name": "SpectreDAO - CH-12",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "Ence58nDC7QuUCnvQJJ3Ha377ZnD1X5ui5ZnAVfk5ycE",
+    "name": "SpectreDAO - CH-5",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "FYtgimMvFkuti8oHYqALSNzoWz4TodRtshiSERcj58cf",
+    "name": "SpectreDAO - CH-8",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "GueqWF5ve1QvB1h6S78JDyFr5DJ7zSpVSnK77tBc4peD",
+    "name": "Aether-gw-ch-03",
+    "cc": "CH",
+    "asn": "AS211507",
+    "route": "45.141.119.0/24"
+  },
+  {
+    "id": "H7LPKs2HtRHLfTrAYduUzGy8nGccMyF67zEaNBi61VUi",
+    "name": "SpectreDAO - CH-15",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "hDfrKpaveEdzLcqHrStj6Uz5rU4cqh7NPoFAkexmiAN",
+    "name": "SpectreDAO - CH-1",
+    "cc": "CH",
+    "asn": "AS264617",
+    "route": "185.191.239.0/24"
+  },
+  {
+    "id": "tK2kR7hxPXA7wLCzwJ82DXsfM8VcN6SVPZtswzEhH85",
+    "name": "Aether-gw-ch-04",
+    "cc": "CH",
+    "asn": "AS63473",
+    "route": "103.63.30.0/24"
+  },
+  {
+    "id": "2EJk2oBtjq7Qik5V9Yxs8RXnBU9BhRLLj3biLCXksRWA",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "CL",
+    "asn": "AS20473",
+    "route": "64.176.0.0/19"
+  },
+  {
+    "id": "2cJK2Cz4XJQxEGdYyNgxXJ7uQxRtVehox6PRsrQzn3sA",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "CL",
+    "asn": "AS20473",
+    "route": "64.176.0.0/19"
+  },
+  {
+    "id": "AXbTHwjZEz6hk9BSZdMfGprqdRHCiRuexbXZXu5Nzk14",
+    "name": "t-lab | CL",
+    "cc": "CL",
+    "asn": "AS263702",
+    "route": "38.7.192.0/19"
+  },
+  {
+    "id": "ga7TXCLzTAooRdidj3H95uuMmcCqFFFvDw4oVSsmNst",
+    "name": "Avril14th",
+    "cc": "CO",
+    "asn": "AS136258",
+    "route": "91.148.134.0/24"
+  },
+  {
+    "id": "5wF5wN7T2UuSsiUcQyL77NwdnXwAXxFttpZ1dR1nu4kR",
+    "name": "t-lab | CR",
+    "cc": "CR",
+    "asn": "AS52423",
+    "route": "179.48.250.0/24"
+  },
+  {
+    "id": "7ntzmDZRvG4a1pnDBU4Bg1RiAmLwmqXV5sZGNw68Ce14",
+    "name": "💫Hermes Stakepool Czechia - CZ01💫",
+    "cc": "CZ",
+    "asn": "AS16276",
+    "route": "141.227.135.0/24"
+  },
+  {
+    "id": "CeGaJHoMmiddc7eS4YZVzjWmXvsgSzmJrwAxKJtoCmju",
+    "name": "mku1tra - EntryNode #5",
+    "cc": "CZ",
+    "asn": "AS16276",
+    "route": "141.227.135.0/24"
+  },
+  {
+    "id": "EdxPEEUvTgfWfN474a4u9gsRrhgoKTqUyQtVXXmD3MAd",
+    "name": "NLD Node Prague",
+    "cc": "CZ",
+    "asn": "AS136258",
+    "route": "86.54.82.0/24"
+  },
+  {
+    "id": "FHHq3GYnj8a7Vk3A5KLEcqrngh7HmKWsbvvrE4TfoH8T",
+    "name": "onchainaustria.at-exit-CZ01",
+    "cc": "CZ",
+    "asn": "AS16276",
+    "route": "141.227.135.0/24"
+  },
+  {
+    "id": "2rekgDw6mbLUSBayoDzMPBmD9tDgavPc749ZwqbjUo5D",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "DE",
+    "asn": "AS8560",
+    "route": "87.106.0.0/16"
+  },
+  {
+    "id": "38zcSsvjXsAX7C28ko2H3Lt55X4TYxfZYkPADxKXZHUj",
+    "name": "💫Hermes Stakepool Germany - DE01💫",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "152.53.132.0/22"
+  },
+  {
+    "id": "3G3VvNiGXbmNkQR5GU3gv7tZKFpbbw7jKQdAtPXnJahW",
+    "name": "Aether-gw-de-01",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "202.61.252.0/22"
+  },
+  {
+    "id": "3vAAhoJ31RRnvE8pN2vsibysWfDii91wqsTnaSvR3bF2",
+    "name": "xAlex.Abstractedness | 0 costs",
+    "cc": "DE",
+    "asn": "AS35042",
+    "route": "193.24.209.0/24"
+  },
+  {
+    "id": "3viVqptQYXoNAqKHkdpLPLrHpSWYyrtPYHetv3jJwgFF",
+    "name": "Pierrot Gateway | Germany Frankfurt 🇩🇪",
+    "cc": "DE",
+    "asn": "AS35042",
+    "route": "185.55.241.0/24"
+  },
+  {
+    "id": "4aekp6sfudkCtmwERFmPdaQbhLAVeWeXfTwnNAV81RC6",
+    "name": "PrivacyMeow #02",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "37.221.192.0/22"
+  },
+  {
+    "id": "5Ao1J38frnU9Rx5YVeF5BWExcnDTcW8etNe9W2sRASXD",
+    "name": "🌜 NYM Gateway by TSDCoin 🌛",
+    "cc": "DE",
+    "asn": "AS214036",
+    "route": "84.200.91.0/24"
+  },
+  {
+    "id": "6sL9w3iRYaf599rQ5QzGfecG8yoH9zci1BsbMqR6uyQP",
+    "name": "💫Hermes Stakepool Germany - DE02💫",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "152.53.136.0/22"
+  },
+  {
+    "id": "8jvZbg811gJLCPwdpjJSwEq6Gktca2MpK6AaMB8WbFiX",
+    "name": "Nym node Nomad-1",
+    "cc": "DE",
+    "asn": "AS24940",
+    "route": "138.201.0.0/16"
+  },
+  {
+    "id": "9a1G4Nq8h2x2ckUiFc2RrPKuRaL6UhjpK4yrFeoEqtPX",
+    "name": "Nym node Nomad-2",
+    "cc": "DE",
+    "asn": "AS24940",
+    "route": "128.140.0.0/17"
+  },
+  {
+    "id": "AS9k5KkooVx8fp85kBoKUe74wx3BCYWLkposoWAZd1SD",
+    "name": "Aether-gw-de-02",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "94.16.116.0/22"
+  },
+  {
+    "id": "AnnYnEtBjB2a5sHmeRCnBq43qxyHDf95Bqd7cwQyKNLR",
+    "name": "sadness tip cage",
+    "cc": "DE",
+    "asn": "AS24940",
+    "route": "49.12.0.0/16"
+  },
+  {
+    "id": "BReGZ1WBMx55FD3xEWVxTzSoLq9teimJSQGMAAgfJoLa",
+    "name": "PrivacyMeow #01",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "152.53.144.0/22"
+  },
+  {
+    "id": "Bw83iGD2edUrbsRC88oYSrJ5TmYpjqCRU5BkDERb6LuA",
+    "name": "MainnetGateway-DE",
+    "cc": "DE",
+    "asn": "AS63949",
+    "route": "172.104.128.0/19"
+  },
+  {
+    "id": "BzN6LTfLUrgToXkE4eqsh3aZgZPDmoWLpCJYYCraYSRT",
+    "name": "minimanode1",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "202.61.200.0/22"
+  },
+  {
+    "id": "CdNAtrcuVL83CDoLtHEUPXE39q4a7Tn9pvFNSNJVDivw",
+    "name": "Nym node Nomad-3",
+    "cc": "DE",
+    "asn": "AS24940",
+    "route": "46.224.0.0/15"
+  },
+  {
+    "id": "DBBCDYsgAAj7g4FLQkSxXZAcdG5m9Hx8vMreqRaX1Yqo",
+    "name": "weisser-zwerg.dev (wznymnode2.root.sx)",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "152.53.120.0/22"
+  },
+  {
+    "id": "DoezvC92kAVDhFpBbsRj52rErhikj2vtPi1Lup2EhbZ4",
+    "name": "🐬 Oceanus Staking DE 1",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "89.58.12.0/22"
+  },
+  {
+    "id": "EXkPNhyznZWN3uVGuBmS7bMKBMhXrFsXH8ecaEtYUJQr",
+    "name": "crptcpchk | RawBox",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "202.61.196.0/22"
+  },
+  {
+    "id": "EoTUJGLpDKe7KMwQntEqHSBKUiGEmsjgcag5qH19f3fT",
+    "name": "ON-one",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "37.120.160.0/22"
+  },
+  {
+    "id": "EzUL5tBfq2jAuTJZ24rVJ5SFV5gCH1yZKmKSzZRsjcKn",
+    "name": "Adelita",
+    "cc": "DE",
+    "asn": "AS56630",
+    "route": "213.226.68.0/22"
+  },
+  {
+    "id": "FfdYC39U4qREoUZSrdNzGLQNug6Ac1PdxkZrUifR4jBR",
+    "name": "patacong2",
+    "cc": "DE",
+    "asn": "AS56630",
+    "route": "185.140.12.0/24"
+  },
+  {
+    "id": "Fo4f4SQLdoyoGkFae5TpVhRVoXCF8UiypLVGtGjujVPf",
+    "name": "width orchard stool",
+    "cc": "DE",
+    "asn": "AS61098",
+    "route": "89.145.160.0/22"
+  },
+  {
+    "id": "G2KNqnAUpdbdnFuDETUVJNGxhNvcKddg7428utTDn2VM",
+    "name": "Aether-gw-de-03",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "152.53.148.0/22"
+  },
+  {
+    "id": "GTBuCjgVBjoPoZyX66fei46ZSV9bBePE3FCofDcJqQ2t",
+    "name": "Aether-gw-de-04",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "45.142.176.0/22"
+  },
+  {
+    "id": "pnXc67jyZCL6vnUaL2abmeCiXhT9cKzc1ScFBp3oAXz",
+    "name": "Aether-gw-de-05",
+    "cc": "DE",
+    "asn": "AS197540",
+    "route": "152.53.84.0/22"
+  },
+  {
+    "id": "2EuLeKmywDnNqELtiovbFxVhPS9U1R3g6imVUnUZje9u",
+    "name": "🐬 Oceanus Staking DK 1",
+    "cc": "DK",
+    "asn": "AS202053",
+    "route": "81.27.108.0/22"
+  },
+  {
+    "id": "HNgsKSepn3FeMf8d2LEtzJbTVHLV85TpwpJ5h9QPWeis",
+    "name": "🐬 Oceanus Staking DK 2",
+    "cc": "DK",
+    "asn": "AS202053",
+    "route": "81.27.108.0/22"
+  },
+  {
+    "id": "5t2tkrH9J4WXUnneSuKb2A5gso9AvramvdNFAHci9AMJ",
+    "name": "bwnym-pr-kuntur",
+    "cc": "EC",
+    "asn": "AS136258",
+    "route": "185.47.253.0/24"
+  },
+  {
+    "id": "GJqd3ZxpXWSNxTfx7B1pPtswpetH4LnJdFeLeuY5KUuN",
+    "name": "nkbblocks",
+    "cc": "EE",
+    "asn": "AS62005",
+    "route": "146.19.143.0/24"
+  },
+  {
+    "id": "ZXSDhRTKU5HgMpH8ma78FftvLiKyZ6jWL1e2U7GD7gQ",
+    "name": "onchainaustria.at-exit-EE01",
+    "cc": "EE",
+    "asn": "AS62005",
+    "route": "176.124.32.0/24"
+  },
+  {
+    "id": "2EduV4NaK8yDMP6njDEZAaaHH5k3G4E8Zqz4E1hfZmeE",
+    "name": "Sargatxet I N",
+    "cc": "ES",
+    "asn": "AS8560",
+    "route": "93.93.112.0/21"
+  },
+  {
+    "id": "3icmSmQD8i3fg9MEYZGSnrYXiv9Yq38M9zc2KiQkuwdq",
+    "name": "🐬 Oceanus Staking ES 1",
+    "cc": "ES",
+    "asn": "AS56630",
+    "route": "5.188.180.0/22"
+  },
+  {
+    "id": "GrB6SjWMoCMM1a4KcLu2pZCvat7WCQNgfWs23YHQnpzF",
+    "name": "RenorNode",
+    "cc": "ES",
+    "asn": "AS136258",
+    "route": "37.143.130.0/24"
+  },
+  {
+    "id": "RYYAWkXv1YBZAdS5H8gFpotiYMRjF95mit39TvX7pXL",
+    "name": "Sargatxet II N",
+    "cc": "ES",
+    "asn": "AS8560",
+    "route": "213.165.69.0/24"
+  },
+  {
+    "id": "2cH2CxSKHtR4NXSm4aVCTESkqdEkduCoHvYqxytNGma9",
+    "name": "NymCats Finland-14",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "3kEW9dJ1YQ77TcUnCoKDmpwQjYf5kgzjJK7L7g972pEr",
+    "name": "NymCats Finland-10",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "4CmEWNXVKVAaY7Y5848fgmBTxwNTvkYwgnVitksPSnWY",
+    "name": "💫Hermes Stakepool Finland - FI02💫",
+    "cc": "FI",
+    "asn": "AS24940",
+    "route": "157.180.0.0/17"
+  },
+  {
+    "id": "4bt4G77hLZtoDJwFXeyTQcy7zVzz9kpdzDTVBFKCMg1L",
+    "name": "NymCats Finland-21",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "4mDXCAFNbHxhvayffcgvpRUTwjxTDy9AFZ3neQjNb8po",
+    "name": "💫Hermes Stakepool Finland - FI01💫",
+    "cc": "FI",
+    "asn": "AS24940",
+    "route": "46.62.128.0/17"
+  },
+  {
+    "id": "5pyjqXpRTvKchd3xQBMFioXmcuFQ117NfVfDBQwT1fnv",
+    "name": "NymCats Finland-20",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "6AfQMizNdeeMcaZGTn2apRzbUydQyvP8ELwYvk4yfz8M",
+    "name": "NymCats Finland-19",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "6HBDx4NMfe3ggAEw4Yt9KViZAM6xKCQrtKsEM7fy2K7",
+    "name": "NymCats Finland-5",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "6UAaXB9pyv24engWoigPmJfid3Kq1WeNDhoK9ArPSk7V",
+    "name": "patacong1",
+    "cc": "FI",
+    "asn": "AS136258",
+    "route": "37.143.129.0/24"
+  },
+  {
+    "id": "7MiSywqj6NksUTQCMnyQr9pcKzuthhk444kCGm8cUUT4",
+    "name": "NymCats Finland-3",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "7pmYeGU2JMajXLZ5DihSvTq3fRGCFftTGXSWaeu8r433",
+    "name": "NymCats Finland-6",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "7txJh7wY3ASoanNFTFEnTKoodiLHRFkzHxD9AuKfhpa5",
+    "name": "NymCats Finland-9",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "8Jzd9BN751rH8WTMy7QzZBA2dX1oAK8rC37UJPWpn8FZ",
+    "name": "NymCats Finland-1",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "9UuvMCcecxNNTAhtRQPvc28XSRGWS4ny1DfMj1ninUrN",
+    "name": "NymCats Finland-24",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "9bzMzVX8bfAzE1roQPTbX2jzXjnt7TScpepzdhf2J7KT",
+    "name": "SpectreDAO - FI-1",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "37.228.129.0/24"
+  },
+  {
+    "id": "9n3DS4w221bxdvgNyiTepkap7byoAwvMoNGCb21LmMML",
+    "name": "NymCats Finland-7",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "BnNqfKM2KXC85jpf8xdzZtyjLFc7ixFq2S4b2wF3r4Yg",
+    "name": "NymCats Finland-25",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "CDm4igtCk4rsefUdy5do4Ypro9oBnreeXUE2Mufwctrf",
+    "name": "NymCats Finland-4",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "CUvymUyjBMrrK6auQV6TmAZjctq78Qx5KZ8oewGghpm2",
+    "name": "NymCats Finland-18",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "CnAUv2Pmy3z9BJt8wuneidU6LAtkgErN6XmDGa8o9ow8",
+    "name": "NymCats Finland-22",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "DJ81w28aC5h9q6NboQN2q2CgVYfGQHr8JQuoFbUgKpvq",
+    "name": "NymCats Finland-23",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "ENGhu6VF9jQUnQ9PdrTaktZcc96tsCz2bdV8J9oNAMUo",
+    "name": "NymCats Finland-12",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "EbcEA3QsUQn52CUCHFnPtkKD1vqV7MnYeCjDYeHvFUf4",
+    "name": "NymCats Finland-17",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "EgkVwrU4gy8CFVgzGFu6gRSRXEmV52h2t4n1J6MKMQnS",
+    "name": "NymCats Finland-2",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "Ejs3VbWpfTZ9sQVmb8eaDmLEGCMtc1L1ba4mGMSD8Kpn",
+    "name": "NymCats Finland-13",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "EmUjBBYcvNzEovM7AhxrYXeTJJ4Kg2g2w7sP6V1GDa13",
+    "name": "[bumpmeup] Hercules FI",
+    "cc": "FI",
+    "asn": "AS209847",
+    "route": "45.12.135.0/24"
+  },
+  {
+    "id": "FBJwptoheqTTpCKbHmUKZB6eMKb2LqY9nT8nVxgDK4fD",
+    "name": "finland_nymsupergateway",
+    "cc": "FI",
+    "asn": "AS24940",
+    "route": "95.217.0.0/16"
+  },
+  {
+    "id": "FdEVEqyP8FFtXu9qvsR5D9kJ9VZ3iY8AZjCKjpiYcuDy",
+    "name": "NymCats Finland-16",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "HaT5U3Gb7eAMvPrkFeMPZ7pyfN6BqG5UKZPCjaCdQTdr",
+    "name": "NymCats Finland-11",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "HhVwjScAXc4mQdMPZUMLR4Ci5ra58hFyU7m53XzRL3K5",
+    "name": "NymCats Finland-8",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "fBzbnmqZC95TaWqhtTUXUymWjgG64rcxxnuD8W61VYo",
+    "name": "NymCats Finland-15",
+    "cc": "FI",
+    "asn": "AS200651",
+    "route": "185.100.86.0/24"
+  },
+  {
+    "id": "2PaT9tVboeBxS2BG3GXPJgJJ1ZoUGdafKuFyL5hmJot4",
+    "name": "🐬 Oceanus Staking FR 2",
+    "cc": "FR",
+    "asn": "AS16276",
+    "route": "91.134.0.0/16"
+  },
+  {
+    "id": "3UBiq22tkNSRhyRNjL5mnw5Yk4z6FvgvjizT4ukeEaeB",
+    "name": "🐬 Oceanus Staking FR 1",
+    "cc": "FR",
+    "asn": "AS12876",
+    "route": "51.158.0.0/15"
+  },
+  {
+    "id": "3eYFHcqnQLGtz4AkxcequfVbTxtTisHRSDtFuvZqvaf6",
+    "name": "💥Petroff Staking |GE#6💥",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "13.140.128.0/18"
+  },
+  {
+    "id": "3pj4FcN3De2jhc62gZxgdWkaJ39Fhf8hMAnF4b9KRf1H",
+    "name": "NodesHub - UAE Gateway-01",
+    "cc": "FR",
+    "asn": "AS59711",
+    "route": "185.253.116.0/24"
+  },
+  {
+    "id": "6V6Y18i3UbYWWrGpSW41gT1rjx5umXSpFzJWH6cnCKS3",
+    "name": "⚓Odessa Digital Club | Saint-Die-des-Vosges FR",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "37.60.240.0/20"
+  },
+  {
+    "id": "7QxGjb9aV8BcSfQd9WjTx3v2T2NEH7vT3RFoGt4x8Pf7",
+    "name": "⚓Odessa Digital Club | Colmar FR",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "37.60.240.0/20"
+  },
+  {
+    "id": "7Z6BJang9EW3KraJh6M8tNZXeSRR2D4y8UT2jfVjj3dw",
+    "name": "gateway12.lunardao.net",
+    "cc": "FR",
+    "asn": "AS47583",
+    "route": "92.112.192.0/22"
+  },
+  {
+    "id": "8JwwKuuTKixx2pGah96PiinJZHd3EvHvgG84nF8Mpusr",
+    "name": "Aether-gw-fr-01",
+    "cc": "FR",
+    "asn": "AS202448",
+    "route": "45.137.150.0/24"
+  },
+  {
+    "id": "8xtW6GxH74tsBF97h45Gc2Ujn858jBUPfAnHwAg739HV",
+    "name": "gateway2.lunardao.net",
+    "cc": "FR",
+    "asn": "AS47583",
+    "route": "195.35.0.0/22"
+  },
+  {
+    "id": "9Ct2GbgwFoCHUvdM8EmsxjCeZd2LfsS5AjNaMdDBUx4y",
+    "name": "xAlex.Perfectionism",
+    "cc": "FR",
+    "asn": "AS62000",
+    "route": "185.216.27.0/24"
+  },
+  {
+    "id": "9fpfyKV3twCxP5SkRDwnp16SRFpx1qs1JndUd55RHBk9",
+    "name": "🔮Palantir Technologies | Soufflenheim FR",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "185.194.216.0/23"
+  },
+  {
+    "id": "A2dvg4E4SYFqaziJdGPv9hWF7Yh1Po11YSp9p7eEv1xm",
+    "name": "lunardao.lunardao.net",
+    "cc": "FR",
+    "asn": "AS47583",
+    "route": "195.35.0.0/22"
+  },
+  {
+    "id": "AoScHe232QdEfHGKC94jpW4p3iizxs9BGqJUDpxqMgqb",
+    "name": "game egg card",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "185.182.184.0/23"
+  },
+  {
+    "id": "AqrpMixT9tevwT5iYdjhsEv51kc9NdJvsrARkMMXDC2s",
+    "name": "NodesHub - Bahrain Gateway-01",
+    "cc": "FR",
+    "asn": "AS59711",
+    "route": "185.253.117.0/24"
+  },
+  {
+    "id": "BW1Aia6qDBL53jYQfjo97T4EDHafzECNNTLECkS9ra9q",
+    "name": "BwNymBeta",
+    "cc": "FR",
+    "asn": "AS12876",
+    "route": "62.210.0.0/16"
+  },
+  {
+    "id": "C3LSzGfG1gxhCShdijUgYdxo1BUGcUX1yP9YTkaQWwhp",
+    "name": "💫Hermes Stakepool France - FR01💫",
+    "cc": "FR",
+    "asn": "AS16276",
+    "route": "91.134.0.0/16"
+  },
+  {
+    "id": "C7J8SwZQqjWqhBryyjJxLt7FacVuPTwAmR2otGy53ayi",
+    "name": "StakeUp",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "62.84.176.0/20"
+  },
+  {
+    "id": "CNrYkdo5mv77vt7ge5kPVPPw7y3mWsKmAgXQoscxhKiR",
+    "name": "koutakou-exit-gw",
+    "cc": "FR",
+    "asn": "AS16276",
+    "route": "37.187.0.0/16"
+  },
+  {
+    "id": "CRiSLydnWCjDGovysdDVYouGUpHEucfR7sRmVLh2J1kK",
+    "name": "koutakou-home",
+    "cc": "FR",
+    "asn": "AS12322",
+    "route": "82.64.0.0/14"
+  },
+  {
+    "id": "CRrLDzZi88zFDUg7sAyw3KYr4K3yKudEY5byLyh2NZ3x",
+    "name": "⚓Odessa Digital Club | Niederlauterbach FR",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "84.46.240.0/20"
+  },
+  {
+    "id": "ELjxhHLX1ZxfnJgQhtBTUiVUzLbfZs9Y6bSTpLLkAkR7",
+    "name": "gateway14.lunardao.net",
+    "cc": "FR",
+    "asn": "AS47583",
+    "route": "77.37.124.0/23"
+  },
+  {
+    "id": "EQMEhhbDjZK8mM1wP84EoiZZMZQhaX6Vk11W7cdgfQBc",
+    "name": "mku1tra - EntryNode #7",
+    "cc": "FR",
+    "asn": "AS16276",
+    "route": "54.37.0.0/16"
+  },
+  {
+    "id": "EvZ7Ud7QV6fkdxo62AE6wXUGajsRP2yk7bZtEPA4VSmi",
+    "name": "💥Petroff Staking |GE#7💥",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "13.140.128.0/18"
+  },
+  {
+    "id": "FEhajMjkg12Jn1cxPFxsa5eCqVXEW9ig6Gsg3Hs8ExTp",
+    "name": "VIRGINIA1",
+    "cc": "FR",
+    "asn": "AS16276",
+    "route": "193.70.0.0/17"
+  },
+  {
+    "id": "FScLfnKUPv9wSef3R4N2pQ9ft7DiwdivLW1i65Dqfc9L",
+    "name": "Stellarjet",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "38.242.128.0/21"
+  },
+  {
+    "id": "GPuPdVGPGQg8GSMbGmRXQ354bqzWGHDnbqV31qsfFq9R",
+    "name": "🔮Palantir Technologies | Scheibenhard FR",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "84.46.240.0/20"
+  },
+  {
+    "id": "H7GQSo9LVdYy3LaKJT8jmAKYBxjD83yDYs3CrVgtVzyL",
+    "name": "NodesHub -  Saudi Arabia Gateway-01",
+    "cc": "FR",
+    "asn": "AS59711",
+    "route": "185.253.118.0/24"
+  },
+  {
+    "id": "H9pUbzCwSK8RyTpxjgivLPVyaUMkiJmr2iqb8QPwEbbP",
+    "name": "💥Petroff Staking |GE#5💥",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "13.140.128.0/18"
+  },
+  {
+    "id": "HHSuieihUE43E1K43jSG69DbuN6YxWVcvF9PftkFBwAs",
+    "name": "⚓Odessa Digital Club | Strasbourg FR",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "37.60.240.0/20"
+  },
+  {
+    "id": "HNX5PnH2FvossdfVVdRCMu6igTVwJL6NWbDPDJH1V2Yu",
+    "name": "🔮Palantir Technologies | Wissembourg FR",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "173.212.248.0/22"
+  },
+  {
+    "id": "HQotbmKSxb8JuBw975ca2R6iSoVNCarx5RZhR8bCAL1Q",
+    "name": "💥Petroff Staking |GE#9💥",
+    "cc": "FR",
+    "asn": "AS51167",
+    "route": "13.140.128.0/18"
+  },
+  {
+    "id": "Vo7pueW7ShT8Be2o7gp8PD7y44Dy6NTJAXxknukX7Gx",
+    "name": "EUCLIDES",
+    "cc": "FR",
+    "asn": "AS56630",
+    "route": "103.82.100.0/23"
+  },
+  {
+    "id": "2Z2xnZNnaCnL1ERtDxzfSfVAnzt68Y5W7RNsSG6NMG2v",
+    "name": "DoubleOnion GB",
+    "cc": "GB",
+    "asn": "AS63473",
+    "route": "31.56.232.0/24"
+  },
+  {
+    "id": "2gBwuZRX5gFtjs5pWt4GGob8Dj28nGcBi3d56paNi3cS",
+    "name": "🔮Palantir Technologies | London GB",
+    "cc": "GB",
+    "asn": "AS51167",
+    "route": "158.220.80.0/20"
+  },
+  {
+    "id": "5wW5iN87xzr8NkCxPMAYG2e8Mpm8xusMRDRv1nAt3G5L",
+    "name": "🔮Palantir Technologies | Cambridge GB",
+    "cc": "GB",
+    "asn": "AS51167",
+    "route": "149.102.144.0/21"
+  },
+  {
+    "id": "67gBZEcDDSWcy3FcKa3Asy2VHMUZgMjRFgU5T2Cd2V65",
+    "name": "mku1tra - EntryNode #1",
+    "cc": "GB",
+    "asn": "AS51167",
+    "route": "94.72.96.0/20"
+  },
+  {
+    "id": "6KJwUWXU3TGUhK7nfoMMao987s1sV5PAE8n5PTrca4bz",
+    "name": "🔮Palantir Technologies | Portsmouth GB",
+    "cc": "GB",
+    "asn": "AS51167",
+    "route": "158.220.80.0/20"
+  },
+  {
+    "id": "6PkVkJ8nq882V1C95uCHUUoBWgo1ZzWHVpDtrhSjwDVn",
+    "name": "🐬 Oceanus Staking GB 1",
+    "cc": "GB",
+    "asn": "AS63473",
+    "route": "194.29.101.0/24"
+  },
+  {
+    "id": "6oEPKApHeSYr7ckT1TDXz6WEFfoo4xt2WAKVbFZWVNqA",
+    "name": "Aether-gw-uk-01",
+    "cc": "GB",
+    "asn": "AS63473",
+    "route": "194.29.101.0/24"
+  },
+  {
+    "id": "7Zh1Sz5dXpA6s53CbtcdqhQhLqwf4cLynL7KqHKcjrG4",
+    "name": "ask stand carry",
+    "cc": "GB",
+    "asn": "AS16276",
+    "route": "57.129.128.0/17"
+  },
+  {
+    "id": "882C6Q26S2bCe5unVbExt3mqWM9qPAcMPnHJgCfaLkRC",
+    "name": "💥Petroff Staking |GB#1💥",
+    "cc": "GB",
+    "asn": "AS51167",
+    "route": "94.72.96.0/20"
+  },
+  {
+    "id": "8MScQyENaj6W75TdL2hQmkvfpeXXyUfKfzaV8VTSzNPa",
+    "name": "Pierrot Gateway | United Kingdom 🇬🇧",
+    "cc": "GB",
+    "asn": "AS42831",
+    "route": "96.9.214.0/23"
+  },
+  {
+    "id": "9ngFADaYpT54F9i8iYFZLYR7SB7hrubsPArwpqe1RXQb",
+    "name": "🇨🇭 Swiss Crypto Nodes | Mercury",
+    "cc": "GB",
+    "asn": "AS16276",
+    "route": "54.38.0.0/16"
+  },
+  {
+    "id": "AG8jRRMBEYgDTW628fapkTS9VsNW5K3JsGDSZAUoMuDC",
+    "name": "🇨🇭 Swiss Crypto Nodes | Pluto",
+    "cc": "GB",
+    "asn": "AS16276",
+    "route": "51.195.0.0/16"
+  },
+  {
+    "id": "Atcji22Wnfwi6nEkGC5BmgbqNPLYdhx5r4NxTqXAzFeq",
+    "name": "patacong3",
+    "cc": "GB",
+    "asn": "AS9009",
+    "route": "38.180.139.0/24"
+  },
+  {
+    "id": "CmLp3GDhBTQDUjQNBUBCEBfB3Xmt1qJqfF8tS7VwxJi6",
+    "name": "⚓Odessa Digital Club | Cambridge GB",
+    "cc": "GB",
+    "asn": "AS51167",
+    "route": "158.220.80.0/20"
+  },
+  {
+    "id": "D395HZNtubk78zgPC1uAArtHLpxrM7Kv1Qk9g9eW5UC7",
+    "name": "trojanfoe",
+    "cc": "GB",
+    "asn": "AS48101",
+    "route": "176.20.128.0/21"
+  },
+  {
+    "id": "Djjcqos9BB7ukQCLoUWcD9mWFKTxPZjZuewUi2mYcgwC",
+    "name": "Sakura-Gateway UK",
+    "cc": "GB",
+    "asn": "AS205544",
+    "route": "23.81.32.0/21"
+  },
+  {
+    "id": "EjYmowZ1WhjCzDkwN7DfuxPsaeJUEWekz5ab4EfZSUUB",
+    "name": "⚓Odessa Digital Club | Lauterbourg FR",
+    "cc": "GB",
+    "asn": "AS51167",
+    "route": "149.102.128.0/21"
+  },
+  {
+    "id": "FQBbq1crAkCrjVBnEN85VqgZgGRMLJV65NJk8bPADdw",
+    "name": "🇨🇭 Swiss Crypto Nodes | Jupiter",
+    "cc": "GB",
+    "asn": "AS16276",
+    "route": "54.38.0.0/16"
+  },
+  {
+    "id": "G6nFDsiC4JFq3RoguhsniUUd3cqf9p6WbohD3tFtfzSM",
+    "name": "DoubleOnion US4",
+    "cc": "GB",
+    "asn": "AS63473",
+    "route": "31.56.232.0/24"
+  },
+  {
+    "id": "8NK3UMJpXM5UYqVd51jKYrMuCxQmoyth3LMBMFWFg2bd",
+    "name": "onchainaustria.at-exit-GE01",
+    "cc": "GE",
+    "asn": "AS203647",
+    "route": "181.215.15.0/24"
+  },
+  {
+    "id": "EAauW1yXKKhmPHupHuKon47EiiGkXsDsAeNMBrCT6Hsg",
+    "name": "🐬 Oceanus Staking GE 1",
+    "cc": "GE",
+    "asn": "AS57814",
+    "route": "185.104.192.0/24"
+  },
+  {
+    "id": "9ebfeBsYX3qCgGDJfrHLhWffAgX2jYyUJzhwQ6eMEJD1",
+    "name": "Nastynode/GR",
+    "cc": "GR",
+    "asn": "AS136258",
+    "route": "185.126.238.0/24"
+  },
+  {
+    "id": "BnE33PptGNnNKQ85NcwwRDrWfBy2jUTywPZxo9MdWgZh",
+    "name": "NYMers.com GW",
+    "cc": "GR",
+    "asn": "AS5408",
+    "route": "83.212.0.0/16"
+  },
+  {
+    "id": "2Bmmo9Pq1J6mV52S2iq8EqsSG4FmPPkg3t3GyyQaGudn",
+    "name": ".123 Guide Voodoo Doll Carrier",
+    "cc": "HK",
+    "asn": "AS9009",
+    "route": "38.180.149.0/24"
+  },
+  {
+    "id": "3uBgUJR393acoCRysu6SiLsximiwAMM85QFxq9WD8puC",
+    "name": ".123 Pirate Invasion Tax Collector",
+    "cc": "HK",
+    "asn": "AS9009",
+    "route": "38.180.189.0/24"
+  },
+  {
+    "id": "4i5nf3okg2dxVkSrewkVBpKcpuJoyTTrhiithXaUvu1Y",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "HK",
+    "asn": "AS63473",
+    "route": "103.73.67.0/24"
+  },
+  {
+    "id": "53LcoS3N4GmHBuuSk3sEFBG2wS75oBHJoJ3RjhAbUqKd",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "HK",
+    "asn": "AS63473",
+    "route": "194.29.186.0/24"
+  },
+  {
+    "id": "5m6VRtkn3GMqiLhoJXm2E8hvqUCjCvzLAV8MbcKym5dF",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "HK",
+    "asn": "AS63473",
+    "route": "194.29.186.0/24"
+  },
+  {
+    "id": "7H8bYT1UrEgtT4ch7hG1sjUAH72zCYqhcbeQyXjWuiW1",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "HK",
+    "asn": "AS63473",
+    "route": "194.29.186.0/24"
+  },
+  {
+    "id": "BAtj3hwFMC5PsxdCXXqvy3asAEKCpVRX9pMuvufvhDAL",
+    "name": "Avril14th",
+    "cc": "HK",
+    "asn": "AS133752",
+    "route": "103.75.117.0/24"
+  },
+  {
+    "id": "BWAjmWipJTSi55yPqvq588wi8kk2xrPTq47XHmYEaTD7",
+    "name": "bwnym-mote-HK",
+    "cc": "HK",
+    "asn": "AS133398",
+    "route": "79.141.168.0/23"
+  },
+  {
+    "id": "Dxud8ZX9ZA836QZEiyC56KQhFt5GwmiWVGRjPCgESLM7",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "HK",
+    "asn": "AS63473",
+    "route": "194.29.186.0/24"
+  },
+  {
+    "id": "gmCMurCqu5r3ugBh43ti5zw98SzLKzL6Ldh4TrChwJf",
+    "name": "NYMers.com GW #4",
+    "cc": "HK",
+    "asn": "AS133752",
+    "route": "85.113.71.0/24"
+  },
+  {
+    "id": "3jEi7VadtD3zsjNuAgkuYWRPeHFk8mLbgpzUpqwgeCpA",
+    "name": "🐬 Oceanus Staking HU 1",
+    "cc": "HU",
+    "asn": "AS41075",
+    "route": "37.221.208.0/22"
+  },
+  {
+    "id": "8h489z12rHrbXDZ25H7fEcbeSFusdQ8xD4jkntWyGEqr",
+    "name": "💫Hermes Stakepool Hungary - HU02💫",
+    "cc": "HU",
+    "asn": "AS41075",
+    "route": "37.221.208.0/22"
+  },
+  {
+    "id": "AiRb5CrsbPrsgWVZ9TjWip8mbAKMuxWeiKK7PwqrtvTt",
+    "name": "Aether-gw-hu-01",
+    "cc": "HU",
+    "asn": "AS41075",
+    "route": "37.221.208.0/22"
+  },
+  {
+    "id": "CNrfsbcVq6xvyqex9rzPBZLcoDyiU3S49rmZpzfzmYJD",
+    "name": "Aether-gw-hu-02",
+    "cc": "HU",
+    "asn": "AS41075",
+    "route": "37.221.208.0/22"
+  },
+  {
+    "id": "GkXyxJpSSSawiaykgz76sk7QozuibG9dGvUMXjcxSU9U",
+    "name": "TupiNymQuim supermeia7",
+    "cc": "HU",
+    "asn": "AS56322",
+    "route": "91.219.237.0/24"
+  },
+  {
+    "id": "Hb8A6xoAKazBRWTGZ7eaCDZdR1eciaKWKrNqmydn4Bbw",
+    "name": "💫Hermes Stakepool Hungary - HU01💫",
+    "cc": "HU",
+    "asn": "AS41075",
+    "route": "37.221.208.0/22"
+  },
+  {
+    "id": "J3Jxqp7oA2gQpMgamgH3aZJPycpxAeuLdUe5bRN43tnU",
+    "name": "vornebo_ Hungary",
+    "cc": "HU",
+    "asn": "AS41075",
+    "route": "37.221.208.0/22"
+  },
+  {
+    "id": "4ScsM6AVowhKTMWaH98NLntKDwbu2ZMEycUk4mZiZppG",
+    "name": "t-lab | IN",
+    "cc": "ID",
+    "asn": "AS47583",
+    "route": "31.97.104.0/21"
+  },
+  {
+    "id": "8kS6zHURVn3Fno4Ex7AiRh9jec4dyGDp6f1AX6zubkxe",
+    "name": "NodesHub -  Indonesia Gateway-01",
+    "cc": "ID",
+    "asn": "AS47583",
+    "route": "145.79.8.0/22"
+  },
+  {
+    "id": "FPpLsL6t2SRwFAamtRu9L8nH8dpKuGe2UKsHurToVXq2",
+    "name": "MainnetGateway-ID",
+    "cc": "ID",
+    "asn": "AS63949",
+    "route": "172.232.224.0/19"
+  },
+  {
+    "id": "HNw9Z6HqwuhUXrqx6CDWMLK2bGGhCaPTSsRRevLWGPXw",
+    "name": "GwLaSufricion",
+    "cc": "IE",
+    "asn": "AS136258",
+    "route": "46.16.131.0/24"
+  },
+  {
+    "id": "4cdgnckjRBAaaP4ds68YEJPRc78paC4YWMGBDUS8G57C",
+    "name": "gateway5.lunardao.net",
+    "cc": "IN",
+    "asn": "AS47583",
+    "route": "213.210.21.0/24"
+  },
+  {
+    "id": "6vtDnxeBpaTsy3Xd7BE2ZAEKiaQZFsXEZPf9ZKrQtxgS",
+    "name": "gateway6.lunardao.net",
+    "cc": "IN",
+    "asn": "AS47583",
+    "route": "213.210.21.0/24"
+  },
+  {
+    "id": "7tKwZyDo48A2KyNwZLKYuUm4vCvgy4p2asgF2Tov6Xfk",
+    "name": "NodesHub -  India Gateway-01",
+    "cc": "IN",
+    "asn": "AS151734",
+    "route": "103.99.39.0/24"
+  },
+  {
+    "id": "8FpVXU3PVbMUJkRpRMLtrRWmcBvCrPLWVQggNRKrVkkn",
+    "name": "gateway7.lunardao.net",
+    "cc": "IN",
+    "asn": "AS47583",
+    "route": "213.210.21.0/24"
+  },
+  {
+    "id": "95Yt8XGntc7Dm4BkkGBq5bd8tNN662gKJp2CnoJA5Doa",
+    "name": "nym-exit.blr3.blockfend.com",
+    "cc": "IN",
+    "asn": "AS14061",
+    "route": "142.93.208.0/20"
+  },
+  {
+    "id": "CcYinhLeFU8n6xs78FG6Rz3wvosGTCU2hLB1CZyfkMVe",
+    "name": "gateway4.lunardao.net",
+    "cc": "IN",
+    "asn": "AS47583",
+    "route": "213.210.21.0/24"
+  },
+  {
+    "id": "Cxw5sHpFcn45k3Z2oEgBdv8EjNNhxDknTaXBNrne3SFZ",
+    "name": "OneplusIN",
+    "cc": "IN",
+    "asn": "AS141995",
+    "route": "156.67.111.0/24"
+  },
+  {
+    "id": "Cz4oKe8rrr7tSGdXfGLfug2WNMfD5XZtYXBtvnjmHaaJ",
+    "name": "nym-exit.blr2.blockfend.com",
+    "cc": "IN",
+    "asn": "AS14061",
+    "route": "206.189.128.0/20"
+  },
+  {
+    "id": "DuMkz6bVpKnZnbWf5DYtKHFhaLUUzB4vNSqdoiVR4j8X",
+    "name": "NodesHub -  India Gateway-02",
+    "cc": "IN",
+    "asn": "AS47583",
+    "route": "147.79.64.0/21"
+  },
+  {
+    "id": "GWhDTaRajTE9kGZCACQzQWi2y4ANHcqYztX98EfSDZPA",
+    "name": "Darthfruits Nodes | Strawberry 🍓",
+    "cc": "IN",
+    "asn": "AS63949",
+    "route": "172.232.96.0/19"
+  },
+  {
+    "id": "HBAYMF9VgLv4oRdTWgpeG4F3KNcYpj5VJ7YeEu7aKwYx",
+    "name": "gateway3.lunardao.net",
+    "cc": "IN",
+    "asn": "AS47583",
+    "route": "213.210.21.0/24"
+  },
+  {
+    "id": "iifoNSQCXcbXptua6kteMX1X8EttPdw2BHbxjiRUCn4",
+    "name": "NYMers.com GW#3 (India)",
+    "cc": "IN",
+    "asn": "AS150623",
+    "route": "163.227.192.0/24"
+  },
+  {
+    "id": "4nxbcHRH5vejDFMNNWZVaxc71GiVTzxaMo2cbetFs9hb",
+    "name": "is-1.silentriver.foo",
+    "cc": "IS",
+    "asn": "AS50613",
+    "route": "82.221.100.0/23"
+  },
+  {
+    "id": "5S3XPusTnVKmUBttMMsExL9NE7mEsMcaEdBEbriJsuNY",
+    "name": "SpectreDAO - IS-1",
+    "cc": "IS",
+    "asn": "AS200651",
+    "route": "185.146.234.0/24"
+  },
+  {
+    "id": "CTLwgiM4pCeD7CTRu5yqQJaVCmv6cxfKETfUL1rXHgkE",
+    "name": "is-2.silentriver.foo",
+    "cc": "IS",
+    "asn": "AS200651",
+    "route": "185.146.234.0/24"
+  },
+  {
+    "id": "F618gw6jZaLR1VdMTeaH11MhHQJY5rdpYEDLrMKEHcjk",
+    "name": "[bumpmeup] Ursa IS",
+    "cc": "IS",
+    "asn": "AS209847",
+    "route": "89.221.224.0/24"
+  },
+  {
+    "id": "24h2yanCFU5iy7xNQmW6RowFa6EzmAYQdM1bs8Y1X6iH",
+    "name": "mku1tra - EntryNode #6",
+    "cc": "IT",
+    "asn": "AS16276",
+    "route": "57.131.0.0/17"
+  },
+  {
+    "id": "26ZmTxTVBKHZg8MTKwypHkXZVJhDC7QHuv3BdsyRyTuk",
+    "name": "RenorNodeIT",
+    "cc": "IT",
+    "asn": "AS136258",
+    "route": "185.213.20.0/24"
+  },
+  {
+    "id": "3JcdMZAHGrp3QbGh78SKQHuq1Bfq6x6yzCgvi5pqBniZ",
+    "name": "💫Hermes Stakepool Italy - IT01💫",
+    "cc": "IT",
+    "asn": "AS16276",
+    "route": "57.131.0.0/17"
+  },
+  {
+    "id": "3Lz3iQncjYZWZoz6mv3H3Jhn5kDTmnigXR5MbZ8DxtQR",
+    "name": "onchainaustria.at-exit-IT02",
+    "cc": "IT",
+    "asn": "AS16276",
+    "route": "57.131.0.0/17"
+  },
+  {
+    "id": "76xhXwYE2hTGebJD21ynsuUHENnm4SwQq6GSPSunSDVm",
+    "name": "🐬 Oceanus Staking IT 1",
+    "cc": "IT",
+    "asn": "AS16276",
+    "route": "57.131.0.0/17"
+  },
+  {
+    "id": "7ZSAnzcZsmVJnFwoGj5SvbvJWqbPEYL8f3LUgmkxMrMP",
+    "name": "bwnym-pr-amaru",
+    "cc": "IT",
+    "asn": "AS56630",
+    "route": "91.201.67.0/24"
+  },
+  {
+    "id": "AcN3TJBpfHEtUo3qhrf1yELTeTgZfCFJt1xnyo4jnPwW",
+    "name": "💫Hermes Stakepool Italy - IT02💫",
+    "cc": "IT",
+    "asn": "AS16276",
+    "route": "57.131.0.0/17"
+  },
+  {
+    "id": "Bw39NdiqTE9VHmjBRuVPVJxVLar2X6MxWZ28AxyzGKrG",
+    "name": "onchainaustria.at-exit-IT01",
+    "cc": "IT",
+    "asn": "AS16276",
+    "route": "57.131.0.0/17"
+  },
+  {
+    "id": "CTrMBQsEmjjCyik3t8t1R6Ysdm2BDyGsanThsFxEPxc5",
+    "name": "t-lab | IT",
+    "cc": "IT",
+    "asn": "AS49367",
+    "route": "94.198.100.0/23"
+  },
+  {
+    "id": "28tXg9mEW4mifgU1TdetVVAN5PvmhtLpHzFRMfJBT6ND",
+    "name": "HCloud Ltd | Gateway | JP",
+    "cc": "JP",
+    "asn": "AS55391",
+    "route": "217.178.0.0/18"
+  },
+  {
+    "id": "5MnESKSpjHovBDAs4N6MwHa3JcaL9tVwtf22qVoXStpi",
+    "name": "DoubleOnion JP",
+    "cc": "JP",
+    "asn": "AS63473",
+    "route": "151.242.74.0/24"
+  },
+  {
+    "id": "5daGJKdqfHrNx9DVnTau61Pvq2NAqXGRj8Lv4N71XQYg",
+    "name": "ON-three",
+    "cc": "JP",
+    "asn": "AS9009",
+    "route": "85.121.50.0/24"
+  },
+  {
+    "id": "6ioyzrbsgXQ24ExdR9toVT4ToKJziW6joNYvMke9ULMm",
+    "name": "Aether-gw-jp-01",
+    "cc": "JP",
+    "asn": "AS63473",
+    "route": "170.205.39.0/24"
+  },
+  {
+    "id": "8NFFp122L48EtA5mZZkjSSRtfDgwAxJ7cPpz6h769eeW",
+    "name": "xAlex.Stability",
+    "cc": "JP",
+    "asn": "AS63473",
+    "route": "103.173.179.0/24"
+  },
+  {
+    "id": "AU7HpPBMAdTQDkSM64spZYn4vxGZJoLTxzjgQrYDjfo7",
+    "name": "Sakura-Gateway JP",
+    "cc": "JP",
+    "asn": "AS134351",
+    "route": "142.91.108.0/22"
+  },
+  {
+    "id": "Aa3F1veHGN2b4kV4EizDqwgfHzzxy3VeFS4i85gx3zys",
+    "name": "🐬 Oceanus Staking JP 1",
+    "cc": "JP",
+    "asn": "AS63473",
+    "route": "82.118.28.0/24"
+  },
+  {
+    "id": "EZLFq5HGXFKRpxu78nVjf7kuuUaKPLAbezR6mXbZrP6y",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "JP",
+    "asn": "AS63473",
+    "route": "167.254.242.0/23"
+  },
+  {
+    "id": "EvaELeejb3vote7jMrB88grsDagWDff5swHcAJ9eZFt",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "JP",
+    "asn": "AS63473",
+    "route": "167.254.242.0/23"
+  },
+  {
+    "id": "FLmQbD4c1fyxnGGYAbCFi5D6FyoL2imUfAZMJGzJygyD",
+    "name": "PhantomGate JP",
+    "cc": "JP",
+    "asn": "AS63473",
+    "route": "167.254.242.0/23"
+  },
+  {
+    "id": "3vK8umDkMXeuFekzANTx96rzqeFrv6dkjMuKe97DrgN6",
+    "name": "🐬 Oceanus Staking KH 1",
+    "cc": "KH",
+    "asn": "AS9902",
+    "route": "167.179.17.0/24"
+  },
+  {
+    "id": "3WoC1iMVarNnijx6oYJBNayTrLVAnrVhtJigjrjyTZUJ",
+    "name": "TCA Staking",
+    "cc": "KR",
+    "asn": "AS63473",
+    "route": "85.155.176.0/23"
+  },
+  {
+    "id": "8zgFvNqYwGh6Ra2bA26cXxNq76qzxbwW5cWetg5iMwHJ",
+    "name": "t-lab | KR",
+    "cc": "KR",
+    "asn": "AS63473",
+    "route": "151.245.106.0/24"
+  },
+  {
+    "id": "DZbJB1omUWHHt6tPVcB1gBpZEngwxgxb1JnYueajFhyJ",
+    "name": "🐬 Oceanus Staking KR 1",
+    "cc": "KR",
+    "asn": "AS63473",
+    "route": "85.155.176.0/23"
+  },
+  {
+    "id": "HQ6ppDFwJD5tyKzGwKv79pzeYajmyKgAtGnLft5hZyMY",
+    "name": "DoubleOnion KR",
+    "cc": "KR",
+    "asn": "AS63473",
+    "route": "151.245.106.0/24"
+  },
+  {
+    "id": "3t83YJsoV8MefmBr7Ntc9H4DN4qvtP8BQjuqYKGQAjyW",
+    "name": "TupiNymQuim supermeia8",
+    "cc": "KZ",
+    "asn": "AS58061",
+    "route": "149.33.0.0/24"
+  },
+  {
+    "id": "4sNjHLDxbfpWhn5rb2XcV8qtX5FzVNULtFRcbrNXEqtn",
+    "name": "onchainaustria.at-exit-LT01",
+    "cc": "LT",
+    "asn": "AS56630",
+    "route": "195.238.124.0/22"
+  },
+  {
+    "id": "FLg2Bu8q7CAmBHUNrmn9XmRAo3QsdxLeUmnSCUAVeyko",
+    "name": "gateway13.lunardao.net",
+    "cc": "LT",
+    "asn": "AS47583",
+    "route": "77.37.54.0/23"
+  },
+  {
+    "id": "GQvHcg61viyN9brWn1hficjD66Q9TorsLN2CMGJewVfo",
+    "name": "gateway8.lunardao.net",
+    "cc": "LT",
+    "asn": "AS47583",
+    "route": "93.127.214.0/24"
+  },
+  {
+    "id": "64Kkrg5QFBABVhuBAUy1pd54uUVVKaBSHB56aWwTx5oh",
+    "name": "TupiNymQuim supermeia13",
+    "cc": "LU",
+    "asn": "AS199524",
+    "route": "80.240.97.0/24"
+  },
+  {
+    "id": "4dnVTVVdRRS4hZVWGQhZwp32NmKqEKGaizjLCN247XxN",
+    "name": "onchainaustria.at-exit-LV01",
+    "cc": "LV",
+    "asn": "AS56630",
+    "route": "185.135.84.0/22"
+  },
+  {
+    "id": "7mperTohH5oNonkZH7EJkuZaa5WMowdgYY7ah6UFgPxJ",
+    "name": "WASI",
+    "cc": "LV",
+    "asn": "AS56630",
+    "route": "89.36.161.0/24"
+  },
+  {
+    "id": "5LzEDQAhEoaBJxEe3yhZxXyh3ybuqDHN7BxMRBAo3NR7",
+    "name": "xAlex.Apprehensiveness",
+    "cc": "MD",
+    "asn": "AS48753",
+    "route": "37.221.66.0/24"
+  },
+  {
+    "id": "EWkKy6myMHbaQfptREEQac6XdPvFnHmZ2rdFg3ugQQ6F",
+    "name": "💥Petroff Staking |MD#1💥",
+    "cc": "MD",
+    "asn": "AS209847",
+    "route": "45.140.146.0/24"
+  },
+  {
+    "id": "G2adZrt5ByjSZKrR6G139FYfd4ScxHbinQjpP28h4APm",
+    "name": "[bumpmeup] Virgo MK",
+    "cc": "MK",
+    "asn": "AS209847",
+    "route": "45.83.141.0/24"
+  },
+  {
+    "id": "hUDhLTe3KTp6CGvm57zR8ZiCPWvP1usynMT2FV1KdwV",
+    "name": "💥Petroff Staking |MK#1💥",
+    "cc": "MK",
+    "asn": "AS209847",
+    "route": "91.132.133.0/24"
+  },
+  {
+    "id": "39VGpi5NkzvVjgb8jweP6pBjzA8khfiRwRDbosjmarXA",
+    "name": "DAOariwas GW4 - MX - Erik Valle",
+    "cc": "MX",
+    "asn": "AS20473",
+    "route": "216.238.64.0/19"
+  },
+  {
+    "id": "9PG6vqoVniK7bWD7esueje9pD3P3iU3Md1T8FAuNQipW",
+    "name": "BwNymAlpha",
+    "cc": "MX",
+    "asn": "AS136258",
+    "route": "147.78.1.0/24"
+  },
+  {
+    "id": "AeV7gEPXNK9Wz5PUZdWJ8gxrJntSsLTD9J3RqcMZ4pWV",
+    "name": "GwLaTajamulco",
+    "cc": "MX",
+    "asn": "AS136258",
+    "route": "185.47.254.0/24"
+  },
+  {
+    "id": "BKch6LUUTR9nU7AZZgGwiukasfJ4pFMuPJL95exCMpCR",
+    "name": "xAlex.Liveliness",
+    "cc": "MY",
+    "asn": "AS137552",
+    "route": "160.30.5.0/24"
+  },
+  {
+    "id": "9k2eQcYdUz1EaqiRGrdRpy2Rp8FeoAHH1S7pHxrQteMK",
+    "name": "bwnym-pr-quwi",
+    "cc": "NG",
+    "asn": "AS8849",
+    "route": "176.97.192.0/24"
+  },
+  {
+    "id": "H36gaeKZPppwkDYCx8evdR3LSKoEVvUrhvPQfH82ku3t",
+    "name": "🐬 Oceanus Staking NG 1",
+    "cc": "NG",
+    "asn": "AS8849",
+    "route": "103.97.91.0/24"
+  },
+  {
+    "id": "2mHouz9Z3rH7o5Lq2399AFxb7NeGEAFjNpvcFnT8PHVj",
+    "name": "nl-8.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "2zHiExNRKiCXVKS35SNKtK4apGfZELMpA1jJ2gVevJoz",
+    "name": "💫Hermes Stakepool Netherlands - NL01💫",
+    "cc": "NL",
+    "asn": "AS197540",
+    "route": "152.53.104.0/22"
+  },
+  {
+    "id": "3HY4rZkqroM5hmqKNwEHm44BPJsRRDuQLx4r3Z1SzRAe",
+    "name": "Aether-gw-nl-04",
+    "cc": "NL",
+    "asn": "AS197540",
+    "route": "152.53.104.0/22"
+  },
+  {
+    "id": "3PWqrFP6TozaTF9d7cNEV28mdgQvARbGBWYiPh2XZ6xJ",
+    "name": "nl-13.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "3S7udXbBWQenTHswgfjnWZkSzCJ1JovmS6JnMo7fKVLf",
+    "name": "nl-1.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "3tuJuL3gjewLDpCykR4aivwjfDnci4cHZ6uaRSYuLrdu",
+    "name": "nl-11.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "3zY2nXFjL8whdwjxnLHFtaxQudpoAhoJU2DR3bcZcT79",
+    "name": "Aether-gw-nl-02",
+    "cc": "NL",
+    "asn": "AS197540",
+    "route": "152.53.104.0/22"
+  },
+  {
+    "id": "57sonHWsFNCSc8ek4CQPTT62e2u4K8aaV6uQAkZXHBZz",
+    "name": "nl-18.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "5AZoUgcQWfRGrQRhXMrZSiXsyb7xNMNYxByorbqRWAvA",
+    "name": "nl-12.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "65J9UgWSxR9W3dx8nfK7HPdP4jDtKxZLAW78uv2q8sbZ",
+    "name": "nl-4.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "6HYnzvXYsKqvRgJRyL6X5uzzYcX3saRtjAt2pZxBZvfZ",
+    "name": "Sakura-Gateway NL",
+    "cc": "NL",
+    "asn": "AS60781",
+    "route": "85.17.0.0/16"
+  },
+  {
+    "id": "7MAHpftwuxZBY9tjqPoi687ibwtwtZLeicp23EsKiSGS",
+    "name": "nl-6.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "7cK95r4LETr6wtRbsN7axfh6QRbJPxr4BEtXEU5evtVt",
+    "name": "nl-7.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "7jd9rMZUoph3xcqbPeSsmefW1XuCw26zSAYMXCScvDfe",
+    "name": "Aether-gw-nl-01",
+    "cc": "NL",
+    "asn": "AS197540",
+    "route": "152.53.104.0/22"
+  },
+  {
+    "id": "8aRn98GH8EZ2aH24R6EeJWZKJB8DVyQ8k6Z5SPt4mx5x",
+    "name": "nl-10.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "AhBjxdqRM6BM6N1TTUSJN8mTfKwRp6HKbaJD3sV9yEJz",
+    "name": "nl-9.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "BNjYZPxzcJwczXHHgBxCAyVJKxN6LPteDRrKapxWmexv",
+    "name": "NodesGuru",
+    "cc": "NL",
+    "asn": "AS208951",
+    "route": "109.207.171.0/24"
+  },
+  {
+    "id": "BgWTgm2oNaXuqj9WApBsGMJLgAzxpn3iBhnUQmackfwr",
+    "name": "DoubleOnion NL",
+    "cc": "NL",
+    "asn": "AS63473",
+    "route": "31.220.44.0/23"
+  },
+  {
+    "id": "DEeronXsrRTP7UvS7FjWk693SKjnMcVMto7gtkLy5ZLQ",
+    "name": "nl-15.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "Df9d3GXqzrwXgZsvZvrkX3FUPvNX1Xs56n17NSCDsZWL",
+    "name": "nl-20.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "DucFfVwhM3bktRq2yv3xJpPtMoeT7xykf2VFFfamtLiX",
+    "name": "Pierrot Gateway | Netherlands 🇳🇱",
+    "cc": "NL",
+    "asn": "AS202602",
+    "route": "5.253.18.0/24"
+  },
+  {
+    "id": "E8PxEEptxJ6vui5G6bDoYNekVH9X3CRjmARyy2bZDhoz",
+    "name": "nl-5.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "EQrwJBzw9BsfevMrynFUTsk3AAUALruTDv7bJo7U9w1v",
+    "name": "DoubleOnion NL",
+    "cc": "NL",
+    "asn": "AS63473",
+    "route": "31.220.44.0/23"
+  },
+  {
+    "id": "FafhtN9JZLYZnrQGd2vSjvd43K1qVzVZLNLs1oWjyhpa",
+    "name": "nl-19.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "G1hznCdBLL5F3DNPd6xZGbXXmT72sS3RZxJEhcmU38uV",
+    "name": "nl-17.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "G57eRscfokGLX1Ty3886CUMJhnn55CwNiNZvPcG4fNJr",
+    "name": "nl-16.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "HDsXYNPKkGW8wpXP6YqReu72mZsbVb8PEm7S8KuwvMW8",
+    "name": "nl-14.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "HcF63hBwaFM7oefPcuWDpJMsEHWSMckWnzn9hwvAR7f8",
+    "name": "nl-2.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "HfyUPUv4z8uMQoZYuZGMWf6oe2vaKBVPrfgHk6WvwFPe",
+    "name": "Aether-gw-nl-03",
+    "cc": "NL",
+    "asn": "AS197540",
+    "route": "152.53.104.0/22"
+  },
+  {
+    "id": "HxYJ9rmYDeaiPKAXpZpRN7KLhgaLJV6PJcZ1ebhnTU5m",
+    "name": "nl-3.silentriver.foo",
+    "cc": "NL",
+    "asn": "AS200651",
+    "route": "185.246.188.0/24"
+  },
+  {
+    "id": "4WgKhJdmUffz4e1o1ftVAGS3HnG56LiNAxA9dmaekrVd",
+    "name": "norway_nymsupergateway",
+    "cc": "NO",
+    "asn": "AS215540",
+    "route": "46.29.238.0/24"
+  },
+  {
+    "id": "63MTXcLL2yo15HtP2Tf7jsjeVFDDVjuxsxGTrDSAJuEF",
+    "name": "onchainaustria.at-exit-NO02",
+    "cc": "NO",
+    "asn": "AS56655",
+    "route": "185.243.217.0/24"
+  },
+  {
+    "id": "6N9L2cdkfPm81THRzEkGhxtKDS7JzWjaTGeHzLmCfynD",
+    "name": "onchainaustria.at-exit-NO03",
+    "cc": "NO",
+    "asn": "AS56655",
+    "route": "193.200.238.0/24"
+  },
+  {
+    "id": "A45AnvDzcY5MJoG2eyAjsS7ohS6comQu255fcc2n2Vuw",
+    "name": "Aether-gw-no-01",
+    "cc": "NO",
+    "asn": "AS63473",
+    "route": "91.190.155.0/24"
+  },
+  {
+    "id": "C78QdDk7PVB6149NBaz7CvFJLuheuyB771qzFDQv1gm7",
+    "name": "onchainaustria.at-exit-NO01",
+    "cc": "NO",
+    "asn": "AS56655",
+    "route": "185.243.217.0/24"
+  },
+  {
+    "id": "EQBb3hW12n1XKM44peDfHLuT8XHPjZZdAFfMd5jF3XEa",
+    "name": "💫Hermes Stakepool Norway - NO01💫",
+    "cc": "NO",
+    "asn": "AS56655",
+    "route": "185.243.217.0/24"
+  },
+  {
+    "id": "GZ8AmCWvUosQcotiR9SbiYkoJb22RKPTSkcze7NKhbaM",
+    "name": "DoubleOnion NO",
+    "cc": "NO",
+    "asn": "AS63473",
+    "route": "91.190.155.0/24"
+  },
+  {
+    "id": "HiVGQq2riqPFoPyYRYCZq3zFmFk15gnJzH4s9mHEbgKH",
+    "name": "🐬 Oceanus Staking NO 1",
+    "cc": "NO",
+    "asn": "AS63473",
+    "route": "91.190.155.0/24"
+  },
+  {
+    "id": "JeCi3qnJvmLCC3yT2XGFxJZ3NFqeK1TWezwWdjUPZvq",
+    "name": "DoubleOnion US9",
+    "cc": "NO",
+    "asn": "AS63473",
+    "route": "185.175.56.0/24"
+  },
+  {
+    "id": "4vfKY6pbqKeM5VTExa5UG2AbrVcShpN5YJbk95HdzGTj",
+    "name": "Palamar",
+    "cc": "NZ",
+    "asn": "AS61138",
+    "route": "103.208.85.0/24"
+  },
+  {
+    "id": "2fmT78dCNxmb55uNkTTKJKHTPMPP4DeLtSP4s4RoomYb",
+    "name": "Dark Peru",
+    "cc": "PE",
+    "asn": "AS136258",
+    "route": "185.47.252.0/24"
+  },
+  {
+    "id": "47uqeikENs2rLtRnt3uG9ZdGBWuPEpGy58g75FjaXwtf",
+    "name": ".123 Fallen Starfish",
+    "cc": "PE",
+    "asn": "AS58061",
+    "route": "38.180.173.0/24"
+  },
+  {
+    "id": "FUH3E3dghXjC9hdt3jeAhSsxwozsw1yzBXkoaFqkL4ci",
+    "name": "t-lab | PK",
+    "cc": "PK",
+    "asn": "AS150315",
+    "route": "103.99.133.0/24"
+  },
+  {
+    "id": "3ADenfD7dibFMYrpZGRbrnoSxSzpJXtL2U76e9oYT1Lw",
+    "name": "PLATOHEDRITO",
+    "cc": "PL",
+    "asn": "AS215311",
+    "route": "150.251.112.0/22"
+  },
+  {
+    "id": "5txfqzqVFKACYzsC3cezvKKr1F4toN73wcq1hd365aJ",
+    "name": "💫Hermes Stakepool Poland - PL01💫",
+    "cc": "PL",
+    "asn": "AS16276",
+    "route": "54.37.0.0/16"
+  },
+  {
+    "id": "9xJM74FwwHhEKKJHihD21QSZnHM2QBRMoFx9Wst6qNBS",
+    "name": "PathrockNetwork",
+    "cc": "PL",
+    "asn": "AS201814",
+    "route": "149.50.96.0/21"
+  },
+  {
+    "id": "BwazoHCdUmSLWgucych5LWSJEtFCrzHxonRoacehHMBj",
+    "name": "DAOariwas Samay",
+    "cc": "PL",
+    "asn": "AS56630",
+    "route": "95.81.87.0/24"
+  },
+  {
+    "id": "HcCcdptnX79pq42p226B8LRMnsWv4GpnpBfxMNitwV6Q",
+    "name": "🐬 Oceanus Staking PL 1",
+    "cc": "PL",
+    "asn": "AS12876",
+    "route": "151.115.0.0/17"
+  },
+  {
+    "id": "YEFrKYaP1eAgs5xe1LfTiYmWALsWnAx44TfLscQoMkU",
+    "name": "💫Hermes Stakepool Poland - PL02💫",
+    "cc": "PL",
+    "asn": "AS16276",
+    "route": "54.37.0.0/16"
+  },
+  {
+    "id": "8d65F8VQLCnugx2tJwSz8GwPmazxVKJfHd78VWhV6boM",
+    "name": "🐬 Oceanus Staking MA 1",
+    "cc": "PT",
+    "asn": "AS16276",
+    "route": "141.227.142.0/24"
+  },
+  {
+    "id": "EwNq2m7mmS9ogB3gM6QBuw1MtuUvZMAM3BtLigiNb1ZR",
+    "name": "bwn_g2",
+    "cc": "PT",
+    "asn": "AS136258",
+    "route": "185.231.233.0/24"
+  },
+  {
+    "id": "2kSFeLnZNVFCk59nT51uBRda6j9zNBzfuz9tZV15wR56",
+    "name": "onchainaustria.at-exit-RO02",
+    "cc": "RO",
+    "asn": "AS48881",
+    "route": "80.97.27.0/24"
+  },
+  {
+    "id": "7eZggtRQxmstvLuZM9NWmSYVhGFGgqEBLcMw4pXUYHds",
+    "name": "ro-1.silentriver.foo",
+    "cc": "RO",
+    "asn": "AS200651",
+    "route": "185.165.171.0/24"
+  },
+  {
+    "id": "8R9CjJsfWbAmisHcarJYLrvTdkW1D4CLyy3iAY89j5QF",
+    "name": "TupiNymQuim supermeia2",
+    "cc": "RO",
+    "asn": "AS395092",
+    "route": "185.93.220.0/22"
+  },
+  {
+    "id": "9Lf7mj1iHMiV72anBpJEkEaTkXLKJeHC9Ex9fV5ZJu81",
+    "name": "ro-2.silentriver.foo",
+    "cc": "RO",
+    "asn": "AS200651",
+    "route": "213.218.160.0/24"
+  },
+  {
+    "id": "DXiKYrsx4bnGimcxC3VKpZM8VpayRnE9fsKJZAhgWEYp",
+    "name": "Pierrot Gateway | Romania 🇷🇴",
+    "cc": "RO",
+    "asn": "AS9009",
+    "route": "193.142.58.0/24"
+  },
+  {
+    "id": "DaijB1ADV9pur7PmdM7VYDDnKucEGEPBYzbvzUJqFDfR",
+    "name": "onchainaustria.at-exit-RO01",
+    "cc": "RO",
+    "asn": "AS48881",
+    "route": "80.97.27.0/24"
+  },
+  {
+    "id": "FE6qX4c57NqjCnRtTcESkdC3oEUfZbv9Z3ATTHKKnA3b",
+    "name": "💫Hermes Stakepool Romania - RO01💫",
+    "cc": "RO",
+    "asn": "AS48881",
+    "route": "217.156.93.0/24"
+  },
+  {
+    "id": "J6htJBZyANGvhPsHV1GRELrMxw98J16TooKTpTHpS4Cq",
+    "name": "ON-four",
+    "cc": "RO",
+    "asn": "AS50190",
+    "route": "85.120.229.0/24"
+  },
+  {
+    "id": "3hm1cwHi3t6KLnj2N8iRqd1iJQ59EoP5AjWpZHiQK1qf",
+    "name": "💥Petroff Staking |RS#1💥",
+    "cc": "RS",
+    "asn": "AS209847",
+    "route": "185.234.67.0/24"
+  },
+  {
+    "id": "CRzMQu3Fbf3eGCscPog323gofAGWzT37gXuvWEFHm9NG",
+    "name": "[bumpmeup] Cetus RS",
+    "cc": "RS",
+    "asn": "AS209847",
+    "route": "2.56.172.0/24"
+  },
+  {
+    "id": "2uBgsNQBVHgmCe8sXc2n6yw6TGbAzLGxj9z3tPRSYW5b",
+    "name": "Nodo-asir",
+    "cc": "RU",
+    "asn": "AS50098",
+    "route": "95.81.70.0/24"
+  },
+  {
+    "id": "72SCrUZ3u81QrryUVL65pr8jWfQC3LpC3CyQgqLgJnrQ",
+    "name": "💥Petroff Staking |RU#1💥",
+    "cc": "RU",
+    "asn": "AS33993",
+    "route": "45.150.64.0/24"
+  },
+  {
+    "id": "3m81xM7eeXHrnyicf7utUBWHMu2TgmBeWFZVte2wgRS4",
+    "name": "xAlex.Privateness | 0 costs",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "185.213.24.0/24"
+  },
+  {
+    "id": "89bwd5pEpKUUCeUiysy7J1dR6uADMZ3ANra8jA3ZwUrq",
+    "name": "DoubleOnion SE",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "185.213.24.0/24"
+  },
+  {
+    "id": "9JbUTsV9QTCJVvfKiMa2BKMuCwPGW4WMcjVLQsCqvWGV",
+    "name": "NYMLEM STOCKHOLM GATEWAY",
+    "cc": "SE",
+    "asn": "AS136258",
+    "route": "185.186.78.0/24"
+  },
+  {
+    "id": "B5JEJ2ehvyPYv7PGcfXmB1P923i7C6waxJuiZ8rGjoKR",
+    "name": "t-lab | SE II",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "176.126.84.0/24"
+  },
+  {
+    "id": "B7nRoSun11bMAfDYArvBYGMrzkAftum7MkY1xZaa8U5Z",
+    "name": "Aether-gw-se-01",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "176.126.86.0/24"
+  },
+  {
+    "id": "BzpYJXow2bvD3cXo9yxKStLBqgmdfYyqL9rc5bpoDhrV",
+    "name": "FasfakirNode",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "185.213.24.0/24"
+  },
+  {
+    "id": "DaeCkWRWFtxzkX5ZYeWshqEGbARCFMqBMrpZ43T3k3PF",
+    "name": "t-lab | SE",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "176.126.70.0/24"
+  },
+  {
+    "id": "FrJcXWoSTrzyWtY3zimX8KtMG8Vzw72xZVEvhCDQ67Bg",
+    "name": "senol10",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "185.213.24.0/24"
+  },
+  {
+    "id": "GdHP4EBxedpozYhu8CbiTKR3jTS89yqTcd6TYrPSSb7o",
+    "name": "senol",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "31.220.15.0/24"
+  },
+  {
+    "id": "Gik1wbbmWTAE9zRkVt2jASsJk8CSzBqsZWa7EErPpQp1",
+    "name": "🐬 Oceanus Staking SE 1",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "176.126.84.0/24"
+  },
+  {
+    "id": "J4FegtCGLtrybiNno2BKVpmHrgVe4X9tGgPS2rBGdDbk",
+    "name": "Aether-gw-se-02",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "176.126.86.0/24"
+  },
+  {
+    "id": "nuMerN7ahqsptK8zDUZhnxMyDqePza8vWDf8k171EEs",
+    "name": "FasfakirNode-Gateway/Italy",
+    "cc": "SE",
+    "asn": "AS63473",
+    "route": "185.213.24.0/24"
+  },
+  {
+    "id": "q2A2cbooyC16YJzvdYaSMH9X3cSiieZNtfBr8cE8Fi1",
+    "name": "MainnetGateway-SE",
+    "cc": "SE",
+    "asn": "AS63949",
+    "route": "172.232.128.0/19"
+  },
+  {
+    "id": "2BDCzDG2ykdykTKRB8XVsEekHftv7oQ3TUrzsDxTWaxs",
+    "name": "🐬 Oceanus Staking SG 1",
+    "cc": "SG",
+    "asn": "AS63473",
+    "route": "103.167.151.0/24"
+  },
+  {
+    "id": "3B7PsbXFuqq6rerYFLw5HPbQb4UmBqAhfWURRovMmWoj",
+    "name": "Blockfend Gen. Labs",
+    "cc": "SG",
+    "asn": "AS14061",
+    "route": "128.199.192.0/18"
+  },
+  {
+    "id": "3BPpwcJwKuyx6Y8PmmreCdEtCjvFtR7Prcc5MJW1rt2h",
+    "name": "Pierrot Gateway | Singapore 🇸🇬",
+    "cc": "SG",
+    "asn": "AS8888",
+    "route": "45.128.222.0/24"
+  },
+  {
+    "id": "4rJRtWC2xbtcyC7xusG2Yuz8cEJReiUqVng2NokAqAeQ",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "SG",
+    "asn": "AS63473",
+    "route": "103.167.151.0/24"
+  },
+  {
+    "id": "5rXcNe2a44vXisK3uqLHCzpzvEwcnsijDMU7hg4fcYk8",
+    "name": ".123 Dye Trader Bodyguard",
+    "cc": "SG",
+    "asn": "AS9009",
+    "route": "38.244.150.0/24"
+  },
+  {
+    "id": "6T8bXGrdgu668VpRPvJdoqmF6pYPUs4SX686BEv5J9mH",
+    "name": "TCA Staking",
+    "cc": "SG",
+    "asn": "AS63473",
+    "route": "167.254.240.0/23"
+  },
+  {
+    "id": "9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe",
+    "name": "bwnym-ninjiana-KZ",
+    "cc": "SG",
+    "asn": "AS9009",
+    "route": "38.244.184.0/24"
+  },
+  {
+    "id": "CU998ZAs3UKDwv85eHkeUQCwNaCMYrH6voiSdSDejhgQ",
+    "name": "DoubleOnion SG",
+    "cc": "SG",
+    "asn": "AS63473",
+    "route": "45.132.75.0/24"
+  },
+  {
+    "id": "DFf5Uz8gVVeTtpUiDQDfdGdUTeQXCkU2FtosnsAzwdEF",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "SG",
+    "asn": "AS174",
+    "route": "38.0.0.0/8"
+  },
+  {
+    "id": "EcjsAfMRpS5AGTQASTiyiEv2vk5BLaBvZ3HBRpfPbeFu",
+    "name": "💥Petroff Staking |SG#1💥",
+    "cc": "SG",
+    "asn": "AS141995",
+    "route": "217.216.72.0/22"
+  },
+  {
+    "id": "EhHsJjtZxcK4FFX7kd2BmHZMSUuyEVqYk2LbSa8NBXSu",
+    "name": "Aether-gw-sg-01",
+    "cc": "SG",
+    "asn": "AS63473",
+    "route": "45.132.75.0/24"
+  },
+  {
+    "id": "DK46aDSsaYJsqmRPihWDokcJpcgvAZQecEZ75WdNXsn4",
+    "name": "onchainaustria.at-exit-SK01",
+    "cc": "SK",
+    "asn": "AS216093",
+    "route": "195.133.51.0/24"
+  },
+  {
+    "id": "E3BayLcp2RiQ66ZxzkPkZuREYCYrsHB1o7vFULQ6u6Np",
+    "name": "[bumpmeup] Hydra TR",
+    "cc": "TR",
+    "asn": "AS209847",
+    "route": "2.56.127.0/24"
+  },
+  {
+    "id": "HejyqervmGTCEwi1JbRBXV5My463336huBn8ZgSpuhc3",
+    "name": "CRPTHAE6 INV",
+    "cc": "TR",
+    "asn": "AS209847",
+    "route": "5.180.45.0/24"
+  },
+  {
+    "id": "mD6g3NYiWxkQSpVSJx7KbRjFgbSXkRn7zL6Mtq1bcvC",
+    "name": "VinlexNodes | Nym Staking",
+    "cc": "TR",
+    "asn": "AS154177",
+    "route": "156.244.31.0/24"
+  },
+  {
+    "id": "2XcRmjmyd4Edr16p6y2TwU1UMLRmvwEJvREC2pQ7eU32",
+    "name": "boss sponsor doll",
+    "cc": "TW",
+    "asn": "AS136258",
+    "route": "223.165.4.0/24"
+  },
+  {
+    "id": "9QQKSjP1JzA3rsdDnoaEu3KN9Va2HEzzzAm49RPMsAZn",
+    "name": "GwLaPurgacion",
+    "cc": "TW",
+    "asn": "AS136258",
+    "route": "103.106.230.0/24"
+  },
+  {
+    "id": "7H1yKz9djoWngF6WJVDR8VjD3zx13NTxwovTKm3E6WWQ",
+    "name": "BEST UKRAINE NODE",
+    "cc": "UA",
+    "asn": "AS200000",
+    "route": "185.25.116.0/22"
+  },
+  {
+    "id": "DLkKyYcA5feq43rqZdx6nJBNZvQsdX7kb2f1f6ED4cs2",
+    "name": "RenorNodeUA",
+    "cc": "UA",
+    "asn": "AS136258",
+    "route": "147.78.3.0/24"
+  },
+  {
+    "id": "29U3LythwEaqigL5YajXALw1c7DE7YNcRW7Vn7KcYMQL",
+    "name": "tech_pundit | Node-2",
+    "cc": "US",
+    "asn": "AS136258",
+    "route": "172.245.232.0/24"
+  },
+  {
+    "id": "2KuFi7CjKVh1mQrNKhdwLjhXBhVLRktvWMg5k4WXKdrX",
+    "name": "TupiNymQuim supermeia1",
+    "cc": "US",
+    "asn": "AS56322",
+    "route": "217.28.130.0/24"
+  },
+  {
+    "id": "2LLiNpHsvszWukSBkSHeCcEetsS8iJDQemKaWpXmfUsT",
+    "name": "🐬 Oceanus Staking US 2",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "109.205.61.0/24"
+  },
+  {
+    "id": "2PBsVbunvBDgSk8ZNpJ5fns5eDKeEjmuDbHq5hXoSH7T",
+    "name": "Bambino",
+    "cc": "US",
+    "asn": "AS8849",
+    "route": "162.247.153.0/24"
+  },
+  {
+    "id": "2hg8pU5fG6WxygEx1pqrwUDkJ8gu6GAe1LysNTfrF4jX",
+    "name": "DAOariwas GW3 - USA - Erik Valle",
+    "cc": "US",
+    "asn": "AS40156",
+    "route": "216.230.224.0/20"
+  },
+  {
+    "id": "2vUmeYe1hvuoxXG9wANMX1VSC4uF4fYgbakiTjTizcJS",
+    "name": "Platohedro",
+    "cc": "US",
+    "asn": "AS8849",
+    "route": "88.210.36.0/23"
+  },
+  {
+    "id": "3NN34eywXEK73Kr88HTcQVFKiemftongvSpkT1gSGqiF",
+    "name": "TupiNymQuim supermeia11",
+    "cc": "US",
+    "asn": "AS56322",
+    "route": "217.28.130.0/24"
+  },
+  {
+    "id": "3hWtFJbVVPbZZ9iNZuSHPnShHG5AUiFpTPnvJmUibNp9",
+    "name": "🐬 Oceanus Staking US 3",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "134.195.88.0/23"
+  },
+  {
+    "id": "4CXwTxgoDoeUcrX4HYH9cFTegRNUTCij9eLugaymiyGf",
+    "name": "Cypherplatxs",
+    "cc": "US",
+    "asn": "AS40156",
+    "route": "216.230.224.0/20"
+  },
+  {
+    "id": "4PP6FnME2EF9hgu4Teo4BJ3q4iNfGmuAzC4gFHFY2jnK",
+    "name": "TupiNymQuim supermeia6",
+    "cc": "US",
+    "asn": "AS56322",
+    "route": "217.28.130.0/24"
+  },
+  {
+    "id": "4S4FPLrQ3ZncmGtFXrpgWLtYRn4hcDmb7CTLwk6dkJ7A",
+    "name": "gateway10.lunardao.net",
+    "cc": "US",
+    "asn": "AS47583",
+    "route": "217.15.168.0/21"
+  },
+  {
+    "id": "58ceEFaLJh6zAo3cirzT1BDQm7D3L5acnQrxGH1D6TAY",
+    "name": "amalker",
+    "cc": "US",
+    "asn": "AS23470",
+    "route": "45.58.125.0/24"
+  },
+  {
+    "id": "5FHsNexPHFQYMtRHycqmTyPQh7vof7KWNxP4rcx7rHu",
+    "name": "t-lab | US II",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "151.241.113.0/24"
+  },
+  {
+    "id": "5GyoabPKrwcTMAA8GzwbwjrMA4vtogUbgGjeo9DnK5Va",
+    "name": "Moeclub NYC",
+    "cc": "US",
+    "asn": "AS53667",
+    "route": "198.98.48.0/20"
+  },
+  {
+    "id": "5SsMQbwXxQCtGkWV6j5BvfGVmnxBg85ppT912eFjSRhv",
+    "name": "gateway11.lunardao.net",
+    "cc": "US",
+    "asn": "AS47583",
+    "route": "217.15.168.0/21"
+  },
+  {
+    "id": "5eWRkq1AkMUUPL4K5N74xuhGXVW7H3c1fyxUbK2vnmhc",
+    "name": "Underground Resistance",
+    "cc": "US",
+    "asn": "AS16276",
+    "route": "184.174.97.0/24"
+  },
+  {
+    "id": "5snNTC3WCs56nDuD7tGYJtzMj6s9jNimCdYcDuzi9vzJ",
+    "name": "Aether-gw-us-04",
+    "cc": "US",
+    "asn": "AS214996",
+    "route": "152.53.80.0/22"
+  },
+  {
+    "id": "61QG549Zc6vFTx2PjN9v9cgXEmDrk3Y4q9xFa733PrYS",
+    "name": "Sargatxet US",
+    "cc": "US",
+    "asn": "AS8560",
+    "route": "69.48.200.0/21"
+  },
+  {
+    "id": "66d8wPAhpyCwb27wPjo6kQQjWXW5gskYD6h4Bfzdyb4n",
+    "name": "TupiNymQuim supermeia9",
+    "cc": "US",
+    "asn": "AS56322",
+    "route": "217.28.130.0/24"
+  },
+  {
+    "id": "68g65XhG3be1gX8iWe4S3vVNpKfu5THDfgXHxdgA9HDB",
+    "name": "tech_pundit | Node-3",
+    "cc": "US",
+    "asn": "AS136258",
+    "route": "172.245.232.0/24"
+  },
+  {
+    "id": "6dgRjcCjdP4Qhiau79TEUyJrSxXd7E6s9ZVEhfWQeQXc",
+    "name": "DoubleOnion US5",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "45.132.74.0/24"
+  },
+  {
+    "id": "6hQnofPytHMGJAWSxBfmaLVUdgarUFupYrTPjJkZ8Lmg",
+    "name": "Aether-gw-us-03",
+    "cc": "US",
+    "asn": "AS214996",
+    "route": "152.53.80.0/22"
+  },
+  {
+    "id": "7DfXy5Ucptc5AbMWL9gHzEJ7f688a5B2eRESw9EZcsP4",
+    "name": "DoubleOnion US3",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "185.213.26.0/24"
+  },
+  {
+    "id": "7P2NBAUSpMCR3fXVfxEmcju9kiRFxrQEpej8wFCgRKDK",
+    "name": "DoubleOnion US1",
+    "cc": "US",
+    "asn": "AS40156",
+    "route": "66.187.64.0/20"
+  },
+  {
+    "id": "7WWGub1zjX5KxYHzqiUHsCd12He5hcwfi97GWXLuwnrZ",
+    "name": "xAlex.Warmth",
+    "cc": "US",
+    "asn": "AS395092",
+    "route": "104.36.228.0/22"
+  },
+  {
+    "id": "7q8VWZNc5E1S2XDxj5mFpF3LfpHtUzEMDU66AuaD8FeB",
+    "name": "TupiNymQuim supermeia5",
+    "cc": "US",
+    "asn": "AS56322",
+    "route": "217.28.130.0/24"
+  },
+  {
+    "id": "8s4ogDh5ik5NanW94aZv7NKLaRCBfRpLw7ZSQw2nEwuE",
+    "name": "DoubleOnion US8",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "151.241.113.0/24"
+  },
+  {
+    "id": "9Dv3cRjaLgLNZM1zV4XNwjsjEqMmJ43VMbBabkDXwMff",
+    "name": "DoubleOnion US2",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "134.195.88.0/23"
+  },
+  {
+    "id": "A9db5UipX6uEMncNLwAGJC3rCAiAPgfef1dWapKh2m78",
+    "name": "vornebo_ USA",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "151.241.113.0/24"
+  },
+  {
+    "id": "ABCc5qTBEJLfmGrokcz2bH51H7hAs5ThkbVBnSxHnmCq",
+    "name": "DAOariwas GW2 - USA - Erik Valle",
+    "cc": "US",
+    "asn": "AS36352",
+    "route": "23.238.91.0/24"
+  },
+  {
+    "id": "Ar7e6Sta54uQZdftrAWp5qKJ3aLZB8vsnMNQnGoV428k",
+    "name": "Sakura-Gateway US DC",
+    "cc": "US",
+    "asn": "AS30633",
+    "route": "209.50.224.0/19"
+  },
+  {
+    "id": "AwNRuUCShAaDAaA5dgRbpZgFibTWJUoLwABdHrrDU1AD",
+    "name": "usa-1.silentriver.foo",
+    "cc": "US",
+    "asn": "AS40065",
+    "route": "185.186.146.0/23"
+  },
+  {
+    "id": "BygxRFJ1tifmubyo3iazfgji29xnbVG6p6zqrmED45bA",
+    "name": "Pierrot Gateway | USA Los Angeles🇺🇸",
+    "cc": "US",
+    "asn": "AS18450",
+    "route": "172.93.187.0/24"
+  },
+  {
+    "id": "CMDJJZTkKq9Zzc38KppCaZn7gRhUxYAyA5KEim14qZWW",
+    "name": "DAOariwas GW1 - USA - Erik Valle",
+    "cc": "US",
+    "asn": "AS47583",
+    "route": "2.25.128.0/17"
+  },
+  {
+    "id": "Ca4bbfxVGtuGuiYvH7V5jSnj9Jp4VJa4Sznu2doZD5np",
+    "name": "gateway15.lunardao.net",
+    "cc": "US",
+    "asn": "AS47583",
+    "route": "195.35.8.0/21"
+  },
+  {
+    "id": "CsLuRvmhDkTdqWdyi8o67kWkYTmf5gj7deMUobejaDor",
+    "name": "t-lab | US",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "85.155.186.0/23"
+  },
+  {
+    "id": "CzV93WXG7uGH9a3Jxq35hw8nRWDmJqkwpi4MFqctaTYv",
+    "name": "gateway9.lunardao.net",
+    "cc": "US",
+    "asn": "AS47583",
+    "route": "195.35.8.0/21"
+  },
+  {
+    "id": "DAGQxdxwAkwjaLjTw1B9vndia4YyFD15qRgcTQxrmkom",
+    "name": "Oneplus",
+    "cc": "US",
+    "asn": "AS40021",
+    "route": "194.238.24.0/21"
+  },
+  {
+    "id": "DSbtZTUJ96e9ZrXD1AvXSqcqYbCV31bcuAMMKKP7GQ35",
+    "name": "DoubleOnion US6",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "85.155.186.0/23"
+  },
+  {
+    "id": "DTmdCCQSa6myTdfRzpJwBjAYtXyzZvPDsEwx8SStQKom",
+    "name": "Aether-gw-us-02",
+    "cc": "US",
+    "asn": "AS214996",
+    "route": "152.53.168.0/22"
+  },
+  {
+    "id": "EoZVV2W2skm3AbaSZ3JfSP4WfTa1rbz583RtcFZHJcBU",
+    "name": "ON-five",
+    "cc": "US",
+    "asn": "AS14315",
+    "route": "157.254.221.0/24"
+  },
+  {
+    "id": "F71XSwstAbp1iciiyHZDGSuXZ1GFxzYtPzPLJ8DGCSor",
+    "name": "tech_pundit | Node-4",
+    "cc": "US",
+    "asn": "AS136258",
+    "route": "172.245.232.0/24"
+  },
+  {
+    "id": "FjpATp639kTB3i1iruAsvmKcJ4gwBawGMbjahf3gDPig",
+    "name": "TupiNymQuim supermeia10",
+    "cc": "US",
+    "asn": "AS56322",
+    "route": "217.28.130.0/24"
+  },
+  {
+    "id": "H9xPVcUMMu6mujhh4Ajv3W8Rb7wLaSvBf81u2XZDZGd9",
+    "name": "DoubleOnion US7",
+    "cc": "US",
+    "asn": "AS63473",
+    "route": "193.29.62.0/24"
+  },
+  {
+    "id": "HVQ4F162KaumT5WHJrTdJ3LycgtETMjna1GLNmAGHuhR",
+    "name": "tech_pundit | Node-5",
+    "cc": "US",
+    "asn": "AS136258",
+    "route": "172.245.232.0/24"
+  },
+  {
+    "id": "Ho63EWjtGM8kQh8UxYxZWjekBUHMBJ386ReRPdLppHsa",
+    "name": "Drexciya",
+    "cc": "US",
+    "asn": "AS8849",
+    "route": "162.247.153.0/24"
+  },
+  {
+    "id": "ZWqqqYrw2qnWfahUucW3kr6FTZxSTtYyFpsKrHiQGKJ",
+    "name": "Aether-gw-us-01",
+    "cc": "US",
+    "asn": "AS214996",
+    "route": "152.53.80.0/22"
+  },
+  {
+    "id": "CUdY1eHj2iyuNzifa7DxnEsej7muvDKqP74H2WF2YXJ4",
+    "name": "NYMers.com GW#2 (Vietnam)",
+    "cc": "VN",
+    "asn": "AS63734",
+    "route": "103.199.16.0/22"
+  },
+  {
+    "id": "5oQ4LA7Mm1VJ6nJ8nzi6PqXRZo4GyzgGxcZjq4QxcCaS",
+    "name": "bwnym-cygnus-CY",
+    "cc": "XK",
+    "asn": "AS213900",
+    "route": "38.190.150.0/24"
+  },
+  {
+    "id": "2djmrzZ62M8jpzpYb7MMq6QjP15CkbnKHf3ZV3kSCXUE",
+    "name": "bwnym-pr-uturunku",
+    "cc": "ZA",
+    "asn": "AS37153",
+    "route": "129.232.128.0/17"
+  },
+  {
+    "id": "AxCWBPHP3tZB56tpDn2upfcBsddvPhYaAe71R8hYWqRR",
+    "name": "NYMLEM JOHANNESBURG GATEWAY",
+    "cc": "ZA",
+    "asn": "AS37153",
+    "route": "129.232.128.0/17"
+  }
+]

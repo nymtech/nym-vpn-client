@@ -1487,8 +1487,24 @@ impl NymVpnService {
             let result = gateway_client
                 .lookup_filtered_gateways(filters)
                 .await
-                .map_err(|source| ListGatewaysError::GetGateways { gw_type, source })
-                .map(|gateways| gateways.into_iter().map(Gateway::from).collect::<Vec<_>>());
+                .map_err(|source| ListGatewaysError::GetGateways {
+                    gw_type: options.gw_type,
+                    source,
+                })
+                .map(|gateways| {
+                    gateways
+                        .into_iter()
+                        .map(|gw| {
+                            tracing::info!(
+                                "Gateway: {}, location: {:?}, family: {:?}",
+                                gw.identity(),
+                                gw.location,
+                                gw.node_family,
+                            );
+                            Gateway::from(gw)
+                        })
+                        .collect::<Vec<_>>()
+                });
 
             completion_tx.send(result).ok();
         });

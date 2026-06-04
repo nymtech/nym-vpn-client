@@ -7,6 +7,8 @@ mod gateway_cache;
 mod geo_ip;
 mod independence;
 mod selector;
+#[cfg(test)]
+mod tests;
 
 use std::{sync::Arc, task::Poll, time::Duration};
 
@@ -279,118 +281,5 @@ impl<C: GatewayCache> GatewayProvider<C> {
                     )
                 });
         }
-    }
-}
-
-#[cfg(test)]
-pub mod tests {
-    use std::time::Duration;
-
-    use nym_gateway_directory::{Gateway, Performance, ScoreValue};
-    use nym_vpn_lib_types::{EntryPoint, ExitPoint, GatewayIndependence, TunnelType};
-    use tokio::sync::RwLock;
-
-    use crate::tunnel_state_machine::tunnel::gateway_provider::{
-        gateway_cache::tests::MockGatewayCache, geo_ip::tests::MockGeoIpClient,
-    };
-
-    use super::*;
-
-    pub fn default_tunnel_settings() -> TunnelSettings {
-        TunnelSettings {
-            enable_ipv6: false,
-            tunnel_type: TunnelType::Wireguard,
-            allow_lan: false,
-            enable_ad_blocking: false,
-            residential_exit: false,
-            mixnet_tunnel_options: Default::default(),
-            wireguard_tunnel_options: Default::default(),
-            gateway_performance_options: Default::default(),
-            mixnet_client_config: None,
-            entry_point: Box::new(EntryPoint::Random),
-            exit_point: Box::new(ExitPoint::Random),
-            dns: Default::default(),
-            split_tunnel: Default::default(),
-            gateway_selection_algorithm_config: Default::default(),
-            geo_exclusion_settings: Default::default(),
-            gateway_independence: GatewayIndependence {
-                different_asn: false,
-                different_node_family: false,
-                different_subnet: false,
-            },
-        }
-    }
-
-    pub fn gateway_id_to_gateway(id: &str) -> Gateway {
-        Gateway::builder()
-            .identity(id.parse().unwrap())
-            .performance(Performance {
-                last_updated_utc: Default::default(),
-                score: ScoreValue::High,
-                mixnet_score: ScoreValue::High,
-                load: ScoreValue::Low,
-                uptime_percentage_last_24_hours: Default::default(),
-            })
-            .build()
-    }
-
-    #[tokio::test]
-    async fn error_stream() {
-        let shutdown_token = CancellationToken::new();
-        let gateways = Arc::new(RwLock::new(None));
-        let mut tunnel_settings = default_tunnel_settings();
-        tunnel_settings
-            .gateway_selection_algorithm_config
-            .enable_geo_location = false;
-        let (mut gw_provider, handle) = GatewayProvider::new(
-            MockGatewayCache::new(gateways),
-            MockGeoIpClient::new(),
-            tunnel_settings,
-            WireguardKeysDb::Ephemeral(Default::default()),
-            shutdown_token.child_token(),
-        );
-        // No gateways come out of the stream when there are no gateways to select from
-        assert!(
-            tokio::time::timeout(Duration::from_millis(100), gw_provider.next())
-                .await
-                .unwrap()
-                .unwrap()
-                .is_err()
-        );
-        shutdown_token.cancel();
-        handle.await.unwrap();
-    }
-
-    #[tokio::test]
-    async fn set_and_stream() {
-        let shutdown_token = CancellationToken::new();
-        let possible_gateways = [
-            "2zHiExNRKiCXVKS35SNKtK4apGfZELMpA1jJ2gVevJoz",
-            "38zcSsvjXsAX7C28ko2H3Lt55X4TYxfZYkPADxKXZHUj",
-        ]
-        .map(gateway_id_to_gateway);
-        let gateways = Arc::new(RwLock::new(Some(possible_gateways.to_vec())));
-        let mut tunnel_settings = default_tunnel_settings();
-        tunnel_settings
-            .gateway_selection_algorithm_config
-            .enable_geo_location = false;
-        let (mut gw_provider, handle) = GatewayProvider::new(
-            MockGatewayCache::new(gateways),
-            MockGeoIpClient::new(),
-            tunnel_settings,
-            WireguardKeysDb::Ephemeral(Default::default()),
-            shutdown_token.child_token(),
-        );
-        gw_provider
-            .set_tunnel_settings(default_tunnel_settings())
-            .await
-            .unwrap();
-        // check we have "infinite" stream
-        for _ in 0..100 {
-            gw_provider.next().await.unwrap().unwrap();
-        }
-
-        shutdown_token.cancel();
-        handle.await.unwrap();
     }
 }
