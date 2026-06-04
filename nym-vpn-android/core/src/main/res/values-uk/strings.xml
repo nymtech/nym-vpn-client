@@ -5,7 +5,6 @@
 	<string name="channel_description">Um canal para notificações relacionadas a VPN.</string>
 	<string name="disconnect">Від\'єднати</string>
 	<string name="state_connected">Підключено</string>
-	<string name="state_error">Помилка</string>
 	<string name="state_disconnected">Від\'єднано</string>
 	<string name="state_initializing">Ініціалізація клієнта…</string>
 	<string name="state_establishing">Встановлення з\'єднання…</string>

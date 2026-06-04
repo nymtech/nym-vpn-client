@@ -5,7 +5,6 @@
 	<string name="channel_description">Un canal pour les notifications relatives à NymVPN.</string>
 	<string name="disconnect">Déconnecter</string>
 	<string name="state_connected">Connecté</string>
-	<string name="state_error">Erreur</string>
 	<string name="state_disconnected">Déconnecté</string>
 	<string name="state_initializing">Démarrage du client…</string>
 	<string name="state_establishing">Connexion en cours…</string>

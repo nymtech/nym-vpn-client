@@ -12,8 +12,8 @@
 	<string name="disconnect">সংযোগ ছিন্ন</string>
 	<string name="init_client">ক্লায়েন্ট ইনিশিয়ালাইজ করা হচ্ছে.</string>
 	<string name="establishing_connection">সংযোগ স্থাপন করা হচ্ছে</string>
-    <string name="select_mode">মোড নির্বাচন করুন</string>
-    <string name="display_theme">প্রদর্শন থিম</string>
+	<string name="select_mode">মোড নির্বাচন করুন</string>
+	<string name="display_theme">প্রদর্শন থিম</string>
 	<string name="light_theme">হালকা থিম</string>
 	<string name="dark_theme">অন্ধকার থিম</string>
 	<string name="automatic">স্বয়ংক্রিয়</string>
@@ -22,7 +22,7 @@
 	<string name="search_country">দেশের সন্ধান করুন</string>
 	<string name="is_selected">নির্বাচিত </string>
 	<string name="fastest">দ্ৰুততম</string>
-    <string name="logs">লগস </string>
+	<string name="logs">লগস </string>
 	<string name="support">সহায়তা</string>
 	<string name="terms_of_use">ব্যবহারের শর্তাবলী</string>
 	<string name="privacy_policy">গোপনীয়তা স্টেটমেন্ট</string>
@@ -31,14 +31,14 @@
 	<string name="check_faq">FAQ দেখুন </string>
 	<string name="join_matrix">আমাদের সঙ্গে Matrix-এ যোগ দিন</string>
 	<string name="join_discord">আমাদের সঙ্গে Discord-এ যোগ দিন</string>
-    <string name="unknown">অজানা</string>
+	<string name="unknown">অজানা</string>
 	<string name="no_scm_found">সোর্স কোড URL পাওয়া যায়নি</string>
 	<string name="five_hop">৫-হপ</string>
 	<string name="mode">মোড</string>
 	<string name="okay">ঠিক আছে</string>
 	<string name="two_hop">২-হপ</string>
 	<string name="country_load_failure">হপ দেশ লোড ব্যর্থ</string>
-    <string name="permission_required">অনুমতি দরকার</string>
+	<string name="permission_required">অনুমতি দরকার</string>
 	<string name="permission_message">অ্যাপটি সঠিকভাবে চলার জন্য নিচের অনুমতিগুলো চালু করুন, এগুলো আবশ্যক.</string>
 	<string name="notification_permission_required">অ্যাপ সঠিকভাবে কাজ করার জন্য নোটিফিকেশন অনুমতি দিন</string>
 	<string name="mode_selection">মোড নির্বাচন</string>
@@ -67,8 +67,8 @@
 	<string name="network_error">নেটওয়ার্ক সংযোগে সমস্যা হয়েছে, অনুগ্রহ করে সংযোগ পরীক্ষা করে পুনরায় চেষ্টা করুন.</string>
 	<string name="vpn_alerts_channel_id">NymVPN সতর্কতার জন্য চ্যানেল</string>
 	<string name="vpn_alerts_channel_description">অ্যাপ সম্পর্কিত সতর্কতার জন্য চ্যানেল.</string>
-    <string name="connection_failed">সংযোগ ব্যর্থ</string>
-    <string name="vpn_permission_missing">Vpn অনুমতি গৃহীত হয়নি বা অন্য অ্যাপ ব্যবহার করছে.</string>
+	<string name="connection_failed">সংযোগ ব্যর্থ</string>
+	<string name="vpn_permission_missing">Vpn অনুমতি গৃহীত হয়নি বা অন্য অ্যাপ ব্যবহার করছে.</string>
 	<string name="action_requires_tunnel_down">এই কাজের জন্য টানেল বন্ধ থাকতে হবে</string>
 	<string name="device_added_success">ডিভাইসটি আপনার অ্যাকাউন্টে সফলভাবে যোগ করা হয়েছে</string>
 	<string name="invalid_recovery_phrase">অবৈধ রিকভারি ফ্রেজ</string>
@@ -80,18 +80,18 @@
 	<string name="mnemonic_example">উদাহরণ: স্মোক আর্টিফ্যাক্ট ভেলভেট স্কাল পপ প্যালেস টর্টয়েজ ড্যামেজ রাফ...</string>
 	<string name="dynamic">গতিশীল</string>
 	<string name="system_wallpaper">সিস্টেম ওয়ালপেপার থিম</string>
-    <string name="initializing">শুরু করা হচ্ছে</string>
+	<string name="initializing">শুরু করা হচ্ছে</string>
 	<string name="stop">বন্ধ</string>
-    <string name="app_restart_required">অ্যাপ রিস্টার্ট প্রয়োজন</string>
+	<string name="app_restart_required">অ্যাপ রিস্টার্ট প্রয়োজন</string>
 	<string name="max_devices_reached_title">আপনার অ্যাকাউন্টের জন্য ডিভাইসের সর্বাধিক সংখ্যা আপনি পৌঁছে গেছেন</string>
 	<string name="credential_modal_description">এই ডিভাইস যোগ করতে, আপনার অ্যাকাউন্টের \'ডিভাইস\' পেজে যান, একটি বিদ্যমান ডিভাইস সরান এবং এরপর এই ডিভাইসে আপনার রিকভারি ফ্রেজ দিয়ে লগইন করুন.</string>
 	<string name="manage_devices">আপনার ডিভাইস পরিচালনা করুন</string>
 	<string name="close">বন্ধ</string>
 	<string name="enter_access_code">আপনার অ্যানোনিমাস অ্যাক্সেস কোড লিখুন.</string>
-    <string name="get_in_touch">সহায়তার জন্য যোগাযোগ করুন</string>
-    <string name="loading">লোড হচ্ছে</string>
+	<string name="get_in_touch">সহায়তার জন্য যোগাযোগ করুন</string>
+	<string name="loading">লোড হচ্ছে</string>
 	<string name="offline">ইন্টারনেট নেই</string>
-    <string name="two_hop_explanation">২-হপ রাউটিংসহ উচ্চগতির ব্রাউজিং (২৫০+ Mbps). AmneziaWG ব্যবহার করা হয়েছে, এটি সেন্সরশিপ-রোধী WireGuard সংস্করণ, স্ট্রিমিং, দ্রুত ব্রাউজিং ও ডাউনলোডের জন্য উপযুক্ত.</string>
+	<string name="two_hop_explanation">২-হপ রাউটিংসহ উচ্চগতির ব্রাউজিং (২৫০+ Mbps). AmneziaWG ব্যবহার করা হয়েছে, এটি সেন্সরশিপ-রোধী WireGuard সংস্করণ, স্ট্রিমিং, দ্রুত ব্রাউজিং ও ডাউনলোডের জন্য উপযুক্ত.</string>
 	<string name="two_hop_title">দ্রুত (WireGuard)</string>
 	<string name="disabled_while_connecting">ভিপিএনে সংযুক্ত হওয়ার সময় নিষ্ক্রিয়</string>
 	<string name="exit_location">প্রস্থান অবস্থান</string>
@@ -104,7 +104,7 @@
 	<string name="servers">সার্ভার</string>
 	<string name="local_logs">লগ (লোকালি সংরক্ষিত)</string>
 	<string name="logging_out">লগ আউট হচ্ছে..</string>
-    <string name="app_update_required">আপনার অ্যাপ আর সমর্থিত নয় অনুগ্রহ করে NymVPN ব্যবহার চালিয়ে যেতে সর্বশেষ সংস্করণে আপডেট করুন    </string>
+	<string name="app_update_required">আপনার অ্যাপ আর সমর্থিত নয় অনুগ্রহ করে NymVPN ব্যবহার চালিয়ে যেতে সর্বশেষ সংস্করণে আপডেট করুন    </string>
 	<string name="update_required">আপডেট প্রয়োজন!</string>
 	<string name="update">আপডেট</string>
 	<string name="log_out_title">আপনি কি লগ আউট করতে চান?</string>
@@ -115,14 +115,14 @@
 	<string name="expand">প্রসারিত করুন</string>
 	<string name="country_flag">দেশের পতাকা</string>
 	<string name="anonymous">অজ্ঞাত</string>
-    <string name="back">পিছনে</string>
+	<string name="back">পিছনে</string>
 	<string name="rotate">ঘুরান</string>
 	<string name="refresh">রিফ্রেশ</string>
 	<string name="go">চলুন</string>
 	<string name="bars_3">৩ বার</string>
 	<string name="bars_2">২ বার</string>
 	<string name="bars_1">১ বার</string>
-    <string name="developer">ডেভেলপার</string>
+	<string name="developer">ডেভেলপার</string>
 	<string name="get_help">সহায়তা নিন</string>
 	<string name="join_telegram"></string>
 	<!-- Common -->
@@ -134,14 +134,14 @@
 	<string name="score_text_medium">মাঝারি</string>
 	<string name="score_text_low">নিম্ন</string>
 	<string name="score_text_offline">অফলাইন</string>
-    <string name="skip">বাদ দিন</string>
+	<string name="skip">বাদ দিন</string>
 	<string name="get_started">শুরু করুন</string>
-    <string name="button_back">পিছনে</string>
+	<string name="button_back">পিছনে</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display"></string>
-    <!-- Status pill -->
+	<!-- Status pill -->
 	<string name="pill_error">ত্রুটি</string>
-    <!-- Error State -->
+	<!-- Error State -->
 	<string name="error_same_entry_exit">একই এন্ট্রি ও এক্সিট সার্ভারের মাধ্যমে সংযোগ করা যায় না। অনুগ্রহ করে এন্ট্রি অথবা এক্সিট সার্ভার পরিবর্তন করে পুনরায় সংযোগ করুন।</string>
 	<string name="unexpected_error">একটি অপ্রত্যাশিত ত্রুটি ঘটেছে:</string>
 	<string name="error_invalid_entry_gateway_country">এন্ট্রি সার্ভারের জন্য নির্বাচিত দেশটি বৈধ নয়। অনুগ্রহ করে অন্য দেশ নির্বাচন করে পুনরায় সংযোগ করুন।</string>
@@ -157,7 +157,7 @@
 	<string name="error_set_routing">রাউটিং কনফিগারেশন ব্যর্থ হয়েছে।</string>
 	<string name="error_tun_device">টানেল ডিভাইস কনফিগার করা ব্যর্থ হয়েছে।</string>
 	<string name="error_tunnel_provider">প্যাকেট টানেল প্রদানকারী কনফিগার করা ব্যর্থ হয়েছে।</string>
-    <string name="error_active_plan">আপনার কোনো সক্রিয় প্ল্যান নেই। গোপন ব্রাউজিং শুরু করতে ‘শুরু করুন’ ট্যাপ করুন।</string>
+	<string name="error_active_plan">আপনার কোনো সক্রিয় প্ল্যান নেই। গোপন ব্রাউজিং শুরু করতে ‘শুরু করুন’ ট্যাপ করুন।</string>
 	<string name="error_bandwidth_entry">এন্ট্রি সার্ভার প্রতিক্রিয়া দিচ্ছে না বা ব্যান্ডউইথ বাড়ানোর অনুরোধে খারাপভাবে প্রতিক্রিয়া করছে।</string>
 	<string name="error_bandwidth_exit">এক্সিট সার্ভার প্রতিক্রিয়া দিচ্ছে না অথবা ব্যান্ডউইথ বৃদ্ধির অনুরোধে সঠিকভাবে প্রতিক্রিয়া করছে না।</string>
 	<string name="error_gateway_unavailable_entry">এন্ট্রি সার্ভারে পৌঁছানো যাচ্ছে না। অন্যটি চেষ্টা করুন!</string>
@@ -167,16 +167,16 @@
 	<string name="error_expired_subscription_title">Your subscription has expired</string>
 	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
 	<string name="error_expired_subscription_button">Renew Now</string>
-    <!-- Main Screen -->
+	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">NymVPN ইনিশিয়ালাইজ করা হচ্ছে (1/6)</string>
 	<string name="connection_state_awaiting_readiness">আপনার অ্যাকাউন্ট সেটআপ করা হচ্ছে (2/6)</string>
 	<string name="connection_state_refreshing_gateways">সার্ভার তালিকা আপডেট হচ্ছে (3/6)</string>
 	<string name="connection_state_selecting_gateways">সেরা সার্ভার নির্বাচন করা হচ্ছে (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">সার্ভারগুলোর সাথে গোপনভাবে রেজিস্টার করা হচ্ছে (5/6)</string>
 	<string name="connection_state_connecting_tunnel">সার্ভারের সাথে সংযোগ স্থাপন করা হচ্ছে (6/6)</string>
-    <!-- One-click mode -->
+	<!-- One-click mode -->
 	<string name="one_click_auto_server">Use best server</string>
-    <string name="one_click_mode_fast">Fast</string>
+	<string name="one_click_mode_fast">Fast</string>
 	<string name="connect_mode_auto">Auto</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">Exit server</string>
@@ -184,7 +184,7 @@
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Not protected</string>
 	<string name="connection_status_fast_mode">Fast mode protection</string>
-	<string name="connection_status_anonymous">Anonymous protection</string>
+	<string name="connection_status_anonymous">Mixnet protection</string>
 	<!-- Hop Screen -->
 	<string name="gateway_best">Best server</string>
 	<string name="gateway_random">Random server</string>
@@ -208,7 +208,7 @@
 	<string name="settings_dns_title">DNS কাস্টমাইজ করুন</string>
 	<string name="settings_ipv6_title">IPv6 সমর্থন</string>
 	<string name="settings_ipv6_description">IPv6 সংযোগ অনুমতি দিন</string>
-    <string name="settings_system_tray_title">সিস্টেম ট্রেতে চালান</string>
+	<string name="settings_system_tray_title">সিস্টেম ট্রেতে চালান</string>
 	<string name="settings_system_tray_description">বন্ধ করলেও অ্যাপ চালু রাখুন</string>
 	<string name="settings_reset_app_title">অ্যাপ ডেটা রিসেট করুন</string>
 	<string name="settings_system_status_title">সিস্টেম অবস্থা</string>
@@ -220,7 +220,7 @@
 	<string name="settings_language_help_title">অনুবাদে সহায়তা করুন</string>
 	<string name="settings_language_help_description">আপনার ভাষায় অ্যাপটি আরও উন্নত করতে সাহায্য করুন.</string>
 	<string name="settings_event_lan_reconnecting">LAN সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
-    <string name="settings_ad_blocking_title">Ad blocking</string>
+	<string name="settings_ad_blocking_title">Ad blocking</string>
 	<string name="settings_kill_switch_title">Kill switch</string>
 	<string name="settings_kill_switch_description">Disconnect if the internet drops</string>
 	<string name="settings_bypass_lan_title">LAN bypass</string>
@@ -273,7 +273,7 @@
 	<string name="welcome_usage_title">ব্যবহার বিশ্লেষণ শেয়ার করুন</string>
 	<string name="welcome_usage_description">Nym নেটওয়ার্ক উন্নত করতে সহায়তা করে। কোনো লগ বা কার্যকলাপ নজরদারি করা হয় না।</string>
 	<!-- Onboarding screen -->
-    <string name="onboarding_create_account_button">অ্যাকাউন্ট তৈরি করুন</string>
+	<string name="onboarding_create_account_button">অ্যাকাউন্ট তৈরি করুন</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">আপনার সুরক্ষা স্তর নির্বাচন করুন</string>
 	<string name="select_plan_line_0">৭ দিনের বিনামূল্যে পরীক্ষামূলক ব্যবহার</string>
@@ -283,7 +283,7 @@
 	<string name="select_plan_button">আমার NymVPN প্ল্যান নির্বাচন করুন</string>
 	<string name="select_plan_modal_title">আপনার NymVPN প্ল্যান নির্বাচন করুন</string>
 	<string name="select_plan_modal_free_trial">ফ্রি ট্রায়াল: ১ সপ্তাহ</string>
-    <!-- Server Details screen -->
+	<!-- Server Details screen -->
 	<string name="details_title">সার্ভার বিবরণ</string>
 	<string name="details_select_server_button">সার্ভার নির্বাচন করুন</string>
 	<string name="details_advanced_privacy">উন্নত গোপনীয়তা</string>
@@ -298,7 +298,7 @@
 	<string name="details_enable_quic_end">এই ফিচারটি ব্যবহার করতে সেন্সরশিপ-বিরোধী সেটিংসে যান এবং সক্রিয় করুন</string>
 	<string name="details_overall_performance">সামগ্রিক কর্মক্ষমতা</string>
 	<string name="details_server_load">সার্ভার লোড\'</string>
-    <string name="details_uptime">আপটাইম</string>
+	<string name="details_uptime">আপটাইম</string>
 	<string name="not_applicable">প্রযোজ্য নয় (N/A)</string>
 	<string name="details_performance_calculated">পারফরম্যান্স স্কোর সার্ভার লোড ও আপটাইম থেকে নির্ধারিত। আপটাইম হিসেবে শেষ ২৪ ঘণ্টার গড় নেওয়া হয়েছে। সর্বশেষ আপডেট:</string>
 	<string name="details_exit_ipv4">এক্সিট IPv4</string>
@@ -307,7 +307,7 @@
 	<string name="details_asn">ASN</string>
 	<string name="details_asn_name">ASN নাম</string>
 	<string name="details_build_version">Nym বিল্ড সংস্করণ</string>
-    <string name="details_missing_incorrect_info">তথ্য অনুপস্থিত বা ভুল কেন?</string>
+	<string name="details_missing_incorrect_info">তথ্য অনুপস্থিত বা ভুল কেন?</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string name="details_more_details_start">আরও বিস্তারিত দেখুন</string>
 	<string name="details_more_details_end">Nym Network Explorer</string>
@@ -316,12 +316,12 @@
 	<string name="censorship_description">সীমাবদ্ধ নেটওয়ার্কে বা NymVPN ব্লকিংয়ের সম্মুখীন হলে সংযোগ উন্নত করার জন্য উন্নত ফিচারসমূহ.</string>
 	<string name="censorship_learn_more_link_text">Learn more</string>
 	<string name="censorship_quic_title">উন্নত সংযোগ (QUIC)</string>
-    <string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
+	<string name="censorship_quic_description">Improves the Fast mode reliability in restrictive networks by wrapping WireGuard traffic in QUIC (HTTP/3) to appear as regular web browsing.\n\nNote: Limits entry server options to QUIC-compatible gateways only.</string>
 	<string name="censorship_quic_link">সেন্সরশিপ-বাইপাস (QUIC) (ভুল ও অস্পষ্ট শব্দ ঠিক)</string>
 	<string name="censorship_stealth_title">স্টেলথ API সংযোগ</string>
 	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-    <string name="quic">QUIC</string>
+	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">শুধু ফাস্ট মোডের লোকেশন ও QUIC-সমর্থিত সার্ভার দেখানো হচ্ছে। সব সার্ভার দেখতে QUIC বন্ধ করুন</string>
 	<string name="censorship_amnezia_title">ন্যূনতম ওবফাসকেশন (Amnezia WG)</string>
 	<string name="censorship_amnezia_description">WireGuard ট্রাফিক শনাক্ত করা কঠিন করে তোলে। এটি ডিকয় (প্রতারণামূলক) প্যাকেট প্রয়োগ করে যা সাধারণত Deep Packet Inspection (DPI) সিস্টেমে ব্যবহৃত সরল নিয়মগুলো ব্যাহত করে, ফলে সীমাবদ্ধ নেটওয়ার্কে সংযোগের নির্ভরযোগ্যতা বাড়ে। নোট: শুধুমাত্র ক্লায়েন্ট-সাইডে বাস্তবায়িত</string>
@@ -334,7 +334,7 @@
 	<string name="account_welcome_social_description">Use existing account like Google or crypto wallet through our login partner Privy</string>
 	<string name="account_welcome_social_button">সোশ্যাল অ্যাকাউন্ট দিয়ে চালিয়ে যান</string>
 	<string name="account_welcome_login_title">ইতিমধ্যে একটি অ্যাকাউন্ট আছে?</string>
-    <string name="account_welcome_privacy_start">অগ্রসর হলে, আপনি NymVPN-এর প্রতি সম্মতি জানাচ্ছেন  </string>
+	<string name="account_welcome_privacy_start">অগ্রসর হলে, আপনি NymVPN-এর প্রতি সম্মতি জানাচ্ছেন  </string>
 	<string name="account_welcome_privacy_middle">এবং</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">আপনার সাবস্ক্রিপশন ইতিমধ্যেই সক্রিয় আছে</string>
@@ -385,7 +385,7 @@
 	<!-- Account screen -->
 	<string name="account_title">অ্যাকাউন্ট ও ডিভাইস</string>
 	<string name="account_info_manage_button">আপনার সাবস্ক্রিপশন পরিচালনা করুন</string>
-    <string name="account_info_id_title">অ্যাকাউন্ট আইডি</string>
+	<string name="account_info_id_title">অ্যাকাউন্ট আইডি</string>
 	<string name="account_info_id_info">Safe to share. Use to contact Nym Support.</string>
 	<string name="account_info_device_title">ডিভাইস আইডি</string>
 	<string name="account_info_device_info">ডিভাইসটি nym.com-এ আপনার অ্যাকাউন্টের সাথে লিংক করতে এটি ব্যবহার করুন।</string>
@@ -393,7 +393,7 @@
 	<string name="account_info_bandwidth_title">Fair usage spent</string>
 	<string name="account_info_limit_text">সীমা</string>
 	<string name="account_info_reset_text">রিসেট হবে</string>
-    <string name="account_info_valid_text">প্ল্যান সুবিধা প্রযোজ্য %s পর্যন্ত</string>
+	<string name="account_info_valid_text">প্ল্যান সুবিধা প্রযোজ্য %s পর্যন্ত</string>
 	<string name="account_info_expires_text">প্ল্যান মেয়াদ শেষ হবে %s তারিখে</string>
 	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>
 	<string name="account_info_renew_text">সুরক্ষিত থাকতে এখনই নবায়ন করুন</string>
@@ -401,7 +401,7 @@
 	<string name="account_info_auto_renew_text">*স্বয়ংক্রিয়ভাবে নবায়ন হয়</string>
 	<string name="account_info_no_plan">No active subscription</string>
 	<string name="account_info_confirming_payment">Confirming payment</string>
-    <string name="account_info_autologin_fetching">Fetching access code…</string>
+	<string name="account_info_autologin_fetching">Fetching access code…</string>
 	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>
 	<string name="account_info_add_social_action">Add a social login</string>
 	<string name="account_info_add_social_suffix">\u0020method to your account.</string>
@@ -434,21 +434,21 @@
 	<string name="logs_saved">লগগুলো আপনার Downloads ফোল্ডারে সংরক্ষিত হয়েছে</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">প্রতিটি অ্যাপকে NymVPN ব্যবহার অথবা সরাসরি সংযোগে সেট করুন।</string>
-    <string name="split_tunneling_search_apps_hint">অ্যাপ অনুসন্ধান করুন</string>
+	<string name="split_tunneling_search_apps_hint">অ্যাপ অনুসন্ধান করুন</string>
 	<string name="split_tunneling_apps">অ্যাপসমূহ</string>
 	<string name="split_tunneling_direct">সরাসরি</string>
 	<string name="split_tunneling_direct_desc">Nym VPN বাইপাস করুন</string>
 	<string name="split_tunneling_via_vpn">NymVPN-এর মাধ্যমে</string>
 	<string name="split_tunneling_via_desc">সংযুক্ত থাকলে সুরক্ষিত</string>
-    <string name="split_tunneling_system_applications">সিস্টেম অ্যাপসমূহ</string>
+	<string name="split_tunneling_system_applications">সিস্টেম অ্যাপসমূহ</string>
 	<string name="split_tunnel_info_modal_title">স্প্লিট টানেলিং ব্যবহার করা হচ্ছে</string>
 	<string name="split_tunnel_info_modal_desc">স্প্লিট টানেলিং আপনাকে প্রতিটি অ্যাপের জন্য সর্বোচ্চ গতি বা সর্বোচ্চ গোপনীয়তা বেছে নেওয়ার সুযোগ দেয়। আপনি যেকোনো সময় এই সেটিংস পরিবর্তন করতে পারবেন।</string>
 	<string name="split_tunnel_info_direct_desc">ব্যাংকিং, স্মার্ট হোম ডিভাইস বা কাজের অ্যাপের মতো সেবার জন্য উপযোগী।</string>
-    <string name="split_tunnel_changes_confirm_modal_title">স্প্লিট টানেলিং সেটিংস প্রয়োগ করবেন?</string>
+	<string name="split_tunnel_changes_confirm_modal_title">স্প্লিট টানেলিং সেটিংস প্রয়োগ করবেন?</string>
 	<string name="split_tunnel_changes_confirm_modal_desc">স্প্লিট টানেলিং আপডেট হয়েছে। পরিবর্তন প্রয়োগ করতে পুনরায় সংযোগ করুন। পুনরায় সংযোগকালে আপনার ডেটা সুরক্ষিত থাকবে।</string>
 	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">এখনই পুনরায় সংযোগ করুন</string>
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">পরবর্তী সংযোগে প্রয়োগ করুন</string>
-    <string name="split_tunneling_event_saved">স্প্লিট টানেলিং সেটিংস সংরক্ষিত</string>
+	<string name="split_tunneling_event_saved">স্প্লিট টানেলিং সেটিংস সংরক্ষিত</string>
 	<string name="split_tunneling_event_reconnecting">স্প্লিট টানেলিং সেটিংস প্রয়োগ করতে পুনরায় সংযোগ করা হচ্ছে...</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">DNS কাস্টমাইজেশন</string>
@@ -462,9 +462,9 @@
 	<string name="dns_custom_list_entries">কাস্টম DNS সার্ভার (%1$s/5)</string>
 	<string name="dns_custom_list_hint">IPv4 বা IPv6 ঠিকানা</string>
 	<string name="dns_custom_list_error">DNS ঠিকানার ফরম্যাট সঠিক নয়</string>
-    <string name="dns_custom_button_save">পরিবর্তন সংরক্ষণ করুন</string>
+	<string name="dns_custom_button_save">পরিবর্তন সংরক্ষণ করুন</string>
 	<string name="dns_custom_button_save_reconnect">পরিবর্তনসমূহ সংরক্ষণ করুন এবং পুনরায় সংযোগ করুন</string>
-    <string name="dns_save_dialog_title">পরিবর্তন সংরক্ষণ করবেন?</string>
+	<string name="dns_save_dialog_title">পরিবর্তন সংরক্ষণ করবেন?</string>
 	<string name="dns_save_dialog_description">আপনার কিছু পরিবর্তন সংরক্ষিত হয়নি।.</string>
 	<string name="dns_learn_more_text">DNS সম্পর্কে আরও জানুন</string>
 	<string name="dns_event_saved">কাস্টম DNS সংরক্ষিত</string>
@@ -497,7 +497,7 @@
 ১০x</string>
 	<string name="mixnet_tuning_delays_title">মিক্সিং বিলম্ব</string>
 	<string name="mixnet_tuning_delays_description">আপনার প্যাকেটগুলি কতটা ভালোভাবে মিশ্রিত হয় তা পরিবর্তন করতে টাইমিং বিলম্ব সামঞ্জস্য করুন।</string>
-    <string name="mixnet_tuning_delays_min">দ্রুততর গতি</string>
+	<string name="mixnet_tuning_delays_min">দ্রুততর গতি</string>
 	<string name="mixnet_tuning_delays_low">কম
 ০m</string>
 	<string name="mixnet_tuning_delays_high">উচ্চ

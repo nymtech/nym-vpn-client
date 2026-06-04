@@ -5,7 +5,6 @@
 	<string name="channel_description">کانال مربوط به اعلانات وی‌پی‌ان.</string>
 	<string name="disconnect">قطع اتصال</string>
 	<string name="state_connected">متصل</string>
-	<string name="state_error">خطا</string>
 	<string name="state_disconnected">اتصال قطع شده</string>
 	<string name="state_initializing">درحال راه‌اندازی کلاینت…</string>
 	<string name="state_establishing">در حال برقراری اتصال…</string>
