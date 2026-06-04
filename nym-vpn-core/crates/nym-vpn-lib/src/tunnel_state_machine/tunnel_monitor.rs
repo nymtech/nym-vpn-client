@@ -23,7 +23,9 @@ use futures::{FutureExt, StreamExt, future::Fuse};
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-use nym_gateway_directory::{GatewayCacheHandle, GatewayClient, GatewayMinPerformance};
+use nym_gateway_directory::{
+    GatewayCacheHandle, GatewayClient, GatewayMinPerformance, NodeIdentity,
+};
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -156,7 +158,10 @@ pub enum TunnelMonitorEvent {
     RegisteringWithGateways,
 
     /// Registration with gateways failed
-    RegistrationFailed,
+    RegistrationFailed {
+        /// The gateway that failed registration
+        gateway_id: NodeIdentity,
+    },
 
     /// Finished gateway registration
     RegisteredWithGateways {
@@ -194,7 +199,7 @@ pub enum TunnelMonitorEvent {
     },
 
     /// Connection has failed
-    ConnectionFailed,
+    ConnectionFailed { exit_gateway_id: NodeIdentity },
 }
 
 pub struct TunnelMonitorHandle {
@@ -494,9 +499,14 @@ impl TunnelMonitor {
         let rc_builder = RegistrationClientBuilder::new(rc_builder_config);
 
         let registration_client = Box::pin(rc_builder.build()).await?;
-        let registration_result = Box::pin(registration_client.register())
-            .await
-            .inspect_err(|_| self.send_event(TunnelMonitorEvent::RegistrationFailed))?;
+        let registration_result =
+            Box::pin(registration_client.register())
+                .await
+                .inspect_err(|_| {
+                    self.send_event(TunnelMonitorEvent::RegistrationFailed {
+                        gateway_id: selected_gateways.entry_gateway().identity(),
+                    })
+                })?;
 
         // Send event upon successful gateway registration
         // The receiver should handle the event and add firewall exceptions for entry gateway
@@ -719,7 +729,9 @@ impl TunnelMonitor {
                             }
                             ConnectionStatusEvent::Failed => {
                                 tracing::info!("Tunnel connection is down. Exiting");
-                                self.send_event(TunnelMonitorEvent::ConnectionFailed);
+                                self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                                    exit_gateway_id: selected_gateways.exit_gateway().identity(),
+                                });
                                 break;
                             }
                         }
@@ -1441,7 +1453,7 @@ impl TunnelMonitor {
         };
         let mut ips = vec![IpAddr::V4(conn_data.exit.private_ipv4)];
         if self.enable_ipv6() {
-            ips.push(IpAddr::V6(conn_data.entry.private_ipv6));
+            ips.push(IpAddr::V6(conn_data.exit.private_ipv6));
         }
         let mut exit_tunnel_metadata = TunnelMetadata {
             interface: "".to_owned(),
@@ -1467,7 +1479,6 @@ impl TunnelMonitor {
 
         let mut tunnel_handle = connected_tunnel
             .run(
-                #[cfg(windows)]
                 self.route_handler.clone(),
                 tunnel_options,
                 self.tunnel_parameters.tunnel_constants,
@@ -1848,7 +1859,7 @@ impl TunnelMonitor {
             TunnelType::Wireguard => TimingConfig::two_hop(),
         };
 
-        // Create ICMP probe first, fallback to TCP probe on failure
+        // Create ICMP probe first, fallback to TCP probe on failure.
         match self.create_icmp_probe(exit_tunnel_metadata) {
             Ok(icmp_probe) => Ok(ConnectionMonitor::spawn(
                 icmp_probe,
@@ -1860,7 +1871,6 @@ impl TunnelMonitor {
                 tracing::warn!("{}", err.display_chain());
                 tracing::info!("Fallback to TCP probe");
                 let tcp_probe = self.create_tcp_probe(exit_tunnel_metadata)?;
-
                 Ok(ConnectionMonitor::spawn(
                     tcp_probe,
                     timing_config,

@@ -662,9 +662,6 @@ impl TunnelStateHandler for ConnectingState {
                         next_state
                     }
                     TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
-                        // We have successfully connected, clear any blacklisted entry gateways
-                        shared_state.gateway_provider.clear_blacklisted_entry_gateways().await;
-
                         NextTunnelState::NewState(ConnectedState::enter(
                             tunnel_interface,
                             *connection_data,
@@ -695,14 +692,18 @@ impl TunnelStateHandler for ConnectingState {
                             self.reconnect(shared_state).await
                         }
                     }
-                    TunnelMonitorEvent::ConnectionFailed | TunnelMonitorEvent::RegistrationFailed=> {
-                        // We have failed to connect repeatedly; let's blacklist the previously selected
-                        // entry gateways for a while and force gateway re-selection.
-                        if let Some(ref selected_gateways) = self.selected_gateways {
-                            let entry_gateway_identifier = selected_gateways.entry_gateway().identity;
-                            shared_state.gateway_provider.add_blacklisted_entry_gateway(entry_gateway_identifier).await;
-                            self.selected_gateways = None;
-                        }
+                    TunnelMonitorEvent::ConnectionFailed { exit_gateway_id } => {
+                        // WG handshake timed out or ICMP connectivity check failed; blacklist
+                        // the gateway so a different one is selected on the next attempt.
+                        shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
+                        self.selected_gateways = None;
+                        NextTunnelState::SameState(self)
+                    }
+                    TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
+                        // Registration with the entry gateway failed; blacklist it to avoid
+                        // re-selecting the same failing gateway.
+                        shared_state.gateway_provider.add_blacklisted_gateway(gateway_id).await;
+                        self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
                 }
