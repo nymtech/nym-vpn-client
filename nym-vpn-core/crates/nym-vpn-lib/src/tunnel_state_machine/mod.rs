@@ -322,6 +322,12 @@ impl TunnelSettings {
             && self.wireguard_tunnel_options.enable_bridges
     }
 
+    // The user specified specific entry and exit gateways
+    pub fn is_specific_entry_exit_points(&self) -> bool {
+        matches!(*self.entry_point, EntryPoint::Gateway { .. })
+            && matches!(*self.exit_point, ExitPoint::Gateway { .. })
+    }
+
     pub fn diff(&self, other: &Self) -> TunnelSettingsDiff {
         let mut diff = TunnelSettingsDiff::default();
 

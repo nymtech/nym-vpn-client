@@ -693,11 +693,20 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     }
                     TunnelMonitorEvent::ConnectionFailed { exit_gateway_id } => {
-                        // WG handshake timed out or ICMP connectivity check failed; blacklist
-                        // the gateway so a different one is selected on the next attempt.
-                        shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
-                        self.selected_gateways = None;
-                        NextTunnelState::SameState(self)
+                        // WG handshake timed out or ICMP connectivity check failed
+                        if shared_state.tunnel_settings.is_specific_entry_exit_points() {
+                            // Specific gateways were selected and as they are failing, we cannot continue
+                            // trying to connect.
+                            NextTunnelState::NewState(ErrorState::enter(
+                                ErrorStateReason::PerformantExitGatewayUnavailable,
+                                shared_state,
+                            ).await)
+                        } else {
+                            // Blacklist the gateway so a different one is selected on the next attempt.
+                            shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
+                            self.selected_gateways = None;
+                            NextTunnelState::SameState(self)
+                        }
                     }
                     TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
                         // Registration with the entry gateway failed; blacklist it to avoid

@@ -19,10 +19,6 @@ pub struct Args {
     /// Identity key of the entry gateway to use for all connection attempts.
     #[arg(long)]
     pub entry_id: String,
-
-    /// Seconds to wait for each connection attempt before marking it as failed.
-    #[arg(long, default_value = "60")]
-    pub connect_timeout: u64,
 }
 
 struct Outcome {
@@ -58,7 +54,6 @@ impl Args {
 
         println!("Entry gateway : {}", self.entry_id);
         println!("WG exit nodes : {}", gateways.len());
-        println!("Connect timeout: {}s", self.connect_timeout);
         println!();
 
         let mut outcomes: Vec<Outcome> = Vec::with_capacity(gateways.len());
@@ -120,7 +115,7 @@ impl Args {
                 continue;
             }
 
-            let outcome = attempt_connection(rpc_client.clone(), self.connect_timeout).await;
+            let outcome = attempt_connection(rpc_client.clone()).await;
 
             let (success, reason) = match outcome {
                 Ok(()) => {
@@ -149,35 +144,27 @@ impl Args {
     }
 }
 
-async fn attempt_connection(mut rpc_client: RpcClient, connect_timeout_secs: u64) -> Result<()> {
+async fn attempt_connection(mut rpc_client: RpcClient) -> Result<()> {
     // Subscribe before connecting so we don't miss the state transition.
     let mut stream = rpc_client.clone().listen_to_events().await?;
     rpc_client.connect_tunnel().await?;
 
-    let result = timeout(Duration::from_secs(connect_timeout_secs), async {
-        while let Some(event) = stream.next().await {
-            let TunnelEvent::NewState(state) = event? else {
-                continue;
-            };
-            match state {
-                TunnelState::Connected { .. } => return Ok(()),
-                TunnelState::Error(reason) => {
-                    return Err(anyhow!("error state: {:?}", reason));
-                }
-                TunnelState::Offline { .. } => {
-                    return Err(anyhow!("device offline"));
-                }
-                _ => {}
+    while let Some(event) = stream.next().await {
+        let TunnelEvent::NewState(state) = event? else {
+            continue;
+        };
+        match state {
+            TunnelState::Connected { .. } => return Ok(()),
+            TunnelState::Error(reason) => {
+                return Err(anyhow!("error state: {:?}", reason));
             }
+            TunnelState::Offline { .. } => {
+                return Err(anyhow!("device offline"));
+            }
+            _ => {}
         }
-        Err(anyhow!("event stream ended unexpectedly"))
-    })
-    .await;
-
-    match result {
-        Ok(inner) => inner,
-        Err(_) => Err(anyhow!("timed out after {}s", connect_timeout_secs)),
     }
+    Err(anyhow!("event stream ended unexpectedly"))
 }
 
 async fn wait_disconnected(mut rpc_client: RpcClient) {
@@ -208,7 +195,7 @@ async fn wait_disconnected(mut rpc_client: RpcClient) {
 fn print_summary(outcomes: &[Outcome]) {
     let successes = outcomes.iter().filter(|o| o.success).count();
     println!();
-    println!("=== State of the Union Summary ===");
+    println!("=== Network Check Summary ===");
     println!("{}/{} exit gateways reachable", successes, outcomes.len());
     println!();
 

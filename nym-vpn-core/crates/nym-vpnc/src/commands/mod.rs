@@ -10,10 +10,9 @@ pub mod gateway;
 pub mod geo_exclusion;
 pub mod lan;
 pub mod network;
+pub mod network_check;
 pub mod network_stats;
 pub mod sentry;
 pub mod socks5;
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 pub mod split_tunnel;
-pub mod state_of_the_union;
 pub mod tunnel;

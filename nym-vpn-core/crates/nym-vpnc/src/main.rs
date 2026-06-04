@@ -153,7 +153,7 @@ pub enum Command {
     },
 
     /// Test connectivity to all WG exit gateways from a fixed entry gateway
-    StateOfTheUnion(commands::state_of_the_union::Args),
+    NetworkCheck(commands::network_check::Args),
 }
 
 impl Command {
@@ -182,7 +182,7 @@ impl Command {
             }
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Command::SplitTunnel { subcommand } => subcommand.execute(rpc_client).await,
-            Command::StateOfTheUnion(args) => args.execute(rpc_client).await,
+            Command::NetworkCheck(args) => args.execute(rpc_client).await,
         }
     }
 
