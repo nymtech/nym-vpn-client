@@ -9,7 +9,7 @@ ClassGuid={57465043-616C-6C6F-7574-5F636C617373}
 Provider=%ManufacturerName%
 CatalogFile=nymvpn-split-tunnel.cat
 PnpLockdown=1
-DriverVer = 05/16/2026,14.19.23.816
+DriverVer = 06/04/2026,16.42.3.963
 
 [DestinationDirs]
 DefaultDestDir = 12
