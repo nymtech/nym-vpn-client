@@ -20,6 +20,12 @@ pub enum Error {
         source: nym_sdk::mixnet::RecipientFormattingError,
     },
 
+    #[error("asn route not formatted correctly: {route}")]
+    AsnRouteFormattingError {
+        route: String,
+        source: ipnetwork::IpNetworkError,
+    },
+
     #[error(transparent)]
     ValidatorClientError(#[from] nym_validator_client::ValidatorClientError),
 

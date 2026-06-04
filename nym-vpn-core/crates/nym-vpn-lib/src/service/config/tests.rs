@@ -137,7 +137,7 @@ location = "BE"
 "#;
 
     let json_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "country": {
       "two_letter_iso_country_code": "FR"
@@ -189,7 +189,8 @@ location = "BE"
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -215,7 +216,7 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
 "#;
 
     let json_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -267,7 +268,8 @@ identity = [ 99, 23, 98, 234, 66, 161, 195, 63, 155, 161, 250, 207, 17, 158, 136
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -300,7 +302,7 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
 "#;
 
     let json_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -350,7 +352,8 @@ address = [5, 56, 84, 195, 94, 238, 210, 124, 65, 143, 209, 144, 22, 255, 91, 18
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -378,7 +381,7 @@ exit_point = "Random"
 "#;
 
     let json_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": "random",
   "exit_point": "random",
   "allow_lan": false,
@@ -422,7 +425,8 @@ exit_point = "Random"
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -449,7 +453,7 @@ async fn test_service_config_migrate_from_v1() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -501,7 +505,8 @@ async fn test_service_config_migrate_from_v1() {
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -537,7 +542,7 @@ async fn test_service_config_migrate_from_v2() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -589,7 +594,8 @@ async fn test_service_config_migrate_from_v2() {
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -628,7 +634,7 @@ async fn test_service_config_migrate_from_v3() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -683,7 +689,8 @@ async fn test_service_config_migrate_from_v3() {
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -738,7 +745,7 @@ async fn test_service_config_migrate_from_v4() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -793,7 +800,8 @@ async fn test_service_config_migrate_from_v4() {
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -853,7 +861,7 @@ async fn test_service_config_migrate_from_v5() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -908,7 +916,8 @@ async fn test_service_config_migrate_from_v5() {
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -958,7 +967,7 @@ async fn test_service_config_migrate_from_v6() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1013,7 +1022,8 @@ async fn test_service_config_migrate_from_v6() {
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -1088,6 +1098,7 @@ async fn test_service_config_serialize_full() {
         gateway_independence: nym_vpn_lib_types::GatewayIndependence {
             different_node_family: true,
             different_asn: true,
+            different_subnet: true,
         },
     };
     run_serialize_test(config).await;
@@ -1134,7 +1145,7 @@ async fn test_service_config_migrate_from_v7() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1186,7 +1197,8 @@ async fn test_service_config_migrate_from_v7() {
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -1238,7 +1250,7 @@ async fn test_service_config_migrate_from_v8() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1290,7 +1302,8 @@ async fn test_service_config_migrate_from_v8() {
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 
@@ -1354,7 +1367,7 @@ async fn test_service_config_migrate_from_v9() {
 }"#;
 
     let json_latest_content = r#"{
-  "version": "v10",
+  "version": "v11",
   "entry_point": {
     "gateway": {
       "identity": "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42"
@@ -1406,7 +1419,8 @@ async fn test_service_config_migrate_from_v9() {
   },
   "gateway_independence": {
     "different_node_family": true,
-    "different_asn": true
+    "different_asn": true,
+    "different_subnet": true
   }
 }"#;
 

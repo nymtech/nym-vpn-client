@@ -13,6 +13,7 @@ workspace = true
 
 [dependencies]
 anyhow.workspace = true
+ipnetwork.workspace = true
 itertools.workspace = true
 nym-client-core.workspace = true
 nym-http-api-client.workspace = true

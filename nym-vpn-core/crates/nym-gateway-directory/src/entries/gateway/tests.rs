@@ -115,6 +115,7 @@ fn test_matching_residential() {
                 kind: AsnKind::Residential,
                 asn: "".to_owned(),
                 name: "".to_owned(),
+                route: "10.10.10.10/16".parse().unwrap(),
             }),
             ..Default::default()
         })
@@ -132,6 +133,7 @@ fn test_matching_residential() {
                 kind: AsnKind::Other,
                 asn: "".to_owned(),
                 name: "".to_owned(),
+                route: "10.10.10.10/16".parse().unwrap(),
             }),
             ..Default::default()
         })
@@ -423,6 +425,7 @@ fn sample_gateway_list(gw_type: GatewayType) -> GatewayList {
     let asn = Asn {
         asn: "AS12345".to_string(),
         name: "Test ASN".to_string(),
+        route: "10.10.10.10/16".parse().unwrap(),
         kind: AsnKind::Residential,
     };
     let addr = "MNrmKzuKjNdbEhfPUzVNfjw63oBQNSayqoQKGL4JjAV.6fDcSN6faGpvA3pd3riCwjpzXc7RQfWmGMa82UVoEwKE@d5adfJNtcdZW2XwK85JAAU8nXAs9JCPYn2RNvDLZn4e";

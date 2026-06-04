@@ -21,6 +21,7 @@ use ts_rs::TS;
 pub struct GatewayIndependence {
     pub different_node_family: bool,
     pub different_asn: bool,
+    pub different_subnet: bool,
 }
 
 impl GatewayIndependence {
@@ -28,11 +29,12 @@ impl GatewayIndependence {
         Self {
             different_node_family: false,
             different_asn: false,
+            different_subnet: false,
         }
     }
 
     pub fn active(&self) -> bool {
-        self.different_node_family || self.different_asn
+        self.different_node_family || self.different_asn || self.different_subnet
     }
 }
 
@@ -41,6 +43,7 @@ impl Default for GatewayIndependence {
         Self {
             different_node_family: true,
             different_asn: true,
+            different_subnet: true,
         }
     }
 }
@@ -85,6 +88,7 @@ mod tests {
         let gi = GatewayIndependence {
             different_asn: true,
             different_node_family: false,
+            different_subnet: false,
         };
         assert!(gi.active());
     }
@@ -94,6 +98,17 @@ mod tests {
         let gi = GatewayIndependence {
             different_asn: false,
             different_node_family: true,
+            different_subnet: false,
+        };
+        assert!(gi.active());
+    }
+
+    #[test]
+    fn active_returns_true_with_only_subnet_enabled() {
+        let gi = GatewayIndependence {
+            different_asn: false,
+            different_node_family: false,
+            different_subnet: true,
         };
         assert!(gi.active());
     }

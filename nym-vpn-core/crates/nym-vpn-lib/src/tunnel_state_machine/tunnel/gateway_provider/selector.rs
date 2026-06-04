@@ -468,15 +468,11 @@ mod tests {
     const GW_ID_1: &str = "2zHiExNRKiCXVKS35SNKtK4apGfZELMpA1jJ2gVevJoz";
     const GW_ID_2: &str = "38zcSsvjXsAX7C28ko2H3Lt55X4TYxfZYkPADxKXZHUj";
 
-    fn make_gw_with_asn(id: &str, asn: &str) -> Gateway {
+    fn make_gw_with_asn(id: &str, asn: Asn) -> Gateway {
         Gateway::builder()
             .identity(id.parse().unwrap())
             .location(Location {
-                asn: Some(Asn {
-                    asn: asn.to_string(),
-                    name: "ISP".to_string(),
-                    kind: AsnKind::Other,
-                }),
+                asn: Some(asn),
                 ..Default::default()
             })
             .performance(Performance {
@@ -525,8 +521,24 @@ mod tests {
         // (fully active) independence criteria. Without any criteria they CAN be paired, so the
         // selector should suggest relaxing the criteria.
         let gateways = Arc::new(RwLock::new(Some(vec![
-            make_gw_with_asn(GW_ID_1, "AS100"),
-            make_gw_with_asn(GW_ID_2, "AS100"),
+            make_gw_with_asn(
+                GW_ID_1,
+                Asn {
+                    asn: "AS100".to_string(),
+                    name: "ISP".to_string(),
+                    route: "10.10.10.10/16".parse().unwrap(),
+                    kind: AsnKind::Other,
+                },
+            ),
+            make_gw_with_asn(
+                GW_ID_2,
+                Asn {
+                    asn: "AS100".to_string(),
+                    name: "ISP".to_string(),
+                    route: "10.11.10.10/16".parse().unwrap(),
+                    kind: AsnKind::Other,
+                },
+            ),
         ])));
         let gateway_cache = MockGatewayCache::new(gateways);
 
@@ -553,8 +565,24 @@ mod tests {
         // Gateways have different ASNs and no node family, so the full independence criteria
         // is satisfied (missing family is treated as independent).
         let gateways = Arc::new(RwLock::new(Some(vec![
-            make_gw_with_asn(GW_ID_1, "AS100"),
-            make_gw_with_asn(GW_ID_2, "AS200"),
+            make_gw_with_asn(
+                GW_ID_1,
+                Asn {
+                    asn: "AS100".to_string(),
+                    name: "ISP".to_string(),
+                    route: "10.10.10.10/16".parse().unwrap(),
+                    kind: AsnKind::Other,
+                },
+            ),
+            make_gw_with_asn(
+                GW_ID_2,
+                Asn {
+                    asn: "AS200".to_string(),
+                    name: "ISP".to_string(),
+                    route: "10.11.10.10/16".parse().unwrap(),
+                    kind: AsnKind::Other,
+                },
+            ),
         ])));
         let gateway_cache = MockGatewayCache::new(gateways);
 

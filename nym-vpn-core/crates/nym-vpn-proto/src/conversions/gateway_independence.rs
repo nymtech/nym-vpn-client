@@ -8,6 +8,7 @@ impl From<nym_vpn_lib_types::GatewayIndependence> for proto::GatewayIndependence
         Self {
             different_node_family: value.different_node_family,
             different_asn: value.different_asn,
+            different_subnet: value.different_subnet,
         }
     }
 }
@@ -17,6 +18,7 @@ impl From<proto::GatewayIndependence> for nym_vpn_lib_types::GatewayIndependence
         Self {
             different_node_family: value.different_node_family,
             different_asn: value.different_asn,
+            different_subnet: value.different_subnet,
         }
     }
 }

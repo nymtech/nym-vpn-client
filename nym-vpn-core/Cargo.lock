@@ -5858,6 +5858,7 @@ name = "nym-gateway-directory"
 version = "2026.11.0-beta"
 dependencies = [
  "anyhow",
+ "ipnetwork",
  "itertools 0.14.0",
  "nym-client-core",
  "nym-http-api-client",

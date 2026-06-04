@@ -31,12 +31,39 @@ pub(crate) fn gateways_are_independent(
     {
         return false;
     }
+    if criteria.different_subnet {
+        let (Some(route1), Some(route2)) = (
+            gw1.location
+                .as_ref()
+                .and_then(|l| l.asn.as_ref())
+                .map(|asn| &asn.route),
+            gw2.location
+                .as_ref()
+                .and_then(|l| l.asn.as_ref())
+                .map(|asn| &asn.route),
+        ) else {
+            // all gateways should have a ASN with a route, if they don't we assume they can't be independent
+            return false;
+        };
+        if match (route1, route2) {
+            (ipnetwork::IpNetwork::V4(v4_route1), ipnetwork::IpNetwork::V4(v4_route2)) => {
+                v4_route1.overlaps(*v4_route2)
+            }
+            (ipnetwork::IpNetwork::V6(v6_route1), ipnetwork::IpNetwork::V6(v6_route2)) => {
+                v6_route1.overlaps(*v6_route2)
+            }
+            _ => false,
+        } {
+            return false;
+        }
+    }
 
     true
 }
 
 #[cfg(test)]
 mod tests {
+    use ipnetwork::IpNetwork;
     use nym_gateway_directory::{Asn, AsnKind, Gateway, Location};
     use nym_vpn_api_client::response::NodeFamily;
 
@@ -56,6 +83,7 @@ mod tests {
                 asn: Some(Asn {
                     asn: asn_number.to_string(),
                     name: "Test ISP".to_string(),
+                    route: "10.10.10.10/16".parse().unwrap(),
                     kind: AsnKind::Other,
                 }),
                 ..Default::default()
@@ -76,10 +104,26 @@ mod tests {
             .build()
     }
 
+    fn make_gateway_with_subnet(id: &str, route: IpNetwork) -> Gateway {
+        Gateway::builder()
+            .identity(id.parse().unwrap())
+            .location(Location {
+                asn: Some(Asn {
+                    asn: "ASTEST".to_string(),
+                    name: "Test ISP".to_string(),
+                    route,
+                    kind: AsnKind::Other,
+                }),
+                ..Default::default()
+            })
+            .build()
+    }
+
     fn asn_only() -> GatewayIndependence {
         GatewayIndependence {
             different_asn: true,
             different_node_family: false,
+            different_subnet: false,
         }
     }
 
@@ -87,6 +131,15 @@ mod tests {
         GatewayIndependence {
             different_asn: false,
             different_node_family: true,
+            different_subnet: false,
+        }
+    }
+
+    fn subnet_only() -> GatewayIndependence {
+        GatewayIndependence {
+            different_asn: false,
+            different_node_family: false,
+            different_subnet: true,
         }
     }
 
@@ -100,6 +153,7 @@ mod tests {
         ));
         assert!(!gateways_are_independent(&gw, &gw, asn_only()));
         assert!(!gateways_are_independent(&gw, &gw, family_only()));
+        assert!(!gateways_are_independent(&gw, &gw, subnet_only()));
         assert!(!gateways_are_independent(
             &gw,
             &gw,
@@ -123,6 +177,34 @@ mod tests {
         let gw1 = make_gateway_with_asn(GW_ID_1, "AS12345");
         let gw2 = make_gateway_with_asn(GW_ID_2, "AS12345");
         assert!(!gateways_are_independent(&gw1, &gw2, asn_only()));
+    }
+
+    #[test]
+    fn different_subnets_independent_when_subnet_criterion_active() {
+        let gw1 = make_gateway_with_subnet(GW_ID_1, "10.10.10.10/16".parse().unwrap());
+        let gw2 = make_gateway_with_subnet(GW_ID_2, "10.11.10.10/16".parse().unwrap());
+        assert!(gateways_are_independent(&gw1, &gw2, subnet_only()));
+    }
+
+    #[test]
+    fn missing_subnet_not_independent_when_subnet_criterion_active() {
+        let gw1 = make_gateway(GW_ID_1);
+        let gw2 = make_gateway(GW_ID_2);
+        assert!(!gateways_are_independent(&gw1, &gw2, subnet_only()));
+    }
+
+    #[test]
+    fn one_missing_subnet_not_independent_when_subnet_criterion_active() {
+        let gw1 = make_gateway_with_asn(GW_ID_1, "AS12345");
+        let gw2 = make_gateway(GW_ID_2);
+        assert!(!gateways_are_independent(&gw1, &gw2, subnet_only()));
+    }
+
+    #[test]
+    fn same_subnet_not_independent_when_subnet_criterion_active() {
+        let gw1 = make_gateway_with_asn(GW_ID_1, "AS12345");
+        let gw2 = make_gateway_with_asn(GW_ID_2, "AS12345");
+        assert!(!gateways_are_independent(&gw1, &gw2, subnet_only()));
     }
 
     #[test]
@@ -168,13 +250,14 @@ mod tests {
     }
 
     #[test]
-    fn full_criteria_passes_when_both_differ() {
+    fn full_criteria_passes_when_all_differ() {
         let gw1 = Gateway::builder()
             .identity(GW_ID_1.parse().unwrap())
             .location(Location {
                 asn: Some(Asn {
                     asn: "AS100".to_string(),
                     name: "ISP A".to_string(),
+                    route: "10.10.10.10/16".parse().unwrap(),
                     kind: AsnKind::Other,
                 }),
                 ..Default::default()
@@ -193,6 +276,7 @@ mod tests {
                 asn: Some(Asn {
                     asn: "AS200".to_string(),
                     name: "ISP B".to_string(),
+                    route: "10.11.10.10/16".parse().unwrap(),
                     kind: AsnKind::Other,
                 }),
                 ..Default::default()
@@ -213,13 +297,14 @@ mod tests {
     }
 
     #[test]
-    fn full_criteria_fails_when_asn_matches_despite_different_family() {
+    fn full_criteria_fails_when_asn_matches_despite_rest_different() {
         let gw1 = Gateway::builder()
             .identity(GW_ID_1.parse().unwrap())
             .location(Location {
                 asn: Some(Asn {
                     asn: "AS100".to_string(),
                     name: "ISP".to_string(),
+                    route: "10.10.10.10/16".parse().unwrap(),
                     kind: AsnKind::Other,
                 }),
                 ..Default::default()
@@ -238,6 +323,54 @@ mod tests {
                 asn: Some(Asn {
                     asn: "AS100".to_string(),
                     name: "ISP".to_string(),
+                    route: "10.11.10.10/16".parse().unwrap(),
+                    kind: AsnKind::Other,
+                }),
+                ..Default::default()
+            })
+            .node_family(Some(NodeFamily {
+                id: 2,
+                name: String::new(),
+                description: String::new(),
+                family_stake: 0,
+                members: 0,
+            }))
+            .build();
+        assert!(!gateways_are_independent(
+            &gw1,
+            &gw2,
+            GatewayIndependence::default()
+        ));
+    }
+
+    #[test]
+    fn full_criteria_fails_when_subnet_matches_despite_rest_different() {
+        let gw1 = Gateway::builder()
+            .identity(GW_ID_1.parse().unwrap())
+            .location(Location {
+                asn: Some(Asn {
+                    asn: "AS100".to_string(),
+                    name: "ISP1".to_string(),
+                    route: "10.10.11.10/16".parse().unwrap(),
+                    kind: AsnKind::Other,
+                }),
+                ..Default::default()
+            })
+            .node_family(Some(NodeFamily {
+                id: 1,
+                name: String::new(),
+                description: String::new(),
+                family_stake: 0,
+                members: 0,
+            }))
+            .build();
+        let gw2 = Gateway::builder()
+            .identity(GW_ID_2.parse().unwrap())
+            .location(Location {
+                asn: Some(Asn {
+                    asn: "AS101".to_string(),
+                    name: "ISP2".to_string(),
+                    route: "10.10.10.10/16".parse().unwrap(),
                     kind: AsnKind::Other,
                 }),
                 ..Default::default()
