@@ -72,7 +72,9 @@ impl From<lib::ErrorStateReason> for TunnelError {
             lib::ErrorStateReason::NeedsRelaxedIndependenceCriteria => {
                 TunnelError::NeedsRelaxedIndependenceCriteria
             }
-            lib::ErrorStateReason::ExplicitConnectionFailure => TunnelError::ExplicitConnectionFailure,
+            lib::ErrorStateReason::ExplicitConnectionFailure => {
+                TunnelError::ExplicitConnectionFailure
+            }
         }
     }
 }
