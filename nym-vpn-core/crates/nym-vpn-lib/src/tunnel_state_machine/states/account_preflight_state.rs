@@ -99,11 +99,22 @@ impl TunnelStateHandler for AccountPreflightState {
                         NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                     }
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
-                        if DisconnectedState::apply_tunnel_settings(tunnel_settings, shared_state).await {
-                            let new_state = Self::make_preflight_tunnel_state(shared_state);
-                            NextTunnelState::NewState((self, new_state))
-                        } else {
-                            NextTunnelState::SameState(self)
+                        match DisconnectedState::apply_tunnel_settings(tunnel_settings, shared_state).await {
+                            Some(diff) => {
+                                // Invalidate cached gateways if the new settings
+                                // moved entry/exit/quic, mirroring OfflineState.
+                                // Otherwise a reconnect coming out of preflight
+                                // would proceed with stale gateways.
+                                if diff.entry_point_changed()
+                                    || diff.exit_point_changed()
+                                    || diff.quic_changed()
+                                {
+                                    self.selected_gateways = None;
+                                }
+                                let new_state = Self::make_preflight_tunnel_state(shared_state);
+                                NextTunnelState::NewState((self, new_state))
+                            }
+                            None => NextTunnelState::SameState(self),
                         }
                     }
                     TunnelCommand::Block(reason) => {

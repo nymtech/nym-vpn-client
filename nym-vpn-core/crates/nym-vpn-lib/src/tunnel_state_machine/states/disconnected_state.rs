@@ -6,7 +6,7 @@ use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelSettings,
-    TunnelStateHandler,
+    TunnelSettingsDiff, TunnelStateHandler,
     states::{AccountPreflightState, OfflineState},
     tunnel::Tombstone,
 };
@@ -74,13 +74,22 @@ impl DisconnectedState {
         }
     }
 
+    /// Apply updated tunnel settings, running the platform-specific side
+    /// effects for whichever fields changed.
+    ///
+    /// Returns `None` when the new settings are identical to the current ones
+    /// (nothing applied), or `Some(diff)` describing the fields that changed.
+    /// Callers that cache selected gateways (e.g. the reconnect paths feeding
+    /// `AccountPreflightState`) must inspect the diff and drop their cache when
+    /// `entry_point`, `exit_point`, or `quic` changed, otherwise a subsequent
+    /// reconnect would use stale gateways.
     pub(super) async fn apply_tunnel_settings(
         tunnel_settings: TunnelSettings,
         shared_state: &mut SharedState,
-    ) -> bool {
+    ) -> Option<TunnelSettingsDiff> {
         let diff = shared_state.tunnel_settings.diff(&tunnel_settings);
         if diff.is_empty() {
-            return false;
+            return None;
         }
 
         shared_state.set_tunnel_settings(tunnel_settings).await;
@@ -101,7 +110,7 @@ impl DisconnectedState {
                 .await;
         }
 
-        true
+        Some(diff)
     }
 }
 

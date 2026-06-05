@@ -26,8 +26,8 @@ message and, for `no-subscription`, routes the main button to pricing.
 ## Tests run
 
 ```text
-cargo fmt --manifest-path nym-vpn-core\Cargo.toml --package nym-vpn-lib
-cargo check --manifest-path nym-vpn-core\Cargo.toml -p nym-vpn-lib
+cargo fmt --manifest-path nym-vpn-core/Cargo.toml --package nym-vpn-lib
+cargo check --manifest-path nym-vpn-core/Cargo.toml -p nym-vpn-lib
 ```
 
 Result: `cargo check` passed.
