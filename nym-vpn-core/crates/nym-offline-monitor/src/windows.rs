@@ -53,6 +53,7 @@ impl BroadcastListener {
             },
             notify_tx,
             pending_online_cancel: None,
+            rt_handle: tokio::runtime::Handle::current(),
         }));
 
         let state = system_state.clone();
@@ -183,8 +184,12 @@ enum StateChange {
 struct SystemState {
     connectivity: ConnectivityInner,
     notify_tx: watch::Sender<Connectivity>,
+
     /// Cancels a pending "Connected" notification during the stabilisation delay.
     pending_online_cancel: Option<CancellationToken>,
+
+    /// Tokio runtime handle to run callbacks in
+    rt_handle: tokio::runtime::Handle,
 }
 
 impl SystemState {
@@ -222,7 +227,7 @@ impl SystemState {
                 self.pending_online_cancel = Some(cancel.clone());
                 let notify_tx = self.notify_tx.clone();
                 let online_connectivity = self.connectivity.into_connectivity();
-                tokio::spawn(async move {
+                self.rt_handle.spawn(async move {
                     tokio::select! {
                         _ = tokio::time::sleep(ONLINE_STABILIZATION_DELAY) => {
                             tracing::info!("Connectivity changed: Connected");
