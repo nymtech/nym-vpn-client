@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [Android] Diagnostic doesn't panic because of uninitialized context (https://github.com/nymtech/nym-vpn-client/pull/5415)
-
+- [Windows] Fix a crash when the network reconnected (https://github.com/nymtech/nym-vpn-client/pull/5508)
 
 ## [1.30] - 2026-05-29
 
