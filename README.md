@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/assets/header.png" width="600"/>
+<img src=".github.com/nymtech/Nym-brand-assets/blob/main/Nym%20(cover).png" width="600"/>
 
 Open-source, cross-platform VPN client built with Rust that provides true privacy through decentralized mixnet technology and multi-hop censorship-resistant WireGuard tunneling.
 </div>
