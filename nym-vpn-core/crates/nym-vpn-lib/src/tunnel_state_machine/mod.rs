@@ -68,7 +68,7 @@ use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
     GatewayIndependence, GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    GeoExclusionSettings, NodeIdentity, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -322,10 +322,16 @@ impl TunnelSettings {
             && self.wireguard_tunnel_options.enable_bridges
     }
 
-    // The user specified specific entry and exit gateways
-    pub fn is_specific_entry_exit_points(&self) -> bool {
+    /// Has an explicit gateway been specified for both entry and exit point?
+    pub fn has_explicit_entry_and_exit_point(&self) -> bool {
         matches!(*self.entry_point, EntryPoint::Gateway { .. })
             && matches!(*self.exit_point, ExitPoint::Gateway { .. })
+    }
+
+    /// Has this gateway been explicitly specified as the entry or exit point?
+    pub fn is_explicit_entry_or_exit_point(&self, gateway_id: &NodeIdentity) -> bool {
+        matches!(*self.entry_point, EntryPoint::Gateway { ref identity } if *identity == *gateway_id)
+            || matches!(*self.exit_point, ExitPoint::Gateway { ref identity } if *identity == *gateway_id)
     }
 
     pub fn diff(&self, other: &Self) -> TunnelSettingsDiff {

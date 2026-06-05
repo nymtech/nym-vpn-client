@@ -258,6 +258,8 @@ impl<C: GatewayCache> GatewayProvider<C> {
         self.blacklisted_gateways.clone()
     }
 
+    // Blacklist a gateway.  Before calling this function, be sure that the gateway has not been
+    // explicitly specified as the entry or exit point as this will cause severe UX problems.
     pub async fn add_blacklisted_gateway(&self, gateway_identifier: NodeIdentity) {
         if let Err(e) = self.blacklisted_gateways.add(gateway_identifier) {
             tracing::error!(

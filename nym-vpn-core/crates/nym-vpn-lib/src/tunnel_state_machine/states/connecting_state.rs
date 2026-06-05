@@ -693,30 +693,35 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     }
                     TunnelMonitorEvent::ConnectionFailed { exit_gateway_id } => {
-                        // WG handshake timed out or ICMP connectivity check failed
-                        if shared_state.tunnel_settings.is_specific_entry_exit_points() {
-                            // Specific gateways were selected and as they are failing, we cannot continue
-                            // trying to connect.
+                        // Failed to connect
+                        if shared_state.tunnel_settings.has_explicit_entry_and_exit_point() {
+                            // Specific gateways were selected and as they are failing, give up immediately.
                             NextTunnelState::NewState(ErrorState::enter(
                                 ErrorStateReason::PerformantExitGatewayUnavailable,
                                 shared_state,
                             ).await)
                         } else {
-                            // Blacklist the gateway so a different one is selected on the next attempt.
-                            shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
+                            // Blacklist the gateway so a different one is selected on the next attempt, but
+                            // don't do that if user has specifically set it as the entry or exit point
+                            if !shared_state.tunnel_settings.is_explicit_entry_or_exit_point(&exit_gateway_id.into()) {
+                                shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
+                            }
                             self.selected_gateways = None;
                             NextTunnelState::SameState(self)
                         }
                     }
                     TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
                         // Registration with the entry gateway failed; blacklist it to avoid
-                        // re-selecting the same failing gateway.
-                        shared_state.gateway_provider.add_blacklisted_gateway(gateway_id).await;
+                        // re-selecting the same failing gateway, but only if it wasn't specfically specified
+                        // as the entry or exit point
+                        if !shared_state.tunnel_settings.is_explicit_entry_or_exit_point(&gateway_id.into()) {
+                            shared_state.gateway_provider.add_blacklisted_gateway(gateway_id).await;
+                        }
                         self.selected_gateways = None;
                         NextTunnelState::SameState(self)
                     }
                 }
-           }
+            }
             Some(command) = command_rx.recv() => {
                 tracing::debug!("ConnectingState received command: {command:?}");
                 match command {
