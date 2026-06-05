@@ -164,6 +164,9 @@ pub struct ConnectionData {
 
     /// Tunnel connection data.
     pub tunnel: TunnelConnectionData,
+
+    /// Number of retries before successfully connecting
+    pub retry_count: u32,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]

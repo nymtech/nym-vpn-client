@@ -665,9 +665,12 @@ impl TunnelStateHandler for ConnectingState {
                         next_state
                     }
                     TunnelMonitorEvent::Up { tunnel_interface, connection_data } => {
+                        // Update the connection data with the final retry count
+                        let mut connection_data = *connection_data;
+                        connection_data.retry_count = self.retry_attempt;
                         NextTunnelState::NewState(ConnectedState::enter(
                             tunnel_interface,
-                            *connection_data,
+                            connection_data,
                             self.selected_gateways.expect("selected gateways must be set"),
                             self.tunnel_monitor_handle.expect("monitor handle must be set!"),
                             self.tunnel_monitor_event_receiver,

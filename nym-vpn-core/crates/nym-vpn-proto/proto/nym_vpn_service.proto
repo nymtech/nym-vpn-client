@@ -487,6 +487,7 @@ message ConnectionData {
   GatewayLightInfo exit_gateway = 2;
   google.protobuf.Timestamp connected_at = 3;
   TunnelConnectionData tunnel = 4;
+  uint32 retry_count = 5;
 }
 
 message MixnetConnectionData {

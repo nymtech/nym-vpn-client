@@ -699,6 +699,7 @@ impl TunnelMonitor {
             exit_gateway: GatewayLightInfo::from(selected_gateways.exit_gateway().clone()),
             connected_at: OffsetDateTime::now_utc(),
             tunnel: tunnel_conn_data,
+            retry_count: 0,
         });
 
         loop {

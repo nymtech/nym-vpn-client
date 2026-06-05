@@ -99,9 +99,9 @@ impl Args {
             let outcome = attempt_connection(rpc_client.clone()).await;
 
             match outcome {
-                Ok(()) => {
+                Ok(connect_attempts) => {
                     successes += 1;
-                    println!("OK [{timestamp}]");
+                    println!("OK [{timestamp} attempts: {connect_attempts}]");
                 }
                 Err(e) => {
                     failures += 1;
@@ -117,7 +117,8 @@ impl Args {
     }
 }
 
-async fn attempt_connection(mut rpc_client: RpcClient) -> Result<()> {
+// Returns Ok(connect_attempts) on success
+async fn attempt_connection(mut rpc_client: RpcClient) -> Result<u32> {
     // Subscribe before connecting so we don't miss the state transition.
     let mut stream = rpc_client.clone().listen_to_events().await?;
     rpc_client.connect_tunnel().await?;
@@ -127,7 +128,9 @@ async fn attempt_connection(mut rpc_client: RpcClient) -> Result<()> {
             continue;
         };
         match state {
-            TunnelState::Connected { .. } => return Ok(()),
+            TunnelState::Connected { connection_data } => {
+                return Ok(connection_data.retry_count + 1);
+            }
             TunnelState::Error(reason) => {
                 return Err(anyhow!("error state: {:?}", reason));
             }

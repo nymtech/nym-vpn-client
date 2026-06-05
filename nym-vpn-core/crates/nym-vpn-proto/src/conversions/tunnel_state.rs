@@ -338,6 +338,8 @@ impl TryFrom<proto::ConnectionData> for ConnectionData {
             .tunnel
             .ok_or(ConversionError::NoValueSet("ConnectionData.tunnel"))?;
 
+        let retry_count = value.retry_count;
+
         Ok(Self {
             connected_at,
             entry_gateway: value
@@ -349,6 +351,7 @@ impl TryFrom<proto::ConnectionData> for ConnectionData {
                 .map(GatewayLightInfo::from)
                 .ok_or(ConversionError::NoValueSet("ConnectionData.exit_gateway"))?,
             tunnel: TunnelConnectionData::try_from(tunnel_connection_data)?,
+            retry_count,
         })
     }
 }
@@ -372,6 +375,7 @@ impl From<ConnectionData> for proto::ConnectionData {
                 crate::conversions::prost::offset_datetime_into_proto_timestamp(value.connected_at),
             ),
             tunnel: Some(proto::TunnelConnectionData::from(value.tunnel)),
+            retry_count: value.retry_count,
         }
     }
 }
