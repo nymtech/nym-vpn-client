@@ -16,7 +16,7 @@ use crate::tunnel_state_machine::Result;
 use crate::tunnel_state_machine::{
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
     TunnelCommand, TunnelInterface, TunnelStateHandler,
-    states::{ConnectingState, DisconnectingState},
+    states::{AccountPreflightState, DisconnectingState},
     tunnel::SelectedGateways,
     tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
 };
@@ -272,7 +272,7 @@ impl ConnectedState {
                 NextTunnelState::NewState(ErrorState::enter(block_reason, shared_state).await)
             }
             None => NextTunnelState::NewState(
-                ConnectingState::enter(0, Some(self.selected_gateways), shared_state).await,
+                AccountPreflightState::enter(Some(self.selected_gateways), shared_state).await,
             ),
         }
     }

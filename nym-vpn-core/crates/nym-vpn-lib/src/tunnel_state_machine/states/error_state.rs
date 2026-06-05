@@ -33,7 +33,7 @@ use crate::tunnel_state_machine::{Error, Result};
 use crate::tunnel_state_machine::{
     ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState, OfflineState},
+    states::{AccountPreflightState, DisconnectedState, OfflineState},
 };
 
 /// Interface addresses used as placeholders when in error state.
@@ -187,7 +187,7 @@ impl TunnelStateHandler for ErrorState {
                         if shared_state.connectivity_handle.connectivity().await.is_offline() {
                             NextTunnelState::NewState(OfflineState::enter(true, None, shared_state).await)
                         } else {
-                            NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
+                            NextTunnelState::NewState(AccountPreflightState::enter(None, shared_state).await)
                         }
                     },
                     TunnelCommand::Disconnect => {

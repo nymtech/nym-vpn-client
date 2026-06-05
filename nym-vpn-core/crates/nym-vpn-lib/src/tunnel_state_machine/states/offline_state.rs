@@ -10,7 +10,7 @@ use crate::tunnel_state_machine::ErrorStateReason;
 use crate::tunnel_state_machine::{Error, Result, states::error_state::BlockedPolicyParameters};
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState, ErrorState},
+    states::{AccountPreflightState, DisconnectedState, ErrorState},
     tunnel::SelectedGateways,
 };
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -193,7 +193,7 @@ impl TunnelStateHandler for OfflineState {
                     Self::reset_dns(shared_state).await;
 
                     if self.reconnect {
-                        NextTunnelState::NewState(ConnectingState::enter(0, self.selected_gateways, shared_state).await)
+                        NextTunnelState::NewState(AccountPreflightState::enter(self.selected_gateways, shared_state).await)
                     } else {
                         NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                     }

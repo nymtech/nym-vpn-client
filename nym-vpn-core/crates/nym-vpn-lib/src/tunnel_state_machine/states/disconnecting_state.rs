@@ -8,7 +8,7 @@ use tokio_util::sync::CancellationToken;
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
-    states::{ConnectingState, DisconnectedState, ErrorState, OfflineState},
+    states::{AccountPreflightState, DisconnectedState, ErrorState, OfflineState},
     tunnel::Tombstone,
     tunnel_monitor::TunnelMonitorHandle,
 };
@@ -62,7 +62,7 @@ impl DisconnectingState {
                 ErrorState::enter(reason, shared_state).await
             }
             PrivateActionAfterDisconnect::Reconnect => {
-                ConnectingState::enter(0, None, shared_state).await
+                AccountPreflightState::enter(None, shared_state).await
             }
             PrivateActionAfterDisconnect::Offline {
                 reconnect,
