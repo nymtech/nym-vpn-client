@@ -88,4 +88,5 @@ fun ErrorStateReason.toHumanReadableString(context: Context): String = when (thi
 
 	is ErrorStateReason.Internal -> context.getString(R.string.error_reason_internal, this.v1)
 	ErrorStateReason.NeedsRelaxedIndependenceCriteria -> ""
+	ErrorStateReason.ExplicitConnectionFailure -> ""
 }
