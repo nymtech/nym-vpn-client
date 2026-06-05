@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
@@ -57,6 +57,11 @@ export const ModeToggle = () => {
   // mode switch. Drives the loading indicator on the dialog's Confirm button
   // and blocks double-clicks.
   const [confirmInFlight, setConfirmInFlight] = useState(false);
+  // Synchronous re-entry guard. `confirmInFlight` is React state, so it only
+  // disables the Confirm button on the next render; two very fast clicks can
+  // both pass the `confirmInFlight` check before that render lands and fire
+  // performModeChange twice. The ref flips synchronously, closing that window.
+  const confirmLockRef = useRef(false);
 
   const selected: Mode =
     // algo === 'auto' || algo === 'autoEntryExplicitExit'
@@ -177,12 +182,14 @@ export const ModeToggle = () => {
   };
 
   const handleConfirmSwitch = async () => {
-    if (!pendingMode || confirmInFlight) return;
+    if (!pendingMode || confirmLockRef.current) return;
     const mode = pendingMode;
+    confirmLockRef.current = true;
     setConfirmInFlight(true);
     try {
       await performModeChange(mode);
     } finally {
+      confirmLockRef.current = false;
       setConfirmInFlight(false);
       setPendingMode(null);
     }
