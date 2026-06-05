@@ -59,6 +59,9 @@ const FAST_RETRY_ATTEMPTS: u32 = 2;
 /// Fast retry delay for network recovery scenarios (first FAST_RETRY_ATTEMPTS).
 const NETWORK_RECOVERY_DELAY: Duration = Duration::from_millis(500);
 
+/// How many attempts when both entry and exit points have been explicitly specified.
+const EXPLICIT_RETRY_ATTEMPTS: u32 = 2;
+
 type ResolveApiAddrsFuture = BoxFuture<'static, Result<ResolvedConfig>>;
 type ReconnectDelayFuture = BoxFuture<'static, ()>;
 
@@ -694,15 +697,15 @@ impl TunnelStateHandler for ConnectingState {
                     }
                     TunnelMonitorEvent::ConnectionFailed { exit_gateway_id } => {
                         // Failed to connect
-                        if shared_state.tunnel_settings.has_explicit_entry_and_exit_point() {
-                            // Specific gateways were selected and as they are failing, give up immediately.
+                        if shared_state.tunnel_settings.has_explicit_entry_and_exit_point() && self.retry_attempt > EXPLICIT_RETRY_ATTEMPTS {
+                            // Specific gateways were selected and we have tried several times.
                             NextTunnelState::NewState(ErrorState::enter(
-                                ErrorStateReason::PerformantExitGatewayUnavailable,
+                                ErrorStateReason::ExplicitConnectionFailure,
                                 shared_state,
                             ).await)
                         } else {
                             // Blacklist the gateway so a different one is selected on the next attempt, but
-                            // don't do that if user has specifically set it as the entry or exit point
+                            // don't do that if user has explicitly set it as the entry or exit point
                             if !shared_state.tunnel_settings.is_explicit_entry_or_exit_point(&exit_gateway_id.into()) {
                                 shared_state.gateway_provider.add_blacklisted_gateway(exit_gateway_id).await;
                             }
@@ -711,9 +714,8 @@ impl TunnelStateHandler for ConnectingState {
                         }
                     }
                     TunnelMonitorEvent::RegistrationFailed { gateway_id } => {
-                        // Registration with the entry gateway failed; blacklist it to avoid
-                        // re-selecting the same failing gateway, but only if it wasn't specfically specified
-                        // as the entry or exit point
+                        // Registration with the entry gateway failed; blacklist it to avoid re-selecting the same
+                        // failing gateway, but don't do that if user has explicitly set it as the entry or exit point
                         if !shared_state.tunnel_settings.is_explicit_entry_or_exit_point(&gateway_id.into()) {
                             shared_state.gateway_provider.add_blacklisted_gateway(gateway_id).await;
                         }

@@ -7416,6 +7416,7 @@ dependencies = [
  "nym-vpn-proto",
  "serde_json",
  "tabled",
+ "time",
  "tokio",
  "tokio-stream",
 ]

@@ -21,14 +21,6 @@ pub struct Args {
     pub entry_id: String,
 }
 
-struct Outcome {
-    exit_id: String,
-    exit_name: String,
-    exit_location: String,
-    success: bool,
-    reason: String,
-}
-
 impl Args {
     pub async fn execute(self, mut rpc_client: RpcClient) -> Result<()> {
         let entry_identity = NodeIdentity::from_base58_string(&self.entry_id)
@@ -56,7 +48,7 @@ impl Args {
         println!("WG exit nodes : {}", gateways.len());
         println!();
 
-        let mut outcomes: Vec<Outcome> = Vec::with_capacity(gateways.len());
+        let (mut successes, mut failures) = (0u32, 0u32);
 
         for (i, gateway) in gateways.iter().enumerate() {
             let exit_location = gateway
@@ -86,14 +78,8 @@ impl Args {
             let exit_identity = match NodeIdentity::from_base58_string(&gateway.identity_key) {
                 Ok(id) => id,
                 Err(_) => {
+                    failures += 1;
                     println!("SKIP (invalid identity key)");
-                    outcomes.push(Outcome {
-                        exit_id: gateway.identity_key.clone(),
-                        exit_name: gateway.name.clone(),
-                        exit_location,
-                        success: false,
-                        reason: "invalid identity key".to_string(),
-                    });
                     continue;
                 }
             };
@@ -104,42 +90,29 @@ impl Args {
                 })
                 .await
             {
+                failures += 1;
                 println!("SKIP (set exit failed: {e})");
-                outcomes.push(Outcome {
-                    exit_id: gateway.identity_key.clone(),
-                    exit_name: gateway.name.clone(),
-                    exit_location,
-                    success: false,
-                    reason: format!("set exit failed: {e}"),
-                });
                 continue;
             }
 
+            let timestamp = utc_now();
             let outcome = attempt_connection(rpc_client.clone()).await;
 
-            let (success, reason) = match outcome {
+            match outcome {
                 Ok(()) => {
-                    println!("OK");
-                    (true, String::new())
+                    successes += 1;
+                    println!("OK [{timestamp}]");
                 }
                 Err(e) => {
-                    println!("FAIL ({e})");
-                    (false, e.to_string())
+                    failures += 1;
+                    println!("FAIL ({e}) [{timestamp}]");
                 }
-            };
-
-            outcomes.push(Outcome {
-                exit_id: gateway.identity_key.clone(),
-                exit_name: gateway.name.clone(),
-                exit_location,
-                success,
-                reason,
-            });
+            }
 
             wait_disconnected(rpc_client.clone()).await;
         }
 
-        print_summary(&outcomes);
+        print_summary(successes, failures);
         Ok(())
     }
 }
@@ -192,23 +165,21 @@ async fn wait_disconnected(mut rpc_client: RpcClient) {
     .await;
 }
 
-fn print_summary(outcomes: &[Outcome]) {
-    let successes = outcomes.iter().filter(|o| o.success).count();
+fn print_summary(successes: u32, failures: u32) {
     println!();
     println!("=== Network Check Summary ===");
-    println!("{}/{} exit gateways reachable", successes, outcomes.len());
-    println!();
+    println!("{} succeeded, {} failed", successes, failures);
+}
 
-    for o in outcomes {
-        let status = if o.success { "OK  " } else { "FAIL" };
-        let suffix = if o.reason.is_empty() {
-            String::new()
-        } else {
-            format!(" ({})", o.reason)
-        };
-        println!(
-            "  {} {} ({}) {}{}",
-            status, o.exit_id, o.exit_name, o.exit_location, suffix
-        );
-    }
+fn utc_now() -> String {
+    let t = time::OffsetDateTime::now_utc();
+    format!(
+        "{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC",
+        t.year(),
+        t.month() as u8,
+        t.day(),
+        t.hour(),
+        t.minute(),
+        t.second(),
+    )
 }

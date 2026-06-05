@@ -304,6 +304,9 @@ pub enum ErrorStateReason {
     /// Gateway pair can be found if user agrees to relax the gateway independence criteria
     NeedsRelaxedIndependenceCriteria,
 
+    /// Connection failed when both entry and exit points were explictly defined
+    ExplicitConnectionFailure,
+
     /// Program errors that must not happen.
     Internal(String),
 }
@@ -341,6 +344,7 @@ impl std::fmt::Display for ErrorStateReason {
             Self::NeedsRelaxedIndependenceCriteria => {
                 f.write_str("NeedsRelaxedIndependenceCriteria")
             }
+            Self::ExplicitConnectionFailure => f.write_str("ExplicitConnectionFailure"),
             Self::Internal(str) => write!(f, "Internal({str})"),
         }
     }

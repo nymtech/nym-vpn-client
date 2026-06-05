@@ -18,6 +18,7 @@ celes.workspace = true
 clap = { workspace = true, features = ["derive", "wrap_help"] }
 serde_json.workspace = true
 tabled.workspace = true
+time.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
 tokio-stream.workspace = true
 
