@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow adding custom apps (user selected) to split tunneling for Windows & Linux
 
+### Changed
+
+- Mode switch (Fast/Mixnet) now asks for confirmation when the VPN is connected, connecting, or about to auto-reconnect. Previously, simply clicking the other mode tab would trigger an immediate disconnect/reconnect, surprising users who only wanted to view the other mode.
+
 ## [1.30.0] - 2026-05-29
 
 ### Fixed

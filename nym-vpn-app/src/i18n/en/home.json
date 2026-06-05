@@ -20,7 +20,15 @@
   "random-server": "Random server",
   "mode-toggle": {
     "fast": "Fast",
-    "mixnet": "Mixnet"
+    "mixnet": "Mixnet",
+    "switch-confirm": {
+      "title-connected": "Switch to {{mode}} mode?",
+      "title-connecting": "Switch to {{mode}} mode?",
+      "description-connected": "Switching modes will disconnect your VPN. You'll need to reconnect afterwards.",
+      "description-connecting": "Switching modes will cancel the current connection.",
+      "confirm": "Switch and disconnect",
+      "cancel": "Cancel"
+    }
   },
   "snackbar-disabled-message": {
     "connected": "Disabled while connected to VPN",
