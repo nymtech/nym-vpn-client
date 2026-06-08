@@ -232,7 +232,6 @@ impl RequestingZkNymsState {
                 error!("Failed to join on the fetching task : {err}");
                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(
                     shared_state,
-                    self.attempts + 1,
                     SyncMode::Optimistic,
                 ));
             }
@@ -326,7 +325,6 @@ impl RequestingZkNymsState {
                 return if error {
                     NextAccountControllerState::NewState(SyncingNetworkState::enter(
                         shared_state,
-                        0,
                         SyncMode::Optimistic,
                     ))
                 } else {
@@ -352,7 +350,6 @@ impl RequestingZkNymsState {
                 return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(
                     shared_state,
-                    0,
                     SyncMode::Optimistic,
                 ));
             }
@@ -367,7 +364,6 @@ impl RequestingZkNymsState {
                     } else {
                         return NextAccountControllerState::NewState(SyncingNetworkState::enter(
                             shared_state,
-                            0,
                             SyncMode::Optimistic,
                         ));
                     }

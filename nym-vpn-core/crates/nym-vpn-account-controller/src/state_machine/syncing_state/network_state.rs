@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{cmp::min, sync::Arc, time::Duration};
+use std::{sync::Arc, time::Duration};
 
 use crate::{
     SharedAccountState,
@@ -30,18 +30,7 @@ const SYNCING_NETWORK_STATE_CONTEXT: &str = "SYNCING_NETWORK_STATE";
 
 /// In optimistic mode, how long we wait for the summary fetch before falling back to the cached
 /// summary.
-const OPTIMISTIC_SYNC_TIMEOUT: Duration = Duration::from_secs(5);
-
-const MAX_SYNCING_ATTEMPTS: u32 = 5;
-// bounded exponential backoff for retries [0.25, 0.5, 1.0, 2.0, 4.0, 8.0] = 15.75s max wait
-const RETRY_BACKOFF: Duration = Duration::from_millis(250);
-const MAX_BACKOFF_EXPONENT: u32 = 5;
-const BACKOFF_BASE: u32 = 2;
-
-/// The attempt retries should start with attempt 1
-fn get_delay(attempts: u32) -> Duration {
-    RETRY_BACKOFF * BACKOFF_BASE.pow(min(attempts.saturating_sub(1), MAX_BACKOFF_EXPONENT))
-}
+const OPTIMISTIC_SYNC_TIMEOUT: Duration = Duration::from_secs(3);
 
 type SyncResult = Result<Option<VpnAccountSummary>, SyncError>;
 
@@ -69,7 +58,6 @@ type SyncResult = Result<Option<VpnAccountSummary>, SyncError>;
 /// - OfflineState : the connectivity monitor is telling we're not connected
 /// - DecentralisedState : The loaded account is set to "decentralised" mode
 pub(crate) struct SyncingNetworkState {
-    attempts: u32,
     result_rx: oneshot::Receiver<SyncResult>,
     sync_cancel_token: Option<DropGuard>,
 }
@@ -77,7 +65,6 @@ pub(crate) struct SyncingNetworkState {
 impl SyncingNetworkState {
     pub(crate) fn enter<C: ConnectivityMonitor>(
         shared_state: &SharedAccountState<C>,
-        attempts: u32,
         sync_mode: SyncMode,
     ) -> (
         Box<dyn AccountControllerStateHandler<C>>,
@@ -100,11 +87,11 @@ impl SyncingNetworkState {
 
         // Use the provided sync mode unless there is no cache
         let sync_mode = if shared_state.vpn_account_summary.is_none() {
-            tracing::debug!("Sync mode overriding because account summary isn't present");
             SyncMode::Mandatory
         } else {
             sync_mode
         };
+        tracing::debug!("Optimistic sync? : {}", sync_mode == SyncMode::Optimistic);
 
         let (result_tx, result_rx) = oneshot::channel();
         let sync_cancel_token = CancellationToken::new();
@@ -117,14 +104,12 @@ impl SyncingNetworkState {
                     vpn_api_client,
                     vpn_api_account,
                     device,
-                    attempts,
                     sync_mode,
                 ),
             ));
 
         (
             Box::new(Self {
-                attempts,
                 result_rx,
                 sync_cancel_token: Some(sync_cancel_token.drop_guard()),
             }),
@@ -137,13 +122,8 @@ impl SyncingNetworkState {
         vpn_api_client: VpnApiClient,
         vpn_api_account: Arc<VpnAccount>,
         device: Device,
-        attempts: u32,
         sync_mode: SyncMode,
     ) {
-        if sync_mode == SyncMode::Mandatory && attempts > 0 {
-            tokio::time::sleep(get_delay(attempts)).await;
-        }
-
         let fetch = Self::fetch_summary(&vpn_api_client, &vpn_api_account, &device);
 
         let sync_result = match sync_mode {
@@ -232,17 +212,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                     Ok(Err(err)) => {
                         // A mandatory sync failed
                         tracing::error!("Mandatory sync failed ({err})");
-                        if self.attempts > MAX_SYNCING_ATTEMPTS {
-                            tracing::debug!("Error trying to get account summary, exhausted retries : {err}");
-                            NextAccountControllerState::NewState(ErrorState::enter(err.into_error_reason()))
-                        } else {
-                            tracing::debug!(
-                                "Error trying to get account summary attempt {}, retrying after {:?} : {err}",
-                                self.attempts,
-                                get_delay(self.attempts + 1),
-                            );
-                            NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, self.attempts + 1, SyncMode::Mandatory))
-                        }
+                        NextAccountControllerState::NewState(ErrorState::enter(err.into_error_reason()))
                     }
                     Err(_) => {
                         tracing::error!("No result from network sync, this shouldn't happen");
@@ -286,7 +256,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                             if force {
                                 return super::force_refresh(shared_state);
                             } else {
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                             }
                         }
                     },
@@ -300,7 +270,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                         // No-op if the firewall was already down
                         if shared_state.firewall_active {
                             shared_state.firewall_active = false;
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, self.attempts, SyncMode::Optimistic));
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                         }
                     },
 

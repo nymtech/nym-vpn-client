@@ -73,7 +73,7 @@ impl UpgradeModeState {
                     // instead of crashing
                     if until_expiration.is_negative() {
                         info!("the retrieved upgrade mode JWT expired immediately");
-                        return SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic);
+                        return SyncingNetworkState::enter(shared_state, SyncMode::Optimistic);
                     }
                     until_expiration.unsigned_abs()
                 } else {
@@ -166,7 +166,6 @@ impl UpgradeModeState {
                     }
                     NextAccountControllerState::NewState(SyncingNetworkState::enter(
                         shared_state,
-                        0,
                         SyncMode::Optimistic,
                     ))
                 };
@@ -185,7 +184,6 @@ impl UpgradeModeState {
                     } else {
                         return NextAccountControllerState::NewState(SyncingNetworkState::enter(
                             shared_state,
-                            0,
                             SyncMode::Optimistic,
                         ));
                     }
@@ -213,7 +211,6 @@ impl UpgradeModeState {
                     }
                     return NextAccountControllerState::NewState(SyncingNetworkState::enter(
                         shared_state,
-                        0,
                         SyncMode::Optimistic,
                     ));
                 }

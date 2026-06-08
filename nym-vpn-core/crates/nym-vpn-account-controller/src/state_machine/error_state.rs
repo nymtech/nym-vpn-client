@@ -68,7 +68,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                     tracing::debug!("VPN API is firewalled, timed account syncing skipped");
                     return NextAccountControllerState::NewState(ErrorState::enter(self.reason));
                 } else {
-                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                 }
             },
             Some(command) = command_rx.recv() => {
@@ -84,7 +84,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         let error = res.is_err();
                         return_sender.send(res);
                         if error {
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                         } else {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
@@ -106,7 +106,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         if error {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender, force) => {
@@ -117,7 +117,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                             if force {
                                 return syncing_state::force_refresh(shared_state);
                             } else {
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                             }
                         }
                     },

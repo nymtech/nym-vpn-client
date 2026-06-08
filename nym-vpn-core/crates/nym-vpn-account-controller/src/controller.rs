@@ -110,13 +110,14 @@ where
 
         // Load the cached account summary (if any) so it is available before the first network
         // sync completes. A read failure is non-critical - treat it as no cache.
-        let cached_account_summary = account_storage
-            .load_account_summary()
-            .await
-            .unwrap_or_else(|err| {
-                tracing::warn!("Failed to load cached account summary: {err}");
-                None
-            });
+        let cached_account_summary =
+            account_storage
+                .load_account_summary()
+                .await
+                .unwrap_or_else(|err| {
+                    tracing::warn!("Failed to load cached account summary: {err}");
+                    None
+                });
 
         // Shared_state
         let shared_state = SharedAccountState::new(
@@ -142,7 +143,7 @@ where
         let (current_state_handler, initial_state) = if is_offline {
             OfflineState::enter()
         } else {
-            SyncingNetworkState::enter(&shared_state, 0, SyncMode::Optimistic)
+            SyncingNetworkState::enter(&shared_state, SyncMode::Optimistic)
         };
 
         let public_initial_state = AccountControllerState::from(initial_state);

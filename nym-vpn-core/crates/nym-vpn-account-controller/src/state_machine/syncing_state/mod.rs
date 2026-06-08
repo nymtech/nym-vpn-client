@@ -57,7 +57,6 @@ pub(crate) fn force_refresh<C: ConnectivityMonitor>(
     remove_summary(shared_state);
     NextAccountControllerState::NewState(SyncingNetworkState::enter(
         shared_state,
-        0,
         SyncMode::Mandatory,
     ))
 }

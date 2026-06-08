@@ -62,7 +62,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                     tracing::debug!("VPN API is firewalled, timed account syncing skipped");
                     return NextAccountControllerState::NewState(ReadyState::enter());
                 } else {
-                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                 }
             },
             Some(command) = command_rx.recv() => {
@@ -99,7 +99,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                         if error {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender, force) => {
@@ -110,7 +110,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                             if force {
                                 return syncing_state::force_refresh(shared_state);
                             } else {
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                             }
                         }
                     },

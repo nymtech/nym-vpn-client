@@ -82,13 +82,13 @@ impl SyncingLocalState {
 
         // Nothing to check locally without a cached summary: go fetch one from the network.
         let Some(summary) = shared_state.vpn_account_summary.clone() else {
-            return SyncingNetworkState::enter(shared_state, 0, SyncMode::Mandatory);
+            return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory);
         };
 
         // A stale cache can't be trusted; force a mandatory re-fetch instead of checking it.
         if Self::is_stale(&summary) {
             tracing::debug!("Cached account summary is stale, forcing a network refresh");
-            return SyncingNetworkState::enter(shared_state, 0, SyncMode::Mandatory);
+            return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory);
         }
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
@@ -253,7 +253,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                             if force {
                                 return super::force_refresh(shared_state);
                             } else {
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                             }
                         }
                     },
@@ -267,7 +267,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         // No-op if the firewall was already down
                         if shared_state.firewall_active {
                             shared_state.firewall_active = false;
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                         }
                     },
 
