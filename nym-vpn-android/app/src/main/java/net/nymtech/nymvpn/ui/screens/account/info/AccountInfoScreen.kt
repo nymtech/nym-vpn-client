@@ -213,7 +213,7 @@ fun AccountInfoScreenContent(
 			onContactSupportClick = onContactSupportClick,
 		)
 
-		Spacer(Modifier.height(24.dp))
+		Spacer(Modifier.height(16.dp))
 
 		AccountActionCard(
 			title = stringResource(R.string.account_info_manage_button),
