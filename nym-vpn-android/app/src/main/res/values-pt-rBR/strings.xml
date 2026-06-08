@@ -154,6 +154,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 Indisponível</string>
 	<string name="error_device_logged_out">O dispositivo foi desconectado.</string>
 	<string name="error_inactive_account">O status da conta não está “Ativo”.</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">Falha ao configurar dns.</string>
 	<string name="error_set_firewall_policy">Falha ao definir política de firewall.</string>
 	<string name="error_set_routing">Falha ao configurar roteamento.</string>
@@ -203,7 +204,7 @@
 	<string name="auth_log_in_social_button">Fazer login usando as redes sociais *</string>
 	<string name="auth_log_in_info">* Você precisa conectar as redes sociais a uma conta existente \nprimeiro antes de usá-los para login. </string>
 	<string name="auth_passphrase_login_button">Entrar</string>
-	<string name="auth_passphrase_input_placeholder">Código de acesso</string>
+	<string name="auth_passphrase_input_placeholder">24 palavras-senha</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censura</string>
 	<string name="settings_passphrase_title">Palavra-chave</string>
@@ -402,6 +403,8 @@
 	<string name="banner_renew_text">Renove agora\npara ficar protegido</string>
 	<string name="account_info_auto_renew_text">*Renovação automática</string>
 	<string name="account_info_no_plan">Nenhuma assinatura ativa</string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">Confirmando pagamento</string>
 	<string name="account_info_autologin_fetching">Obtendo código de acesso…</string>
 	<string name="account_info_autologin_error">Falha ao obter o código de acesso. Por favor, tente novamente.</string>

@@ -154,6 +154,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 در دسترس نیست</string>
 	<string name="error_device_logged_out">دستگاه از حساب کاربری خارج شده است.</string>
 	<string name="error_inactive_account">وضعیت حساب \"فعال\" نیست.</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">پیکربندی Dns با شکست مواجه شد.</string>
 	<string name="error_set_firewall_policy">تنظیم سیاست فایروال ناموفق بود.</string>
 	<string name="error_set_routing">پیکربندی مسیریابی با خطا مواجه شد.</string>
@@ -276,7 +277,7 @@
 	<string name="welcome_usage_title">آمار استفاده را به اشتراک بگذارید</string>
 	<string name="welcome_usage_description">به ما کمک می‌کند شبکهٔ Nym را بهبود دهیم. هیچ لاگ‌گیری انجام نمی‌شود و هیچ فعالیتی ردیابی نمی‌گردد.</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_create_account_button">ایجاد حساب‌کاربری</string>
+	<string name="onboarding_create_account_button">ایجاد حساب کاربری</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">طرح اشتراک\n خود را انتخاب کنید</string>
 	<string name="select_plan_line_0">آزمایش رایگان ۷ روزه</string>
@@ -403,6 +404,8 @@
 	<string name="banner_renew_text">همین حالا تمدید کنید\nتا محافظت بشوید</string>
 	<string name="account_info_auto_renew_text">*تمدید-خودکار</string>
 	<string name="account_info_no_plan">اشتراک فعالی وجود ندارد</string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">در حال تأیید پرداخت</string>
 	<string name="account_info_autologin_fetching">در حال دریافت کد دسترسی…</string>
 	<string name="account_info_autologin_error">دریافت کد دسترسی ناموفق بود. لطفاً دوباره تلاش کنید.</string>

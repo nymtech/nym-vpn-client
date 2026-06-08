@@ -152,6 +152,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 Kullanılamıyor</string>
 	<string name="error_device_logged_out">Cihazdan çıkış yapıldı.</string>
 	<string name="error_inactive_account">Hesap durumu \"Aktif\" değil.</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">DNS yapılandırması başarısız oldu.</string>
 	<string name="error_set_firewall_policy">Güvenlik duvarı politikası ayarlanamadı.</string>
 	<string name="error_set_routing">Yönlendirme yapılandırılamadı.</string>
@@ -184,7 +185,7 @@
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Korumasız</string>
 	<string name="connection_status_fast_mode">Hızlı mod koruması</string>
-	<string name="connection_status_anonymous">Mixnet protection</string>
+	<string name="connection_status_anonymous">Mixnet koruması</string>
 	<!-- Hop Screen -->
 	<string name="gateway_best">En iyi sunucu</string>
 	<string name="gateway_random">Rastgele sunucu</string>
@@ -199,7 +200,7 @@
 	<string name="auth_log_in_title">Giriş yap</string>
 	<string name="auth_log_in_passphrase_button">24 kelime ile giriş yapın</string>
 	<string name="auth_log_in_social_button">Sosyal medya hesaplarıyla giriş yapın *</string>
-	<string name="auth_log_in_info">* You need to connect socials to an existing account \nfirst before you can use them for login. </string>
+	<string name="auth_log_in_info">* Giriş yapmak için öncelikle sosyal hesapları mevcut bir hesaba bağlamanız gerekir.</string>
 	<string name="auth_passphrase_login_button">Giriş yap</string>
 	<string name="auth_passphrase_input_placeholder">24 kelimelik kurtarma ifadesi</string>
 	<!-- Settings Screen -->
@@ -222,16 +223,16 @@
 	<string name="settings_event_lan_reconnecting">Yerel Alan Ağı (LAN) ayarlarını uygulamak için yeniden bağlanılıyor…</string>
 	<string name="settings_ad_blocking_title">Reklam engelleme</string>
 	<string name="settings_kill_switch_title">Kill switch</string>
-	<string name="settings_kill_switch_description">Disconnect if the internet drops</string>
+	<string name="settings_kill_switch_description">İnternet bağlantısı kesildiğinde ayırın</string>
 	<string name="settings_bypass_lan_title">LAN bypass</string>
 	<string name="settings_bypass_lan_description">Doğrudan yerel ağ erişimine izin ver</string>
 	<string name="settings_split_tunneling_title">Bölünmüş tünelleme</string>
-	<string name="settings_startup_title">Launch at startup</string>
+	<string name="settings_startup_title">Başlangıçta başlat</string>
 	<string name="settings_notifications_title">Bildirimler</string>
-	<string name="settings_power_managment_title">Power management</string>
-	<string name="settings_shortcuts_title">App shortcuts</string>
-	<string name="settings_logs_title">Logs &amp; data</string>
-	<string name="settings_legal_title">Legal</string>
+	<string name="settings_power_managment_title">Güç yönetimi</string>
+	<string name="settings_shortcuts_title">Uygulama kısayolları</string>
+	<string name="settings_logs_title">Günlükler ve veri</string>
+	<string name="settings_legal_title">Yasal</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Kısayolları kullanabilmek için önce cihazınızın ekran kilidini açmanız gerekiyor.</string>
 	<string name="shortcut_title">İşlemi onaylayın</string>
@@ -314,12 +315,12 @@
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">Bağlantı sorunları yaşıyorsanız veya bulunduğunuz lokasyonda NymVPN engeli ile karşılaşıyorsanız, bu özellikleri etkinleştirin.</string>
-	<string name="censorship_learn_more_link_text">Learn more</string>
+	<string name="censorship_learn_more_link_text">Daha fazla bilgi edinin</string>
 	<string name="censorship_quic_title">Geliştirilmiş bağlantı (QUIC)</string>
 	<string name="censorship_quic_description">Kısıtlayıcı ağlarda Hızlı modunun güvenilirliğini artırır; WireGuard trafiğini QUIC (HTTP/3) içinde paketleyerek normal web trafiği gibi görünmesini sağlar.\n\nNot: Giriş sunucusu seçeneklerini yalnızca QUIC uyumlu sunucular ile sınırlar.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API (Gizlilik odaklı API) bağlantısı</string>
-	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
+	<string name="censorship_stealth_description">VPN engellemesini önlemek için, gizli alanlar kullanır. Her zaman etkinleştirmek için açın veya normal bağlantılar başarısız olduğunda kullanmak için kapatın.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Sadece Hızlı mod lokasyonları ve QUIC protokolünü destekleyen sunucular gösteriliyor. Tüm sunucuları görmek için QUIC\'i kapatın.</string>
@@ -387,11 +388,11 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="account_title">Hesap ve cihazlar</string>
 	<string name="account_info_manage_button">Aboneliğinizi yönetin</string>
 	<string name="account_info_id_title">Hesap Kimlik No (ID)</string>
-	<string name="account_info_id_info">Safe to share. Use to contact Nym Support.</string>
+	<string name="account_info_id_info">Güvenli bir şekilde paylaşılabilir. Nym Desteği ile iletişime geçmek için kullanın.</string>
 	<string name="account_info_device_title">Cihaz Kimliği</string>
 	<string name="account_info_device_info">Bu cihazı nym.com hesabınıza bağlamak için buradaki bağlantıyı kullanın</string>
 	<string name="account_info_status_title">Hesap durumu</string>
-	<string name="account_info_bandwidth_title">Fair usage spent</string>
+	<string name="account_info_bandwidth_title">Adil kullanım harcaması tamamlandı</string>
 	<string name="account_info_limit_text">Limit</string>
 	<string name="account_info_reset_text">Sıfırlanır</string>
 	<string name="account_info_valid_text">Plan %s adresine kadar geçerlidir</string>
@@ -401,12 +402,14 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="banner_renew_text">Korunmak için şimdi\n yenileyin</string>
 	<string name="account_info_auto_renew_text">*Otomatik yenilenir</string>
 	<string name="account_info_no_plan">No active subscription</string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">Ödeme onaylanıyor</string>
 	<string name="account_info_autologin_fetching">Erişim kodu alınıyor…</string>
 	<string name="account_info_autologin_error">Erişim kodu alınamadı. Lütfen tekrar deneyin.</string>
-	<string name="account_info_add_social_action">Add a social login</string>
+	<string name="account_info_add_social_action">Sosyal giriş ekle</string>
 	<string name="account_info_add_social_suffix">\u0020method to your account.</string>
-	<string name="account_info_backup">Backup login method linked via Privy.</string>
+	<string name="account_info_backup">Privy üzerinden bağlantılı yedek giriş yöntemi.</string>
 	<string name="pin_code_title">Pin kodu</string>
 	<string name="pin_code_subtitle">Bu kodu web sitesine girin</string>
 	<string name="pin_code_copy_and_open">Kodu kopyalayın ve web sitesini açın</string>
@@ -512,6 +515,6 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="support_protect_title">⚠️ Kendinizi dolandırıcılardan koruyun</string>
 	<string name="support_protect_description">NymVPN destek ekibiyle sadece aşağıda belirtilen resmi kanallar üzerinden iletişime geçin. Kurtarma ifadenizi asla istemeyiz ve sizinle doğrudan mesajla temas kurmayız.\n\nBeklenmedik bir ileti aldıysanız, büyük olasılıkla bu bir dolandırıcılıktır.</string>
 	<!-- Private DNS modal -->
-	<string name="private_dns_title">Disable Private DNS to use ad blocker.</string>
+	<string name="private_dns_title">Reklam engelleyiciyi kullanmak için özel DNS\'i devre dışı bırakın.</string>
 	<string name="private_dns_button">Ayarları Açın</string>
 </resources>

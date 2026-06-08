@@ -152,6 +152,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 không khả dụng</string>
 	<string name="error_device_logged_out">Thiết bị đã đăng xuất.</string>
 	<string name="error_inactive_account">Tài khoản không trong trạng thái \"Hoạt động\".</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">Không cấu hình được dns.</string>
 	<string name="error_set_firewall_policy">Không thể thiết lập chính sách tường lửa.</string>
 	<string name="error_set_routing">Không cấu hình được định truyến.</string>
@@ -400,6 +401,8 @@
 	<string name="banner_renew_text">Gia hạn ngay\nđể tiếp tục được bảo vệ</string>
 	<string name="account_info_auto_renew_text">*Tự động gia hạn</string>
 	<string name="account_info_no_plan">Không phát hiện gói đăng ký đang hoạt động</string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">Xác nhận thanh toán</string>
 	<string name="account_info_autologin_fetching">Đang lấy mã truy cập…</string>
 	<string name="account_info_autologin_error">Không thể lấy mã truy cập. Vui lòng thử lại.</string>

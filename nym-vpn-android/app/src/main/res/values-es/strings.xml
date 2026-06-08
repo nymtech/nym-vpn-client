@@ -154,6 +154,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
 	<string name="error_device_logged_out">El dispositivo está desconectado.</string>
 	<string name="error_inactive_account">El estado de la cuenta no es \"Activo\".</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">Error al configurar dns.</string>
 	<string name="error_set_firewall_policy">Error al establecer la política de cortafuegos.</string>
 	<string name="error_set_routing">Error al configurar el enrutamiento.</string>
@@ -203,7 +204,7 @@
 	<string name="auth_log_in_social_button">Iniciar sesión usando redes sociales *</string>
 	<string name="auth_log_in_info">* Necesitas conectar las redes sociales a una cuenta existente \nprimero antes de poder usarlas para iniciar sesión. </string>
 	<string name="auth_passphrase_login_button">Iniciar sesión</string>
-	<string name="auth_passphrase_input_placeholder">Frase de contraseña de 24 palabras</string>
+	<string name="auth_passphrase_input_placeholder">Contraseña de 24 palabras</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anticensura</string>
 	<string name="settings_passphrase_title">Contraseña</string>
@@ -402,6 +403,8 @@
 	<string name="banner_renew_text">Renovar ahora\npara estar protegido</string>
 	<string name="account_info_auto_renew_text">* Auto-renovación</string>
 	<string name="account_info_no_plan">Ninguna suscripción activa</string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">Confirmando pago</string>
 	<string name="account_info_autologin_fetching">Recuperando el código de acceso…</string>
 	<string name="account_info_autologin_error">No se pudo obtener el código de acceso. Vuelve a intentarlo.</string>

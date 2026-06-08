@@ -154,6 +154,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 недоступен</string>
 	<string name="error_device_logged_out">Устройство вышло из системы.</string>
 	<string name="error_inactive_account">Статус учетной записи не \"Активен\".</string>
+	<string name="error_inactive_account_subtitle">Нажмите «Начать»</string>
 	<string name="error_set_dns">Не удалось настроить DNS.</string>
 	<string name="error_set_firewall_policy">Не удалось задать политику брандмауэра.</string>
 	<string name="error_set_routing">Не удалось настроить маршрутизацию.</string>
@@ -186,7 +187,7 @@
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Не защищено</string>
 	<string name="connection_status_fast_mode">Защита в быстром режиме</string>
-	<string name="connection_status_anonymous">Mixnet protection</string>
+	<string name="connection_status_anonymous">Защита микснета</string>
 	<!-- Hop Screen -->
 	<string name="gateway_best">Лучший сервер</string>
 	<string name="gateway_random">Случайный сервер</string>
@@ -402,11 +403,13 @@
 	<string name="banner_renew_text">Продлите сейчас,\nчтобы оставаться под защитой</string>
 	<string name="account_info_auto_renew_text">*Автопродление</string>
 	<string name="account_info_no_plan">Нет активной подписки</string>
+	<string name="account_info_contact_support_action">Свяжитесь со службой поддержки</string>
+	<string name="account_info_contact_support_suffix"> если вы достигнете лимита.</string>
 	<string name="account_info_confirming_payment">Подтверждение платежа</string>
 	<string name="account_info_autologin_fetching">Получение кода доступа…</string>
 	<string name="account_info_autologin_error">Не удалось получить код доступа. Пожалуйста, попробуйте еще раз.</string>
 	<string name="account_info_add_social_action">Добавьте вход через соцсети</string>
-	<string name="account_info_add_social_suffix"> method to your account.</string>
+	<string name="account_info_add_social_suffix"> способ входа в ваш аккаунт.</string>
 	<string name="account_info_backup">Резервный способ входа, привязанный через Privy.</string>
 	<string name="pin_code_title">PIN-код</string>
 	<string name="pin_code_subtitle">Введите этот код в браузере</string>
