@@ -3,16 +3,12 @@ name: cut-release-branch
 on:
   workflow_dispatch:
     inputs:
-      release_version:
-        description: "Enter release version YYYY.{n} (ex: 2026.1)"
-        type: string
-        required: true
       release_name:
-        description: "Enter release name (🍌🍉🥝🍍)"
+        description: "Enter release name (🏔️)"
         type: string
         required: true
       bump_type:
-        description: Which component of version to bump (MAJOR.MINOR.PATCH)
+        description: Which component of version to bump on develop branch (MAJOR.MINOR.PATCH)
         required: true
         type: choice
         options:
@@ -24,7 +20,6 @@ on:
         description: "Test run that will only print git diff and all changes being made"
         required: true
         type: boolean
-        default: true
 
 env:
   CARGO_TERM_COLOR: always
@@ -37,17 +32,23 @@ concurrency:
 
 jobs:
   push-release-branch:
+    name: Push release branch
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    outputs:
+      major: ${{ steps.next_version.outputs.major }}
+      minor: ${{ steps.next_version.outputs.minor }}
+      patch: ${{ steps.next_version.outputs.patch }}
     steps:
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
       - name: Validate input
+        env:
+          RELEASE_NAME: ${{ inputs.release_name }}
         run: |
-          if ! echo "${{ inputs.release_version }}" | grep -P '^[0-9]{4}\.[0-9]{1,2}$'; then
-            echo "::error:: Invalid release version format (expected: YYYY.{n})"
-            exit 1
-          fi
-          if ! echo "${{ inputs.release_name }}" | grep -P '^[a-z]+$'; then
+          if ! echo "$RELEASE_NAME" | grep -Pq '^[a-z]+$'; then
             echo "::error:: Invalid release name format (expected lowercase letters only)"
             exit 2
           fi
@@ -64,12 +65,48 @@ jobs:
           ref: develop
           ssh-key: ${{ secrets.CI_RELEASE_DEPLOY_KEY }}
 
+      - name: Compute next version for develop branch
+        id: next_version
+        working-directory: nym-vpn-core
+        env:
+          RELEASE_NAME: ${{ inputs.release_name }}
+        run: |
+          MAJOR=$(cargo get workspace.package.version --major)
+          MINOR=$(cargo get workspace.package.version --minor)
+          PATCH=$(cargo get workspace.package.version --patch)
+
+          # Omit patch if zero to keep release branch shorter (release/2026.10-name)
+          RELEASE_BRANCH_NAME="release/$MAJOR.$MINOR"
+          if [ "$PATCH" -ne 0 ]; then
+            RELEASE_BRANCH_NAME="${RELEASE_BRANCH_NAME}.${PATCH}"
+          fi
+          RELEASE_BRANCH_NAME="$RELEASE_BRANCH_NAME-$RELEASE_NAME"
+
+          case "${{ inputs.bump_type }}" in
+            major)
+              MAJOR=$((MAJOR+1))
+              MINOR=1
+              PATCH=0
+            ;;
+            minor)
+              MINOR=$(($MINOR+1))
+              ;;
+            patch)
+              PATCH=$(($PATCH+1))
+            ;;
+          esac
+
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
+          echo "patch=$PATCH" >> "$GITHUB_OUTPUT"
+          echo "release_branch=$RELEASE_BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
       - name: Create release branch
         env:
-          RELEASE_BRANCH: release/${{ inputs.release_version }}-${{ inputs.release_name }}
+          RELEASE_BRANCH: ${{ steps.next_version.outputs.release_branch }}
         run: |
           # match any i.e `yyyy.xx-*`
-          HEAD_COUNT=$(git ls-remote --heads origin 'refs/heads/release/${{ inputs.release_version }}-*' | wc -l | tr -d ' ')
+          HEAD_COUNT=$(git ls-remote --heads origin 'refs/heads/release/${{ env.RELEASE_BRANCH }}-*' | wc -l | tr -d ' ')
 
           if [ "$HEAD_COUNT" -eq "0" ]; then
             # create release branch and push it to remote
@@ -81,128 +118,24 @@ jobs:
               git push origin "${{ env.RELEASE_BRANCH }}"
             fi
           else
-            echo "::error:: 'release/${{ inputs.release_version }}-*' branch already exists but it must not!"
+            echo "::error:: '${{ env.RELEASE_BRANCH }}-*' branch already exists but it must not!"
             exit 1
           fi
 
   bump-develop:
-    runs-on: ubuntu-latest
+    name: Create PR updating version in develop branch
+    uses: ./.github/workflows/bump-all-platforms.yml
     needs: push-release-branch
     permissions:
       contents: write
       pull-requests: write
-    steps:
-      - name: Configure git
-        run: |
-          git config --global user.name "${{ env.GIT_USER }}"
-          git config --global user.email "${{ env.GIT_EMAIL }}"
-
-      - name: Checkout repo
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-          ref: develop
-
-      - name: Install Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-edit
-
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-get
-
-      - name: Install toml-cli
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: toml-cli
-
-      - name: Compute next version
-        id: next-version
-        working-directory: nym-vpn-core
-        run: |
-          VERSION=$(cargo get workspace.package.version)
-
-          # this would strip -beta suffix
-          cargo set-version --bump ${{ inputs.bump_type }}
-
-          # fetch bumped version
-          VERSION=$(cargo get workspace.package.version)
-
-          # put -beta suffix back
-          BETA_VERSION="$VERSION-beta"
-          # export ~beta version for debian
-          BETA_TILDE_VERSION="$VERSION~beta"
-
-          # cargo set-version doesn't allow downgrades, patch toml directly
-          toml set Cargo.toml workspace.package.version "$BETA_VERSION" > Cargo-patched.toml
-          mv Cargo-patched.toml Cargo.toml
-
-          echo "::notice:: Next version: $BETA_VERSION"
-          echo "next_version=$BETA_VERSION" >> "$GITHUB_OUTPUT"
-          echo "next_version_tilde=$BETA_TILDE_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Update nym-vpn-core/Cargo.toml
-        working-directory: nym-vpn-core
-        run: |
-          cargo set-version "${{ steps.next-version.outputs.next_version }}"
-          # dry-run will update Cargo.lock with new workspace version, without any other changes
-          cargo update --dry-run
-
-      - name: Update nym-vpn-app/src-tauri/Cargo.toml
-        working-directory: nym-vpn-app/src-tauri
-        run: |
-          cargo set-version "${{ steps.next-version.outputs.next_version }}"
-          # dry-run will update Cargo.lock with new package version, without any other changes
-          cargo update --dry-run
-
-      - name: Update nym-vpn-app/vpnd_compat.toml
-        working-directory: nym-vpn-app
-        run: |
-          toml set vpnd_compat.toml version ">=${{ steps.next-version.outputs.next_version }}" > new_vpnd_compat.toml
-          mv new_vpnd_compat.toml vpnd_compat.toml
-
-      - name: Install npm dependencies
-        working-directory: nym-vpn-app
-        run: npm install
-
-      - name: Update nym-vpn-app/src-tauri/tauri.conf.json
-        working-directory: nym-vpn-app/src-tauri
-        run: |
-          # replace version of deb dependency on nym-vpnd
-          QUERY=$(cat <<- 'EOD'
-              .bundle.linux.deb.depends[] |= if (. | startswith("nym-vpnd"))
-              then
-                  "nym-vpnd (>= ${{ steps.next-version.outputs.next_version_tilde }})"
-              else
-                  .
-              end
-          EOD
-          )
-          jq -r "$QUERY" tauri.conf.json > new_tauri.conf.json
-          npx prettier --config ../prettier.config.js --write new_tauri.conf.json
-          mv new_tauri.conf.json tauri.conf.json
-
-      - name: Create PR to bump develop to v${{ steps.next-version.outputs.next_version }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH_NAME: "ci/bump-develop-v${{ steps.next-version.outputs.next_version }}"
-        run: |
-          git diff
-          if [ '${{ inputs.dry_run }}' == 'true' ]; then
-            echo "::warning:: Dry run, skipping commit and PR creation"
-          else
-            git checkout -b "${{ env.BRANCH_NAME }}"
-            git commit -a -m "ci: bump develop to v${{ steps.next-version.outputs.next_version }}"
-            git push origin "${{ env.BRANCH_NAME }}"
-            gh pr create \
-                --title 'Bump develop to `v${{ steps.next-version.outputs.next_version }}`' \
-                --body 'This PR bumps develop to `v${{ steps.next-version.outputs.next_version }}`' \
-                --milestone "no-milestone"
-          fi
+    with:
+      branch: develop
+      major: ${{ needs.push-release-branch.outputs.major }}
+      minor: ${{ needs.push-release-branch.outputs.minor }}
+      patch: ${{ needs.push-release-branch.outputs.patch }}
+      release_kind: beta
+      pre_release_ident: 1
+      update_linux_installer: false
+      update_changelog: true
+      dry_run: ${{ inputs.dry_run }}

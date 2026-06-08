@@ -91,19 +91,36 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
 
-      - name: Get nym-vpn-core workspace version
-        id: workspace-version-pre
-        uses: nicolaiunrein/cargo-get@master
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
         with:
-          subcommand: workspace.package.version --entry nym-vpn-core
+          crate: cargo-get
+
+      - name: Install toml
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: toml-cli
 
       - name: Install cargo-edit
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-edit
 
-      - name: Append timestamp if it's a pre-release version
-        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version-pre.outputs.metadata }}
+      - name: Set version for nightly builds
+        working-directory: nym-vpn-core
+        if: ${{ github.ref_name == 'develop' }}
+        run: |
+          if [ ${{ github.event_name }} = 'schedule' ]; then
+            TAG="nightly"
+          else
+            TAG="dev"
+          fi
+          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
+          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
+          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
+          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
+          mv Cargo-patched.toml Cargo.toml
+          cargo update --dry-run
 
       - name: Get nym-vpn-core workspace version (post-append)
         id: workspace-version

@@ -1,0 +1,123 @@
+name: bump-release-branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      is_release_bump:
+        description: "Release 🚀 (drops beta suffix)"
+        required: true
+        type: boolean
+        default: false
+      branch:
+        description: "Git branch to run against (uses github ref if not set)"
+        type: string
+        required: false
+      dry_run:
+        description: "Test run that will only print git diff and all changes being made"
+        required: true
+        type: boolean
+        default: true
+
+env:
+  CARGO_TERM_COLOR: always
+  GIT_USER: NYM CI
+  GIT_EMAIL: ci@nymtech.net
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  next-release-version:
+    name: Compute ${{ case(inputs.is_release_bump, 'release', 'next beta') }} version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      major: ${{ steps.version.outputs.major }}
+      minor: ${{ steps.version.outputs.minor }}
+      patch: ${{ steps.version.outputs.patch }}
+      release_kind: ${{ steps.version.outputs.release_kind }}
+      pre_release_ident: ${{ steps.version.outputs.pre_release_ident }}
+    env:
+      GIT_BRANCH: ${{ inputs.branch || github.ref_name }}
+    steps:
+      - name: Validate input
+        run: |
+          if [ ! echo "${{ env.GIT_BRANCH }}" | grep -P '^release/.+$' && ! ${{ inputs.dry_run }} ]; then
+            echo "::error:: Branch must start with 'release/' (got: ${{ env.GIT_BRANCH }})"
+            exit 1
+          fi
+
+      - name: Configure git
+        run: |
+          git config --global user.name "${{ env.GIT_USER }}"
+          git config --global user.email "${{ env.GIT_EMAIL }}"
+
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          ref: ${{ env.GIT_BRANCH }}
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Compute version
+        id: version
+        working-directory: nym-vpn-core
+        run: |
+          CURRENT_VERSION=$(cargo get workspace.package.version)
+          echo "::notice:: Current version: $CURRENT_VERSION"
+
+          MAJOR=$(cargo get workspace.package.version --major)
+          MINOR=$(cargo get workspace.package.version --minor)
+          PATCH=$(cargo get workspace.package.version --patch)
+
+          PRE=$(cargo get workspace.package.version --pre)
+
+          # This must not be the case once develop contains "-beta.1" in Cargo.toml
+          if [ "$PRE" = "beta" ]; then
+            PRE="beta.0"
+          elif ! echo "$PRE" | grep -Pq '^beta\.[1-9][0-9]?$'; then
+            echo "::error:: Version '$CURRENT_VERSION' does not have a '-beta.*' suffix"
+            exit 1
+          fi
+
+          # Increment beta version if not a release bump
+          if [ "${{ inputs.is_release_bump }}" = "false" ]; then
+            PRE_RELEASE_IDENT=$(echo "$PRE" | cut -d. -f2)
+            PRE_RELEASE_IDENT=$(($PRE_RELEASE_IDENT + 1))
+            RELEASE_KIND="beta"
+            echo "::notice:: Next version: $MAJOR.$MINOR.$PATCH-$RELEASE_KIND.$PRE_RELEASE_IDENT"
+          else
+            RELEASE_KIND="stable"
+            PRE_RELEASE_IDENT="1" # unused but keeps workflow_call happy
+            echo "::notice:: Next version: $MAJOR.$MINOR.$PATCH"
+          fi
+
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
+          echo "patch=$PATCH" >> "$GITHUB_OUTPUT"
+          echo "release_kind=$RELEASE_KIND" >> "$GITHUB_OUTPUT"
+          echo "pre_release_ident=$PRE_RELEASE_IDENT" >> "$GITHUB_OUTPUT"
+
+  bump-release-branch:
+    name: Create PR updating version in ${{ inputs.branch || github.ref_name }} branch
+    needs: next-release-version
+    uses: ./.github/workflows/bump-all-platforms.yml
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      branch: ${{ inputs.branch || github.ref_name }}
+      major: ${{ needs.next-release-version.outputs.major }}
+      minor: ${{ needs.next-release-version.outputs.minor }}
+      patch: ${{ needs.next-release-version.outputs.patch }}
+      release_kind: ${{ needs.next-release-version.outputs.release_kind }}
+      pre_release_ident: ${{ needs.next-release-version.outputs.pre_release_ident }}
+      update_linux_installer: ${{ inputs.is_release_bump }}
+      update_changelog: ${{ inputs.is_release_bump }}
+      dry_run: ${{ inputs.dry_run }}
