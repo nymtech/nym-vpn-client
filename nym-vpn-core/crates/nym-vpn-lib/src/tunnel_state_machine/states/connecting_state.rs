@@ -889,22 +889,6 @@ impl ConnectingPolicyParameters {
             })
             .collect::<Vec<_>>();
 
-        // Allow LP control endpoints for LP-based registration.
-        peer_endpoints.extend(
-            self.lp_entry_endpoints
-                .iter()
-                .filter(|addr| addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()))
-                .map(|addr| {
-                    AllowedEndpoint::new(
-                        Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
-                        #[cfg(any(target_os = "linux", target_os = "macos"))]
-                        AllowedClients::Root,
-                        #[cfg(target_os = "windows")]
-                        AllowedClients::current_exe(),
-                    )
-                }),
-        );
-
         // Allow WireGuard and entry endpoint
         if let Some(addr) = self.wg_entry_endpoint {
             if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
@@ -938,7 +922,7 @@ impl ConnectingPolicyParameters {
             });
 
         // Allow API endpoints
-        let allowed_endpoints = self
+        let mut allowed_endpoints = self
             .api_endpoints
             .iter()
             .filter(|ip| ip.is_ipv4() || (self.enable_ipv6 && ip.is_ipv6()))
@@ -952,6 +936,23 @@ impl ConnectingPolicyParameters {
                 )
             })
             .collect::<Vec<_>>();
+
+        // Allow LP control endpoints for LP-based registration.
+        allowed_endpoints.extend(
+            self.lp_entry_endpoints
+                .iter()
+                .filter(|addr| addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()))
+                .map(|addr| {
+                    tracing::info!("In policy lp ep: {addr}");
+                    AllowedEndpoint::new(
+                        Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
+                        #[cfg(any(target_os = "linux", target_os = "macos"))]
+                        AllowedClients::Root,
+                        #[cfg(target_os = "windows")]
+                        AllowedClients::current_exe(),
+                    )
+                }),
+        );
 
         let tunnel = self
             .tunnel_interface
