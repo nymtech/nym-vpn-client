@@ -435,9 +435,8 @@ private fun MainScreenPreviewAlertCritical() {
 			onEntryInfoClick = {},
 			previewAlertMessage = AlertMessage(
 				type = AlertType.Error,
-				title = "Secure your secret passphrase",
-				body = "No passphrase no access to account",
-				action = AlertAction("Back up now") {},
+				title = stringResource(R.string.error_inactive_account),
+				body = stringResource(R.string.error_inactive_account_subtitle),
 				duration = Long.MAX_VALUE,
 			),
 		)

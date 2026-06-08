@@ -169,6 +169,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
 	<string name="error_device_logged_out">Device is logged out.</string>
 	<string name="error_inactive_account">Account status is not "Active".</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">Failed to configure dns.</string>
 	<string name="error_set_firewall_policy">Failed to set firewall policy.</string>
 	<string name="error_set_routing">Failed to configure routing.</string>
@@ -419,6 +420,9 @@
 	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*Auto-renews</string>
 	<string name="account_info_no_plan">No active subscription</string>
+	<string name="account_info_contact_support_icon" translatable="false">⚡ </string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">Confirming payment</string>
 	<string name="account_info_autologin_fetching">Fetching access code…</string>
 	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>

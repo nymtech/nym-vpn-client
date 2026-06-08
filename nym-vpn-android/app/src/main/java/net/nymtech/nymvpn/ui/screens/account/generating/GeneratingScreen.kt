@@ -25,7 +25,7 @@ import net.nymtech.nymvpn.ui.common.snackbar.AlertController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.theme.*
-import net.nymtech.nymvpn.util.extensions.goFromRoot
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 
 @Composable
@@ -39,7 +39,7 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 	LaunchedEffect(Unit) {
 		viewModel.error.collect {
 			AlertController.show(AlertMessage(type = AlertType.Error, title = errorText))
-			navController.goFromRoot(Route.Main(showAuth = true))
+			navController.navigateAndForget(Route.Main(showAuth = true))
 		}
 	}
 
@@ -47,7 +47,7 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 		if (animationEnded && pendingNavigation != null) {
 			when (pendingNavigation) {
 				Route.SelectPlan -> navController.replaceCurrentWith(Route.SelectPlan)
-				else -> navController.goFromRoot(Route.Main())
+				else -> navController.replaceCurrentWith(Route.Main())
 			}
 		}
 	}

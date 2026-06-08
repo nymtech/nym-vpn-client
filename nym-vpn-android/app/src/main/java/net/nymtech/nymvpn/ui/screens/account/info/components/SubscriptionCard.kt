@@ -36,6 +36,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
@@ -74,6 +78,8 @@ fun SubscriptionSection(subscriptionState: SubscriptionUiState?, bandwidthState:
 
 			subscriptionState?.expiryState == ExpiryState.PENDING -> {
 				ExpiredCard(onRenewClick)
+				Spacer(modifier = Modifier.height(8.dp))
+				ContactSupportText(onContactSupportClick)
 			}
 			else -> {
 				if (bandwidthState != null) {
@@ -82,9 +88,9 @@ fun SubscriptionSection(subscriptionState: SubscriptionUiState?, bandwidthState:
 						bandwidth = bandwidthState,
 						onRenewClick = onRenewClick,
 					)
-
-					Spacer(modifier = Modifier.height(16.dp))
+					Spacer(modifier = Modifier.height(8.dp))
 				}
+				ContactSupportText(onContactSupportClick)
 			}
 		}
 	}
@@ -261,6 +267,37 @@ private fun ExpiredCard(onRenewClick: () -> Unit) {
 	}
 }
 
+@Composable
+private fun ContactSupportText(onClick: () -> Unit) {
+	val annotatedString = buildAnnotatedString {
+		withStyle(SpanStyle(color = LocalNymColors.current.warning)) {
+			append(stringResource(R.string.account_info_contact_support_icon))
+		}
+		append(" ")
+		withStyle(
+			SpanStyle(
+				color = MaterialTheme.colorScheme.onSurface,
+				textDecoration = TextDecoration.Underline,
+			),
+		) {
+			append(stringResource(R.string.account_info_contact_support_action))
+		}
+		append(" ")
+		withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {
+			append(stringResource(R.string.account_info_contact_support_suffix))
+		}
+	}
+
+	Text(
+		text = annotatedString,
+		style = MaterialTheme.typography.bodyMedium,
+		modifier = Modifier
+			.fillMaxWidth()
+			.clickable { onClick() }
+			.padding(horizontal = 8.dp, vertical = 8.dp),
+	)
+}
+
 data class BandwidthUiState(val consumedGb: Float, val totalGb: Float, val percentage: Float, val resetDate: String)
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -269,22 +306,24 @@ private fun PreviewAccountStatusNormal() {
 	NymVPNTheme(Theme.default()) {
 		Scaffold { padding ->
 			Box(modifier = Modifier.padding(padding).padding(16.dp)) {
-				SubscriptionSection(
-					subscriptionState = SubscriptionUiState(
-						isRecurring = true,
-						validUntilDate = "December 24, 2026",
-						expiryState = ExpiryState.NORMAL,
-					),
-					bandwidthState = BandwidthUiState(
-						consumedGb = 800f,
-						totalGb = 2000f,
-						percentage = 0.4f,
-						resetDate = "2026.03.18",
-					),
-					onSelectPlanClick = {},
-					onRenewClick = {},
-					onContactSupportClick = {},
-				)
+				Column {
+					SubscriptionSection(
+						subscriptionState = SubscriptionUiState(
+							isRecurring = true,
+							validUntilDate = "December 24, 2026",
+							expiryState = ExpiryState.NORMAL,
+						),
+						bandwidthState = BandwidthUiState(
+							consumedGb = 800f,
+							totalGb = 2000f,
+							percentage = 0.4f,
+							resetDate = "2026.03.18",
+						),
+						onSelectPlanClick = {},
+						onRenewClick = {},
+						onContactSupportClick = {},
+					)
+				}
 			}
 		}
 	}
