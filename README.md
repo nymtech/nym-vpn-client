@@ -7,13 +7,13 @@ NymVPN is the most private way to be online. Open-source, cross-platform VPN cli
 A decentralized VPN (dVPN) that protects **traffic patterns, not just packet contents**. Conventional VPNs replace your ISP with a single trusted operator who can see both your IP and your destinations. NymVPN removes that trusted party:
 
 - **Mixnet routing** — 5-hop onion-encrypted routing through Nym's [Noise Generating Mixnet](https://nym.com/mixnet). Anonymized packets are sent through randomized routes, and mixed with other cover traffic, and timing obfuscated to defeat traffic-analysis attacks.
-- **Multi-hop WireGuard** — 2-hop AmneziaWG tunneling for performance-sensitive use, with no single node seeing both your origin IP and your that of your destination on the web.
+- **Multi-hop WireGuard** — 2-hop AmneziaWG tunneling for performance-sensitive use, with no single node seeing both your origin IP and that of your destination on the web.
 - **Zero-knowledge credentials ([zk-nyms](https://nym.com/zk-nyms))** — authentication and payment are cryptographically unlinkable from network usage. No email or account identity is required to connect.
-- **No single point of failure** — operated by independent node operator, with no central server to compromise, subpoena, or surveil.
+- **No single point of failure** — operated by independent node operators, with no central server to compromise, subpoena, or surveil.
 
 Tech details and cryptography are documented in the [NymVPN Litepaper](https://nym.com/nymvpn-litepaper) and the [Nym Whitepaper](https://nym.com/nym-whitepaper.pdf).
 
-### NymVPN Downloads
+# NymVPN Downloads
 
 [![Android (GitHub releases)](.github/assets/apk-download-badge-1745835177551.png)](https://github.com/nymtech/nym-vpn-client/releases?q=android&expanded=true)
 [![F-Droid](.github/assets/fdroid-badge.png)](https://f-droid.org/packages/net.nymtech.nymvpn/)
