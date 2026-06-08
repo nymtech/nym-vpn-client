@@ -245,20 +245,16 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                     },
                     AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
-                    AccountCommand::RefreshAccountState(return_sender) => {
+                    AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         return if shared_state.firewall_active {
                             NextAccountControllerState::SameState(self)
                         } else {
-                            NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic))
-                        }
-                    },
-                    AccountCommand::ForceRefreshAccountState(return_sender) => {
-                        return_sender.send(Ok(()));
-                        return if shared_state.firewall_active {
-                            NextAccountControllerState::SameState(self)
-                        } else {
-                           NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Mandatory))
+                            if force {
+                                return super::force_refresh(shared_state);
+                            } else {
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                            }
                         }
                     },
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {

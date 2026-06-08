@@ -135,21 +135,10 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
-    pub async fn background_refresh_account_state(&self) -> Result<(), AccountCommandError> {
+    pub async fn refresh_account_state(&self, force: bool) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::RefreshAccountState(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
-    }
-
-    /// Force a network sync with the VPN API, re-fetching the account summary rather than
-    /// re-evaluating the locally cached one.
-    #[instrument(skip(self))]
-    pub async fn force_refresh_account_state(&self) -> Result<(), AccountCommandError> {
-        let (tx, rx) = ReturnSender::new();
-        self.command_tx
-            .send(AccountCommand::ForceRefreshAccountState(tx))
+            .send(AccountCommand::RefreshAccountState(tx, force))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
@@ -347,7 +336,7 @@ impl AccountCommandSender {
         // rather than re-evaluating the stale cached summary.
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::ForceRefreshAccountState(tx))
+            .send(AccountCommand::RefreshAccountState(tx, true))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

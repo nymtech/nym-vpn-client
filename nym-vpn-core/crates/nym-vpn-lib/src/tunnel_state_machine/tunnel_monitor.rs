@@ -809,7 +809,7 @@ impl TunnelMonitor {
                     "Account controller is in a retryable error state : {reason}. Forcing a refresh"
                 );
                 self.account_command_tx
-                    .background_refresh_account_state()
+                    .refresh_account_state(false)
                     .await
                     .map_err(|e| Error::Account(account::Error::Command(e)))?;
                 self.account_controller_state

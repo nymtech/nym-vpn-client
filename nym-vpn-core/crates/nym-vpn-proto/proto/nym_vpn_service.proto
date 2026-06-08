@@ -809,6 +809,10 @@ message DecentralisedObtainTicketbooksRequest {
   uint64 amount = 1;
 }
 
+message RefreshAccountStateRequest {
+  bool force = 1;
+}
+
 message AccountCommandResponse {
   optional AccountCommandError error = 1;
 }
@@ -1230,7 +1234,7 @@ service NymVpnService {
 
   // The vpn client will periodically refresh the account state in the
   // background. This command triggers a manual refresh.
-  rpc RefreshAccountState(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc RefreshAccountState(RefreshAccountStateRequest) returns (google.protobuf.Empty) {}
 
   // Get the account usage from the nym-vpn-api
   rpc GetAccountUsage(google.protobuf.Empty) returns (GetAccountUsageResponse) {}

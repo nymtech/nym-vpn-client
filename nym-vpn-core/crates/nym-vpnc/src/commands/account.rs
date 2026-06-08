@@ -45,7 +45,11 @@ pub enum Command {
     },
     /// Refresh account state
     #[clap(hide = true)]
-    Refresh,
+    Refresh {
+        /// Force a fresh fetch from the nym-vpn-api instead of re-evaluating the cached summary
+        #[arg(long, short)]
+        force: bool,
+    },
     /// Get available tickets
     #[clap(hide = true)]
     AvailableTickets,
@@ -175,8 +179,8 @@ impl Command {
 
                 Ok(())
             }
-            Command::Refresh => {
-                rpc_client.refresh_account_state().await?;
+            Command::Refresh { force } => {
+                rpc_client.refresh_account_state(force).await?;
                 Ok(())
             }
             Command::AvailableTickets => {

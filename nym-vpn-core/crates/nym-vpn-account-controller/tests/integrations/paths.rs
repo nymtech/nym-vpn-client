@@ -429,7 +429,7 @@ async fn force_refresh_detects_inactive_account_test() -> anyhow::Result<()> {
         .await;
 
     assert_eq!(
-        test_bench.command_sender.force_refresh_account_state().await,
+        test_bench.command_sender.refresh_account_state(true).await,
         Ok(())
     );
     test_bench
@@ -478,10 +478,7 @@ async fn optimistic_refresh_falls_back_but_force_refresh_surfaces_error_test() -
 
     // Optimistic refresh: the fetch fails, but we fall back to the cached summary and stay ready.
     assert_eq!(
-        test_bench
-            .command_sender
-            .background_refresh_account_state()
-            .await,
+        test_bench.command_sender.refresh_account_state(false).await,
         Ok(())
     );
     test_bench
@@ -490,7 +487,7 @@ async fn optimistic_refresh_falls_back_but_force_refresh_surfaces_error_test() -
 
     // Force refresh: no cache fallback, so the API error is surfaced (after exhausting retries).
     assert_eq!(
-        test_bench.command_sender.force_refresh_account_state().await,
+        test_bench.command_sender.refresh_account_state(true).await,
         Ok(())
     );
     test_bench

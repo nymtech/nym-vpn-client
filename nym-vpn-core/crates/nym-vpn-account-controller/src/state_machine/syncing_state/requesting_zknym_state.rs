@@ -356,26 +356,21 @@ impl RequestingZkNymsState {
                     SyncMode::Optimistic,
                 ));
             }
-            AccountCommand::RefreshAccountState(return_sender) => {
+            AccountCommand::RefreshAccountState(return_sender, force) => {
                 return_sender.send(Ok(()));
                 return if shared_state.firewall_active {
                     NextAccountControllerState::SameState(self)
                 } else {
                     self.zk_nym_fetching_handle.abort();
-                    NextAccountControllerState::NewState(SyncingNetworkState::enter(
-                        shared_state,
-                        0,
-                        SyncMode::Optimistic,
-                    ))
-                };
-            }
-            AccountCommand::ForceRefreshAccountState(return_sender) => {
-                return_sender.send(Ok(()));
-                return if shared_state.firewall_active {
-                    NextAccountControllerState::SameState(self)
-                } else {
-                    self.zk_nym_fetching_handle.abort();
-                    syncing_state::force_refresh(shared_state)
+                    if force {
+                        return syncing_state::force_refresh(shared_state);
+                    } else {
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                            shared_state,
+                            0,
+                            SyncMode::Optimistic,
+                        ));
+                    }
                 };
             }
             AccountCommand::VpnApiFirewallDown(return_sender) => {

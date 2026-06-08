@@ -100,20 +100,16 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for PendingSubscri
                             return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
                         }
                     },
-                    AccountCommand::RefreshAccountState(return_sender) => {
+                    AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         if shared_state.firewall_active {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
-                        }
-                    },
-                    AccountCommand::ForceRefreshAccountState(return_sender) => {
-                        return_sender.send(Ok(()));
-                        if shared_state.firewall_active {
-                            return NextAccountControllerState::SameState(self);
-                        } else {
-                            return syncing_state::force_refresh(shared_state);
+                            if force {
+                                return syncing_state::force_refresh(shared_state);
+                            } else {
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, 0, SyncMode::Optimistic));
+                            }
                         }
                     },
                     AccountCommand::VpnApiFirewallDown(return_sender) => {

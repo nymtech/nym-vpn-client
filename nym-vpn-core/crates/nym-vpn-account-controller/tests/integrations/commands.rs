@@ -31,10 +31,7 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
     test_bench.register_vpn_api_mocks(mocks).await;
 
     assert_eq!(
-        test_bench
-            .command_sender
-            .background_refresh_account_state()
-            .await,
+        test_bench.command_sender.refresh_account_state(false).await,
         Err(AccountCommandError::NoAccountStored)
     );
 
@@ -124,10 +121,7 @@ async fn offline_state_command() -> anyhow::Result<()> {
         .await;
 
     assert_eq!(
-        test_bench
-            .command_sender
-            .background_refresh_account_state()
-            .await,
+        test_bench.command_sender.refresh_account_state(false).await,
         Err(AccountCommandError::Offline)
     );
 
@@ -254,10 +248,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
 
     // A local refresh re-evaluates the cached summary and lands back in the ready state.
     assert_eq!(
-        test_bench
-            .command_sender
-            .background_refresh_account_state()
-            .await,
+        test_bench.command_sender.refresh_account_state(false).await,
         Ok(())
     );
     test_bench
@@ -266,10 +257,7 @@ async fn ready_state_command() -> anyhow::Result<()> {
 
     // A force refresh re-syncs with the VPN API, going through the syncing state.
     assert_eq!(
-        test_bench
-            .command_sender
-            .force_refresh_account_state()
-            .await,
+        test_bench.command_sender.refresh_account_state(true).await,
         Ok(())
     );
     test_bench
@@ -375,10 +363,7 @@ async fn error_state_command() -> anyhow::Result<()> {
 
     // A local refresh re-evaluates the cached summary and lands back in the error state.
     assert_eq!(
-        test_bench
-            .command_sender
-            .background_refresh_account_state()
-            .await,
+        test_bench.command_sender.refresh_account_state(false).await,
         Ok(())
     );
     test_bench
@@ -389,10 +374,7 @@ async fn error_state_command() -> anyhow::Result<()> {
 
     // A force refresh re-syncs with the VPN API, going through the syncing state.
     assert_eq!(
-        test_bench
-            .command_sender
-            .force_refresh_account_state()
-            .await,
+        test_bench.command_sender.refresh_account_state(true).await,
         Ok(())
     );
     test_bench

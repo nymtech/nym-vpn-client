@@ -171,7 +171,7 @@ impl UpgradeModeState {
                     ))
                 };
             }
-            AccountCommand::RefreshAccountState(return_sender) => {
+            AccountCommand::RefreshAccountState(return_sender, force) => {
                 return_sender.send(Ok(()));
                 if shared_state.firewall_active {
                     warn!("firewall is active - unable to refresh account state");
@@ -180,23 +180,15 @@ impl UpgradeModeState {
                     if let Err(error_state) = Self::on_exit(shared_state).await {
                         return error_state.into();
                     }
-                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(
-                        shared_state,
-                        0,
-                        SyncMode::Optimistic,
-                    ));
-                }
-            }
-            AccountCommand::ForceRefreshAccountState(return_sender) => {
-                return_sender.send(Ok(()));
-                if shared_state.firewall_active {
-                    warn!("firewall is active - unable to refresh account state");
-                    return NextAccountControllerState::SameState(self);
-                } else {
-                    if let Err(error_state) = Self::on_exit(shared_state).await {
-                        return error_state.into();
+                    if force {
+                        return syncing_state::force_refresh(shared_state);
+                    } else {
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                            shared_state,
+                            0,
+                            SyncMode::Optimistic,
+                        ));
                     }
-                    return syncing_state::force_refresh(shared_state);
                 }
             }
             AccountCommand::VpnApiFirewallDown(return_sender) => {
