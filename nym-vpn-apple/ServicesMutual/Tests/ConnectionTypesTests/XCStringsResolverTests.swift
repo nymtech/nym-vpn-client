@@ -6,7 +6,7 @@ struct XCStringsResolverTests {
         #expect(resolver.string("planExpiresOn") == "Plan expires on")
         #expect(resolver.string("planValidUntil") == "Plan valid until")
         #expect(resolver.string("noActivePlan") == "This account has no active subscription")
-        #expect(resolver.string("settings.logout") == "Logout")
+        #expect(resolver.string("settings.logout") == "Log out")
     }
 
     @Test func unknownKeyFallsBackToKey() throws {
