@@ -40,9 +40,8 @@ fun MainAlerts(
 
 	var isShowingConnectionErrorAlert by remember { mutableStateOf(false) }
 	var isShowingExpiredAlert by remember { mutableStateOf(false) }
-	var isShowingInactiveAccountAlert by remember { mutableStateOf(false) }
+	var isShowingInactiveAccountAlert by rememberSaveable { mutableStateOf(false) }
 	var expiredAlertShown by rememberSaveable { mutableStateOf(false) }
-	var prevWasAccountNotActive by remember { mutableStateOf<Boolean?>(null) }
 
 	val autologinErrorTitle = stringResource(R.string.account_info_autologin_error)
 	LaunchedEffect(autologinState) {
@@ -94,15 +93,17 @@ fun MainAlerts(
 	}
 
 	val inactiveAccountTitle = stringResource(R.string.error_inactive_account)
+	val inactiveAccountBody = stringResource(R.string.error_inactive_account_subtitle)
 	LaunchedEffect(accountState) {
 		val isInactive = accountState is AccountControllerState.Error &&
 			accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
-		if (isInactive && prevWasAccountNotActive != true) {
+		if (isInactive && !isShowingInactiveAccountAlert) {
 			isShowingInactiveAccountAlert = true
 			AlertController.show(
 				AlertMessage(
 					type = AlertType.Error,
 					title = inactiveAccountTitle,
+					body = inactiveAccountBody,
 					duration = Long.MAX_VALUE,
 					onDismiss = { isShowingInactiveAccountAlert = false },
 				),
@@ -111,7 +112,6 @@ fun MainAlerts(
 			AlertController.dismiss()
 			isShowingInactiveAccountAlert = false
 		}
-		prevWasAccountNotActive = isInactive
 	}
 
 	LaunchedEffect(Unit) {
