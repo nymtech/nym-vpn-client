@@ -155,15 +155,11 @@ impl SyncingNetworkState {
         // Fetch the remote time so the summary can record whether our clock is acceptably synced
         // (a desync would make zk-nyms fail to verify on gateways). The desync itself is surfaced
         // later, during the local checks, via `VpnAccountSummary::time_synced`.
-        let remote_time = vpn_api_client
-            .get_remote_time()
-            .await
-            .map_err(map_vpn_api_error)?;
+        let remote_time = vpn_api_client.get_remote_time().await?;
 
         let summary = vpn_api_client
             .get_account_summary_with_device(vpn_api_account, device)
-            .await
-            .map_err(map_vpn_api_error)?;
+            .await?;
 
         tracing::debug!("{summary:#?}");
 
@@ -318,11 +314,11 @@ impl SyncError {
         match self {
             ApiRequestError(e) => AccountControllerErrorStateReason::ApiFailure {
                 context: SYNCING_NETWORK_STATE_CONTEXT.into(),
-                details: e,
+                details: format!("Failure to reach the API {}", e),
             },
             ApiResponseError { details } => AccountControllerErrorStateReason::ApiFailure {
                 context: SYNCING_NETWORK_STATE_CONTEXT.into(),
-                details,
+                details: format!("API returned an error:  {}", details),
             },
             UnregisteredAccount => AccountControllerErrorStateReason::AccountStatusNotActive {
                 status: "unregistered".into(),
@@ -334,34 +330,23 @@ impl SyncError {
 impl From<VpnApiClientError> for SyncError {
     fn from(value: VpnApiClientError) -> Self {
         match NymErrorResponse::try_from(value) {
-            Ok(error_response) => SyncError::ApiResponseError {
-                details: error_response
-                    .code_reference_id
-                    .unwrap_or(error_response.message),
-            },
-            Err(e) => SyncError::ApiRequestError(e.to_string()),
-        }
-    }
-}
-
-fn map_vpn_api_error(err: VpnApiClientError) -> SyncError {
-    match NymErrorResponse::try_from(err) {
-        Ok(error_response) => {
-            // SW Use UUID when it will be available
-            if error_response.status == "access_denied"
-                && error_response.message == "Account not found"
-            {
-                // Request was fine, but account is unregistered
-                // Later down the line we can maybe register it here
-                SyncError::UnregisteredAccount
-            } else {
-                SyncError::ApiResponseError {
-                    details: error_response
-                        .code_reference_id
-                        .unwrap_or(error_response.message),
+            Ok(error_response) => {
+                // SW Use UUID when it will be available
+                if error_response.status == "access_denied"
+                    && error_response.message == "Account not found"
+                {
+                    // Request was fine, but account is unregistered
+                    // Later down the line we can maybe register it here
+                    SyncError::UnregisteredAccount
+                } else {
+                    SyncError::ApiResponseError {
+                        details: error_response
+                            .code_reference_id
+                            .unwrap_or(error_response.message),
+                    }
                 }
             }
+            Err(e) => SyncError::ApiRequestError(e.to_string()),
         }
-        Err(err) => SyncError::from(err),
     }
 }
