@@ -21,6 +21,8 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.screens.auth.routeName
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 import timber.log.Timber
@@ -140,7 +142,7 @@ constructor(private val billingManager: BillingManager, private val backendManag
 
 	private suspend fun decidePostPaymentRoute(): Route {
 		val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
-		return if (shouldShowTechnical) Route.Technical else Route.Main()
+		return if (shouldShowTechnical) Route.Main(authRoute = AuthRoute.TechOpt.routeName) else Route.Main()
 	}
 
 	fun startPurchaseFlow(activity: Activity, productId: String, userId: String?) {

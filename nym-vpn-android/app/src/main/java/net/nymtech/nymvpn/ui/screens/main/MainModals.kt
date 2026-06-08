@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
@@ -42,6 +43,7 @@ fun MainModals(
 	onDismissStats: () -> Unit,
 	onDismissAuthSheet: () -> Unit,
 	onAuthSuccess: () -> Unit,
+	appUiState: AppUiState,
 ) {
 	val context = LocalContext.current
 	val activity = context as? MainActivity
@@ -99,5 +101,6 @@ fun MainModals(
 				savePasswordToManager(context = context, password = password)
 			}
 		},
+		appUiState = appUiState,
 	)
 }

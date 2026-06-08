@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.ui.AppUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,8 +29,9 @@ fun AuthBottomSheet(
 	onAuthSuccess: () -> Unit,
 	onSaveToPasswordManager: (passphrase: String) -> Unit,
 	onWelcomeShown: () -> Unit = {},
+	appUiState: AppUiState,
 ) {
-	if (!isVisible || isMnemonicStored) return
+	if (!isVisible || (isMnemonicStored && initialRoute != AuthRoute.TechOpt)) return
 
 	val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -65,6 +67,7 @@ fun AuthBottomSheet(
 			},
 			onSaveToPasswordManager = onSaveToPasswordManager,
 			onWelcomeShown = onWelcomeShown,
+			appUiState = appUiState,
 		)
 	}
 }

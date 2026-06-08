@@ -19,6 +19,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.screens.auth.routeName
 import net.nymtech.nymvpn.ui.common.animations.PulsingDotsWave
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
@@ -39,16 +41,16 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 	LaunchedEffect(Unit) {
 		viewModel.error.collect {
 			AlertController.show(AlertMessage(type = AlertType.Error, title = errorText))
-			navController.navigateAndForget(Route.Main(showAuth = true))
+			navController.navigateAndForget(Route.Main(authRoute = AuthRoute.Welcome.routeName))
 		}
 	}
 
 	LaunchedEffect(animationEnded, pendingNavigation) {
-		if (animationEnded && pendingNavigation != null) {
-			when (pendingNavigation) {
-				Route.SelectPlan -> navController.replaceCurrentWith(Route.SelectPlan)
-				else -> navController.replaceCurrentWith(Route.Main())
-			}
+		val nav = pendingNavigation ?: return@LaunchedEffect
+		if (!animationEnded) return@LaunchedEffect
+		when (nav) {
+			Route.SelectPlan -> navController.replaceCurrentWith(Route.SelectPlan)
+			else -> navController.navigateAndForget(nav)
 		}
 	}
 
