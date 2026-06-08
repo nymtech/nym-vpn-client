@@ -38,16 +38,20 @@ export const ModeToggle = () => {
   const { add } = useToast();
   const fetchGateways = useFetchGateways();
 
-  const { algo, vpnMode, gatewaySelectionAlgorithmConfig, state /*, exitNode */ } =
-    useAppStore(
-      useShallow((s) => ({
-        algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
-        vpnMode: s.vpnMode,
-        gatewaySelectionAlgorithmConfig: s.gatewaySelectionAlgorithmConfig,
-        state: s.state,
-        // exitNode: s.exitNode,
-      })),
-    );
+  const {
+    algo,
+    vpnMode,
+    gatewaySelectionAlgorithmConfig,
+    state /*, exitNode */,
+  } = useAppStore(
+    useShallow((s) => ({
+      algo: s.gatewaySelectionAlgorithmConfig.gatewaySelectionAlgorithm,
+      vpnMode: s.vpnMode,
+      gatewaySelectionAlgorithmConfig: s.gatewaySelectionAlgorithmConfig,
+      state: s.state,
+      // exitNode: s.exitNode,
+    })),
+  );
 
   // Pending mode the user has clicked but not yet confirmed. When non-null,
   // the confirmation dialog is open. We keep the requested mode here so the
@@ -203,8 +207,7 @@ export const ModeToggle = () => {
   // Choose the title/description copy based on whether the user is mid-connect
   // or fully connected. Distinguishing these keeps the wording honest about
   // what gets interrupted (a live session vs an in-flight handshake).
-  const dialogVariant =
-    state === 'connecting' ? 'connecting' : 'connected';
+  const dialogVariant = state === 'connecting' ? 'connecting' : 'connected';
   const dialogTitle = pendingMode
     ? t(`mode-toggle.switch-confirm.title-${dialogVariant}`, {
         mode: t(`mode-toggle.${pendingMode}`),
