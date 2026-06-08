@@ -60,6 +60,7 @@ import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
+import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
@@ -78,7 +79,6 @@ import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.settings.tuning.MixnetTuningScreen
 import net.nymtech.nymvpn.ui.screens.settings.tunneling.SplitTunnelingScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
-import net.nymtech.nymvpn.ui.screens.technical.TechnicalOptScreen
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
@@ -226,7 +226,7 @@ class MainActivity : AppCompatActivity() {
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Main>()
-									MainScreen(appViewModel, appState, args.autoStart, showAuth = args.showAuth)
+									MainScreen(appViewModel, appState, args.autoStart, authRoute = AuthRoute.fromName(args.authRoute))
 								}
 
 								composable<Route.Permission> {
@@ -294,7 +294,6 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Display> { DisplayScreen(appState) }
 								composable<Route.Language> { LanguageScreen(appState, appViewModel) }
 								composable<Route.Developer> { DeveloperScreen(appState, appViewModel) }
-								composable<Route.Technical> { TechnicalOptScreen(appState) }
 								composable<Route.SelectPlan> { SelectPlanScreen(appViewModel) }
 
 								composable<Route.Generating> {

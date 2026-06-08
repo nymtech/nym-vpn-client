@@ -66,8 +66,6 @@ fun NavBar(
 		navBarState = when {
 			route.startsWith(Route.Splash::class.qualifiedName!!) -> NavBarState.Empty
 
-			route.startsWith(Route.Technical::class.qualifiedName!!) -> NavBarState.Hidden
-
 			route.startsWith(Route.Generating::class.qualifiedName!!) ||
 				route.startsWith(Route.Payment::class.qualifiedName!!) -> NavBarState.Empty
 

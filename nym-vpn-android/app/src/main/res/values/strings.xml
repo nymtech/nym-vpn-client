@@ -284,7 +284,7 @@
 	<!-- Welcome screen -->
 	<string name="welcome_continue">Continue</string>
 	<string name="welcome_title">Help us improve NymVPN</string>
-	<string name="welcome_description">Choose what anonymous data to share. All data is stripped of identifying information before being sent.</string>
+	<string name="welcome_description">Choose what anonymous data to share. \nAll data is stripped of identifying information before being sent.</string>
 	<string name="welcome_error_reports_title">Share error reports</string>
 	<string name="welcome_error_reports_description_start">Helps us fix bugs faster, no personal data collected (via </string>
 	<string name="welcome_error_reports_link" translatable="false">https://sentry.io/welcome/</string>

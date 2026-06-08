@@ -13,10 +13,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.screens.auth.routeName
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import timber.log.Timber
@@ -25,7 +28,12 @@ import javax.inject.Inject
 @HiltViewModel
 class GeneratingViewModel
 @Inject
-constructor(private val backendManager: BackendManager, savedStateHandle: SavedStateHandle, private val billingManager: BillingManager) : ViewModel() {
+constructor(
+	private val backendManager: BackendManager,
+	savedStateHandle: SavedStateHandle,
+	private val billingManager: BillingManager,
+	private val settingsRepository: SettingsRepository,
+) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-generate-account-vm"
@@ -52,7 +60,8 @@ constructor(private val backendManager: BackendManager, savedStateHandle: SavedS
 					if (billingAvailable) {
 						_pendingNavigation.value = Route.SelectPlan
 					} else {
-						_pendingNavigation.value = Route.Main()
+						val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
+						_pendingNavigation.value = if (shouldShowTechnical) Route.Main(authRoute = AuthRoute.TechOpt.routeName) else Route.Main()
 					}
 				}.onFailure { t ->
 					Timber.tag(TAG).e(t, "AccountSetupFailed")
