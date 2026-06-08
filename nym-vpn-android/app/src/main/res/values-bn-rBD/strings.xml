@@ -152,6 +152,7 @@
 	<string name="error_ipv6_unavailable">IPv6 উপলব্ধ নেই</string>
 	<string name="error_device_logged_out">ডিভাইস থেকে লগ আউট করা হয়েছে।</string>
 	<string name="error_inactive_account">অ্যাকাউন্টের অবস্থা \"Active\" নয়।</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">DNS কনফিগারেশন ব্যর্থ হয়েছে।</string>
 	<string name="error_set_firewall_policy">ফায়ারওয়াল নীতি সেট করা ব্যর্থ হয়েছে।</string>
 	<string name="error_set_routing">রাউটিং কনফিগারেশন ব্যর্থ হয়েছে।</string>
@@ -400,6 +401,8 @@
 	<string name="banner_renew_text">Renew now\nto stay protected</string>
 	<string name="account_info_auto_renew_text">*স্বয়ংক্রিয়ভাবে নবায়ন হয়</string>
 	<string name="account_info_no_plan">No active subscription</string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">Confirming payment</string>
 	<string name="account_info_autologin_fetching">Fetching access code…</string>
 	<string name="account_info_autologin_error">Failed to fetch the access code. Please try again.</string>

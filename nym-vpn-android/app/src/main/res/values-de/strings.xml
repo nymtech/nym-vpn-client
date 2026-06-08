@@ -154,6 +154,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 nicht verfügbar</string>
 	<string name="error_device_logged_out">Gerät ist ausgeloggt.</string>
 	<string name="error_inactive_account">Kontostatus ist nicht \"aktiv\".</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">DNS-Konfiguration fehlgeschlagen.</string>
 	<string name="error_set_firewall_policy">Die Firewall-Richtlinie konnte nicht festgelegt werden.</string>
 	<string name="error_set_routing">Die Konfiguration des Routings ist fehlgeschlagen.</string>
@@ -185,8 +186,8 @@
 	<string name="one_click_nym_entry_node">Eintrittsserver</string>
 	<!-- Connection status -->
 	<string name="connection_status_not_protected">Nicht geschützt</string>
-	<string name="connection_status_fast_mode">Schneller Schutzmodus</string>
-	<string name="connection_status_anonymous">Mixnet</string>
+	<string name="connection_status_fast_mode">Schutzmodus Schnell</string>
+	<string name="connection_status_anonymous">Schutzmodus Mixnet</string>
 	<!-- Hop Screen -->
 	<string name="gateway_best">Bester Server</string>
 	<string name="gateway_random">Zufälliger Server</string>
@@ -228,7 +229,7 @@
 	<string name="settings_bypass_lan_title">LAN-Direktzugriff</string>
 	<string name="settings_bypass_lan_description">Direktzugriff auf lokales Netzwerk erlauben</string>
 	<string name="settings_split_tunneling_title">Split-Tunneling</string>
-	<string name="settings_startup_title">Beim Hochfahren starten</string>
+	<string name="settings_startup_title">Autostart</string>
 	<string name="settings_notifications_title">Benachrichtigungen</string>
 	<string name="settings_power_managment_title">Akkunutzung der App</string>
 	<string name="settings_shortcuts_title">App-Verknüpfungen</string>
@@ -402,10 +403,12 @@
 	<string name="banner_renew_text">Jetzt erneuern\num geschützt zu bleiben</string>
 	<string name="account_info_auto_renew_text">*Auto-Erneuerung</string>
 	<string name="account_info_no_plan">Kein aktives Abonnement</string>
+	<string name="account_info_contact_support_action">Kundensupport kontaktieren</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">Zahlung wird bestätigt</string>
 	<string name="account_info_autologin_fetching">Zugriffscode abrufen…</string>
 	<string name="account_info_autologin_error">Der Zugangscode konnte nicht abgeholt werden. Bitte versuche es erneut.</string>
-	<string name="account_info_add_social_action">Social-Login</string>
+	<string name="account_info_add_social_action">Social-Login-</string>
 	<string name="account_info_add_social_suffix"> Methode zu deinem Konto hinzufügen.</string>
 	<string name="account_info_backup">Backup-Login-Methode via Privy verknüpft.</string>
 	<string name="pin_code_title">Pin Code</string>

@@ -1,5 +1,5 @@
-Quoi de neuf :
-- Améliorations de l'interface utilisateur
-- Améliorations de mise en cache
-- Ajout de l'intégration du maître de port
-- Amélioration de la synchronisation rapide de l'état des tuiles
+Nouveautés :
+- Améliorations de l'interface
+- Amélioration du cache
+- Ajout de l'intégration Harbour Master
+- Amélioration de la synchronisation des tuiles rapides

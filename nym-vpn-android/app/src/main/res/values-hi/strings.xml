@@ -152,6 +152,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 उपलब्ध नहीं है</string>
 	<string name="error_device_logged_out">डिवाइस लॉग आउट हो गया है।</string>
 	<string name="error_inactive_account">अकाउंट स्थिति \"ऐक्टिव\" नहीं है।</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">DNS को कॉन्फ़िगर करना असफल रहा।</string>
 	<string name="error_set_firewall_policy">फ़ायरवॉल नीति सेट करने में विफल।</string>
 	<string name="error_set_routing">राउटिंग को कॉन्फ़िगर करने में असफल।</string>
@@ -273,7 +274,7 @@
 	<string name="welcome_usage_title">उपयोग विश्लेषण शेयर करें</string>
 	<string name="welcome_usage_description">इससे हमें Nym नेटवर्क को बेहतर बनाने में मदद मिलती है। इसमें किसी भी गतिविधि को लॉग या ट्रैक नहीं किया जाता है।</string>
 	<!-- Onboarding screen -->
-	<string name="onboarding_create_account_button">अकाउंट बनाएं</string>
+	<string name="onboarding_create_account_button">अकाउंट बनाएँ</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">अपना \nसब्स्क्रिप्शन प्लान चुनें</string>
 	<string name="select_plan_line_0">7 दिन का मुफ़्त ट्रायल</string>
@@ -401,6 +402,8 @@
 	<string name="banner_renew_text">सुरक्षित रहने के लिए अभी\nरिन्यू करें</string>
 	<string name="account_info_auto_renew_text">*ऑटो-रिन्यू</string>
 	<string name="account_info_no_plan">कोई सक्रिय सब्स्क्रिप्शन नहीं</string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">भुगतान की पुष्टि की जा रही है</string>
 	<string name="account_info_autologin_fetching">एक्सेस कोड प्राप्त किया जा रहा है…</string>
 	<string name="account_info_autologin_error">एक्सेस कोड प्राप्त करने में विफलता। कृपया पुनः प्रयास करें।</string>
