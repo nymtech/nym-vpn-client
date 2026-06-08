@@ -35,8 +35,8 @@ export function AccountStatus() {
           </div>
         </CardNewHeader>
         {needsSubscription ||
-          accountState === 'pending-subscription' ||
-          !accountSummary ? (
+        accountState === 'pending-subscription' ||
+        !accountSummary ? (
           <NoActivePlan />
         ) : (
           <ActivePlan accountSummary={accountSummary} />
