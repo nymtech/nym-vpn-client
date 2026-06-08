@@ -169,6 +169,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
 	<string name="error_device_logged_out">Device is logged out.</string>
 	<string name="error_inactive_account">Account status is not "Active".</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">Failed to configure dns.</string>
 	<string name="error_set_firewall_policy">Failed to set firewall policy.</string>
 	<string name="error_set_routing">Failed to configure routing.</string>
