@@ -318,7 +318,7 @@ impl SyncError {
             },
             ApiResponseError { details } => AccountControllerErrorStateReason::ApiFailure {
                 context: SYNCING_NETWORK_STATE_CONTEXT.into(),
-                details: format!("API returned an error:  {}", details),
+                details: format!("API returned an error: {}", details),
             },
             UnregisteredAccount => AccountControllerErrorStateReason::AccountStatusNotActive {
                 status: "unregistered".into(),

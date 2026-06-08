@@ -94,7 +94,7 @@ async fn api_error_reponse_test() -> anyhow::Result<()> {
         .assert_state(AccountControllerState::Error(
             AccountControllerErrorStateReason::ApiFailure {
                 context: "SYNCING_NETWORK_STATE".into(),
-                details: "55cbd0ee-4ff5-4f3d-930e-6f6a95ce849f".into(),
+                details: "API returned an error: 55cbd0ee-4ff5-4f3d-930e-6f6a95ce849f".into(),
             },
         ))
         .await;
@@ -494,7 +494,7 @@ async fn optimistic_refresh_falls_back_but_force_refresh_surfaces_error_test() -
         .assert_state(AccountControllerState::Error(
             AccountControllerErrorStateReason::ApiFailure {
                 context: "SYNCING_NETWORK_STATE".into(),
-                details: "55cbd0ee-4ff5-4f3d-930e-6f6a95ce849f".into(),
+                details: "API returned an error: 55cbd0ee-4ff5-4f3d-930e-6f6a95ce849f".into(),
             },
         ))
         .await;
