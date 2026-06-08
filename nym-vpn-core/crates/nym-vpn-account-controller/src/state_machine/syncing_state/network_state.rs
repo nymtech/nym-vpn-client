@@ -131,6 +131,8 @@ impl SyncingNetworkState {
                 match tokio::time::timeout(OPTIMISTIC_SYNC_TIMEOUT, fetch).await {
                     Ok(Ok(summary)) => Ok(Some(summary)),
                     Ok(Err(err)) => {
+                        // We are packing all errors here, but we don't expect a lot of errors that aren't API failure
+                        // Hence it can wait a next forced sync
                         tracing::warn!(
                             "optimistic account summary sync ended with an error : {err}"
                         );
