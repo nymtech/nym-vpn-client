@@ -1,77 +1,69 @@
-package net.nymtech.nymvpn.ui.screens.technical
+package net.nymtech.nymvpn.ui.screens.auth.components
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.screens.technical.components.SettingsSection
-import net.nymtech.nymvpn.ui.screens.technical.components.WelcomeSection
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
-import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun TechnicalOptScreen(appUiState: AppUiState, viewModel: TechnicalOptViewModel = hiltViewModel()) {
-	val navController = LocalNavController.current
-	TechnicalOptScreen(
-		statsEnabled = appUiState.settings.statsEnabled,
-		sentryEnabled = appUiState.vpnConfig.sentry,
-		onNetworkStatsEnable = {
-			viewModel.onNetworkStatsEnabled(it)
-		},
-		onMonitoringEnable = {
-			viewModel.onMonitoringEnabled(it)
-		},
-		onContinueClick = {
-			viewModel.onContinueClicked()
-			navController.replaceCurrentWith(Route.Main())
-		},
-	)
-}
-
-@Composable
-fun TechnicalOptScreen(
+fun TechOptView(
 	statsEnabled: Boolean,
 	sentryEnabled: Boolean,
 	onNetworkStatsEnable: (enabled: Boolean) -> Unit,
 	onMonitoringEnable: (enabled: Boolean) -> Unit,
 	onContinueClick: () -> Unit,
-	padding: PaddingValues = WindowInsets.systemBars.asPaddingValues(),
+	modifier: Modifier = Modifier,
 ) {
 	Column(
+		modifier = modifier
+			.background(MaterialTheme.colorScheme.surface)
+			.fillMaxWidth()
+			.padding(horizontal = 18.dp, vertical = 16.dp),
 		horizontalAlignment = Alignment.CenterHorizontally,
-		modifier = Modifier
-			.fillMaxSize()
-			.imePadding()
-			.padding(horizontal = 24.dp.scaledWidth())
-			.padding(padding),
+		verticalArrangement = Arrangement.spacedBy(22.dp),
 	) {
-		WelcomeSection(modifier = Modifier.padding(vertical = 24.dp.scaledHeight()).weight(1f))
+		Icon(
+			imageVector = ImageVector.vectorResource(R.drawable.app_label),
+			contentDescription = stringResource(R.string.app_name),
+			tint = MaterialTheme.colorScheme.onPrimaryContainer,
+		)
+
+		Text(
+			text = stringResource(R.string.welcome_title),
+			style = MaterialTheme.typography.titleLarge,
+			color = MaterialTheme.colorScheme.onPrimaryContainer,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		)
+		Text(
+			text = stringResource(R.string.welcome_description),
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onBackground,
+			textAlign = TextAlign.Center,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+		)
 		Column(
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.Bottom),
@@ -101,11 +93,11 @@ fun TechnicalOptScreen(
 	}
 }
 
+@Preview(name = "TechOptScreenPreview", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-internal fun PreviewWelcomeScreen() {
-	NymVPNTheme(Theme.default()) {
-		TechnicalOptScreen(
+private fun PreviewTechOptScreenViewDark() {
+	NymVPNTheme(Theme.DARK_MODE) {
+		TechOptView(
 			statsEnabled = true,
 			sentryEnabled = true,
 			onMonitoringEnable = {},

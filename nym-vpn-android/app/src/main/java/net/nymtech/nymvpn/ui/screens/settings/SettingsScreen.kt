@@ -32,6 +32,8 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.screens.auth.routeName
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
@@ -138,7 +140,7 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 		),
 		SettingsActions(
 			onGetStartedClick = {
-				navController.goFromRoot(Route.Main(showAuth = true))
+				navController.goFromRoot(Route.Main(authRoute = AuthRoute.Welcome.routeName))
 			},
 			onAccountClick = {
 				navController.navigate(Route.Account)

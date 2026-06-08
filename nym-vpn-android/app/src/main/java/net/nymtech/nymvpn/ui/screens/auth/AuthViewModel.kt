@@ -13,12 +13,14 @@ import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.auth.components.MnemonicError
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
+import net.nymtech.vpn.config.CoreVpnConfigUpdate
 import nym_vpn_lib_types.DeeplinkKind
 import timber.log.Timber
 import javax.inject.Inject
@@ -41,7 +43,12 @@ sealed class AuthEvent {
 }
 
 @HiltViewModel
-class AuthViewModel @Inject constructor(private val billingManager: BillingManager, private val backendManager: BackendManager, private val settingsRepository: SettingsRepository) : ViewModel() {
+class AuthViewModel @Inject constructor(
+	private val billingManager: BillingManager,
+	private val backendManager: BackendManager,
+	private val vpnConfigRepository: VpnConfigRepository,
+	private val settingsRepository: SettingsRepository,
+) : ViewModel() {
 
 	companion object {
 		private const val TAG = "ui-auth-vm"
@@ -134,5 +141,17 @@ class AuthViewModel @Inject constructor(private val billingManager: BillingManag
 			}
 			SnackbarController.showMessage(StringValue.StringResource(R.string.invalid_recovery_phrase))
 		}
+	}
+
+	fun onNetworkStatsEnabled(enabled: Boolean) = viewModelScope.launch {
+		settingsRepository.setStatisticsEnabled(enabled)
+	}
+
+	fun onMonitoringEnabled(enabled: Boolean) = viewModelScope.launch {
+		vpnConfigRepository.apply(CoreVpnConfigUpdate.SetSentry(enabled))
+	}
+
+	fun onContinueClicked() = viewModelScope.launch {
+		settingsRepository.setTechnicalOptScreenCompleted()
 	}
 }

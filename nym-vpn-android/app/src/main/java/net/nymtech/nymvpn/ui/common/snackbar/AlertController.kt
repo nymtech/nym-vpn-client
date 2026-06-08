@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 
 enum class AlertType { Confirmation, Neutral, Negative, Warning, Error }
 
+enum class AlertId { InactiveAccount, ExpiryWarning, Expired, ConnectionError }
+
 data class AlertMessage(
 	val type: AlertType = AlertType.Neutral,
 	val title: String,
@@ -20,6 +22,7 @@ data class AlertMessage(
 	val action: AlertAction? = null,
 	val duration: Long = 4_000L,
 	val onDismiss: (() -> Unit)? = null,
+	val id: AlertId? = null,
 )
 
 data class AlertAction(val label: String, val onClick: () -> Unit)
@@ -29,11 +32,11 @@ object AlertController {
 	val message: StateFlow<AlertMessage?> = _message.asStateFlow()
 
 	fun show(message: AlertMessage) {
-		_message.value?.onDismiss?.invoke()
 		_message.value = message
 	}
 
-	fun dismiss() {
+	fun dismiss(id: AlertId? = null) {
+		if (id != null && _message.value?.id != id) return
 		val msg = _message.value
 		_message.value = null
 		msg?.onDismiss?.invoke()
