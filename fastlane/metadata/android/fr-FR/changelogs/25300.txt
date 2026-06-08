@@ -1,2 +1,2 @@
-Ce qui change :
-- Correction d'un problème de connexion avec le cycle de vie du tunnel.
+Nouveautés :
+- Correction d'un problème de connexion lié au cycle de vie du tunnel.

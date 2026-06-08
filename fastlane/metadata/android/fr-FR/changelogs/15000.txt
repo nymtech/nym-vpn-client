@@ -1,6 +1,6 @@
-Quoi de neuf :
-- Mises à jour et améliorations mineures de l'interface utilisateur
-- Correction pour l'ouverture correcte des URL 
+Nouveautés :
+- Mises à jour et améliorations mineures de l'interface
+- Correction de l'ouverture des URL 
 - Meilleurs messages d'erreur en cas de faible connectivité
-- Affiche un message lorsque l'heure de l'appareil n'est pas synchronisée
+- Alertes lorsque l'heure de l'appareil n'est pas synchronisée
 - Améliorations de la connectivité

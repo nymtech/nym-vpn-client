@@ -152,6 +152,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 недоступний</string>
 	<string name="error_device_logged_out">Пристрій вимкнено.</string>
 	<string name="error_inactive_account">Статус облікового запису не є «Активним».</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">Не вдалося налаштувати DNS.</string>
 	<string name="error_set_firewall_policy">Не вдалося встановити політику брандмауера.</string>
 	<string name="error_set_routing">Не вдалося налаштувати маршрутизацію.</string>
@@ -400,6 +401,8 @@
 	<string name="banner_renew_text">Поновіть зараз\nщоб залишатися захищеним</string>
 	<string name="account_info_auto_renew_text">*Автоматичне поновлення</string>
 	<string name="account_info_no_plan">Активної підписки не виявлено</string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">Підтвердження оплати</string>
 	<string name="account_info_autologin_fetching">Отримання коду доступу…</string>
 	<string name="account_info_autologin_error">Не вдалося отримати код доступу. Спробуйте ще раз.</string>

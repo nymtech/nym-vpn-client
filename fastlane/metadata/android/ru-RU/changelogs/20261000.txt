@@ -1,4 +1,4 @@
 Что нового:
-- DoH (DNS over HTTPS) and DoT (DNS over TLS) to enhance ad blocking 
-- De-googled Android in-app account creation 
-- Fixed Hickory system resolver panicking
+- DoH (DNS через HTTPS) и DoT (DNS через TLS) для улучшения блокировки рекламы 
+- Создание аккаунта в приложении для Android без сервисов Google 
+- Исправлена проблема с аварийным завершением работы системного резолвера Hickory

@@ -1,4 +1,4 @@
 Nouveautés :
-- Nouvelle fonctionnalité de bloqueur de publicités (bêta) pour bloquer les publicités, les trackers et les logiciels malveillants
+- Nouvelle fonctionnalité de bloqueur de publicités (bêta) pour bloquer les publicités, les trackers et les malwares
 - Nouvelle notification pour les abonnements en attente
 - Améliorations des temps de connexion

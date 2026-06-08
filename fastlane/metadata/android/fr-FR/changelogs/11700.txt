@@ -1,2 +1,2 @@
-Quoi de neuf :
-- Compilations reproductibles
+Nouveautés :
+- Builds reproductibles

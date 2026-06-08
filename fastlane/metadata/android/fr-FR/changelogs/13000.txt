@@ -1,4 +1,4 @@
-Quoi de neuf :
-- Corrections de bugs dans le journal
+Nouveautés :
+- Correctifs de bugs du logger
 - Amélioration de la stabilité
-- Mise à jour de la messagerie du client
+- Messages de mise à jour du client

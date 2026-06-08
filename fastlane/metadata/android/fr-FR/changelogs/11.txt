@@ -1,2 +1,2 @@
-Quoi de neuf :
+Nouveautés :
 - Mise à jour de la version de l'API

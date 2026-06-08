@@ -154,6 +154,7 @@
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
 	<string name="error_device_logged_out">تم تسجيل خروج الجهاز.</string>
 	<string name="error_inactive_account">حالة الحساب ليست \"نشطة\".</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">فشل في تكوين dns.</string>
 	<string name="error_set_firewall_policy">فشل في تعيين سياسة جدار الحماية.</string>
 	<string name="error_set_routing">فشل في تكوين المسار.</string>
@@ -203,7 +204,7 @@
 	<string name="auth_log_in_social_button">تسجيل الدخول باستخدام الإجتماعات *</string>
 	<string name="auth_log_in_info">* تحتاج إلى ربط الإجتماعات بحساب موجود \nأولاً قبل أن تتمكن من استخدامها لتسجيل الدخول. </string>
 	<string name="auth_passphrase_login_button">تسجيل الدخول</string>
-	<string name="auth_passphrase_input_placeholder">عبارة استرداد</string>
+	<string name="auth_passphrase_input_placeholder">24 كلمة مرور</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">مكافحة الرقابة</string>
 	<string name="settings_passphrase_title">كلمة المرور</string>
@@ -402,6 +403,8 @@
 	<string name="banner_renew_text">تجديد الآن\nللبقاء محمي</string>
 	<string name="account_info_auto_renew_text">* التجديدات التلقائية</string>
 	<string name="account_info_no_plan">لا يوجد اشتراك نشط</string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">تأكيد الدفع</string>
 	<string name="account_info_autologin_fetching">جلب رمز الوصول…</string>
 	<string name="account_info_autologin_error">فشل في جلب رمز الوصول. الرجاء المحاولة مرة أخرى.</string>
