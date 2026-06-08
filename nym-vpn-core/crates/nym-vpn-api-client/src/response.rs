@@ -15,6 +15,7 @@ pub use nym_credential_proxy_requests::api::v1::ticketbook::models::UpgradeModeA
 use nym_validator_client::models::described::type_translation::LewesProtocolDetailsV1;
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, UtcDateTime, format_description::well_known::Iso8601};
+use nym_network_defaults::network::NetworkingSpecifics;
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
@@ -769,9 +770,8 @@ pub struct ApiUrl {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymWellknownDiscoveryItemResponse {
     pub network_name: String,
-    pub nym_api_url: String,
+    pub networking_specifics: NetworkingSpecifics,
     pub nym_api_urls: Vec<ApiUrl>,
-    pub nym_vpn_api_url: String,
     pub nym_vpn_api_urls: Vec<ApiUrl>,
     pub account_management: Option<AccountManagementResponse>,
     pub feature_flags: Option<serde_json::Value>,

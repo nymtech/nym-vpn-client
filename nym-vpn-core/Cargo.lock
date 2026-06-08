@@ -13788,3 +13788,143 @@ dependencies = [
  "syn 2.0.117",
  "winnow 1.0.1",
 ]
+
+[[patch.unused]]
+name = "nym-api-requests"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-authenticator-client"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-authenticator-requests"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-bandwidth-controller"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-bin-common"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-client-core"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-compact-ecash"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-config"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-contracts-common"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-credential-proxy-requests"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-credential-storage"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-credential-utils"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-credentials"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-credentials-interface"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-crypto"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-ecash-time"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-gateway-requests"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-http-api-client"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-http-api-client-macro"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-ip-packet-client"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-ip-packet-requests"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-lp"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-network-defaults"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-pemstore"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-registration-client"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-registration-common"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-sdk"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-sqlx-pool-guard"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-statistics-common"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-topology"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-upgrade-mode-check"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-validator-client"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-wireguard-private-metadata-client"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-wireguard-private-metadata-shared"
+version = "1.21.0"
+
+[[patch.unused]]
+name = "nym-wireguard-types"
+version = "1.21.0"
