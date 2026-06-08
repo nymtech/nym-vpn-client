@@ -70,7 +70,7 @@ import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.Score
 
 @Composable
-fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, showAuth: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, authRoute: AuthRoute? = null, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val navController = LocalNavController.current
@@ -198,9 +198,10 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
-	LaunchedEffect(showAuth) {
-		if (showAuth && !appUiState.managerState.isMnemonicStored) {
-			initialAuthRoute = AuthRoute.Welcome
+	LaunchedEffect(authRoute) {
+		if (authRoute == null) return@LaunchedEffect
+		if (authRoute == AuthRoute.TechOpt || !appUiState.managerState.isMnemonicStored) {
+			initialAuthRoute = authRoute
 			showAuthSheet = true
 		}
 	}
@@ -320,6 +321,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			showAuthSheet = false
 		},
 		onAuthSuccess = { showAuthSheet = false },
+		appUiState = appUiState,
 	)
 }
 

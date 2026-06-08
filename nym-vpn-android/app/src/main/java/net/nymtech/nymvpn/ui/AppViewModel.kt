@@ -29,6 +29,8 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
+import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.screens.auth.routeName
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
@@ -333,7 +335,7 @@ constructor(
 			notifyLoginStarted()
 
 			val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
-			if (shouldShowTechnical) Route.Technical else Route.Main()
+			if (shouldShowTechnical) Route.Main(authRoute = AuthRoute.TechOpt.routeName) else Route.Main()
 		} catch (e: Exception) {
 			Timber.tag(TAG).e(e, "FailedStoreDeeplink or processing error")
 			Route.Main(autoStart = false)

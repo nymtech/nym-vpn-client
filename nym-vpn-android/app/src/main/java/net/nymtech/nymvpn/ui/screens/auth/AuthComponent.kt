@@ -15,12 +15,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.auth.modal.ExistingSubscriptionModal
 import net.nymtech.nymvpn.ui.screens.auth.components.LoginView
 import net.nymtech.nymvpn.ui.screens.auth.components.PassphraseView
 import net.nymtech.nymvpn.ui.screens.auth.components.SignUpView
+import net.nymtech.nymvpn.ui.screens.auth.components.TechOptView
 import net.nymtech.nymvpn.ui.screens.auth.components.WelcomeView
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
@@ -30,6 +32,7 @@ fun AuthComponent(
 	onAuthSuccess: () -> Unit,
 	onSaveToPasswordManager: (passphrase: String) -> Unit,
 	onWelcomeShown: () -> Unit = {},
+	appUiState: AppUiState,
 	modifier: Modifier = Modifier,
 	viewModel: AuthViewModel = hiltViewModel(),
 ) {
@@ -48,9 +51,8 @@ fun AuthComponent(
 					onSaveToPasswordManager(event.phrase)
 				}
 				is AuthEvent.LoginSuccess -> {
-					onAuthSuccess()
 					if (event.showTechnicalOpt) {
-						rootNavController.navigate(Route.Technical)
+						localNavController.navigate(AuthRoute.TechOpt)
 					} else {
 						onAuthSuccess()
 					}
@@ -116,6 +118,19 @@ fun AuthComponent(
 				mnemonic = uiState.mnemonic,
 				onMnemonicChange = viewModel::onMnemonicChange,
 				onSubmitMnemonic = viewModel::onSubmitMnemonic,
+			)
+		}
+
+		composable<AuthRoute.TechOpt> {
+			TechOptView(
+				statsEnabled = appUiState.settings.statsEnabled,
+				sentryEnabled = appUiState.vpnConfig.sentry,
+				onNetworkStatsEnable = viewModel::onNetworkStatsEnabled,
+				onMonitoringEnable = viewModel::onMonitoringEnabled,
+				onContinueClick = {
+					viewModel.onContinueClicked()
+					onAuthSuccess()
+				},
 			)
 		}
 	}

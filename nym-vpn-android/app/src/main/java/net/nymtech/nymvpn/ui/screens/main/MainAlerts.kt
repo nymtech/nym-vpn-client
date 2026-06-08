@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -13,6 +12,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.snackbar.AlertAction
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
+import net.nymtech.nymvpn.ui.common.snackbar.AlertId
 import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.model.ConnectionState
@@ -37,10 +37,6 @@ fun MainAlerts(
 	onNavigateToSelectPlan: () -> Unit,
 ) {
 	val context = LocalContext.current
-
-	var isShowingConnectionErrorAlert by remember { mutableStateOf(false) }
-	var isShowingExpiredAlert by remember { mutableStateOf(false) }
-	var isShowingInactiveAccountAlert by rememberSaveable { mutableStateOf(false) }
 	var expiredAlertShown by rememberSaveable { mutableStateOf(false) }
 
 	val autologinErrorTitle = stringResource(R.string.account_info_autologin_error)
@@ -52,9 +48,12 @@ fun MainAlerts(
 
 	val expiryWarningTitle = stringResource(R.string.banner_plan_expires_text, validUntilDate)
 	val expiryRenewLabel = stringResource(R.string.banner_renew_text)
+	val expiredTitle = stringResource(R.string.error_expired_subscription_title)
+	val expiredBody = stringResource(R.string.error_expired_subscription_description)
+	val expiredAction = stringResource(R.string.error_expired_subscription_button)
 	LaunchedEffect(expiryState, expiryBannerDismissed) {
-		if (!expiryBannerDismissed && expiryState == ExpiryState.WARNING) {
-			AlertController.show(
+		when {
+			!expiryBannerDismissed && expiryState == ExpiryState.WARNING -> AlertController.show(
 				AlertMessage(
 					type = AlertType.Warning,
 					title = expiryWarningTitle,
@@ -64,31 +63,26 @@ fun MainAlerts(
 					},
 					duration = Long.MAX_VALUE,
 					onDismiss = { onDismissExpiryBanner() },
+					id = AlertId.ExpiryWarning,
 				),
 			)
-		}
-	}
-
-	val expiredTitle = stringResource(R.string.error_expired_subscription_title)
-	val expiredBody = stringResource(R.string.error_expired_subscription_description)
-	val expiredAction = stringResource(R.string.error_expired_subscription_button)
-	LaunchedEffect(expiryState) {
-		if (expiryState == ExpiryState.EXPIRED && !expiredAlertShown) {
-			expiredAlertShown = true
-			isShowingExpiredAlert = true
-			AlertController.show(
-				AlertMessage(
-					type = AlertType.Error,
-					title = expiredTitle,
-					body = expiredBody,
-					action = AlertAction(expiredAction) { onNavigateToSelectPlan() },
-					duration = Long.MAX_VALUE,
-					onDismiss = { isShowingExpiredAlert = false },
-				),
-			)
-		} else if (isShowingExpiredAlert && expiryState != ExpiryState.EXPIRED) {
-			AlertController.dismiss()
-			isShowingExpiredAlert = false
+			expiryState == ExpiryState.EXPIRED && !expiredAlertShown -> {
+				expiredAlertShown = true
+				AlertController.show(
+					AlertMessage(
+						type = AlertType.Error,
+						title = expiredTitle,
+						body = expiredBody,
+						action = AlertAction(expiredAction) { onNavigateToSelectPlan() },
+						duration = Long.MAX_VALUE,
+						id = AlertId.Expired,
+					),
+				)
+			}
+			else -> {
+				AlertController.dismiss(id = AlertId.ExpiryWarning)
+				AlertController.dismiss(id = AlertId.Expired)
+			}
 		}
 	}
 
@@ -97,20 +91,18 @@ fun MainAlerts(
 	LaunchedEffect(accountState) {
 		val isInactive = accountState is AccountControllerState.Error &&
 			accountState.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
-		if (isInactive && !isShowingInactiveAccountAlert) {
-			isShowingInactiveAccountAlert = true
+		if (isInactive) {
 			AlertController.show(
 				AlertMessage(
 					type = AlertType.Error,
 					title = inactiveAccountTitle,
 					body = inactiveAccountBody,
 					duration = Long.MAX_VALUE,
-					onDismiss = { isShowingInactiveAccountAlert = false },
+					id = AlertId.InactiveAccount,
 				),
 			)
-		} else if (!isInactive && isShowingInactiveAccountAlert) {
-			AlertController.dismiss()
-			isShowingInactiveAccountAlert = false
+		} else {
+			AlertController.dismiss(id = AlertId.InactiveAccount)
 		}
 	}
 
@@ -122,31 +114,25 @@ fun MainAlerts(
 	val connectionFailedLabel = stringResource(R.string.connection_failed)
 	LaunchedEffect(connectionState) {
 		when (val state = connectionState) {
-			is ConnectionState.Error -> {
-				isShowingConnectionErrorAlert = true
-				AlertController.show(
-					AlertMessage(
-						type = AlertType.Error,
-						title = state.reason.toUserMessage(context).ifEmpty { connectionFailedLabel },
-						action = AlertAction(retryLabel) { onRetryConnect() },
-						duration = Long.MAX_VALUE,
-						onDismiss = { isShowingConnectionErrorAlert = false },
-					),
-				)
-			}
-			is ConnectionState.StartFailure -> {
-				isShowingConnectionErrorAlert = true
-				AlertController.show(
-					AlertMessage(
-						type = AlertType.Error,
-						title = state.exception.toUserMessage(context),
-						action = AlertAction(retryLabel) { onRetryConnect() },
-						duration = Long.MAX_VALUE,
-						onDismiss = { isShowingConnectionErrorAlert = false },
-					),
-				)
-			}
-			else -> if (isShowingConnectionErrorAlert) AlertController.dismiss()
+			is ConnectionState.Error -> AlertController.show(
+				AlertMessage(
+					type = AlertType.Error,
+					title = state.reason.toUserMessage(context).ifEmpty { connectionFailedLabel },
+					action = AlertAction(retryLabel) { onRetryConnect() },
+					duration = Long.MAX_VALUE,
+					id = AlertId.ConnectionError,
+				),
+			)
+			is ConnectionState.StartFailure -> AlertController.show(
+				AlertMessage(
+					type = AlertType.Error,
+					title = state.exception.toUserMessage(context),
+					action = AlertAction(retryLabel) { onRetryConnect() },
+					duration = Long.MAX_VALUE,
+					id = AlertId.ConnectionError,
+				),
+			)
+			else -> AlertController.dismiss(id = AlertId.ConnectionError)
 		}
 	}
 }
