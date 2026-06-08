@@ -35,14 +35,14 @@ export function AccountStatus() {
           </div>
         </CardNewHeader>
         {needsSubscription ||
-        accountState === 'pending-subscription' ||
-        !accountSummary ? (
+          accountState === 'pending-subscription' ||
+          !accountSummary ? (
           <NoActivePlan />
         ) : (
           <ActivePlan accountSummary={accountSummary} />
         )}
       </CardNew>
-      <span className="text-text-secondary">
+      <span className="text-text-secondary text-sm">
         <Trans
           ns="account"
           i18nKey="account-status.contact-customer-support"
