@@ -53,12 +53,6 @@ pub enum Error {
     #[error("no matching gateway found: {requested_identity}")]
     NoMatchingGateway { requested_identity: String },
 
-    #[error("matching entry gateway {identity} is not passing mandatory filters {filters:?}")]
-    MatchingEntryGatewayNotWorking {
-        identity: String,
-        filters: GatewayFilters,
-    },
-
     #[error(
         "no entry gateway available for location {requested_location}, available countries: {available_countries:?}"
     )]
