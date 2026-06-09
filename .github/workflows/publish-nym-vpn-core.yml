@@ -25,13 +25,12 @@ env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
+  # Builds both the Linux core binaries and the .deb packages in a single job
+  # (the .deb step reuses the release build, so there is no second compile).
   build-nym-vpn-core-linux:
     uses: ./.github/workflows/build-nym-vpn-core-linux.yml
     secrets:
       VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-
-  build-nym-vpn-core-deb:
-    uses: ./.github/workflows/build-nym-vpn-core-deb.yml
 
   build-nym-vpn-core-windows:
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
@@ -57,7 +56,6 @@ jobs:
   publish:
     needs:
       - build-nym-vpn-core-linux
-      - build-nym-vpn-core-deb
       - build-nym-vpn-core-windows
       - build-nym-vpn-core-windows-arm64
       - generate-build-info-core
