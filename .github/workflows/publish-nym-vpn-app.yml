@@ -320,11 +320,12 @@ jobs:
           elif [[ "${{ env.RELEASE_TYPE }}" == "dev" ]]; then
             url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           else
-            latest=$(curl -sSL "${{ env.NYM_BUILDS_URL }}/develop/" | grep -oP '(?<=href=")\d+(?=/)' | sort -rn | head -1)
+            branch="${{ github.ref_name }}"
+            latest=$(curl -sSL "${{ env.NYM_BUILDS_URL }}/$branch/" | grep -oP '(?<=href=")\d+(?=/)' | sort -rn | head -1)
             if [[ -n "$latest" ]]; then
-              url="${{ env.NYM_BUILDS_URL }}/develop/$latest/"
+              url="${{ env.NYM_BUILDS_URL }}/$branch/$latest/"
             else
-              url="${{ env.NYM_BUILDS_URL }}/develop/"
+              url="${{ env.NYM_BUILDS_URL }}/$branch/"
             fi
           fi
           echo "CORE_LINK=$url" >> "$GITHUB_ENV"
