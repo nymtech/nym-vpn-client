@@ -30,6 +30,10 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   build-linux:
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
@@ -57,6 +61,136 @@ jobs:
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
     secrets: inherit
+
+  # For rc builds, also build the Linux core (binaries + .deb) from this branch
+  # and upload it to the CI www server, so the Zulip core link resolves to a
+  # matching build without a separate publish-nym-vpn-core run. Windows is not
+  # uploaded: its installer bundles the core, so there is nothing to publish.
+  build-core-linux:
+    if: ${{ inputs.release_type == 'rc' }}
+    uses: ./.github/workflows/build-nym-vpn-core-linux.yml
+    secrets: inherit
+
+  build-core-deb:
+    if: ${{ inputs.release_type == 'rc' }}
+    uses: ./.github/workflows/build-nym-vpn-core-deb.yml
+    secrets: inherit
+
+  publish-core:
+    if: ${{ inputs.release_type == 'rc' }}
+    needs:
+      - build-core-linux
+      - build-core-deb
+    runs-on: arc-linux-latest
+    outputs:
+      # path relative to the nym-vpn-core www base url, e.g. /release/2026.10-tatry/202606091200
+      core_build_url_path: ${{ steps.prepare-output-dir.outputs.core_build_url_path }}
+    env:
+      # core artifact names produced by the reusable build workflows
+      # (note: hyphenated; distinct from the app's underscore-named linux_artifacts_*)
+      UPLOAD_DIR_LINUX_X86_64: linux_artifacts-x86_64
+      UPLOAD_DIR_LINUX_AARCH64: linux_artifacts-aarch64
+      UPLOAD_DIR_DEB_X86_64: deb_artifacts-x86_64
+      UPLOAD_DIR_DEB_AARCH64: deb_artifacts-aarch64
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update && sudo apt install -y zip
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Get nym-vpn-core workspace version
+        id: workspace-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: workspace.package.version --entry nym-vpn-core
+
+      # Only fetch the core artifacts (skip the app installers/AppImages in this run)
+      - name: Download core linux artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: linux_artifacts-*
+      - name: Download core deb artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: deb_artifacts-*
+
+      - name: Generate checksums and create archive per platform
+        env:
+          BASENAME: nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}
+        run: |
+          ARCHIVE_LINUX_X86_64=${BASENAME}_linux_x86_64
+          ARCHIVE_LINUX_AARCH64=${BASENAME}_linux_aarch64
+          echo "ARCHIVE_LINUX_X86_64=${ARCHIVE_LINUX_X86_64}" >> $GITHUB_ENV
+          echo "ARCHIVE_LINUX_AARCH64=${ARCHIVE_LINUX_AARCH64}" >> $GITHUB_ENV
+
+          mv -v ${{ env.UPLOAD_DIR_LINUX_X86_64 }} ${ARCHIVE_LINUX_X86_64}
+          mv -v ${{ env.UPLOAD_DIR_LINUX_AARCH64 }} ${ARCHIVE_LINUX_AARCH64}
+
+          tar cvzf ${ARCHIVE_LINUX_X86_64}.tar.gz ${ARCHIVE_LINUX_X86_64}
+          tar cvzf ${ARCHIVE_LINUX_AARCH64}.tar.gz ${ARCHIVE_LINUX_AARCH64}
+
+          sha256sum ${ARCHIVE_LINUX_X86_64}.tar.gz > "${ARCHIVE_LINUX_X86_64}.tar.gz.sha256sum"
+          sha256sum ${ARCHIVE_LINUX_AARCH64}.tar.gz > "${ARCHIVE_LINUX_AARCH64}.tar.gz.sha256sum"
+
+          for dir in "${{ env.UPLOAD_DIR_DEB_X86_64 }}" "${{ env.UPLOAD_DIR_DEB_AARCH64 }}"; do
+            pushd "$dir"
+            for deb in *.deb; do
+              sha256sum "$deb" > "$deb.sha256sum"
+            done
+            popd
+          done
+
+      - name: Prepare build output directory
+        id: prepare-output-dir
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+          OUTPUT_DIR_BASE: ci-builds
+        run: |
+          BRANCH_PATH="${BRANCH_NAME//[^a-zA-Z0-9._\/-]/}"
+          TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
+          OUTPUT_DIR="$OUTPUT_DIR_BASE/$BRANCH_PATH/$TIMESTAMP"
+          echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
+          rm -rf ci-builds || true
+          mkdir -p "$OUTPUT_DIR"
+          echo "core_build_url_path=/$BRANCH_PATH/$TIMESTAMP" >> "$GITHUB_OUTPUT"
+          echo "$OUTPUT_DIR"
+
+      - name: Prepare build output artifacts
+        run: |
+          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.UPLOAD_DIR_DEB_AARCH64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
+
+      - name: Upload to www
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
+          ARGS: "-avzr"
+          SOURCE: "ci-builds/"
+          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
+          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/nym-vpn-core
 
   generate-build-info-nym-vpn-app:
     uses: ./.github/workflows/generate-build-info-nym-vpn-app.yml
@@ -293,7 +427,11 @@ jobs:
 
   zulip-notify:
     runs-on: arc-linux-latest
-    needs: publish
+    needs:
+      - publish
+      - publish-core
+    # publish-core is skipped for non-rc builds; still notify as long as publish succeeded
+    if: ${{ !cancelled() && needs.publish.result == 'success' }}
     continue-on-error: true
     env:
       # stable | nightly | dev
@@ -309,7 +447,8 @@ jobs:
       - name: Set vpn-core link
         env:
           NYM_BUILDS_URL: "https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core"
-          core_build_url_path: "${{ needs.publish.outputs.core_build_url_path }}"
+          core_build_url_path: "${{ needs.publish-core.outputs.core_build_url_path || needs.publish.outputs.core_build_url_path }}"
+          BRANCH_NAME: ${{ github.ref_name }}
         run: |
           if [[ -n "${{ inputs.core_release_tag }}" ]]; then
             url=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
@@ -320,11 +459,12 @@ jobs:
           elif [[ "${{ env.RELEASE_TYPE }}" == "dev" ]]; then
             url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           else
-            latest=$(curl -sSL "${{ env.NYM_BUILDS_URL }}/develop/" | grep -oP '(?<=href=")\d+(?=/)' | sort -rn | head -1)
+            branch="${BRANCH_NAME//[^a-zA-Z0-9._\/-]/}"
+            latest=$(curl -sSL "${{ env.NYM_BUILDS_URL }}/$branch/" | grep -oP '(?<=href=")\d+(?=/)' | sort -rn | head -1)
             if [[ -n "$latest" ]]; then
-              url="${{ env.NYM_BUILDS_URL }}/develop/$latest/"
+              url="${{ env.NYM_BUILDS_URL }}/$branch/$latest/"
             else
-              url="${{ env.NYM_BUILDS_URL }}/develop/"
+              url="${{ env.NYM_BUILDS_URL }}/$branch/"
             fi
           fi
           echo "CORE_LINK=$url" >> "$GITHUB_ENV"
