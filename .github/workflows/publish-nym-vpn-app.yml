@@ -158,14 +158,15 @@ jobs:
         id: prepare-output-dir
         env:
           BRANCH_NAME: ${{ github.ref_name }}
-          OUTPUT_DIR_BASE: ci-builds/${{ github.ref_name }}
+          OUTPUT_DIR_BASE: ci-builds
         run: |
+          BRANCH_PATH="${BRANCH_NAME//[^a-zA-Z0-9._\/-]/}"
           TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
-          OUTPUT_DIR="$OUTPUT_DIR_BASE/$TIMESTAMP"
+          OUTPUT_DIR="$OUTPUT_DIR_BASE/$BRANCH_PATH/$TIMESTAMP"
           echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
           rm -rf ci-builds || true
           mkdir -p "$OUTPUT_DIR"
-          echo "core_build_url_path=/$BRANCH_NAME/$TIMESTAMP" >> "$GITHUB_OUTPUT"
+          echo "core_build_url_path=/$BRANCH_PATH/$TIMESTAMP" >> "$GITHUB_OUTPUT"
           echo "$OUTPUT_DIR"
 
       - name: Prepare build output artifacts
