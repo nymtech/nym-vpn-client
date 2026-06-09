@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable detection for bad gateways even when specifically selected (https://github.com/nymtech/nym-vpn-client/pull/5429)
 - Add better exit gateway wireguard handshake checking to mitigate ICMP ping failures (https://github.com/nymtech/nym-vpn-client/pull/5481)
 - Gateway subnet check included in subnet independence criteria (https://github.com/nymtech/nym-vpn-client/pull/5484)
+- [Linux] Add fallback for polkit policy path (https://github.com/nymtech/nym-vpn-client/pull/5528)
 
 ### Changed
 
