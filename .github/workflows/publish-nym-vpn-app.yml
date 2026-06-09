@@ -420,6 +420,9 @@ jobs:
 
   windows-updater:
     uses: ./.github/workflows/tauri-updater.yml
+    permissions:
+      contents: write
+      pull-requests: write
     needs: publish
     if: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
     with:
@@ -454,6 +457,9 @@ jobs:
   post-release:
     uses: ./.github/workflows/tauri-post-release.yml
     needs: publish
+    permissions:
+      contents: write
+      pull-requests: write
     if: ${{ inputs.release_type == 'stable' }}
     with:
       release_tag: ${{ needs.publish.outputs.release_tag }}
