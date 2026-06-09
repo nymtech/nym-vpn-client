@@ -5,7 +5,9 @@ use tauri::{AppHandle, Manager};
 use tracing::{info, instrument, trace, warn};
 
 use crate::vpnd::tunnel::TunnelState;
-use crate::{MAIN_WINDOW_LABEL, state::SharedAppState, vpnd::client::VpndClient, window::AppWindow};
+use crate::{
+    MAIN_WINDOW_LABEL, state::SharedAppState, vpnd::client::VpndClient, window::AppWindow,
+};
 
 #[cfg(not(target_os = "linux"))]
 pub const TRAY_ICON_ID: &str = "main";
