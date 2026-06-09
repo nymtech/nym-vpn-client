@@ -6983,6 +6983,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-updater"
+version = "2026.11.0-beta.1"
+dependencies = [
+ "futures",
+ "reqwest 0.13.3",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+]
+
+[[package]]
 name = "nym-upgrade-mode-check"
 version = "1.21.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
