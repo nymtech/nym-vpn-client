@@ -56,7 +56,7 @@ const SUMMARY_STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 /// - OfflineState : the connectivity monitor is telling we're not connected
 /// - DecentralisedState : The loaded account is set to "decentralised" mode
 pub(crate) struct SyncingLocalState {
-    result_rx: oneshot::Receiver<Result<(), SyncError>>,
+    result_rx: oneshot::Receiver<Result<bool, SyncError>>,
     sync_cancel_token: Option<DropGuard>,
 }
 
@@ -117,7 +117,7 @@ impl SyncingLocalState {
     }
 
     async fn check_account(
-        result_tx: oneshot::Sender<Result<(), SyncError>>,
+        result_tx: oneshot::Sender<Result<bool, SyncError>>,
         vpn_api_client: VpnApiClient,
         vpn_api_account: Arc<VpnAccount>,
         device: Device,
@@ -146,7 +146,7 @@ impl SyncingLocalState {
         } else if !summary.time_synced {
             Err(SyncError::DeviceTimeDesynced)
         } else {
-            Ok(())
+            Ok(false)
         };
 
         result_tx.send(result).ok();
@@ -163,14 +163,14 @@ impl SyncingLocalState {
         vpn_api_client: &VpnApiClient,
         vpn_api_account: &VpnAccount,
         device: &Device,
-    ) -> Result<(), SyncError> {
+    ) -> Result<bool, SyncError> {
         vpn_api_client
             .register_device(vpn_api_account, device)
             .await
             .map_err(|err| SyncError::UnregisteredDevice {
                 details: err.to_string(),
             })?;
-        Ok(()) // We can register a device, we have fair usage
+        Ok(true) // We just registered the device, we must update the summary (no need for a full refetch)
     }
 }
 
@@ -198,8 +198,16 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
 
             sync_result = &mut self.result_rx => {
                 match sync_result {
-                    Ok(Ok(())) => {
+                    Ok(Ok(device_registration)) => {
                        // We are all good to proceed
+                       if device_registration {
+                        // We registered our device just now so we need to update the summary
+                        if let Some(summary) = shared_state.vpn_account_summary.as_mut()
+                            && !summary.is_device_active {
+                                summary.is_device_active = true;
+                                summary.remaining_devices += 1;
+                        };
+                       }
                         NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, 0, false))
                     }
                     Ok(Err(err)) => {
@@ -211,9 +219,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                             }
                         }
                     }
-                    Err(_) => {
-                        tracing::error!("No result from local sync, this shouldn't happen");
-                        NextAccountControllerState::NewState(ErrorState::enter(AccountControllerErrorStateReason::Internal { context: SYNCING_LOCAL_STATE_CONTEXT.to_string(), details: "No result sent from syncing task".to_string() }))
+                    Err(e) => {
+                        tracing::error!("No result from local sync, task probably got cancelled : {e}");
+                        NextAccountControllerState::SameState(self)
                     }
                 }
             }

@@ -222,18 +222,15 @@ impl RequestingZkNymsState {
     }
 
     async fn handle_retrieved_zk_nym<C: ConnectivityMonitor>(
-        &mut self,
+        self: Box<Self>,
         shared_state: &mut SharedAccountState<C>,
         zknym_result: Result<Result<ZkNymFetchResult, ZkNymError>, JoinError>,
     ) -> NextAccountControllerState<C> {
         let join_result = match zknym_result {
             Ok(join_result) => join_result,
             Err(err) => {
-                error!("Failed to join on the fetching task : {err}");
-                return NextAccountControllerState::NewState(SyncingNetworkState::enter(
-                    shared_state,
-                    SyncMode::Optimistic,
-                ));
+                error!("Failed to join on the fetching task, task probably fot cancelled : {err}");
+                return NextAccountControllerState::SameState(self);
             }
         };
 

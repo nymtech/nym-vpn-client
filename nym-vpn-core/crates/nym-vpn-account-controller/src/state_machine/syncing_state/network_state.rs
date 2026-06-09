@@ -212,9 +212,9 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                         tracing::error!("Mandatory sync failed ({err})");
                         NextAccountControllerState::NewState(ErrorState::enter(err.into_error_reason()))
                     }
-                    Err(_) => {
-                        tracing::error!("No result from network sync, this shouldn't happen");
-                        NextAccountControllerState::NewState(ErrorState::enter(AccountControllerErrorStateReason::Internal { context: SYNCING_NETWORK_STATE_CONTEXT.to_string(), details: "No result sent from syncing task".to_string() }))
+                    Err(e) => {
+                        tracing::error!("No result from network sync, task probably got cancelled : {e}");
+                        NextAccountControllerState::SameState(self)
                     }
                 }
             }

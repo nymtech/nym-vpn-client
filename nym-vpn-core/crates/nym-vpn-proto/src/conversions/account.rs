@@ -306,7 +306,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
                 })
             })
             .transpose()?
-            .unwrap_or_else(OffsetDateTime::now_utc);
+            .unwrap_or(OffsetDateTime::UNIX_EPOCH);
 
         Ok(Self {
             traffic_used_gb: value.traffic_used_gb,
