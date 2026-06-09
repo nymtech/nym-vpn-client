@@ -108,7 +108,10 @@ where
             })
     }
 
-    async fn store_account_summary(&self, summary: VpnAccountSummary) -> Result<(), Error> {
+    pub(crate) async fn store_account_summary(
+        &self,
+        summary: VpnAccountSummary,
+    ) -> Result<(), Error> {
         self.storage
             .store_summary(summary)
             .await
@@ -117,7 +120,7 @@ where
             })
     }
 
-    async fn remove_account_summary(&self) -> Result<(), Error> {
+    pub(crate) async fn remove_account_summary(&self) -> Result<(), Error> {
         self.storage
             .remove_summary()
             .await

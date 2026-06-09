@@ -106,7 +106,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         if error {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
+                            return syncing_state::force_refresh(shared_state); // If we succeed, we need to register the new device, we can't move with a cache we know is now stale
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender, force) => {

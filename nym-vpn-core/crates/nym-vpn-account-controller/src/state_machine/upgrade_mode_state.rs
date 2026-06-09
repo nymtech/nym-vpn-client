@@ -164,10 +164,7 @@ impl UpgradeModeState {
                     if let Err(error_state) = Self::on_exit(shared_state).await {
                         return error_state.into();
                     }
-                    NextAccountControllerState::NewState(SyncingNetworkState::enter(
-                        shared_state,
-                        SyncMode::Optimistic,
-                    ))
+                    syncing_state::force_refresh(shared_state)
                 };
             }
             AccountCommand::RefreshAccountState(return_sender, force) => {

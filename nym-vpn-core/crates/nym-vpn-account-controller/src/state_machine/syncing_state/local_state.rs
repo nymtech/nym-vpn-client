@@ -205,7 +205,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                     Ok(Err(err)) => {
                         // The account doesn't check out
                         match err {
-                            SyncError::PendingSubscription => NextAccountControllerState::NewState(PendingSubscriptionState::enter()), // Ugh, why is this even a thing? Why isn't it the error state?
+                            SyncError::PendingSubscription => NextAccountControllerState::NewState(PendingSubscriptionState::enter()),
                             err => {
                                 NextAccountControllerState::NewState(ErrorState::enter(err.into_error_reason()))
                             }

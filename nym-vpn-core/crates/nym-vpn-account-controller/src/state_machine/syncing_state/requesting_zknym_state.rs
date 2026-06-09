@@ -348,10 +348,7 @@ impl RequestingZkNymsState {
             AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                 self.zk_nym_fetching_handle.abort();
                 return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
-                return NextAccountControllerState::NewState(SyncingNetworkState::enter(
-                    shared_state,
-                    SyncMode::Optimistic,
-                ));
+                return super::force_refresh(shared_state);
             }
             AccountCommand::RefreshAccountState(return_sender, force) => {
                 return_sender.send(Ok(()));
