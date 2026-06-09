@@ -229,7 +229,7 @@ impl RequestingZkNymsState {
         let join_result = match zknym_result {
             Ok(join_result) => join_result,
             Err(err) => {
-                error!("Failed to join on the fetching task, task probably fot cancelled : {err}");
+                error!("Failed to join on the fetching task, task probably got cancelled : {err}");
                 return NextAccountControllerState::SameState(self);
             }
         };

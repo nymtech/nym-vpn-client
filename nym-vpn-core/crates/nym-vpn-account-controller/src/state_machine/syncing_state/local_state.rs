@@ -205,7 +205,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         if let Some(summary) = shared_state.vpn_account_summary.as_mut()
                             && !summary.is_device_active {
                                 summary.is_device_active = true;
-                                summary.remaining_devices += 1;
+                                summary.remaining_devices -= 1; // We just registered, so it wasn't 0
                         };
                        }
                         NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, 0, false))
