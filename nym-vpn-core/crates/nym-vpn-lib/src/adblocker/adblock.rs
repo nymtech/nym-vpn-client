@@ -7,7 +7,7 @@ use std::{
     time::Duration,
 };
 
-use futures::{future::BoxFuture, FutureExt, TryFutureExt};
+use futures::{FutureExt, TryFutureExt, future::BoxFuture};
 use tokio::sync::Mutex;
 use tokio_util::sync::{CancellationToken, DropGuard};
 
@@ -15,10 +15,10 @@ use tokio_util::sync::{CancellationToken, DropGuard};
 use crate::adblocker::state::PrimitiveState;
 use crate::{
     adblocker::{
-        engines::{AdBlockEngine, AdBlockEngineWrap},
-        file_manager::{init_files, SOURCES},
-        state::{ObservableState, State},
         Result,
+        engines::{AdBlockEngine, AdBlockEngineWrap},
+        file_manager::{SOURCES, init_files},
+        state::{ObservableState, State},
     },
     dns_filter::DnsFilter,
 };

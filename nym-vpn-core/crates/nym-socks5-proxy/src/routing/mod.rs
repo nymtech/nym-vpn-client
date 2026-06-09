@@ -37,9 +37,9 @@ impl RoutingDatabase {
         let geo_ip = GeoIpDatabase::load(excluded_countries, data_dir)
             .await
             .context("Failed to load GeoIP database")?;
-        let domain = DomainSet::load(excluded_countries)
+        let domain = DomainSet::load(excluded_countries, data_dir)
             .await
-            .context("Failed to load China domain list")?;
+            .context("Failed to load domain exclusion list")?;
         Ok(Self { geo_ip, domain })
     }
 }

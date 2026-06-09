@@ -1,117 +1,113 @@
 #!/usr/bin/env python3
+"""Download socks5 proxy routing sources from the CDN (already gzip-compressed) and
+save them along with their ETag.  Run this script to refresh the builtin files
+embedded in the binary.
+
+The .gz files are embedded via include_bytes! and the .etag files are embedded via
+include_str! so that the first periodic update check can send If-None-Match and skip
+the download if nothing has changed.
+"""
 
 from __future__ import annotations
 
-import gzip
-import ipaddress
-import json
-import math
 import urllib.error
 import urllib.request
 from pathlib import Path
 
-APNIC_DELEGATED_URL = "https://ftp.apnic.net/stats/apnic/delegated-apnic-latest"
-DNSMASQ_CHINA_URL = (
-    "https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list"
-    "/master/accelerated-domains.china.conf"
-)
+
+BASE_URL = "https://geo-exclusion.sos-ch-gva-2.exoscale-cdn.com"
+
+# Country codes whose routing files should be downloaded.
+# For each code XX the script expects XX-ip.json.gz and XX-domain.txt.gz on the CDN.
+COUNTRY_CODES: list[str] = ["CN"]
+
+
+def _sources_for(country_code: str) -> list[str]:
+    cc = country_code.upper()
+    return [f"{cc}-ip.json.gz", f"{cc}-domain.txt.gz"]
+
+
+SOURCES: list[str] = [f for cc in COUNTRY_CODES for f in _sources_for(cc)]
 
 USER_AGENT = "nym-socks5-proxy/1.0 (+download_sources.py)"
 TIMEOUT_SECS = 60
 
 
-def _fetch(url: str) -> bytes:
+def _read_etag(etag_path: Path) -> str | None:
+    """Return the stored ETag string, or None if the file does not exist."""
+    try:
+        return etag_path.read_text(encoding="utf-8").strip() or None
+    except FileNotFoundError:
+        return None
+
+
+def _head_etag(url: str) -> str | None:
+    """Return the ETag from a HEAD request, or None if unavailable."""
+    req = urllib.request.Request(url, method="HEAD", headers={"User-Agent": USER_AGENT})
+    try:
+        resp = urllib.request.urlopen(req, timeout=TIMEOUT_SECS)
+        return resp.headers.get("ETag") or None
+    except urllib.error.URLError:
+        return None
+
+
+def _download(url: str, dest: Path) -> str:
+    """Download *url* to *dest* and return the ETag from the response.
+
+    Raises ``SystemExit`` if the response does not include an ETag.
+    """
     req = urllib.request.Request(
         url,
-        headers={"User-Agent": USER_AGENT, "Accept": "*/*"},
+        headers={
+            "User-Agent": USER_AGENT,
+            "Accept": "application/gzip, */*;q=0.9",
+        },
     )
+
     try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT_SECS) as resp:
-            return resp.read()
-    except urllib.error.URLError as e:
-        raise SystemExit(f"Failed to download {url}: {e}") from e
+        resp = urllib.request.urlopen(req, timeout=TIMEOUT_SECS)
+    except urllib.error.URLError as exc:
+        raise SystemExit(f"Failed to download {url}: {exc}") from exc
 
+    etag = resp.headers.get("ETag")
+    if not etag:
+        raise SystemExit(f"No ETag in response from {url}")
 
-def _write_gz(path: Path, data: bytes) -> None:
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    with gzip.open(tmp, "wb", compresslevel=9) as f:
-        f.write(data)
-    tmp.replace(path)
+    tmp = dest.with_suffix(dest.suffix + ".tmp")
+    tmp.parent.mkdir(parents=True, exist_ok=True)
 
+    with tmp.open("wb") as out:
+        while chunk := resp.read(1024 * 1024):
+            out.write(chunk)
 
-def download_cn_ip() -> None:
-    print(f"Downloading CN IP ranges from:\n  {APNIC_DELEGATED_URL}")
-    raw = _fetch(APNIC_DELEGATED_URL).decode("ascii", errors="ignore")
-
-    ipv4: list[str] = []
-    ipv6: list[str] = []
-
-    for line in raw.splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-
-        parts = line.split("|")
-        if len(parts) < 6:
-            continue
-
-        _registry, country, rtype, start, value = parts[:5]
-        if country.upper() != "CN":
-            continue
-
-        if rtype == "ipv4":
-            try:
-                count = int(value)
-                log = math.log2(count)
-                if log != int(log):
-                    continue  # skip non-power-of-2 counts
-                prefix_len = 32 - int(log)
-                net = ipaddress.IPv4Network(f"{start}/{prefix_len}", strict=False)
-                ipv4.append(str(net))
-            except (ValueError, ArithmeticError):
-                continue
-
-        elif rtype == "ipv6":
-            try:
-                net = ipaddress.IPv6Network(f"{start}/{value}", strict=False)
-                ipv6.append(str(net))
-            except ValueError:
-                continue
-
-    ipv4.sort(key=lambda n: ipaddress.IPv4Network(n))
-    ipv6.sort(key=lambda n: ipaddress.IPv6Network(n))
-
-    out = json.dumps({"ipv4": ipv4, "ipv6": ipv6}, ensure_ascii=True).encode()
-    _write_gz(Path("CN-ip.json.gz"), out)
-    print(f"  Written CN-ip.json.gz ({len(ipv4)} IPv4, {len(ipv6)} IPv6 ranges)")
-
-
-def download_cn_domains() -> None:
-    print(f"Downloading CN domain list from:\n  {DNSMASQ_CHINA_URL}")
-    raw = _fetch(DNSMASQ_CHINA_URL).decode("utf-8", errors="ignore")
-
-    domains: list[str] = []
-    for line in raw.splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        # Format: server=/domain.tld/114.114.114.114
-        if line.startswith("server=/"):
-            parts = line.split("/")
-            if len(parts) >= 2:
-                domain = parts[1].strip()
-                if domain:
-                    domains.append(domain)
-
-    domains.sort()
-    out = "\n".join(domains).encode("utf-8")
-    _write_gz(Path("CN-domain.txt.gz"), out)
-    print(f"  Written CN-domain.txt.gz ({len(domains)} domains)")
+    tmp.replace(dest)
+    return etag
 
 
 def main() -> int:
-    download_cn_ip()
-    download_cn_domains()
+    wrote = 0
+    for filename in SOURCES:
+        url = f"{BASE_URL}/{filename}"
+        gz_path = Path(filename)
+        etag_path = gz_path.with_suffix(".etag")
+
+        # Step 1: HEAD request to read the server's current ETag without downloading.
+        current_etag = _read_etag(etag_path)
+        if current_etag:
+            server_etag = _head_etag(url)
+
+            # Step 2 & 3: Compare — match → skip the download entirely.
+            if server_etag == current_etag:
+                print(f"Skipped {gz_path} (not modified, etag={current_etag!r})")
+                continue
+
+        # Step 4: Different (or no stored etag) → full GET, write file, store new ETag.
+        new_etag = _download(url, gz_path)
+        etag_path.write_text(new_etag, encoding="utf-8")
+        print(f"Wrote {gz_path}")
+        print(f"Wrote {etag_path} (etag={new_etag!r})")
+        wrote += 1
+
     return 0
 
 

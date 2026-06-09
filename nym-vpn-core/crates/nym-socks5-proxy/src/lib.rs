@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod default_interface;
+pub(crate) mod file_manager;
 pub mod proxy;
 pub mod routing;
 
