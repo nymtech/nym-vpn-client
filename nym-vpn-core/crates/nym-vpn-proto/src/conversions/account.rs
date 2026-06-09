@@ -293,9 +293,10 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
 
         let subscription = value.subscription.map(Subscription::try_from).transpose()?;
 
-        let account_status: VpnAccountStatus = proto::VpnAccountStatus::try_from(value.account_status)
-            .map(VpnAccountStatus::from)
-            .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.account_status"))?;
+        let account_status: VpnAccountStatus =
+            proto::VpnAccountStatus::try_from(value.account_status)
+                .map(VpnAccountStatus::from)
+                .map_err(|_| ConversionError::NoValueSet("VpnAccountSummary.account_status"))?;
 
         let last_synced_utc = value
             .last_synced_utc

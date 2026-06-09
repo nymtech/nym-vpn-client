@@ -798,8 +798,7 @@ mod tests {
         let mut summary = base_summary();
         summary.fair_usage.resetsOnUtc = Some("not a date at all".into());
 
-        let parsed =
-            build(&summary).expect("must not fail on bad reset timestamp");
+        let parsed = build(&summary).expect("must not fail on bad reset timestamp");
         assert!(parsed.traffic_reset_time.is_none());
     }
 
@@ -824,8 +823,7 @@ mod tests {
             is_stacked: false,
         };
 
-        let parsed =
-            build(&summary).expect("must not fail on bad reset timestamp");
+        let parsed = build(&summary).expect("must not fail on bad reset timestamp");
         assert!(
             parsed.is_subscription_active(),
             "subscription active in 2099 must still report active"
