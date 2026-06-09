@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<policyconfig>
+  <action id="com.nymvpn.vpnd.unix-access">
+    <description>Connect via unix socket</description>
+    <message>Authentication is required to connect to the daemon</message>
+
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_self</allow_active>
+    </defaults>
+  </action>
+</policyconfig>
