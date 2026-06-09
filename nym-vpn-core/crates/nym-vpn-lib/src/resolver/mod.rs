@@ -625,10 +625,9 @@ impl ResolverImpl {
         builder.build(
             response_meta,
             lookup.iter(),
-            // forwarder responses only contain query answers, no ns/soa or additionals
+            lookup.authorities().unwrap_or(LookupRecordsIter::Empty),
             std::iter::empty(),
-            std::iter::empty(),
-            std::iter::empty(),
+            lookup.additionals().unwrap_or(LookupRecordsIter::Empty),
         )
     }
 
