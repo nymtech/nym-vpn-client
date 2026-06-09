@@ -24,6 +24,7 @@ struct OneShotRequest {
 struct RegisterRequest {
     url: Url,
     dest_path: PathBuf,
+    initial_delay: Duration,
     interval: Duration,
     notify_tx: mpsc::UnboundedSender<Result<UpdateOutcome, UpdaterError>>,
 }
@@ -68,15 +69,17 @@ impl UpdaterHandle {
         result_rx.await.map_err(|_| UpdaterError::ChannelClosed)?
     }
 
-    /// Register a URL/file pair for periodic updating at the given `interval`.
+    /// Register a URL/file pair for periodic updating.
     ///
-    /// The first check fires after `interval`; subsequent checks fire every `interval` thereafter.
-    /// Returns a receiver that yields each [`UpdateOutcome`] as it occurs.
-    /// The registration is automatically removed when the returned receiver is dropped.
+    /// The first check fires after `initial_delay`; subsequent checks fire every
+    /// `interval` thereafter.  Returns a receiver that yields each [`UpdateOutcome`]
+    /// as it occurs.  The registration is automatically removed when the returned
+    /// receiver is dropped.
     pub async fn register(
         &self,
         url: Url,
         dest_path: PathBuf,
+        initial_delay: Duration,
         interval: Duration,
     ) -> Result<mpsc::UnboundedReceiver<Result<UpdateOutcome, UpdaterError>>, UpdaterError> {
         let (notify_tx, notify_rx) = mpsc::unbounded_channel();
@@ -84,12 +87,24 @@ impl UpdaterHandle {
             .send(Message::Register(RegisterRequest {
                 url,
                 dest_path,
+                initial_delay,
                 interval,
                 notify_tx,
             }))
             .await
             .map_err(|_| UpdaterError::ChannelClosed)?;
         Ok(notify_rx)
+    }
+}
+
+impl UpdaterHandle {
+    /// Create a disconnected handle for use in tests.
+    ///
+    /// All `register` and `request_update` calls will return `Err(UpdaterError::ChannelClosed)`,
+    /// which the adblocker treats as a soft error (runs without scheduled updates).
+    pub fn new_test() -> Self {
+        let (tx, _rx) = mpsc::channel(1);
+        UpdaterHandle { tx }
     }
 }
 
@@ -149,16 +164,17 @@ impl Updater {
                         }
                         Some(Message::Register(req)) => {
                             tracing::debug!(
-                                "Registering periodic update task from {} to {} every {:?}",
+                                "Registering periodic update task from {} to {} (initial delay {:?}, interval {:?})",
                                 req.url,
                                 req.dest_path.display(),
+                                req.initial_delay,
                                 req.interval,
                             );
                             tasks.push(ScheduledTask {
                                 url: req.url,
                                 dest_path: req.dest_path,
                                 interval: req.interval,
-                                next_fire: Instant::now() + req.interval,
+                                next_fire: Instant::now() + req.initial_delay,
                                 notify_tx: req.notify_tx,
                             });
                             rearm_timer(timer.as_mut(), &tasks);

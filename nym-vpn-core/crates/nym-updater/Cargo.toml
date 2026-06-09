@@ -11,6 +11,11 @@ license.workspace = true
 [lints]
 workspace = true
 
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+wiremock = { workspace = true }
+
 [dependencies]
 futures = { workspace = true }
 reqwest = { workspace = true, features = ["rustls", "stream"] }

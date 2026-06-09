@@ -1050,10 +1050,12 @@ impl TunnelStateMachine {
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
-        let adblocker = adblocker::AdBlocker::new(
-            nym_config.data_path.join("ad-blocking"),
-            user_agent.to_string(),
-        );
+        let (updater, updater_handle) =
+            nym_updater::Updater::new().expect("failed to create file updater");
+        tokio::spawn(updater.run(shutdown_token.child_token()));
+
+        let adblocker =
+            adblocker::AdBlocker::new(nym_config.data_path.join("ad-blocking"), updater_handle);
         if tunnel_settings.enable_ad_blocking {
             adblocker.enable().await;
         }

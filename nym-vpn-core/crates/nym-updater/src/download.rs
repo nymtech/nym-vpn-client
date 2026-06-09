@@ -33,13 +33,34 @@ pub(crate) async fn download_file(
     let etag_path = etag_path(dest_path);
     let current_etag = read_etag(&etag_path).await;
 
-    let mut builder = http_client.get(url.as_str());
-    if let Some(etag) = &current_etag {
-        builder = builder.header(reqwest::header::IF_NONE_MATCH, etag);
+    // Step 1: HEAD request to read the server's current ETag without downloading.
+    if let Some(ref stored) = current_etag {
+        let head = cancel_token
+            .run_until_cancelled(http_client.head(url.as_str()).send())
+            .await
+            .ok_or(UpdaterError::Cancelled)?
+            .map_err(|error| UpdaterError::Request {
+                url: url.to_string(),
+                error,
+            })?;
+
+        // Step 2: Compare with stored ETag.
+        let server_etag = head
+            .headers()
+            .get(reqwest::header::ETAG)
+            .and_then(|v| v.to_str().ok())
+            .map(ToOwned::to_owned);
+
+        // Step 3: Match → skip the download entirely.
+        if server_etag.as_deref() == Some(stored.as_str()) {
+            tracing::debug!("HEAD etag matches from {url}, skipping download");
+            return Ok(UpdateOutcome::NotModified);
+        }
     }
 
+    // Step 4: Different (or no stored etag) → full GET, write file, store new ETag.
     let response = cancel_token
-        .run_until_cancelled(builder.send())
+        .run_until_cancelled(http_client.get(url.as_str()).send())
         .await
         .ok_or(UpdaterError::Cancelled)?
         .map_err(|error| UpdaterError::Request {
@@ -49,10 +70,10 @@ pub(crate) async fn download_file(
 
     match response.status() {
         reqwest::StatusCode::OK => {
-            tracing::debug!(%url, "Received 200, downloading");
+            tracing::debug!("Received 200 from {url}, downloading");
         }
         reqwest::StatusCode::NOT_MODIFIED => {
-            tracing::debug!(%url, "File not modified (304)");
+            tracing::debug!("File not modified (304) from {url}");
             return Ok(UpdateOutcome::NotModified);
         }
         status => {
@@ -67,12 +88,10 @@ pub(crate) async fn download_file(
         .headers()
         .get(reqwest::header::ETAG)
         .and_then(|v| v.to_str().ok())
-        .map(ToOwned::to_owned);
-
-    if new_etag.is_some() && new_etag == current_etag {
-        tracing::warn!(%url, "Etag from {url} is unchanged, even though the server passed the If-None-Match check. Skipping file update.");
-        return Ok(UpdateOutcome::NotModified);
-    }
+        .map(ToOwned::to_owned)
+        .ok_or_else(|| UpdaterError::MissingEtag {
+            url: url.to_string(),
+        })?;
 
     let temp_path = temp_path(dest_path);
     let url_str = url.to_string();
@@ -89,9 +108,7 @@ pub(crate) async fn download_file(
             error,
         })?;
 
-    if let Some(etag) = new_etag {
-        write_etag(&etag_path, &etag).await;
-    }
+    write_etag(&etag_path, &new_etag).await?;
 
     tracing::debug!("{} updated from {url}", dest_path.display());
     Ok(UpdateOutcome::Updated)
@@ -141,12 +158,9 @@ async fn write_response_to_file(
     Ok(())
 }
 
+/// Derives the `.etag` path from the `.gz` dest path: `foo.txt.gz` → `foo.txt.etag`.
 fn etag_path(dest_path: &Path) -> PathBuf {
-    let name = dest_path
-        .file_name()
-        .map(|n| format!("{}.etag", n.to_string_lossy()))
-        .unwrap_or_else(|| "file.etag".to_owned());
-    dest_path.with_file_name(name)
+    dest_path.with_extension("etag")
 }
 
 fn temp_path(dest_path: &Path) -> PathBuf {
@@ -165,8 +179,149 @@ async fn read_etag(etag_path: &Path) -> Option<String> {
         .filter(|s| !s.is_empty())
 }
 
-async fn write_etag(etag_path: &Path, etag: &str) {
-    if let Err(error) = fs::write(etag_path, etag).await {
-        tracing::warn!("Failed to write etag file {}: {error}", etag_path.display());
+async fn write_etag(etag_path: &Path, etag: &str) -> Result<(), UpdaterError> {
+    fs::write(etag_path, etag)
+        .await
+        .map_err(|error| UpdaterError::WriteFile {
+            path: etag_path.to_path_buf(),
+            error,
+        })
+}
+
+#[cfg(test)]
+mod tests {
+    use tempfile::TempDir;
+    use tokio_util::sync::CancellationToken;
+    use url::Url;
+    use wiremock::{Mock, MockServer, ResponseTemplate, matchers::method};
+
+    use super::download_file;
+    use crate::UpdateOutcome;
+
+    const TEST_ETAG: &str = r#""v1-abc123""#;
+    const TEST_BODY: &[u8] = b"fake filter content";
+
+    /// HEAD returns the matching ETag; GET is never issued.
+    async fn server_unchanged() -> MockServer {
+        let server = MockServer::start().await;
+        Mock::given(method("HEAD"))
+            .respond_with(ResponseTemplate::new(200).insert_header("ETag", TEST_ETAG))
+            .mount(&server)
+            .await;
+        server
+    }
+
+    /// HEAD returns a new ETag; GET delivers the updated file.
+    async fn server_updated(new_etag: &'static str) -> MockServer {
+        let server = MockServer::start().await;
+        Mock::given(method("HEAD"))
+            .respond_with(ResponseTemplate::new(200).insert_header("ETag", new_etag))
+            .mount(&server)
+            .await;
+        Mock::given(method("GET"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .insert_header("ETag", new_etag)
+                    .set_body_bytes(TEST_BODY),
+            )
+            .mount(&server)
+            .await;
+        server
+    }
+
+    /// No stored etag — HEAD is skipped, GET downloads the file.
+    async fn server_first_download() -> MockServer {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .insert_header("ETag", TEST_ETAG)
+                    .set_body_bytes(TEST_BODY),
+            )
+            .mount(&server)
+            .await;
+        server
+    }
+
+    fn make_url(server: &MockServer, path: &str) -> Url {
+        format!("{}/{}", server.uri(), path).parse().unwrap()
+    }
+
+    /// HEAD etag matches stored etag → skip download, return NotModified.
+    #[tokio::test]
+    async fn test_not_modified_when_head_etag_matches() {
+        let server = server_unchanged().await;
+
+        let temp_dir = TempDir::new().unwrap();
+        let dest_path = temp_dir.path().join("filters.txt.gz");
+        tokio::fs::write(dest_path.with_extension("etag"), TEST_ETAG)
+            .await
+            .unwrap();
+
+        let outcome = download_file(
+            &reqwest::Client::new(),
+            &make_url(&server, "filters.txt.gz"),
+            &dest_path,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert!(matches!(outcome, UpdateOutcome::NotModified));
+        assert!(!dest_path.exists(), "file should not be written");
+    }
+
+    /// HEAD etag differs from stored etag → GET, write file, store new etag.
+    #[tokio::test]
+    async fn test_updated_when_head_etag_differs() {
+        let new_etag = r#""v2-xyz789""#;
+        let server = server_updated(new_etag).await;
+
+        let temp_dir = TempDir::new().unwrap();
+        let dest_path = temp_dir.path().join("filters.txt.gz");
+        let etag_path = dest_path.with_extension("etag");
+        tokio::fs::write(&etag_path, TEST_ETAG).await.unwrap();
+
+        let outcome = download_file(
+            &reqwest::Client::new(),
+            &make_url(&server, "filters.txt.gz"),
+            &dest_path,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert!(matches!(outcome, UpdateOutcome::Updated));
+        assert!(dest_path.exists());
+        assert_eq!(
+            tokio::fs::read_to_string(&etag_path).await.unwrap(),
+            new_etag
+        );
+    }
+
+    /// No stored etag (first run) → HEAD skipped, GET downloads and stores etag.
+    #[tokio::test]
+    async fn test_first_download_writes_file_and_etag() {
+        let server = server_first_download().await;
+
+        let temp_dir = TempDir::new().unwrap();
+        let dest_path = temp_dir.path().join("filters.txt.gz");
+        let etag_path = dest_path.with_extension("etag");
+
+        let outcome = download_file(
+            &reqwest::Client::new(),
+            &make_url(&server, "filters.txt.gz"),
+            &dest_path,
+            CancellationToken::new(),
+        )
+        .await
+        .unwrap();
+
+        assert!(matches!(outcome, UpdateOutcome::Updated));
+        assert!(dest_path.exists());
+        assert_eq!(
+            tokio::fs::read_to_string(&etag_path).await.unwrap(),
+            TEST_ETAG
+        );
     }
 }

@@ -6988,11 +6988,13 @@ version = "2026.11.0-beta.1"
 dependencies = [
  "futures",
  "reqwest 0.13.3",
+ "tempfile",
  "thiserror 2.0.18",
  "tokio",
  "tokio-util",
  "tracing",
  "url",
+ "wiremock",
 ]
 
 [[package]]
@@ -7230,6 +7232,7 @@ dependencies = [
  "nym-sqlx-pool-guard",
  "nym-statistics",
  "nym-statistics-api-client",
+ "nym-updater",
  "nym-validator-client",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
