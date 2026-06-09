@@ -24,9 +24,7 @@ const ACTION_ID: &str = "com.nymvpn.vpnd.unix-access";
 const CANCELLATION_ID: &str = "com.nymvpn.vpnd.cancel";
 const USER_INTERACTION_TIMEOUT: Duration = Duration::from_secs(60);
 
-// Single source of truth for the polkit action XML. The same file is shipped
-// by the deb / AUR / raw install packaging into /usr/share/polkit-1/actions/
-// so that on properly-packaged installs the runtime install path is a no-op.
+// Single source of truth for the polkit action XML.
 const POLKIT_POLICY: &str = include_str!("../../.pkg/com.nymvpn.vpnd.unix-access.policy");
 
 // Polkit's documented action search path is /usr/share/polkit-1/actions/.
