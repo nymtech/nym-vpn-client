@@ -157,6 +157,7 @@ jobs:
       - name: Prepare build output directory
         id: prepare-output-dir
         env:
+          BRANCH_NAME: ${{ github.ref_name }}
           OUTPUT_DIR_BASE: ci-builds/${{ github.ref_name }}
         run: |
           TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
@@ -164,7 +165,7 @@ jobs:
           echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
           rm -rf ci-builds || true
           mkdir -p "$OUTPUT_DIR"
-          echo "core_build_url_path=/${{ github.ref_name }}/$TIMESTAMP" >> "$GITHUB_OUTPUT"
+          echo "core_build_url_path=/$BRANCH_NAME/$TIMESTAMP" >> "$GITHUB_OUTPUT"
           echo "$OUTPUT_DIR"
 
       - name: Prepare build output artifacts
@@ -442,6 +443,7 @@ jobs:
         env:
           NYM_BUILDS_URL: "https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core"
           core_build_url_path: "${{ needs.publish-core.outputs.core_build_url_path || needs.publish.outputs.core_build_url_path }}"
+          BRANCH_NAME: ${{ github.ref_name }}
         run: |
           if [[ -n "${{ inputs.core_release_tag }}" ]]; then
             url=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
@@ -452,7 +454,7 @@ jobs:
           elif [[ "${{ env.RELEASE_TYPE }}" == "dev" ]]; then
             url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           else
-            branch="${{ github.ref_name }}"
+            branch="${BRANCH_NAME//[^a-zA-Z0-9._\/-]/}"
             latest=$(curl -sSL "${{ env.NYM_BUILDS_URL }}/$branch/" | grep -oP '(?<=href=")\d+(?=/)' | sort -rn | head -1)
             if [[ -n "$latest" ]]; then
               url="${{ env.NYM_BUILDS_URL }}/$branch/$latest/"
