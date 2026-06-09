@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix missing "recursion available" flag in DNS responses, passthrough authority and additional records (https://github.com/nymtech/nym-vpn-client/pull/5546)
+
+
+## [2026.10.0] - 2026-06-09
+
 ### Added
 
 - Node family restriction and possibility to check for probable gateway selection before connection (https://github.com/nymtech/nym-vpn-client/pull/5285)
@@ -25,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] Diagnostic doesn't panic because of uninitialized context (https://github.com/nymtech/nym-vpn-client/pull/5415)
 - [Windows] Fix a crash when the network reconnected (https://github.com/nymtech/nym-vpn-client/pull/5508)
 - [Linux] LP firewalled by allowed_endpoints (https://github.com/nymtech/nym-vpn-client/pull/5516)
+
 
 ## [1.30] - 2026-05-29
 
