@@ -385,6 +385,9 @@ jobs:
 
   windows-updater:
     uses: ./.github/workflows/tauri-updater.yml
+    permissions:
+      contents: write
+      pull-requests: write
     needs: publish
     if: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
     with:
