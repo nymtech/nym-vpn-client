@@ -323,6 +323,7 @@ impl TryFrom<proto::VpnAccountSummary> for VpnAccountSummary {
             remaining_devices: value.remaining_devices,
             is_device_active: value.is_device_active,
             last_synced_utc,
+            stale: value.stale,
             time_synced: value.time_synced,
         })
     }
@@ -365,6 +366,7 @@ impl From<VpnAccountSummary> for proto::VpnAccountSummary {
             remaining_devices: value.remaining_devices,
             is_device_active: value.is_device_active,
             last_synced_utc,
+            stale: value.stale,
             time_synced: value.time_synced,
         }
     }

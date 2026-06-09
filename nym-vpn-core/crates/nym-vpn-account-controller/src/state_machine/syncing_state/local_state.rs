@@ -21,7 +21,6 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, VpnAccountSummary,
 };
-use time::OffsetDateTime;
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
 use tracing::warn;
@@ -38,6 +37,8 @@ const SUMMARY_STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 /// - Is the subscription active (or pending) ?
 /// - Is the current device registered ?
 /// - Do we have fair usage left ?
+///
+/// No other state than SyncingNetworkState should lead there
 ///
 /// If no summary is cached (or it is stale), there is nothing to trust locally, so we defer to
 /// [`SyncingNetworkState`] to fetch one first. The only network interaction here is registering the
@@ -86,7 +87,7 @@ impl SyncingLocalState {
         };
 
         // A stale cache can't be trusted; force a mandatory re-fetch instead of checking it.
-        if Self::is_stale(&summary) {
+        if summary.is_stale(SUMMARY_STALE_AFTER) {
             tracing::debug!("Cached account summary is stale, forcing a network refresh");
             return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory);
         }
@@ -152,13 +153,6 @@ impl SyncingLocalState {
         result_tx.send(result).ok();
     }
 
-    /// Whether the cached summary is too old to be trusted and should be force-refreshed.
-    fn is_stale(summary: &VpnAccountSummary) -> bool {
-        let age =
-            OffsetDateTime::now_utc().unix_timestamp() - summary.last_synced_utc.unix_timestamp();
-        age > SUMMARY_STALE_AFTER.as_secs() as i64
-    }
-
     async fn register_device(
         vpn_api_client: &VpnApiClient,
         vpn_api_account: &VpnAccount,
@@ -199,15 +193,18 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
             sync_result = &mut self.result_rx => {
                 match sync_result {
                     Ok(Ok(device_registration)) => {
-                       // We are all good to proceed
-                       if device_registration {
-                        // We registered our device just now so we need to update the summary
-                        if let Some(summary) = shared_state.vpn_account_summary.as_mut()
-                            && !summary.is_device_active {
-                                summary.is_device_active = true;
-                                summary.remaining_devices -= 1; // We just registered, so it wasn't 0
-                        };
-                       }
+                        // If we just registered the device, reflect that in the cached summary
+                        // (memory + disk) so a restart doesn't try to register again, without
+                        // needing a full re-fetch.
+                        if device_registration
+                            && let Some(mut summary) = shared_state.vpn_account_summary.clone()
+                            && !summary.is_device_active
+                        {
+                            summary.is_device_active = true;
+                            // Guarded above: we only register when a slot is free, so this is > 0.
+                            summary.remaining_devices = summary.remaining_devices.saturating_sub(1);
+                            shared_state.store_summary(summary);
+                        }
                         NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, 0, false))
                     }
                     Ok(Err(err)) => {
@@ -259,7 +256,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                             NextAccountControllerState::SameState(self)
                         } else {
                             if force {
-                                return super::force_refresh(shared_state);
+                                shared_state.mark_summary_as_stale();
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
                             } else {
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                             }
@@ -267,7 +265,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                     },
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
-                        return super::force_refresh(shared_state)
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
                     },
 
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {

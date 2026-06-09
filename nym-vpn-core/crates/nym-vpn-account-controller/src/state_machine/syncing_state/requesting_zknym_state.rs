@@ -19,7 +19,7 @@ use crate::{
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
         OfflineState, PrivateAccountControllerState, ReadyState, SyncMode, SyncingNetworkState,
-        UpgradeModeState, syncing_state,
+        UpgradeModeState,
     },
     storage::VpnCredentialStorage,
 };
@@ -345,7 +345,10 @@ impl RequestingZkNymsState {
             AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                 self.zk_nym_fetching_handle.abort();
                 return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
-                return super::force_refresh(shared_state);
+                return NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                    shared_state,
+                    SyncMode::Mandatory,
+                ));
             }
             AccountCommand::RefreshAccountState(return_sender, force) => {
                 return_sender.send(Ok(()));
@@ -354,7 +357,11 @@ impl RequestingZkNymsState {
                 } else {
                     self.zk_nym_fetching_handle.abort();
                     if force {
-                        return syncing_state::force_refresh(shared_state);
+                        shared_state.mark_summary_as_stale();
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                            shared_state,
+                            SyncMode::Mandatory,
+                        ));
                     } else {
                         return NextAccountControllerState::NewState(SyncingNetworkState::enter(
                             shared_state,

@@ -7,7 +7,7 @@ use crate::{
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
         PrivateAccountControllerState, RequestingZkNymsState, SyncMode, SyncingNetworkState,
-        UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL, syncing_state,
+        UPGRADE_MODE_DEFAULT_REFRESH_INTERVAL,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -164,7 +164,10 @@ impl UpgradeModeState {
                     if let Err(error_state) = Self::on_exit(shared_state).await {
                         return error_state.into();
                     }
-                    syncing_state::force_refresh(shared_state)
+                    return NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                        shared_state,
+                        SyncMode::Mandatory,
+                    ));
                 };
             }
             AccountCommand::RefreshAccountState(return_sender, force) => {
@@ -177,7 +180,11 @@ impl UpgradeModeState {
                         return error_state.into();
                     }
                     if force {
-                        return syncing_state::force_refresh(shared_state);
+                        shared_state.mark_summary_as_stale();
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                            shared_state,
+                            SyncMode::Mandatory,
+                        ));
                     } else {
                         return NextAccountControllerState::NewState(SyncingNetworkState::enter(
                             shared_state,

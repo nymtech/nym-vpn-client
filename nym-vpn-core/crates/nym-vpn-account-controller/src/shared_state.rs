@@ -98,4 +98,26 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             event_sender,
         }
     }
+
+    // Mark the summary as stale and best effort to propagate to disk
+    pub(crate) fn mark_summary_as_stale(&mut self) {
+        if let Some(summary) = self.vpn_account_summary.as_mut() {
+            summary.stale = true;
+            let _ = self
+                .storage_op_sender
+                .send(AccountStorageOp::StoreAccountSummary(Box::new(
+                    summary.clone(),
+                )));
+        }
+    }
+
+    // Store the account summary in memory and best effort to propagate to disk
+    pub(crate) fn store_summary(&mut self, summary: VpnAccountSummary) {
+        let _ = self
+            .storage_op_sender
+            .send(AccountStorageOp::StoreAccountSummary(Box::new(
+                summary.clone(),
+            )));
+        self.vpn_account_summary = Some(summary);
+    }
 }

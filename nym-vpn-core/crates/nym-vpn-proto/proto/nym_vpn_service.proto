@@ -941,6 +941,7 @@ message VpnAccountSummary {
   bool is_device_active = 17;
   optional google.protobuf.Timestamp last_synced_utc = 18;
   bool time_synced = 19;
+  bool stale = 20;
 }
 
 message NymVpnSubscription {

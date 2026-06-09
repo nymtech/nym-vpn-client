@@ -9,7 +9,7 @@ use crate::{
     state_machine::{
         ACCOUNT_UPDATE_INTERVAL, AccountControllerStateHandler, LoggedOutState,
         NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncMode,
-        SyncingNetworkState, syncing_state,
+        SyncingNetworkState,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -99,7 +99,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                         if error {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return syncing_state::force_refresh(shared_state);
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender, force) => {
@@ -108,7 +108,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
                             return NextAccountControllerState::SameState(self);
                         } else {
                             if force {
-                                return syncing_state::force_refresh(shared_state);
+                                shared_state.mark_summary_as_stale();
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
                             } else {
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                             }

@@ -52,7 +52,7 @@ type SyncResult = Result<Option<VpnAccountSummary>, SyncError>;
 /// Possible next state :
 /// - LoggedOutState : No account is stored
 /// - SyncingLocalState : A summary is available (freshly fetched, or the cache after an optimistic
-///   miss) and its checks can run. We always hand off with a summary present.
+///   miss) and its checks can run. We always hand off with an existing non-stale summary.
 /// - SyncingNetworkState : A mandatory fetch failed and we retry (with backoff)
 /// - ErrorState : A mandatory fetch exhausted its retries, preventing us from proceeding
 /// - OfflineState : the connectivity monitor is telling we're not connected
@@ -199,7 +199,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                     Ok(Ok(Some(response))) => {
                         // The summary is stored (and propagated to disk) even if the subsequent
                         // local checks eventually fail.
-                        super::store_summary(shared_state, response);
+                        shared_state.store_summary(response);
                         NextAccountControllerState::NewState(SyncingLocalState::enter(shared_state))
 
                     }
@@ -252,7 +252,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                             NextAccountControllerState::SameState(self)
                         } else {
                             if force {
-                                return super::force_refresh(shared_state);
+                                shared_state.mark_summary_as_stale();
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
                             } else {
                                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                             }
@@ -260,7 +261,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                     },
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
-                        return super::force_refresh(shared_state);
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
                     },
 
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {

@@ -291,10 +291,7 @@ pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
         .map_err(AccountCommandError::storage)?; // Storage error
 
     // summary is now stale
-    let _ = shared_state
-        .storage_op_sender
-        .send(AccountStorageOp::RemoveAccountSummary);
-    shared_state.vpn_account_summary = None;
+    shared_state.mark_summary_as_stale();
 
     shared_state.device = Some(device);
 

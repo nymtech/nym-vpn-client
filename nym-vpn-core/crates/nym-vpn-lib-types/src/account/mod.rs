@@ -9,6 +9,8 @@ pub mod request_zknym;
 pub mod storage;
 pub mod ticketbooks;
 
+use std::time::Duration;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
@@ -289,8 +291,11 @@ pub struct VpnAccountSummary {
     /// Whether the current device is registered and active on this account.
     pub is_device_active: bool,
 
-    /// Wether the time was acceptably synced when the summary was built
+    /// Whether the time was acceptably synced when the summary was built
     pub time_synced: bool,
+
+    /// Additional staleness flag
+    pub stale: bool,
 
     /// When this summary was last synced from the VPN API. Used to decide when a
     /// background refresh is due.
@@ -348,6 +353,13 @@ impl VpnAccountSummary {
             .iter()
             .any(|method| method.kind == "privy_secp256k1")
     }
+
+    // Stale if flag is set or age > provided max_age
+    pub fn is_stale(&self, max_age: Duration) -> bool {
+        self.stale
+            || OffsetDateTime::now_utc().unix_timestamp() - self.last_synced_utc.unix_timestamp()
+                > max_age.as_secs() as i64
+    }
 }
 
 #[cfg(feature = "nym-type-conversions")]
@@ -402,6 +414,7 @@ impl VpnAccountSummary {
             remaining_devices: account_summary.devices.remaining,
             is_device_active: api_summary.active_device.is_some(),
             time_synced: remote_time.is_acceptable_synced(),
+            stale: false,
             last_synced_utc: OffsetDateTime::now_utc(),
         })
     }
@@ -1003,6 +1016,7 @@ mod fair_usage_left_semantics_tests {
             remaining_devices: 10,
             is_device_active: false,
             time_synced: true,
+            stale: false,
             last_synced_utc: OffsetDateTime::now_utc(),
         }
     }
