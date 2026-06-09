@@ -22,7 +22,7 @@ use crate::{
     adblocker::{
         AdBlockerError, Result,
         engines::AdBlockEngine,
-        file_manager::{SOURCES, Source, SourceMetaData},
+        file_manager::{SOURCES, Source},
     },
     dns_filter::{DnsFilterDecision, DnsFilterStrategy, DnsFilterT},
 };
@@ -282,10 +282,13 @@ async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Resu
             ..Default::default()
         };
 
-        let meta_path = cache_dir.join(source.meta_file_name);
-        let meta_data = SourceMetaData::from_file(&meta_path).await?;
+        let mtime = tokio::fs::metadata(&data_path)
+            .await
+            .and_then(|m| m.modified())
+            .map(OffsetDateTime::from)
+            .unwrap_or_else(|_| OffsetDateTime::now_utc());
 
-        let update_timestamp = meta_data.updated_utc;
+        let update_timestamp = mtime;
         let source_id = source.file_name;
 
         // Quick check to skip update if data hasn't changed

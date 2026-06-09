@@ -70,7 +70,7 @@ impl AdBlockEngine for MockEngine {
                 } else {
                     promise.fulfill();
 
-                    Err(AdBlockerError::OpenFile {
+                    Err(AdBlockerError::ReadFile {
                         file_path: dir.to_path_buf(),
                         error: std::io::Error::from(std::io::ErrorKind::PermissionDenied),
                     })

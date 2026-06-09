@@ -50,6 +50,9 @@ pub enum UpdaterError {
         error: std::io::Error,
     },
 
+    #[error("Response from {url} did not include an ETag header")]
+    MissingEtag { url: String },
+
     #[error("Update cancelled")]
     Cancelled,
 
