@@ -20,6 +20,7 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_store::{
     account::AccountInformationStorage,
+    account_summary::AccountSummaryStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
 };
 
