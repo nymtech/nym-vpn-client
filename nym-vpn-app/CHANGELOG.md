@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2026.10.0] - 2026-06-09
+
 ### Added
 
 - Allow adding custom apps (user selected) to split tunneling for Windows & Linux
