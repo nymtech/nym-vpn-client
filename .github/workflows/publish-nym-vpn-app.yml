@@ -30,6 +30,10 @@ on:
         type: boolean
         default: false
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   build-linux:
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
