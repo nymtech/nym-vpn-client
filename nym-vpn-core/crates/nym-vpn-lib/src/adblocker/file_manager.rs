@@ -124,7 +124,7 @@ impl Source {
             .lines()
             .map_err(|err: std::io::Error| {
                 err.downcast::<AdBlockerError>()
-                    .unwrap_or_else(|err| AdBlockerError::UnknownLineReadError(err))
+                    .unwrap_or_else(AdBlockerError::UnknownLineReadError)
             })
             .boxed()
     }

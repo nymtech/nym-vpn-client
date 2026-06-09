@@ -16,16 +16,19 @@ workspace = true
 anyhow.workspace = true
 async-compression = { workspace = true, features = ["tokio", "gzip"] }
 fast-socks5.workspace = true
+futures.workspace = true
 ipnet.workspace = true
 iprange.workspace = true
 nym-routing.workspace = true
 nym-socks5-proxy-ipc.workspace = true
+nym-updater.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 tokio = { workspace = true, features = [
     "rt-multi-thread",
     "io-std",
     "io-util",
+    "fs",
     "macros",
     "net",
     "sync",
@@ -34,6 +37,7 @@ tokio = { workspace = true, features = [
 tokio-util = { workspace = true, features = ["codec"] }
 tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter", "ansi"] }
+url.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 nym-windows.workspace = true

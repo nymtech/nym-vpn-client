@@ -1,28 +1,21 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
-use anyhow::{Context, Result};
+use std::path::Path;
 
-static EMBEDDED_COUNTRY_DOMAINS: &[(&str, &[u8])] =
-    &[("CN", include_bytes!("../../builtin/CN-domain.txt.gz"))];
+use anyhow::{Context, Result};
 
 pub struct DomainSet {
     reversed: Vec<String>,
 }
 
 impl DomainSet {
-    pub async fn load(excluded_countries: &[String]) -> Result<Self> {
+    pub async fn load(excluded_countries: &[String], data_dir: &Path) -> Result<Self> {
         let mut all_reversed: Vec<String> = Vec::new();
 
         for code in excluded_countries {
             let upper = code.to_uppercase();
-            let Some(&(_, gz)) = EMBEDDED_COUNTRY_DOMAINS
-                .iter()
-                .find(|&&(cc, _)| cc == upper.as_str())
-            else {
-                tracing::debug!("No embedded domain list for country {upper}; skipping");
-                continue;
-            };
+            let gz = load_country_domain_gz(&upper, data_dir).await?;
 
-            let text = super::decompress_gz(gz)
+            let text = super::decompress_gz(&gz)
                 .await
                 .with_context(|| format!("Failed to decompress domain list for {upper}"))?;
 
@@ -85,6 +78,40 @@ impl DomainSet {
         reversed.sort_unstable();
         Ok(Self { reversed })
     }
+}
+
+/// Load the gzip bytes for a country's domain list: file on disk first, embedded fallback.
+async fn load_country_domain_gz(country_code: &str, data_dir: &Path) -> Result<Vec<u8>> {
+    let path = data_dir.join(format!("{country_code}-domain.txt.gz"));
+
+    match tokio::fs::read(&path).await {
+        Ok(bytes) => {
+            tracing::debug!("Loaded updated domain list from '{}'", path.display());
+            Ok(bytes)
+        }
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => embedded_domain_gz(country_code)
+            .map(|b| b.to_vec())
+            .ok_or_else(|| anyhow::anyhow!("No domain list available for country {country_code}")),
+        Err(err) => {
+            tracing::warn!(
+                "Could not read domain list from '{}': {err}; using embedded data",
+                path.display(),
+            );
+            embedded_domain_gz(country_code)
+                .map(|b| b.to_vec())
+                .ok_or_else(|| {
+                    anyhow::anyhow!("No embedded domain list available for country {country_code}")
+                })
+        }
+    }
+}
+
+fn embedded_domain_gz(country_code: &str) -> Option<&'static [u8]> {
+    let file_name = format!("{country_code}-domain.txt.gz");
+    crate::file_manager::SOURCES
+        .iter()
+        .find(|s| s.file_name == file_name.as_str())
+        .map(|s| s.builtin)
 }
 
 fn reverse_labels(domain: &str) -> String {

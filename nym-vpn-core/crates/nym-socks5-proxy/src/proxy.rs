@@ -3,12 +3,14 @@
 
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::Path,
+    path::{Path, PathBuf},
     sync::Arc,
+    time::Duration,
 };
 
 use crate::{
     default_interface::DefaultInterface,
+    file_manager::{self, SOURCES},
     routing::{RoutingDatabase, RoutingDecision, decide_route_for_addrs, is_excluded_domain},
 };
 
@@ -28,11 +30,16 @@ use fast_socks5::{
     util::target_addr::TargetAddr,
 };
 use nym_socks5_proxy_ipc::{InterfaceAddresses, ProxyConfig};
+use nym_updater::{UpdateOutcome, UpdaterError, UpdaterHandle};
 use tokio::{
     net::{TcpListener, TcpSocket, TcpStream},
-    sync::watch,
+    sync::{mpsc, watch},
 };
 use tokio_util::sync::CancellationToken;
+use url::Url;
+
+const SOCKS5_INITIAL_UPDATE_DELAY: Duration = Duration::from_mins(5);
+const SOCKS5_UPDATE_INTERVAL: Duration = Duration::from_hours(8);
 
 pub async fn run(
     config: ProxyConfig,
@@ -40,6 +47,7 @@ pub async fn run(
     default_interface_rx: watch::Receiver<DefaultInterface>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
     shutdown_token: CancellationToken,
+    updater_handle: UpdaterHandle,
     #[cfg(target_os = "android")] socket_protector: crate::SocketProtector,
 ) -> Result<()> {
     let listen_addr = SocketAddr::from(([127, 0, 0, 1], config.listen_port));
@@ -49,16 +57,65 @@ pub async fn run(
 
     tracing::info!("SOCKS5 proxy listener bound: {listen_addr}");
 
+    // Seed builtin files to disk on first run.
+    file_manager::init_files(data_dir)
+        .await
+        .context("Failed to initialise SOCKS5 routing data files")?;
+
+    // Register each source file with the updater for periodic refresh.
+    let excluded_countries = config.excluded_countries.clone();
+    let data_dir_buf = data_dir.to_path_buf();
+    let mut receivers: Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, UpdaterError>>> =
+        Vec::new();
+
+    for source in SOURCES.iter() {
+        let Ok(url) = source.url.parse::<Url>() else {
+            tracing::error!("Invalid SOCKS5 source URL: {}", source.url);
+            continue;
+        };
+        let dest = data_dir.join(source.file_name);
+        match updater_handle
+            .register(
+                url,
+                dest,
+                SOCKS5_INITIAL_UPDATE_DELAY,
+                SOCKS5_UPDATE_INTERVAL,
+            )
+            .await
+        {
+            Ok(rx) => receivers.push(rx),
+            Err(err) => {
+                tracing::error!(
+                    "Failed to register SOCKS5 source {} with updater: {err}",
+                    source.file_name
+                );
+            }
+        }
+    }
+
+    // Load the initial routing database.
     let db = RoutingDatabase::load(&config.excluded_countries, data_dir)
         .await
         .context("Failed to build routing database")?;
-    let db = Arc::new(db);
+    let (db_tx, db_rx) = watch::channel(Arc::new(db));
+
+    // Background task: reload the routing database whenever a source file is updated.
+    // The updater_handle is moved here to keep the updater loop alive for the lifetime
+    // of this task — dropping it earlier would cause the updater to exit.
+    tokio::spawn(handle_db_updates(
+        excluded_countries,
+        data_dir_buf,
+        db_tx,
+        receivers,
+        updater_handle,
+        shutdown_token.child_token(),
+    ));
 
     tokio::spawn(accept_loop(
         listener,
         default_interface_rx,
         tunnel_addrs_rx,
-        db,
+        db_rx,
         shutdown_token,
         #[cfg(target_os = "android")]
         socket_protector,
@@ -67,11 +124,73 @@ pub async fn run(
     Ok(())
 }
 
+/// Listen for update notifications and reload the routing database when files change.
+async fn handle_db_updates(
+    excluded_countries: Vec<String>,
+    data_dir: PathBuf,
+    db_tx: watch::Sender<Arc<RoutingDatabase>>,
+    mut receivers: Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, UpdaterError>>>,
+    _updater_handle: UpdaterHandle,
+    cancel_token: CancellationToken,
+) {
+    loop {
+        match recv_any_update(&mut receivers, &cancel_token).await {
+            Some(Ok(UpdateOutcome::Updated)) => {
+                // Drain any other notifications from the same update cycle.
+                for rx in &mut receivers {
+                    while rx.try_recv().is_ok() {}
+                }
+                match RoutingDatabase::load(&excluded_countries, &data_dir).await {
+                    Ok(db) => {
+                        tracing::info!("SOCKS5 routing database reloaded");
+                        let _ = db_tx.send(Arc::new(db));
+                    }
+                    Err(err) => {
+                        tracing::error!("Failed to reload SOCKS5 routing database: {err:#}");
+                    }
+                }
+            }
+            Some(Ok(UpdateOutcome::NotModified)) => {}
+            Some(Err(err)) => {
+                tracing::error!("SOCKS5 updater error: {err}");
+            }
+            None => {
+                tracing::debug!("SOCKS5 updater receivers closed");
+                return;
+            }
+        }
+    }
+}
+
+/// Poll all receivers concurrently; return the first message that arrives or None on cancellation.
+async fn recv_any_update(
+    receivers: &mut Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, UpdaterError>>>,
+    cancel_token: &CancellationToken,
+) -> Option<Result<UpdateOutcome, UpdaterError>> {
+    loop {
+        if receivers.is_empty() {
+            return None;
+        }
+        let futs: Vec<_> = receivers.iter_mut().map(|rx| Box::pin(rx.recv())).collect();
+        // Destructure inside select! so _rest is dropped before the match below.
+        let result = tokio::select! {
+            _ = cancel_token.cancelled() => return None,
+            (outcome, _idx, _rest) = futures::future::select_all(futs) => outcome,
+        };
+        match result {
+            Some(msg) => return Some(msg),
+            None => {
+                receivers.retain_mut(|rx| !rx.is_closed());
+            }
+        }
+    }
+}
+
 async fn accept_loop(
     listener: TcpListener,
     default_interface_rx: watch::Receiver<DefaultInterface>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
-    db: Arc<RoutingDatabase>,
+    db_rx: watch::Receiver<Arc<RoutingDatabase>>,
     shutdown_token: CancellationToken,
     #[cfg(target_os = "android")] socket_protector: crate::SocketProtector,
 ) {
@@ -84,7 +203,8 @@ async fn accept_loop(
                         let shutdown = shutdown_token.clone();
                         let tunnel_addrs_rx_clone = tunnel_addrs_rx.clone();
                         let default_interface_rx_clone = default_interface_rx.clone();
-                        let db = db.clone();
+                        // Snapshot the current routing database at accept time.
+                        let db = db_rx.borrow().clone();
                         #[cfg(target_os = "android")]
                         let socket_protector = socket_protector.clone();
                         tokio::spawn(async move {

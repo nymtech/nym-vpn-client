@@ -6,6 +6,7 @@ use anyhow::Result;
 use nym_socks5_proxy::SocketProtector;
 use nym_socks5_proxy::default_interface;
 use nym_socks5_proxy_ipc::{DaemonMessage, InterfaceAddresses, ProxyConfig};
+use nym_updater::Updater;
 use tokio::{
     sync::{mpsc, oneshot, watch},
     task::JoinHandle,
@@ -96,12 +97,26 @@ async fn supervisor(
     let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());
     let default_interface_rx = default_interface::start_monitor(shutdown_token.child_token()).await;
 
+    let updater_handle = match Updater::new() {
+        Ok((updater, handle)) => {
+            tokio::spawn(updater.run(shutdown_token.child_token()));
+            handle
+        }
+        Err(err) => {
+            let msg = format!("Failed to create file updater: {err:#}");
+            tracing::error!("{msg}");
+            let _ = ready_tx.send(Err(msg));
+            return;
+        }
+    };
+
     match nym_socks5_proxy::run(
         config,
         &proxy_dir,
         default_interface_rx,
         tunnel_addrs_rx,
         shutdown_token.clone(),
+        updater_handle,
         #[cfg(target_os = "android")]
         socket_protector,
     )
