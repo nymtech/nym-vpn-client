@@ -24,6 +24,7 @@ members = [
     "crates/nym-socks5-proxy-ipc",
     "crates/nym-statistics",
     "crates/nym-statistics-api-client",
+    "crates/nym-updater",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-lib",
