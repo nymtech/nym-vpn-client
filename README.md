@@ -15,15 +15,15 @@ Tech details and cryptography are documented in the [NymVPN Litepaper](https://n
 
 # NymVPN Downloads
 
-[![Android (GitHub releases)](.github/assets/apk-download-badge-1745835177551.png)](https://github.com/nymtech/nym-vpn-client/releases?q=android&expanded=true)
-[![F-Droid](.github/assets/fdroid-badge.png)](https://f-droid.org/packages/net.nymtech.nymvpn/)
-[![Flathub](.github/assets/flathub-store.svg)](https://flathub.org/apps/net.nymtech.NymVPN)
-[![Google Play](.github/assets/play-badge.png)](https://play.google.com/store/apps/details?id=net.nymtech.nymvpn)
-[![Apple Store](.github/assets/app-store-badge.svg)](https://apps.apple.com/app/id6471254143)
-[![Apple Testflight](.github/assets/app-store-badge.svg)](https://testflight.apple.com/join/0vmRJNrL)
-[![Linux](.github/assets/linux-badge.png)](https://github.com/nymtech/nym-vpn-client/releases?q=linux&expanded=true)
-[![macOS](.github/assets/macos-badge.png)](https://github.com/nymtech/nym-vpn-client/releases?q=macos&expanded=true)
-[![Windows](.github/assets/windows-badge.png)](https://github.com/nymtech/nym-vpn-client/releases?q=windows&expanded=true)
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=android&expanded=true"><img src=".github/assets/apk-download-badge-1745835177551.png" height="54" alt="Android (GitHub releases)"></a>
+<a href="https://f-droid.org/packages/net.nymtech.nymvpn/"><img src=".github/assets/fdroid-badge.png" height="54" alt="F-Droid"></a>
+<a href="https://flathub.org/apps/net.nymtech.NymVPN"><img src=".github/assets/flathub-store.svg" height="54" alt="Flathub"></a>
+<a href="https://play.google.com/store/apps/details?id=net.nymtech.nymvpn"><img src=".github/assets/play-badge.png" height="54" alt="Google Play"></a>
+<a href="https://apps.apple.com/app/id6471254143"><img src=".github/assets/app-store-badge.svg" height="54" alt="App Store"></a>
+<a href="https://testflight.apple.com/join/0vmRJNrL"><img src=".github/assets/testflight-badge.svg" height="54" alt="TestFlight"></a>
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=linux&expanded=true"><img src=".github/assets/linux-badge.png" height="54" alt="Linux"></a>
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=macos&expanded=true"><img src=".github/assets/macos-badge.png" height="54" alt="macOS"></a>
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=windows&expanded=true"><img src=".github/assets/windows-badge.png" height="54" alt="Windows"></a>
 
 # Two VPN modes
 
