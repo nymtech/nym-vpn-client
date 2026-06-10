@@ -175,13 +175,15 @@ private extension SnackbarItem.Style {
     }
 
     var actionForeground: Color {
-        Color.Nym.textPrimary
+        Color.Nym.primaryText
     }
 
     var actionBorder: Color {
         switch self {
-        case .critical: .clear
-        default:        Color.Nym.textPrimary.opacity(0.2)
+        case .critical:
+                .clear
+        default:
+            Color.Nym.primaryText.opacity(0.2)
         }
     }
 }
