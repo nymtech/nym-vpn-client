@@ -1231,7 +1231,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="nym-vpn-macOS-v${MACOS_VERSION}"
+          TAG="nym-vpn-macos-v${MACOS_VERSION}"
           if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
             echo "Tag already exists: ${TAG}"
