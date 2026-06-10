@@ -354,11 +354,24 @@ impl VpnAccountSummary {
             .any(|method| method.kind == "privy_secp256k1")
     }
 
-    // Stale if flag is set or age > provided max_age
+    // Stale if explicitly flagged, older than max_age, or holding a depleted snapshot synced
+    // before an elapsed daily reset boundary (fair usage left + reset time passed).
     pub fn is_stale(&self, max_age: Duration) -> bool {
+        self.is_stale_at(OffsetDateTime::now_utc(), max_age)
+    }
+
+    pub(crate) fn is_stale_at(&self, now: OffsetDateTime, max_age: Duration) -> bool {
         self.stale
-            || OffsetDateTime::now_utc().unix_timestamp() - self.last_synced_utc.unix_timestamp()
+            || self.fair_usage_depleted_past_reset(now)
+            || now.unix_timestamp() - self.last_synced_utc.unix_timestamp()
                 > max_age.as_secs() as i64
+    }
+
+    fn fair_usage_depleted_past_reset(&self, now: OffsetDateTime) -> bool {
+        !self.fair_usage_left()
+            && self
+                .traffic_reset_time
+                .is_some_and(|reset_time| reset_time <= now && self.last_synced_utc <= reset_time)
     }
 }
 
@@ -1061,6 +1074,48 @@ mod fair_usage_left_semantics_tests {
     fn fair_usage_left_true_when_active_and_under_cap() {
         let s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 100);
         assert!(s.fair_usage_left());
+    }
+
+    #[test]
+    fn is_stale_true_after_traffic_reset_time_even_when_recently_synced() {
+        let now = OffsetDateTime::from_unix_timestamp(1_700_000_000).expect("valid timestamp");
+        let reset_time = now - time::Duration::seconds(1);
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2000);
+        s.last_synced_utc = reset_time - time::Duration::seconds(1);
+        s.traffic_reset_time = Some(reset_time);
+
+        assert!(s.is_stale_at(now, Duration::from_secs(24 * 60 * 60)));
+    }
+
+    #[test]
+    fn is_stale_false_after_traffic_reset_time_when_synced_after_reset() {
+        let now = OffsetDateTime::from_unix_timestamp(1_700_000_000).expect("valid timestamp");
+        let reset_time = now - time::Duration::seconds(1);
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2000);
+        s.last_synced_utc = now;
+        s.traffic_reset_time = Some(reset_time);
+
+        assert!(!s.is_stale_at(now, Duration::from_secs(24 * 60 * 60)));
+    }
+
+    #[test]
+    fn is_stale_false_before_traffic_reset_time_when_recently_synced() {
+        let now = OffsetDateTime::from_unix_timestamp(1_700_000_000).expect("valid timestamp");
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 100);
+        s.last_synced_utc = now;
+        s.traffic_reset_time = Some(now + time::Duration::hours(1));
+
+        assert!(!s.is_stale_at(now, Duration::from_secs(24 * 60 * 60)));
+    }
+
+    #[test]
+    fn is_stale_false_when_depleted_but_reset_still_in_future() {
+        let now = OffsetDateTime::from_unix_timestamp(1_700_000_000).expect("valid timestamp");
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2000);
+        s.last_synced_utc = now;
+        s.traffic_reset_time = Some(now + time::Duration::hours(1));
+
+        assert!(!s.is_stale_at(now, Duration::from_secs(24 * 60 * 60)));
     }
 
     #[test]
