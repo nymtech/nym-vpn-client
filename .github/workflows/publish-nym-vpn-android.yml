@@ -43,10 +43,6 @@ on:
         default: release
         required: true
 
-  push:
-    tags:
-      - "nym-vpn-android-v*.*.*"
-
 env:
   UPLOAD_DIR_ANDROID: android_artifacts
   RELEASE_NOTES: ""
@@ -111,7 +107,9 @@ jobs:
       - if: github.event_name == 'schedule'
         run: echo "TAG_NAME=nym-vpn-android-nightly" >> $GITHUB_ENV
       - if: github.event_name == 'push'
-        run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+        run: |
+          echo "unsupported push action!"
+          exit 1
 
       - name: On nightly release
         if: ${{ contains(env.TAG_NAME, 'nightly') }}
