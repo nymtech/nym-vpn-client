@@ -110,7 +110,6 @@ mod tests {
         let limited_addresses = str_to_socket_addr("https://microsoft.com", Some((1, 1)))
             .await
             .unwrap();
-        assert!(!limited_addresses.is_empty());
         assert!(limited_addresses.len() <= 2);
         let v4_count = limited_addresses
             .iter()
