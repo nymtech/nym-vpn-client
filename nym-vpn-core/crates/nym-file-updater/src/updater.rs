@@ -51,7 +51,7 @@ struct PeriodicCompletion {
 /// Cloneable handle for submitting file update requests to the [`FileUpdater`] loop.
 #[derive(Clone)]
 pub struct FileUpdaterHandle {
-    tx: mpsc::Sender<Message>,
+    tx: mpsc::UnboundedSender<Message>,
 }
 
 impl FileUpdaterHandle {
@@ -70,7 +70,6 @@ impl FileUpdaterHandle {
                 dest_path,
                 result_tx,
             }))
-            .await
             .map_err(|_| FileUpdaterError::ChannelClosed)?;
         result_rx
             .await
@@ -100,7 +99,6 @@ impl FileUpdaterHandle {
                 interval,
                 notify_tx,
             }))
-            .await
             .map_err(|_| FileUpdaterError::ChannelClosed)?;
         Ok(notify_rx)
     }
@@ -113,7 +111,7 @@ impl FileUpdaterHandle {
     /// `Err(FileUpdaterError::ChannelClosed)`, which the adblocker treats as a soft
     /// error (runs without scheduled updates).
     pub fn new_test() -> Self {
-        let (tx, _rx) = mpsc::channel(1);
+        let (tx, _rx) = mpsc::unbounded_channel();
         FileUpdaterHandle { tx }
     }
 }
@@ -124,7 +122,7 @@ impl FileUpdaterHandle {
 /// Downloads are spawned onto separate tasks so the message loop stays responsive
 /// while a download is in progress.
 pub struct FileUpdater {
-    rx: mpsc::Receiver<Message>,
+    rx: mpsc::UnboundedReceiver<Message>,
     http_client: reqwest::Client,
 }
 
@@ -140,7 +138,7 @@ impl FileUpdater {
 
     /// Create a new `FileUpdater` using a pre-built `reqwest::Client`.
     pub fn with_client(http_client: reqwest::Client) -> (Self, FileUpdaterHandle) {
-        let (tx, rx) = mpsc::channel(32);
+        let (tx, rx) = mpsc::unbounded_channel();
         let file_updater = Self { rx, http_client };
         let handle = FileUpdaterHandle { tx };
         (file_updater, handle)
