@@ -107,12 +107,20 @@ mod tests {
     use super::*;
     #[tokio::test]
     async fn test_resolve_host() {
-        //let addresses = domain_to_socket_addr("microsoft.com", None).await.unwrap();
-
         let limited_addresses = str_to_socket_addr("https://microsoft.com", Some((1, 1)))
             .await
             .unwrap();
-        //assert!(addresses.len() > 2);
-        assert_eq!(limited_addresses.len(), 1);
+        assert!(!limited_addresses.is_empty());
+        assert!(limited_addresses.len() <= 2);
+        let v4_count = limited_addresses
+            .iter()
+            .filter(|a| a.ip().is_ipv4())
+            .count();
+        let v6_count = limited_addresses
+            .iter()
+            .filter(|a| a.ip().is_ipv6())
+            .count();
+        assert!(v4_count <= 1);
+        assert!(v6_count <= 1);
     }
 }
