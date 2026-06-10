@@ -42,7 +42,10 @@ use nym_gateway_directory::ResolvedConfig;
 use nym_http_api_client::HickoryDnsResolver;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
-use nym_vpn_lib_types::{EstablishConnectionData, EstablishConnectionState, GatewayLightInfo};
+use nym_vpn_lib_types::{
+    AccountControllerErrorStateReason, AccountControllerState, EstablishConnectionData,
+    EstablishConnectionState, GatewayLightInfo,
+};
 
 /// Initial delay between retry attempts.
 const INITIAL_WAIT_DELAY: Duration = Duration::from_secs(2);
@@ -333,6 +336,8 @@ impl ConnectingState {
         // Allow networking now when firewall and resolver overrides are configured.
         shared_state.allow_networking().await;
 
+        Self::force_account_refresh_if_time_desynced(self.retry_attempt, shared_state).await;
+
         self.start_tunnel_monitor(shared_state).await
     }
 
@@ -342,6 +347,8 @@ impl ConnectingState {
         _resolver_result: Result<ResolvedConfig>,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
+        Self::force_account_refresh_if_time_desynced(self.retry_attempt, shared_state).await;
+
         NextTunnelState::NewState(
             ErrorState::enter(
                 ErrorStateReason::Internal(
@@ -404,6 +411,31 @@ impl ConnectingState {
         self.tunnel_monitor_handle = Some(tunnel_monitor_handle);
 
         NextTunnelState::SameState(self)
+    }
+
+    /// Requests account summary refresh on the very first connection attempt if account controller is in error state due to time desync issue.
+    /// This provides an escape hatch making it possible to disconnect and reconnect the tunnel without ending up in the error state indefinitely.
+    async fn force_account_refresh_if_time_desynced(
+        retry_attempt: u32,
+        shared_state: &SharedState,
+    ) {
+        if retry_attempt == 0
+            && let AccountControllerState::Error(
+                AccountControllerErrorStateReason::DeviceTimeDesynced,
+            ) = shared_state.account_controller_state.get_state()
+        {
+            tracing::info!("Forcing account state refresh due to device time being desynced");
+            if let Err(err) = shared_state
+                .account_command_tx
+                .background_refresh_account_state()
+                .await
+            {
+                trace_err_chain!(
+                    err,
+                    "failed to request background refresh for account state"
+                );
+            }
+        }
     }
 
     async fn handle_registered_with_gateways(
