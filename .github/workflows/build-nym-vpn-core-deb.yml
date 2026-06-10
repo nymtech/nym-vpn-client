@@ -57,17 +57,11 @@ jobs:
           crate: cargo-deb
           cache-key: ${{ matrix.arch }}
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
+      - name: Install toml-cli
+        uses: baptiste0928/cargo-install@v3
         with:
-          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get workspace version
-        id: workspace-version
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: workspace.package.version --entry nym-vpn-core
+          crate: toml-cli
+          cache-key: ${{ matrix.arch }}
 
       - name: Install cargo-edit
         uses: baptiste0928/cargo-install@v3
@@ -75,10 +69,27 @@ jobs:
           crate: cargo-edit
           cache-key: ${{ matrix.arch }}
 
-      - name: Append timestamp if it's a dev version
-        run:
-          ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{
-          steps.workspace-version.outputs.metadata }}
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set version for nightly builds
+        working-directory: nym-vpn-core
+        if: ${{ github.ref_name == 'develop' }}
+        run: |
+          if [ ${{ github.event_name }} = 'schedule' ]; then
+            TAG="nightly"
+          else
+            TAG="dev"
+          fi
+          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
+          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
+          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
+          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
+          mv Cargo-patched.toml Cargo.toml
+          cargo update --dry-run
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v8
