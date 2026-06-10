@@ -385,8 +385,7 @@ pub async fn select_gateways(
             // Check if removing the independence criteria allows us to select a gateway pair
             // so we know what to tell the user.
             let mut no_gateway_independence_settings = tunnel_settings.clone();
-            no_gateway_independence_settings.gateway_independence =
-                GatewayIndependence::new_deactivated();
+            no_gateway_independence_settings.gateway_independence = GatewayIndependence::new(false);
             // if we still can't select, we just return the error
             loop_select(
                 entry_gateways,
