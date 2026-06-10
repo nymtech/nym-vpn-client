@@ -25,6 +25,7 @@ nym-gateway-requests.workspace = true
 nym-http-api-client.workspace = true
 nym-ip-packet-client.workspace = true
 nym-lp.workspace = true
+nym-lp-data.workspace = true
 nym-registration-common.workspace = true
 nym-registration-client.workspace = true
 nym-sdk.workspace = true

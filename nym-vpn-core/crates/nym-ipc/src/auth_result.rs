@@ -97,10 +97,10 @@ mod tests {
     #[test]
     fn enum_to_u8() {
         for (idx, res) in AuthenticaticationQuery::iter().enumerate() {
-            assert_eq!(idx as u8, res.into());
+            assert_eq!(idx as u8, u8::from(res));
         }
         for (idx, res) in AuthenticaticationResult::iter().enumerate() {
-            assert_eq!(idx as u8, res.into());
+            assert_eq!(idx as u8, u8::from(res));
         }
     }
 

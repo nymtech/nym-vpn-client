@@ -6,7 +6,8 @@ use crate::diagnostic::{build_api_client, registration::setup_bandwidth_provider
 use anyhow::Context;
 use nym_bandwidth_controller::BandwidthTicketProvider;
 use nym_credentials_interface::TicketType;
-use nym_lp::{Ciphersuite, packet::version, peer::LpRemotePeer};
+use nym_lp::{Ciphersuite, peer::LpRemotePeer};
+use nym_lp_data::packet::version;
 use nym_registration_client::LpRegistrationClient;
 use nym_registration_common::WireguardConfiguration;
 use nym_sdk::mixnet::{ed25519, x25519};
