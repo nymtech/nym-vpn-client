@@ -319,6 +319,7 @@ nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym"
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
 nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
 
+
 # For local development
 # [patch."https://github.com/nymtech/nym"]
 #nym-authenticator-client = { path = "../../nym/nym-authenticator-client" }

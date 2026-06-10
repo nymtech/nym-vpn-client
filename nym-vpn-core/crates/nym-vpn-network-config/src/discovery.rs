@@ -19,7 +19,7 @@ pub struct Discovery {
     pub network_name: String,
 
     // Use the getters!
-    networking_specifics: Option<String>, // NetworkingSpecifics,
+    networking_specifics: NetworkingSpecifics,
     // to be removed in favor of networking_specifics
     nym_api_urls: Vec<ApiUrl>,
     // to be removed in favor of networking_specifics
@@ -130,9 +130,15 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
 
         let nym_vpn_api_urls = discovery.nym_vpn_api_urls.clone();
 
+        let networking_specifics = NetworkingSpecifics {
+            nym_api_urls: nym_api_urls.iter().map(Into::into).collect(),
+            nym_vpn_api_urls: nym_vpn_api_urls.iter().map(Into::into).collect(),
+            dns_fallbacks: Vec::new(),
+        };
+
         Ok(Self {
             network_name: discovery.network_name,
-            networking_specifics: None,
+            networking_specifics,
             nym_api_urls,
             nym_vpn_api_urls,
             account_management,

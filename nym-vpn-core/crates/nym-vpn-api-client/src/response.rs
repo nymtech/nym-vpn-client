@@ -13,9 +13,9 @@ use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 pub use nym_credential_proxy_requests::api::v1::ticketbook::models::UpgradeModeAttestation;
 use nym_validator_client::models::described::type_translation::LewesProtocolDetailsV1;
+use nym_network_defaults::network::NetworkingSpecifics;
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, UtcDateTime, format_description::well_known::Iso8601};
-use nym_network_defaults::network::NetworkingSpecifics;
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
@@ -765,6 +765,25 @@ pub struct ApiUrl {
     pub url: String,
     pub fronts: Option<Vec<String>>,
 }
+
+impl Into<nym_network_defaults::ApiUrl> for ApiUrl {
+    fn into(self) -> nym_network_defaults::ApiUrl {
+        nym_network_defaults::ApiUrl {
+            url: self.url,
+            front_hosts: self.fronts,
+        }
+    }
+}
+
+impl Into<nym_network_defaults::ApiUrl> for &ApiUrl {
+    fn into(self) -> nym_network_defaults::ApiUrl {
+        nym_network_defaults::ApiUrl {
+            url: self.url.clone(),
+            front_hosts: self.fronts.clone(),
+        }
+    }
+}
+
 
 // The response type we fetch from the discovery endpoint
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]

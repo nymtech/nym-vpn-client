@@ -106,7 +106,6 @@ impl VpnApiClient {
         })
     }
 
-    #[cfg(feature = "network-defaults")]
     pub async fn from_network(
         network: &nym_network_defaults::NymNetworkDetails,
         user_agent: Option<UserAgent>,
