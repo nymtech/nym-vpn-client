@@ -7220,6 +7220,7 @@ dependencies = [
  "nym-firewall-config",
  "nym-gateway-directory",
  "nym-http-api-client",
+ "nym-ifconfig",
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-lp",

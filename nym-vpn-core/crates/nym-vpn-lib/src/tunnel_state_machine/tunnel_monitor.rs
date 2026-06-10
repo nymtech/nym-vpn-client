@@ -959,7 +959,7 @@ impl TunnelMonitor {
         #[cfg(any(target_os = "ios", target_os = "android"))]
         let tun_name = {
             let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.deref().as_raw_fd()) };
-            tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?
+            tun_name::get_tun_name(tun_fd).map_err(Error::GetTunDeviceName)?
         };
 
         tracing::info!("Created tun device: {}", tun_name);
@@ -1192,7 +1192,8 @@ impl TunnelMonitor {
             self.enable_ipv6().then_some(conn_data.exit.private_ipv6),
             Some(conn_data.entry.private_ipv4.into()),
             exit_tun_mtu,
-        )?;
+        )
+        .await?;
         let exit_tun_name = exit_tun
             .deref()
             .tun_name()
@@ -1370,7 +1371,8 @@ impl TunnelMonitor {
             self.enable_ipv6().then_some(conn_data.entry.private_ipv6),
             None,
             entry_mtu,
-        )?;
+        )
+        .await?;
         let entry_tun_name = entry_tun
             .deref()
             .tun_name()
@@ -1395,7 +1397,8 @@ impl TunnelMonitor {
             // todo: this needs to be able to set both destinations?
             Some(conn_data.entry.private_ipv4.into()),
             exit_mtu,
-        )?;
+        )
+        .await?;
         let exit_tun_name = exit_tun
             .deref()
             .tun_name()
@@ -1648,7 +1651,7 @@ impl TunnelMonitor {
 
         let tun_device = self.create_tun_device(packet_tunnel_settings).await?;
         let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.deref().as_raw_fd()) };
-        let interface = tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?;
+        let interface = tun_name::get_tun_name(tun_fd).map_err(Error::GetTunDeviceName)?;
         let mut ips = vec![IpAddr::V4(conn_data.exit.private_ipv4)];
         if self.enable_ipv6() {
             ips.push(IpAddr::V6(conn_data.exit.private_ipv6));
@@ -1748,6 +1751,7 @@ impl TunnelMonitor {
                 .tun_name()
                 .map_err(Error::GetTunDeviceName)?;
             tun_ipv6::set_ipv6_addr(&tun_name, interface_ipv6)
+                .await
                 .map_err(Error::SetTunDeviceIpv6Addr)?;
         }
 
@@ -1774,7 +1778,7 @@ impl TunnelMonitor {
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]
-    fn create_wireguard_device(
+    async fn create_wireguard_device(
         interface_ipv4: Ipv4Addr,
         interface_ipv6: Option<Ipv6Addr>,
         destination: Option<IpAddr>,
@@ -1806,6 +1810,7 @@ impl TunnelMonitor {
 
         if let Some(interface_ipv6) = interface_ipv6 {
             tun_ipv6::set_ipv6_addr(&tun_name, interface_ipv6)
+                .await
                 .map_err(Error::SetTunDeviceIpv6Addr)?;
         }
 

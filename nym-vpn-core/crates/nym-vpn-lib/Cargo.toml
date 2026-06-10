@@ -142,6 +142,7 @@ nix = { workspace = true, features = [
     "signal",
     "ioctl",
 ] }
+nym-ifconfig.workspace = true
 
 # Windows-specific dependencies
 [target.'cfg(windows)'.dependencies]
