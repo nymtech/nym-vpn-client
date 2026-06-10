@@ -110,7 +110,7 @@ mod tests {
         let limited_addresses = str_to_socket_addr("https://microsoft.com", Some((1, 1)))
             .await
             .unwrap();
-        assert!(limited_addresses.len() <= 2);
+        assert_eq!(limited_addresses.len(), 2);
         let v4_count = limited_addresses
             .iter()
             .filter(|a| a.ip().is_ipv4())
@@ -119,7 +119,7 @@ mod tests {
             .iter()
             .filter(|a| a.ip().is_ipv6())
             .count();
-        assert!(v4_count <= 1);
-        assert!(v6_count <= 1);
+        assert_eq!(v4_count, 1);
+        assert_eq!(v6_count, 1);
     }
 }
