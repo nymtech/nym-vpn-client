@@ -1038,6 +1038,7 @@ impl TunnelStateMachine {
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
+        file_updater_handle: nym_file_updater::FileUpdaterHandle,
         user_agent: UserAgent,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
@@ -1050,12 +1051,10 @@ impl TunnelStateMachine {
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
-        let (updater, updater_handle) =
-            nym_updater::Updater::new().map_err(Error::CreateUpdater)?;
-        tokio::spawn(updater.run(shutdown_token.child_token()));
-
-        let adblocker =
-            adblocker::AdBlocker::new(nym_config.data_path.join("ad-blocking"), updater_handle);
+        let adblocker = adblocker::AdBlocker::new(
+            nym_config.data_path.join("ad-blocking"),
+            file_updater_handle,
+        );
         if tunnel_settings.enable_ad_blocking {
             adblocker.enable().await;
         }
@@ -1245,9 +1244,6 @@ pub enum Error {
     #[error("failed to start split tunnel task")]
     StartSplitTunnelTask(#[source] nym_split_tunnel::Error),
 
-    #[error("failed to create updater")]
-    CreateUpdater(#[source] nym_updater::UpdaterError),
-
     #[error("failed to create tunnel device")]
     CreateTunDevice(#[source] tun::Error),
 
@@ -1348,7 +1344,6 @@ impl Error {
             Self::StartLocalDnsResolver(_) => None?,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             Self::StartSplitTunnelTask(_) => None?,
-            Self::CreateUpdater(e) => ErrorStateReason::Internal(e.to_string()),
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
             Self::Tunnel(e) => e.error_state_reason()?,

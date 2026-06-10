@@ -28,7 +28,7 @@ use crate::adblocker::engines::BraveAdblockEngine;
 #[cfg(target_os = "ios")]
 use crate::adblocker::engines::SimpleAdBlockEngine;
 
-use nym_updater::{UpdateOutcome, UpdaterError, UpdaterHandle};
+use nym_file_updater::{FileUpdaterError, FileUpdaterHandle, UpdateOutcome};
 use tokio::sync::mpsc;
 use url::Url;
 
@@ -36,19 +36,19 @@ const ADBLOCK_INITIAL_UPDATE_DELAY: Duration = Duration::from_mins(5);
 const ADBLOCK_UPDATE_INTERVAL: Duration = Duration::from_hours(8);
 
 type AdBlockEngineRef = Arc<AdBlockEngineWrap>;
-type UpdateReceiver = mpsc::UnboundedReceiver<Result<UpdateOutcome, UpdaterError>>;
+type UpdateReceiver = mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>;
 
 pub struct AdBlocker {
     state: Arc<Mutex<ObservableState>>,
     engine: AdBlockEngineRef,
     cache_dir: PathBuf,
-    updater_handle: UpdaterHandle,
+    file_updater_handle: FileUpdaterHandle,
     shutdown_token: CancellationToken,
     _shutdown_drop_guard: DropGuard,
 }
 
 impl AdBlocker {
-    pub fn new(cache_dir: PathBuf, updater_handle: UpdaterHandle) -> Self {
+    pub fn new(cache_dir: PathBuf, file_updater_handle: FileUpdaterHandle) -> Self {
         #[cfg(not(target_os = "ios"))]
         let engine = AdBlockEngineWrap::Brave(BraveAdblockEngine::default());
         #[cfg(target_os = "ios")]
@@ -59,7 +59,7 @@ impl AdBlocker {
             cache_dir,
             ObservableState::default(),
             Arc::new(engine),
-            updater_handle,
+            file_updater_handle,
         )
     }
 
@@ -67,7 +67,7 @@ impl AdBlocker {
         cache_dir: PathBuf,
         initial_state: ObservableState,
         engine: AdBlockEngineRef,
-        updater_handle: UpdaterHandle,
+        file_updater_handle: FileUpdaterHandle,
     ) -> Self {
         assert!(matches!(initial_state.get(), State::Disabled));
 
@@ -78,7 +78,7 @@ impl AdBlocker {
             state,
             engine,
             cache_dir,
-            updater_handle,
+            file_updater_handle,
             shutdown_token: shutdown_token.clone(),
             _shutdown_drop_guard: shutdown_token.drop_guard(),
         }
@@ -104,7 +104,7 @@ impl AdBlocker {
                 self.state.clone(),
                 self.engine.clone(),
                 self.cache_dir.clone(),
-                self.updater_handle.clone(),
+                self.file_updater_handle.clone(),
                 cancel_token.child_token(),
             ));
 
@@ -153,7 +153,7 @@ async fn handle_init(
     state: Arc<Mutex<ObservableState>>,
     engine: AdBlockEngineRef,
     cache_dir: PathBuf,
-    updater_handle: UpdaterHandle,
+    file_updater_handle: FileUpdaterHandle,
     cancel_token: CancellationToken,
 ) {
     if let Err(err) = init_files(&cache_dir, false).await {
@@ -213,7 +213,7 @@ async fn handle_init(
                     continue;
                 };
                 let dest_path = cache_dir.join(source.file_name);
-                match updater_handle
+                match file_updater_handle
                     .register(
                         url,
                         dest_path,
@@ -332,7 +332,7 @@ fn handle_filter_reload(
 async fn recv_any_update(
     receivers: &mut Vec<UpdateReceiver>,
     cancel_token: &CancellationToken,
-) -> Option<Result<UpdateOutcome, UpdaterError>> {
+) -> Option<Result<UpdateOutcome, FileUpdaterError>> {
     loop {
         if receivers.is_empty() {
             return None;
@@ -394,7 +394,7 @@ mod tests {
             cache_dir,
             ObservableState::new_with_observer(state_tx),
             Arc::new(AdBlockEngineWrap::Mock(engine)),
-            UpdaterHandle::new_test(),
+            FileUpdaterHandle::new_test(),
         );
         adblocker.enable().await;
 
@@ -426,7 +426,7 @@ mod tests {
             cache_dir,
             ObservableState::new_with_observer(state_tx),
             Arc::new(AdBlockEngineWrap::Mock(engine)),
-            UpdaterHandle::new_test(),
+            FileUpdaterHandle::new_test(),
         );
         adblocker.enable().await;
 

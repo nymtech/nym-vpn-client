@@ -4,7 +4,7 @@
 use std::path::Path;
 
 use anyhow::Context;
-use tokio::fs;
+use tokio::fs::{self, try_exists};
 
 pub(crate) struct Source {
     pub file_name: &'static str,
@@ -36,7 +36,7 @@ pub(crate) async fn init_files(data_dir: &Path) -> anyhow::Result<()> {
 
     for source in SOURCES.iter() {
         let dest = data_dir.join(source.file_name);
-        if !dest.exists() {
+        if !try_exists(&dest).await.unwrap_or(false) {
             fs::write(&dest, source.builtin)
                 .await
                 .with_context(|| format!("Failed to write builtin '{}'", dest.display()))?;
@@ -44,7 +44,7 @@ pub(crate) async fn init_files(data_dir: &Path) -> anyhow::Result<()> {
         }
 
         let etag_path = dest.with_extension("etag");
-        if !etag_path.exists() {
+        if !try_exists(&etag_path).await.unwrap_or(false) {
             fs::write(&etag_path, source.builtin_etag.trim())
                 .await
                 .with_context(|| {

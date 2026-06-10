@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum UpdaterError {
+pub enum FileUpdaterError {
     #[error("Failed to build HTTP client: {error}")]
     BuildHttpClient { error: reqwest::Error },
 
@@ -56,6 +56,6 @@ pub enum UpdaterError {
     #[error("Update cancelled")]
     Cancelled,
 
-    #[error("Updater channel closed")]
+    #[error("File updater channel closed")]
     ChannelClosed,
 }

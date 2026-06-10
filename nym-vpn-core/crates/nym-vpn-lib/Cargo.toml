@@ -80,7 +80,7 @@ nym-vpn-store.workspace = true
 nym-wg-go = { workspace = true, features = ["amnezia"] }
 nym-wg-metadata-client.workspace = true
 nym-sqlx-pool-guard.workspace = true
-nym-updater.workspace = true
+nym-file-updater.workspace = true
 opentelemetry.workspace = true
 opentelemetry_sdk.workspace = true
 quinn.workspace = true

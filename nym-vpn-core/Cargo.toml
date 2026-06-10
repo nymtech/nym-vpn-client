@@ -24,7 +24,7 @@ members = [
     "crates/nym-socks5-proxy-ipc",
     "crates/nym-statistics",
     "crates/nym-statistics-api-client",
-    "crates/nym-updater",
+    "crates/nym-file-updater",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-lib",
@@ -252,7 +252,7 @@ nym-ipc = { path = "crates/nym-ipc" }
 nym-ifconfig = { path = "crates/nym-ifconfig" }
 nym-split-tunnel = { path = "crates/nym-split-tunnel" }
 nym-socks5-proxy = { path = "crates/nym-socks5-proxy" }
-nym-updater = { path = "crates/nym-updater" }
+nym-file-updater = { path = "crates/nym-file-updater" }
 nym-socks5-proxy-ipc = { path = "crates/nym-socks5-proxy-ipc" }
 nym-macos = { path = "crates/nym-macos" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }

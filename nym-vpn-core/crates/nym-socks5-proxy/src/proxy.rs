@@ -29,8 +29,8 @@ use fast_socks5::{
     server::{Socks5ServerProtocol, transfer},
     util::target_addr::TargetAddr,
 };
+use nym_file_updater::{FileUpdaterError, FileUpdaterHandle, UpdateOutcome};
 use nym_socks5_proxy_ipc::{InterfaceAddresses, ProxyConfig};
-use nym_updater::{UpdateOutcome, UpdaterError, UpdaterHandle};
 use tokio::{
     net::{TcpListener, TcpSocket, TcpStream},
     sync::{mpsc, watch},
@@ -47,7 +47,7 @@ pub async fn run(
     default_interface_rx: watch::Receiver<DefaultInterface>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
     shutdown_token: CancellationToken,
-    updater_handle: UpdaterHandle,
+    file_updater_handle: FileUpdaterHandle,
     #[cfg(target_os = "android")] socket_protector: crate::SocketProtector,
 ) -> Result<()> {
     let listen_addr = SocketAddr::from(([127, 0, 0, 1], config.listen_port));
@@ -65,16 +65,16 @@ pub async fn run(
     // Register each source file with the updater for periodic refresh.
     let excluded_countries = config.excluded_countries.clone();
     let data_dir_buf = data_dir.to_path_buf();
-    let mut receivers: Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, UpdaterError>>> =
+    let mut receivers: Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>> =
         Vec::new();
 
     for source in SOURCES.iter() {
-        let Ok(url) = source.url.parse::<Url>() else {
-            tracing::error!("Invalid SOCKS5 source URL: {}", source.url);
-            continue;
-        };
+        let url = source
+            .url
+            .parse::<Url>()
+            .with_context(|| format!("Invalid SOCKS5 source URL: {}", source.url))?;
         let dest = data_dir.join(source.file_name);
-        match updater_handle
+        match file_updater_handle
             .register(
                 url,
                 dest,
@@ -100,14 +100,14 @@ pub async fn run(
     let (db_tx, db_rx) = watch::channel(Arc::new(db));
 
     // Background task: reload the routing database whenever a source file is updated.
-    // The updater_handle is moved here to keep the updater loop alive for the lifetime
+    // The file_updater_handle is moved here to keep the updater loop alive for the lifetime
     // of this task — dropping it earlier would cause the updater to exit.
     tokio::spawn(handle_db_updates(
         excluded_countries,
         data_dir_buf,
         db_tx,
         receivers,
-        updater_handle,
+        file_updater_handle,
         shutdown_token.child_token(),
     ));
 
@@ -129,8 +129,8 @@ async fn handle_db_updates(
     excluded_countries: Vec<String>,
     data_dir: PathBuf,
     db_tx: watch::Sender<Arc<RoutingDatabase>>,
-    mut receivers: Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, UpdaterError>>>,
-    _updater_handle: UpdaterHandle,
+    mut receivers: Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>>,
+    _file_updater_handle: FileUpdaterHandle,
     cancel_token: CancellationToken,
 ) {
     loop {
@@ -164,9 +164,9 @@ async fn handle_db_updates(
 
 /// Poll all receivers concurrently; return the first message that arrives or None on cancellation.
 async fn recv_any_update(
-    receivers: &mut Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, UpdaterError>>>,
+    receivers: &mut Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>>,
     cancel_token: &CancellationToken,
-) -> Option<Result<UpdateOutcome, UpdaterError>> {
+) -> Option<Result<UpdateOutcome, FileUpdaterError>> {
     loop {
         if receivers.is_empty() {
             return None;

@@ -658,6 +658,10 @@ impl NymVpnService {
             state_machine_shutdown_token.child_token(),
         );
 
+        let (file_updater, file_updater_handle) =
+            nym_file_updater::FileUpdater::new().map_err(Error::CreateFileUpdater)?;
+        tokio::spawn(file_updater.run(services_shutdown_token.child_token()));
+
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
             event_sender,
@@ -679,6 +683,7 @@ impl NymVpnService {
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             parameters.tun_provider,
+            file_updater_handle,
             parameters.user_agent.clone(),
             state_machine_shutdown_token.child_token(),
         )

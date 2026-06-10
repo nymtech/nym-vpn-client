@@ -11,20 +11,20 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
-use crate::{UpdateOutcome, error::UpdaterError};
+use crate::{UpdateOutcome, error::FileUpdaterError};
 
 pub(crate) async fn download_file(
     http_client: &reqwest::Client,
     url: &Url,
     dest_path: &Path,
     cancel_token: CancellationToken,
-) -> Result<UpdateOutcome, UpdaterError> {
+) -> Result<UpdateOutcome, FileUpdaterError> {
     if let Some(parent) = dest_path.parent()
         && !parent.as_os_str().is_empty()
     {
         fs::create_dir_all(parent)
             .await
-            .map_err(|error| UpdaterError::CreateDirectory {
+            .map_err(|error| FileUpdaterError::CreateDirectory {
                 dir: parent.to_path_buf(),
                 error,
             })?;
@@ -38,8 +38,8 @@ pub(crate) async fn download_file(
         let head = cancel_token
             .run_until_cancelled(http_client.head(url.as_str()).send())
             .await
-            .ok_or(UpdaterError::Cancelled)?
-            .map_err(|error| UpdaterError::Request {
+            .ok_or(FileUpdaterError::Cancelled)?
+            .map_err(|error| FileUpdaterError::Request {
                 url: url.to_string(),
                 error,
             })?;
@@ -62,8 +62,8 @@ pub(crate) async fn download_file(
     let response = cancel_token
         .run_until_cancelled(http_client.get(url.as_str()).send())
         .await
-        .ok_or(UpdaterError::Cancelled)?
-        .map_err(|error| UpdaterError::Request {
+        .ok_or(FileUpdaterError::Cancelled)?
+        .map_err(|error| FileUpdaterError::Request {
             url: url.to_string(),
             error,
         })?;
@@ -77,7 +77,7 @@ pub(crate) async fn download_file(
             return Ok(UpdateOutcome::NotModified);
         }
         status => {
-            return Err(UpdaterError::UnexpectedStatus {
+            return Err(FileUpdaterError::UnexpectedStatus {
                 url: url.to_string(),
                 status,
             });
@@ -89,7 +89,7 @@ pub(crate) async fn download_file(
         .get(reqwest::header::ETAG)
         .and_then(|v| v.to_str().ok())
         .map(ToOwned::to_owned)
-        .ok_or_else(|| UpdaterError::MissingEtag {
+        .ok_or_else(|| FileUpdaterError::MissingEtag {
             url: url.to_string(),
         })?;
 
@@ -98,11 +98,11 @@ pub(crate) async fn download_file(
     cancel_token
         .run_until_cancelled(write_response_to_file(response, &temp_path, &url_str))
         .await
-        .ok_or(UpdaterError::Cancelled)??;
+        .ok_or(FileUpdaterError::Cancelled)??;
 
     fs::rename(&temp_path, dest_path)
         .await
-        .map_err(|error| UpdaterError::RenameFile {
+        .map_err(|error| FileUpdaterError::RenameFile {
             from: temp_path,
             to: dest_path.to_path_buf(),
             error,
@@ -118,14 +118,14 @@ async fn write_response_to_file(
     response: reqwest::Response,
     path: &Path,
     url: &str,
-) -> Result<(), UpdaterError> {
+) -> Result<(), FileUpdaterError> {
     let file = OpenOptions::new()
         .create(true)
         .write(true)
         .truncate(true)
         .open(path)
         .await
-        .map_err(|error| UpdaterError::OpenFile {
+        .map_err(|error| FileUpdaterError::OpenFile {
             path: path.to_path_buf(),
             error,
         })?;
@@ -134,14 +134,14 @@ async fn write_response_to_file(
     let mut stream = response.bytes_stream();
 
     while let Some(chunk) = stream.next().await {
-        let chunk = chunk.map_err(|error| UpdaterError::Download {
+        let chunk = chunk.map_err(|error| FileUpdaterError::Download {
             url: url.to_owned(),
             error,
         })?;
         writer
             .write_all(&chunk)
             .await
-            .map_err(|error| UpdaterError::WriteFile {
+            .map_err(|error| FileUpdaterError::WriteFile {
                 path: path.to_path_buf(),
                 error,
             })?;
@@ -150,7 +150,7 @@ async fn write_response_to_file(
     writer
         .flush()
         .await
-        .map_err(|error| UpdaterError::FlushFile {
+        .map_err(|error| FileUpdaterError::FlushFile {
             path: path.to_path_buf(),
             error,
         })?;
@@ -179,10 +179,10 @@ async fn read_etag(etag_path: &Path) -> Option<String> {
         .filter(|s| !s.is_empty())
 }
 
-async fn write_etag(etag_path: &Path, etag: &str) -> Result<(), UpdaterError> {
+async fn write_etag(etag_path: &Path, etag: &str) -> Result<(), FileUpdaterError> {
     fs::write(etag_path, etag)
         .await
-        .map_err(|error| UpdaterError::WriteFile {
+        .map_err(|error| FileUpdaterError::WriteFile {
             path: etag_path.to_path_buf(),
             error,
         })

@@ -5,8 +5,8 @@ mod download;
 mod error;
 mod updater;
 
-pub use error::UpdaterError;
-pub use updater::{Updater, UpdaterHandle};
+pub use error::FileUpdaterError;
+pub use updater::{FileUpdater, FileUpdaterHandle};
 
 /// Outcome of a file update request.
 #[derive(Debug, Clone, PartialEq, Eq)]

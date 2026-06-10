@@ -5760,6 +5760,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-file-updater"
+version = "2026.11.0-beta.1"
+dependencies = [
+ "futures",
+ "reqwest 0.13.3",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "wiremock",
+]
+
+[[package]]
 name = "nym-firewall"
 version = "2026.11.0-beta.1"
 dependencies = [
@@ -6601,10 +6616,10 @@ dependencies = [
  "ipnet",
  "iprange",
  "libc",
+ "nym-file-updater",
  "nym-firewall-config",
  "nym-routing",
  "nym-socks5-proxy-ipc",
- "nym-updater",
  "nym-windows",
  "serde",
  "serde_json",
@@ -6986,21 +7001,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nym-updater"
-version = "2026.11.0-beta.1"
-dependencies = [
- "futures",
- "reqwest 0.13.3",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-util",
- "tracing",
- "url",
- "wiremock",
-]
-
-[[package]]
 name = "nym-upgrade-mode-check"
 version = "1.21.1"
 source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
@@ -7215,6 +7215,7 @@ dependencies = [
  "nym-crypto",
  "nym-diagnostic",
  "nym-dns",
+ "nym-file-updater",
  "nym-firewall",
  "nym-firewall-config",
  "nym-gateway-directory",
@@ -7235,7 +7236,6 @@ dependencies = [
  "nym-sqlx-pool-guard",
  "nym-statistics",
  "nym-statistics-api-client",
- "nym-updater",
  "nym-validator-client",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",

@@ -5,20 +5,19 @@ use std::{path::PathBuf, pin::Pin, time::Duration};
 
 use tokio::{
     sync::{mpsc, oneshot},
-    time::{Instant, Sleep},
+    time::{Instant, Sleep, sleep},
 };
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
-use crate::{UpdateOutcome, download::download_file, error::UpdaterError};
+use crate::{UpdateOutcome, download::download_file, error::FileUpdaterError};
 
-// Used to park the timer when no tasks are registered or all have been removed.
-const IDLE_SLEEP: Duration = Duration::from_secs(365 * 24 * 3600);
+type TaskId = u64;
 
 struct OneShotRequest {
     url: Url,
     dest_path: PathBuf,
-    result_tx: oneshot::Sender<Result<UpdateOutcome, UpdaterError>>,
+    result_tx: oneshot::Sender<Result<UpdateOutcome, FileUpdaterError>>,
 }
 
 struct RegisterRequest {
@@ -26,7 +25,7 @@ struct RegisterRequest {
     dest_path: PathBuf,
     initial_delay: Duration,
     interval: Duration,
-    notify_tx: mpsc::UnboundedSender<Result<UpdateOutcome, UpdaterError>>,
+    notify_tx: mpsc::UnboundedSender<Result<UpdateOutcome, FileUpdaterError>>,
 }
 
 enum Message {
@@ -35,20 +34,27 @@ enum Message {
 }
 
 struct ScheduledTask {
+    id: TaskId,
     url: Url,
     dest_path: PathBuf,
     interval: Duration,
     next_fire: Instant,
-    notify_tx: mpsc::UnboundedSender<Result<UpdateOutcome, UpdaterError>>,
+    in_flight: bool,
+    notify_tx: mpsc::UnboundedSender<Result<UpdateOutcome, FileUpdaterError>>,
 }
 
-/// Cloneable handle for submitting file update requests to the [`Updater`] loop.
+struct PeriodicCompletion {
+    task_id: TaskId,
+    result: Result<UpdateOutcome, FileUpdaterError>,
+}
+
+/// Cloneable handle for submitting file update requests to the [`FileUpdater`] loop.
 #[derive(Clone)]
-pub struct UpdaterHandle {
+pub struct FileUpdaterHandle {
     tx: mpsc::Sender<Message>,
 }
 
-impl UpdaterHandle {
+impl FileUpdaterHandle {
     /// Request a one-shot download of `url` to `dest_path`.
     ///
     /// Blocks until the updater loop processes the request and returns the outcome.
@@ -56,7 +62,7 @@ impl UpdaterHandle {
         &self,
         url: Url,
         dest_path: PathBuf,
-    ) -> Result<UpdateOutcome, UpdaterError> {
+    ) -> Result<UpdateOutcome, FileUpdaterError> {
         let (result_tx, result_rx) = oneshot::channel();
         self.tx
             .send(Message::OneShot(OneShotRequest {
@@ -65,8 +71,10 @@ impl UpdaterHandle {
                 result_tx,
             }))
             .await
-            .map_err(|_| UpdaterError::ChannelClosed)?;
-        result_rx.await.map_err(|_| UpdaterError::ChannelClosed)?
+            .map_err(|_| FileUpdaterError::ChannelClosed)?;
+        result_rx
+            .await
+            .map_err(|_| FileUpdaterError::ChannelClosed)?
     }
 
     /// Register a URL/file pair for periodic updating.
@@ -81,7 +89,8 @@ impl UpdaterHandle {
         dest_path: PathBuf,
         initial_delay: Duration,
         interval: Duration,
-    ) -> Result<mpsc::UnboundedReceiver<Result<UpdateOutcome, UpdaterError>>, UpdaterError> {
+    ) -> Result<mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>, FileUpdaterError>
+    {
         let (notify_tx, notify_rx) = mpsc::unbounded_channel();
         self.tx
             .send(Message::Register(RegisterRequest {
@@ -92,77 +101,84 @@ impl UpdaterHandle {
                 notify_tx,
             }))
             .await
-            .map_err(|_| UpdaterError::ChannelClosed)?;
+            .map_err(|_| FileUpdaterError::ChannelClosed)?;
         Ok(notify_rx)
     }
 }
 
-impl UpdaterHandle {
+impl FileUpdaterHandle {
     /// Create a disconnected handle for use in tests.
     ///
-    /// All `register` and `request_update` calls will return `Err(UpdaterError::ChannelClosed)`,
-    /// which the adblocker treats as a soft error (runs without scheduled updates).
+    /// All `register` and `request_update` calls will return
+    /// `Err(FileUpdaterError::ChannelClosed)`, which the adblocker treats as a soft
+    /// error (runs without scheduled updates).
     pub fn new_test() -> Self {
         let (tx, _rx) = mpsc::channel(1);
-        UpdaterHandle { tx }
+        FileUpdaterHandle { tx }
     }
 }
 
 /// File updater service. Runs a single async loop that processes one-shot download
 /// requests and fires registered periodic tasks on schedule.
 ///
-/// All work is serialised: only one download runs at a time.
-pub struct Updater {
+/// Downloads are spawned onto separate tasks so the message loop stays responsive
+/// while a download is in progress.
+pub struct FileUpdater {
     rx: mpsc::Receiver<Message>,
     http_client: reqwest::Client,
 }
 
-impl Updater {
-    /// Create a new `Updater` with a default HTTP client, returning the updater and a handle.
-    pub fn new() -> Result<(Self, UpdaterHandle), UpdaterError> {
+impl FileUpdater {
+    /// Create a new `FileUpdater` with a default HTTP client, returning the updater and a handle.
+    pub fn new() -> Result<(Self, FileUpdaterHandle), FileUpdaterError> {
         let http_client = reqwest::Client::builder()
             .connect_timeout(Duration::from_secs(10))
-            .timeout(Duration::from_secs(120))
             .build()
-            .map_err(|error| UpdaterError::BuildHttpClient { error })?;
+            .map_err(|error| FileUpdaterError::BuildHttpClient { error })?;
         Ok(Self::with_client(http_client))
     }
 
-    /// Create a new `Updater` using a pre-built `reqwest::Client`.
-    pub fn with_client(http_client: reqwest::Client) -> (Self, UpdaterHandle) {
+    /// Create a new `FileUpdater` using a pre-built `reqwest::Client`.
+    pub fn with_client(http_client: reqwest::Client) -> (Self, FileUpdaterHandle) {
         let (tx, rx) = mpsc::channel(32);
-        let updater = Self { rx, http_client };
-        let handle = UpdaterHandle { tx };
-        (updater, handle)
+        let file_updater = Self { rx, http_client };
+        let handle = FileUpdaterHandle { tx };
+        (file_updater, handle)
     }
 
     /// Run the updater loop until `cancel_token` is cancelled or all handles are dropped.
     pub async fn run(mut self, cancel_token: CancellationToken) {
         let mut tasks: Vec<ScheduledTask> = Vec::new();
+        let mut next_id: TaskId = 0;
+        let (completion_tx, mut completion_rx) = mpsc::unbounded_channel::<PeriodicCompletion>();
 
-        // A single pinned Sleep that acts as the fused periodic timer.
-        // Parked at IDLE_SLEEP when no tasks are registered; reset to the earliest
-        // next_fire whenever the task list changes or a tick is handled.
-        let timer = tokio::time::sleep(IDLE_SLEEP);
+        // A single pinned Sleep used as the periodic timer. The timer branch in
+        // select! is guarded so it is never polled when all tasks are idle or in-flight.
+        // `rearm_timer` keeps it pointed at the earliest non-in-flight next_fire.
+        let timer = sleep(Duration::ZERO);
         tokio::pin!(timer);
 
         loop {
             tokio::select! {
                 _ = cancel_token.cancelled() => {
-                    tracing::debug!("Updater loop cancelled");
+                    tracing::debug!("File updater loop cancelled");
                     break;
                 }
                 msg = self.rx.recv() => {
                     match msg {
                         Some(Message::OneShot(req)) => {
-                            let result = download_file(
-                                &self.http_client,
-                                &req.url,
-                                &req.dest_path,
-                                cancel_token.child_token(),
-                            )
-                            .await;
-                            let _ = req.result_tx.send(result);
+                            let http_client = self.http_client.clone();
+                            let cancel = cancel_token.child_token();
+                            tokio::spawn(async move {
+                                let result = download_file(
+                                    &http_client,
+                                    &req.url,
+                                    &req.dest_path,
+                                    cancel,
+                                )
+                                .await;
+                                let _ = req.result_tx.send(result);
+                            });
                         }
                         Some(Message::Register(req)) => {
                             tracing::debug!(
@@ -173,70 +189,83 @@ impl Updater {
                                 req.interval,
                             );
                             tasks.push(ScheduledTask {
+                                id: next_id,
                                 url: req.url,
                                 dest_path: req.dest_path,
                                 interval: req.interval,
                                 next_fire: Instant::now() + req.initial_delay,
+                                in_flight: false,
                                 notify_tx: req.notify_tx,
                             });
+                            next_id += 1;
                             rearm_timer(timer.as_mut(), &tasks);
                         }
                         None => {
-                            tracing::debug!("All updater handles dropped, exiting");
+                            tracing::debug!("All file updater handles dropped, exiting");
                             break;
                         }
                     }
                 }
-                _ = &mut timer => {
+                _ = &mut timer, if tasks.iter().any(|t| !t.in_flight) => {
                     let now = Instant::now();
                     let idx = tasks
                         .iter()
                         .enumerate()
-                        .filter(|(_, t)| t.next_fire <= now)
+                        .filter(|(_, t)| !t.in_flight && t.next_fire <= now)
                         .min_by_key(|(_, t)| t.next_fire)
                         .map(|(i, _)| i);
 
                     if let Some(idx) = idx {
-                        // Clone to avoid holding a borrow across the await.
+                        let task_id = tasks[idx].id;
                         let url = tasks[idx].url.clone();
                         let dest_path = tasks[idx].dest_path.clone();
+                        let http_client = self.http_client.clone();
+                        let cancel = cancel_token.child_token();
+                        let completion_tx = completion_tx.clone();
+
+                        tasks[idx].in_flight = true;
+
+                        tokio::spawn(async move {
+                            let result =
+                                download_file(&http_client, &url, &dest_path, cancel).await;
+                            let _ = completion_tx.send(PeriodicCompletion { task_id, result });
+                        });
+                    }
+
+                    rearm_timer(timer.as_mut(), &tasks);
+                }
+                Some(completion) = completion_rx.recv() => {
+                    if let Some(idx) = tasks.iter().position(|t| t.id == completion.task_id) {
+                        tasks[idx].in_flight = false;
                         let interval = tasks[idx].interval;
-
-                        let result = download_file(
-                            &self.http_client,
-                            &url,
-                            &dest_path,
-                            cancel_token.child_token(),
-                        )
-                        .await;
-
-                        if tasks[idx].notify_tx.send(result).is_err() {
+                        if tasks[idx].notify_tx.send(completion.result).is_err() {
                             // Receiver was dropped — unregister the task.
                             tracing::debug!(
-                                dest = %dest_path.display(),
+                                dest = %tasks[idx].dest_path.display(),
                                 "Removing unsubscribed periodic update task",
                             );
                             tasks.remove(idx);
                         } else {
                             tasks[idx].next_fire = Instant::now() + interval;
                         }
+                        rearm_timer(timer.as_mut(), &tasks);
                     }
-
-                    // Re-arm for the next due task, or park if none remain.
-                    rearm_timer(timer.as_mut(), &tasks);
                 }
             }
         }
     }
 }
 
-/// Reset the timer to the earliest `next_fire` across all tasks, or park it at
-/// `IDLE_SLEEP` from now if the task list is empty.
+/// Reset the timer to the earliest `next_fire` among non-in-flight tasks. No-op
+/// when all tasks are in-flight or the list is empty; the guard in `select!`
+/// prevents the timer branch from being polled in those cases.
 fn rearm_timer(timer: Pin<&mut Sleep>, tasks: &[ScheduledTask]) {
-    let deadline = tasks
+    if let Some(deadline) = tasks
         .iter()
+        .filter(|t| !t.in_flight)
         .map(|t| t.next_fire)
         .min()
-        .unwrap_or_else(|| Instant::now() + IDLE_SLEEP);
-    timer.reset(deadline);
+    {
+        timer.reset(deadline);
+    }
 }

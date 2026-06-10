@@ -1,5 +1,5 @@
 [package]
-name = "nym-updater"
+name = "nym-file-updater"
 version.workspace = true
 authors.workspace = true
 repository.workspace = true
