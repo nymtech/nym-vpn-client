@@ -121,6 +121,8 @@ impl Updater {
     /// Create a new `Updater` with a default HTTP client, returning the updater and a handle.
     pub fn new() -> Result<(Self, UpdaterHandle), UpdaterError> {
         let http_client = reqwest::Client::builder()
+            .connect_timeout(Duration::from_secs(10))
+            .timeout(Duration::from_secs(120))
             .build()
             .map_err(|error| UpdaterError::BuildHttpClient { error })?;
         Ok(Self::with_client(http_client))

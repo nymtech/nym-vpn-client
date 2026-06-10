@@ -1051,7 +1051,7 @@ impl TunnelStateMachine {
                 .map_err(Error::StartLocalDnsResolver)?;
 
         let (updater, updater_handle) =
-            nym_updater::Updater::new().expect("failed to create file updater");
+            nym_updater::Updater::new().map_err(Error::CreateUpdater)?;
         tokio::spawn(updater.run(shutdown_token.child_token()));
 
         let adblocker =
@@ -1245,6 +1245,9 @@ pub enum Error {
     #[error("failed to start split tunnel task")]
     StartSplitTunnelTask(#[source] nym_split_tunnel::Error),
 
+    #[error("failed to create updater")]
+    CreateUpdater(#[source] nym_updater::UpdaterError),
+
     #[error("failed to create tunnel device")]
     CreateTunDevice(#[source] tun::Error),
 
@@ -1345,6 +1348,7 @@ impl Error {
             Self::StartLocalDnsResolver(_) => None?,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             Self::StartSplitTunnelTask(_) => None?,
+            Self::CreateUpdater(e) => ErrorStateReason::Internal(e.to_string()),
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
             Self::Tunnel(e) => e.error_state_reason()?,
