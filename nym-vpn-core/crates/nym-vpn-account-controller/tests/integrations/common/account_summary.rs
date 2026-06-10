@@ -128,6 +128,17 @@ pub fn account_no_fair_usage() -> NymVpnAccountSummaryWithDeviceResponse {
     mock_subscription_summary_with_device(true, true, false, 0, MAX_FAIR_USAGE, None)
 }
 
+pub fn account_active_device_depleted() -> NymVpnAccountSummaryWithDeviceResponse {
+    mock_subscription_summary_with_device(
+        true,
+        true,
+        false,
+        1,
+        MAX_FAIR_USAGE,
+        Some(mock_api_device(NymVpnDeviceStatus::Active)),
+    )
+}
+
 pub fn account_data_unavailable_exhausted_quota() -> NymVpnAccountSummaryWithDeviceResponse {
     let mut resp =
         mock_subscription_summary_with_device(true, true, false, 0, MAX_FAIR_USAGE, None);

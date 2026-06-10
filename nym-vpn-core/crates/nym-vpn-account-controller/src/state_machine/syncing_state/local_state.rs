@@ -127,30 +127,12 @@ impl SyncingLocalState {
         device: Device,
         summary: VpnAccountSummary,
     ) {
-        // Checking that the account is active
-        let result = if !summary.is_account_active() {
-            Err(SyncError::InactiveAccount(
-                summary.account_status.to_string(),
-            ))
-        } else if summary.is_subscription_pending() {
-            // subscription exists but is not yet active (e.g. cash payment still processing)
-            Err(SyncError::PendingSubscription)
-        } else if !summary.is_subscription_active() {
-            // that there is an active subscription
-            Err(SyncError::InactiveSubscription)
-        } else if !summary.is_device_active {
-            // that the device is registered or there is a spot left for it with fair usage
-            if summary.remaining_devices == 0 {
-                Err(SyncError::MaxDeviceReached) // Early detection of max device reached
-            } else if !summary.fair_usage_left() {
-                Err(SyncError::FairUsageDepleted)
-            } else {
+        let result = match local_sync_result(&summary) {
+            Ok(()) => Ok(false),
+            Err(SyncError::NeedsDeviceRegistration) => {
                 Self::register_device(&vpn_api_client, &vpn_api_account, &device).await
             }
-        } else if !summary.time_synced {
-            Err(SyncError::DeviceTimeDesynced)
-        } else {
-            Ok(false)
+            Err(err) => Err(err),
         };
 
         result_tx.send(result).ok();
@@ -316,6 +298,33 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
     }
 }
 
+fn local_sync_result(summary: &VpnAccountSummary) -> Result<(), SyncError> {
+    if !summary.is_account_active() {
+        return Err(SyncError::InactiveAccount(
+            summary.account_status.to_string(),
+        ));
+    }
+    if summary.is_subscription_pending() {
+        return Err(SyncError::PendingSubscription);
+    }
+    if !summary.is_subscription_active() {
+        return Err(SyncError::InactiveSubscription);
+    }
+    if !summary.fair_usage_left() {
+        return Err(SyncError::FairUsageDepleted);
+    }
+    if !summary.is_device_active {
+        if summary.remaining_devices == 0 {
+            return Err(SyncError::MaxDeviceReached);
+        }
+        return Err(SyncError::NeedsDeviceRegistration);
+    }
+    if !summary.time_synced {
+        return Err(SyncError::DeviceTimeDesynced);
+    }
+    Ok(())
+}
+
 /// A cached summary reached via the optimistic-fallback path (`summary_was_revalidated == false`)
 /// may be a stale snapshot from before the daily fair-usage reset. When such a summary reports
 /// depleted fair usage we revalidate it once against the network (a mandatory sync) before
@@ -338,6 +347,7 @@ enum SyncError {
     DeviceTimeDesynced,
     MaxDeviceReached,
     FairUsageDepleted,
+    NeedsDeviceRegistration,
 }
 
 impl SyncError {
@@ -357,6 +367,10 @@ impl SyncError {
             FairUsageDepleted => AccountControllerErrorStateReason::BandwidthExceeded {
                 context: SYNCING_LOCAL_STATE_CONTEXT.into(),
             },
+            NeedsDeviceRegistration => AccountControllerErrorStateReason::Internal {
+                context: SYNCING_LOCAL_STATE_CONTEXT.into(),
+                details: "local sync signalled device registration without running it".into(),
+            },
             UnregisteredDevice { details } => AccountControllerErrorStateReason::ApiFailure {
                 context: SYNCING_LOCAL_STATE_CONTEXT.into(),
                 details: format!("Error registering device : {details}"),
@@ -367,7 +381,77 @@ impl SyncError {
 
 #[cfg(test)]
 mod fair_usage_revalidation_tests {
-    use super::{SyncError, should_force_fair_usage_revalidation};
+    use super::{SyncError, local_sync_result, should_force_fair_usage_revalidation};
+    use nym_vpn_lib_types::{
+        NymVpnSubscription, NymVpnSubscriptionKind, NymVpnSubscriptionStatus, Subscription,
+        VpnAccountStatus, VpnAccountSummary,
+    };
+    use time::OffsetDateTime;
+
+    fn active_summary(
+        is_device_active: bool,
+        traffic_used_gb: u64,
+        traffic_limit_gb: u64,
+    ) -> VpnAccountSummary {
+        let now = OffsetDateTime::now_utc().unix_timestamp();
+        VpnAccountSummary {
+            traffic_used_gb,
+            traffic_limit_gb,
+            traffic_reset_time: None,
+            fair_usage_data_unavailable: false,
+            account_addr: "n1test".into(),
+            canonical_account_addr: None,
+            auth_methods: vec![],
+            account_mode: None,
+            subscription: Some(Subscription {
+                status: NymVpnSubscriptionStatus::Active,
+                subscription: NymVpnSubscription {
+                    created_on_utc: "2024-01-01T00:00:00Z".into(),
+                    last_updated_utc: "2024-01-01T00:00:00Z".into(),
+                    id: "sub_active".into(),
+                    valid_from_utc: now - 86_400,
+                    valid_until_utc: now + 30 * 86_400,
+                    status: "active".into(),
+                    kind: NymVpnSubscriptionKind::OneMonth,
+                    is_recurring: false,
+                },
+            }),
+            is_subscription_stacked: false,
+            account_status: VpnAccountStatus::Active,
+            remaining_devices: 5,
+            is_device_active,
+            time_synced: true,
+            stale: false,
+            last_synced_utc: OffsetDateTime::now_utc(),
+        }
+    }
+
+    #[test]
+    fn local_sync_result_reports_depletion_for_active_device() {
+        let summary = active_summary(true, 2000, 2000);
+        assert!(matches!(
+            local_sync_result(&summary),
+            Err(SyncError::FairUsageDepleted)
+        ));
+    }
+
+    #[test]
+    fn local_sync_result_reports_depletion_before_device_registration() {
+        let summary = active_summary(false, 2000, 2000);
+        assert!(matches!(
+            local_sync_result(&summary),
+            Err(SyncError::FairUsageDepleted)
+        ));
+    }
+
+    #[test]
+    fn local_sync_result_registers_only_when_quota_remains() {
+        let summary = active_summary(false, 0, 2000);
+        assert!(matches!(
+            local_sync_result(&summary),
+            Err(SyncError::NeedsDeviceRegistration)
+        ));
+    }
 
     #[test]
     fn cached_depleted_summary_is_revalidated_once() {
