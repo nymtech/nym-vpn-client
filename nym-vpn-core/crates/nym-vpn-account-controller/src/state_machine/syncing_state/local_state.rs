@@ -44,9 +44,9 @@ const SUMMARY_STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 /// [`SyncingNetworkState`] to fetch one first. The only network interaction here is registering the
 /// device, which happens as a direct consequence of the checks (a free slot is available).
 ///
-/// A failed check goes straight to the error state (or `PendingSubscriptionState` for a pending
-/// subscription); there is no retry, since re-checking the same cached data would not change the
-/// outcome - obtaining fresh data is what `SyncingNetworkState` is for.
+/// Most failed checks go straight to the error state (or `PendingSubscriptionState` for a pending
+/// subscription). Cached fair-usage depletion is revalidated once against the network before it is
+/// treated as a real bandwidth error.
 ///
 /// Possible next state :
 /// - LoggedOutState : No account is stored
@@ -59,11 +59,13 @@ const SUMMARY_STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 pub(crate) struct SyncingLocalState {
     result_rx: oneshot::Receiver<Result<bool, SyncError>>,
     sync_cancel_token: Option<DropGuard>,
+    summary_was_revalidated: bool,
 }
 
 impl SyncingLocalState {
     pub(crate) fn enter<C: ConnectivityMonitor>(
         shared_state: &SharedAccountState<C>,
+        summary_was_revalidated: bool,
     ) -> (
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
@@ -112,6 +114,7 @@ impl SyncingLocalState {
             Box::new(Self {
                 result_rx,
                 sync_cancel_token: Some(sync_cancel_token.drop_guard()),
+                summary_was_revalidated,
             }),
             PrivateAccountControllerState::Syncing,
         )
@@ -211,6 +214,13 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         // The account doesn't check out
                         match err {
                             SyncError::PendingSubscription => NextAccountControllerState::NewState(PendingSubscriptionState::enter()),
+                            _ if should_force_fair_usage_revalidation(&err, self.summary_was_revalidated) => {
+                                tracing::debug!(
+                                    "Cached account summary reported depleted fair usage, forcing network revalidation"
+                                );
+                                shared_state.mark_summary_as_stale();
+                                NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory))
+                            }
                             err => {
                                 NextAccountControllerState::NewState(ErrorState::enter(err.into_error_reason()))
                             }
@@ -306,6 +316,19 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
     }
 }
 
+/// A cached summary reached via the optimistic-fallback path (`summary_was_revalidated == false`)
+/// may be a stale snapshot from before the daily fair-usage reset. When such a summary reports
+/// depleted fair usage we revalidate it once against the network (a mandatory sync) before
+/// surfacing a bandwidth error, so a device holding yesterday's exhausted snapshot can recover
+/// once the server reports under-limit.
+///
+/// A summary that was already freshly fetched from the network (`summary_was_revalidated == true`)
+/// is authoritative: depletion must surface as a real error and must NOT trigger another refresh,
+/// otherwise a genuinely exhausted account would loop network -> local -> network forever.
+fn should_force_fair_usage_revalidation(err: &SyncError, summary_was_revalidated: bool) -> bool {
+    matches!(err, SyncError::FairUsageDepleted) && !summary_was_revalidated
+}
+
 #[derive(Debug, strum::Display)]
 enum SyncError {
     InactiveAccount(String),
@@ -338,6 +361,49 @@ impl SyncError {
                 context: SYNCING_LOCAL_STATE_CONTEXT.into(),
                 details: format!("Error registering device : {details}"),
             },
+        }
+    }
+}
+
+#[cfg(test)]
+mod fair_usage_revalidation_tests {
+    use super::{SyncError, should_force_fair_usage_revalidation};
+
+    #[test]
+    fn cached_depleted_summary_is_revalidated_once() {
+        // Optimistic-fallback path (summary_was_revalidated == false): a depleted snapshot must
+        // trigger exactly one mandatory network revalidation rather than surfacing an error.
+        assert!(should_force_fair_usage_revalidation(
+            &SyncError::FairUsageDepleted,
+            false
+        ));
+    }
+
+    #[test]
+    fn freshly_fetched_depleted_summary_is_not_revalidated() {
+        // Authoritative network summary: depletion is real, so we must NOT refresh again
+        // (prevents an infinite network -> local -> network loop on a genuinely exhausted account).
+        assert!(!should_force_fair_usage_revalidation(
+            &SyncError::FairUsageDepleted,
+            true
+        ));
+    }
+
+    #[test]
+    fn non_depletion_errors_never_force_revalidation() {
+        for revalidated in [true, false] {
+            assert!(!should_force_fair_usage_revalidation(
+                &SyncError::InactiveSubscription,
+                revalidated
+            ));
+            assert!(!should_force_fair_usage_revalidation(
+                &SyncError::MaxDeviceReached,
+                revalidated
+            ));
+            assert!(!should_force_fair_usage_revalidation(
+                &SyncError::DeviceTimeDesynced,
+                revalidated
+            ));
         }
     }
 }

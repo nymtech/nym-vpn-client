@@ -200,12 +200,12 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                         // The summary is stored (and propagated to disk) even if the subsequent
                         // local checks eventually fail.
                         shared_state.store_summary(response);
-                        NextAccountControllerState::NewState(SyncingLocalState::enter(shared_state))
+                        NextAccountControllerState::NewState(SyncingLocalState::enter(shared_state, true))
 
                     }
                     Ok(Ok(None)) => {
                         // An optimistic refresh failed, no big deal
-                        NextAccountControllerState::NewState(SyncingLocalState::enter(shared_state))
+                        NextAccountControllerState::NewState(SyncingLocalState::enter(shared_state, false))
                     }
                     Ok(Err(err)) => {
                         // A mandatory sync failed

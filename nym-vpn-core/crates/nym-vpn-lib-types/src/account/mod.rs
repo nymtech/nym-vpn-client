@@ -354,9 +354,16 @@ impl VpnAccountSummary {
             .any(|method| method.kind == "privy_secp256k1")
     }
 
-    // Stale if flag is set or age > provided max_age
+    pub fn reached_traffic_reset_time(&self) -> bool {
+        self.traffic_reset_time.is_some_and(|reset_time| {
+            reset_time <= OffsetDateTime::now_utc() && self.last_synced_utc <= reset_time
+        })
+    }
+
+    // Stale if flag is set, age > provided max_age, or the fair-usage reset boundary has passed.
     pub fn is_stale(&self, max_age: Duration) -> bool {
         self.stale
+            || self.reached_traffic_reset_time()
             || OffsetDateTime::now_utc().unix_timestamp() - self.last_synced_utc.unix_timestamp()
                 > max_age.as_secs() as i64
     }
@@ -1061,6 +1068,35 @@ mod fair_usage_left_semantics_tests {
     fn fair_usage_left_true_when_active_and_under_cap() {
         let s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 100);
         assert!(s.fair_usage_left());
+    }
+
+    #[test]
+    fn is_stale_true_after_traffic_reset_time_even_when_recently_synced() {
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2000);
+        let reset_time = OffsetDateTime::now_utc() - time::Duration::seconds(1);
+        s.last_synced_utc = reset_time - time::Duration::seconds(1);
+        s.traffic_reset_time = Some(reset_time);
+
+        assert!(s.is_stale(Duration::from_secs(24 * 60 * 60)));
+    }
+
+    #[test]
+    fn is_stale_false_after_traffic_reset_time_when_synced_after_reset() {
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2000);
+        let reset_time = OffsetDateTime::now_utc() - time::Duration::seconds(1);
+        s.last_synced_utc = OffsetDateTime::now_utc();
+        s.traffic_reset_time = Some(reset_time);
+
+        assert!(!s.is_stale(Duration::from_secs(24 * 60 * 60)));
+    }
+
+    #[test]
+    fn is_stale_false_before_traffic_reset_time_when_recently_synced() {
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 100);
+        s.last_synced_utc = OffsetDateTime::now_utc();
+        s.traffic_reset_time = Some(OffsetDateTime::now_utc() + time::Duration::hours(1));
+
+        assert!(!s.is_stale(Duration::from_secs(24 * 60 * 60)));
     }
 
     #[test]
