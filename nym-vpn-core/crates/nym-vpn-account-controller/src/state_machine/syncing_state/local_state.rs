@@ -44,9 +44,8 @@ const SUMMARY_STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 /// [`SyncingNetworkState`] to fetch one first. The only network interaction here is registering the
 /// device, which happens as a direct consequence of the checks (a free slot is available).
 ///
-/// Most failed checks go straight to the error state (or `PendingSubscriptionState` for a pending
-/// subscription). Cached fair-usage depletion is revalidated once against the network before it is
-/// treated as a real bandwidth error.
+/// Failed checks go straight to the error state (or `PendingSubscriptionState` for a pending
+/// subscription). Whether the cache is trustworthy is decided only at entry via [`VpnAccountSummary::is_stale`].
 ///
 /// Possible next state :
 /// - LoggedOutState : No account is stored
@@ -57,15 +56,13 @@ const SUMMARY_STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 /// - OfflineState : the connectivity monitor is telling we're not connected
 /// - DecentralisedState : The loaded account is set to "decentralised" mode
 pub(crate) struct SyncingLocalState {
-    result_rx: oneshot::Receiver<Result<bool, SyncError>>,
+    result_rx: oneshot::Receiver<LocalSyncCheckResult>,
     sync_cancel_token: Option<DropGuard>,
-    summary_was_revalidated: bool,
 }
 
 impl SyncingLocalState {
     pub(crate) fn enter<C: ConnectivityMonitor>(
         shared_state: &SharedAccountState<C>,
-        summary_was_revalidated: bool,
     ) -> (
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
@@ -88,7 +85,7 @@ impl SyncingLocalState {
             return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory);
         };
 
-        // A stale cache can't be trusted; force a mandatory re-fetch instead of checking it.
+        // Can we work with this summary? No => mandatory sync.
         if summary.is_stale(SUMMARY_STALE_AFTER) {
             tracing::debug!("Cached account summary is stale, forcing a network refresh");
             return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory);
@@ -114,25 +111,36 @@ impl SyncingLocalState {
             Box::new(Self {
                 result_rx,
                 sync_cancel_token: Some(sync_cancel_token.drop_guard()),
-                summary_was_revalidated,
             }),
             PrivateAccountControllerState::Syncing,
         )
     }
 
     async fn check_account(
-        result_tx: oneshot::Sender<Result<bool, SyncError>>,
+        result_tx: oneshot::Sender<LocalSyncCheckResult>,
         vpn_api_client: VpnApiClient,
         vpn_api_account: Arc<VpnAccount>,
         device: Device,
         summary: VpnAccountSummary,
     ) {
-        let result = match local_sync_result(&summary) {
-            Ok(()) => Ok(false),
-            Err(SyncError::NeedsDeviceRegistration) => {
-                Self::register_device(&vpn_api_client, &vpn_api_account, &device).await
-            }
-            Err(err) => Err(err),
+        let result = match local_sync_outcome(&summary) {
+            LocalSyncOutcome::Ready => LocalSyncCheckResult::ContinueToZkNyms {
+                device_registration: false,
+            },
+            LocalSyncOutcome::RegisterDevice => match Self::register_device(
+                &vpn_api_client,
+                &vpn_api_account,
+                &device,
+            )
+            .await
+            {
+                Ok(()) => LocalSyncCheckResult::ContinueToZkNyms {
+                    device_registration: true,
+                },
+                Err(reason) => LocalSyncCheckResult::Failed(reason),
+            },
+            LocalSyncOutcome::PendingSubscription => LocalSyncCheckResult::PendingSubscription,
+            LocalSyncOutcome::Failed(reason) => LocalSyncCheckResult::Failed(reason),
         };
 
         result_tx.send(result).ok();
@@ -142,14 +150,15 @@ impl SyncingLocalState {
         vpn_api_client: &VpnApiClient,
         vpn_api_account: &VpnAccount,
         device: &Device,
-    ) -> Result<bool, SyncError> {
+    ) -> Result<(), AccountControllerErrorStateReason> {
         vpn_api_client
             .register_device(vpn_api_account, device)
             .await
-            .map_err(|err| SyncError::UnregisteredDevice {
-                details: err.to_string(),
-            })?;
-        Ok(true) // We just registered the device, we must update the summary (no need for a full refetch)
+            .map(|_| ())
+            .map_err(|err| AccountControllerErrorStateReason::ApiFailure {
+                context: SYNCING_LOCAL_STATE_CONTEXT.into(),
+                details: format!("Error registering device : {err}"),
+            })
     }
 }
 
@@ -177,7 +186,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
 
             sync_result = &mut self.result_rx => {
                 match sync_result {
-                    Ok(Ok(device_registration)) => {
+                    Ok(LocalSyncCheckResult::ContinueToZkNyms { device_registration }) => {
                         // If we just registered the device, reflect that in the cached summary
                         // (memory + disk) so a restart doesn't try to register again, without
                         // needing a full re-fetch.
@@ -192,21 +201,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         }
                         NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, 0, false))
                     }
-                    Ok(Err(err)) => {
-                        // The account doesn't check out
-                        match err {
-                            SyncError::PendingSubscription => NextAccountControllerState::NewState(PendingSubscriptionState::enter()),
-                            _ if should_force_fair_usage_revalidation(&err, self.summary_was_revalidated) => {
-                                tracing::debug!(
-                                    "Cached account summary reported depleted fair usage, forcing network revalidation"
-                                );
-                                shared_state.mark_summary_as_stale();
-                                NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory))
-                            }
-                            err => {
-                                NextAccountControllerState::NewState(ErrorState::enter(err.into_error_reason()))
-                            }
-                        }
+                    Ok(LocalSyncCheckResult::PendingSubscription) => {
+                        NextAccountControllerState::NewState(PendingSubscriptionState::enter())
+                    }
+                    Ok(LocalSyncCheckResult::Failed(reason)) => {
+                        NextAccountControllerState::NewState(ErrorState::enter(reason))
                     }
                     Err(e) => {
                         tracing::error!("No result from local sync, task probably got cancelled : {e}");
@@ -298,93 +297,56 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
     }
 }
 
-fn local_sync_result(summary: &VpnAccountSummary) -> Result<(), SyncError> {
+fn local_sync_outcome(summary: &VpnAccountSummary) -> LocalSyncOutcome {
     if !summary.is_account_active() {
-        return Err(SyncError::InactiveAccount(
-            summary.account_status.to_string(),
-        ));
+        return LocalSyncOutcome::Failed(AccountControllerErrorStateReason::AccountStatusNotActive {
+            status: summary.account_status.to_string(),
+        });
     }
     if summary.is_subscription_pending() {
-        return Err(SyncError::PendingSubscription);
+        return LocalSyncOutcome::PendingSubscription;
     }
     if !summary.is_subscription_active() {
-        return Err(SyncError::InactiveSubscription);
+        return LocalSyncOutcome::Failed(AccountControllerErrorStateReason::InactiveSubscription);
     }
     if !summary.fair_usage_left() {
-        return Err(SyncError::FairUsageDepleted);
+        return LocalSyncOutcome::Failed(AccountControllerErrorStateReason::BandwidthExceeded {
+            context: SYNCING_LOCAL_STATE_CONTEXT.into(),
+        });
     }
     if !summary.is_device_active {
         if summary.remaining_devices == 0 {
-            return Err(SyncError::MaxDeviceReached);
+            return LocalSyncOutcome::Failed(AccountControllerErrorStateReason::MaxDeviceReached);
         }
-        return Err(SyncError::NeedsDeviceRegistration);
+        return LocalSyncOutcome::RegisterDevice;
     }
     if !summary.time_synced {
-        return Err(SyncError::DeviceTimeDesynced);
+        return LocalSyncOutcome::Failed(AccountControllerErrorStateReason::DeviceTimeDesynced);
     }
-    Ok(())
+    LocalSyncOutcome::Ready
 }
 
-/// A cached summary reached via the optimistic-fallback path (`summary_was_revalidated == false`)
-/// may be a stale snapshot from before the daily fair-usage reset. When such a summary reports
-/// depleted fair usage we revalidate it once against the network (a mandatory sync) before
-/// surfacing a bandwidth error, so a device holding yesterday's exhausted snapshot can recover
-/// once the server reports under-limit.
-///
-/// A summary that was already freshly fetched from the network (`summary_was_revalidated == true`)
-/// is authoritative: depletion must surface as a real error and must NOT trigger another refresh,
-/// otherwise a genuinely exhausted account would loop network -> local -> network forever.
-fn should_force_fair_usage_revalidation(err: &SyncError, summary_was_revalidated: bool) -> bool {
-    matches!(err, SyncError::FairUsageDepleted) && !summary_was_revalidated
-}
-
-#[derive(Debug, strum::Display)]
-enum SyncError {
-    InactiveAccount(String),
-    UnregisteredDevice { details: String },
-    InactiveSubscription,
+#[derive(Debug, PartialEq, Eq)]
+enum LocalSyncOutcome {
+    Ready,
+    RegisterDevice,
     PendingSubscription,
-    DeviceTimeDesynced,
-    MaxDeviceReached,
-    FairUsageDepleted,
-    NeedsDeviceRegistration,
+    Failed(AccountControllerErrorStateReason),
 }
 
-impl SyncError {
-    /// Returns the corresponding error reason for the error state
-    fn into_error_reason(self) -> AccountControllerErrorStateReason {
-        use SyncError::*;
-        match self {
-            PendingSubscription => AccountControllerErrorStateReason::AccountStatusNotActive {
-                status: "pending".into(),
-            },
-            InactiveAccount(status) => {
-                AccountControllerErrorStateReason::AccountStatusNotActive { status }
-            }
-            InactiveSubscription => AccountControllerErrorStateReason::InactiveSubscription,
-            DeviceTimeDesynced => AccountControllerErrorStateReason::DeviceTimeDesynced,
-            MaxDeviceReached => AccountControllerErrorStateReason::MaxDeviceReached,
-            FairUsageDepleted => AccountControllerErrorStateReason::BandwidthExceeded {
-                context: SYNCING_LOCAL_STATE_CONTEXT.into(),
-            },
-            NeedsDeviceRegistration => AccountControllerErrorStateReason::Internal {
-                context: SYNCING_LOCAL_STATE_CONTEXT.into(),
-                details: "local sync signalled device registration without running it".into(),
-            },
-            UnregisteredDevice { details } => AccountControllerErrorStateReason::ApiFailure {
-                context: SYNCING_LOCAL_STATE_CONTEXT.into(),
-                details: format!("Error registering device : {details}"),
-            },
-        }
-    }
+#[derive(Debug, PartialEq, Eq)]
+enum LocalSyncCheckResult {
+    ContinueToZkNyms { device_registration: bool },
+    PendingSubscription,
+    Failed(AccountControllerErrorStateReason),
 }
 
 #[cfg(test)]
-mod fair_usage_revalidation_tests {
-    use super::{SyncError, local_sync_result, should_force_fair_usage_revalidation};
+mod local_sync_outcome_tests {
+    use super::{LocalSyncOutcome, local_sync_outcome};
     use nym_vpn_lib_types::{
-        NymVpnSubscription, NymVpnSubscriptionKind, NymVpnSubscriptionStatus, Subscription,
-        VpnAccountStatus, VpnAccountSummary,
+        AccountControllerErrorStateReason, NymVpnSubscription, NymVpnSubscriptionKind,
+        NymVpnSubscriptionStatus, Subscription, VpnAccountStatus, VpnAccountSummary,
     };
     use time::OffsetDateTime;
 
@@ -427,67 +389,36 @@ mod fair_usage_revalidation_tests {
     }
 
     #[test]
-    fn local_sync_result_reports_depletion_for_active_device() {
+    fn local_sync_outcome_reports_depletion_for_active_device() {
         let summary = active_summary(true, 2000, 2000);
-        assert!(matches!(
-            local_sync_result(&summary),
-            Err(SyncError::FairUsageDepleted)
-        ));
+        assert_eq!(
+            local_sync_outcome(&summary),
+            LocalSyncOutcome::Failed(AccountControllerErrorStateReason::BandwidthExceeded {
+                context: super::SYNCING_LOCAL_STATE_CONTEXT.into(),
+            })
+        );
     }
 
     #[test]
-    fn local_sync_result_reports_depletion_before_device_registration() {
+    fn local_sync_outcome_reports_depletion_before_device_registration() {
         let summary = active_summary(false, 2000, 2000);
-        assert!(matches!(
-            local_sync_result(&summary),
-            Err(SyncError::FairUsageDepleted)
-        ));
+        assert_eq!(
+            local_sync_outcome(&summary),
+            LocalSyncOutcome::Failed(AccountControllerErrorStateReason::BandwidthExceeded {
+                context: super::SYNCING_LOCAL_STATE_CONTEXT.into(),
+            })
+        );
     }
 
     #[test]
-    fn local_sync_result_registers_only_when_quota_remains() {
+    fn local_sync_outcome_registers_only_when_quota_remains() {
         let summary = active_summary(false, 0, 2000);
-        assert!(matches!(
-            local_sync_result(&summary),
-            Err(SyncError::NeedsDeviceRegistration)
-        ));
+        assert_eq!(local_sync_outcome(&summary), LocalSyncOutcome::RegisterDevice);
     }
 
     #[test]
-    fn cached_depleted_summary_is_revalidated_once() {
-        // Optimistic-fallback path (summary_was_revalidated == false): a depleted snapshot must
-        // trigger exactly one mandatory network revalidation rather than surfacing an error.
-        assert!(should_force_fair_usage_revalidation(
-            &SyncError::FairUsageDepleted,
-            false
-        ));
-    }
-
-    #[test]
-    fn freshly_fetched_depleted_summary_is_not_revalidated() {
-        // Authoritative network summary: depletion is real, so we must NOT refresh again
-        // (prevents an infinite network -> local -> network loop on a genuinely exhausted account).
-        assert!(!should_force_fair_usage_revalidation(
-            &SyncError::FairUsageDepleted,
-            true
-        ));
-    }
-
-    #[test]
-    fn non_depletion_errors_never_force_revalidation() {
-        for revalidated in [true, false] {
-            assert!(!should_force_fair_usage_revalidation(
-                &SyncError::InactiveSubscription,
-                revalidated
-            ));
-            assert!(!should_force_fair_usage_revalidation(
-                &SyncError::MaxDeviceReached,
-                revalidated
-            ));
-            assert!(!should_force_fair_usage_revalidation(
-                &SyncError::DeviceTimeDesynced,
-                revalidated
-            ));
-        }
+    fn local_sync_outcome_ready_when_checks_pass() {
+        let summary = active_summary(true, 0, 2000);
+        assert_eq!(local_sync_outcome(&summary), LocalSyncOutcome::Ready);
     }
 }
