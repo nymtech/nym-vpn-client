@@ -241,6 +241,18 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_enable_gateway_independence(
+        &mut self,
+        enable_gateway_independence: bool,
+    ) -> Result<()> {
+        self.0
+            .set_enable_gateway_independence(enable_gateway_independence)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
     pub async fn set_network(&mut self, network: String) -> Result<()> {
         self.0
             .set_network(network)
