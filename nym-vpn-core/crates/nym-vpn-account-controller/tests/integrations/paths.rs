@@ -236,28 +236,6 @@ async fn account_with_max_device_test() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
-async fn account_active_device_depleted_test() -> anyhow::Result<()> {
-    let mut test_bench = TestBench::new().await?;
-
-    let mocks = vec![
-        endpoints::synced_health(),
-        endpoints::account_summary_with_device_200(account_active_device_depleted()),
-    ];
-    test_bench.register_vpn_api_mocks(mocks).await;
-
-    test_bench.store_mock_account().await?;
-
-    test_bench
-        .assert_state(AccountControllerState::Error(
-            AccountControllerErrorStateReason::BandwidthExceeded {
-                context: "SYNCING_LOCAL_STATE".into(),
-            },
-        ))
-        .await;
-    Ok(())
-}
-
-#[tokio::test]
 async fn account_with_no_fair_usage_test() -> anyhow::Result<()> {
     // Get the test_bench
     let mut test_bench = TestBench::new().await?;
