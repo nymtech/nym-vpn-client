@@ -268,8 +268,8 @@ impl RpcClient {
         Ok(self.inner.clone().get_account_state().await?)
     }
 
-    pub async fn refresh_account_state(&self) -> Result<()> {
-        self.inner.clone().refresh_account_state().await?;
+    pub async fn refresh_account_state(&self, force: bool) -> Result<()> {
+        self.inner.clone().refresh_account_state(force).await?;
         Ok(())
     }
 

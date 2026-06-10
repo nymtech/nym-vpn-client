@@ -318,8 +318,8 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
-    pub async fn refresh_account(&self) -> Result<()> {
-        self.send_and_wait(VpnServiceCommand::RefreshAccountState, ())
+    pub async fn refresh_account(&self, force: bool) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::RefreshAccountState, force)
             .await
     }
 

@@ -207,7 +207,7 @@ impl NymAccountController {
     /// this can be used to manually trigger a sync.
     pub async fn update_account_state(&self) -> Result<(), VpnError> {
         self.command_sender
-            .background_refresh_account_state()
+            .refresh_account_state(true)
             .await
             .map_err(VpnError::from)
     }

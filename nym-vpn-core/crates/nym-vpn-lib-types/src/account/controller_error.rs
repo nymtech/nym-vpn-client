@@ -49,7 +49,7 @@ pub enum AccountControllerErrorStateReason {
 
 impl AccountControllerErrorStateReason {
     pub fn is_retryable(&self) -> bool {
-        matches!(self, Self::ApiFailure { .. } | Self::Internal { .. })
+        matches!(self, Self::ApiFailure { .. })
     }
 
     pub fn storage(
