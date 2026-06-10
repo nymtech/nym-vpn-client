@@ -127,18 +127,14 @@ impl SyncingLocalState {
             LocalSyncOutcome::Ready => LocalSyncCheckResult::ContinueToZkNyms {
                 device_registration: false,
             },
-            LocalSyncOutcome::RegisterDevice => match Self::register_device(
-                &vpn_api_client,
-                &vpn_api_account,
-                &device,
-            )
-            .await
-            {
-                Ok(()) => LocalSyncCheckResult::ContinueToZkNyms {
-                    device_registration: true,
-                },
-                Err(reason) => LocalSyncCheckResult::Failed(reason),
-            },
+            LocalSyncOutcome::RegisterDevice => {
+                match Self::register_device(&vpn_api_client, &vpn_api_account, &device).await {
+                    Ok(()) => LocalSyncCheckResult::ContinueToZkNyms {
+                        device_registration: true,
+                    },
+                    Err(reason) => LocalSyncCheckResult::Failed(reason),
+                }
+            }
             LocalSyncOutcome::PendingSubscription => LocalSyncCheckResult::PendingSubscription,
             LocalSyncOutcome::Failed(reason) => LocalSyncCheckResult::Failed(reason),
         };
@@ -299,9 +295,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
 
 fn local_sync_outcome(summary: &VpnAccountSummary) -> LocalSyncOutcome {
     if !summary.is_account_active() {
-        return LocalSyncOutcome::Failed(AccountControllerErrorStateReason::AccountStatusNotActive {
-            status: summary.account_status.to_string(),
-        });
+        return LocalSyncOutcome::Failed(
+            AccountControllerErrorStateReason::AccountStatusNotActive {
+                status: summary.account_status.to_string(),
+            },
+        );
     }
     if summary.is_subscription_pending() {
         return LocalSyncOutcome::PendingSubscription;
@@ -413,7 +411,10 @@ mod local_sync_outcome_tests {
     #[test]
     fn local_sync_outcome_registers_only_when_quota_remains() {
         let summary = active_summary(false, 0, 2000);
-        assert_eq!(local_sync_outcome(&summary), LocalSyncOutcome::RegisterDevice);
+        assert_eq!(
+            local_sync_outcome(&summary),
+            LocalSyncOutcome::RegisterDevice
+        );
     }
 
     #[test]

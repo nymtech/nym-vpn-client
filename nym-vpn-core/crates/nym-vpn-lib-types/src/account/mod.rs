@@ -378,9 +378,9 @@ impl VpnAccountSummary {
     fn fair_usage_depleted_past_reset(&self, now: OffsetDateTime) -> bool {
         !self.fair_usage_left()
             && !self.fair_usage_data_unavailable
-            && self.traffic_reset_time.is_some_and(|reset_time| {
-                reset_time <= now && self.last_synced_utc <= reset_time
-            })
+            && self
+                .traffic_reset_time
+                .is_some_and(|reset_time| reset_time <= now && self.last_synced_utc <= reset_time)
     }
 }
 
