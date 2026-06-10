@@ -1160,6 +1160,7 @@ service NymVpnService {
   rpc SetGeoExclusionExcludedCountries(StringList) returns (google.protobuf.Empty) {}
   rpc SetGatewaySelectionAlgorithm(GatewaySelectionAlgorithm) returns (google.protobuf.Empty) {}
   rpc SetEnableGeoLocation(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetEnableGatewayIndependence(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetFrontingMode(FrontingModeRequest) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect

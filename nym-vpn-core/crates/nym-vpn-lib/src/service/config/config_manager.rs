@@ -10,9 +10,9 @@ use std::{
 use nym_common::trace_err_chain;
 use nym_http_api_client::{Client, FrontPolicy};
 use nym_registration_client::MixnetClientConfig;
-use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
+use nym_vpn_lib_types::{GatewayIndependence, MixnetTrafficConfigValidationError};
 use tokio::{fs, sync::broadcast};
 
 use crate::{
@@ -252,6 +252,16 @@ impl VpnServiceConfigManager {
             self.save_config_and_send_event().await;
         }
         Ok(())
+    }
+
+    pub async fn set_enable_gateway_independence(&mut self, enable_gateway_independence: bool) {
+        if (enable_gateway_independence && !self.config.gateway_independence.full_enabled())
+            || (!enable_gateway_independence && !self.config.gateway_independence.full_disabled())
+        {
+            self.config.gateway_independence =
+                GatewayIndependence::new(enable_gateway_independence);
+            self.save_config_and_send_event().await;
+        }
     }
 
     #[allow(unused)]

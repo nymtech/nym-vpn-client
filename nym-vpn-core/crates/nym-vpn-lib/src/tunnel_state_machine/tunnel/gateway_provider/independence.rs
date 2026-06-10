@@ -149,7 +149,7 @@ mod tests {
         assert!(!gateways_are_independent(
             &gw,
             &gw,
-            GatewayIndependence::new_deactivated()
+            GatewayIndependence::new(false)
         ));
         assert!(!gateways_are_independent(&gw, &gw, asn_only()));
         assert!(!gateways_are_independent(&gw, &gw, family_only()));
@@ -168,7 +168,7 @@ mod tests {
         assert!(gateways_are_independent(
             &gw1,
             &gw2,
-            GatewayIndependence::new_deactivated()
+            GatewayIndependence::new(false)
         ));
     }
 
