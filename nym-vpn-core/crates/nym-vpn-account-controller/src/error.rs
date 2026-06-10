@@ -16,6 +16,11 @@ pub enum Error {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
+    #[error("account summary store error")]
+    AccountSummaryStore {
+        source: Box<dyn std::error::Error + Send + Sync>,
+    },
+
     #[error("failed to setup account storage paths")]
     StoragePaths(#[source] Box<nym_sdk::Error>),
 

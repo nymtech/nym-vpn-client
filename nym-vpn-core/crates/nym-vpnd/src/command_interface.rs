@@ -743,9 +743,10 @@ impl NymVpnService for CommandInterface {
 
     async fn refresh_account_state(
         &self,
-        _request: tonic::Request<()>,
+        request: tonic::Request<proto::RefreshAccountStateRequest>,
     ) -> Result<tonic::Response<()>> {
-        self.send_and_wait(VpnServiceCommand::RefreshAccountState, ())
+        let force = request.into_inner().force;
+        self.send_and_wait(VpnServiceCommand::RefreshAccountState, force)
             .await?;
 
         Ok(tonic::Response::new(()))

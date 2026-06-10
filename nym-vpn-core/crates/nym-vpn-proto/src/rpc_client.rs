@@ -525,9 +525,9 @@ impl RpcClient {
         AccountControllerState::try_from(state).map_err(Error::InvalidResponse)
     }
 
-    pub async fn refresh_account_state(&mut self) -> Result<()> {
+    pub async fn refresh_account_state(&mut self, force: bool) -> Result<()> {
         self.0
-            .refresh_account_state(())
+            .refresh_account_state(proto::RefreshAccountStateRequest { force })
             .await
             .map_err(Error::Rpc)?
             .into_inner();

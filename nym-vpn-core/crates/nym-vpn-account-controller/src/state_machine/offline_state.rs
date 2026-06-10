@@ -8,7 +8,7 @@ use crate::{
     },
     state_machine::{
         AccountControllerStateHandler, NextAccountControllerState, PrivateAccountControllerState,
-        SyncingState,
+        SyncMode, SyncingNetworkState,
     },
 };
 use nym_offline_monitor::ConnectivityMonitor;
@@ -23,10 +23,10 @@ use tracing::warn;
 /// There is no assumption wrt to stored account and registered device
 /// Most of the commands can't be handled because of the lack of connectivity
 ///
-/// When the connectivity is restored, we go into SyncingState to get back on our feet
+/// When the connectivity is restored, we go into SyncingNetworkState to get back on our feet
 ///
 /// Possible next state :
-/// - SyncingState : Connectivity is back
+/// - SyncingNetworkState : Connectivity is back
 ///
 pub struct OfflineState;
 
@@ -70,7 +70,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                     // Same comment as above
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_no_connectivity(return_sender),
 
-                    AccountCommand::RefreshAccountState(return_sender) => return_no_connectivity(return_sender),
+                    AccountCommand::RefreshAccountState(return_sender, _) => return_no_connectivity(return_sender),
 
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
                         shared_state.firewall_active = false;
@@ -119,7 +119,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                 if connectivity.is_offline() {
                     NextAccountControllerState::SameState(self)
                 } else {
-                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                    NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic))
                 }
             }
             _ = shutdown_token.cancelled() => {

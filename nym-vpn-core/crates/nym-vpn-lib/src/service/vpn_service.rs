@@ -166,7 +166,7 @@ pub enum VpnServiceCommand {
         Locale,
     ),
     GetAccountState(oneshot::Sender<AccountControllerState>, ()),
-    RefreshAccountState(oneshot::Sender<()>, ()),
+    RefreshAccountState(oneshot::Sender<()>, bool),
     GetAccountUsage(
         oneshot::Sender<Result<Vec<NymVpnUsage>, AccountCommandError>>,
         (),
@@ -1103,8 +1103,8 @@ impl NymVpnService {
             VpnServiceCommand::GetAccountState(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_state().await);
             }
-            VpnServiceCommand::RefreshAccountState(tx, ()) => {
-                self.handle_refresh_account_state().await;
+            VpnServiceCommand::RefreshAccountState(tx, force) => {
+                self.handle_refresh_account_state(force).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::GetAccountUsage(tx, ()) => {
@@ -1958,11 +1958,8 @@ impl NymVpnService {
         self.account_state_rx.get_state()
     }
 
-    async fn handle_refresh_account_state(&self) {
-        let _ = self
-            .account_command_tx
-            .background_refresh_account_state()
-            .await;
+    async fn handle_refresh_account_state(&self, force: bool) {
+        let _ = self.account_command_tx.refresh_account_state(force).await;
     }
 
     async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
@@ -2033,9 +2030,7 @@ impl NymVpnService {
         if !self.handle_is_account_stored().await {
             return Err(AccountCommandError::NoAccountStored);
         }
-        self.account_command_tx
-            .background_refresh_account_state()
-            .await
+        self.account_command_tx.refresh_account_state(true).await
     }
 
     async fn handle_get_deeplink(

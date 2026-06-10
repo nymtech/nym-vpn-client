@@ -2,6 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod account;
+pub mod account_summary;
 pub mod keys;
 
-pub trait VpnStorage: account::AccountInformationStorage + keys::device::DeviceKeyStore {}
+pub trait VpnStorage:
+    account::AccountInformationStorage
+    + keys::device::DeviceKeyStore
+    + account_summary::AccountSummaryStorage
+{
+}

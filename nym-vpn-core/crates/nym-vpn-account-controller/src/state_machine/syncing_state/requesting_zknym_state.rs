@@ -18,7 +18,8 @@ use crate::{
     },
     state_machine::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
-        OfflineState, PrivateAccountControllerState, ReadyState, SyncingState, UpgradeModeState,
+        OfflineState, PrivateAccountControllerState, ReadyState, SyncMode, SyncingNetworkState,
+        UpgradeModeState,
     },
     storage::VpnCredentialStorage,
 };
@@ -47,7 +48,7 @@ const ZK_NYM_STATE_CONTEXT: &str = "ZK_NYM_STATE";
 /// - ReadyState : We have enough tickets already, or we managed to get enough tickets
 /// - ErrorState : An error happened, preventing us to proceed.
 /// - OfflineState : the connectivity monitor is telling we're not connected
-/// - SyncingState : We handled a refresh account command
+/// - SyncingNetworkState : We handled a (force) refresh account command, or a join/retry
 /// - LoggedOutState : A successful forget account command was handled
 /// - UpgradeModeState : Instead of retrieving zk-nyms, we have received information about upgrade mode being activated
 pub(crate) struct RequestingZkNymsState {
@@ -221,18 +222,15 @@ impl RequestingZkNymsState {
     }
 
     async fn handle_retrieved_zk_nym<C: ConnectivityMonitor>(
-        &mut self,
+        self: Box<Self>,
         shared_state: &mut SharedAccountState<C>,
         zknym_result: Result<Result<ZkNymFetchResult, ZkNymError>, JoinError>,
     ) -> NextAccountControllerState<C> {
         let join_result = match zknym_result {
             Ok(join_result) => join_result,
             Err(err) => {
-                error!("Failed to join on the fetching task : {err}");
-                return NextAccountControllerState::NewState(SyncingState::enter(
-                    shared_state,
-                    self.attempts + 1,
-                ));
+                error!("Failed to join on the fetching task, task probably got cancelled : {err}");
+                return NextAccountControllerState::SameState(self);
             }
         };
 
@@ -322,7 +320,10 @@ impl RequestingZkNymsState {
                 let error = res.is_err();
                 return_sender.send(res);
                 return if error {
-                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                    NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                        shared_state,
+                        SyncMode::Optimistic,
+                    ))
                 } else {
                     NextAccountControllerState::NewState(LoggedOutState::enter())
                 };
@@ -344,15 +345,29 @@ impl RequestingZkNymsState {
             AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                 self.zk_nym_fetching_handle.abort();
                 return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
-                return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
+                return NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                    shared_state,
+                    SyncMode::Mandatory,
+                ));
             }
-            AccountCommand::RefreshAccountState(return_sender) => {
+            AccountCommand::RefreshAccountState(return_sender, force) => {
                 return_sender.send(Ok(()));
                 return if shared_state.firewall_active {
                     NextAccountControllerState::SameState(self)
                 } else {
                     self.zk_nym_fetching_handle.abort();
-                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+                    if force {
+                        shared_state.mark_summary_as_stale();
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                            shared_state,
+                            SyncMode::Mandatory,
+                        ));
+                    } else {
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(
+                            shared_state,
+                            SyncMode::Optimistic,
+                        ));
+                    }
                 };
             }
             AccountCommand::VpnApiFirewallDown(return_sender) => {
