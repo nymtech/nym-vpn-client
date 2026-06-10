@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use anyhow::Result;
+use nym_file_updater::FileUpdater;
 #[cfg(target_os = "android")]
 use nym_socks5_proxy::SocketProtector;
 use nym_socks5_proxy::default_interface;
@@ -96,12 +97,26 @@ async fn supervisor(
     let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());
     let default_interface_rx = default_interface::start_monitor(shutdown_token.child_token()).await;
 
+    let file_updater_handle = match FileUpdater::new() {
+        Ok((file_updater, handle)) => {
+            tokio::spawn(file_updater.run(shutdown_token.child_token()));
+            handle
+        }
+        Err(err) => {
+            let msg = format!("Failed to create file updater: {err:#}");
+            tracing::error!("{msg}");
+            let _ = ready_tx.send(Err(msg));
+            return;
+        }
+    };
+
     match nym_socks5_proxy::run(
         config,
         &proxy_dir,
         default_interface_rx,
         tunnel_addrs_rx,
         shutdown_token.clone(),
+        file_updater_handle,
         #[cfg(target_os = "android")]
         socket_protector,
     )

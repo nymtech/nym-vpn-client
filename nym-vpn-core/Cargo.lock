@@ -5760,6 +5760,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-file-updater"
+version = "2026.11.0-beta.1"
+dependencies = [
+ "futures",
+ "reqwest 0.13.3",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "url",
+ "wiremock",
+]
+
+[[package]]
 name = "nym-firewall"
 version = "2026.11.0-beta.1"
 dependencies = [
@@ -6597,9 +6612,11 @@ dependencies = [
  "anyhow",
  "async-compression",
  "fast-socks5",
+ "futures",
  "ipnet",
  "iprange",
  "libc",
+ "nym-file-updater",
  "nym-firewall-config",
  "nym-routing",
  "nym-socks5-proxy-ipc",
@@ -6610,6 +6627,7 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tracing-subscriber",
+ "url",
  "windows 0.62.2",
  "windows-sys 0.61.2",
 ]
@@ -7197,6 +7215,7 @@ dependencies = [
  "nym-crypto",
  "nym-diagnostic",
  "nym-dns",
+ "nym-file-updater",
  "nym-firewall",
  "nym-firewall-config",
  "nym-gateway-directory",

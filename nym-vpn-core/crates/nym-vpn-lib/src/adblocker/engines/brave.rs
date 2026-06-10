@@ -14,7 +14,7 @@ use crate::{
     adblocker::{
         AdBlockerError, Result,
         engines::AdBlockEngine,
-        file_manager::{SOURCES, Source, SourceMetaData},
+        file_manager::{SOURCES, Source},
     },
     dns_filter::{DnsFilterDecision, DnsFilterStrategy, DnsFilterT},
 };
@@ -110,10 +110,8 @@ async fn load_filter_set(cache_dir: &Path) -> Result<FilterSet> {
     let mut filter_set = FilterSet::new(cfg!(debug_assertions));
 
     for source in SOURCES.iter() {
-        let meta_path = cache_dir.join(source.meta_file_name);
-        let meta_data = SourceMetaData::from_file(&meta_path).await?;
         let data_path = cache_dir.join(source.file_name);
-        let domain_list = Source::load_data_file(&data_path, &meta_data).await?;
+        let domain_list = Source::load_data_file(&data_path).await?;
         filter_set.add_filter_list(
             &domain_list,
             ParseOptions {
@@ -132,7 +130,7 @@ mod tests {
     use super::*;
     use crate::adblocker::file_manager::tests::init_tests;
 
-    const SHOULD_BE_BLOCKED_DOMAIN: &str = "www.0.beer";
+    const SHOULD_BE_BLOCKED_DOMAIN: &str = "ad.doubleclick.net";
 
     #[tokio::test]
     #[tracing_test::traced_test]

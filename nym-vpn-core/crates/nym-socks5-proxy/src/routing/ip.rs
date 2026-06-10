@@ -12,8 +12,6 @@ use ipnet::{Ipv4Net, Ipv6Net};
 use iprange::IpRange;
 use serde::Deserialize;
 
-static EMBEDDED_GEOIP: &[(&str, &[u8])] = &[("CN", include_bytes!("../../builtin/CN-ip.json.gz"))];
-
 pub struct GeoIpDatabase {
     pub(super) excluded_countries: HashMap<String, CountryIpSet>,
 }
@@ -92,9 +90,7 @@ async fn load_country_ip_set(country_code: &str, data_dir: &Path) -> Result<Coun
 }
 
 async fn load_country_geo_data(country_code: &str, data_dir: &Path) -> Result<CountryGeoData> {
-    let path = data_dir
-        .join("geoip")
-        .join(format!("{country_code}.json.gz"));
+    let path = data_dir.join(format!("{country_code}-ip.json.gz"));
 
     let gz_bytes: Vec<u8> = match std::fs::read(&path) {
         Ok(bytes) => {
@@ -125,10 +121,11 @@ async fn load_country_geo_data(country_code: &str, data_dir: &Path) -> Result<Co
 }
 
 pub(super) fn embedded_geoip_gz(country_code: &str) -> Option<&'static [u8]> {
-    EMBEDDED_GEOIP
+    let file_name = format!("{country_code}-ip.json.gz");
+    crate::file_manager::SOURCES
         .iter()
-        .find(|&&(cc, _)| cc == country_code)
-        .map(|&(_, data)| data)
+        .find(|s| s.file_name == file_name.as_str())
+        .map(|s| s.builtin)
 }
 
 pub(super) fn parse_ipv4_cidrs(cidrs: &[String]) -> Result<IpRange<Ipv4Net>> {

@@ -1,0 +1,26 @@
+[package]
+name = "nym-file-updater"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+wiremock = { workspace = true }
+
+[dependencies]
+futures = { workspace = true }
+reqwest = { workspace = true, features = ["rustls", "stream"] }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["fs", "sync", "io-util", "macros"] }
+tokio-util = { workspace = true }
+tracing = { workspace = true }
+url = { workspace = true }

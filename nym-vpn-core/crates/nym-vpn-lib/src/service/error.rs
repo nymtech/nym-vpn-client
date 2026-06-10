@@ -43,6 +43,9 @@ pub enum Error {
     #[error("config setup error")]
     ConfigSetup(#[source] ConfigSetupError),
 
+    #[error("failed to create file updater")]
+    CreateFileUpdater(#[source] nym_file_updater::FileUpdaterError),
+
     #[error("state machine error")]
     StateMachine(#[source] TunnelStateMachineError),
 
