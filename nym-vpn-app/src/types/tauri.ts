@@ -350,6 +350,7 @@ export type TAccountSummary = {
   trafficUsedGb: bigint;
   trafficLimitGb: bigint;
   trafficResetTime: bigint | null;
+  fairUsageDataUnavailable: boolean;
   accountAddr: string;
   canonicalAccountAddr: string | null;
   authMethods: Array<TAuthMethod>;

@@ -165,6 +165,7 @@ pub struct AccountSummary {
     pub traffic_used_gb: u64,
     pub traffic_limit_gb: u64,
     pub traffic_reset_time: Option<i64>,
+    pub fair_usage_data_unavailable: bool,
     pub account_addr: String,
     pub canonical_account_addr: Option<String>,
     pub auth_methods: Vec<AuthMethod>,
@@ -185,6 +186,7 @@ impl From<lib::VpnAccountSummary> for AccountSummary {
             traffic_used_gb: summary.traffic_used_gb,
             traffic_limit_gb: summary.traffic_limit_gb,
             traffic_reset_time: summary.traffic_reset_time.map(|dt| dt.unix_timestamp()),
+            fair_usage_data_unavailable: summary.fair_usage_data_unavailable,
             account_addr: summary.account_addr,
             canonical_account_addr: summary.canonical_account_addr,
             auth_methods: summary
