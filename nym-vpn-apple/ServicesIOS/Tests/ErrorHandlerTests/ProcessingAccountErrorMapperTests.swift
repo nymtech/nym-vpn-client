@@ -23,6 +23,13 @@ import NymVPNLib
     #expect(message == "errorReason.deviceTimeOutOfSync".localizedString)
 }
 
+@Test func logSafeDescriptionIncludesVpnErrorDetails() {
+    let description = ProcessingAccountErrorMapper.logSafeDescription(
+        for: VpnError.ZkNymAcquisitionFailure(details: "device_not_authenticated")
+    )
+    #expect(description.contains("device_not_authenticated"))
+}
+
 @Test func mapsZkNymDeviceNotAuthenticatedFailure() {
     let message = ProcessingAccountErrorMapper.localizedMessage(
         for: VpnError.ZkNymAcquisitionFailure(

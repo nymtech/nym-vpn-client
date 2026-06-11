@@ -6,11 +6,28 @@ import Theme
 public enum ProcessingAccountErrorMapper {
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
 
-    public static func localizedMessage(for error: Error) -> String {
-        guard let vpnError = error as? VpnError else {
-            return somethingWentWrong
+    /// Safe one-line description for app log files (no secrets).
+    public static func logSafeDescription(for error: Error) -> String {
+        if let vpnError = error as? VpnError {
+            return "VpnError.\(vpnErrorLogLabel(vpnError))"
         }
-        return localizedMessage(for: vpnError)
+        if let localized = error as? LocalizedError,
+           let description = localized.errorDescription {
+            return String(description.prefix(200))
+        }
+        return "Error(\(String(describing: Swift.type(of: error)))"
+    }
+
+    public static func localizedMessage(for error: Error) -> String {
+        if let vpnError = error as? VpnError {
+            return localizedMessage(for: vpnError)
+        }
+        if let localized = error as? LocalizedError,
+           let description = localized.errorDescription,
+           !description.isEmpty {
+            return description
+        }
+        return somethingWentWrong
     }
 
     public static func localizedMessage(for vpnError: VpnError) -> String {
@@ -39,6 +56,21 @@ public enum ProcessingAccountErrorMapper {
             return VPNErrorReason(with: vpnError).description ?? somethingWentWrong
         default:
             return VPNErrorReason(with: vpnError).description ?? somethingWentWrong
+        }
+    }
+
+    private static func vpnErrorLogLabel(_ vpnError: VpnError) -> String {
+        switch vpnError {
+        case let .InternalError(details: details):
+            return "InternalError(\(details.prefix(120)))"
+        case let .ZkNymAcquisitionFailure(details: details):
+            return "ZkNymAcquisitionFailure(\(details.prefix(120)))"
+        case let .Storage(details: details):
+            return "Storage(\(details.prefix(120)))"
+        case let .FailedAccountRegistration(details: details):
+            return "FailedAccountRegistration(\(details.prefix(120)))"
+        default:
+            return String(describing: vpnError)
         }
     }
 }

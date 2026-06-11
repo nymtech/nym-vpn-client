@@ -151,6 +151,7 @@ import PathManager
     /// `registerAccount()` and as a repair path before processing when setup did not run.
     public func prepareRegisteredAccount() async throws {
         let envOpt = configurationManager.networkEnv
+        logger.info("prepareRegisteredAccount started")
         try await Task {
             let dataDir = try PathManager.dataFolderURL().path()
             let env = try envOpt ?? .newWithMainnetFallback()
@@ -161,7 +162,7 @@ import PathManager
         }.value
         accountSetupCompletedAt = Date()
         await updateAccountSummary(force: true)
-        logger.info("Post-login account setup completed")
+        logger.info("prepareRegisteredAccount completed")
     }
 #endif
 
@@ -319,7 +320,11 @@ import PathManager
         requireActiveSubscription: Bool = true
     ) async throws {
 #if os(iOS)
+        logger.info(
+            "prepareAccountForConnection started requireActiveSubscription=\(requireActiveSubscription) canPrefetchZkNyms=\(canPrefetchZkNyms)"
+        )
         if needsRegisteredAccountSetup() {
+            logger.info("prepareAccountForConnection running repair account setup")
             try await prepareRegisteredAccount()
         }
 #endif
@@ -336,11 +341,12 @@ import PathManager
 
 #if os(iOS)
         if canPrefetchZkNyms {
+            logger.info("prepareAccountForConnection starting zk-nym prefetch")
             do {
                 try await prefetchZkNyms()
             } catch {
                 logger.error(
-                    "prepareAccountForConnection: zk-nym prefetch failed \(Self.sanitizedAccountSummaryErrorLog(error))"
+                    "prepareAccountForConnection: zk-nym prefetch failed \(Self.logSafeErrorDescription(error))"
                 )
                 if requireActiveSubscription {
                     throw error
@@ -352,6 +358,9 @@ import PathManager
 #elseif os(macOS)
         try await grpcManager.refreshAccountState(force: true)
         await updateAccountSummary(force: true)
+#endif
+#if os(iOS)
+        logger.info("prepareAccountForConnection completed")
 #endif
 
     }
@@ -495,7 +504,15 @@ private extension CredentialsManager {
 
 private extension CredentialsManager {
     static func sanitizedAccountSummaryErrorLog(_ error: Error) -> String {
+#if os(iOS)
+        ProcessingAccountErrorMapper.logSafeDescription(for: error)
+#else
         "errorType=\(String(describing: Swift.type(of: error)))"
+#endif
+    }
+
+    static func logSafeErrorDescription(_ error: Error) -> String {
+        sanitizedAccountSummaryErrorLog(error)
     }
 
     func setupGRPCManagerObservers() {

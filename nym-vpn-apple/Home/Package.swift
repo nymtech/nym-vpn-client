@@ -24,7 +24,8 @@ let package = Package(
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
         .package(path: "../Theme"),
-        .package(path: "../UIComponents")
+        .package(path: "../UIComponents"),
+        .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
     ],
     targets: [
         .target(
@@ -45,6 +46,7 @@ let package = Package(
                 .product(name: "ImpactGenerator", package: "Services"),
                 .product(name: "NetworkMonitor", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
+                .product(name: "Logging", package: "swift-log"),
                 .product(name: "Routes", package: "Routes"),
                 .product(name: "Theme", package: "Theme")
             ],

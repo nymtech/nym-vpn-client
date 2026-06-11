@@ -401,6 +401,7 @@ impl NymVpnAccountStorage {
     /// subscription is active. Intended immediately after [`Self::register_account`]
     /// on iOS login paths so zk-nym prefetch and connect assume a registered device.
     pub async fn prepare_registered_account(&self) -> Result<(), VpnError> {
+        tracing::info!("Starting post-login account setup (summary sync and device registration)");
         let vpn_api_client = self.create_vpn_api_client().await?;
         let account = self
             .storage
@@ -449,6 +450,7 @@ impl NymVpnAccountStorage {
                 details: err.to_string(),
             })?;
 
+        tracing::info!("Post-login account setup completed");
         Ok(())
     }
 
@@ -462,6 +464,7 @@ impl NymVpnAccountStorage {
     /// Caller invariant: must not run while a controller owns the same data
     /// dir (the network extension at connect, or an in-process controller).
     pub async fn prefetch_zk_nyms(&self) -> Result<VpnPrefetchZkNymOutcome, VpnError> {
+        tracing::info!("Starting zk-nym prefetch from app storage API");
         let account = self
             .storage
             .load_account()

@@ -5,6 +5,9 @@ import CredentialsManager
 import Routes
 import Theme
 import UIComponents
+#if os(iOS)
+import ErrorHandler
+#endif
 
 public struct ProcessingAccountView: View {
     @EnvironmentObject private var appSettings: AppSettings
@@ -104,7 +107,11 @@ private extension ProcessingAccountView {
             )
             didSettleAccount = true
         } catch {
+#if os(iOS)
+            errorMessage = ProcessingAccountErrorMapper.localizedMessage(for: error)
+#else
             errorMessage = "generalNymError.somethingWentWrong".localizedString
+#endif
         }
     }
 
