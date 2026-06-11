@@ -457,7 +457,7 @@ async fn error_state_command() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
-async fn bandwidth_exceeded_firewall_down_triggers_sync_test() -> anyhow::Result<()> {
+async fn error_state_firewall_down_triggers_sync_test() -> anyhow::Result<()> {
     let mut test_bench = TestBench::new().await?;
 
     let mocks = vec![
@@ -475,15 +475,14 @@ async fn bandwidth_exceeded_firewall_down_triggers_sync_test() -> anyhow::Result
         ))
         .await;
 
-    // Simulate VPN connected (firewall active), then disconnected
     test_bench.command_sender.set_vpn_api_firewall_up().await?;
     test_bench
         .command_sender
         .set_vpn_api_firewall_down()
         .await?;
 
-    // BandwidthExceeded + firewall down must trigger an immediate optimistic sync
-    // (SyncingLocalState escalates to mandatory if the cache is stale after reset)
+    // Any error reason + firewall down triggers optimistic sync (parity with local_state.rs).
+    // SyncingLocalState escalates to mandatory if the cache is stale after reset.
     test_bench
         .assert_state(AccountControllerState::Syncing)
         .await;
@@ -492,10 +491,9 @@ async fn bandwidth_exceeded_firewall_down_triggers_sync_test() -> anyhow::Result
 }
 
 #[tokio::test]
-async fn non_bandwidth_error_firewall_down_does_not_sync_test() -> anyhow::Result<()> {
+async fn non_bandwidth_error_state_firewall_down_triggers_sync_test() -> anyhow::Result<()> {
     let mut test_bench = TestBench::new().await?;
 
-    // MaxDeviceReached is a non-bandwidth error reason
     let mocks = vec![
         endpoints::synced_health(),
         endpoints::account_summary_with_device_200(account_max_devices()),
@@ -509,31 +507,15 @@ async fn non_bandwidth_error_firewall_down_does_not_sync_test() -> anyhow::Resul
         ))
         .await;
 
-    // Watch for any transition out of the error state before sending the command
-    let mut state_watcher = test_bench.state_receiver.subscribe();
-
     test_bench.command_sender.set_vpn_api_firewall_up().await?;
     test_bench
         .command_sender
         .set_vpn_api_firewall_down()
         .await?;
 
-    // The firewall-down sync transition is scoped to BandwidthExceeded only. A
-    // non-bandwidth error must stay in error (the 120s refresh timer will not
-    // fire within this window), so waiting for Syncing must time out.
-    let synced = tokio::time::timeout(
-        std::time::Duration::from_secs(3),
-        state_watcher.wait_for(|state| *state == AccountControllerState::Syncing),
-    )
-    .await;
-    assert!(
-        synced.is_err(),
-        "MaxDeviceReached + firewall down must not trigger a sync"
-    );
-    assert_eq!(
-        test_bench.state_receiver.get_state(),
-        AccountControllerState::Error(AccountControllerErrorStateReason::MaxDeviceReached),
-    );
+    test_bench
+        .assert_state(AccountControllerState::Syncing)
+        .await;
 
     Ok(())
 }

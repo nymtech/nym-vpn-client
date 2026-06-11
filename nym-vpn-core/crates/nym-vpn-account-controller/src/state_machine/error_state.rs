@@ -127,9 +127,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         return_sender.send(Ok(()));
                         if shared_state.firewall_active {
                             shared_state.firewall_active = false;
-                            if matches!(self.reason, AccountControllerErrorStateReason::BandwidthExceeded { .. }) {
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
-                            }
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                         }
                     },
                     AccountCommand::VpnApiFirewallUp(return_sender) => {
