@@ -89,8 +89,7 @@ where
         // Setup the account storage, which is used to store the account and device keys
         let account_storage = AccountStorage::from(storage);
 
-        let credential_store_lock =
-            CredentialStoreAccessLock::acquire_blocking(&config.data_dir)?;
+        let credential_store_lock = CredentialStoreAccessLock::acquire_blocking(&config.data_dir)?;
 
         // Setup the credential storage, which is used to store the ticketbooks
         let credential_storage =

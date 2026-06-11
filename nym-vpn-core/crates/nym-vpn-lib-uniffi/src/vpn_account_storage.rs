@@ -349,13 +349,14 @@ impl NymVpnAccountStorage {
             Err(err @ (VpnError::NoAccountStored | VpnError::NoDeviceIdentity)) => Err(err),
             Err(err) => {
                 tracing::warn!("Account summary network sync failed, trying cache: {err:?}");
-                self.storage
-                    .load_summary()
-                    .await
-                    .map_err(|storage_err| VpnError::Storage {
+                match self.storage.load_summary().await.map_err(|storage_err| {
+                    VpnError::Storage {
                         details: storage_err.to_string(),
-                    })
-                    .and_then(|cached| cached.ok_or(err))
+                    }
+                })? {
+                    Some(cached) => Ok(Some(cached)),
+                    None => Err(err),
+                }
             }
         }
     }
@@ -473,14 +474,18 @@ impl NymVpnAccountStorage {
         let device = self.load_device().await?;
         let vpn_api_client = self.create_vpn_api_client().await?;
 
-        tracing::info!("Fetching account summary from VPN API for account {}", account.id());
+        tracing::info!(
+            "Fetching account summary from VPN API for account {}",
+            account.id()
+        );
 
-        let remote_time = vpn_api_client
-            .get_remote_time()
-            .await
-            .map_err(|err| VpnError::InternalError {
-                details: format!("Failed to get remote time: {err}"),
-            })?;
+        let remote_time =
+            vpn_api_client
+                .get_remote_time()
+                .await
+                .map_err(|err| VpnError::InternalError {
+                    details: format!("Failed to get remote time: {err}"),
+                })?;
 
         let api_summary = vpn_api_client
             .get_account_summary_with_device(&account, &device)
