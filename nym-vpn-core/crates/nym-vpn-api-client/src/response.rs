@@ -766,20 +766,20 @@ pub struct ApiUrl {
     pub fronts: Option<Vec<String>>,
 }
 
-impl Into<nym_network_defaults::ApiUrl> for ApiUrl {
-    fn into(self) -> nym_network_defaults::ApiUrl {
+impl From<ApiUrl> for nym_network_defaults::ApiUrl {
+    fn from(value: ApiUrl) -> Self {
         nym_network_defaults::ApiUrl {
-            url: self.url,
-            front_hosts: self.fronts,
+            url: value.url,
+            front_hosts: value.fronts,
         }
     }
 }
 
-impl Into<nym_network_defaults::ApiUrl> for &ApiUrl {
-    fn into(self) -> nym_network_defaults::ApiUrl {
+impl From<&ApiUrl> for nym_network_defaults::ApiUrl {
+    fn from(value: &ApiUrl) -> Self {
         nym_network_defaults::ApiUrl {
-            url: self.url.clone(),
-            front_hosts: self.fronts.clone(),
+            url: value.url.clone(),
+            front_hosts: value.fronts.clone(),
         }
     }
 }
