@@ -533,6 +533,7 @@ impl NymVpnAccountStorage {
             device,
             &mut summary,
         )
+        .await
         .map_err(|err| VpnError::InternalError {
             details: err.to_string(),
         })?;
