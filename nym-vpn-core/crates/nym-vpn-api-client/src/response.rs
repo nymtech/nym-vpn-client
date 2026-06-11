@@ -811,7 +811,7 @@ impl From<&ApiUrl> for nym_network_defaults::ApiUrl {
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymWellknownDiscoveryItemResponse {
     pub network_name: String,
-    pub networking_specifics: NetworkingSpecifics,
+    pub networking: NetworkingSpecifics,
     pub nym_api_urls: Vec<ApiUrl>,
     pub nym_vpn_api_urls: Vec<ApiUrl>,
     pub account_management: Option<AccountManagementResponse>,

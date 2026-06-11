@@ -19,7 +19,7 @@ pub struct Discovery {
     pub network_name: String,
 
     // Use the getters!
-    networking_specifics: NetworkingSpecifics,
+    networking: NetworkingSpecifics,
     // to be removed in favor of networking_specifics
     nym_api_urls: Vec<ApiUrl>,
     // to be removed in favor of networking_specifics
@@ -130,7 +130,7 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
 
         let nym_vpn_api_urls = discovery.nym_vpn_api_urls.clone();
 
-        let networking_specifics = NetworkingSpecifics {
+        let networking = NetworkingSpecifics {
             nym_api_urls: nym_api_urls.iter().map(Into::into).collect(),
             nym_vpn_api_urls: nym_vpn_api_urls.iter().map(Into::into).collect(),
             dns_fallbacks: Vec::new(),
@@ -138,7 +138,7 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
 
         Ok(Self {
             network_name: discovery.network_name,
-            networking_specifics,
+            networking,
             nym_api_urls,
             nym_vpn_api_urls,
             account_management,
@@ -190,7 +190,7 @@ mod tests {
 
         // Only compare the base fields
         assert_eq!(discovery.network_name, fetched.network_name);
-        assert_eq!(discovery.networking_specifics, fetched.networking_specifics);
+        assert_eq!(discovery.networking, fetched.networking);
     }
 
     #[test]
@@ -249,7 +249,7 @@ mod tests {
                     }
                 }
             ],
-            "networking_specifics": {
+            "networking": {
                 "nym_api_urls": [
                     {
                         "url": "https://foo.ch/api/",
@@ -276,7 +276,7 @@ mod tests {
 
         let expected_network = Discovery {
             network_name: "qa".to_owned(),
-            networking_specifics: expected_network_specifics,
+            networking: expected_network_specifics,
             nym_api_urls: vec![ApiUrl {
                 url: "https://foo.ch/api/".parse().unwrap(),
                 fronts: Some(vec!["foobar.ch".to_owned(), "qux.baz".to_owned()]),
