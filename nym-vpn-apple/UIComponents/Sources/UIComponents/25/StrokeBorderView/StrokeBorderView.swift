@@ -27,11 +27,13 @@ public struct StrokeBorderView<Content: View>: View {
     }
 
     public var body: some View {
+        let fillColor = isHovered ? backgrounsColorHover : backgroundColor
+
         VStack(alignment: .leading) {
             content
         }
         .frame(height: 56)
-        .background(isHovered ? backgrounsColorHover : backgroundColor)
+        .background(fillColor)
         .cornerRadius(8)
         .overlay {
             RoundedRectangle(cornerRadius: 8)
@@ -43,12 +45,8 @@ public struct StrokeBorderView<Content: View>: View {
                 Text(strokeTitle)
                     .foregroundStyle(NymColor.primary)
                     .textStyle(.Body.Small.regular)
-                    .padding(.horizontal, 4)
-                    .background(
-                        Rectangle()
-                            .fill(backgroundColor)
-                            .frame(height: 2)
-                    )
+                    .padding(.horizontal, 6)
+                    .background(fillColor)
                     .offset(x: 8, y: -7)
                 Spacer()
             }

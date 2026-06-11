@@ -22,7 +22,8 @@ public final class ProcessingAccountViewModel {
     var currentStep: Int = 1
     var didFinishAnimatingText = false
     var didShowFinalMessage = false
-    private var didBecomeActive = false
+    var errorMessage: String?
+    private var didSettleAccount = false
 
     public init(credentialsManager: CredentialsManager, flow: ProcessingFlow) {
         self.credentialsManager = credentialsManager
@@ -31,11 +32,20 @@ public final class ProcessingAccountViewModel {
 
     func start() {
         processingTask?.cancel()
+        errorMessage = nil
         processingTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            await credentialsManager.updateAccountSummary(force: true, untilActive: true)
-            guard !Task.isCancelled else { return }
-            didBecomeActive = true
+            do {
+                try await credentialsManager.prepareAccountForConnection()
+                guard !Task.isCancelled else { return }
+                didSettleAccount = true
+                advanceIfReady()
+            } catch is CancellationError {
+                return
+            } catch {
+                guard !Task.isCancelled else { return }
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
@@ -44,6 +54,11 @@ public final class ProcessingAccountViewModel {
         processingTask = nil
         finalMessageTask?.cancel()
         finalMessageTask = nil
+    }
+
+    func retry() {
+        didSettleAccount = false
+        start()
     }
 
     func animationDidAdvance() {
@@ -56,7 +71,7 @@ public final class ProcessingAccountViewModel {
     }
 
     private func advanceIfReady() {
-        guard didBecomeActive, didFinishAnimatingText, !didShowFinalMessage else { return }
+        guard didSettleAccount, didFinishAnimatingText, !didShowFinalMessage else { return }
         didShowFinalMessage = true
         finalMessageTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(ProcessingAccountViewModel.finalMessageDuration))

@@ -36,7 +36,9 @@ private extension ProcessingAccountView {
             WaveDotsView()
             Spacer(minLength: 0)
             Group {
-                if viewModel.didShowFinalMessage {
+                if let errorMessage = viewModel.errorMessage {
+                    errorState(message: errorMessage)
+                } else if viewModel.didShowFinalMessage {
                     welcomeMessage
                 } else {
                     switchingTitles
@@ -103,6 +105,17 @@ private extension ProcessingAccountView {
             .textStyle(.Headline.Medium.regular)
             .foregroundStyle(NymColor.primary)
             .multilineTextAlignment(.center)
+    }
+
+    func errorState(message: String) -> some View {
+        VStack(alignment: .center, spacing: 16) {
+            Text(message)
+                .textStyle(.Body.Medium.regular)
+                .multilineTextAlignment(.center)
+            NymButton("retry".localizedString, style: .primary) {
+                viewModel.retry()
+            }
+        }
     }
 
     static func pairs(for flow: ProcessingFlow) -> [(String, String)] {

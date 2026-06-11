@@ -286,6 +286,21 @@ import PathManager
         }.value
     }
 
+    public func prepareAccountForConnection() async throws {
+        await updateAccountSummary(force: true, untilActive: true)
+        guard isAccountActive() else {
+            throw CredentialsManagerError.generalError("noActivePlan".localizedString)
+        }
+
+#if os(iOS)
+        try await prefetchZkNyms()
+#elseif os(macOS)
+        try await grpcManager.refreshAccountState(force: true)
+        await updateAccountSummary(force: true)
+#endif
+
+    }
+
 #if SANTA
     /// QA only (Santa's menu): swap in a fabricated summary and pin it so polling
     /// and forced refreshes don't clobber it. Gated to TestFlight/CI builds; a
@@ -395,6 +410,24 @@ import PathManager
         appSettings.expirySoonDismissedAt = 0
     }
 }
+
+#if os(iOS)
+private extension CredentialsManager {
+    func prefetchZkNyms() async throws {
+        let envOpt = configurationManager.networkEnv
+        let outcome = try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            let env = try envOpt ?? .newWithMainnetFallback()
+            return try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: env
+            ).prefetchZkNyms()
+        }.value
+
+        logger.info("Prefetched zk-nyms outcome=\(String(describing: outcome))")
+    }
+}
+#endif
 
 private extension CredentialsManager {
     static func sanitizedAccountSummaryErrorLog(_ error: Error) -> String {

@@ -10,6 +10,8 @@ public struct ProcessingAccountView: View {
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @Binding private var path: NavigationPath
     @State private var didFinishAnimatingText = false
+    @State private var didSettleAccount = false
+    @State private var errorMessage: String?
     @State private var currentStep = 1
 
     public var body: some View {
@@ -23,7 +25,7 @@ public struct ProcessingAccountView: View {
             dotsAnimationView
             Spacer()
                 .frame(height: 16)
-            animatingTextView
+            statusTextView
             Spacer()
         }
         .frame(maxWidth: MagicNumbers.moreMaxWidth)
@@ -34,10 +36,13 @@ public struct ProcessingAccountView: View {
                 .ignoresSafeArea()
         }
         .onChange(of: didFinishAnimatingText) { _, _ in
-            navigateHomeOrTechnicalOptIns()
+            advanceIfReady()
+        }
+        .onChange(of: didSettleAccount) { _, _ in
+            advanceIfReady()
         }
         .task {
-            await credentialsManager.updateAccountSummary(force: true, untilActive: true)
+            await prepareAccount()
         }
     }
 
@@ -55,24 +60,48 @@ private extension ProcessingAccountView {
         WaveDotsView()
     }
 
-    var animatingTextView: some View {
-        SwitchingTitlesView(
-            pairs: [
-                ("processingAccount.title2".localizedString, "processingAccount.subtitle2".localizedString),
-                ("processingAccount.title3".localizedString, "processingAccount.subtitle3".localizedString),
-                ("processingAccount.title4".localizedString, "processingAccount.subtitle4".localizedString),
-                ("processingAccount.title5".localizedString, "processingAccount.subtitle5".localizedString)
-            ],
-            didFinishAnimating: $didFinishAnimatingText,
-            timerDidTick: {
-                currentStep += 1
+    @ViewBuilder
+    var statusTextView: some View {
+        if let errorMessage {
+            VStack(alignment: .center, spacing: 16) {
+                Text(errorMessage)
+                    .textStyle(.Body.Medium.regular)
+                    .multilineTextAlignment(.center)
+                NymButton("retry".localizedString, style: .primary) {
+                    Task { await prepareAccount() }
+                }
             }
-        )
+        } else {
+            SwitchingTitlesView(
+                pairs: [
+                    ("processingAccount.title2".localizedString, "processingAccount.subtitle2".localizedString),
+                    ("processingAccount.title3".localizedString, "processingAccount.subtitle3".localizedString),
+                    ("processingAccount.title4".localizedString, "processingAccount.subtitle4".localizedString),
+                    ("processingAccount.title5".localizedString, "processingAccount.subtitle5".localizedString)
+                ],
+                didFinishAnimating: $didFinishAnimatingText,
+                timerDidTick: {
+                    currentStep += 1
+                }
+            )
+        }
     }
 }
 
 private extension ProcessingAccountView {
-    func navigateHomeOrTechnicalOptIns() {
+    func prepareAccount() async {
+        didSettleAccount = false
+        errorMessage = nil
+        do {
+            try await credentialsManager.prepareAccountForConnection()
+            didSettleAccount = true
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func advanceIfReady() {
+        guard didFinishAnimatingText, didSettleAccount else { return }
         if appSettings.welcomeScreenDidDisplay {
             path = .init()
         } else {
