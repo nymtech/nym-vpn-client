@@ -21,6 +21,7 @@ import GRPCManager
     public let snackbarManager: SnackbarManager
     public let connectionStatus: ConnectionStatusViewModel
     public let oneClick: OneClickViewModel
+    private let connectionManager: ConnectionManager
 
     public var path = NavigationPath()
 
@@ -56,6 +57,7 @@ import GRPCManager
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.snackbarManager = snackbarManager
+        self.connectionManager = connectionManager
         self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager)
         self.oneClick = OneClickViewModel(
             appSettings: appSettings,
@@ -83,6 +85,7 @@ import GRPCManager
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.snackbarManager = snackbarManager
+        self.connectionManager = connectionManager
         self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager)
         self.oneClick = OneClickViewModel(
             appSettings: appSettings,
@@ -254,7 +257,10 @@ private extension AppFeatureViewModel {
     func startProcessingTransition() {
         let viewModel = ProcessingAccountViewModel(
             credentialsManager: credentialsManager,
-            flow: pendingProcessingFlow
+            flow: pendingProcessingFlow,
+            canPrefetchZkNyms: { [weak self] in
+                self?.connectionManager.canPrefetchZkNymsFromApp ?? false
+            }
         )
         viewModel.onFinished = { [weak self] in
             self?.processingDidFinish()
@@ -288,4 +294,5 @@ private extension AppFeatureViewModel {
             onRequestPlanPurchase?()
         }
     }
+
 }

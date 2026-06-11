@@ -286,13 +286,16 @@ import PathManager
         }.value
     }
 
-    public func prepareAccountForConnection() async throws {
+    public func prepareAccountForConnection(canPrefetchZkNyms: Bool = true) async throws {
         await updateAccountSummary(force: true, untilActive: true)
         guard isAccountActive() else {
             throw CredentialsManagerError.generalError("noActivePlan".localizedString)
         }
 
 #if os(iOS)
+        guard canPrefetchZkNyms else {
+            throw CredentialsManagerError.generalError("disconnect".localizedString)
+        }
         try await prefetchZkNyms()
 #elseif os(macOS)
         try await grpcManager.refreshAccountState(force: true)

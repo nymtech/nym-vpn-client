@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import ConnectionManager
 import CredentialsManager
 import Routes
 import Theme
@@ -7,6 +8,7 @@ import UIComponents
 
 public struct ProcessingAccountView: View {
     @EnvironmentObject private var appSettings: AppSettings
+    @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @Binding private var path: NavigationPath
     @State private var didFinishAnimatingText = false
@@ -68,6 +70,7 @@ private extension ProcessingAccountView {
                     .textStyle(.Body.Medium.regular)
                     .multilineTextAlignment(.center)
                 NymButton("retry".localizedString, style: .primary) {
+                    resetProcessingState()
                     Task { await prepareAccount() }
                 }
             }
@@ -91,12 +94,13 @@ private extension ProcessingAccountView {
 private extension ProcessingAccountView {
     func prepareAccount() async {
         didSettleAccount = false
-        errorMessage = nil
         do {
-            try await credentialsManager.prepareAccountForConnection()
+            try await credentialsManager.prepareAccountForConnection(
+                canPrefetchZkNyms: connectionManager.canPrefetchZkNymsFromApp
+            )
             didSettleAccount = true
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = "generalNymError.somethingWentWrong".localizedString
         }
     }
 
@@ -108,4 +112,12 @@ private extension ProcessingAccountView {
             path = .init([HomeLink.technicalOptIns])
         }
     }
+
+    func resetProcessingState() {
+        didFinishAnimatingText = false
+        didSettleAccount = false
+        errorMessage = nil
+        currentStep = 1
+    }
+
 }

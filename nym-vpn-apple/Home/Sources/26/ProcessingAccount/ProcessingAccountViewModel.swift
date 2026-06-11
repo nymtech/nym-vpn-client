@@ -13,7 +13,8 @@ public enum ProcessingFlow: Sendable {
 public final class ProcessingAccountViewModel {
     private static let finalMessageDuration = 2
 
-    private let credentialsManager: CredentialsManager
+    private let prepareAccountForConnection: @MainActor (Bool) async throws -> Void
+    private let canPrefetchZkNyms: @MainActor () -> Bool
     @ObservationIgnored private var processingTask: Task<Void, Never>?
     @ObservationIgnored private var finalMessageTask: Task<Void, Never>?
     @ObservationIgnored public var onFinished: (() -> Void)?
@@ -25,18 +26,35 @@ public final class ProcessingAccountViewModel {
     var errorMessage: String?
     private var didSettleAccount = false
 
-    public init(credentialsManager: CredentialsManager, flow: ProcessingFlow) {
-        self.credentialsManager = credentialsManager
+    public init(
+        credentialsManager: CredentialsManager,
+        flow: ProcessingFlow,
+        canPrefetchZkNyms: @escaping @MainActor () -> Bool = { true }
+    ) {
+        self.prepareAccountForConnection = {
+            try await credentialsManager.prepareAccountForConnection(canPrefetchZkNyms: $0)
+        }
         self.flow = flow
+        self.canPrefetchZkNyms = canPrefetchZkNyms
+    }
+
+    init(
+        flow: ProcessingFlow,
+        canPrefetchZkNyms: @escaping @MainActor () -> Bool = { true },
+        prepareAccountForConnection: @escaping @MainActor (Bool) async throws -> Void
+    ) {
+        self.flow = flow
+        self.canPrefetchZkNyms = canPrefetchZkNyms
+        self.prepareAccountForConnection = prepareAccountForConnection
     }
 
     func start() {
         processingTask?.cancel()
-        errorMessage = nil
+        resetProcessingState()
         processingTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
-                try await credentialsManager.prepareAccountForConnection()
+                try await prepareAccountForConnection(canPrefetchZkNyms())
                 guard !Task.isCancelled else { return }
                 didSettleAccount = true
                 advanceIfReady()
@@ -44,7 +62,7 @@ public final class ProcessingAccountViewModel {
                 return
             } catch {
                 guard !Task.isCancelled else { return }
-                errorMessage = error.localizedDescription
+                errorMessage = "generalNymError.somethingWentWrong".localizedString
             }
         }
     }
@@ -57,7 +75,6 @@ public final class ProcessingAccountViewModel {
     }
 
     func retry() {
-        didSettleAccount = false
         start()
     }
 
@@ -78,5 +95,15 @@ public final class ProcessingAccountViewModel {
             guard !Task.isCancelled else { return }
             self?.onFinished?()
         }
+    }
+
+    private func resetProcessingState() {
+        finalMessageTask?.cancel()
+        finalMessageTask = nil
+        didSettleAccount = false
+        didFinishAnimatingText = false
+        didShowFinalMessage = false
+        currentStep = 1
+        errorMessage = nil
     }
 }

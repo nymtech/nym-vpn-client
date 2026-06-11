@@ -71,6 +71,19 @@ import GRPCManager
     }
 #endif
     @Published public var currentTunnelStatus: TunnelStatus = .disconnected
+    public var canPrefetchZkNymsFromApp: Bool {
+#if os(iOS)
+        guard let activeTunnel else { return true }
+        switch activeTunnel.status {
+        case .disconnected, .offline, .unknown:
+            return true
+        case .connected, .connecting, .disconnecting, .reasserting, .restarting, .offlineReconnect, .error:
+            return false
+        }
+#elseif os(macOS)
+        return true
+#endif
+    }
     @Published public var entryGateway: EntryGateway
     @Published public var exitRouter: ExitRouter
 
