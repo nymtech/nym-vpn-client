@@ -11,7 +11,7 @@ use std::{
 pub struct BlacklistedGateways(Arc<RwLock<HashMap<NodeIdentity, Instant>>>);
 
 impl BlacklistedGateways {
-    const TTL: Duration = Duration::from_hours(24);
+    const TTL: Duration = Duration::from_mins(20);
 
     pub fn new() -> Self {
         Default::default()
