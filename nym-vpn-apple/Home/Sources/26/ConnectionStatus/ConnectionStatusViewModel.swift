@@ -310,6 +310,12 @@ extension ConnectionStatusViewModel {
         }
         return error.localizedDescription
     }
+
+    public static func isNeedsRelaxedIndependenceCriteria(_ error: Error?) -> Bool {
+        guard let error else { return false }
+        let reason = (error as? ErrorReason) ?? ErrorReason(nsError: error as NSError)
+        return reason == .needsRelaxedIndependenceCriteria
+    }
 }
 
 enum ConnectionErrorCopy {

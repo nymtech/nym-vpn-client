@@ -6,7 +6,6 @@ import Tunnels
 import TunnelStatus
 
 extension PacketTunnelProvider {
-    // swiftlint:disable:next function_body_length cyclomatic_complexity
     override func handleAppMessage(_ messageData: Data) async -> Data? {
         guard let message = try? TunnelProviderMessage(messageData: messageData)
         else {
@@ -56,6 +55,27 @@ extension PacketTunnelProvider {
                 try await self.commandSender?.setMixnetTrafficConfig(
                     mixnetTrafficConfig: config.mixnetTrafficConfig()
                 )
+            }
+            return nil
+        case let .setGatewayIndependence(isEnabled):
+            await runCommand {
+                try await self.commandSender?.setEnableGatewayIndependence(enableGatewayIndependence: isEnabled)
+            }
+            if !isEnabled {
+                // handle_set_enable_gateway_independence in vpn service
+                // calls self.update_tunnel_settings_with_throttle();
+                // Throttle == 1 sec
+                try? await Task.sleep(for: .seconds(1.2))
+
+                // Suspend path: pre-flight is waiting → resume it (startTunnel
+                // then proceeds to connectTunnel).
+                let resumedPreflight = await tunnelActor.resumeRelaxConsent()
+                if !resumedPreflight {
+                    await tunnelActor.clearError()
+                    await runCommand {
+                        _ = try await self.commandSender?.connectTunnel()
+                    }
+                }
             }
             return nil
         }

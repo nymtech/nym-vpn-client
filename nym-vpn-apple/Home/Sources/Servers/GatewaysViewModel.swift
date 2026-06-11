@@ -117,6 +117,18 @@ extension GatewaysViewModel {
 
 // MARK: - Gateways -
 private extension GatewaysViewModel {
+    /// Specific gateway chosen for the *other* hop, excluded from this list so the
+    /// same node can't be picked for both entry and exit. Nil unless the other hop
+    /// is pinned to a concrete gateway (country/region/random impose no exclusion).
+    var excludedGatewayId: String? {
+        switch type {
+        case .entry:
+            connectionManager.exitRouter.gatewayId
+        case .exit:
+            connectionManager.entryGateway.gatewayId
+        }
+    }
+
     func updateGateways() {
         Task { [weak self] in
             guard let self else { return }
@@ -137,6 +149,9 @@ private extension GatewaysViewModel {
                     gateways = gatewayManager.vpn
                 }
                 countries = gatewayManager.vpnCountries
+            }
+            if let excludedGatewayId {
+                gateways = gateways.filter { $0.id != excludedGatewayId }
             }
             shouldScroll = true
         }

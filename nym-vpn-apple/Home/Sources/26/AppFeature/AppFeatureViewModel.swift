@@ -215,6 +215,12 @@ private extension AppFeatureViewModel {
     }
 
     func presentConnectionFailedAlert(message: String?) {
+        let lastError = connectionStatus.connectionManager.lastError
+        guard !ConnectionStatusViewModel.isNeedsRelaxedIndependenceCriteria(lastError)
+        else {
+            oneClick.requestIndependenceConsent()
+            return
+        }
         snackbarManager.enqueue(
             SnackbarItem(
                 style: .critical,

@@ -62,6 +62,10 @@ extension GRPCManager {
         try await rpcClient?.setGatewaySelectionAlgorithm(gatewaySelectionAlgorithm: algorithm.sdkValue)
     }
 
+    public func setGatewayIndependence(_ isEnabled: Bool) async throws {
+        try await rpcClient?.setEnableGatewayIndependence(enableGatewayIndependence: isEnabled)
+    }
+
     public func setSplitTunnelConfig(_ config: SplitTunnelConfig) async throws {
         let oldConfig = await self.config()?.splitTunnelConfig ?? SplitTunnelConfig()
         if oldConfig.isEnabled != config.isEnabled {
