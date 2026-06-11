@@ -272,7 +272,7 @@
     "choose-plan": "Choose plan",
     "syncing": "Syncing…",
     "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
+    "bandwidth-exceeded": "Daily allowance reached",
     "max-device-reached": "Max devices reached",
     "status-inactive": "Account is inactive",
     "requesting-zknyms": "Requesting ZkNyms"
