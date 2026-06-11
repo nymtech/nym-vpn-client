@@ -42,7 +42,9 @@ pub(crate) use syncing_state::SyncingNetworkState;
 pub(crate) use syncing_state::SyncMode;
 
 /// We're in the process of attempting to acquire a zk-nym
-pub(crate) use syncing_state::requesting_zknym_state::RequestingZkNymsState;
+pub(crate) use syncing_state::requesting_zknym_state::{
+    RequestingZkNymsState, ZkNymError, ZkNymFetchResult,
+};
 
 /// Account is operating independently of VPN API
 pub(crate) use decentralised_state::DecentralisedState;

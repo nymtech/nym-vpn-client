@@ -6,6 +6,7 @@ use std::{path::PathBuf, sync::Arc};
 use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
+use nym_vpn_account_controller::PrefetchZkNymOutcome;
 use nym_vpn_account_controller::{CreateDeeplinkParams, Deeplink};
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -25,6 +26,30 @@ use nym_vpn_store::{
 };
 
 use crate::{NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic};
+
+/// Outcome returned by a one-shot zk-nym prefetch.
+///
+/// Exposed via UniFFI so Swift callers can distinguish the three meaningful
+/// cases without parsing strings.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum VpnPrefetchZkNymOutcome {
+    /// Local storage already had enough tickets; no API call was made.
+    SufficientBandwidth,
+    /// New ticketbooks were successfully fetched and stored.
+    FetchedTickets,
+    /// Upgrade mode is active; tickets are not issued in this mode.
+    UpgradeMode,
+}
+
+impl From<PrefetchZkNymOutcome> for VpnPrefetchZkNymOutcome {
+    fn from(value: PrefetchZkNymOutcome) -> Self {
+        match value {
+            PrefetchZkNymOutcome::SufficientBandwidth => Self::SufficientBandwidth,
+            PrefetchZkNymOutcome::FetchedTickets => Self::FetchedTickets,
+            PrefetchZkNymOutcome::UpgradeMode => Self::UpgradeMode,
+        }
+    }
+}
 
 /// Raw API that directly accesses storage without going through the account controller.
 /// This API places the responsibility of ensuring the account controller is not running on
@@ -353,6 +378,58 @@ impl NymVpnAccountStorage {
             .await?
             .account_token;
         Ok(RegisterAccountResponse { account_token })
+    }
+
+    /// Prefetch zk-nyms into the local credential store without a running
+    /// account controller, so the next connect can skip the zk-nym fetch
+    /// during `AwaitingAccountReadiness`.
+    ///
+    /// Returns [`VpnPrefetchZkNymOutcome`] so callers can distinguish whether
+    /// tickets were already sufficient, newly fetched, or unavailable (upgrade mode).
+    ///
+    /// Caller invariant: must not run while a controller owns the same data
+    /// dir (the network extension at connect, or an in-process controller).
+    pub async fn prefetch_zk_nyms(&self) -> Result<VpnPrefetchZkNymOutcome, VpnError> {
+        let account = self
+            .storage
+            .load_account()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
+        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+
+        let device = self.load_device().await?;
+        let vpn_api_client = self.create_vpn_api_client().await?;
+
+        // Decide fair-usage from the latest cached summary.
+        // A missing summary (first login, no cached value) defaults to true —
+        // the API rejects with a depleted code if the account has actually exceeded usage.
+        // A storage read *error* is explicitly preserved and propagated rather than
+        // silently treated as "fair usage left".
+        let fair_usage_left = match self.storage.load_summary().await {
+            Ok(Some(summary)) => summary.fair_usage_left(),
+            Ok(None) => true,
+            Err(err) => {
+                return Err(VpnError::Storage {
+                    details: err.to_string(),
+                });
+            }
+        };
+
+        nym_vpn_account_controller::prefetch_zk_nyms(
+            self.storage_path.clone(),
+            vpn_api_client,
+            Arc::new(account),
+            device,
+            fair_usage_left,
+        )
+        .await
+        .map(VpnPrefetchZkNymOutcome::from)
+        .map_err(|err| VpnError::ZkNymAcquisitionFailure {
+            details: err.to_string(),
+        })
     }
 
     /// Get the device identity

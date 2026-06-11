@@ -49,6 +49,9 @@ pub enum Error {
 
     #[error("failed to parse ticket type: {0}")]
     ParseTicketType(String),
+
+    #[error("failed to prefetch zk-nyms: {0}")]
+    PrefetchZkNym(String),
 }
 
 impl Error {

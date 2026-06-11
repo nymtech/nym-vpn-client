@@ -14,6 +14,7 @@ mod deeplink;
 mod error;
 mod event_sender;
 mod nyxd_client;
+mod prefetch;
 mod shared_state;
 mod state_machine;
 mod state_receiver;
@@ -29,6 +30,7 @@ pub use deeplink::{CreateDeeplinkParams, Deeplink, DeeplinkError, DeeplinkMnemon
 pub use error::Error;
 pub use event_sender::AccountControllerEventSender;
 pub use nyxd_client::NyxdClient;
+pub use prefetch::{PrefetchZkNymOutcome, prefetch_zk_nyms};
 pub use state_receiver::AccountStateReceiver;
 pub use storage::remove_files_for_account;
 pub use ticketbooks::AvailableTicketbooks;
