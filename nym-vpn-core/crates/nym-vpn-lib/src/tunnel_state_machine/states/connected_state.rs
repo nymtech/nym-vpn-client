@@ -127,8 +127,21 @@ impl ConnectedState {
             .await;
         }
 
-        #[cfg(any(target_os = "android", target_os = "ios"))]
+        #[cfg(target_os = "android")]
         let _ = shared_state; // Avoid unused variable warning
+
+        // Statistics reports must be sent through a socket bound to the tunnel interface,
+        // since the packet tunnel provider's traffic is otherwise excluded from the tunnel.
+        #[cfg(target_os = "ios")]
+        shared_state
+            .statistics_event_sender
+            .report_tunnel_interface(Some(
+                connected_state
+                    .tunnel_interface
+                    .exit_tunnel_metadata()
+                    .interface
+                    .clone(),
+            ));
 
         (
             Box::new(connected_state),
@@ -230,6 +243,10 @@ impl ConnectedState {
         after_disconnect: PrivateActionAfterDisconnect,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
+        #[cfg(target_os = "ios")]
+        shared_state
+            .statistics_event_sender
+            .report_tunnel_interface(None);
         #[cfg(not(target_os = "android"))]
         {
             Self::reset_dns(shared_state).await;
@@ -258,6 +275,10 @@ impl ConnectedState {
             tracing::info!("Tunnel closed. Reconnecting.");
         }
 
+        #[cfg(target_os = "ios")]
+        shared_state
+            .statistics_event_sender
+            .report_tunnel_interface(None);
         #[cfg(not(target_os = "android"))]
         {
             Self::reset_dns(shared_state).await;

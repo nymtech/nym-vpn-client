@@ -50,6 +50,14 @@ impl StatisticsSender {
         self.report(StatisticsEvent::usage_event_from_state(state.clone()));
         self.report(StatisticsEvent::sending_event_from_state(state));
     }
+
+    /// Report the name of the tunnel interface that reports must be bound to when sending,
+    /// or `None` once that interface is gone.
+    pub fn report_tunnel_interface(&self, interface: Option<String>) {
+        self.report(StatisticsEvent::ReportSending(
+            ReportSendingEvent::TunnelInterface(interface),
+        ));
+    }
 }
 
 /// Statistics events
@@ -195,7 +203,7 @@ pub enum UsageEvent {
 }
 
 // Not a stat event per se, but used to instruct the report event to do stuff
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum ReportSendingEvent {
     // Tunnel is connected, we're free to send
     Connected,
@@ -205,4 +213,8 @@ pub enum ReportSendingEvent {
     Standby,
 
     AllowDirectSending(bool),
+
+    // Name of the tunnel interface to bind to when sending, if any. Used on iOS where the
+    // network extension's traffic is excluded from the tunnel unless explicitly bound to it.
+    TunnelInterface(Option<String>),
 }
