@@ -482,7 +482,8 @@ async fn bandwidth_exceeded_firewall_down_triggers_sync_test() -> anyhow::Result
         .set_vpn_api_firewall_down()
         .await?;
 
-    // BandwidthExceeded + firewall down must trigger an immediate mandatory sync
+    // BandwidthExceeded + firewall down must trigger an immediate optimistic sync
+    // (SyncingLocalState escalates to mandatory if the cache is stale after reset)
     test_bench
         .assert_state(AccountControllerState::Syncing)
         .await;

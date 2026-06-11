@@ -128,7 +128,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                         if shared_state.firewall_active {
                             shared_state.firewall_active = false;
                             if matches!(self.reason, AccountControllerErrorStateReason::BandwidthExceeded { .. }) {
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
                             }
                         }
                     },
