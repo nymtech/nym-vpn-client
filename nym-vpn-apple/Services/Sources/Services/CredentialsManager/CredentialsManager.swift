@@ -287,11 +287,18 @@ import PathManager
         }.value
     }
 
-    public func prepareAccountForConnection(canPrefetchZkNyms: Bool = true) async throws {
-        await updateAccountSummary(force: true, untilActive: true)
+    public func prepareAccountForConnection(
+        canPrefetchZkNyms: Bool = true,
+        requireActiveSubscription: Bool = true
+    ) async throws {
+        await updateAccountSummary(force: true, untilActive: requireActiveSubscription)
         guard isAccountActive() else {
-            logger.error("prepareAccountForConnection failed: account inactive after summary refresh")
-            throw CredentialsManagerError.generalError("noActivePlan".localizedString)
+            if requireActiveSubscription {
+                logger.error("prepareAccountForConnection failed: account inactive after summary refresh")
+                throw CredentialsManagerError.generalError("noActivePlan".localizedString)
+            }
+            logger.info("prepareAccountForConnection: account inactive; skipping zk-nym prefetch")
+            return
         }
 
 #if os(iOS)
@@ -362,7 +369,7 @@ import PathManager
         } catch {
             accountSummaryLastFetchFailed = true
             logger.error(
-                "fetchAccountSummary (iOS) failed operation=getAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
+                "fetchAccountSummary (iOS) failed operation=refreshAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
             )
             return
         }
@@ -370,7 +377,7 @@ import PathManager
         guard let summary
         else {
             // nil-without-throw: same UX as a failure, surface it as one.
-            logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
+            logger.debug("fetchAccountSummary (iOS): refreshAccountSummary returned nil without throwing")
             accountSummaryLastFetchFailed = true
             return
         }

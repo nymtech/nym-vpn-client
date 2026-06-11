@@ -99,7 +99,8 @@ private extension ProcessingAccountView {
         didSettleAccount = false
         do {
             try await credentialsManager.prepareAccountForConnection(
-                canPrefetchZkNyms: connectionManager.canPrefetchZkNymsFromApp
+                canPrefetchZkNyms: connectionManager.canPrefetchZkNymsFromApp,
+                requireActiveSubscription: false
             )
             didSettleAccount = true
         } catch {

@@ -337,16 +337,27 @@ impl NymVpnAccountStorage {
         }
     }
 
-    /// Get a summary of account usage
+    /// Get a summary of account usage, syncing from the VPN API first.
+    ///
+    /// On iOS the account controller is not running in-process, so a cache-only read
+    /// would stay empty after login until the tunnel starts. This path fetches
+    /// `/account/{id}/device/{device}/summary`, persists the result, and returns it.
+    /// On transient network failure it falls back to the last cached summary.
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
-        let maybe_account_summary =
-            self.storage
-                .load_summary()
-                .await
-                .map_err(|err| VpnError::Storage {
-                    details: err.to_string(),
-                })?;
-        Ok(maybe_account_summary)
+        match self.sync_account_summary_from_network().await {
+            Ok(summary) => Ok(Some(summary)),
+            Err(err @ (VpnError::NoAccountStored | VpnError::NoDeviceIdentity)) => Err(err),
+            Err(err) => {
+                tracing::warn!("Account summary network sync failed, trying cache: {err:?}");
+                self.storage
+                    .load_summary()
+                    .await
+                    .map_err(|storage_err| VpnError::Storage {
+                        details: storage_err.to_string(),
+                    })
+                    .and_then(|cached| cached.ok_or(err))
+            }
+        }
     }
 
     /// Get the type of account the user is logged in with
@@ -449,6 +460,55 @@ impl NymVpnAccountStorage {
 }
 
 impl NymVpnAccountStorage {
+    async fn sync_account_summary_from_network(&self) -> Result<VpnAccountSummary, VpnError> {
+        let account = self
+            .storage
+            .load_account()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
+        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let device = self.load_device().await?;
+        let vpn_api_client = self.create_vpn_api_client().await?;
+
+        tracing::info!("Fetching account summary from VPN API for account {}", account.id());
+
+        let remote_time = vpn_api_client
+            .get_remote_time()
+            .await
+            .map_err(|err| VpnError::InternalError {
+                details: format!("Failed to get remote time: {err}"),
+            })?;
+
+        let api_summary = vpn_api_client
+            .get_account_summary_with_device(&account, &device)
+            .await
+            .map_err(|err| VpnError::InternalError {
+                details: format!("Failed to get account summary: {err}"),
+            })?;
+
+        let summary = VpnAccountSummary::from_parts(&api_summary, account.mode(), remote_time)
+            .map_err(|err| VpnError::InternalError {
+                details: format!("Failed to parse account summary: {err}"),
+            })?;
+
+        self.storage
+            .store_summary(summary.clone())
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?;
+
+        tracing::info!(
+            "Account summary synced: subscription_active={}",
+            summary.is_subscription_active()
+        );
+
+        Ok(summary)
+    }
+
     async fn register_account_by_account(
         &self,
         account: &VpnAccount,

@@ -121,4 +121,18 @@ final class HomeTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(50))
         XCTAssertNil(viewModel.errorMessage)
     }
+
+    func testProcessingCompletesWhenAccountInactive() async throws {
+        let viewModel = ProcessingAccountViewModel(
+            flow: .login,
+            prepareAccountForConnection: { _ in }
+        )
+
+        viewModel.start()
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertNil(viewModel.errorMessage)
+
+        viewModel.animationDidFinish()
+        XCTAssertTrue(viewModel.didShowFinalMessage)
+    }
 }

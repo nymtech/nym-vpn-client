@@ -36,7 +36,10 @@ public final class ProcessingAccountViewModel {
         canPrefetchZkNyms: @escaping @MainActor () -> Bool = { true }
     ) {
         self.prepareAccountForConnection = {
-            try await credentialsManager.prepareAccountForConnection(canPrefetchZkNyms: $0)
+            try await credentialsManager.prepareAccountForConnection(
+                canPrefetchZkNyms: $0,
+                requireActiveSubscription: false
+            )
         }
         self.flow = flow
         self.canPrefetchZkNyms = canPrefetchZkNyms
