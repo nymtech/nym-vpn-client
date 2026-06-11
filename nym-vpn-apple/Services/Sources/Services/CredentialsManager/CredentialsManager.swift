@@ -303,7 +303,14 @@ import PathManager
 
 #if os(iOS)
         if canPrefetchZkNyms {
-            try await prefetchZkNyms()
+            do {
+                try await prefetchZkNyms()
+            } catch {
+                logger.error(
+                    "prepareAccountForConnection: zk-nym prefetch failed \(Self.sanitizedAccountSummaryErrorLog(error))"
+                )
+                throw error
+            }
         } else {
             logger.info("prepareAccountForConnection: skipping zk-nym prefetch while tunnel owns the store")
         }

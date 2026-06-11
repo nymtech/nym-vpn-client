@@ -418,20 +418,12 @@ impl NymVpnAccountStorage {
         let device = self.load_device().await?;
         let vpn_api_client = self.create_vpn_api_client().await?;
 
-        // Decide fair-usage from the latest cached summary.
-        // A missing summary (first login, no cached value) defaults to true —
-        // the API rejects with a depleted code if the account has actually exceeded usage.
-        // A storage read *error* is explicitly preserved and propagated rather than
-        // silently treated as "fair usage left".
-        let fair_usage_left = match self.storage.load_summary().await {
-            Ok(Some(summary)) => summary.fair_usage_left(),
-            Ok(None) => true,
-            Err(err) => {
-                return Err(VpnError::Storage {
-                    details: err.to_string(),
-                });
-            }
-        };
+        // Zk-nym endpoints require the device to be registered on the account, not just
+        // locally keyed. Mirror the account controller's SyncingLocalState path.
+        let summary = self
+            .ensure_device_registered(&vpn_api_client, &account, &device)
+            .await?;
+        let fair_usage_left = summary.fair_usage_left();
 
         nym_vpn_account_controller::prefetch_zk_nyms(
             self.storage_path.clone(),
@@ -462,6 +454,15 @@ impl NymVpnAccountStorage {
 
 impl NymVpnAccountStorage {
     async fn sync_account_summary_from_network(&self) -> Result<VpnAccountSummary, VpnError> {
+        let vpn_api_client = self.create_vpn_api_client().await?;
+        self.sync_account_summary_from_network_with_client(&vpn_api_client)
+            .await
+    }
+
+    async fn sync_account_summary_from_network_with_client(
+        &self,
+        vpn_api_client: &VpnApiClient,
+    ) -> Result<VpnAccountSummary, VpnError> {
         let account = self
             .storage
             .load_account()
@@ -472,7 +473,6 @@ impl NymVpnAccountStorage {
             .ok_or(VpnError::NoAccountStored)?;
         let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
         let device = self.load_device().await?;
-        let vpn_api_client = self.create_vpn_api_client().await?;
 
         tracing::info!(
             "Fetching account summary from VPN API for account {}",
@@ -507,9 +507,45 @@ impl NymVpnAccountStorage {
             })?;
 
         tracing::info!(
-            "Account summary synced: subscription_active={}",
-            summary.is_subscription_active()
+            "Account summary synced: subscription_active={}, is_device_active={}",
+            summary.is_subscription_active(),
+            summary.is_device_active
         );
+
+        Ok(summary)
+    }
+
+    async fn ensure_device_registered(
+        &self,
+        vpn_api_client: &VpnApiClient,
+        account: &VpnAccount,
+        device: &Device,
+    ) -> Result<VpnAccountSummary, VpnError> {
+        let mut summary = self
+            .sync_account_summary_from_network_with_client(vpn_api_client)
+            .await?;
+
+        let was_device_active = summary.is_device_active;
+
+        nym_vpn_account_controller::register_device_for_prefetch_if_needed(
+            vpn_api_client,
+            account,
+            device,
+            &mut summary,
+        )
+        .map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })?;
+
+        if !was_device_active {
+            self.storage
+                .store_summary(summary.clone())
+                .await
+                .map_err(|err| VpnError::Storage {
+                    details: err.to_string(),
+                })?;
+            tracing::info!("Device registered for account {}", account.id());
+        }
 
         Ok(summary)
     }

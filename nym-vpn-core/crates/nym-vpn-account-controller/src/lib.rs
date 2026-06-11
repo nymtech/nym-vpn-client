@@ -15,6 +15,7 @@ mod error;
 mod event_sender;
 mod nyxd_client;
 mod prefetch;
+mod prefetch_device;
 mod shared_state;
 mod state_machine;
 mod state_receiver;
@@ -31,6 +32,10 @@ pub use error::Error;
 pub use event_sender::AccountControllerEventSender;
 pub use nyxd_client::NyxdClient;
 pub use prefetch::{PrefetchZkNymOutcome, prefetch_zk_nyms};
+pub use prefetch_device::{
+    DeviceRegistrationReadiness, FAIR_USAGE_DEPLETED, MAX_DEVICES_REACHED,
+    device_registration_readiness, register_device_for_prefetch_if_needed,
+};
 pub use state_receiver::AccountStateReceiver;
 pub use storage::remove_files_for_account;
 pub use ticketbooks::AvailableTicketbooks;

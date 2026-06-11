@@ -4,3 +4,4 @@
 mod commands;
 mod common;
 mod paths;
+mod prefetch_device_registration_order;

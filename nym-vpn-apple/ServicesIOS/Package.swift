@@ -36,6 +36,10 @@ let package = Package(
             name: "KeyboardManager",
             dependencies: [],
             path: "Sources/KeyboardManager"
+        ),
+        .testTarget(
+            name: "ErrorHandlerTests",
+            dependencies: ["ErrorHandler"]
         )
     ]
 )
