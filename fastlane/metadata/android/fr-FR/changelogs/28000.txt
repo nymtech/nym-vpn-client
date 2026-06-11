@@ -1,8 +1,8 @@
-Quoi de neuf
-- Nouveaux contrôles de journalisation : Activer les paramètres de journalisation et de débogage verbeux
-- Ajout de la vérification de l'authentification pour les actions de raccourci
-- Mise à jour du format d'exportation des journaux (dossiers structurés et journaux groupés)
+Nouveautés
+- Nouveaux contrôles de logs : bascules Activer les logs et Debug verbose
+- Ajout d'une vérification d'authentification pour les actions de raccourcis
+- Format d'export des logs mis à jour (dossiers structurés et logs groupés)
 - Amélioration de la gestion des actions de la barre de navigation
 - Réduction des logs superflus
 - Correction de la gestion du démarrage automatique
-- Améliorations et corrections mineures de l'interface utilisateur
+- Améliorations et corrections mineures de l'interface

@@ -12,8 +12,8 @@
 	<string name="disconnect">Bağlantıyı kes</string>
 	<string name="init_client">İstemci başlatılıyor…</string>
 	<string name="establishing_connection">Bağlantı kuruluyor</string>
-    <string name="select_mode">Mod seçin</string>
-    <string name="display_theme">Panel teması</string>
+	<string name="select_mode">Mod seçin</string>
+	<string name="display_theme">Panel teması</string>
 	<string name="light_theme">Açık tema</string>
 	<string name="dark_theme">Koyu tema</string>
 	<string name="automatic">Otomatik</string>
@@ -22,7 +22,7 @@
 	<string name="search_country">Ülke ara</string>
 	<string name="is_selected">Seçildi</string>
 	<string name="fastest">En hızlı</string>
-    <string name="logs">Kayıtlar</string>
+	<string name="logs">Kayıtlar</string>
 	<string name="support">Destek</string>
 	<string name="terms_of_use">Kullanım şartları</string>
 	<string name="privacy_policy">Gizlilik politikası</string>
@@ -31,14 +31,14 @@
 	<string name="check_faq">SSS\'i kontrol edin</string>
 	<string name="join_matrix">Matrix\'te bize katılın</string>
 	<string name="join_discord">Discord\'da bize katılın</string>
-    <string name="unknown">Tanımlanamayan</string>
+	<string name="unknown">Tanımlanamayan</string>
 	<string name="no_scm_found">Kaynak kodu URL\'si bulunamadı</string>
 	<string name="five_hop">5-atlama</string>
 	<string name="mode">Mod</string>
 	<string name="okay">Tamam</string>
 	<string name="two_hop">2-atlama</string>
 	<string name="country_load_failure">Hop ülkeleri yüklenemedi</string>
-    <string name="permission_required">İzin gereklidir</string>
+	<string name="permission_required">İzin gereklidir</string>
 	<string name="permission_message">Cihazınızda uygulamanın doğru çalışmasını sağlamak için lütfen aşağıdaki izinleri kabul edin. Bu izinler, uygulamanın işlevini yerine getirebilmesi için gereklidir.</string>
 	<string name="notification_permission_required">Uygulamanın düzgün çalışması için bildirim izinlerini  etkinleştirin</string>
 	<string name="mode_selection">Mod seçimi</string>
@@ -67,8 +67,8 @@
 	<string name="network_error">Bir ağ bağlantı hatası oluştu. Lütfen ağ bağlantınızı kontrol edin ve tekrar deneyin.</string>
 	<string name="vpn_alerts_channel_id">NymVPN Uyarı Kanalı</string>
 	<string name="vpn_alerts_channel_description">Uygulama ile ilgili uyarı bildirimleri için bir kanal.</string>
-    <string name="connection_failed">Bağlantı başarısız oldu</string>
-    <string name="vpn_permission_missing">VPN izni kabul edilmedi veya başka bir uygulama tarafından kullanılıyor.</string>
+	<string name="connection_failed">Bağlantı başarısız oldu</string>
+	<string name="vpn_permission_missing">VPN izni kabul edilmedi veya başka bir uygulama tarafından kullanılıyor.</string>
 	<string name="action_requires_tunnel_down">İşlem, tünelin kapatılmasını gerektiriyor</string>
 	<string name="device_added_success">Cihaz hesabınıza başarıyla eklendi</string>
 	<string name="invalid_recovery_phrase">Geçersiz kurtarma ifadesi</string>
@@ -80,18 +80,18 @@
 	<string name="mnemonic_example">ör. smoke artefact velvet skull pop palace tortoise damage rough...</string>
 	<string name="dynamic">Dinamik</string>
 	<string name="system_wallpaper">Sistem duvar kağıdı teması</string>
-    <string name="initializing">Başlatılıyor</string>
+	<string name="initializing">Başlatılıyor</string>
 	<string name="stop">Durdur</string>
-    <string name="app_restart_required">Uygulamayı yeniden başlatmak gereklidir</string>
+	<string name="app_restart_required">Uygulamayı yeniden başlatmak gereklidir</string>
 	<string name="max_devices_reached_title">Hesabınız için maksimum cihaz sayısına ulaştınız</string>
 	<string name="credential_modal_description">Bu cihazı eklemek için hesabınızdaki “Cihazlar” sayfasına gidin, mevcut cihazlardan birini kaldırın ve ardından bu cihazda kurtarma ifadenizle giriş yapın.</string>
 	<string name="manage_devices">Cihazlarınızı yönetin</string>
 	<string name="close">Kapat</string>
 	<string name="enter_access_code">Kurtarma ifadenizi girin veya yapıştırın: 24 kelimeyi aralarında boşluk bırakarak yazın.</string>
-    <string name="get_in_touch">İletişime geçin</string>
-    <string name="loading">Yükleniyor</string>
+	<string name="get_in_touch">İletişime geçin</string>
+	<string name="loading">Yükleniyor</string>
 	<string name="offline">İnternet yok</string>
-    <string name="two_hop_explanation">Yüksek hızlı internet erişimi (250+ Mbps) 2 atlamalı yönlendirme ile sağlanır. Bu, sansüre karşı dirençli bir WireGuard sürümü olan AmneziaWG kullanır. Yayın, hızlı web gezintisi ve dosya indirmeleri gibi işlemler için idealdir.</string>
+	<string name="two_hop_explanation">Yüksek hızlı internet erişimi (250+ Mbps) 2 atlamalı yönlendirme ile sağlanır. Bu, sansüre karşı dirençli bir WireGuard sürümü olan AmneziaWG kullanır. Yayın, hızlı web gezintisi ve dosya indirmeleri gibi işlemler için idealdir.</string>
 	<string name="two_hop_title">Hızlı (WireGuard)</string>
 	<string name="disabled_while_connecting">VPN bağlantısı sırasında devre dışı bırakıldı</string>
 	<string name="exit_location">Çıkış lokasyonu</string>
@@ -104,7 +104,7 @@
 	<string name="servers">sunucular</string>
 	<string name="local_logs">Kayıtlar (yerel olarak saklanır)</string>
 	<string name="logging_out">Oturum kapatılıyor…..</string>
-    <string name="app_update_required">Kullandığınız uygulama artık desteklenmiyor.           NymVPN kullanmaya devam edebilmek için en son sürüme güncelleme yapın.    </string>
+	<string name="app_update_required">Kullandığınız uygulama artık desteklenmiyor.           NymVPN kullanmaya devam edebilmek için en son sürüme güncelleme yapın.    </string>
 	<string name="update_required">Güncelleme gerekli!</string>
 	<string name="update">Güncelle</string>
 	<string name="log_out_title">Bu cihazdan çıkış yapılsın mı?</string>
@@ -115,14 +115,14 @@
 	<string name="expand">Genişlet</string>
 	<string name="country_flag">%1$s bayrağı</string>
 	<string name="anonymous">Anonim</string>
-    <string name="back">Geri</string>
+	<string name="back">Geri</string>
 	<string name="rotate">Çevir</string>
 	<string name="refresh">Yenile</string>
 	<string name="go">Git</string>
 	<string name="bars_3">3 çubuk</string>
 	<string name="bars_2">2 çubuk</string>
 	<string name="bars_1">1 çubuk</string>
-    <string name="developer">Geliştirici</string>
+	<string name="developer">Geliştirici</string>
 	<string name="get_help">Yardım al</string>
 	<string name="join_telegram">Telegram\'da bize katılın</string>
 	<!-- Common -->
@@ -134,14 +134,14 @@
 	<string name="score_text_medium">Orta</string>
 	<string name="score_text_low">Düşük</string>
 	<string name="score_text_offline">Çevrim dışı</string>
-    <string name="skip">Atla</string>
+	<string name="skip">Atla</string>
 	<string name="get_started">Başlayın</string>
-    <string name="button_back">Geri</string>
+	<string name="button_back">Geri</string>
 	<!-- Dialogs & info messaged -->
 	<string name="stream_display">Akış ekranı</string>
-    <!-- Status pill -->
+	<!-- Status pill -->
 	<string name="pill_error">Hata</string>
-    <!-- Error State -->
+	<!-- Error State -->
 	<string name="error_same_entry_exit">Aynı giriş ve çıkış sunucusunu kullanarak bağlanamazsınız. Yeniden bağlanmak için ya giriş sunucusunu ya da çıkış sunucusunu değiştirin.</string>
 	<string name="unexpected_error">Beklenmedik bir hata oluştu:</string>
 	<string name="error_invalid_entry_gateway_country">Giriş sunucusu için geçersiz bir ülke seçtiniz. Başka bir ülke seçip yeniden bağlanın.</string>
@@ -152,54 +152,55 @@
 	<string name="error_ipv6_unavailable">Ipv6 Kullanılamıyor</string>
 	<string name="error_device_logged_out">Cihazdan çıkış yapıldı.</string>
 	<string name="error_inactive_account">Hesap durumu \"Aktif\" değil.</string>
+	<string name="error_inactive_account_subtitle">Press on Get Started</string>
 	<string name="error_set_dns">DNS yapılandırması başarısız oldu.</string>
 	<string name="error_set_firewall_policy">Güvenlik duvarı politikası ayarlanamadı.</string>
 	<string name="error_set_routing">Yönlendirme yapılandırılamadı.</string>
 	<string name="error_tun_device">Tünel aygıtı yapılandırılamadı.</string>
 	<string name="error_tunnel_provider">Paket tünel sağlayıcısı yapılandırılamadı.</string>
-    <string name="error_active_plan">Aktif bir planınız yok. Anonim gezinmeye başlamak için Başlayın’a dokunun.</string>
+	<string name="error_active_plan">Aktif bir planınız yok. Anonim gezinmeye başlamak için Başlayın’a dokunun.</string>
 	<string name="error_bandwidth_entry">Giriş sunucusu yanıt vermiyor veya bant genişliği artırma isteğine düzgün yanıt vermiyor.</string>
 	<string name="error_bandwidth_exit">Çıkış sunucusu yanıt vermiyor veya bant genişliği artırma isteğine düzgün yanıt vermiyor.</string>
 	<string name="error_gateway_unavailable_entry">Giriş sunucusuna ulaşılamıyor. Başka bir sunucu deneyin!</string>
 	<string name="error_gateway_unavailable_exit">Çıkış sunucusuna ulaşılamıyor. Başka bir sunucu deneyin!</string>
 	<string name="error_invalid_entry_gateway_identity">Giriş sunucusu çevrim dışı. Başka bir sunucu seçip yeniden bağlanın.</string>
 	<string name="error_invalid_exit_gateway_identity">Çıkış sunucusu çevrim dışı. Başka bir sunucu seçip yeniden bağlanın.</string>
-	<string name="error_expired_subscription_title">Your subscription has expired</string>
-	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
-	<string name="error_expired_subscription_button">Renew Now</string>
-    <!-- Main Screen -->
+	<string name="error_expired_subscription_title">Aboneliğiniz sona erdi</string>
+	<string name="error_expired_subscription_description">Otomatik ödeme yöntemi kabul edilmedi</string>
+	<string name="error_expired_subscription_button">Şimdi Yenile</string>
+	<!-- Main Screen -->
 	<string name="connection_state_resolving_addresses">NymVPN başlatılıyor (1/6)</string>
 	<string name="connection_state_awaiting_readiness">Hesabınız hazırlanıyor (2/6)</string>
 	<string name="connection_state_refreshing_gateways">Sunucu listesi güncelleniyor (3/6)</string>
 	<string name="connection_state_selecting_gateways">En iyi sunucular seçiliyor (4/6)</string>
 	<string name="connection_state_connecting_mixnet_client">Sunucularla anonim bağlantı kaydı yapılıyor (5/6)</string>
 	<string name="connection_state_connecting_tunnel">Sunucu bağlantısı kuruluyor (6/6)</string>
-    <!-- One-click mode -->
-	<string name="one_click_auto_server">Use best server</string>
-    <string name="one_click_mode_fast">Fast</string>
-	<string name="connect_mode_auto">Auto</string>
+	<!-- One-click mode -->
+	<string name="one_click_auto_server">En iyi sunucuyu kullanın</string>
+	<string name="one_click_mode_fast">Fast</string>
+	<string name="connect_mode_auto">Otomatik</string>
 	<string name="connect_mode_mixnet">Mixnet</string>
 	<string name="one_click_nym_exit_node">Exit server</string>
 	<string name="one_click_nym_entry_node">Entry server</string>
 	<!-- Connection status -->
-	<string name="connection_status_not_protected">Not protected</string>
-	<string name="connection_status_fast_mode">Fast mode protection</string>
-	<string name="connection_status_anonymous">Anonymous protection</string>
+	<string name="connection_status_not_protected">Korumasız</string>
+	<string name="connection_status_fast_mode">Hızlı mod koruması</string>
+	<string name="connection_status_anonymous">Mixnet koruması</string>
 	<!-- Hop Screen -->
-	<string name="gateway_best">Best server</string>
-	<string name="gateway_random">Random server</string>
+	<string name="gateway_best">En iyi sunucu</string>
+	<string name="gateway_random">Rastgele sunucu</string>
 	<!-- Auth component -->
 	<string name="auth_welcome_title">Welcome!</string>
 	<string name="auth_welcome_description">To the world’s most private VPN</string>
 	<string name="auth_welcome_login_button">Login to my account</string>
 	<string name="auth_sign_up_title">Sign Up</string>
 	<string name="auth_sign_up_account_button">Anonymous account</string>
-	<string name="auth_sign_up_social_button">Sign up with socials *</string>
-	<string name="auth_sign_up_info">* Signing up with an existing social account \ndecreases your anonymity.</string>
+	<string name="auth_sign_up_social_button">Sosyal medya hesabı ile kaydolun *</string>
+	<string name="auth_sign_up_info">* Mevcut bir sosyal medya hesabıyla kayıt olmak anonimlik düzeyinizi \nazaltır</string>
 	<string name="auth_log_in_title">Giriş yap</string>
-	<string name="auth_log_in_passphrase_button">Log in with 24 words</string>
-	<string name="auth_log_in_social_button">Log in using socials *</string>
-	<string name="auth_log_in_info">* You need to connect socials to an existing account \nfirst before you can use them for login. </string>
+	<string name="auth_log_in_passphrase_button">24 kelime ile giriş yapın</string>
+	<string name="auth_log_in_social_button">Sosyal medya hesaplarıyla giriş yapın *</string>
+	<string name="auth_log_in_info">* Giriş yapmak için öncelikle sosyal hesapları mevcut bir hesaba bağlamanız gerekir.</string>
 	<string name="auth_passphrase_login_button">Giriş yap</string>
 	<string name="auth_passphrase_input_placeholder">24 kelimelik kurtarma ifadesi</string>
 	<!-- Settings Screen -->
@@ -208,7 +209,7 @@
 	<string name="settings_dns_title">DNS’i Özelleştir</string>
 	<string name="settings_ipv6_title">IPv6 desteği</string>
 	<string name="settings_ipv6_description">IPv6 bağlantılarına izin ver</string>
-    <string name="settings_system_tray_title">Arka planda çalıştır</string>
+	<string name="settings_system_tray_title">Arka planda çalıştır</string>
 	<string name="settings_system_tray_description">Kapatıldığında uygulamayı çalıştırmaya devam et</string>
 	<string name="settings_reset_app_title">Uygulama verilerini sıfırla</string>
 	<string name="settings_system_status_title">Sistem durumu</string>
@@ -220,18 +221,18 @@
 	<string name="settings_language_help_title">Çeviriye yardım et</string>
 	<string name="settings_language_help_description">Uygulamayı kendi dilinizde daha iyi hâle getirin.</string>
 	<string name="settings_event_lan_reconnecting">Yerel Alan Ağı (LAN) ayarlarını uygulamak için yeniden bağlanılıyor…</string>
-    <string name="settings_ad_blocking_title">Reklam engelleme</string>
+	<string name="settings_ad_blocking_title">Reklam engelleme</string>
 	<string name="settings_kill_switch_title">Kill switch</string>
-	<string name="settings_kill_switch_description">Disconnect if the internet drops</string>
+	<string name="settings_kill_switch_description">İnternet bağlantısı kesildiğinde ayırın</string>
 	<string name="settings_bypass_lan_title">LAN bypass</string>
 	<string name="settings_bypass_lan_description">Doğrudan yerel ağ erişimine izin ver</string>
-	<string name="settings_split_tunneling_title">Split tunneling</string>
-	<string name="settings_startup_title">Launch at startup</string>
-	<string name="settings_notifications_title">Notifications</string>
-	<string name="settings_power_managment_title">Power management</string>
-	<string name="settings_shortcuts_title">App shortcuts</string>
-	<string name="settings_logs_title">Logs &amp; data</string>
-	<string name="settings_legal_title">Legal</string>
+	<string name="settings_split_tunneling_title">Bölünmüş tünelleme</string>
+	<string name="settings_startup_title">Başlangıçta başlat</string>
+	<string name="settings_notifications_title">Bildirimler</string>
+	<string name="settings_power_managment_title">Güç yönetimi</string>
+	<string name="settings_shortcuts_title">Uygulama kısayolları</string>
+	<string name="settings_logs_title">Günlükler ve veri</string>
+	<string name="settings_legal_title">Yasal</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Kısayolları kullanabilmek için önce cihazınızın ekran kilidini açmanız gerekiyor.</string>
 	<string name="shortcut_title">İşlemi onaylayın</string>
@@ -273,7 +274,7 @@
 	<string name="welcome_usage_title">Kullanım analizlerini paylaşın.</string>
 	<string name="welcome_usage_description">Nym ağını geliştirmemize yardımcı olun. Hiçbir veri kaydedilmez, etkinlik takip edilmez.</string>
 	<!-- Onboarding screen -->
-    <string name="onboarding_create_account_button">Hesap oluştur</string>
+	<string name="onboarding_create_account_button">Hesap oluştur</string>
 	<!-- Select Plan screen -->
 	<string name="select_plan_title">\nKoruma seviyenizi seçin 🛡️</string>
 	<string name="select_plan_line_0">7 günlük ücretsiz deneme</string>
@@ -283,7 +284,7 @@
 	<string name="select_plan_button">NymVPN planımı seç</string>
 	<string name="select_plan_modal_title">Planınızı seçin. Tüm özellikler dahil, istediğiniz zaman iptal edebilirsiniz.</string>
 	<string name="select_plan_modal_free_trial">7 günlük ücretsiz deneme bugün başlıyor</string>
-    <!-- Server Details screen -->
+	<!-- Server Details screen -->
 	<string name="details_title">Sunucu detayları</string>
 	<string name="details_select_server_button">Sunucu seçin</string>
 	<string name="details_advanced_privacy">Gelişmiş gizlilik</string>
@@ -298,7 +299,7 @@
 	<string name="details_enable_quic_end">“QUIC protokolünü” Sansür Karşıtı Ayarlar’dan etkinleştirin</string>
 	<string name="details_overall_performance">Genel performans</string>
 	<string name="details_server_load">Sunucunun mevcut yük durumu</string>
-    <string name="details_uptime">Çalışma süresi</string>
+	<string name="details_uptime">Çalışma süresi</string>
 	<string name="not_applicable">Mevcut değil</string>
 	<string name="details_performance_calculated">Performans puanı, sunucu yükü ve çalışma süresi dikkate alınarak hesaplanır. Çalışma süresi, son 24 saatin ortalamasıdır. Son güncelleme: %1$s</string>
 	<string name="details_exit_ipv4">Exit IPv4</string>
@@ -307,21 +308,21 @@
 	<string name="details_asn">Otonom Sistem Numarası</string>
 	<string name="details_asn_name">Otonom Sistem adı</string>
 	<string name="details_build_version">Nym derleme sürümü</string>
-    <string name="details_missing_incorrect_info">Neden bazı bilgiler eksik veya hatalı?</string>
+	<string name="details_missing_incorrect_info">Neden bazı bilgiler eksik veya hatalı?</string>
 	<string name="details_missing_incorrect_info_link">https://support.nym.com/hc/en-us/articles/26448676449297-How-is-server-location-determined-by-NymVPN</string>
 	<string name="details_more_details_start">Daha fazla bilgi için</string>
 	<string name="details_more_details_end">Nym Network Explorer\'ı inceleyin</string>
 	<string name="details_more_details_link">https://nym.com/explorer/nym-node/%1$s</string>
 	<!-- Censorship screen -->
 	<string name="censorship_description">Bağlantı sorunları yaşıyorsanız veya bulunduğunuz lokasyonda NymVPN engeli ile karşılaşıyorsanız, bu özellikleri etkinleştirin.</string>
-	<string name="censorship_learn_more_link_text">Learn more</string>
+	<string name="censorship_learn_more_link_text">Daha fazla bilgi edinin</string>
 	<string name="censorship_quic_title">Geliştirilmiş bağlantı (QUIC)</string>
-    <string name="censorship_quic_description">Kısıtlayıcı ağlarda Hızlı modunun güvenilirliğini artırır; WireGuard trafiğini QUIC (HTTP/3) içinde paketleyerek normal web trafiği gibi görünmesini sağlar.\n\nNot: Giriş sunucusu seçeneklerini yalnızca QUIC uyumlu sunucular ile sınırlar.</string>
+	<string name="censorship_quic_description">Kısıtlayıcı ağlarda Hızlı modunun güvenilirliğini artırır; WireGuard trafiğini QUIC (HTTP/3) içinde paketleyerek normal web trafiği gibi görünmesini sağlar.\n\nNot: Giriş sunucusu seçeneklerini yalnızca QUIC uyumlu sunucular ile sınırlar.</string>
 	<string name="censorship_quic_link">https://nym.com/features/quic</string>
 	<string name="censorship_stealth_title">Stealth API (Gizlilik odaklı API) bağlantısı</string>
-	<string name="censorship_stealth_description">Protects against VPN blocking by using cover domains. Toggle on to use always, or off to use when normal connections fail.</string>
+	<string name="censorship_stealth_description">VPN engellemesini önlemek için, gizli alanlar kullanır. Her zaman etkinleştirmek için açın veya normal bağlantılar başarısız olduğunda kullanmak için kapatın.</string>
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
-    <string name="quic">QUIC</string>
+	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Sadece Hızlı mod lokasyonları ve QUIC protokolünü destekleyen sunucular gösteriliyor. Tüm sunucuları görmek için QUIC\'i kapatın.</string>
 	<string name="censorship_amnezia_title">Minimum gizleme (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">WireGuard trafiğinin tespit edilmesini zorlaştırır.
@@ -335,7 +336,7 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="account_welcome_social_description">Ortağımız Privy aracılığıyla e‑posta, Google veya kripto cüzdan ile gizli şekilde giriş yapın.</string>
 	<string name="account_welcome_social_button">Sosyal medya hesabı ile devam et</string>
 	<string name="account_welcome_login_title">Zaten bir hesabınız var mı?</string>
-    <string name="account_welcome_privacy_start">Devam ederek NymVPN’in   şartlarını kabul etmiş olursunuz</string>
+	<string name="account_welcome_privacy_start">Devam ederek NymVPN’in   şartlarını kabul etmiş olursunuz</string>
 	<string name="account_welcome_privacy_middle">ve</string>
 	<!-- Existing subscription -->
 	<string name="account_subscription_title">Zaten abone olmuşsunuz!</string>
@@ -386,27 +387,29 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<!-- Account screen -->
 	<string name="account_title">Hesap ve cihazlar</string>
 	<string name="account_info_manage_button">Aboneliğinizi yönetin</string>
-    <string name="account_info_id_title">Hesap Kimlik No (ID)</string>
-	<string name="account_info_id_info">Safe to share. Use to contact Nym Support.</string>
+	<string name="account_info_id_title">Hesap Kimlik No (ID)</string>
+	<string name="account_info_id_info">Güvenli bir şekilde paylaşılabilir. Nym Desteği ile iletişime geçmek için kullanın.</string>
 	<string name="account_info_device_title">Cihaz Kimliği</string>
 	<string name="account_info_device_info">Bu cihazı nym.com hesabınıza bağlamak için buradaki bağlantıyı kullanın</string>
 	<string name="account_info_status_title">Hesap durumu</string>
-	<string name="account_info_bandwidth_title">Fair usage spent</string>
+	<string name="account_info_bandwidth_title">Adil kullanım harcaması tamamlandı</string>
 	<string name="account_info_limit_text">Limit</string>
 	<string name="account_info_reset_text">Sıfırlanır</string>
-    <string name="account_info_valid_text">Plan %s adresine kadar geçerlidir</string>
+	<string name="account_info_valid_text">Plan %s adresine kadar geçerlidir</string>
 	<string name="account_info_expires_text">Planın süresi %s adresinde sona ermektedir</string>
 	<string name="banner_plan_expires_text">Plan\n%s tarihinde sona erer.</string>
 	<string name="account_info_renew_text">Korunmak için şimdi yenileyin</string>
 	<string name="banner_renew_text">Korunmak için şimdi\n yenileyin</string>
 	<string name="account_info_auto_renew_text">*Otomatik yenilenir</string>
 	<string name="account_info_no_plan">No active subscription</string>
+	<string name="account_info_contact_support_action">Contact Customer Support</string>
+	<string name="account_info_contact_support_suffix"> if you reach your limit.</string>
 	<string name="account_info_confirming_payment">Ödeme onaylanıyor</string>
-    <string name="account_info_autologin_fetching">Erişim kodu alınıyor…</string>
+	<string name="account_info_autologin_fetching">Erişim kodu alınıyor…</string>
 	<string name="account_info_autologin_error">Erişim kodu alınamadı. Lütfen tekrar deneyin.</string>
-	<string name="account_info_add_social_action">Add a social login</string>
+	<string name="account_info_add_social_action">Sosyal giriş ekle</string>
 	<string name="account_info_add_social_suffix">\u0020method to your account.</string>
-	<string name="account_info_backup">Backup login method linked via Privy.</string>
+	<string name="account_info_backup">Privy üzerinden bağlantılı yedek giriş yöntemi.</string>
 	<string name="pin_code_title">Pin kodu</string>
 	<string name="pin_code_subtitle">Bu kodu web sitesine girin</string>
 	<string name="pin_code_copy_and_open">Kodu kopyalayın ve web sitesini açın</string>
@@ -435,21 +438,21 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="logs_saved">Kayıtlar, indirilenler klasörüne kaydedildi</string>
 	<!-- Split tunneling screen -->
 	<string name="split_tunneling_info_msg">Her uygulama için ayrı ayrı, NymVPN üzerinden mi yoksa doğrudan mı bağlanacağınızı seçin.</string>
-    <string name="split_tunneling_search_apps_hint">Uygulama ara</string>
+	<string name="split_tunneling_search_apps_hint">Uygulama ara</string>
 	<string name="split_tunneling_apps">Uygulamalar</string>
 	<string name="split_tunneling_direct">Doğrudan</string>
 	<string name="split_tunneling_direct_desc">NymVPN’i atla</string>
 	<string name="split_tunneling_via_vpn">NymVPN aracılığıyla</string>
 	<string name="split_tunneling_via_desc">Bağlantı sırasında koruma sağlar</string>
-    <string name="split_tunneling_system_applications">Sistem uygulamaları</string>
+	<string name="split_tunneling_system_applications">Sistem uygulamaları</string>
 	<string name="split_tunnel_info_modal_title">Bölünmüş tünelleme özelliğini kullanmak</string>
 	<string name="split_tunnel_info_modal_desc">Bölünmüş tünelleme her uygulamayı maksimum hız veya maksimum gizlilik için optimize etmenizi sağlar. Bu ayarları istediğiniz zaman kolayca değiştirebilirsiniz.</string>
 	<string name="split_tunnel_info_direct_desc">Bankacılık, akıllı ev cihazları veya iş uygulamaları gibi hizmetler için.</string>
-    <string name="split_tunnel_changes_confirm_modal_title">Bölünmüş tünelleme ayarları uygulansın mı?</string>
+	<string name="split_tunnel_changes_confirm_modal_title">Bölünmüş tünelleme ayarları uygulansın mı?</string>
 	<string name="split_tunnel_changes_confirm_modal_desc">Bölünmüş tünelleme güncellendi. Değişikliklerin uygulanması için yeniden bağlanın.\n\nYeniden bağlanma sırasında verileriniz korunur.</string>
 	<string name="split_tunnel_changes_confirm_modal_primary_btn_label">Şimdi yeniden bağlanın</string>
 	<string name="split_tunnel_changes_confirm_modal_text_btn_label">Sonraki bağlantıda uygula</string>
-    <string name="split_tunneling_event_saved">Bölünmüş tünelleme ayarları kaydedildi</string>
+	<string name="split_tunneling_event_saved">Bölünmüş tünelleme ayarları kaydedildi</string>
 	<string name="split_tunneling_event_reconnecting">Bölünmüş tünelleme ayarlarını uygulamak için yeniden bağlanılıyor…</string>
 	<!-- DNS customization screen -->
 	<string name="dns_title">DNS ayarlarını özelleştirme</string>
@@ -463,9 +466,9 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="dns_custom_list_entries">Özel DNS sunucuları (%1$s/5)</string>
 	<string name="dns_custom_list_hint">IPv4 veya IPv6 adresi</string>
 	<string name="dns_custom_list_error">Geçersiz DNS adresi formatı</string>
-    <string name="dns_custom_button_save">Değişiklikleri kaydet</string>
+	<string name="dns_custom_button_save">Değişiklikleri kaydet</string>
 	<string name="dns_custom_button_save_reconnect">Değişiklikleri kaydet &amp; yeniden bağlan</string>
-    <string name="dns_save_dialog_title">Değişiklikler kaydedilsin mi?</string>
+	<string name="dns_save_dialog_title">Değişiklikler kaydedilsin mi?</string>
 	<string name="dns_save_dialog_description">Kaydedilmemiş değişiklikleriniz mevcut.</string>
 	<string name="dns_learn_more_text">DNS hakkında daha fazla bilgi edinin</string>
 	<string name="dns_event_saved">Özel DNS kaydedildi</string>
@@ -492,7 +495,7 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="mixnet_tuning_traffic_off_medium">Orta\n10x</string>
 	<string name="mixnet_tuning_delays_title">Paket karıştırma gecikmeleri</string>
 	<string name="mixnet_tuning_delays_description">Paketlerinizin karışma düzeyini değiştirmek için zamanlama gecikmelerini ayarlayabilirsiniz.</string>
-    <string name="mixnet_tuning_delays_min">Daha yüksek hız</string>
+	<string name="mixnet_tuning_delays_min">Daha yüksek hız</string>
 	<string name="mixnet_tuning_delays_low">Düşük\n0m</string>
 	<string name="mixnet_tuning_delays_high">Yüksek\n200 ms</string>
 	<string name="mixnet_tuning_delays_default">Varsayılan\n15 ms</string>
@@ -512,6 +515,6 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="support_protect_title">⚠️ Kendinizi dolandırıcılardan koruyun</string>
 	<string name="support_protect_description">NymVPN destek ekibiyle sadece aşağıda belirtilen resmi kanallar üzerinden iletişime geçin. Kurtarma ifadenizi asla istemeyiz ve sizinle doğrudan mesajla temas kurmayız.\n\nBeklenmedik bir ileti aldıysanız, büyük olasılıkla bu bir dolandırıcılıktır.</string>
 	<!-- Private DNS modal -->
-	<string name="private_dns_title">Disable Private DNS to use ad blocker.</string>
+	<string name="private_dns_title">Reklam engelleyiciyi kullanmak için özel DNS\'i devre dışı bırakın.</string>
 	<string name="private_dns_button">Ayarları Açın</string>
 </resources>

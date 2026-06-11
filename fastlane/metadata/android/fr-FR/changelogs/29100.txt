@@ -1,7 +1,7 @@
 Nouveautés :
-- Configuration du compte : Prise en charge de la création et de l'enregistrement de compte dans l'application.
-- Intégration privée : Liez facilement vos comptes avec un nouveau support privé.
-- Réglage Mixnet : nouvelle interface utilisateur pour affiner vos paramètres de confidentialité et de connexion.
-- Corrections de stabilité : Résolution des problèmes de VPN permanents après redémarrage du système et correction des plantages de l'application.
-- Meilleure connectivité : Architecture VPN améliorée pour des reconnexions plus fiables, dynamiques et mises à jour de l'interface des informations du compte.
-- Mise à jour du flux de travail des traductions.
+- Configuration du compte : prise en charge de la création et de l'inscription de compte dans l'application.
+- Intégration Privy : liez vos comptes facilement grâce au nouveau support Privy.
+- Réglage du mixnet : nouvelle interface pour affiner vos paramètres de confidentialité et de connexion.
+- Correctifs de stabilité : résolution des problèmes de VPN Always-On après les redémarrages système et correction des plantages de l'application.
+- Meilleure connectivité : architecture VPN améliorée pour des reconnexions plus fiables et dynamiques, et interface des informations de compte mise à jour.
+- Mise à jour du workflow de traduction.

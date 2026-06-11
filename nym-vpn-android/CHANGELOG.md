@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v2026.11.0]
+
+### Added
+- Add allowed for Split Tunneling system apps list (https://github.com/nymtech/nym-vpn-client/pull/5563)
+
+### Changed
+- Enable Mixnet Tuning (https://github.com/nymtech/nym-vpn-client/pull/5563)
+
 ## [v2026.10.0]
 
 ### Added

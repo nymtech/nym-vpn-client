@@ -5,7 +5,6 @@
 	<string name="channel_description">Un canal para las notificaciones de la VPN.</string>
 	<string name="disconnect">Desconectar</string>
 	<string name="state_connected">Conectado</string>
-	<string name="state_error">Error</string>
 	<string name="state_disconnected">Desconectado</string>
 	<string name="state_initializing">Iniciando cliente…</string>
 	<string name="state_establishing">Estableciendo conexión…</string>

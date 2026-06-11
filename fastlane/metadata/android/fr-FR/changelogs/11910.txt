@@ -1,2 +1,2 @@
-Quoi de neuf :
-- Corriger le plantage de fond
+Nouveautés :
+- Correction du plantage en arrière-plan

@@ -140,8 +140,7 @@ fun MixnetTuningScreen(
 			color = MaterialTheme.colorScheme.onPrimaryContainer,
 			textAlign = TextAlign.Center,
 			modifier = Modifier
-				.fillMaxWidth()
-				.padding(top = 16.dp),
+				.fillMaxWidth(),
 		)
 
 		PerformanceSection(speed = speed, latency = latency)

@@ -1,70 +1,70 @@
-NymVPN: the world's most private VPN. A secure, decentralized, anonymous Swiss dVPN with no logs. WireGuard speed, Noise Generating Mixnet anonymity. No email signup. No ads.
+NymVPN: خصوصی‌ترین VPN جهان. یک VPN غیرمتمرکز سوئیسی، امن، ناشناس و بدون لاگ. سرعت WireGuard، ناشناس‌بودن با میکس‌نت تولیدکننده نویز. بدون نیاز به ثبت‌نام با ایمیل. بدون تبلیغات.
 
-🎁 7-DAY FREE VPN TRIAL & PLANS FROM $2.39/MONTH
+🎁 ۷ روز آزمایشی رایگان VPN و اشتراک‌ها از ۲٫۳۹ دلار در ماه
 
-Try free for 7 days, no commitment. Pay in crypto, card, or cash: your choice.
+۷ روز رایگان امتحان کنید، بدون هیچ تعهدی. با ارز دیجیتال، کارت بانکی یا نقدی پرداخت کنید؛ انتخاب با شماست.
 
-🛡 PRIVACY BY DESIGN
+🛡 حریم خصوصی در سرشت آن
 
-Most VPNs say 'no logs' as policy — they can log, they promise not to. Free VPNs track you to sell your data. NymVPN's architecture makes meaningful traffic logs impossible: no single server sees who you are AND what you do.
+بیشتر VPNها ادعای «بدون لاگ» دارند؛ آن‌ها می‌توانند لاگ نگه دارند، فقط قول می‌دهند این کار را نکنند. VPNهای رایگان شما را ردیابی می‌کنند تا داده‌هایتان را بفروشند. معماری NymVPN ثبت لاگ‌های معنادار ترافیک را ناممکن می‌کند: هیچ سرور واحدی نمی‌تواند هم‌زمان هویت شما و فعالیت شما را ببیند.
 
-⚡ TWO VPN MODES, ONE APP
+⚡ دو حالت VPN در یک برنامه
 
-• Fast Mode: AmneziaWG (WireGuard)-based 2-hop dVPN. Fast streaming and browsing.
-• Anonymous Mode: 5-hop Noise Generating Mixnet, a more private successor to Tor. The most anonymous consumer VPN. Perfect for crypto, email, and private messaging like Signal.
+• حالت سریع: dVPN دو-پرشی مبتنی بر AmneziaWG (WireGuard). استریم و وبگردی با سرعت.
+• حالت ناشناس: میکس‌نت پنج-پرشی تولیدکننده نویز، جانشینی برای Tor و خصوصی‌تر. ناشناس‌ترین VPN استفاده شده. ایده‌آل برای ارزهای دیجیتال، ایمیل و پیام‌رسانی خصوصی مانند Signal.
 
-💰 PAY ANONYMOUSLY WITH CRYPTO OR CASH
+💰 به‌صورت ناشناس با ارز دیجیتال یا پول نقد پرداخت کنید
 
-NymVPN accepts more cryptocurrencies than any other VPN, plus cash payments. Pay with Bitcoin (BTC), Ethereum (ETH), Monero (XMR), Zcash (ZEC), USDT, USDC, NYM, and more. Zero-knowledge credentials delink your payment from your VPN use: pay anonymously, use anonymously.
+NymVPN علاوه بر پرداخت نقدی، ارزهای دیجیتال بیشتری نسبت به هر VPN دیگری می‌پذیرد. با Bitcoin (BTC)، Ethereum (ETH)، Monero (XMR)، Zcash (ZEC)، USDT، USDC، NYM و ارزهای دیگر پرداخت کنید. اعتبارنامه‌های دانش صفر، پرداخت شما را از استفاده‌تان از VPN جدا می‌کند: ناشناس پرداخت کنید، ناشناس استفاده کنید.
 
-💎 WHY NYMVPN IS DIFFERENT
+💎 چرا NymVPN متفاوت است
 
-• Zero-knowledge architecture: identity invisible to Nym
-• No logs by architecture: the network can't keep meaningful traffic logs
-• Decentralized proxy network: no central server
-• Swiss jurisdiction: outside 14 Eyes
-• WireGuard and mixnet protocols
-• No email signup: anonymous account creation
-• Fully open source, audited by independent security researchers
-• 70+ countries: global server network worldwide
-• Up to 10 devices on one account
+• معماری دانش صفر: هویت شما برای Nym قابل مشاهده نیست
+• بدون لاگ در سطح معماری: شبکه نمی‌تواند لاگ معناداری از ترافیک را نگه دارد
+• شبکه پراکسی غیرمتمرکز: بدون سرور مرکزی
+• تحت حوزه قضایی سوئیس: خارج از ائتلاف 14 Eyes
+• پروتکل‌های WireGuard و Mixnet
+• بدون نیاز به ایمیل: ایجاد حساب ناشناس
+• کاملاً متن‌باز، ممیزی‌شده توسط پژوهشگران مستقل امنیتی
+• بیش از ۷۰ کشور: شبکه جهانی سرورها در سراسر جهان
+• تا ۱۰ دستگاه روی یک حساب
 
-🔒 PRIVACY & SECURITY FEATURES
+🔒 ویژگی‌های حریم خصوصی و امنیتی
 
-• Built-in kill switch
-• Censorship resistance: QUIC, AmneziaWG, and more prevent VPN blocking
-• Multi-layer onion encryption
-• Entry & exit server selection
-• Split tunneling: route only chosen apps through the VPN
-• Custom DNS: use any DNS server you trust
-• Ad and tracker blocker
+• Kill Switch داخلی
+• مقاومت در برابر سانسور: QUIC، AmneziaWG و موارد بیشتر برای جلوگیری از مسدودسازی VPN
+• رمزنگاری چندلایه
+• قابلیت انتخاب خروجی و ورودی سرور
+• اسپلیت تونلینگ: فقط برنامه‌های انتخاب‌شده را از طریق VPN عبور داده می‌شود
+• DNS سفارشی: فقط از سرور DNS مورد اعتماد خود استفاده کنید
+• مسدودکننده تبلیغات و ردیاب‌ها
 
-🌍 WHAT YOU CAN DO WITH NYMVPN
+🌍 آنچه می‌توانید با NymVPN انجام دهید
 
-• Browse anonymously without leaving a trace
-• Stream content from servers worldwide
-• Encrypt your traffic on public wifi
-• Bypass internet censorship in restrictive regions
-• Protect sensitive communications for journalism and activism
-• Stop ISPs from profiling your browsing
-• Block malicious sites, trackers, and ads
+• به‌صورت ناشناس و بدون برجا گذاشتن ردپا وبگردی کنید
+• به‌صورت امن از هر نقطه جهان متصل شوید
+• ترافیک خود را روی Wi-Fi عمومی رمزنگاری کنید
+• سانسور اینترنت را در مناطق محدودکننده دور بزنید
+• از ارتباطات حساس روزنامه‌نگاری و کنشگری، محافظت کنید
+• از سودجویی ISPها با وبگردی شما جلوگیری کنید
+• سایت‌های مخرب، ردیاب‌ها و تبلیغات را مسدود کنید
 
-🇨🇭 SWISS PRIVACY, BY DESIGN
+حریم خصوصی از نوع سوئیسی
 
-NymVPN operates under Swiss law: outside the 14 Eyes surveillance alliance, with constitutionally protected privacy rights and no mandatory data retention. Your data is protected by law and design.
+NymVPN تحت قوانین سوئیس فعالیت می‌کند: خارج از ائتلاف نظارتی 14 Eyes، با حقوق حریم خصوصیِ دارای پشتوانه قانون اساسی و بدون الزام به نگهداری داده‌ها. داده‌های شما با سرشتی قانونی محافظت می‌شود.
 
-🎓 BUILT BY ACADEMIC CRYPTOGRAPHERS
+🎓 ساخته شده توسط رمزنگاران دانشگاهی
 
-Built by Nym. Trusted by journalists, activists, and privacy-conscious users worldwide.
+ساخته شده توسط Nym. مورد اعتماد روزنامه‌نگاران، فعالان و کاربران آگاه به حریم خصوصی در سراسر جهان.
 
-🚫 WHAT WE DON'T DO
+🚫 آنچه ما انجام نمی‌دهیم
 
-• We don't ask for your email or your name
-• We can't track which sites you visit
-• We can't sell, share, or rent your data
+• از شما ایمیل یا نامتان را درخواست نمی‌کنیم
+• ردیابی نمی‌کنیم که از کدام سایت‌ها بازدید می‌کنید
+• داده‌های شما را نمی‌فروشیم، به اشتراک نمی‌گذاریم یا اجاره نمی‌دهیم
 
-📲 GET STARTED
+📲 همین حالا شروع کنید
 
-Download NymVPN, create an anonymous account without an email or even a name, and start browsing privately.
+NymVPN را دانلود کنید، بدون ایمیل یا نام واقعی یک حساب ناشناس بسازید و وبگردی خصوصی را آغاز کنید.
 
-Try NymVPN today.
+NymVPN را همین امروز امتحان کنید.

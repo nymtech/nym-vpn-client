@@ -14,32 +14,39 @@ class SplitTunnelingHelper @Inject constructor() {
 
 	companion object {
 		private const val TAG = "split-tunneling"
-	}
 
-	/**
-	 * A set of package names for common system apps that are not useful for split tunneling.
-	 * These apps typically do not make direct internet connections that a user would want to route through a VPN.
-	 * TODO: Move to standalone module
-	 */
-	private val packageBlocklist = setOf(
-		"com.android.camera",
-		"com.android.camera2",
-		"com.google.android.deskclock",
-		"com.android.deskclock",
-		"com.google.android.calculator",
-		"com.android.calculator2",
-		"com.google.android.calendar",
-		"com.android.providers.calendar",
-		"com.android.contacts",
-		"com.google.android.contacts",
-		"com.android.gallery3d",
-		"com.google.android.apps.photos",
-		"com.android.settings",
-		"com.android.systemui",
-		"com.android.stk",
-		"com.android.stk2",
-		"com.google.android.apps.safetyhub",
-	)
+		/**
+		 * A set of package names for common system apps that are useful for split tunneling.
+		 */
+		private val systemAppAllowlist = setOf(
+			"com.google.android.projection.gearhead", // Android Auto
+		)
+
+		/**
+		 * A set of package names for common system apps that are not useful for split tunneling.
+		 * These apps typically do not make direct internet connections that a user would want to route through a VPN.
+		 * TODO: Move to standalone module
+		 */
+		private val packageBlocklist = setOf(
+			"com.android.camera",
+			"com.android.camera2",
+			"com.google.android.deskclock",
+			"com.android.deskclock",
+			"com.google.android.calculator",
+			"com.android.calculator2",
+			"com.google.android.calendar",
+			"com.android.providers.calendar",
+			"com.android.contacts",
+			"com.google.android.contacts",
+			"com.android.gallery3d",
+			"com.google.android.apps.photos",
+			"com.android.settings",
+			"com.android.systemui",
+			"com.android.stk",
+			"com.android.stk2",
+			"com.google.android.apps.safetyhub",
+		)
+	}
 
 	private val applicationFilterPredicate: (ApplicationInfo, PackageManager) -> Boolean = { appInfo, pm ->
 		pm.hasInternetPermission(appInfo.packageName) &&
@@ -70,7 +77,10 @@ class SplitTunnelingHelper @Inject constructor() {
 					(appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP != 0)
 
 			if (isSystem) {
-				if (packageManager.isLaunchable(appInfo.packageName)) systemApps.add(app)
+				val isExplicitlyAllowed = systemAppAllowlist.contains(appInfo.packageName)
+				if (packageManager.isLaunchable(appInfo.packageName) || isExplicitlyAllowed) {
+					systemApps.add(app)
+				}
 			} else {
 				normalApps.add(app)
 			}

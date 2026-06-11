@@ -1,12 +1,12 @@
-Quoi de neuf :
+Nouveautés :
 
-Améliorations :
-- Mettre à jour les paires de couleurs et les styles
-- Menus Paramètres de mise à jour / Assistance et commentaires
+Optimisations :
+- Mise à jour des paires de couleurs et des styles
+- Mise à jour du menu Paramètres / Assistance et commentaires
 
 Bugs :
-- Correction lors de la réouverture d'une application minimisée, Connect conduit à l'écran de connexion
-Correction de l'erreur forSyncAccount
-Corrections pour les pertes de connexion et l'instabilité
-- Correction du plantage de l'application lors des tests de vitesse en mode mixnet
-- [Android 12] Correction de la déconnexion/du blocage après 1 ou 2 heures
+- Correction lors de la réouverture d'une application minimisée, Connexion menant à l'écran de connexion
+- Correction de l'erreur forSyncAccount
+- Corrections des coupures et instabilités de connexion
+- Corrections des plantages lors des tests de vitesse en mode mixnet
+[Android 12] Correction de la déconnexion/du gel après 1 ou 2 heures

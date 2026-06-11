@@ -1,7 +1,7 @@
 Ce qui change :
 - Ajout du support des icônes thématiques
-- Le statut de connexion affiche maintenant des informations plus détaillées
-- Le nom du serveur est affiché sous le pays sur l'écran principal
-- Correction des mises à jour de l'interface après déconnexion
+- Le statut de connexion affiche désormais des informations plus détaillées
+- Le nom du serveur s'affiche sous le pays sur l'écran principal
+- Correction de la mise à jour de l'interface après déconnexion
 - Écran de détails du serveur ajouté
-- Mises à jour contre la censure
+- Mises à jour anti- censure

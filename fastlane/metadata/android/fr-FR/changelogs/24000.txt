@@ -1,5 +1,5 @@
 Ce qui change :
-- Ajout des achats dans l'App pour le Play Store
+- Ajout des achats intégrés pour le Play Store
 - Nouvelles locales ajoutées : BN, EL, VI
-- Améliorations et corrections de l'interface utilisateur et de l'UX
+- Améliorations et corrections de l'interface et de l'expérience utilisateur
 - Amélioration de la stabilité de la connexion 

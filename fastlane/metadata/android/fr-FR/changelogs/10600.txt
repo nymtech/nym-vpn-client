@@ -1,3 +1,3 @@
-Quoi de neuf :
-- Ajouter plus de langues
-- Ajouter des améliorations à l'écran d'accueil
+Nouveautés :
+- Ajout de langues
+- Améliorations de l'écran d'accueil
