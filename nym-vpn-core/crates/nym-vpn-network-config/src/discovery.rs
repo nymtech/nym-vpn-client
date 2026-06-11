@@ -190,8 +190,7 @@ mod tests {
 
         // Only compare the base fields
         assert_eq!(discovery.network_name, fetched.network_name);
-        assert_eq!(discovery.nym_api_url, fetched.nym_api_url);
-        assert_eq!(discovery.nym_vpn_api_url, fetched.nym_vpn_api_url);
+        assert_eq!(discovery.networking_specifics, fetched.networking_specifics);
     }
 
     #[test]
@@ -249,14 +248,35 @@ mod tests {
                         "modal": "true"
                     }
                 }
-            ]
+            ],
+            "networking_specifics": {
+                "nym_api_urls": [
+                    {
+                        "url": "https://foo.ch/api/",
+                        "fronts": ["foobar.ch", "qux.baz"]
+                    }
+                ],
+                "nym_vpn_api_urls": [
+                    {
+                        "url": "https://bar.ch/api/",
+                        "fronts": ["quxbar.ch", "qux.baz"]
+                    }
+                ],
+                "dns_fallbacks": []
+            }
         }"#;
         let discovery: NymWellknownDiscoveryItemResponse = serde_json::from_str(json).unwrap();
         let network: Discovery = discovery.try_into().unwrap();
 
+        let expected_network_specifics = NetworkingSpecifics {
+            nym_api_urls: vec![ApiUrl::new("https://foo.ch/api/", Some(vec!["foobar.ch", "qux.baz"])).into()],
+            nym_vpn_api_urls: vec![ApiUrl::new("https://bar.ch/api/", Some(vec!["quxbar.ch", "qux.baz"])).into()],
+            dns_fallbacks: vec![],
+        };
+
         let expected_network = Discovery {
             network_name: "qa".to_owned(),
-            networking_specifics: None,
+            networking_specifics: expected_network_specifics,
             nym_api_urls: vec![ApiUrl {
                 url: "https://foo.ch/api/".parse().unwrap(),
                 fronts: Some(vec!["foobar.ch".to_owned(), "qux.baz".to_owned()]),

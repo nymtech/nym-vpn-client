@@ -766,6 +766,29 @@ pub struct ApiUrl {
     pub fronts: Option<Vec<String>>,
 }
 
+impl ApiUrl {
+    pub fn new<S: AsRef<str>, T: AsRef<str>>(url: S, fronts: Option<Vec<T>>) -> Self {
+        Self {
+            url: url.as_ref().to_string(),
+            fronts: fronts.map(|fronts| {
+                fronts
+                    .into_iter()
+                    .map(|front| front.as_ref().to_string())
+                    .collect()
+            }),
+        }
+    }
+}
+
+impl From<nym_network_defaults::ApiUrl> for ApiUrl {
+    fn from(value: nym_network_defaults::ApiUrl) -> Self {
+        ApiUrl {
+            url: value.url,
+            fronts: value.front_hosts,
+        }
+    }
+}
+
 impl From<ApiUrl> for nym_network_defaults::ApiUrl {
     fn from(value: ApiUrl) -> Self {
         nym_network_defaults::ApiUrl {
@@ -783,7 +806,6 @@ impl From<&ApiUrl> for nym_network_defaults::ApiUrl {
         }
     }
 }
-
 
 // The response type we fetch from the discovery endpoint
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
