@@ -107,4 +107,18 @@ final class HomeTests: XCTestCase {
         XCTAssertEqual(events, ["register", "authComplete"])
         XCTAssertTrue(viewModel.didRegisterAccount)
     }
+
+    func testProcessingSucceedsWhenPrefetchGateBlocks() async throws {
+        let viewModel = ProcessingAccountViewModel(
+            flow: .login,
+            canPrefetchZkNyms: { false },
+            prepareAccountForConnection: { canPrefetch in
+                XCTAssertFalse(canPrefetch)
+            }
+        )
+
+        viewModel.start()
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertNil(viewModel.errorMessage)
+    }
 }

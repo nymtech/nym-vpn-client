@@ -10,7 +10,7 @@ struct AuthFlowView: View {
     }
 
     let credentialsManager: CredentialsManager
-    let onWillRegister: (ProcessingFlow) -> Void
+    let onAuthFlowStarted: (ProcessingFlow) -> Void
     let onAuthComplete: () -> Void
 
     @State private var step: Step = .welcome
@@ -23,11 +23,11 @@ struct AuthFlowView: View {
 
     init(
         credentialsManager: CredentialsManager,
-        onWillRegister: @escaping (ProcessingFlow) -> Void,
+        onAuthFlowStarted: @escaping (ProcessingFlow) -> Void,
         onAuthComplete: @escaping () -> Void = {}
     ) {
         self.credentialsManager = credentialsManager
-        self.onWillRegister = onWillRegister
+        self.onAuthFlowStarted = onAuthFlowStarted
         self.onAuthComplete = onAuthComplete
         _measurementPassphraseViewModel = State(
             wrappedValue: PassphraseSignInViewModel(credentialsManager: credentialsManager)
@@ -98,7 +98,7 @@ private extension AuthFlowView {
                 credentialsManager: credentialsManager,
                 rootMinHeight: sharedRootHeight,
                 onBackTapped: { step = .welcome },
-                onWillRegister: { onWillRegister(.createAccount) },
+                onAuthFlowStarted: { onAuthFlowStarted(.createAccount) },
                 onAuthComplete: onAuthComplete
             )
             .fixedSize(horizontal: false, vertical: true)
@@ -109,7 +109,7 @@ private extension AuthFlowView {
                 credentialsManager: credentialsManager,
                 rootMinHeight: sharedRootHeight,
                 onBackTapped: { step = .welcome },
-                onWillRegister: { onWillRegister(.login) },
+                onAuthFlowStarted: { onAuthFlowStarted(.login) },
                 onAuthComplete: onAuthComplete
             )
             .fixedSize(horizontal: false, vertical: true)

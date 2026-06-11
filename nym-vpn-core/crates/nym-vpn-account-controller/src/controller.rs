@@ -22,7 +22,7 @@ use crate::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState, SyncMode,
         SyncingNetworkState,
     },
-    storage::{AccountStorage, AccountStorageOp, VpnCredentialStorage},
+    storage::{AccountStorage, AccountStorageOp, CredentialStoreAccessLock, VpnCredentialStorage},
 };
 
 pub struct AccountController<C, S>
@@ -56,6 +56,9 @@ where
 
     // Listen for cancellation signals
     cancel_token: CancellationToken,
+
+    // Held for the controller lifetime so prefetch cannot overlap credential DB access.
+    _credential_store_lock: CredentialStoreAccessLock,
 }
 
 impl<C, S> AccountController<C, S>
@@ -85,6 +88,9 @@ where
 
         // Setup the account storage, which is used to store the account and device keys
         let account_storage = AccountStorage::from(storage);
+
+        let credential_store_lock =
+            CredentialStoreAccessLock::acquire_blocking(&config.data_dir)?;
 
         // Setup the credential storage, which is used to store the ticketbooks
         let credential_storage =
@@ -163,6 +169,7 @@ where
             storage_op_receiver,
             current_state_handler,
             cancel_token,
+            _credential_store_lock: credential_store_lock,
         })
     }
 

@@ -295,11 +295,11 @@ import PathManager
         }
 
 #if os(iOS)
-        guard canPrefetchZkNyms else {
-            logger.error("prepareAccountForConnection failed: prefetch blocked by tunnel lifecycle gate")
-            throw CredentialsManagerError.generalError("disconnect".localizedString)
+        if canPrefetchZkNyms {
+            try await prefetchZkNyms()
+        } else {
+            logger.info("prepareAccountForConnection: skipping zk-nym prefetch while tunnel owns the store")
         }
-        try await prefetchZkNyms()
 #elseif os(macOS)
         try await grpcManager.refreshAccountState(force: true)
         await updateAccountSummary(force: true)

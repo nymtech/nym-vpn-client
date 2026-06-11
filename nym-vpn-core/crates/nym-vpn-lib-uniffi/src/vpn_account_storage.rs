@@ -39,6 +39,8 @@ pub enum VpnPrefetchZkNymOutcome {
     FetchedTickets,
     /// Upgrade mode is active; tickets are not issued in this mode.
     UpgradeMode,
+    /// Prefetch skipped because another process holds the credential store lock.
+    SkippedStoreBusy,
 }
 
 impl From<PrefetchZkNymOutcome> for VpnPrefetchZkNymOutcome {
@@ -47,6 +49,7 @@ impl From<PrefetchZkNymOutcome> for VpnPrefetchZkNymOutcome {
             PrefetchZkNymOutcome::SufficientBandwidth => Self::SufficientBandwidth,
             PrefetchZkNymOutcome::FetchedTickets => Self::FetchedTickets,
             PrefetchZkNymOutcome::UpgradeMode => Self::UpgradeMode,
+            PrefetchZkNymOutcome::SkippedStoreBusy => Self::SkippedStoreBusy,
         }
     }
 }

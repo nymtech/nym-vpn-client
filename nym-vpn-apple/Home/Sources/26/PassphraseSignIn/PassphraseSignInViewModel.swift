@@ -16,7 +16,6 @@ public final class PassphraseSignInViewModel {
     private let addCredential: (String) async throws -> Void
     private let registerAccount: () async throws -> Void
     @ObservationIgnored private var loginTask: Task<Void, Never>?
-    @ObservationIgnored public var onWillRegister: (() -> Void)?
     @ObservationIgnored public var onAuthComplete: (() -> Void)?
 
     var passphraseText: String = "" {

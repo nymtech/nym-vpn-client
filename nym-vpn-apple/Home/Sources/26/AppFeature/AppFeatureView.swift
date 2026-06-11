@@ -277,7 +277,7 @@ private extension AppFeatureView {
     var welcomeContent: some View {
         AuthFlowView(
             credentialsManager: viewModel.credentialsManager,
-            onWillRegister: { flow in viewModel.pendingProcessingFlow = flow },
+            onAuthFlowStarted: { flow in viewModel.pendingProcessingFlow = flow },
             onAuthComplete: { viewModel.handleAuthRegistrationComplete() }
         )
         .trackHeight { welcomeHeight = $0 }

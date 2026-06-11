@@ -9,7 +9,6 @@ public final class GeneratePassphraseViewModel {
     private let createMnemonic: () async throws -> Void
     private let registerAccount: () async throws -> Void
     @ObservationIgnored private var registrationTask: Task<Void, Never>?
-    @ObservationIgnored public var onWillRegister: (() -> Void)?
     @ObservationIgnored public var onAuthComplete: (() -> Void)?
 
     var currentStep: Int = 1
