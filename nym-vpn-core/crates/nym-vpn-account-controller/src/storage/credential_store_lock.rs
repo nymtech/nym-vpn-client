@@ -8,18 +8,17 @@
 //! enforces temporal exclusion without relying on caller discipline alone.
 
 use std::fs::{File, OpenOptions};
-use std::os::fd::AsRawFd;
 use std::path::Path;
 
 use nix::errno::Errno;
-use nix::fcntl::{FlockArg, flock};
+use nix::fcntl::{Flock, FlockArg};
 
 use crate::error::Error;
 
 const LOCK_FILE_NAME: &str = "credential_store_access.lock";
 
 pub struct CredentialStoreAccessLock {
-    file: File,
+    _lock: Flock<File>,
 }
 
 impl CredentialStoreAccessLock {
@@ -39,7 +38,7 @@ impl CredentialStoreAccessLock {
             .open(&path)
             .map_err(Error::CredentialStoreLockIo)?;
 
-        flock(file.as_raw_fd(), arg).map_err(|errno| {
+        let lock = Flock::lock(file, arg).map_err(|(_file, errno)| {
             if errno == Errno::EWOULDBLOCK || errno == Errno::EAGAIN {
                 Error::CredentialStoreBusy
             } else {
@@ -47,13 +46,7 @@ impl CredentialStoreAccessLock {
             }
         })?;
 
-        Ok(Self { file })
-    }
-}
-
-impl Drop for CredentialStoreAccessLock {
-    fn drop(&mut self) {
-        let _ = flock(self.file.as_raw_fd(), FlockArg::Unlock);
+        Ok(Self { _lock: lock })
     }
 }
 
