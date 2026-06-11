@@ -23,14 +23,14 @@ export function ActivePlan({
     if (!Number.isFinite(used) || !Number.isFinite(limit) || limit <= 0) {
       return 0;
     }
-    return (used / limit) * 100;
+    return Math.min((used / limit) * 100, 100);
   }, [accountSummary]);
 
   // trafficResetTime is a unix timestamp (UTC-sourced); dayjs.unix renders it
   // in the user's local timezone by default.
   const resetsOn = useMemo(() => {
     const ts = accountSummary.trafficResetTime;
-    if (ts === null || ts === undefined) {
+    if (ts === null) {
       return null;
     }
     const date = dayjs.unix(Number(ts));
@@ -71,6 +71,8 @@ export function ActivePlan({
             </p>
           </>
         )}
+        {/* Reset row is shown regardless of dataUnavailable: the daily reset
+            schedule is still valid even when usage figures are missing. */}
         <Separator
           orientation="horizontal"
           className="bg-surface-elev dark:bg-surface-bg h-px w-full"
