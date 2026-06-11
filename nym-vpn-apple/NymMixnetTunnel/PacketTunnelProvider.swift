@@ -48,6 +48,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self)
         try await setup(vpnConfig: vpnConfig)
 
+        try await ensureGatewayIndependenceAllowsConnect()
+
         _ = try await commandSender?.connectTunnel()
         try await tunnelActor.waitUntilStarted()
     }
@@ -55,6 +57,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     override func stopTunnel(with reason: NEProviderStopReason) async {
         logger.info("Stop tunnel... \(reason.rawValue)")
 
+        if reason == .userInitiated {
+            await tunnelActor.clearError()
+        }
         await vpnService?.shutdownAndWait()
         await tunnelActor.setTunnelProvider(nil)
         vpnService = nil
@@ -63,6 +68,20 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 }
 
 extension PacketTunnelProvider {
+    func ensureGatewayIndependenceAllowsConnect() async throws {
+        guard let commandSender else { return }
+
+        try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: true)
+        guard case .needsRelaxedIndependenceCriteria = try await commandSender.getTentativeGateways()
+        else {
+            return
+        }
+
+        await tunnelActor.reportNeedsRelaxedIndependence()
+        await tunnelActor.awaitRelaxConsent()
+        await tunnelActor.clearError()
+    }
+
     func setup(vpnConfig: VpnConfig) async throws {
         try await ConfigurationManager.shared.setup()
 

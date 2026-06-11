@@ -159,6 +159,34 @@ public final class OneClickViewModel {
         }
     }
 
+    func requestIndependenceConsent() {
+        snackbarManager.enqueue(
+            SnackbarItem(
+                style: .warning,
+                title: "gatewayIndependence.warning.title".localizedString,
+                message: "gatewayIndependence.warning.message".localizedString,
+                actionTitle: "gatewayIndependence.warning.connectAnyway".localizedString,
+                onAction: { [weak self] in self?.independenceConsentAgreed() },
+                secondaryActionTitle: "cancel".localizedString,
+                duration: 15
+            )
+        )
+    }
+
+    func independenceConsentAgreed() {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                try await connectionManager.acceptRelaxedGatewayIndependence()
+            } catch {
+                impactGenerator.error()
+                presentConnectionErrorAlert(
+                    message: ConnectionStatusViewModel.userFacingMessage(from: error)
+                )
+            }
+        }
+    }
+
     func upCaretTapped() {
         guard displayMode == .powerUser else { return }
         impactGenerator.softImpact()
