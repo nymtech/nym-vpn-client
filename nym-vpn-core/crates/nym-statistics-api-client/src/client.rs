@@ -19,6 +19,11 @@ pub(crate) const NYM_STATISTICS_API_TIMEOUT: Duration = Duration::from_secs(30);
 #[derive(Clone, Debug)]
 pub struct StatisticsApiClient {
     inner: nym_http_api_client::Client,
+    /// Kept around to rebuild the client bound to the tunnel interface (iOS).
+    #[cfg_attr(not(target_os = "ios"), allow(dead_code))]
+    base_url: Url,
+    #[cfg_attr(not(target_os = "ios"), allow(dead_code))]
+    user_agent: UserAgent,
 }
 
 impl StatisticsApiClient {
@@ -27,11 +32,45 @@ impl StatisticsApiClient {
         nym_http_api_client::Client::builder(base_url.clone())
             .and_then(|builder| {
                 builder
-                    .with_user_agent(user_agent)
+                    .with_user_agent(user_agent.clone())
                     .with_timeout(NYM_STATISTICS_API_TIMEOUT)
                     .build()
             })
-            .map(|c| Self { inner: c })
+            .map(|c| Self {
+                inner: c,
+                base_url,
+                user_agent,
+            })
+            .map_err(Box::new)
+            .map_err(StatisticsApiClientError::VpnApiClientCreation)
+    }
+
+    /// Create a copy of this client with its sockets bound to the given network interface.
+    ///
+    /// On iOS, traffic from the packet tunnel provider is excluded from the tunnel, so the
+    /// socket must be explicitly bound to the tun interface for reports to be wrapped in the
+    /// tunnel. Hostnames are resolved through the system resolver, which is served by the
+    /// in-process DNS forwarder bound to the tunnel while it is up; the default DoH/DoT
+    /// resolver would create unbound sockets of its own and leak outside of the tunnel.
+    #[cfg(target_os = "ios")]
+    pub fn with_bound_interface(&self, interface: &str) -> Result<Self> {
+        let reqwest_builder = nym_http_api_client::registry::default_builder()
+            .interface(interface)
+            .timeout(NYM_STATISTICS_API_TIMEOUT);
+        nym_http_api_client::Client::builder(self.base_url.clone())
+            .and_then(|builder| {
+                builder
+                    .with_user_agent(self.user_agent.clone())
+                    .with_timeout(NYM_STATISTICS_API_TIMEOUT)
+                    .with_reqwest_builder(reqwest_builder)
+                    .no_hickory_dns()
+                    .build()
+            })
+            .map(|inner| Self {
+                inner,
+                base_url: self.base_url.clone(),
+                user_agent: self.user_agent.clone(),
+            })
             .map_err(Box::new)
             .map_err(StatisticsApiClientError::VpnApiClientCreation)
     }
