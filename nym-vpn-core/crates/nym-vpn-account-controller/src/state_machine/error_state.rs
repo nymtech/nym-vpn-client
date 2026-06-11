@@ -124,8 +124,11 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ErrorState {
                     },
 
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
-                        shared_state.firewall_active = false;
                         return_sender.send(Ok(()));
+                        if shared_state.firewall_active {
+                            shared_state.firewall_active = false;
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
+                        }
                     },
                     AccountCommand::VpnApiFirewallUp(return_sender) => {
                         shared_state.firewall_active = true;

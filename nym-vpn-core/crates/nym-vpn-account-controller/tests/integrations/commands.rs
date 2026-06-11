@@ -455,3 +455,67 @@ async fn error_state_command() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[tokio::test]
+async fn error_state_firewall_down_triggers_sync_test() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_no_fair_usage()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::BandwidthExceeded {
+                context: "SYNCING_LOCAL_STATE".into(),
+            },
+        ))
+        .await;
+
+    test_bench.command_sender.set_vpn_api_firewall_up().await?;
+    test_bench
+        .command_sender
+        .set_vpn_api_firewall_down()
+        .await?;
+
+    // Any error reason + firewall down triggers optimistic sync (parity with local_state.rs).
+    // SyncingLocalState escalates to mandatory if the cache is stale after reset.
+    test_bench
+        .assert_state(AccountControllerState::Syncing)
+        .await;
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn non_bandwidth_error_state_firewall_down_triggers_sync_test() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_max_devices()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::MaxDeviceReached,
+        ))
+        .await;
+
+    test_bench.command_sender.set_vpn_api_firewall_up().await?;
+    test_bench
+        .command_sender
+        .set_vpn_api_firewall_down()
+        .await?;
+
+    test_bench
+        .assert_state(AccountControllerState::Syncing)
+        .await;
+
+    Ok(())
+}
