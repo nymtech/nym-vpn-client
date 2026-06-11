@@ -75,9 +75,9 @@ import GRPCManager
 #if os(iOS)
         guard let activeTunnel else { return true }
         switch activeTunnel.status {
-        case .disconnected, .offline, .unknown:
+        case .disconnected, .offline, .unknown, .error:
             return true
-        case .connected, .connecting, .disconnecting, .reasserting, .restarting, .offlineReconnect, .error:
+        case .connected, .connecting, .disconnecting, .reasserting, .restarting, .offlineReconnect:
             return false
         }
 #elseif os(macOS)

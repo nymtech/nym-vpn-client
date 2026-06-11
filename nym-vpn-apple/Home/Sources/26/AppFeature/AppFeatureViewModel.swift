@@ -193,15 +193,18 @@ import GRPCManager
     func handleCredentialChange(imported: Bool) {
         guard let current = drawerContent else { return }
         if imported {
-            guard current.allowsCredentialPromotion else { return }
-            startProcessingTransition()
-        } else {
-            pendingDrawerContent = nil
-            cancelProcessingTransition()
-            if current != .welcome {
-                drawerContent = .welcome
-            }
+            return
         }
+        pendingDrawerContent = nil
+        cancelProcessingTransition()
+        if current != .welcome {
+            drawerContent = .welcome
+        }
+    }
+
+    func handleAuthRegistrationComplete() {
+        guard drawerContent?.allowsCredentialPromotion == true else { return }
+        startProcessingTransition()
     }
 }
 
@@ -259,7 +262,7 @@ private extension AppFeatureViewModel {
             credentialsManager: credentialsManager,
             flow: pendingProcessingFlow,
             canPrefetchZkNyms: { [weak self] in
-                self?.connectionManager.canPrefetchZkNymsFromApp ?? false
+                self?.connectionManager.canPrefetchZkNymsFromApp ?? true
             }
         )
         viewModel.onFinished = { [weak self] in

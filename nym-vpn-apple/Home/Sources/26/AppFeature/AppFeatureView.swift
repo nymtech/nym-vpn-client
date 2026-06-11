@@ -127,6 +127,11 @@ public struct AppFeatureView: View {
         .onChange(of: isCredentialImported) { _, newValue in
             viewModel.handleCredentialChange(imported: newValue)
         }
+        .onChange(of: credentialsManager.didReceiveAccountLinkCallback) { _, completed in
+            if completed {
+                viewModel.handleAuthRegistrationComplete()
+            }
+        }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 viewModel.handleSceneBecameActive()
@@ -272,7 +277,8 @@ private extension AppFeatureView {
     var welcomeContent: some View {
         AuthFlowView(
             credentialsManager: viewModel.credentialsManager,
-            onWillRegister: { flow in viewModel.pendingProcessingFlow = flow }
+            onWillRegister: { flow in viewModel.pendingProcessingFlow = flow },
+            onAuthComplete: { viewModel.handleAuthRegistrationComplete() }
         )
         .trackHeight { welcomeHeight = $0 }
         .transition(.slideFade(from: .trailing))

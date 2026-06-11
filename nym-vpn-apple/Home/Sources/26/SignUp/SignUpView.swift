@@ -24,6 +24,7 @@ public struct SignUpView: View {
     private let rootMinHeight: CGFloat
     private let onBackTapped: () -> Void
     private let onWillRegister: () -> Void
+    private let onAuthComplete: () -> Void
 
 #if os(iOS)
     @State private var generateViewModel: GeneratePassphraseViewModel
@@ -38,15 +39,18 @@ public struct SignUpView: View {
         credentialsManager: CredentialsManager,
         rootMinHeight: CGFloat = 0,
         onBackTapped: @escaping () -> Void,
-        onWillRegister: @escaping () -> Void = {}
+        onWillRegister: @escaping () -> Void = {},
+        onAuthComplete: @escaping () -> Void = {}
     ) {
         self.credentialsManager = credentialsManager
         self.rootMinHeight = rootMinHeight
         self.onBackTapped = onBackTapped
         self.onWillRegister = onWillRegister
+        self.onAuthComplete = onAuthComplete
 #if os(iOS)
         let viewModel = GeneratePassphraseViewModel(credentialsManager: credentialsManager)
         viewModel.onWillRegister = onWillRegister
+        viewModel.onAuthComplete = onAuthComplete
         _generateViewModel = State(wrappedValue: viewModel)
 #endif
     }
@@ -103,6 +107,7 @@ public struct SignUpView: View {
 
     private func anonymousAccountTapped() {
 #if os(iOS)
+        onWillRegister()
         step = .generate
 #elseif os(macOS)
         startPrivyLogin(target: .anonymous)

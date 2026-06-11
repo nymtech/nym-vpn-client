@@ -11,6 +11,7 @@ struct AuthFlowView: View {
 
     let credentialsManager: CredentialsManager
     let onWillRegister: (ProcessingFlow) -> Void
+    let onAuthComplete: () -> Void
 
     @State private var step: Step = .welcome
     @State private var cardHeight: CGFloat?
@@ -22,10 +23,12 @@ struct AuthFlowView: View {
 
     init(
         credentialsManager: CredentialsManager,
-        onWillRegister: @escaping (ProcessingFlow) -> Void
+        onWillRegister: @escaping (ProcessingFlow) -> Void,
+        onAuthComplete: @escaping () -> Void = {}
     ) {
         self.credentialsManager = credentialsManager
         self.onWillRegister = onWillRegister
+        self.onAuthComplete = onAuthComplete
         _measurementPassphraseViewModel = State(
             wrappedValue: PassphraseSignInViewModel(credentialsManager: credentialsManager)
         )
@@ -95,7 +98,8 @@ private extension AuthFlowView {
                 credentialsManager: credentialsManager,
                 rootMinHeight: sharedRootHeight,
                 onBackTapped: { step = .welcome },
-                onWillRegister: { onWillRegister(.createAccount) }
+                onWillRegister: { onWillRegister(.createAccount) },
+                onAuthComplete: onAuthComplete
             )
             .fixedSize(horizontal: false, vertical: true)
             .trackHeight { cardHeight = $0 }
@@ -105,7 +109,8 @@ private extension AuthFlowView {
                 credentialsManager: credentialsManager,
                 rootMinHeight: sharedRootHeight,
                 onBackTapped: { step = .welcome },
-                onWillRegister: { onWillRegister(.login) }
+                onWillRegister: { onWillRegister(.login) },
+                onAuthComplete: onAuthComplete
             )
             .fixedSize(horizontal: false, vertical: true)
             .trackHeight { cardHeight = $0 }

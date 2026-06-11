@@ -3,7 +3,12 @@ import Combine
 import Theme
 
 public struct SwitchingTitlesView: View {
+    public static let defaultStepInterval: TimeInterval = 2.0
+    /// Post-auth account prep carousel: slow enough for zk-nym prefetch to run in parallel.
+    public static let accountProcessingStepInterval: TimeInterval = 4.0
+
     private let pairs: [(title: String, subtitle: String)]
+    private let stepInterval: TimeInterval
     private let timerDidTick: () -> Void
 
     @State private var currentIndex = 0
@@ -11,8 +16,14 @@ public struct SwitchingTitlesView: View {
 
     @Binding var didFinishAnimating: Bool
 
-    public init(pairs: [(String, String)], didFinishAnimating: Binding<Bool>, timerDidTick: @escaping () -> Void) {
+    public init(
+        pairs: [(String, String)],
+        stepInterval: TimeInterval = Self.defaultStepInterval,
+        didFinishAnimating: Binding<Bool>,
+        timerDidTick: @escaping () -> Void
+    ) {
         self.pairs = pairs.map { (title: $0.0, subtitle: $0.1) }
+        self.stepInterval = stepInterval
         _didFinishAnimating = didFinishAnimating
         self.timerDidTick = timerDidTick
     }
@@ -23,17 +34,27 @@ public struct SwitchingTitlesView: View {
                 .textStyle(.Headline.Medium.regular)
                 .foregroundStyle(NymColor.primary)
                 .multilineTextAlignment(.center)
+                .contentTransition(.opacity)
+                .animation(.easeInOut(duration: 0.35), value: currentIndex)
 
             Text(pairs[currentIndex].subtitle)
                 .textStyle(.Body.Medium.regular)
                 .foregroundColor(NymColor.gray1)
                 .multilineTextAlignment(.center)
+                .contentTransition(.opacity)
+                .animation(.easeInOut(duration: 0.35), value: currentIndex)
         }
         .onAppear {
             startTimer()
         }
         .onDisappear {
             stopTimer()
+        }
+        .onChange(of: didFinishAnimating) { _, finished in
+            if !finished {
+                currentIndex = 0
+                startTimer()
+            }
         }
     }
 }
@@ -42,7 +63,7 @@ private extension SwitchingTitlesView {
     func startTimer() {
         stopTimer()
 
-        timerCancellable = Timer.publish(every: 2.0, on: .main, in: .common)
+        timerCancellable = Timer.publish(every: stepInterval, on: .main, in: .common)
             .autoconnect()
             .sink { _ in
                 advanceIndex()

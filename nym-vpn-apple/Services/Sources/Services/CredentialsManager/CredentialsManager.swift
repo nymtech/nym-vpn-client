@@ -195,6 +195,7 @@ import PathManager
                 environment: networkEnv
             ).loginWithDeeplinkMnemonic(deeplinkMnemonic: mnemonic)
         }.value
+        try await registerAccount()
         self.deeplinks = nil
         checkCredentialImport()
 #elseif os(macOS)
@@ -289,11 +290,13 @@ import PathManager
     public func prepareAccountForConnection(canPrefetchZkNyms: Bool = true) async throws {
         await updateAccountSummary(force: true, untilActive: true)
         guard isAccountActive() else {
+            logger.error("prepareAccountForConnection failed: account inactive after summary refresh")
             throw CredentialsManagerError.generalError("noActivePlan".localizedString)
         }
 
 #if os(iOS)
         guard canPrefetchZkNyms else {
+            logger.error("prepareAccountForConnection failed: prefetch blocked by tunnel lifecycle gate")
             throw CredentialsManagerError.generalError("disconnect".localizedString)
         }
         try await prefetchZkNyms()

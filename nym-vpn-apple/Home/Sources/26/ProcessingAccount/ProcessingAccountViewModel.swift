@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import CredentialsManager
+import UIComponents
 
 public enum ProcessingFlow: Sendable {
     case createAccount
@@ -11,6 +12,8 @@ public enum ProcessingFlow: Sendable {
 @MainActor
 @Observable
 public final class ProcessingAccountViewModel {
+    /// Pacing for the post-auth carousel while account prep and zk-nym prefetch run in parallel.
+    public static let processingStepInterval = SwitchingTitlesView.accountProcessingStepInterval
     private static let finalMessageDuration = 2
 
     private let prepareAccountForConnection: @MainActor (Bool) async throws -> Void
@@ -24,6 +27,7 @@ public final class ProcessingAccountViewModel {
     var didFinishAnimatingText = false
     var didShowFinalMessage = false
     var errorMessage: String?
+    var titlesSessionID = UUID()
     private var didSettleAccount = false
 
     public init(
@@ -105,5 +109,6 @@ public final class ProcessingAccountViewModel {
         didShowFinalMessage = false
         currentStep = 1
         errorMessage = nil
+        titlesSessionID = UUID()
     }
 }

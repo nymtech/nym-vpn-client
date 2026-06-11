@@ -88,6 +88,7 @@ private extension ProcessingAccountView {
     var switchingTitles: some View {
         SwitchingTitlesView(
             pairs: ProcessingAccountView.pairs(for: viewModel.flow),
+            stepInterval: ProcessingAccountViewModel.processingStepInterval,
             didFinishAnimating: Binding(
                 get: { viewModel.didFinishAnimatingText },
                 set: { newValue in
@@ -98,6 +99,7 @@ private extension ProcessingAccountView {
                 viewModel.animationDidAdvance()
             }
         )
+        .id(viewModel.titlesSessionID)
     }
 
     var welcomeMessage: some View {

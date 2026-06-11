@@ -12,6 +12,7 @@ public struct SignInView: View {
     private let rootMinHeight: CGFloat
     private let onBackTapped: () -> Void
     private let onWillRegister: () -> Void
+    private let onAuthComplete: () -> Void
 
     @State private var passphraseViewModel: PassphraseSignInViewModel
     @State private var showsPassphrase = false
@@ -24,14 +25,17 @@ public struct SignInView: View {
         credentialsManager: CredentialsManager,
         rootMinHeight: CGFloat = 0,
         onBackTapped: @escaping () -> Void,
-        onWillRegister: @escaping () -> Void = {}
+        onWillRegister: @escaping () -> Void = {},
+        onAuthComplete: @escaping () -> Void = {}
     ) {
         self.credentialsManager = credentialsManager
         self.rootMinHeight = rootMinHeight
         self.onBackTapped = onBackTapped
         self.onWillRegister = onWillRegister
+        self.onAuthComplete = onAuthComplete
         let viewModel = PassphraseSignInViewModel(credentialsManager: credentialsManager)
         viewModel.onWillRegister = onWillRegister
+        viewModel.onAuthComplete = onAuthComplete
         _passphraseViewModel = State(wrappedValue: viewModel)
     }
 
@@ -42,7 +46,10 @@ public struct SignInView: View {
                     minHeight: rootMinHeight,
                     isPrivyLoading: isPrivyLoading,
                     onBackTapped: onBackTapped,
-                    onPassphraseTapped: { showsPassphrase = true },
+                    onPassphraseTapped: {
+                        onWillRegister()
+                        showsPassphrase = true
+                    },
                     onSocialsTapped: startPrivyLogin
                 )
                 .fixedSize(horizontal: false, vertical: true)

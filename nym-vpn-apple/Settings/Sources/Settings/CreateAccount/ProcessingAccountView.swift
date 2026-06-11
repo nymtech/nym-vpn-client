@@ -15,6 +15,7 @@ public struct ProcessingAccountView: View {
     @State private var didSettleAccount = false
     @State private var errorMessage: String?
     @State private var currentStep = 1
+    @State private var titlesSessionID = UUID()
 
     public var body: some View {
         VStack(alignment: .center, spacing: 0) {
@@ -82,11 +83,13 @@ private extension ProcessingAccountView {
                     ("processingAccount.title4".localizedString, "processingAccount.subtitle4".localizedString),
                     ("processingAccount.title5".localizedString, "processingAccount.subtitle5".localizedString)
                 ],
+                stepInterval: SwitchingTitlesView.accountProcessingStepInterval,
                 didFinishAnimating: $didFinishAnimatingText,
                 timerDidTick: {
                     currentStep += 1
                 }
             )
+            .id(titlesSessionID)
         }
     }
 }
@@ -118,6 +121,7 @@ private extension ProcessingAccountView {
         didSettleAccount = false
         errorMessage = nil
         currentStep = 1
+        titlesSessionID = UUID()
     }
 
 }

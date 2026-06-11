@@ -5,9 +5,12 @@ import CredentialsManager
 @MainActor
 @Observable
 public final class GeneratePassphraseViewModel {
-    private let credentialsManager: CredentialsManager
+    private let isValidCredentialImported: () -> Bool
+    private let createMnemonic: () async throws -> Void
+    private let registerAccount: () async throws -> Void
     @ObservationIgnored private var registrationTask: Task<Void, Never>?
     @ObservationIgnored public var onWillRegister: (() -> Void)?
+    @ObservationIgnored public var onAuthComplete: (() -> Void)?
 
     var currentStep: Int = 1
     var didFinishAnimatingText = false
@@ -17,7 +20,19 @@ public final class GeneratePassphraseViewModel {
     private var isRegistering = false
 
     public init(credentialsManager: CredentialsManager) {
-        self.credentialsManager = credentialsManager
+        self.isValidCredentialImported = { credentialsManager.isValidCredentialImported }
+        self.createMnemonic = { try await credentialsManager.createMnemonic() }
+        self.registerAccount = { try await credentialsManager.registerAccount() }
+    }
+
+    init(
+        isValidCredentialImported: @escaping () -> Bool = { true },
+        createMnemonic: @escaping () async throws -> Void = {},
+        registerAccount: @escaping () async throws -> Void
+    ) {
+        self.isValidCredentialImported = isValidCredentialImported
+        self.createMnemonic = createMnemonic
+        self.registerAccount = registerAccount
     }
 
     func start() {
@@ -29,12 +44,12 @@ public final class GeneratePassphraseViewModel {
             guard let self else { return }
             defer { self.isRegistering = false }
             do {
-                if !credentialsManager.isValidCredentialImported {
-                    try await credentialsManager.createMnemonic()
+                if !isValidCredentialImported() {
+                    try await createMnemonic()
                 }
-                onWillRegister?()
-                try await credentialsManager.registerAccount()
+                try await registerAccount()
                 didRegisterAccount = true
+                onAuthComplete?()
             } catch is CancellationError {
                 return
             } catch {

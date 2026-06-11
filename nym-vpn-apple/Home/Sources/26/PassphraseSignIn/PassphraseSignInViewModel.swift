@@ -13,9 +13,11 @@ public final class PassphraseSignInViewModel {
         case failed
     }
 
-    private let credentialsManager: CredentialsManager
+    private let addCredential: (String) async throws -> Void
+    private let registerAccount: () async throws -> Void
     @ObservationIgnored private var loginTask: Task<Void, Never>?
     @ObservationIgnored public var onWillRegister: (() -> Void)?
+    @ObservationIgnored public var onAuthComplete: (() -> Void)?
 
     var passphraseText: String = "" {
         didSet {
@@ -28,7 +30,16 @@ public final class PassphraseSignInViewModel {
     var submissionState: SubmissionState = .idle
 
     public init(credentialsManager: CredentialsManager) {
-        self.credentialsManager = credentialsManager
+        self.addCredential = { try await credentialsManager.add(credential: $0) }
+        self.registerAccount = { try await credentialsManager.registerAccount() }
+    }
+
+    init(
+        addCredential: @escaping (String) async throws -> Void,
+        registerAccount: @escaping () async throws -> Void
+    ) {
+        self.addCredential = addCredential
+        self.registerAccount = registerAccount
     }
 
     func loginButtonTapped() {
@@ -39,9 +50,9 @@ public final class PassphraseSignInViewModel {
         loginTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
-                try await credentialsManager.add(credential: credential)
-                onWillRegister?()
-                try await credentialsManager.registerAccount()
+                try await addCredential(credential)
+                try await registerAccount()
+                onAuthComplete?()
                 passphraseText = ""
                 submissionState = .idle
             } catch is CancellationError {
