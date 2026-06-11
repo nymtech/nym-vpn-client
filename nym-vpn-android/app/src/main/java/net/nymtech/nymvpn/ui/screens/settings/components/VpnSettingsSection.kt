@@ -163,32 +163,30 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 					onClick = actions.onDnsClick,
 				),
 			)
-			if (values.isMixnetTuningEnabled) {
-				add(
-					SelectionItem(
-						leading = {
-							SettingsIcon(
-								Icons.Outlined.VisibilityOff,
-								stringResource(R.string.settings_mixnet_tuning_title),
-							)
-						},
-						trailing = {
-							SettingsArrowIcon()
-						},
-						description = {
-							Text(
-								stringResource(R.string.settings_mixnet_tuning_description),
-								style = MaterialTheme.typography.bodySmall,
-								color = MaterialTheme.colorScheme.onBackground,
-							)
-						},
-						title = {
-							SettingsTitle(stringResource(R.string.settings_mixnet_tuning_title))
-						},
-						onClick = actions.onMixnetTuningClick,
-					),
-				)
-			}
+			add(
+				SelectionItem(
+					leading = {
+						SettingsIcon(
+							Icons.Outlined.VisibilityOff,
+							stringResource(R.string.settings_mixnet_tuning_title),
+						)
+					},
+					trailing = {
+						SettingsArrowIcon()
+					},
+					description = {
+						Text(
+							stringResource(R.string.settings_mixnet_tuning_description),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onBackground,
+						)
+					},
+					title = {
+						SettingsTitle(stringResource(R.string.settings_mixnet_tuning_title))
+					},
+					onClick = actions.onMixnetTuningClick,
+				),
+			)
 			add(
 				SelectionItem(
 					leading = {

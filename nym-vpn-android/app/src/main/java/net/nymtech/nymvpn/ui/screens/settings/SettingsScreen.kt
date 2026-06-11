@@ -135,7 +135,6 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			appSystemTrayEnabled = false,
 			appVersion = BuildConfig.VERSION_NAME,
 			daemonVersion = uiState.daemonVersion,
-			isMixnetTuningEnabled = uiState.isMixnetTuningEnabled,
 			subscription = appUiState.subscription,
 		),
 		SettingsActions(
