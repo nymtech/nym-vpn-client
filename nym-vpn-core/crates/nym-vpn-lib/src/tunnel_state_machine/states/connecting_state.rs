@@ -427,7 +427,7 @@ impl ConnectingState {
             tracing::info!("Forcing account state refresh due to device time being desynced");
             if let Err(err) = shared_state
                 .account_command_tx
-                .background_refresh_account_state()
+                .refresh_account_state(true)
                 .await
             {
                 trace_err_chain!(
