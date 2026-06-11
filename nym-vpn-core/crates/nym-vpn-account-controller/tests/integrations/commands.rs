@@ -477,7 +477,10 @@ async fn bandwidth_exceeded_firewall_down_triggers_sync_test() -> anyhow::Result
 
     // Simulate VPN connected (firewall active), then disconnected
     test_bench.command_sender.set_vpn_api_firewall_up().await?;
-    test_bench.command_sender.set_vpn_api_firewall_down().await?;
+    test_bench
+        .command_sender
+        .set_vpn_api_firewall_down()
+        .await?;
 
     // BandwidthExceeded + firewall down must trigger an immediate mandatory sync
     test_bench
@@ -509,7 +512,10 @@ async fn non_bandwidth_error_firewall_down_does_not_sync_test() -> anyhow::Resul
     let mut state_watcher = test_bench.state_receiver.subscribe();
 
     test_bench.command_sender.set_vpn_api_firewall_up().await?;
-    test_bench.command_sender.set_vpn_api_firewall_down().await?;
+    test_bench
+        .command_sender
+        .set_vpn_api_firewall_down()
+        .await?;
 
     // The firewall-down sync transition is scoped to BandwidthExceeded only. A
     // non-bandwidth error must stay in error (the 120s refresh timer will not
