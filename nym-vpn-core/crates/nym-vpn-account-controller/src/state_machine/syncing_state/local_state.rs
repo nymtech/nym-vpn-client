@@ -5,6 +5,7 @@ use std::{sync::Arc, time::Duration};
 
 use crate::{
     SharedAccountState,
+    account_readiness::{self, LocalSyncCheck},
     commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
@@ -124,30 +125,17 @@ impl SyncingLocalState {
         device: Device,
         summary: VpnAccountSummary,
     ) {
-        // Checking that the account is active
-        let result = if !summary.is_account_active() {
-            Err(SyncError::InactiveAccount(
-                summary.account_status.to_string(),
-            ))
-        } else if summary.is_subscription_pending() {
-            // subscription exists but is not yet active (e.g. cash payment still processing)
-            Err(SyncError::PendingSubscription)
-        } else if !summary.is_subscription_active() {
-            // that there is an active subscription
-            Err(SyncError::InactiveSubscription)
-        } else if !summary.is_device_active {
-            // that the device is registered or there is a spot left for it with fair usage
-            if summary.remaining_devices == 0 {
-                Err(SyncError::MaxDeviceReached) // Early detection of max device reached
-            } else if !summary.fair_usage_left() {
-                Err(SyncError::FairUsageDepleted)
-            } else {
+        let result = match account_readiness::classify_local_sync(&summary) {
+            LocalSyncCheck::Ready => Ok(false),
+            LocalSyncCheck::MustRegisterDevice => {
                 Self::register_device(&vpn_api_client, &vpn_api_account, &device).await
             }
-        } else if !summary.time_synced {
-            Err(SyncError::DeviceTimeDesynced)
-        } else {
-            Ok(false)
+            LocalSyncCheck::PendingSubscription => Err(SyncError::PendingSubscription),
+            LocalSyncCheck::InactiveAccount(status) => Err(SyncError::InactiveAccount(status)),
+            LocalSyncCheck::InactiveSubscription => Err(SyncError::InactiveSubscription),
+            LocalSyncCheck::MaxDevicesReached => Err(SyncError::MaxDeviceReached),
+            LocalSyncCheck::FairUsageDepleted => Err(SyncError::FairUsageDepleted),
+            LocalSyncCheck::DeviceTimeDesynced => Err(SyncError::DeviceTimeDesynced),
         };
 
         result_tx.send(result).ok();
@@ -164,7 +152,7 @@ impl SyncingLocalState {
             .map_err(|err| SyncError::UnregisteredDevice {
                 details: err.to_string(),
             })?;
-        Ok(true) // We just registered the device, we must update the summary (no need for a full refetch)
+        Ok(true)
     }
 }
 

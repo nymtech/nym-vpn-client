@@ -22,6 +22,9 @@ public enum ProcessingAccountErrorMapper {
             if details.contains("Fair usage depleted") {
                 return "errorReason.bandwidthExceeded".localizedString
             }
+            if details.contains("Device time is desynced") {
+                return "errorReason.deviceTimeOutOfSync".localizedString
+            }
             return details
         case let .ZkNymAcquisitionFailure(details: details):
             if details.contains("BandwidthExceeded") || details.contains("Fair usage depleted") {

@@ -16,6 +16,13 @@ import NymVPNLib
     #expect(message == "errorReason.bandwidthExceeded".localizedString)
 }
 
+@Test func mapsDeviceTimeDesyncedInternalError() {
+    let message = ProcessingAccountErrorMapper.localizedMessage(
+        for: VpnError.InternalError(details: "Device time is desynced")
+    )
+    #expect(message == "errorReason.deviceTimeOutOfSync".localizedString)
+}
+
 @Test func mapsZkNymDeviceNotAuthenticatedFailure() {
     let message = ProcessingAccountErrorMapper.localizedMessage(
         for: VpnError.ZkNymAcquisitionFailure(

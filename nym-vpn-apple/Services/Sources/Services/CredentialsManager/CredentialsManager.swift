@@ -29,6 +29,10 @@ import PathManager
 #endif
     private var cancellables = Set<AnyCancellable>()
     private var accountSummaryUpdateTask: Task<Void, Never>?
+#if os(iOS)
+    /// Set after post-login account setup completes; avoids redundant summary sync during processing.
+    private var accountSetupCompletedAt: Date?
+#endif
 
     public static let shared = CredentialsManager()
 
@@ -137,9 +141,29 @@ import PathManager
             ).registerAccount()
         }.value
         appSettings.accountToken = result.accountToken
+        try await prepareRegisteredAccount()
         checkCredentialImport()
 #endif
     }
+
+#if os(iOS)
+    /// Sync summary and register the device when subscription is active. Called after
+    /// `registerAccount()` and as a repair path before processing when setup did not run.
+    public func prepareRegisteredAccount() async throws {
+        let envOpt = configurationManager.networkEnv
+        try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            let env = try envOpt ?? .newWithMainnetFallback()
+            try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: env
+            ).prepareRegisteredAccount()
+        }.value
+        accountSetupCompletedAt = Date()
+        await updateAccountSummary(force: true)
+        logger.info("Post-login account setup completed")
+    }
+#endif
 
     public func removeCredential() async throws {
 #if os(iOS)
@@ -161,6 +185,9 @@ import PathManager
         isAccountSummaryOverridden = false
 #endif
         accountSummary = nil
+#if os(iOS)
+        accountSetupCompletedAt = nil
+#endif
     }
 
     public func privyLogin(kind: NymDeeplinkKind) async throws -> String? {
@@ -291,7 +318,13 @@ import PathManager
         canPrefetchZkNyms: Bool = true,
         requireActiveSubscription: Bool = true
     ) async throws {
-        await updateAccountSummary(force: true, untilActive: requireActiveSubscription)
+#if os(iOS)
+        if needsRegisteredAccountSetup() {
+            try await prepareRegisteredAccount()
+        }
+#endif
+        let skipForcedSummaryRefresh = !requireActiveSubscription && isAccountSetupRecentlyCompleted()
+        await updateAccountSummary(force: !skipForcedSummaryRefresh, untilActive: requireActiveSubscription)
         guard isAccountActive() else {
             if requireActiveSubscription {
                 logger.error("prepareAccountForConnection failed: account inactive after summary refresh")
@@ -309,7 +342,9 @@ import PathManager
                 logger.error(
                     "prepareAccountForConnection: zk-nym prefetch failed \(Self.sanitizedAccountSummaryErrorLog(error))"
                 )
-                throw error
+                if requireActiveSubscription {
+                    throw error
+                }
             }
         } else {
             logger.info("prepareAccountForConnection: skipping zk-nym prefetch while tunnel owns the store")
@@ -433,6 +468,15 @@ import PathManager
 
 #if os(iOS)
 private extension CredentialsManager {
+    func needsRegisteredAccountSetup() -> Bool {
+        !isAccountSetupRecentlyCompleted()
+    }
+
+    func isAccountSetupRecentlyCompleted(within seconds: TimeInterval = 300) -> Bool {
+        guard let accountSetupCompletedAt else { return false }
+        return Date().timeIntervalSince(accountSetupCompletedAt) < seconds
+    }
+
     func prefetchZkNyms() async throws {
         let envOpt = configurationManager.networkEnv
         let outcome = try await Task {

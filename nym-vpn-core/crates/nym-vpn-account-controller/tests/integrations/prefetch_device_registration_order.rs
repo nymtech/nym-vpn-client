@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use nym_vpn_account_controller::{
-    PrefetchZkNymOutcome, prefetch_zk_nyms, register_device_for_prefetch_if_needed,
+    PrefetchZkNymOutcome, prefetch_zk_nyms, register_device_if_needed,
 };
 use nym_vpn_api_client::{
     api_urls_to_urls,
@@ -90,8 +90,7 @@ async fn register_device_precedes_zknym_requests_on_prefetch_path() -> anyhow::R
         .await?;
     let mut summary = VpnAccountSummary::from_parts(&api_summary, account.mode(), remote_time)?;
 
-    register_device_for_prefetch_if_needed(&vpn_api_client, &account, &device, &mut summary)
-        .await?;
+    register_device_if_needed(&vpn_api_client, &account, &device, &mut summary).await?;
 
     assert!(summary.is_device_active);
 

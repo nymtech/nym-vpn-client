@@ -6,8 +6,10 @@ use std::{path::PathBuf, sync::Arc};
 use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
-use nym_vpn_account_controller::PrefetchZkNymOutcome;
 use nym_vpn_account_controller::{CreateDeeplinkParams, Deeplink};
+use nym_vpn_account_controller::{
+    PrefetchZkNymOutcome, SUMMARY_STALE_AFTER, register_device_if_needed, verify_time_synced,
+};
 use nym_vpn_api_client::{
     VpnApiClient,
     response::NymVpnRegisterAccountResponse,
@@ -395,6 +397,61 @@ impl NymVpnAccountStorage {
         Ok(RegisterAccountResponse { account_token })
     }
 
+    /// Sync account summary from the VPN API and register the device when the
+    /// subscription is active. Intended immediately after [`Self::register_account`]
+    /// on iOS login paths so zk-nym prefetch and connect assume a registered device.
+    pub async fn prepare_registered_account(&self) -> Result<(), VpnError> {
+        let vpn_api_client = self.create_vpn_api_client().await?;
+        let account = self
+            .storage
+            .load_account()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
+        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let device = self.load_device().await?;
+
+        let mut summary = self
+            .sync_account_summary_from_network_with_client(&vpn_api_client)
+            .await?;
+
+        if summary.is_account_active()
+            && !summary.is_subscription_pending()
+            && summary.is_subscription_active()
+        {
+            let registered =
+                register_device_if_needed(&vpn_api_client, &account, &device, &mut summary)
+                    .await
+                    .map_err(|err| VpnError::InternalError {
+                        details: err.to_string(),
+                    })?;
+
+            if summary.is_device_active {
+                verify_time_synced(&summary).map_err(|err| VpnError::InternalError {
+                    details: err.to_string(),
+                })?;
+            }
+
+            if registered {
+                tracing::info!(
+                    "Device registered for account {} during post-login setup",
+                    account.id()
+                );
+            }
+        }
+
+        self.storage
+            .store_summary(summary)
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?;
+
+        Ok(())
+    }
+
     /// Prefetch zk-nyms into the local credential store without a running
     /// account controller, so the next connect can skip the zk-nym fetch
     /// during `AwaitingAccountReadiness`.
@@ -418,11 +475,25 @@ impl NymVpnAccountStorage {
         let device = self.load_device().await?;
         let vpn_api_client = self.create_vpn_api_client().await?;
 
-        // Zk-nym endpoints require the device to be registered on the account, not just
-        // locally keyed. Mirror the account controller's SyncingLocalState path.
-        let summary = self
-            .ensure_device_registered(&vpn_api_client, &account, &device)
-            .await?;
+        let mut summary = self.load_cached_summary_or_sync(&vpn_api_client).await?;
+
+        if !summary.is_device_active {
+            tracing::warn!(
+                "prefetch_zk_nyms: device not registered; attempting repair registration before zk-nym fetch"
+            );
+            register_device_if_needed(&vpn_api_client, &account, &device, &mut summary)
+                .await
+                .map_err(|err| VpnError::InternalError {
+                    details: err.to_string(),
+                })?;
+            self.storage
+                .store_summary(summary.clone())
+                .await
+                .map_err(|err| VpnError::Storage {
+                    details: err.to_string(),
+                })?;
+        }
+
         let fair_usage_left = summary.fair_usage_left();
 
         nym_vpn_account_controller::prefetch_zk_nyms(
@@ -515,40 +586,25 @@ impl NymVpnAccountStorage {
         Ok(summary)
     }
 
-    async fn ensure_device_registered(
+    async fn load_cached_summary_or_sync(
         &self,
         vpn_api_client: &VpnApiClient,
-        account: &VpnAccount,
-        device: &Device,
     ) -> Result<VpnAccountSummary, VpnError> {
-        let mut summary = self
-            .sync_account_summary_from_network_with_client(vpn_api_client)
-            .await?;
-
-        let was_device_active = summary.is_device_active;
-
-        nym_vpn_account_controller::register_device_for_prefetch_if_needed(
-            vpn_api_client,
-            account,
-            device,
-            &mut summary,
-        )
-        .await
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })?;
-
-        if !was_device_active {
+        if let Some(summary) =
             self.storage
-                .store_summary(summary.clone())
+                .load_summary()
                 .await
                 .map_err(|err| VpnError::Storage {
                     details: err.to_string(),
-                })?;
-            tracing::info!("Device registered for account {}", account.id());
+                })?
+            && !summary.is_stale(SUMMARY_STALE_AFTER)
+        {
+            tracing::debug!("Using cached account summary for zk-nym prefetch");
+            return Ok(summary);
         }
 
-        Ok(summary)
+        self.sync_account_summary_from_network_with_client(vpn_api_client)
+            .await
     }
 
     async fn register_account_by_account(
