@@ -27,8 +27,6 @@ import GRPCManager
     )
 #endif
 
-    public var isMixnetTuningEnabled = false
-
 #if os(iOS)
     init(configurationManager: ConfigurationManager, appSettings: AppSettings) {
         self.configurationManager = configurationManager
@@ -52,7 +50,6 @@ import GRPCManager
     public func setup() {
         setupPeriodicRefresh()
         setupEnvironmentChangeObserver()
-        setupAppSettingsObservers()
         updateFeatureFlags()
     }
 }
@@ -81,16 +78,6 @@ private extension FeatureFlagsManager {
         }
     }
 
-    func setupAppSettingsObservers() {
-        appSettings.$isMixnetTuningEnabledPublisher
-            .sink { [weak self] newValue in
-                self?.isMixnetTuningEnabled = newValue
-                guard !newValue else { return }
-                self?.updateFeatureFlags()
-            }
-            .store(in: &cancellables)
-    }
-
     func setupPeriodicRefresh() {
         Timer
             .publish(every: 600, on: .main, in: .common)
@@ -112,10 +99,6 @@ private extension FeatureFlagsManager {
 #elseif os(macOS)
             guard let flags = try? await self?.grpcManager.fetchFeatureFlags() else { return }
 #endif
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.isMixnetTuningEnabled = flags.isMixnetTuningEnabled() ?? self.appSettings.isMixnetTuningEnabled
-            }
         }
     }
 }
