@@ -84,14 +84,8 @@ pub async fn prefetch_zk_nyms(
         Err(err) => return Err(err),
     };
 
-    prefetch_zk_nyms_assuming_store_lock(
-        data_dir,
-        vpn_api_client,
-        account,
-        device,
-        fair_usage_left,
-    )
-    .await
+    prefetch_zk_nyms_assuming_store_lock(data_dir, vpn_api_client, account, device, fair_usage_left)
+        .await
 }
 
 fn map_fetch_result(
