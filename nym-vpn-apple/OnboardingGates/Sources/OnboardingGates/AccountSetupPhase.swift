@@ -46,3 +46,21 @@ public enum OnboardingLaunchPolicy {
         !displayPurchaseView
     }
 }
+
+/// Connection-time account-setup repair decision.
+///
+/// `prepareRegisteredAccount` only syncs the summary and registers the device; it cannot
+/// repair a missing account token. When setup is needed and no token exists (carousel
+/// skipped/failed, or a non-welcome entry path), the full `registerAccount` POST must run.
+public enum AccountRepairAction: String, Sendable, Equatable {
+    case none
+    case registerAccount
+    case prepareRegisteredAccount
+}
+
+public enum AccountSetupRepairGate {
+    public static func repairAction(needsSetup: Bool, hasAccountToken: Bool) -> AccountRepairAction {
+        guard needsSetup else { return .none }
+        return hasAccountToken ? .prepareRegisteredAccount : .registerAccount
+    }
+}

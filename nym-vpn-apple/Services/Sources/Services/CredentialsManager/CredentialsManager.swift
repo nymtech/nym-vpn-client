@@ -334,10 +334,22 @@ import PathManager
         logger.info(
             "prepareAccountForConnection started requireActiveSubscription=\(requireActiveSubscription) canPrefetchZkNyms=\(canPrefetchZkNyms)"
         )
-        if needsRegisteredAccountSetup() {
+        switch AccountSetupRepairGate.repairAction(
+            needsSetup: needsRegisteredAccountSetup(),
+            hasAccountToken: appSettings.accountToken != nil
+        ) {
+        case .registerAccount:
+            // Account was never registered (carousel skipped/failed, or a non-welcome entry path).
+            // registerAccount() does the account POST + token, then summary + device setup.
+            accountSetupPhase = .registeringDevice
+            logger.info("prepareAccountForConnection running repair account registration (no token)")
+            try await registerAccount()
+        case .prepareRegisteredAccount:
             accountSetupPhase = .registeringDevice
             logger.info("prepareAccountForConnection running repair account setup")
             try await prepareRegisteredAccount()
+        case .none:
+            break
         }
 #endif
 #if os(iOS)

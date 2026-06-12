@@ -51,7 +51,8 @@ impl CredentialStoreAccessLock {
         {
             use std::os::unix::fs::PermissionsExt;
             let permissions = std::fs::Permissions::from_mode(0o700);
-            std::fs::set_permissions(data_dir, permissions).map_err(Error::CredentialStoreLockIo)?;
+            std::fs::set_permissions(data_dir, permissions)
+                .map_err(Error::CredentialStoreLockIo)?;
         }
         Ok(())
     }
