@@ -109,6 +109,7 @@ impl NymVpnAccountStorage {
         &self,
         deeplink_mnemonic: Arc<NymDeeplinkMnemonic>,
     ) -> Result<(), VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         let deeplink_mnemonic = deeplink_mnemonic.inner();
 
         let account = StorableAccount {
@@ -255,6 +256,7 @@ impl NymVpnAccountStorage {
     /// Remove the account mnemonic and all associated keys and files.
     /// This is a version that can be called when the account controller is not running.
     pub async fn forget_account(&self) -> Result<(), VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         tracing::info!(
             "REMOVING ALL ACCOUNT AND DEVICE DATA IN: {}",
             self.storage_path.display()
