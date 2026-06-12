@@ -457,7 +457,7 @@ import PathManager
                 ).getAccountSummary()
             }.value
         } catch {
-            if error is VpnError.AccountStoreBusy {
+            if let vpnError = error as? VpnError, case .AccountStoreBusy = vpnError {
                 consecutiveStoreBusyCount += 1
                 if consecutiveStoreBusyCount >= Self.maxStoreBusyRetries {
                     accountSummaryLastFetchFailed = true
