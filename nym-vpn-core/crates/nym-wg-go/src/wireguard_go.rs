@@ -4,7 +4,7 @@
 #[cfg(unix)]
 use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 use std::{
-    ffi::{CStr, CString, c_char, c_void},
+    ffi::{c_char, c_void, CStr, CString},
     fmt,
     net::SocketAddr,
     sync::{Arc, RwLock},
@@ -19,7 +19,7 @@ use typed_builder::TypedBuilder;
 use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use super::{
-    Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, Result, uapi::UapiConfigBuilder,
+    uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, Result,
 };
 #[cfg(feature = "amnezia")]
 use crate::amnezia::AmneziaConfig;
@@ -354,12 +354,11 @@ impl Tunnel {
     }
 
     fn stop_inner(&mut self) {
-        let handle = self.tunnel_handle.read().unwrap();
-        if *handle >= 0 {
-            unsafe { wgTurnOff(*handle) };
-        }
-        drop(handle);
+        let handle = *self.tunnel_handle.read().unwrap();
         *self.tunnel_handle.write().unwrap() = -1;
+        if handle >= 0 {
+            unsafe { wgTurnOff(handle) };
+        }
     }
 }
 
