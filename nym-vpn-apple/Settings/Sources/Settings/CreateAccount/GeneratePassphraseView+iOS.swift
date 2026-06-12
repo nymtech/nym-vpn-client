@@ -77,6 +77,7 @@ extension GeneratePassphraseView {
                 return
             }
             OnboardingSession.shared.advance(to: .purchaseComplete)
+            OnboardingSession.shared.markPurchaseFlowDismissed()
             navigateToPaymentSuccessView()
         } catch {
             Task { @MainActor in

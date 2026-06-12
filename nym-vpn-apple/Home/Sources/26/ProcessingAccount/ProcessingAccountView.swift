@@ -15,8 +15,10 @@ struct ProcessingAccountView: View {
 
     var body: some View {
         ZStack(alignment: .top) {
-            measurementLayer
             content
+        }
+        .background {
+            measurementLayer
         }
         .padding(.horizontal, NymSpacing.component)
         .padding(.vertical, AuthLayout.verticalPadding)
@@ -50,15 +52,14 @@ private extension ProcessingAccountView {
     }
 
     var measurementLayer: some View {
-        ZStack(alignment: .top) {
+        VStack(spacing: 16) {
             ForEach(Array(ProcessingAccountView.pairs(for: viewModel.flow).enumerated()), id: \.offset) { _, pair in
                 titlePairMeasurement(title: pair.0, subtitle: pair.1)
             }
             welcomeMessage
-                .trackHeight { titleBlockHeight = max(titleBlockHeight, $0) }
         }
         .fixedSize(horizontal: false, vertical: true)
-        .hidden()
+        .opacity(0)
         .accessibilityHidden(true)
         .allowsHitTesting(false)
     }

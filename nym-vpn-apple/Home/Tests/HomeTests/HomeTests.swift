@@ -73,7 +73,7 @@ final class HomeTests: XCTestCase {
         XCTAssertEqual(SwitchingTitlesView.accountProcessingStepInterval, 4.0)
     }
 
-    func testProcessingExitsEarlyWhenWorkCompletesBeforeCarousel() async throws {
+    func testProcessingWaitsForMinimumCarouselBeforeAccountReady() async throws {
         let viewModel = ProcessingAccountViewModel(
             flow: .login,
             prepareAccount: { _ in }
@@ -81,32 +81,46 @@ final class HomeTests: XCTestCase {
 
         viewModel.start()
         try await Task.sleep(for: .milliseconds(50))
+        XCTAssertFalse(viewModel.didShowFinalMessage)
+
+        viewModel.animationDidAdvance()
+        try await Task.sleep(for: .milliseconds(50))
         XCTAssertTrue(viewModel.didShowFinalMessage)
     }
 
-    func testPassphraseLoginRegistersBeforeAuthComplete() async throws {
+    func testPassphraseLoginCompletesAuthBeforeRegister() async throws {
         var events: [String] = []
+        var registerCalled = false
         let viewModel = PassphraseSignInViewModel(
             addCredential: { _ in events.append("add") },
-            registerAccount: { events.append("register") }
+            registerAccount: {
+                registerCalled = true
+                events.append("register")
+            }
         )
         viewModel.onAuthComplete = { events.append("authComplete") }
         viewModel.passphraseText = "seed phrase"
         viewModel.loginButtonTapped()
         try await Task.sleep(for: .milliseconds(50))
-        XCTAssertEqual(events, ["add", "register", "authComplete"])
+        XCTAssertEqual(events, ["add", "authComplete"])
+        XCTAssertFalse(registerCalled)
     }
 
-    func testGeneratePassphraseRegistersBeforeAuthComplete() async throws {
+    func testGeneratePassphraseCompletesAuthBeforeRegister() async throws {
         var events: [String] = []
+        var registerCalled = false
         let viewModel = GeneratePassphraseViewModel(
             isValidCredentialImported: { true },
-            registerAccount: { events.append("register") }
+            registerAccount: {
+                registerCalled = true
+                events.append("register")
+            }
         )
         viewModel.onAuthComplete = { events.append("authComplete") }
         viewModel.start()
         try await Task.sleep(for: .milliseconds(50))
-        XCTAssertEqual(events, ["register", "authComplete"])
+        XCTAssertEqual(events, ["authComplete"])
+        XCTAssertFalse(registerCalled)
         XCTAssertTrue(viewModel.didRegisterAccount)
     }
 
@@ -134,7 +148,8 @@ final class HomeTests: XCTestCase {
         try await Task.sleep(for: .milliseconds(50))
         XCTAssertNil(viewModel.errorMessage)
 
-        viewModel.animationDidFinish()
+        viewModel.animationDidAdvance()
+        try await Task.sleep(for: .milliseconds(50))
         XCTAssertTrue(viewModel.didShowFinalMessage)
     }
 
@@ -155,6 +170,61 @@ final class HomeTests: XCTestCase {
         XCTAssertFalse(OnboardingSession.shared.shouldPresentPurchase)
         OnboardingSession.shared.cancelPurchaseFlow()
         XCTAssertTrue(OnboardingSession.shared.shouldPresentPurchase)
+    }
+
+    func testCancelPurchaseFlowNoOpWhenPhaseAdvanced() {
+        OnboardingSession.shared.advance(to: .purchaseComplete)
+        OnboardingSession.shared.cancelPurchaseFlow()
+        XCTAssertEqual(OnboardingSession.shared.phase, .purchaseComplete)
+    }
+
+    func testPostPurchaseGraceUsesVerifyingMessage() async throws {
+        OnboardingSession.shared.advance(to: .purchaseComplete)
+        let viewModel = ProcessingAccountViewModel(
+            flow: .postPurchase,
+            prepareAccount: { _ in throw CredentialsManagerError.subscriptionVerifying }
+        )
+        viewModel.start()
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(
+            viewModel.errorMessage,
+            CredentialsManagerError.subscriptionVerifying.localizedTitle
+        )
+    }
+
+    func testCarouselSessionIDSyncsWhenSessionRotatesAfterInit() {
+        OnboardingSession.shared.beginCarouselSession()
+        let viewModel = ProcessingAccountViewModel(
+            flow: .login,
+            prepareAccount: { _ in }
+        )
+        let initial = viewModel.titlesSessionID
+        OnboardingSession.shared.beginCarouselSession()
+        XCTAssertNotEqual(viewModel.titlesSessionID, initial)
+        XCTAssertEqual(viewModel.titlesSessionID, OnboardingSession.shared.carouselSessionID)
+    }
+
+    func testPostPurchaseGracePeriodActiveAfterPurchaseComplete() {
+        OnboardingSession.shared.advance(to: .purchaseComplete)
+        XCTAssertTrue(OnboardingSession.shared.isWithinPostPurchaseVerificationGracePeriod())
+    }
+
+    func testProcessingDoesNotForceAnimationCompletionWhenWorkSettles() async throws {
+        let viewModel = ProcessingAccountViewModel(
+            flow: .login,
+            prepareAccount: { _ in }
+        )
+        viewModel.start()
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertFalse(viewModel.didFinishAnimatingText, "Work settling must not force didFinishAnimatingText; animation owns that flag")
+    }
+
+    func testPurchaseFlowActiveClearedAfterSuccessfulPurchase() {
+        OnboardingSession.shared.markPurchaseFlowPresented()
+        XCTAssertTrue(OnboardingSession.shared.isPurchaseFlowActive)
+        OnboardingSession.shared.advance(to: .purchaseComplete)
+        OnboardingSession.shared.markPurchaseFlowDismissed()
+        XCTAssertFalse(OnboardingSession.shared.isPurchaseFlowActive)
     }
 
     func testPostPurchaseModeRequiresActiveSubscription() {

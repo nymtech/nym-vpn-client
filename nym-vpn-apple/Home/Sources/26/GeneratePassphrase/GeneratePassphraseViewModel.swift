@@ -7,7 +7,6 @@ import CredentialsManager
 public final class GeneratePassphraseViewModel {
     private let isValidCredentialImported: () -> Bool
     private let createMnemonic: () async throws -> Void
-    private let registerAccount: () async throws -> Void
     @ObservationIgnored private var registrationTask: Task<Void, Never>?
     @ObservationIgnored public var onAuthComplete: (() -> Void)?
 
@@ -21,17 +20,16 @@ public final class GeneratePassphraseViewModel {
     public init(credentialsManager: CredentialsManager) {
         self.isValidCredentialImported = { credentialsManager.isValidCredentialImported }
         self.createMnemonic = { try await credentialsManager.createMnemonic() }
-        self.registerAccount = { try await credentialsManager.registerAccount() }
     }
 
     init(
         isValidCredentialImported: @escaping () -> Bool = { true },
         createMnemonic: @escaping () async throws -> Void = {},
-        registerAccount: @escaping () async throws -> Void
+        registerAccount: @escaping () async throws -> Void = {}
     ) {
         self.isValidCredentialImported = isValidCredentialImported
         self.createMnemonic = createMnemonic
-        self.registerAccount = registerAccount
+        _ = registerAccount
     }
 
     func start() {
@@ -46,7 +44,6 @@ public final class GeneratePassphraseViewModel {
                 if !isValidCredentialImported() {
                     try await createMnemonic()
                 }
-                try await registerAccount()
                 didRegisterAccount = true
                 onAuthComplete?()
             } catch is CancellationError {

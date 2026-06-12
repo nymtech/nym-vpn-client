@@ -506,7 +506,7 @@ impl NymVpnAccountStorage {
 
         let fair_usage_left = summary.fair_usage_left();
 
-        nym_vpn_account_controller::prefetch_zk_nyms(
+        nym_vpn_account_controller::prefetch_zk_nyms_assuming_store_lock(
             self.storage_path.clone(),
             vpn_api_client,
             Arc::new(account),

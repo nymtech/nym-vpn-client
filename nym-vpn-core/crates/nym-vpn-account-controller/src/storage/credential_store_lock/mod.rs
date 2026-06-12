@@ -6,6 +6,7 @@
 //! The iOS app (prefetch) and network extension (account controller) share the
 //! same on-disk credential DB. An advisory flock on a dedicated lock file
 //! enforces temporal exclusion without relying on caller discipline alone.
+//! The flock is not re-entrant within a process.
 
 #[cfg(unix)]
 mod unix;

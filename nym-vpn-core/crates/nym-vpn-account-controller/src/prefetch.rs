@@ -43,19 +43,16 @@ pub enum PrefetchZkNymOutcome {
 /// `fair_usage_left` should come from the latest account summary
 /// (`VpnAccountSummary::fair_usage_left`); pass `true` to attempt regardless
 /// (the API rejects with a depleted code if not).
-pub async fn prefetch_zk_nyms(
+/// Prefetch zk-nyms when the caller already holds [`CredentialStoreAccessLock`]
+/// on `data_dir` (e.g. UniFFI `NymVpnAccountStorage::prefetch_zk_nyms`). The flock
+/// is not re-entrant; do not call [`prefetch_zk_nyms`] while holding the same lock.
+pub async fn prefetch_zk_nyms_assuming_store_lock(
     data_dir: PathBuf,
     vpn_api_client: VpnApiClient,
     account: Arc<VpnAccount>,
     device: Device,
     fair_usage_left: bool,
 ) -> Result<PrefetchZkNymOutcome, Error> {
-    let _store_lock = match CredentialStoreAccessLock::try_acquire(&data_dir) {
-        Ok(lock) => lock,
-        Err(Error::CredentialStoreBusy) => return Ok(PrefetchZkNymOutcome::SkippedStoreBusy),
-        Err(err) => return Err(err),
-    };
-
     let storage = VpnCredentialStorage::setup_from_path(&data_dir).await?;
     // Retain a handle to close the pool after the fetch (controller.rs:106, controller.rs:249).
     let storage_for_close = storage.clone();
@@ -72,6 +69,29 @@ pub async fn prefetch_zk_nyms(
     storage_for_close.close().await;
 
     map_fetch_result(result)
+}
+
+pub async fn prefetch_zk_nyms(
+    data_dir: PathBuf,
+    vpn_api_client: VpnApiClient,
+    account: Arc<VpnAccount>,
+    device: Device,
+    fair_usage_left: bool,
+) -> Result<PrefetchZkNymOutcome, Error> {
+    let _store_lock = match CredentialStoreAccessLock::try_acquire(&data_dir) {
+        Ok(lock) => lock,
+        Err(Error::CredentialStoreBusy) => return Ok(PrefetchZkNymOutcome::SkippedStoreBusy),
+        Err(err) => return Err(err),
+    };
+
+    prefetch_zk_nyms_assuming_store_lock(
+        data_dir,
+        vpn_api_client,
+        account,
+        device,
+        fair_usage_left,
+    )
+    .await
 }
 
 fn map_fetch_result(
@@ -98,7 +118,19 @@ pub fn map_prefetch_error_for_external(err: Error) -> PrefetchExternalError {
         Error::CredentialStoreBusy => PrefetchExternalError::StoreBusy,
         Error::PrefetchZkNym(details) => PrefetchExternalError::ZkNymAcquisitionFailure(details),
         Error::Internal(details) => PrefetchExternalError::Internal(details),
-        other => PrefetchExternalError::Internal(other.to_string()),
+        Error::SetupVpnApiClient(_)
+        | Error::AccountStore { .. }
+        | Error::KeyStore { .. }
+        | Error::AccountSummaryStore { .. }
+        | Error::StoragePaths(_)
+        | Error::CredentialStorage(_)
+        | Error::WireguardKeysStorage(_)
+        | Error::PendingCredentialRequestsStorage(_)
+        | Error::SetupCredentialStorage(_)
+        | Error::SetupPendingCredentialRequestsStorage(_)
+        | Error::RemoveCredentialStorage(_)
+        | Error::ParseTicketType(_)
+        | Error::CredentialStoreLockIo(_) => PrefetchExternalError::Internal(err.to_string()),
     }
 }
 
@@ -176,6 +208,58 @@ mod tests {
         assert_eq!(
             map_prefetch_error_for_external(Error::internal("Device time is desynced")),
             PrefetchExternalError::Internal("Device time is desynced".into())
+        );
+    }
+
+    #[test]
+    fn maps_unexpected_prefetch_errors_to_internal() {
+        assert_eq!(
+            map_prefetch_error_for_external(Error::ParseTicketType("mixnet".into())),
+            PrefetchExternalError::Internal("failed to parse ticket type: mixnet".into())
+        );
+    }
+
+    #[tokio::test]
+    async fn assuming_store_lock_does_not_return_skipped_store_busy() {
+        use crate::storage::CredentialStoreAccessLock;
+        use nym_vpn_api_client::api_urls_to_urls;
+        use nym_vpn_store::keys::device::DeviceKeys;
+        use tempfile::tempdir;
+
+        let dir = tempdir().expect("tempdir");
+        let _outer_lock = CredentialStoreAccessLock::try_acquire(dir.path()).expect("outer lock");
+
+        let api_url = nym_network_defaults::ApiUrl {
+            url: "http://127.0.0.1:1".parse().expect("url"),
+            front_hosts: None,
+        };
+        let urls = api_urls_to_urls(&[api_url]).expect("urls");
+        let user_agent = nym_http_api_client::UserAgent {
+            application: "test".into(),
+            version: "1.0".into(),
+            platform: "test".into(),
+            git_commit: "test".into(),
+        };
+        let vpn_api_client =
+            nym_vpn_api_client::VpnApiClient::new(urls, Some(user_agent)).expect("client");
+
+        let (account, _mnemonic) = VpnAccount::generate_new().expect("account");
+        let account = Arc::new(account);
+        let device_keys = DeviceKeys::generate_new(&mut rand::thread_rng());
+        let device = Device::from(device_keys.device_keypair().clone());
+
+        let result = prefetch_zk_nyms_assuming_store_lock(
+            dir.path().to_path_buf(),
+            vpn_api_client,
+            account,
+            device,
+            true,
+        )
+        .await;
+
+        assert!(
+            !matches!(result, Ok(PrefetchZkNymOutcome::SkippedStoreBusy)),
+            "assuming-store-lock path must not double-acquire and return SkippedStoreBusy"
         );
     }
 }

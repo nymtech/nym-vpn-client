@@ -196,6 +196,7 @@ import PathManager
 #if os(iOS)
         accountSetupCompletedAt = nil
         zkNymsPrefetchedThisSession = false
+        consecutiveStoreBusyCount = 0
         accountSetupPhase = .idle
         OnboardingSession.shared.reset()
 #endif
@@ -345,6 +346,10 @@ import PathManager
         guard isAccountActive() else {
             accountSetupPhase = .idle
             if requireActiveSubscription {
+                if OnboardingSession.shared.isWithinPostPurchaseVerificationGracePeriod() {
+                    logger.info("prepareAccountForConnection: subscription pending verification within post-purchase grace window")
+                    throw CredentialsManagerError.subscriptionVerifying
+                }
                 logger.error("prepareAccountForConnection failed: account inactive after summary refresh")
                 throw CredentialsManagerError.generalError("noActivePlan".localizedString)
             }
@@ -467,7 +472,6 @@ import PathManager
                 }
                 return
             }
-            consecutiveStoreBusyCount = 0
             accountSummaryLastFetchFailed = true
             logger.error(
                 "fetchAccountSummary (iOS) failed operation=refreshAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"

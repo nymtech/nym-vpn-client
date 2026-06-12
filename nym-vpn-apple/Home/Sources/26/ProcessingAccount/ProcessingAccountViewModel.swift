@@ -37,16 +37,21 @@ public enum ProcessingFlow: Sendable {
 public final class ProcessingAccountViewModel {
     /// Pacing for the post-auth carousel while account prep and zk-nym prefetch run in parallel.
     public static let processingStepInterval = SwitchingTitlesView.accountProcessingStepInterval
+    /// Minimum carousel pacing before account-ready (see spec A5).
+    static let minimumCarouselPacing: TimeInterval = processingStepInterval
     private static let finalMessageDuration = 2
+    private static let subscriptionVerificationRetryInterval: Duration = .seconds(2)
     private static let logger = Logger(label: "ProcessingAccount")
 
     private let prepareAccount: @MainActor (Bool) async throws -> Void
     private let canPrefetchZkNyms: @MainActor () -> Bool
     @ObservationIgnored private var processingTask: Task<Void, Never>?
     @ObservationIgnored private var finalMessageTask: Task<Void, Never>?
+    @ObservationIgnored private var minimumPacingTask: Task<Void, Never>?
     // Combine publisher subscription; @Observable tracks $accountSetupPhase in CredentialsManager directly.
     // credentialsManager is captured strongly in prepareAccount closure and outlives this viewModel.
     @ObservationIgnored private var phaseCancellable: AnyCancellable?
+    @ObservationIgnored private var carouselSessionCancellable: AnyCancellable?
     @ObservationIgnored public var onFinished: (() -> Void)?
 
     let flow: ProcessingFlow
@@ -56,6 +61,8 @@ public final class ProcessingAccountViewModel {
     var errorMessage: String?
     var titlesSessionID: UUID
     private var didSettleAccount = false
+    private var processingStartedAt: Date?
+    private var carouselTicksSinceStart = 0
 
     public init(
         credentialsManager: CredentialsManager,
@@ -73,7 +80,12 @@ public final class ProcessingAccountViewModel {
         }
         self.flow = flow
         self.canPrefetchZkNyms = canPrefetchZkNyms
-        self.titlesSessionID = carouselSessionID ?? OnboardingSession.shared.carouselSessionID
+        self.titlesSessionID = OnboardingSession.shared.carouselSessionID
+        carouselSessionCancellable = OnboardingSession.shared.$carouselSessionID
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newID in
+                self?.titlesSessionID = newID
+            }
         phaseCancellable = credentialsManager.$accountSetupPhase
             .receive(on: DispatchQueue.main)
             .sink { [weak self] phase in
@@ -90,12 +102,21 @@ public final class ProcessingAccountViewModel {
         self.flow = flow
         self.canPrefetchZkNyms = canPrefetchZkNyms
         self.prepareAccount = prepareAccount
-        self.titlesSessionID = carouselSessionID ?? UUID()
+        self.titlesSessionID = carouselSessionID ?? OnboardingSession.shared.carouselSessionID
+        if carouselSessionID == nil {
+            carouselSessionCancellable = OnboardingSession.shared.$carouselSessionID
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] newID in
+                    self?.titlesSessionID = newID
+                }
+        }
     }
 
     func start() {
         processingTask?.cancel()
         resetProcessingState()
+        processingStartedAt = Date()
+        carouselTicksSinceStart = 0
         processingTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
@@ -109,6 +130,11 @@ public final class ProcessingAccountViewModel {
 #if os(iOS)
                 let logDetail = ProcessingAccountErrorMapper.logSafeDescription(for: error)
                 Self.logger.error("Account processing failed flow=\(String(describing: self.flow)) \(logDetail)")
+                if case CredentialsManagerError.subscriptionVerifying = error {
+                    errorMessage = CredentialsManagerError.subscriptionVerifying.localizedTitle
+                    scheduleSubscriptionVerificationRetry()
+                    return
+                }
                 if let credentialsError = error as? CredentialsManagerError,
                    let title = credentialsError.localizedTitle {
                     errorMessage = title
@@ -130,6 +156,8 @@ public final class ProcessingAccountViewModel {
         processingTask = nil
         finalMessageTask?.cancel()
         finalMessageTask = nil
+        minimumPacingTask?.cancel()
+        minimumPacingTask = nil
     }
 
     func retry() {
@@ -137,8 +165,10 @@ public final class ProcessingAccountViewModel {
     }
 
     func animationDidAdvance() {
+        carouselTicksSinceStart += 1
         let maxStep = flow.carouselStepCount
         currentStep = min(currentStep + 1, maxStep)
+        tryCompleteAfterMinimumPacing()
     }
 
     func animationDidFinish() {
@@ -163,10 +193,41 @@ public final class ProcessingAccountViewModel {
 
     private func settleAccount() {
         didSettleAccount = true
-        if !didFinishAnimatingText {
-            didFinishAnimatingText = true
+        tryCompleteAfterMinimumPacing()
+    }
+
+    private var hasMetMinimumCarouselPacing: Bool {
+        guard let processingStartedAt else { return carouselTicksSinceStart >= 1 }
+        let elapsed = Date().timeIntervalSince(processingStartedAt)
+        return carouselTicksSinceStart >= 1 || elapsed >= Self.minimumCarouselPacing
+    }
+
+    private func tryCompleteAfterMinimumPacing() {
+        guard didSettleAccount, !didShowFinalMessage else { return }
+        guard hasMetMinimumCarouselPacing else {
+            scheduleMinimumPacingWait()
+            return
         }
+        minimumPacingTask?.cancel()
+        minimumPacingTask = nil
+        // Don't force didFinishAnimatingText=true here; let SwitchingTitlesView control animation completion.
+        // Carousel completion and work completion are independent: minimum pacing gates final message display,
+        // but animation timing is owned by the view layer via animationDidFinish() callback.
         advanceIfReady()
+    }
+
+    private func scheduleMinimumPacingWait() {
+        guard minimumPacingTask == nil, let processingStartedAt else { return }
+        let elapsed = Date().timeIntervalSince(processingStartedAt)
+        let remaining = max(0, Self.minimumCarouselPacing - elapsed)
+        minimumPacingTask = Task { @MainActor [weak self] in
+            if remaining > 0 {
+                try? await Task.sleep(for: .seconds(remaining))
+            }
+            guard !Task.isCancelled, let self else { return }
+            self.minimumPacingTask = nil
+            self.tryCompleteAfterMinimumPacing()
+        }
     }
 
     private func advanceIfReady() {
@@ -182,11 +243,25 @@ public final class ProcessingAccountViewModel {
     private func resetProcessingState() {
         finalMessageTask?.cancel()
         finalMessageTask = nil
+        minimumPacingTask?.cancel()
+        minimumPacingTask = nil
         didSettleAccount = false
         didFinishAnimatingText = false
         didShowFinalMessage = false
+        processingStartedAt = nil
+        carouselTicksSinceStart = 0
         currentStep = 1
         errorMessage = nil
         titlesSessionID = OnboardingSession.shared.carouselSessionID
+    }
+
+    private func scheduleSubscriptionVerificationRetry() {
+        processingTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: Self.subscriptionVerificationRetryInterval)
+            guard !Task.isCancelled, let self else { return }
+            guard OnboardingSession.shared.isWithinPostPurchaseVerificationGracePeriod() else { return }
+            self.errorMessage = nil
+            self.start()
+        }
     }
 }

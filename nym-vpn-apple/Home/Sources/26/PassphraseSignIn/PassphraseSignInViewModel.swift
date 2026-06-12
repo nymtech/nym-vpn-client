@@ -14,7 +14,6 @@ public final class PassphraseSignInViewModel {
     }
 
     private let addCredential: (String) async throws -> Void
-    private let registerAccount: () async throws -> Void
     @ObservationIgnored private var loginTask: Task<Void, Never>?
     @ObservationIgnored public var onAuthComplete: (() -> Void)?
 
@@ -30,15 +29,14 @@ public final class PassphraseSignInViewModel {
 
     public init(credentialsManager: CredentialsManager) {
         self.addCredential = { try await credentialsManager.add(credential: $0) }
-        self.registerAccount = { try await credentialsManager.registerAccount() }
     }
 
     init(
         addCredential: @escaping (String) async throws -> Void,
-        registerAccount: @escaping () async throws -> Void
+        registerAccount: @escaping () async throws -> Void = {}
     ) {
         self.addCredential = addCredential
-        self.registerAccount = registerAccount
+        _ = registerAccount
     }
 
     func loginButtonTapped() {
@@ -50,7 +48,6 @@ public final class PassphraseSignInViewModel {
             guard let self else { return }
             do {
                 try await addCredential(credential)
-                try await registerAccount()
                 onAuthComplete?()
                 passphraseText = ""
                 submissionState = .idle

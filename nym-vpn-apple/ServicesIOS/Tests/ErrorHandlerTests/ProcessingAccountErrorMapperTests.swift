@@ -48,3 +48,22 @@ import NymVPNLib
     let description = ProcessingAccountErrorMapper.logSafeDescription(for: VpnError.AccountStoreBusy)
     #expect(description == "VpnError.AccountStoreBusy")
 }
+
+@Test func mapsAllPrefetchRelatedVpnErrorsToUserFacingCopy() {
+    let expectedCases: [(VpnError, String)] = [
+        (.AccountStoreBusy, "errorReason.registrationInProgress".localizedString),
+        (
+            .ZkNymAcquisitionFailure(details: "device_not_authenticated"),
+            "errorReason.noDeviceStored".localizedString
+        ),
+        (
+            .InternalError(details: "Device time is desynced"),
+            "errorReason.deviceTimeOutOfSync".localizedString
+        ),
+    ]
+    for (error, expected) in expectedCases {
+        let message = ProcessingAccountErrorMapper.localizedMessage(for: error)
+        #expect(!message.isEmpty)
+        #expect(message == expected, "Unexpected mapping for \(error)")
+    }
+}

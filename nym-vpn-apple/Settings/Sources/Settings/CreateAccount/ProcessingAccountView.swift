@@ -122,10 +122,24 @@ private extension ProcessingAccountView {
             settleAccount()
         } catch {
 #if os(iOS)
+            if case CredentialsManagerError.subscriptionVerifying = error {
+                errorMessage = CredentialsManagerError.subscriptionVerifying.localizedTitle
+                scheduleSubscriptionVerificationRetry()
+                return
+            }
             errorMessage = ProcessingAccountErrorMapper.localizedMessage(for: error)
 #else
             errorMessage = "generalNymError.somethingWentWrong".localizedString
 #endif
+        }
+    }
+
+    func scheduleSubscriptionVerificationRetry() {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
+            guard OnboardingSession.shared.isWithinPostPurchaseVerificationGracePeriod() else { return }
+            errorMessage = nil
+            await prepareAccount()
         }
     }
 
