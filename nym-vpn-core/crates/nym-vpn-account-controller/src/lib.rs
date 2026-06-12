@@ -38,5 +38,5 @@ pub use event_sender::AccountControllerEventSender;
 pub use nyxd_client::NyxdClient;
 pub use prefetch::{PrefetchZkNymOutcome, prefetch_zk_nyms};
 pub use state_receiver::AccountStateReceiver;
-pub use storage::{remove_files_for_account, CredentialStoreAccessLock};
+pub use storage::{CredentialStoreAccessLock, remove_files_for_account};
 pub use ticketbooks::AvailableTicketbooks;

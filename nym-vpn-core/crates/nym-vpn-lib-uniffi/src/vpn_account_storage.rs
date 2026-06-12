@@ -534,10 +534,7 @@ impl NymVpnAccountStorage {
 impl NymVpnAccountStorage {
     fn try_acquire_data_dir_lock(&self) -> Result<CredentialStoreAccessLock, VpnError> {
         CredentialStoreAccessLock::try_acquire(&self.storage_path).map_err(|err| {
-            if matches!(
-                err,
-                nym_vpn_account_controller::Error::CredentialStoreBusy
-            ) {
+            if matches!(err, nym_vpn_account_controller::Error::CredentialStoreBusy) {
                 VpnError::AccountStoreBusy
             } else {
                 VpnError::Storage {
