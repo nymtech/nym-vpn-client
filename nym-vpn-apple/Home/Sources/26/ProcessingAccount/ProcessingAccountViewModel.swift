@@ -39,6 +39,8 @@ public final class ProcessingAccountViewModel {
     public static let processingStepInterval = SwitchingTitlesView.accountProcessingStepInterval
     /// Minimum carousel pacing before account-ready (see spec A5).
     static let minimumCarouselPacing: TimeInterval = processingStepInterval
+    /// When carousel animation callbacks stall, complete after this elapsed time.
+    static let carouselAnimationFallbackDelay: TimeInterval = processingStepInterval * 2
     private static let finalMessageDuration = 2
     private static let subscriptionVerificationRetryInterval: Duration = .seconds(2)
     private static let logger = Logger(label: "ProcessingAccount")
@@ -161,6 +163,7 @@ public final class ProcessingAccountViewModel {
     }
 
     func retry() {
+        OnboardingSession.shared.beginCarouselSession()
         start()
     }
 
@@ -210,10 +213,16 @@ public final class ProcessingAccountViewModel {
         }
         minimumPacingTask?.cancel()
         minimumPacingTask = nil
-        // Don't force didFinishAnimatingText=true here; let SwitchingTitlesView control animation completion.
-        // Carousel completion and work completion are independent: minimum pacing gates final message display,
-        // but animation timing is owned by the view layer via animationDidFinish() callback.
+        applyCarouselCompletionFallbackIfNeeded()
         advanceIfReady()
+    }
+
+    private func applyCarouselCompletionFallbackIfNeeded() {
+        guard !didFinishAnimatingText, let processingStartedAt else { return }
+        let elapsed = Date().timeIntervalSince(processingStartedAt)
+        if elapsed >= Self.carouselAnimationFallbackDelay {
+            didFinishAnimatingText = true
+        }
     }
 
     private func scheduleMinimumPacingWait() {
@@ -226,6 +235,26 @@ public final class ProcessingAccountViewModel {
             }
             guard !Task.isCancelled, let self else { return }
             self.minimumPacingTask = nil
+            self.tryCompleteAfterMinimumPacing()
+        }
+        if remaining == 0, didSettleAccount {
+            scheduleCarouselAnimationFallbackIfNeeded()
+        }
+    }
+
+    private func scheduleCarouselAnimationFallbackIfNeeded() {
+        guard !didFinishAnimatingText, let processingStartedAt else { return }
+        let elapsed = Date().timeIntervalSince(processingStartedAt)
+        let remaining = max(0, Self.carouselAnimationFallbackDelay - elapsed)
+        guard remaining > 0 else {
+            applyCarouselCompletionFallbackIfNeeded()
+            tryCompleteAfterMinimumPacing()
+            return
+        }
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(remaining))
+            guard !Task.isCancelled, let self else { return }
+            self.applyCarouselCompletionFallbackIfNeeded()
             self.tryCompleteAfterMinimumPacing()
         }
     }

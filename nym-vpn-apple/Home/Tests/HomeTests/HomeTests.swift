@@ -84,6 +84,7 @@ final class HomeTests: XCTestCase {
         XCTAssertFalse(viewModel.didShowFinalMessage)
 
         viewModel.animationDidAdvance()
+        viewModel.animationDidFinish()
         try await Task.sleep(for: .milliseconds(50))
         XCTAssertTrue(viewModel.didShowFinalMessage)
     }
@@ -275,5 +276,11 @@ final class HomeTests: XCTestCase {
 
     func testPurchaseOnlyEntrySkipsRegistrationContract() {
         XCTAssertFalse(OnboardingLaunchPolicy.shouldRegisterAccountOnLaunch(displayPurchaseView: true))
+    }
+
+    func testPrePurchaseCoordinatorRegisterGuardOpenWhenPhaseUnsigned() {
+        OnboardingSession.shared.reset()
+        XCTAssertTrue(OnboardingSession.shared.phase < .registered)
+        XCTAssertTrue(OnboardingSession.shared.canStartProcessing)
     }
 }

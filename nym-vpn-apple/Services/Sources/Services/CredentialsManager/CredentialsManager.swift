@@ -234,7 +234,6 @@ import PathManager
                 environment: networkEnv
             ).loginWithDeeplinkMnemonic(deeplinkMnemonic: mnemonic)
         }.value
-        try await registerAccount()
         self.deeplinks = nil
         checkCredentialImport()
 #elseif os(macOS)
@@ -638,7 +637,13 @@ private extension CredentialsManager {
             }
             await updateDeviceIdentifier()
             await updateAccountIdentifier()
+#if os(iOS)
+            if accountSetupPhase == .idle {
+                await updateAccountSummary()
+            }
+#else
             await updateAccountSummary()
+#endif
         }
     }
 

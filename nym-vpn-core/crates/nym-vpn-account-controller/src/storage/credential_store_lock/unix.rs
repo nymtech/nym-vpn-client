@@ -25,6 +25,7 @@ impl CredentialStoreAccessLock {
     }
 
     fn acquire_with(data_dir: &Path, arg: FlockArg) -> Result<Self, Error> {
+        Self::ensure_data_dir(data_dir)?;
         let path = data_dir.join(LOCK_FILE_NAME);
         let file = OpenOptions::new()
             .create(true)
@@ -42,5 +43,16 @@ impl CredentialStoreAccessLock {
         })?;
 
         Ok(Self { _lock: lock })
+    }
+
+    fn ensure_data_dir(data_dir: &Path) -> Result<(), Error> {
+        std::fs::create_dir_all(data_dir).map_err(Error::CredentialStoreLockIo)?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let permissions = std::fs::Permissions::from_mode(0o700);
+            std::fs::set_permissions(data_dir, permissions).map_err(Error::CredentialStoreLockIo)?;
+        }
+        Ok(())
     }
 }

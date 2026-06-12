@@ -37,4 +37,14 @@ mod tests {
         let second = CredentialStoreAccessLock::try_acquire(dir.path());
         assert!(matches!(second, Err(Error::CredentialStoreBusy)));
     }
+
+    #[test]
+    fn try_acquire_succeeds_when_directory_missing() {
+        let base = tempdir().expect("tempdir");
+        let nested = base.path().join("sandbox");
+        assert!(!nested.exists());
+        let lock = CredentialStoreAccessLock::try_acquire(&nested);
+        assert!(lock.is_ok(), "expected lock on fresh nested dir");
+        assert!(nested.join("credential_store_access.lock").exists());
+    }
 }

@@ -195,6 +195,13 @@ import GRPCManager
     func handleCredentialChange(imported: Bool) {
         guard let current = drawerContent else { return }
         if imported {
+            if current == .welcome {
+                if onboardingSession.canStartProcessing, processingViewModel == nil {
+                    startProcessingTransition()
+                } else if onboardingSession.phase >= .processingComplete {
+                    pendingDrawerContent = initialDrawerContent()
+                }
+            }
             return
         }
         pendingDrawerContent = nil
@@ -207,7 +214,7 @@ import GRPCManager
     func handleAuthRegistrationComplete() {
         guard drawerContent?.allowsCredentialPromotion == true else { return }
         guard onboardingSession.canStartProcessing else { return }
-        onboardingSession.advance(to: .registered)
+        guard processingViewModel == nil else { return }
         startProcessingTransition()
     }
 

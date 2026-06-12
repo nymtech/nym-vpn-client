@@ -31,6 +31,7 @@ impl CredentialStoreAccessLock {
     }
 
     fn acquire_with(data_dir: &Path, non_blocking: bool) -> Result<Self, Error> {
+        std::fs::create_dir_all(data_dir).map_err(Error::CredentialStoreLockIo)?;
         let path = data_dir.join(LOCK_FILE_NAME);
         let file = OpenOptions::new()
             .create(true)

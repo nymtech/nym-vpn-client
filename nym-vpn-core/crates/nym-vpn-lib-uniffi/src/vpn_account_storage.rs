@@ -351,7 +351,6 @@ impl NymVpnAccountStorage {
     /// `/account/{id}/device/{device}/summary`, persists the result, and returns it.
     /// On transient network failure it falls back to the last cached summary.
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
-        let _store_lock = self.try_acquire_data_dir_lock()?;
         match self.sync_account_summary_from_network().await {
             Ok(summary) => Ok(Some(summary)),
             Err(err @ (VpnError::NoAccountStored | VpnError::NoDeviceIdentity)) => Err(err),
