@@ -704,24 +704,35 @@ impl TunnelStateHandler for ConnectingState {
                         ).await)
                     }
                     TunnelMonitorEvent::Down { error_state_reason, reply_tx } => {
-                        // Signal that the message was received first.
                         _ = reply_tx.send(());
 
-                        if let Some(error_state_reason) = error_state_reason {
-                            NextTunnelState::NewState(DisconnectingState::enter(
-                                PrivateActionAfterDisconnect::Error(error_state_reason),
-                                self.tunnel_monitor_handle.take(),
-                                shared_state
-                            ).await)
-                        } else {
-                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle.take() {
-                                let tombstone = tunnel_monitor_handle.wait().await;
-                                Self::handle_tunnel_close(tombstone, shared_state).await;
+                        match error_state_reason {
+                            #[cfg(target_os = "android")]
+                            Some(ErrorStateReason::TunnelProvider) => {
+                                tracing::info!("Tunnel provider failed. Disconnecting.");
+                                NextTunnelState::NewState(DisconnectingState::enter(
+                                    PrivateActionAfterDisconnect::Nothing,
+                                    self.tunnel_monitor_handle.take(),
+                                    shared_state,
+                                ).await)
                             }
+                            Some(error_state_reason) => {
+                                NextTunnelState::NewState(DisconnectingState::enter(
+                                    PrivateActionAfterDisconnect::Error(error_state_reason),
+                                    self.tunnel_monitor_handle.take(),
+                                    shared_state,
+                                ).await)
+                            }
+                            None => {
+                                if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle.take() {
+                                    let tombstone = tunnel_monitor_handle.wait().await;
+                                    Self::handle_tunnel_close(tombstone, shared_state).await;
+                                }
 
-                            tracing::info!("Tunnel closed");
+                                tracing::info!("Tunnel closed");
 
-                            self.reconnect(shared_state).await
+                                self.reconnect(shared_state).await
+                            }
                         }
                     }
                     TunnelMonitorEvent::ConnectionFailed { exit_gateway_id } => {
