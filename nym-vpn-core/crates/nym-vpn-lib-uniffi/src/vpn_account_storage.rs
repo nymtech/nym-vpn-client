@@ -7,8 +7,9 @@ use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
 use nym_vpn_account_controller::{
-    CreateDeeplinkParams, CredentialStoreAccessLock, Deeplink, PrefetchZkNymOutcome,
-    SUMMARY_STALE_AFTER, register_device_if_needed, verify_time_synced,
+    CreateDeeplinkParams, CredentialStoreAccessLock, Deeplink, PrefetchExternalError,
+    PrefetchZkNymOutcome, SUMMARY_STALE_AFTER, map_prefetch_error_for_external,
+    register_device_if_needed, validate_active_device_time_sync,
 };
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -434,12 +435,6 @@ impl NymVpnAccountStorage {
                         details: err.to_string(),
                     })?;
 
-            if summary.is_device_active {
-                verify_time_synced(&summary).map_err(|err| VpnError::InternalError {
-                    details: err.to_string(),
-                })?;
-            }
-
             if registered {
                 tracing::info!(
                     "Device registered for account {} during post-login setup",
@@ -447,6 +442,10 @@ impl NymVpnAccountStorage {
                 );
             }
         }
+
+        validate_active_device_time_sync(&summary).map_err(|err| VpnError::InternalError {
+            details: err.to_string(),
+        })?;
 
         self.storage
             .store_summary(summary)
@@ -469,6 +468,7 @@ impl NymVpnAccountStorage {
     /// Caller invariant: must not run while a controller owns the same data
     /// dir (the network extension at connect, or an in-process controller).
     pub async fn prefetch_zk_nyms(&self) -> Result<VpnPrefetchZkNymOutcome, VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         tracing::info!("Starting zk-nym prefetch from app storage API");
         let account = self
             .storage
@@ -513,8 +513,12 @@ impl NymVpnAccountStorage {
         )
         .await
         .map(VpnPrefetchZkNymOutcome::from)
-        .map_err(|err| VpnError::ZkNymAcquisitionFailure {
-            details: err.to_string(),
+        .map_err(|err| match map_prefetch_error_for_external(err) {
+            PrefetchExternalError::StoreBusy => VpnError::AccountStoreBusy,
+            PrefetchExternalError::ZkNymAcquisitionFailure(details) => {
+                VpnError::ZkNymAcquisitionFailure { details }
+            }
+            PrefetchExternalError::Internal(details) => VpnError::InternalError { details },
         })
     }
 

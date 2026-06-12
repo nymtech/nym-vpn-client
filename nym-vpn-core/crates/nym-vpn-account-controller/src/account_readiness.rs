@@ -87,6 +87,14 @@ pub fn verify_time_synced(summary: &VpnAccountSummary) -> Result<(), Error> {
     }
 }
 
+/// When a device row is active, time sync must pass before post-login setup succeeds.
+pub fn validate_active_device_time_sync(summary: &VpnAccountSummary) -> Result<(), Error> {
+    if summary.is_device_active {
+        verify_time_synced(summary)?;
+    }
+    Ok(())
+}
+
 pub async fn register_device_for_account(
     vpn_api_client: &VpnApiClient,
     account: &VpnAccount,
@@ -241,5 +249,16 @@ mod tests {
     fn verify_time_synced_rejects_desynced_summary() {
         let err = verify_time_synced(&summary(true, 1, 0, false)).unwrap_err();
         assert!(err.to_string().contains(DEVICE_TIME_DESYNCED));
+    }
+
+    #[test]
+    fn validate_active_device_time_sync_rejects_desynced_active_device() {
+        let err = validate_active_device_time_sync(&summary(true, 1, 0, false)).unwrap_err();
+        assert!(err.to_string().contains(DEVICE_TIME_DESYNCED));
+    }
+
+    #[test]
+    fn validate_active_device_time_sync_skips_inactive_device() {
+        assert!(validate_active_device_time_sync(&summary(false, 2, 0, false)).is_ok());
     }
 }

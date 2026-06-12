@@ -89,7 +89,14 @@ where
         // Setup the account storage, which is used to store the account and device keys
         let account_storage = AccountStorage::from(storage);
 
-        let credential_store_lock = CredentialStoreAccessLock::acquire_blocking(&config.data_dir)?;
+        let data_dir = config.data_dir.clone();
+        let credential_store_lock = tokio::task::spawn_blocking(move || {
+            CredentialStoreAccessLock::acquire_blocking(&data_dir)
+        })
+        .await
+        .map_err(|join_err| {
+            Error::internal(format!("credential store lock task failed: {join_err}"))
+        })??;
 
         // Setup the credential storage, which is used to store the ticketbooks
         let credential_storage =

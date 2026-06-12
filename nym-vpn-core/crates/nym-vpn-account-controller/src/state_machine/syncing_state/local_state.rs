@@ -1,11 +1,11 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 
 use crate::{
     SharedAccountState,
-    account_readiness::{self, LocalSyncCheck},
+    account_readiness::{self, LocalSyncCheck, SUMMARY_STALE_AFTER},
     commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
@@ -27,9 +27,6 @@ use tokio_util::sync::{CancellationToken, DropGuard};
 use tracing::warn;
 
 const SYNCING_LOCAL_STATE_CONTEXT: &str = "SYNCING_LOCAL_STATE";
-
-/// How old a cached summary may be before it is considered stale and force-refreshed.
-const SUMMARY_STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 
 /// SyncingLocal State
 /// This is the "local" half of syncing: it runs the account checks against the locally cached

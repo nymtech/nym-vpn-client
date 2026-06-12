@@ -27,7 +27,8 @@ pub(crate) use shared_state::SharedAccountState;
 pub use account_readiness::{
     DEVICE_TIME_DESYNCED, DeviceRegistrationReadiness, FAIR_USAGE_DEPLETED, LocalSyncCheck,
     MAX_DEVICES_REACHED, SUMMARY_STALE_AFTER, classify_local_sync, device_registration_readiness,
-    register_device_for_prefetch_if_needed, register_device_if_needed, verify_time_synced,
+    register_device_for_prefetch_if_needed, register_device_if_needed,
+    validate_active_device_time_sync, verify_time_synced,
 };
 pub use command_sender::AccountCommandSender;
 pub use config::AccountControllerConfig;
@@ -36,7 +37,9 @@ pub use deeplink::{CreateDeeplinkParams, Deeplink, DeeplinkError, DeeplinkMnemon
 pub use error::Error;
 pub use event_sender::AccountControllerEventSender;
 pub use nyxd_client::NyxdClient;
-pub use prefetch::{PrefetchZkNymOutcome, prefetch_zk_nyms};
+pub use prefetch::{
+    PrefetchExternalError, PrefetchZkNymOutcome, map_prefetch_error_for_external, prefetch_zk_nyms,
+};
 pub use state_receiver::AccountStateReceiver;
 pub use storage::{CredentialStoreAccessLock, remove_files_for_account};
 pub use ticketbooks::AvailableTicketbooks;

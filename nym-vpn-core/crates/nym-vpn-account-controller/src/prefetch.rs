@@ -85,6 +85,23 @@ fn map_fetch_result(
     }
 }
 
+/// Structured error mapping for UniFFI callers (preserves lock vs zk-nym vs internal).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PrefetchExternalError {
+    StoreBusy,
+    ZkNymAcquisitionFailure(String),
+    Internal(String),
+}
+
+pub fn map_prefetch_error_for_external(err: Error) -> PrefetchExternalError {
+    match err {
+        Error::CredentialStoreBusy => PrefetchExternalError::StoreBusy,
+        Error::PrefetchZkNym(details) => PrefetchExternalError::ZkNymAcquisitionFailure(details),
+        Error::Internal(details) => PrefetchExternalError::Internal(details),
+        other => PrefetchExternalError::Internal(other.to_string()),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -135,6 +152,30 @@ mod tests {
         assert_eq!(
             PrefetchZkNymOutcome::SkippedStoreBusy,
             PrefetchZkNymOutcome::SkippedStoreBusy
+        );
+    }
+
+    #[test]
+    fn maps_credential_store_busy_for_external_callers() {
+        assert_eq!(
+            map_prefetch_error_for_external(Error::CredentialStoreBusy),
+            PrefetchExternalError::StoreBusy
+        );
+    }
+
+    #[test]
+    fn maps_prefetch_zknym_for_external_callers() {
+        assert_eq!(
+            map_prefetch_error_for_external(Error::PrefetchZkNym("BandwidthExceeded".into())),
+            PrefetchExternalError::ZkNymAcquisitionFailure("BandwidthExceeded".into())
+        );
+    }
+
+    #[test]
+    fn maps_internal_for_external_callers() {
+        assert_eq!(
+            map_prefetch_error_for_external(Error::internal("Device time is desynced")),
+            PrefetchExternalError::Internal("Device time is desynced".into())
         );
     }
 }
