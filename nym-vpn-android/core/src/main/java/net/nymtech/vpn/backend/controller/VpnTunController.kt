@@ -1,10 +1,6 @@
 package net.nymtech.vpn.backend.controller
 
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.Build
-import android.os.Process
-import androidx.annotation.RequiresApi
 import net.nymtech.vpn.backend.service.VpnService
 import net.nymtech.vpn.util.extensions.addRoutes
 import nym_vpn_lib.TunnelNetworkSettings
@@ -23,8 +19,6 @@ class VpnTunController(private val service: VpnService) {
 
 	@Volatile private var bypassLanFlag: Boolean = false
 
-	@Volatile private var hasConnectedAtLeastOnce = false
-
 	fun setDisallowedApps(pkgs: List<String>) {
 		disallowedApps = pkgs
 	}
@@ -33,32 +27,11 @@ class VpnTunController(private val service: VpnService) {
 		bypassLanFlag = value
 	}
 
-	fun resetConnectionState() {
-		hasConnectedAtLeastOnce = false
-	}
-
-	@RequiresApi(Build.VERSION_CODES.R)
-	private fun isAnotherVpnActive(): Boolean {
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
-		val cm = service.getSystemService(ConnectivityManager::class.java) ?: return false
-		val activeNetwork = cm.activeNetwork ?: return false
-		val caps = cm.getNetworkCapabilities(activeNetwork) ?: return false
-		if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return false
-		return caps.ownerUid != Process.myUid()
-	}
-
-	@RequiresApi(Build.VERSION_CODES.R)
 	fun configureTunnel(config: TunnelNetworkSettings): Int {
 		val allowLan = bypassLanFlag
 		val mtu = config.mtu.toInt()
 
 		return try {
-			if (hasConnectedAtLeastOnce && isAnotherVpnActive()) {
-				Timber.tag(TAG).w("configureTunnel: another app's VPN is the active network, aborting reconnect")
-				service.onVpnRevoked()
-				throw VpnException.InternalException("Another VPN is active")
-			}
-
 			val builder = service.Builder()
 
 			disallowedApps.forEach { pkg ->
@@ -86,7 +59,7 @@ class VpnTunController(private val service: VpnService) {
 			builder.setMtu(mtu)
 			builder.setBlocking(false)
 
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 				builder.setMetered(false)
 			}
 
@@ -100,7 +73,6 @@ class VpnTunController(private val service: VpnService) {
 			val fd = pfd.detachFd()
 
 			Timber.tag(TAG).i("Tunnel established. FD=$fd transferred to Rust.")
-			hasConnectedAtLeastOnce = true
 
 			fd
 		} catch (e: VpnException) {

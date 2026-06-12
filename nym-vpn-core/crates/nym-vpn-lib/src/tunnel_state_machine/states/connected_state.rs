@@ -254,33 +254,26 @@ impl ConnectedState {
         error_state_reason: Option<ErrorStateReason>,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
+        if error_state_reason.is_none() {
+            tracing::info!("Tunnel closed. Reconnecting.");
+        }
+
         #[cfg(not(target_os = "android"))]
-        Self::reset_dns(shared_state).await;
+        {
+            Self::reset_dns(shared_state).await;
+        }
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        Self::reset_routes(shared_state).await;
+        {
+            Self::reset_routes(shared_state).await;
+        }
 
         match error_state_reason {
-            None => {
-                tracing::info!("Tunnel closed. Reconnecting.");
-                NextTunnelState::NewState(
-                    ConnectingState::enter(0, Some(self.selected_gateways), shared_state).await,
-                )
-            }
-            #[cfg(target_os = "android")]
-            Some(ErrorStateReason::TunnelProvider) => {
-                tracing::info!("Tunnel provider failed. Disconnecting.");
-                NextTunnelState::NewState(
-                    DisconnectingState::enter(
-                        PrivateActionAfterDisconnect::Nothing,
-                        Some(self.tunnel_monitor_handle),
-                        shared_state,
-                    )
-                    .await,
-                )
-            }
             Some(block_reason) => {
                 NextTunnelState::NewState(ErrorState::enter(block_reason, shared_state).await)
             }
+            None => NextTunnelState::NewState(
+                ConnectingState::enter(0, Some(self.selected_gateways), shared_state).await,
+            ),
         }
     }
 }
