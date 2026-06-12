@@ -726,15 +726,17 @@ impl From<nym_vpn_api_client::types::VpnAccountMode> for StoredAccountMode {
 // Regression tests for `VpnAccountSummary::try_from` and subscription serde.
 #[cfg(all(test, feature = "nym-type-conversions"))]
 mod tests {
-    use nym_vpn_api_client::response::{
-        NymVpnAccountResponse, NymVpnAccountStatusResponse, NymVpnAccountSummaryDevices,
-        NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse,
-        NymVpnAccountSummarySubscription, NymVpnAccountSummaryWithDeviceResponse,
-        NymVpnSubscription as ApiNymVpnSubscription,
-        NymVpnSubscriptionKind as ApiNymVpnSubscriptionKind,
-        NymVpnSubscriptionStatus as ApiNymVpnSubscriptionStatus,
+    use nym_vpn_api_client::{
+        response::{
+            NymVpnAccountResponse, NymVpnAccountStatusResponse, NymVpnAccountSummaryDevices,
+            NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse,
+            NymVpnAccountSummarySubscription, NymVpnAccountSummaryWithDeviceResponse,
+            NymVpnSubscription as ApiNymVpnSubscription,
+            NymVpnSubscriptionKind as ApiNymVpnSubscriptionKind,
+            NymVpnSubscriptionStatus as ApiNymVpnSubscriptionStatus,
+        },
+        types::{VpnAccountMode, VpnApiTime},
     };
-    use nym_vpn_api_client::types::{VpnAccountMode, VpnApiTime};
     use tracing_test::traced_test;
 
     use super::*;

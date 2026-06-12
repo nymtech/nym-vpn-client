@@ -55,9 +55,6 @@ pub enum Phase {
 
 #[derive(Debug, Copy, Clone)]
 pub struct TimingConfig {
-    /// Delay before the first probe is sent
-    pub initial_delay: Duration,
-
     /// Probe timeout in the initial phase
     pub initial_probe_timeout: Duration,
 
@@ -78,7 +75,6 @@ impl TimingConfig {
     /// Default timings suitable for mixnet connections
     pub fn mixnet() -> Self {
         TimingConfig {
-            initial_delay: Duration::from_secs(3),
             initial_probe_timeout: Duration::from_secs(10),
             initial_probe_retry_count: 5,
             monitoring_probe_timeout: Duration::from_secs(10),
@@ -90,7 +86,6 @@ impl TimingConfig {
     /// Default timings suitable for two-hop connections
     pub fn two_hop() -> Self {
         TimingConfig {
-            initial_delay: Duration::from_secs(3),
             initial_probe_timeout: Duration::from_secs(3),
             initial_probe_retry_count: 5,
             monitoring_probe_timeout: Duration::from_secs(5),
@@ -210,9 +205,6 @@ where
     }
 
     async fn run(mut self) -> Result<(), Error> {
-        if !self.timing_config.initial_delay.is_zero() {
-            tokio::time::sleep(self.timing_config.initial_delay).await;
-        }
         let timeout = self.state.timeout(&self.timing_config);
         tracing::trace!(
             "Sending initial probe with {} ms timeout",
@@ -535,7 +527,6 @@ mod tests {
     fn test_config() -> TimingConfig {
         // timings are not important since tokio timers are being advanced.
         TimingConfig {
-            initial_delay: Duration::ZERO,
             initial_probe_timeout: INITIAL_PROBE_TIMEOUT,
             initial_probe_retry_count: PROBE_RETRY_COUNT,
             monitoring_probe_timeout: Duration::from_secs(5),
