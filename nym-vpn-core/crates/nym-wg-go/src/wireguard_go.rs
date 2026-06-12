@@ -8,7 +8,7 @@ use std::{
     fmt,
     mem::replace,
     net::SocketAddr,
-    sync::{Arc, RwLock},
+    sync::{Arc, PoisonError, RwLock},
     time::{Duration, SystemTime},
 };
 
@@ -312,7 +312,10 @@ impl Tunnel {
     /// Typically used on default route change.
     #[cfg(target_os = "ios")]
     pub fn bump_sockets(&mut self) {
-        let handle = self.tunnel_handle.read().unwrap();
+        let handle = self
+            .tunnel_handle
+            .read()
+            .unwrap_or_else(PoisonError::into_inner);
         if *handle >= 0 {
             unsafe { wgBumpSockets(*handle) }
         }
@@ -333,12 +336,14 @@ impl Tunnel {
         }
         let settings = CString::new(config_builder.into_bytes())
             .map_err(|_| Error::ConvertToCString("peer update config"))?;
-        let handle = self.tunnel_handle.read().unwrap();
-        let ret_code = if *handle >= 0 {
-            unsafe { wgSetConfig(*handle, settings.as_ptr()) }
-        } else {
-            99
-        };
+        let handle = self
+            .tunnel_handle
+            .read()
+            .unwrap_or_else(PoisonError::into_inner);
+        if *handle < 0 {
+            return Err(Error::TunnelStopped);
+        }
+        let ret_code = unsafe { wgSetConfig(*handle, settings.as_ptr()) };
 
         if ret_code == 0 {
             Ok(())
@@ -355,7 +360,13 @@ impl Tunnel {
     }
 
     fn stop_inner(&mut self) {
-        let handle = replace(&mut *self.tunnel_handle.write().unwrap(), -1);
+        let handle = replace(
+            &mut *self
+                .tunnel_handle
+                .write()
+                .unwrap_or_else(PoisonError::into_inner),
+            -1,
+        );
         if handle >= 0 {
             unsafe { wgTurnOff(handle) };
         }
@@ -400,19 +411,22 @@ pub struct TunnelStatsReader {
 }
 
 impl TunnelStatsReader {
-    pub fn get_stats(&self) -> Option<TunnelStats> {
-        let handle = self.tunnel_handle.read().unwrap();
-        if *handle >= 0 {
-            let raw = unsafe { wgGetConfig(*handle) };
-            if !raw.is_null() {
-                let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
-                unsafe { wgFreePtr(raw as *mut c_void) };
-                tracing::trace!("TunnelStats: '{s}'");
-                return Some(Self::parse_tunnel_stats(&s));
-            }
+    pub fn get_stats(&self) -> Result<TunnelStats> {
+        let handle = self
+            .tunnel_handle
+            .read()
+            .unwrap_or_else(PoisonError::into_inner);
+        if *handle < 0 {
+            return Err(Error::TunnelStopped);
         }
-        tracing::error!("Failed to get TunnelStats");
-        None
+        let raw = unsafe { wgGetConfig(*handle) };
+        if raw.is_null() {
+            return Err(Error::GetUapiConfig);
+        }
+        let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
+        unsafe { wgFreePtr(raw as *mut c_void) };
+        tracing::trace!("TunnelStats: '{s}'");
+        Ok(Self::parse_tunnel_stats(&s))
     }
 
     fn parse_tunnel_stats(response: &str) -> TunnelStats {

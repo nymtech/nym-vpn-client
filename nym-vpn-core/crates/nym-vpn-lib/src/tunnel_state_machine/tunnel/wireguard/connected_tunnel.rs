@@ -681,7 +681,7 @@ impl TunnelHandle {
     }
 
     /// Query live stats for the exit WireGuard peer via the UAPI GET interface.
-    pub fn get_exit_stats(&self) -> Option<wireguard_go::TunnelStats> {
+    pub fn get_exit_stats(&self) -> nym_wg_go::Result<wireguard_go::TunnelStats> {
         self.exit_stats_reader.get_stats()
     }
 
