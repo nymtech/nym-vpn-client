@@ -121,6 +121,8 @@ import GRPCManager
 #if os(iOS)
         resetVpnProfile()
 #endif
+        setEntryGateway(.random)
+        setExitGateway(.random)
     }
 
     /// Disconnect and wait for disconnected status

@@ -15,15 +15,19 @@ public struct SnackbarItem: Identifiable {
     public var message: String?
     public var actionTitle: String?
     public var onAction: (@MainActor () -> Void)?
+    public var secondaryActionTitle: String?
+    public var onSecondaryAction: (@MainActor () -> Void)?
     public var duration: TimeInterval?
 
     public init(
         id: UUID = UUID(),
-        style: Style,
-        title: String,
+        style: Style = .neutral,
+        title: String = "",
         message: String? = nil,
         actionTitle: String? = nil,
         onAction: (@MainActor () -> Void)? = nil,
+        secondaryActionTitle: String? = nil,
+        onSecondaryAction: (@MainActor () -> Void)? = nil,
         duration: TimeInterval? = 4
     ) {
         self.id = id
@@ -32,6 +36,8 @@ public struct SnackbarItem: Identifiable {
         self.message = message
         self.actionTitle = actionTitle
         self.onAction = onAction
+        self.secondaryActionTitle = secondaryActionTitle
+        self.onSecondaryAction = onSecondaryAction
         self.duration = duration
     }
 }
