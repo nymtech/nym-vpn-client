@@ -341,7 +341,11 @@ import PathManager
             try await prepareRegisteredAccount()
         }
 #endif
+#if os(iOS)
         let skipForcedSummaryRefresh = !requireActiveSubscription && isAccountSetupRecentlyCompleted()
+#else
+        let skipForcedSummaryRefresh = false
+#endif
         await updateAccountSummary(force: !skipForcedSummaryRefresh, untilActive: requireActiveSubscription)
         guard isAccountActive() else {
             accountSetupPhase = .idle
@@ -386,7 +390,6 @@ import PathManager
 
     }
 
-#if os(iOS)
     /// Post-IAP path: poll account summary until `isSubscriptionActive`, then prefetch zk-nyms.
     /// StoreKit success alone does not activate the subscription; backend propagation is required.
     public func prepareAccountForPostPurchaseConnection(
@@ -398,6 +401,7 @@ import PathManager
         )
     }
 
+#if os(iOS)
     func shouldPrefetchZkNyms(requireActive: Bool) -> Bool {
         ZkNymPrefetchGate.shouldPrefetch(
             isSubscriptionActive: isAccountActive(),
