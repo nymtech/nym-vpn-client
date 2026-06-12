@@ -73,7 +73,7 @@ pub fn device_registration_readiness(
     if summary.remaining_devices == 0 {
         return Err(Error::internal(MAX_DEVICES_REACHED));
     }
-    if !summary.fair_usage_left() {
+    if summary.is_subscription_active() && !summary.fair_usage_left() {
         return Err(Error::internal(FAIR_USAGE_DEPLETED));
     }
     Ok(DeviceRegistrationReadiness::MustRegister)
@@ -216,7 +216,7 @@ mod tests {
     }
 
     #[test]
-    fn fair_usage_depleted_blocks_registration() {
+    fn fair_usage_depleted_blocks_registration_when_subscription_active() {
         let err = device_registration_readiness(&summary(false, 2, 2000, true)).unwrap_err();
         assert!(err.to_string().contains(FAIR_USAGE_DEPLETED));
     }
@@ -260,5 +260,33 @@ mod tests {
     #[test]
     fn validate_active_device_time_sync_skips_inactive_device() {
         assert!(validate_active_device_time_sync(&summary(false, 2, 0, false)).is_ok());
+    }
+
+    fn summary_without_subscription(
+        is_device_active: bool,
+        remaining_devices: u64,
+    ) -> VpnAccountSummary {
+        let mut s = summary(is_device_active, remaining_devices, 0, true);
+        s.subscription = None;
+        s
+    }
+
+    /// `prepare_registered_account` registers the device when the account is active and
+    /// subscription is not pending, without requiring an active subscription (create-then-purchase).
+    #[test]
+    fn device_registration_readiness_allows_inactive_subscription() {
+        let readiness =
+            device_registration_readiness(&summary_without_subscription(false, 2)).unwrap();
+        assert_eq!(readiness, DeviceRegistrationReadiness::MustRegister);
+    }
+
+    #[test]
+    fn classify_inactive_subscription_without_device_must_register_after_subscription_gate() {
+        let s = summary_without_subscription(false, 2);
+        assert_eq!(classify_local_sync(&s), LocalSyncCheck::InactiveSubscription);
+        assert_eq!(
+            device_registration_readiness(&s).unwrap(),
+            DeviceRegistrationReadiness::MustRegister
+        );
     }
 }

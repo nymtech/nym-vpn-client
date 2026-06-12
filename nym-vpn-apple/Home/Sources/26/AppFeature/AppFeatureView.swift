@@ -203,7 +203,7 @@ private extension AppFeatureView {
 
     @ViewBuilder var drawerColumn: some View {
         VStack(spacing: 0) {
-            if viewModel.drawerTag == .oneClick {
+            if viewModel.drawerContent == .oneClick {
                 speedModeSelector
             }
             drawer
@@ -236,7 +236,7 @@ private extension AppFeatureView {
     @ViewBuilder
     func drawerContent() -> some View {
         ZStack(alignment: .top) {
-            switch viewModel.drawerTag {
+            switch viewModel.drawerContent ?? .welcome {
             case .technicalOptIns:
                 WelcomeOptInsView(
                     onContinue: { viewModel.technicalOptInsContinueTapped() }
@@ -267,7 +267,7 @@ private extension AppFeatureView {
                 )
             }
         }
-        .animation(.easeInOut, value: viewModel.drawerTag)
+        .animation(.easeInOut, value: viewModel.drawerContent)
     }
 
     var welcomeContent: some View {

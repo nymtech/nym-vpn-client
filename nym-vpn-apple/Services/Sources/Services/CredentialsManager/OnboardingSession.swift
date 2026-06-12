@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Logging
+import OnboardingGates
 
 /// Tracks onboarding progress for the current app session to prevent duplicate processing/purchase pushes.
 ///
@@ -30,7 +31,8 @@ import Logging
 public final class OnboardingSession: ObservableObject {
     public static let shared = OnboardingSession()
     /// Must cover `performAccountSummaryUpdate(untilActive:)` poll spacing (~57s) before IAP verification fails.
-    public static let postPurchaseVerificationGracePeriod: TimeInterval = 65
+    public static let postPurchaseVerificationGracePeriod: TimeInterval =
+        PostPurchaseVerificationPolicy.minimumGracePeriodSeconds + 8
 
     private static let logger = Logger(label: "OnboardingSession")
 
@@ -62,7 +64,10 @@ public final class OnboardingSession: ObservableObject {
 
     /// Retry post-purchase summary polling while the user remains on the processing screen.
     public func shouldRetryPostPurchaseVerification() -> Bool {
-        phase == .purchaseComplete || isWithinPostPurchaseVerificationGracePeriod()
+        PostPurchaseVerificationPolicy.shouldRetryVerification(
+            isPurchaseCompletePhase: phase == .purchaseComplete,
+            isWithinGracePeriod: isWithinPostPurchaseVerificationGracePeriod()
+        )
     }
 
     public var canStartProcessing: Bool {

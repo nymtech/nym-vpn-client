@@ -17,6 +17,7 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../OnboardingGates"),
         .package(path: "../Routes"),
         .package(path: "../Settings"),
         .package(path: "../Services"),
@@ -57,7 +58,8 @@ let package = Package(
             name: "HomeTests",
             dependencies: [
                 "Home",
-                .product(name: "CredentialsManager", package: "Services")
+                .product(name: "CredentialsManager", package: "Services"),
+                .product(name: "OnboardingGates", package: "OnboardingGates")
             ]
         )
     ]

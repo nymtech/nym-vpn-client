@@ -1,6 +1,7 @@
 import XCTest
 @testable import Home
 import CredentialsManager
+import OnboardingGates
 import UIComponents
 
 @MainActor
@@ -216,7 +217,10 @@ final class HomeTests: XCTestCase {
     }
 
     func testPostPurchaseVerificationGraceCoversSummaryPollWindow() {
-        XCTAssertGreaterThanOrEqual(OnboardingSession.postPurchaseVerificationGracePeriod, 57)
+        XCTAssertGreaterThanOrEqual(
+            OnboardingSession.postPurchaseVerificationGracePeriod,
+            PostPurchaseVerificationPolicy.minimumGracePeriodSeconds
+        )
     }
 
     func testProcessingDoesNotForceAnimationCompletionWhenWorkSettles() async throws {
@@ -262,9 +266,38 @@ final class HomeTests: XCTestCase {
             prepareAccount: { _ in }
         )
         viewModel.syncCarouselStep(for: .syncingSummary)
+        XCTAssertEqual(viewModel.currentStep, 1)
+        viewModel.animationDidAdvance()
         XCTAssertEqual(viewModel.currentStep, 2)
         viewModel.syncCarouselStep(for: .fetchingTickets)
+        XCTAssertEqual(viewModel.currentStep, 2)
+        viewModel.animationDidAdvance()
         XCTAssertEqual(viewModel.currentStep, 3)
+    }
+
+    func testPhaseSyncDoesNotJumpCarouselAheadOfTimer() {
+        let viewModel = ProcessingAccountViewModel(
+            flow: .login,
+            prepareAccount: { _ in }
+        )
+        viewModel.syncCarouselStep(for: .ready)
+        XCTAssertEqual(viewModel.currentStep, 1)
+        viewModel.animationDidAdvance()
+        XCTAssertEqual(viewModel.currentStep, 2)
+        viewModel.animationDidAdvance()
+        XCTAssertEqual(viewModel.currentStep, 3)
+    }
+
+    func testPhaseSyncCapsCarouselAdvanceWhenBackendLags() {
+        let viewModel = ProcessingAccountViewModel(
+            flow: .login,
+            prepareAccount: { _ in }
+        )
+        viewModel.syncCarouselStep(for: .syncingSummary)
+        viewModel.animationDidAdvance()
+        XCTAssertEqual(viewModel.currentStep, 2)
+        viewModel.animationDidAdvance()
+        XCTAssertEqual(viewModel.currentStep, 2)
     }
 
     func testPostPurchaseCarouselStepSyncsWithFetchingTicketsPhase() {
@@ -273,7 +306,11 @@ final class HomeTests: XCTestCase {
             prepareAccount: { _ in }
         )
         viewModel.syncCarouselStep(for: .fetchingTickets)
-        XCTAssertEqual(viewModel.currentStep, 4)
+        XCTAssertEqual(viewModel.currentStep, 1)
+        for expected in 2...4 {
+            viewModel.animationDidAdvance()
+            XCTAssertEqual(viewModel.currentStep, expected)
+        }
     }
 
     func testCarouselStepMappingForAllPhases() {
@@ -319,5 +356,12 @@ final class HomeTests: XCTestCase {
         let copy = ProcessingAccountView.accountReadyCopy(for: .postPurchase)
         XCTAssertEqual(copy.title, "processingAccount.title5".localizedString)
         XCTAssertEqual(copy.subtitle, "processingAccount.subtitle5".localizedString)
+    }
+
+    func testLoginFinalMessageUsesLoginReadyCopy() {
+        let copy = ProcessingAccountView.accountReadyCopy(for: .login)
+        XCTAssertEqual(copy.title, "processingAccount.login.title5".localizedString)
+        XCTAssertNotEqual(copy.title, "processingAccount.accountReady.title")
+        XCTAssertEqual(copy.subtitle, "processingAccount.login.subtitle5".localizedString)
     }
 }

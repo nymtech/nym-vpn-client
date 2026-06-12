@@ -21,6 +21,7 @@ public struct ProcessingAccountView: View {
     @State private var currentStep = 1
     @State private var titlesSessionID = UUID()
     @State private var processingStartedAt: Date?
+    @State private var titleBlockHeight: CGFloat = 0
 
     public var body: some View {
         VStack(alignment: .center, spacing: 0) {
@@ -39,6 +40,9 @@ public struct ProcessingAccountView: View {
         .frame(maxWidth: MagicNumbers.moreMaxWidth)
         .padding(16)
         .navigationBarBackButtonHidden(true)
+        .background {
+            titleMeasurementLayer
+        }
         .background {
             Color.Nym.background
                 .ignoresSafeArea()
@@ -68,30 +72,61 @@ private extension ProcessingAccountView {
 
     @ViewBuilder
     var statusTextView: some View {
-        if let errorMessage {
-            VStack(alignment: .center, spacing: 16) {
-                Text(errorMessage)
-                    .textStyle(.Body.Medium.regular)
-                    .multilineTextAlignment(.center)
-                NymButton("retry".localizedString, style: .primary) {
-                    resetProcessingState()
-                    Task { await prepareAccount() }
+        Group {
+            if let errorMessage {
+                VStack(alignment: .center, spacing: 16) {
+                    Text(errorMessage)
+                        .textStyle(.Body.Medium.regular)
+                        .multilineTextAlignment(.center)
+                    NymButton("retry".localizedString, style: .primary) {
+                        resetProcessingState()
+                        Task { await prepareAccount() }
+                    }
                 }
+            } else if didShowFinalMessage {
+                accountReadyMessage
+            } else {
+                SwitchingTitlesView(
+                    pairs: Self.processingCarouselPairs,
+                    stepInterval: SwitchingTitlesView.accountProcessingStepInterval,
+                    loopUntilExternalFinish: true,
+                    didFinishAnimating: $didFinishAnimatingText,
+                    timerDidTick: {
+                        currentStep = min(currentStep + 1, 4)
+                    }
+                )
+                .id(titlesSessionID)
             }
-        } else if didShowFinalMessage {
-            accountReadyMessage
-        } else {
-            SwitchingTitlesView(
-                pairs: Self.processingCarouselPairs,
-                stepInterval: SwitchingTitlesView.accountProcessingStepInterval,
-                loopUntilExternalFinish: true,
-                didFinishAnimating: $didFinishAnimatingText,
-                timerDidTick: {
-                    currentStep = min(currentStep + 1, 4)
-                }
-            )
-            .id(titlesSessionID)
         }
+        .frame(height: titleBlockHeight > 0 ? titleBlockHeight : nil)
+    }
+
+    var titleMeasurementLayer: some View {
+        VStack(spacing: 16) {
+            ForEach(Array(Self.processingCarouselPairs.enumerated()), id: \.offset) { _, pair in
+                titlePairMeasurement(title: pair.0, subtitle: pair.1)
+            }
+            titlePairMeasurement(
+                title: "processingAccount.title5".localizedString,
+                subtitle: "processingAccount.subtitle5".localizedString
+            )
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .opacity(0)
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
+    }
+
+    func titlePairMeasurement(title: String, subtitle: String) -> some View {
+        VStack(alignment: .center, spacing: 16) {
+            Text(title)
+                .textStyle(.Headline.Medium.regular)
+                .multilineTextAlignment(.center)
+            Text(subtitle)
+                .textStyle(.Body.Medium.regular)
+                .multilineTextAlignment(.center)
+        }
+        .trackHeight { titleBlockHeight = max(titleBlockHeight, $0) }
     }
 
     static var processingCarouselPairs: [(String, String)] {

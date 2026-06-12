@@ -65,6 +65,8 @@ public final class ProcessingAccountViewModel {
     private var didSettleAccount = false
     private var processingStartedAt: Date?
     private var carouselTicksSinceStart = 0
+    /// Highest carousel step allowed by backend phase; timer advances toward this cap.
+    private var phaseAllowedCarouselStep = 1
 
     public init(
         credentialsManager: CredentialsManager,
@@ -169,8 +171,7 @@ public final class ProcessingAccountViewModel {
 
     func animationDidAdvance() {
         carouselTicksSinceStart += 1
-        let maxStep = flow.carouselStepCount
-        currentStep = min(currentStep + 1, maxStep)
+        advanceCarouselStepIfAllowed()
         tryCompleteAfterMinimumPacing()
     }
 
@@ -185,9 +186,7 @@ public final class ProcessingAccountViewModel {
 
     func syncCarouselStep(for phase: AccountSetupPhase) {
         guard let step = Self.carouselStep(for: phase, flow: flow) else { return }
-        if step > currentStep {
-            currentStep = step
-        }
+        phaseAllowedCarouselStep = max(phaseAllowedCarouselStep, step)
     }
 
     static func carouselStep(for phase: AccountSetupPhase, flow: ProcessingFlow) -> Int? {
@@ -269,6 +268,12 @@ public final class ProcessingAccountViewModel {
         }
     }
 
+    private func advanceCarouselStepIfAllowed() {
+        let cap = min(flow.carouselStepCount, phaseAllowedCarouselStep)
+        guard currentStep < cap else { return }
+        currentStep += 1
+    }
+
     private func resetProcessingState() {
         finalMessageTask?.cancel()
         finalMessageTask = nil
@@ -279,6 +284,7 @@ public final class ProcessingAccountViewModel {
         didShowFinalMessage = false
         processingStartedAt = nil
         carouselTicksSinceStart = 0
+        phaseAllowedCarouselStep = 1
         currentStep = 1
         errorMessage = nil
         titlesSessionID = OnboardingSession.shared.carouselSessionID
