@@ -69,6 +69,8 @@ public enum ProcessingAccountErrorMapper {
             return "Storage(\(details.prefix(120)))"
         case let .FailedAccountRegistration(details: details):
             return "FailedAccountRegistration(\(details.prefix(120)))"
+        case .AccountStoreBusy:
+            return "AccountStoreBusy"
         default:
             return String(describing: vpnError)
         }

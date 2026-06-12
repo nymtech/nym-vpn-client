@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import Logging
 import SwiftUI
@@ -43,6 +44,9 @@ public final class ProcessingAccountViewModel {
     private let canPrefetchZkNyms: @MainActor () -> Bool
     @ObservationIgnored private var processingTask: Task<Void, Never>?
     @ObservationIgnored private var finalMessageTask: Task<Void, Never>?
+    // Combine publisher subscription; @Observable tracks $accountSetupPhase in CredentialsManager directly.
+    // credentialsManager is captured strongly in prepareAccount closure and outlives this viewModel.
+    @ObservationIgnored private var phaseCancellable: AnyCancellable?
     @ObservationIgnored public var onFinished: (() -> Void)?
 
     let flow: ProcessingFlow
@@ -70,6 +74,11 @@ public final class ProcessingAccountViewModel {
         self.flow = flow
         self.canPrefetchZkNyms = canPrefetchZkNyms
         self.titlesSessionID = carouselSessionID ?? OnboardingSession.shared.carouselSessionID
+        phaseCancellable = credentialsManager.$accountSetupPhase
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] phase in
+                self?.syncCarouselStep(for: phase)
+            }
     }
 
     init(
@@ -139,6 +148,17 @@ public final class ProcessingAccountViewModel {
 
     var loopsCarouselUntilWorkCompletes: Bool {
         true
+    }
+
+    func syncCarouselStep(for phase: AccountSetupPhase) {
+        guard let step = Self.carouselStep(for: phase, flow: flow) else { return }
+        if step > currentStep {
+            currentStep = step
+        }
+    }
+
+    static func carouselStep(for phase: AccountSetupPhase, flow: ProcessingFlow) -> Int? {
+        AccountSetupPhase.carouselStep(for: phase, postPurchase: flow == .postPurchase)
     }
 
     private func settleAccount() {

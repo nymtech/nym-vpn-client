@@ -6,9 +6,9 @@ use std::{path::PathBuf, sync::Arc};
 use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
-use nym_vpn_account_controller::{CreateDeeplinkParams, Deeplink};
 use nym_vpn_account_controller::{
-    PrefetchZkNymOutcome, SUMMARY_STALE_AFTER, register_device_if_needed, verify_time_synced,
+    CreateDeeplinkParams, CredentialStoreAccessLock, Deeplink, PrefetchZkNymOutcome,
+    SUMMARY_STALE_AFTER, register_device_if_needed, verify_time_synced,
 };
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -87,6 +87,7 @@ impl NymVpnAccountStorage {
     /// Store the account mnemonic
     /// This is a version that can be called when the account controller is not running.
     pub async fn login(&self, request: StoreAccountRequest) -> Result<(), VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         let storable_account = StorableAccount::try_from(request).map_err(VpnError::internal)?;
         let account = VpnAccount::try_from(storable_account.clone()).map_err(VpnError::internal)?;
 
@@ -219,6 +220,7 @@ impl NymVpnAccountStorage {
     /// Generate the account mnemonic locally and store it.
     /// This is a version that can be called when the account controller is not running.
     pub async fn create_account(&self) -> Result<(), VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         let (_, mnemonic) = VpnAccount::generate_new().map_err(VpnError::internal)?;
         let account = StorableAccount::new(mnemonic, StoredAccountMode::Api);
         self.storage.store_account(account).await?;
@@ -346,6 +348,7 @@ impl NymVpnAccountStorage {
     /// `/account/{id}/device/{device}/summary`, persists the result, and returns it.
     /// On transient network failure it falls back to the last cached summary.
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         match self.sync_account_summary_from_network().await {
             Ok(summary) => Ok(Some(summary)),
             Err(err @ (VpnError::NoAccountStored | VpnError::NoDeviceIdentity)) => Err(err),
@@ -380,6 +383,7 @@ impl NymVpnAccountStorage {
     /// Load the account mnemonic stored locally and register it.
     /// This is a version that can be called when the account controller is not running.
     pub async fn register_account(&self) -> Result<RegisterAccountResponse, VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         let platform = Platform::Apple;
         let account = self
             .storage
@@ -401,6 +405,7 @@ impl NymVpnAccountStorage {
     /// subscription is active. Intended immediately after [`Self::register_account`]
     /// on iOS login paths so zk-nym prefetch and connect assume a registered device.
     pub async fn prepare_registered_account(&self) -> Result<(), VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         tracing::info!("Starting post-login account setup (summary sync and device registration)");
         let vpn_api_client = self.create_vpn_api_client().await?;
         let account = self
@@ -527,6 +532,21 @@ impl NymVpnAccountStorage {
 }
 
 impl NymVpnAccountStorage {
+    fn try_acquire_data_dir_lock(&self) -> Result<CredentialStoreAccessLock, VpnError> {
+        CredentialStoreAccessLock::try_acquire(&self.storage_path).map_err(|err| {
+            if matches!(
+                err,
+                nym_vpn_account_controller::Error::CredentialStoreBusy
+            ) {
+                VpnError::AccountStoreBusy
+            } else {
+                VpnError::Storage {
+                    details: err.to_string(),
+                }
+            }
+        })
+    }
+
     async fn sync_account_summary_from_network(&self) -> Result<VpnAccountSummary, VpnError> {
         let vpn_api_client = self.create_vpn_api_client().await?;
         self.sync_account_summary_from_network_with_client(&vpn_api_client)

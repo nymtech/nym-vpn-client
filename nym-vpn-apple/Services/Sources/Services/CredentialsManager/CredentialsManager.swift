@@ -33,6 +33,9 @@ import PathManager
     /// Set after post-login account setup completes; avoids redundant summary sync during processing.
     private var accountSetupCompletedAt: Date?
     private var zkNymsPrefetchedThisSession = false
+    /// Track consecutive AccountStoreBusy failures to surface error if lock held indefinitely.
+    private var consecutiveStoreBusyCount = 0
+    private static let maxStoreBusyRetries = 10
 #endif
 
     @Published public private(set) var accountSetupPhase: AccountSetupPhase = .idle
@@ -391,11 +394,11 @@ import PathManager
     }
 
     func shouldPrefetchZkNyms(requireActive: Bool) -> Bool {
-        guard requireActive else {
-            return isAccountActive()
-        }
-        guard isAccountActive() else { return false }
-        return !zkNymsPrefetchedThisSession
+        ZkNymPrefetchGate.shouldPrefetch(
+            isSubscriptionActive: isAccountActive(),
+            requireActive: requireActive,
+            alreadyPrefetchedThisSession: zkNymsPrefetchedThisSession
+        )
     }
 #endif
 
@@ -454,6 +457,17 @@ import PathManager
                 ).getAccountSummary()
             }.value
         } catch {
+            if error is VpnError.AccountStoreBusy {
+                consecutiveStoreBusyCount += 1
+                if consecutiveStoreBusyCount >= Self.maxStoreBusyRetries {
+                    accountSummaryLastFetchFailed = true
+                    logger.error("fetchAccountSummary (iOS): account store locked after \(consecutiveStoreBusyCount) attempts; NE may hold lock indefinitely")
+                } else {
+                    logger.info("fetchAccountSummary (iOS): account store busy (\(consecutiveStoreBusyCount)/\(Self.maxStoreBusyRetries)), will retry on next poll")
+                }
+                return
+            }
+            consecutiveStoreBusyCount = 0
             accountSummaryLastFetchFailed = true
             logger.error(
                 "fetchAccountSummary (iOS) failed operation=refreshAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
@@ -461,6 +475,7 @@ import PathManager
             return
         }
 
+        consecutiveStoreBusyCount = 0
         guard let summary
         else {
             // nil-without-throw: same UX as a failure, surface it as one.

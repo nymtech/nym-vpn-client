@@ -175,4 +175,35 @@ final class HomeTests: XCTestCase {
     func testPostPurchaseFlowUsesFourCarouselSteps() {
         XCTAssertEqual(ProcessingFlow.postPurchase.carouselStepCount, 4)
     }
+
+    func testCarouselStepSyncsWithAccountSetupPhase() {
+        let viewModel = ProcessingAccountViewModel(
+            flow: .login,
+            prepareAccount: { _ in }
+        )
+        viewModel.syncCarouselStep(for: .syncingSummary)
+        XCTAssertEqual(viewModel.currentStep, 2)
+        viewModel.syncCarouselStep(for: .fetchingTickets)
+        XCTAssertEqual(viewModel.currentStep, 3)
+    }
+
+    func testPostPurchaseCarouselStepSyncsWithFetchingTicketsPhase() {
+        let viewModel = ProcessingAccountViewModel(
+            flow: .postPurchase,
+            prepareAccount: { _ in }
+        )
+        viewModel.syncCarouselStep(for: .fetchingTickets)
+        XCTAssertEqual(viewModel.currentStep, 4)
+    }
+
+    func testCarouselStepMappingForAllPhases() {
+        XCTAssertNil(ProcessingAccountViewModel.carouselStep(for: .idle, flow: .login))
+        XCTAssertEqual(ProcessingAccountViewModel.carouselStep(for: .syncingSummary, flow: .createAccount), 2)
+        XCTAssertEqual(ProcessingAccountViewModel.carouselStep(for: .fetchingTickets, flow: .postPurchase), 4)
+        XCTAssertEqual(ProcessingAccountViewModel.carouselStep(for: .ready, flow: .login), 3)
+    }
+
+    func testPurchaseOnlyEntrySkipsRegistrationContract() {
+        XCTAssertFalse(OnboardingLaunchPolicy.shouldRegisterAccountOnLaunch(displayPurchaseView: true))
+    }
 }

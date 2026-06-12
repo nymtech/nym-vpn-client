@@ -73,10 +73,10 @@ public struct GeneratePassphraseView: View {
                 .ignoresSafeArea()
         }
         .task {
-            if displayPurchaseView {
-                didRegisterAccount = true
-            } else {
+            if OnboardingSession.shouldRegisterAccountOnLaunch(displayPurchaseView: displayPurchaseView) {
                 await generateAndRegisterMnemonic()
+            } else {
+                didRegisterAccount = true
             }
         }
         .alert(alertTitle, isPresented: $isAlertDisplayed) {

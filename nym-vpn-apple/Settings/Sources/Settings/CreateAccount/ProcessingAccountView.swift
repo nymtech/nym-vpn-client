@@ -45,6 +45,9 @@ public struct ProcessingAccountView: View {
         .task {
             await prepareAccount()
         }
+        .onReceive(credentialsManager.$accountSetupPhase) { phase in
+            syncCarouselStep(for: phase)
+        }
     }
 
     public init(path: Binding<NavigationPath>) {
@@ -158,5 +161,12 @@ private extension ProcessingAccountView {
         errorMessage = nil
         currentStep = 1
         titlesSessionID = UUID()
+    }
+
+    func syncCarouselStep(for phase: AccountSetupPhase) {
+        guard let step = AccountSetupPhase.carouselStep(for: phase, postPurchase: true) else { return }
+        if step > currentStep {
+            currentStep = step
+        }
     }
 }

@@ -102,6 +102,9 @@ pub enum VpnError {
 
     #[error("failed to link privy account: {details}")]
     LinkPrivyAccount { details: String },
+
+    #[error("account store busy: network extension or account controller holds the data dir lock")]
+    AccountStoreBusy,
 }
 
 impl From<HttpClientError> for VpnError {

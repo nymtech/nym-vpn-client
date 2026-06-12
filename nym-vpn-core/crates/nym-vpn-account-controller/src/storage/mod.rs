@@ -7,7 +7,7 @@ mod credential_store_lock;
 mod credentials;
 
 pub(crate) use account::{AccountStorage, AccountStorageOp};
-pub(crate) use credential_store_lock::CredentialStoreAccessLock;
+pub use credential_store_lock::CredentialStoreAccessLock;
 pub(crate) use credentials::{PendingCredentialRequest, VpnCredentialStorage};
 
 pub use cleanup::remove_files_for_account;

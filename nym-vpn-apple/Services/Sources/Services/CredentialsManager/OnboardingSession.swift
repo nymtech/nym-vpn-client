@@ -66,6 +66,11 @@ public final class OnboardingSession {
         isPurchaseFlowActive = false
         carouselSessionID = UUID()
     }
+
+    /// Settings IAP-only route (`displayPurchaseView: true`) must not re-run account registration.
+    public static func shouldRegisterAccountOnLaunch(displayPurchaseView: Bool) -> Bool {
+        OnboardingLaunchPolicy.shouldRegisterAccountOnLaunch(displayPurchaseView: displayPurchaseView)
+    }
 }
 
 public enum ProcessingAccountMode: Sendable {
