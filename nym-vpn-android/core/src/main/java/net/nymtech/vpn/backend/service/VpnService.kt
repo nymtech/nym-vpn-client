@@ -1,8 +1,14 @@
 package net.nymtech.vpn.backend.service
 
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
+import android.os.Process
+import androidx.annotation.RequiresApi
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -65,6 +71,27 @@ class VpnService :
 
 	private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+	// Fires when the default network changes; disconnects if another app's VPN took over.
+	private val competingVpnCallback = object : ConnectivityManager.NetworkCallback() {
+		@RequiresApi(Build.VERSION_CODES.R)
+		override fun onAvailable(network: Network) {
+			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+			val cm = getSystemService(ConnectivityManager::class.java) ?: return
+			val caps = cm.getNetworkCapabilities(network) ?: return
+			if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) return
+			if (caps.ownerUid == Process.myUid()) return
+
+			val currentState = core.state
+			if (currentState == Tunnel.State.Down || currentState == Tunnel.State.Offline) return
+
+			Timber.tag(TAG).w("Competing VPN detected (network=$network uid=${caps.ownerUid}), disconnecting")
+			_events.tryEmit(VpnServiceEvent.CompetingVpnDetected)
+			ioScope.launch {
+				core.disconnectBestEffort("competing-vpn")
+			}
+		}
+	}
+
 	private val _events = MutableSharedFlow<VpnServiceEvent>(extraBufferCapacity = 128)
 	val events: Flow<VpnServiceEvent> = _events.asSharedFlow()
 
@@ -104,11 +131,22 @@ class VpnService :
 		_events.tryEmit(VpnServiceEvent.Log("VpnService created"))
 
 		connectivity.start()
+		registerCompetingVpnDetector()
+	}
+
+	private fun registerCompetingVpnDetector() {
+		runCatching {
+			val cm = getSystemService(ConnectivityManager::class.java) ?: return
+			cm.registerDefaultNetworkCallback(competingVpnCallback)
+		}.onFailure { Timber.tag(TAG).w(it, "Failed to register competing VPN detector") }
 	}
 
 	override fun onDestroy() {
 		Timber.tag(TAG).i("ServiceDestroyed")
 		_events.tryEmit(VpnServiceEvent.Log("VpnService destroyed"))
+		runCatching {
+			getSystemService(ConnectivityManager::class.java)?.unregisterNetworkCallback(competingVpnCallback)
+		}
 
 		runCatching { runBlocking(Dispatchers.IO) { core.disconnectLocked() } }
 		runCatching { ioScope.cancel() }
@@ -171,8 +209,16 @@ class VpnService :
 
 		tun.closeInterfaceSafely()
 		runBlocking(Dispatchers.IO) { runCatching { core.disconnectBestEffort("revoke") } }
+		stopSelf()
 
 		super.onRevoke()
+	}
+
+	internal fun onVpnRevoked() {
+		Timber.tag(TAG).w("VPN permission lost during tunnel configuration")
+		ioScope.launch {
+			core.disconnectBestEffort("vpn-revoked")
+		}
 	}
 
 	override fun bypass(socket: Int) {

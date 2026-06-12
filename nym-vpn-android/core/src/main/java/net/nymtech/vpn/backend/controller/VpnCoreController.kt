@@ -212,6 +212,7 @@ class VpnCoreController(
 		}
 
 		tun.closeInterfaceSafely()
+		tun.resetConnectionState()
 		publishState(Tunnel.State.Down)
 
 		foreground.stopForegroundSafely()

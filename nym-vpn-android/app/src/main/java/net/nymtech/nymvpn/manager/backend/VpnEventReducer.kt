@@ -17,6 +17,7 @@ import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.backend.api.VpnServiceApi
 import net.nymtech.vpn.model.VpnServiceEvent
+import nym_vpn_lib_types.ErrorStateReason
 import timber.log.Timber
 
 /**
@@ -82,6 +83,28 @@ class VpnEventReducer(private val context: Context, private val state: MutableSt
 
 			is VpnServiceEvent.FatalError -> {
 				Timber.e("FatalError reason=%s", event.reason)
+				if (event.reason == ErrorStateReason.TunnelProvider) {
+					state.update { s ->
+						s.copy(
+							tunnelState = Tunnel.State.Down,
+							establishConnectionState = null,
+							mixnetConnectionState = null,
+						)
+					}
+					context.requestTileServiceStateUpdate()
+				}
+			}
+
+			VpnServiceEvent.CompetingVpnDetected -> {
+				Timber.w("CompetingVpnDetected")
+				state.update { s ->
+					s.copy(
+						tunnelState = Tunnel.State.Down,
+						establishConnectionState = null,
+						mixnetConnectionState = null,
+					)
+				}
+				context.requestTileServiceStateUpdate()
 			}
 
 			is VpnServiceEvent.Log -> Timber.d("ServiceLog: %s", event.message)
