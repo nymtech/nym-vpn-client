@@ -92,37 +92,26 @@ final class HomeTests: XCTestCase {
 
     func testPassphraseLoginCompletesAuthBeforeRegister() async throws {
         var events: [String] = []
-        var registerCalled = false
         let viewModel = PassphraseSignInViewModel(
-            addCredential: { _ in events.append("add") },
-            registerAccount: {
-                registerCalled = true
-                events.append("register")
-            }
+            addCredential: { _ in events.append("add") }
         )
         viewModel.onAuthComplete = { events.append("authComplete") }
         viewModel.passphraseText = "seed phrase"
         viewModel.loginButtonTapped()
         try await Task.sleep(for: .milliseconds(50))
         XCTAssertEqual(events, ["add", "authComplete"])
-        XCTAssertFalse(registerCalled)
     }
 
-    func testGeneratePassphraseCompletesAuthBeforeRegister() async throws {
+    func testGeneratePassphraseCreatesMnemonicThenCompletesAuth() async throws {
         var events: [String] = []
-        var registerCalled = false
         let viewModel = GeneratePassphraseViewModel(
-            isValidCredentialImported: { true },
-            registerAccount: {
-                registerCalled = true
-                events.append("register")
-            }
+            isValidCredentialImported: { false },
+            createMnemonic: { events.append("createMnemonic") }
         )
         viewModel.onAuthComplete = { events.append("authComplete") }
         viewModel.start()
         try await Task.sleep(for: .milliseconds(50))
-        XCTAssertEqual(events, ["authComplete"])
-        XCTAssertFalse(registerCalled)
+        XCTAssertEqual(events, ["createMnemonic", "authComplete"])
         XCTAssertTrue(viewModel.didRegisterAccount)
     }
 
@@ -214,6 +203,14 @@ final class HomeTests: XCTestCase {
     func testShouldRetryPostPurchaseVerificationDuringPurchaseCompletePhase() {
         OnboardingSession.shared.advance(to: .purchaseComplete)
         XCTAssertTrue(OnboardingSession.shared.shouldRetryPostPurchaseVerification())
+    }
+
+    func testVerificationRetryStopsAfterMaxAttempts() {
+        OnboardingSession.shared.advance(to: .purchaseComplete)
+        for _ in 0..<PostPurchaseVerificationPolicy.maxVerificationAttempts {
+            OnboardingSession.shared.recordPostPurchaseVerificationAttempt()
+        }
+        XCTAssertFalse(OnboardingSession.shared.shouldRetryPostPurchaseVerification())
     }
 
     func testPostPurchaseVerificationGraceCoversSummaryPollWindow() {

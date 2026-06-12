@@ -294,7 +294,12 @@ public final class ProcessingAccountViewModel {
         processingTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: Self.subscriptionVerificationRetryInterval)
             guard !Task.isCancelled, let self else { return }
-            guard OnboardingSession.shared.shouldRetryPostPurchaseVerification() else { return }
+            let session = OnboardingSession.shared
+            guard session.shouldRetryPostPurchaseVerification() else {
+                self.errorMessage = CredentialsManagerError.subscriptionVerificationTimedOut.localizedTitle
+                return
+            }
+            session.recordPostPurchaseVerificationAttempt()
             self.errorMessage = nil
             self.start()
         }

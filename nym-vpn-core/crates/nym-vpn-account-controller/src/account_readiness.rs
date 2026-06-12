@@ -283,7 +283,10 @@ mod tests {
     #[test]
     fn classify_inactive_subscription_without_device_must_register_after_subscription_gate() {
         let s = summary_without_subscription(false, 2);
-        assert_eq!(classify_local_sync(&s), LocalSyncCheck::InactiveSubscription);
+        assert_eq!(
+            classify_local_sync(&s),
+            LocalSyncCheck::InactiveSubscription
+        );
         assert_eq!(
             device_registration_readiness(&s).unwrap(),
             DeviceRegistrationReadiness::MustRegister

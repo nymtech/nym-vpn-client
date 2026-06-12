@@ -24,12 +24,10 @@ public final class GeneratePassphraseViewModel {
 
     init(
         isValidCredentialImported: @escaping () -> Bool = { true },
-        createMnemonic: @escaping () async throws -> Void = {},
-        registerAccount: @escaping () async throws -> Void = {}
+        createMnemonic: @escaping () async throws -> Void = {}
     ) {
         self.isValidCredentialImported = isValidCredentialImported
         self.createMnemonic = createMnemonic
-        _ = registerAccount
     }
 
     func start() {

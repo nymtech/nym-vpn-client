@@ -54,6 +54,7 @@ public final class OnboardingSession: ObservableObject {
     public private(set) var isPurchaseFlowActive = false
     @Published public private(set) var carouselSessionID = UUID()
     private(set) public var postPurchaseCompletedAt: Date?
+    private(set) public var postPurchaseVerificationAttemptCount = 0
 
     private init() {}
 
@@ -64,10 +65,15 @@ public final class OnboardingSession: ObservableObject {
 
     /// Retry post-purchase summary polling while the user remains on the processing screen.
     public func shouldRetryPostPurchaseVerification() -> Bool {
-        PostPurchaseVerificationPolicy.shouldRetryVerification(
-            isPurchaseCompletePhase: phase == .purchaseComplete,
-            isWithinGracePeriod: isWithinPostPurchaseVerificationGracePeriod()
+        let elapsed = postPurchaseCompletedAt.map { Date().timeIntervalSince($0) }
+        return PostPurchaseVerificationPolicy.shouldRetryVerification(
+            elapsedSincePurchaseComplete: elapsed,
+            verificationAttemptCount: postPurchaseVerificationAttemptCount
         )
+    }
+
+    public func recordPostPurchaseVerificationAttempt() {
+        postPurchaseVerificationAttemptCount += 1
     }
 
     public var canStartProcessing: Bool {
@@ -114,6 +120,7 @@ public final class OnboardingSession: ObservableObject {
         phase = .unsigned
         isPurchaseFlowActive = false
         postPurchaseCompletedAt = nil
+        postPurchaseVerificationAttemptCount = 0
         carouselSessionID = UUID()
     }
 

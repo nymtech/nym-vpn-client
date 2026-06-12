@@ -7,6 +7,7 @@
 // 3. request ticketbooks and top up the local credential store
 
 mod account_readiness;
+mod account_summary_sync;
 mod command_sender;
 mod commands;
 mod config;
@@ -29,6 +30,9 @@ pub use account_readiness::{
     MAX_DEVICES_REACHED, SUMMARY_STALE_AFTER, classify_local_sync, device_registration_readiness,
     register_device_for_prefetch_if_needed, register_device_if_needed,
     validate_active_device_time_sync, verify_time_synced,
+};
+pub use account_summary_sync::{
+    AccountSummaryFetchFailure, resolve_account_summary_with_cache_fallback,
 };
 pub use command_sender::AccountCommandSender;
 pub use config::AccountControllerConfig;

@@ -180,7 +180,12 @@ private extension ProcessingAccountView {
     func scheduleSubscriptionVerificationRetry() {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(2))
-            guard OnboardingSession.shared.shouldRetryPostPurchaseVerification() else { return }
+            let session = OnboardingSession.shared
+            guard session.shouldRetryPostPurchaseVerification() else {
+                errorMessage = CredentialsManagerError.subscriptionVerificationTimedOut.localizedTitle
+                return
+            }
+            session.recordPostPurchaseVerificationAttempt()
             errorMessage = nil
             await prepareAccount()
         }

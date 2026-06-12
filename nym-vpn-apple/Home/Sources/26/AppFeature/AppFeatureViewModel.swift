@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import Logging
 import SwiftUI
 import SnackbarManager
 import AppSettings
@@ -9,6 +10,7 @@ import CredentialsManager
 import GatewayManager
 import ImpactGenerator
 import NetworkMonitor
+import OnboardingGates
 import Routes
 import Settings
 import TunnelStatus
@@ -18,6 +20,8 @@ import GRPCManager
 
 @Observable
 @MainActor public final class AppFeatureViewModel {
+    private static let logger = Logger(label: "AppFeatureViewModel")
+
     public let appSettings: AppSettings
     public let credentialsManager: CredentialsManager
     public let snackbarManager: SnackbarManager
@@ -212,10 +216,29 @@ import GRPCManager
     }
 
     func handleAuthRegistrationComplete() {
-        guard drawerContent?.allowsCredentialPromotion == true else { return }
-        guard onboardingSession.canStartProcessing else { return }
-        guard processingViewModel == nil else { return }
-        startProcessingTransition()
+        let action = AuthRegistrationHandoff.resolve(
+            allowsCredentialPromotion: drawerContent?.allowsCredentialPromotion ?? false,
+            canStartProcessing: onboardingSession.canStartProcessing,
+            hasProcessingViewModel: processingViewModel != nil,
+            isCredentialImported: appSettings.isCredentialImported,
+            processingComplete: onboardingSession.phase >= .processingComplete
+        )
+        switch action {
+        case .noop:
+            return
+        case .startProcessing:
+            if drawerContent?.allowsCredentialPromotion != true {
+                Self.logger.warning(
+                    "Auth registration complete: starting processing after drawer promotion block drawer=\(String(describing: drawerContent)) phase=\(String(describing: onboardingSession.phase))"
+                )
+            }
+            startProcessingTransition()
+        case .promoteToInitialDrawer:
+            Self.logger.warning(
+                "Auth registration complete: promoting drawer after promotion block drawer=\(String(describing: drawerContent)) phase=\(String(describing: onboardingSession.phase))"
+            )
+            pendingDrawerContent = initialDrawerContent()
+        }
     }
 
     func requestPlanPurchaseIfNeeded() -> Bool {

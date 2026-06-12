@@ -32,11 +32,9 @@ public final class PassphraseSignInViewModel {
     }
 
     init(
-        addCredential: @escaping (String) async throws -> Void,
-        registerAccount: @escaping () async throws -> Void = {}
+        addCredential: @escaping (String) async throws -> Void
     ) {
         self.addCredential = addCredential
-        _ = registerAccount
     }
 
     func loginButtonTapped() {

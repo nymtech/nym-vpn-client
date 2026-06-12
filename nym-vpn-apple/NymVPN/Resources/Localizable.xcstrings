@@ -22835,6 +22835,17 @@
         }
       }
     },
+    "processingAccount.subscriptionVerificationTimedOut" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "We could not confirm your subscription yet. Check your App Store purchase and try again."
+          }
+        }
+      }
+    },
     "processingAccount.subtitle2" : {
       "extractionState" : "manual",
       "localizations" : {

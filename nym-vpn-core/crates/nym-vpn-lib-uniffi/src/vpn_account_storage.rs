@@ -7,9 +7,10 @@ use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
 use nym_vpn_account_controller::{
-    CreateDeeplinkParams, CredentialStoreAccessLock, Deeplink, PrefetchExternalError,
-    PrefetchZkNymOutcome, SUMMARY_STALE_AFTER, map_prefetch_error_for_external,
-    register_device_if_needed, validate_active_device_time_sync,
+    AccountSummaryFetchFailure, CreateDeeplinkParams, CredentialStoreAccessLock, Deeplink,
+    PrefetchExternalError, PrefetchZkNymOutcome, SUMMARY_STALE_AFTER,
+    map_prefetch_error_for_external, register_device_if_needed,
+    resolve_account_summary_with_cache_fallback, validate_active_device_time_sync,
 };
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -351,21 +352,25 @@ impl NymVpnAccountStorage {
     /// `/account/{id}/device/{device}/summary`, persists the result, and returns it.
     /// On transient network failure it falls back to the last cached summary.
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
-        match self.sync_account_summary_from_network().await {
-            Ok(summary) => Ok(Some(summary)),
-            Err(err @ (VpnError::NoAccountStored | VpnError::NoDeviceIdentity)) => Err(err),
-            Err(err) => {
-                tracing::warn!("Account summary network sync failed, trying cache: {err:?}");
-                match self.storage.load_summary().await.map_err(|storage_err| {
-                    VpnError::Storage {
-                        details: storage_err.to_string(),
-                    }
-                })? {
-                    Some(cached) => Ok(Some(cached)),
-                    None => Err(err),
-                }
-            }
+        let sync_result = self
+            .sync_account_summary_from_network()
+            .await
+            .map_err(map_account_summary_fetch_failure);
+        if sync_result.is_err() {
+            tracing::warn!(
+                "Account summary network sync failed, trying cache: {:?}",
+                sync_result.as_ref().err()
+            );
         }
+        let cached =
+            self.storage
+                .load_summary()
+                .await
+                .map_err(|storage_err| VpnError::Storage {
+                    details: storage_err.to_string(),
+                })?;
+        resolve_account_summary_with_cache_fallback(sync_result, cached)
+            .map_err(map_account_summary_fetch_failure_to_vpn_error)
     }
 
     /// Get the type of account the user is logged in with
@@ -719,5 +724,21 @@ impl NymVpnAccountStorage {
 
     async fn remove_device_identity(&self) -> Result<(), VpnError> {
         self.storage.remove_keys().await.map_err(VpnError::internal)
+    }
+}
+
+fn map_account_summary_fetch_failure(err: VpnError) -> AccountSummaryFetchFailure {
+    match err {
+        VpnError::NoAccountStored => AccountSummaryFetchFailure::MissingAccount,
+        VpnError::NoDeviceIdentity => AccountSummaryFetchFailure::MissingDevice,
+        other => AccountSummaryFetchFailure::Retryable(format!("{other:?}")),
+    }
+}
+
+fn map_account_summary_fetch_failure_to_vpn_error(err: AccountSummaryFetchFailure) -> VpnError {
+    match err {
+        AccountSummaryFetchFailure::MissingAccount => VpnError::NoAccountStored,
+        AccountSummaryFetchFailure::MissingDevice => VpnError::NoDeviceIdentity,
+        AccountSummaryFetchFailure::Retryable(details) => VpnError::InternalError { details },
     }
 }

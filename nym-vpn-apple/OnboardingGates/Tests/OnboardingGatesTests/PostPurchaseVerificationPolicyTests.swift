@@ -2,29 +2,38 @@ import XCTest
 import OnboardingGates
 
 final class PostPurchaseVerificationPolicyTests: XCTestCase {
-    func testShouldRetryWhilePurchaseCompletePhaseEvenAfterGraceExpires() {
+    func testShouldRetryWithinGraceAndAttemptBudget() {
         XCTAssertTrue(
             PostPurchaseVerificationPolicy.shouldRetryVerification(
-                isPurchaseCompletePhase: true,
-                isWithinGracePeriod: false
+                elapsedSincePurchaseComplete: 10,
+                verificationAttemptCount: 0
             )
         )
     }
 
-    func testShouldRetryWithinGracePeriodBeforePhaseAdvances() {
-        XCTAssertTrue(
-            PostPurchaseVerificationPolicy.shouldRetryVerification(
-                isPurchaseCompletePhase: false,
-                isWithinGracePeriod: true
-            )
-        )
-    }
-
-    func testShouldNotRetryAfterGraceAndPhaseAdvanced() {
+    func testShouldNotRetryAfterMaxElapsed() {
         XCTAssertFalse(
             PostPurchaseVerificationPolicy.shouldRetryVerification(
-                isPurchaseCompletePhase: false,
-                isWithinGracePeriod: false
+                elapsedSincePurchaseComplete: PostPurchaseVerificationPolicy.maxVerificationElapsedSeconds + 1,
+                verificationAttemptCount: 0
+            )
+        )
+    }
+
+    func testVerificationRetryStopsAfterMaxAttempts() {
+        XCTAssertFalse(
+            PostPurchaseVerificationPolicy.shouldRetryVerification(
+                elapsedSincePurchaseComplete: 10,
+                verificationAttemptCount: PostPurchaseVerificationPolicy.maxVerificationAttempts
+            )
+        )
+    }
+
+    func testShouldNotRetryWithoutPurchaseTimestamp() {
+        XCTAssertFalse(
+            PostPurchaseVerificationPolicy.shouldRetryVerification(
+                elapsedSincePurchaseComplete: nil,
+                verificationAttemptCount: 0
             )
         )
     }

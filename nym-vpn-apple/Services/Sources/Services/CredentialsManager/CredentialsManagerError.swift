@@ -4,6 +4,7 @@ public enum CredentialsManagerError: Error, Equatable {
     case noError
     case generalError(String)
     case subscriptionVerifying
+    case subscriptionVerificationTimedOut
     case cannotCreateDB
     case cannotCreateCache
     case noExpiryDate
@@ -16,6 +17,8 @@ public enum CredentialsManagerError: Error, Equatable {
             "\(text)"
         case .subscriptionVerifying:
             "processingAccount.subtitle2".localizedString
+        case .subscriptionVerificationTimedOut:
+            "processingAccount.subscriptionVerificationTimedOut".localizedString
         case .cannotCreateDB:
             "addCredentials.error.cannotCreateDB".localizedString
         case .noExpiryDate:
