@@ -31,10 +31,11 @@ public struct PrivacyAndDataView: View {
                 diagnosticToolSection()
                 Spacer()
                     .frame(height: 24)
+#endif
                 statisticsSection()
                 Spacer()
                     .frame(height: 24)
-#endif
+
                 errorReportingSection()
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
