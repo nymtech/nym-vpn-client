@@ -6,6 +6,7 @@
 // 2. register the device
 // 3. request ticketbooks and top up the local credential store
 
+mod account_readiness;
 mod command_sender;
 mod commands;
 mod config;
@@ -14,6 +15,7 @@ mod deeplink;
 mod error;
 mod event_sender;
 mod nyxd_client;
+mod prefetch;
 mod shared_state;
 mod state_machine;
 mod state_receiver;
@@ -22,6 +24,11 @@ mod ticketbooks;
 
 pub(crate) use shared_state::SharedAccountState;
 
+pub use account_readiness::{
+    DEVICE_TIME_DESYNCED, DeviceRegistrationReadiness, FAIR_USAGE_DEPLETED, LocalSyncCheck,
+    MAX_DEVICES_REACHED, SUMMARY_STALE_AFTER, classify_local_sync, device_registration_readiness,
+    register_device_for_prefetch_if_needed, register_device_if_needed, verify_time_synced,
+};
 pub use command_sender::AccountCommandSender;
 pub use config::AccountControllerConfig;
 pub use controller::AccountController;
@@ -29,6 +36,7 @@ pub use deeplink::{CreateDeeplinkParams, Deeplink, DeeplinkError, DeeplinkMnemon
 pub use error::Error;
 pub use event_sender::AccountControllerEventSender;
 pub use nyxd_client::NyxdClient;
+pub use prefetch::{PrefetchZkNymOutcome, prefetch_zk_nyms};
 pub use state_receiver::AccountStateReceiver;
-pub use storage::remove_files_for_account;
+pub use storage::{remove_files_for_account, CredentialStoreAccessLock};
 pub use ticketbooks::AvailableTicketbooks;

@@ -107,7 +107,7 @@ impl RequestingZkNymsState {
             PrivateAccountControllerState::RequestingZkNyms,
         )
     }
-    async fn fetch_zk_nyms(
+    pub(crate) async fn fetch_zk_nyms(
         vpn_api_client: VpnApiClient,
         vpn_api_account: Arc<VpnAccount>,
         device: Device,
@@ -445,7 +445,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNy
 }
 
 #[derive(Debug)]
-enum ZkNymError {
+pub(crate) enum ZkNymError {
     Storage(String),
     ApiFailure(String),
     Internal(String),
@@ -481,7 +481,7 @@ impl From<ZkNymError> for AccountControllerErrorStateReason {
     }
 }
 
-enum ZkNymFetchResult {
+pub(crate) enum ZkNymFetchResult {
     SufficientBandwidth,
     FetchedTickets {
         #[allow(unused)]

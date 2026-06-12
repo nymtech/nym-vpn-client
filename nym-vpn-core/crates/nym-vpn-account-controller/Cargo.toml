@@ -53,6 +53,7 @@ time.workspace = true
 tokio-util.workspace = true
 tokio-stream.workspace = true
 tokio = { workspace = true, features = ["fs"] }
+nix = { workspace = true, features = ["fs"] }
 tracing.workspace = true
 zeroize.workspace = true
 url.workspace = true

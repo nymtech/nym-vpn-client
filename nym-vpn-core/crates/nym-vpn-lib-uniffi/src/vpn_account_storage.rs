@@ -6,7 +6,10 @@ use std::{path::PathBuf, sync::Arc};
 use nym_common::{ErrorExt, trace_err_chain};
 use nym_platform_metadata::new_user_agent;
 use nym_sdk::mixnet::StoragePaths;
-use nym_vpn_account_controller::{CreateDeeplinkParams, Deeplink};
+use nym_vpn_account_controller::{
+    CreateDeeplinkParams, CredentialStoreAccessLock, Deeplink, PrefetchZkNymOutcome,
+    SUMMARY_STALE_AFTER, register_device_if_needed, verify_time_synced,
+};
 use nym_vpn_api_client::{
     VpnApiClient,
     response::NymVpnRegisterAccountResponse,
@@ -25,6 +28,33 @@ use nym_vpn_store::{
 };
 
 use crate::{NymEnvironment, VpnError, deeplink::NymDeeplinkMnemonic};
+
+/// Outcome returned by a one-shot zk-nym prefetch.
+///
+/// Exposed via UniFFI so Swift callers can distinguish the three meaningful
+/// cases without parsing strings.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum VpnPrefetchZkNymOutcome {
+    /// Local storage already had enough tickets; no API call was made.
+    SufficientBandwidth,
+    /// New ticketbooks were successfully fetched and stored.
+    FetchedTickets,
+    /// Upgrade mode is active; tickets are not issued in this mode.
+    UpgradeMode,
+    /// Prefetch skipped because another process holds the credential store lock.
+    SkippedStoreBusy,
+}
+
+impl From<PrefetchZkNymOutcome> for VpnPrefetchZkNymOutcome {
+    fn from(value: PrefetchZkNymOutcome) -> Self {
+        match value {
+            PrefetchZkNymOutcome::SufficientBandwidth => Self::SufficientBandwidth,
+            PrefetchZkNymOutcome::FetchedTickets => Self::FetchedTickets,
+            PrefetchZkNymOutcome::UpgradeMode => Self::UpgradeMode,
+            PrefetchZkNymOutcome::SkippedStoreBusy => Self::SkippedStoreBusy,
+        }
+    }
+}
 
 /// Raw API that directly accesses storage without going through the account controller.
 /// This API places the responsibility of ensuring the account controller is not running on
@@ -57,6 +87,7 @@ impl NymVpnAccountStorage {
     /// Store the account mnemonic
     /// This is a version that can be called when the account controller is not running.
     pub async fn login(&self, request: StoreAccountRequest) -> Result<(), VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         let storable_account = StorableAccount::try_from(request).map_err(VpnError::internal)?;
         let account = VpnAccount::try_from(storable_account.clone()).map_err(VpnError::internal)?;
 
@@ -189,6 +220,7 @@ impl NymVpnAccountStorage {
     /// Generate the account mnemonic locally and store it.
     /// This is a version that can be called when the account controller is not running.
     pub async fn create_account(&self) -> Result<(), VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         let (_, mnemonic) = VpnAccount::generate_new().map_err(VpnError::internal)?;
         let account = StorableAccount::new(mnemonic, StoredAccountMode::Api);
         self.storage.store_account(account).await?;
@@ -309,16 +341,29 @@ impl NymVpnAccountStorage {
         }
     }
 
-    /// Get a summary of account usage
+    /// Get a summary of account usage, syncing from the VPN API first.
+    ///
+    /// On iOS the account controller is not running in-process, so a cache-only read
+    /// would stay empty after login until the tunnel starts. This path fetches
+    /// `/account/{id}/device/{device}/summary`, persists the result, and returns it.
+    /// On transient network failure it falls back to the last cached summary.
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
-        let maybe_account_summary =
-            self.storage
-                .load_summary()
-                .await
-                .map_err(|err| VpnError::Storage {
-                    details: err.to_string(),
-                })?;
-        Ok(maybe_account_summary)
+        let _store_lock = self.try_acquire_data_dir_lock()?;
+        match self.sync_account_summary_from_network().await {
+            Ok(summary) => Ok(Some(summary)),
+            Err(err @ (VpnError::NoAccountStored | VpnError::NoDeviceIdentity)) => Err(err),
+            Err(err) => {
+                tracing::warn!("Account summary network sync failed, trying cache: {err:?}");
+                match self.storage.load_summary().await.map_err(|storage_err| {
+                    VpnError::Storage {
+                        details: storage_err.to_string(),
+                    }
+                })? {
+                    Some(cached) => Ok(Some(cached)),
+                    None => Err(err),
+                }
+            }
+        }
     }
 
     /// Get the type of account the user is logged in with
@@ -338,6 +383,7 @@ impl NymVpnAccountStorage {
     /// Load the account mnemonic stored locally and register it.
     /// This is a version that can be called when the account controller is not running.
     pub async fn register_account(&self) -> Result<RegisterAccountResponse, VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         let platform = Platform::Apple;
         let account = self
             .storage
@@ -355,6 +401,123 @@ impl NymVpnAccountStorage {
         Ok(RegisterAccountResponse { account_token })
     }
 
+    /// Sync account summary from the VPN API and register the device when the
+    /// subscription is active. Intended immediately after [`Self::register_account`]
+    /// on iOS login paths so zk-nym prefetch and connect assume a registered device.
+    pub async fn prepare_registered_account(&self) -> Result<(), VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
+        tracing::info!("Starting post-login account setup (summary sync and device registration)");
+        let vpn_api_client = self.create_vpn_api_client().await?;
+        let account = self
+            .storage
+            .load_account()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
+        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let device = self.load_device().await?;
+
+        let mut summary = self
+            .sync_account_summary_from_network_with_client(&vpn_api_client)
+            .await?;
+
+        if summary.is_account_active()
+            && !summary.is_subscription_pending()
+            && summary.is_subscription_active()
+        {
+            let registered =
+                register_device_if_needed(&vpn_api_client, &account, &device, &mut summary)
+                    .await
+                    .map_err(|err| VpnError::InternalError {
+                        details: err.to_string(),
+                    })?;
+
+            if summary.is_device_active {
+                verify_time_synced(&summary).map_err(|err| VpnError::InternalError {
+                    details: err.to_string(),
+                })?;
+            }
+
+            if registered {
+                tracing::info!(
+                    "Device registered for account {} during post-login setup",
+                    account.id()
+                );
+            }
+        }
+
+        self.storage
+            .store_summary(summary)
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?;
+
+        tracing::info!("Post-login account setup completed");
+        Ok(())
+    }
+
+    /// Prefetch zk-nyms into the local credential store without a running
+    /// account controller, so the next connect can skip the zk-nym fetch
+    /// during `AwaitingAccountReadiness`.
+    ///
+    /// Returns [`VpnPrefetchZkNymOutcome`] so callers can distinguish whether
+    /// tickets were already sufficient, newly fetched, or unavailable (upgrade mode).
+    ///
+    /// Caller invariant: must not run while a controller owns the same data
+    /// dir (the network extension at connect, or an in-process controller).
+    pub async fn prefetch_zk_nyms(&self) -> Result<VpnPrefetchZkNymOutcome, VpnError> {
+        tracing::info!("Starting zk-nym prefetch from app storage API");
+        let account = self
+            .storage
+            .load_account()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
+        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+
+        let device = self.load_device().await?;
+        let vpn_api_client = self.create_vpn_api_client().await?;
+
+        let mut summary = self.load_cached_summary_or_sync(&vpn_api_client).await?;
+
+        if !summary.is_device_active {
+            tracing::warn!(
+                "prefetch_zk_nyms: device not registered; attempting repair registration before zk-nym fetch"
+            );
+            register_device_if_needed(&vpn_api_client, &account, &device, &mut summary)
+                .await
+                .map_err(|err| VpnError::InternalError {
+                    details: err.to_string(),
+                })?;
+            self.storage
+                .store_summary(summary.clone())
+                .await
+                .map_err(|err| VpnError::Storage {
+                    details: err.to_string(),
+                })?;
+        }
+
+        let fair_usage_left = summary.fair_usage_left();
+
+        nym_vpn_account_controller::prefetch_zk_nyms(
+            self.storage_path.clone(),
+            vpn_api_client,
+            Arc::new(account),
+            device,
+            fair_usage_left,
+        )
+        .await
+        .map(VpnPrefetchZkNymOutcome::from)
+        .map_err(|err| VpnError::ZkNymAcquisitionFailure {
+            details: err.to_string(),
+        })
+    }
+
     /// Get the device identity
     /// This is a version that can be called when the account controller is not running.
     pub async fn get_device_identity(&self) -> Result<String, VpnError> {
@@ -369,6 +532,104 @@ impl NymVpnAccountStorage {
 }
 
 impl NymVpnAccountStorage {
+    fn try_acquire_data_dir_lock(&self) -> Result<CredentialStoreAccessLock, VpnError> {
+        CredentialStoreAccessLock::try_acquire(&self.storage_path).map_err(|err| {
+            if matches!(
+                err,
+                nym_vpn_account_controller::Error::CredentialStoreBusy
+            ) {
+                VpnError::AccountStoreBusy
+            } else {
+                VpnError::Storage {
+                    details: err.to_string(),
+                }
+            }
+        })
+    }
+
+    async fn sync_account_summary_from_network(&self) -> Result<VpnAccountSummary, VpnError> {
+        let vpn_api_client = self.create_vpn_api_client().await?;
+        self.sync_account_summary_from_network_with_client(&vpn_api_client)
+            .await
+    }
+
+    async fn sync_account_summary_from_network_with_client(
+        &self,
+        vpn_api_client: &VpnApiClient,
+    ) -> Result<VpnAccountSummary, VpnError> {
+        let account = self
+            .storage
+            .load_account()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
+        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let device = self.load_device().await?;
+
+        tracing::info!(
+            "Fetching account summary from VPN API for account {}",
+            account.id()
+        );
+
+        let remote_time =
+            vpn_api_client
+                .get_remote_time()
+                .await
+                .map_err(|err| VpnError::InternalError {
+                    details: format!("Failed to get remote time: {err}"),
+                })?;
+
+        let api_summary = vpn_api_client
+            .get_account_summary_with_device(&account, &device)
+            .await
+            .map_err(|err| VpnError::InternalError {
+                details: format!("Failed to get account summary: {err}"),
+            })?;
+
+        let summary = VpnAccountSummary::from_parts(&api_summary, account.mode(), remote_time)
+            .map_err(|err| VpnError::InternalError {
+                details: format!("Failed to parse account summary: {err}"),
+            })?;
+
+        self.storage
+            .store_summary(summary.clone())
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?;
+
+        tracing::info!(
+            "Account summary synced: subscription_active={}, is_device_active={}",
+            summary.is_subscription_active(),
+            summary.is_device_active
+        );
+
+        Ok(summary)
+    }
+
+    async fn load_cached_summary_or_sync(
+        &self,
+        vpn_api_client: &VpnApiClient,
+    ) -> Result<VpnAccountSummary, VpnError> {
+        if let Some(summary) =
+            self.storage
+                .load_summary()
+                .await
+                .map_err(|err| VpnError::Storage {
+                    details: err.to_string(),
+                })?
+            && !summary.is_stale(SUMMARY_STALE_AFTER)
+        {
+            tracing::debug!("Using cached account summary for zk-nym prefetch");
+            return Ok(summary);
+        }
+
+        self.sync_account_summary_from_network_with_client(vpn_api_client)
+            .await
+    }
+
     async fn register_account_by_account(
         &self,
         account: &VpnAccount,
