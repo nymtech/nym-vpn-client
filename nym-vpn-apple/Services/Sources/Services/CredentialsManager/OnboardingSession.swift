@@ -19,7 +19,7 @@ import Logging
 ///
 /// **postPurchaseCompletedAt:**
 /// - Set when phase advances to `.purchaseComplete`.
-/// - Used to compute grace period for subscription verification retry (30s).
+/// - Used to compute grace period for subscription verification retry (~65s).
 /// - Cleared on `reset()` (logout).
 ///
 /// **carouselSessionID:**
@@ -29,7 +29,8 @@ import Logging
 @MainActor
 public final class OnboardingSession: ObservableObject {
     public static let shared = OnboardingSession()
-    public static let postPurchaseVerificationGracePeriod: TimeInterval = 30
+    /// Must cover `performAccountSummaryUpdate(untilActive:)` poll spacing (~57s) before IAP verification fails.
+    public static let postPurchaseVerificationGracePeriod: TimeInterval = 65
 
     private static let logger = Logger(label: "OnboardingSession")
 
@@ -57,6 +58,11 @@ public final class OnboardingSession: ObservableObject {
     public func isWithinPostPurchaseVerificationGracePeriod() -> Bool {
         guard let postPurchaseCompletedAt else { return false }
         return Date().timeIntervalSince(postPurchaseCompletedAt) <= Self.postPurchaseVerificationGracePeriod
+    }
+
+    /// Retry post-purchase summary polling while the user remains on the processing screen.
+    public func shouldRetryPostPurchaseVerification() -> Bool {
+        phase == .purchaseComplete || isWithinPostPurchaseVerificationGracePeriod()
     }
 
     public var canStartProcessing: Bool {

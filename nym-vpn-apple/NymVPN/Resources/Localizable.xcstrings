@@ -22725,6 +22725,28 @@
         }
       }
     },
+    "processingAccount.createAccount.title5" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your account is ready"
+          }
+        }
+      }
+    },
+    "processingAccount.createAccount.subtitle5" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Tap connect when you are ready to choose your servers."
+          }
+        }
+      }
+    },
     "processingAccount.login.subtitle2" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22787,6 +22809,28 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Securing your credentials locally..."
+          }
+        }
+      }
+    },
+    "processingAccount.login.title5" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your account is ready"
+          }
+        }
+      }
+    },
+    "processingAccount.login.subtitle5" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Tap connect when you are ready to choose your servers."
           }
         }
       }
@@ -23212,7 +23256,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Tap connect when you are ready to choose your servers."
           }
         },
@@ -23313,7 +23357,7 @@
         },
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Your account is ready"
           }
         },

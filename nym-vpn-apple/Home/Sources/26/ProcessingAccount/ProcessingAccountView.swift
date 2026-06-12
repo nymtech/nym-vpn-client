@@ -52,11 +52,12 @@ private extension ProcessingAccountView {
     }
 
     var measurementLayer: some View {
-        VStack(spacing: 16) {
+        let accountReady = Self.accountReadyCopy(for: viewModel.flow)
+        return VStack(spacing: 16) {
             ForEach(Array(ProcessingAccountView.pairs(for: viewModel.flow).enumerated()), id: \.offset) { _, pair in
                 titlePairMeasurement(title: pair.0, subtitle: pair.1)
             }
-            welcomeMessage
+            titlePairMeasurement(title: accountReady.title, subtitle: accountReady.subtitle)
         }
         .fixedSize(horizontal: false, vertical: true)
         .opacity(0)
@@ -105,12 +106,13 @@ private extension ProcessingAccountView {
     }
 
     var welcomeMessage: some View {
-        VStack(alignment: .center, spacing: 16) {
-            Text("processingAccount.accountReady.title".localizedString)
+        let accountReady = Self.accountReadyCopy(for: viewModel.flow)
+        return VStack(alignment: .center, spacing: 16) {
+            Text(accountReady.title)
                 .textStyle(.Headline.Medium.regular)
                 .foregroundStyle(NymColor.primary)
                 .multilineTextAlignment(.center)
-            Text("processingAccount.accountReady.subtitle".localizedString)
+            Text(accountReady.subtitle)
                 .textStyle(.Body.Medium.regular)
                 .foregroundColor(NymColor.gray1)
                 .multilineTextAlignment(.center)
@@ -142,6 +144,26 @@ private extension ProcessingAccountView {
             (
                 "\(prefix).title\(index)".localizedString,
                 "\(prefix).subtitle\(index)".localizedString
+            )
+        }
+    }
+
+    static func accountReadyCopy(for flow: ProcessingFlow) -> (title: String, subtitle: String) {
+        switch flow {
+        case .postPurchase:
+            return (
+                "processingAccount.title5".localizedString,
+                "processingAccount.subtitle5".localizedString
+            )
+        case .login:
+            return (
+                "processingAccount.login.title5".localizedString,
+                "processingAccount.login.subtitle5".localizedString
+            )
+        case .createAccount:
+            return (
+                "processingAccount.createAccount.title5".localizedString,
+                "processingAccount.createAccount.subtitle5".localizedString
             )
         }
     }

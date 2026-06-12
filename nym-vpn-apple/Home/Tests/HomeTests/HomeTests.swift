@@ -210,6 +210,15 @@ final class HomeTests: XCTestCase {
         XCTAssertTrue(OnboardingSession.shared.isWithinPostPurchaseVerificationGracePeriod())
     }
 
+    func testShouldRetryPostPurchaseVerificationDuringPurchaseCompletePhase() {
+        OnboardingSession.shared.advance(to: .purchaseComplete)
+        XCTAssertTrue(OnboardingSession.shared.shouldRetryPostPurchaseVerification())
+    }
+
+    func testPostPurchaseVerificationGraceCoversSummaryPollWindow() {
+        XCTAssertGreaterThanOrEqual(OnboardingSession.postPurchaseVerificationGracePeriod, 57)
+    }
+
     func testProcessingDoesNotForceAnimationCompletionWhenWorkSettles() async throws {
         let viewModel = ProcessingAccountViewModel(
             flow: .login,
@@ -282,5 +291,33 @@ final class HomeTests: XCTestCase {
         OnboardingSession.shared.reset()
         XCTAssertTrue(OnboardingSession.shared.phase < .registered)
         XCTAssertTrue(OnboardingSession.shared.canStartProcessing)
+    }
+
+    func testAccountReadyLocalizationKeysResolveFromCatalog() throws {
+        let resolver = try XCStringsResolver.default()
+        let loginTitle = resolver.string("processingAccount.login.title5")
+        let loginSubtitle = resolver.string("processingAccount.login.subtitle5")
+        let postPurchaseTitle = resolver.string("processingAccount.title5")
+        let postPurchaseSubtitle = resolver.string("processingAccount.subtitle5")
+
+        XCTAssertNotEqual(loginTitle, "processingAccount.login.title5")
+        XCTAssertEqual(loginTitle, "Your account is ready")
+        XCTAssertNotEqual(loginSubtitle, "processingAccount.login.subtitle5")
+        XCTAssertFalse(loginSubtitle.isEmpty)
+        XCTAssertNotEqual(postPurchaseTitle, "processingAccount.title5")
+        XCTAssertEqual(postPurchaseTitle, "Welcome to true privacy 🎉")
+        XCTAssertFalse(postPurchaseSubtitle.isEmpty)
+    }
+
+    func testPostPurchaseCarouselExcludesWelcomeTitle() {
+        let pairs = ProcessingAccountView.pairs(for: .postPurchase)
+        XCTAssertEqual(pairs.count, 3)
+        XCTAssertFalse(pairs.contains { $0.0.contains("Welcome to true privacy") })
+    }
+
+    func testPostPurchaseFinalMessageUsesWelcomeCopy() {
+        let copy = ProcessingAccountView.accountReadyCopy(for: .postPurchase)
+        XCTAssertEqual(copy.title, "processingAccount.title5".localizedString)
+        XCTAssertEqual(copy.subtitle, "processingAccount.subtitle5".localizedString)
     }
 }

@@ -361,8 +361,10 @@ import PathManager
         guard isAccountActive() else {
             accountSetupPhase = .idle
             if requireActiveSubscription {
-                if OnboardingSession.shared.isWithinPostPurchaseVerificationGracePeriod() {
-                    logger.info("prepareAccountForConnection: subscription pending verification within post-purchase grace window")
+                let session = OnboardingSession.shared
+                if session.phase == .purchaseComplete
+                    || session.isWithinPostPurchaseVerificationGracePeriod() {
+                    logger.info("prepareAccountForConnection: subscription pending verification during post-purchase processing")
                     throw CredentialsManagerError.subscriptionVerifying
                 }
                 logger.error("prepareAccountForConnection failed: account inactive after summary refresh")

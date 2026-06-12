@@ -288,7 +288,7 @@ public final class ProcessingAccountViewModel {
         processingTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: Self.subscriptionVerificationRetryInterval)
             guard !Task.isCancelled, let self else { return }
-            guard OnboardingSession.shared.isWithinPostPurchaseVerificationGracePeriod() else { return }
+            guard OnboardingSession.shared.shouldRetryPostPurchaseVerification() else { return }
             self.errorMessage = nil
             self.start()
         }

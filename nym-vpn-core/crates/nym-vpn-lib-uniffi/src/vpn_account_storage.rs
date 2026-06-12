@@ -425,10 +425,7 @@ impl NymVpnAccountStorage {
             .sync_account_summary_from_network_with_client(&vpn_api_client)
             .await?;
 
-        if summary.is_account_active()
-            && !summary.is_subscription_pending()
-            && summary.is_subscription_active()
-        {
+        if summary.is_account_active() && !summary.is_subscription_pending() {
             let registered =
                 register_device_if_needed(&vpn_api_client, &account, &device, &mut summary)
                     .await

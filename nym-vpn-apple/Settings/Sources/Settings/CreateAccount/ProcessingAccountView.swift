@@ -20,6 +20,7 @@ public struct ProcessingAccountView: View {
     @State private var errorMessage: String?
     @State private var currentStep = 1
     @State private var titlesSessionID = UUID()
+    @State private var processingStartedAt: Date?
 
     public var body: some View {
         VStack(alignment: .center, spacing: 0) {
@@ -43,6 +44,7 @@ public struct ProcessingAccountView: View {
                 .ignoresSafeArea()
         }
         .task {
+            processingStartedAt = Date()
             await prepareAccount()
         }
         .onReceive(credentialsManager.$accountSetupPhase) { phase in
@@ -80,12 +82,7 @@ private extension ProcessingAccountView {
             accountReadyMessage
         } else {
             SwitchingTitlesView(
-                pairs: [
-                    ("processingAccount.title2".localizedString, "processingAccount.subtitle2".localizedString),
-                    ("processingAccount.title3".localizedString, "processingAccount.subtitle3".localizedString),
-                    ("processingAccount.title4".localizedString, "processingAccount.subtitle4".localizedString),
-                    ("processingAccount.title5".localizedString, "processingAccount.subtitle5".localizedString)
-                ],
+                pairs: Self.processingCarouselPairs,
                 stepInterval: SwitchingTitlesView.accountProcessingStepInterval,
                 loopUntilExternalFinish: true,
                 didFinishAnimating: $didFinishAnimatingText,
@@ -97,12 +94,23 @@ private extension ProcessingAccountView {
         }
     }
 
+    static var processingCarouselPairs: [(String, String)] {
+        (2...4).map { index in
+            (
+                "processingAccount.title\(index)".localizedString,
+                "processingAccount.subtitle\(index)".localizedString
+            )
+        }
+    }
+
     var accountReadyMessage: some View {
-        VStack(alignment: .center, spacing: 16) {
-            Text("processingAccount.accountReady.title".localizedString)
+        let title = "processingAccount.title5".localizedString
+        let subtitle = "processingAccount.subtitle5".localizedString
+        return VStack(alignment: .center, spacing: 16) {
+            Text(title)
                 .textStyle(.Headline.Medium.regular)
                 .multilineTextAlignment(.center)
-            Text("processingAccount.accountReady.subtitle".localizedString)
+            Text(subtitle)
                 .textStyle(.Body.Medium.regular)
                 .foregroundColor(NymColor.gray1)
                 .multilineTextAlignment(.center)
@@ -137,7 +145,7 @@ private extension ProcessingAccountView {
     func scheduleSubscriptionVerificationRetry() {
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(2))
-            guard OnboardingSession.shared.isWithinPostPurchaseVerificationGracePeriod() else { return }
+            guard OnboardingSession.shared.shouldRetryPostPurchaseVerification() else { return }
             errorMessage = nil
             await prepareAccount()
         }
@@ -145,9 +153,19 @@ private extension ProcessingAccountView {
 
     func settleAccount() {
         didSettleAccount = true
-        if !didFinishAnimatingText {
-            didFinishAnimatingText = true
+        Task { await finishCarouselAndAdvance() }
+    }
+
+    func finishCarouselAndAdvance() async {
+        let stepInterval = SwitchingTitlesView.accountProcessingStepInterval
+        if let processingStartedAt {
+            let elapsed = Date().timeIntervalSince(processingStartedAt)
+            let remaining = max(0, stepInterval - elapsed)
+            if remaining > 0 {
+                try? await Task.sleep(for: .seconds(remaining))
+            }
         }
+        didFinishAnimatingText = true
         advanceIfReady()
     }
 
@@ -175,6 +193,7 @@ private extension ProcessingAccountView {
         errorMessage = nil
         currentStep = 1
         titlesSessionID = UUID()
+        processingStartedAt = Date()
     }
 
     func syncCarouselStep(for phase: AccountSetupPhase) {
