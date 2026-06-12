@@ -35,6 +35,7 @@ impl CredentialStoreAccessLock {
         let file = OpenOptions::new()
             .create(true)
             .write(true)
+            .truncate(false)
             .open(&path)
             .map_err(Error::CredentialStoreLockIo)?;
 
