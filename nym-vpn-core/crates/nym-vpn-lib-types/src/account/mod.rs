@@ -9,6 +9,8 @@ pub mod request_zknym;
 pub mod storage;
 pub mod ticketbooks;
 
+use std::time::Duration;
+
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
@@ -279,12 +281,47 @@ pub struct VpnAccountSummary {
     pub account_mode: Option<StoredAccountMode>,
     pub subscription: Option<Subscription>,
     pub is_subscription_stacked: bool,
+
+    /// Status of the account itself (active/inactive/delete-me).
+    pub account_status: VpnAccountStatus,
+
+    /// Number of additional devices that can still be registered to this account.
+    pub remaining_devices: u64,
+
+    /// Whether the current device is registered and active on this account.
+    pub is_device_active: bool,
+
+    /// Whether the time was acceptably synced when the summary was built
+    pub time_synced: bool,
+
+    /// Additional staleness flag
+    pub stale: bool,
+
+    /// When this summary was last synced from the VPN API. Used to decide when a
+    /// background refresh is due.
+    #[cfg_attr(feature = "typescript-bindings", ts(as = "String"))]
+    #[cfg_attr(feature = "serde", serde(with = "time::serde::iso8601"))]
+    pub last_synced_utc: OffsetDateTime,
 }
 
 // Exported methods
 #[cfg_attr(feature = "uniffi-bindings", uniffi::export)]
 #[allow(unused)]
 impl VpnAccountSummary {
+    /// Returns true if the account itself is active.
+    pub fn is_account_active(&self) -> bool {
+        matches!(self.account_status, VpnAccountStatus::Active)
+    }
+
+    /// Returns true if there is a subscription that exists but is not yet active
+    /// (e.g. a cash payment still processing).
+    pub fn is_subscription_pending(&self) -> bool {
+        matches!(
+            self.subscription.as_ref().map(|sub| &sub.status),
+            Some(NymVpnSubscriptionStatus::Pending)
+        )
+    }
+
     /// Returns true if subscription is active
     pub fn is_subscription_active(&self) -> bool {
         if let Some(subscription) = &self.subscription {
@@ -316,22 +353,43 @@ impl VpnAccountSummary {
             .iter()
             .any(|method| method.kind == "privy_secp256k1")
     }
+
+    // Stale if explicitly flagged, older than max_age, or holding a depleted snapshot synced
+    // before an elapsed daily reset boundary (fair usage left + reset time passed).
+    pub fn is_stale(&self, max_age: Duration) -> bool {
+        self.is_stale_at(OffsetDateTime::now_utc(), max_age)
+    }
+
+    pub(crate) fn is_stale_at(&self, now: OffsetDateTime, max_age: Duration) -> bool {
+        self.stale
+            || self.fair_usage_depleted_past_reset(now)
+            || now.unix_timestamp() - self.last_synced_utc.unix_timestamp()
+                > max_age.as_secs() as i64
+    }
+
+    fn fair_usage_depleted_past_reset(&self, now: OffsetDateTime) -> bool {
+        !self.fair_usage_left()
+            && self
+                .traffic_reset_time
+                .is_some_and(|reset_time| reset_time <= now && self.last_synced_utc <= reset_time)
+    }
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for VpnAccountSummary {
-    type Error = nym_vpn_api_client::error::VpnApiClientError;
-
-    fn try_from(
-        value: &nym_vpn_api_client::response::NymVpnAccountSummaryResponse,
-    ) -> Result<Self, Self::Error> {
-        let traffic_reset_time = value
+impl VpnAccountSummary {
+    pub fn from_parts(
+        api_summary: &nym_vpn_api_client::response::NymVpnAccountSummaryWithDeviceResponse,
+        account_mode: nym_vpn_api_client::types::VpnAccountMode,
+        remote_time: nym_vpn_api_client::types::VpnApiTime,
+    ) -> Result<Self, nym_vpn_api_client::error::VpnApiClientError> {
+        let account_summary = &api_summary.account_summary;
+        let traffic_reset_time = account_summary
             .fair_usage
             .resetsOnUtc
             .as_deref()
             .and_then(|t| parse_timestamp(t, "fair_usage.resetsOnUtc"));
 
-        let auth_methods = value
+        let auth_methods = account_summary
             .account
             .auth_methods
             .iter()
@@ -340,12 +398,12 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
             .collect::<Result<Vec<_>, _>>()?;
 
         // Active wins over pending; `is_subscription_active()` ignores wire `is_active`.
-        let subscription = if let Some(active) = value.subscription.active.as_ref() {
+        let subscription = if let Some(active) = account_summary.subscription.active.as_ref() {
             Some(Subscription {
                 status: NymVpnSubscriptionStatus::Active,
                 subscription: NymVpnSubscription::try_from(active)?,
             })
-        } else if let Some(pending) = value.subscription.pending.as_ref() {
+        } else if let Some(pending) = account_summary.subscription.pending.as_ref() {
             Some(Subscription {
                 status: NymVpnSubscriptionStatus::Pending,
                 subscription: NymVpnSubscription::try_from(pending)?,
@@ -355,16 +413,22 @@ impl TryFrom<&nym_vpn_api_client::response::NymVpnAccountSummaryResponse> for Vp
         };
 
         Ok(Self {
-            traffic_used_gb: value.fair_usage.usedGB,
-            traffic_limit_gb: value.fair_usage.limitGB,
+            traffic_used_gb: account_summary.fair_usage.usedGB,
+            traffic_limit_gb: account_summary.fair_usage.limitGB,
             traffic_reset_time,
-            fair_usage_data_unavailable: value.fair_usage.data_unavailable,
-            account_addr: value.account.account_addr.clone(),
-            canonical_account_addr: value.account.canonical_account_addr.clone(),
+            fair_usage_data_unavailable: account_summary.fair_usage.data_unavailable,
+            account_addr: account_summary.account.account_addr.clone(),
+            canonical_account_addr: account_summary.account.canonical_account_addr.clone(),
             auth_methods,
-            account_mode: None,
+            account_mode: Some(account_mode.into()),
             subscription,
-            is_subscription_stacked: value.subscription.is_stacked,
+            is_subscription_stacked: account_summary.subscription.is_stacked,
+            account_status: account_summary.account.status.clone().into(),
+            remaining_devices: account_summary.devices.remaining,
+            is_device_active: api_summary.active_device.is_some(),
+            time_synced: remote_time.is_acceptable_synced(),
+            stale: false,
+            last_synced_utc: OffsetDateTime::now_utc(),
         })
     }
 }
@@ -576,6 +640,19 @@ pub enum VpnAccountStatus {
     DeleteMe,
 }
 
+impl std::fmt::Display for VpnAccountStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Mirror the wire representation (`strum::Display` on the API enum) so error messages
+        // remain stable: "Active" / "Inactive" / "DeleteMe".
+        let s = match self {
+            VpnAccountStatus::Active => "Active",
+            VpnAccountStatus::Inactive => "Inactive",
+            VpnAccountStatus::DeleteMe => "DeleteMe",
+        };
+        f.write_str(s)
+    }
+}
+
 #[cfg(feature = "nym-type-conversions")]
 impl From<nym_vpn_api_client::response::NymVpnAccountStatusResponse> for VpnAccountStatus {
     fn from(value: nym_vpn_api_client::response::NymVpnAccountStatusResponse) -> Self {
@@ -652,13 +729,35 @@ mod tests {
     use nym_vpn_api_client::response::{
         NymVpnAccountResponse, NymVpnAccountStatusResponse, NymVpnAccountSummaryDevices,
         NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse,
-        NymVpnAccountSummarySubscription, NymVpnSubscription as ApiNymVpnSubscription,
+        NymVpnAccountSummarySubscription, NymVpnAccountSummaryWithDeviceResponse,
+        NymVpnSubscription as ApiNymVpnSubscription,
         NymVpnSubscriptionKind as ApiNymVpnSubscriptionKind,
         NymVpnSubscriptionStatus as ApiNymVpnSubscriptionStatus,
     };
+    use nym_vpn_api_client::types::{VpnAccountMode, VpnApiTime};
     use tracing_test::traced_test;
 
     use super::*;
+
+    /// A `VpnApiTime` reporting zero skew, so summaries built in tests count as
+    /// time-synced.
+    fn synced_api_time() -> VpnApiTime {
+        let now = OffsetDateTime::now_utc();
+        VpnApiTime::from_estimated_remote_time(now, now)
+    }
+
+    /// Build a `VpnAccountSummary` the way production code does: wrap the bare
+    /// API summary in a with-device response (no active device) and run it
+    /// through `from_parts` in API mode with a synced clock.
+    fn build(
+        summary: &NymVpnAccountSummaryResponse,
+    ) -> Result<VpnAccountSummary, nym_vpn_api_client::error::VpnApiClientError> {
+        let with_device = NymVpnAccountSummaryWithDeviceResponse {
+            account_summary: summary.clone(),
+            active_device: None,
+        };
+        VpnAccountSummary::from_parts(&with_device, VpnAccountMode::Api, synced_api_time())
+    }
 
     fn far_future_active_subscription() -> ApiNymVpnSubscription {
         ApiNymVpnSubscription {
@@ -725,8 +824,7 @@ mod tests {
         let mut summary = base_summary();
         summary.fair_usage.resetsOnUtc = Some("not a date at all".into());
 
-        let parsed =
-            VpnAccountSummary::try_from(&summary).expect("must not fail on bad reset timestamp");
+        let parsed = build(&summary).expect("must not fail on bad reset timestamp");
         assert!(parsed.traffic_reset_time.is_none());
     }
 
@@ -735,7 +833,7 @@ mod tests {
         let mut summary = base_summary();
         summary.fair_usage.resetsOnUtc = Some("2025-08-20 13:46:26.572Z".into());
 
-        let parsed = VpnAccountSummary::try_from(&summary).expect("space-separated must parse");
+        let parsed = build(&summary).expect("space-separated must parse");
         assert!(parsed.traffic_reset_time.is_some());
     }
 
@@ -751,8 +849,7 @@ mod tests {
             is_stacked: false,
         };
 
-        let parsed =
-            VpnAccountSummary::try_from(&summary).expect("must not fail on bad reset timestamp");
+        let parsed = build(&summary).expect("must not fail on bad reset timestamp");
         assert!(
             parsed.is_subscription_active(),
             "subscription active in 2099 must still report active"
@@ -771,7 +868,7 @@ mod tests {
             is_stacked: false,
         };
 
-        let err = VpnAccountSummary::try_from(&summary)
+        let err = build(&summary)
             .expect_err("malformed subscription.valid_until_utc must fail the whole summary");
         assert!(
             err.to_string()
@@ -785,7 +882,7 @@ mod tests {
     fn warn_emitted_when_resets_on_utc_malformed() {
         let mut summary = base_summary();
         summary.fair_usage.resetsOnUtc = Some("not a date".into());
-        let _ = VpnAccountSummary::try_from(&summary).unwrap();
+        let _ = build(&summary).unwrap();
         assert!(
             logs_contain("failed to parse fair_usage.resetsOnUtc"),
             "soft-fail of resetsOnUtc must emit a tracing::warn!"
@@ -804,7 +901,7 @@ mod tests {
             pending: None,
             is_stacked: false,
         };
-        let _ = VpnAccountSummary::try_from(&summary).expect_err("malformed valid_until_utc");
+        let _ = build(&summary).expect_err("malformed valid_until_utc");
         assert!(
             logs_contain("failed to parse subscription.valid_until_utc"),
             "parse attempt for subscription.valid_until_utc must emit a tracing::warn!"
@@ -823,7 +920,7 @@ mod tests {
             is_stacked: false,
         };
 
-        let err = VpnAccountSummary::try_from(&summary).expect_err(
+        let err = build(&summary).expect_err(
             "malformed pending subscription.valid_until_utc must fail the whole summary",
         );
         assert!(
@@ -845,7 +942,7 @@ mod tests {
             is_stacked: false,
         };
 
-        let parsed = VpnAccountSummary::try_from(&summary).expect("must parse");
+        let parsed = build(&summary).expect("must parse");
         assert!(
             !parsed.is_subscription_active(),
             "Pending status must not report as active"
@@ -928,6 +1025,12 @@ mod fair_usage_left_semantics_tests {
             account_mode: None,
             subscription,
             is_subscription_stacked: false,
+            account_status: VpnAccountStatus::Active,
+            remaining_devices: 10,
+            is_device_active: false,
+            time_synced: true,
+            stale: false,
+            last_synced_utc: OffsetDateTime::now_utc(),
         }
     }
 
@@ -971,6 +1074,48 @@ mod fair_usage_left_semantics_tests {
     fn fair_usage_left_true_when_active_and_under_cap() {
         let s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 100);
         assert!(s.fair_usage_left());
+    }
+
+    #[test]
+    fn is_stale_true_after_traffic_reset_time_even_when_recently_synced() {
+        let now = OffsetDateTime::from_unix_timestamp(1_700_000_000).expect("valid timestamp");
+        let reset_time = now - time::Duration::seconds(1);
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2000);
+        s.last_synced_utc = reset_time - time::Duration::seconds(1);
+        s.traffic_reset_time = Some(reset_time);
+
+        assert!(s.is_stale_at(now, Duration::from_secs(24 * 60 * 60)));
+    }
+
+    #[test]
+    fn is_stale_false_after_traffic_reset_time_when_synced_after_reset() {
+        let now = OffsetDateTime::from_unix_timestamp(1_700_000_000).expect("valid timestamp");
+        let reset_time = now - time::Duration::seconds(1);
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2000);
+        s.last_synced_utc = now;
+        s.traffic_reset_time = Some(reset_time);
+
+        assert!(!s.is_stale_at(now, Duration::from_secs(24 * 60 * 60)));
+    }
+
+    #[test]
+    fn is_stale_false_before_traffic_reset_time_when_recently_synced() {
+        let now = OffsetDateTime::from_unix_timestamp(1_700_000_000).expect("valid timestamp");
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 100);
+        s.last_synced_utc = now;
+        s.traffic_reset_time = Some(now + time::Duration::hours(1));
+
+        assert!(!s.is_stale_at(now, Duration::from_secs(24 * 60 * 60)));
+    }
+
+    #[test]
+    fn is_stale_false_when_depleted_but_reset_still_in_future() {
+        let now = OffsetDateTime::from_unix_timestamp(1_700_000_000).expect("valid timestamp");
+        let mut s = bare_summary(Some(active_subscription_valid_for_days(30)), 2000, 2000);
+        s.last_synced_utc = now;
+        s.traffic_reset_time = Some(now + time::Duration::hours(1));
+
+        assert!(!s.is_stale_at(now, Duration::from_secs(24 * 60 * 60)));
     }
 
     #[test]

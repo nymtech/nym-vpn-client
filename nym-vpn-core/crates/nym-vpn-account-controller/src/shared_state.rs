@@ -44,7 +44,9 @@ pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     /// Stored account
     pub(crate) vpn_api_account: Option<Arc<VpnAccount>>,
 
-    /// Account summary
+    /// Account summary. The persistent copy lives in the platform storage (see
+    /// [`AccountSummaryStorage`](nym_vpn_store::account_summary::AccountSummaryStorage)); this is the
+    /// in-memory working copy, kept in sync via the storage-op channel.
     pub(crate) vpn_account_summary: Option<VpnAccountSummary>,
 
     /// Registered device
@@ -73,6 +75,7 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
         vpn_api_client: VpnApiClient,
         nyxd_client: NyxdClient,
         vpn_api_account: Option<VpnAccount>,
+        vpn_account_summary: Option<VpnAccountSummary>,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
         event_sender: AccountControllerEventSender,
@@ -87,12 +90,34 @@ impl<C: ConnectivityMonitor> SharedAccountState<C> {
             vpn_api_client,
             nyxd_client,
             vpn_api_account: vpn_api_account.map(Arc::new),
-            vpn_account_summary: None,
+            vpn_account_summary,
             device,
             deeplinks,
             firewall_active: false,
             storage_op_sender,
             event_sender,
         }
+    }
+
+    // Mark the summary as stale and best effort to propagate to disk
+    pub(crate) fn mark_summary_as_stale(&mut self) {
+        if let Some(summary) = self.vpn_account_summary.as_mut() {
+            summary.stale = true;
+            let _ = self
+                .storage_op_sender
+                .send(AccountStorageOp::StoreAccountSummary(Box::new(
+                    summary.clone(),
+                )));
+        }
+    }
+
+    // Store the account summary in memory and best effort to propagate to disk
+    pub(crate) fn store_summary(&mut self, summary: VpnAccountSummary) {
+        let _ = self
+            .storage_op_sender
+            .send(AccountStorageOp::StoreAccountSummary(Box::new(
+                summary.clone(),
+            )));
+        self.vpn_account_summary = Some(summary);
     }
 }

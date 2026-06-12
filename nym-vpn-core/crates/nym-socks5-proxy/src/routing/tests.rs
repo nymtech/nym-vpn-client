@@ -415,7 +415,9 @@ fn domain_non_cn() {
 
 #[tokio::test]
 async fn domain_embedded_contains_ipip() {
-    let set = DomainSet::load(&["CN".into()]).await.unwrap();
+    let set = DomainSet::load(&["CN".into()], std::path::Path::new("/nonexistent"))
+        .await
+        .unwrap();
     assert!(set.is_excluded("ipip.net"));
     assert!(set.is_excluded("myip.ipip.net"));
     assert!(!set.is_excluded("google.com"));

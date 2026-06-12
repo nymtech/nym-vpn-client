@@ -5,7 +5,8 @@ use crate::error::{Error, Result};
 
 use nym_crypto::asymmetric::{ed25519, x25519};
 use nym_gateway_directory::{Gateway, GatewayClient};
-use nym_lp::{Ciphersuite, packet::version, peer::LpRemotePeer};
+use nym_lp::{Ciphersuite, peer::LpRemotePeer};
+use nym_lp_data::packet::version;
 use nym_platform_metadata::new_user_agent;
 use nym_registration_client::LpRegistrationClient;
 use nym_vpn_lib_types::{DiagnosticResult, GatewayReport};
@@ -136,7 +137,7 @@ impl GatewayDiagnostic {
             None,
         )?;
 
-        nym_gateway_directory::GatewayClient::new(config, new_user_agent!())
+        GatewayClient::new(config, new_user_agent!())
     }
 
     async fn lookup_gateway(

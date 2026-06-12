@@ -93,8 +93,8 @@ async fn api_error_reponse_test() -> anyhow::Result<()> {
     test_bench
         .assert_state(AccountControllerState::Error(
             AccountControllerErrorStateReason::ApiFailure {
-                context: "SYNCING_STATE".into(),
-                details: "55cbd0ee-4ff5-4f3d-930e-6f6a95ce849f".into(),
+                context: "SYNCING_NETWORK_STATE".into(),
+                details: "API returned an error: 55cbd0ee-4ff5-4f3d-930e-6f6a95ce849f".into(),
             },
         ))
         .await;
@@ -252,7 +252,7 @@ async fn account_with_no_fair_usage_test() -> anyhow::Result<()> {
     test_bench
         .assert_state(AccountControllerState::Error(
             AccountControllerErrorStateReason::BandwidthExceeded {
-                context: "SYNCING_STATE".into(),
+                context: "SYNCING_LOCAL_STATE".into(),
             },
         ))
         .await;
@@ -391,6 +391,112 @@ async fn decentralised_account_test() -> anyhow::Result<()> {
     test_bench.forget_account().await?;
     test_bench
         .assert_state(AccountControllerState::LoggedOut)
+        .await;
+    Ok(())
+}
+
+/// A force refresh drops the cached summary and does a mandatory re-fetch, so a server-side change
+/// (here: the account going inactive) is picked up and surfaced.
+#[tokio::test]
+async fn force_refresh_detects_inactive_account_test() -> anyhow::Result<()> {
+    let mut test_bench = TestBench::new().await?;
+    let credential_proxy = test_bench.credential_proxy.clone();
+
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    // The account becomes inactive server-side.
+    test_bench.vpn_api_server.reset().await;
+    test_bench
+        .register_vpn_api_mocks(vec![
+            endpoints::synced_health(),
+            endpoints::account_summary_with_device_200(inactive_account()),
+        ])
+        .await;
+
+    assert_eq!(
+        test_bench.command_sender.refresh_account_state(true).await,
+        Ok(())
+    );
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::AccountStatusNotActive {
+                status: "Inactive".into(),
+            },
+        ))
+        .await;
+    Ok(())
+}
+
+/// When the VPN API is unreachable, an (optimistic) refresh falls back to the cached summary and
+/// stays ready, whereas a force refresh - which must obtain fresh data - surfaces the API error.
+#[tokio::test]
+async fn optimistic_refresh_falls_back_but_force_refresh_surfaces_error_test() -> anyhow::Result<()>
+{
+    let mut test_bench = TestBench::new().await?;
+    let credential_proxy = test_bench.credential_proxy.clone();
+
+    let mocks = vec![
+        endpoints::synced_health(),
+        endpoints::account_summary_with_device_200(account_ready_to_connect()),
+        endpoints::register_account_200(mock_api_device(NymVpnDeviceStatus::Active)),
+        endpoints::zknym_available_200(credential_proxy.clone()),
+        endpoints::zknym_post(credential_proxy.clone()),
+        endpoints::zknym_id(credential_proxy.clone()),
+        endpoints::partial_verification_key_200(credential_proxy.clone()),
+        endpoints::confirm_zk_nym_download_by_id_200(credential_proxy.clone()),
+    ];
+    test_bench.register_vpn_api_mocks(mocks).await;
+
+    test_bench.store_mock_account().await?;
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    // The account summary endpoint starts failing.
+    test_bench.vpn_api_server.reset().await;
+    test_bench
+        .register_vpn_api_mocks(vec![
+            endpoints::synced_health(),
+            endpoints::account_summary_with_device_403(unrelated_error()),
+        ])
+        .await;
+
+    // Optimistic refresh: the fetch fails, but we fall back to the cached summary and stay ready.
+    assert_eq!(
+        test_bench.command_sender.refresh_account_state(false).await,
+        Ok(())
+    );
+    test_bench
+        .assert_state(AccountControllerState::ReadyToConnect)
+        .await;
+
+    // Force refresh: no cache fallback, so the API error is surfaced (after exhausting retries).
+    assert_eq!(
+        test_bench.command_sender.refresh_account_state(true).await,
+        Ok(())
+    );
+    test_bench
+        .assert_state(AccountControllerState::Error(
+            AccountControllerErrorStateReason::ApiFailure {
+                context: "SYNCING_NETWORK_STATE".into(),
+                details: "API returned an error: 55cbd0ee-4ff5-4f3d-930e-6f6a95ce849f".into(),
+            },
+        ))
         .await;
     Ok(())
 }

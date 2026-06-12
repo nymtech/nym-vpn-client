@@ -8,17 +8,16 @@ use std::{
 };
 
 use futures::{FutureExt, TryFutureExt, future::BoxFuture};
-use time::OffsetDateTime;
 use tokio::sync::Mutex;
 use tokio_util::sync::{CancellationToken, DropGuard};
 
 #[cfg(test)]
-use crate::adblocker::{engines::MockEngine, file_manager::MockFileManager, state::PrimitiveState};
+use crate::adblocker::state::PrimitiveState;
 use crate::{
     adblocker::{
         Result,
         engines::{AdBlockEngine, AdBlockEngineWrap},
-        file_manager::{AdBlockFileManager, AdBlockFileManagerWrap, RealFileManager},
+        file_manager::{SOURCES, init_files},
         state::{ObservableState, State},
     },
     dns_filter::DnsFilter,
@@ -29,38 +28,38 @@ use crate::adblocker::engines::BraveAdblockEngine;
 #[cfg(target_os = "ios")]
 use crate::adblocker::engines::SimpleAdBlockEngine;
 
-const INITIAL_ADBLOCK_UPDATE_DELAY: Duration = Duration::from_mins(2);
-const ADBLOCK_UPDATE_DELAY: Duration = Duration::from_hours(1);
+use nym_file_updater::{FileUpdaterError, FileUpdaterHandle, UpdateOutcome};
+use tokio::sync::mpsc;
+use url::Url;
+
+const ADBLOCK_INITIAL_UPDATE_DELAY: Duration = Duration::from_mins(5);
+const ADBLOCK_UPDATE_INTERVAL: Duration = Duration::from_hours(8);
 
 type AdBlockEngineRef = Arc<AdBlockEngineWrap>;
-type FileManagerRef = Arc<AdBlockFileManagerWrap>;
+type UpdateReceiver = mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>;
 
 pub struct AdBlocker {
     state: Arc<Mutex<ObservableState>>,
     engine: AdBlockEngineRef,
-    file_manager: FileManagerRef,
     cache_dir: PathBuf,
+    file_updater_handle: FileUpdaterHandle,
     shutdown_token: CancellationToken,
     _shutdown_drop_guard: DropGuard,
 }
 
 impl AdBlocker {
-    pub fn new(cache_dir: PathBuf, user_agent: String) -> Self {
+    pub fn new(cache_dir: PathBuf, file_updater_handle: FileUpdaterHandle) -> Self {
         #[cfg(not(target_os = "ios"))]
         let engine = AdBlockEngineWrap::Brave(BraveAdblockEngine::default());
         #[cfg(target_os = "ios")]
         let engine =
             AdBlockEngineWrap::Simple(SimpleAdBlockEngine::new(cache_dir.join("adblock.db")));
 
-        let file_manager =
-            AdBlockFileManagerWrap::Real(RealFileManager::new(user_agent, cache_dir.clone()));
-        let initial_state = ObservableState::default();
-
         Self::create(
             cache_dir,
-            initial_state,
+            ObservableState::default(),
             Arc::new(engine),
-            Arc::new(file_manager),
+            file_updater_handle,
         )
     }
 
@@ -68,7 +67,7 @@ impl AdBlocker {
         cache_dir: PathBuf,
         initial_state: ObservableState,
         engine: AdBlockEngineRef,
-        file_manager: FileManagerRef,
+        file_updater_handle: FileUpdaterHandle,
     ) -> Self {
         assert!(matches!(initial_state.get(), State::Disabled));
 
@@ -78,8 +77,8 @@ impl AdBlocker {
         Self {
             state,
             engine,
-            file_manager,
             cache_dir,
+            file_updater_handle,
             shutdown_token: shutdown_token.clone(),
             _shutdown_drop_guard: shutdown_token.drop_guard(),
         }
@@ -104,8 +103,8 @@ impl AdBlocker {
             let task = tokio::spawn(handle_init(
                 self.state.clone(),
                 self.engine.clone(),
-                self.file_manager.clone(),
                 self.cache_dir.clone(),
+                self.file_updater_handle.clone(),
                 cancel_token.child_token(),
             ));
 
@@ -129,9 +128,7 @@ impl AdBlocker {
                 unload_filters(&self.engine).await;
                 cancel_token.cancel();
 
-                // release the lock before awaiting the task
                 drop(state);
-
                 let _ = task.await;
             }
             State::Initializing {
@@ -139,15 +136,9 @@ impl AdBlocker {
             } => {
                 cancel_token.cancel();
                 drop(state);
-
-                // release the lock before awaiting the task
                 let _ = task.await;
-
-                // no need to unload filters since the engine is not initialized yet
             }
-            State::Disabled => {
-                // ad-blocker is already disabled
-            }
+            State::Disabled => {}
         }
 
         tracing::debug!("Ad-blocker disabled");
@@ -161,34 +152,27 @@ impl AdBlocker {
 async fn handle_init(
     state: Arc<Mutex<ObservableState>>,
     engine: AdBlockEngineRef,
-    file_manager: FileManagerRef,
     cache_dir: PathBuf,
+    file_updater_handle: FileUpdaterHandle,
     cancel_token: CancellationToken,
 ) {
-    if let Err(err) = file_manager.init_files(false).await {
+    if let Err(err) = init_files(&cache_dir, false).await {
         tracing::error!("Failed to initialize ad-blocker: {err}");
-
-        // Switch back to disabled state in case of error
         let mut state_guard = state.lock().await;
         let State::Initializing { .. } = state_guard.get() else {
-            // ad-blocker is already disabled.
             return;
         };
         state_guard.replace(State::Disabled);
-        // Explicit return
         return;
     }
 
     let mut state_guard = state.lock().await;
 
-    // Return early if cancellation was requested
     if cancel_token.is_cancelled() {
-        // State transition handled by caller
         return;
     }
 
     let State::Initializing { .. } = state_guard.get() else {
-        // ad-blocker is already disabled.
         return;
     };
 
@@ -199,8 +183,7 @@ async fn handle_init(
             tracing::error!("Failed to load filter set: {err}");
             tracing::debug!("Retrying ad-blocker initialization with builtin data");
 
-            // If adblocker can't load filters, retry with builtin rules
-            file_manager.init_files(true)
+            init_files(&cache_dir, true)
                 .inspect_err(|err| {
                     tracing::error!("Failed to re-initialize ad-blocker: {err}");
                     tracing::error!(
@@ -209,7 +192,9 @@ async fn handle_init(
                 })
                 .and_then(|_| {
                     reload_filters(&engine, &cache_dir).inspect_err(|err| {
-                        tracing::error!("Failed to load filter set after force initialization: {err}");
+                        tracing::error!(
+                            "Failed to load filter set after force initialization: {err}"
+                        );
                         tracing::error!(
                             "Ad-blocker has failed twice to reload filters, so will remain disabled!"
                         );
@@ -220,14 +205,38 @@ async fn handle_init(
 
     let new_state = match res {
         Ok(()) => {
-            // Schedule next update if adblocker is working.
-            let task = tokio::spawn(schedule_next_update(
+            // Register each source with the updater for periodic updates.
+            let mut receivers = Vec::new();
+            for source in SOURCES.iter() {
+                let Ok(url) = source.url.parse::<Url>() else {
+                    tracing::error!("Invalid ad-blocker source URL: {}", source.url);
+                    continue;
+                };
+                let dest_path = cache_dir.join(source.file_name);
+                match file_updater_handle
+                    .register(
+                        url,
+                        dest_path,
+                        ADBLOCK_INITIAL_UPDATE_DELAY,
+                        ADBLOCK_UPDATE_INTERVAL,
+                    )
+                    .await
+                {
+                    Ok(rx) => receivers.push(rx),
+                    Err(err) => {
+                        tracing::error!(
+                            "Failed to register ad-blocker source {} with updater: {err}",
+                            source.file_name
+                        );
+                    }
+                }
+            }
+
+            let task = tokio::spawn(wait_for_update(
                 state.clone(),
                 engine,
-                file_manager,
                 cache_dir,
-                OffsetDateTime::now_utc(),
-                INITIAL_ADBLOCK_UPDATE_DELAY,
+                receivers,
                 cancel_token.child_token(),
             ));
 
@@ -239,99 +248,115 @@ async fn handle_init(
     state_guard.replace(new_state);
 }
 
-fn schedule_next_update(
+/// Wait for any source to report `UpdateOutcome::Updated` then hand off to
+/// [`handle_filter_reload`], which reloads the engine and comes back here.
+fn wait_for_update(
     state: Arc<Mutex<ObservableState>>,
     engine: AdBlockEngineRef,
-    file_manager: FileManagerRef,
     cache_dir: PathBuf,
-    current_update_at: OffsetDateTime,
-    next_update_after: Duration,
+    mut receivers: Vec<UpdateReceiver>,
     cancel_token: CancellationToken,
 ) -> BoxFuture<'static, ()> {
     async move {
-        let next_update_due = current_update_at + next_update_after;
+        loop {
+            let outcome = recv_any_update(&mut receivers, &cancel_token).await;
 
-        tracing::trace!("Next Ad-blocker update due at {:?}", next_update_due);
+            match outcome {
+                Some(Ok(UpdateOutcome::Updated)) => {
+                    let mut state_guard = state.lock().await;
+                    let State::Enabled { .. } = state_guard.get() else {
+                        return;
+                    };
 
-        tokio::select! {
-            _ = tokio::time::sleep(next_update_after) => {
-                let mut state_guard = state.lock().await;
-
-                if let State::Enabled { .. } = state_guard.get() {
-                    tracing::debug!("Ad-blocker updating");
-
-                    let task = tokio::spawn(handle_background_update(
+                    let task = tokio::spawn(handle_filter_reload(
                         state.clone(),
                         engine.clone(),
-                        file_manager.clone(),
-                        cache_dir,
-                        next_update_due,
+                        cache_dir.clone(),
+                        receivers,
                         cancel_token.child_token(),
                     ));
-
-                    state_guard.replace(State::Updating {
-                        task,
-                        cancel_token,
-                    });
+                    state_guard.replace(State::Updating { task, cancel_token });
+                    return;
                 }
-            }
-            _ = cancel_token.cancelled() => {
-                tracing::debug!("Ad-blocker update cancelled");
-
-                // State transition handled by caller
+                Some(Ok(UpdateOutcome::NotModified)) => {
+                    // Nothing to do — file unchanged.
+                }
+                Some(Err(err)) => {
+                    tracing::error!("Ad-blocker updater error: {err}");
+                }
+                None => {
+                    // All receivers closed (updater shut down or cancelled).
+                    return;
+                }
             }
         }
     }
     .boxed()
 }
 
-async fn handle_background_update(
+/// Reload filters from disk and transition back to [`State::Enabled`].
+fn handle_filter_reload(
     state: Arc<Mutex<ObservableState>>,
     engine: AdBlockEngineRef,
-    file_manager: FileManagerRef,
     cache_dir: PathBuf,
-    current_update_at: OffsetDateTime,
+    receivers: Vec<UpdateReceiver>,
     cancel_token: CancellationToken,
-) {
-    match file_manager.update_files(cancel_token.child_token()).await {
-        Ok(is_updated) => {
-            if is_updated {
-                tracing::debug!("Ad-blocker was updated successfully");
-            } else {
-                tracing::debug!("Ad-blocker is already up-to-date");
-            }
+) -> BoxFuture<'static, ()> {
+    async move {
+        if let Err(err) = reload_filters(&engine, &cache_dir).await {
+            tracing::error!("Failed to reload ad-blocker filters: {err}");
+            // Continue anyway — keep running with stale rules rather than disabling.
+        } else {
+            tracing::debug!("Ad-blocker filters reloaded successfully");
         }
-        Err(error) => {
-            if error.is_cancelled() {
-                // Explicit return. State transition handled by caller
-                return;
-            } else {
-                tracing::error!("Ad-blocker update failed: {error}");
+
+        let mut state_guard = state.lock().await;
+        let State::Updating { .. } = state_guard.get() else {
+            return;
+        };
+
+        let task = tokio::spawn(wait_for_update(
+            state.clone(),
+            engine,
+            cache_dir,
+            receivers,
+            cancel_token.child_token(),
+        ));
+        state_guard.replace(State::Enabled { task, cancel_token });
+    }
+    .boxed()
+}
+
+/// Poll all receivers concurrently; return the first message that arrives.
+/// Returns `None` when all receivers are closed or the token is cancelled.
+async fn recv_any_update(
+    receivers: &mut Vec<UpdateReceiver>,
+    cancel_token: &CancellationToken,
+) -> Option<Result<UpdateOutcome, FileUpdaterError>> {
+    loop {
+        if receivers.is_empty() {
+            return None;
+        }
+
+        // Build a vec of recv() futures and race them.
+        // We use `futures::future::select_all` to pick the first ready one.
+        let futs: Vec<_> = receivers.iter_mut().map(|rx| Box::pin(rx.recv())).collect();
+        let result = tokio::select! {
+            _ = cancel_token.cancelled() => return None,
+            (outcome, _idx, _rest) = futures::future::select_all(futs) => outcome,
+        };
+
+        match result {
+            Some(msg) => return Some(msg),
+            None => {
+                // A receiver closed — remove it and keep waiting on the rest.
+                receivers.retain_mut(|rx| !rx.is_closed());
+                if receivers.is_empty() {
+                    return None;
+                }
             }
         }
     }
-
-    let mut state_guard = state.lock().await;
-    let State::Updating { .. } = state_guard.get() else {
-        return;
-    };
-
-    if let Err(err) = reload_filters(&engine, &cache_dir).await {
-        tracing::error!("Failed to load filter set: {err}");
-        // Ignore error and continue with the existing rules
-    }
-
-    let task = tokio::spawn(schedule_next_update(
-        state.clone(),
-        engine,
-        file_manager,
-        cache_dir,
-        current_update_at,
-        ADBLOCK_UPDATE_DELAY,
-        cancel_token.child_token(),
-    ));
-
-    state_guard.replace(State::Enabled { task, cancel_token });
 }
 
 async fn reload_filters(adblocker: &AdBlockEngineRef, cache_dir: &Path) -> Result<()> {
@@ -355,14 +380,13 @@ mod tests {
     use tracing_test::traced_test;
 
     use super::*;
+    use crate::adblocker::engines::MockEngine;
 
-    #[tokio::test(start_paused = true)]
+    #[tokio::test]
     #[traced_test]
     async fn test_state_transitions() {
         let cache_dir = std::env::temp_dir();
-
         let engine = MockEngine::default();
-        let file_manager = MockFileManager;
 
         let (state_tx, mut state_rx) = tokio::sync::mpsc::unbounded_channel();
 
@@ -370,35 +394,13 @@ mod tests {
             cache_dir,
             ObservableState::new_with_observer(state_tx),
             Arc::new(AdBlockEngineWrap::Mock(engine)),
-            Arc::new(AdBlockFileManagerWrap::Mock(file_manager)),
+            FileUpdaterHandle::new_test(),
         );
         adblocker.enable().await;
 
         assert!(matches!(
             wait_state(&mut state_rx).await.unwrap(),
             PrimitiveState::Initializing
-        ));
-        assert!(matches!(
-            wait_state(&mut state_rx).await.unwrap(),
-            PrimitiveState::Enabled
-        ));
-
-        tokio::time::advance(INITIAL_ADBLOCK_UPDATE_DELAY).await;
-
-        assert!(matches!(
-            wait_state(&mut state_rx).await.unwrap(),
-            PrimitiveState::Updating
-        ));
-        assert!(matches!(
-            wait_state(&mut state_rx).await.unwrap(),
-            PrimitiveState::Enabled
-        ));
-
-        tokio::time::advance(ADBLOCK_UPDATE_DELAY).await;
-
-        assert!(matches!(
-            wait_state(&mut state_rx).await.unwrap(),
-            PrimitiveState::Updating
         ));
         assert!(matches!(
             wait_state(&mut state_rx).await.unwrap(),
@@ -412,13 +414,11 @@ mod tests {
         ));
     }
 
-    #[tokio::test(start_paused = true)]
+    #[tokio::test]
     #[traced_test]
     async fn test_reset_store_on_load_filters_failure() {
         let cache_dir = std::env::temp_dir();
-
         let (engine, promise) = MockEngine::fail_once();
-        let file_manager = MockFileManager;
 
         let (state_tx, mut state_rx) = tokio::sync::mpsc::unbounded_channel();
 
@@ -426,7 +426,7 @@ mod tests {
             cache_dir,
             ObservableState::new_with_observer(state_tx),
             Arc::new(AdBlockEngineWrap::Mock(engine)),
-            Arc::new(AdBlockFileManagerWrap::Mock(file_manager)),
+            FileUpdaterHandle::new_test(),
         );
         adblocker.enable().await;
 
@@ -434,7 +434,6 @@ mod tests {
             wait_state(&mut state_rx).await.unwrap(),
             PrimitiveState::Initializing
         ));
-
         assert!(matches!(
             wait_state(&mut state_rx).await.unwrap(),
             PrimitiveState::Enabled

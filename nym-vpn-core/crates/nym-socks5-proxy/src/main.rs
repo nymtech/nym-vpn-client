@@ -1,6 +1,7 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_file_updater::FileUpdater;
 use nym_socks5_proxy::{default_interface, proxy};
 
 use std::{
@@ -62,6 +63,17 @@ async fn main() -> Result<()> {
 
     tracing::info!("nym-socks5-proxy starting. config={config:#?}");
 
+    let (file_updater, file_updater_handle) = match FileUpdater::new() {
+        Ok(pair) => pair,
+        Err(err) => {
+            let msg = format!("Failed to create file updater: {err:#}");
+            tracing::error!("{msg}");
+            send_error_message(&msg);
+            return Err(err.into());
+        }
+    };
+    tokio::spawn(file_updater.run(shutdown_token.child_token()));
+
     // Start the SOCKS5 proxy listener.
     if let Err(err) = proxy::run(
         config,
@@ -69,6 +81,7 @@ async fn main() -> Result<()> {
         default_interface_rx,
         tunnel_addrs_rx,
         shutdown_token.clone(),
+        file_updater_handle,
         #[cfg(target_os = "android")]
         std::sync::Arc::new(|_: i32| {}),
     )
@@ -209,7 +222,11 @@ fn init_tracing(proxy_dir: &Path, log_level: &str) -> Result<()> {
     let file = File::create(&log_path)
         .with_context(|| format!("Failed to open log file '{}'", log_path.display()))?;
 
-    let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(log_level));
+    // Only log nym_socks5_proxy and nym_file_updater at the configured level;
+    // everything else (hyper, reqwest, tower, …) is silenced to warn.
+    let filter = EnvFilter::new(format!(
+        "warn,nym_socks5_proxy={log_level},nym_file_updater={log_level}"
+    ));
 
     tracing_subscriber::registry()
         .with(filter)

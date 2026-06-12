@@ -75,7 +75,7 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 
 	override suspend fun refreshAccount() {
 		Timber.tag(TAG).d("refreshAccount requested")
-		core.requireCoreSender { it.refreshAccount() }
+		core.requireCoreSender { it.refreshAccount(false) }
 	}
 
 	override suspend fun getAccountState(): AccountControllerState = core.requireCoreSender { it.getAccountState() }

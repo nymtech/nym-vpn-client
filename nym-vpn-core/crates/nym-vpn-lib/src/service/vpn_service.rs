@@ -105,6 +105,7 @@ pub enum VpnServiceCommand {
     SetMixnetTrafficConfig(oneshot::Sender<Result<(), String>>, MixnetTrafficConfig),
     SetGatewaySelectionAlgorithm(oneshot::Sender<()>, GatewaySelectionAlgorithm),
     SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
+    SetEnableGatewayIndependence(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -166,7 +167,7 @@ pub enum VpnServiceCommand {
         Locale,
     ),
     GetAccountState(oneshot::Sender<AccountControllerState>, ()),
-    RefreshAccountState(oneshot::Sender<()>, ()),
+    RefreshAccountState(oneshot::Sender<()>, bool),
     GetAccountUsage(
         oneshot::Sender<Result<Vec<NymVpnUsage>, AccountCommandError>>,
         (),
@@ -658,6 +659,10 @@ impl NymVpnService {
             state_machine_shutdown_token.child_token(),
         );
 
+        let (file_updater, file_updater_handle) =
+            nym_file_updater::FileUpdater::new().map_err(Error::CreateFileUpdater)?;
+        tokio::spawn(file_updater.run(services_shutdown_token.child_token()));
+
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
             event_sender,
@@ -679,6 +684,7 @@ impl NymVpnService {
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             parameters.tun_provider,
+            file_updater_handle,
             parameters.user_agent.clone(),
             state_machine_shutdown_token.child_token(),
         )
@@ -1022,6 +1028,11 @@ impl NymVpnService {
                     .await;
                 let _ = tx.send(res);
             }
+            VpnServiceCommand::SetEnableGatewayIndependence(tx, enable_gateway_independence) => {
+                self.handle_set_enable_gateway_independence(enable_gateway_independence)
+                    .await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -1103,8 +1114,8 @@ impl NymVpnService {
             VpnServiceCommand::GetAccountState(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_state().await);
             }
-            VpnServiceCommand::RefreshAccountState(tx, ()) => {
-                self.handle_refresh_account_state().await;
+            VpnServiceCommand::RefreshAccountState(tx, force) => {
+                self.handle_refresh_account_state(force).await;
                 let _ = tx.send(());
             }
             VpnServiceCommand::GetAccountUsage(tx, ()) => {
@@ -1399,6 +1410,13 @@ impl NymVpnService {
             .map_err(|err| err.to_string())?;
         self.update_tunnel_settings_with_throttle();
         Ok(())
+    }
+
+    async fn handle_set_enable_gateway_independence(&mut self, enable_gateway_independence: bool) {
+        self.config_manager
+            .set_enable_gateway_independence(enable_gateway_independence)
+            .await;
+        self.update_tunnel_settings_with_throttle();
     }
 
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
@@ -1958,11 +1976,8 @@ impl NymVpnService {
         self.account_state_rx.get_state()
     }
 
-    async fn handle_refresh_account_state(&self) {
-        let _ = self
-            .account_command_tx
-            .background_refresh_account_state()
-            .await;
+    async fn handle_refresh_account_state(&self, force: bool) {
+        let _ = self.account_command_tx.refresh_account_state(force).await;
     }
 
     async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
@@ -2033,9 +2048,7 @@ impl NymVpnService {
         if !self.handle_is_account_stored().await {
             return Err(AccountCommandError::NoAccountStored);
         }
-        self.account_command_tx
-            .background_refresh_account_state()
-            .await
+        self.account_command_tx.refresh_account_state(true).await
     }
 
     async fn handle_get_deeplink(

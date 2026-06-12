@@ -19,7 +19,8 @@ use crate::{
     event_sender::AccountControllerEventReceiver,
     shared_state::SharedAccountState,
     state_machine::{
-        AccountControllerStateHandler, NextAccountControllerState, OfflineState, SyncingState,
+        AccountControllerStateHandler, NextAccountControllerState, OfflineState, SyncMode,
+        SyncingNetworkState,
     },
     storage::{AccountStorage, AccountStorageOp, VpnCredentialStorage},
 };
@@ -107,6 +108,22 @@ where
             }
         };
 
+        // Load the cached account summary (if any) so it is available before the first network
+        // sync completes. A read failure is non-critical - treat it as no cache.
+        let cached_account_summary = if vpn_api_account.is_some() {
+            account_storage
+                .load_account_summary()
+                .await
+                .unwrap_or_else(|err| {
+                    tracing::warn!("Failed to load cached account summary: {err}");
+                    None
+                })
+        } else {
+            // If we don't have an account stored, make sure we don't have a summary either
+            let _ = account_storage.remove_account_summary().await;
+            None
+        };
+
         // Shared_state
         let shared_state = SharedAccountState::new(
             connectivity_handle,
@@ -116,6 +133,7 @@ where
             nym_vpn_api_client,
             nyxd_client,
             vpn_api_account,
+            cached_account_summary,
             device_keys,
             storage_op_sender,
             event_channel,
@@ -130,7 +148,7 @@ where
         let (current_state_handler, initial_state) = if is_offline {
             OfflineState::enter()
         } else {
-            SyncingState::enter(&shared_state, 0)
+            SyncingNetworkState::enter(&shared_state, SyncMode::Optimistic)
         };
 
         let public_initial_state = AccountControllerState::from(initial_state);

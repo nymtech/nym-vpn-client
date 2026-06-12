@@ -1,2 +1,2 @@
-Quoi de neuf :
-- Création de l'interface utilisateur
+Nouveautés :
+- Création de l'interface

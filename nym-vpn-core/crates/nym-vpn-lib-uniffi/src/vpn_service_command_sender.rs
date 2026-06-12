@@ -152,6 +152,17 @@ impl NymVpnServiceCommandSender {
         .await
     }
 
+    pub async fn set_enable_gateway_independence(
+        &self,
+        enable_gateway_independence: bool,
+    ) -> Result<()> {
+        self.send_and_wait(
+            VpnServiceCommand::SetEnableGatewayIndependence,
+            enable_gateway_independence,
+        )
+        .await
+    }
+
     pub async fn set_fronting_mode(&self, fronting_mode: FrontingMode) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetFrontingMode, fronting_mode)
             .await
@@ -318,8 +329,8 @@ impl NymVpnServiceCommandSender {
             .await
     }
 
-    pub async fn refresh_account(&self) -> Result<()> {
-        self.send_and_wait(VpnServiceCommand::RefreshAccountState, ())
+    pub async fn refresh_account(&self, force: bool) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::RefreshAccountState, force)
             .await
     }
 

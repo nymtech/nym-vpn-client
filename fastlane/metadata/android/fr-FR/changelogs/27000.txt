@@ -1,9 +1,9 @@
-Quoi de neuf
-- Nouveau flux d'intégration pour les utilisateurs débutants
-- Écran d'activation technique affiché après la connexion ou l'achat
-- Prise en charge des paramètres régionaux pour la copie haute/basse sur l'écran de détails
+Nouveautés
+- Nouveau flux d'intégration pour les nouveaux utilisateurs
+- Écran d'opt-in technique affiché après la connexion ou l'achat
+- Prise en charge des paramètres régionaux pour le texte haut/bas sur l'écran Détails
 Changements
-- Passage à l'authentification par mot de passe
+- Passage à l'authentification par phrase de passe
 - Remplacement de « passerelle » par « serveur » à travers l'application
-- Amélioration de la fiabilité de la connexion (reconnexion intelligente, bypass LAN, tunnel fractionné, DNS personnalisés)
-- Une logique de censure plus cohérente
+- Fiabilité de connexion améliorée (reconnexion intelligente, contournement du réseau local, split tunneling, DNS personnalisé)
+- Logique de gestion de la censure plus cohérente

@@ -135,10 +135,10 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
-    pub async fn background_refresh_account_state(&self) -> Result<(), AccountCommandError> {
+    pub async fn refresh_account_state(&self, force: bool) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::RefreshAccountState(tx))
+            .send(AccountCommand::RefreshAccountState(tx, force))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }
@@ -332,9 +332,11 @@ impl AccountCommandSender {
 
     #[instrument(skip(self))]
     pub async fn handle_subscription_payment(&self) -> Result<(), AccountCommandError> {
+        // A payment changes subscription status server-side, so we must re-fetch from the VPN API
+        // rather than re-evaluating the stale cached summary.
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::RefreshAccountState(tx))
+            .send(AccountCommand::RefreshAccountState(tx, true))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

@@ -7,7 +7,7 @@ extension TunnelsManager {
     /// Persistence of the new value lives at the call site — this only delivers the live update.
     public func send(_ message: TunnelProviderMessage) async {
         guard let activeTunnel,
-              activeTunnel.status == .connected || activeTunnel.status == .connecting
+              activeTunnel.status == .connected || activeTunnel.status == .connecting || activeTunnel.status == .error
         else {
             return
         }

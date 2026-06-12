@@ -58,7 +58,9 @@ use hickory_server::{
         net::{DnsError, NetError},
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo, Server},
-    zone_handler::{AuthLookup, MessageRequest, MessageResponse, MessageResponseBuilder},
+    zone_handler::{
+        AuthLookup, LookupRecordsIter, MessageRequest, MessageResponse, MessageResponseBuilder,
+    },
 };
 #[cfg(not(target_os = "ios"))]
 use hickory_server::{net::runtime::TokioRuntimeProvider, resolver::TokioResolver};
@@ -613,16 +615,19 @@ impl ResolverImpl {
         impl Iterator<Item = &'a Record> + Send + 'a,
     > {
         // Sets authoritative to false by default
-        let response_meta = Metadata::response_from_request(&message.metadata);
+        let mut response_meta = Metadata::response_from_request(&message.metadata);
         let builder = MessageResponseBuilder::from_message_request(message);
+
+        if let AuthLookup::Resolved(resolved) = lookup {
+            response_meta.recursion_available = resolved.message().metadata.recursion_available;
+        }
 
         builder.build(
             response_meta,
             lookup.iter(),
-            // forwarder responses only contain query answers, no ns/soa or additionals
+            lookup.authorities().unwrap_or(LookupRecordsIter::Empty),
             std::iter::empty(),
-            std::iter::empty(),
-            std::iter::empty(),
+            lookup.additionals().unwrap_or(LookupRecordsIter::Empty),
         )
     }
 

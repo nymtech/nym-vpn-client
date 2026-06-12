@@ -35,8 +35,11 @@ pub use offline_state::OfflineState;
 /// Account stored, online, ready to connect
 pub(crate) use ready_state::ReadyState;
 
-/// Account stored, online, determining if we can't connect or not
-pub(crate) use syncing_state::SyncingState;
+/// Account stored, online, fetching the account summary from the VPN API
+pub(crate) use syncing_state::SyncingNetworkState;
+
+/// Whether a network sync is optimistic (short timeout, cache fallback) or mandatory
+pub(crate) use syncing_state::SyncMode;
 
 /// We're in the process of attempting to acquire a zk-nym
 pub(crate) use syncing_state::requesting_zknym_state::RequestingZkNymsState;

@@ -548,6 +548,8 @@ jobs:
     uses: ./.github/workflows/gen-hashes-json.yml
     needs: publish
     if: ${{ inputs.release_type == 'stable' }}
+    permissions:
+      contents: write
     with:
       release_tag: ${{ needs.publish.outputs.release_tag }}
     secrets: inherit

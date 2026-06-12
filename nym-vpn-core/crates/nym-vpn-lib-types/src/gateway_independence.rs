@@ -25,16 +25,24 @@ pub struct GatewayIndependence {
 }
 
 impl GatewayIndependence {
-    pub fn new_deactivated() -> Self {
+    pub fn new(enabled: bool) -> Self {
         Self {
-            different_node_family: false,
-            different_asn: false,
-            different_subnet: false,
+            different_node_family: enabled,
+            different_asn: enabled,
+            different_subnet: enabled,
         }
     }
 
     pub fn active(&self) -> bool {
         self.different_node_family || self.different_asn || self.different_subnet
+    }
+
+    pub fn full_disabled(&self) -> bool {
+        !self.different_node_family && !self.different_asn && !self.different_subnet
+    }
+
+    pub fn full_enabled(&self) -> bool {
+        self.different_node_family && self.different_asn && self.different_subnet
     }
 }
 
@@ -68,7 +76,7 @@ mod tests {
 
     #[test]
     fn deactivated_has_no_criteria() {
-        let gi = GatewayIndependence::new_deactivated();
+        let gi = GatewayIndependence::new(false);
         assert!(!gi.different_node_family);
         assert!(!gi.different_asn);
     }
@@ -80,7 +88,7 @@ mod tests {
 
     #[test]
     fn active_returns_false_when_fully_deactivated() {
-        assert!(!GatewayIndependence::new_deactivated().active());
+        assert!(!GatewayIndependence::new(false).active());
     }
 
     #[test]

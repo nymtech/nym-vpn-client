@@ -49,8 +49,8 @@ pub enum AccountCommand {
     /// Reset the device identity, optionally take a seed for reproducibility
     ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>),
 
-    /// Forces the AC to sync with the VPN API
-    RefreshAccountState(ReturnSender<(), AccountCommandError>),
+    /// Re-evaluates the account state
+    RefreshAccountState(ReturnSender<(), AccountCommandError>, bool),
 
     /// Tells the AC it's firewalled off the VPN API, so it should stop/pause network communication
     VpnApiFirewallUp(ReturnSender<(), AccountCommandError>),
@@ -77,7 +77,7 @@ impl AccountCommand {
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Err(error)),
-            AccountCommand::RefreshAccountState(return_sender) => return_sender.send(Err(error)),
+            AccountCommand::RefreshAccountState(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::VpnApiFirewallUp(return_sender) => return_sender.send(Err(error)),
             AccountCommand::VpnApiFirewallDown(return_sender) => return_sender.send(Err(error)),
             AccountCommand::Common(common_command) => match common_command {

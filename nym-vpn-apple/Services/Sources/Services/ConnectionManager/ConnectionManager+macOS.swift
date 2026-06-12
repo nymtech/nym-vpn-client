@@ -9,6 +9,11 @@ import WidgetKit
 
 extension ConnectionManager {
     @MainActor func connect() async throws {
+        try? await grpcManager.setGatewayIndependence(true)
+        try await startTunnel()
+    }
+
+    @MainActor func startTunnel() async throws {
         try await grpcManager.connect()
         appSettings.statisticsConnectionCount += 1
     }

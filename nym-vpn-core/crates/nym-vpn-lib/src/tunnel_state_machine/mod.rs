@@ -1038,6 +1038,7 @@ impl TunnelStateMachine {
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
+        file_updater_handle: nym_file_updater::FileUpdaterHandle,
         user_agent: UserAgent,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
@@ -1052,7 +1053,7 @@ impl TunnelStateMachine {
 
         let adblocker = adblocker::AdBlocker::new(
             nym_config.data_path.join("ad-blocking"),
-            user_agent.to_string(),
+            file_updater_handle,
         );
         if tunnel_settings.enable_ad_blocking {
             adblocker.enable().await;

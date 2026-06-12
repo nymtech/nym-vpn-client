@@ -1,0 +1,4 @@
+Nouveautés :
+- DoH (DNS over HTTPS) et DoT (DNS over TLS) pour améliorer le blocage des publicités 
+- Création de compte in-app "dégooglisée" sous Android 
+- Correction des paniques du résolveur système Hickory

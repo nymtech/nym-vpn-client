@@ -14,6 +14,7 @@ public enum TunnelProviderMessage: Codable {
     case setFrontingModeEnabled(Bool)
     case setDisableIpv6(Bool)
     case setMixnetTrafficConfig(MixnetTuningConfig)
+    case setGatewayIndependence(Bool)
 
     public init(messageData: Data) throws {
         self = try JSONDecoder().decode(Self.self, from: messageData)

@@ -3,17 +3,20 @@
 
 use std::path::Path;
 
-use nym_vpn_lib_types::StorableAccount;
+use nym_vpn_lib_types::{StorableAccount, VpnAccountSummary};
 use nym_vpn_store::{
     account::{AccountInformationStorage, on_disk::OnDiskMnemonicStorageError},
+    account_summary::{AccountSummaryStorage, on_disk::OnDiskAccountSummaryStorageError},
     keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeysError},
 };
 
 const MNEMONIC_FILE_NAME: &str = "mnemonic.json";
+const ACCOUNT_SUMMARY_FILE_NAME: &str = "account_summary.json";
 
 pub struct VpnClientOnDiskStorage {
     key_store: nym_vpn_store::keys::device::OnDiskKeys,
     account_storage: nym_vpn_store::account::on_disk::OnDiskAccountStorage,
+    summary_storage: nym_vpn_store::account_summary::on_disk::OnDiskAccountSummaryStorage,
 }
 
 impl VpnClientOnDiskStorage {
@@ -25,9 +28,16 @@ impl VpnClientOnDiskStorage {
         let mnemonic_storage =
             nym_vpn_store::account::on_disk::OnDiskAccountStorage::new(mnemonic_storage_path);
 
+        let summary_storage_path = base_data_directory.as_ref().join(ACCOUNT_SUMMARY_FILE_NAME);
+        let summary_storage =
+            nym_vpn_store::account_summary::on_disk::OnDiskAccountSummaryStorage::new(
+                summary_storage_path,
+            );
+
         VpnClientOnDiskStorage {
             key_store,
             account_storage: mnemonic_storage,
+            summary_storage,
         }
     }
 }
@@ -73,5 +83,22 @@ impl AccountInformationStorage for VpnClientOnDiskStorage {
 
     async fn remove_account(&self) -> Result<(), Self::StorageError> {
         self.account_storage.remove_account().await
+    }
+}
+
+#[async_trait::async_trait]
+impl AccountSummaryStorage for VpnClientOnDiskStorage {
+    type StorageError = OnDiskAccountSummaryStorageError;
+
+    async fn load_summary(&self) -> Result<Option<VpnAccountSummary>, Self::StorageError> {
+        self.summary_storage.load_summary().await
+    }
+
+    async fn store_summary(&self, account: VpnAccountSummary) -> Result<(), Self::StorageError> {
+        self.summary_storage.store_summary(account).await
+    }
+
+    async fn remove_summary(&self) -> Result<(), Self::StorageError> {
+        self.summary_storage.remove_summary().await
     }
 }

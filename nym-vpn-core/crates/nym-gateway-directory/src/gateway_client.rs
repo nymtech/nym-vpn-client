@@ -603,20 +603,21 @@ mod test {
         }
     }
 
+    fn mainnet_gateway_client() -> GatewayClient {
+        let config = new_mainnet();
+        GatewayClient::new(config, user_agent()).unwrap()
+    }
+
     #[tokio::test]
     async fn lookup_described_gateways() {
-        let config = new_mainnet();
-        let client = GatewayClient::new(config, user_agent()).unwrap();
+        let client = mainnet_gateway_client();
         let gateways = client.lookup_described_nodes().await.unwrap();
         assert!(!gateways.is_empty());
     }
 
     #[tokio::test]
-    // TODO: Ignore until mainnet gets the new data on the VPN API
-    #[ignore]
     async fn lookup_gateways_in_nym_vpn_api() {
-        let config = new_mainnet();
-        let client = GatewayClient::new(config, user_agent()).unwrap();
+        let client = mainnet_gateway_client();
         let gateways = client
             .lookup_gateways(GatewayType::MixnetExit)
             .await
