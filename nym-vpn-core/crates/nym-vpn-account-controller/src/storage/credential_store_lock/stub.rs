@@ -9,9 +9,7 @@ pub struct CredentialStoreAccessLock;
 
 impl CredentialStoreAccessLock {
     pub fn try_acquire(_data_dir: &Path) -> Result<Self, Error> {
-        tracing::warn!(
-            "Credential store cross-process lock is not implemented on this platform"
-        );
+        tracing::warn!("Credential store cross-process lock is not implemented on this platform");
         Ok(Self)
     }
 

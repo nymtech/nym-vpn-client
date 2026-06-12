@@ -9,7 +9,7 @@ use std::path::Path;
 
 use windows_sys::Win32::Foundation::{ERROR_IO_PENDING, ERROR_LOCK_VIOLATION, HANDLE};
 use windows_sys::Win32::Storage::FileSystem::{
-    LockFileEx, LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY,
+    LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY, LockFileEx,
 };
 use windows_sys::Win32::System::IO::{GetOverlappedResult, OVERLAPPED};
 
@@ -81,9 +81,7 @@ fn lock_file_handle(handle: HANDLE, non_blocking: bool) -> Result<(), Error> {
     if raw == ERROR_IO_PENDING as i32 {
         let mut bytes = 0u32;
         // SAFETY: overlapped was passed to LockFileEx; wait for async lock completion.
-        let waited = unsafe {
-            GetOverlappedResult(handle, overlapped.as_mut_ptr(), &mut bytes, 1)
-        };
+        let waited = unsafe { GetOverlappedResult(handle, overlapped.as_mut_ptr(), &mut bytes, 1) };
         if waited != 0 {
             return Ok(());
         }
