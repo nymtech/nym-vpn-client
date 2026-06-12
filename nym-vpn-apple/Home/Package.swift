@@ -24,7 +24,8 @@ let package = Package(
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
         .package(path: "../Theme"),
-        .package(path: "../UIComponents")
+        .package(path: "../UIComponents"),
+        .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
     ],
     targets: [
         .target(
@@ -33,6 +34,7 @@ let package = Package(
                 .product(name: "UIComponents", package: "UIComponents"),
                 .product(name: "Settings", package: "Settings"),
                 .product(name: "SnackbarManager", package: "Services"),
+                .product(name: "CredentialsManager", package: "Services"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConfigurationManager", package: "Services"),
@@ -45,6 +47,7 @@ let package = Package(
                 .product(name: "ImpactGenerator", package: "Services"),
                 .product(name: "NetworkMonitor", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
+                .product(name: "Logging", package: "swift-log"),
                 .product(name: "Routes", package: "Routes"),
                 .product(name: "Theme", package: "Theme")
             ],
@@ -52,7 +55,10 @@ let package = Package(
         ),
         .testTarget(
             name: "HomeTests",
-            dependencies: ["Home"]
+            dependencies: [
+                "Home",
+                .product(name: "CredentialsManager", package: "Services")
+            ]
         )
     ]
 )

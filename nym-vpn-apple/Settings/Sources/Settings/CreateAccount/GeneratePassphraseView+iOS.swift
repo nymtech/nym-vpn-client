@@ -3,6 +3,7 @@ import StoreKit
 import ImpactGenerator
 import ErrorHandler
 import NymVPNLib
+import CredentialsManager
 
 // MARK: - Views -
 extension GeneratePassphraseView {
@@ -71,7 +72,11 @@ extension GeneratePassphraseView {
                 with: plan,
                 token: token
             )
-            guard didPurchaseSuccesfully else { return }
+            guard didPurchaseSuccesfully else {
+                OnboardingSession.shared.cancelPurchaseFlow()
+                return
+            }
+            OnboardingSession.shared.advance(to: .purchaseComplete)
             navigateToPaymentSuccessView()
         } catch {
             Task { @MainActor in
@@ -99,7 +104,10 @@ extension GeneratePassphraseView {
     }
 
     func selectPlanAction() {
-        isPlanAlertDisplayed = true
+        Task { @MainActor in
+            await Task.yield()
+            isPlanAlertDisplayed = true
+        }
     }
 }
 

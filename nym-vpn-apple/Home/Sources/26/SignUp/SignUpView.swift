@@ -23,7 +23,8 @@ public struct SignUpView: View {
     private let credentialsManager: CredentialsManager
     private let rootMinHeight: CGFloat
     private let onBackTapped: () -> Void
-    private let onWillRegister: () -> Void
+    private let onAuthFlowStarted: () -> Void
+    private let onAuthComplete: () -> Void
 
 #if os(iOS)
     @State private var generateViewModel: GeneratePassphraseViewModel
@@ -38,15 +39,17 @@ public struct SignUpView: View {
         credentialsManager: CredentialsManager,
         rootMinHeight: CGFloat = 0,
         onBackTapped: @escaping () -> Void,
-        onWillRegister: @escaping () -> Void = {}
+        onAuthFlowStarted: @escaping () -> Void = {},
+        onAuthComplete: @escaping () -> Void = {}
     ) {
         self.credentialsManager = credentialsManager
         self.rootMinHeight = rootMinHeight
         self.onBackTapped = onBackTapped
-        self.onWillRegister = onWillRegister
+        self.onAuthFlowStarted = onAuthFlowStarted
+        self.onAuthComplete = onAuthComplete
 #if os(iOS)
         let viewModel = GeneratePassphraseViewModel(credentialsManager: credentialsManager)
-        viewModel.onWillRegister = onWillRegister
+        viewModel.onAuthComplete = onAuthComplete
         _generateViewModel = State(wrappedValue: viewModel)
 #endif
     }
@@ -103,6 +106,8 @@ public struct SignUpView: View {
 
     private func anonymousAccountTapped() {
 #if os(iOS)
+        onAuthFlowStarted()
+        OnboardingSession.shared.beginCarouselSession()
         step = .generate
 #elseif os(macOS)
         startPrivyLogin(target: .anonymous)
@@ -112,7 +117,7 @@ public struct SignUpView: View {
     private func startPrivyLogin(target: PrivyTarget) {
         guard privyLoadingTarget == nil else { return }
         privyLoadingTarget = target
-        onWillRegister()
+        onAuthFlowStarted()
         privyTask?.cancel()
         privyTask = Task { @MainActor in
             defer { privyLoadingTarget = nil }

@@ -28,6 +28,7 @@ let package = Package(
     dependencies: [
         .package(path: "../Routes"),
         .package(path: "../Services"),
+        .package(path: "../OnboardingGates"),
         .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
@@ -54,6 +55,7 @@ let package = Package(
                 .product(name: "ImpactGenerator", package: "Services"),
                 .product(name: "Keychain", package: "Services"),
                 .product(name: "KeyboardManager", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
+                .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "PurchasesManager", package: "Services"),
                 .product(name: "SentryManager", package: "Services"),
                 .product(name: "SnackbarManager", package: "Services"),
@@ -67,7 +69,10 @@ let package = Package(
         ),
         .testTarget(
             name: "SettingsTests",
-            dependencies: ["Settings"]
+            dependencies: [
+                "Settings",
+                .product(name: "OnboardingGates", package: "OnboardingGates")
+            ]
         )
     ]
 )

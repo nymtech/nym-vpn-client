@@ -29,6 +29,16 @@ import PathManager
 #endif
     private var cancellables = Set<AnyCancellable>()
     private var accountSummaryUpdateTask: Task<Void, Never>?
+#if os(iOS)
+    /// Set after post-login account setup completes; avoids redundant summary sync during processing.
+    private var accountSetupCompletedAt: Date?
+    private var zkNymsPrefetchedThisSession = false
+    /// Track consecutive AccountStoreBusy failures to surface error if lock held indefinitely.
+    private var consecutiveStoreBusyCount = 0
+    private static let maxStoreBusyRetries = 10
+#endif
+
+    @Published public private(set) var accountSetupPhase: AccountSetupPhase = .idle
 
     public static let shared = CredentialsManager()
 
@@ -137,9 +147,31 @@ import PathManager
             ).registerAccount()
         }.value
         appSettings.accountToken = result.accountToken
+        try await prepareRegisteredAccount()
+        OnboardingSession.shared.advance(to: .registered)
         checkCredentialImport()
 #endif
     }
+
+#if os(iOS)
+    /// Sync summary and register the device when subscription is active. Called after
+    /// `registerAccount()` and as a repair path before processing when setup did not run.
+    public func prepareRegisteredAccount() async throws {
+        let envOpt = configurationManager.networkEnv
+        logger.info("prepareRegisteredAccount started")
+        try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            let env = try envOpt ?? .newWithMainnetFallback()
+            try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: env
+            ).prepareRegisteredAccount()
+        }.value
+        accountSetupCompletedAt = Date()
+        await updateAccountSummary(force: true)
+        logger.info("prepareRegisteredAccount completed")
+    }
+#endif
 
     public func removeCredential() async throws {
 #if os(iOS)
@@ -161,6 +193,12 @@ import PathManager
         isAccountSummaryOverridden = false
 #endif
         accountSummary = nil
+#if os(iOS)
+        accountSetupCompletedAt = nil
+        zkNymsPrefetchedThisSession = false
+        accountSetupPhase = .idle
+        OnboardingSession.shared.reset()
+#endif
     }
 
     public func privyLogin(kind: NymDeeplinkKind) async throws -> String? {
@@ -195,6 +233,7 @@ import PathManager
                 environment: networkEnv
             ).loginWithDeeplinkMnemonic(deeplinkMnemonic: mnemonic)
         }.value
+        try await registerAccount()
         self.deeplinks = nil
         checkCredentialImport()
 #elseif os(macOS)
@@ -286,6 +325,83 @@ import PathManager
         }.value
     }
 
+    public func prepareAccountForConnection(
+        canPrefetchZkNyms: Bool = true,
+        requireActiveSubscription: Bool = true
+    ) async throws {
+#if os(iOS)
+        accountSetupPhase = .syncingSummary
+        logger.info(
+            "prepareAccountForConnection started requireActiveSubscription=\(requireActiveSubscription) canPrefetchZkNyms=\(canPrefetchZkNyms)"
+        )
+        if needsRegisteredAccountSetup() {
+            accountSetupPhase = .registeringDevice
+            logger.info("prepareAccountForConnection running repair account setup")
+            try await prepareRegisteredAccount()
+        }
+#endif
+        let skipForcedSummaryRefresh = !requireActiveSubscription && isAccountSetupRecentlyCompleted()
+        await updateAccountSummary(force: !skipForcedSummaryRefresh, untilActive: requireActiveSubscription)
+        guard isAccountActive() else {
+            accountSetupPhase = .idle
+            if requireActiveSubscription {
+                logger.error("prepareAccountForConnection failed: account inactive after summary refresh")
+                throw CredentialsManagerError.generalError("noActivePlan".localizedString)
+            }
+            logger.info("prepareAccountForConnection: account inactive; skipping zk-nym prefetch")
+            return
+        }
+
+#if os(iOS)
+        if canPrefetchZkNyms, shouldPrefetchZkNyms(requireActive: requireActiveSubscription) {
+            accountSetupPhase = .fetchingTickets
+            logger.info("prepareAccountForConnection starting zk-nym prefetch")
+            do {
+                try await prefetchZkNyms()
+            } catch {
+                accountSetupPhase = .idle
+                logger.error(
+                    "prepareAccountForConnection: zk-nym prefetch failed \(Self.logSafeErrorDescription(error))"
+                )
+                if requireActiveSubscription {
+                    throw error
+                }
+            }
+        } else {
+            logger.info("prepareAccountForConnection: skipping zk-nym prefetch (gate or tunnel owns store)")
+        }
+#elseif os(macOS)
+        try await grpcManager.refreshAccountState(force: true)
+        await updateAccountSummary(force: true)
+#endif
+#if os(iOS)
+        accountSetupPhase = .ready
+        logger.info("prepareAccountForConnection completed")
+#endif
+
+    }
+
+#if os(iOS)
+    /// Post-IAP path: poll account summary until `isSubscriptionActive`, then prefetch zk-nyms.
+    /// StoreKit success alone does not activate the subscription; backend propagation is required.
+    public func prepareAccountForPostPurchaseConnection(
+        canPrefetchZkNyms: Bool = true
+    ) async throws {
+        try await prepareAccountForConnection(
+            canPrefetchZkNyms: canPrefetchZkNyms,
+            requireActiveSubscription: true
+        )
+    }
+
+    func shouldPrefetchZkNyms(requireActive: Bool) -> Bool {
+        ZkNymPrefetchGate.shouldPrefetch(
+            isSubscriptionActive: isAccountActive(),
+            requireActive: requireActive,
+            alreadyPrefetchedThisSession: zkNymsPrefetchedThisSession
+        )
+    }
+#endif
+
 #if SANTA
     /// QA only (Santa's menu): swap in a fabricated summary and pin it so polling
     /// and forced refreshes don't clobber it. Gated to TestFlight/CI builds; a
@@ -308,7 +424,9 @@ import PathManager
 
     private func performAccountSummaryUpdate(untilActive: Bool) async {
         guard isValidCredentialImported else { return }
-        let delays: [Duration] = [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
+        let delays: [Duration] = untilActive
+            ? [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10), .seconds(15), .seconds(20)]
+            : [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
 
         for delay in delays {
             if delay != .zero {
@@ -339,17 +457,29 @@ import PathManager
                 ).getAccountSummary()
             }.value
         } catch {
+            if error is VpnError.AccountStoreBusy {
+                consecutiveStoreBusyCount += 1
+                if consecutiveStoreBusyCount >= Self.maxStoreBusyRetries {
+                    accountSummaryLastFetchFailed = true
+                    logger.error("fetchAccountSummary (iOS): account store locked after \(consecutiveStoreBusyCount) attempts; NE may hold lock indefinitely")
+                } else {
+                    logger.info("fetchAccountSummary (iOS): account store busy (\(consecutiveStoreBusyCount)/\(Self.maxStoreBusyRetries)), will retry on next poll")
+                }
+                return
+            }
+            consecutiveStoreBusyCount = 0
             accountSummaryLastFetchFailed = true
             logger.error(
-                "fetchAccountSummary (iOS) failed operation=getAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
+                "fetchAccountSummary (iOS) failed operation=refreshAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
             )
             return
         }
 
+        consecutiveStoreBusyCount = 0
         guard let summary
         else {
             // nil-without-throw: same UX as a failure, surface it as one.
-            logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
+            logger.debug("fetchAccountSummary (iOS): refreshAccountSummary returned nil without throwing")
             accountSummaryLastFetchFailed = true
             return
         }
@@ -396,9 +526,49 @@ import PathManager
     }
 }
 
+#if os(iOS)
+private extension CredentialsManager {
+    func needsRegisteredAccountSetup() -> Bool {
+        !isAccountSetupRecentlyCompleted()
+    }
+
+    func isAccountSetupRecentlyCompleted(within seconds: TimeInterval = 300) -> Bool {
+        guard let accountSetupCompletedAt else { return false }
+        return Date().timeIntervalSince(accountSetupCompletedAt) < seconds
+    }
+
+    func prefetchZkNyms() async throws {
+        if zkNymsPrefetchedThisSession {
+            logger.info("Skipping duplicate zk-nym prefetch this session")
+            return
+        }
+        let envOpt = configurationManager.networkEnv
+        let outcome = try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            let env = try envOpt ?? .newWithMainnetFallback()
+            return try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: env
+            ).prefetchZkNyms()
+        }.value
+
+        zkNymsPrefetchedThisSession = true
+        logger.info("Prefetched zk-nyms outcome=\(String(describing: outcome))")
+    }
+}
+#endif
+
 private extension CredentialsManager {
     static func sanitizedAccountSummaryErrorLog(_ error: Error) -> String {
+#if os(iOS)
+        ProcessingAccountErrorMapper.logSafeDescription(for: error)
+#else
         "errorType=\(String(describing: Swift.type(of: error)))"
+#endif
+    }
+
+    static func logSafeErrorDescription(_ error: Error) -> String {
+        sanitizedAccountSummaryErrorLog(error)
     }
 
     func setupGRPCManagerObservers() {

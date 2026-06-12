@@ -11,7 +11,8 @@ public struct SignInView: View {
     private let credentialsManager: CredentialsManager
     private let rootMinHeight: CGFloat
     private let onBackTapped: () -> Void
-    private let onWillRegister: () -> Void
+    private let onAuthFlowStarted: () -> Void
+    private let onAuthComplete: () -> Void
 
     @State private var passphraseViewModel: PassphraseSignInViewModel
     @State private var showsPassphrase = false
@@ -24,14 +25,16 @@ public struct SignInView: View {
         credentialsManager: CredentialsManager,
         rootMinHeight: CGFloat = 0,
         onBackTapped: @escaping () -> Void,
-        onWillRegister: @escaping () -> Void = {}
+        onAuthFlowStarted: @escaping () -> Void = {},
+        onAuthComplete: @escaping () -> Void = {}
     ) {
         self.credentialsManager = credentialsManager
         self.rootMinHeight = rootMinHeight
         self.onBackTapped = onBackTapped
-        self.onWillRegister = onWillRegister
+        self.onAuthFlowStarted = onAuthFlowStarted
+        self.onAuthComplete = onAuthComplete
         let viewModel = PassphraseSignInViewModel(credentialsManager: credentialsManager)
-        viewModel.onWillRegister = onWillRegister
+        viewModel.onAuthComplete = onAuthComplete
         _passphraseViewModel = State(wrappedValue: viewModel)
     }
 
@@ -42,7 +45,10 @@ public struct SignInView: View {
                     minHeight: rootMinHeight,
                     isPrivyLoading: isPrivyLoading,
                     onBackTapped: onBackTapped,
-                    onPassphraseTapped: { showsPassphrase = true },
+                    onPassphraseTapped: {
+                        onAuthFlowStarted()
+                        showsPassphrase = true
+                    },
                     onSocialsTapped: startPrivyLogin
                 )
                 .fixedSize(horizontal: false, vertical: true)
@@ -77,7 +83,7 @@ public struct SignInView: View {
     private func startPrivyLogin() {
         guard !isPrivyLoading else { return }
         isPrivyLoading = true
-        onWillRegister()
+        onAuthFlowStarted()
         privyTask?.cancel()
         privyTask = Task { @MainActor in
             defer { isPrivyLoading = false }

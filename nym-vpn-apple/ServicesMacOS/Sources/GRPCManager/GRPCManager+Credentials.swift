@@ -75,6 +75,12 @@ extension GRPCManager {
         }.value
     }
 
+    public func refreshAccountState(force: Bool) async throws {
+        try await Task.detached { [weak self] in
+            try await self?.rpcClient?.refreshAccountState(force: force)
+        }.value
+    }
+
     public func autologin(
         locale: String,
         name: String,

@@ -36,7 +36,9 @@ private extension ProcessingAccountView {
             WaveDotsView()
             Spacer(minLength: 0)
             Group {
-                if viewModel.didShowFinalMessage {
+                if let errorMessage = viewModel.errorMessage {
+                    errorState(message: errorMessage)
+                } else if viewModel.didShowFinalMessage {
                     welcomeMessage
                 } else {
                     switchingTitles
@@ -75,7 +77,7 @@ private extension ProcessingAccountView {
 
     var stepIndicator: some View {
         StepView(
-            stepCount: 4,
+            stepCount: viewModel.flow.carouselStepCount,
             currentStep: Binding(
                 get: { viewModel.currentStep },
                 set: { _ in }
@@ -86,6 +88,8 @@ private extension ProcessingAccountView {
     var switchingTitles: some View {
         SwitchingTitlesView(
             pairs: ProcessingAccountView.pairs(for: viewModel.flow),
+            stepInterval: ProcessingAccountViewModel.processingStepInterval,
+            loopUntilExternalFinish: viewModel.loopsCarouselUntilWorkCompletes,
             didFinishAnimating: Binding(
                 get: { viewModel.didFinishAnimatingText },
                 set: { newValue in
@@ -96,13 +100,31 @@ private extension ProcessingAccountView {
                 viewModel.animationDidAdvance()
             }
         )
+        .id(viewModel.titlesSessionID)
     }
 
     var welcomeMessage: some View {
-        Text("purchasePlan.welcomeToTruePrivacy".localizedString)
-            .textStyle(.Headline.Medium.regular)
-            .foregroundStyle(NymColor.primary)
-            .multilineTextAlignment(.center)
+        VStack(alignment: .center, spacing: 16) {
+            Text("processingAccount.accountReady.title".localizedString)
+                .textStyle(.Headline.Medium.regular)
+                .foregroundStyle(NymColor.primary)
+                .multilineTextAlignment(.center)
+            Text("processingAccount.accountReady.subtitle".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundColor(NymColor.gray1)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    func errorState(message: String) -> some View {
+        VStack(alignment: .center, spacing: 16) {
+            Text(message)
+                .textStyle(.Body.Medium.regular)
+                .multilineTextAlignment(.center)
+            NymButton("retry".localizedString, style: .primary) {
+                viewModel.retry()
+            }
+        }
     }
 
     static func pairs(for flow: ProcessingFlow) -> [(String, String)] {

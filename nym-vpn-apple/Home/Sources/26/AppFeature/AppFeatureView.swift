@@ -127,6 +127,11 @@ public struct AppFeatureView: View {
         .onChange(of: isCredentialImported) { _, newValue in
             viewModel.handleCredentialChange(imported: newValue)
         }
+        .onChange(of: credentialsManager.didReceiveAccountLinkCallback) { _, completed in
+            if completed {
+                viewModel.handleAuthRegistrationComplete()
+            }
+        }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 viewModel.handleSceneBecameActive()
@@ -171,13 +176,9 @@ public struct AppFeatureView: View {
 
 private extension AppFeatureView {
     func wireOneClickNavigation() {
-        let pushPlanPurchase: () -> Void = { [weak viewModel] in
-            guard let viewModel else { return }
-            viewModel.path.append(HomeLink.settings)
-            viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+        viewModel.oneClick.onRequestPlanPurchase = { [weak viewModel] in
+            viewModel?.presentPlanPurchaseFlow()
         }
-        viewModel.oneClick.onRequestPlanPurchase = pushPlanPurchase
-        viewModel.onRequestPlanPurchase = pushPlanPurchase
 #if os(macOS)
         viewModel.oneClick.onRequestDaemonEnable = { [weak viewModel] in
             guard let viewModel else { return }
@@ -272,7 +273,11 @@ private extension AppFeatureView {
     var welcomeContent: some View {
         AuthFlowView(
             credentialsManager: viewModel.credentialsManager,
-            onWillRegister: { flow in viewModel.pendingProcessingFlow = flow }
+            onAuthFlowStarted: { flow in
+                viewModel.pendingProcessingFlow = flow
+                viewModel.onboardingSession.beginCarouselSession()
+            },
+            onAuthComplete: { viewModel.handleAuthRegistrationComplete() }
         )
         .trackHeight { welcomeHeight = $0 }
         .transition(.slideFade(from: .trailing))
