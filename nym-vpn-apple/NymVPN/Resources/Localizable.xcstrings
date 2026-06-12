@@ -23195,6 +23195,28 @@
         }
       }
     },
+    "processingAccount.accountReady.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap connect when you are ready to choose your servers."
+          }
+        }
+      }
+    },
+    "processingAccount.accountReady.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account is ready"
+          }
+        }
+      }
+    },
     "processingAccount.title2" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -14,6 +14,7 @@ import UIComponents
 
 public struct GeneratePassphraseView: View {
     @Binding private var path: NavigationPath
+    private let displayPurchaseView: Bool
     @State private var didFinishAnimatingText: Bool
     @State private var currentStep: Int
 
@@ -72,7 +73,11 @@ public struct GeneratePassphraseView: View {
                 .ignoresSafeArea()
         }
         .task {
-            await generateAndRegisterMnemonic()
+            if displayPurchaseView {
+                didRegisterAccount = true
+            } else {
+                await generateAndRegisterMnemonic()
+            }
         }
         .alert(alertTitle, isPresented: $isAlertDisplayed) {
             Button("retry".localizedString, role: .cancel) {
@@ -88,6 +93,7 @@ public struct GeneratePassphraseView: View {
 
     public init(path: Binding<NavigationPath>, displayPurchaseView: Bool = false) {
         _path = path
+        self.displayPurchaseView = displayPurchaseView
         didFinishAnimatingText = displayPurchaseView
         currentStep = displayPurchaseView ? 4 : 1
     }
@@ -103,7 +109,7 @@ private extension GeneratePassphraseView {
                 rightButton: CustomNavBarButton(
                     type: .close,
                     action: {
-                        path = .init()
+                        dismissPurchaseFlow()
                     }
                 )
             )
@@ -224,7 +230,9 @@ private extension GeneratePassphraseView {
                         purchasePlan(with: plan)
                     }
                 }
-                Button("cancel".localizedString, role: .cancel) {}
+                Button("cancel".localizedString, role: .cancel) {
+                    OnboardingSession.shared.cancelPurchaseFlow()
+                }
             }
 #endif
     }
@@ -232,6 +240,11 @@ private extension GeneratePassphraseView {
 
 // MARK: - Actions -
 extension GeneratePassphraseView {
+    func dismissPurchaseFlow() {
+        OnboardingSession.shared.cancelPurchaseFlow()
+        path = .init()
+    }
+
     func navigateToPaymentSuccessView() {
         path.append(SettingLink.processingAccount)
     }

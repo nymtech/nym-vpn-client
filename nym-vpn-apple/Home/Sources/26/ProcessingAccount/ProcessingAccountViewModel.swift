@@ -11,6 +11,24 @@ public enum ProcessingFlow: Sendable {
     case createAccount
     case login
     case postPurchase
+
+    var processingMode: ProcessingAccountMode {
+        switch self {
+        case .postPurchase:
+            return .postPurchase
+        case .createAccount, .login:
+            return .prePurchase
+        }
+    }
+
+    var carouselStepCount: Int {
+        switch self {
+        case .postPurchase:
+            return 4
+        case .createAccount, .login:
+            return 3
+        }
+    }
 }
 
 @MainActor
@@ -21,7 +39,7 @@ public final class ProcessingAccountViewModel {
     private static let finalMessageDuration = 2
     private static let logger = Logger(label: "ProcessingAccount")
 
-    private let prepareAccountForConnection: @MainActor (Bool) async throws -> Void
+    private let prepareAccount: @MainActor (Bool) async throws -> Void
     private let canPrefetchZkNyms: @MainActor () -> Bool
     @ObservationIgnored private var processingTask: Task<Void, Never>?
     @ObservationIgnored private var finalMessageTask: Task<Void, Never>?
@@ -32,32 +50,38 @@ public final class ProcessingAccountViewModel {
     var didFinishAnimatingText = false
     var didShowFinalMessage = false
     var errorMessage: String?
-    var titlesSessionID = UUID()
+    var titlesSessionID: UUID
     private var didSettleAccount = false
 
     public init(
         credentialsManager: CredentialsManager,
         flow: ProcessingFlow,
-        canPrefetchZkNyms: @escaping @MainActor () -> Bool = { true }
+        canPrefetchZkNyms: @escaping @MainActor () -> Bool = { true },
+        carouselSessionID: UUID? = nil
     ) {
-        self.prepareAccountForConnection = {
-            try await credentialsManager.prepareAccountForConnection(
-                canPrefetchZkNyms: $0,
-                requireActiveSubscription: false
+        let mode = flow.processingMode
+        self.prepareAccount = { canPrefetch in
+            try await ProcessingAccountCoordinator.prepare(
+                credentialsManager: credentialsManager,
+                mode: mode,
+                canPrefetchZkNyms: canPrefetch
             )
         }
         self.flow = flow
         self.canPrefetchZkNyms = canPrefetchZkNyms
+        self.titlesSessionID = carouselSessionID ?? OnboardingSession.shared.carouselSessionID
     }
 
     init(
         flow: ProcessingFlow,
         canPrefetchZkNyms: @escaping @MainActor () -> Bool = { true },
-        prepareAccountForConnection: @escaping @MainActor (Bool) async throws -> Void
+        carouselSessionID: UUID? = nil,
+        prepareAccount: @escaping @MainActor (Bool) async throws -> Void
     ) {
         self.flow = flow
         self.canPrefetchZkNyms = canPrefetchZkNyms
-        self.prepareAccountForConnection = prepareAccountForConnection
+        self.prepareAccount = prepareAccount
+        self.titlesSessionID = carouselSessionID ?? UUID()
     }
 
     func start() {
@@ -66,10 +90,9 @@ public final class ProcessingAccountViewModel {
         processingTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
-                try await prepareAccountForConnection(canPrefetchZkNyms())
+                try await prepareAccount(canPrefetchZkNyms())
                 guard !Task.isCancelled else { return }
-                didSettleAccount = true
-                advanceIfReady()
+                settleAccount()
             } catch is CancellationError {
                 return
             } catch {
@@ -105,11 +128,24 @@ public final class ProcessingAccountViewModel {
     }
 
     func animationDidAdvance() {
-        currentStep += 1
+        let maxStep = flow.carouselStepCount
+        currentStep = min(currentStep + 1, maxStep)
     }
 
     func animationDidFinish() {
         didFinishAnimatingText = true
+        advanceIfReady()
+    }
+
+    var loopsCarouselUntilWorkCompletes: Bool {
+        true
+    }
+
+    private func settleAccount() {
+        didSettleAccount = true
+        if !didFinishAnimatingText {
+            didFinishAnimatingText = true
+        }
         advanceIfReady()
     }
 
@@ -131,6 +167,6 @@ public final class ProcessingAccountViewModel {
         didShowFinalMessage = false
         currentStep = 1
         errorMessage = nil
-        titlesSessionID = UUID()
+        titlesSessionID = OnboardingSession.shared.carouselSessionID
     }
 }

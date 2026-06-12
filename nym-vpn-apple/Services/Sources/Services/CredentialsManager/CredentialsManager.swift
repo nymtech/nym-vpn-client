@@ -32,7 +32,10 @@ import PathManager
 #if os(iOS)
     /// Set after post-login account setup completes; avoids redundant summary sync during processing.
     private var accountSetupCompletedAt: Date?
+    private var zkNymsPrefetchedThisSession = false
 #endif
+
+    @Published public private(set) var accountSetupPhase: AccountSetupPhase = .idle
 
     public static let shared = CredentialsManager()
 
@@ -142,6 +145,7 @@ import PathManager
         }.value
         appSettings.accountToken = result.accountToken
         try await prepareRegisteredAccount()
+        OnboardingSession.shared.advance(to: .registered)
         checkCredentialImport()
 #endif
     }
@@ -188,6 +192,9 @@ import PathManager
         accountSummary = nil
 #if os(iOS)
         accountSetupCompletedAt = nil
+        zkNymsPrefetchedThisSession = false
+        accountSetupPhase = .idle
+        OnboardingSession.shared.reset()
 #endif
     }
 
@@ -320,10 +327,12 @@ import PathManager
         requireActiveSubscription: Bool = true
     ) async throws {
 #if os(iOS)
+        accountSetupPhase = .syncingSummary
         logger.info(
             "prepareAccountForConnection started requireActiveSubscription=\(requireActiveSubscription) canPrefetchZkNyms=\(canPrefetchZkNyms)"
         )
         if needsRegisteredAccountSetup() {
+            accountSetupPhase = .registeringDevice
             logger.info("prepareAccountForConnection running repair account setup")
             try await prepareRegisteredAccount()
         }
@@ -331,6 +340,7 @@ import PathManager
         let skipForcedSummaryRefresh = !requireActiveSubscription && isAccountSetupRecentlyCompleted()
         await updateAccountSummary(force: !skipForcedSummaryRefresh, untilActive: requireActiveSubscription)
         guard isAccountActive() else {
+            accountSetupPhase = .idle
             if requireActiveSubscription {
                 logger.error("prepareAccountForConnection failed: account inactive after summary refresh")
                 throw CredentialsManagerError.generalError("noActivePlan".localizedString)
@@ -340,11 +350,13 @@ import PathManager
         }
 
 #if os(iOS)
-        if canPrefetchZkNyms {
+        if canPrefetchZkNyms, shouldPrefetchZkNyms(requireActive: requireActiveSubscription) {
+            accountSetupPhase = .fetchingTickets
             logger.info("prepareAccountForConnection starting zk-nym prefetch")
             do {
                 try await prefetchZkNyms()
             } catch {
+                accountSetupPhase = .idle
                 logger.error(
                     "prepareAccountForConnection: zk-nym prefetch failed \(Self.logSafeErrorDescription(error))"
                 )
@@ -353,17 +365,39 @@ import PathManager
                 }
             }
         } else {
-            logger.info("prepareAccountForConnection: skipping zk-nym prefetch while tunnel owns the store")
+            logger.info("prepareAccountForConnection: skipping zk-nym prefetch (gate or tunnel owns store)")
         }
 #elseif os(macOS)
         try await grpcManager.refreshAccountState(force: true)
         await updateAccountSummary(force: true)
 #endif
 #if os(iOS)
+        accountSetupPhase = .ready
         logger.info("prepareAccountForConnection completed")
 #endif
 
     }
+
+#if os(iOS)
+    /// Post-IAP path: poll account summary until `isSubscriptionActive`, then prefetch zk-nyms.
+    /// StoreKit success alone does not activate the subscription; backend propagation is required.
+    public func prepareAccountForPostPurchaseConnection(
+        canPrefetchZkNyms: Bool = true
+    ) async throws {
+        try await prepareAccountForConnection(
+            canPrefetchZkNyms: canPrefetchZkNyms,
+            requireActiveSubscription: true
+        )
+    }
+
+    func shouldPrefetchZkNyms(requireActive: Bool) -> Bool {
+        guard requireActive else {
+            return isAccountActive()
+        }
+        guard isAccountActive() else { return false }
+        return !zkNymsPrefetchedThisSession
+    }
+#endif
 
 #if SANTA
     /// QA only (Santa's menu): swap in a fabricated summary and pin it so polling
@@ -387,7 +421,9 @@ import PathManager
 
     private func performAccountSummaryUpdate(untilActive: Bool) async {
         guard isValidCredentialImported else { return }
-        let delays: [Duration] = [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
+        let delays: [Duration] = untilActive
+            ? [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10), .seconds(15), .seconds(20)]
+            : [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
 
         for delay in delays {
             if delay != .zero {
@@ -487,6 +523,10 @@ private extension CredentialsManager {
     }
 
     func prefetchZkNyms() async throws {
+        if zkNymsPrefetchedThisSession {
+            logger.info("Skipping duplicate zk-nym prefetch this session")
+            return
+        }
         let envOpt = configurationManager.networkEnv
         let outcome = try await Task {
             let dataDir = try PathManager.dataFolderURL().path()
@@ -497,6 +537,7 @@ private extension CredentialsManager {
             ).prefetchZkNyms()
         }.value
 
+        zkNymsPrefetchedThisSession = true
         logger.info("Prefetched zk-nyms outcome=\(String(describing: outcome))")
     }
 }

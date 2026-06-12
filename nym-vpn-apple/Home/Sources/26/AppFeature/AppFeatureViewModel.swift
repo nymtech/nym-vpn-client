@@ -9,6 +9,7 @@ import CredentialsManager
 import GatewayManager
 import ImpactGenerator
 import NetworkMonitor
+import Routes
 import TunnelStatus
 #if os(macOS)
 import GRPCManager
@@ -30,8 +31,8 @@ import GRPCManager
     private(set) var processingViewModel: ProcessingAccountViewModel?
 
     @ObservationIgnored private var pendingPlanPurchaseAfterOptIns = false
-    @ObservationIgnored public var onRequestPlanPurchase: (() -> Void)?
-    @ObservationIgnored var pendingProcessingFlow: ProcessingFlow = .postPurchase
+    @ObservationIgnored var pendingProcessingFlow: ProcessingFlow = .createAccount
+    let onboardingSession = OnboardingSession.shared
 
     var accountSummary: AccountSummary?
     var accountIdentifier: String?
@@ -137,8 +138,8 @@ import GRPCManager
 
         if appSettings.isCredentialImported {
             pendingDrawerContent = .oneClick
-            if purchaseAfter || !credentialsManager.isAccountActive() {
-                onRequestPlanPurchase?()
+            if purchaseAfter {
+                presentPlanPurchaseFlow()
             }
         } else {
             pendingDrawerContent = .welcome
@@ -204,7 +205,26 @@ import GRPCManager
 
     func handleAuthRegistrationComplete() {
         guard drawerContent?.allowsCredentialPromotion == true else { return }
+        guard onboardingSession.canStartProcessing else { return }
+        onboardingSession.advance(to: .registered)
         startProcessingTransition()
+    }
+
+    func requestPlanPurchaseIfNeeded() -> Bool {
+        guard !credentialsManager.isAccountActive() else { return false }
+        guard onboardingSession.shouldPresentPurchase else { return false }
+        onboardingSession.markPurchaseFlowPresented()
+        return true
+    }
+
+    func presentPlanPurchaseFlow() {
+        guard requestPlanPurchaseIfNeeded() else { return }
+        Task { @MainActor [weak self] in
+            await Task.yield()
+            guard let self else { return }
+            self.path.append(HomeLink.settings)
+            self.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+        }
     }
 }
 
@@ -284,6 +304,7 @@ private extension AppFeatureViewModel {
 
     func processingDidFinish() {
         guard drawerContent?.isProcessing == true else { return }
+        onboardingSession.advance(to: .processingComplete)
         let needsPurchase = !credentialsManager.isAccountActive()
 
         if !appSettings.welcomeScreenDidDisplay {
@@ -294,7 +315,9 @@ private extension AppFeatureViewModel {
 
         pendingDrawerContent = .oneClick
         if needsPurchase {
-            onRequestPlanPurchase?()
+            presentPlanPurchaseFlow()
+        } else {
+            onboardingSession.advance(to: .finished)
         }
     }
 

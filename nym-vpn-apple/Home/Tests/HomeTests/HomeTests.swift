@@ -1,15 +1,21 @@
 import XCTest
 @testable import Home
+import CredentialsManager
 import UIComponents
 
 @MainActor
 final class HomeTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        OnboardingSession.shared.reset()
+    }
+
     func testProcessingFailureUsesStableRetryCopy() async throws {
         struct PreparationError: Error {}
 
         let viewModel = ProcessingAccountViewModel(
             flow: .login,
-            prepareAccountForConnection: { _ in throw PreparationError() }
+            prepareAccount: { _ in throw PreparationError() }
         )
 
         viewModel.start()
@@ -27,7 +33,7 @@ final class HomeTests: XCTestCase {
 
         let viewModel = ProcessingAccountViewModel(
             flow: .login,
-            prepareAccountForConnection: { _ in
+            prepareAccount: { _ in
                 prepareStarted.fulfill()
             }
         )
@@ -49,9 +55,10 @@ final class HomeTests: XCTestCase {
     }
 
     func testRetryRotatesTitlesSessionID() {
+        OnboardingSession.shared.beginCarouselSession()
         let viewModel = ProcessingAccountViewModel(
             flow: .login,
-            prepareAccountForConnection: { _ in }
+            prepareAccount: { _ in }
         )
         let original = viewModel.titlesSessionID
         viewModel.retry()
@@ -66,19 +73,14 @@ final class HomeTests: XCTestCase {
         XCTAssertEqual(SwitchingTitlesView.accountProcessingStepInterval, 4.0)
     }
 
-    func testAdvanceIfReadyWaitsForBothPrepAndCarousel() async throws {
+    func testProcessingExitsEarlyWhenWorkCompletesBeforeCarousel() async throws {
         let viewModel = ProcessingAccountViewModel(
             flow: .login,
-            prepareAccountForConnection: { _ in
-                try await Task.sleep(for: .milliseconds(100))
-            }
+            prepareAccount: { _ in }
         )
 
         viewModel.start()
-        viewModel.animationDidFinish()
-        XCTAssertFalse(viewModel.didShowFinalMessage)
-
-        try await Task.sleep(for: .milliseconds(150))
+        try await Task.sleep(for: .milliseconds(50))
         XCTAssertTrue(viewModel.didShowFinalMessage)
     }
 
@@ -112,7 +114,7 @@ final class HomeTests: XCTestCase {
         let viewModel = ProcessingAccountViewModel(
             flow: .login,
             canPrefetchZkNyms: { false },
-            prepareAccountForConnection: { canPrefetch in
+            prepareAccount: { canPrefetch in
                 XCTAssertFalse(canPrefetch)
             }
         )
@@ -125,7 +127,7 @@ final class HomeTests: XCTestCase {
     func testProcessingCompletesWhenAccountInactive() async throws {
         let viewModel = ProcessingAccountViewModel(
             flow: .login,
-            prepareAccountForConnection: { _ in }
+            prepareAccount: { _ in }
         )
 
         viewModel.start()
@@ -134,5 +136,43 @@ final class HomeTests: XCTestCase {
 
         viewModel.animationDidFinish()
         XCTAssertTrue(viewModel.didShowFinalMessage)
+    }
+
+    func testOnboardingSessionDoesNotRegressPhase() {
+        OnboardingSession.shared.advance(to: .processingComplete)
+        OnboardingSession.shared.advance(to: .registered)
+        XCTAssertEqual(OnboardingSession.shared.phase, .processingComplete)
+    }
+
+    func testPurchasePresentedOnlyOnce() {
+        XCTAssertTrue(OnboardingSession.shared.shouldPresentPurchase)
+        OnboardingSession.shared.markPurchaseFlowPresented()
+        XCTAssertFalse(OnboardingSession.shared.shouldPresentPurchase)
+    }
+
+    func testCancelPurchaseFlowAllowsRetry() {
+        OnboardingSession.shared.markPurchaseFlowPresented()
+        XCTAssertFalse(OnboardingSession.shared.shouldPresentPurchase)
+        OnboardingSession.shared.cancelPurchaseFlow()
+        XCTAssertTrue(OnboardingSession.shared.shouldPresentPurchase)
+    }
+
+    func testPostPurchaseModeRequiresActiveSubscription() {
+        XCTAssertEqual(ProcessingFlow.postPurchase.processingMode, .postPurchase)
+        XCTAssertEqual(ProcessingFlow.createAccount.processingMode, .prePurchase)
+        XCTAssertEqual(ProcessingFlow.login.processingMode, .prePurchase)
+    }
+
+    func testAuthRegistrationBlockedAfterProcessingComplete() {
+        OnboardingSession.shared.advance(to: .processingComplete)
+        XCTAssertFalse(OnboardingSession.shared.canStartProcessing)
+    }
+
+    func testCreateAccountFlowUsesThreeCarouselSteps() {
+        XCTAssertEqual(ProcessingFlow.createAccount.carouselStepCount, 3)
+    }
+
+    func testPostPurchaseFlowUsesFourCarouselSteps() {
+        XCTAssertEqual(ProcessingFlow.postPurchase.carouselStepCount, 4)
     }
 }

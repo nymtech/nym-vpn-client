@@ -9,6 +9,7 @@ public struct SwitchingTitlesView: View {
 
     private let pairs: [(title: String, subtitle: String)]
     private let stepInterval: TimeInterval
+    private let loopUntilExternalFinish: Bool
     private let timerDidTick: () -> Void
 
     @State private var currentIndex = 0
@@ -19,11 +20,13 @@ public struct SwitchingTitlesView: View {
     public init(
         pairs: [(String, String)],
         stepInterval: TimeInterval = Self.defaultStepInterval,
+        loopUntilExternalFinish: Bool = false,
         didFinishAnimating: Binding<Bool>,
         timerDidTick: @escaping () -> Void
     ) {
         self.pairs = pairs.map { (title: $0.0, subtitle: $0.1) }
         self.stepInterval = stepInterval
+        self.loopUntilExternalFinish = loopUntilExternalFinish
         _didFinishAnimating = didFinishAnimating
         self.timerDidTick = timerDidTick
     }
@@ -51,7 +54,9 @@ public struct SwitchingTitlesView: View {
             stopTimer()
         }
         .onChange(of: didFinishAnimating) { _, finished in
-            if !finished {
+            if finished {
+                stopTimer()
+            } else {
                 currentIndex = 0
                 startTimer()
             }
@@ -61,6 +66,7 @@ public struct SwitchingTitlesView: View {
 
 private extension SwitchingTitlesView {
     func startTimer() {
+        guard !didFinishAnimating else { return }
         stopTimer()
 
         timerCancellable = Timer.publish(every: stepInterval, on: .main, in: .common)
@@ -77,12 +83,18 @@ private extension SwitchingTitlesView {
     }
 
     func advanceIndex() {
+        guard !didFinishAnimating else {
+            stopTimer()
+            return
+        }
         let nextIndex = currentIndex + 1
         if nextIndex < pairs.count {
             currentIndex = nextIndex
-        } else {
+        } else if loopUntilExternalFinish {
             currentIndex = 0
+        } else {
             didFinishAnimating = true
+            stopTimer()
         }
     }
 }

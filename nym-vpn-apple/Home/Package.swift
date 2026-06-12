@@ -34,6 +34,7 @@ let package = Package(
                 .product(name: "UIComponents", package: "UIComponents"),
                 .product(name: "Settings", package: "Settings"),
                 .product(name: "SnackbarManager", package: "Services"),
+                .product(name: "CredentialsManager", package: "Services"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConfigurationManager", package: "Services"),
@@ -54,7 +55,10 @@ let package = Package(
         ),
         .testTarget(
             name: "HomeTests",
-            dependencies: ["Home"]
+            dependencies: [
+                "Home",
+                .product(name: "CredentialsManager", package: "Services")
+            ]
         )
     ]
 )

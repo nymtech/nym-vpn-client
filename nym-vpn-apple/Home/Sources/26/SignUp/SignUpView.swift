@@ -107,6 +107,7 @@ public struct SignUpView: View {
     private func anonymousAccountTapped() {
 #if os(iOS)
         onAuthFlowStarted()
+        OnboardingSession.shared.beginCarouselSession()
         step = .generate
 #elseif os(macOS)
         startPrivyLogin(target: .anonymous)

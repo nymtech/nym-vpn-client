@@ -77,7 +77,7 @@ private extension ProcessingAccountView {
 
     var stepIndicator: some View {
         StepView(
-            stepCount: 4,
+            stepCount: viewModel.flow.carouselStepCount,
             currentStep: Binding(
                 get: { viewModel.currentStep },
                 set: { _ in }
@@ -89,6 +89,7 @@ private extension ProcessingAccountView {
         SwitchingTitlesView(
             pairs: ProcessingAccountView.pairs(for: viewModel.flow),
             stepInterval: ProcessingAccountViewModel.processingStepInterval,
+            loopUntilExternalFinish: viewModel.loopsCarouselUntilWorkCompletes,
             didFinishAnimating: Binding(
                 get: { viewModel.didFinishAnimatingText },
                 set: { newValue in
@@ -103,10 +104,16 @@ private extension ProcessingAccountView {
     }
 
     var welcomeMessage: some View {
-        Text("purchasePlan.welcomeToTruePrivacy".localizedString)
-            .textStyle(.Headline.Medium.regular)
-            .foregroundStyle(NymColor.primary)
-            .multilineTextAlignment(.center)
+        VStack(alignment: .center, spacing: 16) {
+            Text("processingAccount.accountReady.title".localizedString)
+                .textStyle(.Headline.Medium.regular)
+                .foregroundStyle(NymColor.primary)
+                .multilineTextAlignment(.center)
+            Text("processingAccount.accountReady.subtitle".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundColor(NymColor.gray1)
+                .multilineTextAlignment(.center)
+        }
     }
 
     func errorState(message: String) -> some View {

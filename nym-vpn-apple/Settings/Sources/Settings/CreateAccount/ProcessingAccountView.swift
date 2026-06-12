@@ -16,6 +16,7 @@ public struct ProcessingAccountView: View {
     @Binding private var path: NavigationPath
     @State private var didFinishAnimatingText = false
     @State private var didSettleAccount = false
+    @State private var didShowFinalMessage = false
     @State private var errorMessage: String?
     @State private var currentStep = 1
     @State private var titlesSessionID = UUID()
@@ -40,12 +41,6 @@ public struct ProcessingAccountView: View {
         .background {
             Color.Nym.background
                 .ignoresSafeArea()
-        }
-        .onChange(of: didFinishAnimatingText) { _, _ in
-            advanceIfReady()
-        }
-        .onChange(of: didSettleAccount) { _, _ in
-            advanceIfReady()
         }
         .task {
             await prepareAccount()
@@ -78,6 +73,8 @@ private extension ProcessingAccountView {
                     Task { await prepareAccount() }
                 }
             }
+        } else if didShowFinalMessage {
+            accountReadyMessage
         } else {
             SwitchingTitlesView(
                 pairs: [
@@ -87,12 +84,25 @@ private extension ProcessingAccountView {
                     ("processingAccount.title5".localizedString, "processingAccount.subtitle5".localizedString)
                 ],
                 stepInterval: SwitchingTitlesView.accountProcessingStepInterval,
+                loopUntilExternalFinish: true,
                 didFinishAnimating: $didFinishAnimatingText,
                 timerDidTick: {
-                    currentStep += 1
+                    currentStep = min(currentStep + 1, 4)
                 }
             )
             .id(titlesSessionID)
+        }
+    }
+
+    var accountReadyMessage: some View {
+        VStack(alignment: .center, spacing: 16) {
+            Text("processingAccount.accountReady.title".localizedString)
+                .textStyle(.Headline.Medium.regular)
+                .multilineTextAlignment(.center)
+            Text("processingAccount.accountReady.subtitle".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundColor(NymColor.gray1)
+                .multilineTextAlignment(.center)
         }
     }
 }
@@ -101,11 +111,12 @@ private extension ProcessingAccountView {
     func prepareAccount() async {
         didSettleAccount = false
         do {
-            try await credentialsManager.prepareAccountForConnection(
-                canPrefetchZkNyms: connectionManager.canPrefetchZkNymsFromApp,
-                requireActiveSubscription: false
+            try await ProcessingAccountCoordinator.prepare(
+                credentialsManager: credentialsManager,
+                mode: .postPurchase,
+                canPrefetchZkNyms: connectionManager.canPrefetchZkNymsFromApp
             )
-            didSettleAccount = true
+            settleAccount()
         } catch {
 #if os(iOS)
             errorMessage = ProcessingAccountErrorMapper.localizedMessage(for: error)
@@ -115,21 +126,37 @@ private extension ProcessingAccountView {
         }
     }
 
+    func settleAccount() {
+        didSettleAccount = true
+        if !didFinishAnimatingText {
+            didFinishAnimatingText = true
+        }
+        advanceIfReady()
+    }
+
     func advanceIfReady() {
-        guard didFinishAnimatingText, didSettleAccount else { return }
-        if appSettings.welcomeScreenDidDisplay {
-            path = .init()
-        } else {
-            path = .init([HomeLink.technicalOptIns])
+        guard didFinishAnimatingText, didSettleAccount, !didShowFinalMessage else { return }
+        didShowFinalMessage = true
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2))
+            let session = OnboardingSession.shared
+            session.advance(to: .credentialsReady)
+            session.advance(to: .finished)
+            session.markPurchaseFlowDismissed()
+            if appSettings.welcomeScreenDidDisplay {
+                path = .init()
+            } else {
+                path = .init([HomeLink.technicalOptIns])
+            }
         }
     }
 
     func resetProcessingState() {
         didFinishAnimatingText = false
         didSettleAccount = false
+        didShowFinalMessage = false
         errorMessage = nil
         currentStep = 1
         titlesSessionID = UUID()
     }
-
 }
