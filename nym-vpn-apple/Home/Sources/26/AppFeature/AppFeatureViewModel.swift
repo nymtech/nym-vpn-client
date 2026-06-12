@@ -10,6 +10,7 @@ import GatewayManager
 import ImpactGenerator
 import NetworkMonitor
 import Routes
+import Settings
 import TunnelStatus
 #if os(macOS)
 import GRPCManager
