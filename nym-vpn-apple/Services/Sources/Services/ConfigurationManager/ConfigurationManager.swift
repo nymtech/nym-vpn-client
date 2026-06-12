@@ -79,8 +79,11 @@ import PathManager
     }
 
     public var isSantaClaus: Bool {
-        guard isTestFlight || isRunningOnCI else { return false }
+#if SANTA
         return true
+#else
+        return false
+#endif
     }
 
     public var debugLevel: DebugLevel {

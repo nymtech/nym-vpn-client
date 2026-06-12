@@ -83,7 +83,8 @@ let package = Package(
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 "PathManager"
             ],
-            path: "Sources/Services/ConfigurationManager"
+            path: "Sources/Services/ConfigurationManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "ConnectionManager",
