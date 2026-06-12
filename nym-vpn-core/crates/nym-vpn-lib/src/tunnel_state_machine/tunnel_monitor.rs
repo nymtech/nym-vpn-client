@@ -270,8 +270,11 @@ async fn wait_for_exit_handshake(
     let result = tokio::time::timeout(HANDSHAKE_TIMEOUT, async {
         loop {
             match tunnel_handle.get_exit_stats() {
-                Ok(stats) if stats.all_peers_connected() => return,
-                Ok(_) => {}
+                Ok(stats) => {
+                    if stats.all_peers_connected() {
+                        return;
+                    }
+                }
                 Err(err) => {
                     tracing::debug!("Failed to get exit tunnel stats: {err}");
                 }
