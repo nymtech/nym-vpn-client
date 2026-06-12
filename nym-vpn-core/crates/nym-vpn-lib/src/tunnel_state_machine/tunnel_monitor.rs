@@ -18,11 +18,11 @@ use std::{
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-use futures::{future::Fuse, FutureExt, StreamExt};
+use futures::{FutureExt, StreamExt, future::Fuse};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
-use nix::sys::socket::{sockopt::Mark, SetSockOpt};
+use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_gateway_directory::{
     GatewayCacheHandle, GatewayClient, GatewayMinPerformance, NodeIdentity,
 };
@@ -38,7 +38,7 @@ use tun::AsyncDevice;
 use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
-use nym_common::{trace_err_chain, ErrorExt};
+use nym_common::{ErrorExt, trace_err_chain};
 use nym_connection_monitor::{
     ConnectionEvent, ConnectionMonitor, ConnectionStatusEvent, IcmpProbe, IcmpProbeConfig,
     TcpProbe, TcpProbeConfig, TimingConfig,
@@ -65,35 +65,35 @@ use super::tunnel::wireguard::connected_tunnel::TunTunTunnelOptions;
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
 use super::{
+    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{
-        self, wireguard::{
+        self, AnyTunnelHandle, SelectedGateways, Tombstone,
+        wireguard::{
             connected_tunnel,
             connected_tunnel::{NetstackTunnelOptions, TunnelOptions},
-        }, AnyTunnelHandle, SelectedGateways,
-        Tombstone,
-    }, Error, NymConfig, Result, TunnelInterface, TunnelMetadata,
-    TunnelSettings,
+        },
+    },
 };
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
-    bandwidth_controller::BandwidthController, mixnet::VpnTopologyServiceHandle, tunnel_state_machine::{
-        account, ipv6_availability, tunnel::{
+    DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
+    bandwidth_controller::BandwidthController,
+    mixnet::VpnTopologyServiceHandle,
+    tunnel_state_machine::{
+        TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
+        tunnel::{
             gateway_provider::GatewayProvider,
             mixnet,
             transports::{self, TransportError},
             wireguard::{
-                connected_tunnel::ConnectedTunnel, ConnectionData as WgConnectionData, MetadataEvent,
-                MetadataReceiver,
+                ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
+                connected_tunnel::ConnectedTunnel,
             },
-        }, TunnelConstants,
-        WireguardMultihopMode,
+        },
     },
-    UserAgent,
-    DEFAULT_MIN_GATEWAY_PERFORMANCE,
-    DEFAULT_MIN_MIXNODE_PERFORMANCE,
 };
 
 /// Default MTU for mixnet tun device.
