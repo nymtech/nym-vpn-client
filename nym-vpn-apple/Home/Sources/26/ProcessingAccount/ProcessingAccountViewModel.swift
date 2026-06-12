@@ -143,7 +143,7 @@ public final class ProcessingAccountViewModel {
                 }
 #else
                 Self.logger.error(
-                    "Account processing failed flow=\(String(describing: self.flow), privacy: .public) errorType=\(String(describing: Swift.type(of: error)), privacy: .public)"
+                    "Account processing failed flow=\(String(describing: self.flow)) errorType=\(String(describing: Swift.type(of: error)))"
                 )
                 errorMessage = "generalNymError.somethingWentWrong".localizedString
 #endif
