@@ -456,19 +456,17 @@ private extension SettingsViewModel {
                 }
             )
         )
-        if featureFlagsManager.isMixnetTuningEnabled {
-            viewModels.append(
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.mixnetTuning.title".localizedString,
-                    subtitle: "settings.mixnetTuning.subtitle".localizedString,
-                    systemImageName: "eye.slash",
-                    action: { [weak self] in
-                        self?.navigateToMixnetTuning()
-                    }
-                )
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.mixnetTuning.title".localizedString,
+                subtitle: "settings.mixnetTuning.subtitle".localizedString,
+                systemImageName: "eye.slash",
+                action: { [weak self] in
+                    self?.navigateToMixnetTuning()
+                }
             )
-        }
+        )
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
