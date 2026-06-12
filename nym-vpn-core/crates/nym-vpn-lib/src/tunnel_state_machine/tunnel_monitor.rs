@@ -1914,7 +1914,7 @@ impl TunnelMonitor {
         // Create ICMP probe first, fallback to TCP probe on failure.
         match self.create_icmp_probe(exit_tunnel_metadata) {
             Ok(icmp_probe) => {
-                tracing::info!("Starting ICMP connectivity test");
+                tracing::info!("Initial ICMP connectivity test");
                 Ok(ConnectionMonitor::spawn(
                     icmp_probe,
                     timing_config,
