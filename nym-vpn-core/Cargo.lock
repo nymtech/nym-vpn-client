@@ -7094,6 +7094,7 @@ dependencies = [
  "bs58",
  "futures",
  "hkdf",
+ "nix 0.31.3",
  "nym-common 2026.11.0-beta.1",
  "nym-compact-ecash",
  "nym-credential-proxy-requests",

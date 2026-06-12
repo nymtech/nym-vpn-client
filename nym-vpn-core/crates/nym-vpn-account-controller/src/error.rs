@@ -49,6 +49,15 @@ pub enum Error {
 
     #[error("failed to parse ticket type: {0}")]
     ParseTicketType(String),
+
+    #[error("failed to prefetch zk-nyms: {0}")]
+    PrefetchZkNym(String),
+
+    #[error("credential store is owned by another process")]
+    CredentialStoreBusy,
+
+    #[error("failed to acquire credential store lock")]
+    CredentialStoreLockIo(#[source] std::io::Error),
 }
 
 impl Error {
