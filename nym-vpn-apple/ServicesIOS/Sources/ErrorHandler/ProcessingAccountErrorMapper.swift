@@ -53,9 +53,11 @@ public enum ProcessingAccountErrorMapper {
             if details.contains("Maximum number of devices reached") {
                 return "errorReason.maxDevicesReached".localizedString
             }
-            return VPNErrorReason(with: vpnError).description ?? somethingWentWrong
+            return VPNErrorReason(with: vpnError).description
+        case .AccountStoreBusy:
+            return "errorReason.registrationInProgress".localizedString
         default:
-            return VPNErrorReason(with: vpnError).description ?? somethingWentWrong
+            return VPNErrorReason(with: vpnError).description
         }
     }
 

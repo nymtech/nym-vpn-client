@@ -38,3 +38,13 @@ import NymVPNLib
     )
     #expect(message == "errorReason.noDeviceStored".localizedString)
 }
+
+@Test func mapsAccountStoreBusyToRegistrationInProgressMessage() {
+    let message = ProcessingAccountErrorMapper.localizedMessage(for: VpnError.AccountStoreBusy)
+    #expect(message == "errorReason.registrationInProgress".localizedString)
+}
+
+@Test func logSafeDescriptionIncludesAccountStoreBusyLabel() {
+    let description = ProcessingAccountErrorMapper.logSafeDescription(for: VpnError.AccountStoreBusy)
+    #expect(description == "VpnError.AccountStoreBusy")
+}
