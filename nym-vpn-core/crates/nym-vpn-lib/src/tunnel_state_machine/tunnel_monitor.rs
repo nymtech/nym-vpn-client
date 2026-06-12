@@ -263,6 +263,8 @@ async fn wait_for_exit_handshake(
     const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(6);
     const POLL_INTERVAL: Duration = Duration::from_millis(500);
 
+    tracing::debug!("Waiting for exit WireGuard handshake to complete");
+
     let started = std::time::Instant::now();
 
     let result = tokio::time::timeout(HANDSHAKE_TIMEOUT, async {
@@ -1909,12 +1911,15 @@ impl TunnelMonitor {
 
         // Create ICMP probe first, fallback to TCP probe on failure.
         match self.create_icmp_probe(exit_tunnel_metadata) {
-            Ok(icmp_probe) => Ok(ConnectionMonitor::spawn(
-                icmp_probe,
-                timing_config,
-                event_tx,
-                self.shutdown_token.child_token(),
-            )),
+            Ok(icmp_probe) => {
+                tracing::info!("Starting ICMP connectivity test");
+                Ok(ConnectionMonitor::spawn(
+                    icmp_probe,
+                    timing_config,
+                    event_tx,
+                    self.shutdown_token.child_token(),
+                ))
+            }
             Err(err) => {
                 tracing::warn!("{}", err.display_chain());
                 tracing::info!("Fallback to TCP probe");
