@@ -9,6 +9,7 @@ import NymVPNLib
 import GRPCManager
 #endif
 import Constants
+import ConnectionTypes
 import Logging
 import PathManager
 
@@ -70,7 +71,8 @@ import PathManager
     public let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
 
     public var accountLinks: AccountLinks?
-    public var environmentDidChange: (() -> Void)?
+
+    private var environmentDidChangeObservers: [UUID: (EnvironmentDidChangePhase, () -> Void)] = [:]
 
     @Published public var isCurrentAppVersionCompatible = true
 
@@ -112,6 +114,20 @@ import PathManager
             .store(in: &cancellables)
     }
 
+    @discardableResult
+    public func addEnvironmentDidChangeObserver(
+        phase: EnvironmentDidChangePhase,
+        _ handler: @escaping () -> Void
+    ) -> UUID {
+        let id = UUID()
+        environmentDidChangeObservers[id] = (phase, handler)
+        return id
+    }
+
+    public func removeEnvironmentDidChangeObserver(_ id: UUID) {
+        environmentDidChangeObservers.removeValue(forKey: id)
+    }
+
     public func updateEnv(to env: Env) {
         Task {
             guard self.isTestFlight || Device.isMacOS else { return }
@@ -124,7 +140,7 @@ import PathManager
 #endif
                 try await self.configure()
                 await MainActor.run {
-                    self.environmentDidChange?()
+                    self.notifyEnvironmentDidChange()
                 }
             } catch {
                 self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
@@ -168,6 +184,14 @@ import PathManager
 }
 
 private extension ConfigurationManager {
+    func notifyEnvironmentDidChange() {
+        EnvironmentDidChangeDispatch.invokeInOrder(
+            environmentDidChangeObservers.map { (_, observer) in
+                (phase: observer.0, action: observer.1)
+            }
+        )
+    }
+
     func configure() async throws {
 #if os(iOS)
         do {

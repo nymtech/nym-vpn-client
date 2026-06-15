@@ -76,6 +76,7 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 "Device",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
@@ -144,6 +145,7 @@ let package = Package(
             name: "FeatureFlagsManager",
             dependencies: [
                 "ConfigurationManager",
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
             ],

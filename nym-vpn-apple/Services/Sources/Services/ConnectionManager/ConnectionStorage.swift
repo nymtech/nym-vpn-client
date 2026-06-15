@@ -1,7 +1,6 @@
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
-import ConnectionTypes
 import GatewayManager
 
 @MainActor public final class ConnectionStorage {
@@ -61,11 +60,7 @@ extension ConnectionStorage {
     }
 
     func registerForEnvironmentChanges(onReset: @escaping () -> Void) {
-        let previousHandler = configurationManager.environmentDidChange
-        configurationManager.environmentDidChange = {
-            onReset()
-            previousHandler?()
-        }
+        configurationManager.addEnvironmentDidChangeObserver(phase: .connectionConfig, onReset)
     }
 }
 

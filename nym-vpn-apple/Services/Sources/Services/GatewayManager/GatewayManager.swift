@@ -398,9 +398,7 @@ private extension GatewayManager {
     }
 
     func configureEnvironmentChange() {
-        let previousHandler = configurationManager.environmentDidChange
-        configurationManager.environmentDidChange = { [weak self] in
-            previousHandler?()
+        configurationManager.addEnvironmentDidChangeObserver(phase: .gateways) { [weak self] in
             guard let self else { return }
             self.clearGatewayStoreForEnvironmentChange()
             Task {

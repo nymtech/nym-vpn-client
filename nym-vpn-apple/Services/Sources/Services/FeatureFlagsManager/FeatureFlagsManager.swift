@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import AppSettings
 import ConfigurationManager
+import ConnectionTypes
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
@@ -73,7 +74,7 @@ private extension FeatureFlagsManager {
 
 private extension FeatureFlagsManager {
     func setupEnvironmentChangeObserver() {
-        configurationManager.environmentDidChange = { [weak self] in
+        configurationManager.addEnvironmentDidChangeObserver(phase: .featureFlags) { [weak self] in
             self?.updateFeatureFlags()
         }
     }
