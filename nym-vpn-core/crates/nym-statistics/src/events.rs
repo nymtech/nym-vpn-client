@@ -53,6 +53,7 @@ impl StatisticsSender {
 
     /// Report the name of the tunnel interface that reports must be bound to when sending,
     /// or `None` once that interface is gone.
+    #[cfg(target_os = "ios")]
     pub fn report_tunnel_interface(&self, interface: Option<String>) {
         self.report(StatisticsEvent::ReportSending(
             ReportSendingEvent::TunnelInterface(interface),
@@ -216,5 +217,6 @@ pub enum ReportSendingEvent {
 
     // Name of the tunnel interface to bind to when sending, if any. Used on iOS where the
     // network extension's traffic is excluded from the tunnel unless explicitly bound to it.
+    #[cfg(target_os = "ios")]
     TunnelInterface(Option<String>),
 }

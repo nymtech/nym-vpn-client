@@ -19,30 +19,27 @@ pub(crate) const NYM_STATISTICS_API_TIMEOUT: Duration = Duration::from_secs(30);
 #[derive(Clone, Debug)]
 pub struct StatisticsApiClient {
     inner: nym_http_api_client::Client,
-    /// Kept around to rebuild the client bound to the tunnel interface (iOS).
-    #[cfg_attr(not(target_os = "ios"), allow(dead_code))]
+    #[cfg(target_os = "ios")]
     base_url: Url,
-    #[cfg_attr(not(target_os = "ios"), allow(dead_code))]
+    #[cfg(target_os = "ios")]
     user_agent: UserAgent,
 }
 
 impl StatisticsApiClient {
     pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
         // What about domain fronting?  The discovery schema makes no provision for it.
-        nym_http_api_client::Client::builder(base_url.clone())
-            .and_then(|builder| {
-                builder
-                    .with_user_agent(user_agent.clone())
-                    .with_timeout(NYM_STATISTICS_API_TIMEOUT)
-                    .build()
-            })
-            .map(|c| Self {
-                inner: c,
+        Ok(Self {
+            #[cfg(target_os = "ios")]
+            base_url: base_url.clone(),
+            #[cfg(target_os = "ios")]
+            user_agent: user_agent.clone(),
+            inner: Self::make_http_client(
                 base_url,
                 user_agent,
-            })
-            .map_err(Box::new)
-            .map_err(StatisticsApiClientError::VpnApiClientCreation)
+                #[cfg(target_os = "ios")]
+                None,
+            )?,
+        })
     }
 
     /// Create a copy of this client with its sockets bound to the given network interface.
@@ -53,23 +50,43 @@ impl StatisticsApiClient {
     /// in-process DNS forwarder bound to the tunnel while it is up; the default DoH/DoT
     /// resolver would create unbound sockets of its own and leak outside of the tunnel.
     #[cfg(target_os = "ios")]
-    pub fn with_bound_interface(&self, interface: &str) -> Result<Self> {
-        let reqwest_builder = nym_http_api_client::registry::default_builder()
-            .interface(interface)
-            .timeout(NYM_STATISTICS_API_TIMEOUT);
-        nym_http_api_client::Client::builder(self.base_url.clone())
+    pub fn with_bound_interface(&self, interface: Option<&str>) -> Result<Self> {
+        let inner =
+            Self::make_http_client(self.base_url.clone(), self.user_agent.clone(), interface)?;
+
+        Ok(Self {
+            base_url: self.base_url.clone(),
+            user_agent: self.user_agent.clone(),
+            inner,
+        })
+    }
+
+    fn make_http_client(
+        base_url: Url,
+        user_agent: UserAgent,
+        #[cfg(target_os = "ios")] bound_interface: Option<&str>,
+    ) -> Result<nym_http_api_client::Client> {
+        nym_http_api_client::Client::builder(base_url)
             .and_then(|builder| {
-                builder
-                    .with_user_agent(self.user_agent.clone())
-                    .with_timeout(NYM_STATISTICS_API_TIMEOUT)
-                    .with_reqwest_builder(reqwest_builder)
-                    .no_hickory_dns()
-                    .build()
-            })
-            .map(|inner| Self {
-                inner,
-                base_url: self.base_url.clone(),
-                user_agent: self.user_agent.clone(),
+                let builder = builder
+                    .with_user_agent(user_agent)
+                    .with_timeout(NYM_STATISTICS_API_TIMEOUT);
+
+                #[cfg(target_os = "ios")]
+                let builder = if let Some(bound_interface) = bound_interface {
+                    let reqwest_builder = nym_http_api_client::registry::default_builder()
+                        .timeout(NYM_STATISTICS_API_TIMEOUT)
+                        .interface(bound_interface);
+
+                    // Enforce the use of system resolver which is set to in-process DNS forwarder that prevents leaks.
+                    let reqwest_builder = reqwest_builder.no_hickory_dns();
+
+                    builder.with_reqwest_builder(reqwest_builder)
+                } else {
+                    builder
+                };
+
+                builder.build()
             })
             .map_err(Box::new)
             .map_err(StatisticsApiClientError::VpnApiClientCreation)

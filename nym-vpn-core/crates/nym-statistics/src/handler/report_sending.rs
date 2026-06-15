@@ -71,6 +71,7 @@ impl SendingConfig {
             ReportSendingEvent::Standby => self.tunnel_state = TunnelState::Standby,
             ReportSendingEvent::AllowDirectSending(status) => self.allow_direct_sending = status,
             // Handled by `InnerHandler` before reaching this point
+            #[cfg(target_os = "ios")]
             ReportSendingEvent::TunnelInterface(_) => {}
         }
         let new_value = self.allows_sending();
@@ -174,11 +175,6 @@ struct InnerHandlerHandle {
 struct InnerHandler {
     storage: StatsStorage,
     api_client: StatisticsApiClient,
-    /// Copy of `api_client` with its sockets bound to the tunnel interface, present while the
-    /// tunnel is up. On iOS the extension's traffic is excluded from the tunnel, so reports
-    /// must only ever be sent through this client to stay wrapped in the tunnel.
-    #[cfg(target_os = "ios")]
-    bound_api_client: Option<StatisticsApiClient>,
     event_rx: Receiver<ReportSendingEvent>,
     sending_config: SendingConfig,
     system_report: StaticInformationReport,
@@ -206,8 +202,6 @@ impl InnerHandler {
         let inner_handler = Self {
             storage,
             api_client,
-            #[cfg(target_os = "ios")]
-            bound_api_client: None,
             event_rx,
             sending_config,
             system_report,
@@ -220,42 +214,15 @@ impl InnerHandler {
         }
     }
 
-    /// Rebuild the API client bound to the new tunnel interface, or drop it once the interface
-    /// is gone.
+    /// Set tunnel interface for the API client.
+    /// Pass `None` to unbind API client from specific interface and rely on system routing instead.
     #[cfg(target_os = "ios")]
-    fn set_tunnel_interface(&mut self, interface: Option<String>) {
-        self.bound_api_client = interface.and_then(|interface| {
-            self.api_client
-                .with_bound_interface(&interface)
-                .inspect_err(|e| {
-                    tracing::error!(
-                        "Failed to bind statistics client to tunnel interface {interface}: {e}"
-                    )
-                })
-                .ok()
-        });
-    }
-
-    #[cfg(not(target_os = "ios"))]
-    fn set_tunnel_interface(&mut self, _interface: Option<String>) {}
-
-    /// Pick the client to use for the next sending round, or `None` if no client can send
-    /// without leaking reports.
-    ///
-    /// On iOS the network extension's own sockets bypass the tunnel, so reports are only ever
-    /// sent while the tunnel is up, through a client bound to the tunnel interface.
-    #[cfg(target_os = "ios")]
-    fn sending_client(&self) -> Option<StatisticsApiClient> {
-        if self.sending_config.tunnel_state == TunnelState::Connected {
-            self.bound_api_client.clone()
-        } else {
-            None
-        }
-    }
-
-    #[cfg(not(target_os = "ios"))]
-    fn sending_client(&self) -> Option<StatisticsApiClient> {
-        Some(self.api_client.clone())
+    fn set_tunnel_interface(&mut self, interface: Option<&str>) -> Result<(), Error> {
+        self.api_client = self
+            .api_client
+            .with_bound_interface(interface)
+            .map_err(Box::new)?;
+        Ok(())
     }
 
     async fn send_reports(
@@ -335,8 +302,17 @@ impl InnerHandler {
                             // Sending will cancel itself because we're dropping the future
                             return;
                         }
+                        #[cfg(target_os = "ios")]
                         Some(ReportSendingEvent::TunnelInterface(interface)) => {
-                            self.set_tunnel_interface(interface);
+                                match self.set_tunnel_interface(interface.as_deref()) {
+                                    Ok(()) => {
+                                        tracing::debug!("Bound statistics client to interface: {interface:?}");
+                                    }
+                                    Err(err) => {
+                                        tracing::error!("Failed to bind statistics client to {interface:?}: {err}");
+                                    }
+                                }
+
                         }
                         Some(event) => {
                             if let Some(new_allowed) = self.sending_config.update(event) {
@@ -358,15 +334,7 @@ impl InnerHandler {
                     }
                 }
                 _ = &mut timer => {
-                    if !self.sending_config.allows_sending() {
-                        tracing::debug!("Stats report conditions not met, skipping send");
-                        timer.as_mut().set(tokio::time::sleep(SendingConfig::random_big_delay()).fuse());
-                    } else if let Some(api_client) = self.sending_client() {
-                        sending_task.set(Self::send_reports(self.storage.clone(), api_client, self.system_report.clone(), self.sending_config.tunnel_state).fuse());
-                    } else {
-                        tracing::warn!("No statistics client able to send through the tunnel, skipping send");
-                        timer.as_mut().set(tokio::time::sleep(SendingConfig::random_big_delay()).fuse());
-                    }
+                    sending_task.set(Self::send_reports(self.storage.clone(), self.api_client.clone(), self.system_report.clone(), self.sending_config.tunnel_state).fuse());
                 }
                 sending_res = &mut sending_task => {
                     sending_task.as_mut().set(Fuse::terminated());

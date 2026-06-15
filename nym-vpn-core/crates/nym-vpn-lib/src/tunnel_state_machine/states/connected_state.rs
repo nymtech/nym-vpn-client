@@ -243,18 +243,7 @@ impl ConnectedState {
         after_disconnect: PrivateActionAfterDisconnect,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
-        #[cfg(target_os = "ios")]
-        shared_state
-            .statistics_event_sender
-            .report_tunnel_interface(None);
-        #[cfg(not(target_os = "android"))]
-        {
-            Self::reset_dns(shared_state).await;
-        }
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            Self::reset_routes(shared_state).await;
-        }
+        Self::prepare_for_disconnect(shared_state).await;
 
         NextTunnelState::NewState(
             DisconnectingState::enter(
@@ -275,18 +264,7 @@ impl ConnectedState {
             tracing::info!("Tunnel closed. Reconnecting.");
         }
 
-        #[cfg(target_os = "ios")]
-        shared_state
-            .statistics_event_sender
-            .report_tunnel_interface(None);
-        #[cfg(not(target_os = "android"))]
-        {
-            Self::reset_dns(shared_state).await;
-        }
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            Self::reset_routes(shared_state).await;
-        }
+        Self::prepare_for_disconnect(shared_state).await;
 
         match error_state_reason {
             Some(block_reason) => {
@@ -296,6 +274,22 @@ impl ConnectedState {
                 ConnectingState::enter(0, Some(self.selected_gateways), shared_state).await,
             ),
         }
+    }
+
+    async fn prepare_for_disconnect(shared_state: &mut SharedState) {
+        #[cfg(target_os = "ios")]
+        shared_state
+            .statistics_event_sender
+            .report_tunnel_interface(None);
+
+        #[cfg(not(target_os = "android"))]
+        Self::reset_dns(shared_state).await;
+
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        Self::reset_routes(shared_state).await;
+
+        #[cfg(target_os = "android")]
+        let _ = shared_state; // Avoid unused variable warning
     }
 }
 
