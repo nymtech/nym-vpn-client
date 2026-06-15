@@ -11,23 +11,33 @@ public final class GatewayNodeStore: Codable {
     public var fetchedForEnv: String?
 #endif
 
+#if SANTA
     public init(
         lastFetchDate: Date? = nil,
-#if SANTA
         fetchedForEnv: String? = nil,
-#endif
         entry: [GatewayNode] = [],
         exit: [GatewayNode] = [],
         vpn: [GatewayNode] = []
     ) {
         self.lastFetchDate = lastFetchDate
-#if SANTA
         self.fetchedForEnv = fetchedForEnv
-#endif
         self.entry = entry
         self.exit = exit
         self.vpn = vpn
     }
+#else
+    public init(
+        lastFetchDate: Date? = nil,
+        entry: [GatewayNode] = [],
+        exit: [GatewayNode] = [],
+        vpn: [GatewayNode] = []
+    ) {
+        self.lastFetchDate = lastFetchDate
+        self.entry = entry
+        self.exit = exit
+        self.vpn = vpn
+    }
+#endif
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
@@ -78,15 +88,22 @@ public final class GatewayNodeStore: Codable {
         else {
             return nil
         }
+#if SANTA
         self.init(
             lastFetchDate: gatewayNodeStore.lastFetchDate,
-#if SANTA
             fetchedForEnv: gatewayNodeStore.fetchedForEnv,
-#endif
             entry: gatewayNodeStore.entry,
             exit: gatewayNodeStore.exit,
             vpn: gatewayNodeStore.vpn
         )
+#else
+        self.init(
+            lastFetchDate: gatewayNodeStore.lastFetchDate,
+            entry: gatewayNodeStore.entry,
+            exit: gatewayNodeStore.exit,
+            vpn: gatewayNodeStore.vpn
+        )
+#endif
     }
 
     private enum CodingKeys: String, CodingKey {
