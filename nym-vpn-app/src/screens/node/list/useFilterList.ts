@@ -50,7 +50,8 @@ export function useFilterList(
         .filter(
           (gw) =>
             gw.name.toLowerCase().includes(lowCaseValue) ||
-            gw.location.city.toLowerCase().includes(lowCaseValue),
+            gw.location.city.toLowerCase().includes(lowCaseValue) ||
+            gw.id.toLowerCase().includes(lowCaseValue),
         )
         .sort((a, b) =>
           vpnMode === 'mixnet'
