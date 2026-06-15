@@ -74,7 +74,9 @@ function MixnetTrafficConfigProvider({
       state.averagePacketDelay !== defaultState.averagePacketDelay ||
       state.messageSendingAverageDelay !==
         defaultState.messageSendingAverageDelay ||
-      state.disablePoissonRate !== defaultState.disablePoissonRate
+      state.disablePoissonRate !== defaultState.disablePoissonRate ||
+      state.disableBackgroundCoverTraffic !==
+        defaultState.disableBackgroundCoverTraffic
     );
   }, [state, defaultState]);
 
