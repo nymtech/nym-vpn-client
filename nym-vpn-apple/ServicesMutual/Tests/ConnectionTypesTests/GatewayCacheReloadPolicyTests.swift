@@ -1,3 +1,4 @@
+#if SANTA
 import Foundation
 import Testing
 @testable import ConnectionTypes
@@ -167,3 +168,4 @@ import Testing
         #expect(roundTripped.vpn.count == 1)
     }
 }
+#endif

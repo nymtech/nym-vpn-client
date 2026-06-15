@@ -54,6 +54,7 @@ extension ConnectionStorage {
         connectionConfig == Self.generateInitialConfig()
     }
 
+#if SANTA
     func resetGatewaySelectionsForEnvironmentChange() {
         connectionConfig.entry = .random
         connectionConfig.exit = .random
@@ -62,6 +63,7 @@ extension ConnectionStorage {
     func registerForEnvironmentChanges(onReset: @escaping () -> Void) {
         configurationManager.addEnvironmentDidChangeObserver(phase: .connectionConfig, onReset)
     }
+#endif
 }
 
 extension ConnectionStorage {

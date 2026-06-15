@@ -9,7 +9,9 @@ import NymVPNLib
 import GRPCManager
 #endif
 import Constants
+#if SANTA
 import ConnectionTypes
+#endif
 import Logging
 import PathManager
 
@@ -72,7 +74,11 @@ import PathManager
 
     public var accountLinks: AccountLinks?
 
+#if SANTA
     private var environmentDidChangeObservers: [UUID: (EnvironmentDidChangePhase, () -> Void)] = [:]
+#else
+    public var environmentDidChange: (() -> Void)?
+#endif
 
     @Published public var isCurrentAppVersionCompatible = true
 
@@ -114,6 +120,7 @@ import PathManager
             .store(in: &cancellables)
     }
 
+#if SANTA
     @discardableResult
     public func addEnvironmentDidChangeObserver(
         phase: EnvironmentDidChangePhase,
@@ -147,6 +154,7 @@ import PathManager
             }
         }
     }
+#endif
 
     public func updateAccountLinks() {
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
@@ -184,6 +192,7 @@ import PathManager
 }
 
 private extension ConfigurationManager {
+#if SANTA
     func notifyEnvironmentDidChange() {
         EnvironmentDidChangeDispatch.invokeInOrder(
             environmentDidChangeObservers.map { (_, observer) in
@@ -191,6 +200,7 @@ private extension ConfigurationManager {
             }
         )
     }
+#endif
 
     func configure() async throws {
 #if os(iOS)

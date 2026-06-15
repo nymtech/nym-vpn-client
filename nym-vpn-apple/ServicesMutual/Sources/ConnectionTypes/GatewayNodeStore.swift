@@ -7,17 +7,23 @@ public final class GatewayNodeStore: Codable {
     public var exit: [GatewayNode]
     public var vpn: [GatewayNode]
     public var lastFetchDate: Date?
+#if SANTA
     public var fetchedForEnv: String?
+#endif
 
     public init(
         lastFetchDate: Date? = nil,
+#if SANTA
         fetchedForEnv: String? = nil,
+#endif
         entry: [GatewayNode] = [],
         exit: [GatewayNode] = [],
         vpn: [GatewayNode] = []
     ) {
         self.lastFetchDate = lastFetchDate
+#if SANTA
         self.fetchedForEnv = fetchedForEnv
+#endif
         self.entry = entry
         self.exit = exit
         self.vpn = vpn
@@ -33,9 +39,11 @@ public final class GatewayNodeStore: Codable {
         if let lastFetchDate = lastFetchDate {
             try container.encode(lastFetchDate.timeIntervalSince1970, forKey: .lastFetchDate)
         }
+#if SANTA
         if let fetchedForEnv = fetchedForEnv {
             try container.encode(fetchedForEnv, forKey: .fetchedForEnv)
         }
+#endif
     }
 
     public required init(from decoder: Decoder) throws {
@@ -50,7 +58,9 @@ public final class GatewayNodeStore: Codable {
         } else {
             lastFetchDate = nil
         }
+#if SANTA
         fetchedForEnv = try container.decodeIfPresent(String.self, forKey: .fetchedForEnv)
+#endif
     }
 
     public var rawValue: RawValue {
@@ -70,7 +80,9 @@ public final class GatewayNodeStore: Codable {
         }
         self.init(
             lastFetchDate: gatewayNodeStore.lastFetchDate,
+#if SANTA
             fetchedForEnv: gatewayNodeStore.fetchedForEnv,
+#endif
             entry: gatewayNodeStore.entry,
             exit: gatewayNodeStore.exit,
             vpn: gatewayNodeStore.vpn
@@ -82,6 +94,8 @@ public final class GatewayNodeStore: Codable {
         case exitNodes
         case vpnNodes
         case lastFetchDate
+#if SANTA
         case fetchedForEnv
+#endif
     }
 }

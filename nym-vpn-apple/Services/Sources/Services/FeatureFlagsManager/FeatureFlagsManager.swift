@@ -2,7 +2,9 @@ import Foundation
 import Combine
 import AppSettings
 import ConfigurationManager
+#if SANTA
 import ConnectionTypes
+#endif
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
@@ -74,9 +76,15 @@ private extension FeatureFlagsManager {
 
 private extension FeatureFlagsManager {
     func setupEnvironmentChangeObserver() {
+#if SANTA
         configurationManager.addEnvironmentDidChangeObserver(phase: .featureFlags) { [weak self] in
             self?.updateFeatureFlags()
         }
+#else
+        configurationManager.environmentDidChange = { [weak self] in
+            self?.updateFeatureFlags()
+        }
+#endif
     }
 
     func setupPeriodicRefresh() {

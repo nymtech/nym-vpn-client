@@ -1,3 +1,4 @@
+#if SANTA
 import ConnectionTypes
 
 @MainActor
@@ -15,3 +16,4 @@ public extension ConnectionManager {
         connectionConfig = connectionStorage.connectionConfig
     }
 }
+#endif

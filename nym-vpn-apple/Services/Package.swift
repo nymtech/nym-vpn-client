@@ -97,7 +97,8 @@ let package = Package(
                 "Tunnels",
                 "TunnelMixnet"
             ],
-            path: "Sources/Services/ConnectionManager"
+            path: "Sources/Services/ConnectionManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "CredentialsManager",
@@ -149,7 +150,8 @@ let package = Package(
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
             ],
-            path: "Sources/Services/FeatureFlagsManager"
+            path: "Sources/Services/FeatureFlagsManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "GatewayManager",
@@ -162,7 +164,8 @@ let package = Package(
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
-            path: "Sources/Services/GatewayManager"
+            path: "Sources/Services/GatewayManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "ImpactGenerator",

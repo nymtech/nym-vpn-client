@@ -1,3 +1,4 @@
+#if SANTA
 import Foundation
 
 public enum GatewayCacheReloadPolicy {
@@ -32,3 +33,4 @@ public enum GatewayCacheReloadPolicy {
         return raw.isEmpty ? nil : raw
     }
 }
+#endif

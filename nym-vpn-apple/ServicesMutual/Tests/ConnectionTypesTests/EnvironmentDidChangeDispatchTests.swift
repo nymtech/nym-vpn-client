@@ -1,3 +1,4 @@
+#if SANTA
 import Testing
 @testable import ConnectionTypes
 
@@ -26,3 +27,4 @@ import Testing
         #expect(count == 3)
     }
 }
+#endif

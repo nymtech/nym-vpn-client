@@ -254,6 +254,7 @@ private extension OneClickViewModel {
             }
             .store(in: &cancellables)
 
+#if SANTA
         Publishers.MergeMany(
             gatewayManager.$entry.map { _ in () },
             gatewayManager.$exit.map { _ in () },
@@ -264,6 +265,7 @@ private extension OneClickViewModel {
             self?.refreshSelection()
         }
         .store(in: &cancellables)
+#endif
 
         credentialsManager.$accountSummary
             .receive(on: DispatchQueue.main)

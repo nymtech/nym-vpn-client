@@ -149,6 +149,9 @@ private extension ConnectionManager {
 #endif
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
+#if SANTA
+        registerForEnvironmentChanges()
+#endif
     }
 }
 

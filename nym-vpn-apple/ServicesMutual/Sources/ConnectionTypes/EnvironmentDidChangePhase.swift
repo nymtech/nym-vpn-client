@@ -1,3 +1,4 @@
+#if SANTA
 import Foundation
 
 public enum EnvironmentDidChangePhase: Int, Comparable, Sendable {
@@ -17,3 +18,4 @@ public enum EnvironmentDidChangeDispatch {
         observers.sorted { $0.phase < $1.phase }.forEach { $0.action() }
     }
 }
+#endif
