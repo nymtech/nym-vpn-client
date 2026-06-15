@@ -254,6 +254,17 @@ private extension OneClickViewModel {
             }
             .store(in: &cancellables)
 
+        Publishers.MergeMany(
+            gatewayManager.$entry.map { _ in () },
+            gatewayManager.$exit.map { _ in () },
+            gatewayManager.$vpn.map { _ in () }
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] in
+            self?.refreshSelection()
+        }
+        .store(in: &cancellables)
+
         credentialsManager.$accountSummary
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in

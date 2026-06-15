@@ -341,6 +341,7 @@ extension GatewayManager {
             gatewayStore.exit  = result.exit
             gatewayStore.vpn = result.vpn
             gatewayStore.lastFetchDate = Date()
+            gatewayStore.fetchedForEnv = configurationManager.currentEnvString
 
             storeGatewayStore()
             updateCountriesFromGateways()
@@ -384,8 +385,10 @@ private extension GatewayManager {
     }
 
     func needsReload() -> Bool {
-        guard let lastFetchDate = gatewayStore.lastFetchDate else { return true }
-        return Date().timeIntervalSince(lastFetchDate) > 600
+        GatewayCacheReloadPolicy.needsReload(
+            store: gatewayStore,
+            currentEnv: configurationManager.currentEnvString
+        )
     }
 
     func loadGatewaysFromStore() {
@@ -395,9 +398,11 @@ private extension GatewayManager {
     }
 
     func configureEnvironmentChange() {
+        let previousHandler = configurationManager.environmentDidChange
         configurationManager.environmentDidChange = { [weak self] in
+            previousHandler?()
             guard let self else { return }
-            self.gatewayStore.lastFetchDate = nil
+            self.clearGatewayStoreForEnvironmentChange()
             Task {
 #if os(iOS)
                 await self.worker.reset()

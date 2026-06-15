@@ -156,6 +156,7 @@ private extension NymVPNDaemonApp {
             CredentialsManager.shared.setup()
             FeatureFlagsManager.shared.setup()
             GatewayManager.shared.setup()
+            ConnectionManager.shared.registerForEnvironmentChanges()
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()

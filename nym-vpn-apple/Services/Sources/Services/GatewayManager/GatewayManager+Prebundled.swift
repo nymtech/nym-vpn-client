@@ -11,6 +11,13 @@ extension GatewayManager {
             else {
                 return
             }
+            if GatewayCacheReloadPolicy.needsReload(
+                store: loadedGatewayStore,
+                currentEnv: configurationManager.currentEnvString
+            ) {
+                clearGatewayStoreForEnvironmentChange()
+                return
+            }
             gatewayStore = loadedGatewayStore
             entry = loadedGatewayStore.entry
             exit = loadedGatewayStore.exit
@@ -21,6 +28,11 @@ extension GatewayManager {
     }
 
     func loadPrebundledServersIfNecessary() {
+        guard GatewayCacheReloadPolicy.shouldLoadPrebundledFallback(
+            currentEnv: configurationManager.currentEnvString
+        ) else {
+            return
+        }
         guard entry.isEmpty || exit.isEmpty || vpn.isEmpty else { return }
         guard let entryServersURL = Bundle.main.url(forResource: "gatewaysEntry", withExtension: "json"),
               let exitServersURL = Bundle.main.url(forResource: "gatewaysExit", withExtension: "json"),
@@ -141,9 +153,18 @@ extension GatewayManager {
     }
 
     func storeGatewayStore() {
-        Task { @MainActor in
-            appSettings.gatewayStore = gatewayStore.rawValue
-        }
+        appSettings.gatewayStore = GatewayCacheReloadPolicy.persistedGatewayStoreValue(for: gatewayStore)
+    }
+
+    func clearGatewayStoreForEnvironmentChange() {
+        entry = []
+        exit = []
+        vpn = []
+        entryCountries = []
+        exitCountries = []
+        vpnCountries = []
+        gatewayStore = GatewayNodeStore()
+        appSettings.gatewayStore = nil
     }
 }
 

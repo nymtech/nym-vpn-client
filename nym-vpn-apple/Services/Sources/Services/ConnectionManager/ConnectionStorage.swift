@@ -54,6 +54,19 @@ extension ConnectionStorage {
     public var isUsingInitialConfig: Bool {
         connectionConfig == Self.generateInitialConfig()
     }
+
+    func resetGatewaySelectionsForEnvironmentChange() {
+        connectionConfig.entry = .random
+        connectionConfig.exit = .random
+    }
+
+    func registerForEnvironmentChanges(onReset: @escaping () -> Void) {
+        let previousHandler = configurationManager.environmentDidChange
+        configurationManager.environmentDidChange = {
+            onReset()
+            previousHandler?()
+        }
+    }
 }
 
 extension ConnectionStorage {
