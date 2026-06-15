@@ -75,6 +75,15 @@ pub enum GlobalConfigError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum GeoExclusionConfigError {
+    #[error("invalid port")]
+    InvalidPort,
+
+    #[error("port '{0}' is reserved and cannot be used")]
+    ReservedPort(u16),
+
+    #[error("invalid country code '{0}': must be a 2-letter uppercase ISO code")]
+    InvalidCountryCode(String),
+
     #[error("unsupported country code '{0}': only 'CN' is currently supported")]
     UnsupportedCountry(String),
 

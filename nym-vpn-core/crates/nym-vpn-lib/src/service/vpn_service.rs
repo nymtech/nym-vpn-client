@@ -120,7 +120,7 @@ pub enum VpnServiceCommand {
         LookupGatewayFilters,
     ),
     SetGeoExclusionEnabled(oneshot::Sender<()>, bool),
-    SetGeoExclusionListenPort(oneshot::Sender<()>, u16),
+    SetGeoExclusionListenPort(oneshot::Sender<Result<(), GeoExclusionConfigError>>, u16),
     SetGeoExclusionExcludedCountries(
         oneshot::Sender<Result<(), GeoExclusionConfigError>>,
         Vec<String>,
@@ -1262,8 +1262,7 @@ impl NymVpnService {
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetGeoExclusionListenPort(tx, listen_port) => {
-                self.handle_set_geo_exclusion_listen_port(listen_port).await;
-                let _ = tx.send(());
+                let _ = tx.send(self.handle_set_geo_exclusion_listen_port(listen_port).await);
             }
             VpnServiceCommand::SetGeoExclusionExcludedCountries(tx, excluded_countries) => {
                 let result = self
@@ -2341,11 +2340,15 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_geo_exclusion_listen_port(&mut self, listen_port: u16) {
+    async fn handle_set_geo_exclusion_listen_port(
+        &mut self,
+        listen_port: u16,
+    ) -> Result<(), GeoExclusionConfigError> {
         self.config_manager
             .set_geo_exclusion_listen_port(listen_port)
-            .await;
+            .await?;
         self.update_tunnel_settings_with_throttle();
+        Ok(())
     }
 
     async fn handle_set_geo_exclusion_excluded_countries(
