@@ -266,6 +266,11 @@ let package = Package(
                 "Tunnels"
             ],
             path: "Sources/Services/TunnelMixnet"
+        ),
+        .testTarget(
+            name: "ConfigurationManagerTests",
+            dependencies: ["ConfigurationManager"],
+            path: "Tests/ConfigurationManagerTests"
         )
     ]
 )

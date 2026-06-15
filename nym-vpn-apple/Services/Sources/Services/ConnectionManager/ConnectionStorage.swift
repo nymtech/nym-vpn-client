@@ -61,7 +61,7 @@ extension ConnectionStorage {
     }
 
     func registerForEnvironmentChanges(onReset: @escaping () -> Void) {
-        configurationManager.addEnvironmentDidChangeObserver(phase: .connectionConfig, onReset)
+        configurationManager.addEnvironmentDidChangeObserver(onReset)
     }
 #endif
 }

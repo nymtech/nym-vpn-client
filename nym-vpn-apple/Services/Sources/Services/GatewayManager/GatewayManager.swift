@@ -405,21 +405,13 @@ private extension GatewayManager {
     }
 
     func configureEnvironmentChange() {
+        configurationManager.addEnvironmentDidChangeObserver { [weak self] in
+            guard let self else { return }
 #if SANTA
-        configurationManager.addEnvironmentDidChangeObserver(phase: .gateways) { [weak self] in
-            guard let self else { return }
             self.clearGatewayStoreForEnvironmentChange()
-            Task {
-#if os(iOS)
-                await self.worker.reset()
-#endif
-                await self.fetchGateways()
-            }
-        }
 #else
-        configurationManager.environmentDidChange = { [weak self] in
-            guard let self else { return }
             self.gatewayStore.lastFetchDate = nil
+#endif
             Task {
 #if os(iOS)
                 await self.worker.reset()
@@ -427,7 +419,6 @@ private extension GatewayManager {
                 await self.fetchGateways()
             }
         }
-#endif
     }
 
     func localizeAndSortCountries(_ countries: [NymCountry]) -> [NymCountry] {

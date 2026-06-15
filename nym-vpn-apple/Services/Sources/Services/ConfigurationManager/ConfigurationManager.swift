@@ -74,11 +74,7 @@ import PathManager
 
     public var accountLinks: AccountLinks?
 
-#if SANTA
-    private var environmentDidChangeObservers: [UUID: (EnvironmentDidChangePhase, () -> Void)] = [:]
-#else
-    public var environmentDidChange: (() -> Void)?
-#endif
+    private let environmentChangeObservers = EnvironmentChangeObservers()
 
     @Published public var isCurrentAppVersionCompatible = true
 
@@ -120,21 +116,16 @@ import PathManager
             .store(in: &cancellables)
     }
 
-#if SANTA
     @discardableResult
-    public func addEnvironmentDidChangeObserver(
-        phase: EnvironmentDidChangePhase,
-        _ handler: @escaping () -> Void
-    ) -> UUID {
-        let id = UUID()
-        environmentDidChangeObservers[id] = (phase, handler)
-        return id
+    public func addEnvironmentDidChangeObserver(_ handler: @escaping () -> Void) -> UUID {
+        environmentChangeObservers.add(handler)
     }
 
     public func removeEnvironmentDidChangeObserver(_ id: UUID) {
-        environmentDidChangeObservers.removeValue(forKey: id)
+        environmentChangeObservers.remove(id)
     }
 
+#if SANTA
     public func updateEnv(to env: Env) {
         Task {
             guard self.isTestFlight || Device.isMacOS else { return }
@@ -194,11 +185,7 @@ import PathManager
 private extension ConfigurationManager {
 #if SANTA
     func notifyEnvironmentDidChange() {
-        EnvironmentDidChangeDispatch.invokeInOrder(
-            environmentDidChangeObservers.map { (_, observer) in
-                (phase: observer.0, action: observer.1)
-            }
-        )
+        environmentChangeObservers.notifyAll()
     }
 #endif
 

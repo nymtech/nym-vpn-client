@@ -76,15 +76,9 @@ private extension FeatureFlagsManager {
 
 private extension FeatureFlagsManager {
     func setupEnvironmentChangeObserver() {
-#if SANTA
-        configurationManager.addEnvironmentDidChangeObserver(phase: .featureFlags) { [weak self] in
+        configurationManager.addEnvironmentDidChangeObserver { [weak self] in
             self?.updateFeatureFlags()
         }
-#else
-        configurationManager.environmentDidChange = { [weak self] in
-            self?.updateFeatureFlags()
-        }
-#endif
     }
 
     func setupPeriodicRefresh() {
