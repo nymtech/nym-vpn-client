@@ -4,22 +4,24 @@
 # it updates the install script by bumping app and core versions
 # (stable versions only)
 # it expects the following environment variables to be set:
-# - APP_TAG, eg. nym-vpn-app-v1.2.3
-# - CORE_TAG, eg. nym-vpn-core-v1.2.3
+# - APP_TAG, eg. nym-vpn-app-v1.2.3 (or the unified tag nym-vpn-v1.2.3)
+# - CORE_TAG is the unified release tag (nym-vpn-v<version>) under unified-only core.
 
 set -e
 
-if ! echo "$APP_TAG" | grep -q '^nym-vpn-app-v'; then
-  echo "wrong app tag: $APP_TAG"
-  exit 1
-fi
-if ! echo "$CORE_TAG" | grep -q '^nym-vpn-core-v'; then
+# Accept the legacy app tag (nym-vpn-app-v*) and the unified tag (nym-vpn-v*).
+# Under unified-only releases APP_TAG is the unified tag and app == core version.
+case "$APP_TAG" in
+  nym-vpn-app-v*) app_version=${APP_TAG#nym-vpn-app-v} ;;
+  nym-vpn-v*)     app_version=${APP_TAG#nym-vpn-v} ;;
+  *) echo "wrong app tag: $APP_TAG"; exit 1 ;;
+esac
+if ! echo "$CORE_TAG" | grep -q '^nym-vpn-v'; then
   echo "wrong core tag: $CORE_TAG"
   exit 1
 fi
 
-app_version=${APP_TAG#nym-vpn-app-v}
-core_version=${CORE_TAG#nym-vpn-core-v}
+core_version=${CORE_TAG#nym-vpn-v}
 echo "app version: $app_version"
 echo "core version: $core_version"
 

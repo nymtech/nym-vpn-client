@@ -1,8 +1,6 @@
 name: publish-nym-vpn-android
 
 on:
-  schedule:
-    - cron: "4 3 * * *"
   workflow_dispatch:
     inputs:
       track:
@@ -42,6 +40,23 @@ on:
           - release
         default: release
         required: true
+
+  workflow_call:
+    inputs:
+      version_tag:
+        description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship). Play push gated by 'track'."
+        type: string
+        default: ""
+      fdroid:
+        description: "Dispatch the F-Droid repo (ship only)"
+        type: boolean
+        default: false
+      track:
+        type: string
+        default: "none"
+      release_type:
+        type: string
+        default: "release"
 
 env:
   UPLOAD_DIR_ANDROID: android_artifacts
@@ -141,6 +156,7 @@ jobs:
 
       - name: Create release with fastlane changelog notes
         id: create_release
+        if: ${{ inputs.version_tag == '' }}
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -158,6 +174,7 @@ jobs:
 
       - name: Append checksum
         id: append_checksum
+        if: ${{ inputs.version_tag == '' }}
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -179,6 +196,19 @@ jobs:
           draft: false
           prerelease: ${{ inputs.release_type != 'release' }}
           append_body: true
+
+      - name: Append APK to unified release
+        if: ${{ inputs.version_tag != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_TAG: ${{ inputs.version_tag }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          mapfile -t apks < <(find "${{ github.workspace }}/temp" -type f -iname '*.apk')
+          # Append to the draft. No --clobber: gh refuses a duplicate so the APK
+          # can't be overwritten. GitHub freezes the release at publish.
+          gh release upload "$VERSION_TAG" "${apks[@]}"
 
       - name: Compose Zulip message (Android)
         if: ${{ inputs.release_type == 'prerelease' || inputs.release_type == 'release' }}
@@ -213,7 +243,7 @@ jobs:
     runs-on: arc-linux-latest
     needs:
       - publish-github
-    if: inputs.release_type == 'release'
+    if: ${{ inputs.release_type == 'release' && (inputs.version_tag == '' || (inputs.fdroid && inputs.version_tag != 'nym-vpn-nightly')) }}
     steps:
       - name: Dispatch update for fdroid repo
         uses: peter-evans/repository-dispatch@v4

@@ -36,12 +36,19 @@ on:
         description: "Build type: pr | qa | ship (raw or labeled)"
         type: string
         default: "pr"
+      version_tag:
+        description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
+        type: string
+        default: ""
+      build_ios:
+        type: boolean
+        default: false
+      build_macos:
+        type: boolean
+        default: false
     outputs:
       RUST_VERSION:
         value: ${{ jobs.build-apple.outputs.RUST_VERSION }}
-  schedule:
-    - cron: "0 1 * * *"
-
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
@@ -594,13 +601,17 @@ jobs:
           set -euo pipefail
 
           echo "🚀 Uploading to TestFlight..."
+          # Beta groups by release type (--beta-group is repeatable):
+          #   ship (release) → public 'World' + 'Nym Team External'
+          #   qa   (nightly) → 'Nym Team External' only
+          BETA_GROUPS=( --beta-group='Nym Team External' )
+          if [ "${{ env.RELEASE_TYPE }}" = "ship" ]; then
+            BETA_GROUPS+=( --beta-group='World' )
+          fi
           app-store-connect publish \
             --beta-build-localizations=@file:whats_new.json \
-            --beta-group='External QA' \
-            --beta-group='Nym Team External' \
+            "${BETA_GROUPS[@]}" \
             --testflight
-            # --beta-group="World" \
-            # --expire-build-submitted-for-review
 
           echo "✅ Upload completed successfully."
 
@@ -1022,6 +1033,7 @@ jobs:
         env:
           APPLE_SPARKLE_PRIVATE_KEY: ${{ secrets.APPLE_SPARKLE_PRIVATE_KEY }}
           APP_PATH: ${{ steps.archive-macos.outputs.app_path }}
+          VERSION_TAG: ${{ inputs.version_tag }}
         run: |
           set -euo pipefail
           which jq || brew install jq
@@ -1116,7 +1128,12 @@ jobs:
           echo "✅ sha256-hash.txt:"
           cat sha256-hash.txt
 
-          DOWNLOAD_URL="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-macos-v${MACOS_VERSION}/NymVPN-${MACOS_VERSION}.pkg"
+          if [[ -n "${VERSION_TAG:-}" ]]; then
+            DOWNLOAD_TAG="${VERSION_TAG}"
+          else
+            DOWNLOAD_TAG="nym-vpn-macos-v${MACOS_VERSION}"
+          fi
+          DOWNLOAD_URL="https://github.com/nymtech/nym-vpn-client/releases/download/${DOWNLOAD_TAG}/NymVPN-${MACOS_VERSION}.pkg"
           HOST_LINK="https://nymvpn.com"
           PUB_DATE="$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S %z')"
 
@@ -1241,7 +1258,7 @@ jobs:
           fi
 
       - name: Publish macOS GitHub Release
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && steps.macos_tag.outputs.exists != 'true' }}
+        if: ${{ inputs.version_tag == '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && steps.macos_tag.outputs.exists != 'true' }}
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1259,6 +1276,35 @@ jobs:
             - Branch: ${{ github.ref_name }}
             - Commit: ${{ github.sha }}
             - Built at: ${{ github.run_started_at }}
+
+      - name: Append macOS pkg to unified release
+        if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_TAG: ${{ inputs.version_tag }}
+        run: |
+          set -euo pipefail
+          # Carry the Sparkle appcast <item> as a release asset so the deferred
+          # nym-websites PR (opened post-publish by on-release-publish.yml) can recover
+          # it. Version is in the asset name → that job needs no unified->macOS mapping.
+          cp "${{ env.APPCAST_ITEM_RELATIVE_PATH }}" "appcast-item-${{ env.MACOS_VERSION }}.xml"
+          files=( \
+            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg \
+            nym-vpn-apple/build/pkg/publish/sha256-hash.txt \
+            "appcast-item-${{ env.MACOS_VERSION }}.xml" \
+          )
+          # Append to the (ship) draft. No --clobber: gh refuses a duplicate.
+          gh release upload "$VERSION_TAG" "${files[@]}"
+
+      - name: Append macOS pkg to unified nightly release
+        if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_TAG: ${{ inputs.version_tag }}
+        run: |
+          set -euo pipefail
+          # Append the qa pkg to the fresh nightly draft (finalize-nightly publishes it).
+          gh release upload "$VERSION_TAG" "$renamed_pkg_relative_path"
 
       - name: Upload artifacts (Ship + appcast + hash)
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
@@ -1299,7 +1345,10 @@ jobs:
           SOURCE: ${{ env.UPLOAD_SOURCE }}
 
       - name: Checkout nym-websites
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        # Legacy path only. Under orchestration (version_tag set) the appcast <item> is
+        # attached to the unified release and the nym-websites PR is opened post-publish
+        # by on-release-publish.yml — gated behind the human ship/publish action.
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && inputs.version_tag == '' }}
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
@@ -1308,7 +1357,7 @@ jobs:
           path: nym-websites
 
       - name: Insert new Sparkle <item> into nym-websites appcast.xml
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && inputs.version_tag == '' }}
         working-directory: nym-websites
         env:
           ITEM_FILE: ${{ github.workspace }}/${{ env.APPCAST_ITEM_RELATIVE_PATH }}
@@ -1333,7 +1382,7 @@ jobs:
           sed -n '1,40p' "$TARGET" || true
 
       - name: Create PR in nym-websites
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && inputs.version_tag == '' }}
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
