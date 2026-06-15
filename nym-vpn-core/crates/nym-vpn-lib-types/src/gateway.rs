@@ -553,7 +553,9 @@ pub enum TentativeGateways {
         entry: Box<Gateway>,
         exit: Box<Gateway>,
     },
-    NeedsRelaxedIndependenceCriteria,
+    NeedsRelaxedIndependenceCriteria {
+        enabled_notifications: bool,
+    },
     NoGatewaysAvailable,
 }
 

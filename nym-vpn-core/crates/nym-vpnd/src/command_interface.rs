@@ -367,6 +367,26 @@ impl NymVpnService for CommandInterface {
         Ok(Response::new(()))
     }
 
+    async fn set_gateway_independence_notifications(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> std::result::Result<Response<()>, Status> {
+        let enable_notifications = request.into_inner();
+
+        self.send_and_wait(
+            VpnServiceCommand::SetGatewayIndependenceNotifications,
+            enable_notifications,
+        )
+        .await
+        .map_err(|e| {
+            Status::internal(format!(
+                "[set gateway_independence_notifications] transport error: {e}"
+            ))
+        })?;
+
+        Ok(Response::new(()))
+    }
+
     async fn set_geo_exclusion_enabled(
         &self,
         request: tonic::Request<bool>,

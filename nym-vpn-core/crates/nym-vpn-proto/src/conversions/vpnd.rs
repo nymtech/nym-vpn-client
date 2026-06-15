@@ -388,9 +388,15 @@ impl TryFrom<proto::TentativeGateways> for nym_vpn_lib_types::TentativeGateways 
                     exit: Box::new(exit.try_into()?),
                 })
             }
-            proto::tentative_gateways::TentativeGateways::NeedsRelaxedIndependenceCriteria(_) => {
-                Ok(nym_vpn_lib_types::TentativeGateways::NeedsRelaxedIndependenceCriteria)
-            }
+            proto::tentative_gateways::TentativeGateways::NeedsRelaxedIndependenceCriteria(
+                proto::tentative_gateways::NeedsRelaxedIndependenceCriteria {
+                    enabled_notifications,
+                },
+            ) => Ok(
+                nym_vpn_lib_types::TentativeGateways::NeedsRelaxedIndependenceCriteria {
+                    enabled_notifications,
+                },
+            ),
             proto::tentative_gateways::TentativeGateways::NoGatewaysAvailable(_) => {
                 Ok(nym_vpn_lib_types::TentativeGateways::NoGatewaysAvailable)
             }
@@ -413,20 +419,24 @@ impl From<nym_vpn_lib_types::TentativeGateways> for proto::TentativeGateways {
                     ),
                 }
             }
-            nym_vpn_lib_types::TentativeGateways::NeedsRelaxedIndependenceCriteria => {
-                proto::TentativeGateways {
-                    tentative_gateways: Some(proto::tentative_gateways::TentativeGateways::NeedsRelaxedIndependenceCriteria(
-                        proto::tentative_gateways::NeedsRelaxedIndependenceCriteria {},
-                    )),
-                }
-            }
-             nym_vpn_lib_types::TentativeGateways::NoGatewaysAvailable   => {
-                proto::TentativeGateways {
-                    tentative_gateways: Some(proto::tentative_gateways::TentativeGateways::NoGatewaysAvailable(
-                        proto::tentative_gateways::NoGatewaysAvailable { },
-                    )),
-                }
-             }
+            nym_vpn_lib_types::TentativeGateways::NeedsRelaxedIndependenceCriteria {
+                enabled_notifications,
+            } => proto::TentativeGateways {
+                tentative_gateways: Some(
+                    proto::tentative_gateways::TentativeGateways::NeedsRelaxedIndependenceCriteria(
+                        proto::tentative_gateways::NeedsRelaxedIndependenceCriteria {
+                            enabled_notifications,
+                        },
+                    ),
+                ),
+            },
+            nym_vpn_lib_types::TentativeGateways::NoGatewaysAvailable => proto::TentativeGateways {
+                tentative_gateways: Some(
+                    proto::tentative_gateways::TentativeGateways::NoGatewaysAvailable(
+                        proto::tentative_gateways::NoGatewaysAvailable {},
+                    ),
+                ),
+            },
         }
     }
 }

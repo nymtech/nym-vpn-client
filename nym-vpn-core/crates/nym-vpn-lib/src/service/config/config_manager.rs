@@ -254,12 +254,27 @@ impl VpnServiceConfigManager {
         Ok(())
     }
 
+    pub fn get_gateway_independence(&self) -> GatewayIndependence {
+        self.config.gateway_independence
+    }
+
     pub async fn set_enable_gateway_independence(&mut self, enable_gateway_independence: bool) {
         if (enable_gateway_independence && !self.config.gateway_independence.full_enabled())
             || (!enable_gateway_independence && !self.config.gateway_independence.full_disabled())
         {
-            self.config.gateway_independence =
-                GatewayIndependence::new(enable_gateway_independence);
+            self.config
+                .gateway_independence
+                .enabled(enable_gateway_independence);
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_enable_gateway_independence_notifications(
+        &mut self,
+        enable_notifications: bool,
+    ) {
+        if enable_notifications != self.config.gateway_independence.enable_notifications {
+            self.config.gateway_independence.enable_notifications = enable_notifications;
             self.save_config_and_send_event().await;
         }
     }

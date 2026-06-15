@@ -300,6 +300,7 @@ message GatewayIndependence {
   bool different_node_family = 1;
   bool different_asn = 2;
   bool different_subnet = 3;
+  bool enable_notifications = 4;
 }
 
 message VpnServiceConfig {
@@ -1090,7 +1091,9 @@ message TentativeGateways {
     GatewayResponse entry = 1;
     GatewayResponse exit = 2;
   };
-  message NeedsRelaxedIndependenceCriteria {};
+  message NeedsRelaxedIndependenceCriteria {
+    bool enabled_notifications = 1;
+  };
   message NoGatewaysAvailable {};
   oneof tentative_gateways {
     Selected selected = 1;
@@ -1161,6 +1164,7 @@ service NymVpnService {
   rpc SetGatewaySelectionAlgorithm(GatewaySelectionAlgorithm) returns (google.protobuf.Empty) {}
   rpc SetEnableGeoLocation(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetEnableGatewayIndependence(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
+  rpc SetGatewayIndependenceNotifications(google.protobuf.BoolValue) returns (google.protobuf.Empty) {}
   rpc SetFrontingMode(FrontingModeRequest) returns (google.protobuf.Empty) {}
 
   // Set the network. This requires a restart to take effect

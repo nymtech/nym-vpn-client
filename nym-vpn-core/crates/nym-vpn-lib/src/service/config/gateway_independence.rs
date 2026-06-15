@@ -36,6 +36,7 @@ pub(crate) mod v11 {
     #[derive(Clone, Debug, Serialize, Deserialize)]
     #[serde(rename_all = "snake_case")]
     pub struct GatewayIndependence {
+        pub enable_notifications: bool,
         pub different_node_family: bool,
         pub different_asn: bool,
         pub different_subnet: bool,
@@ -44,6 +45,7 @@ pub(crate) mod v11 {
     impl From<&nym_vpn_lib_types::GatewayIndependence> for GatewayIndependence {
         fn from(value: &nym_vpn_lib_types::GatewayIndependence) -> Self {
             Self {
+                enable_notifications: value.enable_notifications,
                 different_node_family: value.different_node_family,
                 different_asn: value.different_asn,
                 different_subnet: value.different_subnet,
@@ -54,6 +56,7 @@ pub(crate) mod v11 {
     impl From<GatewayIndependence> for nym_vpn_lib_types::GatewayIndependence {
         fn from(value: GatewayIndependence) -> Self {
             Self {
+                enable_notifications: value.enable_notifications,
                 different_node_family: value.different_node_family,
                 different_asn: value.different_asn,
                 different_subnet: value.different_subnet,

@@ -147,6 +147,17 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_gateway_independence_notifications(
+        &self,
+        enable_notifications: bool,
+    ) -> Result<()> {
+        self.inner
+            .clone()
+            .set_gateway_independence_notifications(enable_notifications)
+            .await?;
+        Ok(())
+    }
+
     pub async fn set_network(&self, network: String) -> Result<()> {
         self.inner.clone().set_network(network).await?;
         Ok(())

@@ -10,7 +10,7 @@ use nym_gateway_directory::{
 };
 use nym_registration_client::RegistrationNymNode;
 use nym_registration_common::{NymNodeInformation, NymNodeLPInformation};
-use nym_vpn_lib_types::{GatewayIndependence, GatewaySelectionAlgorithm};
+use nym_vpn_lib_types::GatewaySelectionAlgorithm;
 use nym_vpn_store::keys::wireguard::{WireguardKeyStore, WireguardKeysDb};
 
 use crate::tunnel_state_machine::{
@@ -385,7 +385,9 @@ pub async fn select_gateways(
             // Check if removing the independence criteria allows us to select a gateway pair
             // so we know what to tell the user.
             let mut no_gateway_independence_settings = tunnel_settings.clone();
-            no_gateway_independence_settings.gateway_independence = GatewayIndependence::new(false);
+            no_gateway_independence_settings
+                .gateway_independence
+                .enabled(false);
             // if we still can't select, we just return the error
             loop_select(
                 entry_gateways,

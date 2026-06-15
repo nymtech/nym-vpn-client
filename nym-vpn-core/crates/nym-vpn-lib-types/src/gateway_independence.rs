@@ -19,14 +19,16 @@ use ts_rs::TS;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
 pub struct GatewayIndependence {
+    pub enable_notifications: bool,
     pub different_node_family: bool,
     pub different_asn: bool,
     pub different_subnet: bool,
 }
 
 impl GatewayIndependence {
-    pub fn new(enabled: bool) -> Self {
+    pub fn enabled(&mut self, enabled: bool) -> Self {
         Self {
+            enable_notifications: self.enable_notifications,
             different_node_family: enabled,
             different_asn: enabled,
             different_subnet: enabled,
@@ -49,6 +51,7 @@ impl GatewayIndependence {
 impl Default for GatewayIndependence {
     fn default() -> Self {
         Self {
+            enable_notifications: true,
             different_node_family: true,
             different_asn: true,
             different_subnet: true,
@@ -76,7 +79,12 @@ mod tests {
 
     #[test]
     fn deactivated_has_no_criteria() {
-        let gi = GatewayIndependence::new(false);
+        let gi = GatewayIndependence {
+            different_node_family: false,
+            different_asn: false,
+            different_subnet: false,
+            ..Default::default()
+        };
         assert!(!gi.different_node_family);
         assert!(!gi.different_asn);
     }
@@ -88,7 +96,15 @@ mod tests {
 
     #[test]
     fn active_returns_false_when_fully_deactivated() {
-        assert!(!GatewayIndependence::new(false).active());
+        assert!(
+            !GatewayIndependence {
+                different_node_family: false,
+                different_asn: false,
+                different_subnet: false,
+                ..Default::default()
+            }
+            .active()
+        );
     }
 
     #[test]
@@ -97,6 +113,7 @@ mod tests {
             different_asn: true,
             different_node_family: false,
             different_subnet: false,
+            ..Default::default()
         };
         assert!(gi.active());
     }
@@ -107,6 +124,7 @@ mod tests {
             different_asn: false,
             different_node_family: true,
             different_subnet: false,
+            ..Default::default()
         };
         assert!(gi.active());
     }
@@ -117,6 +135,7 @@ mod tests {
             different_asn: false,
             different_node_family: false,
             different_subnet: true,
+            ..Default::default()
         };
         assert!(gi.active());
     }
