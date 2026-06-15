@@ -15,8 +15,6 @@ export function ActivePlan({
 }) {
   const { t } = useTranslation('account');
 
-  const dataUnavailable = accountSummary.fairUsageDataUnavailable;
-
   const bandwidthProgress = useMemo(() => {
     const used = Number(accountSummary.trafficUsedGb);
     const limit = Number(accountSummary.trafficLimitGb);
@@ -34,13 +32,13 @@ export function ActivePlan({
       return null;
     }
     const date = dayjs.unix(Number(ts));
-    return date.isValid() ? date.format('D MMMM YYYY') : null;
+    return date.isValid() ? date.format('D MMMM YYYY, HH:mm') : null;
   }, [accountSummary]);
 
   return (
     <>
       <CardNewBody className="py-5">
-        {dataUnavailable ? (
+        {accountSummary.fairUsageDataUnavailable ? (
           <p className="text-text-secondary w-full py-2 text-sm select-none">
             {t('account-status.data-unavailable')}
           </p>
