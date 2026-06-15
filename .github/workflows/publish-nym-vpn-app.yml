@@ -1,7 +1,5 @@
 name: publish-nym-vpn-app
 on:
-  schedule:
-    - cron: "4 4 * * *"
   workflow_dispatch:
     inputs:
       release_type:
@@ -29,6 +27,27 @@ on:
         required: true
         type: boolean
         default: false
+  workflow_call:
+    inputs:
+      version_tag:
+        description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
+        type: string
+        default: ""
+      linux:
+        type: boolean
+        default: false
+      windows:
+        type: boolean
+        default: false
+      release_type:
+        type: string
+        default: "stable"
+      core_release_tag:
+        type: string
+        default: ""
+      core_artifact_url:
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -45,7 +64,8 @@ jobs:
     with:
       cpu_arch: x64
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
-      core_build_it: true
+      core_build_it: ${{ inputs.core_release_tag == '' }}
+      core_release_tag: ${{ inputs.core_release_tag }}
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
@@ -56,7 +76,8 @@ jobs:
     with:
       cpu_arch: ARM64
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
-      core_build_it: true
+      core_build_it: ${{ inputs.core_release_tag == '' }}
+      core_release_tag: ${{ inputs.core_release_tag }}
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
@@ -366,7 +387,7 @@ jobs:
 
       - name: Create release
         id: create_release
-        if: ${{ env.RELEASE_TYPE != 'dev' }}
+        if: ${{ inputs.version_tag == '' && env.RELEASE_TYPE != 'dev' }}
         uses: softprops/action-gh-release@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -383,13 +404,34 @@ jobs:
             ${{ env.UPLOAD_DIR_WINDOWS_X64 }}/*
             ${{ env.UPLOAD_DIR_WINDOWS_ARM64 }}/*
 
+      - name: Append linux + windows artifacts to unified release
+        if: ${{ inputs.version_tag != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_TAG: ${{ inputs.version_tag }}
+        run: |
+          set -euo pipefail
+          files=()
+          if [ "${{ inputs.linux }}" = "true" ]; then
+            while IFS= read -r f; do files+=( "$f" ); done < <(find "${{ env.UPLOAD_DIR_LINUX_X86_64 }}" "${{ env.UPLOAD_DIR_LINUX_AARCH64 }}" -type f)
+          fi
+          if [ "${{ inputs.windows }}" = "true" ]; then
+            while IFS= read -r f; do files+=( "$f" ); done < <(find "${{ env.UPLOAD_DIR_WINDOWS_X64 }}" "${{ env.UPLOAD_DIR_WINDOWS_ARM64 }}" -type f)
+          fi
+          [ "${#files[@]}" -gt 0 ] || { echo "::error:: no files selected to append"; exit 1; }
+          # Append to the draft. No --clobber: gh refuses a duplicate so files
+          # can't be overwritten. GitHub freezes the release at publish.
+          gh release upload "$VERSION_TAG" "${files[@]}"
+
   windows-updater:
     uses: ./.github/workflows/tauri-updater.yml
     permissions:
       contents: write
       pull-requests: write
     needs: publish
-    if: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
+    # version_tag set = orchestrated unified run: release is a DRAFT, so defer the
+    # updater feed (references public release-download URLs) until manual publish.
+    if: ${{ (inputs.updater == true || inputs.release_type == 'stable') && inputs.version_tag == '' }}
     with:
       channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
       version: ${{ needs.publish.outputs.version }}
@@ -400,7 +442,9 @@ jobs:
   update-aur-app:
     uses: ./.github/workflows/publish-aur-nym-vpn-app.yml
     needs: publish
-    if: ${{ inputs.release_type == 'stable' }}
+    # Deferred under orchestration (version_tag set): AUR pulls public release assets
+    # which 404 while the unified release is a draft. Run after manual publish.
+    if: ${{ inputs.release_type == 'stable' && inputs.version_tag == '' }}
     with:
       release_tag: ${{ needs.publish.outputs.release_tag }}
       pkgrel: 1
@@ -411,7 +455,9 @@ jobs:
   update-aur-vpnd:
     uses: ./.github/workflows/publish-aur-nym-vpnd.yml
     needs: publish
-    if: ${{ inputs.release_type == 'stable' && inputs.core_release_tag }}
+    # Deferred under orchestration (version_tag set): pulls public release assets that
+    # 404 while the unified release is a draft. Run after manual publish.
+    if: ${{ inputs.release_type == 'stable' && inputs.core_release_tag && inputs.version_tag == '' }}
     with:
       release_tag: ${{ inputs.core_release_tag }}
       pkgrel: 1
@@ -425,7 +471,9 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    if: ${{ inputs.release_type == 'stable' }}
+    # Deferred under orchestration (version_tag set): opens PRs against public release
+    # assets. Run after manual publish.
+    if: ${{ inputs.release_type == 'stable' && inputs.version_tag == '' }}
     with:
       release_tag: ${{ needs.publish.outputs.release_tag }}
       version: ${{ needs.publish.outputs.version }}
@@ -512,7 +560,9 @@ jobs:
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
     needs: publish
-    if: ${{ inputs.release_type == 'stable' }}
+    # Deferred under orchestration (version_tag set): hashes the public release assets.
+    # Run after manual publish.
+    if: ${{ inputs.release_type == 'stable' && inputs.version_tag == '' }}
     permissions:
       contents: write
     with:
