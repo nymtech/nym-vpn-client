@@ -36,12 +36,19 @@ on:
         description: "Build type: pr | qa | ship (raw or labeled)"
         type: string
         default: "pr"
+      version_tag:
+        description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
+        type: string
+        default: ""
+      build_ios:
+        type: boolean
+        default: false
+      build_macos:
+        type: boolean
+        default: false
     outputs:
       RUST_VERSION:
         value: ${{ jobs.build-apple.outputs.RUST_VERSION }}
-  schedule:
-    - cron: "0 1 * * *"
-
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
@@ -1241,7 +1248,7 @@ jobs:
           fi
 
       - name: Publish macOS GitHub Release
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && steps.macos_tag.outputs.exists != 'true' }}
+        if: ${{ inputs.version_tag == '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && steps.macos_tag.outputs.exists != 'true' }}
         uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1259,6 +1266,28 @@ jobs:
             - Branch: ${{ github.ref_name }}
             - Commit: ${{ github.sha }}
             - Built at: ${{ github.run_started_at }}
+
+      - name: Append macOS pkg to unified release
+        if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          files=( \
+            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg \
+            nym-vpn-apple/build/pkg/publish/sha256-hash.txt \
+          )
+          # Append to the (ship) draft. No --clobber: gh refuses a duplicate.
+          gh release upload "${{ inputs.version_tag }}" "${files[@]}"
+
+      - name: Append macOS pkg to unified nightly release
+        if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Append the qa pkg to the fresh nightly draft (finalize-nightly publishes it).
+          gh release upload "${{ inputs.version_tag }}" "${{ env.renamed_pkg_relative_path }}"
 
       - name: Upload artifacts (Ship + appcast + hash)
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}

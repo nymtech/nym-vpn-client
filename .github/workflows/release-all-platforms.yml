@@ -1,0 +1,194 @@
+name: release-all-platforms
+
+on:
+  # NOTE: pick the release branch in the "Run workflow" ref selector. Reusable callees
+  # always run at the SAME ref as this orchestrator, so the dispatch ref IS the release
+  # branch — there is no separate branch input (it could not redirect the callees).
+  # Scheduled (nightly) runs use the repository default branch (develop).
+  workflow_dispatch:
+    inputs:
+      ship:
+        description: "Ship 🚢 (off = nightly build)"
+        type: boolean
+        default: false
+      android:
+        description: "Android → Google Play"
+        type: boolean
+        default: false
+      fdroid:
+        description: "F-Droid (ship only)"
+        type: boolean
+        default: false
+      linux:
+        description: "Linux (deb/AppImage + AUR)"
+        type: boolean
+        default: false
+      windows:
+        description: "Windows (signed exe + updater)"
+        type: boolean
+        default: false
+      ios:
+        description: "iOS → TestFlight/App Store"
+        type: boolean
+        default: false
+      macos:
+        description: "macOS (.pkg + Sparkle)"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "0 4 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.v.outputs.tag }}
+      core_version: ${{ steps.v.outputs.core_version }}
+      ship: ${{ steps.flags.outputs.ship }}
+      android: ${{ steps.flags.outputs.android }}
+      fdroid: ${{ steps.flags.outputs.fdroid }}
+      linux: ${{ steps.flags.outputs.linux }}
+      windows: ${{ steps.flags.outputs.windows }}
+      ios: ${{ steps.flags.outputs.ios }}
+      macos: ${{ steps.flags.outputs.macos }}
+    steps:
+      - name: Resolve flags (cron = nightly + all platforms except fdroid)
+        id: flags
+        run: |
+          set -euo pipefail
+          echo "::notice:: releasing from ref ${{ github.ref_name }} (event ${{ github.event_name }})"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            { echo "ship=false";
+              echo "android=true"; echo "fdroid=false"; echo "linux=true";
+              echo "windows=true"; echo "ios=true"; echo "macos=true"; } >> "$GITHUB_OUTPUT"
+          else
+            { echo "ship=${{ inputs.ship }}";
+              echo "android=${{ inputs.android }}"; echo "fdroid=${{ inputs.fdroid }}";
+              echo "linux=${{ inputs.linux }}"; echo "windows=${{ inputs.windows }}";
+              echo "ios=${{ inputs.ios }}"; echo "macos=${{ inputs.macos }}"; } >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Resolve version + tag
+        id: v
+        env:
+          SHIP: ${{ steps.flags.outputs.ship }}
+        run: bash .github/scripts/release/resolve-version.sh
+
+  prepare-release:
+    needs: resolve
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Ensure unified release object
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODE: ${{ needs.resolve.outputs.ship == 'true' && 'ship' || 'nightly' }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          TARGET_SHA: ${{ github.sha }}
+          NOTES: "Unified release ${{ needs.resolve.outputs.tag }} assembled by release-all-platforms."
+        run: bash .github/scripts/release/ensure-release.sh
+
+  core:
+    needs: [resolve, prepare-release]
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-nym-vpn-core.yml
+    with:
+      version_tag: ${{ needs.resolve.outputs.tag }}
+    secrets: inherit
+
+  apple:
+    needs: [resolve, prepare-release]
+    if: ${{ needs.resolve.outputs.ios == 'true' || needs.resolve.outputs.macos == 'true' }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/build-nym-vpn-apple.yml
+    with:
+      release_type: ${{ needs.resolve.outputs.ship == 'true' && 'ship' || 'qa' }}
+      version_tag: ${{ needs.resolve.outputs.tag }}
+      build_ios: ${{ needs.resolve.outputs.ios == 'true' }}
+      build_macos: ${{ needs.resolve.outputs.macos == 'true' }}
+    secrets: inherit
+
+  android:
+    needs: [resolve, prepare-release]
+    if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-nym-vpn-android.yml
+    with:
+      version_tag: ${{ needs.resolve.outputs.tag }}
+      fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
+      release_type: ${{ needs.resolve.outputs.ship == 'true' && 'release' || 'nightly' }}
+      track: ${{ (needs.resolve.outputs.android == 'true' && needs.resolve.outputs.ship == 'true') && 'production' || 'none' }}
+    secrets: inherit
+
+  linux:
+    needs: [resolve, prepare-release]
+    if: ${{ needs.resolve.outputs.linux == 'true' }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-nym-vpn-app.yml
+    with:
+      version_tag: ${{ needs.resolve.outputs.tag }}
+      linux: true
+      windows: false
+      release_type: ${{ needs.resolve.outputs.ship == 'true' && 'stable' || 'nightly' }}
+    secrets: inherit
+
+  windows:
+    needs: [resolve, prepare-release, core]
+    if: ${{ needs.resolve.outputs.windows == 'true' }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-nym-vpn-app.yml
+    with:
+      version_tag: ${{ needs.resolve.outputs.tag }}
+      linux: false
+      windows: true
+      release_type: ${{ needs.resolve.outputs.ship == 'true' && 'stable' || 'nightly' }}
+      core_release_tag: ${{ needs.resolve.outputs.tag }}
+    secrets: inherit
+
+  # Nightly only: assets can't be added after publish, so platforms assemble into a
+  # draft and this job publishes it once they finish. Ship is published manually.
+  finalize-nightly:
+    needs: [resolve, prepare-release, core, apple, android, linux, windows]
+    if: ${{ always() && needs.resolve.outputs.ship == 'false' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish nightly draft (only if it has assets)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+        run: |
+          set -euo pipefail
+          count=$(gh release view "$TAG" --json assets -q '.assets | length' 2>/dev/null || echo 0)
+          if [ "${count:-0}" -gt 0 ]; then
+            gh release edit "$TAG" --draft=false
+            echo "::notice:: published nightly $TAG ($count assets)"
+          else
+            echo "::warning:: nightly $TAG has no assets — leaving as draft"
+          fi

@@ -1,7 +1,5 @@
 name: publish-nym-vpn-core
 on:
-  schedule:
-    - cron: "4 2 * * *"
   workflow_dispatch:
     inputs:
       publish_to_github:
@@ -9,6 +7,12 @@ on:
         type: boolean
         default: false
         required: true
+  workflow_call:
+    inputs:
+      version_tag:
+        description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
+        type: string
+        default: ""
 
 env:
   CARGO_TERM_COLOR: always
@@ -234,7 +238,7 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release to github
-        if: ${{ steps.determine-ok-to-publish.outputs.ok_to_publish == 'true' }}
+        if: ${{ inputs.version_tag == '' && steps.determine-ok-to-publish.outputs.ok_to_publish == 'true' }}
         run: |
           echo "Setting up the release notes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
@@ -250,6 +254,27 @@ jobs:
             ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum \
             ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} \
             ${{ env.UPLOAD_DIR_DEB_AARCH64 }}/*.{deb,sha256sum}
+
+      - name: Append core archives to unified release
+        if: ${{ inputs.version_tag != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          files=( \
+            ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum \
+            ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum \
+            ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum \
+            ${{ env.ARCHIVE_WINDOWS_X64 }}.zip ${{ env.ARCHIVE_WINDOWS_X64 }}.zip.sha256sum \
+            ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum \
+          )
+          for d in ${{ env.UPLOAD_DIR_DEB_X86_64 }} ${{ env.UPLOAD_DIR_DEB_AARCH64 }}; do
+            [ -d "$d" ] && while IFS= read -r f; do files+=( "$f" ); done < <(find "$d" -type f \( -name '*.deb' -o -name '*.sha256sum' \))
+          done
+          # Append to the draft. No --clobber: gh refuses a duplicate asset, so a
+          # platform's files can't be overwritten across runs (ship is additive;
+          # nightly is a fresh draft). GitHub freezes the whole release at publish.
+          gh release upload "${{ inputs.version_tag }}" "${files[@]}"
 
       # Upload to CI server
 
@@ -293,7 +318,10 @@ jobs:
 
   gen-hashes:
     needs: publish
-    if: ${{ needs.publish.outputs.ok_to_publish == 'true' }}
+    # Skipped under orchestration (version_tag set): TAG_NAME is only set on the
+    # standalone dispatch/schedule/push paths, so the unified run would pass an empty
+    # release_tag. Hashes are generated post-publish instead.
+    if: ${{ inputs.version_tag == '' && needs.publish.outputs.ok_to_publish == 'true' }}
     uses: ./.github/workflows/gen-hashes-json.yml
     with:
       release_tag: ${{ needs.publish.outputs.tag }}

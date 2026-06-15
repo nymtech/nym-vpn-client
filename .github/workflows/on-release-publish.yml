@@ -1,0 +1,157 @@
+name: on-release-publish
+
+# Auto-runs the post-publish steps that release-all-platforms DEFERS while the
+# unified release is still a draft (they consume PUBLIC release assets that 404
+# on a draft). Fires the moment a human clicks "Publish release" on the ship draft:
+#   aur-vpnd, aur-app        -> publish PKGBUILDs to AUR
+#   post-release             -> changelog/installer/flatpak PR
+#   gen-hashes               -> hashes.json artifact of the published assets
+#   win-sigs + windows-updater -> tauri Windows updater feed PR (skips if no win build)
+#
+# Why 'released' (not 'published'):
+#   - 'released'  matches NON-prerelease publishes only  -> ship  (nym-vpn-v*)
+#   - nightlies are created with --prerelease            -> never match here
+# Why this is safe vs. nightlies (belt + braces):
+#   1. nightly drafts are --prerelease, so 'released' never fires for them;
+#   2. nightly drafts are auto-published by finalize-nightly via GITHUB_TOKEN,
+#      and releases published by GITHUB_TOKEN do NOT emit a release event at all.
+#   Nightlies therefore never reach AUR -- which is intended (canonical
+#   nym-vpnd / nym-vpn-app AUR packages stay stable-only).
+#
+# Assumes this workflow + its callees exist on the release commit / default
+# branch (reusable callees resolve at the caller's ref).
+on:
+  release:
+    types: [released]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: on-release-publish-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  setup:
+    # Guard: only act on the unified ship tag (nym-vpn-v*). Ignores legacy
+    # (nym-vpn-core-v*, nym-vpn-app-v*) and nightly (nym-vpn-nightly-*) tags --
+    # none of those share the 'nym-vpn-v' prefix.
+    if: ${{ startsWith(github.event.release.tag_name, 'nym-vpn-v') }}
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.v.outputs.tag }}
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - name: Resolve tag + version
+        id: v
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#nym-vpn-v}"
+          {
+            echo "tag=${TAG}"
+            echo "version=${version}"
+          } >> "$GITHUB_OUTPUT"
+          echo "::notice:: post-release fan-out for ${TAG} (version ${version})"
+
+  aur-vpnd:
+    needs: setup
+    uses: ./.github/workflows/publish-aur-nym-vpnd.yml
+    secrets: inherit
+    with:
+      release_tag: ${{ needs.setup.outputs.tag }}
+      pkgrel: 1
+      publish_aur: true
+      commit_msg: "release ${{ needs.setup.outputs.tag }}"
+
+  aur-app:
+    needs: setup
+    uses: ./.github/workflows/publish-aur-nym-vpn-app.yml
+    secrets: inherit
+    with:
+      release_tag: ${{ needs.setup.outputs.tag }}
+      pkgrel: 1
+      publish_aur: true
+      commit_msg: "v${{ needs.setup.outputs.version }}"
+
+  post-release:
+    needs: setup
+    uses: ./.github/workflows/tauri-post-release.yml
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      release_tag: ${{ needs.setup.outputs.tag }}
+      version: ${{ needs.setup.outputs.version }}
+      core_release_tag: ${{ needs.setup.outputs.tag }}
+
+  # Hashes JSON of the published assets. The action uploads a workflow ARTIFACT
+  # (not a release asset), so it's safe against immutable-release freezing.
+  gen-hashes:
+    needs: setup
+    uses: ./.github/workflows/gen-hashes-json.yml
+    secrets: inherit
+    permissions:
+      contents: write
+    with:
+      release_tag: ${{ needs.setup.outputs.tag }}
+
+  # Tauri Windows updater feed. tauri-updater.yml wants the bundle signatures as
+  # inputs; under orchestration they came from the build job's outputs, which are
+  # gone by publish time. Recover them from the *setup.exe.sig assets attached to
+  # the release. The app version is embedded in the .sig filename
+  # (NymVPN_<ver>_x64-setup.exe.sig) — parse it rather than assume tag==app version.
+  win-sigs:
+    needs: setup
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.sig.outputs.enabled }}
+      app_version: ${{ steps.sig.outputs.app_version }}
+      sig_x64: ${{ steps.sig.outputs.sig_x64 }}
+      sig_arm64: ${{ steps.sig.outputs.sig_arm64 }}
+    steps:
+      - name: Recover Windows updater signatures from release assets
+        id: sig
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.setup.outputs.tag }}
+        run: |
+          set -euo pipefail
+          mapfile -t sigs < <(gh release view "$TAG" --json assets \
+            -q '.assets[].name | select(endswith("setup.exe.sig"))')
+          if [ "${#sigs[@]}" -eq 0 ]; then
+            echo "::notice:: no Windows updater sigs on ${TAG} — skipping updater feed"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          x64=$(printf '%s\n' "${sigs[@]}" | grep -E 'x64-setup\.exe\.sig$' || true)
+          arm64=$(printf '%s\n' "${sigs[@]}" | grep -E 'arm64-setup\.exe\.sig$' || true)
+          if [ -z "$x64" ] || [ -z "$arm64" ]; then
+            echo "::warning:: incomplete Windows sigs (x64='${x64}' arm64='${arm64}') — skipping updater feed"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          ver=$(printf '%s' "$x64" | sed -E 's/^NymVPN_(.+)_x64-setup\.exe\.sig$/\1/')
+          gh release download "$TAG" --pattern "$x64" --pattern "$arm64" --clobber
+          {
+            echo "enabled=true"
+            echo "app_version=${ver}"
+            echo "sig_x64=$(head -n1 "$x64")"
+            echo "sig_arm64=$(head -n1 "$arm64")"
+          } >> "$GITHUB_OUTPUT"
+
+  windows-updater:
+    needs: [setup, win-sigs]
+    if: ${{ needs.win-sigs.outputs.enabled == 'true' }}
+    uses: ./.github/workflows/tauri-updater.yml
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      channel: stable
+      version: ${{ needs.win-sigs.outputs.app_version }}
+      base_url: https://github.com/${{ github.repository }}/releases/download/${{ needs.setup.outputs.tag }}
+      signature_x64: ${{ needs.win-sigs.outputs.sig_x64 }}
+      signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
