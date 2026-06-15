@@ -309,16 +309,50 @@ impl NymVpnAccountStorage {
         }
     }
 
-    /// Get a summary of account usage
+    /// Get a summary of account usage, syncing from the VPN API first. falling back to cache otherwise
     pub async fn get_account_summary(&self) -> Result<Option<VpnAccountSummary>, VpnError> {
-        let maybe_account_summary =
-            self.storage
-                .load_summary()
-                .await
-                .map_err(|err| VpnError::Storage {
-                    details: err.to_string(),
-                })?;
-        Ok(maybe_account_summary)
+        // Check if we have an account
+        let Some(account) = self
+            .storage
+            .load_account()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+        else {
+            return Ok(None);
+        };
+
+        let vpn_account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let device = self.load_device().await?;
+
+        match self
+            .get_account_summary_from_network(&vpn_account, &device)
+            .await
+        {
+            Ok(account_summary) => {
+                // Best effort, let's not fail to return it even though we have it
+                let _ = self.storage.store_summary(account_summary.clone()).await;
+                Ok(Some(account_summary))
+            }
+            Err(e) => {
+                tracing::warn!("Account summary network sync failed, trying cache: {e:?}");
+                // Trying cache
+                match self
+                    .storage
+                    .load_summary()
+                    .await
+                    .map_err(|err| VpnError::Storage {
+                        details: err.to_string(),
+                    })? {
+                    Some(summary) => Ok(Some(summary)),
+                    None => {
+                        // If we are here, it means we have an account, but we couldn't get a summary, so an absence is indeed an error
+                        Err(e)
+                    }
+                }
+            }
+        }
     }
 
     /// Get the type of account the user is logged in with
@@ -369,6 +403,43 @@ impl NymVpnAccountStorage {
 }
 
 impl NymVpnAccountStorage {
+    async fn get_account_summary_from_network(
+        &self,
+        account: &VpnAccount,
+        device: &Device,
+    ) -> Result<VpnAccountSummary, VpnError> {
+        tracing::info!(
+            "Fetching account summary from VPN API for account {}",
+            account.id()
+        );
+
+        let vpn_api_client = self.create_vpn_api_client().await?;
+
+        // Each call uses the VPN API client HTTP timeout (`NYM_VPN_API_TIMEOUT`, 30s in
+        // `nym-vpn-api-client/src/client.rs`).
+        let remote_time =
+            vpn_api_client
+                .get_remote_time()
+                .await
+                .map_err(|err| VpnError::InternalError {
+                    details: format!("Failed to get remote time: {err}"),
+                })?;
+
+        let api_summary = vpn_api_client
+            .get_account_summary_with_device(account, device)
+            .await
+            .map_err(|err| VpnError::InternalError {
+                details: format!("Failed to get account summary: {err}"),
+            })?;
+
+        let summary = VpnAccountSummary::from_parts(&api_summary, account.mode(), remote_time)
+            .map_err(|err| VpnError::InternalError {
+                details: format!("Failed to parse account summary: {err}"),
+            })?;
+
+        Ok(summary)
+    }
+
     async fn register_account_by_account(
         &self,
         account: &VpnAccount,
