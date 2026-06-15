@@ -40,7 +40,7 @@ function MixnetTuning() {
   return (
     <PageAnim className="mt-2 flex h-full flex-col justify-between gap-6 pb-2 select-none">
       <div className="flex flex-col gap-6">
-        <p className="text-text-secondary text-center text-sm whitespace-pre-line">
+        <p className="text-text-secondary text-sm whitespace-pre-line">
           <Trans
             i18nKey="mixnet-tuning.top-description"
             ns="settings"
@@ -72,21 +72,20 @@ function MixnetTuning() {
         >
           {t('mixnet-tuning.save-custom-settings')}
         </Button>
-        {hasSettingsOtherThanDefaults && (
-          <Button variant="outlined" onClick={restoreDefaults}>
-            {t('mixnet-tuning.restore-default-settings')}
-          </Button>
-        )}
+
+        <Button
+          variant="outlined"
+          onClick={restoreDefaults}
+          disabled={!hasSettingsOtherThanDefaults}
+        >
+          {t('mixnet-tuning.restore-default-settings')}
+        </Button>
       </div>
     </PageAnim>
   );
 }
 
 function MixnetTuningWrapper() {
-  // const { mixnetTrafficConfig, mixnetTrafficDefaults } = useMainState();
-
-  // console.log('[MixnetTuningWrapper] mainstate', useMainState());
-
   return (
     <MixnetTrafficConfigProvider>
       <MixnetTuning />

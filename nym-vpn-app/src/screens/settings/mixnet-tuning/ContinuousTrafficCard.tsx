@@ -173,9 +173,9 @@ export function ContinuousTrafficCard() {
   const { state, updateField, continuousItems, backgroundCoverItems } =
     useMixnetTrafficConfig();
 
-  const enabled = !state.disableBackgroundCoverTraffic;
+  const enabled = !state.disablePoissonRate;
   const setEnabled = (enabled: boolean) =>
-    updateField('disableBackgroundCoverTraffic', enabled);
+    updateField('disablePoissonRate', enabled);
 
   const setMessageSendingAverageDelay = (index: number) => {
     const item = continuousItems[index];
