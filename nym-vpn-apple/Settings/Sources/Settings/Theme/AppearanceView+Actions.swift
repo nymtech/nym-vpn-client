@@ -11,6 +11,12 @@ extension AppearanceView {
         path.append(SettingLink.displayTheme)
     }
 
+#if os(iOS)
+    func navigateToAppIcon() {
+        path.append(SettingLink.appIcon)
+    }
+#endif
+
     func navigateToLanguage() {
 #if os(iOS)
         try? externalLinkManager.openExternalURL(urlString: UIApplication.openSettingsURLString)

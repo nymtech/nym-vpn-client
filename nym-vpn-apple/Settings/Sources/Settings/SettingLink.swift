@@ -9,6 +9,9 @@ public enum SettingLink: Hashable, Identifiable {
     case passphrase
     case appearance
     case displayTheme
+#if os(iOS)
+    case appIcon
+#endif
     case logs
     case support
     case legal
