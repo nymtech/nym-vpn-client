@@ -134,9 +134,7 @@ class ServiceBackedBackendManager @Inject constructor(
 
 	private suspend fun buildInitRequest(): ConnectInitRequest {
 		val mixnetParamConfig = getFeatureFlags()?.let {
-			it.isMixnetTuningEnabled()?.let {
-				settingsRepository.getMixnetTrafficConfig()
-			}
+			settingsRepository.getMixnetTrafficConfig()
 		}
 
 		return ConnectInitRequest(
