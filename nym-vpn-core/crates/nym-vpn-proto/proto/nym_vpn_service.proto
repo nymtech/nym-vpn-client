@@ -1091,9 +1091,7 @@ message TentativeGateways {
     GatewayResponse entry = 1;
     GatewayResponse exit = 2;
   };
-  message NeedsRelaxedIndependenceCriteria {
-    bool enabled_notifications = 1;
-  };
+  message NeedsRelaxedIndependenceCriteria {};
   message NoGatewaysAvailable {};
   oneof tentative_gateways {
     Selected selected = 1;

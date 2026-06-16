@@ -2262,13 +2262,7 @@ impl NymVpnService {
     }
 
     async fn handle_get_tentative_gateways(&self) -> TentativeGateways {
-        self.gateway_provider
-            .tentative_gateways(
-                self.config_manager
-                    .get_gateway_independence()
-                    .enable_notifications,
-            )
-            .await
+        self.gateway_provider.tentative_gateways().await
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

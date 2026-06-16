@@ -134,7 +134,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
         )
     }
 
-    pub async fn tentative_gateways(&self, enabled_notifications: bool) -> TentativeGateways {
+    pub async fn tentative_gateways(&self) -> TentativeGateways {
         // use a very small timeout because we actually expect the stream to always have a value ready
         // if it doesn't, there's probably some error, but we shouldn't block the RPC call anyway
         match tokio::time::timeout(
@@ -148,9 +148,7 @@ impl<C: GatewayCache> GatewayProvider<C> {
                 exit: Box::new(selected_gateways.exit_gateway().clone().into()),
             },
             Ok(Some(Err(GatewayProviderError::NeedsRelaxedIndependenceCriteria))) => {
-                TentativeGateways::NeedsRelaxedIndependenceCriteria {
-                    enabled_notifications,
-                }
+                TentativeGateways::NeedsRelaxedIndependenceCriteria
             }
             Ok(Some(Err(_))) | Ok(None) => TentativeGateways::NoGatewaysAvailable,
             Err(_) => TentativeGateways::NoGatewaysAvailable,

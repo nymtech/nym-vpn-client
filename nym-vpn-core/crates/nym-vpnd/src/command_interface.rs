@@ -370,7 +370,7 @@ impl NymVpnService for CommandInterface {
     async fn set_gateway_independence_notifications(
         &self,
         request: tonic::Request<bool>,
-    ) -> std::result::Result<Response<()>, Status> {
+    ) -> Result<Response<()>> {
         let enable_notifications = request.into_inner();
 
         self.send_and_wait(
