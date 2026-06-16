@@ -90,7 +90,6 @@ impl NymVpnAccountStorage {
     /// Store the account mnemonic
     /// This is a version that can be called when the account controller is not running.
     pub async fn login(&self, request: StoreAccountRequest) -> Result<(), VpnError> {
-        let _store_lock = self.try_acquire_data_dir_lock()?;
         let storable_account = StorableAccount::try_from(request).map_err(VpnError::internal)?;
         let account = VpnAccount::try_from(storable_account.clone()).map_err(VpnError::internal)?;
 
@@ -100,6 +99,7 @@ impl NymVpnAccountStorage {
             .await
             .map_err(|_err| VpnError::AccountNotRegistered)?;
 
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         self.storage.store_account(storable_account).await?;
         self.storage.init_keys(None).await?;
         Ok(())
@@ -409,17 +409,20 @@ impl NymVpnAccountStorage {
     /// Load the account mnemonic stored locally and register it.
     /// This is a version that can be called when the account controller is not running.
     pub async fn register_account(&self) -> Result<RegisterAccountResponse, VpnError> {
-        let _store_lock = self.try_acquire_data_dir_lock()?;
         let platform = Platform::Apple;
-        let account = self
-            .storage
-            .load_account()
-            .await
-            .map_err(|err| VpnError::Storage {
-                details: err.to_string(),
-            })?
-            .ok_or(VpnError::NoAccountStored)?;
-        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let account = {
+            let _store_lock = self.try_acquire_data_dir_lock()?;
+            let account = self
+                .storage
+                .load_account()
+                .await
+                .map_err(|err| VpnError::Storage {
+                    details: err.to_string(),
+                })?
+                .ok_or(VpnError::NoAccountStored)?;
+            VpnAccount::try_from(account).map_err(VpnError::internal)?
+        };
+
         let account_token = self
             .register_account_by_account(&account, platform)
             .await?
@@ -435,22 +438,27 @@ impl NymVpnAccountStorage {
     /// need connect readiness must inspect the stored summary or use
     /// [`is_connect_ready_after_summary_sync`] on the synced result.
     pub async fn prepare_registered_account(&self) -> Result<(), VpnError> {
-        let _store_lock = self.try_acquire_data_dir_lock()?;
         tracing::info!("Starting post-login account setup (summary sync and device registration)");
+
+        let (account, device) = {
+            let _store_lock = self.try_acquire_data_dir_lock()?;
+            let account = self
+                .storage
+                .load_account()
+                .await
+                .map_err(|err| VpnError::Storage {
+                    details: err.to_string(),
+                })?
+                .ok_or(VpnError::NoAccountStored)?;
+            let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+            let device = self.load_device().await?;
+            (account, device)
+        };
+
         let vpn_api_client = self.create_vpn_api_client().await?;
-        let account = self
-            .storage
-            .load_account()
-            .await
-            .map_err(|err| VpnError::Storage {
-                details: err.to_string(),
-            })?
-            .ok_or(VpnError::NoAccountStored)?;
-        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
-        let device = self.load_device().await?;
 
         let mut summary = self
-            .sync_account_summary_from_network_with_client(&vpn_api_client)
+            .fetch_account_summary_with_client(&vpn_api_client, &account, &device)
             .await?;
 
         let sync_check = classify_local_sync(&summary);
@@ -484,12 +492,15 @@ impl NymVpnAccountStorage {
             details: err.to_string(),
         })?;
 
-        self.storage
-            .store_summary(summary.clone())
-            .await
-            .map_err(|err| VpnError::Storage {
-                details: err.to_string(),
-            })?;
+        {
+            let _store_lock = self.try_acquire_data_dir_lock()?;
+            self.storage
+                .store_summary(summary.clone())
+                .await
+                .map_err(|err| VpnError::Storage {
+                    details: err.to_string(),
+                })?;
+        }
 
         if is_connect_ready_after_summary_sync(&summary) {
             tracing::info!("Post-login account setup completed (connect-ready)");
@@ -590,6 +601,11 @@ impl NymVpnAccountStorage {
 impl NymVpnAccountStorage {
     fn try_acquire_data_dir_lock(&self) -> Result<CredentialStoreAccessLock, VpnError> {
         CredentialStoreAccessLock::try_acquire(&self.storage_path).map_err(|err| {
+            tracing::warn!(
+                path = %self.storage_path.display(),
+                error = %err,
+                "failed to acquire credential store lock"
+            );
             if matches!(err, nym_vpn_account_controller::Error::CredentialStoreBusy) {
                 VpnError::AccountStoreBusy
             } else {
@@ -630,30 +646,9 @@ impl NymVpnAccountStorage {
         let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
         let device = self.load_device().await?;
 
-        tracing::info!(
-            "Fetching account summary from VPN API for account {}",
-            account.id()
-        );
-
-        let remote_time =
-            vpn_api_client
-                .get_remote_time()
-                .await
-                .map_err(|err| VpnError::InternalError {
-                    details: format!("Failed to get remote time: {err}"),
-                })?;
-
-        let api_summary = vpn_api_client
-            .get_account_summary_with_device(&account, &device)
-            .await
-            .map_err(|err| VpnError::InternalError {
-                details: format!("Failed to get account summary: {err}"),
-            })?;
-
-        let summary = VpnAccountSummary::from_parts(&api_summary, account.mode(), remote_time)
-            .map_err(|err| VpnError::InternalError {
-                details: format!("Failed to parse account summary: {err}"),
-            })?;
+        let summary = self
+            .fetch_account_summary_with_client(vpn_api_client, &account, &device)
+            .await?;
 
         self.storage
             .store_summary(summary.clone())
@@ -669,6 +664,39 @@ impl NymVpnAccountStorage {
         );
 
         Ok(summary)
+    }
+
+    async fn fetch_account_summary_with_client(
+        &self,
+        vpn_api_client: &VpnApiClient,
+        account: &VpnAccount,
+        device: &Device,
+    ) -> Result<VpnAccountSummary, VpnError> {
+        tracing::info!(
+            "Fetching account summary from VPN API for account {}",
+            account.id()
+        );
+
+        let remote_time =
+            vpn_api_client
+                .get_remote_time()
+                .await
+                .map_err(|err| VpnError::InternalError {
+                    details: format!("Failed to get remote time: {err}"),
+                })?;
+
+        let api_summary = vpn_api_client
+            .get_account_summary_with_device(account, device)
+            .await
+            .map_err(|err| VpnError::InternalError {
+                details: format!("Failed to get account summary: {err}"),
+            })?;
+
+        VpnAccountSummary::from_parts(&api_summary, account.mode(), remote_time).map_err(|err| {
+            VpnError::InternalError {
+                details: format!("Failed to parse account summary: {err}"),
+            }
+        })
     }
 
     async fn get_account_summary_from_network(
