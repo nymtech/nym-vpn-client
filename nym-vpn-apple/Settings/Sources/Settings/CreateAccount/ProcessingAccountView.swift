@@ -10,6 +10,8 @@ public struct ProcessingAccountView: View {
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @Binding private var path: NavigationPath
     @State private var didFinishAnimatingText = false
+    @State private var didCompleteAccountPrep = false
+    @State private var didNavigate = false
     @State private var currentStep = 1
 
     public var body: some View {
@@ -34,16 +36,22 @@ public struct ProcessingAccountView: View {
                 .ignoresSafeArea()
         }
         .onChange(of: didFinishAnimatingText) { _, _ in
-            navigateHomeOrTechnicalOptIns()
+            advanceIfReady()
         }
         .task {
-            await credentialsManager.updateAccountSummary(force: true, untilActive: true)
+            let credentials = credentialsManager
+            _ = await AccountPrefetchOrchestrator.runProcessingFlow(
+                isAccountActive: { credentials.isAccountActive() },
+                updateAccountSummary: {
+                    await credentials.updateAccountSummary(force: true, untilActive: true)
+                },
+                prefetchZkNyms: {
+                    await credentials.prefetchZkNyms()
+                }
+            )
             guard !Task.isCancelled else { return }
-            if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
-                isAccountActive: credentialsManager.isAccountActive()
-            ) {
-                _ = await credentialsManager.prefetchZkNyms()
-            }
+            didCompleteAccountPrep = true
+            advanceIfReady()
         }
     }
 
@@ -74,6 +82,16 @@ private extension ProcessingAccountView {
                 currentStep += 1
             }
         )
+    }
+
+    func advanceIfReady() {
+        guard !didNavigate,
+              ProcessingAccountReadiness.canAdvanceNavigation(
+                  didCompleteAccountPrep: didCompleteAccountPrep,
+                  didFinishAnimatingText: didFinishAnimatingText
+              ) else { return }
+        didNavigate = true
+        navigateHomeOrTechnicalOptIns()
     }
 }
 

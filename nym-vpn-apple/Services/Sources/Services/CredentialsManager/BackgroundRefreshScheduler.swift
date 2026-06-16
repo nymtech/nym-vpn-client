@@ -30,24 +30,31 @@ public enum BackgroundRefreshScheduler {
         scheduleAppRefresh()
 
         let credentials = CredentialsManager.shared
-        guard credentials.isValidCredentialImported else {
-            logger.debug("Background refresh skipped: no credential imported")
-            return
-        }
-
-        await credentials.updateAccountSummary(force: true)
-
-        guard AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
-            isAccountActive: credentials.isAccountActive()
-        ) else {
-            logger.info("Background refresh complete (summary synced; prefetch skipped for inactive account)")
-            return
-        }
-
-        let prefetch = await credentials.prefetchZkNyms()
-        logger.info(
-            "Background refresh complete prefetch=\(prefetch) ready=\(prefetch.isReady)"
+        let outcome = await AccountPrefetchOrchestrator.runBackgroundRefresh(
+            isCredentialImported: credentials.isValidCredentialImported,
+            isAccountActive: { credentials.isAccountActive() },
+            updateAccountSummary: {
+                await credentials.updateAccountSummary(force: true)
+            },
+            prefetchZkNyms: {
+                await credentials.prefetchZkNyms()
+            }
         )
+
+        switch outcome.skipReason {
+        case .noCredential:
+            logger.debug("Background refresh skipped: no credential imported")
+        case .inactiveAfterSummarySync:
+            logger.info(
+                "Background refresh complete (summary synced; prefetch skipped for inactive account)"
+            )
+        case nil:
+            if let prefetch = outcome.prefetchResult {
+                logger.info(
+                    "Background refresh complete prefetch=\(prefetch) ready=\(prefetch.isReady)"
+                )
+            }
+        }
     }
 }
 #endif

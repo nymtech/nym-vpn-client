@@ -46,3 +46,95 @@ public enum AccountZkNymPrefetchGate: Equatable, Sendable {
         return postSummarySyncPlan(isAccountActive: isAccountActiveAfterSummarySync)
     }
 }
+
+/// Shared async sequencing for processing screens and background refresh.
+public enum AccountPrefetchOrchestrator: Sendable {
+    public struct ProcessingOutcome: Equatable, Sendable {
+        public let didSyncSummary: Bool
+        public let prefetchResult: ZkNymPrefetchResult?
+
+        public init(didSyncSummary: Bool, prefetchResult: ZkNymPrefetchResult?) {
+            self.didSyncSummary = didSyncSummary
+            self.prefetchResult = prefetchResult
+        }
+    }
+
+    public enum BackgroundSkipReason: Equatable, Sendable {
+        case noCredential
+        case inactiveAfterSummarySync
+    }
+
+    public struct BackgroundOutcome: Equatable, Sendable {
+        public let skipReason: BackgroundSkipReason?
+        public let didSyncSummary: Bool
+        public let prefetchResult: ZkNymPrefetchResult?
+
+        public init(
+            skipReason: BackgroundSkipReason?,
+            didSyncSummary: Bool,
+            prefetchResult: ZkNymPrefetchResult?
+        ) {
+            self.skipReason = skipReason
+            self.didSyncSummary = didSyncSummary
+            self.prefetchResult = prefetchResult
+        }
+    }
+
+    public static func runProcessingFlow(
+        isAccountActive: @Sendable () -> Bool,
+        updateAccountSummary: @Sendable () async -> Void,
+        prefetchZkNyms: @Sendable () async -> ZkNymPrefetchResult
+    ) async -> ProcessingOutcome {
+        await updateAccountSummary()
+        guard shouldPrefetchAfterSummarySync(isAccountActive: isAccountActive()) else {
+            return ProcessingOutcome(didSyncSummary: true, prefetchResult: nil)
+        }
+        let prefetch = await prefetchZkNyms()
+        return ProcessingOutcome(didSyncSummary: true, prefetchResult: prefetch)
+    }
+
+    public static func runBackgroundRefresh(
+        isCredentialImported: Bool,
+        isAccountActive: @Sendable () -> Bool,
+        updateAccountSummary: @Sendable () async -> Void,
+        prefetchZkNyms: @Sendable () async -> ZkNymPrefetchResult
+    ) async -> BackgroundOutcome {
+        guard isCredentialImported else {
+            return BackgroundOutcome(
+                skipReason: .noCredential,
+                didSyncSummary: false,
+                prefetchResult: nil
+            )
+        }
+        await updateAccountSummary()
+        guard shouldPrefetchAfterSummarySync(isAccountActive: isAccountActive()) else {
+            return BackgroundOutcome(
+                skipReason: .inactiveAfterSummarySync,
+                didSyncSummary: true,
+                prefetchResult: nil
+            )
+        }
+        let prefetch = await prefetchZkNyms()
+        return BackgroundOutcome(
+            skipReason: nil,
+            didSyncSummary: true,
+            prefetchResult: prefetch
+        )
+    }
+}
+
+private extension AccountPrefetchOrchestrator {
+    static func shouldPrefetchAfterSummarySync(isAccountActive: Bool) -> Bool {
+        AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(isAccountActive: isAccountActive)
+    }
+}
+
+/// Processing screens wait for account prep and animation before navigating.
+public enum ProcessingAccountReadiness: Equatable, Sendable {
+    public static func canAdvanceNavigation(
+        didCompleteAccountPrep: Bool,
+        didFinishAnimatingText: Bool
+    ) -> Bool {
+        didCompleteAccountPrep && didFinishAnimatingText
+    }
+}

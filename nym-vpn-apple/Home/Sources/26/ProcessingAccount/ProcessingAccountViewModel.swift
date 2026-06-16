@@ -33,14 +33,17 @@ public final class ProcessingAccountViewModel {
         processingTask?.cancel()
         processingTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            await credentialsManager.updateAccountSummary(force: true, untilActive: true)
+            let credentials = credentialsManager
+            _ = await AccountPrefetchOrchestrator.runProcessingFlow(
+                isAccountActive: { credentials.isAccountActive() },
+                updateAccountSummary: {
+                    await credentials.updateAccountSummary(force: true, untilActive: true)
+                },
+                prefetchZkNyms: {
+                    await credentials.prefetchZkNyms()
+                }
+            )
             guard !Task.isCancelled else { return }
-            if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
-                isAccountActive: credentialsManager.isAccountActive()
-            ) {
-                _ = await credentialsManager.prefetchZkNyms()
-                guard !Task.isCancelled else { return }
-            }
             didBecomeActive = true
             advanceIfReady()
         }
@@ -63,7 +66,10 @@ public final class ProcessingAccountViewModel {
     }
 
     private func advanceIfReady() {
-        guard didBecomeActive, didFinishAnimatingText, !didShowFinalMessage else { return }
+        guard ProcessingAccountReadiness.canAdvanceNavigation(
+            didCompleteAccountPrep: didBecomeActive,
+            didFinishAnimatingText: didFinishAnimatingText
+        ), !didShowFinalMessage else { return }
         didShowFinalMessage = true
         finalMessageTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(ProcessingAccountViewModel.finalMessageDuration))
