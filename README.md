@@ -15,15 +15,15 @@ Tech details and cryptography are documented in the [NymVPN Litepaper](https://n
 
 # NymVPN Downloads
 
-<a href="https://github.com/nymtech/nym-vpn-client/releases?q=android&expanded=true"><img src=".github/assets/apk-download-badge-1745835177551.png" height="54" alt="Android (GitHub releases)"></a>
-<a href="https://f-droid.org/packages/net.nymtech.nymvpn/"><img src=".github/assets/fdroid-badge.png" height="54" alt="F-Droid"></a>
-<a href="https://flathub.org/apps/net.nymtech.NymVPN"><img src=".github/assets/flathub-store.svg" height="54" alt="Flathub"></a>
-<a href="https://play.google.com/store/apps/details?id=net.nymtech.nymvpn"><img src=".github/assets/play-badge.png" height="54" alt="Google Play"></a>
-<a href="https://apps.apple.com/app/id6471254143"><img src=".github/assets/app-store-badge.svg" height="54" alt="App Store"></a>
-<a href="https://testflight.apple.com/join/0vmRJNrL"><img src=".github/assets/testflight-badge.svg" height="54" alt="TestFlight"></a>
-<a href="https://github.com/nymtech/nym-vpn-client/releases?q=linux&expanded=true"><img src=".github/assets/linux-badge.png" height="54" alt="Linux"></a>
-<a href="https://github.com/nymtech/nym-vpn-client/releases?q=macos&expanded=true"><img src=".github/assets/macos-badge.png" height="54" alt="macOS"></a>
-<a href="https://github.com/nymtech/nym-vpn-client/releases?q=windows&expanded=true"><img src=".github/assets/windows-badge.png" height="54" alt="Windows"></a>
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=android&expanded=true"><img alt="Android (GitHub releases)" src=".github/assets/apk-download-badge-1745835177551.png" height="40"></a>
+<a href="https://f-droid.org/packages/net.nymtech.nymvpn/"><img alt="F-Droid" src=".github/assets/fdroid-badge.png" height="40"></a>
+<a href="https://flathub.org/apps/net.nymtech.NymVPN"><img alt="Flathub" src=".github/assets/flathub-store.svg" height="40"></a>
+<a href="https://play.google.com/store/apps/details?id=net.nymtech.nymvpn"><img alt="Google Play" src=".github/assets/play-badge.png" height="40"></a>
+<a href="https://apps.apple.com/app/id6471254143"><img alt="Apple Store" src=".github/assets/app-store-badge.svg" height="40"></a>
+<a href="https://testflight.apple.com/join/0vmRJNrL"><img alt="Apple Testflight" src=".github/assets/app-store-badge.svg" height="40"></a>
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=linux&expanded=true"><img alt="Linux" src=".github/assets/linux-badge.png" height="40"></a>
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=macos&expanded=true"><img alt="macOS" src=".github/assets/macos-badge.png" height="40"></a>
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=windows&expanded=true"><img alt="Windows" src=".github/assets/windows-badge.png" height="40"></a>
 
 # Two VPN modes
 
