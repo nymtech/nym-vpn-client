@@ -87,12 +87,8 @@ import ConnectionTypes
         didSet { isAdBlockerEnabledPublisher = isAdBlockerEnabled}
     }
 
-#if os(macOS)
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
-#else
-    public var isStatisticsEnabled = false
-#endif
 
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0

@@ -127,8 +127,21 @@ impl ConnectedState {
             .await;
         }
 
-        #[cfg(any(target_os = "android", target_os = "ios"))]
+        #[cfg(target_os = "android")]
         let _ = shared_state; // Avoid unused variable warning
+
+        // Statistics reports must be sent through a socket bound to the tunnel interface,
+        // since the packet tunnel provider's traffic is otherwise excluded from the tunnel.
+        #[cfg(target_os = "ios")]
+        shared_state
+            .statistics_event_sender
+            .report_tunnel_interface(Some(
+                connected_state
+                    .tunnel_interface
+                    .exit_tunnel_metadata()
+                    .interface
+                    .clone(),
+            ));
 
         (
             Box::new(connected_state),
@@ -230,14 +243,7 @@ impl ConnectedState {
         after_disconnect: PrivateActionAfterDisconnect,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
-        #[cfg(not(target_os = "android"))]
-        {
-            Self::reset_dns(shared_state).await;
-        }
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            Self::reset_routes(shared_state).await;
-        }
+        Self::prepare_for_disconnect(shared_state).await;
 
         NextTunnelState::NewState(
             DisconnectingState::enter(
@@ -258,14 +264,7 @@ impl ConnectedState {
             tracing::info!("Tunnel closed. Reconnecting.");
         }
 
-        #[cfg(not(target_os = "android"))]
-        {
-            Self::reset_dns(shared_state).await;
-        }
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            Self::reset_routes(shared_state).await;
-        }
+        Self::prepare_for_disconnect(shared_state).await;
 
         match error_state_reason {
             Some(block_reason) => {
@@ -275,6 +274,22 @@ impl ConnectedState {
                 ConnectingState::enter(0, Some(self.selected_gateways), shared_state).await,
             ),
         }
+    }
+
+    async fn prepare_for_disconnect(shared_state: &mut SharedState) {
+        #[cfg(target_os = "ios")]
+        shared_state
+            .statistics_event_sender
+            .report_tunnel_interface(None);
+
+        #[cfg(not(target_os = "android"))]
+        Self::reset_dns(shared_state).await;
+
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        Self::reset_routes(shared_state).await;
+
+        #[cfg(target_os = "android")]
+        let _ = shared_state; // Avoid unused variable warning
     }
 }
 
