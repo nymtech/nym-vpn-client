@@ -87,27 +87,59 @@ pub fn verify_time_synced(summary: &VpnAccountSummary) -> Result<(), Error> {
     }
 }
 
+/// True when [`classify_local_sync`] reports the account can proceed to connect.
+pub fn is_connect_ready_after_summary_sync(summary: &VpnAccountSummary) -> bool {
+    matches!(classify_local_sync(summary), LocalSyncCheck::Ready)
+}
+
+/// Apply post-login device registration when the fresh summary requires it.
+/// Returns `false` when registration was not attempted (already registered or not eligible).
+pub async fn apply_post_login_device_registration(
+    vpn_api_client: &VpnApiClient,
+    account: &VpnAccount,
+    device: &Device,
+    summary: &mut VpnAccountSummary,
+) -> Result<bool, Error> {
+    if !matches!(
+        classify_local_sync(summary),
+        LocalSyncCheck::MustRegisterDevice
+    ) {
+        return Ok(false);
+    }
+    register_device_if_needed(vpn_api_client, account, device, summary).await
+}
+
+/// Blocking failures and intentional summary-only outcomes for post-login setup.
+pub fn post_login_setup_from_classified_sync(check: LocalSyncCheck) -> Result<(), Error> {
+    match check {
+        LocalSyncCheck::MaxDevicesReached => Err(Error::internal(MAX_DEVICES_REACHED)),
+        LocalSyncCheck::FairUsageDepleted => Err(Error::internal(FAIR_USAGE_DEPLETED)),
+        LocalSyncCheck::InactiveAccount(status) => {
+            tracing::info!(
+                "Post-login summary synced; account inactive ({status}); not connect-ready"
+            );
+            Ok(())
+        }
+        LocalSyncCheck::PendingSubscription => {
+            tracing::info!("Post-login summary synced; subscription pending; not connect-ready");
+            Ok(())
+        }
+        LocalSyncCheck::InactiveSubscription => {
+            tracing::info!("Post-login summary synced; subscription inactive; not connect-ready");
+            Ok(())
+        }
+        LocalSyncCheck::MustRegisterDevice
+        | LocalSyncCheck::Ready
+        | LocalSyncCheck::DeviceTimeDesynced => Ok(()),
+    }
+}
+
 /// When a device row is active, time sync must pass before post-login setup succeeds.
 pub fn validate_active_device_time_sync(summary: &VpnAccountSummary) -> Result<(), Error> {
     if summary.is_device_active {
         verify_time_synced(summary)?;
     }
     Ok(())
-}
-
-/// Network-first account summary read with cache fallback on transient failure.
-pub fn account_summary_after_network_error<E: Clone>(
-    network_err: E,
-    cached: Option<VpnAccountSummary>,
-    is_fatal: impl FnOnce(&E) -> bool,
-) -> Result<Option<VpnAccountSummary>, E> {
-    if is_fatal(&network_err) {
-        return Err(network_err);
-    }
-    match cached {
-        Some(summary) => Ok(Some(summary)),
-        None => Err(network_err),
-    }
 }
 
 pub async fn register_device_for_account(
@@ -307,29 +339,26 @@ mod tests {
             classify_local_sync(&summary(false, 2, 2000, true)),
             LocalSyncCheck::FairUsageDepleted
         );
+        assert!(post_login_setup_from_classified_sync(LocalSyncCheck::FairUsageDepleted).is_err());
     }
 
     #[test]
-    fn account_summary_network_error_returns_cache_when_present() {
-        let cached = summary(true, 1, 0, true);
-        let result =
-            account_summary_after_network_error("network down", Some(cached.clone()), |_| false)
-                .expect("cached summary");
-        assert_eq!(result, Some(cached));
+    fn post_login_setup_allows_inactive_subscription_summary_sync() {
+        assert!(
+            post_login_setup_from_classified_sync(LocalSyncCheck::InactiveSubscription).is_ok()
+        );
+        assert!(!is_connect_ready_after_summary_sync(&summary(
+            false, 2, 0, true
+        )));
     }
 
     #[test]
-    fn account_summary_network_error_without_cache_propagates() {
-        let err = "network down";
-        let result = account_summary_after_network_error(err, None, |_| false);
-        assert_eq!(result, Err(err));
-    }
-
-    #[test]
-    fn account_summary_fatal_errors_skip_cache_fallback() {
-        let cached = summary(true, 1, 0, true);
-        let result =
-            account_summary_after_network_error("no account", Some(cached), |e| *e == "no account");
-        assert_eq!(result, Err("no account"));
+    fn connect_ready_only_when_classifier_reports_ready() {
+        assert!(is_connect_ready_after_summary_sync(&summary(
+            true, 1, 0, true
+        )));
+        assert!(!is_connect_ready_after_summary_sync(&summary(
+            false, 2, 0, true
+        )));
     }
 }

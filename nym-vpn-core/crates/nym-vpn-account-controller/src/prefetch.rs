@@ -17,7 +17,10 @@ use nym_vpn_api_client::{
     types::{Device, VpnAccount},
 };
 
+use nym_vpn_lib_types::VpnAccountSummary;
+
 use crate::{
+    account_readiness::{LocalSyncCheck, classify_local_sync, register_device_if_needed},
     error::Error,
     state_machine::{RequestingZkNymsState, ZkNymError, ZkNymFetchResult},
     storage::{CredentialStoreAccessLock, VpnCredentialStorage},
@@ -88,6 +91,68 @@ pub async fn prefetch_zk_nyms_unlocked(
     storage_for_close.close().await;
 
     map_fetch_result(result)
+}
+
+/// iOS app-storage prefetch after a **network-fresh** summary sync.
+///
+/// Mirrors [`NymVpnAccountStorage::prefetch_zk_nyms`]: register from the fresh summary,
+/// prefetch once, then on device-auth failure re-sync, re-register, and retry once.
+/// The caller must supply a fresh summary from the network (not a stale cache read).
+pub async fn app_prefetch_zk_nyms_after_fresh_summary<F, Fut, G, GFut>(
+    data_dir: PathBuf,
+    vpn_api_client: VpnApiClient,
+    account: Arc<VpnAccount>,
+    device: Device,
+    mut summary: VpnAccountSummary,
+    mut persist_summary: F,
+    mut resync_summary: G,
+) -> Result<PrefetchZkNymOutcome, Error>
+where
+    F: FnMut(VpnAccountSummary) -> Fut,
+    Fut: std::future::Future<Output = Result<(), Error>>,
+    G: FnMut() -> GFut,
+    GFut: std::future::Future<Output = Result<VpnAccountSummary, Error>>,
+{
+    if matches!(
+        classify_local_sync(&summary),
+        LocalSyncCheck::MustRegisterDevice
+    ) {
+        tracing::warn!(
+            "app prefetch: device not registered; attempting repair registration before zk-nym fetch"
+        );
+        register_device_if_needed(&vpn_api_client, &account, &device, &mut summary).await?;
+        persist_summary(summary.clone()).await?;
+    }
+
+    let prefetch_result = prefetch_zk_nyms_unlocked(
+        data_dir.clone(),
+        vpn_api_client.clone(),
+        Arc::clone(&account),
+        device.clone(),
+        summary.fair_usage_left(),
+    )
+    .await;
+
+    match prefetch_result {
+        Ok(outcome) => Ok(outcome),
+        Err(err) if prefetch_error_suggests_stale_device_registration(&err) => {
+            tracing::warn!(
+                "app prefetch: device auth failure; re-syncing summary and re-registering before retry"
+            );
+            summary = resync_summary().await?;
+            register_device_if_needed(&vpn_api_client, &account, &device, &mut summary).await?;
+            persist_summary(summary.clone()).await?;
+            prefetch_zk_nyms_unlocked(
+                data_dir,
+                vpn_api_client,
+                account,
+                device,
+                summary.fair_usage_left(),
+            )
+            .await
+        }
+        Err(err) => Err(err),
+    }
 }
 
 fn map_fetch_result(

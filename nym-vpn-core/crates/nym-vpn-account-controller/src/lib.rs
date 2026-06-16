@@ -26,8 +26,9 @@ pub(crate) use shared_state::SharedAccountState;
 
 pub use account_readiness::{
     DEVICE_TIME_DESYNCED, DeviceRegistrationReadiness, FAIR_USAGE_DEPLETED, LocalSyncCheck,
-    MAX_DEVICES_REACHED, SUMMARY_STALE_AFTER, account_summary_after_network_error,
-    classify_local_sync, device_registration_readiness, register_device_for_prefetch_if_needed,
+    MAX_DEVICES_REACHED, SUMMARY_STALE_AFTER, apply_post_login_device_registration,
+    classify_local_sync, device_registration_readiness, is_connect_ready_after_summary_sync,
+    post_login_setup_from_classified_sync, register_device_for_prefetch_if_needed,
     register_device_if_needed, validate_active_device_time_sync, verify_time_synced,
 };
 pub use command_sender::AccountCommandSender;
@@ -39,7 +40,8 @@ pub use event_sender::AccountControllerEventSender;
 pub use nyxd_client::NyxdClient;
 pub use prefetch::{
     DEVICE_NOT_AUTHENTICATED_CODE_ID, PrefetchExternalError, PrefetchZkNymOutcome,
-    map_prefetch_error_for_external, prefetch_api_failure_suggests_stale_device_registration,
+    app_prefetch_zk_nyms_after_fresh_summary, map_prefetch_error_for_external,
+    prefetch_api_failure_suggests_stale_device_registration,
     prefetch_error_suggests_stale_device_registration, prefetch_zk_nyms, prefetch_zk_nyms_unlocked,
 };
 pub use state_receiver::AccountStateReceiver;

@@ -1,15 +1,15 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-//! Regression: prefetch must use a network-fresh summary for device registration.
-//! A cached summary with `is_device_active=true` must not skip registration when the
-//! API reports the device inactive/revoked.
+//! Regression for the iOS UniFFI prefetch flow (`app_prefetch_zk_nyms_after_fresh_summary`).
+//! Stale on-disk summary must not skip device registration when the network sync reports
+//! an inactive device.
 
 use std::sync::Arc;
 
 use nym_vpn_account_controller::{
-    DeviceRegistrationReadiness, LocalSyncCheck, PrefetchZkNymOutcome, classify_local_sync,
-    device_registration_readiness, prefetch_zk_nyms, register_device_if_needed,
+    DeviceRegistrationReadiness, LocalSyncCheck, PrefetchZkNymOutcome,
+    app_prefetch_zk_nyms_after_fresh_summary, classify_local_sync, device_registration_readiness,
 };
 use nym_vpn_api_client::{
     api_urls_to_urls,
@@ -38,8 +38,24 @@ fn post_register_device_index(requests: &[wiremock::Request]) -> Option<usize> {
     })
 }
 
+async fn fetch_fresh_summary(
+    vpn_api_client: &nym_vpn_api_client::VpnApiClient,
+    account: &VpnAccount,
+    device: &Device,
+) -> anyhow::Result<VpnAccountSummary> {
+    let remote_time = vpn_api_client.get_remote_time().await?;
+    let api_summary = vpn_api_client
+        .get_account_summary_with_device(account, device)
+        .await?;
+    Ok(VpnAccountSummary::from_parts(
+        &api_summary,
+        account.mode(),
+        remote_time,
+    )?)
+}
+
 #[tokio::test]
-async fn prefetch_registers_device_when_stale_cache_would_skip() -> anyhow::Result<()> {
+async fn app_prefetch_registers_device_when_stale_cache_would_skip() -> anyhow::Result<()> {
     init_tracing();
 
     let server = MockServer::start().await;
@@ -83,18 +99,14 @@ async fn prefetch_registers_device_when_stale_cache_would_skip() -> anyhow::Resu
         ))
         .await;
 
-    let account = VpnAccount::try_from(mock_account(StoredAccountMode::Api))?;
+    let account = Arc::new(VpnAccount::try_from(mock_account(StoredAccountMode::Api))?);
     let device_keys = DeviceKeys::generate_new(&mut rand::thread_rng());
     let device = Device::from(device_keys.device_keypair().clone());
 
     let remote_time = vpn_api_client.get_remote_time().await?;
-
     let stale_summary =
         VpnAccountSummary::from_parts(&account_ready_to_connect(), account.mode(), remote_time)?;
-    assert!(
-        stale_summary.is_device_active,
-        "stale cache fixture must look registered"
-    );
+    assert!(stale_summary.is_device_active);
     assert_eq!(
         device_registration_readiness(&stale_summary)?,
         DeviceRegistrationReadiness::AlreadyRegistered
@@ -104,42 +116,46 @@ async fn prefetch_registers_device_when_stale_cache_would_skip() -> anyhow::Resu
     let data_dir = tempdir.path().to_path_buf();
     let summary_store = OnDiskAccountSummaryStorage::new(data_dir.join("account_summary.json"));
     summary_store
-        .store_summary(stale_summary.clone())
+        .store_summary(stale_summary)
         .await
         .expect("persist stale cache");
-    let cached = summary_store
-        .load_summary()
-        .await?
-        .expect("stale cache round-trip");
-    assert!(cached.is_device_active);
 
-    let fresh_api = vpn_api_client
-        .get_account_summary_with_device(&account, &device)
-        .await?;
-    let mut summary = VpnAccountSummary::from_parts(&fresh_api, account.mode(), remote_time)?;
-    assert!(
-        !summary.is_device_active,
-        "network sync must report inactive device even when cache says active"
-    );
+    let fresh_summary = fetch_fresh_summary(&vpn_api_client, account.as_ref(), &device).await?;
+    assert!(!fresh_summary.is_device_active);
     assert_eq!(
-        classify_local_sync(&summary),
+        classify_local_sync(&fresh_summary),
         LocalSyncCheck::MustRegisterDevice
     );
 
-    if matches!(
-        classify_local_sync(&summary),
-        LocalSyncCheck::MustRegisterDevice
-    ) {
-        register_device_if_needed(&vpn_api_client, &account, &device, &mut summary).await?;
-        summary_store.store_summary(summary.clone()).await?;
-    }
+    let resync_client = vpn_api_client.clone();
+    let resync_account = Arc::clone(&account);
+    let resync_device = device.clone();
 
-    let outcome = prefetch_zk_nyms(
-        data_dir,
+    let outcome = app_prefetch_zk_nyms_after_fresh_summary(
+        data_dir.clone(),
         vpn_api_client,
-        Arc::new(account),
+        account,
         device,
-        summary.fair_usage_left(),
+        fresh_summary,
+        move |summary| {
+            let path = data_dir.join("account_summary.json");
+            async move {
+                OnDiskAccountSummaryStorage::new(path)
+                    .store_summary(summary)
+                    .await
+                    .map_err(|err| nym_vpn_account_controller::Error::Internal(err.to_string()))
+            }
+        },
+        move || {
+            let resync_client = resync_client.clone();
+            let resync_account = Arc::clone(&resync_account);
+            let resync_device = resync_device.clone();
+            async move {
+                fetch_fresh_summary(&resync_client, resync_account.as_ref(), &resync_device)
+                    .await
+                    .map_err(|err| nym_vpn_account_controller::Error::Internal(err.to_string()))
+            }
+        },
     )
     .await?;
 
@@ -153,7 +169,7 @@ async fn prefetch_registers_device_when_stale_cache_would_skip() -> anyhow::Resu
         .expect("zk-nym POST");
     assert!(
         register_idx < zknym_idx,
-        "fresh summary must drive register_device before zk-nym despite stale cache"
+        "app prefetch must register from fresh summary before zk-nym despite stale cache"
     );
 
     Ok(())
