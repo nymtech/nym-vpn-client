@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Allow adding custom apps (user selected) to split tunneling for Windows & Linux
+- Add new "Geo exclusion" settings to allow bypass the VPN tunnel when accessing from certain geographic regions. Currently only China is supported
 - Mixnet tuning settings
 
 ### CHANGED
