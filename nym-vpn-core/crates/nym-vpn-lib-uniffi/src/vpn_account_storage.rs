@@ -26,7 +26,7 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_store::{
     account::AccountInformationStorage,
-    account_summary::{AccountSummaryStorage, on_disk::OnDiskAccountSummaryStorage},
+    account_summary::AccountSummaryStorage,
     keys::{device::DeviceKeyStore, wireguard::DB_NAME},
 };
 
@@ -544,7 +544,9 @@ impl NymVpnAccountStorage {
             summary,
             move |summary| {
                 let data_dir = data_dir.clone();
-                async move { persist_summary_in_data_dir(&data_dir, summary).await }
+                async move {
+                    persist_summary_via_client_storage(&data_dir, summary).await
+                }
             },
             move || {
                 let resync_client = resync_client.clone();
@@ -552,11 +554,12 @@ impl NymVpnAccountStorage {
                 let resync_device = resync_device.clone();
                 let resync_data_dir = resync_data_dir.clone();
                 async move {
-                    fetch_fresh_account_summary(
+                    let storage = VpnClientOnDiskStorage::new(&resync_data_dir);
+                    sync_fresh_account_summary(
                         &resync_client,
                         &resync_account,
                         &resync_device,
-                        &resync_data_dir,
+                        &storage,
                     )
                     .await
                 }
@@ -813,21 +816,21 @@ fn cached_summary_after_network_error(
     }
 }
 
-async fn persist_summary_in_data_dir(
+async fn persist_summary_via_client_storage(
     data_dir: &Path,
     summary: VpnAccountSummary,
 ) -> Result<(), nym_vpn_account_controller::Error> {
-    OnDiskAccountSummaryStorage::new(data_dir.join("account_summary.json"))
+    VpnClientOnDiskStorage::new(data_dir)
         .store_summary(summary)
         .await
         .map_err(|err| nym_vpn_account_controller::Error::Internal(err.to_string()))
 }
 
-async fn fetch_fresh_account_summary(
+async fn sync_fresh_account_summary(
     vpn_api_client: &VpnApiClient,
     account: &VpnAccount,
     device: &Device,
-    data_dir: &Path,
+    storage: &VpnClientOnDiskStorage,
 ) -> Result<VpnAccountSummary, nym_vpn_account_controller::Error> {
     let remote_time = vpn_api_client
         .get_remote_time()
@@ -842,6 +845,9 @@ async fn fetch_fresh_account_summary(
     let summary = VpnAccountSummary::from_parts(&api_summary, account.mode(), remote_time)
         .map_err(|err| nym_vpn_account_controller::Error::Internal(err.to_string()))?;
 
-    persist_summary_in_data_dir(data_dir, summary.clone()).await?;
+    storage
+        .store_summary(summary.clone())
+        .await
+        .map_err(|err| nym_vpn_account_controller::Error::Internal(err.to_string()))?;
     Ok(summary)
 }

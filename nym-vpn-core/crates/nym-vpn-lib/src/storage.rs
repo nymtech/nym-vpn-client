@@ -11,7 +11,7 @@ use nym_vpn_store::{
 };
 
 const MNEMONIC_FILE_NAME: &str = "mnemonic.json";
-const ACCOUNT_SUMMARY_FILE_NAME: &str = "account_summary.json";
+pub const ACCOUNT_SUMMARY_FILE_NAME: &str = "account_summary.json";
 
 pub struct VpnClientOnDiskStorage {
     key_store: nym_vpn_store::keys::device::OnDiskKeys,
@@ -100,5 +100,74 @@ impl AccountSummaryStorage for VpnClientOnDiskStorage {
 
     async fn remove_summary(&self) -> Result<(), Self::StorageError> {
         self.summary_storage.remove_summary().await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nym_vpn_lib_types::{
+        NymVpnSubscription, NymVpnSubscriptionKind, NymVpnSubscriptionStatus, Subscription,
+        VpnAccountStatus,
+    };
+    use nym_vpn_store::account_summary::on_disk::OnDiskAccountSummaryStorage;
+    use time::OffsetDateTime;
+
+    fn sample_summary() -> VpnAccountSummary {
+        let now = OffsetDateTime::now_utc();
+        VpnAccountSummary {
+            traffic_used_gb: 0,
+            traffic_limit_gb: 2000,
+            traffic_reset_time: None,
+            fair_usage_data_unavailable: false,
+            account_addr: "n1test".into(),
+            canonical_account_addr: None,
+            auth_methods: vec![],
+            account_mode: None,
+            subscription: Some(Subscription {
+                status: NymVpnSubscriptionStatus::Active,
+                subscription: NymVpnSubscription {
+                    created_on_utc: "2024-01-01T00:00:00Z".into(),
+                    last_updated_utc: "2024-01-01T00:00:00Z".into(),
+                    id: "sub".into(),
+                    valid_from_utc: now.unix_timestamp() - 86_400,
+                    valid_until_utc: now.unix_timestamp() + 365 * 86_400,
+                    status: "active".into(),
+                    kind: NymVpnSubscriptionKind::OneMonth,
+                    is_recurring: false,
+                },
+            }),
+            is_subscription_stacked: false,
+            account_status: VpnAccountStatus::Active,
+            is_device_active: true,
+            remaining_devices: 1,
+            time_synced: true,
+            stale: false,
+            last_synced_utc: now,
+        }
+    }
+
+    #[tokio::test]
+    async fn client_storage_summary_path_matches_on_disk_reader() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let summary = sample_summary();
+        let storage = VpnClientOnDiskStorage::new(dir.path());
+
+        storage
+            .store_summary(summary.clone())
+            .await
+            .expect("store via client storage");
+
+        let path = dir.path().join(ACCOUNT_SUMMARY_FILE_NAME);
+        assert!(path.is_file(), "summary must land at canonical path");
+
+        let direct = OnDiskAccountSummaryStorage::new(path);
+        let loaded = direct
+            .load_summary()
+            .await
+            .expect("load")
+            .expect("summary present");
+        assert_eq!(loaded.account_addr, summary.account_addr);
+        assert_eq!(loaded.is_device_active, summary.is_device_active);
     }
 }
