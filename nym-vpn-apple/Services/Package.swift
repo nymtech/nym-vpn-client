@@ -26,6 +26,7 @@ let package = Package(
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
         .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
+        .library(name: "AccountPrefetchGates", targets: ["AccountPrefetchGates"]),
         .library(name: "DeeplinkManager", targets: ["DeeplinkManager"]),
         .library(name: "Device", targets: ["Device"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
@@ -101,8 +102,14 @@ let package = Package(
             swiftSettings: santaSwiftSettings
         ),
         .target(
+            name: "AccountPrefetchGates",
+            dependencies: [],
+            path: "Sources/AccountPrefetchGates"
+        ),
+        .target(
             name: "CredentialsManager",
             dependencies: [
+                "AccountPrefetchGates",
                 "AppSettings",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 "ConfigurationManager",
@@ -271,6 +278,11 @@ let package = Package(
             name: "ConfigurationManagerTests",
             dependencies: ["ConfigurationManager"],
             path: "Tests/ConfigurationManagerTests"
+        ),
+        .testTarget(
+            name: "CredentialsManagerTests",
+            dependencies: ["AccountPrefetchGates"],
+            path: "Tests/CredentialsManagerTests"
         )
     ]
 )

@@ -15,24 +15,7 @@ import NymVPNLib
 import GRPCManager
 #endif
 import PathManager
-
-public enum ZkNymPrefetchResult: Equatable, Sendable {
-    case sufficientBandwidth
-    case fetchedTickets
-    case upgradeMode
-    case skippedStoreBusy
-    case skipped
-    case failed
-
-    public var isReady: Bool {
-        switch self {
-        case .sufficientBandwidth, .fetchedTickets, .upgradeMode:
-            return true
-        case .skippedStoreBusy, .skipped, .failed:
-            return false
-        }
-    }
-}
+@_exported import AccountPrefetchGates
 
 @MainActor public final class CredentialsManager: ObservableObject {
     private let logger = Logger(label: "CredentialsManager")
@@ -155,12 +138,14 @@ public enum ZkNymPrefetchResult: Equatable, Sendable {
             ).registerAccount()
         }.value
         appSettings.accountToken = result.accountToken
-        await prepareRegisteredAccount()
+        try await prepareRegisteredAccount()
         checkCredentialImport()
 #endif
     }
 
-    public func prepareRegisteredAccount() async {
+    /// Sync summary and register device after account registration.
+    /// Failures propagate to callers (e.g. max devices, fair usage depleted).
+    public func prepareRegisteredAccount() async throws {
 #if os(iOS)
         let envOpt = configurationManager.networkEnv
         do {
@@ -172,10 +157,8 @@ public enum ZkNymPrefetchResult: Equatable, Sendable {
                     environment: env
                 ).prepareRegisteredAccount()
             }.value
-        } catch {
-            logger.error(
-                "prepareRegisteredAccount (iOS) failed \(Self.sanitizedAccountSummaryErrorLog(error))"
-            )
+        } catch let error as VpnError {
+            throw VPNErrorReason(with: error)
         }
 #endif
     }

@@ -39,8 +39,10 @@ public struct ProcessingAccountView: View {
         .task {
             await credentialsManager.updateAccountSummary(force: true, untilActive: true)
             guard !Task.isCancelled else { return }
-            if credentialsManager.isAccountActive() {
-                await credentialsManager.prefetchZkNyms()
+            if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
+                isAccountActive: credentialsManager.isAccountActive()
+            ) {
+                _ = await credentialsManager.prefetchZkNyms()
             }
         }
     }

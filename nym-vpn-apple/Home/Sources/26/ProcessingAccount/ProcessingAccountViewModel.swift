@@ -35,8 +35,10 @@ public final class ProcessingAccountViewModel {
             guard let self else { return }
             await credentialsManager.updateAccountSummary(force: true, untilActive: true)
             guard !Task.isCancelled else { return }
-            if credentialsManager.isAccountActive() {
-                await credentialsManager.prefetchZkNyms()
+            if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
+                isAccountActive: credentialsManager.isAccountActive()
+            ) {
+                _ = await credentialsManager.prefetchZkNyms()
                 guard !Task.isCancelled else { return }
             }
             didBecomeActive = true
