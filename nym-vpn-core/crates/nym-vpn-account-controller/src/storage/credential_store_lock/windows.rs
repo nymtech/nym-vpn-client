@@ -49,6 +49,17 @@ fn lock_file_handle(handle: HANDLE, non_blocking: bool) -> Result<(), Error> {
     let mut flags = LOCKFILE_EXCLUSIVE_LOCK;
     if non_blocking {
         flags |= LOCKFILE_FAIL_IMMEDIATELY;
+        // Synchronous acquire: NULL overlapped so contention surfaces as
+        // ERROR_LOCK_VIOLATION instead of ERROR_IO_PENDING.
+        let ok = unsafe { LockFileEx(handle, flags, 0, u32::MAX, u32::MAX, std::ptr::null_mut()) };
+        if ok != 0 {
+            return Ok(());
+        }
+        let err = io::Error::last_os_error();
+        if lock_contention_os_error(err.raw_os_error().unwrap_or(0)) {
+            return Err(Error::CredentialStoreBusy);
+        }
+        return Err(Error::CredentialStoreLockIo(err));
     }
 
     let mut overlapped = MaybeUninit::<OVERLAPPED>::zeroed();
@@ -71,13 +82,6 @@ fn lock_file_handle(handle: HANDLE, non_blocking: bool) -> Result<(), Error> {
     let err = io::Error::last_os_error();
     let raw = err.raw_os_error().unwrap_or(0);
 
-    if non_blocking {
-        if raw == ERROR_LOCK_VIOLATION as i32 {
-            return Err(Error::CredentialStoreBusy);
-        }
-        return Err(Error::CredentialStoreLockIo(err));
-    }
-
     if raw == ERROR_IO_PENDING as i32 {
         let mut bytes = 0u32;
         // SAFETY: overlapped was passed to LockFileEx; wait for async lock completion.
@@ -89,4 +93,28 @@ fn lock_file_handle(handle: HANDLE, non_blocking: bool) -> Result<(), Error> {
     }
 
     Err(Error::CredentialStoreLockIo(err))
+}
+
+fn lock_contention_os_error(raw: i32) -> bool {
+    raw == ERROR_LOCK_VIOLATION as i32 || raw == ERROR_IO_PENDING as i32
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn lock_violation_is_contention() {
+        assert!(lock_contention_os_error(ERROR_LOCK_VIOLATION as i32));
+    }
+
+    #[test]
+    fn io_pending_is_contention() {
+        assert!(lock_contention_os_error(ERROR_IO_PENDING as i32));
+    }
+
+    #[test]
+    fn unrelated_os_error_is_not_contention() {
+        assert!(!lock_contention_os_error(5));
+    }
 }

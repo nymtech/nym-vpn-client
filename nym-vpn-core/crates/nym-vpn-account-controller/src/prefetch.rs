@@ -118,6 +118,24 @@ pub fn map_prefetch_error_for_external(err: Error) -> PrefetchExternalError {
     }
 }
 
+/// VPN API returns this code when PocketBase has no active device row for the key.
+pub const DEVICE_NOT_AUTHENTICATED_CODE_ID: &str =
+    "nym-vpn-website.public-api.device.zk-nym.request_failed.device_not_authenticated";
+
+pub fn prefetch_api_failure_suggests_stale_device_registration(details: &str) -> bool {
+    details.contains(DEVICE_NOT_AUTHENTICATED_CODE_ID)
+        || details.contains("device_not_authenticated")
+}
+
+pub fn prefetch_error_suggests_stale_device_registration(err: &Error) -> bool {
+    match err {
+        Error::PrefetchZkNym(details) => {
+            prefetch_api_failure_suggests_stale_device_registration(details)
+        }
+        _ => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -194,6 +212,23 @@ mod tests {
             PrefetchExternalError::Internal("Device time is desynced".into())
         );
     }
+
+    #[test]
+    fn detects_device_not_authenticated_prefetch_failure() {
+        assert!(prefetch_api_failure_suggests_stale_device_registration(
+            DEVICE_NOT_AUTHENTICATED_CODE_ID
+        ));
+        assert!(prefetch_error_suggests_stale_device_registration(
+            &Error::PrefetchZkNym(DEVICE_NOT_AUTHENTICATED_CODE_ID.into())
+        ));
+    }
+
+    #[test]
+    fn unrelated_prefetch_failure_is_not_stale_device_registration() {
+        assert!(!prefetch_api_failure_suggests_stale_device_registration(
+            "503"
+        ));
+    }
 }
 
 /// Regression: UniFFI `prefetch_zk_nyms` holds the store lock before calling the
@@ -218,9 +253,8 @@ mod lock_regression {
             .expect("mnemonic"),
             mode: StoredAccountMode::Api,
         };
-        let account = Arc::new(
-            nym_vpn_api_client::types::VpnAccount::try_from(stored).expect("vpn account"),
-        );
+        let account =
+            Arc::new(nym_vpn_api_client::types::VpnAccount::try_from(stored).expect("vpn account"));
         (account, device)
     }
 
@@ -243,14 +277,9 @@ mod lock_regression {
         let _outer_lock = CredentialStoreAccessLock::try_acquire(&data_dir).expect("outer lock");
         let (account, device) = test_device_and_account();
 
-        let outcome = prefetch_zk_nyms_unlocked(
-            data_dir,
-            unreachable_api_client(),
-            account,
-            device,
-            true,
-        )
-        .await;
+        let outcome =
+            prefetch_zk_nyms_unlocked(data_dir, unreachable_api_client(), account, device, true)
+                .await;
 
         assert!(
             !matches!(outcome, Ok(PrefetchZkNymOutcome::SkippedStoreBusy)),
@@ -265,15 +294,9 @@ mod lock_regression {
         let _outer_lock = CredentialStoreAccessLock::try_acquire(&data_dir).expect("outer lock");
         let (account, device) = test_device_and_account();
 
-        let outcome = prefetch_zk_nyms(
-            data_dir,
-            unreachable_api_client(),
-            account,
-            device,
-            true,
-        )
-        .await
-        .expect("prefetch result");
+        let outcome = prefetch_zk_nyms(data_dir, unreachable_api_client(), account, device, true)
+            .await
+            .expect("prefetch result");
 
         assert_eq!(outcome, PrefetchZkNymOutcome::SkippedStoreBusy);
     }

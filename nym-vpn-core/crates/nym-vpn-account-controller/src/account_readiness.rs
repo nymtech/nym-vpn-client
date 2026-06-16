@@ -95,6 +95,21 @@ pub fn validate_active_device_time_sync(summary: &VpnAccountSummary) -> Result<(
     Ok(())
 }
 
+/// Network-first account summary read with cache fallback on transient failure.
+pub fn account_summary_after_network_error<E: Clone>(
+    network_err: E,
+    cached: Option<VpnAccountSummary>,
+    is_fatal: impl FnOnce(&E) -> bool,
+) -> Result<Option<VpnAccountSummary>, E> {
+    if is_fatal(&network_err) {
+        return Err(network_err);
+    }
+    match cached {
+        Some(summary) => Ok(Some(summary)),
+        None => Err(network_err),
+    }
+}
+
 pub async fn register_device_for_account(
     vpn_api_client: &VpnApiClient,
     account: &VpnAccount,
@@ -260,5 +275,61 @@ mod tests {
     #[test]
     fn validate_active_device_time_sync_skips_inactive_device() {
         assert!(validate_active_device_time_sync(&summary(false, 2, 0, false)).is_ok());
+    }
+
+    #[test]
+    fn post_login_setup_classifies_desynced_active_device() {
+        assert_eq!(
+            classify_local_sync(&summary(true, 1, 0, false)),
+            LocalSyncCheck::DeviceTimeDesynced
+        );
+        let err = validate_active_device_time_sync(&summary(true, 1, 0, false)).unwrap_err();
+        assert!(err.to_string().contains(DEVICE_TIME_DESYNCED));
+    }
+
+    #[test]
+    fn prefetch_registration_decision_uses_fresh_inactive_summary() {
+        let stale_cache_would_skip = summary(true, 1, 0, true);
+        let fresh_network_requires_register = summary(false, 2, 0, true);
+        assert_eq!(
+            device_registration_readiness(&stale_cache_would_skip).unwrap(),
+            DeviceRegistrationReadiness::AlreadyRegistered
+        );
+        assert_eq!(
+            device_registration_readiness(&fresh_network_requires_register).unwrap(),
+            DeviceRegistrationReadiness::MustRegister
+        );
+    }
+
+    #[test]
+    fn post_login_setup_blocks_on_fair_usage_depleted() {
+        assert_eq!(
+            classify_local_sync(&summary(false, 2, 2000, true)),
+            LocalSyncCheck::FairUsageDepleted
+        );
+    }
+
+    #[test]
+    fn account_summary_network_error_returns_cache_when_present() {
+        let cached = summary(true, 1, 0, true);
+        let result =
+            account_summary_after_network_error("network down", Some(cached.clone()), |_| false)
+                .expect("cached summary");
+        assert_eq!(result, Some(cached));
+    }
+
+    #[test]
+    fn account_summary_network_error_without_cache_propagates() {
+        let err = "network down";
+        let result = account_summary_after_network_error(err, None, |_| false);
+        assert_eq!(result, Err(err));
+    }
+
+    #[test]
+    fn account_summary_fatal_errors_skip_cache_fallback() {
+        let cached = summary(true, 1, 0, true);
+        let result =
+            account_summary_after_network_error("no account", Some(cached), |e| *e == "no account");
+        assert_eq!(result, Err("no account"));
     }
 }
