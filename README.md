@@ -1,75 +1,37 @@
-<div align="center">
+![NymVPN](https://github.com/nymtech/Nym-brand-assets/blob/main/NymVPN%20(cover).png)
 
-<img src=".github/assets/header.png" width="600"/>
+NymVPN is the most private way to be online. Open-source, cross-platform VPN client written in Rust. NymVPN routes traffic through [Nym](https://nym.com)'s decentralized mixnet for metadata-level anonymity, or over multi-hop AmneziaWG (WireGuard) for low-latency, censorship-resistant tunneling. Unlike conventional VPNs, no single node can correlate who you are with what you do.
 
-Open-source, cross-platform VPN client built with Rust that provides true privacy through decentralized mixnet technology and multi-hop censorship-resistant WireGuard tunneling.
-</div>
+# What is NymVPN?
 
-# 🚀 What is NymVPN
+A decentralized VPN (dVPN) that protects **traffic patterns, not just packet contents**. Conventional VPNs replace your ISP with a single trusted operator who can see both your IP and your destinations. NymVPN removes that trusted party:
 
-NymVPN is a privacy-focused, decentralized VPN application that goes beyond traditional VPNs by leveraging:
+- **Mixnet routing** — 5-hop onion-encrypted routing through Nym's [Noise Generating Mixnet](https://nym.com/mixnet). Anonymized packets are sent through randomized routes, mixed other packet flows and cover traffic, and timing obfuscated to defeat traffic-analysis attacks.
+- **Multi-hop WireGuard** — 2-hop AmneziaWG tunneling for performance-sensitive use, with no single node seeing both your origin IP and that of your destination on the web.
+- **Zero-knowledge credentials ([zk-nyms](https://nym.com/zk-nyms))** — authentication and payment are cryptographically unlinkable from network usage. No email or account identity is required to connect.
+- **No single point of failure** — operated by independent node operators, with no central server to compromise, subpoena, or surveil.
 
-- 🔀 [Mixnet](https://nym.com/mixnet) Technology: Anonymous 5-hop routing through Nym's decentralized network
-- ⚡ WireGuard + AmneziaWG: Fast, secure tunneling with built-in censorship resistance
-- 🛡️ Metadata Protection: Unlike traditional VPNs, protects both content AND traffic patterns (in mixnet mode)
-- 🔐 Zero-Knowledge Credentials: Private authentication using zero-knowledge [zk-nyms](https://nym.com/zk-nyms)
-- 🌍 No Single Point of Failure: Fully decentralized infrastructure
+Tech details and cryptography are documented in the [NymVPN Litepaper](https://nym.com/nymvpn-litepaper) and the [Nym Whitepaper](https://nym.com/nym-whitepaper.pdf).
 
-<div align="left">
-<img src=".github/assets/app.png" width="800"/>
-</div>
+# NymVPN Downloads
 
-<br />
-<br />
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=android&expanded=true"><img alt="Android (GitHub releases)" src=".github/assets/apk-download-badge-1745835177551.png" height="40"></a>
+<a href="https://f-droid.org/packages/net.nymtech.nymvpn/"><img alt="F-Droid" src=".github/assets/fdroid-badge.png" height="40"></a>
+<a href="https://flathub.org/apps/net.nymtech.NymVPN"><img alt="Flathub" src=".github/assets/flathub-store.svg" height="40"></a>
+<a href="https://play.google.com/store/apps/details?id=net.nymtech.nymvpn"><img alt="Google Play" src=".github/assets/play-badge.png" height="40"></a>
+<a href="https://apps.apple.com/app/id6471254143"><img alt="Apple Store" src=".github/assets/app-store-badge.svg" height="40"></a>
+<a href="https://testflight.apple.com/join/0vmRJNrL"><img alt="Apple Testflight" src=".github/assets/app-store-badge.svg" height="40"></a>
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=linux&expanded=true"><img alt="Linux" src=".github/assets/linux-badge.png" height="40"></a>
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=macos&expanded=true"><img alt="macOS" src=".github/assets/macos-badge.png" height="40"></a>
+<a href="https://github.com/nymtech/nym-vpn-client/releases?q=windows&expanded=true"><img alt="Windows" src=".github/assets/windows-badge.png" height="40"></a>
 
-<div align="left">
+# Two VPN modes
 
-[<img height="40" width="120" src=".github/assets/apk-download-badge-1745835177551.png">](https://github.com/nymtech/nym-vpn-client/releases?q=android&expanded=true)
-[<img height="40" width="120"  src=".github/assets/fdroid-badge.png">](https://f-droid.org/packages/net.nymtech.nymvpn/)
-[<img height="40" width="120" src=".github/assets/flathub-store.svg">](https://flathub.org/apps/net.nymtech.NymVPN)
-[<img height="40" width="120"  src=".github/assets/play-badge.png">](https://play.google.com/store/apps/details?id=net.nymtech.nymvpn)
-[<img height="40" width="120"  src=".github/assets/obtainium-badge.png">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22net.nymtech.nymvpn%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2Fnymtech%2Fnym-vpn-client%22%2C%22author%22%3A%22nymtech%22%2C%22name%22%3A%22NymVPN%22%2C%22preferredApkIndex%22%3A0%2C%22additionalSettings%22%3A%22%7B%5C%22includePrereleases%5C%22%3Afalse%2C%5C%22fallbackToOlderReleases%5C%22%3Atrue%2C%5C%22filterReleaseTitlesByRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22filterReleaseNotesByRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22verifyLatestTag%5C%22%3Afalse%2C%5C%22dontSortReleasesList%5C%22%3Afalse%2C%5C%22useLatestAssetDateAsReleaseDate%5C%22%3Afalse%2C%5C%22releaseTitleAsVersion%5C%22%3Afalse%2C%5C%22trackOnly%5C%22%3Afalse%2C%5C%22versionExtractionRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22matchGroupToUse%5C%22%3A%5C%22%5C%22%2C%5C%22versionDetection%5C%22%3Afalse%2C%5C%22releaseDateAsVersion%5C%22%3Afalse%2C%5C%22useVersionCodeAsOSVersion%5C%22%3Afalse%2C%5C%22apkFilterRegEx%5C%22%3A%5C%22%5C%22%2C%5C%22invertAPKFilter%5C%22%3Afalse%2C%5C%22autoApkFilterByArch%5C%22%3Atrue%2C%5C%22appName%5C%22%3A%5C%22%5C%22%2C%5C%22shizukuPretendToBeGooglePlay%5C%22%3Afalse%2C%5C%22allowInsecure%5C%22%3Afalse%2C%5C%22exemptFromBackgroundUpdates%5C%22%3Afalse%2C%5C%22skipUpdateNotifications%5C%22%3Afalse%2C%5C%22about%5C%22%3A%5C%22%5C%22%2C%5C%22refreshBeforeDownload%5C%22%3Afalse%7D%22%2C%22overrideSource%22%3Anull%7D)
-[<img height="40" width="120" src=".github/assets/app-store-badge.svg">](https://apps.apple.com/app/id6471254143)
-[<img height="40" width="120" src=".github/assets/linux-badge.png">](https://github.com/nymtech/nym-vpn-client/releases?q=linux&expanded=true)
-[<img height="40" width="120"  src=".github/assets/macos-badge.png">](https://github.com/nymtech/nym-vpn-client/releases?q=macos&expanded=true)
-[<img height="40" width="120" src=".github/assets/windows-badge.png">](https://github.com/nymtech/nym-vpn-client/releases?q=windows&expanded=true)
+Two routing modes in a single client, selectable per connection.
 
-</div>
+**Mixnet mode — 5-hop Mixnet.** Routes traffic through Nym's [mixnet](https://nym.com/mixnet): five independently operated hops with Sphinx packet format, per-hop onion encryption, packet reordering, and cover traffic. Breaks the timing and volume correlations that deanonymize traditional onion and VPN traffic. For threat models where metadata exposure matters — crypto wallets, email, private messaging.
 
-# ✨ Key Features
-
-🎯 Dual-Mode Privacy Architecture
-
-- Anonymous Mode (5-hop mixnet): Maximal anonymity thanks to Nym's Noise Generating Mixnet with added noise to protect users against even AI surveillance
-- Fast Mode (2-hop WireGuard): Decentralized 2-hop mode for faster connections and less latency thanks to WireGuard
-
-🔧 Developer-Friendly
-
-- 100% Open Source: Fully auditable codebase
-- Rust-based: Memory-safe, high-performance implementation
-- Cross-platform: Android, iOS, Linux, macOS, Windows, CLI
-
-⚙️ Power User Features
-
-- Split Tunneling: Choose per-app routing (mixnet vs WireGuard) (_coming soon_)
-- Custom Entry/Exit Selection: Choose your preferred node operators
-- Kill Switch: Automatic connection protection with data leak prevention
-- Multi-language Support: 10+ localizations with crowdsourced language support
-
-🛡️ Advanced Privacy and Security
-
-- Multi-hop by Default: No server views both your IP address and online activity
-- zk-nyms: Private zero-knowledge credential system to unlink payments data from online activity
-- No Centralized Logging: Cryptographically impossible to track users
-- Advanced Cryptographic Stack: Cure25519, AES, ChaCha20-Poly1305, BLAKE2/BLAKE3, Lioness Wide Block Cipher, Pointcheval-Sanders Signatures, Pedersen Commitments, NIZK Proofs, BLS12-381 Curve, post-quantum readiness (_coming soon_)
-- Independent Security Audits: JP Aumasson (2021), Oak Security (2022), Cryspen (2023-2024), Cure53 (2024)
-
-🌐 Censorship Resistance Technologies
-
-- AmneziaWG Integration: Bypass barriers to information access with AmneziaWG (censorship-resistance WireGuard fork)
-- Adaptive Protocols: Pluggable transport, QUIC (_coming soon_)
-
-# 🏗️ Architecture
+**Fast mode — 2-hop AmneziaWG.** A decentralized 2-hop tunnel on [AmneziaWG](https://github.com/amnezia-vpn/amneziawg-go), a censorship-resistant WireGuard fork. Lower latency for streaming and browsing, while still ensuring no single operator observes both endpoints.
 
 ```
 ┌─────────────────┐    ┌──────────────┐    ┌─────────────────┐
@@ -82,99 +44,51 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 └─────────────────┘    └──────────────┘    └─────────────────┘
 ```
 
-# 🌐 Use Cases
+# NymVPN Features
 
-For Privacy Advocates
+- Multi-hop by default — no node sees both your IP and your activity
+- zk-nym credentials unlink payment/auth data from network usage; no email or account identity required
+- No centralized logging — the multi-hop architecture makes meaningful traffic logs impractical to keep
+- Multi-layer onion encryption
+- Entry/exit node selection
+- Built-in kill switch with data-leak prevention
+- Custom DNS
+- Split tunneling to include or exclude apps from the VPN tunnel
+- Built-in ad blocking to stop ads, trackers, and malware
+- Censorship resistance via AmneziaWG, Stealth connect, and QUIC to prevent VPN blocking
 
-- Personal privacy: Protection from ISP/government surveillance
-- Journalist protection: Secure communication in hostile environments
-- Whistleblowing: Anonymous document sharing
+**Cryptographic stack:** Curve25519, AES, ChaCha20-Poly1305, BLAKE2/BLAKE3, Lioness wide-block cipher, Pointcheval-Sanders signatures, Pedersen commitments, NIZK proofs, BLS12-381, post-quantum key exchange.
 
-For Developers
+**Independent audits:** JP Aumasson (2021), Oak Security (2022), Cryspen (2023–2024), Cure53 (2024). See [Nym Audits](https://nym.com/trust-center/independently-audited).
 
-- Decentralized app integration: Privacy layer for dApps
-- Research projects: Privacy-preserving network protocols
-- Security auditing: Open-source cryptographic implementations
+# Platforms & Stack
 
-For Organizations
+This monorepo contains all NymVPN client source, separate from the Nym network [monorepo](https://github.com/nymtech/nym).
 
-- Corporate security: Enhanced privacy for remote teams
-- Censorship circumvention: Access blocked content and services
-- Compliance: GDPR-friendly privacy infrastructure
+| Component | Path | Stack |
+|---|---|---|
+| Core VPN engine | `nym-vpn-core` | Rust |
+| Android | `nym-vpn-android` | Kotlin |
+| iOS / macOS | `nym-vpn-apple` | SwiftUI |
+| Linux / Windows (desktop) | `nym-vpn-app`, `nym-vpn-windows` | Tauri + TypeScript |
+| WireGuard integration | `wireguard` | Rust / C |
 
-# 🔬 Research Foundation & Academic Partnerships
+# Contributing
 
-Peer-Reviewed Research ([50+ Publications](https://nym.com/trust-center/papers-and-research))
+Contributions welcome across the stack: Rust core (networking, crypto, protocols), mobile (Kotlin/SwiftUI), desktop (SwiftUI/Tauri), protocol research, and security review. See the [Contribution Guide](https://github.com/nymtech/nym-vpn-client/blob/develop/CONTRIBUTING.md), [Code of Conduct](https://github.com/nymtech/nym-vpn-client/blob/develop/CODE_OF_CONDUCT.md), and [Security Policy](https://github.com/nymtech/nym-vpn-client/blob/develop/SECURITY.md). Localization is crowdsourced via [Crowdin](https://crowdin.com/editor/nymvpn-apps).
 
-Academic Partnerships
+# Resources
 
-- [KU Leuven (COSIC Research Group)](https://www.esat.kuleuven.be/cosic/): Privacy, performance, and hardware optimization
-- [EPFL (SPRING Lab)](https://spring.epfl.ch): Network security and sophisticated attack analysis
-- [Cryspen](https://cryspen.com): Formal verification and post-quantum cryptography
+[Litepaper](https://nym.com/nymvpn-litepaper) · [Whitepaper](https://nym.com/nym-whitepaper.pdf) · [Roadmap](https://nym.com/blog/nym-roadmap-2026) · [Audits](https://nym.com/trust-center/independently-audited) · [Trust Center](https://nym.com/trust-center) · [Blog](https://nym.com/blog)
 
-Advisory Board with multiple industry awards (Levchin Prize, BCS Lovelace Medal)
+# Licensing & Acknowledgements
 
-# 📚 Documentation & Resources
+GPL-3.0. ©2018–2026 Nym Technologies SA ([contact@nymtech.net](mailto:contact@nymtech.net)). Built with [adblock-rust](https://github.com/brave/adblock-rust/), [Mullvad's open-source libraries](https://github.com/mullvad/mullvadvpn-app/) (local routing, wireguard-go wrapping), [AmneziaWG wg-go](https://github.com/amnezia-vpn/amneziawg-go), and [WireGuard](https://github.com/WireGuard).
 
-- 🛡️ [The NymVPN Litepaper](https://nym.com/nymvpn-litepaper)
-- ♟️ [NymVPN public roadmap](https://trello.com/b/qVhBo3e2/nymvpn-public-roadmap)
-- 👀 [NymVPN Signals of Trustworthy VPNs](https://nym.com/trust-center/signals-of-trustworthy-vpns)
-- 🌐 [Nym Crowdsouced Localization](https://crowdin.com/editor/nymvpn-apps)
+# Community
 
-- 🙏 [Nym's Help Center](https://support.nym.com/hc/en-us)
-- 🏡 [Nym Forum](https://forum.nym.com)
-- 🍀 [Nym's Trust Center](https://nym.com/trust-center)
-- 🔬 [Nym Audits](https://nym.com/trust-center/independently-audited)
-- 🧪 [Nym Research Papers](https://nym.com/trust-center/papers-and-research)
-- 🔐 [Nym Cryptography](https://nym.com/trust-center/cryptography)
-
-- 💡 [The Nym Network Whitepaper](https://nym.com/nym-whitepaper.pdf)
-- 📣 [Nym's blog](https://nym.com/en/blog).
-
-# 🤝 Contributing
-
-We welcome contributions from developers passionate about privacy, decentralization, and open-source software! This monorepo contains all of our source code for our NymVPN client apps (iOS / Android / Linux / macOS / Windows / CLI), separate from the Nym network [monorepo](https://github.com/nymtech/nym).
-
-Development Areas
-
-- Rust core development: Networking, cryptography, protocols
-- Mobile development: Kotlin (Android), SwiftUI (iOS)
-- Desktop applications: SwiftUI (macOS), Tauri (Linux, Windows)
-- Protocol research: Mixnet improvements, censorship resistance
-- Security auditing: Code review, vulnerability research, pen tests
-
-Check our [Contribution Guide](CONTRIBUTING.md).
-
-# 🏷️ Topics & Keywords
-
-- Privacy & Security: `privacy-tools` `privacy-enhancing tech` `security` `encryption` `zero-knowledge` `anonymity` `surveillance-resistance` `cryptography`
-- Networking: `vpn` `dvpn` `wireguard` `amneziawg` `mixnet` `decentralized-network` `censorship-resistance`
-- Development: `rust` `open-source` `kotlin` `swiftui`
-- Protocols: `sphinx` `onion-routing` `distributed-systems` `network-privacy`
-
-# ©️ Licensing and copyright information
-
-- ©2018-2026 Nym Technologies SA (contact@nymtech.net). Nym Technologies SA. Nym and NymVPN is made possible by [Adblock-rust](https://github.com/brave/adblock-rust/) and other [open source](https://opensource.org/osd) and [free software](https://www.gnu.org/philosophy/free-sw.en.html).
-
-# 😍 Acknowledgements
-
-- [Mullvad open source libraries](https://github.com/mullvad/mullvadvpn-app/) to handle setting up local routing and wrapping wireguard-go.
-- [AmneziaWG wg-go open source library](https://github.com/amnezia-vpn/amneziawg-go) to help prevent censorship of WireGuard.
-- [WireGuard](https://github.com/WireGuard)
-- [ablock-rust](https://github.com/brave/adblock-rust) to power our ad-blocking features.
-
-# ⛓️ Community
-
-Connect with the community on our socials.
-
-<div align="left">
-
-[<img  src="https://img.shields.io/badge/Telegram-26A5E4.svg?style=for-the-badge&logo=Telegram&logoColor=white">](https://nym.com/go/telegram)
-[<img src="https://img.shields.io/badge/Matrix-000000.svg?style=for-the-badge&logo=Matrix&logoColor=white">](https://nym.com/go/matrix)
-[<img  src="https://img.shields.io/badge/YouTube-FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white">](https://nym.com/go/youtube)
-[<img src="https://img.shields.io/badge/Discord-5865F2.svg?style=for-the-badge&logo=Discord&logoColor=white">](https://nym.com/go/discord)
-[<img  src="https://img.shields.io/badge/X-000000.svg?style=for-the-badge&logo=X&logoColor=white">](https://nym.com/go/x)
-</div>
-
-
-Building the future of private, decentralized internet infrastructure - one commit at a time. 🚀
+[![Telegram](https://img.shields.io/badge/Telegram-26A5E4.svg?style=for-the-badge&logo=Telegram&logoColor=white)](https://nym.com/go/telegram)
+[![Matrix](https://img.shields.io/badge/Matrix-000000.svg?style=for-the-badge&logo=Matrix&logoColor=white)](https://nym.com/go/matrix)
+[![YouTube](https://img.shields.io/badge/YouTube-FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://nym.com/go/youtube)
+[![Discord](https://img.shields.io/badge/Discord-5865F2.svg?style=for-the-badge&logo=Discord&logoColor=white)](https://nym.com/go/discord)
+[![X](https://img.shields.io/badge/X-000000.svg?style=for-the-badge&logo=X&logoColor=white)](https://nym.com/go/x)
