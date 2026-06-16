@@ -91,6 +91,9 @@ export type StateAction =
   | { type: 'set-account-summary'; summary: TAccountSummary | null }
   | { type: 'set-enable-split-tunnel'; enabled: boolean }
   | { type: 'set-split-tunnel-apps'; apps: SplitApp[] }
+  | { type: 'set-geo-exclusion-enabled'; enabled: boolean }
+  | { type: 'set-geo-exclusion-listen-port'; port: number }
+  | { type: 'set-geo-exclusion-excluded-countries'; countries: string[] }
   | {
       type: 'set-gateway-selection-algorithm-config';
       config: GatewaySelectionAlgorithmConfig;
@@ -157,6 +160,7 @@ export const initialState: AppState = {
     allContinuousTraffic: [],
   },
   splitTunnel: { enabled: false, apps: [] },
+  geoExclusion: { enabled: false, listenPort: 1080, excludedCountries: ['CN'] },
   gatewaySelectionAlgorithmConfig: {
     enableGeoLocation: true,
     gatewaySelectionAlgorithm: 'explicit',
@@ -231,6 +235,7 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
           mixnetTrafficDefaults: action.config.mixnetTrafficDefaults,
           enableAdBlocking: action.config.enableAdBlocking,
           splitTunnel: action.config.splitTunnel,
+          geoExclusion: action.config.geoExclusion,
           gatewaySelectionAlgorithmConfig:
             action.config.gatewaySelectionAlgorithmConfig,
         });
@@ -484,6 +489,27 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-split-tunnel-apps':
         set((s) => ({ splitTunnel: { ...s.splitTunnel, apps: action.apps } }));
+        break;
+
+      case 'set-geo-exclusion-enabled':
+        set((s) => ({
+          geoExclusion: { ...s.geoExclusion, enabled: action.enabled },
+        }));
+        break;
+
+      case 'set-geo-exclusion-listen-port':
+        set((s) => ({
+          geoExclusion: { ...s.geoExclusion, listenPort: action.port },
+        }));
+        break;
+
+      case 'set-geo-exclusion-excluded-countries':
+        set((s) => ({
+          geoExclusion: {
+            ...s.geoExclusion,
+            excludedCountries: action.countries,
+          },
+        }));
         break;
 
       case 'set-gateway-selection-algorithm-config':

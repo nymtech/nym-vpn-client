@@ -13,5 +13,6 @@ export { default as useScore } from './useScore';
 export { default as useDeepLink } from './useDeepLink';
 export { default as useLogout } from './useLogout';
 export { default as useToast } from './useToast';
+export { default as useDebounce } from './useDebounce';
 
 export * from './useToast';

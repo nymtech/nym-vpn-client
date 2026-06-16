@@ -449,3 +449,33 @@ pub async fn set_enable_geo_location(
     vpnd.set_enable_geo_location(enabled).await?;
     Ok(())
 }
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_geo_exclusion_enabled(
+    vpnd: State<'_, VpndClient>,
+    enabled: bool,
+) -> Result<(), BackendError> {
+    vpnd.set_geo_exclusion_enabled(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_geo_exclusion_listen_port(
+    vpnd: State<'_, VpndClient>,
+    port: u16,
+) -> Result<(), BackendError> {
+    vpnd.set_geo_exclusion_listen_port(port).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_geo_exclusion_excluded_countries(
+    vpnd: State<'_, VpndClient>,
+    countries: Vec<String>,
+) -> Result<(), BackendError> {
+    vpnd.set_geo_exclusion_excluded_countries(countries).await?;
+    Ok(())
+}

@@ -1112,4 +1112,40 @@ impl VpndClient {
             .or_else(async |e| self.handle_rpc_error("set_enable_geo_location", e).await)
             .await
     }
+
+    #[instrument(skip_all)]
+    pub async fn set_geo_exclusion_enabled(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_geo_exclusion_enabled(enabled)
+            .or_else(async |e| self.handle_rpc_error("set_geo_exclusion_enabled", e).await)
+            .await
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_geo_exclusion_listen_port(&self, port: u16) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_geo_exclusion_listen_port(port)
+            .or_else(async |e| {
+                self.handle_rpc_error("set_geo_exclusion_listen_port", e)
+                    .await
+            })
+            .await
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_geo_exclusion_excluded_countries(
+        &self,
+        countries: Vec<String>,
+    ) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_geo_exclusion_excluded_countries(countries)
+            .or_else(async |e| {
+                self.handle_rpc_error("set_geo_exclusion_excluded_countries", e)
+                    .await
+            })
+            .await
+    }
 }

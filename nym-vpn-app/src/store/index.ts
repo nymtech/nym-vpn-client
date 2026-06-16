@@ -40,6 +40,7 @@ export function initMainStore(init: InitState): void {
     mixnetTrafficConfig: init.mixnetTrafficConfig,
     mixnetTrafficDefaults: init.mixnetTrafficDefaults,
     splitTunnel: init.splitTunnel,
+    geoExclusion: init.geoExclusion,
     gatewaySelectionAlgorithmConfig: init.gatewaySelectionAlgorithmConfig,
     frontingMode: init.frontingMode,
   });
@@ -95,6 +96,7 @@ export const useMainState = (): AppState =>
       mixnetTrafficConfig: s.mixnetTrafficConfig,
       mixnetTrafficDefaults: s.mixnetTrafficDefaults,
       splitTunnel: s.splitTunnel,
+      geoExclusion: s.geoExclusion,
       gatewaySelectionAlgorithmConfig: s.gatewaySelectionAlgorithmConfig,
       frontingMode: s.frontingMode,
     })),

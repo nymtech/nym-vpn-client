@@ -10,6 +10,7 @@ import { Routes, UiTheme } from '../types';
 import { ActionMenu } from '../screens';
 import { useSystemTheme } from '../state';
 import { useAppStore } from '../store';
+import BetaPill from './BetaPill';
 import { ButtonIconNew } from './ButtonIcon';
 import { StaggeredText } from './StaggeredText';
 
@@ -176,6 +177,25 @@ export default function TopBar() {
         rightIcon: 'info',
         handleRightNav: () => {
           show('split-tunneling-info');
+        },
+      },
+      '/settings/geo-exclusion': {
+        title: (
+          <span className="flex items-center gap-2">
+            {t('geo-exclusion.title', { ns: 'settings' })}
+            <BetaPill />
+          </span>
+        ),
+        leftIcon: 'keyboard_arrow_left',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
+      '/settings/geo-exclusion/setup-instructions': {
+        title: t('geo-exclusion.setup-instructions.title', { ns: 'settings' }),
+        leftIcon: 'keyboard_arrow_left',
+        handleLeftNav: () => {
+          navigate(-1);
         },
       },
       '/settings/anti-censorship': {

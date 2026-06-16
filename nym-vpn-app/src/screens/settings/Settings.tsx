@@ -5,7 +5,7 @@ import { useAutostart, useDesktopNotifications, useToast } from '../../hooks';
 import { routes } from '../../router';
 import { dispatch, useMainState } from '../../store';
 import { useExit } from '../../state';
-import { Button, MsIcon, PageAnim, Switch } from '../../ui';
+import { BetaPill, Button, MsIcon, PageAnim, Switch } from '../../ui';
 import { AccountSettingRow } from './account';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
@@ -137,6 +137,15 @@ function Settings() {
               navigate(routes.splitTunneling, {
                 state: { resetScroll: true },
               }),
+            trailing: (
+              <MsIcon icon="chevron_right" className="text-text-primary" />
+            ),
+          },
+          {
+            title: t('geo-exclusion.title'),
+            titleTrailing: <BetaPill />,
+            leadingIcon: 'public',
+            onClick: () => navigate(routes.geoExclusion),
             trailing: (
               <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
