@@ -35,6 +35,7 @@ public struct SettingsListItem: View {
                     viewModel.action()
                 }
                 HStack(spacing: 0) {
+                    optionalBadge()
                     optionalAccessoryImage()
                     optionalToggleView()
                 }
@@ -126,6 +127,14 @@ private extension SettingsListItem {
                     .foregroundStyle(Color.Nym.textSecondary)
                     .nymTextStyle(.bodySmall)
             }
+        }
+    }
+
+    @ViewBuilder
+    func optionalBadge() -> some View {
+        if let badge = viewModel.badge {
+            BetaBadge(text: badge, action: viewModel.action)
+                .padding(.trailing, NymSpacing.large)
         }
     }
 

@@ -72,6 +72,17 @@ struct SettingsFlowCoordinator<Content: View>: View {
             appModeDestination()
         case .daemonEnable:
             DaemonInstallView(isServing: $grpcManager.isServing, path: $flowState.path)
+        case .geoExclusion:
+            GeoExclusionView(
+                viewModel: GeoExclusionViewModel(
+                    path: $flowState.path,
+                    connectionManager: .shared,
+                    grpcManager: .shared,
+                    impactGenerator: .shared
+                )
+            )
+        case let .geoExclusionSetup(port: port):
+            GeoExclusionInstructionsView(path: $flowState.path, listenPort: port)
         case .splitTunnel:
             SplitTunnelView(path: $flowState.path)
         case .diagnosticTool:

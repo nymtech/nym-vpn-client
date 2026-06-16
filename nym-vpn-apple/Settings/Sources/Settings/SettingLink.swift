@@ -29,6 +29,8 @@ public enum SettingLink: Hashable, Identifiable {
     case proxy
     case appMode
     case daemonEnable
+    case geoExclusion
+    case geoExclusionSetup(port: UInt16)
     case splitTunnel
     case diagnosticTool
 #endif

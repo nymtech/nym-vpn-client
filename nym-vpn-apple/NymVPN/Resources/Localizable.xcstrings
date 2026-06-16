@@ -13608,6 +13608,17 @@
         }
       }
     },
+    "general.beta" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta"
+          }
+        }
+      }
+    },
     "general.on" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -28675,6 +28686,237 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App & Wallet proxy (beta)"
+          }
+        }
+      }
+    },
+    "geoExclusion.addRegion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add region"
+          }
+        }
+      }
+    },
+    "geoExclusion.betaNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta version: China only for now. More regions coming."
+          }
+        }
+      }
+    },
+    "geoExclusion.china" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "China"
+          }
+        }
+      }
+    },
+    "geoExclusion.customPort" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom port"
+          }
+        }
+      }
+    },
+    "geoExclusion.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected."
+          }
+        }
+      }
+    },
+    "geoExclusion.enable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Geo Exclusion"
+          }
+        }
+      }
+    },
+    "geoExclusion.excludedRegions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluded regions"
+          }
+        }
+      }
+    },
+    "geoExclusion.failedToStart" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geo Exclusion couldn't start. Reconnect and try again."
+          }
+        }
+      }
+    },
+    "geoExclusion.port.forbidden" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Port %@ is forbidden. Choose another."
+          }
+        }
+      }
+    },
+    "geoExclusion.port.outOfRange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Port must be between 1024 and 65535."
+          }
+        }
+      }
+    },
+    "geoExclusion.portRange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1024–65535"
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Works with any app that supports SOCKS5 in its network settings."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.proxyAddress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy address"
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.step1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy the SOCKS5 port."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.step2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open your app's proxy or network settings."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.step3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set proxy to 127.0.0.1 with the copied port."
+          }
+        }
+      }
+    },
+    "geoExclusion.setupInstructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setup instructions"
+          }
+        }
+      }
+    },
+    "geoExclusion.socks5Port" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOCKS5 port"
+          }
+        }
+      }
+    },
+    "geoExclusion.warning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traffic to excluded regions bypasses the VPN."
+          }
+        }
+      }
+    },
+    "settings.geoExclusion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geo Exclusion"
+          }
+        }
+      }
+    },
+    "settings.geoExclusion.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Specific IP ranges connect directly"
           }
         }
       }

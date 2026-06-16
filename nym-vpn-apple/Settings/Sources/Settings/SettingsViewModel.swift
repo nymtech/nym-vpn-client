@@ -171,6 +171,11 @@ private extension SettingsViewModel {
     }
 
 #if os(macOS)
+    func navigateToGeoExclusion() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.geoExclusion)
+    }
+
     func navigateToSplitTunneling() {
         impactGenerator.softImpact()
         path.append(SettingLink.splitTunnel)
@@ -420,6 +425,18 @@ private extension SettingsViewModel {
             )
         )
 #if os(macOS)
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.geoExclusion".localizedString,
+                subtitle: "settings.geoExclusion.subtitle".localizedString,
+                imageName: "pin",
+                badge: "general.beta".localizedString,
+                action: { [weak self] in
+                    self?.navigateToGeoExclusion()
+                }
+            )
+        )
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
