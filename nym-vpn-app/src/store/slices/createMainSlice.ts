@@ -135,7 +135,6 @@ export const initialState: AppState = {
     quic: false,
     domainFronting: false,
     zknymCredential: false,
-    mixnetTuning: false,
   },
   customDnsEnabled: false,
   customDns: [],

@@ -144,7 +144,6 @@ export type FeatureFlags = {
   quic: boolean;
   domainFronting: boolean;
   zknymCredential: boolean;
-  mixnetTuning: boolean;
 };
 
 export type FrontingMode = 'off' | 'onRetry' | 'always';
