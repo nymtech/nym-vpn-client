@@ -1099,6 +1099,7 @@ async fn test_service_config_serialize_full() {
             different_node_family: true,
             different_asn: true,
             different_subnet: true,
+            ..Default::default()
         },
     };
     run_serialize_test(config).await;

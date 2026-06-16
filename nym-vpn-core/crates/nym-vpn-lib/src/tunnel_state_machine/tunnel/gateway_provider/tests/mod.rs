@@ -204,6 +204,7 @@ pub fn default_tunnel_settings() -> TunnelSettings {
             different_asn: false,
             different_node_family: false,
             different_subnet: false,
+            ..Default::default()
         },
     }
 }
