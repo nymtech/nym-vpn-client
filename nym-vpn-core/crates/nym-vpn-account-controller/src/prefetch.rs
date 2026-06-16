@@ -56,6 +56,22 @@ pub async fn prefetch_zk_nyms(
         Err(err) => return Err(err),
     };
 
+    prefetch_zk_nyms_unlocked(data_dir, vpn_api_client, account, device, fair_usage_left).await
+}
+
+/// Fetch and store zk-nyms when the caller already holds
+/// [`CredentialStoreAccessLock`] for `data_dir`.
+///
+/// Used by UniFFI account storage (`NymVpnAccountStorage::prefetch_zk_nyms`), which
+/// acquires the lock once for the whole operation. Do not call this without holding
+/// the lock unless no other accessor can touch `data_dir`.
+pub async fn prefetch_zk_nyms_unlocked(
+    data_dir: PathBuf,
+    vpn_api_client: VpnApiClient,
+    account: Arc<VpnAccount>,
+    device: Device,
+    fair_usage_left: bool,
+) -> Result<PrefetchZkNymOutcome, Error> {
     let storage = VpnCredentialStorage::setup_from_path(&data_dir).await?;
     // Retain a handle to close the pool after the fetch (controller.rs:106, controller.rs:249).
     let storage_for_close = storage.clone();
@@ -177,5 +193,88 @@ mod tests {
             map_prefetch_error_for_external(Error::internal("Device time is desynced")),
             PrefetchExternalError::Internal("Device time is desynced".into())
         );
+    }
+}
+
+/// Regression: UniFFI `prefetch_zk_nyms` holds the store lock before calling the
+/// controller helper. A second nonblocking acquire in the same process must not
+/// make prefetch a silent no-op.
+#[cfg(all(test, unix))]
+mod lock_regression {
+    use super::*;
+    use crate::storage::CredentialStoreAccessLock;
+    use nym_vpn_api_client::types::Device;
+    use nym_vpn_lib_types::{StorableAccount, StoredAccountMode};
+    use nym_vpn_store::keys::device::DeviceKeys;
+    use tempfile::tempdir;
+
+    fn test_device_and_account() -> (Arc<nym_vpn_api_client::types::VpnAccount>, Device) {
+        let device_keys = DeviceKeys::generate_new(&mut rand::thread_rng());
+        let device = Device::from(device_keys.device_keypair().clone());
+        let stored = StorableAccount {
+            mnemonic: bip39::Mnemonic::parse(
+                "dash hungry rate famous lesson march suit refuse excite soul faith bid buddy tortoise melody advice dirt coffee fluid sure air decrease cargo work",
+            )
+            .expect("mnemonic"),
+            mode: StoredAccountMode::Api,
+        };
+        let account = Arc::new(
+            nym_vpn_api_client::types::VpnAccount::try_from(stored).expect("vpn account"),
+        );
+        (account, device)
+    }
+
+    fn unreachable_api_client() -> nym_vpn_api_client::VpnApiClient {
+        let urls = nym_network_defaults::ApiUrl {
+            url: "http://127.0.0.1:1".to_string(),
+            front_hosts: None,
+        };
+        nym_vpn_api_client::VpnApiClient::new(
+            nym_vpn_api_client::api_urls_to_urls(&[urls]).expect("urls"),
+            None,
+        )
+        .expect("client")
+    }
+
+    #[tokio::test]
+    async fn unlocked_prefetch_does_not_reacquire_store_lock() {
+        let dir = tempdir().expect("tempdir");
+        let data_dir = dir.path().to_path_buf();
+        let _outer_lock = CredentialStoreAccessLock::try_acquire(&data_dir).expect("outer lock");
+        let (account, device) = test_device_and_account();
+
+        let outcome = prefetch_zk_nyms_unlocked(
+            data_dir,
+            unreachable_api_client(),
+            account,
+            device,
+            true,
+        )
+        .await;
+
+        assert!(
+            !matches!(outcome, Ok(PrefetchZkNymOutcome::SkippedStoreBusy)),
+            "unlocked prefetch must not fail with SkippedStoreBusy while outer lock is held"
+        );
+    }
+
+    #[tokio::test]
+    async fn public_prefetch_returns_busy_when_lock_already_held() {
+        let dir = tempdir().expect("tempdir");
+        let data_dir = dir.path().to_path_buf();
+        let _outer_lock = CredentialStoreAccessLock::try_acquire(&data_dir).expect("outer lock");
+        let (account, device) = test_device_and_account();
+
+        let outcome = prefetch_zk_nyms(
+            data_dir,
+            unreachable_api_client(),
+            account,
+            device,
+            true,
+        )
+        .await
+        .expect("prefetch result");
+
+        assert_eq!(outcome, PrefetchZkNymOutcome::SkippedStoreBusy);
     }
 }

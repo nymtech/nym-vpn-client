@@ -38,7 +38,8 @@ pub use error::Error;
 pub use event_sender::AccountControllerEventSender;
 pub use nyxd_client::NyxdClient;
 pub use prefetch::{
-    PrefetchExternalError, PrefetchZkNymOutcome, map_prefetch_error_for_external, prefetch_zk_nyms,
+    PrefetchExternalError, PrefetchZkNymOutcome, map_prefetch_error_for_external,
+    prefetch_zk_nyms, prefetch_zk_nyms_unlocked,
 };
 pub use state_receiver::AccountStateReceiver;
 pub use storage::{CredentialStoreAccessLock, remove_files_for_account};
