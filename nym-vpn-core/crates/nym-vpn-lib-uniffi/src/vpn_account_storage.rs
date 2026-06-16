@@ -544,9 +544,7 @@ impl NymVpnAccountStorage {
             summary,
             move |summary| {
                 let data_dir = data_dir.clone();
-                async move {
-                    persist_summary_via_client_storage(&data_dir, summary).await
-                }
+                async move { persist_summary_via_client_storage(&data_dir, summary).await }
             },
             move || {
                 let resync_client = resync_client.clone();
