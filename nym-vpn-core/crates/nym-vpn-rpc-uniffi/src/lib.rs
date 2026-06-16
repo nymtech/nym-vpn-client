@@ -136,6 +136,33 @@ impl RpcClient {
         Ok(())
     }
 
+    pub async fn set_geo_exclusion_enabled(&self, enabled: bool) -> Result<()> {
+        self.inner
+            .clone()
+            .set_geo_exclusion_enabled(enabled)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn set_geo_exclusion_listen_port(&self, listen_port: u16) -> Result<()> {
+        self.inner
+            .clone()
+            .set_geo_exclusion_listen_port(listen_port)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn set_geo_exclusion_excluded_countries(
+        &self,
+        excluded_countries: Vec<String>,
+    ) -> Result<()> {
+        self.inner
+            .clone()
+            .set_geo_exclusion_excluded_countries(excluded_countries)
+            .await?;
+        Ok(())
+    }
+
     pub async fn set_enable_gateway_independence(
         &self,
         enable_gateway_independence: bool,
