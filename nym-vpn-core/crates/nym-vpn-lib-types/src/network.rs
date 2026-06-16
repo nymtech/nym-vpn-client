@@ -24,7 +24,6 @@ pub struct NymNetworkDetails {
     pub chain_details: ChainDetails,
     pub endpoints: Vec<ValidatorDetails>,
     pub contracts: NymContracts,
-    pub nym_vpn_api_url: Option<String>,
     pub nym_api_urls: Option<Vec<ApiUrl>>,
     pub nym_vpn_api_urls: Option<Vec<ApiUrl>>,
 }
@@ -408,7 +407,6 @@ impl From<nym_vpn_network_config::NymNetworkDetails> for NymNetworkDetails {
                 .map(ValidatorDetails::from)
                 .collect(),
             contracts: NymContracts::from(value.contracts),
-            nym_vpn_api_url: value.nym_vpn_api_url,
             nym_api_urls: value
                 .nym_api_urls
                 .map(|v| v.into_iter().map(ApiUrl::from).collect::<Vec<_>>()),

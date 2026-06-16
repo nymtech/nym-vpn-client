@@ -99,7 +99,6 @@ impl TryFrom<proto::NymNetworkDetails> for nym_vpn_lib_types::NymNetworkDetails 
             chain_details,
             endpoints,
             contracts,
-            nym_vpn_api_url: details.nym_vpn_api_url,
             nym_api_urls: Some(nym_api_urls),
             nym_vpn_api_urls: Some(nym_vpn_api_urls),
         })
@@ -222,7 +221,6 @@ impl From<nym_vpn_lib_types::NymNetworkDetails> for proto::NymNetworkDetails {
             chain_details: Some(nym_network.chain_details.into()),
             endpoints,
             contracts: Some(nym_network.contracts.into()),
-            nym_vpn_api_url: nym_network.nym_vpn_api_url,
             nym_api_urls,
             nym_vpn_api_urls,
         }
