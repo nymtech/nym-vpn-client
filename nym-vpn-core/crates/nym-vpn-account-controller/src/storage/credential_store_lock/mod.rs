@@ -7,6 +7,8 @@
 //! same on-disk credential DB. An advisory flock on a dedicated lock file
 //! enforces temporal exclusion without relying on caller discipline alone.
 
+mod ensure;
+
 #[cfg(unix)]
 mod unix;
 #[cfg(windows)]
@@ -35,5 +37,17 @@ mod tests {
         let _first = CredentialStoreAccessLock::try_acquire(dir.path()).expect("first lock");
         let second = CredentialStoreAccessLock::try_acquire(dir.path());
         assert!(matches!(second, Err(Error::CredentialStoreBusy)));
+    }
+
+    #[test]
+    fn try_acquire_succeeds_when_nested_directory_missing() {
+        let parent = tempdir().expect("tempdir");
+        let nested = parent.path().join("sandbox");
+        assert!(!nested.exists());
+
+        let lock = CredentialStoreAccessLock::try_acquire(&nested).expect("nested lock");
+        drop(lock);
+
+        assert!(nested.join("credential_store_access.lock").is_file());
     }
 }
