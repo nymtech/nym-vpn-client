@@ -281,7 +281,12 @@ let package = Package(
         ),
         .testTarget(
             name: "CredentialsManagerTests",
-            dependencies: ["AccountPrefetchGates"],
+            dependencies: [
+                "AccountPrefetchGates",
+                "CredentialsManager",
+                .product(name: "ErrorHandler", package: "ServicesIOS"),
+                .product(name: "NymVPNLib", package: "NymVPNLib")
+            ],
             path: "Tests/CredentialsManagerTests"
         )
     ]

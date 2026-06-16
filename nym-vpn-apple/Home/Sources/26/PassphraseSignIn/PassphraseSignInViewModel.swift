@@ -3,6 +3,9 @@ import SwiftUI
 import CredentialsManager
 import SnackbarManager
 import Theme
+#if os(iOS)
+import ErrorHandler
+#endif
 
 @MainActor
 @Observable
@@ -46,6 +49,15 @@ public final class PassphraseSignInViewModel {
                 submissionState = .idle
             } catch is CancellationError {
                 // Cancelled — keep current state.
+            } catch let error as VPNErrorReason {
+                submissionState = .failed
+                SnackbarManager.shared.enqueue(
+                    SnackbarItem(
+                        style: .critical,
+                        title: "error".localizedString,
+                        message: error.localizedDescription
+                    )
+                )
             } catch {
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(

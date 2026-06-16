@@ -1,6 +1,9 @@
 import Foundation
 import SwiftUI
 import CredentialsManager
+#if os(iOS)
+import ErrorHandler
+#endif
 
 @MainActor
 @Observable
@@ -29,7 +32,7 @@ public final class GeneratePassphraseViewModel {
             guard let self else { return }
             defer { self.isRegistering = false }
             do {
-                if !credentialsManager.isValidCredentialImported {
+                if !(await credentialsManager.isAccountStored()) {
                     try await credentialsManager.createMnemonic()
                 }
                 onWillRegister?()
@@ -37,6 +40,9 @@ public final class GeneratePassphraseViewModel {
                 didRegisterAccount = true
             } catch is CancellationError {
                 return
+            } catch let error as VPNErrorReason {
+                didRegisterAccount = false
+                errorMessage = error.localizedDescription
             } catch {
                 didRegisterAccount = false
                 errorMessage = error.localizedDescription

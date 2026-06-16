@@ -190,6 +190,7 @@ import GRPCManager
     func handleCredentialChange(imported: Bool) {
         guard let current = drawerContent else { return }
         if imported {
+            guard credentialsManager.accountToken != nil else { return }
             guard current.allowsCredentialPromotion else { return }
             startProcessingTransition()
         } else {

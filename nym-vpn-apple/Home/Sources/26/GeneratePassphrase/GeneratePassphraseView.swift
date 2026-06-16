@@ -42,7 +42,10 @@ public struct GeneratePassphraseView: View {
                 set: { if !$0 { viewModel.dismissError() } }
             )
         ) {
-            Button("retry".localizedString, role: .cancel) {
+            Button("ok".localizedString, role: .cancel) {
+                viewModel.dismissError()
+            }
+            Button("retry".localizedString) {
                 viewModel.retry()
             }
         }
