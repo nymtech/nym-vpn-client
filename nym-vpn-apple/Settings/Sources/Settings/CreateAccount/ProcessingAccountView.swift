@@ -41,7 +41,7 @@ public struct ProcessingAccountView: View {
         .task {
             let credentials = credentialsManager
             _ = await AccountPrefetchOrchestrator.runProcessingFlow(
-                isAccountActive: { credentials.isAccountActive() },
+                isAccountActive: { await credentials.isAccountActive() },
                 updateAccountSummary: {
                     await credentials.updateAccountSummary(force: true, untilActive: true)
                 },

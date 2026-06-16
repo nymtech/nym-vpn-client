@@ -81,12 +81,12 @@ public enum AccountPrefetchOrchestrator: Sendable {
     }
 
     public static func runProcessingFlow(
-        isAccountActive: @Sendable () -> Bool,
+        isAccountActive: @Sendable () async -> Bool,
         updateAccountSummary: @Sendable () async -> Void,
         prefetchZkNyms: @Sendable () async -> ZkNymPrefetchResult
     ) async -> ProcessingOutcome {
         await updateAccountSummary()
-        guard shouldPrefetchAfterSummarySync(isAccountActive: isAccountActive()) else {
+        guard shouldPrefetchAfterSummarySync(isAccountActive: await isAccountActive()) else {
             return ProcessingOutcome(didSyncSummary: true, prefetchResult: nil)
         }
         let prefetch = await prefetchZkNyms()
@@ -95,7 +95,7 @@ public enum AccountPrefetchOrchestrator: Sendable {
 
     public static func runBackgroundRefresh(
         isCredentialImported: Bool,
-        isAccountActive: @Sendable () -> Bool,
+        isAccountActive: @Sendable () async -> Bool,
         updateAccountSummary: @Sendable () async -> Void,
         prefetchZkNyms: @Sendable () async -> ZkNymPrefetchResult
     ) async -> BackgroundOutcome {
@@ -107,7 +107,7 @@ public enum AccountPrefetchOrchestrator: Sendable {
             )
         }
         await updateAccountSummary()
-        guard shouldPrefetchAfterSummarySync(isAccountActive: isAccountActive()) else {
+        guard shouldPrefetchAfterSummarySync(isAccountActive: await isAccountActive()) else {
             return BackgroundOutcome(
                 skipReason: .inactiveAfterSummarySync,
                 didSyncSummary: true,

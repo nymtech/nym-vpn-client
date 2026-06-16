@@ -35,7 +35,7 @@ public final class ProcessingAccountViewModel {
             guard let self else { return }
             let credentials = credentialsManager
             _ = await AccountPrefetchOrchestrator.runProcessingFlow(
-                isAccountActive: { credentials.isAccountActive() },
+                isAccountActive: { await credentials.isAccountActive() },
                 updateAccountSummary: {
                     await credentials.updateAccountSummary(force: true, untilActive: true)
                 },

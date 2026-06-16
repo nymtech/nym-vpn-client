@@ -381,6 +381,17 @@ jobs:
           echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
 
+      - name: Compile CredentialsManager (iOS, unsigned)
+        working-directory: nym-vpn-apple/Services
+        run: |
+          set -euo pipefail
+          echo "🔍 Swift compile gate (CredentialsManager, unsigned iOS device)"
+          xcodebuild build \
+            -scheme CredentialsManager \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcbeautify --renderer github-actions
+
       - name: Tests
         if: ${{ env.RELEASE_TYPE == 'pr' }}
         working-directory: nym-vpn-apple/ServicesMutual

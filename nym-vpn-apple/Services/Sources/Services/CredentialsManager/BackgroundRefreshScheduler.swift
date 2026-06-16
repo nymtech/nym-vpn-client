@@ -16,12 +16,14 @@ public enum BackgroundRefreshScheduler {
         do {
             try BGTaskScheduler.shared.submit(request)
             logger.debug("Scheduled background app refresh \(appRefreshIdentifier)")
-        } catch let error as NSError
-        where error.domain == BGTaskScheduler.errorDomain,
-              error.code == BGTaskScheduler.Error.Code.tooManyPendingTaskRequests.rawValue {
-            logger.debug("Background app refresh already scheduled \(appRefreshIdentifier)")
         } catch {
-            logger.error("Failed to schedule background app refresh: \(error.localizedDescription)")
+            let nsError = error as NSError
+            if nsError.domain == BGTaskScheduler.errorDomain,
+               nsError.code == BGTaskScheduler.Error.Code.tooManyPendingTaskRequests.rawValue {
+                logger.debug("Background app refresh already scheduled \(appRefreshIdentifier)")
+            } else {
+                logger.error("Failed to schedule background app refresh: \(error.localizedDescription)")
+            }
         }
     }
 
@@ -32,7 +34,7 @@ public enum BackgroundRefreshScheduler {
         let credentials = CredentialsManager.shared
         let outcome = await AccountPrefetchOrchestrator.runBackgroundRefresh(
             isCredentialImported: credentials.isValidCredentialImported,
-            isAccountActive: { credentials.isAccountActive() },
+            isAccountActive: { await credentials.isAccountActive() },
             updateAccountSummary: {
                 await credentials.updateAccountSummary(force: true)
             },
