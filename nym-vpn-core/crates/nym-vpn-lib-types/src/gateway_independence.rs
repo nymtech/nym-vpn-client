@@ -26,13 +26,10 @@ pub struct GatewayIndependence {
 }
 
 impl GatewayIndependence {
-    pub fn enabled(&mut self, enabled: bool) -> Self {
-        Self {
-            enable_notifications: self.enable_notifications,
-            different_node_family: enabled,
-            different_asn: enabled,
-            different_subnet: enabled,
-        }
+    pub fn enabled(&mut self, enabled: bool) {
+        self.different_node_family = enabled;
+        self.different_asn = enabled;
+        self.different_subnet = enabled;
     }
 
     pub fn active(&self) -> bool {
