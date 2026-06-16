@@ -260,7 +260,7 @@ impl VpnServiceConfigManager {
         {
             self.config
                 .gateway_independence
-                .enabled(enable_gateway_independence);
+                .set_enabled(enable_gateway_independence);
             self.save_config_and_send_event().await;
         }
     }

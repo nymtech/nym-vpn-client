@@ -26,7 +26,7 @@ pub struct GatewayIndependence {
 }
 
 impl GatewayIndependence {
-    pub fn enabled(&mut self, enabled: bool) {
+    pub fn set_enabled(&mut self, enabled: bool) {
         self.different_node_family = enabled;
         self.different_asn = enabled;
         self.different_subnet = enabled;

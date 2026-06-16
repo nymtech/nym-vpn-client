@@ -387,7 +387,7 @@ pub async fn select_gateways(
             let mut no_gateway_independence_settings = tunnel_settings.clone();
             no_gateway_independence_settings
                 .gateway_independence
-                .enabled(false);
+                .set_enabled(false);
             // if we still can't select, we just return the error
             loop_select(
                 entry_gateways,
