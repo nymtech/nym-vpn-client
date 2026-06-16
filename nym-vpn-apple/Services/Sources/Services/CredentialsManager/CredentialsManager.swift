@@ -16,6 +16,24 @@ import GRPCManager
 #endif
 import PathManager
 
+public enum ZkNymPrefetchResult: Equatable, Sendable {
+    case sufficientBandwidth
+    case fetchedTickets
+    case upgradeMode
+    case skippedStoreBusy
+    case skipped
+    case failed
+
+    public var isReady: Bool {
+        switch self {
+        case .sufficientBandwidth, .fetchedTickets, .upgradeMode:
+            return true
+        case .skippedStoreBusy, .skipped, .failed:
+            return false
+        }
+    }
+}
+
 @MainActor public final class CredentialsManager: ObservableObject {
     private let logger = Logger(label: "CredentialsManager")
 #if os(macOS)
@@ -137,7 +155,59 @@ import PathManager
             ).registerAccount()
         }.value
         appSettings.accountToken = result.accountToken
+        await prepareRegisteredAccount()
         checkCredentialImport()
+#endif
+    }
+
+    public func prepareRegisteredAccount() async {
+#if os(iOS)
+        let envOpt = configurationManager.networkEnv
+        do {
+            try await Task {
+                let dataDir = try PathManager.dataFolderURL().path()
+                let env = try envOpt ?? .newWithMainnetFallback()
+                try await NymVpnAccountStorage(
+                    dataDir: dataDir,
+                    environment: env
+                ).prepareRegisteredAccount()
+            }.value
+        } catch {
+            logger.error(
+                "prepareRegisteredAccount (iOS) failed \(Self.sanitizedAccountSummaryErrorLog(error))"
+            )
+        }
+#endif
+    }
+
+    @discardableResult
+    public func prefetchZkNyms() async -> ZkNymPrefetchResult {
+#if os(iOS)
+        guard isValidCredentialImported else { return .skipped }
+        let envOpt = configurationManager.networkEnv
+        do {
+            let outcome = try await Task {
+                let dataDir = try PathManager.dataFolderURL().path()
+                let env = try envOpt ?? .newWithMainnetFallback()
+                return try await NymVpnAccountStorage(
+                    dataDir: dataDir,
+                    environment: env
+                ).prefetchZkNyms()
+            }.value
+            let result = ZkNymPrefetchResult(outcome: outcome)
+            logger.info("prefetchZkNyms (iOS) outcome=\(result)")
+            return result
+        } catch let error as VpnError where error == .AccountStoreBusy {
+            logger.debug("prefetchZkNyms (iOS) skipped: account store busy")
+            return .skippedStoreBusy
+        } catch {
+            logger.error(
+                "prefetchZkNyms (iOS) failed \(Self.sanitizedAccountSummaryErrorLog(error))"
+            )
+            return .failed
+        }
+#else
+        return .skipped
 #endif
     }
 
@@ -513,3 +583,20 @@ private extension CredentialsManager {
         accountIdentifier = newAccIdentifier
     }
 }
+
+#if os(iOS)
+extension ZkNymPrefetchResult {
+    init(outcome: VpnPrefetchZkNymOutcome) {
+        switch outcome {
+        case .sufficientBandwidth:
+            self = .sufficientBandwidth
+        case .fetchedTickets:
+            self = .fetchedTickets
+        case .upgradeMode:
+            self = .upgradeMode
+        case .skippedStoreBusy:
+            self = .skippedStoreBusy
+        }
+    }
+}
+#endif

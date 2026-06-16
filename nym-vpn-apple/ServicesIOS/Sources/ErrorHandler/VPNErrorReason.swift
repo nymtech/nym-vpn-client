@@ -36,6 +36,7 @@ public enum VPNErrorReason: LocalizedError {
     case deeplinkError(details: String)
     case fetchEnvironment(details: String)
     case linkPrivy(details: String)
+    case accountStoreBusy
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -62,6 +63,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountNotRegistered
         case .NoDeviceIdentity:
             self = .noDeviceIdentity
+        case .AccountStoreBusy:
+            self = .accountStoreBusy
         case let .VpnApi(details: vpnApiErrorResponse):
             switch vpnApiErrorResponse {
             case .Timeout:
@@ -309,6 +312,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .fetchEnvironment(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .linkPrivy:
             self = .linkPrivy(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .accountStoreBusy:
+            self = .accountStoreBusy
         }
     }
 
@@ -403,6 +408,8 @@ extension VPNErrorReason {
             details
         case let .linkPrivy(details: details):
             details
+        case .accountStoreBusy:
+            "errorReason.accountStoreBusy".localizedString
         }
     }
 }
@@ -448,6 +455,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case deeplinkError
     case fetchEnvironment
     case linkPrivy
+    // Appended last to keep existing NSError wire codes stable across the app/extension boundary.
+    case accountStoreBusy
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -517,6 +526,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .fetchEnvironment
         case .linkPrivy:
             self = .linkPrivy
+        case .accountStoreBusy:
+            self = .accountStoreBusy
         }
     }
 }

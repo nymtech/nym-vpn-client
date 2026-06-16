@@ -7688,6 +7688,17 @@
         }
       }
     },
+    "errorReason.accountStoreBusy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account storage is busy. Disconnect the VPN and try again."
+          }
+        }
+      }
+    },
     "errorReason.apiTimeout" : {
       "extractionState" : "manual",
       "localizations" : {
