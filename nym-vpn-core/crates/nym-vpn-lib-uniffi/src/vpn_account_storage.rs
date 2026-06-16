@@ -438,24 +438,19 @@ impl NymVpnAccountStorage {
     /// need connect readiness must inspect the stored summary or use
     /// [`is_connect_ready_after_summary_sync`] on the synced result.
     pub async fn prepare_registered_account(&self) -> Result<(), VpnError> {
+        let _store_lock = self.try_acquire_data_dir_lock()?;
         tracing::info!("Starting post-login account setup (summary sync and device registration)");
-
-        let (account, device) = {
-            let _store_lock = self.try_acquire_data_dir_lock()?;
-            let account = self
-                .storage
-                .load_account()
-                .await
-                .map_err(|err| VpnError::Storage {
-                    details: err.to_string(),
-                })?
-                .ok_or(VpnError::NoAccountStored)?;
-            let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
-            let device = self.load_device().await?;
-            (account, device)
-        };
-
         let vpn_api_client = self.create_vpn_api_client().await?;
+        let account = self
+            .storage
+            .load_account()
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
+        let account = VpnAccount::try_from(account).map_err(VpnError::internal)?;
+        let device = self.load_device().await?;
 
         let mut summary = self
             .fetch_account_summary_with_client(&vpn_api_client, &account, &device)
@@ -492,15 +487,12 @@ impl NymVpnAccountStorage {
             details: err.to_string(),
         })?;
 
-        {
-            let _store_lock = self.try_acquire_data_dir_lock()?;
-            self.storage
-                .store_summary(summary.clone())
-                .await
-                .map_err(|err| VpnError::Storage {
-                    details: err.to_string(),
-                })?;
-        }
+        self.storage
+            .store_summary(summary.clone())
+            .await
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?;
 
         if is_connect_ready_after_summary_sync(&summary) {
             tracing::info!("Post-login account setup completed (connect-ready)");
