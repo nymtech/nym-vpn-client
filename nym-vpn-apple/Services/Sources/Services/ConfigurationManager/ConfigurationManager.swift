@@ -75,6 +75,11 @@ import PathManager
     public var accountLinks: AccountLinks?
 
     private let environmentChangeObservers = EnvironmentChangeObservers()
+#if os(iOS)
+    private var configureTask: Task<Void, Error>?
+    private var environmentReconfigurationTask: Task<Void, Never>?
+    public private(set) var isEnvironmentConfigurationInFlight = false
+#endif
 
     @Published public var isCurrentAppVersionCompatible = true
 
@@ -127,22 +132,24 @@ import PathManager
 
 #if SANTA
     public func updateEnv(to env: Env) {
-        Task {
-            guard self.isTestFlight || Device.isMacOS else { return }
-            do {
-                await MainActor.run {
-                    self.currentEnv = env
-                }
+        let previous = environmentReconfigurationTask
+        environmentReconfigurationTask = Task { @MainActor in
+            await previous?.value
+            await self.applyEnvChange(to: env)
+        }
+    }
+
+    private func applyEnvChange(to env: Env) async {
+        guard self.isTestFlight || Device.isMacOS else { return }
+        do {
+            self.currentEnv = env
 #if os(macOS)
-                try await grpcManager.switchEnvironment(to: env.rawValue)
+            try await grpcManager.switchEnvironment(to: env.rawValue)
 #endif
-                try await self.configure()
-                await MainActor.run {
-                    self.notifyEnvironmentDidChange()
-                }
-            } catch {
-                self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
-            }
+            try await self.configure()
+            self.notifyEnvironmentDidChange()
+        } catch {
+            self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
         }
     }
 #endif
@@ -190,6 +197,28 @@ private extension ConfigurationManager {
 #endif
 
     func configure() async throws {
+#if os(iOS)
+        if let inflight = configureTask {
+            try await inflight.value
+            return
+        }
+
+        let task = Task<Void, Error> { @MainActor in
+            isEnvironmentConfigurationInFlight = true
+            defer {
+                isEnvironmentConfigurationInFlight = false
+                configureTask = nil
+            }
+            try await performConfigure()
+        }
+        configureTask = task
+        try await task.value
+#else
+        try await performConfigure()
+#endif
+    }
+
+    func performConfigure() async throws {
 #if os(iOS)
         do {
             self.networkEnv = try await NymEnvironment.newWithCacheDir(

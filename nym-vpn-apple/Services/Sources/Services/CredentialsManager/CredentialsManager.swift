@@ -32,6 +32,7 @@ import PathManager
     private var accountSummaryUpdateTask: Task<Void, Never>?
 #if os(iOS)
     private(set) var isAccountRegistrationInFlight = false
+    private var registrationCapturedEnvironment: NymEnvironment?
 #endif
 
     public static let shared = CredentialsManager()
@@ -73,7 +74,60 @@ import PathManager
 
     public func add(credential: String) async throws {
 #if os(iOS)
-        let envOpt = configurationManager.networkEnv
+        let env = try resolvedNetworkEnvironment()
+        try await login(credential: credential, environment: env)
+#elseif os(macOS)
+        try await grpcManager.storeAccount(with: .vpn(mnemonic: credential))
+        checkCredentialImport()
+#endif
+    }
+
+#if os(iOS)
+    public func performAccountRegistration(loginCredential: String? = nil) async throws {
+        beginAccountRegistration()
+        defer { endAccountRegistration() }
+
+        do {
+            let env = try resolvedRegistrationEnvironment()
+
+            if let loginCredential {
+                try await login(credential: loginCredential, environment: env)
+            } else if !(await isAccountStored(environment: env)) {
+                try await createMnemonic(environment: env)
+            }
+
+            let result = try await AccountRegistrationSupport.withCredentialStoreRetry(
+                operation: "registerAccount",
+                logger: logger
+            ) {
+                try await registerAccount(environment: env)
+            }
+            appSettings.accountToken = result.accountToken
+            try await AccountRegistrationSupport.withCredentialStoreRetry(
+                operation: "prepareRegisteredAccount",
+                logger: logger
+            ) {
+                try await prepareRegisteredAccount(environment: env)
+            }
+            checkCredentialImport()
+        } catch {
+            throw AccountRegistrationSupport.mapToVPNErrorReason(error)
+        }
+    }
+
+    func beginAccountRegistration() {
+        isAccountRegistrationInFlight = true
+        registrationCapturedEnvironment = configurationManager.networkEnv
+    }
+
+    func endAccountRegistration() {
+        isAccountRegistrationInFlight = false
+        registrationCapturedEnvironment = nil
+    }
+#endif
+
+#if os(iOS)
+    private func login(credential: String, environment: NymEnvironment) async throws {
         do {
             try await AccountRegistrationSupport.withCredentialStoreRetry(
                 operation: "login",
@@ -81,50 +135,55 @@ import PathManager
             ) {
                 try await Task {
                     let dataDir = try PathManager.dataFolderURL().path()
-                    let env = try envOpt ?? .newWithMainnetFallback()
                     try await NymVpnAccountStorage(
                         dataDir: dataDir,
-                        environment: env
+                        environment: environment
                     ).login(request: .vpn(mnemonic: credential))
                 }.value
             }
         } catch {
             throw AccountRegistrationSupport.mapToVPNErrorReason(error)
         }
-#elseif os(macOS)
-        try await grpcManager.storeAccount(with: .vpn(mnemonic: credential))
-        checkCredentialImport()
-#endif
     }
+#endif
 
     public func createMnemonic() async throws {
 #if os(iOS)
-        let envOpt = configurationManager.networkEnv
+        let env = try resolvedNetworkEnvironment()
+        try await createMnemonic(environment: env)
+#endif
+    }
+
+#if os(iOS)
+    private func createMnemonic(environment: NymEnvironment) async throws {
         try await AccountRegistrationSupport.withCredentialStoreRetry(
             operation: "createAccount",
             logger: logger
         ) {
             try await Task {
                 let dataDir = try PathManager.dataFolderURL().path()
-                let env = try envOpt ?? .newWithMainnetFallback()
                 try await NymVpnAccountStorage(
                     dataDir: dataDir,
-                    environment: env
+                    environment: environment
                 ).createAccount()
             }.value
         }
-#endif
     }
+#endif
 
 #if os(iOS)
     public func isAccountStored() async -> Bool {
         guard let networkEnv = configurationManager.networkEnv else { return false }
+        return await isAccountStored(environment: networkEnv)
+    }
+
+    func isAccountStored(environment: NymEnvironment) async -> Bool {
         do {
             return try await Task {
                 let dataDir = try PathManager.dataFolderURL().path()
                 return try await NymVpnAccountStorage(
                     dataDir: dataDir,
-                    environment: networkEnv
+                    environment: environment
                 ).isAccountMnemonicStored()
             }.value
         } catch {
@@ -153,60 +212,76 @@ import PathManager
 
     public func registerAccount() async throws {
 #if os(iOS)
-        isAccountRegistrationInFlight = true
-        defer { isAccountRegistrationInFlight = false }
+        beginAccountRegistration()
+        defer { endAccountRegistration() }
 
-        let envOpt = configurationManager.networkEnv
+        let env = try resolvedRegistrationEnvironment()
         let result = try await AccountRegistrationSupport.withCredentialStoreRetry(
             operation: "registerAccount",
             logger: logger
         ) {
-            try await Task {
-                let dataDir = try PathManager.dataFolderURL().path()
-                let env = try envOpt ?? .newWithMainnetFallback()
-                return try await NymVpnAccountStorage(
-                    dataDir: dataDir,
-                    environment: env
-                ).registerAccount()
-            }.value
+            try await registerAccount(environment: env)
         }
         appSettings.accountToken = result.accountToken
         try await AccountRegistrationSupport.withCredentialStoreRetry(
             operation: "prepareRegisteredAccount",
             logger: logger
         ) {
-            try await Task {
-                let dataDir = try PathManager.dataFolderURL().path()
-                let env = try envOpt ?? .newWithMainnetFallback()
-                try await NymVpnAccountStorage(
-                    dataDir: dataDir,
-                    environment: env
-                ).prepareRegisteredAccount()
-            }.value
+            try await prepareRegisteredAccount(environment: env)
         }
         checkCredentialImport()
 #endif
     }
 
-    /// Sync summary and register device after account registration.
-    /// Failures propagate to callers (e.g. max devices, fair usage depleted).
+#if os(iOS)
+    @discardableResult
+    private func registerAccount(environment: NymEnvironment) async throws -> RegisterAccountResponse {
+        try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            return try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: environment
+            ).registerAccount()
+        }.value
+    }
+#endif
+
     public func prepareRegisteredAccount() async throws {
 #if os(iOS)
-        let envOpt = configurationManager.networkEnv
+        let env = try resolvedNetworkEnvironment()
+        try await prepareRegisteredAccount(environment: env)
+#endif
+    }
+
+#if os(iOS)
+    private func prepareRegisteredAccount(environment: NymEnvironment) async throws {
         do {
             try await Task {
                 let dataDir = try PathManager.dataFolderURL().path()
-                let env = try envOpt ?? .newWithMainnetFallback()
                 try await NymVpnAccountStorage(
                     dataDir: dataDir,
-                    environment: env
+                    environment: environment
                 ).prepareRegisteredAccount()
             }.value
         } catch let error as VpnError {
             throw AccountRegistrationSupport.mapToVPNErrorReason(error)
         }
-#endif
     }
+
+    private func resolvedNetworkEnvironment() throws -> NymEnvironment {
+        if let networkEnv = configurationManager.networkEnv {
+            return networkEnv
+        }
+        return try .newWithMainnetFallback()
+    }
+
+    private func resolvedRegistrationEnvironment() throws -> NymEnvironment {
+        if let registrationCapturedEnvironment {
+            return registrationCapturedEnvironment
+        }
+        return try resolvedNetworkEnvironment()
+    }
+#endif
 
     @discardableResult
     public func prefetchZkNyms() async -> ZkNymPrefetchResult {
@@ -359,6 +434,9 @@ import PathManager
     }
 
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
+#if os(iOS)
+        guard !isAccountRegistrationInFlight else { return }
+#endif
 #if SANTA
         guard !isAccountSummaryOverridden else { return }
 #endif
@@ -556,9 +634,9 @@ private extension CredentialsManager {
                 logger.error("Failed to check credential import: \(error.localizedDescription)")
                 updateIsCredentialImported(with: false)
             }
+            guard !isAccountRegistrationInFlight else { return }
             await updateDeviceIdentifier()
             await updateAccountIdentifier()
-            guard !isAccountRegistrationInFlight else { return }
             await updateAccountSummary()
         }
     }

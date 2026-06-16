@@ -29,15 +29,16 @@ struct AccountRegistrationSupportTests {
         #expect(!AccountRegistrationSupport.isCredentialStoreLockFailure(error))
     }
 
+    @Test func mapsVpnStorageLockToAccountStoreBusy() {
+        let vpnError = VpnError.Storage(details: "failed to acquire credential store lock")
+        let mapped = VPNErrorReason(with: vpnError)
+        #expect(mapped == .accountStoreBusy)
+    }
+
     @Test func mapsVpnStorageLockToReasonDescription() {
         let vpnError = VpnError.Storage(details: "failed to acquire credential store lock")
         let mapped = AccountRegistrationSupport.mapToVPNErrorReason(vpnError) as? VPNErrorReason
-        #expect(mapped != nil)
-        if case let .storage(details) = mapped {
-            #expect(details.contains("credential store lock"))
-        } else {
-            Issue.record("expected storage reason")
-        }
+        #expect(mapped == .accountStoreBusy)
     }
 }
 #endif

@@ -42,6 +42,10 @@ public enum VPNErrorReason: LocalizedError {
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
     public static let domain = "ErrorHandler.VPNErrorReason"
 
+    private static func isCredentialStoreLockStorageDetail(_ details: String) -> Bool {
+        details.localizedCaseInsensitiveContains("credential store lock")
+    }
+
     // MARK: - Initializer from VpnError
 
     // swiftlint:disable:next function_body_length
@@ -52,7 +56,11 @@ public enum VPNErrorReason: LocalizedError {
         case let .InternalError(details: details):
             self = .internalError(details: details)
         case let .Storage(details: details):
-            self = .storage(details: details)
+            if Self.isCredentialStoreLockStorageDetail(details) {
+                self = .accountStoreBusy
+            } else {
+                self = .storage(details: details)
+            }
         case let .NetworkConnectionError(details: details):
             self = .networkConnectionError(details: details)
         case let .InvalidStateError(details: details):

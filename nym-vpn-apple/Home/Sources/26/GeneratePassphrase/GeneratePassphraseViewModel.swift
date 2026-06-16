@@ -32,11 +32,8 @@ public final class GeneratePassphraseViewModel {
             guard let self else { return }
             defer { self.isRegistering = false }
             do {
-                if !(await credentialsManager.isAccountStored()) {
-                    try await credentialsManager.createMnemonic()
-                }
                 onWillRegister?()
-                try await credentialsManager.registerAccount()
+                try await credentialsManager.performAccountRegistration()
                 didRegisterAccount = true
             } catch is CancellationError {
                 return

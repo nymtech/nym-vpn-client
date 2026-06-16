@@ -42,9 +42,8 @@ public final class PassphraseSignInViewModel {
         loginTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
-                try await credentialsManager.add(credential: credential)
                 onWillRegister?()
-                try await credentialsManager.registerAccount()
+                try await credentialsManager.performAccountRegistration(loginCredential: credential)
                 passphraseText = ""
                 submissionState = .idle
             } catch is CancellationError {

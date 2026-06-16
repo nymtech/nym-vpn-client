@@ -17,4 +17,9 @@ struct VPNErrorReasonTests {
     @Test func accountStoreBusyHasNonEmptyDescription() {
         #expect(VPNErrorReason.accountStoreBusy.errorDescription?.isEmpty == false)
     }
+
+    @Test func storageLockDetailMapsToAccountStoreBusy() {
+        let reason = VPNErrorReason(with: VpnError.Storage(details: "failed to acquire credential store lock"))
+        #expect(reason == .accountStoreBusy)
+    }
 }
