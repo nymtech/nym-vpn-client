@@ -40,5 +40,25 @@ struct AccountRegistrationSupportTests {
         let mapped = AccountRegistrationSupport.mapToVPNErrorReason(vpnError) as? VPNErrorReason
         #expect(mapped == .accountStoreBusy)
     }
+
+    @Test func usesCapturedEnvironmentDuringRegistration() throws {
+        let captured = try NymEnvironment.newWithMainnetFallback()
+        let resolved = AccountRegistrationSupport.environmentForCredentialImport(
+            isRegistrationInFlight: true,
+            registrationCapturedEnvironment: captured,
+            liveNetworkEnv: nil
+        )
+        #expect(resolved != nil)
+    }
+
+    @Test func usesLiveEnvironmentWhenNotRegistering() throws {
+        let live = try NymEnvironment.newWithMainnetFallback()
+        let resolved = AccountRegistrationSupport.environmentForCredentialImport(
+            isRegistrationInFlight: false,
+            registrationCapturedEnvironment: nil,
+            liveNetworkEnv: live
+        )
+        #expect(resolved != nil)
+    }
 }
 #endif

@@ -78,6 +78,7 @@ import PathManager
 #if os(iOS)
     private var configureTask: Task<Void, Error>?
     private var environmentReconfigurationTask: Task<Void, Never>?
+    private var lastConfiguredEnvString: String?
     public private(set) var isEnvironmentConfigurationInFlight = false
 #endif
 
@@ -198,21 +199,26 @@ private extension ConfigurationManager {
 
     func configure() async throws {
 #if os(iOS)
-        if let inflight = configureTask {
-            try await inflight.value
-            return
-        }
-
-        let task = Task<Void, Error> { @MainActor in
-            isEnvironmentConfigurationInFlight = true
-            defer {
-                isEnvironmentConfigurationInFlight = false
-                configureTask = nil
+        while ConfigureEnvSyncPolicy.needsReconfigure(
+            lastConfiguredEnv: lastConfiguredEnvString,
+            currentEnv: currentEnvString
+        ) {
+            if let inflight = configureTask {
+                try await inflight.value
+                continue
             }
-            try await performConfigure()
+
+            let task = Task<Void, Error> { @MainActor in
+                isEnvironmentConfigurationInFlight = true
+                defer {
+                    isEnvironmentConfigurationInFlight = false
+                    configureTask = nil
+                }
+                try await performConfigure()
+            }
+            configureTask = task
+            try await task.value
         }
-        configureTask = task
-        try await task.value
 #else
         try await performConfigure()
 #endif
@@ -227,6 +233,7 @@ private extension ConfigurationManager {
                 userAgent: .appUserAgent
             )
             logger.info("Configured environment: \(currentEnvString)")
+            lastConfiguredEnvString = currentEnvString
         } catch {
             logger.error("Failed to initialize environment: \(currentEnvString). Error: \(error)")
         }

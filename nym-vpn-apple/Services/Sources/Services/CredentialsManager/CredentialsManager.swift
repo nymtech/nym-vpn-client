@@ -33,6 +33,7 @@ import PathManager
 #if os(iOS)
     private(set) var isAccountRegistrationInFlight = false
     private var registrationCapturedEnvironment: NymEnvironment?
+    private var accountRegistrationTask: Task<Void, Error>?
 #endif
 
     public static let shared = CredentialsManager()
@@ -84,6 +85,21 @@ import PathManager
 
 #if os(iOS)
     public func performAccountRegistration(loginCredential: String? = nil) async throws {
+        if let existing = accountRegistrationTask {
+            try await existing.value
+            return
+        }
+
+        let capturedLoginCredential = loginCredential
+        let task = Task<Void, Error> { @MainActor in
+            try await self.runAccountRegistration(loginCredential: capturedLoginCredential)
+        }
+        accountRegistrationTask = task
+        defer { accountRegistrationTask = nil }
+        try await task.value
+    }
+
+    private func runAccountRegistration(loginCredential: String?) async throws {
         beginAccountRegistration()
         defer { endAccountRegistration() }
 
@@ -212,24 +228,7 @@ import PathManager
 
     public func registerAccount() async throws {
 #if os(iOS)
-        beginAccountRegistration()
-        defer { endAccountRegistration() }
-
-        let env = try resolvedRegistrationEnvironment()
-        let result = try await AccountRegistrationSupport.withCredentialStoreRetry(
-            operation: "registerAccount",
-            logger: logger
-        ) {
-            try await registerAccount(environment: env)
-        }
-        appSettings.accountToken = result.accountToken
-        try await AccountRegistrationSupport.withCredentialStoreRetry(
-            operation: "prepareRegisteredAccount",
-            logger: logger
-        ) {
-            try await prepareRegisteredAccount(environment: env)
-        }
-        checkCredentialImport()
+        try await performAccountRegistration()
 #endif
     }
 
@@ -280,6 +279,14 @@ import PathManager
             return registrationCapturedEnvironment
         }
         return try resolvedNetworkEnvironment()
+    }
+
+    private func environmentForCredentialImport() -> NymEnvironment? {
+        AccountRegistrationSupport.environmentForCredentialImport(
+            isRegistrationInFlight: isAccountRegistrationInFlight,
+            registrationCapturedEnvironment: registrationCapturedEnvironment,
+            liveNetworkEnv: configurationManager.networkEnv
+        )
     }
 #endif
 
@@ -618,7 +625,7 @@ private extension CredentialsManager {
             do {
                 let isImported: Bool
 #if os(iOS)
-                guard let networkEnv = configurationManager.networkEnv else { return }
+                guard let networkEnv = environmentForCredentialImport() else { return }
                 isImported = try await Task {
                     let dataDir = try PathManager.dataFolderURL().path()
                     return try await NymVpnAccountStorage(

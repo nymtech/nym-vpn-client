@@ -31,21 +31,12 @@ extension GeneratePassphraseView {
         guard !isRegistering else { return }
         isRegistering = true
         do {
-            if appSettings.isCredentialImported {
-                try await credentialsManager.registerAccount()
-            } else {
-                try await credentialsManager.createMnemonic()
-                try await credentialsManager.registerAccount()
-            }
+            try await credentialsManager.performAccountRegistration()
             didRegisterAccount = true
             isRegistering = false
         } catch {
             Task { @MainActor in
-                if let lastVPNError = error as? VpnError {
-                    alertTitle = VPNErrorReason(with: lastVPNError).errorDescription ?? ""
-                } else {
-                    alertTitle = error.localizedDescription
-                }
+                alertTitle = registrationErrorDescription(error)
                 isAlertDisplayed = true
                 didRegisterAccount = false
                 isRegistering = false
@@ -64,7 +55,7 @@ extension GeneratePassphraseView {
         do {
             guard let token = credentialsManager.accountToken
             else {
-                try await credentialsManager.registerAccount()
+                try await credentialsManager.performAccountRegistration()
                 return
             }
             let didPurchaseSuccesfully = try await purchasesManager.purchase(
@@ -75,11 +66,7 @@ extension GeneratePassphraseView {
             navigateToPaymentSuccessView()
         } catch {
             Task { @MainActor in
-                if let lastVPNError = error as? VpnError {
-                    alertTitle = VPNErrorReason(with: lastVPNError).errorDescription ?? ""
-                } else {
-                    alertTitle = error.localizedDescription
-                }
+                alertTitle = registrationErrorDescription(error)
                 isAlertDisplayed = true
             }
         }
@@ -100,6 +87,16 @@ extension GeneratePassphraseView {
 
     func selectPlanAction() {
         isPlanAlertDisplayed = true
+    }
+
+    func registrationErrorDescription(_ error: Error) -> String {
+        if let reason = error as? VPNErrorReason {
+            return reason.errorDescription ?? ""
+        }
+        if let vpnError = error as? VpnError {
+            return VPNErrorReason(with: vpnError).errorDescription ?? ""
+        }
+        return error.localizedDescription
     }
 }
 

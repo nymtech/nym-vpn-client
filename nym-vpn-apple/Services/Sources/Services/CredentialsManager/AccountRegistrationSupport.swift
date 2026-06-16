@@ -44,6 +44,17 @@ enum AccountRegistrationSupport {
         }
         return error.localizedDescription
     }
+
+    static func environmentForCredentialImport(
+        isRegistrationInFlight: Bool,
+        registrationCapturedEnvironment: NymEnvironment?,
+        liveNetworkEnv: NymEnvironment?
+    ) -> NymEnvironment? {
+        if isRegistrationInFlight, let registrationCapturedEnvironment {
+            return registrationCapturedEnvironment
+        }
+        return liveNetworkEnv
+    }
 #endif
 }
 

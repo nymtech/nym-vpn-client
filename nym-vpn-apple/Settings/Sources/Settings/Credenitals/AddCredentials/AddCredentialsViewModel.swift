@@ -5,7 +5,9 @@ import CredentialsManager
 import ConnectionManager
 import ConfigurationManager
 #if os(iOS)
+import ErrorHandler
 import KeyboardManager
+import NymVPNLib
 #endif
 import Routes
 import Theme
@@ -96,14 +98,21 @@ import Theme
 
         Task {
             do {
-                try await credentialsManager.add(credential: trimmedCredential)
-                try await credentialsManager.registerAccount()
+                try await credentialsManager.performAccountRegistration(loginCredential: trimmedCredential)
                 error = CredentialsManagerError.noError
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in
                     credentialText = trimmedCredential
-                    error = CredentialsManagerError.generalError(String(describing: newError.localizedDescription))
+                    if let reason = newError as? VPNErrorReason {
+                        error = CredentialsManagerError.generalError(reason.localizedDescription)
+                    } else if let vpnError = newError as? VpnError {
+                        error = CredentialsManagerError.generalError(
+                            VPNErrorReason(with: vpnError).localizedDescription
+                        )
+                    } else {
+                        error = CredentialsManagerError.generalError(newError.localizedDescription)
+                    }
                 }
             }
         }
