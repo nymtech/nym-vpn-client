@@ -9,6 +9,9 @@ import NymVPNLib
 import GRPCManager
 #endif
 import Constants
+#if SANTA
+import ConnectionTypes
+#endif
 import Logging
 import PathManager
 
@@ -70,7 +73,8 @@ import PathManager
     public let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
 
     public var accountLinks: AccountLinks?
-    public var environmentDidChange: (() -> Void)?
+
+    private let environmentChangeObservers = EnvironmentChangeObservers()
 
     @Published public var isCurrentAppVersionCompatible = true
 
@@ -79,8 +83,11 @@ import PathManager
     }
 
     public var isSantaClaus: Bool {
-        guard isTestFlight || isRunningOnCI else { return false }
+#if SANTA
         return true
+#else
+        return false
+#endif
     }
 
     public var debugLevel: DebugLevel {
@@ -109,6 +116,16 @@ import PathManager
             .store(in: &cancellables)
     }
 
+    @discardableResult
+    public func addEnvironmentDidChangeObserver(_ handler: @escaping () -> Void) -> UUID {
+        environmentChangeObservers.add(handler)
+    }
+
+    public func removeEnvironmentDidChangeObserver(_ id: UUID) {
+        environmentChangeObservers.remove(id)
+    }
+
+#if SANTA
     public func updateEnv(to env: Env) {
         Task {
             guard self.isTestFlight || Device.isMacOS else { return }
@@ -121,13 +138,14 @@ import PathManager
 #endif
                 try await self.configure()
                 await MainActor.run {
-                    self.environmentDidChange?()
+                    self.notifyEnvironmentDidChange()
                 }
             } catch {
                 self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
             }
         }
     }
+#endif
 
     public func updateAccountLinks() {
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
@@ -165,6 +183,12 @@ import PathManager
 }
 
 private extension ConfigurationManager {
+#if SANTA
+    func notifyEnvironmentDidChange() {
+        environmentChangeObservers.notifyAll()
+    }
+#endif
+
     func configure() async throws {
 #if os(iOS)
         do {

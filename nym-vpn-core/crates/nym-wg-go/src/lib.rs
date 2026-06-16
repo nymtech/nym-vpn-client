@@ -28,6 +28,12 @@ pub enum Error {
     #[error("failed to set UAPI config (code: {0})")]
     SetUapiConfig(i64),
 
+    #[error("failed to get UAPI config")]
+    GetUapiConfig,
+
+    #[error("tunnel is stopped")]
+    TunnelStopped,
+
     #[cfg(target_os = "android")]
     #[error("failed to obtain tunnel socket fd")]
     ObtainSocketFd,

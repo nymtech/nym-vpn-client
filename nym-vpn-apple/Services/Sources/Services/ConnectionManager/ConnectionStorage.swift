@@ -1,7 +1,6 @@
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
-import ConnectionTypes
 import GatewayManager
 
 @MainActor public final class ConnectionStorage {
@@ -54,6 +53,17 @@ extension ConnectionStorage {
     public var isUsingInitialConfig: Bool {
         connectionConfig == Self.generateInitialConfig()
     }
+
+#if SANTA
+    func resetGatewaySelectionsForEnvironmentChange() {
+        connectionConfig.entry = .random
+        connectionConfig.exit = .random
+    }
+
+    func registerForEnvironmentChanges(onReset: @escaping () -> Void) {
+        configurationManager.addEnvironmentDidChangeObserver(onReset)
+    }
+#endif
 }
 
 extension ConnectionStorage {

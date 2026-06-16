@@ -26,6 +26,15 @@ struct SettingsFlowCoordinator<Content: View>: View {
             appearanceDestination()
         case .displayTheme:
             displayThemeDestination()
+#if os(iOS)
+        case .appIcon:
+            AppIconView(
+                viewModel: AppIconViewModel(
+                    path: $flowState.path,
+                    changer: UIApplicationAppIconChanger()
+                )
+            )
+#endif
         case .support:
             supportDestination()
         case .legal:

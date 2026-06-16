@@ -2,6 +2,11 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import Foundation
+
+let santaSwiftSettings: [SwiftSetting] = ProcessInfo.processInfo.environment["NYM_SANTA"] == "1"
+    ? [.define("SANTA")]
+    : [.define("SANTA", .when(configuration: .debug))]
 
 let package = Package(
     name: "Home",
@@ -48,7 +53,8 @@ let package = Package(
                 .product(name: "Routes", package: "Routes"),
                 .product(name: "Theme", package: "Theme")
             ],
-            path: "Sources"
+            path: "Sources",
+            swiftSettings: santaSwiftSettings
         ),
         .testTarget(
             name: "HomeTests",

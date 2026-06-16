@@ -20,6 +20,11 @@ actor TunnelActor {
     @Published private(set) var tunnelState: TunnelState?
     var lastError: ErrorReason?
 
+    /// Suspends `startTunnel` while the gateway-independence pre-flight waits
+    /// for the user to accept relaxed criteria (resumed by the
+    /// `setGatewayIndependence(false)` app message).
+    private var relaxConsentContinuation: CheckedContinuation<Void, Error>?
+
     init() {
         let (eventStream, eventContinuation) = AsyncStream<TunnelEvent>.makeStream()
         self.eventContinuation = eventContinuation
@@ -43,8 +48,7 @@ actor TunnelActor {
         self.tunnelProvider = tunnelProvider
 
         if let provider = tunnelProvider as? PacketTunnelProvider,
-           let failure = provider.logInitFailure
-        {
+           let failure = provider.logInitFailure {
             lastError = .createLogFailed(failure)
         }
     }
@@ -75,6 +79,42 @@ actor TunnelActor {
         }
 
         tunnelState = state
+    }
+
+    // MARK: - Gateway-independence pre-flight
+
+    func reportNeedsRelaxedIndependence() {
+        lastError = .needsRelaxedIndependenceCriteria
+        tunnelState = .error(.needsRelaxedIndependenceCriteria)
+    }
+
+    func awaitRelaxConsent() async throws {
+        try await withCheckedThrowingContinuation { continuation in
+            relaxConsentContinuation = continuation
+        }
+    }
+
+    /// Resumes a pending `awaitRelaxConsent()`. Returns `true` if a pre-flight
+    /// wait was released (suspend path), `false` when none was pending (error
+    /// path: library already errored, so the caller must reconnect explicitly).
+    @discardableResult
+    func resumeRelaxConsent() -> Bool {
+        guard let continuation = relaxConsentContinuation else { return false }
+        continuation.resume()
+        relaxConsentContinuation = nil
+        return true
+    }
+
+    /// Aborts a pending `awaitRelaxConsent()` on tunnel teardown by throwing,
+    /// so the suspended `startTunnel` unwinds instead of falling through to
+    /// `connectTunnel`. No-op if nothing is waiting.
+    func cancelRelaxConsent() {
+        relaxConsentContinuation?.resume(throwing: CancellationError())
+        relaxConsentContinuation = nil
+    }
+
+    func clearError() {
+        lastError = nil
     }
 
     /// Wait until the tunnel state shifted into either connected, disconnected or error state.

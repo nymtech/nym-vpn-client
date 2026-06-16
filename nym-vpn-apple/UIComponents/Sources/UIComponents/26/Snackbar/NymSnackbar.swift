@@ -5,22 +5,25 @@ import Theme
 public struct NymSnackbar: View {
     let item: SnackbarItem
     let onAction: () -> Void
+    let onSecondaryAction: () -> Void
     let onDismiss: () -> Void
 
     public init(
         item: SnackbarItem,
         onAction: @escaping () -> Void,
+        onSecondaryAction: @escaping () -> Void = {},
         onDismiss: @escaping () -> Void
     ) {
         self.item = item
         self.onAction = onAction
+        self.onSecondaryAction = onSecondaryAction
         self.onDismiss = onDismiss
     }
 
     public var body: some View {
         VStack(alignment: .leading, spacing: NymSpacing.medium) {
             headerRow
-            if item.actionTitle != nil {
+            if item.actionTitle != nil || item.secondaryActionTitle != nil {
                 actionRow
             }
         }
@@ -63,8 +66,11 @@ private extension NymSnackbar {
     }
 
     var actionRow: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: NymSpacing.small) {
             Spacer(minLength: 0)
+            if let secondaryActionTitle = item.secondaryActionTitle {
+                secondaryActionButton(title: secondaryActionTitle)
+            }
             if let actionTitle = item.actionTitle {
                 actionButton(title: actionTitle)
             }
@@ -81,6 +87,20 @@ private extension NymSnackbar {
                 .background(item.style.actionBackground, in: Capsule())
                 .overlay(
                     Capsule().strokeBorder(item.style.actionBorder, lineWidth: 1)
+                )
+        }
+        .accessibilityLabel(Text(verbatim: title))
+    }
+
+    func secondaryActionButton(title: String) -> some View {
+        SnackbarChromeButton(action: onSecondaryAction) {
+            Text(verbatim: title)
+                .nymTextStyle(.bodySmallBold)
+                .foregroundStyle(item.style.textColor)
+                .padding(.horizontal, NymSpacing.large)
+                .padding(.vertical, NymSpacing.small)
+                .overlay(
+                    Capsule().strokeBorder(item.style.secondaryActionBorder, lineWidth: 1)
                 )
         }
         .accessibilityLabel(Text(verbatim: title))
@@ -134,35 +154,49 @@ private struct SnackbarChromeButton<Label: View>: View {
 private extension SnackbarItem.Style {
     var systemImageName: String {
         switch self {
-        case .critical:     "exclamationmark.circle.fill"
-        case .confirmation: "checkmark.circle.fill"
-        case .neutral:      "info.circle.fill"
-        case .negative:     "xmark.circle.fill"
-        case .warning:      "exclamationmark.circle.fill"
+        case .critical:
+            "exclamationmark.circle.fill"
+        case .confirmation:
+            "checkmark.circle.fill"
+        case .neutral:
+            "info.circle.fill"
+        case .negative:
+            "xmark.circle.fill"
+        case .warning:
+            "exclamationmark.circle.fill"
         }
     }
 
     var iconColor: Color {
         switch self {
-        case .critical:     .white
-        case .confirmation: Color.Nym.success
-        case .neutral:      Color.Nym.textPrimary
-        case .negative:     Color.Nym.error
-        case .warning:      Color.Nym.warning
+        case .critical:
+                .white
+        case .confirmation:
+            Color.Nym.success
+        case .neutral:
+            Color.Nym.textPrimary
+        case .negative:
+            Color.Nym.error
+        case .warning:
+            Color.Nym.warning
         }
     }
 
     var backgroundColor: Color {
         switch self {
-        case .critical: Color.Nym.error
-        default:        Color.Nym.surfaceAlt
+        case .critical:
+            Color.Nym.error
+        default:
+            Color.Nym.surfaceAlt
         }
     }
 
     var textColor: Color {
         switch self {
-        case .critical: .white
-        default:        Color.Nym.textPrimary
+        case .critical:
+                .white
+        default:
+            Color.Nym.textPrimary
         }
     }
 
@@ -183,7 +217,16 @@ private extension SnackbarItem.Style {
         case .critical:
                 .clear
         default:
-            Color.Nym.primaryText.opacity(0.2)
+            Color.Nym.textPrimary.opacity(0.2)
+        }
+    }
+
+    var secondaryActionBorder: Color {
+        switch self {
+        case .critical:
+            Color.white.opacity(0.4)
+        default:
+            Color.Nym.textPrimary.opacity(0.2)
         }
     }
 }
@@ -206,11 +249,16 @@ private struct NymSnackbarManagerModifier: ViewModifier {
                         item.onAction?()
                         manager.dismiss()
                     },
+                    onSecondaryAction: {
+                        item.onSecondaryAction?()
+                        manager.dismiss()
+                    },
                     onDismiss: {
                         manager.dismiss()
                     }
                 )
-                .padding(.horizontal, Constants.horizontalInset)
+                .frame(maxWidth: NymSpacing.drawerMaxWidth)
+                .padding(.horizontal, NymSpacing.standard)
                 .padding(.top, Constants.topInset)
                 .transition(.move(edge: .top).combined(with: .opacity))
             }
@@ -220,7 +268,6 @@ private struct NymSnackbarManagerModifier: ViewModifier {
 
     enum Constants {
         static let topInset: CGFloat = 92
-        static let horizontalInset: CGFloat = 28
     }
 }
 

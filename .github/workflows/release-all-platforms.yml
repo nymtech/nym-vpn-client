@@ -1,0 +1,50 @@
+name: release-all-platforms
+
+on:
+  # NOTE: pick the release branch in the "Run workflow" ref selector. Reusable callees
+  # always run at the SAME ref as this orchestrator, so the dispatch ref IS the release
+  # branch — there is no separate branch input (it could not redirect the callees).
+  # Scheduled (nightly) runs use the repository default branch (develop).
+  workflow_dispatch:
+    inputs:
+      ship:
+        description: "Ship 🚢 (off = nightly build)"
+        type: boolean
+        default: false
+      android:
+        description: "Android → Google Play"
+        type: boolean
+        default: false
+      fdroid:
+        description: "F-Droid (ship only)"
+        type: boolean
+        default: false
+      linux:
+        description: "Linux (deb/AppImage + AUR)"
+        type: boolean
+        default: false
+      windows:
+        description: "Windows (signed exe + updater)"
+        type: boolean
+        default: false
+      ios:
+        description: "iOS → TestFlight/App Store"
+        type: boolean
+        default: false
+      macos:
+        description: "macOS (.pkg + Sparkle)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stub on default branch
+        run: |
+          echo "::warning:: This is the dispatch-enabler stub on the default branch."
+          echo "Re-run 'Run workflow' and pick the release/PR branch in the ref selector"
+          echo "to execute the real release-all-platforms pipeline at that ref."

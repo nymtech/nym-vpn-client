@@ -2,6 +2,9 @@ import Foundation
 import Combine
 import AppSettings
 import ConfigurationManager
+#if SANTA
+import ConnectionTypes
+#endif
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
@@ -27,8 +30,6 @@ import GRPCManager
     )
 #endif
 
-    public var isMixnetTuningEnabled = false
-
 #if os(iOS)
     init(configurationManager: ConfigurationManager, appSettings: AppSettings) {
         self.configurationManager = configurationManager
@@ -52,7 +53,6 @@ import GRPCManager
     public func setup() {
         setupPeriodicRefresh()
         setupEnvironmentChangeObserver()
-        setupAppSettingsObservers()
         updateFeatureFlags()
     }
 }
@@ -76,19 +76,9 @@ private extension FeatureFlagsManager {
 
 private extension FeatureFlagsManager {
     func setupEnvironmentChangeObserver() {
-        configurationManager.environmentDidChange = { [weak self] in
+        configurationManager.addEnvironmentDidChangeObserver { [weak self] in
             self?.updateFeatureFlags()
         }
-    }
-
-    func setupAppSettingsObservers() {
-        appSettings.$isMixnetTuningEnabledPublisher
-            .sink { [weak self] newValue in
-                self?.isMixnetTuningEnabled = newValue
-                guard !newValue else { return }
-                self?.updateFeatureFlags()
-            }
-            .store(in: &cancellables)
     }
 
     func setupPeriodicRefresh() {
@@ -112,10 +102,6 @@ private extension FeatureFlagsManager {
 #elseif os(macOS)
             guard let flags = try? await self?.grpcManager.fetchFeatureFlags() else { return }
 #endif
-            Task { @MainActor [weak self] in
-                guard let self else { return }
-                self.isMixnetTuningEnabled = flags.isMixnetTuningEnabled() ?? self.appSettings.isMixnetTuningEnabled
-            }
         }
     }
 }

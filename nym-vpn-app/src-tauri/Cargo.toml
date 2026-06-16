@@ -97,6 +97,15 @@ procfs = "0.18.0"
 freedesktop-desktop-entry = "0.8"
 freedesktop-icons = "0.4"
 notify = "6.1"
+# StatusNotifierItem-based tray. We avoid Tauri's tray-icon backend on Linux because
+# libayatana-appindicator eats left-click and turns it into "open menu" — there's no way
+# to bind toggle-window to a left click. ksni speaks SNI directly and exposes the
+# `activate`/`secondary_activate` callbacks we need.
+#
+# Uses async-io (not the default tokio feature) to avoid enabling `zbus/tokio` globally —
+# tauri-plugin-single-instance uses `zbus::blocking` and the tokio-flavored blocking shim
+# calls `Runtime::block_on()`, which panics during Tauri's plugin init.
+ksni = { version = "0.3", default-features = false, features = ["async-io"] }
 
 [profile.release]
 codegen-units = 1

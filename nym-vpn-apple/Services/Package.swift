@@ -76,6 +76,7 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 "Device",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
@@ -83,7 +84,8 @@ let package = Package(
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 "PathManager"
             ],
-            path: "Sources/Services/ConfigurationManager"
+            path: "Sources/Services/ConfigurationManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "ConnectionManager",
@@ -95,7 +97,8 @@ let package = Package(
                 "Tunnels",
                 "TunnelMixnet"
             ],
-            path: "Sources/Services/ConnectionManager"
+            path: "Sources/Services/ConnectionManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "CredentialsManager",
@@ -143,10 +146,12 @@ let package = Package(
             name: "FeatureFlagsManager",
             dependencies: [
                 "ConfigurationManager",
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
             ],
-            path: "Sources/Services/FeatureFlagsManager"
+            path: "Sources/Services/FeatureFlagsManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "GatewayManager",
@@ -159,7 +164,8 @@ let package = Package(
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
-            path: "Sources/Services/GatewayManager"
+            path: "Sources/Services/GatewayManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "ImpactGenerator",
@@ -260,6 +266,11 @@ let package = Package(
                 "Tunnels"
             ],
             path: "Sources/Services/TunnelMixnet"
+        ),
+        .testTarget(
+            name: "ConfigurationManagerTests",
+            dependencies: ["ConfigurationManager"],
+            path: "Tests/ConfigurationManagerTests"
         )
     ]
 )

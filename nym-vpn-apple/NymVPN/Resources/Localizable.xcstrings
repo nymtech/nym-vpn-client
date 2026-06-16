@@ -10806,6 +10806,39 @@
         }
       }
     },
+    "gatewayIndependence.warning.connectAnyway" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Connect anyway"
+          }
+        }
+      }
+    },
+    "gatewayIndependence.warning.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The entry and exit gateways may not be fully independent of each other (same operator, network or subnet). This can reduce your anonymity. Do you want to connect anyway?"
+          }
+        }
+      }
+    },
+    "gatewayIndependence.warning.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Gateways may not be independent"
+          }
+        }
+      }
+    },
     "gatewayInfo.advancedPrivacy" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26279,6 +26312,61 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "匿名错误报告"
+          }
+        }
+      }
+    },
+    "appIcon.calculator" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculator"
+          }
+        }
+      }
+    },
+    "appIcon.default" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default"
+          }
+        }
+      }
+    },
+    "appIcon.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't change the app icon. Please try again."
+          }
+        }
+      }
+    },
+    "appIcon.notes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
+          }
+        }
+      }
+    },
+    "settings.appIcon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Icon"
           }
         }
       }

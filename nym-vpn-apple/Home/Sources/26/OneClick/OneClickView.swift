@@ -9,6 +9,8 @@ public struct OneClickView: View {
     private let onSelectExit: () -> Void
     private let onShowGatewayDetails: (GatewayNode, HopType) -> Void
 
+    @Environment(\.accessibilityVoiceOverEnabled)
+    private var voiceOverEnabled
     @State private var animatedDisplayMode: OneClickDisplayMode = .powerUser
 
     public init(
@@ -175,6 +177,10 @@ private extension OneClickView {
         }
         .buttonStyle(.plain)
         .contentShape(Rectangle())
+        .focusEffectDisabled(!voiceOverEnabled)
+#if os(macOS)
+        .focusable(voiceOverEnabled)
+#endif
         .accessibilityLabel(Text("oneClick.server.details.accessibilityLabel".localizedString))
     }
 

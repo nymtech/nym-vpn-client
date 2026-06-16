@@ -68,7 +68,10 @@ use super::{
     Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{
         self, AnyTunnelHandle, SelectedGateways, Tombstone,
-        wireguard::connected_tunnel::{NetstackTunnelOptions, TunnelOptions},
+        wireguard::{
+            connected_tunnel,
+            connected_tunnel::{NetstackTunnelOptions, TunnelOptions},
+        },
     },
 };
 #[cfg(target_os = "android")]
@@ -250,6 +253,53 @@ pub struct TunnelMonitor {
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     custom_topology_provider: VpnTopologyServiceHandle,
     shutdown_token: CancellationToken,
+}
+
+/// Poll the exit WireGuard peer's UAPI stats until the handshake completes or we time out.
+async fn wait_for_exit_handshake(
+    tunnel_handle: &connected_tunnel::TunnelHandle,
+    shutdown_token: &CancellationToken,
+) {
+    const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
+    const POLL_INTERVAL: Duration = Duration::from_millis(500);
+
+    tracing::debug!("Waiting for exit WireGuard handshake to complete");
+
+    let started = std::time::Instant::now();
+
+    let result = tokio::time::timeout(HANDSHAKE_TIMEOUT, async {
+        loop {
+            match tunnel_handle.get_exit_stats() {
+                Ok(stats) => {
+                    if stats.all_peers_connected() {
+                        return;
+                    }
+                }
+                Err(err) => {
+                    tracing::debug!("Failed to get exit tunnel stats: {err}");
+                }
+            }
+
+            tokio::select! {
+                _ = tokio::time::sleep(POLL_INTERVAL) => {}
+                _ = shutdown_token.cancelled() => return,
+            }
+        }
+    })
+    .await;
+
+    let elapsed = started.elapsed();
+    match result {
+        Ok(()) => {
+            tracing::debug!("Exit WireGuard handshake completed in {elapsed:.2?}");
+        }
+        Err(_) => {
+            tracing::warn!(
+                "Exit WireGuard handshake did not complete within {:.1}s, proceeding",
+                elapsed.as_secs_f32()
+            );
+        }
+    }
 }
 
 impl TunnelMonitor {
@@ -651,6 +701,11 @@ impl TunnelMonitor {
 
         if tokio::time::timeout(REPLY_TIMEOUT, reply_rx).await.is_err() {
             tracing::warn!("Interface up reply timeout");
+        }
+
+        // The firewall now allows traffic through the tunnel. Wait for the exit WG handshake.
+        if let Some(wg_handle) = tunnel_handle.as_wireguard() {
+            wait_for_exit_handshake(wg_handle, &self.shutdown_token).await;
         }
 
         // Send metadata endpoint data to the bandwidth controller
@@ -1861,12 +1916,15 @@ impl TunnelMonitor {
 
         // Create ICMP probe first, fallback to TCP probe on failure.
         match self.create_icmp_probe(exit_tunnel_metadata) {
-            Ok(icmp_probe) => Ok(ConnectionMonitor::spawn(
-                icmp_probe,
-                timing_config,
-                event_tx,
-                self.shutdown_token.child_token(),
-            )),
+            Ok(icmp_probe) => {
+                tracing::info!("Initial ICMP connectivity test");
+                Ok(ConnectionMonitor::spawn(
+                    icmp_probe,
+                    timing_config,
+                    event_tx,
+                    self.shutdown_token.child_token(),
+                ))
+            }
             Err(err) => {
                 tracing::warn!("{}", err.display_chain());
                 tracing::info!("Fallback to TCP probe");
