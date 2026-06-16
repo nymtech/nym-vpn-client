@@ -74,7 +74,7 @@ const defaultSplitTunnel = {
 
 const defaultGeoExclusion = {
   enabled: false,
-  listenPort: 1080,
+  listenPort: 1081,
   excludedCountries: ['CN'],
 };
 
