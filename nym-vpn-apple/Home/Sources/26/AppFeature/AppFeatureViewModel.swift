@@ -236,6 +236,14 @@ import GRPCManager
             case .completeAuthOnImport(let pendingFlow):
                 Task { @MainActor [weak self] in
                     guard let self else { return }
+                    await self.ensureAccountRegisteredAfterCredentialImport(for: pendingFlow)
+                    guard DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
+                        flow: pendingFlow,
+                        accountToken: self.credentialsManager.accountToken
+                    ) else {
+                        self.applyDrawerDestinationAfterPurchaseDismiss()
+                        return
+                    }
                     let outcome = await self.resolveAuthCompletionOutcome(for: pendingFlow)
                     self.handleAuthCompleted(outcome: outcome, flow: pendingFlow)
                 }
@@ -282,11 +290,7 @@ import GRPCManager
         cancelPlanPurchaseTransitionTask()
         isPurchaseFlowActive = false
         pendingDrawerContent = nil
-        if appSettings.isCredentialImported {
-            drawerContent = credentialsManager.isAccountActive() ? .oneClick : .welcome
-        } else {
-            drawerContent = .welcome
-        }
+        applyDrawerDestinationAfterPurchaseDismiss()
     }
 
     func requestPlanPurchaseTransition() {
@@ -450,6 +454,39 @@ private extension AppFeatureViewModel {
             return .login
         case .postPurchase, .createAccount:
             return .postPurchase
+        }
+    }
+
+    func applyDrawerDestinationAfterPurchaseDismiss() {
+        switch DrawerSessionPolicy.drawerDestinationAfterPurchaseDismiss(
+            isCredentialImported: appSettings.isCredentialImported,
+            welcomeScreenDidDisplay: appSettings.welcomeScreenDidDisplay
+        ) {
+        case .welcome:
+            drawerContent = .welcome
+        case .technicalOptIns:
+            pendingDrawerContent = .technicalOptIns
+            drawerContent = .technicalOptIns
+        case .oneClick:
+            drawerContent = .oneClick
+        }
+    }
+
+    func ensureAccountRegisteredAfterCredentialImport(for flow: AuthFlowKind) async {
+        guard DrawerSessionPolicy.shouldRegisterAccountAfterCredentialImport(
+            flow: flow,
+            accountToken: credentialsManager.accountToken
+        ) else { return }
+        do {
+            try await credentialsManager.performAccountRegistration()
+        } catch {
+            snackbarManager.enqueue(
+                SnackbarItem(
+                    style: .critical,
+                    title: "error".localizedString,
+                    message: error.localizedDescription
+                )
+            )
         }
     }
 }

@@ -64,6 +64,12 @@ public enum ProcessingFlowKind: Equatable, Sendable {
     case postPurchase
 }
 
+public enum PostPurchaseDrawerDestination: Equatable, Sendable {
+    case welcome
+    case technicalOptIns
+    case oneClick
+}
+
 public enum DrawerSessionPolicy: Equatable, Sendable {
     /// Purchase is only offered when auth explicitly classified the account as needing IAP.
     public static func shouldOfferPlanPurchaseAfterAuth(outcome: AuthCompletionOutcome?) -> Bool {
@@ -120,6 +126,37 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
     /// Prevents overlapping delayed navigation pushes while a purchase transition is in flight.
     public static func shouldBeginPlanPurchaseTransition(isPurchaseFlowActive: Bool) -> Bool {
         !isPurchaseFlowActive
+    }
+
+    /// Keeps authenticated users on the dashboard when IAP is dismissed or fails.
+    /// Subscription status must not regress the drawer to the guest welcome screen.
+    public static func drawerDestinationAfterPurchaseDismiss(
+        isCredentialImported: Bool,
+        welcomeScreenDidDisplay: Bool
+    ) -> PostPurchaseDrawerDestination {
+        guard isCredentialImported else { return .welcome }
+        return welcomeScreenDidDisplay ? .oneClick : .technicalOptIns
+    }
+
+    /// Privy deeplink import stores the mnemonic but not the VPN API account token.
+    public static func hasUsableAccountToken(_ token: String?) -> Bool {
+        guard let token, !token.isEmpty else { return false }
+        return true
+    }
+
+    public static func shouldRegisterAccountAfterCredentialImport(
+        flow: AuthFlowKind,
+        accountToken: String?
+    ) -> Bool {
+        flow == .createAccount && !hasUsableAccountToken(accountToken)
+    }
+
+    /// Create-account Privy import must not route to IAP until registration produced a token.
+    public static func shouldCompleteAuthAfterCredentialImport(
+        flow: AuthFlowKind,
+        accountToken: String?
+    ) -> Bool {
+        flow != .createAccount || hasUsableAccountToken(accountToken)
     }
 
     public static func shouldStartDrawerProcessing(outcome: AuthCompletionOutcome) -> Bool {

@@ -288,6 +288,90 @@ struct DrawerSessionPolicyTests {
         #expect(DrawerSessionPolicy.shouldBeginPlanPurchaseTransition(isPurchaseFlowActive: false))
     }
 
+    @Test func purchaseDismissKeepsImportedAccountOnDashboard() {
+        #expect(
+            DrawerSessionPolicy.drawerDestinationAfterPurchaseDismiss(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: true
+            ) == .oneClick
+        )
+        #expect(
+            DrawerSessionPolicy.drawerDestinationAfterPurchaseDismiss(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: false
+            ) == .technicalOptIns
+        )
+    }
+
+    @Test func purchaseDismissWithoutCredentialReturnsWelcome() {
+        #expect(
+            DrawerSessionPolicy.drawerDestinationAfterPurchaseDismiss(
+                isCredentialImported: false,
+                welcomeScreenDidDisplay: true
+            ) == .welcome
+        )
+    }
+
+    @Test func privyCreateAccountImportRequiresRegistrationWhenTokenMissing() {
+        #expect(
+            DrawerSessionPolicy.shouldRegisterAccountAfterCredentialImport(
+                flow: .createAccount,
+                accountToken: nil
+            )
+        )
+        #expect(
+            DrawerSessionPolicy.shouldRegisterAccountAfterCredentialImport(
+                flow: .createAccount,
+                accountToken: ""
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldRegisterAccountAfterCredentialImport(
+                flow: .createAccount,
+                accountToken: "token"
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldRegisterAccountAfterCredentialImport(
+                flow: .login,
+                accountToken: nil
+            )
+        )
+    }
+
+    @Test func createAccountImportBlocksAuthCompletionWithoutToken() {
+        #expect(
+            !DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
+                flow: .createAccount,
+                accountToken: nil
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
+                flow: .createAccount,
+                accountToken: ""
+            )
+        )
+        #expect(
+            DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
+                flow: .createAccount,
+                accountToken: "token"
+            )
+        )
+        #expect(
+            DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
+                flow: .login,
+                accountToken: nil
+            )
+        )
+    }
+
+    @Test func usableAccountTokenRejectsEmptyString() {
+        #expect(!DrawerSessionPolicy.hasUsableAccountToken(nil))
+        #expect(!DrawerSessionPolicy.hasUsableAccountToken(""))
+        #expect(DrawerSessionPolicy.hasUsableAccountToken("abc"))
+    }
+
     @Test func credentialImportAloneDoesNotStartProcessingDuringHandoff() {
         #expect(
             !DrawerSessionPolicy.shouldStartProcessingOnCredentialImport(
