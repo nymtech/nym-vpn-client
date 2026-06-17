@@ -9,6 +9,8 @@ import CredentialsManager
 import GatewayManager
 import ImpactGenerator
 import NetworkMonitor
+import Routes
+import Settings
 import TunnelStatus
 #if os(macOS)
 import GRPCManager
@@ -23,6 +25,8 @@ import GRPCManager
     public let oneClick: OneClickViewModel
 
     public var path = NavigationPath()
+
+    var isFamilyWarningModalDisplayed = false
 
     var drawerContent: AppDrawerContent?
     var pendingDrawerContent: AppDrawerContent?
@@ -170,6 +174,10 @@ import GRPCManager
     func handleTunnelStatusChange(from oldStatus: TunnelStatus, to newStatus: TunnelStatus) {
         guard oldStatus != newStatus else { return }
 
+        if newStatus == .disconnecting || newStatus == .disconnected || newStatus == .offline {
+            isFamilyWarningModalDisplayed = false
+        }
+
         if newStatus == .connecting || newStatus == .connected {
             pendingPostDisconnectAccountRefresh?.cancel()
             pendingPostDisconnectAccountRefresh = nil
@@ -202,6 +210,24 @@ import GRPCManager
     }
 }
 
+// MARK: - Family warning modal -
+extension AppFeatureViewModel {
+    func confirmFamilyWarning() {
+        isFamilyWarningModalDisplayed = false
+        oneClick.independenceConsentAgreed()
+    }
+
+    func dismissFamilyWarning() {
+        isFamilyWarningModalDisplayed = false
+    }
+
+    func openNotificationSettingsFromFamilyWarning() {
+        isFamilyWarningModalDisplayed = false
+        path.append(HomeLink.settings)
+        path.append(SettingLink.notifications)
+    }
+}
+
 private extension AppFeatureViewModel {
     func wireConnectionStatusDelegates() {
         connectionStatus.onConnectionFailed = { [weak self] errorMessage in
@@ -218,7 +244,7 @@ private extension AppFeatureViewModel {
         let lastError = connectionStatus.connectionManager.lastError
         guard !ConnectionStatusViewModel.isNeedsRelaxedIndependenceCriteria(lastError)
         else {
-            oneClick.requestIndependenceConsent()
+            isFamilyWarningModalDisplayed = true
             return
         }
         snackbarManager.enqueue(

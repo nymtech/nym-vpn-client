@@ -536,6 +536,7 @@ pub struct Gateway {
     pub exit_ipv6s: Vec<Ipv6Addr>,
     pub build_version: Option<String>,
     pub lewes_protocol_details: Option<LewesProtocolDetails>,
+    pub node_family_name: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -933,6 +934,7 @@ impl From<nym_validator_client::models::NymNodeDescriptionV1> for Gateway {
             build_version,
             // v1 has no lp details
             lewes_protocol_details: None,
+            node_family_name: None,
         }
     }
 }
@@ -962,6 +964,7 @@ impl From<nym_validator_client::models::NymNodeDescriptionV2> for Gateway {
             exit_ipv6s,
             build_version,
             lewes_protocol_details: node_description.description.lewes_protocol.map(Into::into),
+            node_family_name: None,
         }
     }
 }
@@ -1124,6 +1127,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             lewes_protocol_details: gateway
                 .lewes_protocol_details
                 .map(LewesProtocolDetails::from),
+            node_family_name: gateway.node_family.map(|family| family.name),
         }
     }
 }
