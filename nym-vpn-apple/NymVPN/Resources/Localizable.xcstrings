@@ -10806,6 +10806,39 @@
         }
       }
     },
+    "gatewayIndependence.modal.disableReminders" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable reminders in notification settings."
+          }
+        }
+      }
+    },
+    "gatewayIndependence.modal.notificationSettingsLink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "notification settings"
+          }
+        }
+      }
+    },
+    "gatewayIndependence.modal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The selected servers are in the same operator family!"
+          }
+        }
+      }
+    },
     "gatewayIndependence.warning.connectAnyway" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10936,6 +10969,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "高级隐私"
+          }
+        }
+      }
+    },
+    "gatewayInfo.familyMembership" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Family membership"
           }
         }
       }
@@ -28451,6 +28495,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mixnet tuning"
+          }
+        }
+      }
+    },
+    "settings.notifications.serverFamilyReminders.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warn me when the selected entry and exit servers belong to the same operator family."
+          }
+        }
+      }
+    },
+    "settings.notifications.serverFamilyReminders.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server family reminders"
+          }
+        }
+      }
+    },
+    "settings.notifications.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications"
           }
         }
       }

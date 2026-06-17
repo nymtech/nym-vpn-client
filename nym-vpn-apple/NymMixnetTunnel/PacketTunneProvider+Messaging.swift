@@ -78,6 +78,11 @@ extension PacketTunnelProvider {
                 }
             }
             return nil
+        case let .setGatewayIndependenceNotifications(enabled):
+            await runCommand {
+                try await self.commandSender?.setGatewayIndependenceNotifications(enableNotifications: enabled)
+            }
+            return nil
         }
     }
 }
