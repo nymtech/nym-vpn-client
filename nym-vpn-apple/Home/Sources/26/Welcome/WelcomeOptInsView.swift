@@ -6,10 +6,9 @@ import Theme
 import UIComponents
 
 public struct WelcomeOptInsView: View {
-#if os(macOS)
     @AppStorage(AppSettingKey.statistics.rawValue)
     private var isStatisticsEnabled: Bool = true
-#endif
+
     @AppStorage(AppSettingKey.errorReporting.rawValue)
     private var isErrorReportingOn: Bool = false
 
@@ -59,14 +58,12 @@ private extension WelcomeOptInsView {
 
     var cards: some View {
         VStack(spacing: NymSpacing.small) {
-#if os(macOS)
             optInCard(
                 title: "welcomeOptIns.stats.title".localizedString,
                 linkTitle: "welcomeOptIns.stats.link".localizedString,
                 linkURL: URL(string: Constants.anonymousStatsURL.rawValue),
                 isOn: $isStatisticsEnabled
             )
-#endif
             optInCard(
                 title: "welcomeOptIns.error.title".localizedString,
                 linkTitle: "welcomeOptIns.error.link".localizedString,

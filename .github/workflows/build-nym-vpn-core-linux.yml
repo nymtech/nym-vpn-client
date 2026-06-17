@@ -33,9 +33,11 @@ jobs:
     needs: build-wireguard-go-linux
     env:
       UPLOAD_DIR_LINUX: linux_artifacts-${{ matrix.arch }}
+      UPLOAD_DIR_DEB: deb_artifacts-${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
+      UPLOAD_DIR_DEB: ${{ env.UPLOAD_DIR_DEB }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
     steps:
       - name: Checkout repo
@@ -66,6 +68,12 @@ jobs:
         uses: baptiste0928/cargo-install@v3
         with:
           crate: cargo-edit
+          cache-key: ${{ matrix.arch }}
+
+      - name: Install cargo-deb
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-deb
           cache-key: ${{ matrix.arch }}
 
       - name: Install cargo-get
@@ -110,6 +118,17 @@ jobs:
           cargo build --release
           ls -la nym-vpn-core/target/release/ || true
 
+      # Reuses the release artifacts compiled above (same target dir), so this
+      # only packages the .deb files instead of recompiling from scratch.
+      - name: Build nym-vpn-core debian packages
+        working-directory: nym-vpn-core
+        env:
+          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+        run: |
+          cargo deb -p nym-vpnd
+          cargo deb -p nym-vpnc
+          ls -la target/debian/ || true
+
       - name: Get rust version used for build
         id: rust-version
         run: |
@@ -118,6 +137,7 @@ jobs:
       - name: Move things around to prepare for upload
         env:
           SRC_BINARY: nym-vpn-core/target/release/
+          SRC_DEB: nym-vpn-core/target/debian
         run: |
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR_LINUX }}
@@ -125,10 +145,22 @@ jobs:
           cp -vpr ${{ env.SRC_BINARY }}/nym-socks5-proxy ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-diagnostic ${{ env.UPLOAD_DIR_LINUX }}
 
+          mkdir ${{ env.UPLOAD_DIR_DEB }}
+          cp -vpr ${{ env.SRC_DEB }}/nym-vpnc_*.deb ${{ env.UPLOAD_DIR_DEB }}
+          cp -vpr ${{ env.SRC_DEB }}/nym-vpnd_*.deb ${{ env.UPLOAD_DIR_DEB }}
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.UPLOAD_DIR_LINUX }}
           path: ${{ env.UPLOAD_DIR_LINUX }}
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload deb artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.UPLOAD_DIR_DEB }}
+          path: ${{ env.UPLOAD_DIR_DEB }}
           if-no-files-found: error
           retention-days: 1

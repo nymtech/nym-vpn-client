@@ -11,13 +11,8 @@ import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
 
 function Settings() {
-  const {
-    desktopNotifications,
-    ipv6Support,
-    allowLan,
-    enableAdBlocking,
-    backendFlags,
-  } = useMainState();
+  const { desktopNotifications, ipv6Support, allowLan, enableAdBlocking } =
+    useMainState();
 
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
@@ -126,7 +121,7 @@ function Settings() {
               <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
-          backendFlags.mixnetTuning && {
+          {
             title: t('mixnet-tuning.title'),
             desc: t('mixnet-tuning.desc'),
             leadingIcon: 'visibility_off',

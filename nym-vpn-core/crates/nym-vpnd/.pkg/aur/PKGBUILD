@@ -53,8 +53,9 @@ build() {
   cargo build --release --locked
   popd
   pushd nym-vpn-core/crates/nym-socks5-proxy
-  CFLAGS+" -ffat-lto-objects" cargo build --release --locked
-  popd}
+  CFLAGS+=" -ffat-lto-objects" cargo build --release --locked
+  popd
+}
 
 package() {
   pushd "$_srcdir/nym-vpn-core"

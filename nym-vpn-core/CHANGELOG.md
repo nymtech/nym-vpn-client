@@ -9,13 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [iOS] Send network stats over the tunnel interface (https://github.com/nymtech/nym-vpn-client/pull/5564)
 - Store gateway independence notification toggle (https://github.com/nymtech/nym-vpn-client/pull/5586)
-
 
 ### Fixed
 
 - Fix missing "recursion available" flag in DNS responses, passthrough authority and additional records (https://github.com/nymtech/nym-vpn-client/pull/5546)
 - Provide escape hatch when reconnecting the tunnel in "time desynced" error state (https://github.com/nymtech/nym-vpn-client/pull/5551)
+
+### Removed
+
+- Removed mixnet tuning feature flag
 
 
 ## [2026.10.0] - 2026-06-09

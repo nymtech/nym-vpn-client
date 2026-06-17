@@ -43,12 +43,12 @@ function MixnetTrafficConfigProvider({
   const defaultState = useMemo(() => {
     return {
       poissonParameterForLoopCoverStream:
-        mixnetTrafficDefaults.mixingDelay.defaultValue,
+        mixnetTrafficDefaults.defaultBackgroundTraffic.value,
       averagePacketDelay: mixnetTrafficDefaults.mixingDelay.defaultValue,
       messageSendingAverageDelay:
-        mixnetTrafficDefaults.mixingDelay.defaultValue,
+        mixnetTrafficDefaults.defaultContinuousTraffic.value,
       disablePoissonRate: mixnetTrafficDefaults.disablePoissonRate,
-      disableBackgroundCoverTraffic: mixnetTrafficDefaults.disablePoissonRate,
+      disableBackgroundCoverTraffic: false,
       minGatewayMixnetPerformance: 0,
       minMixnodePerformance: 0,
     };
@@ -70,16 +70,15 @@ function MixnetTrafficConfigProvider({
   const hasSettingsOtherThanDefaults = useMemo(() => {
     return (
       state.poissonParameterForLoopCoverStream !==
-        mixnetTrafficDefaults.mixingDelay.defaultValue ||
-      state.averagePacketDelay !==
-        mixnetTrafficDefaults.mixingDelay.defaultValue ||
+        defaultState.poissonParameterForLoopCoverStream ||
+      state.averagePacketDelay !== defaultState.averagePacketDelay ||
       state.messageSendingAverageDelay !==
-        mixnetTrafficDefaults.mixingDelay.defaultValue ||
-      state.disablePoissonRate !== mixnetTrafficDefaults.disablePoissonRate ||
+        defaultState.messageSendingAverageDelay ||
+      state.disablePoissonRate !== defaultState.disablePoissonRate ||
       state.disableBackgroundCoverTraffic !==
-        mixnetTrafficDefaults.allBackgroundTraffic.length > 0
+        defaultState.disableBackgroundCoverTraffic
     );
-  }, [state, mixnetTrafficDefaults]);
+  }, [state, defaultState]);
 
   const updateField = useCallback(
     (field: keyof MixnetTrafficConfig, value: number | boolean) => {

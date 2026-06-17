@@ -19,19 +19,75 @@ pub(crate) const NYM_STATISTICS_API_TIMEOUT: Duration = Duration::from_secs(30);
 #[derive(Clone, Debug)]
 pub struct StatisticsApiClient {
     inner: nym_http_api_client::Client,
+    #[cfg(target_os = "ios")]
+    base_url: Url,
+    #[cfg(target_os = "ios")]
+    user_agent: UserAgent,
 }
 
 impl StatisticsApiClient {
     pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
         // What about domain fronting?  The discovery schema makes no provision for it.
-        nym_http_api_client::Client::builder(base_url.clone())
+        Ok(Self {
+            #[cfg(target_os = "ios")]
+            base_url: base_url.clone(),
+            #[cfg(target_os = "ios")]
+            user_agent: user_agent.clone(),
+            inner: Self::make_http_client(
+                base_url,
+                user_agent,
+                #[cfg(target_os = "ios")]
+                None,
+            )?,
+        })
+    }
+
+    /// Create a copy of this client with its sockets bound to the given network interface.
+    ///
+    /// On iOS, traffic from the packet tunnel provider is excluded from the tunnel, so the
+    /// socket must be explicitly bound to the tun interface for reports to be wrapped in the
+    /// tunnel. Hostnames are resolved through the system resolver, which is served by the
+    /// in-process DNS forwarder bound to the tunnel while it is up; the default DoH/DoT
+    /// resolver would create unbound sockets of its own and leak outside of the tunnel.
+    #[cfg(target_os = "ios")]
+    pub fn with_bound_interface(&self, interface: Option<&str>) -> Result<Self> {
+        let inner =
+            Self::make_http_client(self.base_url.clone(), self.user_agent.clone(), interface)?;
+
+        Ok(Self {
+            base_url: self.base_url.clone(),
+            user_agent: self.user_agent.clone(),
+            inner,
+        })
+    }
+
+    fn make_http_client(
+        base_url: Url,
+        user_agent: UserAgent,
+        #[cfg(target_os = "ios")] bound_interface: Option<&str>,
+    ) -> Result<nym_http_api_client::Client> {
+        nym_http_api_client::Client::builder(base_url)
             .and_then(|builder| {
-                builder
+                let builder = builder
                     .with_user_agent(user_agent)
-                    .with_timeout(NYM_STATISTICS_API_TIMEOUT)
-                    .build()
+                    .with_timeout(NYM_STATISTICS_API_TIMEOUT);
+
+                #[cfg(target_os = "ios")]
+                let builder = if let Some(bound_interface) = bound_interface {
+                    let reqwest_builder = nym_http_api_client::registry::default_builder()
+                        .timeout(NYM_STATISTICS_API_TIMEOUT)
+                        .interface(bound_interface);
+
+                    // Enforce the use of system resolver which is set to in-process DNS forwarder that prevents leaks.
+                    let reqwest_builder = reqwest_builder.no_hickory_dns();
+
+                    builder.with_reqwest_builder(reqwest_builder)
+                } else {
+                    builder
+                };
+
+                builder.build()
             })
-            .map(|c| Self { inner: c })
             .map_err(Box::new)
             .map_err(StatisticsApiClientError::VpnApiClientCreation)
     }

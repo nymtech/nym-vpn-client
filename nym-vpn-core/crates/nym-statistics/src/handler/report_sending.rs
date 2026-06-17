@@ -70,6 +70,9 @@ impl SendingConfig {
             ReportSendingEvent::Disconnected => self.tunnel_state = TunnelState::Disconnected,
             ReportSendingEvent::Standby => self.tunnel_state = TunnelState::Standby,
             ReportSendingEvent::AllowDirectSending(status) => self.allow_direct_sending = status,
+            // Handled by `InnerHandler` before reaching this point
+            #[cfg(target_os = "ios")]
+            ReportSendingEvent::TunnelInterface(_) => {}
         }
         let new_value = self.allows_sending();
         if old_value == new_value {
@@ -211,6 +214,17 @@ impl InnerHandler {
         }
     }
 
+    /// Set tunnel interface for the API client.
+    /// Pass `None` to unbind API client from specific interface and rely on system routing instead.
+    #[cfg(target_os = "ios")]
+    fn set_tunnel_interface(&mut self, interface: Option<&str>) -> Result<(), Error> {
+        self.api_client = self
+            .api_client
+            .with_bound_interface(interface)
+            .map_err(Box::new)?;
+        Ok(())
+    }
+
     async fn send_reports(
         storage: StatsStorage,
         api_client: StatisticsApiClient,
@@ -287,6 +301,18 @@ impl InnerHandler {
                         None => {
                             // Sending will cancel itself because we're dropping the future
                             return;
+                        }
+                        #[cfg(target_os = "ios")]
+                        Some(ReportSendingEvent::TunnelInterface(interface)) => {
+                                match self.set_tunnel_interface(interface.as_deref()) {
+                                    Ok(()) => {
+                                        tracing::debug!("Bound statistics client to interface: {interface:?}");
+                                    }
+                                    Err(err) => {
+                                        tracing::error!("Failed to bind statistics client to {interface:?}: {err}");
+                                    }
+                                }
+
                         }
                         Some(event) => {
                             if let Some(new_allowed) = self.sending_config.update(event) {
