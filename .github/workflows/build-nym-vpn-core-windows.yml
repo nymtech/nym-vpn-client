@@ -2,7 +2,7 @@ name: build-nym-vpn-core-windows
 run-name: "build-nym-vpn-core-windows (${{ inputs.cpu_arch || 'x64' }})"
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/build-nym-vpn-core-windows.yml"
   workflow_dispatch:
