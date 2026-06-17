@@ -381,77 +381,11 @@ jobs:
           echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
 
-      - name: Tests
+      - name: Apple unit tests
         if: ${{ env.RELEASE_TYPE == 'pr' }}
-        working-directory: nym-vpn-apple/ServicesMutual
-        env:
-          ACCOUNT_REPORT_PATH: ${{ github.workspace }}/account-report.md
-        run: |
-          set -uo pipefail
-          which jq >/dev/null || brew install jq
-
-          # Run tests — don't abort on failure, we still want summary + report
-          set +e
-          xcodebuild test \
-            -scheme ServicesMutual-Package \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            -only-testing:ConnectionTypesTests \
-            -resultBundlePath TestResults.xcresult \
-            | xcbeautify --renderer github-actions
-          TEST_STATUS=${PIPESTATUS[0]}
-          set -e
-
-          # Test summary → step summary
-          BUNDLE="TestResults.xcresult"
-          if [[ -d "$BUNDLE" ]]; then
-            JSON="$(xcrun xcresulttool get test-results summary --path "$BUNDLE" --format json 2>/dev/null)"
-            RESULT=$(jq -r '.result // "Unknown"' <<<"$JSON")
-            PASSED=$(jq -r '.passedTests // 0' <<<"$JSON")
-            FAILED=$(jq -r '.failedTests // 0' <<<"$JSON")
-            SKIPPED=$(jq -r '.skippedTests // 0' <<<"$JSON")
-            ICON="✅"; [[ "$RESULT" != "Passed" ]] && ICON="❌"
-            {
-              echo "## 🧪 ConnectionTypes tests"
-              echo ""
-              echo "$ICON **$RESULT** — ${PASSED} passed, ${FAILED} failed, ${SKIPPED} skipped"
-            } >> "$GITHUB_STEP_SUMMARY"
-            if [[ "$FAILED" != "0" ]]; then
-              {
-                echo ""
-                echo "| Test | Failure |"
-                echo "| --- | --- |"
-                jq -r '.testFailures[]? | "| \(.testName) | \((.failureText // "") | gsub("[\r\n]+"; " ")) |"' <<<"$JSON"
-              } >> "$GITHUB_STEP_SUMMARY"
-            fi
-          else
-            echo "⚠️ No test results bundle found." >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-          # Account report → step summary
-          if [[ -f "$ACCOUNT_REPORT_PATH" ]]; then
-            cat "$ACCOUNT_REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "account-report.md not produced" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-          exit "$TEST_STATUS"
-
-      - name: Upload test artifacts
-        if: ${{ always() && env.RELEASE_TYPE == 'pr' }}
-        uses: actions/upload-artifact@v7
+        uses: ./.github/workflows/apple/tests
         with:
-          name: connectiontypes-tests
-          path: |
-            nym-vpn-apple/ServicesMutual/TestResults.xcresult
-            account-report.md
-          if-no-files-found: warn
-          retention-days: 1
-
-      - name: Clean up test results
-        if: ${{ always() && env.RELEASE_TYPE == 'pr' }}
-        working-directory: nym-vpn-apple/ServicesMutual
-        run: rm -rf TestResults.xcresult
+          account-report-path: ${{ github.workspace }}/account-report.md
 
       - name: Resolve iOS build number (qa/ship only)
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
