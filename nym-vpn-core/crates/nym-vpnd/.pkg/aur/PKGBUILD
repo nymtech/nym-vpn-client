@@ -24,10 +24,11 @@ _srcdir="nym-vpn-client-$_release_tag"
 prepare() {
   pushd "$_srcdir"
 
-  # rip off useless sources
+  # remove unused sources
   rm -rf nym-vpn-android
   rm -rf nym-vpn-apple
   rm -rf nym-vpn-app
+  rm -rf nym-vpn-windows
   popd
 }
 
@@ -39,19 +40,10 @@ build() {
   ./build-wireguard-go.sh
   popd
 
-  # build nym-vpnd
-  pushd nym-vpn-core/crates/nym-vpnd/
-
+  pushd nym-vpn-core
   # sqlx does not support LTO build flag, which is enabled by default in Arch
   # set the C flag -ffat-lto-objects to solve the issue
   # see https://github.com/launchbadge/sqlx/issues/3149
-  CFLAGS+=" -ffat-lto-objects" cargo build --release --locked
-  popd
-
-  pushd nym-vpn-core/crates/nym-exclude
-  cargo build --release --locked
-  popd
-  pushd nym-vpn-core/crates/nym-socks5-proxy
   CFLAGS+=" -ffat-lto-objects" cargo build --release --locked
   popd
 }
