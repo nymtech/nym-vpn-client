@@ -71,7 +71,7 @@ async fn probe(tls_config: Arc<ClientConfig>) -> Result<HybridTransportReport, S
 
     let tcp = TcpStream::connect((RELAY_HOST, 443))
         .await
-        .map_err(|e| format!("tcp connect: {e}"))?;
+        .map_err(|e| format!("tcp connect: {e:?}"))?;
 
     let server_name = ServerName::try_from(RELAY_HOST)
         .map_err(|e| format!("invalid server name: {e}"))?
@@ -79,7 +79,7 @@ async fn probe(tls_config: Arc<ClientConfig>) -> Result<HybridTransportReport, S
     let tls = TlsConnector::from(tls_config)
         .connect(server_name, tcp)
         .await
-        .map_err(|e| format!("tls handshake: {e}"))?;
+        .map_err(|e| format!("tls handshake: {e:?}"))?;
 
     let request = Request::builder()
         .uri(format!("wss://{RELAY_HOST}{path}"))
@@ -90,11 +90,11 @@ async fn probe(tls_config: Arc<ClientConfig>) -> Result<HybridTransportReport, S
         .header("Sec-WebSocket-Key", generate_key())
         .header("Sec-WebSocket-Protocol", WS_SUBPROTOCOL)
         .body(())
-        .map_err(|e| format!("build ws request: {e}"))?;
+        .map_err(|e| format!("build ws request: {e:?}"))?;
 
     let (_ws, response) = tokio_tungstenite::client_async(request, tls)
         .await
-        .map_err(|e| format!("ws upgrade: {e}"))?;
+        .map_err(|e| format!("ws upgrade: {e:?}"))?;
 
     let handshake_duration_ms = start.elapsed().as_millis();
     let routing_id = response
