@@ -85,6 +85,12 @@ public struct AppFeatureView: View {
                     }
                 }
                 .clipped()
+                if viewModel.purchaseTransitionOverlayVisible {
+                    Color.Nym.background
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                        .allowsHitTesting(false)
+                }
             }
             .overlay(alignment: .bottom) {
 #if os(iOS)
@@ -173,11 +179,15 @@ private extension AppFeatureView {
     func wireOneClickNavigation() {
         let pushPlanPurchase: () -> Void = { [weak viewModel] in
             guard let viewModel else { return }
-            viewModel.path.append(HomeLink.settings)
-            viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+            withAnimation(.easeInOut(duration: 0.35)) {
+                viewModel.path.append(HomeLink.settings)
+                viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+            }
         }
-        viewModel.oneClick.onRequestPlanPurchase = pushPlanPurchase
         viewModel.onRequestPlanPurchase = pushPlanPurchase
+        viewModel.oneClick.onRequestPlanPurchase = { [weak viewModel] in
+            viewModel?.requestPlanPurchaseTransition()
+        }
 #if os(macOS)
         viewModel.oneClick.onRequestDaemonEnable = { [weak viewModel] in
             guard let viewModel else { return }
@@ -272,7 +282,18 @@ private extension AppFeatureView {
     var welcomeContent: some View {
         AuthFlowView(
             credentialsManager: viewModel.credentialsManager,
-            onWillRegister: { flow in viewModel.pendingProcessingFlow = flow }
+            onWillRegister: { flow in
+                viewModel.noteAuthWillBegin(flow: flow)
+            },
+            onPrivyAuthWillBegin: { flow in
+                viewModel.noteAuthWillBegin(flow: flow, completesOnCredentialImport: true)
+            },
+            onAuthHandoffCancelled: {
+                viewModel.noteAuthHandoffCancelled()
+            },
+            onAuthCompleted: { outcome, flow in
+                viewModel.handleAuthCompleted(outcome: outcome, flow: flow)
+            }
         )
         .trackHeight { welcomeHeight = $0 }
         .transition(.slideFade(from: .trailing))
@@ -360,35 +381,48 @@ private extension AppFeatureView {
     @ViewBuilder
     func settingsDestination(path: Binding<NavigationPath>) -> some View {
 #if os(iOS)
-        SettingsView(
-            viewModel: SettingsViewModel(
-                path: path,
-                appSettings: appSettings,
-                configurationManager: configurationManager,
-                connectionManager: connectionManager,
-                credentialsManager: credentialsManager,
-                externalLinkManager: externalLinkManager,
-                featureFlagsManager: featureFlagsManager,
-                impactGenerator: impactGenerator,
-                purchasesManager: purchasesManager
-            )
-        )
+        SettingsView(viewModel: configuredIOSSettingsViewModel(path: path))
 #elseif os(macOS)
-        SettingsView(
-            viewModel: SettingsViewModel(
-                isServing: $grpcManager.isServing,
-                path: path,
-                appSettings: appSettings,
-                configurationManager: configurationManager,
-                connectionManager: connectionManager,
-                credentialsManager: credentialsManager,
-                externalLinkManager: externalLinkManager,
-                featureFlagsManager: featureFlagsManager,
-                impactGenerator: impactGenerator
-            )
-        )
+        SettingsView(viewModel: configuredMacSettingsViewModel(path: path))
 #endif
     }
+
+#if os(iOS)
+    func configuredIOSSettingsViewModel(path: Binding<NavigationPath>) -> SettingsViewModel {
+        let settingsViewModel = SettingsViewModel(
+            path: path,
+            appSettings: appSettings,
+            configurationManager: configurationManager,
+            connectionManager: connectionManager,
+            credentialsManager: credentialsManager,
+            externalLinkManager: externalLinkManager,
+            featureFlagsManager: featureFlagsManager,
+            impactGenerator: impactGenerator,
+            purchasesManager: purchasesManager
+        )
+        settingsViewModel.onPurchaseFlowComplete = { [viewModel] in
+            viewModel.purchaseFlowDidComplete()
+        }
+        settingsViewModel.onPurchaseFlowDismissed = { [viewModel] in
+            viewModel.purchaseFlowDidDismissWithoutComplete()
+        }
+        return settingsViewModel
+    }
+#elseif os(macOS)
+    func configuredMacSettingsViewModel(path: Binding<NavigationPath>) -> SettingsViewModel {
+        SettingsViewModel(
+            isServing: $grpcManager.isServing,
+            path: path,
+            appSettings: appSettings,
+            configurationManager: configurationManager,
+            connectionManager: connectionManager,
+            credentialsManager: credentialsManager,
+            externalLinkManager: externalLinkManager,
+            featureFlagsManager: featureFlagsManager,
+            impactGenerator: impactGenerator
+        )
+    }
+#endif
 }
 
 private extension AppFeatureView {

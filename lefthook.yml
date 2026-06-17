@@ -1,0 +1,21 @@
+# Install: brew install lefthook && lefthook install
+# Skip apple gate: SKIP_APPLE_SWIFT_COMPILE=1 git commit|push
+# Manual run: bash .lefthook/apple-swift-compile-gate.sh $(git diff --name-only develop...HEAD)
+
+pre-commit:
+  commands:
+    apple-swift-compile:
+      glob:
+        - "nym-vpn-apple/**/*.swift"
+        - "nym-vpn-apple/**/Package.swift"
+        - "nym-vpn-apple/**/*.xcstrings"
+      run: bash .lefthook/apple-swift-compile-gate.sh {staged_files}
+
+pre-push:
+  commands:
+    apple-swift-compile:
+      glob:
+        - "nym-vpn-apple/**/*.swift"
+        - "nym-vpn-apple/**/Package.swift"
+        - "nym-vpn-apple/**/*.xcstrings"
+      run: bash .lefthook/apple-swift-compile-gate.sh {push_files}

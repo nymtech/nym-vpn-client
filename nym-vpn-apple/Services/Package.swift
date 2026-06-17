@@ -285,7 +285,8 @@ let package = Package(
                 "AccountPrefetchGates",
                 "CredentialsManager",
                 .product(name: "ErrorHandler", package: "ServicesIOS"),
-                .product(name: "NymVPNLib", package: "NymVPNLib")
+                .product(name: "NymVPNLib", package: "NymVPNLib"),
+                .product(name: "Theme", package: "Theme")
             ],
             path: "Tests/CredentialsManagerTests"
         )

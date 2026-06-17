@@ -1,6 +1,7 @@
 import SwiftUI
 import StoreKit
 import AppSettings
+import AccountPrefetchGates
 import CredentialsManager
 import ExternalLinkManager
 #if os(iOS)
@@ -28,9 +29,13 @@ public struct GeneratePassphraseView: View {
     @State var isAlertDisplayed = false
     @State var isPurchasing = false
     @State var isPlanAlertDisplayed = false
+    @State var alertOffersRegistrationRetry = false
 #if os(macOS)
     @State var autologinState = AutologinState()
 #endif
+
+    private let isPurchaseOnly: Bool
+    private let onPurchaseFlowDismissed: (() -> Void)?
 
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var credentialsManager: CredentialsManager
@@ -42,7 +47,13 @@ public struct GeneratePassphraseView: View {
                 .frame(height: 24)
 
             VStack(spacing: 0) {
-                StepView(stepCount: 4, currentStep: $currentStep)
+                if showsOnboardingProgressBar {
+                    StepView(
+                        stepCount: 4,
+                        currentStep: $currentStep,
+                        animateInitialFill: !isPurchaseOnly
+                    )
+                }
                 Spacer()
 
                 if !(didFinishAnimatingText && didRegisterAccount) {
@@ -72,13 +83,21 @@ public struct GeneratePassphraseView: View {
                 .ignoresSafeArea()
         }
         .task {
-            await generateAndRegisterMnemonic()
+            if isPurchaseOnly {
+                didRegisterAccount = true
+            } else {
+                await generateAndRegisterMnemonic()
+            }
         }
         .alert(alertTitle, isPresented: $isAlertDisplayed) {
-            Button("retry".localizedString, role: .cancel) {
-                Task {
-                    await generateAndRegisterMnemonic()
+            if alertOffersRegistrationRetry {
+                Button("retry".localizedString, role: .cancel) {
+                    Task {
+                        await generateAndRegisterMnemonic()
+                    }
                 }
+            } else {
+                Button("ok".localizedString, role: .cancel) {}
             }
         }
 #if os(macOS)
@@ -86,15 +105,31 @@ public struct GeneratePassphraseView: View {
 #endif
     }
 
-    public init(path: Binding<NavigationPath>, displayPurchaseView: Bool = false) {
+    public init(
+        path: Binding<NavigationPath>,
+        displayPurchaseView: Bool = false,
+        onPurchaseFlowDismissed: (() -> Void)? = nil
+    ) {
         _path = path
+        isPurchaseOnly = displayPurchaseView
+        self.onPurchaseFlowDismissed = onPurchaseFlowDismissed
         didFinishAnimatingText = displayPurchaseView
-        currentStep = displayPurchaseView ? 4 : 1
+        currentStep = displayPurchaseView
+            ? OnboardingSessionPolicy.progressStep(for: .iapPurchaseRequired)
+            : 1
     }
 }
 
 // MARK: - Views -
 private extension GeneratePassphraseView {
+    var showsOnboardingProgressBar: Bool {
+        PurchasePresentationPolicy.showsOnboardingProgressBar(
+            isPurchaseOnly: isPurchaseOnly,
+            didFinishAnimatingText: didFinishAnimatingText,
+            didRegisterAccount: didRegisterAccount
+        )
+    }
+
     @ViewBuilder
     func navbar() -> some View {
         if didFinishAnimatingText {
@@ -103,6 +138,7 @@ private extension GeneratePassphraseView {
                 rightButton: CustomNavBarButton(
                     type: .close,
                     action: {
+                        onPurchaseFlowDismissed?()
                         path = .init()
                     }
                 )

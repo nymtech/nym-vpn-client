@@ -1,5 +1,6 @@
 import AuthenticationServices
 import SwiftUI
+import AccountPrefetchGates
 import ConnectionTypes
 import CredentialsManager
 import ExternalLinkManager
@@ -12,6 +13,9 @@ public struct SignInView: View {
     private let rootMinHeight: CGFloat
     private let onBackTapped: () -> Void
     private let onWillRegister: () -> Void
+    private let onPrivyAuthWillBegin: () -> Void
+    private let onAuthHandoffCancelled: () -> Void
+    private let onAuthCompleted: (AuthCompletionOutcome) -> Void
 
     @State private var passphraseViewModel: PassphraseSignInViewModel
     @State private var showsPassphrase = false
@@ -24,14 +28,22 @@ public struct SignInView: View {
         credentialsManager: CredentialsManager,
         rootMinHeight: CGFloat = 0,
         onBackTapped: @escaping () -> Void,
-        onWillRegister: @escaping () -> Void = {}
+        onWillRegister: @escaping () -> Void = {},
+        onPrivyAuthWillBegin: @escaping () -> Void = {},
+        onAuthHandoffCancelled: @escaping () -> Void = {},
+        onAuthCompleted: @escaping (AuthCompletionOutcome) -> Void = { _ in }
     ) {
         self.credentialsManager = credentialsManager
         self.rootMinHeight = rootMinHeight
         self.onBackTapped = onBackTapped
         self.onWillRegister = onWillRegister
+        self.onPrivyAuthWillBegin = onPrivyAuthWillBegin
+        self.onAuthHandoffCancelled = onAuthHandoffCancelled
+        self.onAuthCompleted = onAuthCompleted
         let viewModel = PassphraseSignInViewModel(credentialsManager: credentialsManager)
         viewModel.onWillRegister = onWillRegister
+        viewModel.onAuthHandoffCancelled = onAuthHandoffCancelled
+        viewModel.onAuthCompleted = onAuthCompleted
         _passphraseViewModel = State(wrappedValue: viewModel)
     }
 
@@ -77,7 +89,7 @@ public struct SignInView: View {
     private func startPrivyLogin() {
         guard !isPrivyLoading else { return }
         isPrivyLoading = true
-        onWillRegister()
+        onPrivyAuthWillBegin()
         privyTask?.cancel()
         privyTask = Task { @MainActor in
             defer { isPrivyLoading = false }
@@ -85,10 +97,13 @@ public struct SignInView: View {
                 let url = try await credentialsManager.privyLogin(kind: .privy)
                 try await ExternalLinkManager.shared.presentPrivyAuthSession(urlString: url)
             } catch is CancellationError {
+                onAuthHandoffCancelled()
                 return
             } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
+                onAuthHandoffCancelled()
                 return
             } catch {
+                onAuthHandoffCancelled()
                 privyAlertMessage = error.localizedDescription
             }
         }

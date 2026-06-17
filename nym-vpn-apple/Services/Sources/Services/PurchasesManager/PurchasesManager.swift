@@ -2,6 +2,13 @@ import StoreKit
 import SwiftUI
 import AppSettings
 
+public enum PurchaseOutcome: Equatable, Sendable {
+    case success
+    case userCancelled
+    case pending
+    case failed
+}
+
 @MainActor public final class PurchasesManager: ObservableObject {
     private let productIds = ["1_month_may_2025", "1_year_may_2025"]
     private var productsLoaded = false
@@ -32,18 +39,22 @@ import AppSettings
         }
     }
 
-    public func purchase(with product: Product, token: String) async throws -> Bool {
-        guard let newToken = UUID(uuidString: token) else { return false }
-        let result = try await product.purchase(options: [.appAccountToken(newToken)])
+    public func purchase(with product: Product, token: String) async throws -> PurchaseOutcome {
+        guard let accountToken = UUID(uuidString: token) else { return .failed }
+        let result = try await product.purchase(options: [.appAccountToken(accountToken)])
 
         switch result {
         case let .success(.verified(transaction)):
             await transaction.finish()
-            return true
-        case .success(.unverified), .pending, .userCancelled:
-            return false
+            return .success
+        case .success(.unverified):
+            return .failed
+        case .pending:
+            return .pending
+        case .userCancelled:
+            return .userCancelled
         @unknown default:
-            return false
+            return .failed
         }
     }
 

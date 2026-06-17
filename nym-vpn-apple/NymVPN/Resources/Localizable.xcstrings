@@ -20249,6 +20249,39 @@
         }
       }
     },
+    "oneClick.incompleteSubscription.action" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete subscription setup"
+          }
+        }
+      }
+    },
+    "oneClick.incompleteSubscription.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account is safe, but needs an active subscription to shield traffic."
+          }
+        }
+      }
+    },
+    "oneClick.incompleteSubscription.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account setup incomplete"
+          }
+        }
+      }
+    },
     "oneClick.connectButton.connected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23239,6 +23272,50 @@
         }
       }
     },
+    "processingAccount.awaitingConfirmation.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We are verifying your transaction with the network. Please do not close the app."
+          }
+        }
+      }
+    },
+    "processingAccount.awaitingConfirmation.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Awaiting confirmation of your payment..."
+          }
+        }
+      }
+    },
+    "processingAccount.loginSync.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prefetching your cryptographic zk-nyms tokens safely."
+          }
+        }
+      }
+    },
+    "processingAccount.loginSync.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronizing your secure network credentials..."
+          }
+        }
+      }
+    },
     "processingAccount.title2" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23837,6 +23914,61 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancel anytime"
+          }
+        }
+      }
+    },
+    "purchasePlan.checkoutDismissed.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account is ready, but you need an active plan to start protecting your traffic."
+          }
+        }
+      }
+    },
+    "purchasePlan.checkoutDismissed.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscription still needed"
+          }
+        }
+      }
+    },
+    "purchasePlan.paymentCancelledAlert" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment canceled. Your account was created, but you still need an active plan to connect."
+          }
+        }
+      }
+    },
+    "purchasePlan.paymentFailedAlert" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your purchase could not be finalized. Please verify your payment details and try again."
+          }
+        }
+      }
+    },
+    "purchasePlan.paymentPendingAlert" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your payment is pending. We will activate your plan once the store confirms it."
           }
         }
       }

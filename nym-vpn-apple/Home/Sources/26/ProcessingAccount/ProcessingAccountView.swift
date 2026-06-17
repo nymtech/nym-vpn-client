@@ -1,4 +1,5 @@
 import SwiftUI
+import AccountPrefetchGates
 import Theme
 import UIComponents
 
@@ -36,7 +37,9 @@ private extension ProcessingAccountView {
             WaveDotsView()
             Spacer(minLength: 0)
             Group {
-                if viewModel.didShowFinalMessage {
+                if viewModel.usesStaticCopy {
+                    staticTitleView
+                } else if viewModel.didShowFinalMessage {
                     welcomeMessage
                 } else {
                     switchingTitles
@@ -73,14 +76,32 @@ private extension ProcessingAccountView {
         .trackHeight { titleBlockHeight = max(titleBlockHeight, $0) }
     }
 
+    @ViewBuilder
     var stepIndicator: some View {
-        StepView(
-            stepCount: 4,
-            currentStep: Binding(
-                get: { viewModel.currentStep },
-                set: { _ in }
+        if ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy) {
+            StepView(
+                stepCount: 4,
+                currentStep: Binding(
+                    get: { viewModel.currentStep },
+                    set: { _ in }
+                ),
+                animateInitialFill: !viewModel.usesStaticCopy
             )
-        )
+        }
+    }
+
+    var staticTitleView: some View {
+        let pair = ProcessingAccountView.staticPair(for: viewModel.flow)
+        return VStack(alignment: .center, spacing: 16) {
+            Text(pair.0)
+                .textStyle(.Headline.Medium.regular)
+                .foregroundStyle(NymColor.primary)
+                .multilineTextAlignment(.center)
+            Text(pair.1)
+                .textStyle(.Body.Medium.regular)
+                .foregroundColor(NymColor.gray1)
+                .multilineTextAlignment(.center)
+        }
     }
 
     var switchingTitles: some View {
@@ -105,20 +126,42 @@ private extension ProcessingAccountView {
             .multilineTextAlignment(.center)
     }
 
-    static func pairs(for flow: ProcessingFlow) -> [(String, String)] {
-        let prefix: String
+    static func staticPair(for flow: ProcessingFlow) -> (String, String) {
         switch flow {
-        case .createAccount:
-            prefix = "processingAccount.createAccount"
         case .login:
-            prefix = "processingAccount.login"
+            return loginCarouselPairs().first ?? ("", "")
         case .postPurchase:
-            prefix = "processingAccount"
+            return (
+                PostPurchaseProcessingUI.titleKey.localizedString,
+                PostPurchaseProcessingUI.subtitleKey.localizedString
+            )
+        case .createAccount:
+            return ("", "")
         }
-        return (2...4).map { index in
+    }
+
+    static func pairs(for flow: ProcessingFlow) -> [(String, String)] {
+        switch flow {
+        case .login:
+            return loginCarouselPairs()
+        case .postPurchase:
+            return [staticPair(for: .postPurchase)]
+        case .createAccount:
+            let prefix = "processingAccount.createAccount"
+            return (2...4).map { index in
+                (
+                    "\(prefix).title\(index)".localizedString,
+                    "\(prefix).subtitle\(index)".localizedString
+                )
+            }
+        }
+    }
+
+    static func loginCarouselPairs() -> [(String, String)] {
+        LoginProcessingUI.carouselStepRange.map { step in
             (
-                "\(prefix).title\(index)".localizedString,
-                "\(prefix).subtitle\(index)".localizedString
+                "\(LoginProcessingUI.carouselTitlePrefix).title\(step)".localizedString,
+                "\(LoginProcessingUI.carouselTitlePrefix).subtitle\(step)".localizedString
             )
         }
     }

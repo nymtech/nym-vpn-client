@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 import SnackbarManager
 import Theme
@@ -19,6 +20,8 @@ public final class PassphraseSignInViewModel {
     private let credentialsManager: CredentialsManager
     @ObservationIgnored private var loginTask: Task<Void, Never>?
     @ObservationIgnored public var onWillRegister: (() -> Void)?
+    @ObservationIgnored public var onAuthHandoffCancelled: (() -> Void)?
+    @ObservationIgnored public var onAuthCompleted: ((AuthCompletionOutcome) -> Void)?
 
     var passphraseText: String = "" {
         didSet {
@@ -45,10 +48,22 @@ public final class PassphraseSignInViewModel {
                 onWillRegister?()
                 try await credentialsManager.performAccountRegistration(loginCredential: credential)
                 passphraseText = ""
+                let outcome = await AuthCompletionOutcomeResolver.resolve(
+                    flow: .login,
+                    isAccountActive: { credentialsManager.isAccountActive() },
+                    updateAccountSummary: { untilActive in
+                        await credentialsManager.updateAccountSummary(
+                            force: true,
+                            untilActive: untilActive
+                        )
+                    }
+                )
                 submissionState = .idle
+                onAuthCompleted?(outcome)
             } catch is CancellationError {
-                // Cancelled — keep current state.
+                onAuthHandoffCancelled?()
             } catch let error as VPNErrorReason {
+                onAuthHandoffCancelled?()
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(
                     SnackbarItem(
@@ -58,6 +73,7 @@ public final class PassphraseSignInViewModel {
                     )
                 )
             } catch {
+                onAuthHandoffCancelled?()
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(
                     SnackbarItem(

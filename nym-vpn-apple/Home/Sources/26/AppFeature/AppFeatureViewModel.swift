@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import SwiftUI
 import SnackbarManager
+import AccountPrefetchGates
 import AppSettings
 import ConnectionManager
 import ConnectionTypes
@@ -30,12 +31,21 @@ import GRPCManager
 
     @ObservationIgnored private var pendingPlanPurchaseAfterOptIns = false
     @ObservationIgnored public var onRequestPlanPurchase: (() -> Void)?
-    @ObservationIgnored var pendingProcessingFlow: ProcessingFlow = .postPurchase
+    @ObservationIgnored private var pendingAuthFlow: AuthFlowKind?
+    @ObservationIgnored private var authHandoffCompleted = false
+    @ObservationIgnored private var authHandoffCompletesOnCredentialImport = false
+    @ObservationIgnored private var isPurchaseFlowActive = false
+    @ObservationIgnored private var planPurchaseTransitionTask: Task<Void, Never>?
+    @ObservationIgnored private var lastAuthCompletionOutcome: AuthCompletionOutcome?
 
     var accountSummary: AccountSummary?
     var accountIdentifier: String?
     var deviceIdentifier: String?
     var accountSummaryFetchFailed = false
+
+    var purchaseTransitionOverlayVisible: Bool {
+        isPurchaseFlowActive && drawerContent != nil
+    }
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     @ObservationIgnored private var lastForegroundRefreshAt: Date?
@@ -133,9 +143,11 @@ import GRPCManager
         pendingPlanPurchaseAfterOptIns = false
 
         if appSettings.isCredentialImported {
-            pendingDrawerContent = .oneClick
-            if purchaseAfter || !credentialsManager.isAccountActive() {
-                onRequestPlanPurchase?()
+            if purchaseAfter {
+                requestPlanPurchaseTransition()
+            } else {
+                pendingDrawerContent = .oneClick
+                drawerContent = .oneClick
             }
         } else {
             pendingDrawerContent = .welcome
@@ -187,13 +199,63 @@ import GRPCManager
         }
     }
 
+    func noteAuthWillBegin(flow: AuthFlowKind, completesOnCredentialImport: Bool = false) {
+        pendingAuthFlow = flow
+        authHandoffCompleted = false
+        authHandoffCompletesOnCredentialImport = completesOnCredentialImport
+        lastAuthCompletionOutcome = nil
+    }
+
+    func noteAuthHandoffCancelled() {
+        pendingAuthFlow = nil
+        authHandoffCompleted = false
+        authHandoffCompletesOnCredentialImport = false
+        lastAuthCompletionOutcome = nil
+    }
+
+    func handleAuthCompleted(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
+        guard !authHandoffCompleted else { return }
+        authHandoffCompleted = true
+        pendingAuthFlow = nil
+        lastAuthCompletionOutcome = outcome
+        routeAfterAuthCompletion(outcome: outcome, flow: flow)
+    }
+
     func handleCredentialChange(imported: Bool) {
         guard let current = drawerContent else { return }
         if imported {
-            guard credentialsManager.accountToken != nil else { return }
-            guard current.allowsCredentialPromotion else { return }
-            startProcessingTransition()
+            let importAction = DrawerCredentialImportPolicy.action(
+                imported: true,
+                pendingAuthFlow: pendingAuthFlow,
+                authHandoffCompleted: authHandoffCompleted,
+                authHandoffCompletesOnCredentialImport: authHandoffCompletesOnCredentialImport,
+                hasAccountToken: credentialsManager.accountToken != nil,
+                drawerAllowsCredentialPromotion: current.allowsCredentialPromotion
+            )
+            switch importAction {
+            case .completeAuthOnImport(let pendingFlow):
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    await self.ensureAccountRegisteredAfterCredentialImport(for: pendingFlow)
+                    guard DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
+                        flow: pendingFlow,
+                        accountToken: self.credentialsManager.accountToken
+                    ) else {
+                        self.applyDrawerDestinationAfterPurchaseDismiss()
+                        return
+                    }
+                    let outcome = await self.resolveAuthCompletionOutcome(for: pendingFlow)
+                    self.handleAuthCompleted(outcome: outcome, flow: pendingFlow)
+                }
+            case .suppressDuringHandoff, .none:
+                return
+            case .startExternalProcessing:
+                startProcessingTransition(flow: .postPurchase)
+            }
         } else {
+            pendingAuthFlow = nil
+            authHandoffCompleted = false
+            authHandoffCompletesOnCredentialImport = false
             pendingDrawerContent = nil
             cancelProcessingTransition()
             if current != .welcome {
@@ -201,9 +263,67 @@ import GRPCManager
             }
         }
     }
+
+    func resolveAuthCompletionOutcome(for flow: AuthFlowKind) async -> AuthCompletionOutcome {
+        await AuthCompletionOutcomeResolver.resolve(
+            flow: flow,
+            isAccountActive: { credentialsManager.isAccountActive() },
+            updateAccountSummary: { untilActive in
+                await credentialsManager.updateAccountSummary(
+                    force: true,
+                    untilActive: untilActive
+                )
+            }
+        )
+    }
+
+    func purchaseFlowDidComplete() {
+        guard isPurchaseFlowActive else { return }
+        cancelPlanPurchaseTransitionTask()
+        isPurchaseFlowActive = false
+        pendingDrawerContent = nil
+        drawerContent = .oneClick
+    }
+
+    func purchaseFlowDidDismissWithoutComplete() {
+        guard isPurchaseFlowActive else { return }
+        cancelPlanPurchaseTransitionTask()
+        isPurchaseFlowActive = false
+        pendingDrawerContent = nil
+        presentPurchaseDismissedFeedbackIfNeeded()
+        applyDrawerDestinationAfterPurchaseDismiss()
+    }
+
+    func requestPlanPurchaseTransition() {
+        guard DrawerSessionPolicy.shouldBeginPlanPurchaseTransition(
+            isPurchaseFlowActive: isPurchaseFlowActive
+        ) else {
+            return
+        }
+        planPurchaseTransitionTask?.cancel()
+        isPurchaseFlowActive = true
+        pendingDrawerContent = .oneClick
+        onRequestPlanPurchase?()
+        planPurchaseTransitionTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(Self.paywallDrawerDismissDelayMs))
+            guard !Task.isCancelled, let self else { return }
+            withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
+                self.drawerContent = nil
+            }
+            self.planPurchaseTransitionTask = nil
+        }
+    }
+
+    func cancelPlanPurchaseTransitionTask() {
+        planPurchaseTransitionTask?.cancel()
+        planPurchaseTransitionTask = nil
+    }
 }
 
 private extension AppFeatureViewModel {
+    static let paywallTransitionDuration = 0.35
+    static let paywallDrawerDismissDelayMs = 150
+
     func wireConnectionStatusDelegates() {
         connectionStatus.onConnectionFailed = { [weak self] errorMessage in
             self?.presentConnectionFailedAlert(message: errorMessage)
@@ -258,10 +378,30 @@ private extension AppFeatureViewModel {
             .store(in: &cancellables)
     }
 
-    func startProcessingTransition() {
+    func routeAfterAuthCompletion(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
+        switch AuthCompletionRouter.route(outcome: outcome, flow: flow) {
+        case .routeToPurchase:
+            requestPlanPurchaseTransition()
+        case .startProcessing(let kind):
+            startProcessingTransition(flow: drawerProcessingFlow(for: kind))
+        case .none:
+            break
+        }
+    }
+
+    func drawerProcessingFlow(for kind: ProcessingFlowKind) -> ProcessingFlow {
+        switch kind {
+        case .login:
+            return .login
+        case .postPurchase, .none:
+            return .postPurchase
+        }
+    }
+
+    func startProcessingTransition(flow: ProcessingFlow) {
         let viewModel = ProcessingAccountViewModel(
             credentialsManager: credentialsManager,
-            flow: pendingProcessingFlow
+            flow: flow
         )
         viewModel.onFinished = { [weak self] in
             self?.processingDidFinish()
@@ -282,7 +422,18 @@ private extension AppFeatureViewModel {
 
     func processingDidFinish() {
         guard drawerContent?.isProcessing == true else { return }
-        let needsPurchase = !credentialsManager.isAccountActive()
+        let summary = credentialsManager.accountSummary
+        let validUntilIsFuture = LoginSessionPolicy.validUntilIsFuture(
+            validUntil: summary?.validUntilDate
+        )
+        let needsPurchase = DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+            processingKind: processingViewModel.map { viewModelProcessingKind($0.flow) },
+            authOutcome: lastAuthCompletionOutcome,
+            isAccountActive: credentialsManager.isAccountActive(),
+            accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
+            validUntilIsFuture: validUntilIsFuture,
+            hasAccountSummary: summary != nil
+        )
 
         if !appSettings.welcomeScreenDidDisplay {
             pendingPlanPurchaseAfterOptIns = needsPurchase
@@ -292,7 +443,70 @@ private extension AppFeatureViewModel {
 
         pendingDrawerContent = .oneClick
         if needsPurchase {
-            onRequestPlanPurchase?()
+            requestPlanPurchaseTransition()
+        } else {
+            drawerContent = .oneClick
+        }
+    }
+
+    func viewModelProcessingKind(_ flow: ProcessingFlow) -> ProcessingFlowKind {
+        switch flow {
+        case .login:
+            return .login
+        case .postPurchase, .createAccount:
+            return .postPurchase
+        }
+    }
+
+    func applyDrawerDestinationAfterPurchaseDismiss() {
+        switch DrawerSessionPolicy.drawerDestinationAfterPurchaseDismiss(
+            isCredentialImported: appSettings.isCredentialImported,
+            welcomeScreenDidDisplay: appSettings.welcomeScreenDidDisplay
+        ) {
+        case .welcome:
+            drawerContent = .welcome
+        case .technicalOptIns:
+            pendingDrawerContent = .technicalOptIns
+            drawerContent = .technicalOptIns
+        case .oneClick:
+            drawerContent = .oneClick
+        }
+    }
+
+    func presentPurchaseDismissedFeedbackIfNeeded() {
+        guard IAPFeedbackPolicy.shouldShowCheckoutDismissedFeedback(
+            isCredentialImported: appSettings.isCredentialImported,
+            isAccountActive: credentialsManager.isAccountActive()
+        ) else { return }
+        snackbarManager.enqueue(
+            SnackbarItem(
+                style: .warning,
+                title: "purchasePlan.checkoutDismissed.title".localizedString,
+                message: "purchasePlan.checkoutDismissed.message".localizedString,
+                actionTitle: "oneClick.incompleteSubscription.action".localizedString,
+                onAction: { [weak self] in
+                    self?.requestPlanPurchaseTransition()
+                },
+                duration: 8
+            )
+        )
+    }
+
+    func ensureAccountRegisteredAfterCredentialImport(for flow: AuthFlowKind) async {
+        guard DrawerSessionPolicy.shouldRegisterAccountAfterCredentialImport(
+            flow: flow,
+            accountToken: credentialsManager.accountToken
+        ) else { return }
+        do {
+            try await credentialsManager.performAccountRegistration()
+        } catch {
+            snackbarManager.enqueue(
+                SnackbarItem(
+                    style: .critical,
+                    title: "error".localizedString,
+                    message: error.localizedDescription
+                )
+            )
         }
     }
 }

@@ -1,6 +1,12 @@
 import Foundation
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
+import SnackbarManager
+import Theme
+#if os(iOS)
+import ErrorHandler
+#endif
 
 public enum ProcessingFlow: Sendable {
     case createAccount
@@ -24,9 +30,22 @@ public final class ProcessingAccountViewModel {
     var didShowFinalMessage = false
     private var didBecomeActive = false
 
+    var usesStaticCopy: Bool {
+        flow == .postPurchase
+    }
+
     public init(credentialsManager: CredentialsManager, flow: ProcessingFlow) {
         self.credentialsManager = credentialsManager
         self.flow = flow
+        switch flow {
+        case .login:
+            currentStep = LoginProcessingUI.initialProgressStep
+        case .postPurchase:
+            currentStep = PostPurchaseProcessingUI.progressStep
+            didFinishAnimatingText = true
+        case .createAccount:
+            break
+        }
     }
 
     func start() {
@@ -34,15 +53,38 @@ public final class ProcessingAccountViewModel {
         processingTask = Task { @MainActor [weak self] in
             guard let self else { return }
             let credentials = credentialsManager
-            _ = await AccountPrefetchOrchestrator.runProcessingFlow(
-                isAccountActive: { await credentials.isAccountActive() },
-                updateAccountSummary: {
-                    await credentials.updateAccountSummary(force: true, untilActive: true)
-                },
-                prefetchZkNyms: {
-                    await credentials.prefetchZkNyms()
+            let runFlow = {
+                await AccountPrefetchOrchestrator.runProcessingFlow(
+                    isAccountActive: { await credentials.isAccountActive() },
+                    updateAccountSummary: {
+                        await credentials.updateAccountSummary(force: true, untilActive: true)
+                    },
+                    prefetchZkNyms: {
+                        await credentials.prefetchZkNyms()
+                    }
+                )
+            }
+
+            do {
+                if flow == .login {
+                    _ = try await LoginProcessingOrchestrator.run(
+                        ensureCredentialImportResolved: {
+                            await credentials.ensureCredentialImportResolved()
+                        },
+                        prepareRegisteredAccount: {
+                            try await credentials.prepareRegisteredAccount()
+                        },
+                        runProcessingFlow: runFlow
+                    )
+                } else {
+                    await credentials.ensureCredentialImportResolved()
+                    _ = await runFlow()
                 }
-            )
+            } catch {
+                self.presentProcessingError(error)
+                return
+            }
+
             guard !Task.isCancelled else { return }
             didBecomeActive = true
             advanceIfReady()
@@ -68,13 +110,38 @@ public final class ProcessingAccountViewModel {
     private func advanceIfReady() {
         guard ProcessingAccountReadiness.canAdvanceNavigation(
             didCompleteAccountPrep: didBecomeActive,
-            didFinishAnimatingText: didFinishAnimatingText
+            didFinishAnimatingText: didFinishAnimatingText,
+            requiresCarousel: !usesStaticCopy
         ), !didShowFinalMessage else { return }
         didShowFinalMessage = true
+        if usesStaticCopy {
+            onFinished?()
+            return
+        }
         finalMessageTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(ProcessingAccountViewModel.finalMessageDuration))
             guard !Task.isCancelled else { return }
             self?.onFinished?()
         }
+    }
+
+    private func presentProcessingError(_ error: Error) {
+#if os(iOS)
+        let message: String
+        if let reason = error as? VPNErrorReason {
+            message = reason.localizedDescription
+        } else {
+            message = error.localizedDescription
+        }
+        SnackbarManager.shared.enqueue(
+            SnackbarItem(
+                style: .critical,
+                title: "error".localizedString,
+                message: message
+            )
+        )
+#else
+        _ = error
+#endif
     }
 }

@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import SwiftUI
 import SnackbarManager
+import AccountPrefetchGates
 import AppSettings
 import ConnectionManager
 import ConnectionTypes
@@ -38,6 +39,13 @@ public final class OneClickViewModel {
     var displayMode: OneClickDisplayMode
 
     var speedMode: OneClickSpeedMode
+
+    var showsIncompleteSubscriptionBanner: Bool {
+        IAPFeedbackPolicy.shouldShowIncompleteSubscriptionBanner(
+            isCredentialImported: credentialsManager.isValidCredentialImported,
+            isAccountActive: credentialsManager.isAccountActive()
+        )
+    }
 
     /// Invoked when the daemon reports `.inactiveSubscription` or when the
     /// pre-flight gate detects an expired account. Routes the user into the
@@ -139,7 +147,17 @@ public final class OneClickViewModel {
                 guard credentialsManager.isValidCredentialImported else { return }
                 if await !credentialsManager.isAccountValid() {
                     await credentialsManager.updateAccountSummary()
-                    if !credentialsManager.isAccountActive() {
+                    let summary = credentialsManager.accountSummary
+                    let shouldOfferPurchase = ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
+                        isAccountRegistrationInFlight: credentialsManager.isAccountRegistrationInFlight,
+                        accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
+                        isAccountActive: credentialsManager.isAccountActive(),
+                        validUntilIsFuture: LoginSessionPolicy.validUntilIsFuture(
+                            validUntil: summary?.validUntilDate
+                        ),
+                        hasAccountSummary: summary != nil
+                    )
+                    if shouldOfferPurchase {
                         onRequestPlanPurchase?()
                         return
                     }
@@ -215,6 +233,11 @@ public final class OneClickViewModel {
                 connectionManager.setTwoHop(false)
             }
         }
+    }
+
+    func incompleteSubscriptionBannerTapped() {
+        impactGenerator.softImpact()
+        onRequestPlanPurchase?()
     }
 }
 

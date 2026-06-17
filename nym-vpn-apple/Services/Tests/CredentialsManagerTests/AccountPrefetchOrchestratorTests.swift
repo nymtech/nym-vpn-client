@@ -175,4 +175,24 @@ struct ProcessingAccountReadinessTests {
             )
         )
     }
+
+    @Test func e5StaticPostPurchaseAdvancesWhenPrepDoneWithoutCarousel() {
+        #expect(
+            ProcessingAccountReadiness.canAdvanceNavigation(
+                didCompleteAccountPrep: true,
+                didFinishAnimatingText: false,
+                requiresCarousel: false
+            )
+        )
+    }
+
+    @Test func e6StaticPostPurchaseBlockedUntilPrepDone() {
+        #expect(
+            !ProcessingAccountReadiness.canAdvanceNavigation(
+                didCompleteAccountPrep: false,
+                didFinishAnimatingText: false,
+                requiresCarousel: false
+            )
+        )
+    }
 }
