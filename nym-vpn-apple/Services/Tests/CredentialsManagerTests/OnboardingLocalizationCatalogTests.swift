@@ -1,38 +1,19 @@
 import Foundation
 import Testing
 import AccountPrefetchGates
+import Theme
 
 struct OnboardingLocalizationCatalogTests {
-    private static func englishValue(for key: String) throws -> String {
-        let url = try catalogURL()
-        let data = try Data(contentsOf: url)
-        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        let strings = json?["strings"] as? [String: Any]
-        let entry = strings?[key] as? [String: Any]
-        let localizations = entry?["localizations"] as? [String: Any]
-        let en = localizations?["en"] as? [String: Any]
-        let unit = en?["stringUnit"] as? [String: Any]
-        guard let value = unit?["value"] as? String else {
-            throw CatalogError.missingKey(key)
-        }
-        return value
-    }
-
-    private static func catalogURL() throws -> URL {
-        if let override = ProcessInfo.processInfo.environment["XCSTRINGS_PATH"], !override.isEmpty {
-            return URL(fileURLWithPath: override)
-        }
-        var url = URL(fileURLWithPath: #filePath)
-        for _ in 0..<3 { url.deleteLastPathComponent() }
-        return url
-            .appendingPathComponent("NymVPN")
-            .appendingPathComponent("Resources")
-            .appendingPathComponent("Localizable.xcstrings")
-    }
+    private static let processingKeys: [String] = [
+        LoginProcessingUI.titleKey,
+        LoginProcessingUI.subtitleKey,
+        PostPurchaseProcessingUI.titleKey,
+        PostPurchaseProcessingUI.subtitleKey
+    ]
 
     @Test func postPurchaseProcessingKeysHaveEnglishCopy() throws {
-        let title = try englishValue(for: PostPurchaseProcessingUI.titleKey)
-        let subtitle = try englishValue(for: PostPurchaseProcessingUI.subtitleKey)
+        let title = try NymVPNXCStringsReader.englishValue(for: PostPurchaseProcessingUI.titleKey)
+        let subtitle = try NymVPNXCStringsReader.englishValue(for: PostPurchaseProcessingUI.subtitleKey)
         #expect(title != PostPurchaseProcessingUI.titleKey)
         #expect(subtitle != PostPurchaseProcessingUI.subtitleKey)
         #expect(!title.isEmpty)
@@ -40,13 +21,79 @@ struct OnboardingLocalizationCatalogTests {
     }
 
     @Test func loginProcessingKeysHaveEnglishCopy() throws {
-        let title = try englishValue(for: LoginProcessingUI.titleKey)
-        let subtitle = try englishValue(for: LoginProcessingUI.subtitleKey)
+        let title = try NymVPNXCStringsReader.englishValue(for: LoginProcessingUI.titleKey)
+        let subtitle = try NymVPNXCStringsReader.englishValue(for: LoginProcessingUI.subtitleKey)
         #expect(title != LoginProcessingUI.titleKey)
         #expect(subtitle != LoginProcessingUI.subtitleKey)
     }
-}
 
-private enum CatalogError: Error {
-    case missingKey(String)
+    @Test func processingKeysMarkedTranslatedInCatalog() throws {
+        for key in Self.processingKeys {
+            let state = try NymVPNXCStringsReader.englishTranslationState(for: key)
+            #expect(state == "translated", "Expected translated state for \(key), got \(state)")
+        }
+    }
+
+    @Test func processingKeysResolveThroughLocalizedStringPipeline() throws {
+        for key in Self.processingKeys {
+            let catalogEnglish = try NymVPNXCStringsReader.englishValue(for: key)
+            #expect(catalogEnglish != key)
+
+            let resolved = key.localizedString
+            if resolved != key {
+                #expect(resolved == catalogEnglish)
+            } else if let appBundle = Self.nymVPNAppBundleFromEnvironment() {
+                let inApp = Self.resolve(key: key, bundle: appBundle)
+                #expect(inApp != key)
+                #expect(inApp == catalogEnglish)
+            }
+        }
+    }
+
+    @Test func localizedStringPipelineResolvesEnglishStringsTable() throws {
+        let key = LoginProcessingUI.titleKey
+        let expected = try NymVPNXCStringsReader.englishValue(for: key)
+        let bundle = try Self.temporaryEnglishBundle(
+            entries: [key: expected]
+        )
+        let resolved = Self.resolve(key: key, bundle: bundle)
+        #expect(resolved != key)
+        #expect(resolved == expected)
+    }
+
+    private static func resolve(key: String, bundle: Bundle) -> String {
+        let catalog = String(localized: String.LocalizationValue(key), bundle: bundle)
+        if catalog != key {
+            return catalog
+        }
+        return bundle.localizedStringFallback(forKey: key)
+    }
+
+    private static func nymVPNAppBundleFromEnvironment() -> Bundle? {
+        guard let path = ProcessInfo.processInfo.environment["NYMVPN_APP_BUNDLE_PATH"],
+              !path.isEmpty else {
+            return nil
+        }
+        return Bundle(path: path)
+    }
+
+    private static func temporaryEnglishBundle(entries: [String: String]) throws -> Bundle {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("nymvpn-l10n-test-\(UUID().uuidString)", isDirectory: true)
+        let enDir = root.appendingPathComponent("en.lproj", isDirectory: true)
+        try FileManager.default.createDirectory(at: enDir, withIntermediateDirectories: true)
+
+        let body = entries
+            .map { "\"\($0.key)\" = \"\($0.value.replacingOccurrences(of: "\"", with: "\\\""))\";" }
+            .joined(separator: "\n")
+        try body.write(
+            to: enDir.appendingPathComponent("Localizable.strings"),
+            atomically: true,
+            encoding: .utf8
+        )
+        guard let bundle = Bundle(path: root.path) else {
+            throw NymVPNXCStringsReader.ReadError.missingKey("bundle")
+        }
+        return bundle
+    }
 }

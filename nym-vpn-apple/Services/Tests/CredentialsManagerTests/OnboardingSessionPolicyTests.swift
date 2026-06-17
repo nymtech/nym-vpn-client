@@ -86,7 +86,7 @@ struct OnboardingSessionPolicyTests {
             )
         )
         #expect(
-            DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
                 processingKind: .login,
                 authOutcome: .registeredNeedsPurchase,
                 isAccountActive: false,
@@ -106,6 +106,19 @@ struct OnboardingSessionPolicyTests {
                 processingKind: .postPurchase,
                 authOutcome: .registeredActive,
                 isAccountActive: false
+            )
+        )
+    }
+
+    @Test func loginProcessingSkipsPurchaseWhenSummaryMissing() {
+        #expect(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .login,
+                authOutcome: .registeredNeedsPurchase,
+                isAccountActive: false,
+                accountSummaryLastFetchFailed: false,
+                validUntilIsFuture: false,
+                hasAccountSummary: false
             )
         )
     }
@@ -185,6 +198,18 @@ struct ConnectPlanPurchaseGatePolicyTests {
                 isAccountActive: false,
                 validUntilIsFuture: false,
                 hasAccountSummary: false
+            )
+        )
+    }
+
+    @Test func connectSkipsPurchaseWhenValidUntilIsFuture() {
+        #expect(
+            !ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
+                isAccountRegistrationInFlight: false,
+                accountSummaryLastFetchFailed: false,
+                isAccountActive: false,
+                validUntilIsFuture: true,
+                hasAccountSummary: true
             )
         )
     }

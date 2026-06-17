@@ -9,6 +9,21 @@ struct XCStringsResolverTests {
         #expect(resolver.string("settings.logout") == "Log out")
     }
 
+    @Test func resolvesOnboardingProcessingKeys() throws {
+        let resolver = try XCStringsResolver.default()
+        let keys = [
+            "processingAccount.loginSync.title",
+            "processingAccount.loginSync.subtitle",
+            "processingAccount.awaitingConfirmation.title",
+            "processingAccount.awaitingConfirmation.subtitle"
+        ]
+        for key in keys {
+            let value = resolver.string(key)
+            #expect(value != key, "Catalog must define English for \(key)")
+            #expect(!value.isEmpty)
+        }
+    }
+
     @Test func unknownKeyFallsBackToKey() throws {
         let resolver = try XCStringsResolver.default()
         #expect(resolver.string("totally.bogus.key") == "totally.bogus.key")
