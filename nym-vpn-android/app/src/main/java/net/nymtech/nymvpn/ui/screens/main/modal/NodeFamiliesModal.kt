@@ -19,16 +19,12 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
-import net.nymtech.nymvpn.ui.common.ModalContent
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
-import net.nymtech.nymvpn.ui.theme.NymVPNTheme
-import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
@@ -104,56 +100,4 @@ private fun NodeFamiliesDescriptionText(onLinkClick: () -> Unit) {
 			interactionSource = remember { MutableInteractionSource() },
 		) { onLinkClick() },
 	)
-}
-
-@Preview
-@Composable
-private fun NodeFamiliesModalPreview() {
-	NymVPNTheme(Theme.default()) {
-		ModalContent(
-			icon = Icons.Filled.Warning,
-			iconTint = MaterialTheme.colorScheme.primary,
-			title = {
-				Text(
-					text = stringResource(R.string.node_families_title),
-					style = CustomTypography.labelHuge,
-					color = MaterialTheme.colorScheme.onPrimaryContainer,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-				)
-			},
-			text = {
-				NodeFamiliesDescriptionText(onLinkClick = {})
-			},
-			confirmButton = {
-				MainStyledButton(
-					onClick = {},
-					textColor = Color.Black,
-					content = {
-						Text(
-							stringResource(R.string.node_families_connect_button),
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-						)
-					},
-					modifier = Modifier
-						.fillMaxWidth()
-						.height(40.dp.scaledHeight()),
-				)
-			},
-			dismissButton = {
-				TransparentButton(
-					onClick = { },
-					content = {
-						Text(
-							stringResource(R.string.cancel),
-							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-							color = MaterialTheme.colorScheme.onPrimaryContainer,
-						)
-					},
-					modifier = Modifier
-						.fillMaxWidth()
-						.height(40.dp.scaledHeight()),
-				)
-			},
-		)
-	}
 }

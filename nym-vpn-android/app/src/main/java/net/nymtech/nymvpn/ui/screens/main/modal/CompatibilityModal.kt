@@ -12,13 +12,9 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
-import net.nymtech.nymvpn.ui.common.ModalContent
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.theme.NymVPNTheme
-import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
@@ -55,40 +51,4 @@ fun CompatibilityModal(showCompatibilityDialog: Boolean, onDismiss: () -> Unit, 
 			)
 		},
 	)
-}
-
-@Preview
-@Composable
-private fun CompatibilityModalPreview() {
-	NymVPNTheme(Theme.default()) {
-		ModalContent(
-			title = {
-				Text(
-					text = stringResource(R.string.update_required),
-					color = MaterialTheme.colorScheme.onPrimaryContainer,
-					style = CustomTypography.labelHuge,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-				)
-			},
-			text = {
-				Text(
-					stringResource(R.string.app_update_required),
-					textAlign = TextAlign.Center,
-					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onPrimaryContainer,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-				)
-			},
-			confirmButton = {
-				MainStyledButton(
-					onClick = {},
-					textColor = Color.Black,
-					content = { Text(stringResource(R.string.update), fontFamily = FontFamily(Font(R.font.lab_grotesque_regular))) },
-					modifier = Modifier
-						.fillMaxWidth()
-						.height(40.dp.scaledHeight()),
-				)
-			},
-		)
-	}
 }
