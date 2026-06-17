@@ -148,6 +148,15 @@ private extension SettingsViewModel {
         path.append(SettingLink.accountAndDevices)
     }
 
+    func navigateToPlanPurchase() {
+        impactGenerator.softImpact()
+#if os(iOS)
+        path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+#elseif os(macOS)
+        autologinState?.start(kind: .autologinRenew, using: credentialsManager)
+#endif
+    }
+
     func navigateToPassphrase() {
         impactGenerator.softImpact()
         path.append(SettingLink.passphrase)
@@ -276,7 +285,9 @@ private extension SettingsViewModel {
             } else {
                 var first = AttributedString("noActivePlan".localizedString)
                 first.foregroundColor = Color.Nym.error
-                subtitle = first
+                var second = AttributedString("\n\( "purchasePlan.chooseMyPlan".localizedString)")
+                second.foregroundColor = Color.Nym.primary
+                subtitle = first + second
             }
         } else {
             subtitle = AttributedString("requestingZkNyms".localizedString)

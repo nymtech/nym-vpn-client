@@ -29,6 +29,7 @@ public struct GeneratePassphraseView: View {
     @State var isAlertDisplayed = false
     @State var isPurchasing = false
     @State var isPlanAlertDisplayed = false
+    @State var alertOffersRegistrationRetry = false
 #if os(macOS)
     @State var autologinState = AutologinState()
 #endif
@@ -89,11 +90,14 @@ public struct GeneratePassphraseView: View {
             }
         }
         .alert(alertTitle, isPresented: $isAlertDisplayed) {
-            Button("retry".localizedString, role: .cancel) {
-                guard !isPurchaseOnly else { return }
-                Task {
-                    await generateAndRegisterMnemonic()
+            if alertOffersRegistrationRetry {
+                Button("retry".localizedString, role: .cancel) {
+                    Task {
+                        await generateAndRegisterMnemonic()
+                    }
                 }
+            } else {
+                Button("ok".localizedString, role: .cancel) {}
             }
         }
 #if os(macOS)

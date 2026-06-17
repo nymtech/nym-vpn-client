@@ -282,6 +282,72 @@ struct PurchasePresentationPolicyTests {
     }
 }
 
+struct IAPFeedbackPolicyTests {
+    @Test func incompleteSubscriptionBannerWhenImportedAndInactive() {
+        #expect(
+            IAPFeedbackPolicy.shouldShowIncompleteSubscriptionBanner(
+                isCredentialImported: true,
+                isAccountActive: false
+            )
+        )
+        #expect(
+            !IAPFeedbackPolicy.shouldShowIncompleteSubscriptionBanner(
+                isCredentialImported: true,
+                isAccountActive: true
+            )
+        )
+        #expect(
+            !IAPFeedbackPolicy.shouldShowIncompleteSubscriptionBanner(
+                isCredentialImported: false,
+                isAccountActive: false
+            )
+        )
+    }
+
+    @Test func checkoutDismissedFeedbackWhenImportedAndInactive() {
+        #expect(
+            IAPFeedbackPolicy.shouldShowCheckoutDismissedFeedback(
+                isCredentialImported: true,
+                isAccountActive: false
+            )
+        )
+    }
+
+    @Test func checkoutAlertsForUnhappyPathsOnly() {
+        #expect(!IAPFeedbackPolicy.requiresUserAlert(for: .success))
+        #expect(IAPFeedbackPolicy.requiresUserAlert(for: .userCancelled))
+        #expect(IAPFeedbackPolicy.requiresUserAlert(for: .pending))
+        #expect(IAPFeedbackPolicy.requiresUserAlert(for: .failed))
+    }
+
+    @Test func checkoutAlertLocalizationKeys() {
+        #expect(
+            IAPFeedbackPolicy.alertLocalizationKey(for: .userCancelled)
+                == "purchasePlan.paymentCancelledAlert"
+        )
+        #expect(
+            IAPFeedbackPolicy.alertLocalizationKey(for: .pending)
+                == "purchasePlan.paymentPendingAlert"
+        )
+        #expect(
+            IAPFeedbackPolicy.alertLocalizationKey(for: .failed)
+                == "purchasePlan.paymentFailedAlert"
+        )
+    }
+
+    @Test func purchaseCheckoutThrownErrorsUseFailedAlertKey() {
+        #expect(
+            IAPFeedbackPolicy.alertLocalizationKey(for: .failed)
+                == "purchasePlan.paymentFailedAlert"
+        )
+    }
+
+    @Test func registrationRetryOnlyOfferedForRegistrationFailures() {
+        #expect(IAPFeedbackPolicy.showsRegistrationRetryOnAlert(isRegistrationFailure: true))
+        #expect(!IAPFeedbackPolicy.showsRegistrationRetryOnAlert(isRegistrationFailure: false))
+    }
+}
+
 struct DrawerSessionPolicyTests {
     @Test func planPurchaseTransitionIgnoredWhileAlreadyActive() {
         #expect(!DrawerSessionPolicy.shouldBeginPlanPurchaseTransition(isPurchaseFlowActive: true))

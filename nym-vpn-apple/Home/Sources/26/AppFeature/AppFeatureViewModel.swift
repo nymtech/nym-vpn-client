@@ -290,6 +290,7 @@ import GRPCManager
         cancelPlanPurchaseTransitionTask()
         isPurchaseFlowActive = false
         pendingDrawerContent = nil
+        presentPurchaseDismissedFeedbackIfNeeded()
         applyDrawerDestinationAfterPurchaseDismiss()
     }
 
@@ -470,6 +471,25 @@ private extension AppFeatureViewModel {
         case .oneClick:
             drawerContent = .oneClick
         }
+    }
+
+    func presentPurchaseDismissedFeedbackIfNeeded() {
+        guard IAPFeedbackPolicy.shouldShowCheckoutDismissedFeedback(
+            isCredentialImported: appSettings.isCredentialImported,
+            isAccountActive: credentialsManager.isAccountActive()
+        ) else { return }
+        snackbarManager.enqueue(
+            SnackbarItem(
+                style: .warning,
+                title: "purchasePlan.checkoutDismissed.title".localizedString,
+                message: "purchasePlan.checkoutDismissed.message".localizedString,
+                actionTitle: "oneClick.incompleteSubscription.action".localizedString,
+                onAction: { [weak self] in
+                    self?.requestPlanPurchaseTransition()
+                },
+                duration: 8
+            )
+        )
     }
 
     func ensureAccountRegisteredAfterCredentialImport(for flow: AuthFlowKind) async {
