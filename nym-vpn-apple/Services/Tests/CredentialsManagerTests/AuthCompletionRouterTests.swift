@@ -40,6 +40,7 @@ struct AuthCompletionRouterTests {
     }
 }
 
+@MainActor
 struct AuthCompletionOutcomeResolverTests {
     @Test func l1LoginInactiveBeforeSyncActiveAfterSyncYieldsLoginReady() async {
         var activeAfterSync = false

@@ -1,11 +1,12 @@
 import Foundation
 
-public enum AuthCompletionOutcomeResolver: Sendable {
+public enum AuthCompletionOutcomeResolver {
     /// Await backend summary before classifying. Login uses untilActive polling.
+    @MainActor
     public static func resolve(
         flow: AuthFlowKind,
-        isAccountActive: @Sendable () -> Bool,
-        updateAccountSummary: @Sendable (_ untilActive: Bool) async -> Void
+        isAccountActive: () -> Bool,
+        updateAccountSummary: (_ untilActive: Bool) async -> Void
     ) async -> AuthCompletionOutcome {
         await updateAccountSummary(flow == .login)
         if isAccountActive() {

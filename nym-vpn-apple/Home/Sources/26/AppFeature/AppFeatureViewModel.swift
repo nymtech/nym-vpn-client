@@ -248,6 +248,37 @@ import GRPCManager
             }
         }
     }
+
+    func resolveAuthCompletionOutcome(for flow: AuthFlowKind) async -> AuthCompletionOutcome {
+        await AuthCompletionOutcomeResolver.resolve(
+            flow: flow,
+            isAccountActive: { credentialsManager.isAccountActive() },
+            updateAccountSummary: { untilActive in
+                await credentialsManager.updateAccountSummary(
+                    force: true,
+                    untilActive: untilActive
+                )
+            }
+        )
+    }
+
+    func purchaseFlowDidComplete() {
+        guard isPurchaseFlowActive else { return }
+        isPurchaseFlowActive = false
+        pendingDrawerContent = nil
+        drawerContent = .oneClick
+    }
+
+    func purchaseFlowDidDismissWithoutComplete() {
+        guard isPurchaseFlowActive else { return }
+        isPurchaseFlowActive = false
+        pendingDrawerContent = nil
+        if appSettings.isCredentialImported {
+            drawerContent = credentialsManager.isAccountActive() ? .oneClick : .welcome
+        } else {
+            drawerContent = .welcome
+        }
+    }
 }
 
 private extension AppFeatureViewModel {
@@ -303,37 +334,6 @@ private extension AppFeatureViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.accountSummaryFetchFailed = $0 }
             .store(in: &cancellables)
-    }
-
-    func resolveAuthCompletionOutcome(for flow: AuthFlowKind) async -> AuthCompletionOutcome {
-        await AuthCompletionOutcomeResolver.resolve(
-            flow: flow,
-            isAccountActive: { credentialsManager.isAccountActive() },
-            updateAccountSummary: { untilActive in
-                await credentialsManager.updateAccountSummary(
-                    force: true,
-                    untilActive: untilActive
-                )
-            }
-        )
-    }
-
-    func purchaseFlowDidComplete() {
-        guard isPurchaseFlowActive else { return }
-        isPurchaseFlowActive = false
-        pendingDrawerContent = nil
-        drawerContent = .oneClick
-    }
-
-    func purchaseFlowDidDismissWithoutComplete() {
-        guard isPurchaseFlowActive else { return }
-        isPurchaseFlowActive = false
-        pendingDrawerContent = nil
-        if appSettings.isCredentialImported {
-            drawerContent = credentialsManager.isAccountActive() ? .oneClick : .welcome
-        } else {
-            drawerContent = .welcome
-        }
     }
 
     func routeAfterAuthCompletion(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
