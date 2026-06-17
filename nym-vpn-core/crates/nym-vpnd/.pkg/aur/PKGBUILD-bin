@@ -16,11 +16,9 @@ makedepends=()
 provides=('nym-vpnd' 'nym-exclude' 'nym-socks5-proxy')
 conflicts=('nym-vpnd')
 options=(!debug)
-source=(
-    "$url/releases/download/$_release_tag/nym-vpn-core-v${_pkgver}_linux_x86_64.tar.gz"
+source=("$url/releases/download/$_release_tag/nym-vpn-core-v${_pkgver}_linux_x86_64.tar.gz"
     "$url/releases/download/$_release_tag/nym-vpn-core-v${_pkgver}_linux_aarch64.tar.gz"
-    'nym-vpnd.service'
-)
+    'nym-vpnd.service')
 sha256sums=()
 
 package() {
