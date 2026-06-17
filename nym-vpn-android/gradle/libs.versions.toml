@@ -1,6 +1,6 @@
 [versions]
 accompanist = "0.37.3"
-agp = "9.1.0"
+agp = "9.2.1"
 coreSplashscreen = "1.2.0"
 detektRulesCompose = "1.4.0"
 ipaddress = "5.6.2"
