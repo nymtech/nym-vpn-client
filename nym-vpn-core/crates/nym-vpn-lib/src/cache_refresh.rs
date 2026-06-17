@@ -37,8 +37,8 @@ pub async fn update_caches_for_network(
 
     // Create new gateway client for the new environment
     let nyxd_url = network.nyxd_url();
-    let nym_api_urls = network.nym_api_urls().unwrap_or_default();
-    let nym_vpn_api_urls = network.nym_vpn_api_urls().unwrap_or_default();
+    let nym_api_urls = network.nym_api_urls();
+    let nym_vpn_api_urls = network.nym_vpn_api_urls();
 
     // Validate that we have the necessary URLs
     if nym_vpn_api_urls.is_empty() {

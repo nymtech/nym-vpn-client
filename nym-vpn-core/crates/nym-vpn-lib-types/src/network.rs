@@ -3,6 +3,7 @@
 
 use std::{collections::HashMap, sync::Arc};
 
+pub use nym_network_defaults::{NetworkingSpecifics, DnsFallback};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
@@ -24,8 +25,27 @@ pub struct NymNetworkDetails {
     pub chain_details: ChainDetails,
     pub endpoints: Vec<ValidatorDetails>,
     pub contracts: NymContracts,
-    pub nym_api_urls: Option<Vec<ApiUrl>>,
-    pub nym_vpn_api_urls: Option<Vec<ApiUrl>>,
+    pub networking: NetworkingSpecifics,
+}
+
+impl NymNetworkDetails {
+    pub fn nym_vpn_api_urls(&self) -> Vec<ApiUrl> {
+        self.networking
+            .nym_vpn_api_urls
+            .clone()
+            .iter()
+            .map(Into::into)
+            .collect()
+    }
+
+    pub fn nym_api_urls(&self) -> Vec<ApiUrl> {
+        self.networking
+            .nym_api_urls
+            .clone()
+            .iter()
+            .map(Into::into)
+            .collect()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -407,12 +427,7 @@ impl From<nym_vpn_network_config::NymNetworkDetails> for NymNetworkDetails {
                 .map(ValidatorDetails::from)
                 .collect(),
             contracts: NymContracts::from(value.contracts),
-            nym_api_urls: value
-                .nym_api_urls
-                .map(|v| v.into_iter().map(ApiUrl::from).collect::<Vec<_>>()),
-            nym_vpn_api_urls: value
-                .nym_vpn_api_urls
-                .map(|v| v.into_iter().map(ApiUrl::from).collect::<Vec<_>>()),
+            networking: value.networking,
         }
     }
 }
@@ -460,6 +475,16 @@ impl From<nym_network_defaults::ApiUrl> for ApiUrl {
         Self {
             url: value.url,
             front_hosts: value.front_hosts,
+        }
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<&nym_network_defaults::ApiUrl> for ApiUrl {
+    fn from(value: &nym_network_defaults::ApiUrl) -> Self {
+        Self {
+            url: value.url.clone(),
+            front_hosts: value.front_hosts.clone(),
         }
     }
 }

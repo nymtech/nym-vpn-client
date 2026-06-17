@@ -192,7 +192,11 @@ fn url_from_client(client: &Client) -> ApiUrl {
 }
 
 async fn build_nym_api_clients(network: &Network) -> Result<Vec<Client>> {
-    let nym_urls = api_urls_to_urls(&network.nym_api_urls().ok_or(Error::MissingApiUrl)?)?;
+    let nym_urls = api_urls_to_urls(&network.nym_api_urls())?;
+    if nym_urls.is_empty() {
+        return Err(Error::MissingApiUrl);
+    }
+    
     let mut clients = Vec::new();
     for url in nym_urls {
         let plain_url =
@@ -229,7 +233,11 @@ async fn build_nym_api_clients(network: &Network) -> Result<Vec<Client>> {
 }
 
 async fn build_vpn_api_clients(network: &Network) -> Result<Vec<VpnApiClient>> {
-    let nym_urls = api_urls_to_urls(&network.nym_vpn_api_urls().ok_or(Error::MissingApiUrl)?)?;
+    let nym_urls = api_urls_to_urls(&network.nym_vpn_api_urls())?;
+    if nym_urls.is_empty() {
+        return Err(Error::MissingApiUrl);
+    }
+
     let mut clients = Vec::new();
 
     for url in nym_urls {

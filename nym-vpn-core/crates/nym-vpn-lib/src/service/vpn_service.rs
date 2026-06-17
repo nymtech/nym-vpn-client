@@ -612,11 +612,9 @@ impl NymVpnService {
         let nyxd_url = network_env.nyxd_url();
 
         let nym_api_urls = network_env
-            .nym_api_urls()
-            .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
+            .nym_api_urls();
         let nym_vpn_api_urls = network_env
-            .nym_vpn_api_urls()
-            .ok_or(Error::InvalidEnvironment("empty nym_api_urls"))?;
+            .nym_vpn_api_urls();
 
         let gateway_config =
             gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)

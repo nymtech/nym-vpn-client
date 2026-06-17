@@ -127,8 +127,8 @@ impl GatewayDiagnostic {
         let nyxd_url = network.nyxd_url();
 
         // If they were None, config creation will catch the error. And they shouldn't be None anyway
-        let nym_api_urls = network.nym_api_urls().unwrap_or_default();
-        let nym_vpn_api_urls = network.nym_vpn_api_urls().unwrap_or_default();
+        let nym_api_urls = network.nym_api_urls();
+        let nym_vpn_api_urls = network.nym_vpn_api_urls();
 
         let config = nym_gateway_directory::Config::new(
             nyxd_url,
