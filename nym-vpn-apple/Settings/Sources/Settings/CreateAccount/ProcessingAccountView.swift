@@ -1,17 +1,16 @@
 import SwiftUI
-import AppSettings
+import AccountPrefetchGates
 import CredentialsManager
 import Theme
 import UIComponents
 
 public struct ProcessingAccountView: View {
-    @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @Binding private var path: NavigationPath
-    @State private var didFinishAnimatingText = false
+    private let onPurchaseFlowComplete: (() -> Void)?
+
     @State private var didCompleteAccountPrep = false
     @State private var didNavigate = false
-    @State private var currentStep = 1
 
     public var body: some View {
         VStack(alignment: .center, spacing: 0) {
@@ -19,12 +18,16 @@ public struct ProcessingAccountView: View {
             Spacer()
                 .frame(height: 24)
 
-            StepView(stepCount: 4, currentStep: $currentStep)
+            StepView(
+                stepCount: 4,
+                currentStep: .constant(PostPurchaseProcessingUI.progressStep),
+                animateInitialFill: false
+            )
             Spacer()
             dotsAnimationView
             Spacer()
                 .frame(height: 16)
-            animatingTextView
+            staticTextView
             Spacer()
         }
         .frame(maxWidth: MagicNumbers.moreMaxWidth)
@@ -33,9 +36,6 @@ public struct ProcessingAccountView: View {
         .background {
             Color.Nym.background
                 .ignoresSafeArea()
-        }
-        .onChange(of: didFinishAnimatingText) { _, _ in
-            advanceIfReady()
         }
         .task {
             let credentials = credentialsManager
@@ -54,8 +54,9 @@ public struct ProcessingAccountView: View {
         }
     }
 
-    public init(path: Binding<NavigationPath>) {
+    public init(path: Binding<NavigationPath>, onPurchaseFlowComplete: (() -> Void)? = nil) {
         _path = path
+        self.onPurchaseFlowComplete = onPurchaseFlowComplete
     }
 }
 
@@ -68,34 +69,33 @@ private extension ProcessingAccountView {
         WaveDotsView()
     }
 
-    var animatingTextView: some View {
-        SwitchingTitlesView(
-            pairs: [
-                ("processingAccount.title2".localizedString, "processingAccount.subtitle2".localizedString),
-                ("processingAccount.title3".localizedString, "processingAccount.subtitle3".localizedString),
-                ("processingAccount.title4".localizedString, "processingAccount.subtitle4".localizedString),
-                ("processingAccount.title5".localizedString, "processingAccount.subtitle5".localizedString)
-            ],
-            didFinishAnimating: $didFinishAnimatingText,
-            timerDidTick: {
-                currentStep += 1
-            }
-        )
+    var staticTextView: some View {
+        VStack(alignment: .center, spacing: 16) {
+            Text(PostPurchaseProcessingUI.titleKey.localizedString)
+                .textStyle(.Headline.Medium.regular)
+                .foregroundStyle(NymColor.primary)
+                .multilineTextAlignment(.center)
+
+            Text(PostPurchaseProcessingUI.subtitleKey.localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundColor(NymColor.gray1)
+                .multilineTextAlignment(.center)
+        }
     }
 
     func advanceIfReady() {
         guard !didNavigate,
               ProcessingAccountReadiness.canAdvanceNavigation(
                   didCompleteAccountPrep: didCompleteAccountPrep,
-                  didFinishAnimatingText: didFinishAnimatingText
+                  didFinishAnimatingText: true,
+                  requiresCarousel: false
               ) else { return }
         didNavigate = true
-        navigateHomeOrTechnicalOptIns()
+        navigateHome()
     }
-}
 
-private extension ProcessingAccountView {
-    func navigateHomeOrTechnicalOptIns() {
+    func navigateHome() {
+        onPurchaseFlowComplete?()
         path = .init()
     }
 }

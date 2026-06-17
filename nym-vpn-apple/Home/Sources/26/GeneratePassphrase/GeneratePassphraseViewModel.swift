@@ -67,10 +67,20 @@ public final class GeneratePassphraseViewModel {
     private func advanceIfAuthComplete() {
         guard didRegisterAccount, didFinishAnimatingText, !didEmitAuthCompleted else { return }
         didEmitAuthCompleted = true
-        let outcome: AuthCompletionOutcome = credentialsManager.isAccountActive()
-            ? .registeredActive
-            : .registeredNeedsPurchase
-        onAuthCompleted?(outcome)
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            let outcome = await AuthCompletionOutcomeResolver.resolve(
+                flow: .createAccount,
+                isAccountActive: { credentialsManager.isAccountActive() },
+                updateAccountSummary: { untilActive in
+                    await credentialsManager.updateAccountSummary(
+                        force: true,
+                        untilActive: untilActive
+                    )
+                }
+            )
+            onAuthCompleted?(outcome)
+        }
     }
 
     func retry() {

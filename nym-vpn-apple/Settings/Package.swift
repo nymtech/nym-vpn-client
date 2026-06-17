@@ -40,6 +40,7 @@ let package = Package(
             name: "Settings",
             dependencies: [
                 .product(name: "AppSettings", package: "Services"),
+                .product(name: "AccountPrefetchGates", package: "Services"),
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "AppDiscoveryService", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "BiometricAuthenticator", package: "Services"),

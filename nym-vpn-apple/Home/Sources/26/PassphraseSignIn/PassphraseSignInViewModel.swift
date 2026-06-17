@@ -48,10 +48,17 @@ public final class PassphraseSignInViewModel {
                 onWillRegister?()
                 try await credentialsManager.performAccountRegistration(loginCredential: credential)
                 passphraseText = ""
+                let outcome = await AuthCompletionOutcomeResolver.resolve(
+                    flow: .login,
+                    isAccountActive: { credentialsManager.isAccountActive() },
+                    updateAccountSummary: { untilActive in
+                        await credentialsManager.updateAccountSummary(
+                            force: true,
+                            untilActive: untilActive
+                        )
+                    }
+                )
                 submissionState = .idle
-                let outcome: AuthCompletionOutcome = credentialsManager.isAccountActive()
-                    ? .loginReady
-                    : .registeredNeedsPurchase
                 onAuthCompleted?(outcome)
             } catch is CancellationError {
                 onAuthHandoffCancelled?()

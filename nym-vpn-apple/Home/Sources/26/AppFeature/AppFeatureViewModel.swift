@@ -34,6 +34,7 @@ import GRPCManager
     @ObservationIgnored private var pendingAuthFlow: AuthFlowKind?
     @ObservationIgnored private var authHandoffCompleted = false
     @ObservationIgnored private var authHandoffCompletesOnCredentialImport = false
+    @ObservationIgnored private var isPurchaseFlowActive = false
 
     var accountSummary: AccountSummary?
     var accountIdentifier: String?
@@ -138,7 +139,11 @@ import GRPCManager
         if appSettings.isCredentialImported {
             pendingDrawerContent = .oneClick
             if purchaseAfter || !credentialsManager.isAccountActive() {
+                isPurchaseFlowActive = true
+                drawerContent = nil
                 onRequestPlanPurchase?()
+            } else {
+                drawerContent = .oneClick
             }
         } else {
             pendingDrawerContent = .welcome
@@ -222,8 +227,11 @@ import GRPCManager
             )
             switch importAction {
             case .completeAuthOnImport(let pendingFlow):
-                let outcome = authCompletionOutcome(for: pendingFlow)
-                handleAuthCompleted(outcome: outcome, flow: pendingFlow)
+                Task { @MainActor [weak self] in
+                    guard let self else { return }
+                    let outcome = await self.resolveAuthCompletionOutcome(for: pendingFlow)
+                    self.handleAuthCompleted(outcome: outcome, flow: pendingFlow)
+                }
             case .suppressDuringHandoff, .none:
                 return
             case .startExternalProcessing:
@@ -297,18 +305,43 @@ private extension AppFeatureViewModel {
             .store(in: &cancellables)
     }
 
-    func authCompletionOutcome(for flow: AuthFlowKind) -> AuthCompletionOutcome {
-        if credentialsManager.isAccountActive() {
-            return flow == .login ? .loginReady : .registeredActive
+    func resolveAuthCompletionOutcome(for flow: AuthFlowKind) async -> AuthCompletionOutcome {
+        await AuthCompletionOutcomeResolver.resolve(
+            flow: flow,
+            isAccountActive: { credentialsManager.isAccountActive() },
+            updateAccountSummary: { untilActive in
+                await credentialsManager.updateAccountSummary(
+                    force: true,
+                    untilActive: untilActive
+                )
+            }
+        )
+    }
+
+    func purchaseFlowDidComplete() {
+        guard isPurchaseFlowActive else { return }
+        isPurchaseFlowActive = false
+        pendingDrawerContent = nil
+        drawerContent = .oneClick
+    }
+
+    func purchaseFlowDidDismissWithoutComplete() {
+        guard isPurchaseFlowActive else { return }
+        isPurchaseFlowActive = false
+        pendingDrawerContent = nil
+        if appSettings.isCredentialImported {
+            drawerContent = credentialsManager.isAccountActive() ? .oneClick : .welcome
+        } else {
+            drawerContent = .welcome
         }
-        return .registeredNeedsPurchase
     }
 
     func routeAfterAuthCompletion(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
         switch AuthCompletionRouter.route(outcome: outcome, flow: flow) {
         case .routeToPurchase:
+            isPurchaseFlowActive = true
             pendingDrawerContent = .oneClick
-            drawerContent = .oneClick
+            drawerContent = nil
             onRequestPlanPurchase?()
         case .startProcessing(let kind):
             startProcessingTransition(flow: drawerProcessingFlow(for: kind))
@@ -360,7 +393,11 @@ private extension AppFeatureViewModel {
 
         pendingDrawerContent = .oneClick
         if needsPurchase {
+            isPurchaseFlowActive = true
+            drawerContent = nil
             onRequestPlanPurchase?()
+        } else {
+            drawerContent = .oneClick
         }
     }
 }

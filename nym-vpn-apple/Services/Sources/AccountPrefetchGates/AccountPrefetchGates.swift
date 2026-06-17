@@ -133,8 +133,9 @@ private extension AccountPrefetchOrchestrator {
 public enum ProcessingAccountReadiness: Equatable, Sendable {
     public static func canAdvanceNavigation(
         didCompleteAccountPrep: Bool,
-        didFinishAnimatingText: Bool
+        didFinishAnimatingText: Bool,
+        requiresCarousel: Bool = true
     ) -> Bool {
-        didCompleteAccountPrep && didFinishAnimatingText
+        didCompleteAccountPrep && (requiresCarousel ? didFinishAnimatingText : true)
     }
 }

@@ -1,6 +1,7 @@
 import SwiftUI
 import StoreKit
 import AppSettings
+import AccountPrefetchGates
 import CredentialsManager
 import ExternalLinkManager
 #if os(iOS)
@@ -33,6 +34,7 @@ public struct GeneratePassphraseView: View {
 #endif
 
     private let isPurchaseOnly: Bool
+    private let onPurchaseFlowDismissed: (() -> Void)?
 
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var credentialsManager: CredentialsManager
@@ -44,7 +46,11 @@ public struct GeneratePassphraseView: View {
                 .frame(height: 24)
 
             VStack(spacing: 0) {
-                StepView(stepCount: 4, currentStep: $currentStep)
+                StepView(
+                    stepCount: 4,
+                    currentStep: $currentStep,
+                    animateInitialFill: !isPurchaseOnly
+                )
                 Spacer()
 
                 if !(didFinishAnimatingText && didRegisterAccount) {
@@ -93,11 +99,18 @@ public struct GeneratePassphraseView: View {
 #endif
     }
 
-    public init(path: Binding<NavigationPath>, displayPurchaseView: Bool = false) {
+    public init(
+        path: Binding<NavigationPath>,
+        displayPurchaseView: Bool = false,
+        onPurchaseFlowDismissed: (() -> Void)? = nil
+    ) {
         _path = path
         isPurchaseOnly = displayPurchaseView
+        self.onPurchaseFlowDismissed = onPurchaseFlowDismissed
         didFinishAnimatingText = displayPurchaseView
-        currentStep = displayPurchaseView ? 4 : 1
+        currentStep = displayPurchaseView
+            ? OnboardingSessionPolicy.progressStep(for: .iapPurchaseRequired)
+            : 1
     }
 }
 
@@ -111,6 +124,7 @@ private extension GeneratePassphraseView {
                 rightButton: CustomNavBarButton(
                     type: .close,
                     action: {
+                        onPurchaseFlowDismissed?()
                         path = .init()
                     }
                 )

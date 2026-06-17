@@ -44,9 +44,16 @@ struct SettingsFlowCoordinator<Content: View>: View {
         case let .accountWelcome(type: type, navigationSource: navigationSource):
             accountWelcomeDestination(type: type, navigationSource: navigationSource)
         case let .generatePassphrase(displayPurchaseView: displayPurchaseView):
-            GeneratePassphraseView(path: $flowState.path, displayPurchaseView: displayPurchaseView)
+            GeneratePassphraseView(
+                path: $flowState.path,
+                displayPurchaseView: displayPurchaseView,
+                onPurchaseFlowDismissed: flowState.onPurchaseFlowDismissed
+            )
         case .processingAccount:
-            ProcessingAccountView(path: $flowState.path)
+            ProcessingAccountView(
+                path: $flowState.path,
+                onPurchaseFlowComplete: flowState.onPurchaseFlowComplete
+            )
         case .passphrase:
             PassphraseView(path: $flowState.path)
         case .logs:

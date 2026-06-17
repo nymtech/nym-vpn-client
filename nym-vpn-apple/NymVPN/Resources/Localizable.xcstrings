@@ -23239,6 +23239,50 @@
         }
       }
     },
+    "processingAccount.awaitingConfirmation.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We are verifying your transaction with the network. Please do not close the app."
+          }
+        }
+      }
+    },
+    "processingAccount.awaitingConfirmation.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Awaiting confirmation of your payment..."
+          }
+        }
+      }
+    },
+    "processingAccount.loginSync.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prefetching your cryptographic zk-nyms tokens safely."
+          }
+        }
+      }
+    },
+    "processingAccount.loginSync.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronizing your secure network credentials..."
+          }
+        }
+      }
+    },
     "processingAccount.title2" : {
       "extractionState" : "manual",
       "localizations" : {

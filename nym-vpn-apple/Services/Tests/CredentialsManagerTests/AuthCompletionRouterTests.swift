@@ -29,6 +29,55 @@ struct AuthCompletionRouterTests {
             ) == .startProcessing(.login)
         )
     }
+
+    @Test func loginReadyNeverRoutesToPurchase() {
+        #expect(
+            AuthCompletionRouter.route(
+                outcome: .loginReady,
+                flow: .login
+            ) != .routeToPurchase
+        )
+    }
+}
+
+struct AuthCompletionOutcomeResolverTests {
+    @Test func l1LoginInactiveBeforeSyncActiveAfterSyncYieldsLoginReady() async {
+        var activeAfterSync = false
+        var didSync = false
+        let outcome = await AuthCompletionOutcomeResolver.resolve(
+            flow: .login,
+            isAccountActive: { activeAfterSync },
+            updateAccountSummary: { untilActive in
+                didSync = true
+                #expect(untilActive)
+                activeAfterSync = true
+            }
+        )
+        #expect(didSync)
+        #expect(outcome == .loginReady)
+    }
+
+    @Test func l2LoginInactiveAfterSyncYieldsNeedsPurchase() async {
+        let outcome = await AuthCompletionOutcomeResolver.resolve(
+            flow: .login,
+            isAccountActive: { false },
+            updateAccountSummary: { untilActive in
+                #expect(untilActive)
+            }
+        )
+        #expect(outcome == .registeredNeedsPurchase)
+    }
+
+    @Test func l3CreateAccountActiveAfterSyncYieldsRegisteredActive() async {
+        let outcome = await AuthCompletionOutcomeResolver.resolve(
+            flow: .createAccount,
+            isAccountActive: { true },
+            updateAccountSummary: { untilActive in
+                #expect(!untilActive)
+            }
+        )
+        #expect(outcome == .registeredActive)
+    }
 }
 
 struct DrawerCredentialImportPolicyTests {

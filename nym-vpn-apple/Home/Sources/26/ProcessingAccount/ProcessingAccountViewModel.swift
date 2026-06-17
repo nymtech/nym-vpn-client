@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 
 public enum ProcessingFlow: Sendable {
@@ -24,9 +25,20 @@ public final class ProcessingAccountViewModel {
     var didShowFinalMessage = false
     private var didBecomeActive = false
 
+    var usesStaticCopy: Bool {
+        flow == .login || flow == .postPurchase
+    }
+
     public init(credentialsManager: CredentialsManager, flow: ProcessingFlow) {
         self.credentialsManager = credentialsManager
         self.flow = flow
+        if flow == .login {
+            currentStep = LoginProcessingUI.progressStep
+            didFinishAnimatingText = true
+        } else if flow == .postPurchase {
+            currentStep = PostPurchaseProcessingUI.progressStep
+            didFinishAnimatingText = true
+        }
     }
 
     func start() {
@@ -68,9 +80,14 @@ public final class ProcessingAccountViewModel {
     private func advanceIfReady() {
         guard ProcessingAccountReadiness.canAdvanceNavigation(
             didCompleteAccountPrep: didBecomeActive,
-            didFinishAnimatingText: didFinishAnimatingText
+            didFinishAnimatingText: didFinishAnimatingText,
+            requiresCarousel: !usesStaticCopy
         ), !didShowFinalMessage else { return }
         didShowFinalMessage = true
+        if usesStaticCopy {
+            onFinished?()
+            return
+        }
         finalMessageTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(ProcessingAccountViewModel.finalMessageDuration))
             guard !Task.isCancelled else { return }
