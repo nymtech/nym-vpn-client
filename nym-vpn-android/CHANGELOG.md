@@ -12,8 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Add allowed for Split Tunneling system apps list (https://github.com/nymtech/nym-vpn-client/pull/5563)
 - Handle another VPN detection (https://github.com/nymtech/nym-vpn-client/pull/5570)
-- Add Notifications screen ()
-- Add Node Families support ()
+- Add Notifications screen (https://github.com/nymtech/nym-vpn-client/pull/5609)
+- Add Node Families support (https://github.com/nymtech/nym-vpn-client/pull/5609)
 
 ### Changed
 - Enable Mixnet Tuning (https://github.com/nymtech/nym-vpn-client/pull/5563)
