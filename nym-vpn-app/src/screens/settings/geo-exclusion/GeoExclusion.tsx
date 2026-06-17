@@ -23,35 +23,37 @@ function GeoExclusion() {
   };
 
   return (
-    <PageAnim className="mt-2 flex h-full flex-col gap-6 select-none">
-      {enabled && (
-        <InfoBanner
-          variant="warning"
-          icon="warning"
-          text={t('geo-exclusion.warning')}
-        />
-      )}
-
+    <PageAnim className="flex h-full flex-col gap-4 select-none">
       <CardNew>
         <CardHeaderSwitch
           checked={enabled}
           onClick={handleToggle}
           header={t('geo-exclusion.enable')}
         />
-        {!enabled && (
-          <div className="flex flex-col gap-2 px-4 pt-1 pb-4">
-            <p className="text-text-secondary text-sm">
-              {t('geo-exclusion.description')}
-            </p>
-            <p className="text-text-tertiary text-xs">
-              {t('geo-exclusion.beta-note')}
-            </p>
-          </div>
-        )}
       </CardNew>
+
+      {!enabled && (
+        <div className="flex flex-col gap-2">
+          <CardNew className="p-4">
+            <div className="flex flex-col gap-2">
+              <p className="text-text-secondary text-sm">
+                {t('geo-exclusion.description')}
+              </p>
+            </div>
+          </CardNew>
+          <p className="text-text-tertiary text-xs">
+            {t('geo-exclusion.beta-note')}
+          </p>
+        </div>
+      )}
 
       {enabled && (
         <>
+          <InfoBanner
+            variant="warning"
+            icon="warning"
+            text={t('geo-exclusion.warning')}
+          />
           <Socks5PortCard listenPort={listenPort} onCommitPort={setPort} />
 
           <ExcludedRegions countries={excludedCountries} />
