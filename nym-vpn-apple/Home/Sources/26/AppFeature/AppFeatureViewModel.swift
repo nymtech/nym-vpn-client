@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import SwiftUI
 import SnackbarManager
+import AccountPrefetchGates
 import AppSettings
 import ConnectionManager
 import ConnectionTypes
@@ -30,7 +31,9 @@ import GRPCManager
 
     @ObservationIgnored private var pendingPlanPurchaseAfterOptIns = false
     @ObservationIgnored public var onRequestPlanPurchase: (() -> Void)?
-    @ObservationIgnored var pendingProcessingFlow: ProcessingFlow = .postPurchase
+    @ObservationIgnored private var pendingAuthFlow: AuthFlowKind?
+    @ObservationIgnored private var authHandoffCompleted = false
+    @ObservationIgnored private var authHandoffCompletesOnCredentialImport = false
 
     var accountSummary: AccountSummary?
     var accountIdentifier: String?
@@ -187,13 +190,49 @@ import GRPCManager
         }
     }
 
+    func noteAuthWillBegin(flow: AuthFlowKind, completesOnCredentialImport: Bool = false) {
+        pendingAuthFlow = flow
+        authHandoffCompleted = false
+        authHandoffCompletesOnCredentialImport = completesOnCredentialImport
+    }
+
+    func noteAuthHandoffCancelled() {
+        pendingAuthFlow = nil
+        authHandoffCompleted = false
+        authHandoffCompletesOnCredentialImport = false
+    }
+
+    func handleAuthCompleted(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
+        guard !authHandoffCompleted else { return }
+        authHandoffCompleted = true
+        pendingAuthFlow = nil
+        routeAfterAuthCompletion(outcome: outcome, flow: flow)
+    }
+
     func handleCredentialChange(imported: Bool) {
         guard let current = drawerContent else { return }
         if imported {
-            guard credentialsManager.accountToken != nil else { return }
-            guard current.allowsCredentialPromotion else { return }
-            startProcessingTransition()
+            let importAction = DrawerCredentialImportPolicy.action(
+                imported: true,
+                pendingAuthFlow: pendingAuthFlow,
+                authHandoffCompleted: authHandoffCompleted,
+                authHandoffCompletesOnCredentialImport: authHandoffCompletesOnCredentialImport,
+                hasAccountToken: credentialsManager.accountToken != nil,
+                drawerAllowsCredentialPromotion: current.allowsCredentialPromotion
+            )
+            switch importAction {
+            case .completeAuthOnImport(let pendingFlow):
+                let outcome = authCompletionOutcome(for: pendingFlow)
+                handleAuthCompleted(outcome: outcome, flow: pendingFlow)
+            case .suppressDuringHandoff, .none:
+                return
+            case .startExternalProcessing:
+                startProcessingTransition(flow: .postPurchase)
+            }
         } else {
+            pendingAuthFlow = nil
+            authHandoffCompleted = false
+            authHandoffCompletesOnCredentialImport = false
             pendingDrawerContent = nil
             cancelProcessingTransition()
             if current != .welcome {
@@ -258,10 +297,39 @@ private extension AppFeatureViewModel {
             .store(in: &cancellables)
     }
 
-    func startProcessingTransition() {
+    func authCompletionOutcome(for flow: AuthFlowKind) -> AuthCompletionOutcome {
+        if credentialsManager.isAccountActive() {
+            return flow == .login ? .loginReady : .registeredActive
+        }
+        return .registeredNeedsPurchase
+    }
+
+    func routeAfterAuthCompletion(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
+        switch AuthCompletionRouter.route(outcome: outcome, flow: flow) {
+        case .routeToPurchase:
+            pendingDrawerContent = .oneClick
+            drawerContent = .oneClick
+            onRequestPlanPurchase?()
+        case .startProcessing(let kind):
+            startProcessingTransition(flow: drawerProcessingFlow(for: kind))
+        case .none:
+            break
+        }
+    }
+
+    func drawerProcessingFlow(for kind: ProcessingFlowKind) -> ProcessingFlow {
+        switch kind {
+        case .login:
+            return .login
+        case .postPurchase, .none:
+            return .postPurchase
+        }
+    }
+
+    func startProcessingTransition(flow: ProcessingFlow) {
         let viewModel = ProcessingAccountViewModel(
             credentialsManager: credentialsManager,
-            flow: pendingProcessingFlow
+            flow: flow
         )
         viewModel.onFinished = { [weak self] in
             self?.processingDidFinish()

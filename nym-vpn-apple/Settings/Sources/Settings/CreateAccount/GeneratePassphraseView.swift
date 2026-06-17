@@ -32,6 +32,8 @@ public struct GeneratePassphraseView: View {
     @State var autologinState = AutologinState()
 #endif
 
+    private let isPurchaseOnly: Bool
+
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var credentialsManager: CredentialsManager
 
@@ -72,10 +74,15 @@ public struct GeneratePassphraseView: View {
                 .ignoresSafeArea()
         }
         .task {
-            await generateAndRegisterMnemonic()
+            if isPurchaseOnly {
+                didRegisterAccount = true
+            } else {
+                await generateAndRegisterMnemonic()
+            }
         }
         .alert(alertTitle, isPresented: $isAlertDisplayed) {
             Button("retry".localizedString, role: .cancel) {
+                guard !isPurchaseOnly else { return }
                 Task {
                     await generateAndRegisterMnemonic()
                 }
@@ -88,6 +95,7 @@ public struct GeneratePassphraseView: View {
 
     public init(path: Binding<NavigationPath>, displayPurchaseView: Bool = false) {
         _path = path
+        isPurchaseOnly = displayPurchaseView
         didFinishAnimatingText = displayPurchaseView
         currentStep = displayPurchaseView ? 4 : 1
     }

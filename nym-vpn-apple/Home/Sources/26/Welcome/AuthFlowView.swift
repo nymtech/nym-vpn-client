@@ -1,4 +1,5 @@
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 import UIComponents
 
@@ -10,7 +11,10 @@ struct AuthFlowView: View {
     }
 
     let credentialsManager: CredentialsManager
-    let onWillRegister: (ProcessingFlow) -> Void
+    let onWillRegister: (AuthFlowKind) -> Void
+    let onPrivyAuthWillBegin: (AuthFlowKind) -> Void
+    let onAuthHandoffCancelled: () -> Void
+    let onAuthCompleted: (AuthCompletionOutcome, AuthFlowKind) -> Void
 
     @State private var step: Step = .welcome
     @State private var cardHeight: CGFloat?
@@ -22,10 +26,16 @@ struct AuthFlowView: View {
 
     init(
         credentialsManager: CredentialsManager,
-        onWillRegister: @escaping (ProcessingFlow) -> Void
+        onWillRegister: @escaping (AuthFlowKind) -> Void,
+        onPrivyAuthWillBegin: @escaping (AuthFlowKind) -> Void,
+        onAuthHandoffCancelled: @escaping () -> Void,
+        onAuthCompleted: @escaping (AuthCompletionOutcome, AuthFlowKind) -> Void
     ) {
         self.credentialsManager = credentialsManager
         self.onWillRegister = onWillRegister
+        self.onPrivyAuthWillBegin = onPrivyAuthWillBegin
+        self.onAuthHandoffCancelled = onAuthHandoffCancelled
+        self.onAuthCompleted = onAuthCompleted
         _measurementPassphraseViewModel = State(
             wrappedValue: PassphraseSignInViewModel(credentialsManager: credentialsManager)
         )
@@ -95,7 +105,10 @@ private extension AuthFlowView {
                 credentialsManager: credentialsManager,
                 rootMinHeight: sharedRootHeight,
                 onBackTapped: { step = .welcome },
-                onWillRegister: { onWillRegister(.createAccount) }
+                onWillRegister: { onWillRegister(.createAccount) },
+                onPrivyAuthWillBegin: { onPrivyAuthWillBegin(.createAccount) },
+                onAuthHandoffCancelled: onAuthHandoffCancelled,
+                onAuthCompleted: { onAuthCompleted($0, .createAccount) }
             )
             .fixedSize(horizontal: false, vertical: true)
             .trackHeight { cardHeight = $0 }
@@ -105,7 +118,10 @@ private extension AuthFlowView {
                 credentialsManager: credentialsManager,
                 rootMinHeight: sharedRootHeight,
                 onBackTapped: { step = .welcome },
-                onWillRegister: { onWillRegister(.login) }
+                onWillRegister: { onWillRegister(.login) },
+                onPrivyAuthWillBegin: { onPrivyAuthWillBegin(.login) },
+                onAuthHandoffCancelled: onAuthHandoffCancelled,
+                onAuthCompleted: { onAuthCompleted($0, .login) }
             )
             .fixedSize(horizontal: false, vertical: true)
             .trackHeight { cardHeight = $0 }

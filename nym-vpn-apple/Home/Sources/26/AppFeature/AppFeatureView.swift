@@ -272,7 +272,18 @@ private extension AppFeatureView {
     var welcomeContent: some View {
         AuthFlowView(
             credentialsManager: viewModel.credentialsManager,
-            onWillRegister: { flow in viewModel.pendingProcessingFlow = flow }
+            onWillRegister: { flow in
+                viewModel.noteAuthWillBegin(flow: flow)
+            },
+            onPrivyAuthWillBegin: { flow in
+                viewModel.noteAuthWillBegin(flow: flow, completesOnCredentialImport: true)
+            },
+            onAuthHandoffCancelled: {
+                viewModel.noteAuthHandoffCancelled()
+            },
+            onAuthCompleted: { outcome, flow in
+                viewModel.handleAuthCompleted(outcome: outcome, flow: flow)
+            }
         )
         .trackHeight { welcomeHeight = $0 }
         .transition(.slideFade(from: .trailing))

@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 import SnackbarManager
 import Theme
@@ -19,6 +20,8 @@ public final class PassphraseSignInViewModel {
     private let credentialsManager: CredentialsManager
     @ObservationIgnored private var loginTask: Task<Void, Never>?
     @ObservationIgnored public var onWillRegister: (() -> Void)?
+    @ObservationIgnored public var onAuthHandoffCancelled: (() -> Void)?
+    @ObservationIgnored public var onAuthCompleted: ((AuthCompletionOutcome) -> Void)?
 
     var passphraseText: String = "" {
         didSet {
@@ -46,9 +49,14 @@ public final class PassphraseSignInViewModel {
                 try await credentialsManager.performAccountRegistration(loginCredential: credential)
                 passphraseText = ""
                 submissionState = .idle
+                let outcome: AuthCompletionOutcome = credentialsManager.isAccountActive()
+                    ? .loginReady
+                    : .registeredNeedsPurchase
+                onAuthCompleted?(outcome)
             } catch is CancellationError {
-                // Cancelled — keep current state.
+                onAuthHandoffCancelled?()
             } catch let error as VPNErrorReason {
+                onAuthHandoffCancelled?()
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(
                     SnackbarItem(
@@ -58,6 +66,7 @@ public final class PassphraseSignInViewModel {
                     )
                 )
             } catch {
+                onAuthHandoffCancelled?()
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(
                     SnackbarItem(

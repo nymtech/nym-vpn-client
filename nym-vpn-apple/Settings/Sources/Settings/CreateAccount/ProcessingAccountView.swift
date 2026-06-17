@@ -1,7 +1,6 @@
 import SwiftUI
 import AppSettings
 import CredentialsManager
-import Routes
 import Theme
 import UIComponents
 
@@ -97,10 +96,6 @@ private extension ProcessingAccountView {
 
 private extension ProcessingAccountView {
     func navigateHomeOrTechnicalOptIns() {
-        if appSettings.welcomeScreenDidDisplay {
-            path = .init()
-        } else {
-            path = .init([HomeLink.technicalOptIns])
-        }
+        path = .init()
     }
 }

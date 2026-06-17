@@ -124,7 +124,7 @@ extension AddCredentialsViewModel {
     func navigateBack() {
         switch navigationSource {
         case .onboarding:
-            path = .init([HomeLink.onboarding])
+            path = .init()
         case .accountWelcome:
             if !path.isEmpty { path.removeLast() }
         case .settings:
@@ -138,11 +138,7 @@ extension AddCredentialsViewModel {
     }
 
     func navigateHomeOrTechnicalOptIn() {
-        if appSettings.welcomeScreenDidDisplay {
-            path = .init()
-        } else {
-            path = .init([HomeLink.technicalOptIns])
-        }
+        path = .init()
     }
 }
 

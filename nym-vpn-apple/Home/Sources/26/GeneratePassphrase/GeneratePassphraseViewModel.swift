@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 #if os(iOS)
 import ErrorHandler
@@ -11,6 +12,8 @@ public final class GeneratePassphraseViewModel {
     private let credentialsManager: CredentialsManager
     @ObservationIgnored private var registrationTask: Task<Void, Never>?
     @ObservationIgnored public var onWillRegister: (() -> Void)?
+    @ObservationIgnored public var onAuthHandoffCancelled: (() -> Void)?
+    @ObservationIgnored public var onAuthCompleted: ((AuthCompletionOutcome) -> Void)?
 
     var currentStep: Int = 1
     var didFinishAnimatingText = false
@@ -18,6 +21,7 @@ public final class GeneratePassphraseViewModel {
     var errorMessage: String?
 
     private var isRegistering = false
+    private var didEmitAuthCompleted = false
 
     public init(credentialsManager: CredentialsManager) {
         self.credentialsManager = credentialsManager
@@ -35,12 +39,16 @@ public final class GeneratePassphraseViewModel {
                 onWillRegister?()
                 try await credentialsManager.performAccountRegistration()
                 didRegisterAccount = true
+                advanceIfAuthComplete()
             } catch is CancellationError {
+                onAuthHandoffCancelled?()
                 return
             } catch let error as VPNErrorReason {
+                onAuthHandoffCancelled?()
                 didRegisterAccount = false
                 errorMessage = error.localizedDescription
             } catch {
+                onAuthHandoffCancelled?()
                 didRegisterAccount = false
                 errorMessage = error.localizedDescription
             }
@@ -53,6 +61,16 @@ public final class GeneratePassphraseViewModel {
 
     func animationDidFinish() {
         didFinishAnimatingText = true
+        advanceIfAuthComplete()
+    }
+
+    private func advanceIfAuthComplete() {
+        guard didRegisterAccount, didFinishAnimatingText, !didEmitAuthCompleted else { return }
+        didEmitAuthCompleted = true
+        let outcome: AuthCompletionOutcome = credentialsManager.isAccountActive()
+            ? .registeredActive
+            : .registeredNeedsPurchase
+        onAuthCompleted?(outcome)
     }
 
     func retry() {
