@@ -25,7 +25,11 @@ inputs:
   args:
     required: false
     default: ""
-    description: "extra `aws s3 sync`/`aws s3 cp` flags, e.g. --delete"
+    description: >
+      Extra flags appended verbatim to the `aws s3 sync`/`aws s3 cp` command,
+      e.g. `--delete` or `--exclude '*.tmp'`. INTERNAL USE ONLY: this is
+      interpolated into the shell as syntax, not data — pass only trusted,
+      workflow-authored literals, never user/PR-controlled input.
 runs:
   using: composite
   steps:

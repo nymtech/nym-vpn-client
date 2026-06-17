@@ -288,25 +288,38 @@ jobs:
       # Garage's web vhost does not generate directory listings, so consumers
       # cannot scrape the bucket to discover the latest build. Publish a manifest
       # instead: manifest.json inside the build dir + a branch-root latest.json
-      # pointer (same content). Both are uploaded by the sync step below.
+      # pointer (same content). Both are uploaded by the sync step below and are
+      # the single discovery contract for all consumers (Linux installer, Windows
+      # CI). Shape: { "timestamp": "<YYYYMMDDhhmm>", "files": ["<name>", ...] }.
       - name: Generate build manifest
         shell: bash
         run: |
+          set -euo pipefail
           TIMESTAMP="$(basename "${{ env.OUTPUT_DIR }}")"
           BRANCH_DIR="$(dirname "${{ env.OUTPUT_DIR }}")"
-          files_json="$(cd "${{ env.OUTPUT_DIR }}" && ls -1 | sort \
-            | awk '{ printf "%s    \"%s\"", (NR==1 ? "" : ",\n"), $0 }')"
-          cat > "${{ env.OUTPUT_DIR }}/manifest.json" <<EOF
-          {
-            "timestamp": "${TIMESTAMP}",
-            "files": [
-          ${files_json}
-            ]
-          }
-          EOF
-          cp "${{ env.OUTPUT_DIR }}/manifest.json" "${BRANCH_DIR}/latest.json"
+          MANIFEST="${{ env.OUTPUT_DIR }}/manifest.json"
+
+          # build valid JSON with jq (no hand-rolled string assembly). Capture via
+          # command substitution first, so the listing runs before MANIFEST is
+          # created and never lists itself.
+          manifest_json="$(cd "${{ env.OUTPUT_DIR }}" && ls -1 | sort | jq -R . \
+            | jq -s --arg ts "$TIMESTAMP" '{timestamp: $ts, files: .}')"
+          printf '%s\n' "$manifest_json" > "$MANIFEST"
+
+          # validate + sanity-check the consumer-facing artifacts before publishing
+          # (Linux installer: *_linux_<arch>.tar.gz + nym-vpnd_*_<deb_arch>.deb;
+          #  Windows CI: *_windows_<arch>.zip)
+          jq empty "$MANIFEST"
+          for must in _linux_x86_64.tar.gz _linux_aarch64.tar.gz \
+                      _windows_x86_64.zip _windows_aarch64.zip \
+                      _amd64.deb _arm64.deb; do
+            jq -e --arg s "$must" '[.files[] | select(endswith($s))] | length > 0' "$MANIFEST" >/dev/null \
+              || { echo "manifest missing expected artifact *$must" >&2; exit 1; }
+          done
+
+          cp "$MANIFEST" "${BRANCH_DIR}/latest.json"
           echo "---- manifest ----"
-          cat "${{ env.OUTPUT_DIR }}/manifest.json"
+          cat "$MANIFEST"
 
       - name: Publish build to S3
         uses: ./.github/actions/push-to-s3
