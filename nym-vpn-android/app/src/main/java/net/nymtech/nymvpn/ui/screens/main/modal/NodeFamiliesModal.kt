@@ -1,16 +1,24 @@
 package net.nymtech.nymvpn.ui.screens.main.modal
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
@@ -24,34 +32,30 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDismiss: () -> Unit) {
+fun NodeFamiliesModal(showDialog: Boolean, onConfirmClick: () -> Unit, onNotificationSettingsClick: () -> Unit, onDismiss: () -> Unit) {
 	Modal(
-		show = showBatteryDialog,
+		show = showDialog,
 		onDismiss = onDismiss,
+		icon = Icons.Filled.Warning,
+		iconTint = MaterialTheme.colorScheme.primary,
 		title = {
 			Text(
-				text = stringResource(R.string.battery_opt_title),
+				text = stringResource(R.string.node_families_title),
 				style = CustomTypography.labelHuge,
 				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
 		text = {
-			Text(
-				stringResource(R.string.battery_opt_descr),
-				textAlign = TextAlign.Center,
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onPrimaryContainer,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			)
+			NodeFamiliesDescriptionText(onNotificationSettingsClick)
 		},
 		confirmButton = {
 			MainStyledButton(
-				onClick = onClickSettings,
+				onClick = onConfirmClick,
 				textColor = Color.Black,
 				content = {
 					Text(
-						stringResource(R.string.settings),
+						stringResource(R.string.node_families_connect_button),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 				},
@@ -65,7 +69,7 @@ fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDism
 				onClick = onDismiss,
 				content = {
 					Text(
-						stringResource(R.string.skip),
+						stringResource(R.string.cancel),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
@@ -78,27 +82,47 @@ fun BatteryModal(showBatteryDialog: Boolean, onClickSettings: () -> Unit, onDism
 	)
 }
 
+@Composable
+private fun NodeFamiliesDescriptionText(onLinkClick: () -> Unit) {
+	val annotatedString = buildAnnotatedString {
+		append(stringResource(R.string.node_families_description_text))
+		append(" ")
+		withStyle(
+			SpanStyle(
+				textDecoration = TextDecoration.Underline,
+			),
+		) {
+			append(stringResource(R.string.node_families_description_link))
+		}
+	}
+	Text(
+		text = annotatedString,
+		style = MaterialTheme.typography.bodyMedium,
+		color = MaterialTheme.colorScheme.onPrimaryContainer,
+		modifier = Modifier.clickable(
+			indication = null,
+			interactionSource = remember { MutableInteractionSource() },
+		) { onLinkClick() },
+	)
+}
+
 @Preview
 @Composable
-private fun BatteryModalPreview() {
+private fun NodeFamiliesModalPreview() {
 	NymVPNTheme(Theme.default()) {
 		ModalContent(
+			icon = Icons.Filled.Warning,
+			iconTint = MaterialTheme.colorScheme.primary,
 			title = {
 				Text(
-					text = stringResource(R.string.battery_opt_title),
+					text = stringResource(R.string.node_families_title),
 					style = CustomTypography.labelHuge,
 					color = MaterialTheme.colorScheme.onPrimaryContainer,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 				)
 			},
 			text = {
-				Text(
-					stringResource(R.string.battery_opt_descr),
-					textAlign = TextAlign.Center,
-					style = MaterialTheme.typography.bodyMedium,
-					color = MaterialTheme.colorScheme.onPrimaryContainer,
-					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-				)
+				NodeFamiliesDescriptionText(onLinkClick = {})
 			},
 			confirmButton = {
 				MainStyledButton(
@@ -106,7 +130,7 @@ private fun BatteryModalPreview() {
 					textColor = Color.Black,
 					content = {
 						Text(
-							stringResource(R.string.settings),
+							stringResource(R.string.node_families_connect_button),
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						)
 					},
@@ -117,10 +141,10 @@ private fun BatteryModalPreview() {
 			},
 			dismissButton = {
 				TransparentButton(
-					onClick = {},
+					onClick = { },
 					content = {
 						Text(
-							stringResource(R.string.skip),
+							stringResource(R.string.cancel),
 							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 							color = MaterialTheme.colorScheme.onPrimaryContainer,
 						)

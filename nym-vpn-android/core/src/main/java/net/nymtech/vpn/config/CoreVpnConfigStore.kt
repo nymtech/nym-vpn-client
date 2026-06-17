@@ -43,6 +43,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		private val KEY_AD_BLOCKING = booleanPreferencesKey("AD_BLOCKING_ENABLED")
 		private val KEY_STEALTH_MODE = booleanPreferencesKey("STEALTH_MODE_ENABLED")
 		private val KEY_ALGORITHM = stringPreferencesKey("ALGORITHM")
+		private val KEY_NODE_FAMILIES_NOTIFICATIONS = booleanPreferencesKey("NODE_FAMILIES_NOTIFICATIONS_ENABLED")
 
 		private const val SEP = "|"
 		private const val MAX_DNS = 5
@@ -97,6 +98,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		val adBlockingEnabled = this[KEY_AD_BLOCKING] ?: false
 		val stealthMode = this[KEY_STEALTH_MODE] ?: false
 		val algorithm: GatewaySelectionAlgorithm = this[KEY_ALGORITHM]?.let { runCatching { it.asAlgorithm() }.getOrNull() } ?: GatewaySelectionAlgorithm.EXPLICIT
+		val nodeFamiliesNotificationsEnabled = this[KEY_NODE_FAMILIES_NOTIFICATIONS] ?: true
 
 		return CoreVpnConfig(
 			entryPoint = entry,
@@ -113,6 +115,7 @@ class CoreVpnConfigStore(private val context: Context) {
 			adBlockingEnabled = adBlockingEnabled,
 			stealthMode = stealthMode,
 			algorithm = algorithm,
+			nodeFamiliesNotificationsEnabled = nodeFamiliesNotificationsEnabled,
 		)
 	}
 
@@ -131,6 +134,7 @@ class CoreVpnConfigStore(private val context: Context) {
 		this[KEY_AD_BLOCKING] = cfg.adBlockingEnabled
 		this[KEY_STEALTH_MODE] = cfg.stealthMode
 		this[KEY_ALGORITHM] = cfg.algorithm.name
+		this[KEY_NODE_FAMILIES_NOTIFICATIONS] = cfg.nodeFamiliesNotificationsEnabled
 	}
 
 	private fun encodeList(list: List<String>): String = list.asSequence()

@@ -36,9 +36,8 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 fun NotificationsScreen(appUiState: AppUiState, viewModel: NotificationsViewModel = hiltViewModel()) {
 	val context = LocalContext.current
 	NotificationsScreen(
-		nodeFamiliesEnabled = true,
-		onNodeFamiliesEnable = {
-		},
+		nodeFamiliesEnabled = appUiState.vpnConfig.nodeFamiliesNotificationsEnabled,
+		onNodeFamiliesEnable = { viewModel.onNodeFamiliesEnabled(it) },
 		onSystemNotificationsClick = {
 			context.launchNotificationSettings()
 		},

@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
+import net.nymtech.nymvpn.ui.common.ModalContent
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.TransparentButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
@@ -84,6 +85,55 @@ fun NetworkStatsModal(showNetworkStatsDialog: Boolean, onDismiss: () -> Unit, on
 @Composable
 private fun NetworkStatsModalPreview() {
 	NymVPNTheme(Theme.default()) {
-		NetworkStatsModal(true, {}, {})
+		ModalContent(
+			title = {
+				Text(
+					stringResource(R.string.modal_network_stats_title),
+					style = CustomTypography.labelHuge,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				)
+			},
+			text = {
+				Text(
+					stringResource(R.string.modal_network_stats_descr),
+					textAlign = TextAlign.Center,
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+				)
+			},
+			icon = Icons.Outlined.Info,
+			confirmButton = {
+				MainStyledButton(
+					onClick = {},
+					textColor = Color.Black,
+					content = {
+						Text(
+							stringResource(R.string.modal_network_stats_enable_button),
+							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+						)
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(40.dp.scaledHeight()),
+				)
+			},
+			dismissButton = {
+				TransparentButton(
+					onClick = {},
+					content = {
+						Text(
+							stringResource(R.string.modal_network_stats_not_now_button),
+							fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
+							color = MaterialTheme.colorScheme.onPrimaryContainer,
+						)
+					},
+					modifier = Modifier
+						.fillMaxWidth()
+						.height(40.dp.scaledHeight()),
+				)
+			},
+		)
 	}
 }

@@ -21,4 +21,5 @@ sealed class CoreVpnConfigUpdate {
 	data class SetAdBlockingEnabled(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetStealthMode(val value: Boolean) : CoreVpnConfigUpdate()
 	data class SetAlgorithm(val value: GatewaySelectionAlgorithm) : CoreVpnConfigUpdate()
+	data class SetNodeFamiliesNotificationsEnabled(val value: Boolean) : CoreVpnConfigUpdate()
 }
