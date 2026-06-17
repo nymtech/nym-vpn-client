@@ -4,7 +4,7 @@ object Constants {
 	const val VERSION_NAME = "v2026.11.0-beta.1"
     const val VERSION_CODE = 20261100
     const val TARGET_SDK = 36
-    const val COMPILE_SDK = 36
+    const val COMPILE_SDK = 37
     const val MIN_SDK = 24
 
 	const val JVM_TARGET = "21"
