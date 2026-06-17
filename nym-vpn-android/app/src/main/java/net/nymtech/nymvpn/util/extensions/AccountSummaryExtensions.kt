@@ -9,12 +9,13 @@ import nym_vpn_lib_types.VpnAccountSummary
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 /**
- * Converts a Unix timestamp (Long) to ZonedDateTime.
+ * Converts a Unix timestamp (Long) to ZonedDateTime in the system's local timezone.
  */
 private fun Long.toZonedDateTime(): ZonedDateTime {
 	val instant = if (this > 1000000000000L) {
@@ -23,6 +24,18 @@ private fun Long.toZonedDateTime(): ZonedDateTime {
 		Instant.ofEpochSecond(this)
 	}
 	return instant.atZone(ZoneId.systemDefault())
+}
+
+/**
+ * Converts a Unix timestamp (Long) to ZonedDateTime in UTC.
+ */
+private fun Long.toUtcZonedDateTime(): ZonedDateTime {
+	val instant = if (this > 1000000000000L) {
+		Instant.ofEpochMilli(this)
+	} else {
+		Instant.ofEpochSecond(this)
+	}
+	return instant.atZone(ZoneOffset.UTC)
 }
 
 private fun calculateExpiryState(isRecurring: Boolean, isActive: Boolean, planType: NymVpnSubscriptionKind?, expiryTimestamp: Long?): ExpiryState {
@@ -84,6 +97,21 @@ fun VpnAccountSummary.toSubscriptionUiState(): SubscriptionUiState {
 }
 
 fun VpnAccountSummary.toBandwidthUiState(): BandwidthUiState {
+	val resetTimeStr = this.trafficResetTime
+		?.toUtcZonedDateTime()
+		?.format(DateTimeFormatter.ofPattern("HH:mm"))
+		?.let { "$it UTC" } ?: "—"
+
+	if (this.fairUsageDataUnavailable) {
+		return BandwidthUiState(
+			consumedGb = 0f,
+			totalGb = 0f,
+			percentage = 0f,
+			resetDate = resetTimeStr,
+			isUnavailable = true,
+		)
+	}
+
 	val consumedGb = this.trafficUsedGb.toFloat()
 	val totalGb = this.trafficLimitGb.toFloat()
 	val bandwidthPercentage = if (totalGb > 0f) {
@@ -92,13 +120,11 @@ fun VpnAccountSummary.toBandwidthUiState(): BandwidthUiState {
 		0f
 	}
 
-	val resetFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-	val resetDateStr = this.trafficResetTime?.toZonedDateTime()?.format(resetFormatter) ?: "Unknown"
-
 	return BandwidthUiState(
 		consumedGb = consumedGb,
 		totalGb = totalGb,
 		percentage = bandwidthPercentage,
-		resetDate = resetDateStr,
+		resetDate = resetTimeStr,
+		isUnavailable = false,
 	)
 }
