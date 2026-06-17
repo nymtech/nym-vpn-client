@@ -62,7 +62,8 @@ jobs:
       PKGREL: ${{ inputs.pkgrel }}
       RELEASE_TAG: ${{ inputs.release_tag }}
       REPOSITORY: ${{ github.repository }}
-      TARBALL: sources.tar.gz
+      TARBALL: ${{ github.workspace }}/sources.tar.gz
+      SERVICE_FILE: ${{ github.workspace }}/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
       LINUX_BIN_X86_64: linux-bin-x86_64
       LINUX_BIN_AARCH64: linux-bin-aarch64
     steps:
@@ -100,29 +101,29 @@ jobs:
       - name: Update PKGBUILD (bfs)
         if: matrix.pkgtype == 'bfs'
         env:
-          PKGBUILD: ${{ env.PKGBUILD }}
           PKGVER: ${{ steps.app-version.outputs.metadata }}
-          # SOURCES must be a multiline string
-          # ⚠ order is important and must match the order of
-          #   the sources array declared in PKGBUILD
-          SOURCES: |
-            ${{ env.TARBALL }}
-            nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
-        run: ./.pkg/aur_update.sh
+          PKGREL: ${{ env.PKGREL }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          PKGBUILD: ${{ env.PKGBUILD }}
+        run: |
+          export SRC_TARBALL_SHA256=$(sha256sum "${{ env.TARBALL }}" | cut -d' ' -f1)
+          export SERVICE_SHA256=$(sha256sum "${{ env.SERVICE_FILE }}" | cut -d' ' -f1)
+          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$SRC_TARBALL_SHA256,$SERVICE_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
+          mv "$PKGBUILD.tmp" "$PKGBUILD"
 
       - name: Update PKGBUILD (bin)
         if: matrix.pkgtype == 'bin'
         env:
-          PKGBUILD: ${{ env.PKGBUILD }}
           PKGVER: ${{ steps.app-version.outputs.metadata }}
-          # SOURCES must be a multiline string
-          # ⚠ order is important and must match the order of
-          #   the sources array declared in PKGBUILD-bin
-          SOURCES: |
-            ${{ env.LINUX_BIN_X86_64 }}
-            ${{ env.LINUX_BIN_AARCH64 }}
-            nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
-        run: ./.pkg/aur_update.sh
+          PKGREL: ${{ env.PKGREL }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          PKGBUILD: ${{ env.PKGBUILD }}
+        run: |
+          export TARBALL_SHA256_X86_64=$(sha256sum "${{ env.LINUX_BIN_X86_64 }}" | cut -d' ' -f1)
+          export TARBALL_SHA256_AARCH64=$(sha256sum "${{ env.LINUX_BIN_AARCH64 }}" | cut -d' ' -f1)
+          export SERVICE_SHA256=$(sha256sum "${{ env.SERVICE_FILE }}" | cut -d' ' -f1)
+          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$TARBALL_SHA256_X86_64,$TARBALL_SHA256_AARCH64,$SERVICE_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
+          mv "$PKGBUILD.tmp" "$PKGBUILD"
 
       - name: Rename PKGBUILD (bin)
         if: matrix.pkgtype == 'bin'
