@@ -19,6 +19,7 @@ import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.modal.BatteryModal
 import net.nymtech.nymvpn.ui.screens.main.modal.CompatibilityModal
 import net.nymtech.nymvpn.ui.screens.main.modal.NetworkStatsModal
+import net.nymtech.nymvpn.ui.screens.main.modal.NodeFamiliesModal
 import net.nymtech.nymvpn.ui.screens.main.modal.ShowInfoModal
 import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 
@@ -29,6 +30,7 @@ fun MainModals(
 	showCompatibilityDialog: Boolean,
 	showBatteryDialog: Boolean,
 	showNetworkStatsDialog: Boolean,
+	showNodeFamiliesDialog: Boolean,
 	showAuthSheet: Boolean,
 	isMnemonicStored: Boolean,
 	initialAuthRoute: AuthRoute,
@@ -41,6 +43,9 @@ fun MainModals(
 	onDismissBattery: () -> Unit,
 	onConfirmStats: () -> Unit,
 	onDismissStats: () -> Unit,
+	onConfirmNodeFamilies: () -> Unit,
+	onDismissNodeFamilies: () -> Unit,
+	onNotificationSettingsClick: () -> Unit,
 	onDismissAuthSheet: () -> Unit,
 	onAuthSuccess: () -> Unit,
 	appUiState: AppUiState,
@@ -88,6 +93,13 @@ fun MainModals(
 			onConfirmStats()
 		},
 		onDismiss = onDismissStats,
+	)
+
+	NodeFamiliesModal(
+		showDialog = showNodeFamiliesDialog,
+		onConfirmClick = onConfirmNodeFamilies,
+		onNotificationSettingsClick = onNotificationSettingsClick,
+		onDismiss = onDismissNodeFamilies,
 	)
 
 	AuthBottomSheet(

@@ -39,6 +39,7 @@ import nym_vpn_lib_types.FeatureFlags
 import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.GetDeeplinkParams
 import nym_vpn_lib_types.StoredAccountMode
+import nym_vpn_lib_types.TentativeGateways
 import nym_vpn_lib_types.VpnAccountSummary
 import timber.log.Timber
 import java.util.Locale
@@ -273,6 +274,19 @@ class ServiceBackedBackendManager @Inject constructor(
 	override suspend fun getAccountSummary(): VpnAccountSummary? = serviceConnectionManager.withApi { it.getAccountSummary() }
 
 	override suspend fun runDiagnostic(): String? = serviceConnectionManager.withApi { it.runDiagnostic() }
+
+	override suspend fun getTentativeGateways(): TentativeGateways? = runCatching {
+		serviceConnectionManager.withApi { it.getTentativeGateways() }
+	}.getOrElse {
+		Timber.tag(TAG).w(it, "getTentativeGateways failed")
+		null
+	}
+
+	override suspend fun setGatewayIndependenceEnabled(enabled: Boolean) {
+		runCatching {
+			serviceConnectionManager.withApi { it.setGatewayIndependenceEnabled(enabled) }
+		}.onFailure { Timber.tag(TAG).w(it, "setGatewayIndependenceEnabled failed") }
+	}
 
 	private fun notifyVpnPermissionRequired() {
 		val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground.value

@@ -1,18 +1,24 @@
 package net.nymtech.nymvpn.ui.screens.main.modal
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.Modal
@@ -22,35 +28,30 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun NetworkStatsModal(showNetworkStatsDialog: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+fun NodeFamiliesModal(showDialog: Boolean, onConfirmClick: () -> Unit, onNotificationSettingsClick: () -> Unit, onDismiss: () -> Unit) {
 	Modal(
-		show = showNetworkStatsDialog,
+		show = showDialog,
 		onDismiss = onDismiss,
+		icon = Icons.Filled.Warning,
+		iconTint = MaterialTheme.colorScheme.primary,
 		title = {
 			Text(
-				stringResource(R.string.modal_network_stats_title),
+				text = stringResource(R.string.node_families_title),
 				style = CustomTypography.labelHuge,
 				color = MaterialTheme.colorScheme.onPrimaryContainer,
 				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 			)
 		},
 		text = {
-			Text(
-				stringResource(R.string.modal_network_stats_descr),
-				textAlign = TextAlign.Center,
-				style = MaterialTheme.typography.bodyMedium,
-				color = MaterialTheme.colorScheme.onPrimaryContainer,
-				fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-			)
+			NodeFamiliesDescriptionText(onNotificationSettingsClick)
 		},
-		icon = Icons.Outlined.Info,
 		confirmButton = {
 			MainStyledButton(
-				onClick = onConfirm,
+				onClick = onConfirmClick,
 				textColor = Color.Black,
 				content = {
 					Text(
-						stringResource(R.string.modal_network_stats_enable_button),
+						stringResource(R.string.node_families_connect_button),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 					)
 				},
@@ -64,7 +65,7 @@ fun NetworkStatsModal(showNetworkStatsDialog: Boolean, onDismiss: () -> Unit, on
 				onClick = onDismiss,
 				content = {
 					Text(
-						stringResource(R.string.modal_network_stats_not_now_button),
+						stringResource(R.string.cancel),
 						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
 						color = MaterialTheme.colorScheme.onPrimaryContainer,
 					)
@@ -74,5 +75,29 @@ fun NetworkStatsModal(showNetworkStatsDialog: Boolean, onDismiss: () -> Unit, on
 					.height(40.dp.scaledHeight()),
 			)
 		},
+	)
+}
+
+@Composable
+private fun NodeFamiliesDescriptionText(onLinkClick: () -> Unit) {
+	val annotatedString = buildAnnotatedString {
+		append(stringResource(R.string.node_families_description_text))
+		append(" ")
+		withStyle(
+			SpanStyle(
+				textDecoration = TextDecoration.Underline,
+			),
+		) {
+			append(stringResource(R.string.node_families_description_link))
+		}
+	}
+	Text(
+		text = annotatedString,
+		style = MaterialTheme.typography.bodyMedium,
+		color = MaterialTheme.colorScheme.onPrimaryContainer,
+		modifier = Modifier.clickable(
+			indication = null,
+			interactionSource = remember { MutableInteractionSource() },
+		) { onLinkClick() },
 	)
 }

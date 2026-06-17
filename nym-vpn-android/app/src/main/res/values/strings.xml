@@ -539,4 +539,14 @@
 	<!-- Private DNS modal -->
 	<string name="private_dns_title">Disable Private DNS to use ad blocker.</string>
 	<string name="private_dns_button">Open Settings</string>
+	<!-- Notifications screen -->
+	<string name="notifications_node_families_title">Server family reminders</string>
+	<string name="notifications_node_families_description">Keeps reminding of shared family</string>
+	<string name="notifications_system_title">System notifications</string>
+	<string name="notifications_system_description">Keeps the app running when closed</string>
+	<!-- Node Families -->
+	<string name="node_families_title">The selected servers are in the same operator family!</string>
+	<string name="node_families_description_text">Disable reminders in </string>
+	<string name="node_families_description_link">notification settings.</string>
+	<string name="node_families_connect_button">Connect anyway</string>
 </resources>

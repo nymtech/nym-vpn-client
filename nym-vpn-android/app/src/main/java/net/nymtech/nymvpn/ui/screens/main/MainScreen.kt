@@ -90,6 +90,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
+	var showNodeFamiliesDialog by remember { mutableStateOf(false) }
 
 	// ── Launchers ────────────────────────────────────────────────────────────
 
@@ -212,6 +213,15 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
+	LaunchedEffect(Unit) {
+		viewModel.events.collect { event ->
+			when (event) {
+				is MainUiEvent.ShowNodeFamiliesDialog -> showNodeFamiliesDialog = true
+				is MainUiEvent.NavigateToSelectPlan -> navController.goFromRoot(Route.SelectPlan)
+			}
+		}
+	}
+
 	if (autoStart && !didAutoStart && uiState.connectionState is ConnectionState.Disconnected) {
 		LaunchedEffect(Unit) {
 			didAutoStart = true
@@ -228,7 +238,6 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		expiryState = appUiState.subscription?.expiryState,
 		validUntilDate = appUiState.subscription?.validUntilDate ?: "",
 		expiryBannerDismissed = expiryBannerDismissed,
-		registerAccountNavigation = viewModel.registerAccountNavigation,
 		onRetryConnect = ::onConnectPressed,
 		onDismissExpiryBanner = viewModel::dismissExpiryBanner,
 		onRenewSubscription = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
@@ -285,6 +294,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		showCompatibilityDialog = showCompatibilityDialog,
 		showBatteryDialog = showBatteryDialog,
 		showNetworkStatsDialog = showNetworkStatsDialog,
+		showNodeFamiliesDialog = showNodeFamiliesDialog,
 		showAuthSheet = showAuthSheet,
 		isMnemonicStored = appUiState.managerState.isMnemonicStored,
 		initialAuthRoute = initialAuthRoute,
@@ -316,6 +326,12 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			viewModel.onNetworkStatsSkipped()
 			showNetworkStatsDialog = false
 		},
+		onConfirmNodeFamilies = {
+			showNodeFamiliesDialog = false
+			viewModel.onNodeFamiliesConfirm()
+		},
+		onDismissNodeFamilies = { showNodeFamiliesDialog = false },
+		onNotificationSettingsClick = { navController.goFromRoot(Route.Notifications) },
 		onDismissAuthSheet = {
 			if (!appUiState.settings.isWelcomeShown) appViewModel.setWelcomeShown()
 			showAuthSheet = false

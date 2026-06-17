@@ -22,6 +22,7 @@ import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import nym_vpn_lib_types.TentativeGateways
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.ui.model.ConnectionState
@@ -53,8 +54,8 @@ constructor(
 	private val _expiryBannerDismissed = MutableStateFlow(false)
 	val expiryBannerDismissed: StateFlow<Boolean> = _expiryBannerDismissed.asStateFlow()
 
-	private val _registerAccountNavigation = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-	val registerAccountNavigation = _registerAccountNavigation.asSharedFlow()
+	private val _events = MutableSharedFlow<MainUiEvent>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+	val events = _events.asSharedFlow()
 
 	val uiState: StateFlow<MainUiState> = combine(
 		backendManager.stateFlow,
@@ -81,6 +82,10 @@ constructor(
 		viewModelScope.launch {
 			backendManager.stateFlow.collect { state ->
 				handleTunnelStateChange(state.tunnelState, state.connectionData?.connectedAt)
+				val event = state.backendUiEvent
+				if (event is BackendUiEvent.Failure && event.reason is ErrorStateReason.NeedsRelaxedIndependenceCriteria) {
+					handleNeedsRelaxedIndependenceCriteria()
+				}
 			}
 		}
 	}
@@ -91,7 +96,7 @@ constructor(
 
 	fun registerAccount() = viewModelScope.launch {
 		Timber.tag(TAG).i("RegisterAccountRequested")
-		_registerAccountNavigation.tryEmit(Unit)
+		_events.tryEmit(MainUiEvent.NavigateToSelectPlan)
 		runCatching {
 			backendManager.registerAccount(null)
 			Timber.tag(TAG).i("RegisterAccountSuccess")
@@ -148,8 +153,48 @@ constructor(
 
 	fun onConnect() = viewModelScope.launch {
 		Timber.tag(TAG).i("ConnectRequested")
-		runCatching { backendManager.startTunnel() }
-			.onFailure { Timber.tag(TAG).e(it, "ConnectFailed") }
+		runCatching {
+			backendManager.setGatewayIndependenceEnabled(true)
+			val tentativeResult = backendManager.getTentativeGateways()
+			handleTentativeGateways(tentativeResult)
+		}.onFailure { Timber.tag(TAG).e(it, "ConnectFailed") }
+	}
+
+	fun onNodeFamiliesConfirm() = viewModelScope.launch {
+		Timber.tag(TAG).i("NodeFamiliesModalConfirmed")
+		runCatching {
+			backendManager.setGatewayIndependenceEnabled(false)
+			backendManager.startTunnel()
+		}.onFailure { Timber.tag(TAG).e(it, "NodeFamiliesConnectFailed") }
+	}
+
+	private suspend fun resolveNodeFamiliesInteraction(onSilent: suspend () -> Unit) {
+		val notificationsEnabled = runCatching {
+			vpnConfigRepository.getConfig().nodeFamiliesNotificationsEnabled
+		}.getOrDefault(true)
+		if (notificationsEnabled) {
+			_events.tryEmit(MainUiEvent.ShowNodeFamiliesDialog)
+		} else {
+			backendManager.setGatewayIndependenceEnabled(false)
+			onSilent()
+		}
+	}
+
+	private suspend fun handleNeedsRelaxedIndependenceCriteria() {
+		Timber.tag(TAG).i("NeedsRelaxedIndependenceCriteria (connected state)")
+		runCatching {
+			resolveNodeFamiliesInteraction { backendManager.requestReconnect() }
+		}.onFailure { Timber.tag(TAG).e(it, "NeedsRelaxedIndependenceCriteriaFailed") }
+	}
+
+	private suspend fun handleTentativeGateways(result: TentativeGateways?) {
+		when (result) {
+			is TentativeGateways.NeedsRelaxedIndependenceCriteria -> {
+				Timber.tag(TAG).i("NeedsRelaxedIndependenceCriteria (pre-connect)")
+				resolveNodeFamiliesInteraction { backendManager.startTunnel() }
+			}
+			else -> backendManager.startTunnel()
+		}
 	}
 
 	fun onDisconnect() = viewModelScope.launch {
@@ -194,12 +239,17 @@ constructor(
 		return when (val event = managerState.backendUiEvent) {
 			is BackendUiEvent.BandwidthAlert, null -> baseState
 			is BackendUiEvent.Failure -> {
-				val isSubError = event.reason is ErrorStateReason.InactiveSubscription ||
-					event.reason is ErrorStateReason.InactiveAccount
-				val isAccountReady = managerState.accountState is AccountControllerState.ReadyToConnect ||
-					managerState.accountState is AccountControllerState.Decentralised ||
-					managerState.accountState is AccountControllerState.UpgradeMode
-				if (isSubError && isAccountReady) baseState else ConnectionState.Error(event.reason)
+				if (event.reason is ErrorStateReason.NeedsRelaxedIndependenceCriteria) {
+					// Modal handles this; don't display a hard error state
+					baseState
+				} else {
+					val isSubError = event.reason is ErrorStateReason.InactiveSubscription ||
+						event.reason is ErrorStateReason.InactiveAccount
+					val isAccountReady = managerState.accountState is AccountControllerState.ReadyToConnect ||
+						managerState.accountState is AccountControllerState.Decentralised ||
+						managerState.accountState is AccountControllerState.UpgradeMode
+					if (isSubError && isAccountReady) baseState else ConnectionState.Error(event.reason)
+				}
 			}
 			is BackendUiEvent.StartFailure -> ConnectionState.StartFailure(event.exception)
 		}

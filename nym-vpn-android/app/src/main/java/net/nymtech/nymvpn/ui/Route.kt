@@ -81,4 +81,7 @@ sealed class Route {
 
 	@Serializable
 	data object Diagnostic : Route()
+
+	@Serializable
+	data object Notifications : Route()
 }
