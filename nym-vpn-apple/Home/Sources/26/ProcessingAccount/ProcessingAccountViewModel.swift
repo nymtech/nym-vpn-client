@@ -2,6 +2,11 @@ import Foundation
 import SwiftUI
 import AccountPrefetchGates
 import CredentialsManager
+import SnackbarManager
+import Theme
+#if os(iOS)
+import ErrorHandler
+#endif
 
 public enum ProcessingFlow: Sendable {
     case createAccount
@@ -48,19 +53,38 @@ public final class ProcessingAccountViewModel {
         processingTask = Task { @MainActor [weak self] in
             guard let self else { return }
             let credentials = credentialsManager
-            await credentials.ensureCredentialImportResolved()
-            if flow == .login {
-                try? await credentials.prepareRegisteredAccount()
+            let runFlow = {
+                await AccountPrefetchOrchestrator.runProcessingFlow(
+                    isAccountActive: { await credentials.isAccountActive() },
+                    updateAccountSummary: {
+                        await credentials.updateAccountSummary(force: true, untilActive: true)
+                    },
+                    prefetchZkNyms: {
+                        await credentials.prefetchZkNyms()
+                    }
+                )
             }
-            _ = await AccountPrefetchOrchestrator.runProcessingFlow(
-                isAccountActive: { await credentials.isAccountActive() },
-                updateAccountSummary: {
-                    await credentials.updateAccountSummary(force: true, untilActive: true)
-                },
-                prefetchZkNyms: {
-                    await credentials.prefetchZkNyms()
+
+            do {
+                if flow == .login {
+                    _ = try await LoginProcessingOrchestrator.run(
+                        ensureCredentialImportResolved: {
+                            await credentials.ensureCredentialImportResolved()
+                        },
+                        prepareRegisteredAccount: {
+                            try await credentials.prepareRegisteredAccount()
+                        },
+                        runProcessingFlow: runFlow
+                    )
+                } else {
+                    await credentials.ensureCredentialImportResolved()
+                    _ = await runFlow()
                 }
-            )
+            } catch {
+                self.presentProcessingError(error)
+                return
+            }
+
             guard !Task.isCancelled else { return }
             didBecomeActive = true
             advanceIfReady()
@@ -99,5 +123,25 @@ public final class ProcessingAccountViewModel {
             guard !Task.isCancelled else { return }
             self?.onFinished?()
         }
+    }
+
+    private func presentProcessingError(_ error: Error) {
+#if os(iOS)
+        let message: String
+        if let reason = error as? VPNErrorReason {
+            message = reason.localizedDescription
+        } else {
+            message = error.localizedDescription
+        }
+        SnackbarManager.shared.enqueue(
+            SnackbarItem(
+                style: .critical,
+                title: "error".localizedString,
+                message: message
+            )
+        )
+#else
+        _ = error
+#endif
     }
 }

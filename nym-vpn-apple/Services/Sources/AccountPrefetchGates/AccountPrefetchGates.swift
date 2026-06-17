@@ -129,6 +129,25 @@ private extension AccountPrefetchOrchestrator {
     }
 }
 
+/// Login processing: resolve import, prepare account, then summary sync + prefetch.
+public enum LoginProcessingOrchestrator: Sendable {
+    public enum Step: Equatable, Sendable {
+        case credentialImportResolved
+        case accountPrepared
+        case processingFlowCompleted
+    }
+
+    public static func run(
+        ensureCredentialImportResolved: @Sendable () async -> Void,
+        prepareRegisteredAccount: @Sendable () async throws -> Void,
+        runProcessingFlow: @Sendable () async -> AccountPrefetchOrchestrator.ProcessingOutcome
+    ) async throws -> AccountPrefetchOrchestrator.ProcessingOutcome {
+        await ensureCredentialImportResolved()
+        try await prepareRegisteredAccount()
+        return await runProcessingFlow()
+    }
+}
+
 /// Processing screens wait for account prep and animation before navigating.
 public enum ProcessingAccountReadiness: Equatable, Sendable {
     public static func canAdvanceNavigation(

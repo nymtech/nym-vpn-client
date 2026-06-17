@@ -634,10 +634,7 @@ private extension CredentialsManager {
     public func ensureCredentialImportResolved() async {
 #if os(iOS)
         do {
-            let networkEnv = environmentForCredentialImport()
-                ?? configurationManager.networkEnv
-                ?? (try? resolvedNetworkEnvironment())
-            guard let networkEnv else { return }
+            let networkEnv = try resolvedRegistrationEnvironment()
             let isImported = try await Task {
                 let dataDir = try PathManager.dataFolderURL().path()
                 return try await NymVpnAccountStorage(
