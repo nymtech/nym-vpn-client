@@ -109,6 +109,66 @@ struct OnboardingSessionPolicyTests {
     }
 }
 
+struct PurchasePresentationPolicyTests {
+    @Test func progressBarVisibleDuringCarousel() {
+        #expect(
+            PurchasePresentationPolicy.showsOnboardingProgressBar(
+                isPurchaseOnly: false,
+                didFinishAnimatingText: false,
+                didRegisterAccount: false
+            )
+        )
+        #expect(
+            PurchasePresentationPolicy.showsOnboardingProgressBar(
+                isPurchaseOnly: false,
+                didFinishAnimatingText: true,
+                didRegisterAccount: false
+            )
+        )
+    }
+
+    @Test func progressBarHiddenOnPurchasePanel() {
+        #expect(
+            !PurchasePresentationPolicy.showsOnboardingProgressBar(
+                isPurchaseOnly: true,
+                didFinishAnimatingText: true,
+                didRegisterAccount: true
+            )
+        )
+        #expect(
+            !PurchasePresentationPolicy.showsOnboardingProgressBar(
+                isPurchaseOnly: false,
+                didFinishAnimatingText: true,
+                didRegisterAccount: true
+            )
+        )
+    }
+
+    @Test func purchasePanelVisibility() {
+        #expect(
+            PurchasePresentationPolicy.showsPurchasePanel(
+                isPurchaseOnly: true,
+                didFinishAnimatingText: false,
+                didRegisterAccount: false
+            )
+        )
+        #expect(
+            PurchasePresentationPolicy.showsPurchasePanel(
+                isPurchaseOnly: false,
+                didFinishAnimatingText: true,
+                didRegisterAccount: true
+            )
+        )
+        #expect(
+            !PurchasePresentationPolicy.showsPurchasePanel(
+                isPurchaseOnly: false,
+                didFinishAnimatingText: false,
+                didRegisterAccount: false
+            )
+        )
+    }
+}
+
 struct DrawerSessionPolicyTests {
     @Test func credentialImportAloneDoesNotStartProcessingDuringHandoff() {
         #expect(

@@ -138,12 +138,10 @@ import GRPCManager
         pendingPlanPurchaseAfterOptIns = false
 
         if appSettings.isCredentialImported {
-            pendingDrawerContent = .oneClick
             if purchaseAfter {
-                isPurchaseFlowActive = true
-                drawerContent = nil
-                onRequestPlanPurchase?()
+                requestPlanPurchaseTransition()
             } else {
+                pendingDrawerContent = .oneClick
                 drawerContent = .oneClick
             }
         } else {
@@ -283,9 +281,24 @@ import GRPCManager
             drawerContent = .welcome
         }
     }
+
+    func requestPlanPurchaseTransition() {
+        isPurchaseFlowActive = true
+        pendingDrawerContent = .oneClick
+        withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
+            drawerContent = nil
+        }
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(Self.paywallTransitionDelayMs))
+            self?.onRequestPlanPurchase?()
+        }
+    }
 }
 
 private extension AppFeatureViewModel {
+    static let paywallTransitionDuration = 0.35
+    static let paywallTransitionDelayMs = 350
+
     func wireConnectionStatusDelegates() {
         connectionStatus.onConnectionFailed = { [weak self] errorMessage in
             self?.presentConnectionFailedAlert(message: errorMessage)
@@ -343,10 +356,7 @@ private extension AppFeatureViewModel {
     func routeAfterAuthCompletion(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
         switch AuthCompletionRouter.route(outcome: outcome, flow: flow) {
         case .routeToPurchase:
-            isPurchaseFlowActive = true
-            pendingDrawerContent = .oneClick
-            drawerContent = nil
-            onRequestPlanPurchase?()
+            requestPlanPurchaseTransition()
         case .startProcessing(let kind):
             startProcessingTransition(flow: drawerProcessingFlow(for: kind))
         case .none:
@@ -401,9 +411,7 @@ private extension AppFeatureViewModel {
 
         pendingDrawerContent = .oneClick
         if needsPurchase {
-            isPurchaseFlowActive = true
-            drawerContent = nil
-            onRequestPlanPurchase?()
+            requestPlanPurchaseTransition()
         } else {
             drawerContent = .oneClick
         }

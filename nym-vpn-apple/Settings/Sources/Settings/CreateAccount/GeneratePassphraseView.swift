@@ -46,11 +46,13 @@ public struct GeneratePassphraseView: View {
                 .frame(height: 24)
 
             VStack(spacing: 0) {
-                StepView(
-                    stepCount: 4,
-                    currentStep: $currentStep,
-                    animateInitialFill: !isPurchaseOnly
-                )
+                if showsOnboardingProgressBar {
+                    StepView(
+                        stepCount: 4,
+                        currentStep: $currentStep,
+                        animateInitialFill: !isPurchaseOnly
+                    )
+                }
                 Spacer()
 
                 if !(didFinishAnimatingText && didRegisterAccount) {
@@ -116,6 +118,14 @@ public struct GeneratePassphraseView: View {
 
 // MARK: - Views -
 private extension GeneratePassphraseView {
+    var showsOnboardingProgressBar: Bool {
+        PurchasePresentationPolicy.showsOnboardingProgressBar(
+            isPurchaseOnly: isPurchaseOnly,
+            didFinishAnimatingText: didFinishAnimatingText,
+            didRegisterAccount: didRegisterAccount
+        )
+    }
+
     @ViewBuilder
     func navbar() -> some View {
         if didFinishAnimatingText {

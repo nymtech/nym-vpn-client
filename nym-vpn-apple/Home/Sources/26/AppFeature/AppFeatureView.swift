@@ -173,8 +173,10 @@ private extension AppFeatureView {
     func wireOneClickNavigation() {
         let pushPlanPurchase: () -> Void = { [weak viewModel] in
             guard let viewModel else { return }
-            viewModel.path.append(HomeLink.settings)
-            viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+            withAnimation(.easeInOut(duration: 0.35)) {
+                viewModel.path.append(HomeLink.settings)
+                viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+            }
         }
         viewModel.oneClick.onRequestPlanPurchase = pushPlanPurchase
         viewModel.onRequestPlanPurchase = pushPlanPurchase
