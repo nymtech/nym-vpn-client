@@ -101,6 +101,11 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
         outcome == .registeredNeedsPurchase
     }
 
+    /// Prevents overlapping delayed navigation pushes while a purchase transition is in flight.
+    public static func shouldBeginPlanPurchaseTransition(isPurchaseFlowActive: Bool) -> Bool {
+        !isPurchaseFlowActive
+    }
+
     public static func shouldStartDrawerProcessing(outcome: AuthCompletionOutcome) -> Bool {
         switch outcome {
         case .registeredNeedsPurchase:

@@ -35,6 +35,7 @@ import GRPCManager
     @ObservationIgnored private var authHandoffCompleted = false
     @ObservationIgnored private var authHandoffCompletesOnCredentialImport = false
     @ObservationIgnored private var isPurchaseFlowActive = false
+    @ObservationIgnored private var planPurchaseTransitionTask: Task<Void, Never>?
     @ObservationIgnored private var lastAuthCompletionOutcome: AuthCompletionOutcome?
 
     var accountSummary: AccountSummary?
@@ -266,6 +267,7 @@ import GRPCManager
 
     func purchaseFlowDidComplete() {
         guard isPurchaseFlowActive else { return }
+        cancelPlanPurchaseTransitionTask()
         isPurchaseFlowActive = false
         pendingDrawerContent = nil
         drawerContent = .oneClick
@@ -273,6 +275,7 @@ import GRPCManager
 
     func purchaseFlowDidDismissWithoutComplete() {
         guard isPurchaseFlowActive else { return }
+        cancelPlanPurchaseTransitionTask()
         isPurchaseFlowActive = false
         pendingDrawerContent = nil
         if appSettings.isCredentialImported {
@@ -283,15 +286,28 @@ import GRPCManager
     }
 
     func requestPlanPurchaseTransition() {
+        guard DrawerSessionPolicy.shouldBeginPlanPurchaseTransition(
+            isPurchaseFlowActive: isPurchaseFlowActive
+        ) else {
+            return
+        }
+        planPurchaseTransitionTask?.cancel()
         isPurchaseFlowActive = true
         pendingDrawerContent = .oneClick
         withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
             drawerContent = nil
         }
-        Task { @MainActor [weak self] in
+        planPurchaseTransitionTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(Self.paywallTransitionDelayMs))
-            self?.onRequestPlanPurchase?()
+            guard !Task.isCancelled, let self else { return }
+            self.onRequestPlanPurchase?()
+            self.planPurchaseTransitionTask = nil
         }
+    }
+
+    func cancelPlanPurchaseTransitionTask() {
+        planPurchaseTransitionTask?.cancel()
+        planPurchaseTransitionTask = nil
     }
 }
 

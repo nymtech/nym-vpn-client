@@ -170,6 +170,11 @@ struct PurchasePresentationPolicyTests {
 }
 
 struct DrawerSessionPolicyTests {
+    @Test func planPurchaseTransitionIgnoredWhileAlreadyActive() {
+        #expect(!DrawerSessionPolicy.shouldBeginPlanPurchaseTransition(isPurchaseFlowActive: true))
+        #expect(DrawerSessionPolicy.shouldBeginPlanPurchaseTransition(isPurchaseFlowActive: false))
+    }
+
     @Test func credentialImportAloneDoesNotStartProcessingDuringHandoff() {
         #expect(
             !DrawerSessionPolicy.shouldStartProcessingOnCredentialImport(
