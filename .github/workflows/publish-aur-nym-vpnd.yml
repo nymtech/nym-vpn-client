@@ -62,8 +62,10 @@ jobs:
       PKGREL: ${{ inputs.pkgrel }}
       RELEASE_TAG: ${{ inputs.release_tag }}
       REPOSITORY: ${{ github.repository }}
-      TARBALL: sources.tar.gz
-      LINUX_BIN: linux-bin
+      TARBALL: ${{ github.workspace }}/sources.tar.gz
+      SERVICE_FILE: ${{ github.workspace }}/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
+      LINUX_BIN_X86_64: linux-bin-x86_64
+      LINUX_BIN_AARCH64: linux-bin-aarch64
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -78,38 +80,61 @@ jobs:
           curl -LfsSo ${{ env.TARBALL }} "https://github.com/${{ env.REPOSITORY }}/archive/refs/tags/${{ env.RELEASE_TAG }}.tar.gz"
           mkdir tarball
           tar -xzf $TARBALL -C tarball
+
       - name: Install rust
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
+
       - name: Get app version
         id: app-version
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry="tarball/nym-vpn-client-${{ env.RELEASE_TAG }}/nym-vpn-core/crates/nym-vpnd"
+
       - name: Download prebuilt binary
         if: matrix.pkgtype == 'bin'
         run: |
-          curl -LfsSo $LINUX_BIN "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nym-vpn-core-v${{ steps.app-version.outputs.metadata }}_linux_x86_64.tar.gz"
-      - name: Update PKGBUILD
+          curl -LfsSo $LINUX_BIN_X86_64 "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nym-vpn-core-v${{ steps.app-version.outputs.metadata }}_linux_x86_64.tar.gz"
+          curl -LfsSo $LINUX_BIN_AARCH64 "https://github.com/$REPOSITORY/releases/download/$RELEASE_TAG/nym-vpn-core-v${{ steps.app-version.outputs.metadata }}_linux_aarch64.tar.gz"
+
+      - name: Update PKGBUILD (bfs)
+        if: matrix.pkgtype == 'bfs'
         env:
-          PKGBUILD: ${{ env.PKGBUILD }}
           PKGVER: ${{ steps.app-version.outputs.metadata }}
-          # SOURCES must be a multiline string
-          # ⚠ order is important and must match the order of
-          #   the sources array declared in PKGBUILD
-          SOURCES: |
-            ${{ matrix.pkgtype == 'bfs' && env.TARBALL || env.LINUX_BIN }}
-            nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
-        run: ./.pkg/aur_update.sh
+          PKGREL: ${{ env.PKGREL }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          PKGBUILD: ${{ env.PKGBUILD }}
+        run: |
+          export SRC_TARBALL_SHA256=$(sha256sum "${{ env.TARBALL }}" | cut -d' ' -f1)
+          export SERVICE_SHA256=$(sha256sum "${{ env.SERVICE_FILE }}" | cut -d' ' -f1)
+          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$SRC_TARBALL_SHA256,$SERVICE_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
+          mv "$PKGBUILD.tmp" "$PKGBUILD"
+
+      - name: Update PKGBUILD (bin)
+        if: matrix.pkgtype == 'bin'
+        env:
+          PKGVER: ${{ steps.app-version.outputs.metadata }}
+          PKGREL: ${{ env.PKGREL }}
+          RELEASE_TAG: ${{ env.RELEASE_TAG }}
+          PKGBUILD: ${{ env.PKGBUILD }}
+        run: |
+          export TARBALL_SHA256_X86_64=$(sha256sum "${{ env.LINUX_BIN_X86_64 }}" | cut -d' ' -f1)
+          export TARBALL_SHA256_AARCH64=$(sha256sum "${{ env.LINUX_BIN_AARCH64 }}" | cut -d' ' -f1)
+          export SERVICE_SHA256=$(sha256sum "${{ env.SERVICE_FILE }}" | cut -d' ' -f1)
+          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$TARBALL_SHA256_X86_64,$TARBALL_SHA256_AARCH64,$SERVICE_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
+          mv "$PKGBUILD.tmp" "$PKGBUILD"
+
       - name: Rename PKGBUILD (bin)
         if: matrix.pkgtype == 'bin'
         run: |
           # rename PKGBUILD-bin to PKGBUILD
           mv ${{ env.PKGBUILD }} PKGBUILD
           echo "PKGBUILD=./PKGBUILD" >> $GITHUB_ENV
+
       - name: Show PKGBUILD
         run: cat "$PKGBUILD"
+
       - name: Publish
         if: inputs.publish_aur == true
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
