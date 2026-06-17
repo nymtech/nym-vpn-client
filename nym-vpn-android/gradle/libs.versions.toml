@@ -34,7 +34,7 @@ zxingAndroidEmbedded = "4.3.0"
 sentry = "8.37.1"
 billing-client = "8.3.0"
 biometric = "1.4.0-alpha06"
-credentials = "1.6.0-rc02"
+credentials = "1.7.0-alpha02"
 
 gradlePlugins-licensee = "1.14.1"
 gradlePlugins-detekt = "1.23.8"
