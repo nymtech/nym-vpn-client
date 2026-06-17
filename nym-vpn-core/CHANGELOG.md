@@ -7,10 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-
 ### Added
 
 - [iOS] Send network stats over the tunnel interface (https://github.com/nymtech/nym-vpn-client/pull/5564)
+- Store gateway independence notification toggle (https://github.com/nymtech/nym-vpn-client/pull/5586)
 
 ### Fixed
 

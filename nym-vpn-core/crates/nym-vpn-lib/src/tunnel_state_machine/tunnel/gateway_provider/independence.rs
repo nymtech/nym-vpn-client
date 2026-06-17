@@ -124,6 +124,7 @@ mod tests {
             different_asn: true,
             different_node_family: false,
             different_subnet: false,
+            ..Default::default()
         }
     }
 
@@ -132,6 +133,7 @@ mod tests {
             different_asn: false,
             different_node_family: true,
             different_subnet: false,
+            ..Default::default()
         }
     }
 
@@ -140,6 +142,7 @@ mod tests {
             different_asn: false,
             different_node_family: false,
             different_subnet: true,
+            ..Default::default()
         }
     }
 
@@ -149,7 +152,12 @@ mod tests {
         assert!(!gateways_are_independent(
             &gw,
             &gw,
-            GatewayIndependence::new(false)
+            GatewayIndependence {
+                different_node_family: false,
+                different_asn: false,
+                different_subnet: false,
+                ..Default::default()
+            }
         ));
         assert!(!gateways_are_independent(&gw, &gw, asn_only()));
         assert!(!gateways_are_independent(&gw, &gw, family_only()));
@@ -168,7 +176,12 @@ mod tests {
         assert!(gateways_are_independent(
             &gw1,
             &gw2,
-            GatewayIndependence::new(false)
+            GatewayIndependence {
+                different_node_family: false,
+                different_asn: false,
+                different_subnet: false,
+                ..Default::default()
+            }
         ));
     }
 

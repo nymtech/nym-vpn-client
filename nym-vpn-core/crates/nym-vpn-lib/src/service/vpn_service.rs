@@ -106,6 +106,7 @@ pub enum VpnServiceCommand {
     SetGatewaySelectionAlgorithm(oneshot::Sender<()>, GatewaySelectionAlgorithm),
     SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
     SetEnableGatewayIndependence(oneshot::Sender<()>, bool),
+    SetGatewayIndependenceNotifications(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -1033,6 +1034,11 @@ impl NymVpnService {
                     .await;
                 let _ = tx.send(());
             }
+            VpnServiceCommand::SetGatewayIndependenceNotifications(tx, enable_notifications) => {
+                self.handle_set_enable_gateway_independence_notifications(enable_notifications)
+                    .await;
+                let _ = tx.send(());
+            }
             VpnServiceCommand::SetNetwork(tx, network) => {
                 let result = self.handle_set_network(network).await;
                 let _ = tx.send(result);
@@ -1414,6 +1420,16 @@ impl NymVpnService {
     async fn handle_set_enable_gateway_independence(&mut self, enable_gateway_independence: bool) {
         self.config_manager
             .set_enable_gateway_independence(enable_gateway_independence)
+            .await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_enable_gateway_independence_notifications(
+        &mut self,
+        enable_notifications: bool,
+    ) {
+        self.config_manager
+            .set_enable_gateway_independence_notifications(enable_notifications)
             .await;
         self.update_tunnel_settings_with_throttle();
     }

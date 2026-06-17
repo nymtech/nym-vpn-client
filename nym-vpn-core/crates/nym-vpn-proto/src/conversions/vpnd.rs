@@ -413,20 +413,20 @@ impl From<nym_vpn_lib_types::TentativeGateways> for proto::TentativeGateways {
                     ),
                 }
             }
-            nym_vpn_lib_types::TentativeGateways::NeedsRelaxedIndependenceCriteria => {
-                proto::TentativeGateways {
-                    tentative_gateways: Some(proto::tentative_gateways::TentativeGateways::NeedsRelaxedIndependenceCriteria(
-                        proto::tentative_gateways::NeedsRelaxedIndependenceCriteria {},
-                    )),
-                }
-            }
-             nym_vpn_lib_types::TentativeGateways::NoGatewaysAvailable   => {
-                proto::TentativeGateways {
-                    tentative_gateways: Some(proto::tentative_gateways::TentativeGateways::NoGatewaysAvailable(
-                        proto::tentative_gateways::NoGatewaysAvailable { },
-                    )),
-                }
-             }
+            nym_vpn_lib_types::TentativeGateways::NeedsRelaxedIndependenceCriteria => proto::TentativeGateways {
+                tentative_gateways: Some(
+                    proto::tentative_gateways::TentativeGateways::NeedsRelaxedIndependenceCriteria(
+                        proto::tentative_gateways::NeedsRelaxedIndependenceCriteria {}
+                    ),
+                ),
+            },
+            nym_vpn_lib_types::TentativeGateways::NoGatewaysAvailable => proto::TentativeGateways {
+                tentative_gateways: Some(
+                    proto::tentative_gateways::TentativeGateways::NoGatewaysAvailable(
+                        proto::tentative_gateways::NoGatewaysAvailable {},
+                    ),
+                ),
+            },
         }
     }
 }
