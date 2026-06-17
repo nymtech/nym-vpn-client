@@ -20,6 +20,8 @@ env:
   UPLOAD_DIR_WINDOWS_X64: windows_core_artifacts_x64
   UPLOAD_DIR_WINDOWS_ARM64: windows_core_artifacts_arm64
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
+  S3_BUCKET: builds
 
 jobs:
   # Builds both the Linux core binaries and the .deb packages in a single job
@@ -283,15 +285,38 @@ jobs:
           cp -v ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
           cp -v ${{ env.UPLOAD_DIR_DEB_AARCH64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
 
-      - name: Upload to www
-        uses: easingthemes/ssh-deploy@main
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
-          ARGS: "-avzr"
-          SOURCE: "ci-builds/"
-          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
-          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/nym-vpn-core
+      # Garage's web vhost does not generate directory listings, so consumers
+      # cannot scrape the bucket to discover the latest build. Publish a manifest
+      # instead: manifest.json inside the build dir + a branch-root latest.json
+      # pointer (same content). Both are uploaded by the sync step below.
+      - name: Generate build manifest
+        shell: bash
+        run: |
+          TIMESTAMP="$(basename "${{ env.OUTPUT_DIR }}")"
+          BRANCH_DIR="$(dirname "${{ env.OUTPUT_DIR }}")"
+          files_json="$(cd "${{ env.OUTPUT_DIR }}" && ls -1 | sort \
+            | awk '{ printf "%s    \"%s\"", (NR==1 ? "" : ",\n"), $0 }')"
+          cat > "${{ env.OUTPUT_DIR }}/manifest.json" <<EOF
+          {
+            "timestamp": "${TIMESTAMP}",
+            "files": [
+          ${files_json}
+            ]
+          }
+          EOF
+          cp "${{ env.OUTPUT_DIR }}/manifest.json" "${BRANCH_DIR}/latest.json"
+          echo "---- manifest ----"
+          cat "${{ env.OUTPUT_DIR }}/manifest.json"
+
+      - name: Publish build to S3
+        uses: ./.github/actions/push-to-s3
+        with:
+          source_path: ci-builds/
+          destination: nym-vpn-client/nym-vpn-core/
+          endpoint: ${{ env.S3_ENDPOINT }}
+          bucket: ${{ env.S3_BUCKET }}
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
 
   gen-hashes:
     needs: publish

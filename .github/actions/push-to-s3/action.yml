@@ -1,0 +1,58 @@
+name: Push to S3
+description: Sync a local directory (or copy a single file) to an S3-compatible bucket (Garage)
+inputs:
+  source_path:
+    required: true
+    description: "Local file or directory. Trailing slash on a directory uploads its contents under the prefix"
+  destination:
+    required: false
+    default: ""
+    description: "key prefix; empty = bucket root"
+  aws_access_key_id:
+    required: true
+  aws_secret_access_key:
+    required: true
+  bucket:
+    required: false
+    default: builds
+  endpoint:
+    required: false
+    default: https://s3.nymte.ch
+    description: "S3 API endpoint for uploads, NOT the cdn web vhost"
+  region:
+    required: false
+    default: garage
+  args:
+    required: false
+    default: ""
+    description: "extra `aws s3 sync`/`aws s3 cp` flags, e.g. --delete"
+runs:
+  using: composite
+  steps:
+    - name: Ensure AWS CLI is available     # self-hosted arc-* runners may lack it
+      shell: bash
+      run: |
+        if ! command -v aws >/dev/null 2>&1; then
+          curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
+          unzip -q /tmp/awscliv2.zip -d /tmp
+          (sudo /tmp/aws/install --update || /tmp/aws/install --update --bin-dir "$HOME/.local/bin" --install-dir "$HOME/.local/aws-cli")
+          export PATH="$HOME/.local/bin:$PATH"
+        fi
+        aws --version
+    - name: Push to S3
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+        AWS_DEFAULT_REGION: ${{ inputs.region }}
+      run: |
+        export PATH="$HOME/.local/bin:$PATH"
+        src="${{ inputs.source_path }}"
+        dest="s3://${{ inputs.bucket }}/${{ inputs.destination }}"
+        if [ -d "$src" ]; then
+          aws s3 sync "$src" "$dest" \
+            --endpoint-url "${{ inputs.endpoint }}" --no-progress ${{ inputs.args }}
+        else
+          aws s3 cp "$src" "$dest" \
+            --endpoint-url "${{ inputs.endpoint }}" --no-progress ${{ inputs.args }}
+        fi

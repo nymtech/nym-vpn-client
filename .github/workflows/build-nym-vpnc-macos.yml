@@ -16,6 +16,8 @@ env:
   BINARY_NAME: nym-vpnc
   PKG_IDENTIFIER: net.nymtech.vpnc
   PKG_INSTALL_LOCATION: /usr/local/bin
+  S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
+  S3_BUCKET: builds
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -346,18 +348,15 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Upload to www
-        uses: easingthemes/ssh-deploy@main
+      - name: Publish PKG to S3
+        uses: ./.github/actions/push-to-s3
         with:
-          REMOTE_PORT: 22
-          ARGS: -avzr
-          SSH_CMD_ARGS: -o StrictHostKeyChecking=no
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
-          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/vpnc/
-          SOURCE: ${{ env.renamed_pkg_relative_path }}
+          source_path: ${{ env.renamed_pkg_relative_path }}
+          destination: nym-vpn-client/macOS/vpnc/
+          endpoint: ${{ env.S3_ENDPOINT }}
+          bucket: ${{ env.S3_BUCKET }}
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
 
       - name: Publish GitHub Release
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.release == true }}

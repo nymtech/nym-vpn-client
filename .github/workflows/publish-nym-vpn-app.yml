@@ -34,6 +34,10 @@ permissions:
   contents: read
   packages: read
 
+env:
+  S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
+  S3_BUCKET: builds
+
 jobs:
   download-translations:
     runs-on: arc-linux-latest
@@ -217,15 +221,15 @@ jobs:
           cp -v ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
           cp -v ${{ env.UPLOAD_DIR_DEB_AARCH64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
 
-      - name: Upload to www
-        uses: easingthemes/ssh-deploy@main
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
-          ARGS: "-avzr"
-          SOURCE: "ci-builds/"
-          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
-          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/nym-vpn-core
+      - name: Publish build to S3
+        uses: ./.github/actions/push-to-s3
+        with:
+          source_path: ci-builds/
+          destination: nym-vpn-client/nym-vpn-core/
+          endpoint: ${{ env.S3_ENDPOINT }}
+          bucket: ${{ env.S3_BUCKET }}
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
 
   generate-build-info-nym-vpn-app:
     uses: ./.github/workflows/generate-build-info-nym-vpn-app.yml
@@ -487,7 +491,7 @@ jobs:
 
       - name: Set vpn-core link
         env:
-          NYM_BUILDS_URL: "https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core"
+          NYM_BUILDS_URL: "https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core"
           core_build_url_path: "${{ needs.publish-core.outputs.core_build_url_path || needs.publish.outputs.core_build_url_path }}"
           BRANCH_NAME: ${{ github.ref_name }}
         run: |

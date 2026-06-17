@@ -20,7 +20,7 @@ error_handler() {
 }
 trap 'error_handler $LINENO' ERR
 
-BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
+BASE_URL="https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core"
 MAX_DISTANCE=100
 
 # -----------------------------------------------------------------------------

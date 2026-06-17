@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Updates the iOS core using nightly/release builds.
-# Source: https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core/
+# Source: https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core/
 #
 # Must be run from nym-vpn-apple/Scripts.
 
@@ -14,7 +14,7 @@ error_handler() {
 }
 trap 'error_handler $LINENO' ERR
 
-BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
+BASE_URL="https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core"
 
 # -----------------------------------------------------------------------------
 # 0) Determine build tag (default from git branch)
