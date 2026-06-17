@@ -121,16 +121,19 @@ TAG="$(determine_tag)"
 echo "Using build tag: ${TAG}"
 
 TAG_URL="${BASE_URL}/${TAG}"
-echo "Fetching folder listing from: ${TAG_URL}"
 
 # -----------------------------------------------------------------------------
 # 1) Find latest timestamp folder
+#    Garage's web vhost serves no directory listing, so resolve the latest build
+#    from the published latest.json pointer (see publish-nym-vpn-core.yml) instead
+#    of scraping an HTML index.
 # -----------------------------------------------------------------------------
-folder_listing="$(curl -Ls "$TAG_URL")"
-latest_folder="$(echo "$folder_listing" | grep -Eo '[0-9]{12}/' | tr -d '/' | sort | tail -n 1)"
+echo "Resolving latest build from: ${TAG_URL}/latest.json"
+manifest="$(curl -fLs "${TAG_URL}/latest.json")"
+latest_folder="$(echo "$manifest" | grep -oP '"timestamp"\s*:\s*"\K[0-9]+')"
 
 if [[ -z "${latest_folder}" ]]; then
-  echo "❌ Error: Could not determine the latest timestamp folder from ${TAG_URL}"
+  echo "❌ Error: Could not resolve the latest build from ${TAG_URL}/latest.json"
   exit 1
 fi
 
@@ -138,20 +141,15 @@ echo "Latest timestamp folder: ${latest_folder}"
 RELEASE_URL="${TAG_URL}/${latest_folder}"
 
 # -----------------------------------------------------------------------------
-# 2) Extract the shared version slug from the release page (works for iOS/macOS)
+# 2) Extract the shared version slug from the manifest (works for iOS/macOS)
+#    latest.json mirrors the latest build's manifest.json; the version slug is
+#    shared across every platform artifact, so lift it from any nym-vpn-core-v*
+#    entry. Matches both dev/beta (with timestamp) and plain release builds.
 # -----------------------------------------------------------------------------
-echo "Fetching release page content from: ${RELEASE_URL}"
-release_page_content="$(curl -Ls "$RELEASE_URL")"
-if [[ -z "$release_page_content" ]]; then
-  echo "❌ Error: Release page content is empty at ${RELEASE_URL}"
-  exit 1
-fi
-
-# Matches both dev/beta with timestamp and plain release without pre-release suffix
-shared_slug="$(echo "$release_page_content" | grep -Eo 'nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(dev|beta)\.[0-9]{12})?' | head -n 1)"
+shared_slug="$(echo "$manifest" | grep -Eo 'nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(dev|beta)\.[0-9]{12})?' | head -n 1)"
 
 if [[ -z "$shared_slug" ]]; then
-  echo "❌ Error: Could not extract shared version slug from release page."
+  echo "❌ Error: Could not extract shared version slug from ${TAG_URL}/latest.json"
   exit 1
 fi
 
@@ -184,6 +182,7 @@ fi
 # -----------------------------------------------------------------------------
 export FETCHCORE_TAG="$TAG"
 export FETCHCORE_FOLDER="$latest_folder"
+export FETCHCORE_SLUG="$shared_slug"
 
 # -----------------------------------------------------------------------------
 # 5) Run platform scripts (use bash explicitly)
