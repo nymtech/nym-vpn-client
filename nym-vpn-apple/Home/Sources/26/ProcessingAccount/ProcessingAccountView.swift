@@ -76,15 +76,18 @@ private extension ProcessingAccountView {
         .trackHeight { titleBlockHeight = max(titleBlockHeight, $0) }
     }
 
+    @ViewBuilder
     var stepIndicator: some View {
-        StepView(
-            stepCount: 4,
-            currentStep: Binding(
-                get: { viewModel.currentStep },
-                set: { _ in }
-            ),
-            animateInitialFill: !viewModel.usesStaticCopy
-        )
+        if ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: viewModel.usesStaticCopy) {
+            StepView(
+                stepCount: 4,
+                currentStep: Binding(
+                    get: { viewModel.currentStep },
+                    set: { _ in }
+                ),
+                animateInitialFill: !viewModel.usesStaticCopy
+            )
+        }
     }
 
     var staticTitleView: some View {

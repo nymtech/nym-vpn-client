@@ -74,10 +74,23 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
     public static func shouldOfferPlanPurchaseAfterProcessing(
         processingKind: ProcessingFlowKind?,
         authOutcome: AuthCompletionOutcome?,
-        isAccountActive: Bool
+        isAccountActive: Bool,
+        accountSummaryLastFetchFailed: Bool = false,
+        validUntilIsFuture: Bool = false,
+        hasAccountSummary: Bool = false
     ) -> Bool {
         if processingKind == .login {
             if authOutcome == .loginReady {
+                return false
+            }
+            if accountSummaryLastFetchFailed {
+                return false
+            }
+            if LoginSessionPolicy.isEffectivelyActive(
+                isAccountActive: isAccountActive,
+                validUntilIsFuture: validUntilIsFuture,
+                hasAccountSummary: hasAccountSummary
+            ) {
                 return false
             }
             return !isAccountActive

@@ -85,6 +85,12 @@ public struct AppFeatureView: View {
                     }
                 }
                 .clipped()
+                if viewModel.purchaseTransitionOverlayVisible {
+                    Color.Nym.background
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                        .allowsHitTesting(false)
+                }
             }
             .overlay(alignment: .bottom) {
 #if os(iOS)
@@ -178,8 +184,10 @@ private extension AppFeatureView {
                 viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
             }
         }
-        viewModel.oneClick.onRequestPlanPurchase = pushPlanPurchase
         viewModel.onRequestPlanPurchase = pushPlanPurchase
+        viewModel.oneClick.onRequestPlanPurchase = { [weak viewModel] in
+            viewModel?.requestPlanPurchaseTransition()
+        }
 #if os(macOS)
         viewModel.oneClick.onRequestDaemonEnable = { [weak viewModel] in
             guard let viewModel else { return }

@@ -89,7 +89,9 @@ struct OnboardingSessionPolicyTests {
             DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
                 processingKind: .login,
                 authOutcome: .registeredNeedsPurchase,
-                isAccountActive: false
+                isAccountActive: false,
+                validUntilIsFuture: false,
+                hasAccountSummary: false
             )
         )
         #expect(
@@ -106,6 +108,92 @@ struct OnboardingSessionPolicyTests {
                 isAccountActive: false
             )
         )
+    }
+
+    @Test func loginProcessingSkipsPurchaseWhenSummaryFetchFailed() {
+        #expect(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .login,
+                authOutcome: .registeredNeedsPurchase,
+                isAccountActive: false,
+                accountSummaryLastFetchFailed: true,
+                validUntilIsFuture: false,
+                hasAccountSummary: false
+            )
+        )
+    }
+
+    @Test func loginProcessingSkipsPurchaseWhenValidUntilIsFuture() {
+        #expect(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .login,
+                authOutcome: .registeredNeedsPurchase,
+                isAccountActive: false,
+                accountSummaryLastFetchFailed: false,
+                validUntilIsFuture: true,
+                hasAccountSummary: true
+            )
+        )
+    }
+
+    @Test func loginProcessingOffersPurchaseWhenGenuinelyInactive() {
+        #expect(
+            DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .login,
+                authOutcome: .registeredNeedsPurchase,
+                isAccountActive: false,
+                accountSummaryLastFetchFailed: false,
+                validUntilIsFuture: false,
+                hasAccountSummary: true
+            )
+        )
+    }
+}
+
+struct LoginSessionPolicyTests {
+    @Test func validUntilFutureIsEffectivelyActive() {
+        let future = Date().addingTimeInterval(86_400)
+        #expect(LoginSessionPolicy.validUntilIsFuture(validUntil: future))
+        #expect(
+            LoginSessionPolicy.isEffectivelyActive(
+                isAccountActive: false,
+                validUntilIsFuture: true,
+                hasAccountSummary: true
+            )
+        )
+    }
+}
+
+struct ConnectPlanPurchaseGatePolicyTests {
+    @Test func connectSkipsPurchaseDuringRegistration() {
+        #expect(
+            !ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
+                isAccountRegistrationInFlight: true,
+                accountSummaryLastFetchFailed: false,
+                isAccountActive: false,
+                validUntilIsFuture: false,
+                hasAccountSummary: false
+            )
+        )
+    }
+
+    @Test func connectSkipsPurchaseWhenFetchFailed() {
+        #expect(
+            !ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
+                isAccountRegistrationInFlight: false,
+                accountSummaryLastFetchFailed: true,
+                isAccountActive: false,
+                validUntilIsFuture: false,
+                hasAccountSummary: false
+            )
+        )
+    }
+}
+
+struct ProcessingUIPolicyTests {
+    @Test func staticProcessingHidesProgressBar() {
+        #expect(!ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: true))
+        #expect(ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: false))
     }
 }
 

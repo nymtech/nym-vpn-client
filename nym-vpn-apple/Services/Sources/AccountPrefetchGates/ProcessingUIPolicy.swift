@@ -13,3 +13,9 @@ public enum PostPurchaseProcessingUI: Sendable {
     public static let titleKey = "processingAccount.awaitingConfirmation.title"
     public static let subtitleKey = "processingAccount.awaitingConfirmation.subtitle"
 }
+
+public enum ProcessingUIPolicy: Equatable, Sendable {
+    public static func showsOnboardingProgressBar(usesStaticCopy: Bool) -> Bool {
+        !usesStaticCopy
+    }
+}

@@ -43,6 +43,10 @@ import GRPCManager
     var deviceIdentifier: String?
     var accountSummaryFetchFailed = false
 
+    var purchaseTransitionOverlayVisible: Bool {
+        isPurchaseFlowActive && drawerContent != nil
+    }
+
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     @ObservationIgnored private var lastForegroundRefreshAt: Date?
     @ObservationIgnored private var pendingPostDisconnectAccountRefresh: Task<Void, Never>?
@@ -294,13 +298,13 @@ import GRPCManager
         planPurchaseTransitionTask?.cancel()
         isPurchaseFlowActive = true
         pendingDrawerContent = .oneClick
-        withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
-            drawerContent = nil
-        }
+        onRequestPlanPurchase?()
         planPurchaseTransitionTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .milliseconds(Self.paywallTransitionDelayMs))
+            try? await Task.sleep(for: .milliseconds(Self.paywallDrawerDismissDelayMs))
             guard !Task.isCancelled, let self else { return }
-            self.onRequestPlanPurchase?()
+            withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
+                self.drawerContent = nil
+            }
             self.planPurchaseTransitionTask = nil
         }
     }
@@ -313,7 +317,7 @@ import GRPCManager
 
 private extension AppFeatureViewModel {
     static let paywallTransitionDuration = 0.35
-    static let paywallTransitionDelayMs = 350
+    static let paywallDrawerDismissDelayMs = 150
 
     func wireConnectionStatusDelegates() {
         connectionStatus.onConnectionFailed = { [weak self] errorMessage in
@@ -413,10 +417,17 @@ private extension AppFeatureViewModel {
 
     func processingDidFinish() {
         guard drawerContent?.isProcessing == true else { return }
+        let summary = credentialsManager.accountSummary
+        let validUntilIsFuture = LoginSessionPolicy.validUntilIsFuture(
+            validUntil: summary?.validUntilDate
+        )
         let needsPurchase = DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
             processingKind: processingViewModel.map { viewModelProcessingKind($0.flow) },
             authOutcome: lastAuthCompletionOutcome,
-            isAccountActive: credentialsManager.isAccountActive()
+            isAccountActive: credentialsManager.isAccountActive(),
+            accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
+            validUntilIsFuture: validUntilIsFuture,
+            hasAccountSummary: summary != nil
         )
 
         if !appSettings.welcomeScreenDidDisplay {

@@ -18,11 +18,13 @@ public struct ProcessingAccountView: View {
             Spacer()
                 .frame(height: 24)
 
-            StepView(
-                stepCount: 4,
-                currentStep: .constant(PostPurchaseProcessingUI.progressStep),
-                animateInitialFill: false
-            )
+            if ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: true) {
+                StepView(
+                    stepCount: 4,
+                    currentStep: .constant(PostPurchaseProcessingUI.progressStep),
+                    animateInitialFill: false
+                )
+            }
             Spacer()
             dotsAnimationView
             Spacer()

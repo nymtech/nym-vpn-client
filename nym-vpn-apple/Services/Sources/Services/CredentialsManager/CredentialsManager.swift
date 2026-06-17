@@ -31,7 +31,7 @@ import PathManager
     private var cancellables = Set<AnyCancellable>()
     private var accountSummaryUpdateTask: Task<Void, Never>?
 #if os(iOS)
-    private(set) var isAccountRegistrationInFlight = false
+    private(set) public var isAccountRegistrationInFlight = false
     private var registrationCapturedEnvironment: NymEnvironment?
     private var accountRegistrationTask: Task<Void, Error>?
 #endif
@@ -434,10 +434,15 @@ import PathManager
         }
     }
 
-    /// Checks `isActive` from backend, falls back to date check if summary is nil.
+    /// Checks `isActive` from backend, with validUntil fallback when summary is present.
     public func isAccountActive() -> Bool {
         if let accountSummary {
-            return accountSummary.isActive
+            if accountSummary.isActive { return true }
+            if let validUntilDate = accountSummary.validUntilDate,
+               validUntilDate > Date() {
+                return true
+            }
+            return false
         }
         return isAccountSubscriptionDateValid()
     }
