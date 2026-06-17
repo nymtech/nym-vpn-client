@@ -26,18 +26,20 @@ public final class ProcessingAccountViewModel {
     private var didBecomeActive = false
 
     var usesStaticCopy: Bool {
-        flow == .login || flow == .postPurchase
+        flow == .postPurchase
     }
 
     public init(credentialsManager: CredentialsManager, flow: ProcessingFlow) {
         self.credentialsManager = credentialsManager
         self.flow = flow
-        if flow == .login {
-            currentStep = LoginProcessingUI.progressStep
-            didFinishAnimatingText = true
-        } else if flow == .postPurchase {
+        switch flow {
+        case .login:
+            currentStep = LoginProcessingUI.initialProgressStep
+        case .postPurchase:
             currentStep = PostPurchaseProcessingUI.progressStep
             didFinishAnimatingText = true
+        case .createAccount:
+            break
         }
     }
 
@@ -46,6 +48,10 @@ public final class ProcessingAccountViewModel {
         processingTask = Task { @MainActor [weak self] in
             guard let self else { return }
             let credentials = credentialsManager
+            await credentials.ensureCredentialImportResolved()
+            if flow == .login {
+                try? await credentials.prepareRegisteredAccount()
+            }
             _ = await AccountPrefetchOrchestrator.runProcessingFlow(
                 isAccountActive: { await credentials.isAccountActive() },
                 updateAccountSummary: {

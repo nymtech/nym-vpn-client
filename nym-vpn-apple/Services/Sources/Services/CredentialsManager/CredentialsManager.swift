@@ -120,13 +120,17 @@ import PathManager
                 try await registerAccount(environment: env)
             }
             appSettings.accountToken = result.accountToken
-            try await AccountRegistrationSupport.withCredentialStoreRetry(
-                operation: "prepareRegisteredAccount",
-                logger: logger
-            ) {
-                try await prepareRegisteredAccount(environment: env)
+            if loginCredential == nil {
+                try await AccountRegistrationSupport.withCredentialStoreRetry(
+                    operation: "prepareRegisteredAccount",
+                    logger: logger
+                ) {
+                    try await prepareRegisteredAccount(environment: env)
+                }
+                await performAccountSummaryUpdate(untilActive: false)
+            } else {
+                await ensureCredentialImportResolved()
             }
-            await performAccountSummaryUpdate(untilActive: loginCredential != nil)
             checkCredentialImport()
         } catch {
             throw AccountRegistrationSupport.mapToVPNErrorReason(error)
@@ -627,27 +631,43 @@ private extension CredentialsManager {
         return true
     }
 
+    public func ensureCredentialImportResolved() async {
+#if os(iOS)
+        do {
+            let networkEnv = environmentForCredentialImport()
+                ?? configurationManager.networkEnv
+                ?? (try? resolvedNetworkEnvironment())
+            guard let networkEnv else { return }
+            let isImported = try await Task {
+                let dataDir = try PathManager.dataFolderURL().path()
+                return try await NymVpnAccountStorage(
+                    dataDir: dataDir,
+                    environment: networkEnv
+                ).isAccountMnemonicStored()
+            }.value
+            setCredentialImportedFlag(isImported)
+        } catch {
+            logger.error(
+                "ensureCredentialImportResolved failed \(error.localizedDescription)"
+            )
+            setCredentialImportedFlag(false)
+        }
+#elseif os(macOS)
+        do {
+            let isImported = try await grpcManager.isAccountStored()
+            setCredentialImportedFlag(isImported)
+        } catch {
+            logger.error(
+                "ensureCredentialImportResolved failed \(error.localizedDescription)"
+            )
+            setCredentialImportedFlag(false)
+        }
+#endif
+    }
+
     func checkCredentialImport() {
         Task {
-            do {
-                let isImported: Bool
-#if os(iOS)
-                guard let networkEnv = environmentForCredentialImport() else { return }
-                isImported = try await Task {
-                    let dataDir = try PathManager.dataFolderURL().path()
-                    return try await NymVpnAccountStorage(
-                        dataDir: dataDir,
-                        environment: networkEnv
-                    ).isAccountMnemonicStored()
-                }.value
-#elseif os(macOS)
-                isImported = try await grpcManager.isAccountStored()
-#endif
-                updateIsCredentialImported(with: isImported)
-            } catch {
-                logger.error("Failed to check credential import: \(error.localizedDescription)")
-                updateIsCredentialImported(with: false)
-            }
+            await ensureCredentialImportResolved()
             guard !isAccountRegistrationInFlight else { return }
             await updateDeviceIdentifier()
             await updateAccountIdentifier()
@@ -656,10 +676,12 @@ private extension CredentialsManager {
     }
 
     func updateIsCredentialImported(with value: Bool) {
-        Task { @MainActor in
-            guard appSettings.isCredentialImported != value else { return }
-            appSettings.isCredentialImported = value
-        }
+        setCredentialImportedFlag(value)
+    }
+
+    func setCredentialImportedFlag(_ value: Bool) {
+        guard appSettings.isCredentialImported != value else { return }
+        appSettings.isCredentialImported = value
     }
 }
 

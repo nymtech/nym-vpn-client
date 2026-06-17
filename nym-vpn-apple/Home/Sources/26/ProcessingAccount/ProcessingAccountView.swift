@@ -129,10 +129,7 @@ private extension ProcessingAccountView {
     static func staticPair(for flow: ProcessingFlow) -> (String, String) {
         switch flow {
         case .login:
-            return (
-                LoginProcessingUI.titleKey.localizedString,
-                LoginProcessingUI.subtitleKey.localizedString
-            )
+            return loginCarouselPairs().first ?? ("", "")
         case .postPurchase:
             return (
                 PostPurchaseProcessingUI.titleKey.localizedString,
@@ -146,7 +143,7 @@ private extension ProcessingAccountView {
     static func pairs(for flow: ProcessingFlow) -> [(String, String)] {
         switch flow {
         case .login:
-            return [staticPair(for: .login)]
+            return loginCarouselPairs()
         case .postPurchase:
             return [staticPair(for: .postPurchase)]
         case .createAccount:
@@ -157,6 +154,15 @@ private extension ProcessingAccountView {
                     "\(prefix).subtitle\(index)".localizedString
                 )
             }
+        }
+    }
+
+    static func loginCarouselPairs() -> [(String, String)] {
+        LoginProcessingUI.carouselStepRange.map { step in
+            (
+                "\(LoginProcessingUI.carouselTitlePrefix).title\(step)".localizedString,
+                "\(LoginProcessingUI.carouselTitlePrefix).subtitle\(step)".localizedString
+            )
         }
     }
 }

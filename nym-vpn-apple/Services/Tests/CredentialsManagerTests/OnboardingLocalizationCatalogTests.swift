@@ -5,11 +5,9 @@ import Theme
 
 struct OnboardingLocalizationCatalogTests {
     private static let processingKeys: [String] = [
-        LoginProcessingUI.titleKey,
-        LoginProcessingUI.subtitleKey,
         PostPurchaseProcessingUI.titleKey,
         PostPurchaseProcessingUI.subtitleKey
-    ]
+    ] + LoginProcessingUI.carouselKeys
 
     @Test func postPurchaseProcessingKeysHaveEnglishCopy() throws {
         let title = try NymVPNXCStringsReader.englishValue(for: PostPurchaseProcessingUI.titleKey)
@@ -21,10 +19,11 @@ struct OnboardingLocalizationCatalogTests {
     }
 
     @Test func loginProcessingKeysHaveEnglishCopy() throws {
-        let title = try NymVPNXCStringsReader.englishValue(for: LoginProcessingUI.titleKey)
-        let subtitle = try NymVPNXCStringsReader.englishValue(for: LoginProcessingUI.subtitleKey)
-        #expect(title != LoginProcessingUI.titleKey)
-        #expect(subtitle != LoginProcessingUI.subtitleKey)
+        for key in LoginProcessingUI.carouselKeys {
+            let value = try NymVPNXCStringsReader.englishValue(for: key)
+            #expect(value != key)
+            #expect(!value.isEmpty)
+        }
     }
 
     @Test func processingKeysMarkedTranslatedInCatalog() throws {
@@ -51,7 +50,7 @@ struct OnboardingLocalizationCatalogTests {
     }
 
     @Test func localizedStringPipelineResolvesEnglishStringsTable() throws {
-        let key = LoginProcessingUI.titleKey
+        let key = LoginProcessingUI.carouselKeys[0]
         let expected = try NymVPNXCStringsReader.englishValue(for: key)
         let bundle = try Self.temporaryEnglishBundle(
             entries: [key: expected]

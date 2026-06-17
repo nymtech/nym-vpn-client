@@ -44,12 +44,20 @@ struct AuthFlowView: View {
     }
 
     private var sharedRootHeight: CGFloat {
-        max(
-            welcomeRootHeight,
-            signUpRootHeight,
-            signInRootHeight,
-            passphraseHeight,
-            generateCarouselHeight
+        AuthFlowHeightPolicy.sharedRootHeight(
+            welcome: welcomeRootHeight,
+            signUp: signUpRootHeight,
+            signIn: signInRootHeight,
+            passphrase: passphraseHeight,
+            generateCarousel: generateCarouselHeight
+        )
+    }
+
+    private var signInSharedHeight: CGFloat {
+        AuthFlowHeightPolicy.signInRootHeight(
+            welcome: welcomeRootHeight,
+            signIn: signInRootHeight,
+            passphrase: passphraseHeight
         )
     }
 
@@ -126,7 +134,7 @@ private extension AuthFlowView {
         case .signIn:
             SignInView(
                 credentialsManager: credentialsManager,
-                rootMinHeight: sharedRootHeight,
+                rootMinHeight: signInSharedHeight,
                 onBackTapped: { step = .welcome },
                 onWillRegister: { onWillRegister(.login) },
                 onPrivyAuthWillBegin: { onPrivyAuthWillBegin(.login) },
