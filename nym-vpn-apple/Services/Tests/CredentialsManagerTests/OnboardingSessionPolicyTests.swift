@@ -55,6 +55,58 @@ struct OnboardingSessionPolicyTests {
             ) == .login
         )
     }
+
+    @Test func loginReadyNeverOffersPurchaseAfterAuth() {
+        #expect(!DrawerSessionPolicy.shouldOfferPlanPurchaseAfterAuth(outcome: .loginReady))
+        #expect(!DrawerSessionPolicy.shouldOfferPlanPurchaseAfterAuth(outcome: .registeredActive))
+        #expect(DrawerSessionPolicy.shouldOfferPlanPurchaseAfterAuth(outcome: .registeredNeedsPurchase))
+        #expect(!DrawerSessionPolicy.shouldOfferPlanPurchaseAfterAuth(outcome: nil))
+    }
+
+    @Test func loginProcessingOffersPurchaseOnlyWhenStillInactiveAfterSync() {
+        #expect(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .login,
+                authOutcome: .loginReady,
+                isAccountActive: true
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .login,
+                authOutcome: .loginReady,
+                isAccountActive: false
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .login,
+                authOutcome: .registeredNeedsPurchase,
+                isAccountActive: true
+            )
+        )
+        #expect(
+            DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .login,
+                authOutcome: .registeredNeedsPurchase,
+                isAccountActive: false
+            )
+        )
+        #expect(
+            DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .postPurchase,
+                authOutcome: .registeredNeedsPurchase,
+                isAccountActive: false
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .postPurchase,
+                authOutcome: .registeredActive,
+                isAccountActive: false
+            )
+        )
+    }
 }
 
 struct DrawerSessionPolicyTests {

@@ -65,6 +65,26 @@ public enum ProcessingFlowKind: Equatable, Sendable {
 }
 
 public enum DrawerSessionPolicy: Equatable, Sendable {
+    /// Purchase is only offered when auth explicitly classified the account as needing IAP.
+    public static func shouldOfferPlanPurchaseAfterAuth(outcome: AuthCompletionOutcome?) -> Bool {
+        outcome == .registeredNeedsPurchase
+    }
+
+    /// Post-processing purchase gate. Login processing may re-sync summary; purchase only if still inactive.
+    public static func shouldOfferPlanPurchaseAfterProcessing(
+        processingKind: ProcessingFlowKind?,
+        authOutcome: AuthCompletionOutcome?,
+        isAccountActive: Bool
+    ) -> Bool {
+        if processingKind == .login {
+            if authOutcome == .loginReady {
+                return false
+            }
+            return !isAccountActive
+        }
+        return shouldOfferPlanPurchaseAfterAuth(outcome: authOutcome)
+    }
+
     public static func shouldStartProcessingOnCredentialImport(
         isCredentialImported: Bool,
         hasAccountToken: Bool,

@@ -35,6 +35,7 @@ import GRPCManager
     @ObservationIgnored private var authHandoffCompleted = false
     @ObservationIgnored private var authHandoffCompletesOnCredentialImport = false
     @ObservationIgnored private var isPurchaseFlowActive = false
+    @ObservationIgnored private var lastAuthCompletionOutcome: AuthCompletionOutcome?
 
     var accountSummary: AccountSummary?
     var accountIdentifier: String?
@@ -138,7 +139,7 @@ import GRPCManager
 
         if appSettings.isCredentialImported {
             pendingDrawerContent = .oneClick
-            if purchaseAfter || !credentialsManager.isAccountActive() {
+            if purchaseAfter {
                 isPurchaseFlowActive = true
                 drawerContent = nil
                 onRequestPlanPurchase?()
@@ -199,18 +200,21 @@ import GRPCManager
         pendingAuthFlow = flow
         authHandoffCompleted = false
         authHandoffCompletesOnCredentialImport = completesOnCredentialImport
+        lastAuthCompletionOutcome = nil
     }
 
     func noteAuthHandoffCancelled() {
         pendingAuthFlow = nil
         authHandoffCompleted = false
         authHandoffCompletesOnCredentialImport = false
+        lastAuthCompletionOutcome = nil
     }
 
     func handleAuthCompleted(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
         guard !authHandoffCompleted else { return }
         authHandoffCompleted = true
         pendingAuthFlow = nil
+        lastAuthCompletionOutcome = outcome
         routeAfterAuthCompletion(outcome: outcome, flow: flow)
     }
 
@@ -383,7 +387,11 @@ private extension AppFeatureViewModel {
 
     func processingDidFinish() {
         guard drawerContent?.isProcessing == true else { return }
-        let needsPurchase = !credentialsManager.isAccountActive()
+        let needsPurchase = DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+            processingKind: processingViewModel.map { viewModelProcessingKind($0.flow) },
+            authOutcome: lastAuthCompletionOutcome,
+            isAccountActive: credentialsManager.isAccountActive()
+        )
 
         if !appSettings.welcomeScreenDidDisplay {
             pendingPlanPurchaseAfterOptIns = needsPurchase
@@ -398,6 +406,15 @@ private extension AppFeatureViewModel {
             onRequestPlanPurchase?()
         } else {
             drawerContent = .oneClick
+        }
+    }
+
+    func viewModelProcessingKind(_ flow: ProcessingFlow) -> ProcessingFlowKind {
+        switch flow {
+        case .login:
+            return .login
+        case .postPurchase, .createAccount:
+            return .postPurchase
         }
     }
 }

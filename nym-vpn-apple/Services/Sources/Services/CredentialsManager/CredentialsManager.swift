@@ -107,6 +107,7 @@ import PathManager
             let env = try resolvedRegistrationEnvironment()
 
             if let loginCredential {
+                accountSummary = nil
                 try await login(credential: loginCredential, environment: env)
             } else if !(await isAccountStored(environment: env)) {
                 try await createMnemonic(environment: env)
@@ -125,6 +126,7 @@ import PathManager
             ) {
                 try await prepareRegisteredAccount(environment: env)
             }
+            await performAccountSummaryUpdate(untilActive: loginCredential != nil)
             checkCredentialImport()
         } catch {
             throw AccountRegistrationSupport.mapToVPNErrorReason(error)

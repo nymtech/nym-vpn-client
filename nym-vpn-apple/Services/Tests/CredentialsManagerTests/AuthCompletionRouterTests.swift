@@ -38,6 +38,15 @@ struct AuthCompletionRouterTests {
             ) != .routeToPurchase
         )
     }
+
+    @Test func loginInactiveAfterSyncStartsLoginProcessingBeforePurchase() {
+        #expect(
+            AuthCompletionRouter.route(
+                outcome: .registeredNeedsPurchase,
+                flow: .login
+            ) == .startProcessing(.login)
+        )
+    }
 }
 
 @MainActor
