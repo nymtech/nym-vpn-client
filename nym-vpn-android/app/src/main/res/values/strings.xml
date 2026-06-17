@@ -163,7 +163,7 @@
 	<string name="unexpected_error">An unexpected error occurred:</string>
 	<string name="error_invalid_entry_gateway_country">Invalid country for entry server. Choose another and reconnect.</string>
 	<string name="error_invalid_exit_gateway_country">Invalid country for exit server. Choose another and reconnect.</string>
-	<string name="bandwidth_error">Monthly data limit reached. Contact Support for a quick data boost.</string>
+	<string name="bandwidth_error">Daily data limit reached. Contact Support for a quick data boost.</string>
 	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
 	<string name="device_time_out_of_sync">Device time out of sync</string>
 	<string name="error_ipv6_unavailable">Ipv6 Unavailable</string>
@@ -410,9 +410,10 @@
 	<string name="account_info_device_title">Device ID</string>
 	<string name="account_info_device_info">Use this to link this device to your account on nym.com</string>
 	<string name="account_info_status_title">Account status</string>
-	<string name="account_info_bandwidth_title">Fair usage spent</string>
+	<string name="account_info_bandwidth_title">Daily allowance</string>
 	<string name="account_info_limit_text">Limit</string>
-	<string name="account_info_reset_text">Resets on</string>
+	<string name="account_info_reset_text">Resets daily at</string>
+	<string name="account_info_data_unavailable">Usage data unavailable</string>
 	<string name="account_info_valid_text">Plan valid until %s</string>
 	<string name="account_info_expires_text">Plan expires on %s</string>
 	<string name="banner_plan_expires_text">Plan expires on:\n%s</string>

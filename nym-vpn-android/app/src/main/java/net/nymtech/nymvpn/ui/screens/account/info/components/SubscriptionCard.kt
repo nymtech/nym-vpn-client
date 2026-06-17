@@ -129,44 +129,55 @@ private fun SubscriptionCard(subscription: SubscriptionUiState, bandwidth: Bandw
 					text = stringResource(R.string.account_info_bandwidth_title),
 					style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.tertiary),
 				)
-				Text(
-					text = stringResource(R.string.account_info_limit_text),
-					style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.outline),
-				)
+				if (!bandwidth.isUnavailable) {
+					Text(
+						text = stringResource(R.string.account_info_limit_text),
+						style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.outline),
+					)
+				}
 			}
 
 			Spacer(Modifier.height(8.dp))
 
-			Box(
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(6.dp)
-					.clip(RoundedCornerShape(50))
-					.background(MaterialTheme.colorScheme.background),
-			) {
+			if (bandwidth.isUnavailable) {
+				Text(
+					text = stringResource(R.string.account_info_data_unavailable),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+				)
+				Spacer(Modifier.height(8.dp))
+			} else {
 				Box(
 					modifier = Modifier
-						.fillMaxWidth(bandwidth.percentage)
-						.fillMaxHeight()
-						.background(MaterialTheme.colorScheme.tertiary),
-				)
-			}
+						.fillMaxWidth()
+						.height(6.dp)
+						.clip(RoundedCornerShape(50))
+						.background(MaterialTheme.colorScheme.background),
+				) {
+					Box(
+						modifier = Modifier
+							.fillMaxWidth(bandwidth.percentage)
+							.fillMaxHeight()
+							.background(MaterialTheme.colorScheme.tertiary),
+					)
+				}
 
-			Spacer(Modifier.height(8.dp))
+				Spacer(Modifier.height(8.dp))
 
-			Row(
-				modifier = Modifier.fillMaxWidth(),
-				horizontalArrangement = Arrangement.SpaceBetween,
-			) {
-				val format = java.text.NumberFormat.getNumberInstance(java.util.Locale.US)
-				Text(
-					text = "${format.format(bandwidth.consumedGb.toInt())} GB",
-					style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onPrimaryContainer),
-				)
-				Text(
-					text = "${format.format(bandwidth.totalGb.toInt())} GB",
-					style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-				)
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.SpaceBetween,
+				) {
+					val format = java.text.NumberFormat.getNumberInstance(java.util.Locale.US)
+					Text(
+						text = "${format.format(bandwidth.consumedGb.toInt())} GB",
+						style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onPrimaryContainer),
+					)
+					Text(
+						text = "${format.format(bandwidth.totalGb.toInt())} GB",
+						style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+					)
+				}
 			}
 		}
 
@@ -298,7 +309,7 @@ private fun ContactSupportText(onClick: () -> Unit) {
 	)
 }
 
-data class BandwidthUiState(val consumedGb: Float, val totalGb: Float, val percentage: Float, val resetDate: String)
+data class BandwidthUiState(val consumedGb: Float, val totalGb: Float, val percentage: Float, val resetDate: String, val isUnavailable: Boolean = false)
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
