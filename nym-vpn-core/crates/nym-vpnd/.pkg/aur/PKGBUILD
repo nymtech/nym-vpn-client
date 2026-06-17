@@ -49,11 +49,11 @@ build() {
 }
 
 package() {
-  pushd "$_srcdir/nym-vpn-core"
-  install -Dm755 "target/release/nym-vpnd" "$pkgdir/usr/bin/nym-vpnd"
-  install -Dm755 "target/release/nym-exclude" "$pkgdir/usr/bin/nym-exclude"
+  pushd "$_srcdir/nym-vpn-core/target/release"
+  install -Dm755 "nym-vpnd" "$pkgdir/usr/bin/nym-vpnd"
+  install -Dm755 "nym-exclude" "$pkgdir/usr/bin/nym-exclude"
   chmod u+s "$pkgdir/usr/bin/nym-exclude"
-  install -Dm755 "target/release/nym-socks5-proxy" "$pkgdir/usr/bin/nym-socks5-proxy"
+  install -Dm755 "nym-socks5-proxy" "$pkgdir/usr/bin/nym-socks5-proxy"
   popd
 
   install -Dm644 nym-vpnd.service "$pkgdir/usr/lib/systemd/system/nym-vpnd.service"
