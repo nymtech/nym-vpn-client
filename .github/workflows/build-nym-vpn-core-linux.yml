@@ -142,6 +142,7 @@ jobs:
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd ${{ env.UPLOAD_DIR_LINUX }}
+          cp -vpr ${{ env.SRC_BINARY }}/nym-exclude ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-socks5-proxy ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-diagnostic ${{ env.UPLOAD_DIR_LINUX }}
 
