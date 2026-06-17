@@ -125,8 +125,8 @@ jobs:
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo deb -p nym-vpnd
-          cargo deb -p nym-vpnc
+          cargo deb -p nym-vpnd --no-build
+          cargo deb -p nym-vpnc --no-build
           ls -la target/debian/ || true
 
       - name: Get rust version used for build
@@ -136,7 +136,7 @@ jobs:
 
       - name: Move things around to prepare for upload
         env:
-          SRC_BINARY: nym-vpn-core/target/release/
+          SRC_BINARY: nym-vpn-core/target/release
           SRC_DEB: nym-vpn-core/target/debian
         run: |
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
