@@ -1,6 +1,6 @@
-# Publish nym-vpnd on AUR
+# Publish nym-vpnc on AUR
 
-name: publish-aur-nym-vpnd
+name: publish-aur-nym-vpnc
 on:
   workflow_dispatch:
     inputs:
@@ -55,18 +55,17 @@ jobs:
         include:
           - pkgtype: bfs
             pkgbuild: PKGBUILD
-            pkgname: nym-vpnd
+            pkgname: nym-vpnc
           - pkgtype: bin
             pkgbuild: PKGBUILD-bin
-            pkgname: nym-vpnd-bin
+            pkgname: nym-vpnc-bin
     env:
       PKGNAME: ${{ matrix.pkgname }}
-      PKGBUILD: nym-vpn-core/crates/nym-vpnd/.pkg/aur/${{ matrix.pkgbuild }}
+      PKGBUILD: nym-vpn-core/crates/nym-vpnc/.pkg/aur/${{ matrix.pkgbuild }}
       PKGREL: ${{ inputs.pkgrel }}
       RELEASE_TAG: ${{ inputs.release_tag }}
       REPOSITORY: ${{ github.repository }}
       TARBALL: ${{ github.workspace }}/sources.tar.gz
-      SERVICE_FILE: ${{ github.workspace }}/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
       LINUX_BIN_X86_64: linux-bin-x86_64
       LINUX_BIN_AARCH64: linux-bin-aarch64
     steps:
@@ -94,7 +93,7 @@ jobs:
         id: app-version
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry="tarball/nym-vpn-client-${{ env.RELEASE_TAG }}/nym-vpn-core/crates/nym-vpnd"
+          subcommand: package.version --entry="tarball/nym-vpn-client-${{ env.RELEASE_TAG }}/nym-vpn-core/crates/nym-vpnc"
 
       - name: Download prebuilt binary
         if: matrix.pkgtype == 'bin'
@@ -111,8 +110,7 @@ jobs:
           PKGBUILD: ${{ env.PKGBUILD }}
         run: |
           export SRC_TARBALL_SHA256=$(sha256sum "${{ env.TARBALL }}" | cut -d' ' -f1)
-          export SERVICE_SHA256=$(sha256sum "${{ env.SERVICE_FILE }}" | cut -d' ' -f1)
-          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$SRC_TARBALL_SHA256,$SERVICE_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
+          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$SRC_TARBALL_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
           mv "$PKGBUILD.tmp" "$PKGBUILD"
 
       - name: Update PKGBUILD (bin)
@@ -125,8 +123,7 @@ jobs:
         run: |
           export TARBALL_SHA256_X86_64=$(sha256sum "${{ env.LINUX_BIN_X86_64 }}" | cut -d' ' -f1)
           export TARBALL_SHA256_AARCH64=$(sha256sum "${{ env.LINUX_BIN_AARCH64 }}" | cut -d' ' -f1)
-          export SERVICE_SHA256=$(sha256sum "${{ env.SERVICE_FILE }}" | cut -d' ' -f1)
-          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$TARBALL_SHA256_X86_64,$TARBALL_SHA256_AARCH64,$SERVICE_SHA256' < "$PKGBUILD" > "$PKGBUILD.tmp"
+          envsubst '$PKGVER,$PKGREL,$RELEASE_TAG,$TARBALL_SHA256_X86_64,$TARBALL_SHA256_AARCH64' < "$PKGBUILD" > "$PKGBUILD.tmp"
           mv "$PKGBUILD.tmp" "$PKGBUILD"
 
       - name: Rename PKGBUILD (bin)
@@ -149,5 +146,3 @@ jobs:
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
           commit_message: ${{ inputs.commit_msg || format('v{0}', steps.app-version.outputs.metadata) }}
-          assets: |
-            nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service
