@@ -186,6 +186,12 @@ export type GatewaysByCountry = {
   quic: boolean;
 };
 
+export type GeoExclusionSettings = {
+  enabled: boolean;
+  listenPort: number;
+  excludedCountries: Array<string>;
+};
+
 export type GpuType = 'nvidia' | 'amd' | 'intel' | { unknown: string | null };
 
 export type Hop = 'entry' | 'exit';
@@ -583,6 +589,7 @@ export type VpndConfig = {
   mixnetTraffic: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  geoExclusion: GeoExclusionSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   gatewayIndependenceNotifications: boolean;
 };

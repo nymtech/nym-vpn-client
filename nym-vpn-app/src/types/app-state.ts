@@ -7,6 +7,7 @@ import {
   FeatureFlags,
   FrontingMode,
   GatewaySelectionAlgorithmConfig,
+  GeoExclusionSettings,
   MixnetTrafficConfig,
   MixnetTrafficDefaults,
   NetworkCompat,
@@ -50,6 +51,7 @@ export type InitState = {
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  geoExclusion: GeoExclusionSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   frontingMode: FrontingMode;
   gatewayIndependenceNotifications: boolean;
@@ -113,6 +115,7 @@ export type AppState = {
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  geoExclusion: GeoExclusionSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   frontingMode: FrontingMode;
   // gateway-independence reminder toggle ("Server family reminders"); daemon-backed

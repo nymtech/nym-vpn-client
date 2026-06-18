@@ -206,7 +206,7 @@ export function CardNew({ children, disabled, className }: CardNewProps) {
     <div
       className={clsx([
         'flex flex-col overflow-hidden select-none',
-        'bg-surface-elev min-h-16 rounded-2xl',
+        'bg-surface-elev min-h-14 rounded-2xl',
         'cursor-default transition',
         disabled && 'pointer-events-none opacity-50',
         className,

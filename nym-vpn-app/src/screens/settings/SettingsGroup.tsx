@@ -4,6 +4,7 @@ import { Description, Label, Radio, RadioGroup } from '@headlessui/react';
 
 type Setting = {
   title: string;
+  titleTrailing?: ReactNode;
   leadingIcon?: string;
   leadingComponent?: ReactNode;
   desc?: string | ReactNode;
@@ -63,12 +64,15 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
               )}
               {!!setting.leadingComponent && setting.leadingComponent}
               <div className="flex min-w-4 flex-1 flex-col justify-center">
-                <Label
-                  as="div"
-                  className="text-text-primary truncate text-base select-none"
-                >
-                  {setting.title}
-                </Label>
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <Label
+                    as="div"
+                    className="text-text-primary truncate text-base select-none"
+                  >
+                    {setting.title}
+                  </Label>
+                  {setting.titleTrailing}
+                </div>
                 <Description
                   as="div"
                   className="text-text-secondary truncate text-sm select-none"

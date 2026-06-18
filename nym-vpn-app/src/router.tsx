@@ -11,6 +11,8 @@ import {
   Diagnostic,
   Display,
   Error,
+  GeoExclusion,
+  GeoExclusionSetup,
   Lang,
   Legal,
   LegalRouteIndex,
@@ -51,6 +53,8 @@ export const routes = {
   logs: '/settings/data-privacy/logs',
   diagnostic: '/settings/data-privacy/diagnostic',
   splitTunneling: '/settings/split-tunneling',
+  geoExclusion: '/settings/geo-exclusion',
+  geoExclusionSetup: '/settings/geo-exclusion/setup-instructions',
   notifications: '/settings/notifications',
   support: '/settings/support',
   legal: '/settings/legal',
@@ -184,6 +188,16 @@ const router = createBrowserRouter([
           {
             path: routes.splitTunneling,
             Component: SplitTunneling,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.geoExclusion,
+            Component: GeoExclusion,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.geoExclusionSetup,
+            Component: GeoExclusionSetup,
             errorElement: <Error />,
           },
           {
