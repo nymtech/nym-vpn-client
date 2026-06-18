@@ -163,6 +163,7 @@ export type Gateway = {
   exitIpv6: string | null;
   buildVersion: string | null;
   quic: boolean;
+  nodeFamilyName: string | null;
 };
 
 export type GatewaySelectionAlgorithm =
