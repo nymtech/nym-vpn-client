@@ -19,7 +19,6 @@ default = []
 nym-type-conversions = [
     "dep:nym-bandwidth-controller",
     "dep:nym-gateway-directory",
-    "dep:nym-network-defaults",
     "dep:nym-sdk",
     "dep:nym-statistics-common",
     "dep:nym-registration-common",
@@ -54,7 +53,7 @@ nym-statistics-common = { workspace = true, optional = true }
 nym-validator-client = { workspace = true, optional = true }
 nym-vpn-api-client = { workspace = true, optional = true }
 nym-vpn-network-config = { workspace = true, optional = true }
-nym-network-defaults = { workspace = true, optional = true }
+nym-network-defaults = { workspace = true }
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }

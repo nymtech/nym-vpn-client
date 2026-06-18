@@ -469,7 +469,6 @@ impl From<nym_network_defaults::NymContracts> for NymContracts {
     }
 }
 
-#[cfg(feature = "nym-type-conversions")]
 impl From<nym_network_defaults::ApiUrl> for ApiUrl {
     fn from(value: nym_network_defaults::ApiUrl) -> Self {
         Self {
@@ -479,7 +478,6 @@ impl From<nym_network_defaults::ApiUrl> for ApiUrl {
     }
 }
 
-#[cfg(feature = "nym-type-conversions")]
 impl From<&nym_network_defaults::ApiUrl> for ApiUrl {
     fn from(value: &nym_network_defaults::ApiUrl) -> Self {
         Self {
