@@ -6,7 +6,6 @@ export { default as useI18nAccountState } from './useI18nAccountState';
 export { default as useI18nProgressMsg } from './useI18nProgressMsg';
 export { default as useNotify } from './useNotify';
 export { default as useDesktopNotifications } from './useDesktopNotifications';
-export { default as useServerFamilyReminders } from './useServerFamilyReminders';
 export { default as useLang } from './useLang';
 export { default as useClipboard } from './useClipboard';
 export { default as useClickAway } from './useClickAway';
