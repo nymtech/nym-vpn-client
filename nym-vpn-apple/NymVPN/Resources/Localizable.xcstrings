@@ -2202,6 +2202,50 @@
         }
       }
     },
+    "appIcon.calculator" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculator"
+          }
+        }
+      }
+    },
+    "appIcon.default" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Default"
+          }
+        }
+      }
+    },
+    "appIcon.error" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't change the app icon. Please try again."
+          }
+        }
+      }
+    },
+    "appIcon.notes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
+          }
+        }
+      }
+    },
     "arcProgress.anonymousModeProtection" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7792,100 +7836,10 @@
     "errorReason.bandwidthExceeded" : {
       "extractionState" : "manual",
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "تم الوصول إلى حد البيانات الشهرية. اتصل بالدعم من أجل تعزيز البيانات السريعة."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Monatliches Datenlimit erreicht. Kontaktieren Sie den Support für eine schnelle Daten-Boost."
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Monthly data limit reached. Contact Support for a quick data boost."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Límite de datos mensual alcanzado. Póngase en contacto con el soporte para obtener un impulso rápido de datos."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "محدودیت ترافیک ماهانه شما به اتمام رسیده. برای افزایش سریع ترافیک، با پشتیبانی تماس بگیرید."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite de données mensuelle atteinte. Contactez le support pour une accélération rapide des données."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "मासिक बैंडविड्थ सीमा पार कर गई है। कृपया अपना खाता योजना अपडेट करें।"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite dati mensile raggiunto. Contatta il supporto per un rapido potenziamento dei dati."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "月間データの上限に達しました。クイックデータブーストのサポートにお問い合わせください。"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite de dados mensais atingido. Entre em contato com o Suporte para obter um impulso rápido de dados."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite de dados mensais atingido. Entre em contato com o Suporte para obter um impulso rápido de dados."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Достигнут месячный лимит данных. Свяжитесь с поддержкой для быстрого увеличения лимита."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aylık bant genişliği limiti aşıldı. Lütfen hesap planınızı yükseltin."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Досягнуто місячний ліміт даних. Зверніться до служби підтримки, щоб швидко збільшити обсяг даних."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đã vượt quá băng thông hàng tháng. Vui lòng liên hệ bộ phận Hỗ trợ để nâng cấp dung lượng."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已达到每月数据上限。请联系客服快速数据推送。"
+            "value" : "Daily allowance reached. Resets at midnight UTC. Contact Support if this seems wrong."
           }
         }
       }
@@ -10973,17 +10927,6 @@
         }
       }
     },
-    "gatewayInfo.familyMembership" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Family membership"
-          }
-        }
-      }
-    },
     "gatewayInfo.antiCensorship" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11608,6 +11551,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在反审查设置中使用此功能"
+          }
+        }
+      }
+    },
+    "gatewayInfo.familyMembership" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Family membership"
           }
         }
       }
@@ -13551,6 +13505,17 @@
         }
       }
     },
+    "general.beta" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta"
+          }
+        }
+      }
+    },
     "general.off" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13648,17 +13613,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "关闭"
-          }
-        }
-      }
-    },
-    "general.beta" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beta"
           }
         }
       }
@@ -14882,6 +14836,215 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在保存您的凭据到本地..."
+          }
+        }
+      }
+    },
+    "geoExclusion.addRegion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add region"
+          }
+        }
+      }
+    },
+    "geoExclusion.betaNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beta version: China only for now. More regions coming."
+          }
+        }
+      }
+    },
+    "geoExclusion.china" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "China"
+          }
+        }
+      }
+    },
+    "geoExclusion.customPort" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom port"
+          }
+        }
+      }
+    },
+    "geoExclusion.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected."
+          }
+        }
+      }
+    },
+    "geoExclusion.enable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable Geo Exclusion"
+          }
+        }
+      }
+    },
+    "geoExclusion.excludedRegions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluded regions"
+          }
+        }
+      }
+    },
+    "geoExclusion.failedToStart" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geo Exclusion couldn't start. Reconnect and try again."
+          }
+        }
+      }
+    },
+    "geoExclusion.port.forbidden" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Port %@ is forbidden. Choose another."
+          }
+        }
+      }
+    },
+    "geoExclusion.port.outOfRange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Port must be between 1024 and 65535."
+          }
+        }
+      }
+    },
+    "geoExclusion.portRange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1024–65535"
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Works with any app that supports SOCKS5 in its network settings."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.proxyAddress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy address"
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.step1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy the SOCKS5 port."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.step2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open your app's proxy or network settings."
+          }
+        }
+      }
+    },
+    "geoExclusion.setup.step3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set proxy to 127.0.0.1 with the copied port."
+          }
+        }
+      }
+    },
+    "geoExclusion.setupInstructions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setup instructions"
+          }
+        }
+      }
+    },
+    "geoExclusion.socks5Port" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SOCKS5 port"
+          }
+        }
+      }
+    },
+    "geoExclusion.warning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traffic to excluded regions bypasses the VPN."
           }
         }
       }
@@ -25854,7 +26017,40 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Safe to share. Use to contact Nym Support."
+            "value" : "Safe to share. Use this to "
+          }
+        }
+      }
+    },
+    "settings.account.accountId.supportLink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "connect Nym support."
+          }
+        }
+      }
+    },
+    "settings.account.allowanceReached.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your usage quota resets daily, so you shouldn’t stay unprotected long."
+          }
+        }
+      }
+    },
+    "settings.account.allowanceReached.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily allowance reached!"
           }
         }
       }
@@ -25892,17 +26088,6 @@
         }
       }
     },
-    "settings.account.bandwidthLimit" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fair usage spent"
-          }
-        }
-      }
-    },
     "settings.account.contactSupport.link" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -25921,6 +26106,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "if you reach your limit"
+          }
+        }
+      }
+    },
+    "settings.account.dailyAllowanceHelper" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Counts credential requests today, not VPN data downloaded."
+          }
+        }
+      }
+    },
+    "settings.account.dailyAllowanceUsed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily allowance used"
+          }
+        }
+      }
+    },
+    "settings.account.dailyLimit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily limit"
           }
         }
       }
@@ -26002,6 +26220,28 @@
         }
       }
     },
+    "settings.account.refresh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh account"
+          }
+        }
+      }
+    },
+    "settings.account.refreshFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t refresh account. Try again."
+          }
+        }
+      }
+    },
     "settings.account.renewNow" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26013,13 +26253,13 @@
         }
       }
     },
-    "settings.account.resetsOn" : {
+    "settings.account.resetsDailyUtc" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Resets on"
+            "value" : "Resets daily"
           }
         }
       }
@@ -26031,6 +26271,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Account status"
+          }
+        }
+      }
+    },
+    "settings.account.usageDataUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usage data temporarily unavailable"
           }
         }
       }
@@ -26371,61 +26622,6 @@
         }
       }
     },
-    "appIcon.calculator" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Calculator"
-          }
-        }
-      }
-    },
-    "appIcon.default" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Default"
-          }
-        }
-      }
-    },
-    "appIcon.error" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couldn't change the app icon. Please try again."
-          }
-        }
-      }
-    },
-    "appIcon.notes" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notes"
-          }
-        }
-      }
-    },
-    "settings.appIcon" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App Icon"
-          }
-        }
-      }
-    },
     "settings.appearance" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26523,6 +26719,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "外观"
+          }
+        }
+      }
+    },
+    "settings.appIcon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Icon"
           }
         }
       }
@@ -27487,6 +27694,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Customize DNS"
+          }
+        }
+      }
+    },
+    "settings.geoExclusion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geo Exclusion"
+          }
+        }
+      }
+    },
+    "settings.geoExclusion.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Specific IP ranges connect directly"
           }
         }
       }
@@ -28763,237 +28992,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App & Wallet proxy (beta)"
-          }
-        }
-      }
-    },
-    "geoExclusion.addRegion" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add region"
-          }
-        }
-      }
-    },
-    "geoExclusion.betaNote" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Beta version: China only for now. More regions coming."
-          }
-        }
-      }
-    },
-    "geoExclusion.china" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "China"
-          }
-        }
-      }
-    },
-    "geoExclusion.customPort" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Custom port"
-          }
-        }
-      }
-    },
-    "geoExclusion.description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected."
-          }
-        }
-      }
-    },
-    "geoExclusion.enable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable Geo Exclusion"
-          }
-        }
-      }
-    },
-    "geoExclusion.excludedRegions" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Excluded regions"
-          }
-        }
-      }
-    },
-    "geoExclusion.failedToStart" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geo Exclusion couldn't start. Reconnect and try again."
-          }
-        }
-      }
-    },
-    "geoExclusion.port.forbidden" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Port %@ is forbidden. Choose another."
-          }
-        }
-      }
-    },
-    "geoExclusion.port.outOfRange" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Port must be between 1024 and 65535."
-          }
-        }
-      }
-    },
-    "geoExclusion.portRange" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1024–65535"
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Works with any app that supports SOCKS5 in its network settings."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.proxyAddress" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Proxy address"
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.step1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copy the SOCKS5 port."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.step2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open your app's proxy or network settings."
-          }
-        }
-      }
-    },
-    "geoExclusion.setup.step3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Set proxy to 127.0.0.1 with the copied port."
-          }
-        }
-      }
-    },
-    "geoExclusion.setupInstructions" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Setup instructions"
-          }
-        }
-      }
-    },
-    "geoExclusion.socks5Port" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SOCKS5 port"
-          }
-        }
-      }
-    },
-    "geoExclusion.warning" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Traffic to excluded regions bypasses the VPN."
-          }
-        }
-      }
-    },
-    "settings.geoExclusion" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Geo Exclusion"
-          }
-        }
-      }
-    },
-    "settings.geoExclusion.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Specific IP ranges connect directly"
           }
         }
       }

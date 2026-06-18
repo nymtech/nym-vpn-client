@@ -324,37 +324,53 @@ import PathManager
         resetExpiryDismissalsIfNeeded()
     }
 
+    /// Silent poller path: never throws. On failure keeps the last good summary and only
+    /// raises `accountSummaryLastFetchFailed`.
     private func fetchAccountSummary() async {
-        guard isValidCredentialImported else { return }
-#if os(iOS)
-        let envOpt = configurationManager.networkEnv
-        let summary: VpnAccountSummary?
         do {
-            summary = try await Task {
-                let dataDir = try PathManager.dataFolderURL().path()
-                let env = try envOpt ?? .newWithMainnetFallback()
-                return try await NymVpnAccountStorage(
-                    dataDir: dataDir,
-                    environment: env
-                ).getAccountSummary()
-            }.value
+            try await fetchAndStoreAccountSummary()
+            accountSummaryLastFetchFailed = false
         } catch {
             accountSummaryLastFetchFailed = true
             logger.error(
-                "fetchAccountSummary (iOS) failed operation=getAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
+                "fetchAccountSummary failed operation=getAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
             )
-            return
         }
+    }
 
-        guard let summary
-        else {
-            // nil-without-throw: same UX as a failure, surface it as one.
-            logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
+    /// Manual refresh path: force-fetches and **rethrows** on failure so the caller can
+    /// surface the error on screen. Bypasses the freshness cache.
+    public func refreshAccountSummary() async throws {
+#if SANTA
+        guard !isAccountSummaryOverridden else { return }
+#endif
+        guard isValidCredentialImported else { return }
+        do {
+            try await fetchAndStoreAccountSummary()
+            accountSummaryLastFetchFailed = false
+        } catch {
             accountSummaryLastFetchFailed = true
-            return
+            throw error
         }
+    }
 
-        accountSummaryLastFetchFailed = false
+    /// Fetches the summary from core and assigns it. Throws on transport failure or when the
+    /// backend returns no summary. Shared by the silent poller and the manual refresh.
+    private func fetchAndStoreAccountSummary() async throws {
+        guard isValidCredentialImported else { return }
+#if os(iOS)
+        let envOpt = configurationManager.networkEnv
+        let summary = try await Task {
+            let dataDir = try PathManager.dataFolderURL().path()
+            let env = try envOpt ?? .newWithMainnetFallback()
+            return try await NymVpnAccountStorage(
+                dataDir: dataDir,
+                environment: env
+            ).getAccountSummary()
+        }.value
+
+        guard let summary else { throw AccountSummaryError.unavailable }
+
         let innerSub = summary.subscription?.subscription
         accountSummary = AccountSummary(
             validUntilTimeInterval: innerSub?.validUntilUtc,
@@ -367,19 +383,14 @@ import PathManager
             isLinked: summary.isLinked(),
             isActive: summary.isSubscriptionActive(),
             isAutoRenewEnabled: innerSub?.isRecurring ?? false,
-            subscription: summary.subscription.map { Subscription(from: $0) }
+            subscription: summary.subscription.map { Subscription(from: $0) },
+            dataUnavailable: summary.fairUsageDataUnavailable
         )
 #elseif os(macOS)
-        // On gRPC failure keep the last good summary; only flag the failure.
-        do {
-            accountSummary = try await grpcManager.accountSummary()
-            accountSummaryLastFetchFailed = false
-        } catch {
-            accountSummaryLastFetchFailed = true
-            logger.error(
-                "fetchAccountSummary (macOS) failed operation=accountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
-            )
+        guard let summary = try await grpcManager.accountSummary() else {
+            throw AccountSummaryError.unavailable
         }
+        accountSummary = summary
 #endif
     }
 
@@ -512,4 +523,9 @@ private extension CredentialsManager {
 #endif
         accountIdentifier = newAccIdentifier
     }
+}
+
+/// Raised when a summary fetch completes without an error but yields no summary.
+private enum AccountSummaryError: Error {
+    case unavailable
 }
