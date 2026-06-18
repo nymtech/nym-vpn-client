@@ -32,6 +32,7 @@ pub struct VpndConfig {
     pub mixnet_traffic_defaults: MixnetTrafficDefaults,
     pub split_tunnel: SplitTunnelSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    pub gateway_independence_notifications: bool,
 }
 
 impl VpndConfig {
@@ -60,6 +61,7 @@ impl VpndConfig {
             mixnet_traffic_defaults: MixnetTrafficDefaults::get(),
             split_tunnel: config.split_tunnel.into(),
             gateway_selection_algorithm_config: config.gateway_selection_algorithm_config.into(),
+            gateway_independence_notifications: config.gateway_independence.enable_notifications,
         })
     }
 }

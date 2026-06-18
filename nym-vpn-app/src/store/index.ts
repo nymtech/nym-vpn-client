@@ -42,6 +42,7 @@ export function initMainStore(init: InitState): void {
     splitTunnel: init.splitTunnel,
     gatewaySelectionAlgorithmConfig: init.gatewaySelectionAlgorithmConfig,
     frontingMode: init.frontingMode,
+    gatewayIndependenceNotifications: init.gatewayIndependenceNotifications,
   });
 }
 
@@ -97,6 +98,7 @@ export const useMainState = (): AppState =>
       splitTunnel: s.splitTunnel,
       gatewaySelectionAlgorithmConfig: s.gatewaySelectionAlgorithmConfig,
       frontingMode: s.frontingMode,
+      gatewayIndependenceNotifications: s.gatewayIndependenceNotifications,
     })),
   );
 

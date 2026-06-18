@@ -8,6 +8,7 @@ import { Toast } from '@base-ui/react';
 import {
   AutologinProvider,
   DialogProvider,
+  GwIndependenceWarningProvider,
   MainStateProvider,
   TopBarProvider,
   TrayProvider,
@@ -61,11 +62,13 @@ function App({ init }: { init: InitState }) {
         <TrayProvider>
           <ThemeSetter>
             <DialogProvider>
-              <TopBarProvider>
-                <AutologinProvider>
-                  <RouterProvider router={router} />
-                </AutologinProvider>
-              </TopBarProvider>
+              <GwIndependenceWarningProvider>
+                <TopBarProvider>
+                  <AutologinProvider>
+                    <RouterProvider router={router} />
+                  </AutologinProvider>
+                </TopBarProvider>
+              </GwIndependenceWarningProvider>
             </DialogProvider>
           </ThemeSetter>
         </TrayProvider>

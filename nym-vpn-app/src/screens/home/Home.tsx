@@ -3,6 +3,8 @@ import { type } from '@tauri-apps/plugin-os';
 
 import { motion } from 'motion/react';
 import { useAppStore } from '../../store';
+import { useGatewayIndependenceWatcher } from '../../hooks';
+import GatewayIndependenceWarningDialog from './GatewayIndependenceWarningDialog';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
 import { NewBottomComponent } from './NewBottomComponent';
@@ -14,6 +16,7 @@ let compatChecked = false;
 
 function Home() {
   const networkCompat = useAppStore((s) => s.networkCompat);
+  useGatewayIndependenceWatcher();
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
@@ -34,6 +37,7 @@ function Home() {
   return (
     <>
       <UpdateDialog />
+      <GatewayIndependenceWarningDialog />
       {os !== 'windows' && (
         <NetworkUpdateDialog
           isOpen={isDialogUpdateOpen}

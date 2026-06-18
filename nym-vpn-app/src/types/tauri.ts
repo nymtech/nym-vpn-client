@@ -500,6 +500,17 @@ export type TVpnSubscriptionKind =
   | 'freepass'
   | { other: string };
 
+/**
+ * App-facing projection of the library's tentative-gateways result.
+ *
+ * Only the discriminant is needed by the UI to decide the connect flow, so the
+ * `Selected` entry/exit payload is intentionally dropped.
+ */
+export type TentativeGateways =
+  | 'selected'
+  | 'needs-relaxed-independence-criteria'
+  | 'no-gateways-available';
+
 export type ThemeMode = 'system' | 'light' | 'dark';
 
 export type Tunnel = {
@@ -574,6 +585,7 @@ export type VpndConfig = {
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
+  gatewayIndependenceNotifications: boolean;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

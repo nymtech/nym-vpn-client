@@ -6,6 +6,7 @@ export { default as useI18nAccountState } from './useI18nAccountState';
 export { default as useI18nProgressMsg } from './useI18nProgressMsg';
 export { default as useNotify } from './useNotify';
 export { default as useDesktopNotifications } from './useDesktopNotifications';
+export { default as useServerFamilyReminders } from './useServerFamilyReminders';
 export { default as useLang } from './useLang';
 export { default as useClipboard } from './useClipboard';
 export { default as useClickAway } from './useClickAway';
@@ -13,5 +14,7 @@ export { default as useScore } from './useScore';
 export { default as useDeepLink } from './useDeepLink';
 export { default as useLogout } from './useLogout';
 export { default as useToast } from './useToast';
+export { default as useConnect } from './useConnect';
+export { default as useGatewayIndependenceWatcher } from './useGatewayIndependenceWatcher';
 
 export * from './useToast';

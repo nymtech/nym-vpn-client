@@ -21,7 +21,14 @@
     }
   },
   "notifications": {
-    "title": "Desktop notifications"
+    "title": "Notifications",
+    "server-family-reminders": {
+      "title": "Server family reminders",
+      "description": "Keeps reminding you of shared family"
+    },
+    "desktop-notifications": {
+      "title": "Desktop notifications"
+    }
   },
   "support": {
     "intro": {

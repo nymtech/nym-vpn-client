@@ -60,6 +60,7 @@ export type StateAction =
   | { type: 'set-auto-connect'; autoConnect: boolean }
   | { type: 'set-monitoring'; enabled: boolean }
   | { type: 'set-desktop-notifications'; enabled: boolean }
+  | { type: 'set-gateway-independence-notifications'; enabled: boolean }
   | { type: 'reset' }
   | { type: 'set-ui-theme'; theme: UiTheme }
   | { type: 'set-theme-mode'; mode: ThemeMode }
@@ -161,6 +162,7 @@ export const initialState: AppState = {
     enableGeoLocation: true,
     gatewaySelectionAlgorithm: 'explicit',
   },
+  gatewayIndependenceNotifications: true,
 };
 
 export type MainSlice = AppState & {
@@ -229,6 +231,8 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
           customDns: action.config.customDns ?? [],
           mixnetTrafficConfig: action.config.mixnetTraffic,
           mixnetTrafficDefaults: action.config.mixnetTrafficDefaults,
+          gatewayIndependenceNotifications:
+            action.config.gatewayIndependenceNotifications,
           enableAdBlocking: action.config.enableAdBlocking,
           splitTunnel: action.config.splitTunnel,
           gatewaySelectionAlgorithmConfig:
@@ -277,6 +281,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-desktop-notifications':
         set({ desktopNotifications: action.enabled });
+        break;
+
+      case 'set-gateway-independence-notifications':
+        set({ gatewayIndependenceNotifications: action.enabled });
         break;
 
       case 'set-tunnel':

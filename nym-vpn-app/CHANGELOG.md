@@ -7,16 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Mixnet tuning settings
+- Node families support
+
+### CHANGED
+
+- Switch to daily allowance usage from monthly
+
 ## [2026.10.0] - 2026-06-09
 
 ### Added
 
 - Allow adding custom apps (user selected) to split tunneling for Windows & Linux
-- Mixnet tuning settings
-
-### CHANGED
-
-- Switch to daily allowance usage from monthly
 
 ## [1.30.0] - 2026-05-29
 

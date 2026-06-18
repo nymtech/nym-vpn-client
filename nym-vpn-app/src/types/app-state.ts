@@ -52,6 +52,7 @@ export type InitState = {
   splitTunnel: SplitTunnelSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   frontingMode: FrontingMode;
+  gatewayIndependenceNotifications: boolean;
 };
 
 export type AppState = {
@@ -114,4 +115,6 @@ export type AppState = {
   splitTunnel: SplitTunnelSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   frontingMode: FrontingMode;
+  // gateway-independence reminder toggle ("Server family reminders"); daemon-backed
+  gatewayIndependenceNotifications: boolean;
 };

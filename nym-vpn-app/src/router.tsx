@@ -21,6 +21,7 @@ import {
   MixnetTuning,
   NodeDetails,
   NodeLocation,
+  Notifications,
   Onboarding,
   SelectPlan,
   Settings,
@@ -50,6 +51,7 @@ export const routes = {
   logs: '/settings/data-privacy/logs',
   diagnostic: '/settings/data-privacy/diagnostic',
   splitTunneling: '/settings/split-tunneling',
+  notifications: '/settings/notifications',
   support: '/settings/support',
   legal: '/settings/legal',
   licensesRust: '/settings/legal/licenses-rust',
@@ -192,6 +194,11 @@ const router = createBrowserRouter([
           {
             path: routes.socks5,
             Component: Socks5,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.notifications,
+            Component: Notifications,
             errorElement: <Error />,
           },
           {
