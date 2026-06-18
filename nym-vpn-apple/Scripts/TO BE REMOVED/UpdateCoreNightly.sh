@@ -2,7 +2,7 @@
 
 # Updates the lib and daemon in the iOS+macOS project using nightly builds.
 # This script now uses the builds available at:
-# https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core/
+# https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core/
 #
 # If no tag is provided as an argument, it defaults to using the 'develop' folder.
 # If a tag is provided, it uses the release folder with that tag.
@@ -28,7 +28,7 @@ trap 'error_handler $LINENO' ERR
 # -----------------------------------------------------------------------------
 # 0. Determine the build tag and the latest timestamp folder to use.
 # -----------------------------------------------------------------------------
-BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
+BASE_URL="https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core"
 if [[ $# -eq 0 ]]; then
     TAG="develop"
     TAG_URL="${BASE_URL}/${TAG}"

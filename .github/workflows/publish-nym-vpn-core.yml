@@ -20,6 +20,8 @@ env:
   UPLOAD_DIR_WINDOWS_X64: windows_core_artifacts_x64
   UPLOAD_DIR_WINDOWS_ARM64: windows_core_artifacts_arm64
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
+  S3_BUCKET: builds
 
 jobs:
   # Builds both the Linux core binaries and the .deb packages in a single job
@@ -283,15 +285,51 @@ jobs:
           cp -v ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
           cp -v ${{ env.UPLOAD_DIR_DEB_AARCH64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
 
-      - name: Upload to www
-        uses: easingthemes/ssh-deploy@main
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
-          ARGS: "-avzr"
-          SOURCE: "ci-builds/"
-          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
-          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/nym-vpn-core
+      # Garage's web vhost does not generate directory listings, so consumers
+      # cannot scrape the bucket to discover the latest build. Publish a manifest
+      # instead: manifest.json inside the build dir + a branch-root latest.json
+      # pointer (same content). Both are uploaded by the sync step below and are
+      # the single discovery contract for all consumers (Linux installer, Windows
+      # CI). Shape: { "timestamp": "<YYYYMMDDhhmm>", "files": ["<name>", ...] }.
+      - name: Generate build manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          TIMESTAMP="$(basename "${{ env.OUTPUT_DIR }}")"
+          BRANCH_DIR="$(dirname "${{ env.OUTPUT_DIR }}")"
+          MANIFEST="${{ env.OUTPUT_DIR }}/manifest.json"
+
+          # build valid JSON with jq (no hand-rolled string assembly). Capture via
+          # command substitution first, so the listing runs before MANIFEST is
+          # created and never lists itself.
+          manifest_json="$(cd "${{ env.OUTPUT_DIR }}" && ls -1 | sort | jq -R . \
+            | jq -s --arg ts "$TIMESTAMP" '{timestamp: $ts, files: .}')"
+          printf '%s\n' "$manifest_json" > "$MANIFEST"
+
+          # validate + sanity-check the consumer-facing artifacts before publishing
+          # (Linux installer: *_linux_<arch>.tar.gz + nym-vpnd_*_<deb_arch>.deb;
+          #  Windows CI: *_windows_<arch>.zip)
+          jq empty "$MANIFEST"
+          for must in _linux_x86_64.tar.gz _linux_aarch64.tar.gz \
+                      _windows_x86_64.zip _windows_aarch64.zip \
+                      _amd64.deb _arm64.deb; do
+            jq -e --arg s "$must" '[.files[] | select(endswith($s))] | length > 0' "$MANIFEST" >/dev/null \
+              || { echo "manifest missing expected artifact *$must" >&2; exit 1; }
+          done
+
+          cp "$MANIFEST" "${BRANCH_DIR}/latest.json"
+          echo "---- manifest ----"
+          cat "$MANIFEST"
+
+      - name: Publish build to S3
+        uses: ./.github/actions/push-to-s3
+        with:
+          source_path: ci-builds/
+          destination: nym-vpn-client/nym-vpn-core/
+          endpoint: ${{ env.S3_ENDPOINT }}
+          bucket: ${{ env.S3_BUCKET }}
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
 
   gen-hashes:
     needs: publish

@@ -46,6 +46,8 @@ env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
+  S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
+  S3_BUCKET: builds
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -1211,26 +1213,28 @@ jobs:
           if [[ "${RELEASE_TYPE}" == "qa" ]]; then
             UPLOAD_SOURCE="${renamed_pkg_relative_path}"
             echo "UPLOAD_SOURCE=${UPLOAD_SOURCE}" >> "$GITHUB_ENV"
+            # single PKG file -> bucket key nym-vpn-client/macOS/<pkg>
+            echo "UPLOAD_DEST=nym-vpn-client/macOS/" >> "$GITHUB_ENV"
             echo "🌐 QA: will upload PKG only → ${UPLOAD_SOURCE}"
           else
             UPLOAD_SOURCE="${publish_relative_path}"
             echo "UPLOAD_SOURCE=${UPLOAD_SOURCE}" >> "$GITHUB_ENV"
+            # contents of the publish/ dir -> bucket keys under nym-vpn-client/macOS/publish/
+            # (preserves the .../publish/NymVPN-<ver>.pkg download URL used in the appcast)
+            echo "UPLOAD_DEST=nym-vpn-client/macOS/publish/" >> "$GITHUB_ENV"
             echo "🌐 Ship: will upload PKG + appcast.xml + sha256-hash.txt → ${UPLOAD_SOURCE}"
           fi
 
-      - name: Upload to www
+      - name: Publish build to S3
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        uses: easingthemes/ssh-deploy@main
+        uses: ./.github/actions/push-to-s3
         with:
-          REMOTE_PORT: 22
-          ARGS: -avzr
-          SSH_CMD_ARGS: -o StrictHostKeyChecking=no
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
-          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/
-          SOURCE: ${{ env.UPLOAD_SOURCE }}
+          source_path: ${{ env.UPLOAD_SOURCE }}
+          destination: ${{ env.UPLOAD_DEST }}
+          endpoint: ${{ env.S3_ENDPOINT }}
+          bucket: ${{ env.S3_BUCKET }}
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
 
       - name: Checkout nym-websites
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
