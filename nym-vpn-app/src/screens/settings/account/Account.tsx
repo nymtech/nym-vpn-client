@@ -214,7 +214,13 @@ function Account() {
           ns="settings"
           i18nKey="account.account-id-description"
           components={{
-            support: <Link color="primary" url={ContactSupportUrl} />,
+            support: (
+              <button
+                type="button"
+                className="hover:text-shadow-text-primary underline dark:hover:text-white"
+                onClick={() => openUrl(ContactSupportUrl)}
+              />
+            ),
           }}
         />
       </span>
