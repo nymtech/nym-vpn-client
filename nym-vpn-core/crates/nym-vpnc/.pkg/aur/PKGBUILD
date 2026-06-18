@@ -1,0 +1,45 @@
+# Maintainer: Nym <ops@nymte.ch>
+# Maintainer: Andrej Mihajlov <andrej@nymtech.net>
+
+pkgname=nym-vpnc
+pkgver=$PKGVER
+pkgrel=$PKGREL
+pkgdesc='NymVPN command-line client'
+arch=('x86_64' 'aarch64')
+url='https://github.com/nymtech/nym-vpn-client'
+license=('GPL-3.0-only')
+depends=('glibc' 'gcc-libs' 'polkit')
+makedepends=('nym-vpnd')
+provides=('nym-vpnc')
+conflicts=('nym-vpnc')
+options=(!debug)
+source=("$url/archive/refs/tags/${RELEASE_TAG}.tar.gz")
+sha256sums=($SRC_TARBALL_SHA256)
+_srcdir="nym-vpn-client-${RELEASE_TAG}"
+
+prepare() {
+  pushd "$_srcdir"
+  # remove unused sources
+  rm -rf nym-vpn-android
+  rm -rf nym-vpn-apple
+  rm -rf nym-vpn-app
+  rm -rf nym-vpn-windows
+  popd
+}
+
+build() {
+  pushd "$_srcdir"
+
+  pushd nym-vpn-core
+  # sqlx does not support LTO build flag, which is enabled by default in Arch
+  # set the C flag -ffat-lto-objects to solve the issue
+  # see https://github.com/launchbadge/sqlx/issues/3149
+  CFLAGS+=" -ffat-lto-objects" cargo build --release --locked -p nym-vpnc
+  popd
+
+  popd # _srcdir
+}
+
+package() {
+  install -Dm755 "$_srcdir/nym-vpn-core/target/release/nym-vpnc" "$pkgdir/usr/bin/nym-vpnc"
+}

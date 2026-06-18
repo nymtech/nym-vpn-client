@@ -349,3 +349,14 @@ jobs:
       publish_aur: true
       commit_msg: "release ${{ needs.publish.outputs.tag }}"
     secrets: inherit
+
+  update-aur-vpnc:
+    uses: ./.github/workflows/publish-aur-nym-vpnc.yml
+    needs: publish
+    if: ${{ needs.publish.outputs.is_stable == 'true' }}
+    with:
+      release_tag: ${{ needs.publish.outputs.tag }}
+      pkgrel: 1
+      publish_aur: true
+      commit_msg: "release ${{ needs.publish.outputs.tag }}"
+    secrets: inherit
