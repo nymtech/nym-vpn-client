@@ -45,7 +45,7 @@ function GatewayIndependenceWarningDialog() {
             <Button
               variant="outlined"
               onClick={cancel}
-              className="p w-auto!"
+              className="w-auto!"
               data-testid="gw-independence-cancel"
             >
               {t('gateway-independence-warning.cancel')}

@@ -502,8 +502,6 @@ export type TVpnSubscriptionKind =
   | { other: string };
 
 /**
- * App-facing projection of the library's tentative-gateways result.
- *
  * Only the discriminant is needed by the UI to decide the connect flow, so the
  * `Selected` entry/exit payload is intentionally dropped.
  */

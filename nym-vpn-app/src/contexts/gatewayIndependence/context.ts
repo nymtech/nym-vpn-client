@@ -2,7 +2,6 @@ import { createContext, useContext } from 'react';
 
 export type GwIndependenceWarningContext = {
   readonly isOpen: boolean;
-  // Opens the modal and resolves true (Connect anyway) or false (Cancel).
   readonly requestConfirmation: () => Promise<boolean>;
   readonly accept: () => void;
   readonly cancel: () => void;

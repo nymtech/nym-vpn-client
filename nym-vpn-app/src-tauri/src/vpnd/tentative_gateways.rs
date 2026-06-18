@@ -2,8 +2,6 @@ use nym_vpn_lib_types as lib;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-/// App-facing projection of the library's tentative-gateways result.
-///
 /// Only the discriminant is needed by the UI to decide the connect flow, so the
 /// `Selected` entry/exit payload is intentionally dropped.
 #[derive(Serialize, Deserialize, Clone, Debug, TS)]

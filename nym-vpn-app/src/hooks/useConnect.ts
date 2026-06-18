@@ -16,27 +16,16 @@ function useConnect() {
   const { requestConfirmation } = useGwIndependenceWarning();
 
   return useCallback(async () => {
-    // 1. reset to constrained on every Connect press
     await invoke('set_gateway_independence', { enabled: true });
 
-    // 2. tentative selection
     const tentative = await invoke<TentativeGateways>('get_tentative_gateways');
 
-    // 3. handle the "needs relaxing" case
     if (tentative === 'needs-relaxed-independence-criteria') {
-      if (notificationsEnabled) {
-        const confirmed = await requestConfirmation();
-        if (!confirmed) {
-          return; // user declined — stay disconnected
-        }
-      }
-      // Relaxed only for this attempt. If `connect` below throws, we
-      // intentionally do NOT roll this back — step 1 re-asserts `true` on the
-      // next Connect press, so the constrained default always returns.
+      if (notificationsEnabled && !(await requestConfirmation())) return;
+
       await invoke('set_gateway_independence', { enabled: false });
     }
 
-    // 'selected' and 'no-gateways-available' fall through to connect as before
     dispatch({ type: 'reset-error' });
     dispatch({ type: 'connect' });
     await invoke('connect');

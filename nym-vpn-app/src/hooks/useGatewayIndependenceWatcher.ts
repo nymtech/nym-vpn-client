@@ -27,20 +27,13 @@ function useGatewayIndependenceWatcher() {
     handlingRef.current = true;
 
     const handle = async () => {
-      if (notificationsEnabled) {
-        const confirmed = await requestConfirmation();
-        if (!confirmed) {
-          return; // remain in error state
-        }
-      }
-      // library triggers the reconnection itself; no further calls needed
+      if (notificationsEnabled && !(await requestConfirmation())) return;
+
       await invoke('set_gateway_independence', { enabled: false });
     };
 
     handle().catch((e: unknown) => {
       console.error('gateway independence watcher failed', e);
-      // Allow a retry on the next state tick; otherwise a failed relax would
-      // wedge us in the error state with no way out.
       handlingRef.current = false;
     });
   }, [tunnelError, notificationsEnabled, requestConfirmation]);
