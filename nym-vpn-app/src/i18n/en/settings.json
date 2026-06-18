@@ -270,7 +270,6 @@
     "account-id": "Account ID",
     "account-id-description": "Safe to share. Use this to <support>connect with Nym Support</support>.",
     "device-id": "Device ID",
-    "device-id-description": "Use this to link this device to your account on nym.com",
     "logout": "Log out",
     "title": "Account",
     "account-linked": "Backup login method linked via Privy.",
