@@ -26,9 +26,11 @@ const LOWER_BOUND_CHECK_DURATION: Duration = DEFAULT_PEER_TIMEOUT_CHECK;
 const UPPER_BOUND_CHECK_DURATION: Duration =
     Duration::from_secs(6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs());
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
-const MINIMUM_RAMAINING_BANDWIDTH: u64 = 500 * 1024 * 1024; // 500 MB, the same as a wireguard ticket size (but it doesn't have to be)
+// If we consider a maximum supported connection speed of 1 Gbps, then we can consume 125 MB/s, which is 125 * 5 = 625 MB in 5 seconds, which is the minimum time between checks.
+// So we set the minimum remaining bandwidth to 1000 MB > 625 MB, roughly the size of two tickets
+const MINIMUM_RAMAINING_BANDWIDTH: u64 = 1000 * 1024 * 1024; // 1000 MB, the same as two wireguard ticket size
 
-// 8 MB/s, in the worse case scenario with 30 seconds until the next check => 240 MB consumed, under the 500 MB bandwidth minimum we have assured with the gateway
+// 8 MB/s, in the worse case scenario with 30 seconds until the next check => 240 MB consumed, under the 1000 MB bandwidth minimum we have assured with the gateway
 // We consider anything above this threshold to potentially consume bandwidth too fast, so we do a check immediately
 const SYSTEM_BANDWIDTH_THRESHOLD: u64 = 8 * 1024 * 1024; // 8 MB
 const SYSTEM_BANDWIDTH_CHECK_INTERVAL: Duration = Duration::from_secs(1); // 1 second
@@ -977,7 +979,7 @@ impl BandwidthController {
                     break;
                 }
                 _ = system_bandwidth_check_interval.next() => {
-                    if system_bandwidth_monitor.force_bandwidth_checks().await {
+                    if system_bandwidth_monitor.force_bandwidth_checks().await && self.timeout_check_interval.as_ref().period() > LOWER_BOUND_CHECK_DURATION {
                         tracing::debug!("System bandwidth usage is above the configured threshold, forcing bandwidth checks");
                         // we set the check interval to the lower bound, but we don't do the first tick, which is immediate,
                         // so we implicitely trigger the check branch bellow
