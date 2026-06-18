@@ -38,10 +38,13 @@ build() {
   popd
 
   pushd nym-vpn-core
-  # sqlx does not support LTO build flag, which is enabled by default in Arch
+  # 1. sqlx does not support LTO build flag, which is enabled by default in Arch
   # set the C flag -ffat-lto-objects to solve the issue
   # see https://github.com/launchbadge/sqlx/issues/3149
-  CFLAGS+=" -ffat-lto-objects" cargo build --release --locked
+  #
+  # 2. aws-lc-sys v0.38: build issues related to optimizations (fixed in newer versions)
+  # see: https://github.com/aws/aws-lc-rs/pull/1064
+  CFLAGS+=" -ffat-lto-objects -O0" cargo build --release --locked
   popd
 
   popd # _srcdir
