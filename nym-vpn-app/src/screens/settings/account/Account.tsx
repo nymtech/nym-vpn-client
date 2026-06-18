@@ -9,7 +9,6 @@ import {
   CardNewBody,
   CardNewCopyableRow,
   CardNewHeader,
-  Link,
   MsIcon,
   PageAnim,
   Spinner,
