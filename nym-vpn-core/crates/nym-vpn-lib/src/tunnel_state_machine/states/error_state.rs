@@ -1,6 +1,8 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use std::net::SocketAddr;
 #[cfg(target_os = "ios")]
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
@@ -22,7 +24,9 @@ use tokio_util::sync::CancellationToken;
 ))]
 use nym_common::trace_err_chain;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use nym_firewall::FirewallPolicy;
+use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_http_api_client::HickoryDnsResolver;
 
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::{OSTunProvider, TunnelSettings};
@@ -55,9 +59,6 @@ impl ErrorState {
         reason: ErrorStateReason,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Disallow networking in error state since there are no configured firewall exceptions
-        shared_state.disallow_networking().await;
-
         #[cfg(target_os = "macos")]
         if !reason.prevents_filtering_resolver() {
             // Set system DNS to our local DNS resolver
@@ -77,15 +78,46 @@ impl ErrorState {
 
         // todo: activate kill switch on Android
 
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        let firewall_policy_params = BlockedPolicyParameters {
-            allow_lan: shared_state.tunnel_settings.allow_lan,
-        };
+        // Android: traffic should flow freely since there should be no tunnel device at this point
+        // iOS: network extensions bypass the tunnel by default
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        shared_state.allow_networking().await;
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        if let Err(err) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
-            trace_err_chain!(err, "failed to set firewall policy");
-        }
+        let firewall_policy_params = {
+            let api_endpoints =
+                if let Some(resolved_config) = shared_state.resolved_api_endpoints.as_ref() {
+                    // Set the resolved addresses as static in the default (shared) DNS resolver. Any http
+                    // client based on `nym-http-api-client::Client` that not modified to be independent will
+                    // use these overrides automatically.
+                    HickoryDnsResolver::shared().set_static_preresolve(resolved_config.addr_map());
+
+                    resolved_config.all_socket_addrs()
+                } else {
+                    vec![]
+                };
+
+            let firewall_policy_params = BlockedPolicyParameters {
+                enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
+                allow_lan: shared_state.tunnel_settings.allow_lan,
+                api_endpoints,
+            };
+
+            if let Err(err) = Self::set_firewall_policy(shared_state, &firewall_policy_params) {
+                trace_err_chain!(err, "failed to set firewall policy");
+            }
+
+            if firewall_policy_params.api_endpoints.is_empty() {
+                tracing::warn!(
+                    "No API endpoints were resolved. API communication will be blocked!"
+                );
+                shared_state.disallow_networking().await;
+            } else {
+                shared_state.allow_networking().await;
+            }
+
+            firewall_policy_params
+        };
 
         let blocked_state = Self {
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -254,16 +286,38 @@ impl TunnelStateHandler for ErrorState {
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[derive(Debug, Clone)]
 pub struct BlockedPolicyParameters {
+    /// Whether IPv6 is enabled
+    pub enable_ipv6: bool,
+
     /// Whether to allow LAN traffic
     pub allow_lan: bool,
+
+    /// API endpoints
+    pub api_endpoints: Vec<SocketAddr>,
 }
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 impl BlockedPolicyParameters {
     pub fn as_policy(&self) -> FirewallPolicy {
+        // Allow API endpoints
+        let allowed_endpoints = self
+            .api_endpoints
+            .iter()
+            .filter(|ip| ip.is_ipv4() || (self.enable_ipv6 && ip.is_ipv6()))
+            .map(|addr| {
+                AllowedEndpoint::new(
+                    Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
+                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    AllowedClients::Root,
+                    #[cfg(target_os = "windows")]
+                    AllowedClients::current_exe(),
+                )
+            })
+            .collect::<Vec<_>>();
+
         FirewallPolicy::Blocked {
             allow_lan: self.allow_lan,
-            allowed_endpoints: Vec::new(),
+            allowed_endpoints,
         }
     }
 }

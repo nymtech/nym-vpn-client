@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [iOS] Send network stats over the tunnel interface (https://github.com/nymtech/nym-vpn-client/pull/5564)
 - Store gateway independence notification toggle (https://github.com/nymtech/nym-vpn-client/pull/5586)
 
+### Changed
+
+- Permit API networking in error state in order to refresh account data (https://github.com/nymtech/nym-vpn-client/pull/5623)
+
 ### Fixed
 
 - Fix missing "recursion available" flag in DNS responses, passthrough authority and additional records (https://github.com/nymtech/nym-vpn-client/pull/5546)

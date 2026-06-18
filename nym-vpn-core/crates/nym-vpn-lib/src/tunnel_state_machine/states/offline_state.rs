@@ -44,7 +44,9 @@ impl OfflineState {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = BlockedPolicyParameters {
+            enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
             allow_lan: shared_state.tunnel_settings.allow_lan,
+            api_endpoints: vec![],
         };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
