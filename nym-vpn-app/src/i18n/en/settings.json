@@ -350,23 +350,7 @@
     "setup-instructions": {
       "title": "Setup instructions",
       "proxy-address": "Proxy address",
-      "platforms": {
-        "android": "Android",
-        "macos": "macOS",
-        "windows": "Windows",
-        "linux": "Linux"
-      },
       "sections": {
-        "android": [
-          {
-            "intro": "Works with any Android app that supports SOCKS5 in its network settings:",
-            "steps": [
-              "Copy the SOCKS5 port.",
-              "Open your app's proxy or network settings.",
-              "Set proxy to 127.0.0.1 with the copied port."
-            ]
-          }
-        ],
         "macos": [
           {
             "intro": "Works with any app that supports SOCKS5 in its network settings:",
