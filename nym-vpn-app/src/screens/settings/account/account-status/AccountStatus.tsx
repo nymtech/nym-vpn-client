@@ -42,15 +42,6 @@ export function AccountStatus() {
           <ActivePlan accountSummary={accountSummary} />
         )}
       </CardNew>
-      <span className="text-text-secondary text-sm">
-        <Trans
-          ns="account"
-          i18nKey="account-status.contact-customer-support"
-          components={{
-            support: <Link color="primary" url={ContactSupportUrl} />,
-          }}
-        />
-      </span>
     </>
   );
 }

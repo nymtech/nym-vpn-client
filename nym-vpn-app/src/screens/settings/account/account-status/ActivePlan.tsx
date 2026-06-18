@@ -5,7 +5,7 @@ import { Progress } from '@base-ui-components/react/progress';
 import dayjs from 'dayjs';
 import { TAccountSummary } from '../../../../types';
 import { formatGb } from '../../../../util';
-import { CardNewBody } from '../../../../ui';
+import { CardNewBody, MsIcon } from '../../../../ui';
 import { RenewButton } from './RenewButton';
 
 export function ActivePlan({
@@ -64,21 +64,24 @@ export function ActivePlan({
                 {formatGb(accountSummary.trafficLimitGb)}
               </Progress.Label>
             </Progress.Root>
-            <p className="text-text-tertiary w-full pt-2 text-xs select-none">
-              {t('account-status.bandwidth-helper')}
-            </p>
           </>
         )}
         {/* Reset row is shown regardless of dataUnavailable: the daily reset
             schedule is still valid even when usage figures are missing. */}
         <Separator
           orientation="horizontal"
-          className="bg-surface-elev dark:bg-surface-bg h-px w-full"
+          className="bg-surface-bg my-4 h-px w-full"
         />
-        <div className="flex w-full items-center justify-between pt-3">
-          <p className="text-text-secondary text-sm select-none">
-            {t('account-status.resets-daily')}
-          </p>
+        <div className="flex w-full items-center justify-between">
+          <div className="flex items-center gap-2">
+            <MsIcon
+              icon="calendar_today"
+              className="text-text-secondary text-lg"
+            />
+            <p className="text-text-secondary text-sm select-none">
+              {t('account-status.resets-daily')}
+            </p>
+          </div>
           <p className="text-text-primary font-mono text-sm select-none">
             {resetsOn ?? t('account-status.reset-unknown')}
           </p>

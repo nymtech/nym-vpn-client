@@ -13,12 +13,10 @@
     "no-plan": "No active plan",
     "daily-allowance-used": "Daily allowance used",
     "daily-limit": "Daily limit",
-    "bandwidth-helper": "Counts credential requests today, not VPN data downloaded.",
     "data-unavailable": "Usage data temporarily unavailable",
     "resets-daily": "Resets daily",
     "reset-unknown": "Unknown",
-    "renew-now": "Renew now to stay protected",
-    "contact-customer-support": "⚡️<support>Contact Customer Support</support> if you reach your daily limit"
+    "renew-now": "Renew now to stay protected"
   },
   "autologin": {
     "title": "Pin code",
