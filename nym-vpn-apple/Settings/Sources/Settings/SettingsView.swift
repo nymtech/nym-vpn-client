@@ -74,7 +74,7 @@ private extension SettingsView {
         CustomNavBar(
             title: viewModel.settingsTitle,
             backgroundColorOverride: Color.Nym.background,
-            leftButton: CustomNavBarButton(type: .empty, action: {}),
+            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() }),
             rightButton: CustomNavBarButton(type: .close, action: { viewModel.navigateBack() })
         )
     }
