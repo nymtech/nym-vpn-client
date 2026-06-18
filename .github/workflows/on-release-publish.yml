@@ -66,6 +66,16 @@ jobs:
       publish_aur: true
       commit_msg: "release ${{ needs.setup.outputs.tag }}"
 
+  aur-vpnc:
+    needs: setup
+    uses: ./.github/workflows/publish-aur-nym-vpnc.yml
+    secrets: inherit
+    with:
+      release_tag: ${{ needs.setup.outputs.tag }}
+      pkgrel: 1
+      publish_aur: true
+      commit_msg: "release ${{ needs.setup.outputs.tag }}"
+
   aur-app:
     needs: setup
     uses: ./.github/workflows/publish-aur-nym-vpn-app.yml
