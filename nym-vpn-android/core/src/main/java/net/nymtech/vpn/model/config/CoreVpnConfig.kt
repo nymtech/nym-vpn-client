@@ -25,4 +25,5 @@ data class CoreVpnConfig(
 	val stealthMode: Boolean = false,
 	// GatewaySelectionAlgorithm.AUTO — changed to EXPLICIT (TWO_HOP_MIXNET) to default to Fast mode while Auto tab is hidden
 	val algorithm: GatewaySelectionAlgorithm = GatewaySelectionAlgorithm.EXPLICIT,
+	val nodeFamiliesNotificationsEnabled: Boolean = true,
 )

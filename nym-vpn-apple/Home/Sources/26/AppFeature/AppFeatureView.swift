@@ -122,6 +122,27 @@ public struct AppFeatureView: View {
 #endif
         }
         .nymSnackbar(manager: viewModel.snackbarManager)
+        .overlay {
+            if viewModel.isFamilyWarningModalDisplayed {
+                ModalOverlayView(
+                    isDisplayed: $viewModel.isFamilyWarningModalDisplayed,
+                    dismissOnOverlayTap: false,
+                    horizontalPadding: NymSpacing.standard,
+                    maxWidth: NymSpacing.drawerMaxWidth
+                ) {
+                    FamilyWarningModalView(
+                        title: "gatewayIndependence.modal.title".localizedString,
+                        reminderText: "gatewayIndependence.modal.disableReminders".localizedString,
+                        reminderLinkText: "gatewayIndependence.modal.notificationSettingsLink".localizedString,
+                        connectAnywayTitle: "gatewayIndependence.warning.connectAnyway".localizedString,
+                        cancelTitle: "cancel".localizedString,
+                        onConnectAnyway: { viewModel.confirmFamilyWarning() },
+                        onCancel: { viewModel.dismissFamilyWarning() },
+                        onOpenNotificationSettings: { viewModel.openNotificationSettingsFromFamilyWarning() }
+                    )
+                }
+            }
+        }
         .preferredColorScheme(appearance.colorScheme)
         .onAppear { wireOneClickNavigation() }
         .onChange(of: isCredentialImported) { _, newValue in

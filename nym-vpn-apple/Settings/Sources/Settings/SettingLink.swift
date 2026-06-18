@@ -25,6 +25,7 @@ public enum SettingLink: Hashable, Identifiable {
     case dns
     case mixnetTuning
     case censorship
+    case notifications
 #if os(macOS)
     case proxy
     case appMode

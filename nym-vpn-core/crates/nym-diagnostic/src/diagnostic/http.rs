@@ -6,6 +6,8 @@ use crate::{
     error::{Error, Result},
 };
 
+use std::fmt;
+
 use nym_http_api_client::{Client, ClientBuilder, FrontPolicy, Url};
 use nym_platform_metadata::new_user_agent;
 use nym_validator_client::nym_api::NymApiClientExt;
@@ -14,6 +16,22 @@ use nym_vpn_lib_types::{
     ApiTimeSkew, ApiUrl, DiagnosticEndpointResponse, DiagnosticResult, HttpReport,
 };
 use nym_vpn_network_config::Network;
+
+#[derive(Debug, Clone)]
+struct HttpDiagnosticError<E> {
+    error: E,
+    url: ApiUrl,
+}
+
+impl<E: fmt::Debug> fmt::Display for HttpDiagnosticError<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "http diagnostic error for {:?}: {:?}",
+            self.url, self.error
+        )
+    }
+}
 
 pub struct HttpDiagnostic;
 
@@ -69,12 +87,17 @@ impl HttpDiagnostic {
 
             for api_client in api_clients {
                 jobs.spawn(async move {
+                    let url = url_from_client(&api_client);
+
                     match api_client.health().await {
                         Ok(res) => DiagnosticResult::from_value(DiagnosticEndpointResponse {
                             status: res.status.is_up().to_string(),
                             url: url_from_client(&api_client),
                         }),
-                        Err(e) => DiagnosticResult::from_err(e),
+                        Err(e) => {
+                            let err = HttpDiagnosticError { url, error: e };
+                            DiagnosticResult::from_err(err)
+                        }
                     }
                 });
             }
@@ -85,14 +108,18 @@ impl HttpDiagnostic {
                 .for_each(|r| results.push(r));
         } else {
             for api_client in api_clients {
+                let url = url_from_client(&api_client);
                 match api_client.health().await {
                     Ok(res) => {
                         results.push(DiagnosticResult::from_value(DiagnosticEndpointResponse {
                             status: res.status.is_up().to_string(),
-                            url: url_from_client(&api_client),
+                            url,
                         }))
                     }
-                    Err(e) => results.push(DiagnosticResult::from_err(e)),
+                    Err(e) => {
+                        let err = HttpDiagnosticError { url, error: e };
+                        results.push(DiagnosticResult::from_err(err))
+                    }
                 }
             }
         }
@@ -114,12 +141,16 @@ impl HttpDiagnostic {
 
             for api_client in api_clients {
                 jobs.spawn(async move {
+                    let url = url_from_client(api_client.as_ref());
                     match api_client.get_health().await {
                         Ok(res) => DiagnosticResult::from_value(DiagnosticEndpointResponse {
                             status: res.status,
                             url: url_from_client(api_client.as_ref()),
                         }),
-                        Err(e) => DiagnosticResult::from_err(e),
+                        Err(e) => {
+                            let err = HttpDiagnosticError { url, error: e };
+                            DiagnosticResult::from_err(err)
+                        }
                     }
                 });
             }
@@ -130,6 +161,7 @@ impl HttpDiagnostic {
                 .for_each(|r| results.push(r));
         } else {
             for api_client in api_clients {
+                let url = url_from_client(api_client.as_ref());
                 match api_client.get_health().await {
                     Ok(res) => {
                         results.push(DiagnosticResult::from_value(DiagnosticEndpointResponse {
@@ -137,7 +169,10 @@ impl HttpDiagnostic {
                             url: url_from_client(api_client.as_ref()),
                         }))
                     }
-                    Err(e) => results.push(DiagnosticResult::from_err(e)),
+                    Err(e) => {
+                        let err = HttpDiagnosticError { url, error: e };
+                        results.push(DiagnosticResult::from_err(err))
+                    }
                 }
             }
         }

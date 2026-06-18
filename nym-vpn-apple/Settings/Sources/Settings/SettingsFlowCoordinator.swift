@@ -96,6 +96,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             mixnetTuningDestination()
         case .censorship:
             censorshipDestination()
+        case .notifications:
+            notificationsDestination()
         case .accountAndDevices:
             accountAndDevicesDestination()
         case .systemStatus:
@@ -285,6 +287,17 @@ private extension SettingsFlowCoordinator {
     @ViewBuilder
     func censorshipDestination() -> some View {
         CensorshipView(path: $flowState.path)
+    }
+
+    @ViewBuilder
+    func notificationsDestination() -> some View {
+        NotificationsView(
+            viewModel: NotificationsViewModel(
+                path: $flowState.path,
+                appSettings: .shared,
+                connectionManager: .shared
+            )
+        )
     }
 
     func accountAndDevicesDestination() -> some View {

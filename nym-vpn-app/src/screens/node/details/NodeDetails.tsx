@@ -269,6 +269,16 @@ function NodeDetails() {
                   </CardDataRow>
                 </>
               )}
+              {gateway.nodeFamilyName && (
+                <>
+                  <CardDivider />
+                  <CardDataRow label="Node family">
+                    <p className="text-text-primary whitespace-nowrap dark:text-white">
+                      {gateway.nodeFamilyName}
+                    </p>
+                  </CardDataRow>
+                </>
+              )}
             </CardNewBody>
             {backendFlags.quic && !quicSetting && (
               <CardNewFooter>

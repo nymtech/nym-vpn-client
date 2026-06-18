@@ -23,6 +23,7 @@ import nym_vpn_lib_types.RegisterAccountRequest
 import nym_vpn_lib_types.StoreAccountRequest
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
+import nym_vpn_lib_types.TentativeGateways
 import nym_vpn_lib_types.VpnAccountSummary
 import timber.log.Timber
 
@@ -108,5 +109,11 @@ internal class VpnServiceApiImpl(private val core: VpnCoreController, override v
 	override suspend fun runDiagnostic(): String? = core.tryWithCoreSender {
 		val params = DiagnosticRunParams(null, skipDns = false, skipHttp = false, skipHybridTransport = false)
 		it.runDiagnostic(params)
+	}
+
+	override suspend fun getTentativeGateways(): TentativeGateways? = core.tryWithCoreSender { it.getTentativeGateways() }
+
+	override suspend fun setGatewayIndependenceEnabled(enabled: Boolean) {
+		core.tryWithCoreSender { it.setEnableGatewayIndependence(enabled) }
 	}
 }

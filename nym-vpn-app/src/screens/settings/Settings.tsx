@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import { useAutostart, useDesktopNotifications, useToast } from '../../hooks';
+import { useAutostart, useToast } from '../../hooks';
 import { routes } from '../../router';
 import { dispatch, useMainState } from '../../store';
 import { useExit } from '../../state';
@@ -11,14 +11,12 @@ import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
 
 function Settings() {
-  const { desktopNotifications, ipv6Support, allowLan, enableAdBlocking } =
-    useMainState();
+  const { ipv6Support, allowLan, enableAdBlocking } = useMainState();
 
   const navigate = useNavigate();
   const { t } = useTranslation('settings');
   const { exit } = useExit();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
-  const toggleDNotifications = useDesktopNotifications();
   const { add } = useToast();
 
   const handleAutostartChanged = async () => {
@@ -194,12 +192,9 @@ function Settings() {
           {
             title: t('notifications.title'),
             leadingIcon: 'notifications',
-            onClick: toggleDNotifications,
+            onClick: () => navigate(routes.notifications),
             trailing: (
-              <Switch
-                checked={desktopNotifications}
-                onChange={toggleDNotifications}
-              />
+              <MsIcon icon="chevron_right" className="text-text-primary" />
             ),
           },
         ]}

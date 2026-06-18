@@ -57,7 +57,6 @@ import net.nymtech.nymvpn.util.DeviceAuthHelper
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isPrivateDnsEnabled
 import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
-import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchPrivateDnsSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -212,7 +211,7 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 				navController.navigate(Route.Privacy)
 			},
 			onNotificationsClick = {
-				context.launchNotificationSettings()
+				navController.navigate(Route.Notifications)
 			},
 			onBatterySettingsClick = {
 				context.launchBatteryOptSettingsScreen()

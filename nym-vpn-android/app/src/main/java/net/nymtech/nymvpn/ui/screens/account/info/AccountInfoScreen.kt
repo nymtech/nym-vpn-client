@@ -75,7 +75,6 @@ import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
-import timber.log.Timber
 
 @Composable
 fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel: AccountInfoViewModel = hiltViewModel()) {
@@ -147,7 +146,6 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 		onRenewClick = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
 		onLinkAccountClick = {
 			uiState.accountLinkUrl?.let {
-				Timber.d("Link url: $it")
 				context.openWebUrl(it)
 			}
 		},
@@ -295,6 +293,7 @@ fun AccountInfoScreenContent(
 @Composable
 private fun AddSocialText(onClick: () -> Unit) {
 	val annotatedString = buildAnnotatedString {
+		append(" ")
 		withStyle(
 			SpanStyle(
 				color = MaterialTheme.colorScheme.onBackground,
@@ -303,11 +302,11 @@ private fun AddSocialText(onClick: () -> Unit) {
 		) {
 			append(stringResource(R.string.account_info_add_social_action))
 		}
+		append(" ")
 		withStyle(SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
 			append(stringResource(R.string.account_info_add_social_suffix))
 		}
 	}
-
 	Text(
 		text = annotatedString,
 		style = MaterialTheme.typography.bodyMedium,

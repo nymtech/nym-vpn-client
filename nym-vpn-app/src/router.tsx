@@ -23,6 +23,7 @@ import {
   MixnetTuning,
   NodeDetails,
   NodeLocation,
+  Notifications,
   Onboarding,
   SelectPlan,
   Settings,
@@ -54,6 +55,7 @@ export const routes = {
   splitTunneling: '/settings/split-tunneling',
   geoExclusion: '/settings/geo-exclusion',
   geoExclusionSetup: '/settings/geo-exclusion/setup-instructions',
+  notifications: '/settings/notifications',
   support: '/settings/support',
   legal: '/settings/legal',
   licensesRust: '/settings/legal/licenses-rust',
@@ -206,6 +208,11 @@ const router = createBrowserRouter([
           {
             path: routes.socks5,
             Component: Socks5,
+            errorElement: <Error />,
+          },
+          {
+            path: routes.notifications,
+            Component: Notifications,
             errorElement: <Error />,
           },
           {

@@ -5,6 +5,7 @@ pub mod db;
 pub mod diagnostic;
 pub mod fs;
 pub mod gateway;
+pub mod gateway_independence;
 pub mod log;
 pub mod network_stats;
 pub mod sentry;

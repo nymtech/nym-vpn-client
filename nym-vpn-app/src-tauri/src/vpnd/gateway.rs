@@ -86,6 +86,7 @@ pub struct Gateway {
     pub exit_ipv6: Option<String>,
     pub build_version: Option<String>,
     pub quic: bool,
+    pub node_family_name: Option<String>,
 }
 
 impl Gateway {
@@ -137,6 +138,7 @@ impl Gateway {
             exit_ipv6,
             build_version: gateway.build_version,
             quic,
+            node_family_name: gateway.node_family_name,
         })
     }
 }

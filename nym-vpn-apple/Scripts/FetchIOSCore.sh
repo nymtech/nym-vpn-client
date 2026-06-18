@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Updates the iOS core using nightly/release builds.
-# Source: https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core/
+# Source: https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core/
 #
 # Must be run from nym-vpn-apple/Scripts.
 
@@ -14,7 +14,7 @@ error_handler() {
 }
 trap 'error_handler $LINENO' ERR
 
-BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
+BASE_URL="https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core"
 
 # -----------------------------------------------------------------------------
 # 0) Determine build tag (default from git branch)
@@ -38,27 +38,19 @@ fi
 
 TAG_URL="${BASE_URL}/${TAG}"
 
-# Choose the iOS asset pattern after TAG is finalized
-if [[ "$TAG" =~ ^release/ ]]; then
-  # release builds may omit -dev/-beta timestamp
-  ios_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(?:dev|beta)\.[0-9]{12})?_ios_universal\.zip'
-else
-  # nightly/dev builds include -dev/-beta + 12-digit timestamp
-  ios_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-(?:dev|beta)\.[0-9]{12}_ios_universal\.zip'
-fi
-
 echo "Using build tag: ${TAG}"
 echo "Base folder: ${TAG_URL}"
 
 # -----------------------------------------------------------------------------
 # 1) Find latest timestamp folder (unless orchestrator provided it)
+#    Garage's web vhost serves no directory listing; resolve via latest.json.
 # -----------------------------------------------------------------------------
 if [[ "$OVERRIDDEN" != "1" ]]; then
-  echo "Fetching folder listing from: ${TAG_URL}"
-  folder_listing="$(curl -Ls "$TAG_URL")"
-  latest_folder="$(echo "$folder_listing" | grep -Eo '[0-9]{12}/' | tr -d '/' | sort | tail -n 1)"
+  echo "Resolving latest build from: ${TAG_URL}/latest.json"
+  manifest="$(curl -fLs "${TAG_URL}/latest.json")"
+  latest_folder="$(echo "$manifest" | grep -oP '"timestamp"\s*:\s*"\K[0-9]+')"
   if [[ -z "${latest_folder}" ]]; then
-    echo "❌ Error: Could not determine the latest timestamp folder from ${TAG_URL}"
+    echo "❌ Error: Could not resolve the latest build from ${TAG_URL}/latest.json"
     exit 1
   fi
 fi
@@ -67,22 +59,22 @@ echo "Latest timestamp folder: ${latest_folder}"
 RELEASE_URL="${TAG_URL}/${latest_folder}"
 
 # -----------------------------------------------------------------------------
-# 2) Discover iOS asset, download, extract
+# 2) Resolve the iOS asset, download, extract
+#    No directory listing on Garage: the iOS asset is co-located in the build
+#    dir and named "<shared_slug>_ios_universal.zip". Use the slug exported by
+#    FetchCore.sh, or lift it from this build's manifest when running standalone.
 # -----------------------------------------------------------------------------
-echo "Fetching release page content from: ${RELEASE_URL}"
-release_page_content="$(curl -Ls "$RELEASE_URL")"
-if [[ -z "$release_page_content" ]]; then
-  echo "❌ Error: Release page content is empty at ${RELEASE_URL}"
+if [[ -n "${FETCHCORE_SLUG:-}" ]]; then
+  shared_slug="${FETCHCORE_SLUG}"
+else
+  shared_slug="$(echo "${manifest:-}" | grep -Eo 'nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(?:dev|beta)\.[0-9]{12})?' | head -n 1)"
+fi
+if [[ -z "$shared_slug" ]]; then
+  echo "❌ Error: Could not determine the build version slug (set FETCHCORE_SLUG or ensure ${RELEASE_URL}/manifest.json is reachable)."
   exit 1
 fi
 
-ios_asset="$(echo "$release_page_content" | grep -Eo "$ios_pattern" | head -n 1)"
-if [[ -z "$ios_asset" ]]; then
-  echo "❌ Error: Could not find iOS asset filename in the release page."
-  echo "Pattern used: $ios_pattern"
-  exit 1
-fi
-
+ios_asset="${shared_slug}_ios_universal.zip"
 IOS_ASSET_URL="${RELEASE_URL}/${ios_asset}"
 ios_zip_name="$(basename "$IOS_ASSET_URL")"
 

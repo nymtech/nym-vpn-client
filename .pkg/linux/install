@@ -213,35 +213,44 @@ app_dev_setup() {
 }
 
 get_core_dev() {
-  core_archive=$(curl -s "$1" |
-    grep -oP "(?<=^<a href=\")nym-vpn-core-v.+_linux_${arch}\.tar\.gz(?=\">)")
-  vpnd_raw_url="$1$core_archive"
+  # $1 = build manifest (json), $2 = build url
+  core_archive=$(printf '%s' "$1" |
+    grep -oP "nym-vpn-core-v[^\"]+_linux_${arch}\.tar\.gz" |
+    head -n 1)
+  vpnd_raw_url="$2$core_archive"
   ver="${core_archive#nym-vpn-core-v}"
   vpnd_version="${ver%_linux_${arch}.tar.gz}"
 }
 
 get_vpnd_dev_deb() {
-  vpnd_deb=$(curl -s "$1" |
-    grep -oP "(?<=^<a href=\")nym-vpnd_.+_${deb_arch}\.deb(?=\">)")
+  # $1 = build manifest (json), $2 = build url
+  vpnd_deb=$(printf '%s' "$1" |
+    grep -oP "nym-vpnd_[^\"]+_${deb_arch}\.deb" |
+    head -n 1)
   ver="${vpnd_deb#nym-vpnd_}"
   vpnd_deb_ver="${ver%_${deb_arch}.deb}"
-  vpnd_deb_url="$1$vpnd_deb"
+  vpnd_deb_url="$2$vpnd_deb"
 }
 
 vpnd_dev_setup() {
+  # Garage's web vhost serves no directory listing, so we read the published
+  # manifest (see publish-nym-vpn-core.yml) instead of scraping the build dir.
   if [ "$CORE_BUILD" = 0 ]; then
-    core_build_url=https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core/develop/
-    latest=$(curl -s $core_build_url |
-      grep -oP '(?<=<a href=")\d+/' |
-      sort -r |
-      head -n 1)
-    build_url="$core_build_url$latest"
+    core_build_base=https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core/develop
+    manifest=$(curl -s "$core_build_base/latest.json")
+    latest=$(printf '%s' "$manifest" | grep -oP '"timestamp"\s*:\s*"\K[0-9]+')
+    if [ -z "$latest" ]; then
+      echo "failed to resolve latest dev build from $core_build_base/latest.json" >&2
+      exit 1
+    fi
+    build_url="$core_build_base/$latest/"
   else
     build_url="$CORE_BUILD/"
+    manifest=$(curl -s "${build_url}manifest.json")
   fi
 
-  get_core_dev "$build_url"
-  get_vpnd_dev_deb "$build_url"
+  get_core_dev "$manifest" "$build_url"
+  get_vpnd_dev_deb "$manifest" "$build_url"
 }
 
 dev_setup() {

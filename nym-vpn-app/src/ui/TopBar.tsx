@@ -212,6 +212,13 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/notifications': {
+        title: t('notifications.title', { ns: 'settings' }),
+        leftIcon: 'keyboard_arrow_left',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/settings/feedback': {
         title: t('feedback'),
         leftIcon: 'keyboard_arrow_left',

@@ -33,6 +33,7 @@ pub struct VpndConfig {
     pub split_tunnel: SplitTunnelSettings,
     pub geo_exclusion: GeoExclusionSettings,
     pub gateway_selection_algorithm_config: GatewaySelectionAlgorithmConfig,
+    pub gateway_independence_notifications: bool,
 }
 
 impl VpndConfig {
@@ -62,6 +63,7 @@ impl VpndConfig {
             split_tunnel: config.split_tunnel.into(),
             geo_exclusion: config.geo_exclusion.into(),
             gateway_selection_algorithm_config: config.gateway_selection_algorithm_config.into(),
+            gateway_independence_notifications: config.gateway_independence.enable_notifications,
         })
     }
 }

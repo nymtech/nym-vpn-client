@@ -186,6 +186,11 @@ private extension SettingsViewModel {
         impactGenerator.softImpact()
         path.append(SettingLink.censorship)
     }
+
+    func navigateToNotifications() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.notifications)
+    }
 }
 
 // MARK: - Setup -
@@ -233,6 +238,7 @@ private extension SettingsViewModel {
             newSections.append(
                 contentsOf: [
                     feedbackSection(),
+                    notificationsSection(),
                     killswitchSection(),
                     appearanceSection(),
                     privacyAndDataSection(),
@@ -328,6 +334,24 @@ private extension SettingsViewModel {
                     action: { [weak self] in
                         Task { @MainActor in
                             self?.navigateToAppearance()
+                        }
+                    }
+                )
+            ]
+        )
+    }
+
+    func notificationsSection() -> AppSettingsSection {
+        AppSettingsSection(
+            kind: .notifications,
+            viewModels: [
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "settings.notifications.title".localizedString,
+                    systemImageName: "bell",
+                    action: { [weak self] in
+                        Task { @MainActor in
+                            self?.navigateToNotifications()
                         }
                     }
                 )

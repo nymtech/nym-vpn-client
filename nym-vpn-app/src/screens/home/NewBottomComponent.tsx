@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { Button, ButtonVariant, type countryCode } from '../../ui';
 import { dispatch, useMainState } from '../../store';
-import { useToast } from '../../hooks';
+import { useConnect, useToast } from '../../hooks';
 import { useAnimatedNavigate } from '../../hooks/useAnimatedNavigate';
 import { routes } from '../../router';
 import { Score } from '../../types';
@@ -43,6 +43,7 @@ export function NewBottomComponent() {
       accountState === 'bandwidth-exceeded');
 
   const { add } = useToast();
+  const connect = useConnect();
 
   const handleConnect = async () => {
     if (daemonStatus === 'auth-denied') {
@@ -83,12 +84,11 @@ export function NewBottomComponent() {
     }
     if (state === 'disconnected') {
       console.info('connect attempt');
-      dispatch({ type: 'reset-error' });
-      dispatch({ type: 'connect' });
       try {
-        await invoke('connect');
+        await connect();
       } catch (error: unknown) {
         console.error('failed to connect', error);
+        dispatch({ type: 'set-tunnel-disconnected' });
         add({
           id: 'connect-error',
           title: 'Failed to connect',

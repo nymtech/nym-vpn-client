@@ -163,6 +163,17 @@ impl NymVpnServiceCommandSender {
         .await
     }
 
+    pub async fn set_gateway_independence_notifications(
+        &self,
+        enable_notifications: bool,
+    ) -> Result<()> {
+        self.send_and_wait(
+            VpnServiceCommand::SetGatewayIndependenceNotifications,
+            enable_notifications,
+        )
+        .await
+    }
+
     pub async fn set_fronting_mode(&self, fronting_mode: FrontingMode) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetFrontingMode, fronting_mode)
             .await

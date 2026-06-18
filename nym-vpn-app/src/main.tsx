@@ -154,6 +154,8 @@ dayjs.extend(localizedFormat);
       config?.gatewaySelectionAlgorithmConfig ||
       defaultGatewaySelectionAlgorithmConfig,
     frontingMode: config?.frontingMode || 'onRetry',
+    gatewayIndependenceNotifications:
+      config?.gatewayIndependenceNotifications ?? true,
   };
   console.log('initial state:', initState);
 

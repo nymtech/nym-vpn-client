@@ -133,7 +133,7 @@ jobs:
     needs: [build-core]
     if: ${{ always() && !failure() && !cancelled() }}
     env:
-      VPN_CORE_BUILDS_URL: https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core
+      VPN_CORE_BUILDS_URL: https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core
       UPDATER_URL_STABLE: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable.json
       UPDATER_URL_DEV: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/dev.json
     outputs:
@@ -228,15 +228,24 @@ jobs:
         if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.core_build_it && (inputs.dev_mode || github.event_name == 'pull_request') }}
         id: get_dev_url
         run: |
-          $latest = Invoke-WebRequest -Uri "${{ env.VPN_CORE_BUILDS_URL }}/develop" | Select-String -Pattern '<a href="(\d+)/"' -AllMatches | ForEach-Object {$_.Matches} | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Descending | Select-Object -First 1
-          Write-Output "/develop/$latest"
-          "latest_dev_path=/develop/$latest" >> $env:GITHUB_OUTPUT
-          $latest_url = "${{ env.VPN_CORE_BUILDS_URL }}/develop/$latest"
           $arch = "${{ inputs.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}"
-          $artifact = Invoke-WebRequest -Uri "$latest_url" | Select-String -Pattern "<a href=""(nym-vpn-core-v.+_windows_$arch\.zip)""" -AllMatches | ForEach-Object {$_.Matches.Groups[1].Value} | Select-Object -First 1
-          if (-not $artifact) { Write-Error "Could not find a matching nym-vpn-core artifact at $latest_url"; exit 1 }
-          $artifact_url = "$latest_url/$artifact"
-          Write-Output "$artifact_url"
+          $base = "${{ env.VPN_CORE_BUILDS_URL }}/develop"
+
+          # Discover the latest dev build from the published manifest — the same
+          # contract the Linux installer uses (see publish-nym-vpn-core.yml).
+          # Served over the web vhost, so no bucket listing or S3 credentials.
+          $manifest = Invoke-RestMethod -Uri "$base/latest.json"
+          $ts = $manifest.timestamp
+          if (-not $ts) { Write-Error "latest.json has no timestamp at $base/latest.json"; exit 1 }
+
+          $artifact = $manifest.files |
+            Where-Object { $_ -match "^nym-vpn-core-v.+_windows_$arch\.zip$" } |
+            Select-Object -First 1
+          if (-not $artifact) { Write-Error "no windows $arch artifact in manifest for build $ts"; exit 1 }
+
+          "latest_dev_path=/develop/$ts" >> $env:GITHUB_OUTPUT
+          $artifact_url = "$base/$ts/$artifact"
+          Write-Output $artifact_url
           "core_asset_url=$artifact_url" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core artifact url (${{ env.core_release_tag }})

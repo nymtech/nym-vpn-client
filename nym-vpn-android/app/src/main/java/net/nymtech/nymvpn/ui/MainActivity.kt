@@ -74,6 +74,7 @@ import net.nymtech.nymvpn.ui.screens.settings.dns.DnsScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
+import net.nymtech.nymvpn.ui.screens.settings.notifications.NotificationsScreen
 import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.settings.tuning.MixnetTuningScreen
@@ -346,6 +347,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.MixnetTuning> { MixnetTuningScreen(appState) }
 
 								composable<Route.Diagnostic> { DiagnosticScreen() }
+								composable<Route.Notifications> { NotificationsScreen(appState) }
 							}
 						}
 					}

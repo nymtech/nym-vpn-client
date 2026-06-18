@@ -196,6 +196,10 @@ fun NavBar(
 				titleRes = R.string.privacy_diagnostic_tool,
 				onBack = { navController.safePopBackStack() },
 			)
+			route.startsWith(Route.Notifications::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.settings_notifications_title,
+				onBack = { navController.safePopBackStack() },
+			)
 
 			else -> NavBarState.Hidden
 		}

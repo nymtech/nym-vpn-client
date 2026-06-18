@@ -43,6 +43,7 @@ export function initMainStore(init: InitState): void {
     geoExclusion: init.geoExclusion,
     gatewaySelectionAlgorithmConfig: init.gatewaySelectionAlgorithmConfig,
     frontingMode: init.frontingMode,
+    gatewayIndependenceNotifications: init.gatewayIndependenceNotifications,
   });
 }
 
@@ -99,6 +100,7 @@ export const useMainState = (): AppState =>
       geoExclusion: s.geoExclusion,
       gatewaySelectionAlgorithmConfig: s.gatewaySelectionAlgorithmConfig,
       frontingMode: s.frontingMode,
+      gatewayIndependenceNotifications: s.gatewayIndependenceNotifications,
     })),
   );
 

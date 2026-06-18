@@ -14,3 +14,4 @@ export * from './account';
 export * from './diagnostic';
 export * from './split-tunneling';
 export * from './geo-exclusion';
+export * from './notifications';
