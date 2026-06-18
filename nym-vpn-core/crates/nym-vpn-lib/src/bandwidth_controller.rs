@@ -514,12 +514,30 @@ impl TemporaryBandwidthClient {
     }
 }
 
+trait NetworksSource {
+    fn refresh(&mut self, remove_not_listed_interfaces: bool);
+    fn list(&self) -> Vec<(String, u64, u64)>;
+}
+
+impl NetworksSource for Networks {
+    fn refresh(&mut self, remove_not_listed_interfaces: bool) {
+        Networks::refresh(self, remove_not_listed_interfaces);
+    }
+
+    fn list(&self) -> Vec<(String, u64, u64)> {
+        Networks::list(self)
+            .iter()
+            .map(|(name, data)| (name.clone(), data.received(), data.transmitted()))
+            .collect()
+    }
+}
+
 // Structure used to track network usage by looking at the system stats
 // It is not used as a source of truth for topping up bandwidth, but rather as a simpler
 // way to detect potential bandwidth spikes and react to them faster then waiting for the
 // next bandwidth check tick
-struct SystemBandwidthMonitor {
-    networks: Networks,
+struct SystemBandwidthMonitor<N = Networks> {
+    networks: N,
     interface_name: Option<String>,
     threshold: u64,
 }
@@ -532,24 +550,26 @@ impl SystemBandwidthMonitor {
             threshold,
         }
     }
+}
 
+impl<N: NetworksSource> SystemBandwidthMonitor<N> {
     pub async fn force_bandwidth_checks(&mut self) -> bool {
         self.networks.refresh(true);
         let total_network_usage: u64 = self
             .networks
             .list()
-            .iter()
+            .into_iter()
             .filter_map(
-                |(interface_name, data)| match self.interface_name.as_ref() {
-                    // if interface name is specified, only consider that interface, otherwise consider all interfaces
-                    Some(target_interface_name) => {
-                        if interface_name == target_interface_name {
-                            Some(data.received() + data.transmitted())
+                // if interface name is specified, only consider that interface, otherwise consider all interfaces
+                |(interface_name, received, transmitted)| match self.interface_name.as_ref() {
+                    Some(target) => {
+                        if &interface_name == target {
+                            Some(received + transmitted)
                         } else {
                             None
                         }
                     }
-                    None => Some(data.received() + data.transmitted()),
+                    None => Some(received + transmitted),
                 },
             )
             .sum();
@@ -999,12 +1019,55 @@ impl BandwidthController {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     const BW_1KB: u64 = 1024;
     const BW_1MB: u64 = 1024 * BW_1KB;
     const BW_128MB: u64 = 128 * BW_1MB;
     const BW_512MB: u64 = 512 * BW_1MB;
     const BW_1GB: u64 = 2 * BW_512MB;
+
+    struct MockNetworks {
+        data: HashMap<String, (u64, u64)>,
+        refresh_count: u32,
+    }
+
+    impl MockNetworks {
+        fn new() -> Self {
+            Self {
+                data: HashMap::new(),
+                refresh_count: 0,
+            }
+        }
+
+        fn with_interface(mut self, name: &str, received: u64, transmitted: u64) -> Self {
+            self.data.insert(name.to_string(), (received, transmitted));
+            self
+        }
+    }
+
+    impl NetworksSource for MockNetworks {
+        fn refresh(&mut self, _remove_not_listed_interfaces: bool) {
+            self.refresh_count += 1;
+        }
+
+        fn list(&self) -> Vec<(String, u64, u64)> {
+            self.data
+                .iter()
+                .map(|(name, &(rx, tx))| (name.clone(), rx, tx))
+                .collect()
+        }
+    }
+
+    impl<N: NetworksSource> SystemBandwidthMonitor<N> {
+        fn with_networks(interface_name: Option<String>, threshold: u64, networks: N) -> Self {
+            Self {
+                networks,
+                interface_name,
+                threshold,
+            }
+        }
+    }
 
     #[test]
     fn depletion_rate_slow() {
@@ -1100,5 +1163,107 @@ mod tests {
             ))
             .is_ok()
         );
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_no_interfaces_is_below_threshold() {
+        let mock = MockNetworks::new();
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        assert!(!monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_calls_refresh_on_each_check() {
+        let mock = MockNetworks::new();
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        monitor.force_bandwidth_checks().await;
+        assert_eq!(monitor.networks.refresh_count, 1);
+        monitor.force_bandwidth_checks().await;
+        assert_eq!(monitor.networks.refresh_count, 2);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_below_threshold_returns_false() {
+        // 2 MB combined < 8 MB threshold
+        let mock = MockNetworks::new().with_interface("eth0", BW_1MB, BW_1MB);
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        assert!(!monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_above_threshold_returns_true() {
+        // 10 MB combined > 8 MB threshold
+        let mock = MockNetworks::new().with_interface("eth0", 5 * BW_1MB, 5 * BW_1MB);
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        assert!(monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_exactly_at_threshold_returns_false() {
+        // usage must be strictly greater than threshold, not equal
+        let mock = MockNetworks::new().with_interface(
+            "eth0",
+            SYSTEM_BANDWIDTH_THRESHOLD / 2,
+            SYSTEM_BANDWIDTH_THRESHOLD / 2,
+        );
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        assert!(!monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_sums_all_interfaces_without_filter() {
+        // 3 MB per interface × 3 interfaces = 9 MB total > 8 MB threshold
+        let mock = MockNetworks::new()
+            .with_interface("eth0", 3 * BW_1MB, 0)
+            .with_interface("eth1", 3 * BW_1MB, 0)
+            .with_interface("wlan0", 3 * BW_1MB, 0);
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        assert!(monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_filters_to_target_interface_below_threshold() {
+        // eth0 has 10 MB (above threshold), but we only watch wg0 which has 2 MB
+        let mock = MockNetworks::new()
+            .with_interface("eth0", 5 * BW_1MB, 5 * BW_1MB)
+            .with_interface("wg0", BW_1MB, BW_1MB);
+        let mut monitor = SystemBandwidthMonitor::with_networks(
+            Some("wg0".to_string()),
+            SYSTEM_BANDWIDTH_THRESHOLD,
+            mock,
+        );
+        assert!(!monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_filters_to_target_interface_above_threshold() {
+        // eth0 has 2 MB (below threshold), but we only watch wg0 which has 10 MB
+        let mock = MockNetworks::new()
+            .with_interface("eth0", BW_1MB, BW_1MB)
+            .with_interface("wg0", 5 * BW_1MB, 5 * BW_1MB);
+        let mut monitor = SystemBandwidthMonitor::with_networks(
+            Some("wg0".to_string()),
+            SYSTEM_BANDWIDTH_THRESHOLD,
+            mock,
+        );
+        assert!(monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_nonexistent_target_interface_returns_false() {
+        // eth0 has 10 MB but we watch a non-existent interface, so total is 0
+        let mock = MockNetworks::new().with_interface("eth0", 5 * BW_1MB, 5 * BW_1MB);
+        let mut monitor = SystemBandwidthMonitor::with_networks(
+            Some("nonexistent".to_string()),
+            SYSTEM_BANDWIDTH_THRESHOLD,
+            mock,
+        );
+        assert!(!monitor.force_bandwidth_checks().await);
     }
 }
