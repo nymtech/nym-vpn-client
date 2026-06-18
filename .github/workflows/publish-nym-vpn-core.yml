@@ -68,7 +68,6 @@ jobs:
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
       ok_to_publish: ${{ steps.determine-ok-to-publish.outputs.ok_to_publish }}
-      is_stable: ${{ steps.determine-ok-to-publish.outputs.is_stable }}
 
     steps:
       - name: Checkout repo
@@ -134,7 +133,6 @@ jobs:
         run: |
           version="${{ steps.workspace-version.outputs.metadata }}"
           should_publish="false"
-          is_stable="false"
           # If version does NOT contain '-' => stable => auto-publish
           if [[ "$version" != *"-"* ]]; then
             should_publish="true"
@@ -145,7 +143,6 @@ jobs:
             should_publish="true"
           fi
           echo "ok_to_publish=$should_publish" >> "$GITHUB_OUTPUT"
-          echo "is_stable=$is_stable" >> "$GITHUB_OUTPUT"
 
       # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
@@ -366,26 +363,4 @@ jobs:
     uses: ./.github/workflows/gen-hashes-json.yml
     with:
       release_tag: ${{ needs.publish.outputs.tag }}
-    secrets: inherit
-
-  update-aur-vpnd:
-    uses: ./.github/workflows/publish-aur-nym-vpnd.yml
-    needs: publish
-    if: ${{ needs.publish.outputs.is_stable == 'true' }}
-    with:
-      release_tag: ${{ needs.publish.outputs.tag }}
-      pkgrel: 1
-      publish_aur: true
-      commit_msg: "release ${{ needs.publish.outputs.tag }}"
-    secrets: inherit
-
-  update-aur-vpnc:
-    uses: ./.github/workflows/publish-aur-nym-vpnc.yml
-    needs: publish
-    if: ${{ needs.publish.outputs.is_stable == 'true' }}
-    with:
-      release_tag: ${{ needs.publish.outputs.tag }}
-      pkgrel: 1
-      publish_aur: true
-      commit_msg: "release ${{ needs.publish.outputs.tag }}"
     secrets: inherit

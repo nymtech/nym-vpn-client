@@ -4,10 +4,14 @@ name: publish-aur-nym-vpnc
 on:
   workflow_dispatch:
     inputs:
+      # NOTE: with unified-only core, this is the unified tag nym-vpn-v<version>,
+      # not the legacy nym-vpn-core-v<version>. The referenced release must be PUBLISHED
+      # (draft URLs 404). on-release-publish.yml calls this AUTOMATICALLY when the unified
+      # ship draft is published; manual dispatch is a fallback / re-run of that step.
       release_tag:
         description: "Tag name of the release"
         required: true
-        default: nym-vpn-core-v0.1.0
+        default: nym-vpn-v0.1.0
       pkgrel:
         description: "PKGBUILD package release number"
         required: false
@@ -24,6 +28,10 @@ on:
         required: false
   workflow_call:
     inputs:
+      # NOTE: with unified-only core, this is the unified tag nym-vpn-v<version>,
+      # not the legacy nym-vpn-core-v<version>. The referenced release must be PUBLISHED
+      # (draft URLs 404). on-release-publish.yml calls this AUTOMATICALLY when the unified
+      # ship draft is published; manual dispatch is a fallback / re-run of that step.
       release_tag:
         required: true
         type: string
