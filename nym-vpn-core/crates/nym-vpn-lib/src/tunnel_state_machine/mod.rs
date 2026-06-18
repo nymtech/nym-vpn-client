@@ -776,6 +776,8 @@ pub struct SharedState {
     topology_service: VpnTopologyServiceHandle,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     user_agent: UserAgent,
+    /// API endpoints resolved in connecting state and used for configuring a bypass in error state.
+    resolved_api_endpoints: Vec<SocketAddr>,
     #[cfg(not(target_os = "ios"))]
     shutdown_token: CancellationToken,
 }
@@ -1116,6 +1118,7 @@ impl TunnelStateMachine {
             topology_service,
             discovery_refresher_command_tx,
             user_agent,
+            resolved_api_endpoints: vec![],
             #[cfg(not(target_os = "ios"))]
             shutdown_token: shutdown_token.clone(),
         };
