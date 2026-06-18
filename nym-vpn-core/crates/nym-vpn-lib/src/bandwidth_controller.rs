@@ -6,6 +6,7 @@ use std::{net::IpAddr, time::Duration};
 use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
 use nym_registration_common::WireguardConfiguration;
+use sysinfo::Networks;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
@@ -26,6 +27,11 @@ const UPPER_BOUND_CHECK_DURATION: Duration =
     Duration::from_secs(6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs());
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
 const MINIMUM_RAMAINING_BANDWIDTH: u64 = 500 * 1024 * 1024; // 500 MB, the same as a wireguard ticket size (but it doesn't have to be)
+
+// 8 MB/s, in the worse case scenario with 30 seconds until the next check => 240 MB consumed, under the 500 MB bandwidth minimum we have assured with the gateway
+// We consider anything above this threshold to potentially consume bandwidth too fast, so we do a check immediately
+const SYSTEM_BANDWIDTH_THRESHOLD: u64 = 8 * 1024 * 1024; // 8 MB
+const SYSTEM_BANDWIDTH_CHECK_INTERVAL: Duration = Duration::from_secs(1); // 1 second
 
 const DEFAULT_CLIENT_RETRIES: usize = 1;
 
@@ -427,6 +433,15 @@ impl TemporaryBandwidthClient {
         }
     }
 
+    pub(crate) async fn interface_name(&mut self) -> Option<String> {
+        match self {
+            TemporaryBandwidthClient::Deprecated(_) => None,
+            TemporaryBandwidthClient::Latest(metadata_client) => {
+                metadata_client.interface_name().await
+            }
+        }
+    }
+
     pub(crate) async fn topup_bandwidth(
         &mut self,
         credential: nym_credentials_interface::CredentialSpendingData,
@@ -496,6 +511,50 @@ impl TemporaryBandwidthClient {
                 Ok(upgrade_mode_enabled)
             }
         }
+    }
+}
+
+// Structure used to track network usage by looking at the system stats
+// It is not used as a source of truth for topping up bandwidth, but rather as a simpler
+// way to detect potential bandwidth spikes and react to them faster then waiting for the
+// next bandwidth check tick
+struct SystemBandwidthMonitor {
+    networks: Networks,
+    interface_name: Option<String>,
+    threshold: u64,
+}
+
+impl SystemBandwidthMonitor {
+    pub fn new(interface_name: Option<String>, threshold: u64) -> Self {
+        Self {
+            networks: Networks::new_with_refreshed_list(),
+            interface_name,
+            threshold,
+        }
+    }
+
+    pub async fn force_bandwidth_checks(&mut self) -> bool {
+        self.networks.refresh(true);
+        let total_network_usage: u64 = self
+            .networks
+            .list()
+            .iter()
+            .filter_map(
+                |(interface_name, data)| match self.interface_name.as_ref() {
+                    // if interface name is specified, only consider that interface, otherwise consider all interfaces
+                    Some(target_interface_name) => {
+                        if interface_name == target_interface_name {
+                            Some(data.received() + data.transmitted())
+                        } else {
+                            None
+                        }
+                    }
+                    None => Some(data.received() + data.transmitted()),
+                },
+            )
+            .sum();
+        // above the configured threshold, we consider the system to be under heavy load and thus we should attempt to top up bandwidth asap
+        total_network_usage > self.threshold
     }
 }
 
@@ -882,6 +941,13 @@ impl BandwidthController {
     }
 
     pub(crate) async fn run(mut self) {
+        let mut system_bandwidth_monitor = SystemBandwidthMonitor::new(
+            self.wg_exit_gateway_client.interface_name().await,
+            SYSTEM_BANDWIDTH_THRESHOLD,
+        );
+        let mut system_bandwidth_check_interval =
+            IntervalStream::new(tokio::time::interval(SYSTEM_BANDWIDTH_CHECK_INTERVAL));
+
         // Skip the first, immediate tick
         self.timeout_check_interval.next().await;
         while !self.shutdown_token.is_cancelled() {
@@ -889,6 +955,14 @@ impl BandwidthController {
                 _ = self.shutdown_token.cancelled() => {
                     tracing::trace!("BandwidthController: Received shutdown");
                     break;
+                }
+                _ = system_bandwidth_check_interval.next() => {
+                    if system_bandwidth_monitor.force_bandwidth_checks().await {
+                        tracing::debug!("System bandwidth usage is above the configured threshold, forcing bandwidth checks");
+                        // we set the check interval to the lower bound, but we don't do the first tick, which is immediate,
+                        // so we implicitely trigger the check branch bellow
+                        self.timeout_check_interval = IntervalStream::new(tokio::time::interval(LOWER_BOUND_CHECK_DURATION));
+                    }
                 }
                 _ = self.timeout_check_interval.next() => {
                     let current_period = self.timeout_check_interval.as_ref().period();
