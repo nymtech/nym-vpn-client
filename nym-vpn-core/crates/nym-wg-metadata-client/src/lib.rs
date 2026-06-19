@@ -19,10 +19,8 @@ pub mod error;
 
 #[derive(Clone)]
 pub enum TunUpSendData {
-    #[cfg(not(target_os = "windows"))]
     InterfaceName(String),
     TcpProxy(SocketAddr),
-    Signal(String),
 }
 
 pub type TunUpSender = tokio::sync::oneshot::Sender<TunUpSendData>;
@@ -45,10 +43,12 @@ impl LazyMetadataClient {
         let mut interface_name = None;
         let reqwest_builder = ReqwestClientBuilder::new();
         let reqwest_builder = match sent_data {
-            #[cfg(not(target_os = "windows"))]
             TunUpSendData::InterfaceName(interface) => {
+                #[cfg(target_os = "linux")]
+                let reqwest_builder = reqwest_builder.interface(&interface);
+
                 interface_name = Some(interface.clone());
-                reqwest_builder.interface(&interface).local_address(bind_ip)
+                reqwest_builder.local_address(bind_ip)
             }
             TunUpSendData::TcpProxy(tcp_proxy) => {
                 base_url.set_ip_host(tcp_proxy.ip()).map_err(|_| {
@@ -60,10 +60,6 @@ impl LazyMetadataClient {
                 })?;
 
                 reqwest_builder
-            }
-            TunUpSendData::Signal(interface) => {
-                interface_name = Some(interface.clone());
-                reqwest_builder.local_address(bind_ip)
             }
         };
 

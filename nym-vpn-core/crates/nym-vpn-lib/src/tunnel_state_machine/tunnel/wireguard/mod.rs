@@ -64,15 +64,7 @@ impl From<MetadataEvent> for nym_wg_metadata_client::TunUpSendData {
                 nym_wg_metadata_client::TunUpSendData::TcpProxy(proxy_addr)
             }
             MetadataEvent::TunnelMetadata(metadata) => {
-                #[cfg(target_os = "linux")]
-                {
-                    nym_wg_metadata_client::TunUpSendData::InterfaceName(metadata.interface)
-                }
-
-                #[cfg(not(target_os = "linux"))]
-                {
-                    nym_wg_metadata_client::TunUpSendData::Signal(metadata.interface)
-                }
+                nym_wg_metadata_client::TunUpSendData::InterfaceName(metadata.interface)
             }
         }
     }
