@@ -523,16 +523,12 @@ struct InterfaceStats {
 }
 
 trait NetworkInterfaceStats {
-    fn refresh(&mut self, remove_not_listed_interfaces: bool);
-    fn list(&self) -> Vec<InterfaceStats>;
+    fn get_interface_stats(&mut self) -> Vec<InterfaceStats>;
 }
 
 impl NetworkInterfaceStats for Networks {
-    fn refresh(&mut self, remove_not_listed_interfaces: bool) {
-        Networks::refresh(self, remove_not_listed_interfaces);
-    }
-
-    fn list(&self) -> Vec<InterfaceStats> {
+    fn get_interface_stats(&mut self) -> Vec<InterfaceStats> {
+        Networks::refresh(self, true);
         Networks::list(self)
             .iter()
             .map(|(name, data)| InterfaceStats {
@@ -570,10 +566,9 @@ impl SystemBandwidthMonitor {
 
 impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
     pub async fn force_bandwidth_checks(&mut self) -> bool {
-        self.networks.refresh(true);
         let total_network_usage: u64 = self
             .networks
-            .list()
+            .get_interface_stats()
             .into_iter()
             .filter_map(
                 // if interface name is specified, only consider that interface, otherwise consider all interfaces
@@ -1069,11 +1064,8 @@ mod tests {
     }
 
     impl NetworkInterfaceStats for MockNetworks {
-        fn refresh(&mut self, _remove_not_listed_interfaces: bool) {
+        fn get_interface_stats(&mut self) -> Vec<InterfaceStats> {
             self.refresh_count += 1;
-        }
-
-        fn list(&self) -> Vec<InterfaceStats> {
             self.data
                 .iter()
                 .map(|(name, &(received, transmitted))| InterfaceStats {
