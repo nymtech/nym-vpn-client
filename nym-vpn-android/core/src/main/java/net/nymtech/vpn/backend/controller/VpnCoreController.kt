@@ -426,6 +426,10 @@ class VpnCoreController(
 			sender.setEnableGatewayIndependence(cfg.nodeFamiliesNotificationsEnabled)
 		}
 
+		applyGeoExclusionToSender(sender, force, prev, cfg)
+	}
+
+	private suspend fun applyGeoExclusionToSender(sender: NymVpnServiceCommandSender, force: Boolean, prev: CoreVpnConfig?, cfg: CoreVpnConfig) {
 		if (force || prev?.geoExclusionEnabled != cfg.geoExclusionEnabled) {
 			sender.setGeoExclusionEnabled(cfg.geoExclusionEnabled)
 		}
