@@ -113,7 +113,7 @@ jobs:
           git config --global user.email "${{ env.GIT_EMAIL }}"
 
       - name: Checkout selected branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           ref: ${{ inputs.branch || github.ref }}

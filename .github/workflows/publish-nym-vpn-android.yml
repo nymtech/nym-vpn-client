@@ -95,7 +95,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -326,7 +326,7 @@ jobs:
       RUBYOPT: "-rresolv-replace"
       BUNDLE_TIMEOUT: "120"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
