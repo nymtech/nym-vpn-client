@@ -40,6 +40,13 @@ pub struct ProgramArgs {
 
 #[derive(clap::Subcommand, Debug)]
 pub enum Command {
+    /// Create an interactive session to issue commands with a one time, initial authentication
+    StartSession,
+
+    /// Exit a started interactive session
+    #[clap(alias = "exit")]
+    ExitSession,
+
     /// Connect the tunnel
     #[clap(alias = "connect-v2")]
     Connect {
@@ -156,6 +163,8 @@ pub enum Command {
 impl Command {
     pub async fn execute(self, rpc_client: RpcClient) -> Result<()> {
         match self {
+            Command::StartSession => commands::session::execute(rpc_client).await,
+            Command::ExitSession => Ok(()),
             Command::Connect { wait } => Self::connect(rpc_client, wait).await,
             Command::Reconnect => Self::reconnect(rpc_client).await,
             Command::Disconnect { wait } => Self::disconnect(rpc_client, wait).await,
