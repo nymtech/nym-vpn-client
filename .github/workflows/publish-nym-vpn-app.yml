@@ -467,7 +467,7 @@ jobs:
       - name: Create release
         id: create_release
         if: ${{ inputs.version_tag == '' && env.RELEASE_TYPE != 'dev' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           body: ${{ env.RELEASE_NOTES }}
