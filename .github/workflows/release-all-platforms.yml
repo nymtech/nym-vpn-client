@@ -57,6 +57,7 @@ jobs:
       core_version: ${{ steps.v.outputs.core_version }}
       core_nightly_version: ${{ steps.v.outputs.core_nightly_version }}
       app_nightly_version: ${{ steps.v.outputs.app_nightly_version }}
+      apple_nightly_version: ${{ steps.v.outputs.apple_nightly_version }}
       ship: ${{ steps.flags.outputs.ship }}
       android: ${{ steps.flags.outputs.android }}
       fdroid: ${{ steps.flags.outputs.fdroid }}
@@ -153,6 +154,8 @@ jobs:
     with:
       release_type: ${{ needs.resolve.outputs.ship == 'true' && 'ship' || 'qa' }}
       version_tag: ${{ needs.resolve.outputs.tag }}
+      core_nightly_version: ${{ needs.resolve.outputs.core_nightly_version }}
+      apple_nightly_version: ${{ needs.resolve.outputs.apple_nightly_version }}
       build_ios: ${{ needs.resolve.outputs.ios == 'true' }}
       build_macos: ${{ needs.resolve.outputs.macos == 'true' }}
     secrets: inherit
