@@ -74,6 +74,8 @@ import net.nymtech.nymvpn.ui.screens.settings.dns.DnsScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
+import net.nymtech.nymvpn.ui.screens.settings.geoexclusion.GeoExclusionScreen
+import net.nymtech.nymvpn.ui.screens.settings.geoexclusion.setup.SetupScreen
 import net.nymtech.nymvpn.ui.screens.settings.notifications.NotificationsScreen
 import net.nymtech.nymvpn.ui.screens.settings.privacy.PrivacyScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
@@ -348,6 +350,8 @@ class MainActivity : AppCompatActivity() {
 
 								composable<Route.Diagnostic> { DiagnosticScreen() }
 								composable<Route.Notifications> { NotificationsScreen(appState) }
+								composable<Route.GeoExclusion> { GeoExclusionScreen(appState) }
+								composable<Route.Setup> { SetupScreen(appState) }
 							}
 						}
 					}

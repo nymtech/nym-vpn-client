@@ -15,7 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,7 +26,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,21 +95,12 @@ fun CustomTextField(
 					if (value.isEmpty() && !isFocused) {
 						placeholder?.invoke()
 					} else {
-						if (singleLine) {
-							Text(
-								value,
-								maxLines = 1,
-								overflow = TextOverflow.Ellipsis,
-								style = MaterialTheme.typography.bodyLarge,
-							)
-						} else {
-							it.invoke()
-						}
+						it.invoke()
 					}
 					subtitle?.invoke()
 				}
 			},
-			contentPadding = OutlinedTextFieldDefaults.contentPadding(top = 0.dp, bottom = 0.dp),
+			contentPadding = OutlinedTextFieldDefaults.contentPadding(top = 12.dp, bottom = 12.dp),
 			leadingIcon = leading,
 			trailingIcon = trailingIcon,
 			singleLine = singleLine,

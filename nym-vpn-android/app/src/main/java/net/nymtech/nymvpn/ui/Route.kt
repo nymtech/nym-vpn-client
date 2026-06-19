@@ -84,4 +84,10 @@ sealed class Route {
 
 	@Serializable
 	data object Notifications : Route()
+
+	@Serializable
+	data object GeoExclusion : Route()
+
+	@Serializable
+	data object Setup : Route()
 }

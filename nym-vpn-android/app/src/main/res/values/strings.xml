@@ -251,6 +251,8 @@
 	<string name="settings_shortcuts_title">App shortcuts</string>
 	<string name="settings_logs_title">Logs &amp; data</string>
 	<string name="settings_legal_title">Legal</string>
+	<string name="settings_geo_exclusion_title">Geo Exclusion</string>
+	<string name="settings_geo_exclusion_desciption">Specific IP ranges connect directly</string>
 	<!-- Shortcuts activity -->
 	<string name="shortcuts_info_message">Screen lock required to use shortcuts.</string>
 	<string name="shortcut_title">Confirm action</string>
@@ -549,4 +551,40 @@
 	<string name="node_families_description_text">Disable reminders in </string>
 	<string name="node_families_description_link">notification settings.</string>
 	<string name="node_families_connect_button">Connect anyway</string>
+	<!-- Geo Exclusion -->
+	<string name="geo_exclusion_enable_title">Enable Geo Exclusion</string>
+	<string name="geo_exclusion_description">Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.</string>
+	<string name="geo_exclusion_beta_text">Beta version:  China only for now. More regions coming.</string>
+	<string name="geo_exclusion_traffic_bypass_text">Traffic to excluded regions bypasses the VPN.</string>
+	<string name="geo_exclusion_sock55_title">SOCKS5 port</string>
+	<string name="geo_exclusion_custom_port_title">Custom port</string>
+	<string name="geo_exclusion_ports_text">1024–65535</string>
+	<string name="geo_exclusion_ranges_count">%1$s ranges</string>
+	<string name="geo_exclusion_last_updated">List updated %1$s</string>
+	<string name="geo_exclusion_error_sock55_title">SOCKS5 not detected</string>
+	<string name="geo_exclusion_error_sock55_text">SOCKS5 proxy not detected. Check your port settings.</string>
+	<string name="geo_exclusion_error_failed_start_title">Feature failed to start</string>
+	<string name="geo_exclusion_error_failed_start_text">Geo Exclusion couldn\'t start. Reconnect and try again.</string>
+	<string name="geo_exclusion_error_ivalid_port_text">Port must be between 1024 and 65535.</string>
+	<string name="geo_exclusion_error_forbidden_port_text">Port 1080 is forbidden. Choose another.</string>
+	<string name="geo_exclusion_excluded_regions_label">EXCLUDED REGIONS</string>
+	<string name="geo_exclusion_china">China</string>
+	<string name="geo_exclusion_add_region_button">Add region</string>
+	<!-- Setup instructions screen -->
+	<string name="setup_instructions_title">Setup instructions</string>
+	<string name="setup_instructions_description">Configure apps and browsers to route traffic through the Nym SOCKS5 proxy.</string>
+	<string name="setup_instructions_per_app_title">Per-app (SOCKS5-capable app)</string>
+	<string name="setup_instructions_per_app_description">Android has no system-wide SOCKS5 setting.</string>
+	<string name="setup_instructions_pert_app_step">Use an app that supports a SOCKS5 proxy directly.</string>
+	<string name="setup_instructions_browser_title">Browser setup</string>
+	<string name="setup_instructions_browser_description">Any app with SOCKS5 support. Firefox example:</string>
+	<string name="setup_instructions_browser_step_1">Settings → enable SOCKS proxy — Host</string>
+	<string name="setup_instructions_browser_step_2">127.0.0.1</string>
+	<string name="setup_instructions_browser_step_3">, Port</string>
+	<string name="setup_instructions_browser_step_4">8001</string>
+	<string name="setup_instructions_browser_step_5">, SOCKS v5.</string>
+	<string name="setup_instructions_wallet_title">Web3 wallet</string>
+	<string name="setup_instructions_wallet_step_1">Set the RPC URL to</string>
+	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
+	<string name="setup_instructions_proxy_title">PROXY ADDRESS</string>
 </resources>

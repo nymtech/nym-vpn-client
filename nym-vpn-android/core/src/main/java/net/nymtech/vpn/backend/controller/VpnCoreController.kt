@@ -29,6 +29,7 @@ import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewaySelectionAlgorithmConfig
+import nym_vpn_lib_types.GeoExclusionSettings
 import nym_vpn_lib_types.FrontingMode
 import nym_vpn_lib_types.GatewayIndependence
 import nym_vpn_lib_types.MixnetEvent
@@ -423,6 +424,20 @@ class VpnCoreController(
 		}
 		if (force || prev?.nodeFamiliesNotificationsEnabled != cfg.nodeFamiliesNotificationsEnabled) {
 			sender.setEnableGatewayIndependence(cfg.nodeFamiliesNotificationsEnabled)
+		}
+
+		val geoExclusionChanged = force ||
+			prev?.geoExclusionEnabled != cfg.geoExclusionEnabled ||
+			prev?.geoExclusionPort != cfg.geoExclusionPort ||
+			prev?.geoExclusionCountries != cfg.geoExclusionCountries
+		if (geoExclusionChanged) {
+			sender.setGeoExclusion(
+				GeoExclusionSettings(
+					enabled = cfg.geoExclusionEnabled,
+					listenPort = cfg.geoExclusionPort.toUShort(),
+					excludedCountries = cfg.geoExclusionCountries,
+				),
+			)
 		}
 	}
 

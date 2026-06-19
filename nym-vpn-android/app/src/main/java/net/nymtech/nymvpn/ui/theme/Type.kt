@@ -149,4 +149,12 @@ object CustomTypography {
 		lineHeight = 22.4.sp.scaled(),
 		letterSpacing = 0.sp,
 	)
+
+	val titleMediumBold = TextStyle(
+		fontFamily = sans,
+		fontWeight = FontWeight.Bold,
+		fontSize = 16.sp.scaled(),
+		lineHeight = 24.sp.scaled(),
+		letterSpacing = 0.15.sp.scaled(),
+	)
 }
