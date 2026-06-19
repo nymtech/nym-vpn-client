@@ -42,8 +42,8 @@ use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, AutologinResponse,
     DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
     DiagnosticReport, DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams, ListGatewaysOptions,
-    LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
+    FeatureFlags, Gateway, GatewaySelectionAlgorithm, GeoExclusionSettings, GetDeeplinkParams,
+    ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
     ParsedAccountLinks, RegistrationReport, StorableAccount, StoreAccountRequest,
     StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelEvent, TunnelState,
@@ -126,6 +126,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), GeoExclusionConfigError>>,
         Vec<String>,
     ),
+    SetGeoExclusion(oneshot::Sender<Result<(), GeoExclusionConfigError>>, GeoExclusionSettings),
     EnableSocks5(
         oneshot::Sender<Result<(), Socks5Error>>,
         EnableSocks5Request,
@@ -1276,6 +1277,10 @@ impl NymVpnService {
                     .await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::SetGeoExclusion(tx, geo_exclusion) => {
+                let result = self.handle_set_geo_exclusion(geo_exclusion).await;
+                let _ = tx.send(result);
+            }
         }
     }
 
@@ -2374,6 +2379,15 @@ impl NymVpnService {
         self.config_manager
             .set_geo_exclusion_excluded_countries(excluded_countries)
             .await?;
+        self.update_tunnel_settings_with_throttle();
+        Ok(())
+    }
+
+    async fn handle_set_geo_exclusion(
+        &mut self,
+        geo_exclusion: GeoExclusionSettings,
+    ) -> Result<(), GeoExclusionConfigError> {
+        self.config_manager.set_geo_exclusion(geo_exclusion).await?;
         self.update_tunnel_settings_with_throttle();
         Ok(())
     }

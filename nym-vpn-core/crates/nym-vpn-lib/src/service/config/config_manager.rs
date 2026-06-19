@@ -379,6 +379,38 @@ impl VpnServiceConfigManager {
         Ok(())
     }
 
+    pub async fn set_geo_exclusion(
+        &mut self,
+        settings: nym_vpn_lib_types::GeoExclusionSettings,
+    ) -> Result<(), GeoExclusionConfigError> {
+        const RESERVED_PORT: u16 = 1080;
+
+        if settings.listen_port == RESERVED_PORT {
+            return Err(GeoExclusionConfigError::ReservedPort(settings.listen_port));
+        } else if settings.listen_port == 0 {
+            return Err(GeoExclusionConfigError::InvalidPort);
+        }
+
+        for country in &settings.excluded_countries {
+            if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
+                return Err(GeoExclusionConfigError::InvalidCountryCode(country.clone()));
+            } else if country != "CN" {
+                return Err(GeoExclusionConfigError::UnsupportedCountry(country.clone()));
+            }
+        }
+
+        if !settings.excluded_countries.iter().any(|c| c == "CN") {
+            return Err(GeoExclusionConfigError::CnRequired);
+        }
+
+        if self.config.geo_exclusion != settings {
+            self.config.geo_exclusion = settings;
+            self.save_config_and_send_event().await;
+        }
+
+        Ok(())
+    }
+
     async fn save_config_and_send_event(&self) {
         // This function already logs
         let _ = self.write_to_file().await;

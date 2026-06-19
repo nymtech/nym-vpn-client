@@ -10,10 +10,10 @@ use tokio::sync::{mpsc, oneshot};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, DiagnosticRunParams,
     EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewaySelectionAlgorithm,
-    GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, NetworkCompatibility,
-    ParsedAccountLinks, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState,
-    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    GeoExclusionSettings, GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig,
+    NetworkCompatibility, ParsedAccountLinks, RegisterAccountRequest, RegisterAccountResponse,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
+    TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -129,6 +129,15 @@ impl NymVpnServiceCommandSender {
     pub async fn set_residential_exit(&self, residential_exit: bool) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetResidentialExit, residential_exit)
             .await
+    }
+
+    pub async fn set_geo_exclusion(&self, geo_exclusion: GeoExclusionSettings) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetGeoExclusion, geo_exclusion)
+            .await?
+            .map_err(|_| {
+                NymVpnServiceCommandInnerError::Internal("Failed to set geo exclusion settings")
+            })?;
+        Ok(())
     }
 
     pub async fn set_enable_custom_dns(&self, enable_custom_dns: bool) -> Result<()> {
