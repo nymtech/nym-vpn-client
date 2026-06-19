@@ -26,9 +26,9 @@ CORE_NIGHTLY_VERSION=""
 APP_NIGHTLY_VERSION=""
 APPLE_NIGHTLY_VERSION=""
 
-if [ "$SHIP" = "true" ]; then
+if [[ "$SHIP" == "true" ]]; then
   if [[ "$CORE_VERSION" == *beta* ]]; then
-    echo "::error:: refusing to ship a beta version: ${CORE_VERSION}"
+    echo "::error:: refusing to ship a beta version: ${CORE_VERSION}" >&2
     exit 1
   fi
   TAG="nym-vpn-v${CORE_VERSION}"
@@ -38,14 +38,14 @@ else
   # nightly release + tag are deleted in ensure-release.sh.
   TAG="nym-vpn-nightly-$(date -u +%Y%m%d%H%M%S)"
 
-  if [ "${GITHUB_EVENT_NAME:-}" = "schedule" ]; then NIGHTLY_LABEL="nightly"; else NIGHTLY_LABEL="dev"; fi
+  if [[ "${GITHUB_EVENT_NAME:-}" == "schedule" ]]; then NIGHTLY_LABEL="nightly"; else NIGHTLY_LABEL="dev"; fi
   STAMP="$(date -u +%Y%m%d%H%M)"
   CORE_BASE="$(cargo-get workspace.package.version --major --minor --patch --delimiter='.' --entry "$CARGO_ENTRY")"
   APP_BASE="$(cargo-get package.version --major --minor --patch --delimiter='.' --entry "$APP_CARGO_ENTRY")"
   APPLE_BASE="$(grep -oE 'MARKETING_VERSION = [^;]+' "$APPLE_PBXPROJ" \
     | sed -E 's/.*= *//' | sort | uniq -c | sort -rn | head -1 | sed -E 's/^ *[0-9]+ +//')"
-  if [ -z "$APPLE_BASE" ]; then
-    echo "::error:: could not resolve apple MARKETING_VERSION from ${APPLE_PBXPROJ}"
+  if [[ -z "$APPLE_BASE" ]]; then
+    echo "::error:: could not resolve apple MARKETING_VERSION from ${APPLE_PBXPROJ}" >&2
     exit 1
   fi
   CORE_NIGHTLY_VERSION="${CORE_BASE}-${NIGHTLY_LABEL}.${STAMP}"

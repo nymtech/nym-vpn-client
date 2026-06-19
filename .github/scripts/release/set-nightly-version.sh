@@ -15,7 +15,7 @@
 #   VERSION_KEY      toml key to set (workspace.package.version | package.version)
 set -euo pipefail
 
-if [ -z "${NIGHTLY_VERSION:-}" ]; then
+if [[ -z "${NIGHTLY_VERSION:-}" ]]; then
   echo "::notice:: no nightly version provided; leaving ${CARGO_TOML:-Cargo.toml} unchanged"
   exit 0
 fi
