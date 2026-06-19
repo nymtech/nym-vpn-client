@@ -13,6 +13,7 @@ use crate::{
         syncing_state::{SyncMode, SyncingNetworkState},
     },
 };
+use futures::{FutureExt, future::Fuse};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -57,7 +58,7 @@ const SUMMARY_STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 /// - OfflineState : the connectivity monitor is telling we're not connected
 /// - DecentralisedState : The loaded account is set to "decentralised" mode
 pub(crate) struct SyncingLocalState {
-    result_rx: oneshot::Receiver<Result<bool, SyncError>>,
+    result_rx: Fuse<oneshot::Receiver<Result<bool, SyncError>>>,
     sync_cancel_token: Option<DropGuard>,
 }
 
@@ -110,7 +111,7 @@ impl SyncingLocalState {
 
         (
             Box::new(Self {
-                result_rx,
+                result_rx: result_rx.fuse(),
                 sync_cancel_token: Some(sync_cancel_token.drop_guard()),
             }),
             PrivateAccountControllerState::Syncing,
@@ -190,8 +191,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                 }
             }
 
-            sync_result = &mut self.result_rx, if self.sync_cancel_token.is_some() => {
-            // Guard against double poll. If the dropguard is gone, the tx part was dropped and we should not poll again
+            sync_result = &mut self.result_rx => {
                 match sync_result {
                     Ok(Ok(device_registration)) => {
                         // If we just registered the device, reflect that in the cached summary
