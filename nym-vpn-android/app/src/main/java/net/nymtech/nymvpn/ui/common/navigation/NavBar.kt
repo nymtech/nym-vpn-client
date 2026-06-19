@@ -200,6 +200,14 @@ fun NavBar(
 				titleRes = R.string.settings_notifications_title,
 				onBack = { navController.safePopBackStack() },
 			)
+			route.startsWith(Route.GeoExclusion::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.settings_geo_exclusion_title,
+				onBack = { navController.safePopBackStack() },
+			)
+			route.startsWith(Route.Setup::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.setup_instructions_title,
+				onBack = { navController.safePopBackStack() },
+			)
 
 			else -> NavBarState.Hidden
 		}

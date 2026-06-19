@@ -219,6 +219,9 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 			onMixnetTuningClick = {
 				navController.navigate(Route.MixnetTuning)
 			},
+			onGeoExclusionClick = {
+				navController.navigate(Route.GeoExclusion)
+			},
 		),
 	)
 }

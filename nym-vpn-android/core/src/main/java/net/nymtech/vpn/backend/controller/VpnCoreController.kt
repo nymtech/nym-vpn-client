@@ -29,6 +29,7 @@ import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewaySelectionAlgorithmConfig
+
 import nym_vpn_lib_types.FrontingMode
 import nym_vpn_lib_types.GatewayIndependence
 import nym_vpn_lib_types.MixnetEvent
@@ -423,6 +424,20 @@ class VpnCoreController(
 		}
 		if (force || prev?.nodeFamiliesNotificationsEnabled != cfg.nodeFamiliesNotificationsEnabled) {
 			sender.setEnableGatewayIndependence(cfg.nodeFamiliesNotificationsEnabled)
+		}
+
+		applyGeoExclusionToSender(sender, force, prev, cfg)
+	}
+
+	private suspend fun applyGeoExclusionToSender(sender: NymVpnServiceCommandSender, force: Boolean, prev: CoreVpnConfig?, cfg: CoreVpnConfig) {
+		if (force || prev?.geoExclusionEnabled != cfg.geoExclusionEnabled) {
+			sender.setGeoExclusionEnabled(cfg.geoExclusionEnabled)
+		}
+		if (force || prev?.geoExclusionPort != cfg.geoExclusionPort) {
+			sender.setGeoExclusionListenPort(cfg.geoExclusionPort.coerceIn(UShort.MIN_VALUE.toInt(), UShort.MAX_VALUE.toInt()).toUShort())
+		}
+		if (force || prev?.geoExclusionCountries != cfg.geoExclusionCountries) {
+			sender.setGeoExclusionExcludedCountries(cfg.geoExclusionCountries)
 		}
 	}
 
