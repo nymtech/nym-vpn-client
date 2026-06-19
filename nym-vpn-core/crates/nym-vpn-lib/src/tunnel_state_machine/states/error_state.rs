@@ -114,6 +114,10 @@ impl ErrorState {
                 shared_state.disallow_networking().await;
             } else {
                 shared_state.allow_networking().await;
+                shared_state
+                    .gateway_provider
+                    .set_active_geo_location(true)
+                    .await;
             }
 
             firewall_policy_params
