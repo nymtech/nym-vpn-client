@@ -95,7 +95,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -157,7 +157,7 @@ jobs:
       - name: Create release with fastlane changelog notes
         id: create_release
         if: ${{ inputs.version_tag == '' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -175,7 +175,7 @@ jobs:
       - name: Append checksum
         id: append_checksum
         if: ${{ inputs.version_tag == '' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -283,7 +283,7 @@ jobs:
 
       - name: Decode Keystore
         id: decode_keystore
-        uses: timheuer/base64-to-file@v1.2
+        uses: timheuer/base64-to-file@v2.0
         with:
           fileName: "android_keystore.jks"
           encodedString: ${{ secrets.ANDROID_KEYSTORE }}
@@ -326,7 +326,7 @@ jobs:
       RUBYOPT: "-rresolv-replace"
       BUNDLE_TIMEOUT: "120"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
@@ -385,7 +385,7 @@ jobs:
 
       - name: Decode Keystore
         id: decode_keystore
-        uses: timheuer/base64-to-file@v1.2
+        uses: timheuer/base64-to-file@v2.0
         with:
           fileName: ${{ env.KEY_STORE_FILE }}
           fileDir: ${{ env.KEY_STORE_LOCATION }}

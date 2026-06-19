@@ -62,7 +62,7 @@ jobs:
     runs-on: arc-linux-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -154,7 +154,7 @@ jobs:
       UPLOAD_DIR_DEB_AARCH64: deb_artifacts-aarch64
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -318,7 +318,7 @@ jobs:
     permissions: write-all
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -467,7 +467,7 @@ jobs:
       - name: Create release
         id: create_release
         if: ${{ inputs.version_tag == '' && env.RELEASE_TYPE != 'dev' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           body: ${{ env.RELEASE_NOTES }}

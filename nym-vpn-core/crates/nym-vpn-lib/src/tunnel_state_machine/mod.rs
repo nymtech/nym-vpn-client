@@ -63,6 +63,8 @@ use tokio_util::sync::CancellationToken;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
@@ -776,6 +778,9 @@ pub struct SharedState {
     topology_service: VpnTopologyServiceHandle,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     user_agent: UserAgent,
+    /// API endpoints resolved in connecting state and used for configuring a bypass in error state.
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    resolved_api_endpoints: Option<ResolvedConfig>,
     #[cfg(not(target_os = "ios"))]
     shutdown_token: CancellationToken,
 }
@@ -1116,6 +1121,8 @@ impl TunnelStateMachine {
             topology_service,
             discovery_refresher_command_tx,
             user_agent,
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            resolved_api_endpoints: None,
             #[cfg(not(target_os = "ios"))]
             shutdown_token: shutdown_token.clone(),
         };
