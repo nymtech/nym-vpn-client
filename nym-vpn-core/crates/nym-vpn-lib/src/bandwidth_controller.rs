@@ -555,12 +555,16 @@ struct SystemBandwidthMonitor<N = Networks> {
 }
 
 impl SystemBandwidthMonitor {
-    pub fn new(interface_name: Option<String>, threshold: u64) -> Self {
+    pub fn new(threshold: u64) -> Self {
         Self {
             networks: Networks::new_with_refreshed_list(),
-            interface_name,
+            interface_name: None,
             threshold,
         }
+    }
+
+    pub fn set_interface_name(&mut self, interface_name: Option<String>) {
+        self.interface_name = interface_name;
     }
 }
 
@@ -977,10 +981,8 @@ impl BandwidthController {
     }
 
     pub(crate) async fn run(mut self) {
-        let mut system_bandwidth_monitor = SystemBandwidthMonitor::new(
-            self.wg_exit_gateway_client.interface_name().await,
-            SYSTEM_BANDWIDTH_THRESHOLD,
-        );
+        let mut system_bandwidth_monitor = SystemBandwidthMonitor::new(SYSTEM_BANDWIDTH_THRESHOLD);
+        let mut system_bandwidth_monitor_interface_set = false;
         let mut system_bandwidth_check_interval =
             IntervalStream::new(tokio::time::interval(SYSTEM_BANDWIDTH_CHECK_INTERVAL));
 
@@ -991,6 +993,10 @@ impl BandwidthController {
                 _ = self.shutdown_token.cancelled() => {
                     tracing::trace!("BandwidthController: Received shutdown");
                     break;
+                }
+                exit_interface_name = self.wg_exit_gateway_client.interface_name(), if !system_bandwidth_monitor_interface_set => {
+                    system_bandwidth_monitor_interface_set = true;
+                    system_bandwidth_monitor.set_interface_name(exit_interface_name);
                 }
                 _ = system_bandwidth_check_interval.next() => {
                     if system_bandwidth_monitor.force_bandwidth_checks().await && self.timeout_check_interval.as_ref().period() > LOWER_BOUND_CHECK_DURATION {
