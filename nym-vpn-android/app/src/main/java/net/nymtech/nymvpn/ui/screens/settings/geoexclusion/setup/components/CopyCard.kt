@@ -52,7 +52,7 @@ fun CopyCard(title: String, value: String, onClick: () -> Unit, modifier: Modifi
 					contentDescription = title,
 					modifier = Modifier
 						.padding(start = 8.dp)
-						.size(16.dp)
+						.size(20.dp)
 						.clickable { onClick() },
 					tint = MaterialTheme.colorScheme.primary,
 				)

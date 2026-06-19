@@ -60,7 +60,7 @@ fun Socks5AddressCard(proxyAddress: String, onCopy: () -> Unit, portInput: Strin
 				Spacer(Modifier.width(8.dp))
 				Icon(
 					imageVector = Icons.Outlined.ContentCopy,
-					contentDescription = "Copy proxy address",
+					contentDescription = stringResource(R.string.geo_exclusion_copy_proxy_label),
 					modifier = Modifier
 						.size(16.dp)
 						.clickable { onCopy() },

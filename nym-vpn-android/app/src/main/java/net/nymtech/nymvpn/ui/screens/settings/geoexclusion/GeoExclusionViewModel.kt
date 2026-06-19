@@ -27,7 +27,7 @@ class GeoExclusionViewModel @Inject constructor(private val vpnConfigRepository:
 			_failedToStart.value = false
 		}.onFailure {
 			Timber.tag(TAG).e(it, "Failed to update geo exclusion enabled")
-			_failedToStart.value = true
+			if (enabled) _failedToStart.value = true
 		}
 	}
 

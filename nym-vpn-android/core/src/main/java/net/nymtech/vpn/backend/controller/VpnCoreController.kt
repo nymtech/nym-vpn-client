@@ -434,7 +434,7 @@ class VpnCoreController(
 			sender.setGeoExclusion(
 				GeoExclusionSettings(
 					enabled = cfg.geoExclusionEnabled,
-					listenPort = cfg.geoExclusionPort.toUShort(),
+					listenPort = cfg.geoExclusionPort.coerceIn(UShort.MIN_VALUE.toInt(), UShort.MAX_VALUE.toInt()).toUShort(),
 					excludedCountries = cfg.geoExclusionCountries,
 				),
 			)

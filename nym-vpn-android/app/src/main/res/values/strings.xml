@@ -565,11 +565,12 @@
 	<string name="geo_exclusion_error_sock55_text">SOCKS5 proxy not detected. Check your port settings.</string>
 	<string name="geo_exclusion_error_failed_start_title">Feature failed to start</string>
 	<string name="geo_exclusion_error_failed_start_text">Geo Exclusion couldn\'t start. Reconnect and try again.</string>
-	<string name="geo_exclusion_error_ivalid_port_text">Port must be between 1024 and 65535.</string>
+	<string name="geo_exclusion_error_invalid_port_text">Port must be between 1024 and 65535.</string>
 	<string name="geo_exclusion_error_forbidden_port_text">Port 1080 is forbidden. Choose another.</string>
 	<string name="geo_exclusion_excluded_regions_label">EXCLUDED REGIONS</string>
 	<string name="geo_exclusion_china">China</string>
 	<string name="geo_exclusion_add_region_button">Add region</string>
+	<string name="geo_exclusion_copy_proxy_label">Copy proxy address</string>
 	<!-- Setup instructions screen -->
 	<string name="setup_instructions_title">Setup instructions</string>
 	<string name="setup_instructions_description">Configure apps and browsers to route traffic through the Nym SOCKS5 proxy.</string>

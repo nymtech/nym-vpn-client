@@ -87,7 +87,7 @@ fun GeoExclusionScreen(appUiState: AppUiState, viewModel: GeoExclusionViewModel 
 				}
 				null, !in PORT_MIN..PORT_MAX -> {
 					portInput = lastValidPort
-					portError = R.string.geo_exclusion_error_ivalid_port_text
+					portError = R.string.geo_exclusion_error_invalid_port_text
 				}
 				else -> {
 					lastValidPort = portInput.trim()
