@@ -1243,34 +1243,42 @@ jobs:
             - Commit: ${{ github.sha }}
             - Built at: ${{ github.run_started_at }}
 
-      - name: Append macOS pkg to unified release
+      - name: Stage appcast item asset for unified release
         if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION_TAG: ${{ inputs.version_tag }}
         run: |
           set -euo pipefail
           # Carry the Sparkle appcast <item> as a release asset so the deferred
           # nym-websites PR (opened post-publish by on-release-publish.yml) can recover
           # it. Version is in the asset name → that job needs no unified->macOS mapping.
           cp "${{ env.APPCAST_ITEM_RELATIVE_PATH }}" "appcast-item-${{ env.MACOS_VERSION }}.xml"
-          files=( \
-            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg \
-            nym-vpn-apple/build/pkg/publish/sha256-hash.txt \
-            "appcast-item-${{ env.MACOS_VERSION }}.xml" \
-          )
-          # Append to the (ship) draft. No --clobber: gh refuses a duplicate.
-          gh release upload "$VERSION_TAG" "${files[@]}"
+
+      - name: Append macOS pkg to unified release
+        if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Append to the (ship) draft; keep it a draft until the release is finalized.
+          tag_name: ${{ inputs.version_tag }}
+          draft: true
+          fail_on_unmatched_files: true
+          files: |
+            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg
+            nym-vpn-apple/build/pkg/publish/sha256-hash.txt
+            appcast-item-${{ env.MACOS_VERSION }}.xml
 
       - name: Append macOS pkg to unified nightly release
         if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        uses: softprops/action-gh-release@v2
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION_TAG: ${{ inputs.version_tag }}
-        run: |
-          set -euo pipefail
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
           # Append the qa pkg to the fresh nightly draft (finalize-nightly publishes it).
-          gh release upload "$VERSION_TAG" "$renamed_pkg_relative_path"
+          tag_name: ${{ inputs.version_tag }}
+          draft: true
+          prerelease: true
+          fail_on_unmatched_files: true
+          files: ${{ env.renamed_pkg_relative_path }}
 
       - name: Upload artifacts (Ship + appcast + hash)
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
