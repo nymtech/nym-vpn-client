@@ -100,7 +100,7 @@ impl ConnectingState {
 
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
-            trace_err_chain!(e, "Failed to configure system to use filtering resolver",);
+            trace_err_chain!(e, "Failed to configure system to use filtering resolver");
             return ErrorState::enter(ErrorStateReason::SetDns, shared_state).await;
         }
 
@@ -326,6 +326,10 @@ impl ConnectingState {
         HickoryDnsResolver::shared().set_static_preresolve(resolved_gateway_config.addr_map());
 
         self.firewall_policy_params.api_endpoints = resolved_gateway_config.all_socket_addrs();
+
+        // Store resolved API endpoints for reuse in error state to enable API communication while blocking network.
+        shared_state.resolved_api_endpoints = Some(resolved_gateway_config);
+
         if let Err(err) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
             trace_err_chain!(err, "failed to set firewall policy");
             return NextTunnelState::NewState(
