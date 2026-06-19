@@ -185,7 +185,7 @@ jobs:
       - name: Decode Keystore
         if: ${{ inputs.build_type != 'debug' }}
         id: decode_keystore
-        uses: timheuer/base64-to-file@v1.2
+        uses: timheuer/base64-to-file@v2.0
         with:
           fileName: ${{ env.KEY_STORE_FILE }}
           fileDir: ${{ env.KEY_STORE_LOCATION }}
