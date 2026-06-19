@@ -126,7 +126,10 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), GeoExclusionConfigError>>,
         Vec<String>,
     ),
-    SetGeoExclusion(oneshot::Sender<Result<(), GeoExclusionConfigError>>, GeoExclusionSettings),
+    SetGeoExclusion(
+        oneshot::Sender<Result<(), GeoExclusionConfigError>>,
+        GeoExclusionSettings,
+    ),
     EnableSocks5(
         oneshot::Sender<Result<(), Socks5Error>>,
         EnableSocks5Request,
