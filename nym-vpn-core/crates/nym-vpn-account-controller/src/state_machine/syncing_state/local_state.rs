@@ -190,7 +190,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                 }
             }
 
-            sync_result = &mut self.result_rx => {
+            sync_result = &mut self.result_rx, if self.sync_cancel_token.is_some() => {
+            // Guard against double poll. If the dropguard is gone, the tx part was dropped and we should not poll again
                 match sync_result {
                     Ok(Ok(device_registration)) => {
                         // If we just registered the device, reflect that in the cached summary
