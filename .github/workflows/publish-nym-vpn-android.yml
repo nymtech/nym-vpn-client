@@ -103,8 +103,6 @@ jobs:
         run: |
           sudo apt update && sudo apt install -y gettext-base gh zip apksigner rsync
 
-      # TODO(release-all-platforms): Set version for nightly builds.
-
       - name: Get version code
         run: |
           version_code=$(grep "VERSION_CODE" ${{ github.workspace }}/nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt | awk '{print $5}' | tr -d '\n')
