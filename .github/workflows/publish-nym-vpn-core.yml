@@ -13,6 +13,10 @@ on:
         description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
         type: string
         default: ""
+      nightly_version:
+        description: "Precomputed nightly Cargo version (computed once in release-all-platforms.yml; empty = keep real version)"
+        type: string
+        default: ""
 
 env:
   CARGO_TERM_COLOR: always
@@ -32,6 +36,8 @@ jobs:
   # (the .deb step reuses the release build, so there is no second compile).
   build-nym-vpn-core-linux:
     uses: ./.github/workflows/build-nym-vpn-core-linux.yml
+    with:
+      nightly_version: ${{ inputs.nightly_version }}
     secrets:
       VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -39,6 +45,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
     with:
       cpu_arch: x64
+      nightly_version: ${{ inputs.nightly_version }}
     secrets:
       VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -46,6 +53,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
     with:
       cpu_arch: ARM64
+      nightly_version: ${{ inputs.nightly_version }}
     secrets:
       VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -104,20 +112,11 @@ jobs:
           crate: cargo-edit
 
       - name: Set version for nightly builds
-        working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' }}
-        run: |
-          if [ ${{ github.event_name }} = 'schedule' ]; then
-            TAG="nightly"
-          else
-            TAG="dev"
-          fi
-          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
-          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
-          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
-          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
-          mv Cargo-patched.toml Cargo.toml
-          cargo update --dry-run
+        env:
+          NIGHTLY_VERSION: ${{ inputs.nightly_version }}
+          CARGO_TOML: nym-vpn-core/Cargo.toml
+          VERSION_KEY: workspace.package.version
+        run: bash .github/scripts/release/set-nightly-version.sh
 
       - name: Get nym-vpn-core workspace version (post-append)
         id: workspace-version

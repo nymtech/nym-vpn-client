@@ -168,6 +168,8 @@ jobs:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
 
+      # TODO(release-all-platforms): Set version for nightly builds.
+
       - name: Get workspace version
         id: workspace-version
         uses: nicolaiunrein/cargo-get@master

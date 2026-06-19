@@ -18,6 +18,10 @@ on:
         required: true
         type: boolean
         default: false
+      nightly_version:
+        description: "Precomputed nightly Cargo version (computed once in release-all-platforms.yml; empty = keep real version)"
+        type: string
+        default: ""
     secrets:
       TAURI_PRIVATE_KEY:
         required: true
@@ -84,6 +88,18 @@ jobs:
         with:
           version: "21.12" # version on ubuntu 24.04
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install toml
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: toml-cli
+
+      - name: Set version for nightly builds
+        env:
+          NIGHTLY_VERSION: ${{ inputs.nightly_version }}
+          CARGO_TOML: nym-vpn-app/src-tauri/Cargo.toml
+          VERSION_KEY: package.version
+        run: bash .github/scripts/release/set-nightly-version.sh
 
       - name: Get package version
         id: package-version

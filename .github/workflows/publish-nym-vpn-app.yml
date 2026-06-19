@@ -33,6 +33,10 @@ on:
         description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
         type: string
         default: ""
+      nightly_version:
+        description: "Precomputed nightly Cargo version (computed once in release-all-platforms.yml; empty = keep real version)"
+        type: string
+        default: ""
       linux:
         type: boolean
         default: false
@@ -99,6 +103,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true }}
+      nightly_version: ${{ inputs.nightly_version }}
     secrets: inherit
   build-windows-x64:
     needs: download-translations
@@ -106,6 +111,7 @@ jobs:
     with:
       cpu_arch: x64
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
+      nightly_version: ${{ inputs.nightly_version }}
       core_build_it: ${{ inputs.core_release_tag == '' }}
       core_release_tag: ${{ inputs.core_release_tag }}
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
@@ -119,6 +125,7 @@ jobs:
     with:
       cpu_arch: ARM64
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
+      nightly_version: ${{ inputs.nightly_version }}
       core_build_it: ${{ inputs.core_release_tag == '' }}
       core_release_tag: ${{ inputs.core_release_tag }}
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
@@ -330,6 +337,18 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
+
+      - name: Install toml
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: toml-cli
+
+      - name: Set version for nightly builds
+        env:
+          NIGHTLY_VERSION: ${{ inputs.nightly_version }}
+          CARGO_TOML: nym-vpn-app/src-tauri/Cargo.toml
+          VERSION_KEY: package.version
+        run: bash .github/scripts/release/set-nightly-version.sh
 
       - name: Get package version
         id: cargo-get

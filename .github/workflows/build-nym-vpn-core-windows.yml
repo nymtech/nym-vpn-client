@@ -22,6 +22,10 @@ on:
         required: false
         default: x64
         type: string
+      nightly_version:
+        description: "Precomputed nightly Cargo version (computed once in release-all-platforms.yml; empty = keep real version)"
+        type: string
+        default: ""
     secrets:
       VPND_SENTRY_DSN:
         required: true
@@ -102,20 +106,11 @@ jobs:
 
       - name: Set version for nightly builds
         shell: bash
-        working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' }}
-        run: |
-          if [ ${{ github.event_name }} = 'schedule' ]; then
-            TAG="nightly"
-          else
-            TAG="dev"
-          fi
-          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
-          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
-          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
-          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
-          mv Cargo-patched.toml Cargo.toml
-          cargo update --dry-run
+        env:
+          NIGHTLY_VERSION: ${{ inputs.nightly_version }}
+          CARGO_TOML: nym-vpn-core/Cargo.toml
+          VERSION_KEY: workspace.package.version
+        run: bash .github/scripts/release/set-nightly-version.sh
 
       - name: Download wireguard-go-windows artifacts
         uses: actions/download-artifact@v8
