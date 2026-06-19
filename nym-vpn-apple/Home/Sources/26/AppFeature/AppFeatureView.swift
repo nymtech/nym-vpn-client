@@ -1,6 +1,9 @@
 import SwiftUI
 import AccountPrefetchGates
 import AppSettings
+#if os(iOS)
+import KeyboardManager
+#endif
 import ConfigurationManager
 import ConnectionManager
 import CredentialsManager

@@ -52,7 +52,7 @@ public final class ProcessingAccountViewModel {
         processingTask?.cancel()
         processingTask = Task { @MainActor [weak self] in
             guard let self else { return }
-            let credentials = credentialsManager
+            let credentials = self.credentialsManager
             let runFlow = {
                 await AccountPrefetchOrchestrator.runProcessingFlow(
                     isAccountActive: { await credentials.isAccountActive() },
@@ -66,7 +66,7 @@ public final class ProcessingAccountViewModel {
             }
 
             do {
-                if flow == .login {
+                if self.flow == .login {
                     _ = try await LoginProcessingOrchestrator.run(
                         ensureCredentialImportResolved: {
                             await credentials.ensureCredentialImportResolved()

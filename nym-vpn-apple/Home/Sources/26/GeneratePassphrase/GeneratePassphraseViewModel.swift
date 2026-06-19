@@ -71,9 +71,9 @@ public final class GeneratePassphraseViewModel {
             guard let self else { return }
             let outcome = await AuthCompletionOutcomeResolver.resolve(
                 flow: .createAccount,
-                isAccountActive: { credentialsManager.isAccountActive() },
+                isAccountActive: { self.credentialsManager.isAccountActive() },
                 updateAccountSummary: { untilActive in
-                    await credentialsManager.updateAccountSummary(
+                    await self.credentialsManager.updateAccountSummary(
                         force: true,
                         untilActive: untilActive
                     )

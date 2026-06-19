@@ -50,9 +50,9 @@ public final class PassphraseSignInViewModel {
                 passphraseText = ""
                 let outcome = await AuthCompletionOutcomeResolver.resolve(
                     flow: .login,
-                    isAccountActive: { credentialsManager.isAccountActive() },
+                    isAccountActive: { self.credentialsManager.isAccountActive() },
                     updateAccountSummary: { untilActive in
-                        await credentialsManager.updateAccountSummary(
+                        await self.credentialsManager.updateAccountSummary(
                             force: true,
                             untilActive: untilActive
                         )

@@ -261,9 +261,9 @@ import GRPCManager
     func resolveAuthCompletionOutcome(for flow: AuthFlowKind) async -> AuthCompletionOutcome {
         await AuthCompletionOutcomeResolver.resolve(
             flow: flow,
-            isAccountActive: { credentialsManager.isAccountActive() },
+            isAccountActive: { self.credentialsManager.isAccountActive() },
             updateAccountSummary: { untilActive in
-                await credentialsManager.updateAccountSummary(
+                await self.credentialsManager.updateAccountSummary(
                     force: true,
                     untilActive: untilActive
                 )
