@@ -19,10 +19,8 @@ pub mod error;
 
 #[derive(Clone)]
 pub enum TunUpSendData {
-    #[cfg(not(target_os = "windows"))]
     InterfaceName(String),
     TcpProxy(SocketAddr),
-    Signal,
 }
 
 pub type TunUpSender = tokio::sync::oneshot::Sender<TunUpSendData>;
@@ -31,6 +29,7 @@ pub type TunUpReceiver = tokio::sync::oneshot::Receiver<TunUpSendData>;
 #[derive(Debug, Clone)]
 struct LazyMetadataClient {
     inner: nym_http_api_client::Client,
+    interface_name: Option<String>,
     version: Version,
 }
 
@@ -41,11 +40,15 @@ impl LazyMetadataClient {
         retries: usize,
         sent_data: TunUpSendData,
     ) -> Result<Self> {
+        let mut interface_name = None;
         let reqwest_builder = ReqwestClientBuilder::new();
         let reqwest_builder = match sent_data {
-            #[cfg(not(target_os = "windows"))]
             TunUpSendData::InterfaceName(interface) => {
-                reqwest_builder.interface(&interface).local_address(bind_ip)
+                #[cfg(target_os = "linux")]
+                let reqwest_builder = reqwest_builder.interface(&interface);
+
+                interface_name = Some(interface.clone());
+                reqwest_builder.local_address(bind_ip)
             }
             TunUpSendData::TcpProxy(tcp_proxy) => {
                 base_url.set_ip_host(tcp_proxy.ip()).map_err(|_| {
@@ -58,7 +61,6 @@ impl LazyMetadataClient {
 
                 reqwest_builder
             }
-            _ => reqwest_builder.local_address(bind_ip),
         };
 
         let inner = nym_http_api_client::Client::builder(base_url)
@@ -71,7 +73,11 @@ impl LazyMetadataClient {
             .map_err(Box::new)?;
         let version = inner.version().await.map_err(Box::new)?;
 
-        Ok(Self { inner, version })
+        Ok(Self {
+            inner,
+            interface_name,
+            version,
+        })
     }
 }
 
@@ -128,6 +134,14 @@ impl MetadataClient {
 
     pub fn gateway_id(&self) -> NodeIdentity {
         self.gateway_id
+    }
+
+    pub async fn interface_name(&mut self) -> Option<String> {
+        self.lazy_client()
+            .await
+            .as_ref()
+            .ok()
+            .and_then(|client| client.interface_name.clone())
     }
 
     fn print_remaining_bandwidth(

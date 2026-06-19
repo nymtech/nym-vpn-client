@@ -7264,6 +7264,7 @@ dependencies = [
  "socket2 0.6.3",
  "sqlx",
  "strum",
+ "sysinfo 0.39.1",
  "tempfile",
  "thiserror 2.0.18",
  "time",
