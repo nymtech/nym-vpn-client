@@ -516,20 +516,30 @@ impl TemporaryBandwidthClient {
     }
 }
 
-trait NetworksSource {
-    fn refresh(&mut self, remove_not_listed_interfaces: bool);
-    fn list(&self) -> Vec<(String, u64, u64)>;
+struct InterfaceStats {
+    interface_name: String,
+    received: u64,
+    transmitted: u64,
 }
 
-impl NetworksSource for Networks {
+trait NetworkInterfaceStats {
+    fn refresh(&mut self, remove_not_listed_interfaces: bool);
+    fn list(&self) -> Vec<InterfaceStats>;
+}
+
+impl NetworkInterfaceStats for Networks {
     fn refresh(&mut self, remove_not_listed_interfaces: bool) {
         Networks::refresh(self, remove_not_listed_interfaces);
     }
 
-    fn list(&self) -> Vec<(String, u64, u64)> {
+    fn list(&self) -> Vec<InterfaceStats> {
         Networks::list(self)
             .iter()
-            .map(|(name, data)| (name.clone(), data.received(), data.transmitted()))
+            .map(|(name, data)| InterfaceStats {
+                interface_name: name.clone(),
+                received: data.received(),
+                transmitted: data.transmitted(),
+            })
             .collect()
     }
 }
@@ -554,7 +564,7 @@ impl SystemBandwidthMonitor {
     }
 }
 
-impl<N: NetworksSource> SystemBandwidthMonitor<N> {
+impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
     pub async fn force_bandwidth_checks(&mut self) -> bool {
         self.networks.refresh(true);
         let total_network_usage: u64 = self
@@ -563,7 +573,11 @@ impl<N: NetworksSource> SystemBandwidthMonitor<N> {
             .into_iter()
             .filter_map(
                 // if interface name is specified, only consider that interface, otherwise consider all interfaces
-                |(interface_name, received, transmitted)| match self.interface_name.as_ref() {
+                |InterfaceStats {
+                     interface_name,
+                     received,
+                     transmitted,
+                 }| match self.interface_name.as_ref() {
                     Some(target) => {
                         if &interface_name == target {
                             Some(received + transmitted)
@@ -1048,20 +1062,24 @@ mod tests {
         }
     }
 
-    impl NetworksSource for MockNetworks {
+    impl NetworkInterfaceStats for MockNetworks {
         fn refresh(&mut self, _remove_not_listed_interfaces: bool) {
             self.refresh_count += 1;
         }
 
-        fn list(&self) -> Vec<(String, u64, u64)> {
+        fn list(&self) -> Vec<InterfaceStats> {
             self.data
                 .iter()
-                .map(|(name, &(rx, tx))| (name.clone(), rx, tx))
+                .map(|(name, &(received, transmitted))| InterfaceStats {
+                    interface_name: name.clone(),
+                    received,
+                    transmitted,
+                })
                 .collect()
         }
     }
 
-    impl<N: NetworksSource> SystemBandwidthMonitor<N> {
+    impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
         fn with_networks(interface_name: Option<String>, threshold: u64, networks: N) -> Self {
             Self {
                 networks,
