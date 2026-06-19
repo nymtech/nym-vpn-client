@@ -1,11 +1,11 @@
 import SwiftUI
+import AccountPrefetchGates
 
 public class SettingsFlowState: ObservableObject {
     @Published var presentedItem: SettingLink?
 
     @Binding var path: NavigationPath
-    public var onPurchaseFlowComplete: (() -> Void)?
-    public var onPurchaseFlowDismissed: (() -> Void)?
+    public var onSessionEvent: ((SessionEvent) -> Void)?
 
     public init(path: Binding<NavigationPath>) {
         _path = path

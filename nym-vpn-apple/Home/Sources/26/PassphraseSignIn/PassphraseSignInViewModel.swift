@@ -19,9 +19,7 @@ public final class PassphraseSignInViewModel {
 
     private let credentialsManager: CredentialsManager
     @ObservationIgnored private var loginTask: Task<Void, Never>?
-    @ObservationIgnored public var onWillRegister: (() -> Void)?
-    @ObservationIgnored public var onAuthHandoffCancelled: (() -> Void)?
-    @ObservationIgnored public var onAuthCompleted: ((AuthCompletionOutcome) -> Void)?
+    @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
 
     var passphraseText: String = "" {
         didSet {
@@ -45,7 +43,9 @@ public final class PassphraseSignInViewModel {
         loginTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
-                onWillRegister?()
+                sessionCoordinator?.handleSessionEvent(
+                    .authWillBegin(flow: .login, completesOnCredentialImport: false)
+                )
                 try await credentialsManager.performAccountRegistration(loginCredential: credential)
                 passphraseText = ""
                 let outcome = await AuthCompletionOutcomeResolver.resolve(
@@ -59,11 +59,13 @@ public final class PassphraseSignInViewModel {
                     }
                 )
                 submissionState = .idle
-                onAuthCompleted?(outcome)
+                sessionCoordinator?.handleSessionEvent(
+                    .authCompleted(outcome: outcome, flow: .login)
+                )
             } catch is CancellationError {
-                onAuthHandoffCancelled?()
+                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
             } catch let error as VPNErrorReason {
-                onAuthHandoffCancelled?()
+                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(
                     SnackbarItem(
@@ -73,7 +75,7 @@ public final class PassphraseSignInViewModel {
                     )
                 )
             } catch {
-                onAuthHandoffCancelled?()
+                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(
                     SnackbarItem(

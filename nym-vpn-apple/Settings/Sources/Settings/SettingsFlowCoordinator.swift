@@ -47,12 +47,16 @@ struct SettingsFlowCoordinator<Content: View>: View {
             GeneratePassphraseView(
                 path: $flowState.path,
                 displayPurchaseView: displayPurchaseView,
-                onPurchaseFlowDismissed: flowState.onPurchaseFlowDismissed
+                onPurchaseFlowDismissed: {
+                    flowState.onSessionEvent?(.checkoutDismissed)
+                }
             )
         case .processingAccount:
             ProcessingAccountView(
                 path: $flowState.path,
-                onPurchaseFlowComplete: flowState.onPurchaseFlowComplete
+                onPurchaseFlowComplete: {
+                    flowState.onSessionEvent?(.checkoutCompleted)
+                }
             )
         case .passphrase:
             PassphraseView(path: $flowState.path)

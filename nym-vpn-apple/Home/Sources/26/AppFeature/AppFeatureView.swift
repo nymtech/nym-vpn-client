@@ -1,7 +1,5 @@
 import SwiftUI
-#if os(iOS)
-import KeyboardManager
-#endif
+import AccountPrefetchGates
 import AppSettings
 import ConfigurationManager
 import ConnectionManager
@@ -129,7 +127,12 @@ public struct AppFeatureView: View {
         }
         .nymSnackbar(manager: viewModel.snackbarManager)
         .preferredColorScheme(appearance.colorScheme)
-        .onAppear { wireOneClickNavigation() }
+        .onAppear { wireMacOSDaemonNavigation() }
+        .onChange(of: viewModel.planPurchaseNavigationToken) { _, _ in
+            guard viewModel.navigationIntent == .pushPlanPurchase else { return }
+            pushPlanPurchaseNavigation()
+            viewModel.consumeNavigationIntent()
+        }
         .onChange(of: isCredentialImported) { _, newValue in
             viewModel.handleCredentialChange(imported: newValue)
         }
@@ -176,26 +179,24 @@ public struct AppFeatureView: View {
 #endif
 
 private extension AppFeatureView {
-    func wireOneClickNavigation() {
-        let pushPlanPurchase: () -> Void = { [weak viewModel] in
-            guard let viewModel else { return }
-            withAnimation(.easeInOut(duration: 0.35)) {
-                viewModel.path.append(HomeLink.settings)
-                viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
-            }
+    func pushPlanPurchaseNavigation() {
+        withAnimation(.easeInOut(duration: 0.35)) {
+            viewModel.path.append(HomeLink.settings)
+            viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
         }
-        viewModel.onRequestPlanPurchase = pushPlanPurchase
-        viewModel.oneClick.onRequestPlanPurchase = { [weak viewModel] in
-            viewModel?.requestPlanPurchaseTransition()
-        }
+    }
+
 #if os(macOS)
+    func wireMacOSDaemonNavigation() {
         viewModel.oneClick.onRequestDaemonEnable = { [weak viewModel] in
             guard let viewModel else { return }
             viewModel.path.append(HomeLink.settings)
             viewModel.path.append(SettingLink.daemonEnable)
         }
-#endif
     }
+#else
+    func wireMacOSDaemonNavigation() {}
+#endif
 
     var background: some View {
         Color.Nym.background
@@ -282,18 +283,7 @@ private extension AppFeatureView {
     var welcomeContent: some View {
         AuthFlowView(
             credentialsManager: viewModel.credentialsManager,
-            onWillRegister: { flow in
-                viewModel.noteAuthWillBegin(flow: flow)
-            },
-            onPrivyAuthWillBegin: { flow in
-                viewModel.noteAuthWillBegin(flow: flow, completesOnCredentialImport: true)
-            },
-            onAuthHandoffCancelled: {
-                viewModel.noteAuthHandoffCancelled()
-            },
-            onAuthCompleted: { outcome, flow in
-                viewModel.handleAuthCompleted(outcome: outcome, flow: flow)
-            }
+            sessionCoordinator: viewModel
         )
         .trackHeight { welcomeHeight = $0 }
         .transition(.slideFade(from: .trailing))
@@ -400,17 +390,14 @@ private extension AppFeatureView {
             impactGenerator: impactGenerator,
             purchasesManager: purchasesManager
         )
-        settingsViewModel.onPurchaseFlowComplete = { [viewModel] in
-            viewModel.purchaseFlowDidComplete()
-        }
-        settingsViewModel.onPurchaseFlowDismissed = { [viewModel] in
-            viewModel.purchaseFlowDidDismissWithoutComplete()
+        settingsViewModel.onSessionEvent = { [viewModel] event in
+            viewModel.handleSessionEvent(event)
         }
         return settingsViewModel
     }
 #elseif os(macOS)
     func configuredMacSettingsViewModel(path: Binding<NavigationPath>) -> SettingsViewModel {
-        SettingsViewModel(
+        let settingsViewModel = SettingsViewModel(
             isServing: $grpcManager.isServing,
             path: path,
             appSettings: appSettings,
@@ -421,6 +408,10 @@ private extension AppFeatureView {
             featureFlagsManager: featureFlagsManager,
             impactGenerator: impactGenerator
         )
+        settingsViewModel.onSessionEvent = { [viewModel] event in
+            viewModel.handleSessionEvent(event)
+        }
+        return settingsViewModel
     }
 #endif
 }

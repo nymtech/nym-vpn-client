@@ -50,7 +50,7 @@ public final class OneClickViewModel {
     /// Invoked when the daemon reports `.inactiveSubscription` or when the
     /// pre-flight gate detects an expired account. Routes the user into the
     /// purchase flow.
-    @ObservationIgnored public var onRequestPlanPurchase: (() -> Void)?
+    @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
     /// macOS only: invoked when a connect attempt is made while the helper
     /// daemon is not running, so the user can install/enable it.
     @ObservationIgnored public var onRequestDaemonEnable: (() -> Void)?
@@ -158,7 +158,7 @@ public final class OneClickViewModel {
                         hasAccountSummary: summary != nil
                     )
                     if shouldOfferPurchase {
-                        onRequestPlanPurchase?()
+                        sessionCoordinator?.handleSessionEvent(.requestPlanPurchase)
                         return
                     }
                 }
@@ -237,7 +237,7 @@ public final class OneClickViewModel {
 
     func incompleteSubscriptionBannerTapped() {
         impactGenerator.softImpact()
-        onRequestPlanPurchase?()
+        sessionCoordinator?.handleSessionEvent(.requestPlanPurchase)
     }
 }
 
@@ -354,7 +354,7 @@ private extension OneClickViewModel {
             reason = nsError.domain == ErrorReason.domain ? ErrorReason(nsError: nsError) : nil
         }
         guard reason == .inactiveSubscription else { return }
-        onRequestPlanPurchase?()
+        sessionCoordinator?.handleSessionEvent(.requestPlanPurchase)
     }
 
     func clearLastErrorIfNeeded() {

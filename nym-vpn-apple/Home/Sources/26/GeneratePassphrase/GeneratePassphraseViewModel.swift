@@ -11,9 +11,7 @@ import ErrorHandler
 public final class GeneratePassphraseViewModel {
     private let credentialsManager: CredentialsManager
     @ObservationIgnored private var registrationTask: Task<Void, Never>?
-    @ObservationIgnored public var onWillRegister: (() -> Void)?
-    @ObservationIgnored public var onAuthHandoffCancelled: (() -> Void)?
-    @ObservationIgnored public var onAuthCompleted: ((AuthCompletionOutcome) -> Void)?
+    @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
 
     var currentStep: Int = 1
     var didFinishAnimatingText = false
@@ -36,19 +34,21 @@ public final class GeneratePassphraseViewModel {
             guard let self else { return }
             defer { self.isRegistering = false }
             do {
-                onWillRegister?()
+                sessionCoordinator?.handleSessionEvent(
+                    .authWillBegin(flow: .createAccount, completesOnCredentialImport: false)
+                )
                 try await credentialsManager.performAccountRegistration()
                 didRegisterAccount = true
                 advanceIfAuthComplete()
             } catch is CancellationError {
-                onAuthHandoffCancelled?()
+                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
                 return
             } catch let error as VPNErrorReason {
-                onAuthHandoffCancelled?()
+                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
                 didRegisterAccount = false
                 errorMessage = error.localizedDescription
             } catch {
-                onAuthHandoffCancelled?()
+                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
                 didRegisterAccount = false
                 errorMessage = error.localizedDescription
             }
@@ -79,7 +79,9 @@ public final class GeneratePassphraseViewModel {
                     )
                 }
             )
-            onAuthCompleted?(outcome)
+            sessionCoordinator?.handleSessionEvent(
+                .authCompleted(outcome: outcome, flow: .createAccount)
+            )
         }
     }
 

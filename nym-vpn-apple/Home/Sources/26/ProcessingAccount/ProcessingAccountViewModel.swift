@@ -22,7 +22,7 @@ public final class ProcessingAccountViewModel {
     private let credentialsManager: CredentialsManager
     @ObservationIgnored private var processingTask: Task<Void, Never>?
     @ObservationIgnored private var finalMessageTask: Task<Void, Never>?
-    @ObservationIgnored public var onFinished: (() -> Void)?
+    @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
 
     let flow: ProcessingFlow
     var currentStep: Int = 1
@@ -115,13 +115,13 @@ public final class ProcessingAccountViewModel {
         ), !didShowFinalMessage else { return }
         didShowFinalMessage = true
         if usesStaticCopy {
-            onFinished?()
+            sessionCoordinator?.handleSessionEvent(.processingFinished)
             return
         }
         finalMessageTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(ProcessingAccountViewModel.finalMessageDuration))
             guard !Task.isCancelled else { return }
-            self?.onFinished?()
+            self?.sessionCoordinator?.handleSessionEvent(.processingFinished)
         }
     }
 
