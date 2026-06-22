@@ -75,9 +75,11 @@ import PathManager
     public var accountLinks: AccountLinks?
 
     private let environmentChangeObservers = EnvironmentChangeObservers()
+#if SANTA
+    private var environmentReconfigurationTask: Task<Void, Never>?
+#endif
 #if os(iOS)
     private var configureTask: Task<Void, Error>?
-    private var environmentReconfigurationTask: Task<Void, Never>?
     private var lastConfiguredEnvString: String?
     public private(set) var isEnvironmentConfigurationInFlight = false
 #endif
