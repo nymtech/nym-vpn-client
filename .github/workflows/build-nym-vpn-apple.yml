@@ -40,6 +40,10 @@ on:
         description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
         type: string
         default: ""
+      version:
+        description: "Orchestrated app version (empty = use Xcode MARKETING_VERSION as before)"
+        type: string
+        default: ""
       build_ios:
         type: boolean
         default: false
@@ -197,6 +201,18 @@ jobs:
           brew --version
           ruby --version
           gem --version
+
+      - name: Apply orchestrated version (apple)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: apple
+
+      - name: Apply orchestrated version (core)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
 
       - name: Update prebundled servers
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
@@ -1212,6 +1228,16 @@ jobs:
             - Branch: ${{ github.ref_name }}
             - Commit: ${{ github.sha }}
             - Built at: ${{ github.run_started_at }}
+
+      - name: Ensure gh CLI is available (macOS runner)
+        if: ${{ inputs.version_tag != '' && env.BUILD_MACOS == 'true' }}
+        run: |
+          set -euo pipefail
+          if ! command -v gh >/dev/null 2>&1; then
+            echo "::notice:: gh not found on PATH — installing via Homebrew"
+            brew install gh
+          fi
+          gh --version
 
       - name: Append macOS pkg to unified release
         if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}

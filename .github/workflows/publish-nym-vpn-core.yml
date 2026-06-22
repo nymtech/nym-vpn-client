@@ -13,6 +13,10 @@ on:
         description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
         type: string
         default: ""
+      version:
+        description: "Orchestrated app version to embed (empty = self-bump as before)"
+        type: string
+        default: ""
 
 env:
   CARGO_TERM_COLOR: always
@@ -32,6 +36,8 @@ jobs:
   # (the .deb step reuses the release build, so there is no second compile).
   build-nym-vpn-core-linux:
     uses: ./.github/workflows/build-nym-vpn-core-linux.yml
+    with:
+      version: ${{ inputs.version }}
     secrets:
       VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -39,6 +45,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
     with:
       cpu_arch: x64
+      version: ${{ inputs.version }}
     secrets:
       VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -46,6 +53,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
     with:
       cpu_arch: ARM64
+      version: ${{ inputs.version }}
     secrets:
       VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
@@ -103,9 +111,15 @@ jobs:
         with:
           crate: cargo-edit
 
+      - name: Apply orchestrated version
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
       - name: Set version for nightly builds
         working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' }}
+        if: ${{ github.ref_name == 'develop' && inputs.version == '' }}
         run: |
           if [ ${{ github.event_name }} = 'schedule' ]; then
             TAG="nightly"
