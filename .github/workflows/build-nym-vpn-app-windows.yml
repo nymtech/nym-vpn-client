@@ -84,6 +84,11 @@ on:
         required: false
         type: string
         default: dev
+      version:
+        description: "Orchestrated app version to embed (empty = use src-tauri/Cargo.toml as before)"
+        required: false
+        type: string
+        default: ""
     secrets:
       SSL_COM_USERNAME:
         required: true
@@ -126,6 +131,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
     with:
       cpu_arch: ${{ inputs.cpu_arch || 'x64' }}
+      version: ${{ inputs.version }}
     secrets: inherit
 
   build-nym-vpn-app:
@@ -201,6 +207,12 @@ jobs:
         uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
         with:
           crate: cargo-get
+
+      - name: Apply orchestrated version
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: tauri
 
       - name: Get package version
         id: package-version
