@@ -187,9 +187,7 @@ androidComponents {
 		val version = if (type == Constants.NIGHTLY) {
 			"${Constants.VERSION_NAME}-nightly.$buildTimestamp"
 		} else {
-			// VERSION_NAME already carries the channel label (-beta.1, or none for
-			// ship); do NOT append the gradle buildType ("-prerelease"/"-release").
-			Constants.VERSION_NAME
+			"${Constants.VERSION_NAME}-$type"
 		}
 		val fullName = "nym-vpn-$flavor-$version"
 
