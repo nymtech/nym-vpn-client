@@ -18,8 +18,6 @@ use tracing::{debug, instrument, trace, warn};
 use super::{TrayBackend, quit_app, show_window};
 use crate::vpnd::tunnel::TunnelState;
 
-// `include_bytes!` resolves relative to this source file (`src/tray/`), so reach up to
-// the crate root for the shared `icons/` dir.
 const APP_ICON: &[u8] = include_bytes!("../../icons/tray_icon.png");
 const CONNECTED_ICON: &[u8] = include_bytes!("../../icons/tray_icon_connected.png");
 const CONNECTING_ICON: &[u8] = include_bytes!("../../icons/tray_icon_connecting.png");

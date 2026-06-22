@@ -24,7 +24,7 @@ use linux::Backend;
 /// rejects any signature drift between them — even though only one is compiled per target.
 ///
 /// Note this trait is intentionally private: it is consumed only through the [`TrayManager`]
-/// façade via static dispatch, so the async methods never need `Send` bounds added by callers.
+/// facade via static dispatch, so the async methods never need `Send` bounds added by callers.
 trait TrayBackend: Sized + Send + Sync {
     fn new(app: &AppHandle) -> Result<Self>;
     async fn update_tray_icon(&self, state: TunnelState);
@@ -39,7 +39,7 @@ trait TrayBackend: Sized + Send + Sync {
 
 /// The system tray, managed as Tauri state and driven from `commands::tray`.
 ///
-/// Thin façade over the platform-selected [`Backend`]. The delegating bodies need no `cfg`
+/// Thin facade over the platform-selected [`Backend`]. The delegating bodies need no `cfg`
 /// because every backend exposes the same API through [`TrayBackend`]; the platform-specific
 /// code lives in the [`desktop`] / [`linux`] modules.
 pub struct TrayManager(Backend);

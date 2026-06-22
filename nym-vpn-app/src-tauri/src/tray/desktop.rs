@@ -20,7 +20,6 @@ use crate::vpnd::tunnel::TunnelState;
 
 const TRAY_ICON_ID: &str = "main";
 
-// `include_image!` resolves relative to the Cargo manifest dir (`src-tauri/`).
 const APP_ICON: Image<'_> = include_image!("icons/tray_icon.png");
 const CONNECTED_ICON: Image<'_> = include_image!("icons/tray_icon_connected.png");
 const CONNECTING_ICON: Image<'_> = include_image!("icons/tray_icon_connecting.png");
