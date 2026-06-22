@@ -1,14 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
-import { CardNew, CardNewHeader, MsIcon } from '../../../../ui';
+import { ButtonIcon, CardNew, CardNewHeader, MsIcon } from '../../../../ui';
 import { useMainState } from '../../../../store';
+import { useRefreshAccountSummary, useToast } from '../../../../hooks';
 import { NoActivePlan } from './NoActivePlan';
 import { ActivePlan } from './ActivePlan';
 
 export function AccountStatus() {
+  const { add } = useToast();
   const { t } = useTranslation('account');
 
-  const { accountState, accountSummary } = useMainState();
+  const { accountState, accountSummary, accountSyncing, daemonStatus } =
+    useMainState();
+  const { refresh, refreshing } = useRefreshAccountSummary();
 
   const needsSubscription = useMemo(
     () =>
@@ -18,6 +22,19 @@ export function AccountStatus() {
     [accountState, accountSummary],
   );
 
+  const handleRefresh = async () => {
+    try {
+      await refresh();
+    } catch (error: unknown) {
+      console.error('Failed to refresh account state: ', error);
+      add({
+        id: 'refresh-account-state-error',
+        title: t('account-status.failed-to-refresh-account-state'),
+        type: 'error',
+      });
+    }
+  };
+
   if (!accountState || accountState === 'error' || accountState === 'offline') {
     return null;
   }
@@ -25,13 +42,24 @@ export function AccountStatus() {
   return (
     <>
       <CardNew>
-        <CardNewHeader className="border-text-tertiary/30 dark:border-surface-bg border-b">
+        <CardNewHeader className="border-text-tertiary/30 dark:border-surface-bg justify-between! border-b">
           <div className="flex flex-row items-center gap-2">
             <MsIcon icon="speed" className="text-text-secondary" />
             <p className="text-text-primary truncate text-left text-base select-none">
               {t('account-status.title')}
             </p>
           </div>
+          <ButtonIcon
+            icon="refresh"
+            color="chalk"
+            onClick={handleRefresh}
+            disabled={daemonStatus === 'down' || accountSyncing || refreshing}
+            clickFeedback
+            noDefaultSize
+            className="h-8 min-h-8 w-8 min-w-8"
+            iconClassName="!text-xl"
+            data-testid="refresh-account-summary"
+          />
         </CardNewHeader>
         {needsSubscription ||
         accountState === 'pending-subscription' ||

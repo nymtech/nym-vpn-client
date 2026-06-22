@@ -988,6 +988,14 @@ impl VpndClient {
         Ok(summary.map(Into::into))
     }
 
+    pub async fn refresh_account_state(&self, force: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.refresh_account_state(force)
+            .or_else(async |e| self.handle_rpc_error("refresh_account_state", e).await)
+            .await
+    }
+
     pub async fn handle_subscription_payment(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 

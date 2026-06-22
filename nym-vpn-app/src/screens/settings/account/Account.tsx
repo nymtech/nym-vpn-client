@@ -18,7 +18,12 @@ import { CCache } from '../../../cache';
 import { useAutologin } from '../../../contexts';
 import { useMainState } from '../../../store';
 import { routes } from '../../../router';
-import { useDeepLink, useLogout, useToast } from '../../../hooks';
+import {
+  useDeepLink,
+  useLogout,
+  useRefreshAccountSummary,
+  useToast,
+} from '../../../hooks';
 import { DeeplinkTimeout } from '../../../errors';
 import { ContactSupportUrl } from '../../../constants';
 import { AccountStatus } from './account-status';
@@ -48,6 +53,7 @@ function Account() {
 
   const { startListening } = useDeepLink();
   const { add } = useToast();
+  const { refresh } = useRefreshAccountSummary();
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -83,6 +89,11 @@ function Account() {
     getDeviceId();
     getAccountId();
   }, []);
+
+  // Force-refresh account state/summary each time the account view opens.
+  useEffect(() => {
+    if (account) void refresh();
+  }, [account, refresh]);
 
   // When logged out, navigate to settings
   useEffect(() => {
