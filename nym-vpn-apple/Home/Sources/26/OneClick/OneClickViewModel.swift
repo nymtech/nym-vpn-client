@@ -173,6 +173,33 @@ public final class OneClickViewModel {
         }
     }
 
+    func cancelGatewayIndependenceConsent() {
+        guard !isConnectDisconnectInFlight,
+              connectionManager.currentTunnelStatus == .error
+        else {
+            return
+        }
+
+        impactGenerator.impact()
+        snackbarManager.clear()
+
+        connectDisconnectTask?.cancel()
+        connectDisconnectTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            isConnectDisconnectInFlight = true
+            defer { isConnectDisconnectInFlight = false }
+            do {
+                try await connectionManager.connectDisconnect()
+            } catch {
+                impactGenerator.error()
+                presentConnectionErrorAlert(
+                    message: ConnectionStatusViewModel.userFacingMessage(from: error)
+                )
+            }
+            clearLastErrorIfNeeded()
+        }
+    }
+
     func upCaretTapped() {
         guard displayMode == .powerUser else { return }
         impactGenerator.softImpact()

@@ -218,6 +218,7 @@ extension AppFeatureViewModel {
     }
 
     func dismissFamilyWarning() {
+        oneClick.cancelGatewayIndependenceConsent()
         isFamilyWarningModalDisplayed = false
     }
 
