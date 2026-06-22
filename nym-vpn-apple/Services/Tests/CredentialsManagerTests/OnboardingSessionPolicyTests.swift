@@ -354,6 +354,75 @@ struct DrawerSessionPolicyTests {
         #expect(DrawerSessionPolicy.shouldBeginPlanPurchaseTransition(isPurchaseFlowActive: false))
     }
 
+    @Test func purchaseTransitionOverlayOnlyWhileDrawerHidden() {
+        #expect(
+            DrawerSessionPolicy.showsPurchaseTransitionOverlay(
+                isPurchaseFlowActive: true,
+                isDrawerContentNil: true
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.showsPurchaseTransitionOverlay(
+                isPurchaseFlowActive: true,
+                isDrawerContentNil: false
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.showsPurchaseTransitionOverlay(
+                isPurchaseFlowActive: false,
+                isDrawerContentNil: true
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.showsPurchaseTransitionOverlay(
+                isPurchaseFlowActive: false,
+                isDrawerContentNil: false
+            )
+        )
+    }
+
+    @Test func foregroundRefreshBypassesThrottleDuringPurchaseOrInactiveAccount() {
+        #expect(
+            DrawerSessionPolicy.shouldBypassForegroundAccountRefreshThrottle(
+                isPurchaseFlowActive: true,
+                isAccountActive: true
+            )
+        )
+        #expect(
+            DrawerSessionPolicy.shouldBypassForegroundAccountRefreshThrottle(
+                isPurchaseFlowActive: false,
+                isAccountActive: false
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldBypassForegroundAccountRefreshThrottle(
+                isPurchaseFlowActive: false,
+                isAccountActive: true
+            )
+        )
+    }
+
+    @Test func checkoutCompletesAfterAccountRefreshWhenPurchaseActiveAndAccountActive() {
+        #expect(
+            DrawerSessionPolicy.shouldCompleteCheckoutAfterAccountRefresh(
+                isPurchaseFlowActive: true,
+                isAccountActive: true
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldCompleteCheckoutAfterAccountRefresh(
+                isPurchaseFlowActive: true,
+                isAccountActive: false
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldCompleteCheckoutAfterAccountRefresh(
+                isPurchaseFlowActive: false,
+                isAccountActive: true
+            )
+        )
+    }
+
     @Test func purchaseDismissKeepsImportedAccountOnDashboard() {
         #expect(
             DrawerSessionPolicy.drawerDestinationAfterPurchaseDismiss(

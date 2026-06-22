@@ -128,6 +128,30 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
         !isPurchaseFlowActive
     }
 
+    /// Masks the map while the drawer is hidden during checkout; must not show once the drawer is back.
+    public static func showsPurchaseTransitionOverlay(
+        isPurchaseFlowActive: Bool,
+        isDrawerContentNil: Bool
+    ) -> Bool {
+        isPurchaseFlowActive && isDrawerContentNil
+    }
+
+    /// Refreshes account summary on foreground when checkout is in flight or subscription may have changed off-device.
+    public static func shouldBypassForegroundAccountRefreshThrottle(
+        isPurchaseFlowActive: Bool,
+        isAccountActive: Bool
+    ) -> Bool {
+        isPurchaseFlowActive || !isAccountActive
+    }
+
+    /// Completes checkout when an external payment activates the account while the purchase flow is still marked active.
+    public static func shouldCompleteCheckoutAfterAccountRefresh(
+        isPurchaseFlowActive: Bool,
+        isAccountActive: Bool
+    ) -> Bool {
+        isPurchaseFlowActive && isAccountActive
+    }
+
     /// Keeps authenticated users on the dashboard when IAP is dismissed or fails.
     /// Subscription status must not regress the drawer to the guest welcome screen.
     public static func drawerDestinationAfterPurchaseDismiss(

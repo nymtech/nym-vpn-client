@@ -30,6 +30,7 @@ public struct GeneratePassphraseView: View {
     @State var isPurchasing = false
     @State var isPlanAlertDisplayed = false
     @State var alertOffersRegistrationRetry = false
+    @State private var didLeaveForSuccessfulPurchase = false
 #if os(macOS)
     @State var autologinState = AutologinState()
 #endif
@@ -103,6 +104,12 @@ public struct GeneratePassphraseView: View {
 #if os(macOS)
         .autologinOverlay(state: autologinState)
 #endif
+        .onDisappear {
+            isAlertDisplayed = false
+            isPlanAlertDisplayed = false
+            guard !didLeaveForSuccessfulPurchase else { return }
+            onPurchaseFlowDismissed?()
+        }
     }
 
     public init(
@@ -138,7 +145,6 @@ private extension GeneratePassphraseView {
                 rightButton: CustomNavBarButton(
                     type: .close,
                     action: {
-                        onPurchaseFlowDismissed?()
                         path = .init()
                     }
                 )
@@ -269,6 +275,7 @@ private extension GeneratePassphraseView {
 // MARK: - Actions -
 extension GeneratePassphraseView {
     func navigateToPaymentSuccessView() {
+        didLeaveForSuccessfulPurchase = true
         path.append(SettingLink.processingAccount)
     }
 }

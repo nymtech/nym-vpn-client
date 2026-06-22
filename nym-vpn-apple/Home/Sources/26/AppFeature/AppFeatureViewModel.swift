@@ -40,7 +40,10 @@ import GRPCManager
     var accountSummaryFetchFailed = false
 
     var purchaseTransitionOverlayVisible: Bool {
-        sessionContext.isPurchaseFlowActive && drawerContent != nil
+        DrawerSessionPolicy.showsPurchaseTransitionOverlay(
+            isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
+            isDrawerContentNil: drawerContent == nil
+        )
     }
 
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
@@ -182,12 +185,23 @@ import GRPCManager
 
     func handleSceneBecameActive() {
         let now = Date()
-        if let last = lastForegroundRefreshAt,
+        let shouldBypassThrottle = DrawerSessionPolicy.shouldBypassForegroundAccountRefreshThrottle(
+            isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
+            isAccountActive: credentialsManager.isAccountActive()
+        )
+        if !shouldBypassThrottle,
+           let last = lastForegroundRefreshAt,
            now.timeIntervalSince(last) < Self.foregroundRefreshMinInterval {
             return
         }
         lastForegroundRefreshAt = now
-        Task { await credentialsManager.updateAccountSummary(force: true) }
+        Task { [weak self] in
+            guard let self else { return }
+            await self.credentialsManager.updateAccountSummary(force: true)
+            await MainActor.run {
+                self.reconcilePurchaseFlowAfterAccountRefresh()
+            }
+        }
     }
 
     func handleTunnelStatusChange(from oldStatus: TunnelStatus, to newStatus: TunnelStatus) {
@@ -320,7 +334,11 @@ private extension AppFeatureViewModel {
     func observeAccountFields() {
         credentialsManager.$accountSummary
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] in self?.accountSummary = $0 }
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.accountSummary = self.credentialsManager.accountSummary
+                self.reconcilePurchaseFlowAfterAccountRefresh()
+            }
             .store(in: &cancellables)
 
         credentialsManager.$accountIdentifier
@@ -521,5 +539,13 @@ private extension AppFeatureViewModel {
                 )
             )
         }
+    }
+
+    func reconcilePurchaseFlowAfterAccountRefresh() {
+        guard DrawerSessionPolicy.shouldCompleteCheckoutAfterAccountRefresh(
+            isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
+            isAccountActive: credentialsManager.isAccountActive()
+        ) else { return }
+        handleSessionEvent(.checkoutCompleted)
     }
 }
