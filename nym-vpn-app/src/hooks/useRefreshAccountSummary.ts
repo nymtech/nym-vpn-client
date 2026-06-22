@@ -20,8 +20,6 @@ export default function useRefreshAccountSummary() {
     setRefreshing(true);
     try {
       await invoke<void>('refresh_account_state', { force });
-    } catch (err) {
-      console.error('failed to refresh account state', err);
     } finally {
       inFlight.current = false;
       setRefreshing(false);

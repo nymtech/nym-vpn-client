@@ -2,17 +2,21 @@ import { useTranslation } from 'react-i18next';
 import { useMemo } from 'react';
 import { ButtonIcon, CardNew, CardNewHeader, MsIcon } from '../../../../ui';
 import { useMainState } from '../../../../store';
-import { useRefreshAccountSummary, useToast } from '../../../../hooks';
+import { useToast } from '../../../../hooks';
 import { NoActivePlan } from './NoActivePlan';
 import { ActivePlan } from './ActivePlan';
 
-export function AccountStatus() {
+export type AccountStatusProps = {
+  refresh: () => Promise<void>;
+  refreshing: boolean;
+};
+
+export function AccountStatus({ refresh, refreshing }: AccountStatusProps) {
   const { add } = useToast();
   const { t } = useTranslation('account');
 
   const { accountState, accountSummary, accountSyncing, daemonStatus } =
     useMainState();
-  const { refresh, refreshing } = useRefreshAccountSummary();
 
   const needsSubscription = useMemo(
     () =>
@@ -59,6 +63,7 @@ export function AccountStatus() {
             className="h-8 min-h-8 w-8 min-w-8"
             iconClassName="!text-xl"
             data-testid="refresh-account-summary"
+            aria-label={t('account-status.refresh')}
           />
         </CardNewHeader>
         {needsSubscription ||

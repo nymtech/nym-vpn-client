@@ -53,7 +53,7 @@ function Account() {
 
   const { startListening } = useDeepLink();
   const { add } = useToast();
-  const { refresh } = useRefreshAccountSummary();
+  const { refresh, refreshing } = useRefreshAccountSummary();
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -92,7 +92,11 @@ function Account() {
 
   // Force-refresh account state/summary each time the account view opens.
   useEffect(() => {
-    if (account) void refresh();
+    if (account) {
+      refresh().catch((error: unknown) => {
+        console.error('Failed to refresh account state on mount: ', error);
+      });
+    }
   }, [account, refresh]);
 
   // When logged out, navigate to settings
@@ -162,7 +166,7 @@ function Account() {
         </Button>
       )}
 
-      <AccountStatus />
+      <AccountStatus refresh={refresh} refreshing={refreshing} />
 
       <SettingsGroup
         settings={[
