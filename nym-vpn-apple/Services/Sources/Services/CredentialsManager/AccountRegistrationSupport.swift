@@ -6,23 +6,10 @@ import NymVPNLib
 #endif
 
 enum AccountRegistrationSupport {
-    private static let credentialStoreLockDetail = "credential store lock"
-
 #if os(iOS)
-    static func isCredentialStoreLockFailure(_ error: Error) -> Bool {
-        if let reason = error as? VPNErrorReason {
-            if case .accountStoreBusy = reason { return true }
-            if case let .storage(details) = reason,
-               details.localizedCaseInsensitiveContains(credentialStoreLockDetail) {
-                return true
-            }
-        }
-        if let vpnError = error as? VpnError {
-            if vpnError == .AccountStoreBusy { return true }
-            if case let .Storage(details: details) = vpnError,
-               details.localizedCaseInsensitiveContains(credentialStoreLockDetail) {
-                return true
-            }
+    static func isAccountStoreBusyFailure(_ error: Error) -> Bool {
+        if let reason = error as? VPNErrorReason, case .accountStoreBusy = reason {
+            return true
         }
         return false
     }
@@ -60,20 +47,20 @@ enum AccountRegistrationSupport {
 
 #if os(iOS)
 extension AccountRegistrationSupport {
-    static let storeLockRetryDelays: [Duration] = [
+    static let accountStoreBusyRetryDelays: [Duration] = [
         .milliseconds(200),
         .milliseconds(500),
         .seconds(1),
         .seconds(2)
     ]
 
-    static func withCredentialStoreRetry<T>(
+    static func withAccountStoreRetry<T>(
         operation: String,
         logger: Logger,
         _ body: () async throws -> T
     ) async throws -> T {
         var lastError: Error?
-        for (attempt, delay) in storeLockRetryDelays.enumerated() {
+        for (attempt, delay) in accountStoreBusyRetryDelays.enumerated() {
             if attempt > 0 {
                 try await Task.sleep(for: delay)
             }
@@ -81,19 +68,19 @@ extension AccountRegistrationSupport {
                 return try await body()
             } catch {
                 let mapped = mapToVPNErrorReason(error)
-                guard isCredentialStoreLockFailure(mapped),
-                      attempt < storeLockRetryDelays.count - 1 else {
+                guard isAccountStoreBusyFailure(mapped),
+                      attempt < accountStoreBusyRetryDelays.count - 1 else {
                     throw mapped
                 }
-                logger.debug("\(operation) credential store lock busy, retry \(attempt + 1)")
+                logger.debug("\(operation) account store busy, retry \(attempt + 1)")
                 lastError = mapped
             }
         }
-        throw lastError ?? AccountRegistrationFailure.storeLockRetryExhausted
+        throw lastError ?? AccountRegistrationFailure.accountStoreBusyRetryExhausted
     }
 }
 
 private enum AccountRegistrationFailure: Error {
-    case storeLockRetryExhausted
+    case accountStoreBusyRetryExhausted
 }
 #endif

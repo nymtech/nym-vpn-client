@@ -6,39 +6,24 @@ import NymVPNLib
 @testable import CredentialsManager
 
 struct AccountRegistrationSupportTests {
-    @Test func detectsAccountStoreBusyVpnError() {
-        #expect(AccountRegistrationSupport.isCredentialStoreLockFailure(VpnError.AccountStoreBusy))
-    }
-
-    @Test func detectsStorageLockDetailVpnError() {
-        let error = VpnError.Storage(details: "failed to acquire credential store lock")
-        #expect(AccountRegistrationSupport.isCredentialStoreLockFailure(error))
-    }
-
     @Test func detectsAccountStoreBusyReason() {
-        #expect(AccountRegistrationSupport.isCredentialStoreLockFailure(VPNErrorReason.accountStoreBusy))
-    }
-
-    @Test func detectsStorageLockDetailReason() {
-        let error = VPNErrorReason.storage(details: "failed to acquire credential store lock")
-        #expect(AccountRegistrationSupport.isCredentialStoreLockFailure(error))
+        #expect(AccountRegistrationSupport.isAccountStoreBusyFailure(VPNErrorReason.accountStoreBusy))
     }
 
     @Test func ignoresUnrelatedStorageError() {
         let error = VPNErrorReason.storage(details: "disk full")
-        #expect(!AccountRegistrationSupport.isCredentialStoreLockFailure(error))
+        #expect(!AccountRegistrationSupport.isAccountStoreBusyFailure(error))
     }
 
-    @Test func mapsVpnStorageLockToAccountStoreBusy() {
-        let vpnError = VpnError.Storage(details: "failed to acquire credential store lock")
+    @Test func ignoresUnrelatedVpnStorageError() {
+        let error = VpnError.Storage(details: "disk full")
+        #expect(!AccountRegistrationSupport.isAccountStoreBusyFailure(error))
+    }
+
+    @Test func mapsVpnStorageErrorToStorageReason() {
+        let vpnError = VpnError.Storage(details: "disk full")
         let mapped = VPNErrorReason(with: vpnError)
-        #expect(mapped == .accountStoreBusy)
-    }
-
-    @Test func mapsVpnStorageLockToReasonDescription() {
-        let vpnError = VpnError.Storage(details: "failed to acquire credential store lock")
-        let mapped = AccountRegistrationSupport.mapToVPNErrorReason(vpnError) as? VPNErrorReason
-        #expect(mapped == .accountStoreBusy)
+        #expect(mapped == .storage(details: "disk full"))
     }
 
     @Test func usesCapturedEnvironmentDuringRegistration() throws {

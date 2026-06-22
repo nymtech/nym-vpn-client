@@ -117,7 +117,7 @@ import PathManager
                 try await createMnemonic(environment: env)
             }
 
-            let result = try await AccountRegistrationSupport.withCredentialStoreRetry(
+            let result = try await AccountRegistrationSupport.withAccountStoreRetry(
                 operation: "registerAccount",
                 logger: logger
             ) {
@@ -125,7 +125,7 @@ import PathManager
             }
             appSettings.accountToken = result.accountToken
             if loginCredential == nil {
-                try await AccountRegistrationSupport.withCredentialStoreRetry(
+                try await AccountRegistrationSupport.withAccountStoreRetry(
                     operation: "prepareRegisteredAccount",
                     logger: logger
                 ) {
@@ -165,7 +165,7 @@ import PathManager
     }
 
     private func withController<T>(_ body: (NymAccountController) async throws -> T) async throws -> T {
-        guard !isTunnelActive else { throw VpnError.AccountStoreBusy }
+        guard !isTunnelActive else { throw VPNErrorReason.accountStoreBusy }
         try Task.checkCancellation()
 
         let env = try resolvedRegistrationEnvironment()
@@ -197,7 +197,7 @@ import PathManager
 #if os(iOS)
     private func login(credential: String, environment: NymEnvironment) async throws {
         do {
-            try await AccountRegistrationSupport.withCredentialStoreRetry(
+            try await AccountRegistrationSupport.withAccountStoreRetry(
                 operation: "login",
                 logger: logger
             ) {
@@ -224,7 +224,7 @@ import PathManager
 
 #if os(iOS)
     private func createMnemonic(environment: NymEnvironment) async throws {
-        try await AccountRegistrationSupport.withCredentialStoreRetry(
+        try await AccountRegistrationSupport.withAccountStoreRetry(
             operation: "createAccount",
             logger: logger
         ) {
@@ -307,7 +307,7 @@ import PathManager
 #if os(iOS)
     private func prepareRegisteredAccount(environment _: NymEnvironment) async throws {
         do {
-            try await AccountRegistrationSupport.withCredentialStoreRetry(
+            try await AccountRegistrationSupport.withAccountStoreRetry(
                 operation: "prepareRegisteredAccount",
                 logger: logger
             ) {
@@ -348,7 +348,7 @@ import PathManager
 #if os(iOS)
         guard isValidCredentialImported else { return .skipped }
         do {
-            let result = try await AccountRegistrationSupport.withCredentialStoreRetry(
+            let result = try await AccountRegistrationSupport.withAccountStoreRetry(
                 operation: "prefetchZkNyms",
                 logger: logger
             ) {
@@ -362,14 +362,11 @@ import PathManager
         } catch is CancellationError {
             logger.debug("prefetchZkNyms (iOS) cancelled")
             return .skipped
-        } catch let error as VpnError where error == .AccountStoreBusy {
-            logger.debug("prefetchZkNyms (iOS) skipped: account store busy")
-            return .skippedStoreBusy
         } catch let error as VpnError where error == .VpnApiTimeout {
             logger.debug("prefetchZkNyms (iOS) timed out")
             return .failed
         } catch {
-            if AccountRegistrationSupport.isCredentialStoreLockFailure(error) {
+            if AccountRegistrationSupport.isAccountStoreBusyFailure(error) {
                 logger.debug("prefetchZkNyms (iOS) skipped: account store busy")
                 return .skippedStoreBusy
             }
@@ -608,7 +605,7 @@ import PathManager
 #if os(iOS)
         let summary: VpnAccountSummary?
         do {
-            summary = try await AccountRegistrationSupport.withCredentialStoreRetry(
+            summary = try await AccountRegistrationSupport.withAccountStoreRetry(
                 operation: "getAccountSummary",
                 logger: logger
             ) {
