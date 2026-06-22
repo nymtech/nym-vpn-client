@@ -101,6 +101,7 @@ impl fmt::Display for VpnServiceConfig {
             "gateway selection algorithm: {}",
             self.gateway_selection_algorithm_config
         )?;
+        writeln!(f, "gateway independence: {}", self.gateway_independence)?;
 
         Ok(())
     }
