@@ -59,12 +59,12 @@ fn self_is_signed(signing_requirement: &str) -> bool {
         )
     };
     if status != errSecSuccess {
-        tracing::error!("Could not create a string");
+        tracing::error!("Could not create a SecRequirement");
         return false;
     }
     let ret = unsafe { Retained::from_raw(raw_sec_req) };
     let Some(sec_req) = ret else {
-        tracing::error!("Creating a string returned null on success");
+        tracing::error!("Creating a SecRequirement returned null on success");
         return false;
     };
 
