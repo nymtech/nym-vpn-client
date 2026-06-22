@@ -392,6 +392,21 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             | xcbeautify --renderer github-actions
 
+      - name: Compile CredentialsManager (macOS, unsigned)
+        working-directory: nym-vpn-apple/Services
+        run: |
+          set -euo pipefail
+          echo "🔍 Swift compile gate (CredentialsManager, unsigned macOS — requires BuildCore NymVPNRpc)"
+          test -d ../NymVPNRpc/NymVPNRpcUniffi.xcframework || {
+            echo "❌ NymVPNRpc missing. BuildCore must run before this step."
+            exit 1
+          }
+          xcodebuild build \
+            -scheme CredentialsManager \
+            -destination 'generic/platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcbeautify --renderer github-actions
+
       - name: Compile ServicesMutual (iOS, unsigned)
         working-directory: nym-vpn-apple/ServicesMutual
         run: |

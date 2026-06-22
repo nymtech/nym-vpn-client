@@ -30,8 +30,9 @@ import PathManager
 #endif
     private var cancellables = Set<AnyCancellable>()
     private var accountSummaryUpdateTask: Task<Void, Never>?
-#if os(iOS)
+    /// iOS toggles this during `performAccountRegistration`; macOS leaves it false.
     private(set) public var isAccountRegistrationInFlight = false
+#if os(iOS)
     private var registrationCapturedEnvironment: NymEnvironment?
     private var accountRegistrationTask: Task<Void, Error>?
 #endif
@@ -451,10 +452,39 @@ import PathManager
         return isAccountSubscriptionDateValid()
     }
 
-    public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
+    public func ensureCredentialImportResolved() async {
 #if os(iOS)
-        guard !isAccountRegistrationInFlight else { return }
+        do {
+            let networkEnv = try resolvedRegistrationEnvironment()
+            let isImported = try await Task {
+                let dataDir = try PathManager.dataFolderURL().path()
+                return try await NymVpnAccountStorage(
+                    dataDir: dataDir,
+                    environment: networkEnv
+                ).isAccountMnemonicStored()
+            }.value
+            setCredentialImportedFlag(isImported)
+        } catch {
+            logger.error(
+                "ensureCredentialImportResolved failed \(error.localizedDescription)"
+            )
+            setCredentialImportedFlag(false)
+        }
+#elseif os(macOS)
+        do {
+            let isImported = try await grpcManager.isAccountStored()
+            setCredentialImportedFlag(isImported)
+        } catch {
+            logger.error(
+                "ensureCredentialImportResolved failed \(error.localizedDescription)"
+            )
+            setCredentialImportedFlag(false)
+        }
 #endif
+    }
+
+    public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
+        guard !isAccountRegistrationInFlight else { return }
 #if SANTA
         guard !isAccountSummaryOverridden else { return }
 #endif
@@ -629,37 +659,6 @@ private extension CredentialsManager {
             return false
         }
         return true
-    }
-
-    public func ensureCredentialImportResolved() async {
-#if os(iOS)
-        do {
-            let networkEnv = try resolvedRegistrationEnvironment()
-            let isImported = try await Task {
-                let dataDir = try PathManager.dataFolderURL().path()
-                return try await NymVpnAccountStorage(
-                    dataDir: dataDir,
-                    environment: networkEnv
-                ).isAccountMnemonicStored()
-            }.value
-            setCredentialImportedFlag(isImported)
-        } catch {
-            logger.error(
-                "ensureCredentialImportResolved failed \(error.localizedDescription)"
-            )
-            setCredentialImportedFlag(false)
-        }
-#elseif os(macOS)
-        do {
-            let isImported = try await grpcManager.isAccountStored()
-            setCredentialImportedFlag(isImported)
-        } catch {
-            logger.error(
-                "ensureCredentialImportResolved failed \(error.localizedDescription)"
-            )
-            setCredentialImportedFlag(false)
-        }
-#endif
     }
 
     func checkCredentialImport() {
