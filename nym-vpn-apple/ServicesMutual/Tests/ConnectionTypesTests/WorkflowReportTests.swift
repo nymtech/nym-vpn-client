@@ -108,6 +108,7 @@ struct WorkflowReportTests {
     @Test(arguments: [
         (scheme: "Services-Package", target: "ConfigurationManagerTests"),
         (scheme: "Settings", target: "SettingsTests"),
+        (scheme: "ServicesMacOS-Package", target: "AppDiscoveryServiceTests"),
     ])
     func testStepRunsAdditionalSuite(scheme: String, target: String) throws {
         let action = try loadYAML(Self.actionRelativePath)

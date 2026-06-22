@@ -30,6 +30,7 @@ runs:
             "ServicesMutual|ServicesMutual-Package|ConnectionTypesTests|ServicesMutual/TestResults.xcresult|ConnectionTypes"
             "Services|Services-Package|ConfigurationManagerTests|Services/TestResults-ConfigurationManagerTests.xcresult|ConfigurationManager"
             "Settings|Settings|SettingsTests|Settings/TestResults-SettingsTests.xcresult|Settings"
+            "ServicesMacOS|ServicesMacOS-Package|AppDiscoveryServiceTests|ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult|AppDiscovery"
           )
 
           for suite in "${SUITES[@]}"; do
@@ -108,6 +109,7 @@ runs:
           nym-vpn-apple/ServicesMutual/TestResults.xcresult
           nym-vpn-apple/Services/TestResults-ConfigurationManagerTests.xcresult
           nym-vpn-apple/Settings/TestResults-SettingsTests.xcresult
+          nym-vpn-apple/ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult
           account-report.md
         if-no-files-found: warn
         retention-days: 1
@@ -118,4 +120,5 @@ runs:
       run: |
         rm -rf nym-vpn-apple/ServicesMutual/TestResults.xcresult \
                nym-vpn-apple/Services/TestResults-ConfigurationManagerTests.xcresult \
-               nym-vpn-apple/Settings/TestResults-SettingsTests.xcresult
+               nym-vpn-apple/Settings/TestResults-SettingsTests.xcresult \
+               nym-vpn-apple/ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult

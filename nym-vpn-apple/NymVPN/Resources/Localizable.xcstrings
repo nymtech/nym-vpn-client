@@ -29418,6 +29418,28 @@
         }
       }
     },
+    "splitTunnel.cannotExcludeNym" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Nym VPN can’t exclude itself."
+          }
+        }
+      }
+    },
+    "splitTunnel.notExecutable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Not an executable file."
+          }
+        }
+      }
+    },
     "splitTunnel.apps" : {
       "extractionState" : "manual",
       "localizations" : {
