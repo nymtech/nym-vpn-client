@@ -21,9 +21,14 @@ val currentCommitHash: Provider<String> = providers.exec {
 	isIgnoreExitValue = true
 }.standardOutput.asText.map { it.trim().ifEmpty { "unknown" } }.orElse("unknown")
 
-val buildTimestamp: String = DateTimeFormatter
-	.ofPattern("yyyyMMddHHmm")
-	.format(LocalDateTime.now(ZoneOffset.UTC))
+// Nightly apk timestamp: use the orchestrator-provided value (NIGHTLY_TIMESTAMP, e.g.
+// parsed from the unified nightly tag) so the apk name matches the release tag; only
+// generate one at build time when none is provided.
+val buildTimestamp: String = providers.environmentVariable("NIGHTLY_TIMESTAMP").orNull
+	?.takeIf { it.isNotBlank() }
+	?: DateTimeFormatter
+		.ofPattern("yyyyMMddHHmm")
+		.format(LocalDateTime.now(ZoneOffset.UTC))
 
 val languagesArray: Provider<String> = providers.provider {
 	languageList().joinToString(separator = ", ") { "\"$it\"" }

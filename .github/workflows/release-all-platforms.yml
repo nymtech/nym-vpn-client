@@ -7,10 +7,14 @@ on:
   # Scheduled (nightly) runs use the repository default branch (develop).
   workflow_dispatch:
     inputs:
-      ship:
-        description: "Ship 🚢 (off = nightly build)"
-        type: boolean
-        default: false
+      release_channel:
+        description: "Release channel"
+        type: choice
+        default: nightly
+        options:
+          - nightly   # mutable, auto-published prerelease; app version <base>-nightly
+          - beta      # release candidate; core version MUST contain -beta; prerelease draft
+          - ship      # stable release; core version MUST NOT contain -beta; draft
       android:
         description: "Android → Google Play"
         type: boolean
@@ -41,12 +45,12 @@ on:
 permissions:
   contents: read
 
-# Ship runs key off the ref so different release branches/versions run in parallel.
-# Nightly runs (cron + manual ship=false) all share ONE group: ensure-release.sh
-# deletes ALL nym-vpn-nightly-* releases, so two concurrent nightlies would clobber
-# each other's release state regardless of ref.
+# Ship/beta runs key off the ref so different release branches/versions run in parallel.
+# Nightly runs (cron + the no-platform-selected fallback) all share ONE group:
+# ensure-release.sh deletes ALL prior nightly releases, so two concurrent nightlies would
+# clobber each other's release state regardless of ref.
 concurrency:
-  group: ${{ github.workflow }}-${{ (github.event_name == 'schedule' || inputs.ship == false) && 'nightly' || github.ref }}
+  group: ${{ github.workflow }}-${{ (github.event_name == 'schedule' || (inputs.release_channel != 'ship' && inputs.release_channel != 'beta')) && 'nightly' || github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -54,8 +58,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.v.outputs.tag }}
-      core_version: ${{ steps.v.outputs.core_version }}
-      ship: ${{ steps.flags.outputs.ship }}
+      version: ${{ steps.v.outputs.version }}
+      channel: ${{ steps.flags.outputs.channel }}
       android: ${{ steps.flags.outputs.android }}
       fdroid: ${{ steps.flags.outputs.fdroid }}
       linux: ${{ steps.flags.outputs.linux }}
@@ -63,12 +67,12 @@ jobs:
       ios: ${{ steps.flags.outputs.ios }}
       macos: ${{ steps.flags.outputs.macos }}
     steps:
-      - name: Resolve flags (cron OR no platform selected = nightly + all platforms except fdroid)
+      - name: Resolve channel + flags (cron OR no platform selected = nightly + all platforms except fdroid)
         id: flags
         env:
           EVENT: ${{ github.event_name }}
           REF_NAME: ${{ github.ref_name }}
-          IN_SHIP: ${{ inputs.ship }}
+          IN_CHANNEL: ${{ inputs.release_channel }}
           IN_ANDROID: ${{ inputs.android }}
           IN_FDROID: ${{ inputs.fdroid }}
           IN_LINUX: ${{ inputs.linux }}
@@ -79,7 +83,7 @@ jobs:
           set -euo pipefail
           echo "::notice:: releasing from ref $REF_NAME (event $EVENT)"
           # Nightly when scheduled, OR a manual dispatch with NO platform box ticked
-          # (fdroid counts as a platform). ship is ignored in the nightly fallback.
+          # (fdroid counts as a platform). The channel input is ignored in that fallback.
           nightly=false
           if [ "$EVENT" = "schedule" ]; then
             nightly=true
@@ -89,12 +93,12 @@ jobs:
             nightly=true
           fi
           if [ "$nightly" = "true" ]; then
-            echo "::notice:: no platform selected (or scheduled) → nightly build of all platforms except fdroid"
-            { echo "ship=false";
+            echo "::notice:: scheduled or no platform selected → nightly build of all platforms except fdroid"
+            { echo "channel=nightly";
               echo "android=true"; echo "fdroid=false"; echo "linux=true";
               echo "windows=true"; echo "ios=true"; echo "macos=true"; } >> "$GITHUB_OUTPUT"
           else
-            { echo "ship=$IN_SHIP";
+            { echo "channel=${IN_CHANNEL:-nightly}";
               echo "android=$IN_ANDROID"; echo "fdroid=$IN_FDROID";
               echo "linux=$IN_LINUX"; echo "windows=$IN_WINDOWS";
               echo "ios=$IN_IOS"; echo "macos=$IN_MACOS"; } >> "$GITHUB_OUTPUT"
@@ -111,7 +115,7 @@ jobs:
       - name: Resolve version + tag
         id: v
         env:
-          SHIP: ${{ steps.flags.outputs.ship }}
+          RELEASE_CHANNEL: ${{ steps.flags.outputs.channel }}
         run: bash .github/scripts/release/resolve-version.sh
 
   prepare-release:
@@ -126,7 +130,7 @@ jobs:
       - name: Ensure unified release object
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MODE: ${{ needs.resolve.outputs.ship == 'true' && 'ship' || 'nightly' }}
+          CHANNEL: ${{ needs.resolve.outputs.channel }}
           TAG: ${{ needs.resolve.outputs.tag }}
           TARGET_SHA: ${{ github.sha }}
           NOTES: "Unified release ${{ needs.resolve.outputs.tag }} assembled by release-all-platforms."
@@ -138,6 +142,7 @@ jobs:
       contents: write
     uses: ./.github/workflows/publish-nym-vpn-core.yml
     with:
+      version: ${{ needs.resolve.outputs.version }}
       version_tag: ${{ needs.resolve.outputs.tag }}
     secrets: inherit
 
@@ -148,7 +153,9 @@ jobs:
       contents: write
     uses: ./.github/workflows/build-nym-vpn-apple.yml
     with:
-      release_type: ${{ needs.resolve.outputs.ship == 'true' && 'ship' || 'qa' }}
+      # beta maps to qa (apple ship-only path creates a standalone macOS release + appcast).
+      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
+      version: ${{ needs.resolve.outputs.version }}
       version_tag: ${{ needs.resolve.outputs.tag }}
       build_ios: ${{ needs.resolve.outputs.ios == 'true' }}
       build_macos: ${{ needs.resolve.outputs.macos == 'true' }}
@@ -161,10 +168,12 @@ jobs:
       contents: write
     uses: ./.github/workflows/publish-nym-vpn-android.yml
     with:
+      version: ${{ needs.resolve.outputs.version }}
       version_tag: ${{ needs.resolve.outputs.tag }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
-      release_type: ${{ needs.resolve.outputs.ship == 'true' && 'release' || 'nightly' }}
-      track: ${{ (needs.resolve.outputs.android == 'true' && needs.resolve.outputs.ship == 'true') && 'production' || 'none' }}
+      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
+      # Only push a Play track when Android (not just F-Droid) is selected; nightly never pushes.
+      track: ${{ needs.resolve.outputs.android == 'true' && (needs.resolve.outputs.channel == 'ship' && 'production' || (needs.resolve.outputs.channel == 'beta' && 'beta' || 'none')) || 'none' }}
     secrets: inherit
 
   # Linux + Windows desktop app. publish-nym-vpn-app.yml builds each OS as its own
@@ -179,17 +188,18 @@ jobs:
     permissions: write-all
     uses: ./.github/workflows/publish-nym-vpn-app.yml
     with:
+      version: ${{ needs.resolve.outputs.version }}
       version_tag: ${{ needs.resolve.outputs.tag }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
-      release_type: ${{ needs.resolve.outputs.ship == 'true' && 'stable' || 'nightly' }}
+      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
     secrets: inherit
 
   # Nightly only: assets can't be added after publish, so platforms assemble into a
-  # draft and this job publishes it once they finish. Ship is published manually.
+  # draft and this job publishes it once they finish. Beta + ship are published manually.
   finalize-nightly:
     needs: [resolve, prepare-release, core, apple, android, app]
-    if: ${{ always() && needs.resolve.outputs.ship == 'false' }}
+    if: ${{ always() && needs.resolve.outputs.channel == 'nightly' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

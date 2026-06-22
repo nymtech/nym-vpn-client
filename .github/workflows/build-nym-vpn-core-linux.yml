@@ -6,6 +6,11 @@ on:
       - ".github/workflows/build-nym-vpn-core-linux.yml"
   workflow_dispatch:
   workflow_call:
+    inputs:
+      version:
+        description: "Orchestrated app version to embed (empty = self-bump as before)"
+        type: string
+        default: ""
     secrets:
       VPND_SENTRY_DSN:
         required: true
@@ -88,9 +93,15 @@ jobs:
           crate: toml-cli
           cache-key: ${{ matrix.arch }}
 
+      - name: Apply orchestrated version
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
       - name: Set version for nightly builds
         working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' }}
+        if: ${{ github.ref_name == 'develop' && inputs.version == '' }}
         run: |
           if [ ${{ github.event_name }} = 'schedule' ]; then
             TAG="nightly"
