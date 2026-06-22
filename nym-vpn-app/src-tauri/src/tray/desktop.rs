@@ -158,7 +158,14 @@ impl TrayBackend for Backend {
         let menu = Menu::with_items(
             app,
             &[
-                &show_hide, &separator1, &status, &mode, &exit, &entry, &separator2, &quit,
+                &show_hide,
+                &separator1,
+                &status,
+                &mode,
+                &exit,
+                &entry,
+                &separator2,
+                &quit,
             ],
         )?;
 
