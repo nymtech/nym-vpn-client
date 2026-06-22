@@ -1,9 +1,6 @@
 import com.android.build.api.variant.BuildConfigField
 import com.android.build.api.variant.ResValue
 import com.android.build.api.variant.impl.VariantOutputImpl
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -20,10 +17,6 @@ val currentCommitHash: Provider<String> = providers.exec {
 	commandLine("git", "rev-parse", "HEAD")
 	isIgnoreExitValue = true
 }.standardOutput.asText.map { it.trim().ifEmpty { "unknown" } }.orElse("unknown")
-
-val buildTimestamp: String = DateTimeFormatter
-	.ofPattern("yyyyMMddHHmm")
-	.format(LocalDateTime.now(ZoneOffset.UTC))
 
 val languagesArray: Provider<String> = providers.provider {
 	languageList().joinToString(separator = ", ") { "\"$it\"" }
@@ -180,7 +173,7 @@ androidComponents {
 		val flavor = variant.flavorName ?: ""
 		val type = variant.buildType ?: ""
 		val version = if (type == Constants.NIGHTLY) {
-			"${Constants.VERSION_NAME}-nightly.$buildTimestamp"
+			"${Constants.VERSION_NAME}-nightly.${Constants.BUILD_TIMESTAMP}"
 		} else {
 			"${Constants.VERSION_NAME}-$type"
 		}
