@@ -51,6 +51,11 @@ on:
         description: "Orchestrated app version to embed (empty = use Constants.kt as before)"
         required: false
         default: ""
+      version_tag:
+        type: string
+        description: "Unified release tag; for *-nightly.<ts> the <ts> is used as the apk timestamp"
+        required: false
+        default: ""
     secrets:
       SCCACHE_REDIS_ENDPOINT:
         required: false
@@ -148,9 +153,17 @@ jobs:
 
       - name: Set env
         shell: bash
+        env:
+          VERSION_TAG: ${{ inputs.version_tag }}
         run: |
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
           echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
+          # Nightly apk timestamp = the <ts> baked into the unified tag
+          # (nym-vpn-v<ver>-nightly.<ts>), so the apk name matches the release. Ship/beta
+          # tags carry no "-nightly." segment → gradle generates its own.
+          if [[ "$VERSION_TAG" == *-nightly.* ]]; then
+            echo "NIGHTLY_TIMESTAMP=${VERSION_TAG##*-nightly.}" >> "$GITHUB_ENV"
+          fi
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
