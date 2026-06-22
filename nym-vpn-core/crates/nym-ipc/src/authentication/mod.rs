@@ -10,8 +10,9 @@ pub(crate) use linux::{Transport, incoming, is_authenticated};
 mod macos;
 #[cfg(target_os = "macos")]
 pub use macos::SigningRequirements;
+#[allow(unused)]
 #[cfg(target_os = "macos")]
-pub(crate) use macos::{Transport, incoming, is_authenticated};
+pub(crate) use macos::{Transport, incoming, is_authenticated, skip_authentication_checks};
 
 #[cfg(target_os = "windows")]
 mod windows;
