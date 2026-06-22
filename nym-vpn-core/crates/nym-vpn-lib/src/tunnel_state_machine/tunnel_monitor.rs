@@ -233,7 +233,7 @@ pub struct TunnelParameters {
     pub tunnel_constants: TunnelConstants,
     pub selected_gateways: Option<SelectedGateways>,
     pub user_agent: UserAgent,
-    #[cfg(target_os = "ios")]
+    #[cfg(not(target_os = "android"))]
     pub filtering_resolver_addr: SocketAddr,
 }
 
@@ -939,7 +939,7 @@ impl TunnelMonitor {
                 )));
             }
 
-            let dns_servers = self.get_mobile_dns_addresses();
+            let dns_servers = self.get_dns_addresses();
             let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
                 dns_servers,
                 interface_addresses,
@@ -1220,7 +1220,7 @@ impl TunnelMonitor {
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             metadata_proxy_tx: entry_metadata_tx,
             exit_tun,
-            dns: vec![], // we configure system resolver ourselves
+            dns: self.get_dns_addresses(),
         });
 
         let tunnel_metadata = TunnelMetadata {
@@ -1299,7 +1299,7 @@ impl TunnelMonitor {
             exit_tun_name: WG_EXIT_WINTUN_NAME.to_owned(),
             exit_tun_guid: WG_EXIT_WINTUN_GUID.to_owned(),
             wintun_tunnel_type: WINTUN_TUNNEL_TYPE.to_owned(),
-            dns: vec![], // we configure system resolver ourselves
+            dns: self.get_dns_addresses(),
         });
 
         let mut tunnel_handle = connected_tunnel
@@ -1445,7 +1445,7 @@ impl TunnelMonitor {
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
             entry_tun,
             exit_tun,
-            dns: vec![], // we configure system resolver ourselves
+            dns: self.get_dns_addresses(),
         });
 
         let tunnel_handle = connected_tunnel
@@ -1529,7 +1529,7 @@ impl TunnelMonitor {
             exit_tun_name: WG_EXIT_WINTUN_NAME.to_owned(),
             exit_tun_guid: WG_EXIT_WINTUN_GUID.to_owned(),
             wintun_tunnel_type: WINTUN_TUNNEL_TYPE.to_owned(),
-            dns: vec![], // we configure system resolver ourselves
+            dns: self.get_dns_addresses(),
         });
 
         let mut tunnel_handle = connected_tunnel
@@ -1637,10 +1637,10 @@ impl TunnelMonitor {
         }
 
         let entry_endpoint = conn_data.effective_remote_entry_endpoint().ip();
-        let dns_servers = self.get_mobile_dns_addresses();
+        let dns_servers = self.get_dns_addresses();
 
         let packet_tunnel_settings = crate::tunnel_provider::TunnelSettings {
-            dns_servers,
+            dns_servers: dns_servers.clone(),
             interface_addresses,
             remote_addresses: vec![entry_endpoint],
             mtu,
@@ -1668,7 +1668,6 @@ impl TunnelMonitor {
             exit: WireguardNode::from(&conn_data.exit),
         });
 
-        let dns_servers = self.get_mobile_dns_addresses();
         let tunnel_options = TunnelOptions::Netstack(NetstackTunnelOptions {
             metadata_proxy_tx: entry_metadata_tx,
             exit_tun: tun_device,
@@ -1694,13 +1693,13 @@ impl TunnelMonitor {
         })
     }
 
-    #[cfg(target_os = "ios")]
-    fn get_mobile_dns_addresses(&self) -> Vec<IpAddr> {
+    #[cfg(not(target_os = "android"))]
+    fn get_dns_addresses(&self) -> Vec<IpAddr> {
         vec![self.tunnel_parameters.filtering_resolver_addr.ip()]
     }
 
     #[cfg(target_os = "android")]
-    fn get_mobile_dns_addresses(&self) -> Vec<IpAddr> {
+    fn get_dns_addresses(&self) -> Vec<IpAddr> {
         self.tunnel_parameters.tunnel_settings.android_tunnel_dns()
     }
 
