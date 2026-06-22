@@ -16,7 +16,7 @@ env:
   BINARY_NAME: nym-vpnc
   PKG_IDENTIFIER: net.nymtech.vpnc
   PKG_INSTALL_LOCATION: /usr/local/bin
-  S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
+  S3_ENDPOINT: https://s3.nymte.ch # API endpoint for uploads
   S3_BUCKET: builds
 
 concurrency:
@@ -78,7 +78,7 @@ jobs:
           echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
           toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
-          cargo update --dry-run
+          cargo fetch
 
       - name: Get workspace version
         id: workspace-version

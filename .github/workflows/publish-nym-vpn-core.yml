@@ -24,7 +24,7 @@ env:
   UPLOAD_DIR_WINDOWS_X64: windows_core_artifacts_x64
   UPLOAD_DIR_WINDOWS_ARM64: windows_core_artifacts_arm64
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
+  S3_ENDPOINT: https://s3.nymte.ch # API endpoint for uploads
   S3_BUCKET: builds
 
 jobs:
@@ -117,7 +117,7 @@ jobs:
           echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
           toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
-          cargo update --dry-run
+          cargo fetch
 
       - name: Get nym-vpn-core workspace version (post-append)
         id: workspace-version
