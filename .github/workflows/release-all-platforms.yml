@@ -67,7 +67,7 @@ jobs:
       ios: ${{ steps.flags.outputs.ios }}
       macos: ${{ steps.flags.outputs.macos }}
     steps:
-      - name: Resolve channel + flags (cron OR no platform selected = nightly + all platforms except fdroid)
+      - name: Resolve channel + platform flags
         id: flags
         env:
           EVENT: ${{ github.event_name }}
@@ -82,27 +82,46 @@ jobs:
         run: |
           set -euo pipefail
           echo "::notice:: releasing from ref $REF_NAME (event $EVENT)"
-          # Nightly when scheduled, OR a manual dispatch with NO platform box ticked
-          # (fdroid counts as a platform). The channel input is ignored in that fallback.
-          nightly=false
+
+          # Channel: scheduled runs are always nightly; a manual dispatch honours the
+          # chosen release_channel (the platform selection no longer overrides it).
           if [ "$EVENT" = "schedule" ]; then
-            nightly=true
-          elif [ "$IN_ANDROID" != "true" ] && [ "$IN_FDROID" != "true" ] \
-            && [ "$IN_LINUX" != "true" ] && [ "$IN_WINDOWS" != "true" ] \
-            && [ "$IN_IOS" != "true" ] && [ "$IN_MACOS" != "true" ]; then
-            nightly=true
-          fi
-          if [ "$nightly" = "true" ]; then
-            echo "::notice:: scheduled or no platform selected → nightly build of all platforms except fdroid"
-            { echo "channel=nightly";
-              echo "android=true"; echo "fdroid=false"; echo "linux=true";
-              echo "windows=true"; echo "ios=true"; echo "macos=true"; } >> "$GITHUB_OUTPUT"
+            CHANNEL=nightly
           else
-            { echo "channel=${IN_CHANNEL:-nightly}";
-              echo "android=$IN_ANDROID"; echo "fdroid=$IN_FDROID";
-              echo "linux=$IN_LINUX"; echo "windows=$IN_WINDOWS";
-              echo "ios=$IN_IOS"; echo "macos=$IN_MACOS"; } >> "$GITHUB_OUTPUT"
+            CHANNEL="${IN_CHANNEL:-nightly}"
           fi
+
+          # Platform set: a cron run, OR a dispatch with NO platform box ticked, builds
+          # EVERY platform for that channel. Any box ticked builds only the ticked ones.
+          if [ "$EVENT" = "schedule" ] \
+            || { [ "$IN_ANDROID" != "true" ] && [ "$IN_FDROID" != "true" ] \
+              && [ "$IN_LINUX" != "true" ] && [ "$IN_WINDOWS" != "true" ] \
+              && [ "$IN_IOS" != "true" ] && [ "$IN_MACOS" != "true" ]; }; then
+            ALL=true
+          else
+            ALL=false
+          fi
+
+          if [ "$ALL" = "true" ]; then
+            ANDROID=true; LINUX=true; WINDOWS=true; IOS=true; MACOS=true
+            # The F-Droid APK is built + attached by the Android job regardless of this
+            # flag; `fdroid` only DISPATCHES the F-Droid repo (a store) = ship-only.
+            if [ "$CHANNEL" = "ship" ]; then FDROID=true; else FDROID=false; fi
+            echo "::notice:: $CHANNEL → all platforms (F-Droid submission: $FDROID)"
+          else
+            ANDROID="${IN_ANDROID:-false}"; LINUX="${IN_LINUX:-false}"
+            WINDOWS="${IN_WINDOWS:-false}"; IOS="${IN_IOS:-false}"; MACOS="${IN_MACOS:-false}"
+            # F-Droid repo dispatch is ship-only; on nightly/beta the box is a no-op
+            # (the F-Droid APK still builds + attaches via the Android job).
+            if [ "$CHANNEL" = "ship" ] && [ "$IN_FDROID" = "true" ]; then FDROID=true; else FDROID=false; fi
+            echo "::notice:: $CHANNEL → selected platforms"
+          fi
+
+          {
+            echo "channel=$CHANNEL"
+            echo "android=$ANDROID"; echo "fdroid=$FDROID"; echo "linux=$LINUX"
+            echo "windows=$WINDOWS"; echo "ios=$IOS"; echo "macos=$MACOS"
+          } >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v7
         with:
@@ -172,8 +191,9 @@ jobs:
       version_tag: ${{ needs.resolve.outputs.tag }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
-      # Only push a Play track when Android (not just F-Droid) is selected; nightly never pushes.
-      track: ${{ needs.resolve.outputs.android == 'true' && (needs.resolve.outputs.channel == 'ship' && 'production' || (needs.resolve.outputs.channel == 'beta' && 'beta' || 'none')) || 'none' }}
+      # Play push is ship-only (beta builds the same as nightly = no store). Requires the
+      # Android platform actually selected, not just an F-Droid-only dispatch.
+      track: ${{ (needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship') && 'production' || 'none' }}
     secrets: inherit
 
   # Linux + Windows desktop app. publish-nym-vpn-app.yml builds each OS as its own
@@ -195,26 +215,28 @@ jobs:
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
     secrets: inherit
 
-  # Nightly only: assets can't be added after publish, so platforms assemble into a
-  # draft and this job publishes it once they finish. Beta + ship are published manually.
+  # Nightly + beta: assets can't be added after publish, so platforms assemble into a
+  # prerelease draft and this job publishes it once they finish. Only ship is published
+  # manually (its draft gates the store/AUR propagation in on-release-publish.yml).
   finalize-nightly:
     needs: [resolve, prepare-release, core, apple, android, app]
-    if: ${{ always() && needs.resolve.outputs.channel == 'nightly' }}
+    if: ${{ always() && (needs.resolve.outputs.channel == 'nightly' || needs.resolve.outputs.channel == 'beta') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Publish nightly draft (only if it has assets)
+      - name: Publish the draft (only if it has assets)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ needs.resolve.outputs.tag }}
+          CHANNEL: ${{ needs.resolve.outputs.channel }}
         run: |
           set -euo pipefail
           count=$(gh release view "$TAG" --json assets -q '.assets | length' 2>/dev/null || echo 0)
           if [ "${count:-0}" -gt 0 ]; then
             gh release edit "$TAG" --draft=false
-            echo "::notice:: published nightly $TAG ($count assets)"
+            echo "::notice:: published $CHANNEL $TAG ($count assets)"
           else
-            echo "::warning:: nightly $TAG has no assets — leaving as draft"
+            echo "::warning:: $CHANNEL $TAG has no assets — leaving as draft"
           fi

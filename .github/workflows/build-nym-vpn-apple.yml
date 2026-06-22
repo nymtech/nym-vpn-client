@@ -380,11 +380,13 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         run: |
-          brew tap crowdin/crowdin
-          brew install crowdin@4 || brew upgrade crowdin@4 || true
-
-          # Make sure the crowdin binary is on PATH for this step
-          export PATH="$(brew --prefix crowdin@4)/bin:$PATH"
+          if ! command -v crowdin >/dev/null 2>&1; then
+            brew tap crowdin/crowdin
+            brew trust crowdin/crowdin 2>/dev/null || true
+            brew install crowdin@4 || brew upgrade crowdin@4 || true
+            crowdin_prefix="$(brew --prefix crowdin@4)"
+            export PATH="$crowdin_prefix/bin:$PATH"
+          fi
 
           which crowdin || echo "crowdin not in PATH"
 
@@ -1235,7 +1237,7 @@ jobs:
           set -euo pipefail
           if ! command -v gh >/dev/null 2>&1; then
             echo "::notice:: gh not found on PATH — installing via Homebrew"
-            brew install gh
+            brew install gh || brew upgrade gh
           fi
           gh --version
 
