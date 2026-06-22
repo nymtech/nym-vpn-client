@@ -8,6 +8,7 @@ import ConnectionTypes
 import ExternalLinkManager
 import ImpactGenerator
 import GRPCManager
+import SnackbarManager
 import Theme
 import UIComponents
 
@@ -150,7 +151,7 @@ private extension SplitTunnelView {
         .buttonStyle(.plain)
         .fileImporter(
             isPresented: $isImporterPresented,
-            allowedContentTypes: [.application],
+            allowedContentTypes: [.application, .unixExecutable],
             allowsMultipleSelection: false
         ) { result in
             if case let .success(urls) = result, let url = urls.first {
@@ -497,13 +498,24 @@ private extension SplitTunnelView {
     }
 
     func addCustomApp(at url: URL) {
-        guard url.lastPathComponent != "NymVPN.app" else { return }
+        let name = url.lastPathComponent
+        guard name != "NymVPN.app", name != "nym-vpnd" else {
+            SnackbarManager.shared.enqueue(
+                SnackbarItem(style: .warning, title: "splitTunnel.cannotExcludeNym".localizedString)
+            )
+            return
+        }
 
         let didAccess = url.startAccessingSecurityScopedResource()
         defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
 
         let app = appDiscoveryService.foundApp(at: url)
-        guard let path = app.executablePath else { return }
+        guard let path = app.executablePath else {
+            SnackbarManager.shared.enqueue(
+                SnackbarItem(style: .negative, title: "splitTunnel.notExecutable".localizedString)
+            )
+            return
+        }
 
         var next = splitTunnelConfig
         next.customAppPaths.insert(path)
