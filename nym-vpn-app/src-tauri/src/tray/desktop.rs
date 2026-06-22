@@ -153,12 +153,13 @@ impl TrayBackend for Backend {
         )
         .inspect_err(|e| error!("failed to create menu item: {e}"))?;
 
-        let separator = PredefinedMenuItem::separator(app)?;
+        let separator1 = PredefinedMenuItem::separator(app)?;
+        let separator2 = PredefinedMenuItem::separator(app)?;
 
         let menu = Menu::with_items(
             app,
             &[
-                &show_hide, &separator, &status, &mode, &exit, &entry, &separator, &quit,
+                &show_hide, &separator1, &status, &mode, &exit, &entry, &separator2, &quit,
             ],
         )?;
 
