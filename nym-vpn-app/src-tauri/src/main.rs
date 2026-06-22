@@ -354,6 +354,7 @@ async fn main() -> Result<()> {
             account::store_deeplink_account,
             account::get_autologin_deeplink,
             account::get_account_summary,
+            account::refresh_account_state,
             account::handle_subscription_payment,
             cmd_daemon::daemon_status,
             cmd_daemon::set_network,

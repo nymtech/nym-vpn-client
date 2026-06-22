@@ -16,5 +16,6 @@ export { default as useToast } from './useToast';
 export { default as useDebounce } from './useDebounce';
 export { default as useConnect } from './useConnect';
 export { default as useGatewayIndependenceWatcher } from './useGatewayIndependenceWatcher';
+export { default as useRefreshAccountSummary } from './useRefreshAccountSummary';
 
 export * from './useToast';
