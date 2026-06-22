@@ -8,6 +8,17 @@ import GRPCManager
 
 @MainActor
 extension ConnectionManager {
+    public func setGatewayIndependenceNotifications(_ enabled: Bool) {
+        appSettings.serverFamilyRemindersEnabled = enabled
+        Task {
+#if os(iOS)
+            await sendAfterPersistingConfig(.setGatewayIndependenceNotifications(enabled))
+#elseif os(macOS)
+            try? await grpcManager.setGatewayIndependenceNotifications(enabled)
+#endif
+        }
+    }
+
     public func setCustomDns(_ dns: [String]) {
         appSettings.customDns = dns
         Task {

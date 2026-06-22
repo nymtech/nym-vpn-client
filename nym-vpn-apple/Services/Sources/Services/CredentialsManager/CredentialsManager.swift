@@ -20,12 +20,12 @@ import PathManager
 @_exported import AccountPrefetchGates
 
 @MainActor public final class CredentialsManager: ObservableObject {
-    private let logger = Logger(label: "CredentialsManager")
+    let logger = Logger(label: "CredentialsManager")
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
 #endif
-    private let appSettings = AppSettings.shared
-    private let configurationManager = ConfigurationManager.shared
+    let appSettings = AppSettings.shared
+    let configurationManager = ConfigurationManager.shared
 
 #if os(iOS)
     var deeplinks: NymDeeplinks?
@@ -35,9 +35,9 @@ import PathManager
     /// iOS toggles this during `performAccountRegistration`; macOS leaves it false.
     private(set) public var isAccountRegistrationInFlight = false
 #if os(iOS)
-    private var registrationCapturedEnvironment: NymEnvironment?
+    var registrationCapturedEnvironment: NymEnvironment?
     private var accountRegistrationTask: Task<Void, Error>?
-    private var accountControllerShutdown: (() async -> Void)?
+    var accountControllerShutdown: (() async -> Void)?
 #endif
 
     public static let shared = CredentialsManager()
@@ -153,48 +153,6 @@ import PathManager
 #endif
 
 #if os(iOS)
-    public func shutdownControllers() {
-        if let shutdown = accountControllerShutdown {
-            accountControllerShutdown = nil
-            Task { await shutdown() }
-        }
-    }
-
-    private var isTunnelActive: Bool {
-        AccountTunnelPrefetchGate.isTunnelActive(status: TunnelsManager.shared.activeTunnel?.status)
-    }
-
-    private func withController<T>(_ body: (NymAccountController) async throws -> T) async throws -> T {
-        guard !isTunnelActive else { throw VPNErrorReason.accountStoreBusy }
-        try Task.checkCancellation()
-
-        let env = try resolvedRegistrationEnvironment()
-        let dataDir = try PathManager.dataFolderURL().path()
-        let offlineMonitor = await NymOfflineMonitor()
-
-        let controller = try await NymAccountController(
-            dataDir: dataDir,
-            userAgent: .appUserAgent,
-            networkEnv: env,
-            offlineMonitor: offlineMonitor
-        )
-        accountControllerShutdown = { await controller.shutdownAndWait() }
-        defer {
-            accountControllerShutdown = nil
-            Task { await controller.shutdownAndWait() }
-        }
-
-        return try await body(controller)
-    }
-
-    private func mapPrefetchResult(from controller: NymAccountController) async -> ZkNymPrefetchResult {
-        let state = await controller.getAccountState()
-        if state == .upgradeMode { return .upgradeMode }
-        return .fetchedTickets
-    }
-#endif
-
-#if os(iOS)
     private func login(credential: String, environment: NymEnvironment) async throws {
         do {
             try await AccountRegistrationSupport.withAccountStoreRetry(
@@ -305,29 +263,14 @@ import PathManager
     }
 
 #if os(iOS)
-    private func prepareRegisteredAccount(environment _: NymEnvironment) async throws {
-        do {
-            try await AccountRegistrationSupport.withAccountStoreRetry(
-                operation: "prepareRegisteredAccount",
-                logger: logger
-            ) {
-                try await withController { controller in
-                    try await controller.waitForAccountReadyToConnect(timeout: 120)
-                }
-            }
-        } catch let error as VpnError {
-            throw AccountRegistrationSupport.mapToVPNErrorReason(error)
-        }
-    }
-
-    private func resolvedNetworkEnvironment() throws -> NymEnvironment {
+    func resolvedNetworkEnvironment() throws -> NymEnvironment {
         if let networkEnv = configurationManager.networkEnv {
             return networkEnv
         }
         return try .newWithMainnetFallback()
     }
 
-    private func resolvedRegistrationEnvironment() throws -> NymEnvironment {
+    func resolvedRegistrationEnvironment() throws -> NymEnvironment {
         if let registrationCapturedEnvironment {
             return registrationCapturedEnvironment
         }
@@ -346,35 +289,7 @@ import PathManager
     @discardableResult
     public func prefetchZkNyms(timeout: TimeInterval = 60) async -> ZkNymPrefetchResult {
 #if os(iOS)
-        guard isValidCredentialImported else { return .skipped }
-        do {
-            let result = try await AccountRegistrationSupport.withAccountStoreRetry(
-                operation: "prefetchZkNyms",
-                logger: logger
-            ) {
-                try await withController { controller in
-                    try await controller.waitForAccountReadyToConnect(timeout: timeout)
-                    return await mapPrefetchResult(from: controller)
-                }
-            }
-            logger.info("prefetchZkNyms (iOS) outcome=\(result)")
-            return result
-        } catch is CancellationError {
-            logger.debug("prefetchZkNyms (iOS) cancelled")
-            return .skipped
-        } catch let error as VpnError where error == .VpnApiTimeout {
-            logger.debug("prefetchZkNyms (iOS) timed out")
-            return .failed
-        } catch {
-            if AccountRegistrationSupport.isAccountStoreBusyFailure(error) {
-                logger.debug("prefetchZkNyms (iOS) skipped: account store busy")
-                return .skippedStoreBusy
-            }
-            logger.error(
-                "prefetchZkNyms (iOS) failed \(Self.sanitizedAccountSummaryErrorLog(error))"
-            )
-            return .failed
-        }
+        await prefetchZkNymsOnIOS(timeout: timeout)
 #else
         return .skipped
 #endif
@@ -603,47 +518,7 @@ import PathManager
     private func fetchAccountSummary() async {
         guard isValidCredentialImported else { return }
 #if os(iOS)
-        let summary: VpnAccountSummary?
-        do {
-            summary = try await AccountRegistrationSupport.withAccountStoreRetry(
-                operation: "getAccountSummary",
-                logger: logger
-            ) {
-                try await withController { controller in
-                    try await controller.getAccountSummary()
-                }
-            }
-        } catch {
-            accountSummaryLastFetchFailed = true
-            logger.error(
-                "fetchAccountSummary (iOS) failed operation=getAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
-            )
-            return
-        }
-
-        guard let summary
-        else {
-            // nil-without-throw: same UX as a failure, surface it as one.
-            logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
-            accountSummaryLastFetchFailed = true
-            return
-        }
-
-        accountSummaryLastFetchFailed = false
-        let innerSub = summary.subscription?.subscription
-        accountSummary = AccountSummary(
-            validUntilTimeInterval: innerSub?.validUntilUtc,
-            trafficUsedGb: summary.trafficUsedGb,
-            trafficLimitGb: summary.trafficLimitGb,
-            trafficResetTimeInterval: summary.trafficResetTime,
-            accountAddress: summary.accountAddr,
-            cannonicalAccountAddress: summary.canonicalAccountAddr,
-            accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
-            isLinked: summary.isLinked(),
-            isActive: summary.isSubscriptionActive(),
-            isAutoRenewEnabled: innerSub?.isRecurring ?? false,
-            subscription: summary.subscription.map { Subscription(from: $0) }
-        )
+        await fetchAccountSummaryOnIOS()
 #elseif os(macOS)
         // On gRPC failure keep the last good summary; only flag the failure.
         do {
@@ -671,7 +546,7 @@ import PathManager
     }
 }
 
-private extension CredentialsManager {
+extension CredentialsManager {
     static func sanitizedAccountSummaryErrorLog(_ error: Error) -> String {
         "errorType=\(String(describing: Swift.type(of: error)))"
     }

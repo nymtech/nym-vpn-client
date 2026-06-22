@@ -15,7 +15,9 @@ enum AccountRegistrationSupport {
     }
 
     static func mapToVPNErrorReason(_ error: Error) -> Error {
-        if error is VPNErrorReason { return error }
+        if error is VPNErrorReason {
+            return error
+        }
         if let vpnError = error as? VpnError {
             return VPNErrorReason(with: vpnError)
         }

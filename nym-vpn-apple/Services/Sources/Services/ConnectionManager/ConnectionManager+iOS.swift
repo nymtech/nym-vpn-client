@@ -112,7 +112,8 @@ extension ConnectionManager {
             isLanBypassEnabled: appSettings.isLanBypassEnabled,
             isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
             isTwoHopEnabled: connectionType == .wireguard,
-            gatewaySelectionAlgorithmConfig: algorithmConfig
+            gatewaySelectionAlgorithmConfig: algorithmConfig,
+            isServerFamilyRemindersEnabled: appSettings.serverFamilyRemindersEnabled
         )
     }
 
