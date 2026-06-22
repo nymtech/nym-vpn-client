@@ -35,6 +35,7 @@ pub(crate) async fn is_authenticated(
     Ok(())
 }
 
+#[allow(unused)]
 fn self_is_signed(signing_requirement: &str) -> bool {
     let mut raw_sec_code: *mut SecCode = std::ptr::null_mut();
     let status =
@@ -72,6 +73,7 @@ fn self_is_signed(signing_requirement: &str) -> bool {
     status == errSecSuccess
 }
 
+#[allow(unused)]
 pub(crate) fn skip_authentication_checks(auth_material: &AuthenticationMaterial) -> bool {
     auth_material.disable_client_verification
         || !self_is_signed(&auth_material.signing_requirements.daemon_req)
