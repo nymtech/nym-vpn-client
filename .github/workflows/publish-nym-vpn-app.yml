@@ -626,15 +626,6 @@ jobs:
           fi
           echo "CORE_LINK=$url" >> "$GITHUB_ENV"
 
-      - name: Set app link
-        run: |
-          if [[ "${{ env.RELEASE_TYPE }}" == "dev" ]]; then
-            url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          else
-            url="https://github.com/nymtech/nym-vpn-client/releases/tag/${{ needs.publish.outputs.release_tag }}"
-          fi
-          echo "APP_LINK=$url" >> "$GITHUB_ENV"
-
       - name: Set message
         env:
           VERSION: ${{ needs.publish.outputs.version }}
@@ -644,7 +635,7 @@ jobs:
           {
             echo 'MESSAGE<<EOF'
             echo '${{ env.EMOJI }} **${{ env.NAME }}** `${{ env.VERSION }}`
-          [app](${{ env.APP_LINK }}) | [core](${{ env.CORE_LINK }})
+          [core](${{ env.CORE_LINK }})
           '
             echo EOF
           } >> "$GITHUB_ENV"
