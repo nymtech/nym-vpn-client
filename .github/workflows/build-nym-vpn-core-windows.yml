@@ -22,6 +22,11 @@ on:
         required: false
         default: x64
         type: string
+      version:
+        description: "Orchestrated app version to embed (empty = self-bump as before)"
+        required: false
+        default: ""
+        type: string
     secrets:
       VPND_SENTRY_DSN:
         required: true
@@ -100,10 +105,16 @@ jobs:
         with:
           crate: toml-cli
 
+      - name: Apply orchestrated version
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
       - name: Set version for nightly builds
         shell: bash
         working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' }}
+        if: ${{ github.ref_name == 'develop' && inputs.version == '' }}
         run: |
           if [ ${{ github.event_name }} = 'schedule' ]; then
             TAG="nightly"
