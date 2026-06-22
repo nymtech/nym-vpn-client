@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix missing "recursion available" flag in DNS responses, passthrough authority and additional records (https://github.com/nymtech/nym-vpn-client/pull/5546)
 - Provide escape hatch when reconnecting the tunnel in "time desynced" error state (https://github.com/nymtech/nym-vpn-client/pull/5551)
 - Race when network usage spikes happen during longer bandwidth checks, disconnecting the client from the server (https://github.com/nymtech/nym-vpn-client/pull/5618)
+- [macOS] Disable authentication when flag is set (https://github.com/nymtech/nym-vpn-client/pull/5645)
 
 ### Removed
 
