@@ -57,13 +57,14 @@ runs:
               cargo fetch )
             ;;
           android)
-            # No set-version tool: gradle builds the final versionName from
-            # Constants.VERSION_NAME (flavor prefix + variant suffix + nightly timestamp).
-            # Write the numeric BASE (strip -nightly/-beta) so gradle's own suffix is not
-            # doubled. VERSION_CODE is an integer and is intentionally left untouched.
-            BASE="${VERSION%%-*}"
+            # No set-version tool: gradle builds the final apk name from
+            # Constants.VERSION_NAME. For nightly, gradle appends its own
+            # "-nightly.<timestamp>" suffix, so strip the orchestrator's trailing
+            # "-nightly" to avoid doubling. Keep "-beta.N" so the beta apk name
+            # carries it. VERSION_CODE is an integer and is left untouched.
+            VN="${VERSION%-nightly}"
             f="nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt"
-            BASE="$BASE" perl -0777 -pi -e 's/(VERSION_NAME\s*=\s*")[^"]*(")/$1 . "v" . $ENV{BASE} . $2/e' "$f"
+            VN="$VN" perl -0777 -pi -e 's/(VERSION_NAME\s*=\s*")[^"]*(")/$1 . "v" . $ENV{VN} . $2/e' "$f"
             ;;
           apple)
             # fastlane lane sets MARKETING_VERSION on the 6 shipping targets. App Store may
