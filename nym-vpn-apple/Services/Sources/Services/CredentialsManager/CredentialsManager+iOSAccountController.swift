@@ -62,11 +62,91 @@ extension CredentialsManager {
                 logger: logger
             ) {
                 try await withController { controller in
-                    try await controller.waitForAccountReadyToConnect(timeout: 120)
+                    try await waitForOnboardingAccountPrepared(
+                        controller: controller,
+                        timeout: 120
+                    )
                 }
             }
         } catch let error as VpnError {
             throw AccountRegistrationSupport.mapToVPNErrorReason(error)
+        }
+    }
+
+    func waitForOnboardingAccountPrepared(
+        controller: NymAccountController,
+        timeout: TimeInterval
+    ) async throws {
+        let pollInterval: Duration = .milliseconds(250)
+        let deadline = ContinuousClock.now + .seconds(timeout)
+
+        while ContinuousClock.now < deadline {
+            try Task.checkCancellation()
+            switch Self.accountPreparationWaitOutcome(for: await controller.getAccountState()) {
+            case .prepared:
+                return
+            case .continueWaiting:
+                try await Task.sleep(for: pollInterval)
+            case .fail(let details):
+                throw VpnError.AccountControllerError(details: details)
+            }
+        }
+        throw VpnError.VpnApiTimeout
+    }
+
+    static func accountPreparationWaitOutcome(
+        for state: AccountControllerState
+    ) -> AccountPreparationWaitOutcome {
+        OnboardingAccountPreparationPolicy.waitOutcome(
+            for: accountPreparationPhase(from: state)
+        )
+    }
+
+    static func accountPreparationPhase(
+        from state: AccountControllerState
+    ) -> OnboardingAccountPreparationPolicy.AccountStatePhase {
+        switch state {
+        case .offline:
+            return .offline
+        case .loggedOut:
+            return .loggedOut
+        case .syncing:
+            return .syncing
+        case .requestingZkNyms:
+            return .requestingZkNyms
+        case .readyToConnect:
+            return .readyToConnect
+        case .decentralised:
+            return .decentralised
+        case .upgradeMode:
+            return .upgradeMode
+        case .pendingSubscription:
+            return .pendingSubscription
+        case .error(let reason):
+            return .error(accountPreparationErrorKind(from: reason))
+        }
+    }
+
+    static func accountPreparationErrorKind(
+        from reason: AccountControllerErrorStateReason
+    ) -> OnboardingAccountPreparationPolicy.AccountStatePhase.ErrorKind {
+        switch reason {
+        case .inactiveSubscription:
+            return .inactiveSubscription
+        case .accountStatusNotActive(let status):
+            return .accountStatusNotActive(status: status)
+        case .storage(let context, let details):
+            return .storage(context: context, details: details)
+        case .apiFailure(let context, let details):
+            return .apiFailure(context: context, details: details)
+        case .`internal`(let context, let details):
+            return .internalError(context: context, details: details)
+        case .bandwidthExceeded(let context):
+            return .bandwidthExceeded(context: context)
+        case .maxDeviceReached:
+            return .maxDeviceReached
+        case .deviceTimeDesynced:
+            return .deviceTimeDesynced
         }
     }
 
