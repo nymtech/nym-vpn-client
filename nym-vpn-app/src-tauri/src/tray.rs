@@ -351,7 +351,7 @@ mod linux {
     use ksni::{Handle, TrayMethods, menu::StandardItem};
     use tauri::AppHandle;
     use tokio::{sync::Mutex, task::JoinHandle};
-    use tracing::{debug, error, instrument, trace};
+    use tracing::{debug, instrument, trace, warn};
 
     use super::{quit_app, show_window};
     use crate::vpnd::tunnel::TunnelState;
@@ -532,7 +532,10 @@ mod linux {
     }
 
     pub struct TrayManager {
-        handle: Handle<NymTray>,
+        // `None` when the tray failed to spawn (e.g. no StatusNotifierWatcher on the bus,
+        // as on bare i3/XEmbed setups). The app keeps running tray-less in that case;
+        // all `update_tray_*` calls become no-ops.
+        handle: Option<Handle<NymTray>>,
         icon_debounce: Mutex<Option<JoinHandle<()>>>,
         entry_visible: Mutex<bool>,
     }
@@ -564,15 +567,23 @@ mod linux {
                 .spawn(move || {
                     let result = futures::executor::block_on(tray.spawn())
                         .map_err(|e| anyhow::anyhow!("failed to spawn ksni tray: {e:?}"));
-                    if let Err(ref e) = result {
-                        error!("{e}");
-                    }
                     let _ = tx.send(result);
                 })?;
 
-            let handle = rx
-                .recv()
-                .map_err(|e| anyhow::anyhow!("ksni-tray thread died: {e}"))??;
+            // A failed spawn is non-fatal: SNI requires a StatusNotifierWatcher on the
+            // session bus, which bare i3/XEmbed setups don't provide. Rather than crashing
+            // the whole app out of Tauri's setup hook, log it and run without a tray.
+            let handle = match rx.recv() {
+                Ok(Ok(handle)) => Some(handle),
+                Ok(Err(e)) => {
+                    warn!("system tray unavailable, continuing without it: {e}");
+                    None
+                }
+                Err(e) => {
+                    warn!("ksni-tray init thread died, continuing without tray: {e}");
+                    None
+                }
+            };
 
             Ok(Self {
                 handle,
@@ -583,11 +594,13 @@ mod linux {
 
         #[instrument(skip_all)]
         pub async fn update_tray_icon(&self, state: TunnelState) {
+            let Some(handle) = self.handle.clone() else {
+                return;
+            };
             let mut pending = self.icon_debounce.lock().await;
             if let Some(h) = pending.take() {
                 h.abort();
             }
-            let handle = self.handle.clone();
             *pending = Some(tokio::spawn(async move {
                 tokio::time::sleep(ICON_DEBOUNCE).await;
                 let kind = IconKind::from(&state);
@@ -596,47 +609,50 @@ mod linux {
         }
 
         pub async fn update_tray_show_hide(&self, show_hide: String) {
-            self.handle
+            let Some(handle) = &self.handle else { return };
+            handle
                 .update(move |t: &mut NymTray| t.show_hide = show_hide)
                 .await;
         }
 
         pub async fn update_tray_quit(&self, quit: String) {
-            self.handle
+            let Some(handle) = &self.handle else { return };
+            handle
                 .update(move |t: &mut NymTray| t.quit = quit)
                 .await;
         }
 
         pub async fn update_tray_mode(&self, mode: String) {
-            self.handle
-                .update(move |t: &mut NymTray| t.mode = mode)
-                .await;
+            let Some(handle) = &self.handle else { return };
+            handle.update(move |t: &mut NymTray| t.mode = mode).await;
         }
 
         pub async fn update_tray_state(&self, state: String) {
-            self.handle
+            let Some(handle) = &self.handle else { return };
+            handle
                 .update(move |t: &mut NymTray| t.status = state)
                 .await;
         }
 
         pub async fn update_tray_entry(&self, entry: String) {
-            self.handle
+            let Some(handle) = &self.handle else { return };
+            handle
                 .update(move |t: &mut NymTray| t.entry = entry)
                 .await;
         }
 
         pub async fn update_tray_exit(&self, exit: String) {
-            self.handle
-                .update(move |t: &mut NymTray| t.exit = exit)
-                .await;
+            let Some(handle) = &self.handle else { return };
+            handle.update(move |t: &mut NymTray| t.exit = exit).await;
         }
 
         pub async fn update_tray_entry_visible(&self, visible: bool) {
+            let Some(handle) = &self.handle else { return };
             let mut current = self.entry_visible.lock().await;
             if *current == visible {
                 return;
             }
-            self.handle
+            handle
                 .update(move |t: &mut NymTray| t.entry_visible = visible)
                 .await;
             *current = visible;
