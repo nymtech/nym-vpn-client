@@ -343,7 +343,7 @@ pub use desktop::TrayManager;
 
 #[cfg(target_os = "linux")]
 mod linux {
-    use std::sync::LazyLock;
+    use std::sync::{Arc, LazyLock, Mutex as StdMutex};
     use std::time::Duration;
 
     use anyhow::Result;
@@ -362,6 +362,9 @@ mod linux {
     const DISCONNECTED_ICON: &[u8] = include_bytes!("../icons/tray_icon_disconnected.png");
     const ERROR_ICON: &[u8] = include_bytes!("../icons/tray_icon_error.png");
     const ICON_DEBOUNCE: Duration = Duration::from_millis(300);
+
+    const SPAWN_RETRY_INTERVAL: Duration = Duration::from_secs(10);
+    const SPAWN_MAX_ATTEMPTS: u32 = 12;
 
     fn decode_argb(bytes: &[u8]) -> ksni::Icon {
         let img = image::load_from_memory_with_format(bytes, ImageFormat::Png)
@@ -419,6 +422,7 @@ mod linux {
         }
     }
 
+    #[derive(Clone)]
     struct NymTray {
         app: AppHandle,
         icon: IconKind,
@@ -532,12 +536,16 @@ mod linux {
     }
 
     pub struct TrayManager {
-        // `None` when the tray failed to spawn (e.g. no StatusNotifierWatcher on the bus,
-        // as on bare i3/XEmbed setups). The app keeps running tray-less in that case;
-        // all `update_tray_*` calls become no-ops.
-        handle: Option<Handle<NymTray>>,
+        // Source of truth for the tray's current contents. Kept in sync by every
+        // `update_tray_*` call regardless of whether the live tray exists yet, so a
+        // tray spawned late (see `spawn_with_retry`) reflects the real state instead
+        // of the initial defaults.
+        state: Arc<StdMutex<NymTray>>,
+        // Live ksni handle. `None` until the tray successfully spawns. SNI requires a
+        // StatusNotifierWatcher on the session bus.
+        // A background task keeps retrying and fills this in if a watcher appears.
+        handle: Arc<StdMutex<Option<Handle<NymTray>>>>,
         icon_debounce: Mutex<Option<JoinHandle<()>>>,
-        entry_visible: Mutex<bool>,
     }
 
     impl TrayManager {
@@ -556,106 +564,146 @@ mod linux {
                 entry_visible: true,
             };
 
-            // We're called from Tauri's sync setup hook (which itself runs inside Tauri's
-            // tokio runtime), so we can't `block_on` here. With the async-io feature, ksni
-            // owns its own executor thread for the service task — we only need to drive
-            // `spawn()` itself to completion. Do that on a dedicated thread with a plain
-            // futures executor (no tokio).
-            let (tx, rx) = std::sync::mpsc::sync_channel::<Result<Handle<NymTray>>>(1);
+            let state = Arc::new(StdMutex::new(tray));
+            let handle: Arc<StdMutex<Option<Handle<NymTray>>>> = Arc::new(StdMutex::new(None));
+
+            Self::spawn_with_retry(state.clone(), handle.clone())?;
+
+            Ok(Self {
+                state,
+                handle,
+                icon_debounce: Mutex::new(None),
+            })
+        }
+
+        // Drives `ksni::spawn()` on a dedicated thread, retrying until it succeeds.
+        // A failed spawn is non-fatal if there is no StatusNotifierWatcher,
+        // so the first `spawn()` errors. Rather than crashing the app out of the setup hook,
+        // we log once and keep retrying in the background — picking up the tray if a watcher
+        // (panel/applet) appears later.
+        fn spawn_with_retry(
+            state: Arc<StdMutex<NymTray>>,
+            handle: Arc<StdMutex<Option<Handle<NymTray>>>>,
+        ) -> Result<()> {
             std::thread::Builder::new()
                 .name("ksni-tray-init".into())
                 .spawn(move || {
-                    let result = futures::executor::block_on(tray.spawn())
-                        .map_err(|e| anyhow::anyhow!("failed to spawn ksni tray: {e:?}"));
-                    let _ = tx.send(result);
+                    for attempt in 0..SPAWN_MAX_ATTEMPTS {
+                        // Spawn from a snapshot of the current state, so a late spawn
+                        // reflects whatever updates landed while we were waiting.
+                        let snapshot = state.lock().unwrap().clone();
+                        match futures::executor::block_on(snapshot.spawn()) {
+                            Ok(h) => {
+                                debug!("ksni tray spawned (attempt {})", attempt + 1);
+                                *handle.lock().unwrap() = Some(h);
+                                return;
+                            }
+                            Err(e) if attempt == 0 => {
+                                warn!(
+                                    "system tray unavailable, retrying in background \
+                                     every {}s ({} attempts): {e:?}",
+                                    SPAWN_RETRY_INTERVAL.as_secs(),
+                                    SPAWN_MAX_ATTEMPTS
+                                );
+                            }
+                            Err(e) => {
+                                trace!("ksni tray spawn retry {} failed: {e:?}", attempt + 1);
+                            }
+                        }
+                        // Don't sleep after the final attempt — give up promptly.
+                        if attempt + 1 < SPAWN_MAX_ATTEMPTS {
+                            std::thread::sleep(SPAWN_RETRY_INTERVAL);
+                        }
+                    }
+                    warn!(
+                        "no StatusNotifierWatcher appeared after {} attempts; \
+                         giving up, running without a system tray",
+                        SPAWN_MAX_ATTEMPTS
+                    );
                 })?;
+            Ok(())
+        }
 
-            // A failed spawn is non-fatal: SNI requires a StatusNotifierWatcher on the
-            // session bus, which bare i3/XEmbed setups don't provide. Rather than crashing
-            // the whole app out of Tauri's setup hook, log it and run without a tray.
-            let handle = match rx.recv() {
-                Ok(Ok(handle)) => Some(handle),
-                Ok(Err(e)) => {
-                    warn!("system tray unavailable, continuing without it: {e}");
-                    None
-                }
-                Err(e) => {
-                    warn!("ksni-tray init thread died, continuing without tray: {e}");
-                    None
-                }
-            };
-
-            Ok(Self {
-                handle,
-                icon_debounce: Mutex::new(None),
-                entry_visible: Mutex::new(true),
-            })
+        fn live_handle(&self) -> Option<Handle<NymTray>> {
+            self.handle.lock().unwrap().clone()
         }
 
         #[instrument(skip_all)]
         pub async fn update_tray_icon(&self, state: TunnelState) {
-            let Some(handle) = self.handle.clone() else {
-                return;
-            };
             let mut pending = self.icon_debounce.lock().await;
             if let Some(h) = pending.take() {
                 h.abort();
             }
+            let cache = self.state.clone();
+            let handle = self.handle.clone();
             *pending = Some(tokio::spawn(async move {
                 tokio::time::sleep(ICON_DEBOUNCE).await;
                 let kind = IconKind::from(&state);
-                handle.update(move |t: &mut NymTray| t.icon = kind).await;
+                cache.lock().unwrap().icon = kind;
+                let live = handle.lock().unwrap().clone();
+                if let Some(live) = live {
+                    live.update(move |t: &mut NymTray| t.icon = kind).await;
+                }
             }));
         }
 
         pub async fn update_tray_show_hide(&self, show_hide: String) {
-            let Some(handle) = &self.handle else { return };
-            handle
-                .update(move |t: &mut NymTray| t.show_hide = show_hide)
-                .await;
+            self.state.lock().unwrap().show_hide = show_hide.clone();
+            if let Some(handle) = self.live_handle() {
+                handle
+                    .update(move |t: &mut NymTray| t.show_hide = show_hide)
+                    .await;
+            }
         }
 
         pub async fn update_tray_quit(&self, quit: String) {
-            let Some(handle) = &self.handle else { return };
-            handle
-                .update(move |t: &mut NymTray| t.quit = quit)
-                .await;
+            self.state.lock().unwrap().quit = quit.clone();
+            if let Some(handle) = self.live_handle() {
+                handle.update(move |t: &mut NymTray| t.quit = quit).await;
+            }
         }
 
         pub async fn update_tray_mode(&self, mode: String) {
-            let Some(handle) = &self.handle else { return };
-            handle.update(move |t: &mut NymTray| t.mode = mode).await;
+            self.state.lock().unwrap().mode = mode.clone();
+            if let Some(handle) = self.live_handle() {
+                handle.update(move |t: &mut NymTray| t.mode = mode).await;
+            }
         }
 
         pub async fn update_tray_state(&self, state: String) {
-            let Some(handle) = &self.handle else { return };
-            handle
-                .update(move |t: &mut NymTray| t.status = state)
-                .await;
+            self.state.lock().unwrap().status = state.clone();
+            if let Some(handle) = self.live_handle() {
+                handle.update(move |t: &mut NymTray| t.status = state).await;
+            }
         }
 
         pub async fn update_tray_entry(&self, entry: String) {
-            let Some(handle) = &self.handle else { return };
-            handle
-                .update(move |t: &mut NymTray| t.entry = entry)
-                .await;
+            self.state.lock().unwrap().entry = entry.clone();
+            if let Some(handle) = self.live_handle() {
+                handle.update(move |t: &mut NymTray| t.entry = entry).await;
+            }
         }
 
         pub async fn update_tray_exit(&self, exit: String) {
-            let Some(handle) = &self.handle else { return };
-            handle.update(move |t: &mut NymTray| t.exit = exit).await;
+            self.state.lock().unwrap().exit = exit.clone();
+            if let Some(handle) = self.live_handle() {
+                handle.update(move |t: &mut NymTray| t.exit = exit).await;
+            }
         }
 
         pub async fn update_tray_entry_visible(&self, visible: bool) {
-            let Some(handle) = &self.handle else { return };
-            let mut current = self.entry_visible.lock().await;
-            if *current == visible {
-                return;
+            {
+                let mut state = self.state.lock().unwrap();
+                if state.entry_visible == visible {
+                    return;
+                }
+                state.entry_visible = visible;
             }
-            handle
-                .update(move |t: &mut NymTray| t.entry_visible = visible)
-                .await;
-            *current = visible;
+            if let Some(handle) = self.live_handle() {
+                handle
+                    .update(move |t: &mut NymTray| t.entry_visible = visible)
+                    .await;
+            }
         }
     }
 }
