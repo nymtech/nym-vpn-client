@@ -392,6 +392,17 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             | xcbeautify --renderer github-actions
 
+      - name: Compile ServicesMutual (iOS, unsigned)
+        working-directory: nym-vpn-apple/ServicesMutual
+        run: |
+          set -euo pipefail
+          echo "🔍 Swift compile gate (ServicesMutual, unsigned iOS device)"
+          xcodebuild build \
+            -scheme ServicesMutual-Package \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcbeautify --renderer github-actions
+
       - name: Tests
         if: ${{ env.RELEASE_TYPE == 'pr' }}
         working-directory: nym-vpn-apple/ServicesMutual

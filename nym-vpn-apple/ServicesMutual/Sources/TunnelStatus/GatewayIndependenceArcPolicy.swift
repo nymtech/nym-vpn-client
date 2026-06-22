@@ -1,3 +1,4 @@
+import Foundation
 import ErrorReason
 
 /// Arc presentation for gateway independence consent. Keys only on
