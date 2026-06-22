@@ -18,6 +18,11 @@ on:
         required: true
         type: boolean
         default: false
+      version:
+        description: "Orchestrated app version to embed (empty = use src-tauri/Cargo.toml as before)"
+        required: false
+        type: string
+        default: ""
     secrets:
       TAURI_PRIVATE_KEY:
         required: true
@@ -84,6 +89,18 @@ jobs:
         with:
           version: "21.12" # version on ubuntu 24.04
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply orchestrated version (tauri)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: tauri
+
+      - name: Apply orchestrated version (core)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
 
       - name: Get package version
         id: package-version
