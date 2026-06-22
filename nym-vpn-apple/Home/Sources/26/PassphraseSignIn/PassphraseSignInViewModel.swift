@@ -4,9 +4,6 @@ import AccountPrefetchGates
 import CredentialsManager
 import SnackbarManager
 import Theme
-#if os(iOS)
-import ErrorHandler
-#endif
 
 @MainActor
 @Observable
@@ -68,18 +65,6 @@ public final class PassphraseSignInViewModel {
                 )
             } catch is CancellationError {
                 sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
-#if os(iOS)
-            } catch let error as VPNErrorReason {
-                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
-                submissionState = .failed
-                SnackbarManager.shared.enqueue(
-                    SnackbarItem(
-                        style: .critical,
-                        title: "error".localizedString,
-                        message: error.localizedDescription
-                    )
-                )
-#endif
             } catch {
                 sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
                 submissionState = .failed

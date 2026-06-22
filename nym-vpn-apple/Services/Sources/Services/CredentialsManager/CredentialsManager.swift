@@ -69,6 +69,10 @@ import PathManager
 
     private init() {}
 
+    func setAccountSummaryLastFetchFailed(_ failed: Bool) {
+        accountSummaryLastFetchFailed = failed
+    }
+
     public func setup() {
 #if os(iOS)
         checkCredentialImport()

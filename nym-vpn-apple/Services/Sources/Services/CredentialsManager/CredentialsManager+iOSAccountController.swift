@@ -115,7 +115,7 @@ extension CredentialsManager {
                 }
             }
         } catch {
-            accountSummaryLastFetchFailed = true
+            setAccountSummaryLastFetchFailed(true)
             logger.error(
                 "fetchAccountSummary (iOS) failed operation=getAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
             )
@@ -124,11 +124,11 @@ extension CredentialsManager {
 
         guard let summary else {
             logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
-            accountSummaryLastFetchFailed = true
+            setAccountSummaryLastFetchFailed(true)
             return
         }
 
-        accountSummaryLastFetchFailed = false
+        setAccountSummaryLastFetchFailed(false)
         let innerSub = summary.subscription?.subscription
         accountSummary = AccountSummary(
             validUntilTimeInterval: innerSub?.validUntilUtc,
