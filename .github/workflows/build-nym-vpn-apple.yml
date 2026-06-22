@@ -40,12 +40,8 @@ on:
         description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
         type: string
         default: ""
-      core_nightly_version:
+      nightly_version:
         description: "Resolved nightly core (Rust) version, e.g. 2.13.0-nightly.<stamp>. Empty on ship/PR → falls back to Cargo.toml. Bundled into the app as libVersion."
-        type: string
-        default: ""
-      apple_nightly_version:
-        description: "Resolved apple nightly version, e.g. 2026.11.0-nightly.<stamp>. Empty on ship/PR. Applied as the macOS MARKETING_VERSION only (iOS keeps numeric CalVer for TestFlight)."
         type: string
         default: ""
       build_ios:
@@ -175,6 +171,8 @@ jobs:
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
+
+      # TODO(release-all-platforms): Set version for nightly builds.
 
       - name: Get workspace version
         id: workspace-version
@@ -344,12 +342,12 @@ jobs:
       - name: Update core version in app
         if: ${{ env.RELEASE_TYPE != 'pr' }}
         env:
-          CORE_NIGHTLY_VERSION: ${{ inputs.core_nightly_version }}
+          NIGHTLY_VERSION: ${{ inputs.nightly_version }}
         run: |
           set -euo pipefail
 
-          if [[ -n "${CORE_NIGHTLY_VERSION:-}" ]]; then
-            LIB_VERSION="$CORE_NIGHTLY_VERSION"
+          if [[ -n "${NIGHTLY_VERSION:-}" ]]; then
+            LIB_VERSION="$NIGHTLY_VERSION"
             echo "📦 Core library version (resolved nightly): ${LIB_VERSION}"
           else
             cargo install cargo-get
@@ -587,7 +585,6 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: 14.0
           DEVELOPMENT_TEAM: ${{ secrets.APPLE_TEAM_ID }}
           DEVELOPER_ID_APP_IDENTITY: "Developer ID Application: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
-          APPLE_NIGHTLY_VERSION: ${{ inputs.apple_nightly_version }}
         run: |
           set -euo pipefail
 
@@ -596,18 +593,6 @@ jobs:
           EXPORT_PLIST="$PWD/export_options.plist"
 
           mkdir -p "$EXPORT_PATH"
-
-          # Nightly: stamp the resolved suffixed version onto the macOS build only (all
-          # Info.plists derive CFBundleShortVersionString from $(MARKETING_VERSION), and the
-          # .pkg/Sparkle path accepts non-numeric versions). Passed as an xcodebuild build
-          # setting so it never touches iOS, which keeps its numeric CalVer for TestFlight.
-          # Empty on ship/PR → no override, MARKETING_VERSION stays as committed. The value
-          # has no whitespace, so the unquoted (possibly empty) expansion below is safe.
-          MV_OVERRIDE=""
-          if [[ -n "${APPLE_NIGHTLY_VERSION:-}" ]]; then
-            MV_OVERRIDE="MARKETING_VERSION=${APPLE_NIGHTLY_VERSION}"
-            echo "🔖 Overriding macOS MARKETING_VERSION → ${APPLE_NIGHTLY_VERSION}"
-          fi
 
           # Create export options plist with explicit profile-to-bundle-ID mapping
           cat > "$EXPORT_PLIST" <<PLIST
@@ -668,9 +653,6 @@ jobs:
           echo "✅ Widget profile: $WIDGET_PROFILE_SPEC"
 
           echo "Archiving macOS app..."
-          # SC2086: $MV_OVERRIDE is deliberately unquoted — empty on ship/PR so it must
-          # expand to zero args, not one empty arg. Its value never contains whitespace.
-          # shellcheck disable=SC2086
           xcodebuild archive \
             -workspace "NymVPN.xcworkspace" \
             -scheme "NymVPNDaemon" \
@@ -684,7 +666,6 @@ jobs:
             MACOS_WIDGET_PROFILE_SPECIFIER="${WIDGET_PROFILE_SPEC}" \
             ENABLE_HARDENED_RUNTIME=YES \
             OTHER_CODE_SIGN_FLAGS="--timestamp" \
-            $MV_OVERRIDE \
             | xcbeautify --renderer github-actions
 
           # Verify archive was created

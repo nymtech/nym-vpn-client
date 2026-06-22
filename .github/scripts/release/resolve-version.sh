@@ -1,30 +1,21 @@
 #!/usr/bin/env bash
-# Resolve the release version + unified tag, and (for nightly) the per-platform nightly
-# versions.
+# Resolve the release version + unified tag, and (for nightly) the shared nightly version.
 # Inputs (env): SHIP (true|false), CARGO_ENTRY (default nym-vpn-core/Cargo.toml),
-#               APP_CARGO_ENTRY (default nym-vpn-app/src-tauri/Cargo.toml),
-#               APPLE_PBXPROJ (default nym-vpn-apple/NymVPN.xcodeproj/project.pbxproj),
 #               GITHUB_EVENT_NAME (provided by Actions)
-# Outputs (GITHUB_OUTPUT): core_version, tag, core_nightly_version, app_nightly_version,
-#                          apple_nightly_version
-#   The three *_nightly_version outputs are empty on ship builds. On nightly builds they
-#   share ONE timestamp + label so every platform's build/publish job applies the exact
-#   same string (no per-job drift). Each is based on its own project's X.Y.Z so the
-#   projects keep their independent version numbers. The apple base comes from the Xcode
-#   project's MARKETING_VERSION (CalVer) since the Apple app has no Cargo manifest.
+# Outputs (GITHUB_OUTPUT): core_version, tag, nightly_version
+#   nightly_version is empty on ship builds. On nightly builds EVERY platform shares this
+#   ONE string (core X.Y.Z + label + timestamp): this pipeline builds nightlies from
+#   develop, so all platforms carry the exact same version derived from core, with no
+#   per-platform version drift.
 set -euo pipefail
 
 SHIP="${SHIP:-false}"
 CARGO_ENTRY="${CARGO_ENTRY:-nym-vpn-core/Cargo.toml}"
-APP_CARGO_ENTRY="${APP_CARGO_ENTRY:-nym-vpn-app/src-tauri/Cargo.toml}"
-APPLE_PBXPROJ="${APPLE_PBXPROJ:-nym-vpn-apple/NymVPN.xcodeproj/project.pbxproj}"
 
 CORE_VERSION="$(cargo-get workspace.package.version --entry "$CARGO_ENTRY")"
 echo "::notice:: core version: ${CORE_VERSION}"
 
-CORE_NIGHTLY_VERSION=""
-APP_NIGHTLY_VERSION=""
-APPLE_NIGHTLY_VERSION=""
+NIGHTLY_VERSION=""
 
 if [[ "$SHIP" == "true" ]]; then
   if [[ "$CORE_VERSION" == *beta* ]]; then
@@ -41,26 +32,13 @@ else
   if [[ "${GITHUB_EVENT_NAME:-}" == "schedule" ]]; then NIGHTLY_LABEL="nightly"; else NIGHTLY_LABEL="dev"; fi
   STAMP="$(date -u +%Y%m%d%H%M)"
   CORE_BASE="$(cargo-get workspace.package.version --major --minor --patch --delimiter='.' --entry "$CARGO_ENTRY")"
-  APP_BASE="$(cargo-get package.version --major --minor --patch --delimiter='.' --entry "$APP_CARGO_ENTRY")"
-  APPLE_BASE="$(grep -oE 'MARKETING_VERSION = [^;]+' "$APPLE_PBXPROJ" \
-    | sed -E 's/.*= *//' | sort | uniq -c | sort -rn | head -1 | sed -E 's/^ *[0-9]+ +//')"
-  if [[ -z "$APPLE_BASE" ]]; then
-    echo "::error:: could not resolve apple MARKETING_VERSION from ${APPLE_PBXPROJ}" >&2
-    exit 1
-  fi
-  CORE_NIGHTLY_VERSION="${CORE_BASE}-${NIGHTLY_LABEL}.${STAMP}"
-  APP_NIGHTLY_VERSION="${APP_BASE}-${NIGHTLY_LABEL}.${STAMP}"
-  APPLE_NIGHTLY_VERSION="${APPLE_BASE}-${NIGHTLY_LABEL}.${STAMP}"
-  echo "::notice:: core nightly version: ${CORE_NIGHTLY_VERSION}"
-  echo "::notice:: app nightly version: ${APP_NIGHTLY_VERSION}"
-  echo "::notice:: apple nightly version: ${APPLE_NIGHTLY_VERSION}"
+  NIGHTLY_VERSION="${CORE_BASE}-${NIGHTLY_LABEL}.${STAMP}"
+  echo "::notice:: nightly version (all platforms): ${NIGHTLY_VERSION}"
 fi
 
 echo "::notice:: unified tag: ${TAG}"
 {
   echo "core_version=${CORE_VERSION}"
   echo "tag=${TAG}"
-  echo "core_nightly_version=${CORE_NIGHTLY_VERSION}"
-  echo "app_nightly_version=${APP_NIGHTLY_VERSION}"
-  echo "apple_nightly_version=${APPLE_NIGHTLY_VERSION}"
+  echo "nightly_version=${NIGHTLY_VERSION}"
 } >> "$GITHUB_OUTPUT"

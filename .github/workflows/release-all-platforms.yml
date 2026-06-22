@@ -55,9 +55,7 @@ jobs:
     outputs:
       tag: ${{ steps.v.outputs.tag }}
       core_version: ${{ steps.v.outputs.core_version }}
-      core_nightly_version: ${{ steps.v.outputs.core_nightly_version }}
-      app_nightly_version: ${{ steps.v.outputs.app_nightly_version }}
-      apple_nightly_version: ${{ steps.v.outputs.apple_nightly_version }}
+      nightly_version: ${{ steps.v.outputs.nightly_version }}
       ship: ${{ steps.flags.outputs.ship }}
       android: ${{ steps.flags.outputs.android }}
       fdroid: ${{ steps.flags.outputs.fdroid }}
@@ -142,7 +140,7 @@ jobs:
     uses: ./.github/workflows/publish-nym-vpn-core.yml
     with:
       version_tag: ${{ needs.resolve.outputs.tag }}
-      nightly_version: ${{ needs.resolve.outputs.core_nightly_version }}
+      nightly_version: ${{ needs.resolve.outputs.nightly_version }}
     secrets: inherit
 
   apple:
@@ -154,8 +152,6 @@ jobs:
     with:
       release_type: ${{ needs.resolve.outputs.ship == 'true' && 'ship' || 'qa' }}
       version_tag: ${{ needs.resolve.outputs.tag }}
-      core_nightly_version: ${{ needs.resolve.outputs.core_nightly_version }}
-      apple_nightly_version: ${{ needs.resolve.outputs.apple_nightly_version }}
       build_ios: ${{ needs.resolve.outputs.ios == 'true' }}
       build_macos: ${{ needs.resolve.outputs.macos == 'true' }}
     secrets: inherit
@@ -186,7 +182,7 @@ jobs:
     uses: ./.github/workflows/publish-nym-vpn-app.yml
     with:
       version_tag: ${{ needs.resolve.outputs.tag }}
-      nightly_version: ${{ needs.resolve.outputs.app_nightly_version }}
+      nightly_version: ${{ needs.resolve.outputs.nightly_version }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
       release_type: ${{ needs.resolve.outputs.ship == 'true' && 'stable' || 'nightly' }}
