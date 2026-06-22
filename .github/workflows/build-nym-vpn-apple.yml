@@ -408,6 +408,7 @@ jobs:
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
             -only-testing:ConnectionTypesTests \
+            -only-testing:TunnelStatusTests \
             -resultBundlePath TestResults.xcresult \
             | xcbeautify --renderer github-actions
           TEST_STATUS=${PIPESTATUS[0]}
@@ -423,7 +424,7 @@ jobs:
             SKIPPED=$(jq -r '.skippedTests // 0' <<<"$JSON")
             ICON="✅"; [[ "$RESULT" != "Passed" ]] && ICON="❌"
             {
-              echo "## 🧪 ConnectionTypes tests"
+              echo "## 🧪 ServicesMutual tests"
               echo ""
               echo "$ICON **$RESULT** — ${PASSED} passed, ${FAILED} failed, ${SKIPPED} skipped"
             } >> "$GITHUB_STEP_SUMMARY"

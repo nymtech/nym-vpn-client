@@ -65,8 +65,7 @@ actor TunnelActor {
             }
             canReassert = true
         case let .error(errorStateReason):
-            if canReassert {
-                // todo: remove once we properly handle error state
+            if canReassert, errorStateReason != .needsRelaxedIndependenceCriteria {
                 tunnelProvider?.cancelTunnelWithError(PacketTunnelProviderError.errorState)
             }
             lastError = ErrorReason(with: errorStateReason)

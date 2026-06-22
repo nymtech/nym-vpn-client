@@ -51,7 +51,13 @@ import UIKit
         case .connected:
             return .connected
         case .error:
-            return .failed
+            if GatewayIndependenceArcPolicy.shouldUseFailedArc(
+                status: status,
+                lastError: connectionManager.lastError
+            ) {
+                return .failed
+            }
+            return .step(lastDisplayedStep ?? .choosingBestServers)
         case .connecting, .reasserting, .restarting, .offlineReconnect:
             return .step(lastDisplayedStep ?? .initializingNym)
         case .disconnecting:
@@ -76,7 +82,7 @@ private extension ConnectionStatusViewModel {
             connectionType: connectionManager.connectionType
         )
         let error = connectionManager.lastError
-        hasFailure = error != nil
+        hasFailure = GatewayIndependenceArcPolicy.shouldRecordConnectionFailure(error)
         lastErrorMessage = error.map { Self.userFacingMessage(from: $0) }
 
         if status.isConnectingLike {
@@ -199,7 +205,7 @@ private extension ConnectionStatusViewModel {
         }
         lastErrorSignature = signature
         didFireForCurrentError = false
-        hasFailure = true
+        hasFailure = GatewayIndependenceArcPolicy.shouldRecordConnectionFailure(error)
         lastErrorMessage = Self.userFacingMessage(from: error)
         fireConnectionFailedIfReady()
     }
@@ -312,9 +318,7 @@ extension ConnectionStatusViewModel {
     }
 
     public static func isNeedsRelaxedIndependenceCriteria(_ error: Error?) -> Bool {
-        guard let error else { return false }
-        let reason = (error as? ErrorReason) ?? ErrorReason(nsError: error as NSError)
-        return reason == .needsRelaxedIndependenceCriteria
+        GatewayIndependenceArcPolicy.isIndependenceConsentError(error)
     }
 }
 
