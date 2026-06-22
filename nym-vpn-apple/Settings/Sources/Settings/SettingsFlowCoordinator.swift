@@ -44,9 +44,20 @@ struct SettingsFlowCoordinator<Content: View>: View {
         case let .accountWelcome(type: type, navigationSource: navigationSource):
             accountWelcomeDestination(type: type, navigationSource: navigationSource)
         case let .generatePassphrase(displayPurchaseView: displayPurchaseView):
-            GeneratePassphraseView(path: $flowState.path, displayPurchaseView: displayPurchaseView)
+            GeneratePassphraseView(
+                path: $flowState.path,
+                displayPurchaseView: displayPurchaseView,
+                onPurchaseFlowDismissed: {
+                    flowState.onSessionEvent?(.checkoutDismissed)
+                }
+            )
         case .processingAccount:
-            ProcessingAccountView(path: $flowState.path)
+            ProcessingAccountView(
+                path: $flowState.path,
+                onPurchaseFlowComplete: {
+                    flowState.onSessionEvent?(.checkoutCompleted)
+                }
+            )
         case .passphrase:
             PassphraseView(path: $flowState.path)
         case .logs:
@@ -72,17 +83,6 @@ struct SettingsFlowCoordinator<Content: View>: View {
             appModeDestination()
         case .daemonEnable:
             DaemonInstallView(isServing: $grpcManager.isServing, path: $flowState.path)
-        case .geoExclusion:
-            GeoExclusionView(
-                viewModel: GeoExclusionViewModel(
-                    path: $flowState.path,
-                    connectionManager: .shared,
-                    grpcManager: .shared,
-                    impactGenerator: .shared
-                )
-            )
-        case let .geoExclusionSetup(port: port):
-            GeoExclusionInstructionsView(path: $flowState.path, listenPort: port)
         case .splitTunnel:
             SplitTunnelView(path: $flowState.path)
         case .diagnosticTool:
@@ -96,8 +96,6 @@ struct SettingsFlowCoordinator<Content: View>: View {
             mixnetTuningDestination()
         case .censorship:
             censorshipDestination()
-        case .notifications:
-            notificationsDestination()
         case .accountAndDevices:
             accountAndDevicesDestination()
         case .systemStatus:
@@ -287,17 +285,6 @@ private extension SettingsFlowCoordinator {
     @ViewBuilder
     func censorshipDestination() -> some View {
         CensorshipView(path: $flowState.path)
-    }
-
-    @ViewBuilder
-    func notificationsDestination() -> some View {
-        NotificationsView(
-            viewModel: NotificationsViewModel(
-                path: $flowState.path,
-                appSettings: .shared,
-                connectionManager: .shared
-            )
-        )
     }
 
     func accountAndDevicesDestination() -> some View {

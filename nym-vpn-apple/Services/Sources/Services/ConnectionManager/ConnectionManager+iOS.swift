@@ -112,12 +112,12 @@ extension ConnectionManager {
             isLanBypassEnabled: appSettings.isLanBypassEnabled,
             isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
             isTwoHopEnabled: connectionType == .wireguard,
-            gatewaySelectionAlgorithmConfig: algorithmConfig,
-            isServerFamilyRemindersEnabled: appSettings.serverFamilyRemindersEnabled
+            gatewaySelectionAlgorithmConfig: algorithmConfig
         )
     }
 
     @MainActor func connect(with config: MixnetConfig) async throws {
+        credentialsManager.shutdownControllers()
         do {
             try await tunnelsManager.loadTunnels()
             let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)

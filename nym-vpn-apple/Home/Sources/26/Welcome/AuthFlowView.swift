@@ -1,5 +1,7 @@
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
+import Theme
 import UIComponents
 
 struct AuthFlowView: View {
@@ -10,7 +12,7 @@ struct AuthFlowView: View {
     }
 
     let credentialsManager: CredentialsManager
-    let onWillRegister: (ProcessingFlow) -> Void
+    let sessionCoordinator: AppSessionCoordinating
 
     @State private var step: Step = .welcome
     @State private var cardHeight: CGFloat?
@@ -18,21 +20,36 @@ struct AuthFlowView: View {
     @State private var signUpRootHeight: CGFloat = 0
     @State private var signInRootHeight: CGFloat = 0
     @State private var passphraseHeight: CGFloat = 0
+    @State private var generateCarouselHeight: CGFloat = 0
     @State private var measurementPassphraseViewModel: PassphraseSignInViewModel
 
     init(
         credentialsManager: CredentialsManager,
-        onWillRegister: @escaping (ProcessingFlow) -> Void
+        sessionCoordinator: AppSessionCoordinating
     ) {
         self.credentialsManager = credentialsManager
-        self.onWillRegister = onWillRegister
+        self.sessionCoordinator = sessionCoordinator
         _measurementPassphraseViewModel = State(
             wrappedValue: PassphraseSignInViewModel(credentialsManager: credentialsManager)
         )
     }
 
     private var sharedRootHeight: CGFloat {
-        max(welcomeRootHeight, signUpRootHeight, signInRootHeight, passphraseHeight)
+        AuthFlowHeightPolicy.sharedRootHeight(
+            welcome: welcomeRootHeight,
+            signUp: signUpRootHeight,
+            signIn: signInRootHeight,
+            passphrase: passphraseHeight,
+            generateCarousel: generateCarouselHeight
+        )
+    }
+
+    private var signInSharedHeight: CGFloat {
+        AuthFlowHeightPolicy.signInRootHeight(
+            welcome: welcomeRootHeight,
+            signIn: signInRootHeight,
+            passphrase: passphraseHeight
+        )
     }
 
     var body: some View {
@@ -71,6 +88,8 @@ private extension AuthFlowView {
                 onBackTapped: {}
             )
             .trackHeight { passphraseHeight = $0 }
+            GeneratePassphraseCarouselMeasurement()
+                .trackHeight { generateCarouselHeight = $0 }
         }
         .fixedSize(horizontal: false, vertical: true)
         .hidden()
@@ -93,9 +112,9 @@ private extension AuthFlowView {
         case .signUp:
             SignUpView(
                 credentialsManager: credentialsManager,
+                sessionCoordinator: sessionCoordinator,
                 rootMinHeight: sharedRootHeight,
-                onBackTapped: { step = .welcome },
-                onWillRegister: { onWillRegister(.createAccount) }
+                onBackTapped: { step = .welcome }
             )
             .fixedSize(horizontal: false, vertical: true)
             .trackHeight { cardHeight = $0 }
@@ -103,13 +122,39 @@ private extension AuthFlowView {
         case .signIn:
             SignInView(
                 credentialsManager: credentialsManager,
-                rootMinHeight: sharedRootHeight,
-                onBackTapped: { step = .welcome },
-                onWillRegister: { onWillRegister(.login) }
+                sessionCoordinator: sessionCoordinator,
+                rootMinHeight: signInSharedHeight,
+                onBackTapped: { step = .welcome }
             )
             .fixedSize(horizontal: false, vertical: true)
             .trackHeight { cardHeight = $0 }
             .transition(.slideFade(from: .trailing))
         }
+    }
+}
+
+private struct GeneratePassphraseCarouselMeasurement: View {
+    var body: some View {
+        VStack(spacing: AuthLayout.stackSpacing) {
+            Spacer().frame(height: 27)
+            StepView(stepCount: 4, currentStep: .constant(1))
+            WaveDotsView()
+            Spacer().frame(height: NymSpacing.large)
+            VStack(spacing: 16) {
+                ForEach(1...3, id: \.self) { index in
+                    VStack(alignment: .center, spacing: 16) {
+                        Text("generatePassphrase.title\(index)".localizedString)
+                            .textStyle(.Headline.Medium.regular)
+                            .multilineTextAlignment(.center)
+                        Text("generatePassphrase.subtitle\(index)".localizedString)
+                            .textStyle(.Body.Medium.regular)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, NymSpacing.component)
+        .padding(.vertical, AuthLayout.verticalPadding)
     }
 }

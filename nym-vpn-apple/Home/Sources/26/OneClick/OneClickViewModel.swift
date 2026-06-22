@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import SwiftUI
 import SnackbarManager
+import AccountPrefetchGates
 import AppSettings
 import ConnectionManager
 import ConnectionTypes
@@ -39,10 +40,17 @@ public final class OneClickViewModel {
 
     var speedMode: OneClickSpeedMode
 
+    var showsIncompleteSubscriptionBanner: Bool {
+        IAPFeedbackPolicy.shouldShowIncompleteSubscriptionBanner(
+            isCredentialImported: credentialsManager.isValidCredentialImported,
+            isAccountActive: credentialsManager.isAccountActive()
+        )
+    }
+
     /// Invoked when the daemon reports `.inactiveSubscription` or when the
     /// pre-flight gate detects an expired account. Routes the user into the
     /// purchase flow.
-    @ObservationIgnored public var onRequestPlanPurchase: (() -> Void)?
+    @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
     /// macOS only: invoked when a connect attempt is made while the helper
     /// daemon is not running, so the user can install/enable it.
     @ObservationIgnored public var onRequestDaemonEnable: (() -> Void)?
@@ -139,8 +147,18 @@ public final class OneClickViewModel {
                 guard credentialsManager.isValidCredentialImported else { return }
                 if await !credentialsManager.isAccountValid() {
                     await credentialsManager.updateAccountSummary()
-                    if !credentialsManager.isAccountActive() {
-                        onRequestPlanPurchase?()
+                    let summary = credentialsManager.accountSummary
+                    let shouldOfferPurchase = ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
+                        isAccountRegistrationInFlight: credentialsManager.isAccountRegistrationInFlight,
+                        accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
+                        isAccountActive: credentialsManager.isAccountActive(),
+                        validUntilIsFuture: LoginSessionPolicy.validUntilIsFuture(
+                            validUntil: summary?.validUntilDate
+                        ),
+                        hasAccountSummary: summary != nil
+                    )
+                    if shouldOfferPurchase {
+                        sessionCoordinator?.handleSessionEvent(.requestPlanPurchase)
                         return
                     }
                 }
@@ -157,6 +175,20 @@ public final class OneClickViewModel {
             handleInactiveSubscriptionErrorIfNeeded()
             clearLastErrorIfNeeded()
         }
+    }
+
+    func requestIndependenceConsent() {
+        snackbarManager.enqueue(
+            SnackbarItem(
+                style: .warning,
+                title: "gatewayIndependence.warning.title".localizedString,
+                message: "gatewayIndependence.warning.message".localizedString,
+                actionTitle: "gatewayIndependence.warning.connectAnyway".localizedString,
+                onAction: { [weak self] in self?.independenceConsentAgreed() },
+                secondaryActionTitle: "cancel".localizedString,
+                duration: 15
+            )
+        )
     }
 
     func independenceConsentAgreed() {
@@ -228,6 +260,11 @@ public final class OneClickViewModel {
                 connectionManager.setTwoHop(false)
             }
         }
+    }
+
+    func incompleteSubscriptionBannerTapped() {
+        impactGenerator.softImpact()
+        sessionCoordinator?.handleSessionEvent(.requestPlanPurchase)
     }
 }
 
@@ -344,7 +381,7 @@ private extension OneClickViewModel {
             reason = nsError.domain == ErrorReason.domain ? ErrorReason(nsError: nsError) : nil
         }
         guard reason == .inactiveSubscription else { return }
-        onRequestPlanPurchase?()
+        sessionCoordinator?.handleSessionEvent(.requestPlanPurchase)
     }
 
     func clearLastErrorIfNeeded() {

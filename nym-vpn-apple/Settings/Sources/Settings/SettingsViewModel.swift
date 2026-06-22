@@ -148,6 +148,15 @@ private extension SettingsViewModel {
         path.append(SettingLink.accountAndDevices)
     }
 
+    func navigateToPlanPurchase() {
+        impactGenerator.softImpact()
+#if os(iOS)
+        path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+#elseif os(macOS)
+        autologinState?.start(kind: .autologinRenew, using: credentialsManager)
+#endif
+    }
+
     func navigateToPassphrase() {
         impactGenerator.softImpact()
         path.append(SettingLink.passphrase)
@@ -171,11 +180,6 @@ private extension SettingsViewModel {
     }
 
 #if os(macOS)
-    func navigateToGeoExclusion() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.geoExclusion)
-    }
-
     func navigateToSplitTunneling() {
         impactGenerator.softImpact()
         path.append(SettingLink.splitTunnel)
@@ -185,11 +189,6 @@ private extension SettingsViewModel {
     func navigateToCensorship() {
         impactGenerator.softImpact()
         path.append(SettingLink.censorship)
-    }
-
-    func navigateToNotifications() {
-        impactGenerator.softImpact()
-        path.append(SettingLink.notifications)
     }
 }
 
@@ -238,7 +237,6 @@ private extension SettingsViewModel {
             newSections.append(
                 contentsOf: [
                     feedbackSection(),
-                    notificationsSection(),
                     killswitchSection(),
                     appearanceSection(),
                     privacyAndDataSection(),
@@ -287,7 +285,9 @@ private extension SettingsViewModel {
             } else {
                 var first = AttributedString("noActivePlan".localizedString)
                 first.foregroundColor = Color.Nym.error
-                subtitle = first
+                var second = AttributedString("\n\( "purchasePlan.chooseMyPlan".localizedString)")
+                second.foregroundColor = Color.Nym.primary
+                subtitle = first + second
             }
         } else {
             subtitle = AttributedString("requestingZkNyms".localizedString)
@@ -334,24 +334,6 @@ private extension SettingsViewModel {
                     action: { [weak self] in
                         Task { @MainActor in
                             self?.navigateToAppearance()
-                        }
-                    }
-                )
-            ]
-        )
-    }
-
-    func notificationsSection() -> AppSettingsSection {
-        AppSettingsSection(
-            kind: .notifications,
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.notifications.title".localizedString,
-                    systemImageName: "bell",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToNotifications()
                         }
                     }
                 )
@@ -449,18 +431,6 @@ private extension SettingsViewModel {
             )
         )
 #if os(macOS)
-        viewModels.append(
-            SettingsListItemViewModel(
-                accessory: .arrow,
-                title: "settings.geoExclusion".localizedString,
-                subtitle: "settings.geoExclusion.subtitle".localizedString,
-                imageName: "pin",
-                badge: "general.beta".localizedString,
-                action: { [weak self] in
-                    self?.navigateToGeoExclusion()
-                }
-            )
-        )
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,

@@ -9,7 +9,6 @@ public struct GatewayNode: Codable, Hashable {
     public let ipv4s: [String]
     public let ipv6s: [String]
     public let bridges: GatewayBridgeInformation?
-    public let operatorFamilyName: String?
 
     public var isQuicAvailable: Bool {
         guard let bridges else { return false }
@@ -36,8 +35,7 @@ public struct GatewayNode: Codable, Hashable {
         buildVersion: String?,
         ipv4s: [String],
         ipv6s: [String],
-        bridges: GatewayBridgeInformation?,
-        operatorFamilyName: String? = nil
+        bridges: GatewayBridgeInformation?
     ) {
         self.id = id
         self.location = location
@@ -49,7 +47,6 @@ public struct GatewayNode: Codable, Hashable {
         self.ipv4s = ipv4s
         self.ipv6s = ipv6s
         self.bridges = bridges
-        self.operatorFamilyName = operatorFamilyName
     }
 }
 

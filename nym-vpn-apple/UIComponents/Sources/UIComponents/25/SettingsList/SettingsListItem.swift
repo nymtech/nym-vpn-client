@@ -6,9 +6,13 @@ public struct SettingsListItem: View {
     @ObservedObject private var viewModel: SettingsListItemViewModel
 
     @State private var isHovered = false
+    @State private var isToggleOn = false
 
     public init(viewModel: SettingsListItemViewModel) {
         self.viewModel = viewModel
+        if case let .toggle(isOn, _) = viewModel.accessory {
+            _isToggleOn = State(initialValue: isOn.wrappedValue)
+        }
     }
 
     public var body: some View {
@@ -25,13 +29,12 @@ public struct SettingsListItem: View {
                 .frame(maxHeight: .infinity)
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    if case let .toggle(isOn, isDisabled) = viewModel.accessory, !isDisabled {
-                        isOn.wrappedValue.toggle()
+                    if case let .toggle(_, isDisabled) = viewModel.accessory, !isDisabled {
+                        isToggleOn.toggle()
                     }
                     viewModel.action()
                 }
                 HStack(spacing: 0) {
-                    optionalBadge()
                     optionalAccessoryImage()
                     optionalToggleView()
                 }
@@ -70,6 +73,11 @@ public struct SettingsListItem: View {
         .onHover { newValue in
             guard !viewModel.isHoveredHighlightDisabled else { return }
             isHovered = newValue
+        }
+        .onChange(of: isToggleOn) { _, newValue in
+            if case let .toggle(isOn, _) = viewModel.accessory {
+                isOn.wrappedValue = newValue
+            }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle ?? "")")
@@ -122,14 +130,6 @@ private extension SettingsListItem {
     }
 
     @ViewBuilder
-    func optionalBadge() -> some View {
-        if let badge = viewModel.badge {
-            BetaBadge(text: badge, action: viewModel.action)
-                .padding(.trailing, NymSpacing.large)
-        }
-    }
-
-    @ViewBuilder
     func optionalAccessoryImage() -> some View {
         if let imageName = viewModel.accessory.imageName {
             Image(imageName, bundle: .module)
@@ -142,8 +142,8 @@ private extension SettingsListItem {
 
     @ViewBuilder
     func optionalToggleView() -> some View {
-        if case let .toggle(isOn, isDisabled) = viewModel.accessory {
-            Toggle("", isOn: isOn)
+        if case let .toggle(_, isDisabled) = viewModel.accessory {
+            Toggle("", isOn: $isToggleOn)
                 .toggleStyle(.switch)
                 .tint(Color.Nym.primary)
                 .labelsHidden()

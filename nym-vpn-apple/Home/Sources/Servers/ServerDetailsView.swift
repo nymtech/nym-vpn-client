@@ -247,10 +247,6 @@ private extension ServerDetailsView {
             separatorLine()
             postQuantumRow()
             separatorLine()
-            if gateway.operatorFamilyName != nil {
-                familyMembershipRow()
-                separatorLine()
-            }
             bridges()
             Spacer()
                 .frame(height: 16)
@@ -271,21 +267,6 @@ private extension ServerDetailsView {
                 .foregroundStyle(Color.Nym.primary)
                 .padding(.trailing, 6)
             rowSubtite(with: "gatewayInfo.lewesProtocol".localizedString)
-        }
-    }
-
-    @ViewBuilder
-    func familyMembershipRow() -> some View {
-        if let family = gateway.operatorFamilyName {
-            HStack(spacing: 0) {
-                rowTitle(with: "gatewayInfo.familyMembership".localizedString)
-                Spacer()
-                GenericImage(systemImageName: "person.3.fill")
-                    .frame(width: 15, height: 15)
-                    .foregroundStyle(Color.Nym.primary)
-                    .padding(.trailing, 6)
-                rowSubtite(with: family)
-            }
         }
     }
 

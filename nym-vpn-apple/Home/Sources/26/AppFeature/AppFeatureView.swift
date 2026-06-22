@@ -1,8 +1,9 @@
 import SwiftUI
+import AccountPrefetchGates
+import AppSettings
 #if os(iOS)
 import KeyboardManager
 #endif
-import AppSettings
 import ConfigurationManager
 import ConnectionManager
 import CredentialsManager
@@ -85,6 +86,12 @@ public struct AppFeatureView: View {
                     }
                 }
                 .clipped()
+                if viewModel.purchaseTransitionOverlayVisible {
+                    Color.Nym.background
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                        .allowsHitTesting(false)
+                }
             }
             .overlay(alignment: .bottom) {
 #if os(iOS)
@@ -122,29 +129,13 @@ public struct AppFeatureView: View {
 #endif
         }
         .nymSnackbar(manager: viewModel.snackbarManager)
-        .overlay {
-            if viewModel.isFamilyWarningModalDisplayed {
-                ModalOverlayView(
-                    isDisplayed: $viewModel.isFamilyWarningModalDisplayed,
-                    dismissOnOverlayTap: false,
-                    horizontalPadding: NymSpacing.standard,
-                    maxWidth: NymSpacing.drawerMaxWidth
-                ) {
-                    FamilyWarningModalView(
-                        title: "gatewayIndependence.modal.title".localizedString,
-                        reminderText: "gatewayIndependence.modal.disableReminders".localizedString,
-                        reminderLinkText: "gatewayIndependence.modal.notificationSettingsLink".localizedString,
-                        connectAnywayTitle: "gatewayIndependence.warning.connectAnyway".localizedString,
-                        cancelTitle: "cancel".localizedString,
-                        onConnectAnyway: { viewModel.confirmFamilyWarning() },
-                        onCancel: { viewModel.dismissFamilyWarning() },
-                        onOpenNotificationSettings: { viewModel.openNotificationSettingsFromFamilyWarning() }
-                    )
-                }
-            }
-        }
         .preferredColorScheme(appearance.colorScheme)
-        .onAppear { wireOneClickNavigation() }
+        .onAppear { wireMacOSDaemonNavigation() }
+        .onChange(of: viewModel.planPurchaseNavigationToken) { _, _ in
+            guard viewModel.navigationIntent == .pushPlanPurchase else { return }
+            pushPlanPurchaseNavigation()
+            viewModel.consumeNavigationIntent()
+        }
         .onChange(of: isCredentialImported) { _, newValue in
             viewModel.handleCredentialChange(imported: newValue)
         }
@@ -191,22 +182,24 @@ public struct AppFeatureView: View {
 #endif
 
 private extension AppFeatureView {
-    func wireOneClickNavigation() {
-        let pushPlanPurchase: () -> Void = { [weak viewModel] in
-            guard let viewModel else { return }
+    func pushPlanPurchaseNavigation() {
+        withAnimation(.easeInOut(duration: 0.35)) {
             viewModel.path.append(HomeLink.settings)
             viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
         }
-        viewModel.oneClick.onRequestPlanPurchase = pushPlanPurchase
-        viewModel.onRequestPlanPurchase = pushPlanPurchase
+    }
+
 #if os(macOS)
+    func wireMacOSDaemonNavigation() {
         viewModel.oneClick.onRequestDaemonEnable = { [weak viewModel] in
             guard let viewModel else { return }
             viewModel.path.append(HomeLink.settings)
             viewModel.path.append(SettingLink.daemonEnable)
         }
-#endif
     }
+#else
+    func wireMacOSDaemonNavigation() {}
+#endif
 
     var background: some View {
         Color.Nym.background
@@ -293,7 +286,7 @@ private extension AppFeatureView {
     var welcomeContent: some View {
         AuthFlowView(
             credentialsManager: viewModel.credentialsManager,
-            onWillRegister: { flow in viewModel.pendingProcessingFlow = flow }
+            sessionCoordinator: viewModel
         )
         .trackHeight { welcomeHeight = $0 }
         .transition(.slideFade(from: .trailing))
@@ -381,35 +374,49 @@ private extension AppFeatureView {
     @ViewBuilder
     func settingsDestination(path: Binding<NavigationPath>) -> some View {
 #if os(iOS)
-        SettingsView(
-            viewModel: SettingsViewModel(
-                path: path,
-                appSettings: appSettings,
-                configurationManager: configurationManager,
-                connectionManager: connectionManager,
-                credentialsManager: credentialsManager,
-                externalLinkManager: externalLinkManager,
-                featureFlagsManager: featureFlagsManager,
-                impactGenerator: impactGenerator,
-                purchasesManager: purchasesManager
-            )
-        )
+        SettingsView(viewModel: configuredIOSSettingsViewModel(path: path))
 #elseif os(macOS)
-        SettingsView(
-            viewModel: SettingsViewModel(
-                isServing: $grpcManager.isServing,
-                path: path,
-                appSettings: appSettings,
-                configurationManager: configurationManager,
-                connectionManager: connectionManager,
-                credentialsManager: credentialsManager,
-                externalLinkManager: externalLinkManager,
-                featureFlagsManager: featureFlagsManager,
-                impactGenerator: impactGenerator
-            )
-        )
+        SettingsView(viewModel: configuredMacSettingsViewModel(path: path))
 #endif
     }
+
+#if os(iOS)
+    func configuredIOSSettingsViewModel(path: Binding<NavigationPath>) -> SettingsViewModel {
+        let settingsViewModel = SettingsViewModel(
+            path: path,
+            appSettings: appSettings,
+            configurationManager: configurationManager,
+            connectionManager: connectionManager,
+            credentialsManager: credentialsManager,
+            externalLinkManager: externalLinkManager,
+            featureFlagsManager: featureFlagsManager,
+            impactGenerator: impactGenerator,
+            purchasesManager: purchasesManager
+        )
+        settingsViewModel.onSessionEvent = { [viewModel] event in
+            viewModel.handleSessionEvent(event)
+        }
+        return settingsViewModel
+    }
+#elseif os(macOS)
+    func configuredMacSettingsViewModel(path: Binding<NavigationPath>) -> SettingsViewModel {
+        let settingsViewModel = SettingsViewModel(
+            isServing: $grpcManager.isServing,
+            path: path,
+            appSettings: appSettings,
+            configurationManager: configurationManager,
+            connectionManager: connectionManager,
+            credentialsManager: credentialsManager,
+            externalLinkManager: externalLinkManager,
+            featureFlagsManager: featureFlagsManager,
+            impactGenerator: impactGenerator
+        )
+        settingsViewModel.onSessionEvent = { [viewModel] event in
+            viewModel.handleSessionEvent(event)
+        }
+        return settingsViewModel
+    }
+#endif
 }
 
 private extension AppFeatureView {

@@ -31,7 +31,7 @@ public struct GeneratePassphraseView: View {
         .padding(.horizontal, NymSpacing.component)
         .padding(.vertical, AuthLayout.verticalPadding)
         .frame(maxWidth: .infinity)
-        .frame(height: minHeight > 0 ? minHeight : nil)
+        .frame(minHeight: minHeight > 0 ? minHeight : nil)
         .task {
             viewModel.start()
         }
@@ -42,7 +42,10 @@ public struct GeneratePassphraseView: View {
                 set: { if !$0 { viewModel.dismissError() } }
             )
         ) {
-            Button("retry".localizedString, role: .cancel) {
+            Button("ok".localizedString, role: .cancel) {
+                viewModel.dismissError()
+            }
+            Button("retry".localizedString) {
                 viewModel.retry()
             }
         }

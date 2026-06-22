@@ -87,13 +87,12 @@ import ConnectionTypes
         didSet { isAdBlockerEnabledPublisher = isAdBlockerEnabled}
     }
 
-    @AppStorage(AppSettingKey.serverFamilyReminders.rawValue)
-    public var serverFamilyRemindersEnabled = true {
-        didSet { serverFamilyRemindersEnabledPublisher = serverFamilyRemindersEnabled }
-    }
-
+#if os(macOS)
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
+#else
+    public var isStatisticsEnabled = false
+#endif
 
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0
@@ -176,7 +175,6 @@ import ConnectionTypes
     @Published public var isMixnetTuningEnabledPublisher: Bool
     @Published public var isAdBlockerEnabledPublisher: Bool
     @Published public var isPassphraseStoredPublisher: Bool
-    @Published public var serverFamilyRemindersEnabledPublisher: Bool
 
     // Init ensures the *Publisher mirrors stored values* on launch.
     private init() {
@@ -191,7 +189,6 @@ import ConnectionTypes
         self.isMixnetTuningEnabledPublisher = false
         isAdBlockerEnabledPublisher = false
         isPassphraseStoredPublisher = false
-        serverFamilyRemindersEnabledPublisher = true
 
         self.isErrorReportingOnPublisher = self.isErrorReportingOn
         self.isCredentialImportedPublisher = self.isCredentialImported
@@ -204,7 +201,6 @@ import ConnectionTypes
         self.isMixnetTuningEnabledPublisher = self.isMixnetTuningEnabled
         self.isAdBlockerEnabledPublisher = self.isAdBlockerEnabled
         self.isPassphraseStoredPublisher = self.isPassphraseStored
-        self.serverFamilyRemindersEnabledPublisher = self.serverFamilyRemindersEnabled
     }
 
     public func resetUserDefaults() {
@@ -259,7 +255,6 @@ public enum AppSettingKey: String {
     case accountSummaryCache
     case accountSummaryLastFetchedAt
     case oneClickDisplayMode
-    case serverFamilyReminders
 }
 
 extension Array: @retroactive RawRepresentable where Element: Codable {

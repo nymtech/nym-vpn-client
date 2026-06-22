@@ -42,11 +42,6 @@ let package = Package(
                 .product(name: "TunnelStatus", package: "ServicesMutual")
             ],
             path: "Sources/GRPCManager"
-        ),
-        .testTarget(
-            name: "AppDiscoveryServiceTests",
-            dependencies: ["AppDiscoveryService"],
-            path: "Tests/AppDiscoveryServiceTests"
         )
     ]
 )

@@ -36,6 +36,14 @@ let package = Package(
             name: "KeyboardManager",
             dependencies: [],
             path: "Sources/KeyboardManager"
+        ),
+        .testTarget(
+            name: "ErrorHandlerTests",
+            dependencies: [
+                "ErrorHandler",
+                .product(name: "NymVPNLib", package: "NymVPNLib")
+            ],
+            path: "Tests/ErrorHandlerTests"
         )
     ]
 )

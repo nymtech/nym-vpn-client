@@ -84,6 +84,12 @@ struct NymVPNApp: App {
             .animation(.easeInOut, value: splashScreenDidDisplay)
             .onChange(of: scenePhase) { _, newPhase in
                 configureSecureScreen(with: newPhase)
+#if os(iOS)
+                if newPhase == .background {
+                    credentialsManager.shutdownControllers()
+                    BackgroundRefreshScheduler.scheduleAppRefresh()
+                }
+#endif
             }
             .inAppSafari(using: externalLinkManager)
             .overlay {
@@ -118,6 +124,11 @@ struct NymVPNApp: App {
             .environmentObject(purchasesManager)
             .environment(deeplinkManager)
         }
+#if os(iOS)
+        .backgroundTask(.appRefresh(BackgroundRefreshScheduler.appRefreshIdentifier)) {
+            await BackgroundRefreshScheduler.runRefresh()
+        }
+#endif
     }
 }
 
@@ -134,6 +145,9 @@ private extension NymVPNApp {
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
+#if os(iOS)
+            BackgroundRefreshScheduler.scheduleAppRefresh()
+#endif
         }
     }
 

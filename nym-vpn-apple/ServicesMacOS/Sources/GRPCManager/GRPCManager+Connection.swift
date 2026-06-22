@@ -66,10 +66,6 @@ extension GRPCManager {
         try await rpcClient?.setEnableGatewayIndependence(enableGatewayIndependence: isEnabled)
     }
 
-    public func setGatewayIndependenceNotifications(_ enabled: Bool) async throws {
-        try await rpcClient?.setGatewayIndependenceNotifications(enableNotifications: enabled)
-    }
-
     public func setSplitTunnelConfig(_ config: SplitTunnelConfig) async throws {
         let oldConfig = await self.config()?.splitTunnelConfig ?? SplitTunnelConfig()
         if oldConfig.isEnabled != config.isEnabled {

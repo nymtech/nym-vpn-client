@@ -95,6 +95,11 @@ let package = Package(
             dependencies: ["ConnectionTypes"],
             path: "Tests/ConnectionTypesTests",
             swiftSettings: santaSwiftSettings
+        ),
+        .testTarget(
+            name: "TunnelStatusTests",
+            dependencies: ["TunnelStatus", "ErrorReason"],
+            path: "Tests/TunnelStatusTests"
         )
     ]
 )

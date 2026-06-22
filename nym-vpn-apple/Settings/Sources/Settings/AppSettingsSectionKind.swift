@@ -6,7 +6,6 @@ public enum AppSettingsSectionKind: SettingsSectionKind {
     case theme
     case logs
     case feedback
-    case notifications
     case killSwitch
     case legal
     case systemStatus

@@ -29,6 +29,7 @@ public struct SwitchingTitlesView: View {
                 .foregroundColor(NymColor.gray1)
                 .multilineTextAlignment(.center)
         }
+        .fixedSize(horizontal: false, vertical: true)
         .onAppear {
             startTimer()
         }

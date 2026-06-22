@@ -18,10 +18,7 @@ public final class AppDiscoveryService {
     }
 
     public func foundApp(at url: URL) -> FoundApp {
-        if url.pathExtension == "app" {
-            return makeFoundApp(from: url)
-        }
-        return makeBareExecutable(from: url)
+        makeFoundApp(from: url)
     }
 }
 
@@ -48,23 +45,6 @@ private extension AppDiscoveryService {
         }
 
         return apps
-    }
-
-    func makeBareExecutable(from url: URL) -> FoundApp {
-        let fileManager = FileManager.default
-        var isDirectory: ObjCBool = false
-        let exists = fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory)
-        // `isExecutableFile` returns true for searchable directories, so the
-        // directory guard is mandatory — we only accept regular executable files.
-        let isExecutable = exists
-            && !isDirectory.boolValue
-            && fileManager.isExecutableFile(atPath: url.path)
-
-        return FoundApp(
-            name: url.lastPathComponent,
-            executablePath: isExecutable ? url.path : nil,
-            icon: nil
-        )
     }
 
     func makeFoundApp(from appURL: URL) -> FoundApp {

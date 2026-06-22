@@ -121,7 +121,6 @@ public final class SettingsListItemViewModel: ObservableObject, Hashable {
     let multilineText: AttributedString?
     let imageName: String?
     let systemImageName: String?
-    let badge: String?
     public let type: ItemType
     let isHoveredHighlightDisabled: Bool
     let accessory: Accessory
@@ -138,7 +137,6 @@ public final class SettingsListItemViewModel: ObservableObject, Hashable {
         multilineText: AttributedString? = nil,
         imageName: String? = nil,
         systemImageName: String? = nil,
-        badge: String? = nil,
         type: ItemType = .regular,
         isHoveredHighlightDisabled: Bool = false,
         position: SettingsListItemPosition = SettingsListItemPosition(isFirst: false, isLast: false),
@@ -155,7 +153,6 @@ public final class SettingsListItemViewModel: ObservableObject, Hashable {
         self.multilineText = multilineText
         self.imageName = imageName
         self.systemImageName = systemImageName
-        self.badge = badge
         self.type = type
         self.accessory = accessory
         self.isHoveredHighlightDisabled = isHoveredHighlightDisabled
@@ -183,7 +180,6 @@ public final class SettingsListItemViewModel: ObservableObject, Hashable {
         hasher.combine(title)
         hasher.combine(subtitle)
         hasher.combine(imageName)
-        hasher.combine(badge)
         hasher.combine(accessory)
     }
 

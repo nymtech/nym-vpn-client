@@ -17,7 +17,6 @@ public struct ConnectionConfig: Codable {
     public var residentialExit: Bool
     public var mixnetTuningConfig: MixnetTuningConfig
     public var splitTunnelConfig: SplitTunnelConfig
-    public var geoExclusionConfig: GeoExclusionConfig
     public var gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig
 
 #if os(iOS)
@@ -45,11 +44,7 @@ public struct ConnectionConfig: Codable {
         residentialExit: Bool,
         mixnetTuningConfig: MixnetTuningConfig,
         splitTunnelConfig: SplitTunnelConfig,
-        geoExclusionConfig: GeoExclusionConfig = GeoExclusionConfig(),
-        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(
-            enableGeoLocation: true,
-            algorithm: .explicit
-        )
+        gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(enableGeoLocation: true, algorithm: .explicit)
     ) {
         self.entry = entry
         self.exit = exit
@@ -63,7 +58,6 @@ public struct ConnectionConfig: Codable {
         self.residentialExit = residentialExit
         self.mixnetTuningConfig = mixnetTuningConfig
         self.splitTunnelConfig = splitTunnelConfig
-        self.geoExclusionConfig = geoExclusionConfig
         self.gatewaySelectionAlgorithmConfig = gatewaySelectionAlgorithmConfig
     }
 
@@ -83,7 +77,6 @@ public struct ConnectionConfig: Codable {
         self.mixnetTuningConfig = MixnetTuningConfig(from: config.mixnetTraffic)
         self.enableAdBlocking = config.enableAdBlocking
         self.splitTunnelConfig = SplitTunnelConfig(from: config.splitTunnel)
-        self.geoExclusionConfig = GeoExclusionConfig(from: config.geoExclusion)
         self.gatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(
             enableGeoLocation: true,
             algorithm: .explicit
@@ -164,7 +157,6 @@ extension ConnectionConfig: Equatable {
         lhs.residentialExit == rhs.residentialExit &&
         lhs.mixnetTuningConfig == rhs.mixnetTuningConfig &&
         lhs.splitTunnelConfig == rhs.splitTunnelConfig &&
-        lhs.geoExclusionConfig == rhs.geoExclusionConfig &&
         lhs.gatewaySelectionAlgorithmConfig == rhs.gatewaySelectionAlgorithmConfig
     }
 }
@@ -174,7 +166,6 @@ extension ConnectionConfig {
         case entry, exit, dns, allowLan, disableIpv6, enableTwoHop
         case enableBridges, enableAdBlocking, netstack
         case residentialExit, mixnetTuningConfig, splitTunnelConfig
-        case geoExclusionConfig
         case gatewaySelectionAlgorithmConfig
     }
 
@@ -192,10 +183,6 @@ extension ConnectionConfig {
         self.residentialExit = try container.decode(Bool.self, forKey: .residentialExit)
         self.mixnetTuningConfig = try container.decode(MixnetTuningConfig.self, forKey: .mixnetTuningConfig)
         self.splitTunnelConfig = try container.decode(SplitTunnelConfig.self, forKey: .splitTunnelConfig)
-        self.geoExclusionConfig = try container.decodeIfPresent(
-            GeoExclusionConfig.self,
-            forKey: .geoExclusionConfig
-        ) ?? GeoExclusionConfig()
         self.gatewaySelectionAlgorithmConfig = try container.decodeIfPresent(
             NymGatewaySelectionAlgorithmConfig.self,
             forKey: .gatewaySelectionAlgorithmConfig

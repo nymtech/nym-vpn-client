@@ -36,10 +36,15 @@ public enum VPNErrorReason: LocalizedError {
     case deeplinkError(details: String)
     case fetchEnvironment(details: String)
     case linkPrivy(details: String)
+    case accountStoreBusy
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
     public static let domain = "ErrorHandler.VPNErrorReason"
+
+    private static func isCredentialStoreLockStorageDetail(_ details: String) -> Bool {
+        details.localizedCaseInsensitiveContains("credential store lock")
+    }
 
     // MARK: - Initializer from VpnError
 
@@ -51,7 +56,11 @@ public enum VPNErrorReason: LocalizedError {
         case let .InternalError(details: details):
             self = .internalError(details: details)
         case let .Storage(details: details):
-            self = .storage(details: details)
+            if Self.isCredentialStoreLockStorageDetail(details) {
+                self = .accountStoreBusy
+            } else {
+                self = .storage(details: details)
+            }
         case let .NetworkConnectionError(details: details):
             self = .networkConnectionError(details: details)
         case let .InvalidStateError(details: details):
@@ -62,6 +71,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .accountNotRegistered
         case .NoDeviceIdentity:
             self = .noDeviceIdentity
+        case .AccountStoreBusy:
+            self = .accountStoreBusy
         case let .VpnApi(details: vpnApiErrorResponse):
             switch vpnApiErrorResponse {
             case .Timeout:
@@ -309,6 +320,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .fetchEnvironment(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .linkPrivy:
             self = .linkPrivy(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .accountStoreBusy:
+            self = .accountStoreBusy
         }
     }
 
@@ -403,6 +416,8 @@ extension VPNErrorReason {
             details
         case let .linkPrivy(details: details):
             details
+        case .accountStoreBusy:
+            "errorReason.accountStoreBusy".localizedString
         }
     }
 }
@@ -448,6 +463,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case deeplinkError
     case fetchEnvironment
     case linkPrivy
+    // Appended last to keep existing NSError wire codes stable across the app/extension boundary.
+    case accountStoreBusy
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -517,6 +534,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .fetchEnvironment
         case .linkPrivy:
             self = .linkPrivy
+        case .accountStoreBusy:
+            self = .accountStoreBusy
         }
     }
 }

@@ -1,8 +1,12 @@
 import Foundation
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 import SnackbarManager
 import Theme
+#if os(iOS)
+import ErrorHandler
+#endif
 
 @MainActor
 @Observable
@@ -15,7 +19,7 @@ public final class PassphraseSignInViewModel {
 
     private let credentialsManager: CredentialsManager
     @ObservationIgnored private var loginTask: Task<Void, Never>?
-    @ObservationIgnored public var onWillRegister: (() -> Void)?
+    @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
 
     var passphraseText: String = "" {
         didSet {
@@ -39,14 +43,45 @@ public final class PassphraseSignInViewModel {
         loginTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
+                sessionCoordinator?.handleSessionEvent(
+                    .authWillBegin(flow: .login, completesOnCredentialImport: false)
+                )
+#if os(iOS)
+                try await credentialsManager.performAccountRegistration(loginCredential: credential)
+#else
                 try await credentialsManager.add(credential: credential)
-                onWillRegister?()
-                try await credentialsManager.registerAccount()
+#endif
                 passphraseText = ""
+                let outcome = await AuthCompletionOutcomeResolver.resolve(
+                    flow: .login,
+                    isAccountActive: { self.credentialsManager.isAccountActive() },
+                    updateAccountSummary: { untilActive in
+                        await self.credentialsManager.updateAccountSummary(
+                            force: true,
+                            untilActive: untilActive
+                        )
+                    }
+                )
                 submissionState = .idle
+                sessionCoordinator?.handleSessionEvent(
+                    .authCompleted(outcome: outcome, flow: .login)
+                )
             } catch is CancellationError {
-                // Cancelled — keep current state.
+                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
+#if os(iOS)
+            } catch let error as VPNErrorReason {
+                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
+                submissionState = .failed
+                SnackbarManager.shared.enqueue(
+                    SnackbarItem(
+                        style: .critical,
+                        title: "error".localizedString,
+                        message: error.localizedDescription
+                    )
+                )
+#endif
             } catch {
+                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(
                     SnackbarItem(
