@@ -119,6 +119,13 @@ pub async fn disconnect(
     Ok(TunnelState::Disconnecting(None))
 }
 
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn reconnect(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {
+    vpnd.vpn_reconnect().await?;
+    Ok(())
+}
+
 #[instrument(skip(vpnd))]
 #[tauri::command]
 pub async fn set_vpn_mode(vpnd: State<'_, VpndClient>, mode: VpnMode) -> Result<(), BackendError> {

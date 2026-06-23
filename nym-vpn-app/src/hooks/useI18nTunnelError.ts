@@ -59,6 +59,8 @@ function useI18nTunnelError() {
           return t('tunnel.performant-entry-gw-unavailable');
         case 'performant-exit-gw-unavailable':
           return t('tunnel.performant-exit-gw-unavailable');
+        case 'needs-relaxed-independence-criteria':
+          return t('tunnel.needs-relaxed-independence-criteria');
       }
 
       console.warn('unhandled tunnel error', error);
