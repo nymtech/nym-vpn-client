@@ -26,24 +26,3 @@ public enum ProcessingUIPolicy: Equatable, Sendable {
         !usesStaticCopy
     }
 }
-
-public enum AuthFlowHeightPolicy: Equatable, Sendable {
-    public static func sharedRootHeight(
-        welcome: CGFloat,
-        signUp: CGFloat,
-        signIn: CGFloat,
-        passphrase: CGFloat,
-        generateCarousel: CGFloat
-    ) -> CGFloat {
-        max(welcome, signUp, signIn, passphrase, generateCarousel)
-    }
-
-    /// Sign-in must not inherit signup carousel measurement height.
-    public static func signInRootHeight(
-        welcome: CGFloat,
-        signIn: CGFloat,
-        passphrase: CGFloat
-    ) -> CGFloat {
-        max(welcome, signIn, passphrase)
-    }
-}

@@ -31,7 +31,7 @@ public struct GeneratePassphraseView: View {
         .padding(.horizontal, NymSpacing.component)
         .padding(.vertical, AuthLayout.verticalPadding)
         .frame(maxWidth: .infinity)
-        .frame(minHeight: minHeight > 0 ? minHeight : nil)
+        .frame(height: minHeight > 0 ? minHeight : nil)
         .task {
             viewModel.start()
         }
