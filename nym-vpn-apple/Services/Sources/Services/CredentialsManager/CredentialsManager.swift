@@ -363,11 +363,16 @@ import PathManager
     }
 
     public func handleSubscriptionPayment() async throws {
-#if os(macOS)
         didReceiveSubscriptionPayment = true
+#if os(macOS)
         try await grpcManager.handleSubscriptionPayment()
         try? await Task.sleep(for: .seconds(2))
         await updateAccountSummary(force: true)
+#elseif os(iOS)
+        try await refreshAccountSummaryOnIOS(
+            untilActive: true,
+            trigger: .subscriptionPayment
+        )
 #endif
     }
 
@@ -465,7 +470,12 @@ import PathManager
             if let inflight = accountSummaryUpdateTask {
                 await inflight.value
             }
-            if !force, accountSummary != nil, isAccountSummaryCacheFresh(), isAccountActive() {
+            if !AccountSummaryRefreshPolicy.shouldForceNetworkRefresh(
+                force: force,
+                isAccountActive: isAccountActive()
+            ),
+               accountSummary != nil,
+               isAccountSummaryCacheFresh() {
                 return
             }
 
@@ -503,6 +513,9 @@ import PathManager
 
     private func performAccountSummaryUpdate(untilActive: Bool) async {
         guard isValidCredentialImported else { return }
+#if os(iOS)
+        await refreshAccountSummaryOnIOS(untilActive: untilActive)
+#else
         let delays: [Duration] = [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
 
         for delay in delays {
@@ -516,14 +529,13 @@ import PathManager
                 if accountSummary != nil { break }
             }
         }
+#endif
         resetExpiryDismissalsIfNeeded()
     }
 
     private func fetchAccountSummary() async {
         guard isValidCredentialImported else { return }
-#if os(iOS)
-        await fetchAccountSummaryOnIOS()
-#elseif os(macOS)
+#if os(macOS)
         // On gRPC failure keep the last good summary; only flag the failure.
         do {
             accountSummary = try await grpcManager.accountSummary()

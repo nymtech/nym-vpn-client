@@ -172,15 +172,17 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
         flow: AuthFlowKind,
         accountToken: String?
     ) -> Bool {
-        flow == .createAccount && !hasUsableAccountToken(accountToken)
+        _ = flow
+        return !hasUsableAccountToken(accountToken)
     }
 
-    /// Create-account Privy import must not route to IAP until registration produced a token.
+    /// Auth import completion requires a VPN API account token (create and login).
     public static func shouldCompleteAuthAfterCredentialImport(
         flow: AuthFlowKind,
         accountToken: String?
     ) -> Bool {
-        flow != .createAccount || hasUsableAccountToken(accountToken)
+        _ = flow
+        return hasUsableAccountToken(accountToken)
     }
 
     public static func shouldStartDrawerProcessing(outcome: AuthCompletionOutcome) -> Bool {

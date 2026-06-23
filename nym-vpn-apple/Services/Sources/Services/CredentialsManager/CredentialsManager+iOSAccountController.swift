@@ -183,31 +183,69 @@ extension CredentialsManager {
         }
     }
 
-    func fetchAccountSummaryOnIOS() async {
-        let summary: VpnAccountSummary?
-        do {
-            summary = try await AccountRegistrationSupport.withAccountStoreRetry(
-                operation: "getAccountSummary",
-                logger: logger
-            ) {
-                try await withController { controller in
-                    try await controller.getAccountSummary()
+    enum AccountSummaryRefreshTrigger: Sendable {
+        case general
+        case subscriptionPayment
+    }
+
+    func refreshAccountSummaryOnIOS(
+        untilActive: Bool,
+        trigger: AccountSummaryRefreshTrigger = .general
+    ) async throws {
+        let operationName = trigger == .subscriptionPayment
+            ? "handleSubscriptionPayment"
+            : "refreshAccountSummary"
+        try await AccountRegistrationSupport.withAccountStoreRetry(
+            operation: operationName,
+            logger: logger
+        ) {
+            try await withController { controller in
+                switch trigger {
+                case .subscriptionPayment:
+                    try await controller.handleSubscriptionPayment()
+                    try await Task.sleep(for: .seconds(2))
+                case .general:
+                    try await controller.updateAccountState()
+                }
+
+                for delay in AccountSummaryRefreshPolicy.pollDelays(untilActive: untilActive) {
+                    if delay != .zero {
+                        try await Task.sleep(for: delay)
+                    }
+                    guard let summary = try await controller.getAccountSummary() else {
+                        continue
+                    }
+                    applyVpnAccountSummary(summary)
+                    if untilActive {
+                        if summary.isSubscriptionActive() { return }
+                    } else {
+                        return
+                    }
                 }
             }
+        }
+
+        if accountSummary == nil {
+            setAccountSummaryLastFetchFailed(true)
+            logger.debug("refreshAccountSummary (iOS): no summary after polling")
+        }
+    }
+
+    func refreshAccountSummaryOnIOS(untilActive: Bool) async {
+        do {
+            try await refreshAccountSummaryOnIOS(
+                untilActive: untilActive,
+                trigger: .general
+            )
         } catch {
             setAccountSummaryLastFetchFailed(true)
             logger.error(
-                "fetchAccountSummary (iOS) failed operation=getAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
+                "refreshAccountSummary (iOS) failed \(Self.sanitizedAccountSummaryErrorLog(error))"
             )
-            return
         }
+    }
 
-        guard let summary else {
-            logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
-            setAccountSummaryLastFetchFailed(true)
-            return
-        }
-
+    func applyVpnAccountSummary(_ summary: VpnAccountSummary) {
         setAccountSummaryLastFetchFailed(false)
         let innerSub = summary.subscription?.subscription
         accountSummary = AccountSummary(

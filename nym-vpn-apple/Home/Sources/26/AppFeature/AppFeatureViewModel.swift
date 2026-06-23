@@ -237,7 +237,6 @@ import GRPCManager
     }
 
     func handleCredentialChange(imported: Bool) {
-        guard let current = drawerContent else { return }
         if imported {
             let importAction = DrawerCredentialImportPolicy.action(
                 imported: true,
@@ -245,7 +244,7 @@ import GRPCManager
                 authHandoffCompleted: sessionContext.authHandoffCompleted,
                 authHandoffCompletesOnCredentialImport: sessionContext.authHandoffCompletesOnCredentialImport,
                 hasAccountToken: credentialsManager.accountToken != nil,
-                drawerAllowsCredentialPromotion: current.allowsCredentialPromotion
+                drawerAllowsCredentialPromotion: drawerContent?.allowsCredentialPromotion ?? false
             )
             switch importAction {
             case .completeAuthOnImport(let pendingFlow):

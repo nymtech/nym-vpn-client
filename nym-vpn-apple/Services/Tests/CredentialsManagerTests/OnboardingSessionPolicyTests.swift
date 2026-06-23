@@ -467,14 +467,20 @@ struct DrawerSessionPolicyTests {
             )
         )
         #expect(
-            !DrawerSessionPolicy.shouldRegisterAccountAfterCredentialImport(
+            DrawerSessionPolicy.shouldRegisterAccountAfterCredentialImport(
                 flow: .login,
                 accountToken: nil
             )
         )
+        #expect(
+            !DrawerSessionPolicy.shouldRegisterAccountAfterCredentialImport(
+                flow: .login,
+                accountToken: "token"
+            )
+        )
     }
 
-    @Test func createAccountImportBlocksAuthCompletionWithoutToken() {
+    @Test func credentialImportBlocksAuthCompletionWithoutToken() {
         #expect(
             !DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
                 flow: .createAccount,
@@ -494,9 +500,15 @@ struct DrawerSessionPolicyTests {
             )
         )
         #expect(
-            DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
+            !DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
                 flow: .login,
                 accountToken: nil
+            )
+        )
+        #expect(
+            DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
+                flow: .login,
+                accountToken: "token"
             )
         )
     }

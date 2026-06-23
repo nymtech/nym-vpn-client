@@ -143,6 +143,19 @@ struct DrawerCredentialImportPolicyTests {
         )
     }
 
+    @Test func privyImportCompletesDuringCheckoutWhenDrawerHidden() {
+        #expect(
+            DrawerCredentialImportPolicy.action(
+                imported: true,
+                pendingAuthFlow: .login,
+                authHandoffCompleted: false,
+                authHandoffCompletesOnCredentialImport: true,
+                hasAccountToken: false,
+                drawerAllowsCredentialPromotion: false
+            ) == .completeAuthOnImport(.login)
+        )
+    }
+
     @Test func externalImportWithoutHandoffStartsProcessingOnce() {
         #expect(
             DrawerCredentialImportPolicy.action(
