@@ -42,6 +42,9 @@ public struct AppFeatureView: View {
     @State private var welcomeHeight: CGFloat = 0
     @State private var bottomSafeAreaInset: CGFloat = 0
     @State private var drawerOffsetY: CGFloat = 0
+#if os(iOS)
+    @State private var autologinState = AutologinState()
+#endif
     @Environment(\.colorScheme)
     private var colorScheme
     @Environment(\.scenePhase)
@@ -133,6 +136,14 @@ public struct AppFeatureView: View {
         .onAppear { wireMacOSDaemonNavigation() }
         .onChange(of: viewModel.planPurchaseNavigationToken) { _, _ in
             guard viewModel.navigationIntent == .pushPlanPurchase else { return }
+            guard viewModel.drawerContent == nil else { return }
+            pushPlanPurchaseNavigation()
+            viewModel.consumeNavigationIntent()
+        }
+        .onChange(of: viewModel.drawerContent == nil) { _, drawerHidden in
+            guard drawerHidden else { return }
+            guard viewModel.navigationIntent == .pushPlanPurchase else { return }
+            guard viewModel.planPurchaseNavigationToken > 0 else { return }
             pushPlanPurchaseNavigation()
             viewModel.consumeNavigationIntent()
         }
@@ -147,6 +158,29 @@ public struct AppFeatureView: View {
         .onChange(of: viewModel.connectionStatus.status) { oldValue, newValue in
             viewModel.handleTunnelStatusChange(from: oldValue, to: newValue)
         }
+#if os(iOS)
+        .confirmationDialog(
+            "subscriptionPurchase.choice.title".localizedString,
+            isPresented: $viewModel.isSubscriptionPurchaseChoiceDisplayed,
+            titleVisibility: .visible
+        ) {
+            Button("subscriptionPurchase.choice.inApp".localizedString) {
+                viewModel.beginInAppSubscriptionPurchase()
+            }
+            Button("subscriptionPurchase.choice.web".localizedString) {
+                viewModel.beginWebSubscriptionPurchase()
+            }
+            Button("cancel".localizedString, role: .cancel) {
+                viewModel.dismissSubscriptionPurchaseChoice()
+            }
+        } message: {
+            Text("subscriptionPurchase.choice.message".localizedString)
+        }
+        .autologinOverlay(state: autologinState, onRetry: { viewModel.beginWebSubscriptionPurchase() })
+        .onChange(of: viewModel.webSubscriptionPurchaseToken) { _, _ in
+            autologinState.start(kind: .autologinRenew, using: credentialsManager)
+        }
+#endif
     }
 }
 
@@ -184,6 +218,7 @@ public struct AppFeatureView: View {
 private extension AppFeatureView {
     func pushPlanPurchaseNavigation() {
         withAnimation(.easeInOut(duration: 0.35)) {
+            viewModel.path = NavigationPath()
             viewModel.path.append(HomeLink.settings)
             viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
         }

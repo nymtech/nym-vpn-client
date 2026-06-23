@@ -8,6 +8,7 @@ public struct ProcessingAccountView: View {
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @Binding private var path: NavigationPath
     private let onPurchaseFlowComplete: (() -> Void)?
+    private let onPurchaseFlowDismissed: (() -> Void)?
 
     @State private var didCompleteAccountPrep = false
     @State private var didNavigate = false
@@ -56,15 +57,26 @@ public struct ProcessingAccountView: View {
         }
     }
 
-    public init(path: Binding<NavigationPath>, onPurchaseFlowComplete: (() -> Void)? = nil) {
+    public init(
+        path: Binding<NavigationPath>,
+        onPurchaseFlowComplete: (() -> Void)? = nil,
+        onPurchaseFlowDismissed: (() -> Void)? = nil
+    ) {
         _path = path
         self.onPurchaseFlowComplete = onPurchaseFlowComplete
+        self.onPurchaseFlowDismissed = onPurchaseFlowDismissed
     }
 }
 
 private extension ProcessingAccountView {
     var navbar: some View {
-        CustomNavBar(useElevationBackground: true)
+        CustomNavBar(
+            useElevationBackground: true,
+            rightButton: CustomNavBarButton(
+                type: .close,
+                action: { dismissProcessing() }
+            )
+        )
     }
 
     var dotsAnimationView: some View {
@@ -98,6 +110,11 @@ private extension ProcessingAccountView {
 
     func navigateHome() {
         onPurchaseFlowComplete?()
+        path = .init()
+    }
+
+    func dismissProcessing() {
+        onPurchaseFlowDismissed?()
         path = .init()
     }
 }

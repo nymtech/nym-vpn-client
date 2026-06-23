@@ -98,6 +98,12 @@ public final class ProcessingAccountViewModel {
         finalMessageTask = nil
     }
 
+    func dismissPostPurchaseProcessing() {
+        guard flow == .postPurchase else { return }
+        cancel()
+        sessionCoordinator?.requestDismissPostPurchaseProcessing()
+    }
+
     func animationDidAdvance() {
         currentStep += 1
     }

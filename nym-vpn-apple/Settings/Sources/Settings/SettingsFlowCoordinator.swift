@@ -56,6 +56,9 @@ struct SettingsFlowCoordinator<Content: View>: View {
                 path: $flowState.path,
                 onPurchaseFlowComplete: {
                     flowState.onSessionEvent?(.checkoutCompleted)
+                },
+                onPurchaseFlowDismissed: {
+                    flowState.onSessionEvent?(.checkoutDismissed)
                 }
             )
         case .passphrase:

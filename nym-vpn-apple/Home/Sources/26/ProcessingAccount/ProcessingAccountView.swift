@@ -18,6 +18,9 @@ struct ProcessingAccountView: View {
         ZStack(alignment: .top) {
             measurementLayer
             content
+            if viewModel.flow == .postPurchase {
+                dismissControl
+            }
         }
         .padding(.horizontal, NymSpacing.component)
         .padding(.vertical, AuthLayout.verticalPadding)
@@ -25,6 +28,23 @@ struct ProcessingAccountView: View {
         .frame(height: minHeight > 0 ? minHeight : nil)
         .task {
             viewModel.start()
+        }
+    }
+}
+
+private extension ProcessingAccountView {
+    var dismissControl: some View {
+        HStack {
+            Spacer()
+            Button {
+                viewModel.dismissPostPurchaseProcessing()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(NymColor.gray1)
+                    .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel("cancel".localizedString)
         }
     }
 }

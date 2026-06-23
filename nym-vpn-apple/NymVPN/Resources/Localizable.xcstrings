@@ -20282,6 +20282,61 @@
         }
       }
     },
+    "subscriptionPurchase.choice.action" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose how to subscribe"
+          }
+        }
+      }
+    },
+    "subscriptionPurchase.choice.inApp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscribe in the App Store"
+          }
+        }
+      }
+    },
+    "subscriptionPurchase.choice.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete your subscription in the App Store or on the web. You can return here when payment finishes."
+          }
+        }
+      }
+    },
+    "subscriptionPurchase.choice.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete your subscription"
+          }
+        }
+      }
+    },
+    "subscriptionPurchase.choice.web" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscribe on the web"
+          }
+        }
+      }
+    },
     "oneClick.connectButton.connected" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -27,12 +27,16 @@ import GRPCManager
     public private(set) var navigationIntent: NavigationIntent?
     public private(set) var planPurchaseNavigationToken: UInt = 0
 
+    var isSubscriptionPurchaseChoiceDisplayed = false
+    public private(set) var webSubscriptionPurchaseToken: UInt = 0
+
     var drawerContent: AppDrawerContent?
     var pendingDrawerContent: AppDrawerContent?
     private(set) var processingViewModel: ProcessingAccountViewModel?
 
     @ObservationIgnored private var sessionContext = AppSessionContext.initial
     @ObservationIgnored private var planPurchaseTransitionTask: Task<Void, Never>?
+    @ObservationIgnored private var pendingPlanPurchaseNavigationAfterDrawerHide = false
 
     var accountSummary: AccountSummary?
     var accountIdentifier: String?
@@ -123,7 +127,7 @@ import GRPCManager
     public func handleSessionEvent(_ event: SessionEvent) {
         switch event {
         case .checkoutCompleted, .checkoutDismissed:
-            cancelPlanPurchaseTransitionTask()
+            cancelPendingPlanPurchaseNavigation()
         case .processingFinished:
             processingDidFinish()
             return
@@ -293,9 +297,52 @@ import GRPCManager
         handleSessionEvent(.requestPlanPurchase)
     }
 
+    public func requestInactiveSubscriptionPurchase() {
+#if os(iOS)
+        if SubscriptionPurchaseChoicePolicy.shouldPresentPurchaseChoice(isIOS: true) {
+            isSubscriptionPurchaseChoiceDisplayed = true
+            return
+        }
+#endif
+        requestPlanPurchaseTransition()
+    }
+
+    func dismissSubscriptionPurchaseChoice() {
+        isSubscriptionPurchaseChoiceDisplayed = false
+    }
+
+    func beginInAppSubscriptionPurchase() {
+        isSubscriptionPurchaseChoiceDisplayed = false
+        requestPlanPurchaseTransition()
+    }
+
+    func beginWebSubscriptionPurchase() {
+        isSubscriptionPurchaseChoiceDisplayed = false
+        webSubscriptionPurchaseToken &+= 1
+    }
+
+    public func requestDismissPostPurchaseProcessing() {
+        cancelProcessingTransition()
+        cancelPendingPlanPurchaseNavigation()
+        if PostPurchaseProcessingDismissPolicy.shouldRouteCheckoutDismissed(
+            isPurchaseFlowActive: sessionContext.isPurchaseFlowActive
+        ) {
+            handleSessionEvent(.checkoutDismissed)
+        } else {
+            pendingDrawerContent = nil
+            applyDrawerDestinationAfterPurchaseDismiss()
+        }
+    }
+
     func cancelPlanPurchaseTransitionTask() {
         planPurchaseTransitionTask?.cancel()
         planPurchaseTransitionTask = nil
+        pendingPlanPurchaseNavigationAfterDrawerHide = false
+    }
+
+    func cancelPendingPlanPurchaseNavigation() {
+        cancelPlanPurchaseTransitionTask()
+        navigationIntent = nil
     }
 }
 
@@ -448,7 +495,7 @@ private extension AppFeatureViewModel {
                 message: "purchasePlan.checkoutDismissed.message".localizedString,
                 actionTitle: "oneClick.incompleteSubscription.action".localizedString,
                 onAction: { [weak self] in
-                    self?.requestPlanPurchaseTransition()
+                    self?.requestInactiveSubscriptionPurchase()
                 },
                 duration: 8
             )
@@ -497,7 +544,9 @@ private extension AppFeatureViewModel {
         case .setTechnicalOptIns:
             pendingDrawerContent = .technicalOptIns
         case .stageOneClickForCheckout:
-            beginCheckoutDrawerTransition()
+            beginCheckoutDrawerTransition(
+                deferNavigationUntilDrawerHidden: result.navigationIntent == .pushPlanPurchase
+            )
         case .applyPostPurchaseDismissDestination:
             pendingDrawerContent = nil
             applyDrawerDestinationAfterPurchaseDismiss()
@@ -510,21 +559,42 @@ private extension AppFeatureViewModel {
 
         if result.navigationIntent == .pushPlanPurchase {
             navigationIntent = .pushPlanPurchase
-            planPurchaseNavigationToken &+= 1
+            if result.drawerCommand != .stageOneClickForCheckout {
+                planPurchaseNavigationToken &+= 1
+            }
         }
     }
 
-    func beginCheckoutDrawerTransition() {
+    func beginCheckoutDrawerTransition(deferNavigationUntilDrawerHidden: Bool) {
+        if deferNavigationUntilDrawerHidden {
+            pendingPlanPurchaseNavigationAfterDrawerHide = true
+        }
+        if PurchaseTransitionPolicy.shouldCancelProcessingBeforeCheckoutHide(
+            isProcessingDrawer: drawerContent?.isProcessing == true
+        ) {
+            cancelProcessingTransition()
+        }
         planPurchaseTransitionTask?.cancel()
-        pendingDrawerContent = .oneClick
         planPurchaseTransitionTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(Self.paywallDrawerDismissDelayMs))
             guard !Task.isCancelled, let self else { return }
+            if self.drawerContent == nil {
+                self.completeCheckoutDrawerTransition()
+                return
+            }
             withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
                 self.drawerContent = nil
+            } completion: {
+                self.completeCheckoutDrawerTransition()
             }
-            self.planPurchaseTransitionTask = nil
         }
+    }
+
+    func completeCheckoutDrawerTransition() {
+        planPurchaseTransitionTask = nil
+        guard pendingPlanPurchaseNavigationAfterDrawerHide else { return }
+        pendingPlanPurchaseNavigationAfterDrawerHide = false
+        planPurchaseNavigationToken &+= 1
     }
 
     func ensureAccountRegisteredAfterCredentialImport(for flow: AuthFlowKind) async {

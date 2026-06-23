@@ -31,7 +31,9 @@ public struct GeneratePassphraseView: View {
     @State var isPlanAlertDisplayed = false
     @State var alertOffersRegistrationRetry = false
     @State private var didLeaveForSuccessfulPurchase = false
-#if os(macOS)
+#if os(iOS)
+    @State var autologinState = AutologinState()
+#elseif os(macOS)
     @State var autologinState = AutologinState()
 #endif
 
@@ -72,6 +74,13 @@ public struct GeneratePassphraseView: View {
                         .frame(height: 12)
                     titleSubtitleView
                     Spacer()
+#if os(iOS)
+                    if isPurchaseOnly {
+                        webSubscribeButton
+                        Spacer()
+                            .frame(height: 12)
+                    }
+#endif
                     selectPlanButton
                 }
             }
@@ -101,7 +110,9 @@ public struct GeneratePassphraseView: View {
                 Button("ok".localizedString, role: .cancel) {}
             }
         }
-#if os(macOS)
+#if os(iOS)
+        .autologinOverlay(state: autologinState, onRetry: { beginWebSubscriptionPurchase() })
+#elseif os(macOS)
         .autologinOverlay(state: autologinState)
 #endif
         .onDisappear {
@@ -270,6 +281,19 @@ private extension GeneratePassphraseView {
             }
 #endif
     }
+
+#if os(iOS)
+    var webSubscribeButton: some View {
+        Button {
+            beginWebSubscriptionPurchase()
+        } label: {
+            Text("subscriptionPurchase.choice.web".localizedString)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.primary)
+        }
+        .accessibilityLabel("subscriptionPurchase.choice.web".localizedString)
+    }
+#endif
 }
 
 // MARK: - Actions -
@@ -278,4 +302,10 @@ extension GeneratePassphraseView {
         didLeaveForSuccessfulPurchase = true
         path.append(SettingLink.processingAccount)
     }
+
+#if os(iOS)
+    func beginWebSubscriptionPurchase() {
+        autologinState.start(kind: .autologinRenew, using: credentialsManager)
+    }
+#endif
 }
