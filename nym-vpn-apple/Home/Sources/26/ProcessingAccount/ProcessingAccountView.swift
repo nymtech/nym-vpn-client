@@ -23,7 +23,7 @@ struct ProcessingAccountView: View {
             }
         }
         .padding(.horizontal, NymSpacing.component)
-        .padding(.vertical, AuthLayout.verticalPadding)
+        .padding(.vertical, AuthLayout.processingCarouselVerticalPadding)
         .frame(maxWidth: .infinity)
         .frame(height: minHeight > 0 ? minHeight : nil, alignment: .top)
         .task {
@@ -51,12 +51,15 @@ private extension ProcessingAccountView {
 
 private extension ProcessingAccountView {
     var content: some View {
-        VStack(spacing: AuthLayout.carouselStackSpacing) {
+        VStack(spacing: AuthLayout.processingCarouselStackSpacing) {
+            AuthDrawerHeader(showsBackButton: false)
             stepIndicator
             WaveDotsView()
-            Spacer(minLength: 0)
+                .padding(.top, AuthLayout.carouselLoaderTopSpacing)
+                .padding(.bottom, AuthLayout.carouselLoaderBottomSpacing)
             titleBlock
         }
+        .frame(maxWidth: .infinity, alignment: .top)
     }
 
     @ViewBuilder
@@ -70,8 +73,12 @@ private extension ProcessingAccountView {
                 switchingTitles
             }
         }
-        .frame(height: titleBlockHeight > 0 ? titleBlockHeight : nil, alignment: .bottom)
-        .frame(maxWidth: .infinity, alignment: .bottom)
+        .frame(
+            height: AuthLayout.processingCarouselTitleReservedHeight(
+                didShowFinalMessage: viewModel.didShowFinalMessage,
+                measuredCarouselTitleHeight: titleBlockHeight
+            )
+        )
     }
 
     var measurementLayer: some View {
@@ -89,7 +96,7 @@ private extension ProcessingAccountView {
     }
 
     func titlePairMeasurement(title: String, subtitle: String) -> some View {
-        VStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .center, spacing: AuthLayout.processingCarouselTitleSpacing) {
             Text(title)
                 .textStyle(.Headline.Medium.regular)
                 .multilineTextAlignment(.center)
@@ -116,7 +123,7 @@ private extension ProcessingAccountView {
 
     var staticTitleView: some View {
         let pair = ProcessingAccountView.staticPair(for: viewModel.flow)
-        return VStack(alignment: .center, spacing: 12) {
+        return VStack(alignment: .center, spacing: AuthLayout.processingCarouselTitleSpacing) {
             Text(pair.0)
                 .textStyle(.Headline.Medium.regular)
                 .foregroundStyle(NymColor.primary)

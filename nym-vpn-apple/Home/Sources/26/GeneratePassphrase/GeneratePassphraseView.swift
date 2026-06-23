@@ -19,16 +19,16 @@ public struct GeneratePassphraseView: View {
     }
 
     public var body: some View {
-        VStack(spacing: AuthLayout.carouselStackSpacing) {
+        VStack(spacing: AuthLayout.processingCarouselStackSpacing) {
             header
             stepIndicator
-            Spacer(minLength: 0)
             WaveDotsView()
-            Spacer(minLength: AuthLayout.carouselTitleTopMinSpacing)
+                .padding(.top, AuthLayout.carouselLoaderTopSpacing)
+                .padding(.bottom, AuthLayout.carouselLoaderBottomSpacing)
             switchingTitles
         }
         .padding(.horizontal, NymSpacing.component)
-        .padding(.vertical, AuthLayout.verticalPadding)
+        .padding(.vertical, AuthLayout.processingCarouselVerticalPadding)
         .frame(maxWidth: .infinity)
         .frame(height: minHeight > 0 ? minHeight : nil, alignment: .top)
         .task {
