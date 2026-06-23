@@ -10,7 +10,9 @@ use nym_gateway_directory::{
 };
 use nym_sdk::UserAgent;
 use nym_vpn_api_client::response::NodeFamily;
-use nym_vpn_lib_types::{EntryPoint, ExitPoint, GatewayIndependence, TunnelType};
+use nym_vpn_lib_types::{
+    EntryPoint, ExitPoint, GatewayIndependence, TentativeGateways, TunnelType,
+};
 use nym_vpn_store::keys::wireguard::WireguardKeysDb;
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
@@ -277,6 +279,54 @@ async fn set_and_stream() {
     for _ in 0..100 {
         gw_provider.next().await.unwrap().unwrap();
     }
+
+    shutdown_token.cancel();
+    handle.await.unwrap();
+}
+
+/// Regression test for the intermittent `NoGatewaysAvailable` race.
+///
+/// `set_tunnel_settings` (triggered on every connect press via
+/// `set_gateway_independence`) swaps in a brand-new, empty selection stream and
+/// asks the algorithm to recompute. If `tentative_gateways` is queried before
+/// the first fresh selection lands in that stream, it must wait for it rather
+/// than immediately reporting `NoGatewaysAvailable`
+#[tokio::test]
+async fn tentative_gateways_waits_for_fresh_selection_after_reset() {
+    let shutdown_token = CancellationToken::new();
+    let possible_gateways = [
+        "2zHiExNRKiCXVKS35SNKtK4apGfZELMpA1jJ2gVevJoz",
+        "38zcSsvjXsAX7C28ko2H3Lt55X4TYxfZYkPADxKXZHUj",
+    ]
+    .map(gateway_id_to_gateway);
+    let gateways = Arc::new(RwLock::new(Some(possible_gateways.to_vec())));
+    let mut tunnel_settings = default_tunnel_settings();
+    tunnel_settings
+        .gateway_selection_algorithm_config
+        .enable_geo_location = false;
+
+    let cache = MockGatewayCache::new_with_lookup_delay(gateways, Duration::from_millis(50));
+    let (gw_provider, handle) = GatewayProvider::new(
+        cache,
+        MockGeoIpClient::new(),
+        tunnel_settings.clone(),
+        WireguardKeysDb::Ephemeral(Default::default()),
+        shutdown_token.child_token(),
+    );
+
+    // Reset the stream (as set_gateway_independence does on every connect press)
+    // and immediately query, before the freshly computed selection is ready.
+    gw_provider
+        .set_tunnel_settings(tunnel_settings)
+        .await
+        .unwrap();
+    let tentative = gw_provider.tentative_gateways().await;
+
+    assert!(
+        matches!(tentative, TentativeGateways::Selected { .. }),
+        "tentative_gateways must wait for the freshly computed selection instead \
+         of returning NoGatewaysAvailable; got {tentative:?}"
+    );
 
     shutdown_token.cancel();
     handle.await.unwrap();
