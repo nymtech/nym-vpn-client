@@ -159,6 +159,10 @@ import GRPCManager
         navigationIntent = nil
     }
 
+    func checkoutNavigationDidComplete() {
+        isCheckoutNavigationPending = false
+    }
+
     var drawerTag: AppDrawerContent {
         pendingDrawerContent ?? drawerContent ?? .welcome
     }
@@ -620,10 +624,6 @@ private extension AppFeatureViewModel {
             self.pendingPlanPurchaseNavigationAfterDrawerHide = false
             self.planPurchaseNavigationToken &+= 1
         }
-    }
-
-    func checkoutNavigationDidComplete() {
-        isCheckoutNavigationPending = false
     }
 
     func ensureAccountRegisteredAfterCredentialImport(for flow: AuthFlowKind) async {

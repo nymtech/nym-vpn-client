@@ -60,134 +60,7 @@ public struct AppFeatureView: View {
 
     public var body: some View {
         @Bindable var viewModel = viewModel
-        NavigationStack(path: $viewModel.path) {
-            VStack(spacing: 0) {
-                navigationBar
-                ZStack {
-                    background
-                    GeometryReader { innerGeometry in
-                        let effectiveDrawerHeight = viewModel.drawerContent == nil ? 0 : drawerHeight
-                        // Drawer ignores bottom safe area; innerGeometry does not. Add it back
-                        // so availableHeight reflects ZStack-top → drawer-top, not an
-                        // under-reported value that triggers needless extra shrink.
-                        let availableHeight = max(
-                            0,
-                            innerGeometry.size.height + bottomSafeAreaInset - effectiveDrawerHeight
-                        )
-                        ConnectionStatusBackdrop(
-                            viewModel: viewModel.connectionStatus,
-                            availableHeight: availableHeight
-                        )
-                            .position(
-                                x: innerGeometry.size.width / 2,
-                                y: availableHeight / 2
-                            )
-                            .animation(
-                                .spring(response: 0.35, dampingFraction: 0.85),
-                                value: effectiveDrawerHeight
-                            )
-                    }
-                }
-                .clipped()
-                if viewModel.purchaseTransitionOverlayVisible {
-                    Color.Nym.background
-                        .ignoresSafeArea()
-                        .transition(.opacity)
-                        .allowsHitTesting(false)
-                }
-            }
-            .overlay(alignment: .bottom) {
-#if os(iOS)
-                KeyboardHostView(
-                    bottomSafeAreaInset: bottomSafeAreaInset,
-                    isEnabled: viewModel.drawerTag.isWelcome
-                ) {
-                    Spacer()
-                    drawerColumn
-                        .trackHeight { drawerHeight = $0 }
-                        .padding(.bottom, bottomSafeAreaInset == 0 ? NymSpacing.standard : 0)
-                }
-#else
-                drawerColumn
-                    .trackHeight { drawerHeight = $0 }
-                    .padding(.bottom, NymSpacing.standard)
-#endif
-            }
-            .background {
-                GeometryReader { proxy in
-                    Color.clear
-                        .onAppear { bottomSafeAreaInset = proxy.safeAreaInsets.bottom }
-                        .onChange(of: proxy.safeAreaInsets.bottom) { _, newValue in
-                            bottomSafeAreaInset = newValue
-                        }
-                }
-            }
-            .ignoresSafeArea(.keyboard, edges: .bottom)
-            .animation(.spring, value: viewModel.drawerContent == nil)
-            .navigationDestination(for: HomeLink.self) { link in
-                linkDestination(link: link, path: $viewModel.path)
-            }
-#if os(iOS)
-            .toolbar(.hidden, for: .navigationBar)
-#endif
-        }
-        .nymSnackbar(manager: viewModel.snackbarManager)
-        .preferredColorScheme(appearance.colorScheme)
-        .onAppear { wireMacOSDaemonNavigation() }
-        .onChange(of: viewModel.planPurchaseNavigationToken) { _, _ in
-            guard viewModel.navigationIntent == .pushPlanPurchase else { return }
-            guard viewModel.drawerContent == nil else { return }
-            pushPlanPurchaseNavigation()
-            viewModel.consumeNavigationIntent()
-            viewModel.checkoutNavigationDidComplete()
-        }
-        .onChange(of: viewModel.drawerContent == nil) { _, drawerHidden in
-            guard drawerHidden else { return }
-            guard viewModel.navigationIntent == .pushPlanPurchase else { return }
-            guard viewModel.planPurchaseNavigationToken > 0 else { return }
-            pushPlanPurchaseNavigation()
-            viewModel.consumeNavigationIntent()
-            viewModel.checkoutNavigationDidComplete()
-        }
-        .onChange(of: isCredentialImported) { _, newValue in
-            viewModel.handleCredentialChange(imported: newValue)
-        }
-        .onChange(of: scenePhase) { _, newPhase in
-            if newPhase == .active {
-                viewModel.handleSceneBecameActive()
-            }
-        }
-        .onChange(of: viewModel.connectionStatus.status) { oldValue, newValue in
-            viewModel.handleTunnelStatusChange(from: oldValue, to: newValue)
-        }
-#if os(iOS)
-        .confirmationDialog(
-            "subscriptionPurchase.choice.title".localizedString,
-            isPresented: $viewModel.isSubscriptionPurchaseChoiceDisplayed,
-            titleVisibility: .visible
-        ) {
-            Button("subscriptionPurchase.choice.inApp".localizedString) {
-                viewModel.beginInAppSubscriptionPurchase()
-            }
-            Button("subscriptionPurchase.choice.web".localizedString) {
-                viewModel.beginWebSubscriptionPurchase()
-            }
-            Button("cancel".localizedString, role: .cancel) {
-                viewModel.dismissSubscriptionPurchaseChoice()
-            }
-        } message: {
-            Text("subscriptionPurchase.choice.message".localizedString)
-        }
-        .autologinOverlay(state: autologinState, onRetry: { viewModel.beginWebSubscriptionPurchase() })
-        .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
-            guard received else { return }
-            autologinState.dismissAfterWebReturn()
-            viewModel.reconcilePurchaseFlowAfterAccountRefresh()
-        }
-        .onChange(of: viewModel.webSubscriptionPurchaseToken) { _, _ in
-            autologinState.start(kind: .autologinRenew, using: credentialsManager)
-        }
-#endif
+        decoratedRoot(viewModel: viewModel)
     }
 }
 
@@ -222,7 +95,207 @@ public struct AppFeatureView: View {
 }
 #endif
 
+private struct ConnectionStatusBackdropLayer: View {
+    let connectionStatus: ConnectionStatusViewModel
+    let drawerContentIsNil: Bool
+    let drawerHeight: CGFloat
+    let bottomSafeAreaInset: CGFloat
+
+    var body: some View {
+        GeometryReader { innerGeometry in
+            let effectiveDrawerHeight = drawerContentIsNil ? 0 : drawerHeight
+            let availableHeight = max(
+                0,
+                innerGeometry.size.height + bottomSafeAreaInset - effectiveDrawerHeight
+            )
+            ConnectionStatusBackdrop(
+                viewModel: connectionStatus,
+                availableHeight: availableHeight
+            )
+            .position(
+                x: innerGeometry.size.width / 2,
+                y: availableHeight / 2
+            )
+            .animation(
+                .spring(response: 0.35, dampingFraction: 0.85),
+                value: effectiveDrawerHeight
+            )
+        }
+    }
+}
+
+#if os(iOS)
+private struct IOSPurchaseChromeModifier: ViewModifier {
+    let viewModel: AppFeatureViewModel
+    let autologinState: AutologinState
+    let credentialsManager: CredentialsManager
+
+    func body(content: Content) -> some View {
+        @Bindable var viewModel = viewModel
+        content
+            .confirmationDialog(
+                "subscriptionPurchase.choice.title".localizedString,
+                isPresented: $viewModel.isSubscriptionPurchaseChoiceDisplayed,
+                titleVisibility: .visible
+            ) {
+                Button("subscriptionPurchase.choice.inApp".localizedString) {
+                    viewModel.beginInAppSubscriptionPurchase()
+                }
+                Button("subscriptionPurchase.choice.web".localizedString) {
+                    viewModel.beginWebSubscriptionPurchase()
+                }
+                Button("cancel".localizedString, role: .cancel) {
+                    viewModel.dismissSubscriptionPurchaseChoice()
+                }
+            } message: {
+                Text("subscriptionPurchase.choice.message".localizedString)
+            }
+            .autologinOverlay(state: autologinState, onRetry: { viewModel.beginWebSubscriptionPurchase() })
+            .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
+                guard received else { return }
+                autologinState.dismissAfterWebReturn()
+                viewModel.reconcilePurchaseFlowAfterAccountRefresh()
+            }
+            .onChange(of: viewModel.webSubscriptionPurchaseToken) { _, _ in
+                autologinState.start(kind: .autologinRenew, using: credentialsManager)
+            }
+    }
+}
+#endif
+
 private extension AppFeatureView {
+    @ViewBuilder
+    func decoratedRoot(viewModel: AppFeatureViewModel) -> some View {
+        let stack = navigationStack(viewModel: viewModel)
+        withSessionObservers(stack, viewModel: viewModel)
+            .nymSnackbar(manager: viewModel.snackbarManager)
+            .preferredColorScheme(appearance.colorScheme)
+            .onAppear { wireMacOSDaemonNavigation() }
+#if os(iOS)
+            .modifier(
+                IOSPurchaseChromeModifier(
+                    viewModel: viewModel,
+                    autologinState: autologinState,
+                    credentialsManager: credentialsManager
+                )
+            )
+#endif
+    }
+
+    @ViewBuilder
+    func navigationStack(viewModel: AppFeatureViewModel) -> some View {
+        @Bindable var viewModel = viewModel
+        NavigationStack(path: $viewModel.path) {
+            homeColumn(viewModel: viewModel)
+                .overlay(alignment: .bottom) {
+                    drawerOverlay(viewModel: viewModel)
+                }
+                .background { bottomSafeAreaReader }
+                .ignoresSafeArea(.keyboard, edges: .bottom)
+                .animation(.spring, value: viewModel.drawerContent == nil)
+                .navigationDestination(for: HomeLink.self) { link in
+                    linkDestination(link: link, path: $viewModel.path)
+                }
+#if os(iOS)
+                .toolbar(.hidden, for: .navigationBar)
+#endif
+        }
+    }
+
+    @ViewBuilder
+    func homeColumn(viewModel: AppFeatureViewModel) -> some View {
+        VStack(spacing: 0) {
+            navigationBar
+            ZStack {
+                background
+                ConnectionStatusBackdropLayer(
+                    connectionStatus: viewModel.connectionStatus,
+                    drawerContentIsNil: viewModel.drawerContent == nil,
+                    drawerHeight: drawerHeight,
+                    bottomSafeAreaInset: bottomSafeAreaInset
+                )
+            }
+            .clipped()
+            if viewModel.purchaseTransitionOverlayVisible {
+                Color.Nym.background
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .allowsHitTesting(false)
+            }
+        }
+    }
+
+    @ViewBuilder
+    func drawerOverlay(viewModel: AppFeatureViewModel) -> some View {
+#if os(iOS)
+        KeyboardHostView(
+            bottomSafeAreaInset: bottomSafeAreaInset,
+            isEnabled: viewModel.drawerTag.isWelcome
+        ) {
+            Spacer()
+            drawerColumn
+                .trackHeight { drawerHeight = $0 }
+                .padding(.bottom, bottomSafeAreaInset == 0 ? NymSpacing.standard : 0)
+        }
+#else
+        drawerColumn
+            .trackHeight { drawerHeight = $0 }
+            .padding(.bottom, NymSpacing.standard)
+#endif
+    }
+
+    var bottomSafeAreaReader: some View {
+        GeometryReader { proxy in
+            Color.clear
+                .onAppear { bottomSafeAreaInset = proxy.safeAreaInsets.bottom }
+                .onChange(of: proxy.safeAreaInsets.bottom) { _, newValue in
+                    bottomSafeAreaInset = newValue
+                }
+        }
+    }
+
+    @ViewBuilder
+    func withSessionObservers<Content: View>(
+        _ content: Content,
+        viewModel: AppFeatureViewModel
+    ) -> some View {
+        content
+            .onChange(of: viewModel.planPurchaseNavigationToken) { _, _ in
+                handlePlanPurchaseNavigationTokenChange(viewModel: viewModel)
+            }
+            .onChange(of: viewModel.drawerContent == nil) { _, drawerHidden in
+                handleDrawerHiddenChange(drawerHidden, viewModel: viewModel)
+            }
+            .onChange(of: isCredentialImported) { _, newValue in
+                viewModel.handleCredentialChange(imported: newValue)
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    viewModel.handleSceneBecameActive()
+                }
+            }
+            .onChange(of: viewModel.connectionStatus.status) { oldValue, newValue in
+                viewModel.handleTunnelStatusChange(from: oldValue, to: newValue)
+            }
+    }
+
+    func handlePlanPurchaseNavigationTokenChange(viewModel: AppFeatureViewModel) {
+        guard viewModel.navigationIntent == .pushPlanPurchase else { return }
+        guard viewModel.drawerContent == nil else { return }
+        pushPlanPurchaseNavigation()
+        viewModel.consumeNavigationIntent()
+        viewModel.checkoutNavigationDidComplete()
+    }
+
+    func handleDrawerHiddenChange(_ drawerHidden: Bool, viewModel: AppFeatureViewModel) {
+        guard drawerHidden else { return }
+        guard viewModel.navigationIntent == .pushPlanPurchase else { return }
+        guard viewModel.planPurchaseNavigationToken > 0 else { return }
+        pushPlanPurchaseNavigation()
+        viewModel.consumeNavigationIntent()
+        viewModel.checkoutNavigationDidComplete()
+    }
+
     func pushPlanPurchaseNavigation() {
         var transaction = Transaction()
         transaction.disablesAnimations = true
