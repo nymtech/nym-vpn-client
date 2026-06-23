@@ -180,6 +180,11 @@ private extension SettingsViewModel {
     }
 
 #if os(macOS)
+    func navigateToGeoExclusion() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.geoExclusion)
+    }
+
     func navigateToSplitTunneling() {
         impactGenerator.softImpact()
         path.append(SettingLink.splitTunnel)
@@ -189,6 +194,11 @@ private extension SettingsViewModel {
     func navigateToCensorship() {
         impactGenerator.softImpact()
         path.append(SettingLink.censorship)
+    }
+
+    func navigateToNotifications() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.notifications)
     }
 }
 
@@ -237,6 +247,7 @@ private extension SettingsViewModel {
             newSections.append(
                 contentsOf: [
                     feedbackSection(),
+                    notificationsSection(),
                     killswitchSection(),
                     appearanceSection(),
                     privacyAndDataSection(),
@@ -341,6 +352,24 @@ private extension SettingsViewModel {
         )
     }
 
+    func notificationsSection() -> AppSettingsSection {
+        AppSettingsSection(
+            kind: .notifications,
+            viewModels: [
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "settings.notifications.title".localizedString,
+                    systemImageName: "bell",
+                    action: { [weak self] in
+                        Task { @MainActor in
+                            self?.navigateToNotifications()
+                        }
+                    }
+                )
+            ]
+        )
+    }
+
     func feedbackSection() -> AppSettingsSection {
         AppSettingsSection(
             kind: .feedback,
@@ -431,6 +460,18 @@ private extension SettingsViewModel {
             )
         )
 #if os(macOS)
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.geoExclusion".localizedString,
+                subtitle: "settings.geoExclusion.subtitle".localizedString,
+                imageName: "pin",
+                badge: "general.beta".localizedString,
+                action: { [weak self] in
+                    self?.navigateToGeoExclusion()
+                }
+            )
+        )
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,

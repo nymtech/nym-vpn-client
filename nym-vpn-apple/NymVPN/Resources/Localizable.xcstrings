@@ -10962,6 +10962,17 @@
         }
       }
     },
+    "gatewayInfo.familyMembership" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Family membership"
+          }
+        }
+      }
+    },
     "gatewayInfo.asn" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -124,51 +124,34 @@ private struct ConnectionStatusBackdropLayer: View {
     }
 }
 
-#if os(iOS)
-private struct IOSPurchaseChromeModifier: ViewModifier {
-    let viewModel: AppFeatureViewModel
-    let autologinState: AutologinState
-    let credentialsManager: CredentialsManager
-
-    func body(content: Content) -> some View {
-        @Bindable var viewModel = viewModel
-        content
-            .confirmationDialog(
-                "subscriptionPurchase.choice.title".localizedString,
-                isPresented: $viewModel.isSubscriptionPurchaseChoiceDisplayed,
-                titleVisibility: .visible
-            ) {
-                Button("subscriptionPurchase.choice.inApp".localizedString) {
-                    viewModel.beginInAppSubscriptionPurchase()
-                }
-                Button("subscriptionPurchase.choice.web".localizedString) {
-                    viewModel.beginWebSubscriptionPurchase()
-                }
-                Button("cancel".localizedString, role: .cancel) {
-                    viewModel.dismissSubscriptionPurchaseChoice()
-                }
-            } message: {
-                Text("subscriptionPurchase.choice.message".localizedString)
-            }
-            .autologinOverlay(state: autologinState, onRetry: { viewModel.beginWebSubscriptionPurchase() })
-            .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
-                guard received else { return }
-                autologinState.dismissAfterWebReturn()
-                viewModel.reconcilePurchaseFlowAfterAccountRefresh()
-            }
-            .onChange(of: viewModel.webSubscriptionPurchaseToken) { _, _ in
-                autologinState.start(kind: .autologinRenew, using: credentialsManager)
-            }
-    }
-}
-#endif
-
 private extension AppFeatureView {
     @ViewBuilder
     func decoratedRoot(viewModel: AppFeatureViewModel) -> some View {
+        @Bindable var viewModel = viewModel
         let stack = navigationStack(viewModel: viewModel)
         withSessionObservers(stack, viewModel: viewModel)
             .nymSnackbar(manager: viewModel.snackbarManager)
+            .overlay {
+                if viewModel.isFamilyWarningModalDisplayed {
+                    ModalOverlayView(
+                        isDisplayed: $viewModel.isFamilyWarningModalDisplayed,
+                        dismissOnOverlayTap: false,
+                        horizontalPadding: NymSpacing.standard,
+                        maxWidth: NymSpacing.drawerMaxWidth
+                    ) {
+                        FamilyWarningModalView(
+                            title: "gatewayIndependence.modal.title".localizedString,
+                            reminderText: "gatewayIndependence.modal.disableReminders".localizedString,
+                            reminderLinkText: "gatewayIndependence.modal.notificationSettingsLink".localizedString,
+                            connectAnywayTitle: "gatewayIndependence.warning.connectAnyway".localizedString,
+                            cancelTitle: "cancel".localizedString,
+                            onConnectAnyway: { viewModel.confirmFamilyWarning() },
+                            onCancel: { viewModel.dismissFamilyWarning() },
+                            onOpenNotificationSettings: { viewModel.openNotificationSettingsFromFamilyWarning() }
+                        )
+                    }
+                }
+            }
             .preferredColorScheme(appearance.colorScheme)
             .onAppear { wireMacOSDaemonNavigation() }
 #if os(iOS)
@@ -308,17 +291,15 @@ private extension AppFeatureView {
         }
     }
 
-#if os(macOS)
     func wireMacOSDaemonNavigation() {
+#if os(macOS)
         viewModel.oneClick.onRequestDaemonEnable = { [weak viewModel] in
             guard let viewModel else { return }
             viewModel.path.append(HomeLink.settings)
             viewModel.path.append(SettingLink.daemonEnable)
         }
-    }
-#else
-    func wireMacOSDaemonNavigation() {}
 #endif
+    }
 
     var background: some View {
         Color.Nym.background

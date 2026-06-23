@@ -8,7 +8,6 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
     private let combineAccessibilityChildren: Bool
 
     @State private var isHovered = false
-    @State private var isToggleOn = false
 
     public init(
         viewModel: SettingsListItemViewModel,
@@ -18,9 +17,6 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
         self.viewModel = viewModel
         self.customContent = customContent
         self.combineAccessibilityChildren = combineAccessibilityChildren
-        if case let .toggle(isOn, _) = viewModel.accessory {
-            _isToggleOn = State(initialValue: isOn.wrappedValue)
-        }
     }
 
     public var body: some View {
@@ -75,11 +71,6 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
         .onHover { newValue in
             guard !viewModel.isHoveredHighlightDisabled else { return }
             isHovered = newValue
-        }
-        .onChange(of: isToggleOn) { _, newValue in
-            if case let .toggle(isOn, _) = viewModel.accessory {
-                isOn.wrappedValue = newValue
-            }
         }
         .settingsListAccessibility(viewModel, combineChildren: combineAccessibilityChildren)
     }
@@ -149,8 +140,8 @@ private extension SettingsListItemCustomContent {
 
     @ViewBuilder
     func optionalToggleView() -> some View {
-        if case let .toggle(_, isDisabled) = viewModel.accessory {
-            Toggle("", isOn: $isToggleOn)
+        if case let .toggle(isOn, isDisabled) = viewModel.accessory {
+            Toggle("", isOn: isOn)
                 .toggleStyle(.switch)
                 .tint(Color.Nym.primary)
                 .labelsHidden()

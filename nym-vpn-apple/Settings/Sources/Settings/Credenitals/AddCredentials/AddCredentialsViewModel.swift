@@ -98,12 +98,18 @@ import Theme
 
         Task {
             do {
+#if os(iOS)
                 try await credentialsManager.performAccountRegistration(loginCredential: trimmedCredential)
+#elseif os(macOS)
+                try await credentialsManager.add(credential: trimmedCredential)
+                try await credentialsManager.registerAccount()
+#endif
                 error = CredentialsManagerError.noError
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in
                     credentialText = trimmedCredential
+#if os(iOS)
                     if let reason = newError as? VPNErrorReason {
                         error = CredentialsManagerError.generalError(reason.localizedDescription)
                     } else if let vpnError = newError as? VpnError {
@@ -113,6 +119,9 @@ import Theme
                     } else {
                         error = CredentialsManagerError.generalError(newError.localizedDescription)
                     }
+#elseif os(macOS)
+                    error = CredentialsManagerError.generalError(newError.localizedDescription)
+#endif
                 }
             }
         }

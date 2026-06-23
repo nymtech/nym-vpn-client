@@ -10,6 +10,8 @@ import CredentialsManager
 import GatewayManager
 import ImpactGenerator
 import NetworkMonitor
+import Routes
+import Settings
 import TunnelStatus
 #if os(macOS)
 import GRPCManager
@@ -28,6 +30,7 @@ import GRPCManager
     public private(set) var planPurchaseNavigationToken: UInt = 0
 
     var isSubscriptionPurchaseChoiceDisplayed = false
+    var isFamilyWarningModalDisplayed = false
     public private(set) var webSubscriptionPurchaseToken: UInt = 0
 
     var drawerContent: AppDrawerContent?
@@ -301,9 +304,20 @@ import GRPCManager
         )
     }
 
+    func confirmFamilyWarning() {
+        isFamilyWarningModalDisplayed = false
+        oneClick.independenceConsentAgreed()
+    }
+
     func dismissFamilyWarning() {
         oneClick.cancelGatewayIndependenceConsent()
         isFamilyWarningModalDisplayed = false
+    }
+
+    func openNotificationSettingsFromFamilyWarning() {
+        isFamilyWarningModalDisplayed = false
+        path.append(HomeLink.settings)
+        path.append(SettingLink.notifications)
     }
 
     func requestPlanPurchaseTransition() {
@@ -387,7 +401,7 @@ private extension AppFeatureViewModel {
         let lastError = connectionStatus.connectionManager.lastError
         guard !ConnectionStatusViewModel.isNeedsRelaxedIndependenceCriteria(lastError)
         else {
-            oneClick.requestIndependenceConsent()
+            isFamilyWarningModalDisplayed = true
             return
         }
         snackbarManager.enqueue(
