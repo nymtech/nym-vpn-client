@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- On entering Connected state swap internal resolver to use custom DNS (via system resolver). Revert to confiugred resolver on exiting Connected state.
+- While in Connected state swap internal resolver to use custom DNS (via system resolver). (https://github.com/nymtech/nym-vpn-client/pull/5674_
 
 ## [2026.11.0] - TBD
 
