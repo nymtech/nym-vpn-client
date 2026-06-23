@@ -3,7 +3,7 @@
 
 use std::{collections::HashMap, sync::Arc};
 
-pub use nym_network_defaults::{NetworkingSpecifics, DnsFallback};
+pub use nym_network_defaults::{DnsFallback, NetworkingSpecifics};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;

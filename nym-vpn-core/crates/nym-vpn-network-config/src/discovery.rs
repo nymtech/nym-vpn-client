@@ -269,8 +269,12 @@ mod tests {
         let network: Discovery = discovery.try_into().unwrap();
 
         let expected_network_specifics = NetworkingSpecifics {
-            nym_api_urls: vec![ApiUrl::new("https://foo.ch/api/", Some(vec!["foobar.ch", "qux.baz"])).into()],
-            nym_vpn_api_urls: vec![ApiUrl::new("https://bar.ch/api/", Some(vec!["quxbar.ch", "qux.baz"])).into()],
+            nym_api_urls: vec![
+                ApiUrl::new("https://foo.ch/api/", Some(vec!["foobar.ch", "qux.baz"])).into(),
+            ],
+            nym_vpn_api_urls: vec![
+                ApiUrl::new("https://bar.ch/api/", Some(vec!["quxbar.ch", "qux.baz"])).into(),
+            ],
             dns_fallbacks: vec![],
         };
 

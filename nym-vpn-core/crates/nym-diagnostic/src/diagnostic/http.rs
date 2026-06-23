@@ -196,7 +196,7 @@ async fn build_nym_api_clients(network: &Network) -> Result<Vec<Client>> {
     if nym_urls.is_empty() {
         return Err(Error::MissingApiUrl);
     }
-    
+
     let mut clients = Vec::new();
     for url in nym_urls {
         let plain_url =

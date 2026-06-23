@@ -232,7 +232,6 @@ impl From<nym_vpn_lib_types::NymNetworkDetails> for proto::NymNetworkDetails {
     }
 }
 
-
 impl From<nym_vpn_lib_types::NetworkingSpecifics> for proto::NetworkingSpecifics {
     fn from(value: nym_vpn_lib_types::NetworkingSpecifics) -> Self {
         let nym_api_urls = value.nym_api_urls.into_iter().map(Into::into).collect();

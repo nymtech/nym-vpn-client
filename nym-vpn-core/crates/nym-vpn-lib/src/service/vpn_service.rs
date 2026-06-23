@@ -611,10 +611,8 @@ impl NymVpnService {
         let tunnel_settings = config_manager.generate_tunnel_settings();
         let nyxd_url = network_env.nyxd_url();
 
-        let nym_api_urls = network_env
-            .nym_api_urls();
-        let nym_vpn_api_urls = network_env
-            .nym_vpn_api_urls();
+        let nym_api_urls = network_env.nym_api_urls();
+        let nym_vpn_api_urls = network_env.nym_vpn_api_urls();
 
         let gateway_config =
             gateway_directory::Config::new(nyxd_url, nym_api_urls.clone(), nym_vpn_api_urls, None)
