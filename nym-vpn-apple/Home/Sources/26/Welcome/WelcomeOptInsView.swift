@@ -6,6 +6,7 @@ import Theme
 import UIComponents
 
 public struct WelcomeOptInsView: View {
+
     @AppStorage(AppSettingKey.statistics.rawValue)
     private var isStatisticsEnabled: Bool = true
 

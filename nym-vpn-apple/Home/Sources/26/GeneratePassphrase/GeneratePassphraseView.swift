@@ -19,19 +19,18 @@ public struct GeneratePassphraseView: View {
     }
 
     public var body: some View {
-        VStack(spacing: AuthLayout.stackSpacing) {
+        VStack(spacing: AuthLayout.processingCarouselStackSpacing) {
             header
             stepIndicator
-            Spacer(minLength: 0)
             WaveDotsView()
-            Spacer().frame(height: NymSpacing.large)
+                .padding(.top, AuthLayout.carouselLoaderTopSpacing)
+                .padding(.bottom, AuthLayout.carouselLoaderBottomSpacing)
             switchingTitles
-            Spacer(minLength: 0)
         }
         .padding(.horizontal, NymSpacing.component)
-        .padding(.vertical, AuthLayout.verticalPadding)
+        .padding(.vertical, AuthLayout.processingCarouselVerticalPadding)
         .frame(maxWidth: .infinity)
-        .frame(height: minHeight > 0 ? minHeight : nil)
+        .frame(height: minHeight > 0 ? minHeight : nil, alignment: .top)
         .task {
             viewModel.start()
         }
@@ -42,7 +41,10 @@ public struct GeneratePassphraseView: View {
                 set: { if !$0 { viewModel.dismissError() } }
             )
         ) {
-            Button("retry".localizedString, role: .cancel) {
+            Button("ok".localizedString, role: .cancel) {
+                viewModel.dismissError()
+            }
+            Button("retry".localizedString) {
                 viewModel.retry()
             }
         }
@@ -51,14 +53,7 @@ public struct GeneratePassphraseView: View {
 
 private extension GeneratePassphraseView {
     var header: some View {
-        ZStack {
-            GenericImage(imageName: "logoText")
-                .frame(width: 100, height: 27)
-            HStack {
-                NymBackButton(action: onBackTapped)
-                Spacer()
-            }
-        }
+        AuthDrawerHeader(onBackTapped: onBackTapped)
     }
 
     var stepIndicator: some View {

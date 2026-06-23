@@ -4,23 +4,27 @@ import CredentialsManager
 
 @Observable
 @MainActor
-final class AutologinState {
-    var isPinCodeDisplayed = false
-    var pinCode: String = ""
-    var isLoading = false
-    var isError = false
-    var errorMessage = ""
-    var url = ""
-    var task: Task<Void, Never>?
+public final class AutologinState {
+    public var isPinCodeDisplayed = false
+    public var pinCode: String = ""
+    public var isLoading = false
+    public var isError = false
+    public var errorMessage = ""
+    public var url = ""
+    public var task: Task<Void, Never>?
 
-    func start(kind: NymDeeplinkKind, using credentialsManager: CredentialsManager) {
+    public init() {}
+
+    public func start(kind: NymDeeplinkKind, using credentialsManager: CredentialsManager) {
+        task?.cancel()
+        isError = false
         isLoading = true
         task = Task {
             await perform(kind: kind, using: credentialsManager)
         }
     }
 
-    func perform(kind: NymDeeplinkKind, using credentialsManager: CredentialsManager) async {
+    public func perform(kind: NymDeeplinkKind, using credentialsManager: CredentialsManager) async {
         do {
             guard let result = try await credentialsManager.autologin(kind: kind) else {
                 isLoading = false
@@ -39,9 +43,17 @@ final class AutologinState {
         }
     }
 
-    func cancel() {
+    public func cancel() {
         task?.cancel()
         task = nil
         isLoading = false
+    }
+
+    public func dismissAfterWebReturn() {
+        cancel()
+        isPinCodeDisplayed = false
+        isError = false
+        pinCode = ""
+        url = ""
     }
 }

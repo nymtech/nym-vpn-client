@@ -92,8 +92,12 @@ import ConnectionTypes
         didSet { serverFamilyRemindersEnabledPublisher = serverFamilyRemindersEnabled }
     }
 
+#if os(macOS)
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true
+#else
+    public var isStatisticsEnabled = false
+#endif
 
     @AppStorage(AppSettingKey.statisticsConnectionCount.rawValue)
     public var statisticsConnectionCount = 0
@@ -241,6 +245,7 @@ public enum AppSettingKey: String {
     case countryStore
     case gatewayStore
     case accountToken
+    case accountTokensByEnv
     case ipv6TrafficIsEnabled
     case statistics
     case statisticsConnectionCount
