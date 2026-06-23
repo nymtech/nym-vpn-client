@@ -21,8 +21,8 @@ interface BackendManager {
 	val accountSummaryFlow: StateFlow<VpnAccountSummary?>
 
 	suspend fun stopTunnel()
-	suspend fun startTunnel()
-	suspend fun requestReconnect()
+	suspend fun startTunnel(relaxGatewayIndependence: Boolean = false)
+	suspend fun requestReconnect(relaxGatewayIndependence: Boolean = false)
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()

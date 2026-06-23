@@ -126,6 +126,8 @@ jobs:
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
         run: echo "TAG_NAME=nym-vpn-android-nightly" >> $GITHUB_ENV
+      - if: github.event_name == 'workflow_call'
+        run: echo "TAG_NAME=${{ inputs.version_tag }}" >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: |
           echo "unsupported push action!"
