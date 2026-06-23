@@ -78,4 +78,39 @@ final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
 
         XCTAssertNil(viewModel.navigationIntent)
     }
+
+    func testCheckoutDismissedClearsCheckoutNavigationPending() async throws {
+        let viewModel = makeViewModel()
+        viewModel.handleSessionEvent(.authCompleted(outcome: .registeredActive, flow: .createAccount))
+        viewModel.handleSessionEvent(.requestPlanPurchase)
+
+        try await Task.sleep(for: .milliseconds(600))
+
+        XCTAssertTrue(
+            viewModel.isCheckoutNavigationPending,
+            "Precondition: drawer hide should mark checkout navigation pending"
+        )
+
+        viewModel.handleSessionEvent(.checkoutDismissed)
+
+        XCTAssertFalse(viewModel.isCheckoutNavigationPending)
+        XCTAssertFalse(viewModel.purchaseTransitionOverlayVisible)
+    }
+
+    func testSecondPlanPurchaseAfterDismissDoesNotShowStaleOverlay() async throws {
+        let viewModel = makeViewModel()
+        viewModel.handleSessionEvent(.authCompleted(outcome: .registeredActive, flow: .createAccount))
+        viewModel.handleSessionEvent(.requestPlanPurchase)
+
+        try await Task.sleep(for: .milliseconds(600))
+        viewModel.handleSessionEvent(.checkoutDismissed)
+        XCTAssertFalse(viewModel.isCheckoutNavigationPending)
+
+        viewModel.handleSessionEvent(.requestPlanPurchase)
+
+        XCTAssertFalse(
+            viewModel.purchaseTransitionOverlayVisible,
+            "Stale navigation pending must not force overlay while drawer is visible"
+        )
+    }
 }

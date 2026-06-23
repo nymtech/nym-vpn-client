@@ -143,9 +143,6 @@ public struct AppFeatureView: View {
         }
         .onChange(of: viewModel.drawerContent == nil) { _, drawerHidden in
             guard drawerHidden else { return }
-            if drawerHeight != 0 {
-                drawerHeight = 0
-            }
             guard viewModel.navigationIntent == .pushPlanPurchase else { return }
             guard viewModel.planPurchaseNavigationToken > 0 else { return }
             pushPlanPurchaseNavigation()

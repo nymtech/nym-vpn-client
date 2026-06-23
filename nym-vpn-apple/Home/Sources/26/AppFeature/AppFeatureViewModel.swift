@@ -355,6 +355,7 @@ import GRPCManager
         planPurchaseTransitionTask?.cancel()
         planPurchaseTransitionTask = nil
         pendingPlanPurchaseNavigationAfterDrawerHide = false
+        isCheckoutNavigationPending = false
     }
 
     func cancelPendingPlanPurchaseNavigation() {
