@@ -172,7 +172,7 @@ private extension ArcProgressView {
     var sphereOpacity: Double {
         switch state {
         case .disconnected: return 0.85
-        case .step:         return 1.0
+        case .step, .awaitingGatewayConsent: return 1.0
         case .connected:    return 1.0
         case .failed:       return 1.0
         case .canceling:    return 0.7
@@ -206,6 +206,8 @@ private extension ArcProgressView {
             return "arcProgress.connectionFailed".localizedString
         case .canceling:
             return "arcProgress.disconnecting".localizedString
+        case .awaitingGatewayConsent:
+            return "gatewayIndependence.warning.title".localizedString
         case .step(let step):
             return stepLabel(step)
         }
@@ -214,7 +216,7 @@ private extension ArcProgressView {
     var labelColor: Color {
         switch state {
         case .failed:               return Constants.errorFill
-        case .connected, .step:     return Color.Nym.primary
+        case .connected, .step, .awaitingGatewayConsent: return Color.Nym.primary
         case .disconnected, .canceling: return Color.Nym.textTertiary
         }
     }
@@ -224,6 +226,8 @@ private extension ArcProgressView {
         case .connected: return 1.0
         case .disconnected: return 0.0
         case .failed: return 1.0
+        case .awaitingGatewayConsent:
+            return progressForStep(.choosingBestServers, ring: ring)
         case .step(let step): return progressForStep(step, ring: ring)
         case .canceling:   return progressForStep(lastStep, ring: ring)
         }

@@ -55,4 +55,43 @@ struct GatewayIndependenceArcPolicyTests {
             )
         )
     }
+
+    @Test func independenceConsentUsesAwaitingGatewayConsentArc() {
+        #expect(
+            GatewayIndependenceArcPolicy.shouldUseAwaitingGatewayConsentArc(
+                status: .error,
+                lastError: ErrorReason.needsRelaxedIndependenceCriteria
+            )
+        )
+        #expect(
+            !GatewayIndependenceArcPolicy.shouldUseAwaitingGatewayConsentArc(
+                status: .error,
+                lastError: ErrorReason.internalUnknown
+            )
+        )
+        #expect(
+            !GatewayIndependenceArcPolicy.shouldUseAwaitingGatewayConsentArc(
+                status: .connecting,
+                lastError: ErrorReason.needsRelaxedIndependenceCriteria
+            )
+        )
+    }
+
+    @Test func appConnectAfterRelaxConsentOnlyWhenDisconnected() {
+        #expect(
+            GatewayIndependenceArcPolicy.shouldAppInitiateConnectAfterRelaxConsent(
+                status: .disconnected
+            )
+        )
+        #expect(
+            !GatewayIndependenceArcPolicy.shouldAppInitiateConnectAfterRelaxConsent(
+                status: .error
+            )
+        )
+        #expect(
+            !GatewayIndependenceArcPolicy.shouldAppInitiateConnectAfterRelaxConsent(
+                status: .connecting
+            )
+        )
+    }
 }

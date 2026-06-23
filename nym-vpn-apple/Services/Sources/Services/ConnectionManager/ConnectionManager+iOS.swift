@@ -169,7 +169,9 @@ extension ConnectionManager {
         if shouldDisconnectActiveTunnel() {
             isDisconnecting = true
             try await disconnectActiveTunnel()
-            lastError = nil
+            if !GatewayIndependenceArcPolicy.isIndependenceConsentError(lastError) {
+                lastError = nil
+            }
         } else {
             let config = try generateConfig()
             try await connect(with: config)

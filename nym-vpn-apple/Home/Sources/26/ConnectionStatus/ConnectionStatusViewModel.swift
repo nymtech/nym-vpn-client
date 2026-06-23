@@ -51,6 +51,12 @@ import UIKit
         case .connected:
             return .connected
         case .error:
+            if GatewayIndependenceArcPolicy.shouldUseAwaitingGatewayConsentArc(
+                status: status,
+                lastError: connectionManager.lastError
+            ) {
+                return .awaitingGatewayConsent
+            }
             if GatewayIndependenceArcPolicy.shouldUseFailedArc(
                 status: status,
                 lastError: connectionManager.lastError
@@ -160,6 +166,9 @@ private extension ConnectionStatusViewModel {
 
         case .error:
             cancelQueue()
+            if GatewayIndependenceArcPolicy.isIndependenceConsentError(connectionManager.lastError) {
+                lastDisplayedStep = nil
+            }
             fireConnectionFailedIfReady()
 
         case .disconnecting:
@@ -207,6 +216,9 @@ private extension ConnectionStatusViewModel {
         didFireForCurrentError = false
         hasFailure = GatewayIndependenceArcPolicy.shouldRecordConnectionFailure(error)
         lastErrorMessage = Self.userFacingMessage(from: error)
+        if GatewayIndependenceArcPolicy.isIndependenceConsentError(error) {
+            lastDisplayedStep = nil
+        }
         fireConnectionFailedIfReady()
     }
 

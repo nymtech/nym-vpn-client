@@ -8,7 +8,7 @@ public enum SubscriptionPurchaseChoicePolicy {
 
     /// Dashboard re-purchase entry points on iOS should offer IAP and web, not IAP alone.
     public static func shouldPresentPurchaseChoice(isIOS: Bool) -> Bool {
-        isIOS
+        WebPurchasePresentationPolicy.showsWebInDashboardPurchaseChoice(isIOS: isIOS)
     }
 
     public static func entryAction(isIOS: Bool) -> EntryAction {

@@ -32,7 +32,7 @@ public struct GeneratePassphraseView: View {
     @State var alertOffersRegistrationRetry = false
     @State private var didLeaveForSuccessfulPurchase = false
 #if os(iOS)
-    @State var autologinState = AutologinState()
+    @State private var autologinState = AutologinState()
 #elseif os(macOS)
     @State var autologinState = AutologinState()
 #endif
@@ -75,7 +75,7 @@ public struct GeneratePassphraseView: View {
                     titleSubtitleView
                     Spacer()
 #if os(iOS)
-                    if isPurchaseOnly {
+                    if showsWebSubscribeOnSubscriptionPage {
                         webSubscribeButton
                         Spacer()
                             .frame(height: 12)
@@ -146,6 +146,14 @@ private extension GeneratePassphraseView {
             didFinishAnimatingText: didFinishAnimatingText,
             didRegisterAccount: didRegisterAccount
         )
+    }
+
+    var showsWebSubscribeOnSubscriptionPage: Bool {
+#if os(iOS)
+        WebPurchasePresentationPolicy.showsWebOnSubscriptionPage(isIOS: true)
+#else
+        WebPurchasePresentationPolicy.showsWebOnSubscriptionPage(isIOS: false)
+#endif
     }
 
     @ViewBuilder

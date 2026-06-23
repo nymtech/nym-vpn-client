@@ -20,4 +20,16 @@ public enum GatewayIndependenceArcPolicy {
     public static func shouldRecordConnectionFailure(_ error: Error?) -> Bool {
         !isIndependenceConsentError(error)
     }
+
+    /// True when the arc should show the gateway-independence consent state instead of a connect step.
+    public static func shouldUseAwaitingGatewayConsentArc(status: TunnelStatus, lastError: Error?) -> Bool {
+        status == .error && isIndependenceConsentError(lastError)
+    }
+
+    /// Whether the iOS app should call `connect` after `setGatewayIndependence(false)`.
+    /// The NE extension resumes pre-flight or calls `connectTunnel` for every other
+    /// status (including `.error`); an app-side reconnect races that handler.
+    public static func shouldAppInitiateConnectAfterRelaxConsent(status: TunnelStatus) -> Bool {
+        status == .disconnected
+    }
 }

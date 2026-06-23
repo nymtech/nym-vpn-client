@@ -22,6 +22,9 @@ public enum ArcProgressState: Equatable, Sendable {
     /// Mid-cancel — fills fade to 15% opacity, no color change.
     case canceling
 
+    /// Gateway independence pre-flight blocked — not connected; label prompts consent.
+    case awaitingGatewayConsent
+
     public enum Step: Equatable, Sendable, CaseIterable {
         case initializingNym
         case authenticatingAccount
