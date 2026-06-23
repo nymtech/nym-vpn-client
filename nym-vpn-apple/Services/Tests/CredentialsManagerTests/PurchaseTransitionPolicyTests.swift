@@ -12,8 +12,17 @@ struct PurchaseTransitionPolicyTests {
     }
 
     @Test func cancelsProcessingBeforeCheckoutHideWhenProcessingDrawer() {
-        #expect(PurchaseTransitionPolicy.shouldCancelProcessingBeforeCheckoutHide(isProcessingDrawer: true))
+        #expect(!PurchaseTransitionPolicy.shouldCancelProcessingBeforeCheckoutHide(isProcessingDrawer: true))
         #expect(!PurchaseTransitionPolicy.shouldCancelProcessingBeforeCheckoutHide(isProcessingDrawer: false))
+    }
+
+    @Test func cancelsProcessingAfterDrawerHiddenWhenProcessingWasVisible() {
+        #expect(
+            PurchaseTransitionPolicy.shouldCancelProcessingAfterDrawerHidden(hadProcessingDrawer: true)
+        )
+        #expect(
+            !PurchaseTransitionPolicy.shouldCancelProcessingAfterDrawerHidden(hadProcessingDrawer: false)
+        )
     }
 
     @Test func hidesDrawerChromeDuringCheckoutAfterDrawerHidden() {

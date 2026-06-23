@@ -591,29 +591,30 @@ private extension AppFeatureViewModel {
         if deferNavigationUntilDrawerHidden {
             pendingPlanPurchaseNavigationAfterDrawerHide = true
         }
-        if PurchaseTransitionPolicy.shouldCancelProcessingBeforeCheckoutHide(
-            isProcessingDrawer: drawerContent?.isProcessing == true
-        ) {
-            cancelProcessingTransition()
-        }
+        let hadProcessingDrawer = drawerContent?.isProcessing == true
         planPurchaseTransitionTask?.cancel()
         planPurchaseTransitionTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(Self.paywallDrawerDismissDelayMs))
             guard !Task.isCancelled, let self else { return }
             if self.drawerContent == nil {
-                self.completeCheckoutDrawerTransition()
+                self.completeCheckoutDrawerTransition(hadProcessingDrawer: hadProcessingDrawer)
                 return
             }
             withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
                 self.drawerContent = nil
             } completion: {
-                self.completeCheckoutDrawerTransition()
+                self.completeCheckoutDrawerTransition(hadProcessingDrawer: hadProcessingDrawer)
             }
         }
     }
 
-    func completeCheckoutDrawerTransition() {
+    func completeCheckoutDrawerTransition(hadProcessingDrawer: Bool = false) {
         planPurchaseTransitionTask = nil
+        if PurchaseTransitionPolicy.shouldCancelProcessingAfterDrawerHidden(
+            hadProcessingDrawer: hadProcessingDrawer
+        ) {
+            cancelProcessingTransition()
+        }
         guard pendingPlanPurchaseNavigationAfterDrawerHide else { return }
         isCheckoutNavigationPending = true
         planPurchaseTransitionTask = Task { @MainActor [weak self] in

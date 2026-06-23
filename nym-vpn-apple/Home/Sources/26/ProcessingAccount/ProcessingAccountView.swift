@@ -25,7 +25,7 @@ struct ProcessingAccountView: View {
         .padding(.horizontal, NymSpacing.component)
         .padding(.vertical, AuthLayout.verticalPadding)
         .frame(maxWidth: .infinity)
-        .frame(height: minHeight > 0 ? minHeight : nil)
+        .frame(height: minHeight > 0 ? minHeight : nil, alignment: .top)
         .task {
             viewModel.start()
         }
@@ -51,23 +51,27 @@ private extension ProcessingAccountView {
 
 private extension ProcessingAccountView {
     var content: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: AuthLayout.carouselStackSpacing) {
             stepIndicator
-            Spacer(minLength: 0)
             WaveDotsView()
             Spacer(minLength: 0)
-            Group {
-                if viewModel.usesStaticCopy {
-                    staticTitleView
-                } else if viewModel.didShowFinalMessage {
-                    welcomeMessage
-                } else {
-                    switchingTitles
-                }
-            }
-            .frame(height: titleBlockHeight > 0 ? titleBlockHeight : nil)
-            Spacer(minLength: 0)
+            titleBlock
         }
+    }
+
+    @ViewBuilder
+    var titleBlock: some View {
+        Group {
+            if viewModel.usesStaticCopy {
+                staticTitleView
+            } else if viewModel.didShowFinalMessage {
+                welcomeMessage
+            } else {
+                switchingTitles
+            }
+        }
+        .frame(height: titleBlockHeight > 0 ? titleBlockHeight : nil, alignment: .bottom)
+        .frame(maxWidth: .infinity, alignment: .bottom)
     }
 
     var measurementLayer: some View {
@@ -85,7 +89,7 @@ private extension ProcessingAccountView {
     }
 
     func titlePairMeasurement(title: String, subtitle: String) -> some View {
-        VStack(alignment: .center, spacing: 16) {
+        VStack(alignment: .center, spacing: 12) {
             Text(title)
                 .textStyle(.Headline.Medium.regular)
                 .multilineTextAlignment(.center)
@@ -112,7 +116,7 @@ private extension ProcessingAccountView {
 
     var staticTitleView: some View {
         let pair = ProcessingAccountView.staticPair(for: viewModel.flow)
-        return VStack(alignment: .center, spacing: 16) {
+        return VStack(alignment: .center, spacing: 12) {
             Text(pair.0)
                 .textStyle(.Headline.Medium.regular)
                 .foregroundStyle(NymColor.primary)

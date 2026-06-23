@@ -223,6 +223,10 @@ private extension AppFeatureView {
                     .allowsHitTesting(false)
             }
         }
+        .animation(
+            .easeInOut(duration: PurchaseTransitionPolicy.navigationPushAnimationDurationSeconds),
+            value: viewModel.purchaseTransitionOverlayVisible
+        )
     }
 
     @ViewBuilder
@@ -297,9 +301,7 @@ private extension AppFeatureView {
     }
 
     func pushPlanPurchaseNavigation() {
-        var transaction = Transaction()
-        transaction.disablesAnimations = true
-        withTransaction(transaction) {
+        withAnimation(.easeInOut(duration: PurchaseTransitionPolicy.navigationPushAnimationDurationSeconds)) {
             viewModel.path = NavigationPath()
             viewModel.path.append(HomeLink.settings)
             viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))

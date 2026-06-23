@@ -52,6 +52,10 @@ final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
 
         XCTAssertEqual(viewModel.planPurchaseNavigationToken, tokenBefore)
         XCTAssertEqual(viewModel.navigationIntent, .pushPlanPurchase)
+        XCTAssertNotNil(
+            viewModel.processingViewModel,
+            "Processing carousel stays visible while the drawer slides away"
+        )
     }
 
     func testDismissPostPurchaseProcessingWithoutActiveCheckoutClearsProcessingDrawer() {
@@ -91,7 +95,7 @@ final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
         viewModel.handleSessionEvent(.authCompleted(outcome: .registeredActive, flow: .createAccount))
         viewModel.handleSessionEvent(.requestPlanPurchase)
 
-        try await Task.sleep(for: .milliseconds(600))
+        try await Task.sleep(for: .milliseconds(750))
 
         XCTAssertTrue(
             viewModel.isCheckoutNavigationPending,
@@ -109,7 +113,7 @@ final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
         viewModel.handleSessionEvent(.authCompleted(outcome: .registeredActive, flow: .createAccount))
         viewModel.handleSessionEvent(.requestPlanPurchase)
 
-        try await Task.sleep(for: .milliseconds(600))
+        try await Task.sleep(for: .milliseconds(750))
         viewModel.handleSessionEvent(.checkoutDismissed)
         XCTAssertFalse(viewModel.isCheckoutNavigationPending)
 
