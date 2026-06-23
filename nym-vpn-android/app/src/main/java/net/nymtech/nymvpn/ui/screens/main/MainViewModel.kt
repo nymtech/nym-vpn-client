@@ -163,8 +163,7 @@ constructor(
 	fun onNodeFamiliesConfirm() = viewModelScope.launch {
 		Timber.tag(TAG).i("NodeFamiliesModalConfirmed")
 		runCatching {
-			backendManager.setGatewayIndependenceEnabled(false)
-			backendManager.startTunnel()
+			backendManager.startTunnel(relaxGatewayIndependence = true)
 		}.onFailure { Timber.tag(TAG).e(it, "NodeFamiliesConnectFailed") }
 	}
 
@@ -175,7 +174,6 @@ constructor(
 		if (notificationsEnabled) {
 			_events.tryEmit(MainUiEvent.ShowNodeFamiliesDialog)
 		} else {
-			backendManager.setGatewayIndependenceEnabled(false)
 			onSilent()
 		}
 	}
@@ -183,7 +181,7 @@ constructor(
 	private suspend fun handleNeedsRelaxedIndependenceCriteria() {
 		Timber.tag(TAG).i("NeedsRelaxedIndependenceCriteria (connected state)")
 		runCatching {
-			resolveNodeFamiliesInteraction { backendManager.requestReconnect() }
+			resolveNodeFamiliesInteraction { backendManager.requestReconnect(relaxGatewayIndependence = true) }
 		}.onFailure { Timber.tag(TAG).e(it, "NeedsRelaxedIndependenceCriteriaFailed") }
 	}
 
@@ -191,7 +189,7 @@ constructor(
 		when (result) {
 			is TentativeGateways.NeedsRelaxedIndependenceCriteria -> {
 				Timber.tag(TAG).i("NeedsRelaxedIndependenceCriteria (pre-connect)")
-				resolveNodeFamiliesInteraction { backendManager.startTunnel() }
+				resolveNodeFamiliesInteraction { backendManager.startTunnel(relaxGatewayIndependence = true) }
 			}
 			else -> backendManager.startTunnel()
 		}
