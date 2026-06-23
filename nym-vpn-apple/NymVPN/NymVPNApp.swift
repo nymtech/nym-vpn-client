@@ -103,7 +103,7 @@ struct NymVPNApp: App {
             .onAppear {
                 configureScreenSize()
                 externalLinkManager.deeplinkHandler = { url in
-                    deeplinkManager.handle(url: url)
+                    await deeplinkManager.handleURL(url)
                 }
             }
             .onOpenURL { incomingURL in
@@ -148,6 +148,11 @@ private extension NymVPNApp {
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
+#if os(iOS) && SANTA
+            purchasesManager.registerForEnvironmentChanges(
+                configurationManager: configurationManager
+            )
+#endif
 #if os(iOS)
             BackgroundRefreshScheduler.scheduleAppRefresh()
 #endif

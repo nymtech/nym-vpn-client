@@ -13,6 +13,7 @@ public enum SessionEvent: Equatable, Sendable {
     case checkoutDismissed
     case requestPlanPurchase
     case processingFinished
+    case processingFailed(ProcessingFailure)
     case technicalOptInsContinued
 }
 
@@ -147,6 +148,8 @@ public enum AppSessionReducer: Equatable, Sendable {
             return requestPlanPurchase(context: context)
         case .processingFinished:
             return processingFinished(context: context, environment: environment)
+        case .processingFailed:
+            return processingFailed(context: context)
         case .technicalOptInsContinued:
             return technicalOptInsContinued(context: context, environment: environment)
         }
@@ -288,6 +291,17 @@ public enum AppSessionReducer: Equatable, Sendable {
         return AppSessionReducerResult(
             context: updated,
             drawerCommand: .setOneClick
+        )
+    }
+
+    private static func processingFailed(context: AppSessionContext) -> AppSessionReducerResult {
+        // Un-stick the processing drawer the same way a dismissal does, and stop the
+        // processing transition. The typed failure is surfaced to the user (snackbar)
+        // by the coordinator; the reducer only restores a safe drawer destination.
+        AppSessionReducerResult(
+            context: context,
+            drawerCommand: .applyPostPurchaseDismissDestination,
+            cancelProcessing: true
         )
     }
 

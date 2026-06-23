@@ -166,7 +166,7 @@ public final class OneClickViewModel {
                         hasAccountSummary: summary != nil
                     )
                     if shouldOfferPurchase {
-                        sessionCoordinator?.requestInactiveSubscriptionPurchase()
+                        sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
                         return
                     }
                 }
@@ -259,7 +259,7 @@ public final class OneClickViewModel {
 
     func incompleteSubscriptionBannerTapped() {
         impactGenerator.softImpact()
-        sessionCoordinator?.requestInactiveSubscriptionPurchase()
+        sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
     }
 }
 
@@ -388,7 +388,7 @@ private extension OneClickViewModel {
             reason = nsError.domain == ErrorReason.domain ? ErrorReason(nsError: nsError) : nil
         }
         guard reason == .inactiveSubscription else { return }
-        sessionCoordinator?.requestInactiveSubscriptionPurchase()
+        sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
     }
 
     func clearLastErrorIfNeeded() {

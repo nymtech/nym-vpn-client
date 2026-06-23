@@ -236,9 +236,11 @@ let package = Package(
         .target(
             name: "PurchasesManager",
             dependencies: [
-                "AppSettings"
+                "AppSettings",
+                "ConfigurationManager"
             ],
-            path: "Sources/Services/PurchasesManager"
+            path: "Sources/Services/PurchasesManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "SentryManager",
@@ -286,6 +288,7 @@ let package = Package(
             name: "CredentialsManagerTests",
             dependencies: [
                 "AccountPrefetchGates",
+                "AppSettings",
                 "CredentialsManager",
                 .product(name: "ErrorHandler", package: "ServicesIOS"),
                 .product(name: "NymVPNLib", package: "NymVPNLib"),

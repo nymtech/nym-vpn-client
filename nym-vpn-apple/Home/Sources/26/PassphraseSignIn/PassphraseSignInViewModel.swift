@@ -40,8 +40,8 @@ public final class PassphraseSignInViewModel {
         loginTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
-                sessionCoordinator?.handleSessionEvent(
-                    .authWillBegin(flow: .login, completesOnCredentialImport: false)
+                sessionCoordinator?.handle(
+                    .session(.authWillBegin(flow: .login, completesOnCredentialImport: false))
                 )
 #if os(iOS)
                 try await credentialsManager.performAccountRegistration(loginCredential: credential)
@@ -51,8 +51,8 @@ public final class PassphraseSignInViewModel {
                         await self.credentialsManager.updateAccountSummary(force: true, untilActive: false)
                     }
                 )
-                sessionCoordinator?.handleSessionEvent(
-                    .authCompleted(outcome: outcome, flow: .login)
+                sessionCoordinator?.handle(
+                    .session(.authCompleted(outcome: outcome, flow: .login))
                 )
 #else
                 try await credentialsManager.add(credential: credential)
@@ -61,10 +61,10 @@ public final class PassphraseSignInViewModel {
                 submissionState = .idle
 #endif
             } catch is CancellationError {
-                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
+                sessionCoordinator?.handle(.session(.authHandoffCancelled))
                 submissionState = .idle
             } catch {
-                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
+                sessionCoordinator?.handle(.session(.authHandoffCancelled))
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(
                     SnackbarItem(

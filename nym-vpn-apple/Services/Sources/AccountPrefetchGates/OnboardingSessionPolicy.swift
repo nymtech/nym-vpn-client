@@ -173,6 +173,36 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
         return welcomeScreenDidDisplay ? .oneClick : .technicalOptIns
     }
 
+    /// Dashboard destination when Privy import succeeded but VPN API token registration did not.
+    public static func drawerDestinationAfterIncompleteCredentialImport(
+        isCredentialImported: Bool,
+        welcomeScreenDidDisplay: Bool
+    ) -> PostPurchaseDrawerDestination? {
+        guard isCredentialImported else { return nil }
+        return welcomeScreenDidDisplay ? .oneClick : .technicalOptIns
+    }
+
+    /// Guest welcome is only appropriate when import failed and no auth handoff is in flight.
+    public static func shouldRegressToWelcomeAfterImportFailure(
+        isCredentialImported: Bool,
+        authHandoffInProgress: Bool
+    ) -> Bool {
+        !isCredentialImported && !authHandoffInProgress
+    }
+
+    /// Privy retry: mnemonic already stored when handoff starts — complete without waiting for onChange.
+    public static func shouldBeginCredentialImportCompletionOnAuthWillBegin(
+        completesOnCredentialImport: Bool,
+        isCredentialImported: Bool,
+        pendingAuthFlow: AuthFlowKind?,
+        authHandoffCompleted: Bool
+    ) -> Bool {
+        completesOnCredentialImport
+            && isCredentialImported
+            && pendingAuthFlow != nil
+            && !authHandoffCompleted
+    }
+
     /// Privy deeplink import stores the mnemonic but not the VPN API account token.
     public static func hasUsableAccountToken(_ token: String?) -> Bool {
         guard let token, !token.isEmpty else { return false }

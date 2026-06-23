@@ -34,13 +34,8 @@ public enum BackgroundRefreshScheduler {
         let credentials = CredentialsManager.shared
         let outcome = await AccountPrefetchOrchestrator.runBackgroundRefresh(
             isCredentialImported: credentials.isValidCredentialImported,
-            isAccountActive: { await credentials.isAccountActive() },
-            updateAccountSummary: {
-                await credentials.updateAccountSummary(force: true)
-            },
-            prefetchZkNyms: {
-                await credentials.prefetchZkNyms(timeout: 25)
-            }
+            processing: credentials,
+            timeout: 25
         )
 
         switch outcome.skipReason {

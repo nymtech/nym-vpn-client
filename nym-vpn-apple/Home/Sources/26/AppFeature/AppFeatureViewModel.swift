@@ -65,6 +65,7 @@ import GRPCManager
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     @ObservationIgnored private var lastForegroundRefreshAt: Date?
     @ObservationIgnored private var pendingPostDisconnectAccountRefresh: Task<Void, Never>?
+    @ObservationIgnored private var credentialImportCompletionTask: Task<Void, Never>?
     private static let foregroundRefreshMinInterval: TimeInterval = 300
     private static let postDisconnectAccountRefreshDelay: TimeInterval = 10
 
@@ -136,12 +137,26 @@ import GRPCManager
         oneClick.sessionCoordinator = self
     }
 
-    public func handleSessionEvent(_ event: SessionEvent) {
+    public func handle(_ action: CoordinatorAction) {
+        switch action {
+        case .session(let event):
+            handleSessionEvent(event)
+        case .requestInactiveSubscriptionPurchase:
+            requestInactiveSubscriptionPurchase()
+        case .dismissPostPurchaseProcessing:
+            requestDismissPostPurchaseProcessing()
+        }
+    }
+
+    func handleSessionEvent(_ event: SessionEvent) {
         switch event {
         case .checkoutCompleted, .checkoutDismissed:
             cancelPendingPlanPurchaseNavigation()
         case .processingFinished:
             processingDidFinish()
+            return
+        case .processingFailed(let failure):
+            processingDidFail(failure)
             return
         default:
             break
@@ -155,6 +170,17 @@ import GRPCManager
         applySessionResult(result)
         if let route = result.authRoute {
             applyAuthRoute(route)
+        }
+
+        if case let .authWillBegin(_, completesOnCredentialImport) = event,
+           DrawerSessionPolicy.shouldBeginCredentialImportCompletionOnAuthWillBegin(
+               completesOnCredentialImport: completesOnCredentialImport,
+               isCredentialImported: appSettings.isCredentialImported,
+               pendingAuthFlow: sessionContext.pendingAuthFlow,
+               authHandoffCompleted: sessionContext.authHandoffCompleted
+           ),
+           let pendingFlow = sessionContext.pendingAuthFlow {
+            beginCredentialImportCompletion(for: pendingFlow)
         }
     }
 
@@ -268,19 +294,7 @@ import GRPCManager
             )
             switch importAction {
             case .completeAuthOnImport(let pendingFlow):
-                Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    await self.ensureAccountRegisteredAfterCredentialImport(for: pendingFlow)
-                    guard DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
-                        flow: pendingFlow,
-                        accountToken: self.credentialsManager.accountToken
-                    ) else {
-                        self.applyDrawerDestinationAfterPurchaseDismiss()
-                        return
-                    }
-                    let outcome = await self.resolveAuthCompletionOutcome(for: pendingFlow)
-                    self.handleAuthCompleted(outcome: outcome, flow: pendingFlow)
-                }
+                beginCredentialImportCompletion(for: pendingFlow)
             case .suppressDuringHandoff, .none:
                 return
             case .startExternalProcessing:
@@ -466,7 +480,7 @@ private extension AppFeatureViewModel {
 
     func startProcessingTransition(flow: ProcessingFlow) {
         let viewModel = ProcessingAccountViewModel(
-            credentialsManager: credentialsManager,
+            processing: credentialsManager,
             flow: flow
         )
         viewModel.sessionCoordinator = self
@@ -495,6 +509,35 @@ private extension AppFeatureViewModel {
         applySessionResult(result)
     }
 
+    func processingDidFail(_ failure: ProcessingFailure) {
+        guard drawerContent?.isProcessing == true else { return }
+        presentProcessingFailure(failure)
+        let processingKind = processingViewModel.map { viewModelProcessingKind($0.flow) }
+        let result = AppSessionReducer.reduce(
+            context: sessionContext,
+            environment: makeSessionEnvironment(processingKind: processingKind),
+            event: .processingFailed(failure)
+        )
+        applySessionResult(result)
+    }
+
+    private func presentProcessingFailure(_ failure: ProcessingFailure) {
+        let message: String
+        switch failure {
+        case .cancelled:
+            return
+        case .registration(let detail), .generic(let detail):
+            message = detail
+        }
+        snackbarManager.enqueue(
+            SnackbarItem(
+                style: .critical,
+                title: "error".localizedString,
+                message: message
+            )
+        )
+    }
+
     func viewModelProcessingKind(_ flow: ProcessingFlow) -> ProcessingFlowKind {
         switch flow {
         case .login:
@@ -505,10 +548,35 @@ private extension AppFeatureViewModel {
     }
 
     func applyDrawerDestinationAfterPurchaseDismiss() {
-        switch DrawerSessionPolicy.drawerDestinationAfterPurchaseDismiss(
+        applyPostPurchaseDrawerDestination(
+            DrawerSessionPolicy.drawerDestinationAfterPurchaseDismiss(
+                isCredentialImported: appSettings.isCredentialImported,
+                welcomeScreenDidDisplay: appSettings.welcomeScreenDidDisplay
+            )
+        )
+    }
+
+    func applyDrawerDestinationAfterIncompleteCredentialImport() {
+        if let destination = DrawerSessionPolicy.drawerDestinationAfterIncompleteCredentialImport(
             isCredentialImported: appSettings.isCredentialImported,
             welcomeScreenDidDisplay: appSettings.welcomeScreenDidDisplay
         ) {
+            applyPostPurchaseDrawerDestination(destination)
+            return
+        }
+        let authHandoffInProgress = sessionContext.pendingAuthFlow != nil
+            && !sessionContext.authHandoffCompleted
+        guard DrawerSessionPolicy.shouldRegressToWelcomeAfterImportFailure(
+            isCredentialImported: appSettings.isCredentialImported,
+            authHandoffInProgress: authHandoffInProgress
+        ) else {
+            return
+        }
+        applyDrawerDestinationAfterPurchaseDismiss()
+    }
+
+    func applyPostPurchaseDrawerDestination(_ destination: PostPurchaseDrawerDestination) {
+        switch destination {
         case .welcome:
             drawerContent = .welcome
         case .technicalOptIns:
@@ -517,6 +585,28 @@ private extension AppFeatureViewModel {
         case .oneClick:
             drawerContent = .oneClick
         }
+    }
+
+    func beginCredentialImportCompletion(for flow: AuthFlowKind) {
+        guard !sessionContext.authHandoffCompleted else { return }
+        credentialImportCompletionTask?.cancel()
+        credentialImportCompletionTask = Task { @MainActor [weak self] in
+            await self?.completeAuthOnImport(for: flow)
+        }
+    }
+
+    func completeAuthOnImport(for flow: AuthFlowKind) async {
+        await credentialsManager.ensureCredentialImportResolved()
+        await ensureAccountRegisteredAfterCredentialImport(for: flow)
+        guard DrawerSessionPolicy.shouldCompleteAuthAfterCredentialImport(
+            flow: flow,
+            accountToken: credentialsManager.accountToken
+        ) else {
+            applyDrawerDestinationAfterIncompleteCredentialImport()
+            return
+        }
+        let outcome = await resolveAuthCompletionOutcome(for: flow)
+        handleAuthCompleted(outcome: outcome, flow: flow)
     }
 
     func presentPurchaseDismissedFeedbackIfNeeded() {
@@ -593,11 +683,14 @@ private extension AppFeatureViewModel {
             }
         }
 
-        if result.navigationIntent == .pushPlanPurchase {
+        switch result.navigationIntent {
+        case .pushPlanPurchase:
             navigationIntent = .pushPlanPurchase
             if result.drawerCommand != .stageOneClickForCheckout {
                 planPurchaseNavigationToken &+= 1
             }
+        default:
+            break
         }
     }
 

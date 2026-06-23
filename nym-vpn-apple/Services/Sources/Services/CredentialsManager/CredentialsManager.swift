@@ -64,7 +64,7 @@ import PathManager
     }
 
     public var accountToken: String? {
-        appSettings.accountToken
+        appSettings.accountToken(forEnvironment: configurationManager.currentEnvString)
     }
 
     private init() {}
@@ -76,6 +76,7 @@ import PathManager
     public func setup() {
 #if os(iOS)
         checkCredentialImport()
+        registerForEnvironmentChangesIfNeeded()
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
@@ -127,7 +128,7 @@ import PathManager
             ) {
                 try await registerAccount(environment: env)
             }
-            appSettings.accountToken = result.accountToken
+            appSettings.setAccountToken(result.accountToken, forEnvironment: configurationManager.currentEnvString)
             if loginCredential == nil {
                 try await AccountRegistrationSupport.withAccountStoreRetry(
                     operation: "prepareRegisteredAccount",
@@ -314,7 +315,7 @@ import PathManager
         try await grpcManager.forgetAccount()
 #endif
         checkCredentialImport()
-        appSettings.accountToken = nil
+        appSettings.clearAllAccountTokens()
 #if SANTA
         isAccountSummaryOverridden = false
 #endif
@@ -354,9 +355,11 @@ import PathManager
             ).loginWithDeeplinkMnemonic(deeplinkMnemonic: mnemonic)
         }.value
         self.deeplinks = nil
+        await ensureCredentialImportResolved()
         checkCredentialImport()
 #elseif os(macOS)
         try await grpcManager.storePrivyAccount(with: callbackURLString)
+        await ensureCredentialImportResolved()
         checkCredentialImport()
 #endif
         didReceiveAccountLinkCallback = true
@@ -623,6 +626,30 @@ private extension CredentialsManager {
     }
 }
 
+#if os(iOS)
+@MainActor
+public extension CredentialsManager {
+    func ensureAccountRegisteredForCurrentEnvironment() async throws {
+        let envString = configurationManager.currentEnvString
+        if EnvironmentChangeIAPPolicy.hasPurchaseReadyToken(
+            appSettings.accountToken(forEnvironment: envString)
+        ) {
+            return
+        }
+        guard await isAccountStored() else { return }
+
+        let env = try resolvedNetworkEnvironment()
+        let result = try await AccountRegistrationSupport.withAccountStoreRetry(
+            operation: "registerAccountForEnvironment",
+            logger: logger
+        ) {
+            try await registerAccount(environment: env)
+        }
+        appSettings.setAccountToken(result.accountToken, forEnvironment: envString)
+    }
+}
+#endif
+
 private extension CredentialsManager {
     func updateDeviceIdentifier() async {
 #if os(iOS)
@@ -663,4 +690,41 @@ private extension CredentialsManager {
 #endif
         accountIdentifier = newAccIdentifier
     }
+
+#if os(iOS)
+    func registerForEnvironmentChangesIfNeeded() {
+#if SANTA
+        guard configurationManager.isSantaClaus else { return }
+        configurationManager.addEnvironmentDidChangeObserver { [weak self] in
+            Task { @MainActor in
+                await self?.handleEnvironmentDidChange()
+            }
+        }
+#endif
+    }
+
+    func handleEnvironmentDidChange() async {
+        accountSummaryUpdateTask?.cancel()
+        accountSummaryUpdateTask = nil
+        accountSummary = nil
+        setAccountSummaryLastFetchFailed(false)
+#if SANTA
+        isAccountSummaryOverridden = false
+#endif
+        guard isValidCredentialImported else { return }
+
+        do {
+            try await ensureAccountRegisteredForCurrentEnvironment()
+            if EnvironmentChangeIAPPolicy.shouldRefreshSummaryAfterEnvironmentChange(
+                isCredentialImported: isValidCredentialImported
+            ) {
+                await updateAccountSummary(force: true)
+            }
+        } catch {
+            logger.error(
+                "handleEnvironmentDidChange failed: \(error.localizedDescription)"
+            )
+        }
+    }
+#endif
 }

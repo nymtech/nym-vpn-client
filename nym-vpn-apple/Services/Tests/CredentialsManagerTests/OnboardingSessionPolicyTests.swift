@@ -461,6 +461,83 @@ struct DrawerSessionPolicyTests {
         )
     }
 
+    @Test func incompleteImportWithCredentialNeverReturnsWelcome() {
+        #expect(
+            DrawerSessionPolicy.drawerDestinationAfterIncompleteCredentialImport(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: true
+            ) == .oneClick
+        )
+        #expect(
+            DrawerSessionPolicy.drawerDestinationAfterIncompleteCredentialImport(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: false
+            ) == .technicalOptIns
+        )
+        #expect(
+            DrawerSessionPolicy.drawerDestinationAfterIncompleteCredentialImport(
+                isCredentialImported: false,
+                welcomeScreenDidDisplay: false
+            ) == nil
+        )
+    }
+
+    @Test func importFailureDoesNotRegressWelcomeDuringActiveHandoff() {
+        #expect(
+            !DrawerSessionPolicy.shouldRegressToWelcomeAfterImportFailure(
+                isCredentialImported: false,
+                authHandoffInProgress: true
+            )
+        )
+        #expect(
+            DrawerSessionPolicy.shouldRegressToWelcomeAfterImportFailure(
+                isCredentialImported: false,
+                authHandoffInProgress: false
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldRegressToWelcomeAfterImportFailure(
+                isCredentialImported: true,
+                authHandoffInProgress: false
+            )
+        )
+    }
+
+    @Test func authWillBeginPromotesPreImportedPrivyHandoff() {
+        #expect(
+            DrawerSessionPolicy.shouldBeginCredentialImportCompletionOnAuthWillBegin(
+                completesOnCredentialImport: true,
+                isCredentialImported: true,
+                pendingAuthFlow: .login,
+                authHandoffCompleted: false
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldBeginCredentialImportCompletionOnAuthWillBegin(
+                completesOnCredentialImport: true,
+                isCredentialImported: true,
+                pendingAuthFlow: .login,
+                authHandoffCompleted: true
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldBeginCredentialImportCompletionOnAuthWillBegin(
+                completesOnCredentialImport: true,
+                isCredentialImported: false,
+                pendingAuthFlow: .login,
+                authHandoffCompleted: false
+            )
+        )
+        #expect(
+            !DrawerSessionPolicy.shouldBeginCredentialImportCompletionOnAuthWillBegin(
+                completesOnCredentialImport: false,
+                isCredentialImported: true,
+                pendingAuthFlow: .login,
+                authHandoffCompleted: false
+            )
+        )
+    }
+
     @Test func privyCreateAccountImportRequiresRegistrationWhenTokenMissing() {
         #expect(
             DrawerSessionPolicy.shouldRegisterAccountAfterCredentialImport(

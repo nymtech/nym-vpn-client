@@ -479,4 +479,23 @@ struct AppSessionReducerTests {
 
         #expect(result.context.userDismissedCheckout)
     }
+
+    @Test func processingFailed_cancelsProcessingAndUnsticksDrawer() {
+        let context = AppSessionContext.initial
+
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: AppSessionEnvironment(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: true,
+                isAccountActive: false
+            ),
+            event: .processingFailed(.registration("boom"))
+        )
+
+        #expect(result.cancelProcessing)
+        #expect(result.drawerCommand == .applyPostPurchaseDismissDestination)
+        #expect(result.navigationIntent == nil)
+        #expect(result.context == context)
+    }
 }

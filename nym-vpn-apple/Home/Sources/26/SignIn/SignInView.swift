@@ -78,8 +78,8 @@ public struct SignInView: View {
     private func startPrivyLogin() {
         guard !isPrivyLoading else { return }
         isPrivyLoading = true
-        sessionCoordinator.handleSessionEvent(
-            .authWillBegin(flow: .login, completesOnCredentialImport: true)
+        sessionCoordinator.handle(
+            .session(.authWillBegin(flow: .login, completesOnCredentialImport: true))
         )
         privyTask?.cancel()
         privyTask = Task { @MainActor in
@@ -88,13 +88,13 @@ public struct SignInView: View {
                 let url = try await credentialsManager.privyLogin(kind: .privy)
                 try await ExternalLinkManager.shared.presentPrivyAuthSession(urlString: url)
             } catch is CancellationError {
-                sessionCoordinator.handleSessionEvent(.authHandoffCancelled)
+                sessionCoordinator.handle(.session(.authHandoffCancelled))
                 return
             } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
-                sessionCoordinator.handleSessionEvent(.authHandoffCancelled)
+                sessionCoordinator.handle(.session(.authHandoffCancelled))
                 return
             } catch {
-                sessionCoordinator.handleSessionEvent(.authHandoffCancelled)
+                sessionCoordinator.handle(.session(.authHandoffCancelled))
                 privyAlertMessage = error.localizedDescription
             }
         }

@@ -95,7 +95,7 @@ struct NymVPNDaemonApp: App {
                     appDelegate.bringWindowToFront()
                 }
                 externalLinkManager.deeplinkHandler = { url in
-                    deeplinkManager.handle(url: url)
+                    await deeplinkManager.handleURL(url)
                 }
             }
             .onDisappear {

@@ -1,8 +1,6 @@
 import Foundation
 import SwiftUI
 import AccountPrefetchGates
-import CredentialsManager
-import SnackbarManager
 import Theme
 #if os(iOS)
 import ErrorHandler
@@ -14,28 +12,58 @@ public enum ProcessingFlow: Sendable {
     case postPurchase
 }
 
+/// Observable phase machine for the account-processing screen. Runs the account
+/// side effects through an injected `AccountProcessing`, publishes its `phase`, and
+/// advances navigation when both the work and the carousel animation have converged.
+enum ProcessingPhase: Equatable {
+    case preparing
+    case syncing
+    case prefetching
+    case awaitingAdvance
+    case finalizing
+    case finished
+    case failed(ProcessingFailure)
+}
+
 @MainActor
 @Observable
 public final class ProcessingAccountViewModel {
-    private static let finalMessageDuration = 2
-
-    private let credentialsManager: CredentialsManager
+    private let processing: AccountProcessing
     @ObservationIgnored private var processingTask: Task<Void, Never>?
     @ObservationIgnored private var finalMessageTask: Task<Void, Never>?
     @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
 
+    /// Seconds the welcome message lingers before navigating (carousel flows only).
+    /// Settable so tests can drive the finalize transition without a real delay.
+    @ObservationIgnored var finalMessageDuration: Double = 2
+
     let flow: ProcessingFlow
+    private(set) var phase: ProcessingPhase = .preparing
     var currentStep: Int = 1
-    var didFinishAnimatingText = false
-    var didShowFinalMessage = false
-    private var didBecomeActive = false
+
+    var didFinishAnimatingText = false {
+        didSet { evaluateAdvance() }
+    }
+
+    @ObservationIgnored private var workCompleted = false {
+        didSet { evaluateAdvance() }
+    }
 
     var usesStaticCopy: Bool {
         flow == .postPurchase
     }
 
-    public init(credentialsManager: CredentialsManager, flow: ProcessingFlow) {
-        self.credentialsManager = credentialsManager
+    var didShowFinalMessage: Bool {
+        switch phase {
+        case .finalizing, .finished:
+            return true
+        default:
+            return false
+        }
+    }
+
+    public init(processing: AccountProcessing, flow: ProcessingFlow) {
+        self.processing = processing
         self.flow = flow
         switch flow {
         case .login:
@@ -51,44 +79,75 @@ public final class ProcessingAccountViewModel {
     func start() {
         processingTask?.cancel()
         processingTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            let credentials = self.credentialsManager
-            let runFlow = {
-                await AccountPrefetchOrchestrator.runProcessingFlow(
-                    isAccountActive: { await credentials.isAccountActive() },
-                    updateAccountSummary: {
-                        await credentials.updateAccountSummary(force: true, untilActive: true)
-                    },
-                    prefetchZkNyms: {
-                        await credentials.prefetchZkNyms()
-                    }
-                )
-            }
-
-            do {
-                if self.flow == .login {
-                    _ = try await LoginProcessingOrchestrator.run(
-                        ensureCredentialImportResolved: {
-                            await credentials.ensureCredentialImportResolved()
-                        },
-                        prepareRegisteredAccount: {
-                            try await credentials.prepareRegisteredAccount()
-                        },
-                        runProcessingFlow: runFlow
-                    )
-                } else {
-                    await credentials.ensureCredentialImportResolved()
-                    _ = await runFlow()
-                }
-            } catch {
-                self.presentProcessingError(error)
-                return
-            }
-
-            guard !Task.isCancelled else { return }
-            didBecomeActive = true
-            advanceIfReady()
+            await self?.run()
         }
+    }
+
+    /// The processing sequence. Extracted from `start()` so tests can await it.
+    func run() async {
+        do {
+            switch flow {
+            case .login:
+                phase = .preparing
+                await processing.ensureCredentialImportResolved()
+                try await processing.prepareRegisteredAccount()
+                try await syncSummaryThenPrefetch()
+                completeWork()
+            case .createAccount:
+                await processing.ensureCredentialImportResolved()
+                try await syncSummaryThenPrefetch()
+                completeWork()
+            case .postPurchase:
+                try await runPostPurchase()
+            }
+        } catch is CancellationError {
+            return
+        } catch {
+            fail(with: error)
+        }
+    }
+
+    /// Login/create-account: sync the account summary, then prefetch zk-nyms when active.
+    private func syncSummaryThenPrefetch() async throws {
+        try Task.checkCancellation()
+        phase = .syncing
+        await processing.updateAccountSummary(force: true, untilActive: true)
+        try Task.checkCancellation()
+        if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
+            isAccountActive: processing.isAccountActive()
+        ) {
+            phase = .prefetching
+            _ = await processing.prefetchZkNyms(timeout: 60)
+        }
+        try Task.checkCancellation()
+    }
+
+    /// Post-IAP: sync the StoreKit receipt, fail if the account isn't active, else prefetch.
+    private func runPostPurchase() async throws {
+        phase = .syncing
+        var didSync = true
+        do {
+            try await processing.handleSubscriptionPayment()
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            didSync = false
+        }
+        try Task.checkCancellation()
+
+        let active = processing.isAccountActive()
+        guard PostPurchaseProcessingPolicy.shouldCompleteNavigation(
+            didSyncSubscription: didSync,
+            isAccountActive: active
+        ) else {
+            fail(.generic("purchasePlan.paymentFailedAlert".localizedString))
+            return
+        }
+
+        phase = .prefetching
+        _ = await processing.prefetchZkNyms(timeout: 60)
+        phase = .finished
+        sessionCoordinator?.handle(.session(.processingFinished))
     }
 
     func cancel() {
@@ -101,7 +160,7 @@ public final class ProcessingAccountViewModel {
     func dismissPostPurchaseProcessing() {
         guard flow == .postPurchase else { return }
         cancel()
-        sessionCoordinator?.requestDismissPostPurchaseProcessing()
+        sessionCoordinator?.handle(.dismissPostPurchaseProcessing)
     }
 
     func animationDidAdvance() {
@@ -110,44 +169,55 @@ public final class ProcessingAccountViewModel {
 
     func animationDidFinish() {
         didFinishAnimatingText = true
-        advanceIfReady()
     }
 
-    private func advanceIfReady() {
-        guard ProcessingAccountReadiness.canAdvanceNavigation(
-            didCompleteAccountPrep: didBecomeActive,
-            didFinishAnimatingText: didFinishAnimatingText,
-            requiresCarousel: !usesStaticCopy
-        ), !didShowFinalMessage else { return }
-        didShowFinalMessage = true
-        if usesStaticCopy {
-            sessionCoordinator?.handleSessionEvent(.processingFinished)
+    /// Awaits the post-advance welcome-message delay. Test hook only.
+    func awaitFinalMessage() async {
+        await finalMessageTask?.value
+    }
+
+    private func completeWork() {
+        guard !usesStaticCopy else {
+            phase = .finished
+            sessionCoordinator?.handle(.session(.processingFinished))
             return
         }
+        phase = .awaitingAdvance
+        workCompleted = true
+    }
+
+    private func fail(with error: Error) {
+        fail(Self.mapFailure(error))
+    }
+
+    private func fail(_ failure: ProcessingFailure) {
+        phase = .failed(failure)
+        sessionCoordinator?.handle(.session(.processingFailed(failure)))
+    }
+
+    private func evaluateAdvance() {
+        guard phase == .awaitingAdvance,
+              ProcessingAccountReadiness.canAdvanceNavigation(
+                  didCompleteAccountPrep: workCompleted,
+                  didFinishAnimatingText: didFinishAnimatingText,
+                  requiresCarousel: !usesStaticCopy
+              ) else { return }
+        phase = .finalizing
         finalMessageTask = Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .seconds(ProcessingAccountViewModel.finalMessageDuration))
+            guard let self else { return }
+            try? await Task.sleep(for: .seconds(finalMessageDuration))
             guard !Task.isCancelled else { return }
-            self?.sessionCoordinator?.handleSessionEvent(.processingFinished)
+            phase = .finished
+            sessionCoordinator?.handle(.session(.processingFinished))
         }
     }
 
-    private func presentProcessingError(_ error: Error) {
+    private static func mapFailure(_ error: Error) -> ProcessingFailure {
 #if os(iOS)
-        let message: String
         if let reason = error as? VPNErrorReason {
-            message = reason.localizedDescription
-        } else {
-            message = error.localizedDescription
+            return .registration(reason.localizedDescription)
         }
-        SnackbarManager.shared.enqueue(
-            SnackbarItem(
-                style: .critical,
-                title: "error".localizedString,
-                message: message
-            )
-        )
-#else
-        _ = error
 #endif
+        return .generic(error.localizedDescription)
     }
 }

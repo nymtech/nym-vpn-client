@@ -2,99 +2,48 @@ import Foundation
 import Testing
 import AccountPrefetchGates
 
-private final class FakeAccountPrefetchClient: @unchecked Sendable {
+@MainActor
+private final class FakeAccountProcessing: AccountProcessing {
     enum Event: Equatable, Sendable {
         case syncSummary
         case readActiveAfterSync
         case prefetch
     }
 
-    var isCredentialImported = true
     var accountActiveAfterSync = true
     var prefetchResult: ZkNymPrefetchResult = .fetchedTickets
     private(set) var events: [Event] = []
 
-    func resetEvents() {
-        events = []
-    }
+    func ensureCredentialImportResolved() async {}
 
-    func recordSync() {
+    func prepareRegisteredAccount() async throws {}
+
+    func updateAccountSummary(force: Bool, untilActive: Bool) async {
         events.append(.syncSummary)
     }
 
-    func recordActiveRead() {
+    func isAccountActive() -> Bool {
         events.append(.readActiveAfterSync)
+        return accountActiveAfterSync
     }
 
-    func recordPrefetch() {
+    func prefetchZkNyms(timeout: TimeInterval) async -> ZkNymPrefetchResult {
         events.append(.prefetch)
+        return prefetchResult
     }
+
+    func handleSubscriptionPayment() async throws {}
 }
 
+@MainActor
 struct AccountPrefetchOrchestratorTests {
-    @Test func processingFlowSyncsThenPrefetchesWhenActive() async {
-        let fake = FakeAccountPrefetchClient()
-        fake.accountActiveAfterSync = true
-
-        let outcome = await AccountPrefetchOrchestrator.runProcessingFlow(
-            isAccountActive: {
-                fake.recordActiveRead()
-                return fake.accountActiveAfterSync
-            },
-            updateAccountSummary: {
-                fake.recordSync()
-            },
-            prefetchZkNyms: {
-                fake.recordPrefetch()
-                return fake.prefetchResult
-            }
-        )
-
-        #expect(outcome.didSyncSummary)
-        #expect(outcome.prefetchResult == .fetchedTickets)
-        #expect(fake.events == [.syncSummary, .readActiveAfterSync, .prefetch])
-    }
-
-    @Test func processingFlowSkipsPrefetchWhenInactiveAfterSync() async {
-        let fake = FakeAccountPrefetchClient()
-        fake.accountActiveAfterSync = false
-
-        let outcome = await AccountPrefetchOrchestrator.runProcessingFlow(
-            isAccountActive: {
-                fake.recordActiveRead()
-                return fake.accountActiveAfterSync
-            },
-            updateAccountSummary: {
-                fake.recordSync()
-            },
-            prefetchZkNyms: {
-                fake.recordPrefetch()
-                return fake.prefetchResult
-            }
-        )
-
-        #expect(outcome.didSyncSummary)
-        #expect(outcome.prefetchResult == nil)
-        #expect(fake.events == [.syncSummary, .readActiveAfterSync])
-    }
-
     @Test func backgroundRefreshSkipsWithoutCredential() async {
-        let fake = FakeAccountPrefetchClient()
-        fake.isCredentialImported = false
+        let fake = FakeAccountProcessing()
 
         let outcome = await AccountPrefetchOrchestrator.runBackgroundRefresh(
-            isCredentialImported: fake.isCredentialImported,
-            isAccountActive: {
-                fake.recordActiveRead()
-                return fake.accountActiveAfterSync
-            },
-            updateAccountSummary: {
-                fake.recordSync()
-            },
-            prefetchZkNyms: {
-                fake.recordPrefetch()
-                return fake.prefetchResult
-            }
+            isCredentialImported: false,
+            processing: fake,
+            timeout: 25
         )
 
         #expect(outcome.skipReason == .noCredential)
@@ -104,22 +53,13 @@ struct AccountPrefetchOrchestratorTests {
     }
 
     @Test func backgroundRefreshSyncsOnlyWhenInactiveAfterSummary() async {
-        let fake = FakeAccountPrefetchClient()
+        let fake = FakeAccountProcessing()
         fake.accountActiveAfterSync = false
 
         let outcome = await AccountPrefetchOrchestrator.runBackgroundRefresh(
-            isCredentialImported: fake.isCredentialImported,
-            isAccountActive: {
-                fake.recordActiveRead()
-                return fake.accountActiveAfterSync
-            },
-            updateAccountSummary: {
-                fake.recordSync()
-            },
-            prefetchZkNyms: {
-                fake.recordPrefetch()
-                return fake.prefetchResult
-            }
+            isCredentialImported: true,
+            processing: fake,
+            timeout: 25
         )
 
         #expect(outcome.skipReason == .inactiveAfterSummarySync)
@@ -129,22 +69,13 @@ struct AccountPrefetchOrchestratorTests {
     }
 
     @Test func backgroundRefreshPrefetchesAfterSummaryWhenActive() async {
-        let fake = FakeAccountPrefetchClient()
+        let fake = FakeAccountProcessing()
         fake.prefetchResult = .skippedStoreBusy
 
         let outcome = await AccountPrefetchOrchestrator.runBackgroundRefresh(
-            isCredentialImported: fake.isCredentialImported,
-            isAccountActive: {
-                fake.recordActiveRead()
-                return fake.accountActiveAfterSync
-            },
-            updateAccountSummary: {
-                fake.recordSync()
-            },
-            prefetchZkNyms: {
-                fake.recordPrefetch()
-                return fake.prefetchResult
-            }
+            isCredentialImported: true,
+            processing: fake,
+            timeout: 25
         )
 
         #expect(outcome.skipReason == nil)

@@ -1,5 +1,6 @@
 import XCTest
 import Theme
+import UIComponents
 @testable import Home
 
 final class AuthLayoutProcessingCarouselTests: XCTestCase {

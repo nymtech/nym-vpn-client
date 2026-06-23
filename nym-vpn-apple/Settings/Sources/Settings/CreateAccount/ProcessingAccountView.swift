@@ -42,16 +42,25 @@ public struct ProcessingAccountView: View {
         }
         .task {
             let credentials = credentialsManager
-            _ = await AccountPrefetchOrchestrator.runProcessingFlow(
-                isAccountActive: { await credentials.isAccountActive() },
-                updateAccountSummary: {
-                    await credentials.updateAccountSummary(force: true, untilActive: true)
+            let outcome = await AccountPrefetchOrchestrator.runPostPurchaseProcessingFlow(
+                syncSubscriptionPayment: {
+                    try await credentials.handleSubscriptionPayment()
+                },
+                isAccountActive: {
+                    await credentials.isAccountActive()
                 },
                 prefetchZkNyms: {
                     await credentials.prefetchZkNyms()
                 }
             )
             guard !Task.isCancelled else { return }
+            guard PostPurchaseProcessingPolicy.shouldCompleteNavigation(
+                didSyncSubscription: outcome.didSyncSummary,
+                isAccountActive: outcome.isAccountActive
+            ) else {
+                dismissProcessing()
+                return
+            }
             didCompleteAccountPrep = true
             advanceIfReady()
         }

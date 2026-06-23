@@ -61,15 +61,24 @@ public enum AccountZkNymPrefetchGate: Equatable, Sendable {
     }
 }
 
-/// Shared async sequencing for processing screens and background refresh.
+/// Shared async sequencing. `runBackgroundRefresh` serves the headless background
+/// scheduler; `runProcessingFlow` serves the legacy Settings create-account screen.
+/// The Home/26 processing screen instead drives its own @Observable phase machine
+/// (`ProcessingAccountViewModel`) so it can publish intermediate phases.
 public enum AccountPrefetchOrchestrator: Sendable {
     public struct ProcessingOutcome: Equatable, Sendable {
         public let didSyncSummary: Bool
         public let prefetchResult: ZkNymPrefetchResult?
+        public let isAccountActive: Bool
 
-        public init(didSyncSummary: Bool, prefetchResult: ZkNymPrefetchResult?) {
+        public init(
+            didSyncSummary: Bool,
+            prefetchResult: ZkNymPrefetchResult?,
+            isAccountActive: Bool = false
+        ) {
             self.didSyncSummary = didSyncSummary
             self.prefetchResult = prefetchResult
+            self.isAccountActive = isAccountActive
         }
     }
 
@@ -100,18 +109,58 @@ public enum AccountPrefetchOrchestrator: Sendable {
         prefetchZkNyms: @Sendable () async -> ZkNymPrefetchResult
     ) async -> ProcessingOutcome {
         await updateAccountSummary()
-        guard shouldPrefetchAfterSummarySync(isAccountActive: await isAccountActive()) else {
-            return ProcessingOutcome(didSyncSummary: true, prefetchResult: nil)
+        let active = await isAccountActive()
+        guard shouldPrefetchAfterSummarySync(isAccountActive: active) else {
+            return ProcessingOutcome(
+                didSyncSummary: true,
+                prefetchResult: nil,
+                isAccountActive: active
+            )
         }
         let prefetch = await prefetchZkNyms()
-        return ProcessingOutcome(didSyncSummary: true, prefetchResult: prefetch)
+        return ProcessingOutcome(
+            didSyncSummary: true,
+            prefetchResult: prefetch,
+            isAccountActive: active
+        )
     }
 
+    /// After native IAP: sync StoreKit receipt via account controller, then prefetch when active.
+    public static func runPostPurchaseProcessingFlow(
+        syncSubscriptionPayment: @Sendable () async throws -> Void,
+        isAccountActive: @Sendable () async -> Bool,
+        prefetchZkNyms: @Sendable () async -> ZkNymPrefetchResult
+    ) async -> ProcessingOutcome {
+        do {
+            try await syncSubscriptionPayment()
+        } catch {
+            return ProcessingOutcome(
+                didSyncSummary: false,
+                prefetchResult: nil,
+                isAccountActive: false
+            )
+        }
+        let active = await isAccountActive()
+        guard shouldPrefetchAfterSummarySync(isAccountActive: active) else {
+            return ProcessingOutcome(
+                didSyncSummary: true,
+                prefetchResult: nil,
+                isAccountActive: active
+            )
+        }
+        let prefetch = await prefetchZkNyms()
+        return ProcessingOutcome(
+            didSyncSummary: true,
+            prefetchResult: prefetch,
+            isAccountActive: active
+        )
+    }
+
+    @MainActor
     public static func runBackgroundRefresh(
         isCredentialImported: Bool,
-        isAccountActive: @Sendable () async -> Bool,
-        updateAccountSummary: @Sendable () async -> Void,
-        prefetchZkNyms: @Sendable () async -> ZkNymPrefetchResult
+        processing: AccountProcessing,
+        timeout: TimeInterval
     ) async -> BackgroundOutcome {
         guard isCredentialImported else {
             return BackgroundOutcome(
@@ -120,15 +169,15 @@ public enum AccountPrefetchOrchestrator: Sendable {
                 prefetchResult: nil
             )
         }
-        await updateAccountSummary()
-        guard shouldPrefetchAfterSummarySync(isAccountActive: await isAccountActive()) else {
+        await processing.updateAccountSummary(force: true, untilActive: false)
+        guard shouldPrefetchAfterSummarySync(isAccountActive: processing.isAccountActive()) else {
             return BackgroundOutcome(
                 skipReason: .inactiveAfterSummarySync,
                 didSyncSummary: true,
                 prefetchResult: nil
             )
         }
-        let prefetch = await prefetchZkNyms()
+        let prefetch = await processing.prefetchZkNyms(timeout: timeout)
         return BackgroundOutcome(
             skipReason: nil,
             didSyncSummary: true,
@@ -140,25 +189,6 @@ public enum AccountPrefetchOrchestrator: Sendable {
 private extension AccountPrefetchOrchestrator {
     static func shouldPrefetchAfterSummarySync(isAccountActive: Bool) -> Bool {
         AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(isAccountActive: isAccountActive)
-    }
-}
-
-/// Login processing: resolve import, prepare account, then summary sync + prefetch.
-public enum LoginProcessingOrchestrator: Sendable {
-    public enum Step: Equatable, Sendable {
-        case credentialImportResolved
-        case accountPrepared
-        case processingFlowCompleted
-    }
-
-    public static func run(
-        ensureCredentialImportResolved: @Sendable () async -> Void,
-        prepareRegisteredAccount: @Sendable () async throws -> Void,
-        runProcessingFlow: @Sendable () async -> AccountPrefetchOrchestrator.ProcessingOutcome
-    ) async throws -> AccountPrefetchOrchestrator.ProcessingOutcome {
-        await ensureCredentialImportResolved()
-        try await prepareRegisteredAccount()
-        return await runProcessingFlow()
     }
 }
 

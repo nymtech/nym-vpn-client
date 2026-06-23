@@ -56,6 +56,12 @@ extension GeneratePassphraseView {
         ImpactGenerator.shared.impact()
 
         do {
+            try await credentialsManager.ensureAccountRegisteredForCurrentEnvironment()
+        } catch {
+            presentPurchaseAlert(message: registrationErrorDescription(error))
+            return
+        }
+        do {
             guard let token = credentialsManager.accountToken, !token.isEmpty else {
                 presentPurchaseAlert(
                     message: "accountToken.empty".localizedString

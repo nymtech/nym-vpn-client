@@ -35,21 +35,21 @@ public final class GeneratePassphraseViewModel {
             guard let self else { return }
             defer { self.isRegistering = false }
             do {
-                sessionCoordinator?.handleSessionEvent(
-                    .authWillBegin(flow: .createAccount, completesOnCredentialImport: false)
+                sessionCoordinator?.handle(
+                    .session(.authWillBegin(flow: .createAccount, completesOnCredentialImport: false))
                 )
                 try await credentialsManager.performAccountRegistration()
                 didRegisterAccount = true
                 advanceIfAuthComplete()
             } catch is CancellationError {
-                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
+                sessionCoordinator?.handle(.session(.authHandoffCancelled))
                 return
             } catch let error as VPNErrorReason {
-                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
+                sessionCoordinator?.handle(.session(.authHandoffCancelled))
                 didRegisterAccount = false
                 errorMessage = error.localizedDescription
             } catch {
-                sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
+                sessionCoordinator?.handle(.session(.authHandoffCancelled))
                 didRegisterAccount = false
                 errorMessage = error.localizedDescription
             }
@@ -81,8 +81,8 @@ public final class GeneratePassphraseViewModel {
                     )
                 }
             )
-            sessionCoordinator?.handleSessionEvent(
-                .authCompleted(outcome: outcome, flow: .createAccount)
+            sessionCoordinator?.handle(
+                .session(.authCompleted(outcome: outcome, flow: .createAccount))
             )
         }
     }

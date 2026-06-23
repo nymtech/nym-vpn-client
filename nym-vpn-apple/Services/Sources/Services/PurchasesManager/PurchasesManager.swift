@@ -1,6 +1,9 @@
 import StoreKit
 import SwiftUI
 import AppSettings
+#if SANTA
+import ConfigurationManager
+#endif
 
 public enum PurchaseOutcome: Equatable, Sendable {
     case success
@@ -60,6 +63,24 @@ public enum PurchaseOutcome: Equatable, Sendable {
 
     public func restorePurchases() async throws {
         try await AppStore.sync()
+    }
+
+#if SANTA
+    public func registerForEnvironmentChanges(configurationManager: ConfigurationManager) {
+        configurationManager.addEnvironmentDidChangeObserver { [weak self] in
+            Task { @MainActor in
+                await self?.resetForEnvironmentChange()
+            }
+        }
+    }
+#endif
+
+    public func resetForEnvironmentChange() async {
+        productsLoaded = false
+        products = []
+        isEligibleForIntroOffer = []
+        try? await loadProducts()
+        await updateAutoRenewStatus()
     }
 
     public func updateAutoRenewStatus() async {

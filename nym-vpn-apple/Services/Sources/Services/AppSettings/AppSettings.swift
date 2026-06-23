@@ -245,6 +245,7 @@ public enum AppSettingKey: String {
     case countryStore
     case gatewayStore
     case accountToken
+    case accountTokensByEnv
     case ipv6TrafficIsEnabled
     case statistics
     case statisticsConnectionCount
