@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { useAppStore } from '../store';
+import { dispatch, useAppStore } from '../store';
 import { useGwIndependenceWarning } from '../contexts/gatewayIndependence';
 
 // While connected, the daemon may surface
@@ -29,7 +29,13 @@ function useGatewayIndependenceWatcher() {
     const handle = async () => {
       if (notificationsEnabled && !(await requestConfirmation())) return;
 
-      await invoke('set_gateway_independence', { enabled: false });
+      await invoke('set_gateway_independence', {
+        enabled: false,
+      });
+
+      dispatch({ type: 'reset-error' });
+      dispatch({ type: 'connect' });
+      await invoke('reconnect');
     };
 
     handle().catch((e: unknown) => {
