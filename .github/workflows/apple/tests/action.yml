@@ -31,6 +31,15 @@ runs:
             "Services|Services-Package|ConfigurationManagerTests|Services/TestResults-ConfigurationManagerTests.xcresult|ConfigurationManager"
             "Settings|Settings|SettingsTests|Settings/TestResults-SettingsTests.xcresult|Settings"
             "ServicesMacOS|ServicesMacOS-Package|AppDiscoveryServiceTests|ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult|AppDiscovery"
+            "Services|Services-Package|CredentialsManagerTests/AppSessionReducerTests|Services/TestResults-AppSessionReducerTests.xcresult|AppSessionReducer"
+            "Services|Services-Package|CredentialsManagerTests/AccountPrefetchOrchestratorTests|Services/TestResults-AccountPrefetchOrchestratorTests.xcresult|AccountPrefetch"
+            "Home|Home|HomeTests|Home/TestResults-HomeTests.xcresult|Home"
+            "Services|Services-Package|CredentialsManagerTests/EnvironmentChangeIAPPolicyTests|Services/TestResults-EnvironmentChangeIAPPolicyTests.xcresult|EnvironmentChangeIAP"
+            "Services|Services-Package|CredentialsManagerTests/PostPurchaseProcessingPolicyTests|Services/TestResults-PostPurchaseProcessingPolicyTests.xcresult|PostPurchasePolicy"
+            "Services|Services-Package|CredentialsManagerTests/PostPurchaseProcessingFlowTests|Services/TestResults-PostPurchaseProcessingFlowTests.xcresult|PostPurchaseFlow"
+            "Services|Services-Package|CredentialsManagerTests/AccountTokenByEnvStorageTests|Services/TestResults-AccountTokenByEnvStorageTests.xcresult|AccountTokenByEnv"
+            "Services|Services-Package|CredentialsManagerTests/DrawerSessionPolicyTests|Services/TestResults-DrawerSessionPolicyTests.xcresult|DrawerSessionPolicy"
+            "Services|Services-Package|CredentialsManagerTests/DrawerCredentialImportPolicyTests|Services/TestResults-DrawerCredentialImportPolicyTests.xcresult|DrawerCredImport"
           )
 
           for suite in "${SUITES[@]}"; do
@@ -110,6 +119,15 @@ runs:
           nym-vpn-apple/Services/TestResults-ConfigurationManagerTests.xcresult
           nym-vpn-apple/Settings/TestResults-SettingsTests.xcresult
           nym-vpn-apple/ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult
+          nym-vpn-apple/Services/TestResults-AppSessionReducerTests.xcresult
+          nym-vpn-apple/Services/TestResults-AccountPrefetchOrchestratorTests.xcresult
+          nym-vpn-apple/Home/TestResults-HomeTests.xcresult
+          nym-vpn-apple/Services/TestResults-EnvironmentChangeIAPPolicyTests.xcresult
+          nym-vpn-apple/Services/TestResults-PostPurchaseProcessingPolicyTests.xcresult
+          nym-vpn-apple/Services/TestResults-PostPurchaseProcessingFlowTests.xcresult
+          nym-vpn-apple/Services/TestResults-AccountTokenByEnvStorageTests.xcresult
+          nym-vpn-apple/Services/TestResults-DrawerSessionPolicyTests.xcresult
+          nym-vpn-apple/Services/TestResults-DrawerCredentialImportPolicyTests.xcresult
           account-report.md
         if-no-files-found: warn
         retention-days: 1
@@ -121,4 +139,13 @@ runs:
         rm -rf nym-vpn-apple/ServicesMutual/TestResults.xcresult \
                nym-vpn-apple/Services/TestResults-ConfigurationManagerTests.xcresult \
                nym-vpn-apple/Settings/TestResults-SettingsTests.xcresult \
-               nym-vpn-apple/ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult
+               nym-vpn-apple/ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult \
+               nym-vpn-apple/Services/TestResults-AppSessionReducerTests.xcresult \
+               nym-vpn-apple/Services/TestResults-AccountPrefetchOrchestratorTests.xcresult \
+               nym-vpn-apple/Home/TestResults-HomeTests.xcresult \
+               nym-vpn-apple/Services/TestResults-EnvironmentChangeIAPPolicyTests.xcresult \
+               nym-vpn-apple/Services/TestResults-PostPurchaseProcessingPolicyTests.xcresult \
+               nym-vpn-apple/Services/TestResults-PostPurchaseProcessingFlowTests.xcresult \
+               nym-vpn-apple/Services/TestResults-AccountTokenByEnvStorageTests.xcresult \
+               nym-vpn-apple/Services/TestResults-DrawerSessionPolicyTests.xcresult \
+               nym-vpn-apple/Services/TestResults-DrawerCredentialImportPolicyTests.xcresult

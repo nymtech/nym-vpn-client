@@ -85,7 +85,7 @@ struct AutologinOverlay: ViewModifier {
 }
 
 extension View {
-    func autologinOverlay(state: AutologinState, onRetry: (() -> Void)? = nil) -> some View {
+    public func autologinOverlay(state: AutologinState, onRetry: (() -> Void)? = nil) -> some View {
         modifier(AutologinOverlay(autologinState: state, onRetry: onRetry))
     }
 }

@@ -21,9 +21,9 @@ public struct SignUpView: View {
 #endif
 
     private let credentialsManager: CredentialsManager
+    private let sessionCoordinator: AppSessionCoordinating
     private let rootMinHeight: CGFloat
     private let onBackTapped: () -> Void
-    private let onWillRegister: () -> Void
 
 #if os(iOS)
     @State private var generateViewModel: GeneratePassphraseViewModel
@@ -36,17 +36,17 @@ public struct SignUpView: View {
 
     public init(
         credentialsManager: CredentialsManager,
+        sessionCoordinator: AppSessionCoordinating,
         rootMinHeight: CGFloat = 0,
-        onBackTapped: @escaping () -> Void,
-        onWillRegister: @escaping () -> Void = {}
+        onBackTapped: @escaping () -> Void
     ) {
         self.credentialsManager = credentialsManager
+        self.sessionCoordinator = sessionCoordinator
         self.rootMinHeight = rootMinHeight
         self.onBackTapped = onBackTapped
-        self.onWillRegister = onWillRegister
 #if os(iOS)
         let viewModel = GeneratePassphraseViewModel(credentialsManager: credentialsManager)
-        viewModel.onWillRegister = onWillRegister
+        viewModel.sessionCoordinator = sessionCoordinator
         _generateViewModel = State(wrappedValue: viewModel)
 #endif
     }
@@ -101,18 +101,22 @@ public struct SignUpView: View {
         .transition(.slideFade(from: .leading))
     }
 
-    private func anonymousAccountTapped() {
 #if os(iOS)
+    private func anonymousAccountTapped() {
         step = .generate
-#elseif os(macOS)
-        startPrivyLogin(target: .anonymous)
-#endif
     }
+#elseif os(macOS)
+    private func anonymousAccountTapped() {
+        startPrivyLogin(target: .anonymous)
+    }
+#endif
 
     private func startPrivyLogin(target: PrivyTarget) {
         guard privyLoadingTarget == nil else { return }
         privyLoadingTarget = target
-        onWillRegister()
+        sessionCoordinator.handle(
+            .session(.authWillBegin(flow: .createAccount, completesOnCredentialImport: true))
+        )
         privyTask?.cancel()
         privyTask = Task { @MainActor in
             defer { privyLoadingTarget = nil }
@@ -121,10 +125,13 @@ public struct SignUpView: View {
                 let url = try await credentialsManager.privyLogin(kind: kind)
                 try await ExternalLinkManager.shared.presentPrivyAuthSession(urlString: url)
             } catch is CancellationError {
+                sessionCoordinator.handle(.session(.authHandoffCancelled))
                 return
             } catch let error as ASWebAuthenticationSessionError where error.code == .canceledLogin {
+                sessionCoordinator.handle(.session(.authHandoffCancelled))
                 return
             } catch {
+                sessionCoordinator.handle(.session(.authHandoffCancelled))
                 privyAlertMessage = error.localizedDescription
             }
         }

@@ -18,17 +18,24 @@ public struct SwitchingTitlesView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .center, spacing: 16) {
+        VStack(alignment: .center, spacing: 12) {
             Text(pairs[currentIndex].title)
                 .textStyle(.Headline.Medium.regular)
                 .foregroundStyle(NymColor.primary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(2)
+                .minimumScaleFactor(0.9)
 
             Text(pairs[currentIndex].subtitle)
                 .textStyle(.Body.Medium.regular)
                 .foregroundColor(NymColor.gray1)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(2)
+                .minimumScaleFactor(0.9)
         }
+        .frame(maxWidth: .infinity, alignment: .center)
         .onAppear {
             startTimer()
         }

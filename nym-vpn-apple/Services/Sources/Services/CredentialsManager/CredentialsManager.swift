@@ -11,24 +11,34 @@ import ErrorReason
 #if os(iOS)
 import ErrorHandler
 import NymVPNLib
+import Tunnels
+import AppVersionProvider
 #elseif os(macOS)
 import GRPCManager
 #endif
 import PathManager
+@_exported import AccountPrefetchGates
 
 @MainActor public final class CredentialsManager: ObservableObject {
-    private let logger = Logger(label: "CredentialsManager")
+    let logger = Logger(label: "CredentialsManager")
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
 #endif
-    private let appSettings = AppSettings.shared
-    private let configurationManager = ConfigurationManager.shared
+    let appSettings = AppSettings.shared
+    let configurationManager = ConfigurationManager.shared
 
 #if os(iOS)
     var deeplinks: NymDeeplinks?
 #endif
     private var cancellables = Set<AnyCancellable>()
     private var accountSummaryUpdateTask: Task<Void, Never>?
+    /// iOS toggles this during `performAccountRegistration`; macOS leaves it false.
+    private(set) public var isAccountRegistrationInFlight = false
+#if os(iOS)
+    var registrationCapturedEnvironment: NymEnvironment?
+    private var accountRegistrationTask: Task<Void, Error>?
+    var accountControllerShutdown: (() async -> Void)?
+#endif
 
     public static let shared = CredentialsManager()
 
@@ -54,14 +64,19 @@ import PathManager
     }
 
     public var accountToken: String? {
-        appSettings.accountToken
+        appSettings.accountToken(forEnvironment: configurationManager.currentEnvString)
     }
 
     private init() {}
 
+    func setAccountSummaryLastFetchFailed(_ failed: Bool) {
+        accountSummaryLastFetchFailed = failed
+    }
+
     public func setup() {
 #if os(iOS)
         checkCredentialImport()
+        registerForEnvironmentChangesIfNeeded()
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
@@ -69,44 +84,145 @@ import PathManager
 
     public func add(credential: String) async throws {
 #if os(iOS)
-        let envOpt = configurationManager.networkEnv
-        do {
-            try await Task {
-                let dataDir = try PathManager.dataFolderURL().path()
-                let env = try envOpt ?? .newWithMainnetFallback()
-                try await NymVpnAccountStorage(
-                    dataDir: dataDir,
-                    environment: env
-                ).login(request: .vpn(mnemonic: credential))
-            }.value
-            checkCredentialImport()
-        } catch {
-            if let vpnError = error as? VpnError {
-                throw VPNErrorReason(with: vpnError)
-            } else {
-                throw error
-            }
-        }
+        let env = try resolvedNetworkEnvironment()
+        try await login(credential: credential, environment: env)
 #elseif os(macOS)
         try await grpcManager.storeAccount(with: .vpn(mnemonic: credential))
         checkCredentialImport()
 #endif
     }
 
+#if os(iOS)
+    public func performAccountRegistration(loginCredential: String? = nil) async throws {
+        if let existing = accountRegistrationTask {
+            try await existing.value
+            return
+        }
+
+        let capturedLoginCredential = loginCredential
+        let task = Task<Void, Error> { @MainActor in
+            try await self.runAccountRegistration(loginCredential: capturedLoginCredential)
+        }
+        accountRegistrationTask = task
+        defer { accountRegistrationTask = nil }
+        try await task.value
+    }
+
+    private func runAccountRegistration(loginCredential: String?) async throws {
+        beginAccountRegistration()
+        defer { endAccountRegistration() }
+
+        do {
+            let env = try resolvedRegistrationEnvironment()
+
+            if let loginCredential {
+                accountSummary = nil
+                try await login(credential: loginCredential, environment: env)
+            } else if !(await isAccountStored(environment: env)) {
+                try await createMnemonic(environment: env)
+            }
+
+            let result = try await AccountRegistrationSupport.withAccountStoreRetry(
+                operation: "registerAccount",
+                logger: logger
+            ) {
+                try await registerAccount(environment: env)
+            }
+            appSettings.setAccountToken(result.accountToken, forEnvironment: configurationManager.currentEnvString)
+            if loginCredential == nil {
+                try await AccountRegistrationSupport.withAccountStoreRetry(
+                    operation: "prepareRegisteredAccount",
+                    logger: logger
+                ) {
+                    try await prepareRegisteredAccount(environment: env)
+                }
+                await performAccountSummaryUpdate(untilActive: false)
+            } else {
+                await ensureCredentialImportResolved()
+            }
+            checkCredentialImport()
+        } catch {
+            throw AccountRegistrationSupport.mapToVPNErrorReason(error)
+        }
+    }
+
+    func beginAccountRegistration() {
+        isAccountRegistrationInFlight = true
+        registrationCapturedEnvironment = configurationManager.networkEnv
+    }
+
+    func endAccountRegistration() {
+        isAccountRegistrationInFlight = false
+        registrationCapturedEnvironment = nil
+    }
+#endif
+
+#if os(iOS)
+    private func login(credential: String, environment: NymEnvironment) async throws {
+        do {
+            try await AccountRegistrationSupport.withAccountStoreRetry(
+                operation: "login",
+                logger: logger
+            ) {
+                try await Task {
+                    let dataDir = try PathManager.dataFolderURL().path()
+                    try await NymVpnAccountStorage(
+                        dataDir: dataDir,
+                        environment: environment
+                    ).login(request: .vpn(mnemonic: credential))
+                }.value
+            }
+        } catch {
+            throw AccountRegistrationSupport.mapToVPNErrorReason(error)
+        }
+    }
+#endif
+
     public func createMnemonic() async throws {
 #if os(iOS)
-        let envOpt = configurationManager.networkEnv
-        try await Task {
-            let dataDir = try PathManager.dataFolderURL().path()
-            let env = try envOpt ?? .newWithMainnetFallback()
-            try await NymVpnAccountStorage(
-                dataDir: dataDir,
-                environment: env
-            ).createAccount()
-        }.value
-        checkCredentialImport()
+        let env = try resolvedNetworkEnvironment()
+        try await createMnemonic(environment: env)
 #endif
     }
+
+#if os(iOS)
+    private func createMnemonic(environment: NymEnvironment) async throws {
+        try await AccountRegistrationSupport.withAccountStoreRetry(
+            operation: "createAccount",
+            logger: logger
+        ) {
+            try await Task {
+                let dataDir = try PathManager.dataFolderURL().path()
+                try await NymVpnAccountStorage(
+                    dataDir: dataDir,
+                    environment: environment
+                ).createAccount()
+            }.value
+        }
+    }
+#endif
+
+#if os(iOS)
+    public func isAccountStored() async -> Bool {
+        guard let networkEnv = configurationManager.networkEnv else { return false }
+        return await isAccountStored(environment: networkEnv)
+    }
+
+    func isAccountStored(environment: NymEnvironment) async -> Bool {
+        do {
+            return try await Task {
+                let dataDir = try PathManager.dataFolderURL().path()
+                return try await NymVpnAccountStorage(
+                    dataDir: dataDir,
+                    environment: environment
+                ).isAccountMnemonicStored()
+            }.value
+        } catch {
+            logger.error("Failed to check stored account: \(error.localizedDescription)")
+            return false
+        }
+    }
+#endif
 
     public func mnemonic() async throws -> String {
 #if os(iOS)
@@ -127,17 +243,60 @@ import PathManager
 
     public func registerAccount() async throws {
 #if os(iOS)
-        let envOpt = configurationManager.networkEnv
-        let result = try await Task {
+        try await performAccountRegistration()
+#endif
+    }
+
+#if os(iOS)
+    @discardableResult
+    private func registerAccount(environment: NymEnvironment) async throws -> RegisterAccountResponse {
+        try await Task {
             let dataDir = try PathManager.dataFolderURL().path()
-            let env = try envOpt ?? .newWithMainnetFallback()
             return try await NymVpnAccountStorage(
                 dataDir: dataDir,
-                environment: env
+                environment: environment
             ).registerAccount()
         }.value
-        appSettings.accountToken = result.accountToken
-        checkCredentialImport()
+    }
+#endif
+
+    public func prepareRegisteredAccount() async throws {
+#if os(iOS)
+        let env = try resolvedNetworkEnvironment()
+        try await prepareRegisteredAccount(environment: env)
+#endif
+    }
+
+#if os(iOS)
+    func resolvedNetworkEnvironment() throws -> NymEnvironment {
+        if let networkEnv = configurationManager.networkEnv {
+            return networkEnv
+        }
+        return try .newWithMainnetFallback()
+    }
+
+    func resolvedRegistrationEnvironment() throws -> NymEnvironment {
+        if let registrationCapturedEnvironment {
+            return registrationCapturedEnvironment
+        }
+        return try resolvedNetworkEnvironment()
+    }
+
+    private func environmentForCredentialImport() -> NymEnvironment? {
+        AccountRegistrationSupport.environmentForCredentialImport(
+            isRegistrationInFlight: isAccountRegistrationInFlight,
+            registrationCapturedEnvironment: registrationCapturedEnvironment,
+            liveNetworkEnv: configurationManager.networkEnv
+        )
+    }
+#endif
+
+    @discardableResult
+    public func prefetchZkNyms(timeout: TimeInterval = 60) async -> ZkNymPrefetchResult {
+#if os(iOS)
+        await prefetchZkNymsOnIOS(timeout: timeout)
+#else
+        return .skipped
 #endif
     }
 
@@ -156,7 +315,7 @@ import PathManager
         try await grpcManager.forgetAccount()
 #endif
         checkCredentialImport()
-        appSettings.accountToken = nil
+        appSettings.clearAllAccountTokens()
 #if SANTA
         isAccountSummaryOverridden = false
 #endif
@@ -196,20 +355,27 @@ import PathManager
             ).loginWithDeeplinkMnemonic(deeplinkMnemonic: mnemonic)
         }.value
         self.deeplinks = nil
+        await ensureCredentialImportResolved()
         checkCredentialImport()
 #elseif os(macOS)
         try await grpcManager.storePrivyAccount(with: callbackURLString)
+        await ensureCredentialImportResolved()
         checkCredentialImport()
 #endif
         didReceiveAccountLinkCallback = true
     }
 
     public func handleSubscriptionPayment() async throws {
-#if os(macOS)
         didReceiveSubscriptionPayment = true
+#if os(macOS)
         try await grpcManager.handleSubscriptionPayment()
         try? await Task.sleep(for: .seconds(2))
         await updateAccountSummary(force: true)
+#elseif os(iOS)
+        try await refreshAccountSummaryOnIOS(
+            untilActive: true,
+            trigger: .subscriptionPayment
+        )
 #endif
     }
 
@@ -252,15 +418,52 @@ import PathManager
         }
     }
 
-    /// Checks `isActive` from backend, falls back to date check if summary is nil.
+    /// Checks `isActive` from backend, with validUntil fallback when summary is present.
     public func isAccountActive() -> Bool {
         if let accountSummary {
-            return accountSummary.isActive
+            if accountSummary.isActive { return true }
+            if let validUntilDate = accountSummary.validUntilDate,
+               validUntilDate > Date() {
+                return true
+            }
+            return false
         }
         return isAccountSubscriptionDateValid()
     }
 
+    public func ensureCredentialImportResolved() async {
+#if os(iOS)
+        do {
+            let networkEnv = try resolvedRegistrationEnvironment()
+            let isImported = try await Task {
+                let dataDir = try PathManager.dataFolderURL().path()
+                return try await NymVpnAccountStorage(
+                    dataDir: dataDir,
+                    environment: networkEnv
+                ).isAccountMnemonicStored()
+            }.value
+            setCredentialImportedFlag(isImported)
+        } catch {
+            logger.error(
+                "ensureCredentialImportResolved failed \(error.localizedDescription)"
+            )
+            setCredentialImportedFlag(false)
+        }
+#elseif os(macOS)
+        do {
+            let isImported = try await grpcManager.isAccountStored()
+            setCredentialImportedFlag(isImported)
+        } catch {
+            logger.error(
+                "ensureCredentialImportResolved failed \(error.localizedDescription)"
+            )
+            setCredentialImportedFlag(false)
+        }
+#endif
+    }
+
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
+        guard !isAccountRegistrationInFlight else { return }
 #if SANTA
         guard !isAccountSummaryOverridden else { return }
 #endif
@@ -270,7 +473,12 @@ import PathManager
             if let inflight = accountSummaryUpdateTask {
                 await inflight.value
             }
-            if !force, accountSummary != nil, isAccountSummaryCacheFresh(), isAccountActive() {
+            if !AccountSummaryRefreshPolicy.shouldForceNetworkRefresh(
+                force: force,
+                isAccountActive: isAccountActive()
+            ),
+               accountSummary != nil,
+               isAccountSummaryCacheFresh() {
                 return
             }
 
@@ -308,6 +516,9 @@ import PathManager
 
     private func performAccountSummaryUpdate(untilActive: Bool) async {
         guard isValidCredentialImported else { return }
+#if os(iOS)
+        await refreshAccountSummaryOnIOS(untilActive: untilActive)
+#else
         let delays: [Duration] = [.zero, .seconds(2), .seconds(4), .seconds(6), .seconds(10)]
 
         for delay in delays {
@@ -321,55 +532,13 @@ import PathManager
                 if accountSummary != nil { break }
             }
         }
+#endif
         resetExpiryDismissalsIfNeeded()
     }
 
     private func fetchAccountSummary() async {
         guard isValidCredentialImported else { return }
-#if os(iOS)
-        let envOpt = configurationManager.networkEnv
-        let summary: VpnAccountSummary?
-        do {
-            summary = try await Task {
-                let dataDir = try PathManager.dataFolderURL().path()
-                let env = try envOpt ?? .newWithMainnetFallback()
-                return try await NymVpnAccountStorage(
-                    dataDir: dataDir,
-                    environment: env
-                ).getAccountSummary()
-            }.value
-        } catch {
-            accountSummaryLastFetchFailed = true
-            logger.error(
-                "fetchAccountSummary (iOS) failed operation=getAccountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
-            )
-            return
-        }
-
-        guard let summary
-        else {
-            // nil-without-throw: same UX as a failure, surface it as one.
-            logger.debug("fetchAccountSummary (iOS): getAccountSummary returned nil without throwing")
-            accountSummaryLastFetchFailed = true
-            return
-        }
-
-        accountSummaryLastFetchFailed = false
-        let innerSub = summary.subscription?.subscription
-        accountSummary = AccountSummary(
-            validUntilTimeInterval: innerSub?.validUntilUtc,
-            trafficUsedGb: summary.trafficUsedGb,
-            trafficLimitGb: summary.trafficLimitGb,
-            trafficResetTimeInterval: summary.trafficResetTime,
-            accountAddress: summary.accountAddr,
-            cannonicalAccountAddress: summary.canonicalAccountAddr,
-            accountAuthMethod: summary.authMethods.map { AccountAuthMethod(vpnAccountMethod: $0) },
-            isLinked: summary.isLinked(),
-            isActive: summary.isSubscriptionActive(),
-            isAutoRenewEnabled: innerSub?.isRecurring ?? false,
-            subscription: summary.subscription.map { Subscription(from: $0) }
-        )
-#elseif os(macOS)
+#if os(macOS)
         // On gRPC failure keep the last good summary; only flag the failure.
         do {
             accountSummary = try await grpcManager.accountSummary()
@@ -396,7 +565,7 @@ import PathManager
     }
 }
 
-private extension CredentialsManager {
+extension CredentialsManager {
     static func sanitizedAccountSummaryErrorLog(_ error: Error) -> String {
         "errorType=\(String(describing: Swift.type(of: error)))"
     }
@@ -439,25 +608,8 @@ private extension CredentialsManager {
 
     func checkCredentialImport() {
         Task {
-            do {
-                let isImported: Bool
-#if os(iOS)
-                guard let networkEnv = configurationManager.networkEnv else { return }
-                isImported = try await Task {
-                    let dataDir = try PathManager.dataFolderURL().path()
-                    return try await NymVpnAccountStorage(
-                        dataDir: dataDir,
-                        environment: networkEnv
-                    ).isAccountMnemonicStored()
-                }.value
-#elseif os(macOS)
-                isImported = try await grpcManager.isAccountStored()
-#endif
-                updateIsCredentialImported(with: isImported)
-            } catch {
-                logger.error("Failed to check credential import: \(error.localizedDescription)")
-                updateIsCredentialImported(with: false)
-            }
+            await ensureCredentialImportResolved()
+            guard !isAccountRegistrationInFlight else { return }
             await updateDeviceIdentifier()
             await updateAccountIdentifier()
             await updateAccountSummary()
@@ -465,12 +617,38 @@ private extension CredentialsManager {
     }
 
     func updateIsCredentialImported(with value: Bool) {
-        Task { @MainActor in
-            guard appSettings.isCredentialImported != value else { return }
-            appSettings.isCredentialImported = value
-        }
+        setCredentialImportedFlag(value)
+    }
+
+    func setCredentialImportedFlag(_ value: Bool) {
+        guard appSettings.isCredentialImported != value else { return }
+        appSettings.isCredentialImported = value
     }
 }
+
+#if os(iOS)
+@MainActor
+public extension CredentialsManager {
+    func ensureAccountRegisteredForCurrentEnvironment() async throws {
+        let envString = configurationManager.currentEnvString
+        if EnvironmentChangeIAPPolicy.hasPurchaseReadyToken(
+            appSettings.accountToken(forEnvironment: envString)
+        ) {
+            return
+        }
+        guard await isAccountStored() else { return }
+
+        let env = try resolvedNetworkEnvironment()
+        let result = try await AccountRegistrationSupport.withAccountStoreRetry(
+            operation: "registerAccountForEnvironment",
+            logger: logger
+        ) {
+            try await registerAccount(environment: env)
+        }
+        appSettings.setAccountToken(result.accountToken, forEnvironment: envString)
+    }
+}
+#endif
 
 private extension CredentialsManager {
     func updateDeviceIdentifier() async {
@@ -512,4 +690,41 @@ private extension CredentialsManager {
 #endif
         accountIdentifier = newAccIdentifier
     }
+
+#if os(iOS)
+    func registerForEnvironmentChangesIfNeeded() {
+#if SANTA
+        guard configurationManager.isSantaClaus else { return }
+        configurationManager.addEnvironmentDidChangeObserver { [weak self] in
+            Task { @MainActor in
+                await self?.handleEnvironmentDidChange()
+            }
+        }
+#endif
+    }
+
+    func handleEnvironmentDidChange() async {
+        accountSummaryUpdateTask?.cancel()
+        accountSummaryUpdateTask = nil
+        accountSummary = nil
+        setAccountSummaryLastFetchFailed(false)
+#if SANTA
+        isAccountSummaryOverridden = false
+#endif
+        guard isValidCredentialImported else { return }
+
+        do {
+            try await ensureAccountRegisteredForCurrentEnvironment()
+            if EnvironmentChangeIAPPolicy.shouldRefreshSummaryAfterEnvironmentChange(
+                isCredentialImported: isValidCredentialImported
+            ) {
+                await updateAccountSummary(force: true)
+            }
+        } catch {
+            logger.error(
+                "handleEnvironmentDidChange failed: \(error.localizedDescription)"
+            )
+        }
+    }
+#endif
 }
