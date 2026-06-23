@@ -304,6 +304,7 @@ async fn main() -> Result<()> {
             tunnel::get_tunnel_state,
             tunnel::connect,
             tunnel::disconnect,
+            tunnel::reconnect,
             tunnel::set_node,
             tunnel::set_quic,
             tunnel::set_fronting_mode,
