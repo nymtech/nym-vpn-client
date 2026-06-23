@@ -459,6 +459,18 @@ impl VpndClient {
         Ok(())
     }
 
+    /// Reconnect the VPN
+    #[instrument(skip_all)]
+    pub async fn vpn_reconnect(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.reconnect_tunnel()
+            .or_else(async |e| self.handle_rpc_error("reconnect_tunnel", e).await)
+            .await?;
+
+        Ok(())
+    }
+
     /// Disconnect from the VPN
     #[instrument(skip_all)]
     pub async fn vpn_disconnect(&self) -> Result<(), VpndError> {
