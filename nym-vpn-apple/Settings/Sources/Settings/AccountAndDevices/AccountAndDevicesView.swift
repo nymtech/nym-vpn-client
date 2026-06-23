@@ -94,6 +94,7 @@ import Theme
         }
         .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
             guard received else { return }
+            autologinState.dismissAfterWebReturn()
             Task {
                 await updateIsAccountLinkAvailable()
             }

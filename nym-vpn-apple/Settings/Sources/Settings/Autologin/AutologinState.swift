@@ -48,4 +48,12 @@ public final class AutologinState {
         task = nil
         isLoading = false
     }
+
+    public func dismissAfterWebReturn() {
+        cancel()
+        isPinCodeDisplayed = false
+        isError = false
+        pinCode = ""
+        url = ""
+    }
 }

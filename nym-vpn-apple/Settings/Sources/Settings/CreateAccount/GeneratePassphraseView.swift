@@ -112,6 +112,10 @@ public struct GeneratePassphraseView: View {
         }
 #if os(iOS)
         .autologinOverlay(state: autologinState, onRetry: { beginWebSubscriptionPurchase() })
+        .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
+            guard received else { return }
+            autologinState.dismissAfterWebReturn()
+        }
 #elseif os(macOS)
         .autologinOverlay(state: autologinState)
 #endif

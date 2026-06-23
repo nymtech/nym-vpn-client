@@ -92,6 +92,7 @@ struct AppSessionReducerTests {
         )
 
         #expect(!result.context.isPurchaseFlowActive)
+        #expect(result.context.userDismissedCheckout)
         #expect(result.drawerCommand == .applyPostPurchaseDismissDestination)
         #expect(result.showCheckoutDismissedFeedback)
     }
@@ -421,5 +422,61 @@ struct AppSessionReducerTests {
         )
 
         #expect(!result.context.isPurchaseFlowActive)
+    }
+
+    @Test func processingFinished_activeAccountWithStaleNeedsPurchaseRoutesToDashboard() {
+        var context = AppSessionContext.initial
+        context.lastAuthCompletionOutcome = .registeredNeedsPurchase
+
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: AppSessionEnvironment(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: true,
+                isAccountActive: true,
+                processingKind: .postPurchase
+            ),
+            event: .processingFinished
+        )
+
+        #expect(result.drawerCommand == .setOneClick)
+        #expect(result.navigationIntent == nil)
+    }
+
+    @Test func processingFinished_skipsAutoPurchaseAfterUserDismissedCheckout() {
+        var context = AppSessionContext.initial
+        context.lastAuthCompletionOutcome = .registeredNeedsPurchase
+        context.userDismissedCheckout = true
+
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: AppSessionEnvironment(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: true,
+                isAccountActive: false,
+                processingKind: .postPurchase
+            ),
+            event: .processingFinished
+        )
+
+        #expect(result.drawerCommand == .setOneClick)
+        #expect(result.navigationIntent == nil)
+    }
+
+    @Test func checkoutDismissed_setsUserDismissedCheckoutLedger() {
+        var context = AppSessionContext.initial
+        context.isPurchaseFlowActive = true
+
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: AppSessionEnvironment(
+                isCredentialImported: true,
+                welcomeScreenDidDisplay: true,
+                isAccountActive: false
+            ),
+            event: .checkoutDismissed
+        )
+
+        #expect(result.context.userDismissedCheckout)
     }
 }

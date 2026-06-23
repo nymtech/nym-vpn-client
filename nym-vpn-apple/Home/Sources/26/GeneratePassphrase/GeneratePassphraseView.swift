@@ -54,14 +54,7 @@ public struct GeneratePassphraseView: View {
 
 private extension GeneratePassphraseView {
     var header: some View {
-        ZStack {
-            GenericImage(imageName: "logoText")
-                .frame(width: 100, height: 27)
-            HStack {
-                NymBackButton(action: onBackTapped)
-                Spacer()
-            }
-        }
+        AuthDrawerHeader(onBackTapped: onBackTapped)
     }
 
     var stepIndicator: some View {

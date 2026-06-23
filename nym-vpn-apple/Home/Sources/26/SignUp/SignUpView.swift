@@ -64,8 +64,8 @@ public struct SignUpView: View {
                     minHeight: rootMinHeight,
                     onBackTapped: { step = .root }
                 )
-                .fixedSize(horizontal: false, vertical: true)
-                .trackHeight { cardHeight = $0 }
+                .frame(height: rootMinHeight > 0 ? rootMinHeight : nil)
+                .clipped()
                 .transition(.slideFade(from: .trailing))
             }
 #else
@@ -76,6 +76,11 @@ public struct SignUpView: View {
         .frame(height: cardHeight)
 #if os(iOS)
         .animation(.easeInOut, value: step)
+        .onChange(of: step) { _, newStep in
+            if newStep == .generate, rootMinHeight > 0 {
+                cardHeight = rootMinHeight
+            }
+        }
 #endif
         .clipped()
         .alert(

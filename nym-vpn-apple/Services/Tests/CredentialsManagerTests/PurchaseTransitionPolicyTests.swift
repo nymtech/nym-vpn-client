@@ -15,4 +15,23 @@ struct PurchaseTransitionPolicyTests {
         #expect(PurchaseTransitionPolicy.shouldCancelProcessingBeforeCheckoutHide(isProcessingDrawer: true))
         #expect(!PurchaseTransitionPolicy.shouldCancelProcessingBeforeCheckoutHide(isProcessingDrawer: false))
     }
+
+    @Test func hidesDrawerChromeDuringCheckoutAfterDrawerHidden() {
+        #expect(
+            PurchaseTransitionPolicy.shouldHideDrawerChromeDuringCheckout(
+                isPurchaseFlowActive: true,
+                isDrawerHidden: true
+            )
+        )
+        #expect(
+            !PurchaseTransitionPolicy.shouldHideDrawerChromeDuringCheckout(
+                isPurchaseFlowActive: true,
+                isDrawerHidden: false
+            )
+        )
+    }
+
+    @Test func navigationPushDelayIsPositive() {
+        #expect(PurchaseTransitionPolicy.navigationPushDelayAfterDrawerHiddenMs > 0)
+    }
 }

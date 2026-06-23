@@ -23,13 +23,19 @@ public struct SwitchingTitlesView: View {
                 .textStyle(.Headline.Medium.regular)
                 .foregroundStyle(NymColor.primary)
                 .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
 
             Text(pairs[currentIndex].subtitle)
                 .textStyle(.Body.Medium.regular)
                 .foregroundColor(NymColor.gray1)
                 .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
         }
-        .fixedSize(horizontal: false, vertical: true)
+        .frame(minHeight: 88, maxHeight: 88, alignment: .center)
+        .frame(maxWidth: .infinity)
+        .clipped()
         .onAppear {
             startTimer()
         }

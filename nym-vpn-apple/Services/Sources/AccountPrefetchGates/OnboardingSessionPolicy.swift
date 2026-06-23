@@ -104,6 +104,16 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
             }
             return !isAccountActive
         }
+        if isAccountActive {
+            return false
+        }
+        if LoginSessionPolicy.isEffectivelyActive(
+            isAccountActive: isAccountActive,
+            validUntilIsFuture: validUntilIsFuture,
+            hasAccountSummary: hasAccountSummary
+        ) {
+            return false
+        }
         return shouldOfferPlanPurchaseAfterAuth(outcome: authOutcome)
     }
 
@@ -131,9 +141,10 @@ public enum DrawerSessionPolicy: Equatable, Sendable {
     /// Masks the map while the drawer is hidden during checkout; must not show once the drawer is back.
     public static func showsPurchaseTransitionOverlay(
         isPurchaseFlowActive: Bool,
-        isDrawerContentNil: Bool
+        isDrawerContentNil: Bool,
+        isCheckoutNavigationPending: Bool = false
     ) -> Bool {
-        isPurchaseFlowActive && isDrawerContentNil
+        isPurchaseFlowActive && (isDrawerContentNil || isCheckoutNavigationPending)
     }
 
     /// Refreshes account summary on foreground when checkout is in flight or subscription may have changed off-device.

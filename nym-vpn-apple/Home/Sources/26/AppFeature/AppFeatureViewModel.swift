@@ -37,6 +37,7 @@ import GRPCManager
     @ObservationIgnored private var sessionContext = AppSessionContext.initial
     @ObservationIgnored private var planPurchaseTransitionTask: Task<Void, Never>?
     @ObservationIgnored private var pendingPlanPurchaseNavigationAfterDrawerHide = false
+    private(set) var isCheckoutNavigationPending = false
 
     var accountSummary: AccountSummary?
     var accountIdentifier: String?
@@ -46,7 +47,15 @@ import GRPCManager
     var purchaseTransitionOverlayVisible: Bool {
         DrawerSessionPolicy.showsPurchaseTransitionOverlay(
             isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
-            isDrawerContentNil: drawerContent == nil
+            isDrawerContentNil: drawerContent == nil,
+            isCheckoutNavigationPending: isCheckoutNavigationPending
+        )
+    }
+
+    var shouldHideDrawerChromeDuringCheckout: Bool {
+        PurchaseTransitionPolicy.shouldHideDrawerChromeDuringCheckout(
+            isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
+            isDrawerHidden: drawerContent == nil
         )
     }
 
@@ -321,6 +330,14 @@ import GRPCManager
         webSubscriptionPurchaseToken &+= 1
     }
 
+    public func reconcilePurchaseFlowAfterAccountRefresh() {
+        guard DrawerSessionPolicy.shouldCompleteCheckoutAfterAccountRefresh(
+            isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
+            isAccountActive: credentialsManager.isAccountActive()
+        ) else { return }
+        handleSessionEvent(.checkoutCompleted)
+    }
+
     public func requestDismissPostPurchaseProcessing() {
         cancelProcessingTransition()
         cancelPendingPlanPurchaseNavigation()
@@ -593,8 +610,19 @@ private extension AppFeatureViewModel {
     func completeCheckoutDrawerTransition() {
         planPurchaseTransitionTask = nil
         guard pendingPlanPurchaseNavigationAfterDrawerHide else { return }
-        pendingPlanPurchaseNavigationAfterDrawerHide = false
-        planPurchaseNavigationToken &+= 1
+        isCheckoutNavigationPending = true
+        planPurchaseTransitionTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(
+                for: .milliseconds(PurchaseTransitionPolicy.navigationPushDelayAfterDrawerHiddenMs)
+            )
+            guard !Task.isCancelled, let self else { return }
+            self.pendingPlanPurchaseNavigationAfterDrawerHide = false
+            self.planPurchaseNavigationToken &+= 1
+        }
+    }
+
+    func checkoutNavigationDidComplete() {
+        isCheckoutNavigationPending = false
     }
 
     func ensureAccountRegisteredAfterCredentialImport(for flow: AuthFlowKind) async {
@@ -617,13 +645,5 @@ private extension AppFeatureViewModel {
                 )
             )
         }
-    }
-
-    func reconcilePurchaseFlowAfterAccountRefresh() {
-        guard DrawerSessionPolicy.shouldCompleteCheckoutAfterAccountRefresh(
-            isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
-            isAccountActive: credentialsManager.isAccountActive()
-        ) else { return }
-        handleSessionEvent(.checkoutCompleted)
     }
 }

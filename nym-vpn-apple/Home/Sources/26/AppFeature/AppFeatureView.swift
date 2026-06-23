@@ -139,13 +139,18 @@ public struct AppFeatureView: View {
             guard viewModel.drawerContent == nil else { return }
             pushPlanPurchaseNavigation()
             viewModel.consumeNavigationIntent()
+            viewModel.checkoutNavigationDidComplete()
         }
         .onChange(of: viewModel.drawerContent == nil) { _, drawerHidden in
             guard drawerHidden else { return }
+            if drawerHeight != 0 {
+                drawerHeight = 0
+            }
             guard viewModel.navigationIntent == .pushPlanPurchase else { return }
             guard viewModel.planPurchaseNavigationToken > 0 else { return }
             pushPlanPurchaseNavigation()
             viewModel.consumeNavigationIntent()
+            viewModel.checkoutNavigationDidComplete()
         }
         .onChange(of: isCredentialImported) { _, newValue in
             viewModel.handleCredentialChange(imported: newValue)
@@ -177,6 +182,11 @@ public struct AppFeatureView: View {
             Text("subscriptionPurchase.choice.message".localizedString)
         }
         .autologinOverlay(state: autologinState, onRetry: { viewModel.beginWebSubscriptionPurchase() })
+        .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
+            guard received else { return }
+            autologinState.dismissAfterWebReturn()
+            viewModel.reconcilePurchaseFlowAfterAccountRefresh()
+        }
         .onChange(of: viewModel.webSubscriptionPurchaseToken) { _, _ in
             autologinState.start(kind: .autologinRenew, using: credentialsManager)
         }
@@ -217,7 +227,9 @@ public struct AppFeatureView: View {
 
 private extension AppFeatureView {
     func pushPlanPurchaseNavigation() {
-        withAnimation(.easeInOut(duration: 0.35)) {
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
             viewModel.path = NavigationPath()
             viewModel.path.append(HomeLink.settings)
             viewModel.path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
@@ -257,6 +269,8 @@ private extension AppFeatureView {
             drawer
         }
         .offset(y: drawerOffsetY)
+        .opacity(viewModel.shouldHideDrawerChromeDuringCheckout ? 0 : 1)
+        .allowsHitTesting(!viewModel.shouldHideDrawerChromeDuringCheckout)
         .onChange(of: viewModel.drawerSlideID) { _, _ in
             slideDrawer()
         }

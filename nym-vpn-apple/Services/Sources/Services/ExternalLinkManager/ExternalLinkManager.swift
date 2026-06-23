@@ -50,6 +50,12 @@ import Constants
         }
         inAppSafariURL = InAppSafariURL(url: url)
     }
+
+    public func dismissActiveWebCheckoutSessions() {
+        currentAuthSession?.cancel()
+        currentAuthSession = nil
+        inAppSafariURL = nil
+    }
 #endif
 
 #if os(macOS)
@@ -108,6 +114,7 @@ import Constants
         }
         currentAuthSession = nil
         deeplinkHandler?(callbackURL)
+        dismissActiveWebCheckoutSessions()
 #endif
     }
 }

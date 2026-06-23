@@ -1,5 +1,6 @@
 import SwiftUI
 import Logging
+import AccountPrefetchGates
 import AppSettings
 import ConfigurationManager
 import ConnectionManager
@@ -106,7 +107,9 @@ struct NymVPNApp: App {
                 }
             }
             .onOpenURL { incomingURL in
-                if incomingURL.scheme == Constants.appUrlScheme.rawValue {
+                if WebCheckoutReturnPolicy.shouldDismissOnDeeplink(url: incomingURL) {
+                    externalLinkManager.dismissActiveWebCheckoutSessions()
+                } else if incomingURL.scheme == Constants.appUrlScheme.rawValue {
                     externalLinkManager.inAppSafariURL = nil
                 }
                 deeplinkManager.handle(url: incomingURL)

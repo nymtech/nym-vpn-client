@@ -108,6 +108,13 @@ struct OnboardingSessionPolicyTests {
                 isAccountActive: false
             )
         )
+        #expect(
+            !DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+                processingKind: .postPurchase,
+                authOutcome: .registeredNeedsPurchase,
+                isAccountActive: true
+            )
+        )
     }
 
     @Test func loginProcessingSkipsPurchaseWhenSummaryMissing() {
@@ -377,6 +384,13 @@ struct DrawerSessionPolicyTests {
             !DrawerSessionPolicy.showsPurchaseTransitionOverlay(
                 isPurchaseFlowActive: false,
                 isDrawerContentNil: false
+            )
+        )
+        #expect(
+            DrawerSessionPolicy.showsPurchaseTransitionOverlay(
+                isPurchaseFlowActive: true,
+                isDrawerContentNil: false,
+                isCheckoutNavigationPending: true
             )
         )
     }

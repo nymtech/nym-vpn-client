@@ -23,6 +23,7 @@ public struct AppSessionContext: Equatable, Sendable {
     public var lastAuthCompletionOutcome: AuthCompletionOutcome?
     public var pendingPlanPurchaseAfterOptIns: Bool
     public var isPurchaseFlowActive: Bool
+    public var userDismissedCheckout: Bool
 
     public init(
         pendingAuthFlow: AuthFlowKind?,
@@ -30,7 +31,8 @@ public struct AppSessionContext: Equatable, Sendable {
         authHandoffCompletesOnCredentialImport: Bool,
         lastAuthCompletionOutcome: AuthCompletionOutcome?,
         pendingPlanPurchaseAfterOptIns: Bool,
-        isPurchaseFlowActive: Bool
+        isPurchaseFlowActive: Bool,
+        userDismissedCheckout: Bool = false
     ) {
         self.pendingAuthFlow = pendingAuthFlow
         self.authHandoffCompleted = authHandoffCompleted
@@ -38,6 +40,7 @@ public struct AppSessionContext: Equatable, Sendable {
         self.lastAuthCompletionOutcome = lastAuthCompletionOutcome
         self.pendingPlanPurchaseAfterOptIns = pendingPlanPurchaseAfterOptIns
         self.isPurchaseFlowActive = isPurchaseFlowActive
+        self.userDismissedCheckout = userDismissedCheckout
     }
 
     public static var initial: AppSessionContext {
@@ -47,7 +50,8 @@ public struct AppSessionContext: Equatable, Sendable {
             authHandoffCompletesOnCredentialImport: false,
             lastAuthCompletionOutcome: nil,
             pendingPlanPurchaseAfterOptIns: false,
-            isPurchaseFlowActive: false
+            isPurchaseFlowActive: false,
+            userDismissedCheckout: false
         )
     }
 }
@@ -192,6 +196,7 @@ public enum AppSessionReducer: Equatable, Sendable {
         updated.authHandoffCompleted = false
         updated.authHandoffCompletesOnCredentialImport = false
         updated.isPurchaseFlowActive = false
+        updated.userDismissedCheckout = false
         return AppSessionReducerResult(
             context: updated,
             drawerCommand: .resetToWelcomeOnCredentialLoss,
@@ -200,10 +205,13 @@ public enum AppSessionReducer: Equatable, Sendable {
     }
 
     private static func checkoutCompleted(context: AppSessionContext) -> AppSessionReducerResult {
-        guard context.isPurchaseFlowActive else {
-            return AppSessionReducerResult(context: context)
-        }
         var updated = context
+        if CheckoutDismissPolicy.shouldClearDismissLedger(on: .checkoutCompleted) {
+            updated.userDismissedCheckout = false
+        }
+        guard updated.isPurchaseFlowActive else {
+            return AppSessionReducerResult(context: updated)
+        }
         updated.isPurchaseFlowActive = false
         return AppSessionReducerResult(
             context: updated,
@@ -220,6 +228,7 @@ public enum AppSessionReducer: Equatable, Sendable {
         }
         var updated = context
         updated.isPurchaseFlowActive = false
+        updated.userDismissedCheckout = true
         let showFeedback = IAPFeedbackPolicy.shouldShowCheckoutDismissedFeedback(
             isCredentialImported: environment.isCredentialImported,
             isAccountActive: environment.isAccountActive
@@ -239,6 +248,9 @@ public enum AppSessionReducer: Equatable, Sendable {
         }
         var updated = context
         updated.isPurchaseFlowActive = true
+        if CheckoutDismissPolicy.shouldClearDismissLedger(on: .requestPlanPurchase) {
+            updated.userDismissedCheckout = false
+        }
         return AppSessionReducerResult(
             context: updated,
             drawerCommand: .stageOneClickForCheckout,
@@ -250,7 +262,9 @@ public enum AppSessionReducer: Equatable, Sendable {
         context: AppSessionContext,
         environment: AppSessionEnvironment
     ) -> AppSessionReducerResult {
-        let needsPurchase = DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
+        let needsPurchase = !CheckoutDismissPolicy.shouldSuppressAutoPlanPurchase(
+            userDismissedCheckout: context.userDismissedCheckout
+        ) && DrawerSessionPolicy.shouldOfferPlanPurchaseAfterProcessing(
             processingKind: environment.processingKind,
             authOutcome: context.lastAuthCompletionOutcome,
             isAccountActive: environment.isAccountActive,
@@ -282,6 +296,9 @@ public enum AppSessionReducer: Equatable, Sendable {
         environment: AppSessionEnvironment
     ) -> AppSessionReducerResult {
         let purchaseAfter = context.pendingPlanPurchaseAfterOptIns
+            && !CheckoutDismissPolicy.shouldSuppressAutoPlanPurchase(
+                userDismissedCheckout: context.userDismissedCheckout
+            )
         var updated = context
         updated.pendingPlanPurchaseAfterOptIns = false
 
