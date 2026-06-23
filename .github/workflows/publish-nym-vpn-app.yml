@@ -596,35 +596,23 @@ jobs:
           echo $topic
           echo "TOPIC=$topic" >> "$GITHUB_ENV"
 
-      - name: Set vpn-core link
+      - name: Set release link
         env:
-          NYM_BUILDS_URL: "https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core"
-          core_build_url_path: "${{ needs.publish-core.outputs.core_build_url_path || needs.publish.outputs.core_build_url_path }}"
-          BRANCH_NAME: ${{ github.ref_name }}
+          VERSION_TAG: ${{ inputs.version_tag }}
+          RELEASE_TAG: ${{ needs.publish.outputs.release_tag }}
         run: |
-          if [[ "${{ env.RELEASE_TYPE }}" == "stable" ]]; then
-            url=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ needs.publish.outputs.core_release_tag }}
+          if [[ -n "$VERSION_TAG" ]]; then
+            # orchestrated unified run: release is pre-created at VERSION_TAG and assets
+            # are uploaded to it; the per-product release_tag is not the published one.
+            url="https://github.com/${{ github.repository }}/releases/tag/$VERSION_TAG"
           elif [[ "${{ env.RELEASE_TYPE }}" == "dev" ]]; then
+            # dev builds create no GitHub release; link to the workflow run instead.
             url="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           else
-            # rc + nightly → www build: use the exact uploaded path if known
-            # (rc, via publish-core), otherwise scrape the newest build for the branch.
-            if [[ -n "$core_build_url_path" ]]; then
-              url="${{ env.NYM_BUILDS_URL }}${{ env.core_build_url_path }}/"
-            else
-              branch="${BRANCH_NAME//[^a-zA-Z0-9._\/-]/}"
-              # Garage's web vhost serves no directory listing — resolve the latest
-              # build from the published latest.json pointer (same contract the
-              # Linux installer uses), not by scraping an HTML index.
-              latest=$(curl -sSL "${{ env.NYM_BUILDS_URL }}/$branch/latest.json" | grep -oP '"timestamp"\s*:\s*"\K[0-9]+')
-              if [[ -n "$latest" ]]; then
-                url="${{ env.NYM_BUILDS_URL }}/$branch/$latest/"
-              else
-                url="${{ env.NYM_BUILDS_URL }}/$branch/"
-              fi
-            fi
+            # standalone run: per-product release created at RELEASE_TAG.
+            url="https://github.com/${{ github.repository }}/releases/tag/$RELEASE_TAG"
           fi
-          echo "CORE_LINK=$url" >> "$GITHUB_ENV"
+          echo "RELEASE_LINK=$url" >> "$GITHUB_ENV"
 
       - name: Set message
         env:
@@ -634,9 +622,7 @@ jobs:
         run: |
           {
             echo 'MESSAGE<<EOF'
-            echo '${{ env.EMOJI }} **${{ env.NAME }}** `${{ env.VERSION }}`
-          [core](${{ env.CORE_LINK }})
-          '
+            printf '%s **%s** `%s`\n[release](%s)\n' "$EMOJI" "$NAME" "$VERSION" "$RELEASE_LINK"
             echo EOF
           } >> "$GITHUB_ENV"
 
