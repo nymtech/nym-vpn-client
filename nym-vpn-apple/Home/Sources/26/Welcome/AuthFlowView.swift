@@ -1,4 +1,5 @@
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 import UIComponents
 
@@ -32,7 +33,13 @@ struct AuthFlowView: View {
     }
 
     private var sharedRootHeight: CGFloat {
-        max(welcomeRootHeight, signUpRootHeight, signInRootHeight, passphraseHeight)
+        max(
+            welcomeRootHeight,
+            signUpRootHeight,
+            signInRootHeight,
+            passphraseHeight,
+            AuthCarouselLayoutPolicy.minimumCarouselDrawerHeight
+        )
     }
 
     var body: some View {

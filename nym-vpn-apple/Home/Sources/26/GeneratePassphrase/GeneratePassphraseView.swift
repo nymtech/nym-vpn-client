@@ -1,4 +1,5 @@
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 import Theme
 import UIComponents
@@ -31,7 +32,10 @@ public struct GeneratePassphraseView: View {
         .padding(.horizontal, NymSpacing.component)
         .padding(.vertical, AuthLayout.verticalPadding)
         .frame(maxWidth: .infinity)
-        .frame(height: minHeight > 0 ? minHeight : nil)
+        .frame(
+            height: pinnedHeight > 0 ? pinnedHeight : nil,
+            alignment: .top
+        )
         .task {
             viewModel.start()
         }
@@ -53,6 +57,11 @@ public struct GeneratePassphraseView: View {
 }
 
 private extension GeneratePassphraseView {
+    var pinnedHeight: CGFloat {
+        guard minHeight > 0 else { return 0 }
+        return AuthCarouselLayoutPolicy.pinnedDrawerHeight(rootMinHeight: Double(minHeight))
+    }
+
     var header: some View {
         AuthDrawerHeader(onBackTapped: onBackTapped)
     }

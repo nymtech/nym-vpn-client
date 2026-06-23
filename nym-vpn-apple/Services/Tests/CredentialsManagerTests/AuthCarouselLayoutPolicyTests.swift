@@ -2,8 +2,14 @@ import Testing
 import AccountPrefetchGates
 
 struct AuthCarouselLayoutPolicyTests {
-    @Test func pinnedDrawerHeightUsesRootMinimum() {
+    @Test func pinnedDrawerHeightUsesRootMinimumWhenTaller() {
         #expect(AuthCarouselLayoutPolicy.pinnedDrawerHeight(rootMinHeight: 320) == 320)
-        #expect(AuthCarouselLayoutPolicy.pinnedDrawerHeight(rootMinHeight: 0) == 0)
+    }
+
+    @Test func pinnedDrawerHeightUsesCarouselMinimumWhenRootIsShorter() {
+        #expect(
+            AuthCarouselLayoutPolicy.pinnedDrawerHeight(rootMinHeight: 200)
+                == AuthCarouselLayoutPolicy.minimumCarouselDrawerHeight
+        )
     }
 }

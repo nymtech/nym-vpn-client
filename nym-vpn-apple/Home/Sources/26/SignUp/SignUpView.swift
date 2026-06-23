@@ -64,7 +64,7 @@ public struct SignUpView: View {
                     minHeight: rootMinHeight,
                     onBackTapped: { step = .root }
                 )
-                .frame(height: rootMinHeight > 0 ? rootMinHeight : nil)
+                .frame(height: carouselDrawerHeight, alignment: .top)
                 .clipped()
                 .transition(.slideFade(from: .trailing))
             }
@@ -78,7 +78,7 @@ public struct SignUpView: View {
         .animation(.easeInOut, value: step)
         .onChange(of: step) { _, newStep in
             if newStep == .generate, rootMinHeight > 0 {
-                cardHeight = rootMinHeight
+                cardHeight = carouselDrawerHeight
             }
         }
 #endif
@@ -106,6 +106,12 @@ public struct SignUpView: View {
         .trackHeight { cardHeight = $0 }
         .transition(.slideFade(from: .leading))
     }
+
+#if os(iOS)
+    private var carouselDrawerHeight: CGFloat {
+        AuthCarouselLayoutPolicy.pinnedDrawerHeight(rootMinHeight: Double(rootMinHeight))
+    }
+#endif
 
     private func anonymousAccountTapped() {
 #if os(iOS)
