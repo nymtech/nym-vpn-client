@@ -33,9 +33,8 @@ public struct SwitchingTitlesView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.85)
         }
-        .frame(minHeight: 88, maxHeight: 88, alignment: .center)
+        .frame(minHeight: 104, maxHeight: 104, alignment: .center)
         .frame(maxWidth: .infinity)
-        .clipped()
         .onAppear {
             startTimer()
         }

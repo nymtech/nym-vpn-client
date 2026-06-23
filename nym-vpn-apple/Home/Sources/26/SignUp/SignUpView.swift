@@ -116,6 +116,9 @@ public struct SignUpView: View {
     private func anonymousAccountTapped() {
 #if os(iOS)
         step = .generate
+        if rootMinHeight > 0 {
+            cardHeight = carouselDrawerHeight
+        }
 #elseif os(macOS)
         startPrivyLogin(target: .anonymous)
 #endif
