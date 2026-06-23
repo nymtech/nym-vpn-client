@@ -1,6 +1,5 @@
 import AuthenticationServices
 import SwiftUI
-import AccountPrefetchGates
 import ConnectionTypes
 import CredentialsManager
 import ExternalLinkManager
@@ -64,8 +63,8 @@ public struct SignUpView: View {
                     minHeight: rootMinHeight,
                     onBackTapped: { step = .root }
                 )
-                .frame(height: carouselDrawerHeight, alignment: .top)
-                .clipped()
+                .fixedSize(horizontal: false, vertical: true)
+                .trackHeight { cardHeight = $0 }
                 .transition(.slideFade(from: .trailing))
             }
 #else
@@ -76,11 +75,6 @@ public struct SignUpView: View {
         .frame(height: cardHeight)
 #if os(iOS)
         .animation(.easeInOut, value: step)
-        .onChange(of: step) { _, newStep in
-            if newStep == .generate, rootMinHeight > 0 {
-                cardHeight = carouselDrawerHeight
-            }
-        }
 #endif
         .clipped()
         .alert(
@@ -108,21 +102,14 @@ public struct SignUpView: View {
     }
 
 #if os(iOS)
-    private var carouselDrawerHeight: CGFloat {
-        AuthCarouselLayoutPolicy.pinnedDrawerHeight(rootMinHeight: Double(rootMinHeight))
-    }
-#endif
-
     private func anonymousAccountTapped() {
-#if os(iOS)
         step = .generate
-        if rootMinHeight > 0 {
-            cardHeight = carouselDrawerHeight
-        }
-#elseif os(macOS)
-        startPrivyLogin(target: .anonymous)
-#endif
     }
+#elseif os(macOS)
+    private func anonymousAccountTapped() {
+        startPrivyLogin(target: .anonymous)
+    }
+#endif
 
     private func startPrivyLogin(target: PrivyTarget) {
         guard privyLoadingTarget == nil else { return }

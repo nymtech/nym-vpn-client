@@ -45,26 +45,24 @@ public final class PassphraseSignInViewModel {
                 )
 #if os(iOS)
                 try await credentialsManager.performAccountRegistration(loginCredential: credential)
-#else
-                try await credentialsManager.add(credential: credential)
-#endif
-                passphraseText = ""
-                let outcome = await AuthCompletionOutcomeResolver.resolve(
-                    flow: .login,
+                let outcome = await AuthCompletionOutcomeResolver.resolveAfterLoginRegistration(
                     isAccountActive: { self.credentialsManager.isAccountActive() },
-                    updateAccountSummary: { untilActive in
-                        await self.credentialsManager.updateAccountSummary(
-                            force: true,
-                            untilActive: untilActive
-                        )
+                    updateAccountSummary: {
+                        await self.credentialsManager.updateAccountSummary(force: true, untilActive: false)
                     }
                 )
-                submissionState = .idle
                 sessionCoordinator?.handleSessionEvent(
                     .authCompleted(outcome: outcome, flow: .login)
                 )
+#else
+                try await credentialsManager.add(credential: credential)
+                try await credentialsManager.registerAccount()
+                passphraseText = ""
+                submissionState = .idle
+#endif
             } catch is CancellationError {
                 sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
+                submissionState = .idle
             } catch {
                 sessionCoordinator?.handleSessionEvent(.authHandoffCancelled)
                 submissionState = .failed

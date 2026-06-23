@@ -94,4 +94,26 @@ struct GatewayIndependenceArcPolicyTests {
             )
         )
     }
+
+    @Test func independenceConsentPreservesLastErrorOnErrorStatus() {
+        let error = ErrorReason.needsRelaxedIndependenceCriteria
+        #expect(
+            GatewayIndependenceArcPolicy.shouldPreserveIndependenceConsentError(
+                status: .error,
+                lastError: error
+            )
+        )
+        #expect(
+            !GatewayIndependenceArcPolicy.shouldPreserveIndependenceConsentError(
+                status: .error,
+                lastError: ErrorReason.internalUnknown
+            )
+        )
+        #expect(
+            !GatewayIndependenceArcPolicy.shouldPreserveIndependenceConsentError(
+                status: .disconnected,
+                lastError: error
+            )
+        )
+    }
 }

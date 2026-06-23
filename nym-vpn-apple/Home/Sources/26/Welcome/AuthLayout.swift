@@ -12,6 +12,10 @@ enum AuthLayout {
 
     static let verticalPadding: CGFloat = NymSpacing.large
 
+    /// Tighter vertical rhythm for the account-creation carousel inside a fixed-height drawer.
+    static let carouselStackSpacing: CGFloat = NymSpacing.medium
+    static let carouselTitleTopMinSpacing: CGFloat = NymSpacing.small
+
     static let passphraseTextAreaHeight: CGFloat = {
 #if os(iOS)
         96

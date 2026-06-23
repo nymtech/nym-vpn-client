@@ -17,7 +17,5 @@ public struct AuthDrawerHeader: View {
                 Spacer()
             }
         }
-        .frame(minHeight: 44, alignment: .center)
-        .frame(maxWidth: .infinity)
     }
 }

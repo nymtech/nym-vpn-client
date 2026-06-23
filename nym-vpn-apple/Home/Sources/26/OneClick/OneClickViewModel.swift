@@ -120,8 +120,16 @@ public final class OneClickViewModel {
         guard !isConnectDisconnectInFlight else { return }
         guard connectionManager.currentTunnelStatus != .disconnecting else { return }
 
+        if isAwaitingGatewayIndependenceConsent {
+            impactGenerator.impact()
+            independenceConsentAgreed()
+            return
+        }
+
         impactGenerator.impact()
-        snackbarManager.clear()
+        if !isAwaitingGatewayIndependenceConsent {
+            snackbarManager.clear()
+        }
 
         let isConnectingTap = connectionManager.currentTunnelStatus != .connected
 
@@ -186,14 +194,32 @@ public final class OneClickViewModel {
                 actionTitle: "gatewayIndependence.warning.connectAnyway".localizedString,
                 onAction: { [weak self] in self?.independenceConsentAgreed() },
                 secondaryActionTitle: "cancel".localizedString,
-                duration: 15
+                onSecondaryAction: { [weak self] in self?.cancelIndependenceConsent() },
+                duration: nil
             )
         )
+    }
+
+    func cancelIndependenceConsent() {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            snackbarManager.clear()
+            do {
+                try await connectionManager.connectDisconnect()
+            } catch {
+                impactGenerator.error()
+                presentConnectionErrorAlert(
+                    message: ConnectionStatusViewModel.userFacingMessage(from: error)
+                )
+            }
+            connectionManager.lastError = nil
+        }
     }
 
     func independenceConsentAgreed() {
         Task { @MainActor [weak self] in
             guard let self else { return }
+            snackbarManager.clear()
             do {
                 try await connectionManager.acceptRelaxedGatewayIndependence()
             } catch {
@@ -288,6 +314,13 @@ private extension OneClickViewModel {
             }
             .store(in: &cancellables)
 
+        connectionManager.$lastError
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.recomputeConnectState()
+            }
+            .store(in: &cancellables)
+
         connectionManager.$connectionInfoData
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -355,8 +388,13 @@ private extension OneClickViewModel {
             return .connected
         case .disconnecting:
             return .disconnecting
-        case .connecting, .reasserting, .restarting, .offlineReconnect, .error:
+        case .error:
+            if isAwaitingGatewayIndependenceConsent {
+                return .awaitingGatewayConsent
+            }
             return .stop
+        case .connecting, .reasserting, .restarting, .offlineReconnect:
+            return .connecting
         case .disconnected, .offline, .unknown:
 #if os(iOS)
             if !networkMonitor.isAvailable {
@@ -385,12 +423,22 @@ private extension OneClickViewModel {
     }
 
     func clearLastErrorIfNeeded() {
+        if isAwaitingGatewayIndependenceConsent {
+            return
+        }
         switch connectionManager.currentTunnelStatus {
         case .disconnecting, .disconnected, .error:
             connectionManager.lastError = nil
         default:
             break
         }
+    }
+
+    var isAwaitingGatewayIndependenceConsent: Bool {
+        GatewayIndependenceArcPolicy.shouldPreserveIndependenceConsentError(
+            status: connectionManager.currentTunnelStatus,
+            lastError: connectionManager.lastError
+        )
     }
 
     func applyDisplayMode(_ mode: OneClickDisplayMode) {

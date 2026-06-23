@@ -88,6 +88,26 @@ struct AuthCompletionOutcomeResolverTests {
         )
         #expect(outcome == .registeredActive)
     }
+
+    @Test func loginRegistrationHandoffUsesSingleSummarySyncWithoutUntilActivePoll() async {
+        var didSync = false
+        let outcome = await AuthCompletionOutcomeResolver.resolveAfterLoginRegistration(
+            isAccountActive: { false },
+            updateAccountSummary: {
+                didSync = true
+            }
+        )
+        #expect(didSync)
+        #expect(outcome == .registeredNeedsPurchase)
+    }
+
+    @Test func loginRegistrationHandoffYieldsLoginReadyWhenAlreadyActive() async {
+        let outcome = await AuthCompletionOutcomeResolver.resolveAfterLoginRegistration(
+            isAccountActive: { true },
+            updateAccountSummary: {}
+        )
+        #expect(outcome == .loginReady)
+    }
 }
 
 struct DrawerCredentialImportPolicyTests {

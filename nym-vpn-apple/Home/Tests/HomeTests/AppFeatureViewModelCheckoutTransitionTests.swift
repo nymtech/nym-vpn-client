@@ -35,6 +35,13 @@ final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
 #endif
     }
 
+    func testLoginAuthCompletedStartsLoginProcessingDrawer() {
+        let viewModel = makeViewModel()
+        viewModel.handleSessionEvent(.authCompleted(outcome: .loginReady, flow: .login))
+        XCTAssertEqual(viewModel.drawerContent, .processing)
+        XCTAssertEqual(viewModel.processingViewModel?.flow, .login)
+    }
+
     func testPlanPurchaseNavigationDefersWhileProcessingDrawerVisible() {
         let viewModel = makeViewModel()
         viewModel.handleSessionEvent(.authCompleted(outcome: .registeredActive, flow: .createAccount))

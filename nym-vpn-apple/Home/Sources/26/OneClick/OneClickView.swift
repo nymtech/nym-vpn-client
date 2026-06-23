@@ -332,6 +332,8 @@ private extension OneClickView {
             "oneClick.connectButton.disconnected".localizedString
         case .connecting:
             "oneClick.connectButton.connecting".localizedString
+        case .awaitingGatewayConsent:
+            "gatewayIndependence.warning.connectAnyway".localizedString
         case .stop:
             "stop".localizedString
         case .connected:
@@ -347,7 +349,7 @@ private extension OneClickView {
 
     var connectButtonStyle: NymButton.Style {
         switch viewModel.connectState {
-        case .disconnected, .noSubscription:
+        case .disconnected, .noSubscription, .awaitingGatewayConsent:
             .primary
         case .connecting, .disconnecting, .noInternet:
             .connecting
@@ -362,7 +364,7 @@ private extension OneClickView {
         switch viewModel.connectState {
         case .connecting, .disconnecting, .noInternet:
             true
-        case .disconnected, .stop, .connected, .noSubscription:
+        case .disconnected, .stop, .connected, .noSubscription, .awaitingGatewayConsent:
             false
         }
     }

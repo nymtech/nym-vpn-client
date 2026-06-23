@@ -32,4 +32,12 @@ public enum GatewayIndependenceArcPolicy {
     public static func shouldAppInitiateConnectAfterRelaxConsent(status: TunnelStatus) -> Bool {
         status == .disconnected
     }
+
+    /// Independence consent must keep `lastError` while the tunnel stays on `.error`.
+    public static func shouldPreserveIndependenceConsentError(
+        status: TunnelStatus,
+        lastError: Error?
+    ) -> Bool {
+        status == .error && isIndependenceConsentError(lastError)
+    }
 }
