@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import AccountPrefetchGates
 import ConnectionTypes
 import Constants
 import ImpactGenerator
@@ -90,6 +91,13 @@ import Theme
         }
         .task {
             await updateIsAccountLinkAvailable()
+        }
+        .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
+            guard received else { return }
+            autologinState.dismissAfterWebReturn()
+            Task {
+                await updateIsAccountLinkAvailable()
+            }
         }
         .onChange(of: credentialsManager.didReceiveAccountLinkCallback) { _, _ in
             Task {
@@ -277,7 +285,12 @@ extension AccountAndDevicesView {
 // MARK: - Helpers -
 extension AccountAndDevicesView {
     func updateIsAccountLinkAvailable() async {
-        await credentialsManager.updateAccountSummary()
+        await credentialsManager.updateAccountSummary(
+            force: AccountSummaryRefreshPolicy.shouldForceNetworkRefresh(
+                force: false,
+                isAccountActive: credentialsManager.isAccountActive()
+            )
+        )
         guard let accountSummary = credentialsManager.accountSummary else { return }
         isLinkAccountAvailable = accountSummary.shouldShowLinkAccountRow
     }

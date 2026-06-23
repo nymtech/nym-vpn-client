@@ -116,7 +116,7 @@ extension PacketTunnelProvider: OsTunProvider {
             try await setTunnelNetworkSettings(networkSettings)
         } catch {
             logger.error("Failed to set tunnel network settings: \(error)")
-            throw error
+            throw VpnErrorUniFFIBoundary.vpnError(from: error)
         }
     }
 }

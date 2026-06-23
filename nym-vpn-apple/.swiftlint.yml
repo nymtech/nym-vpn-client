@@ -149,6 +149,7 @@ excluded:
   - "ServicesMacOS/Sources/GRPCManager/proto/nym/**"
   - "ServicesMacOS/Sources/GRPCManager/proto/grpc/**"
   - "**/.build/**"
+  - "**/build/**"
   - "**/DerivedData/**"
   - NymVPNLib
   - NymVPNRpc

@@ -1,5 +1,6 @@
 import SwiftUI
 import Logging
+import AccountPrefetchGates
 import AppSettings
 import ConfigurationManager
 import ConnectionManager
@@ -84,6 +85,12 @@ struct NymVPNApp: App {
             .animation(.easeInOut, value: splashScreenDidDisplay)
             .onChange(of: scenePhase) { _, newPhase in
                 configureSecureScreen(with: newPhase)
+#if os(iOS)
+                if newPhase == .background {
+                    credentialsManager.shutdownControllers()
+                    BackgroundRefreshScheduler.scheduleAppRefresh()
+                }
+#endif
             }
             .inAppSafari(using: externalLinkManager)
             .overlay {
@@ -96,11 +103,13 @@ struct NymVPNApp: App {
             .onAppear {
                 configureScreenSize()
                 externalLinkManager.deeplinkHandler = { url in
-                    deeplinkManager.handle(url: url)
+                    await deeplinkManager.handleURL(url)
                 }
             }
             .onOpenURL { incomingURL in
-                if incomingURL.scheme == Constants.appUrlScheme.rawValue {
+                if WebCheckoutReturnPolicy.shouldDismissOnDeeplink(url: incomingURL) {
+                    externalLinkManager.dismissActiveWebCheckoutSessions()
+                } else if incomingURL.scheme == Constants.appUrlScheme.rawValue {
                     externalLinkManager.inAppSafariURL = nil
                 }
                 deeplinkManager.handle(url: incomingURL)
@@ -118,6 +127,11 @@ struct NymVPNApp: App {
             .environmentObject(purchasesManager)
             .environment(deeplinkManager)
         }
+#if os(iOS)
+        .backgroundTask(.appRefresh(BackgroundRefreshScheduler.appRefreshIdentifier)) {
+            await BackgroundRefreshScheduler.runRefresh()
+        }
+#endif
     }
 }
 
@@ -134,6 +148,14 @@ private extension NymVPNApp {
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
+#if os(iOS) && SANTA
+            purchasesManager.registerForEnvironmentChanges(
+                configurationManager: configurationManager
+            )
+#endif
+#if os(iOS)
+            BackgroundRefreshScheduler.scheduleAppRefresh()
+#endif
         }
     }
 

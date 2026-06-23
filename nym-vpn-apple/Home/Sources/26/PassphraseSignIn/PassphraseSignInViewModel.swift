@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 import SnackbarManager
 import Theme
@@ -15,7 +16,7 @@ public final class PassphraseSignInViewModel {
 
     private let credentialsManager: CredentialsManager
     @ObservationIgnored private var loginTask: Task<Void, Never>?
-    @ObservationIgnored public var onWillRegister: (() -> Void)?
+    @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
 
     var passphraseText: String = "" {
         didSet {
@@ -39,14 +40,31 @@ public final class PassphraseSignInViewModel {
         loginTask = Task { @MainActor [weak self] in
             guard let self else { return }
             do {
+                sessionCoordinator?.handle(
+                    .session(.authWillBegin(flow: .login, completesOnCredentialImport: false))
+                )
+#if os(iOS)
+                try await credentialsManager.performAccountRegistration(loginCredential: credential)
+                let outcome = await AuthCompletionOutcomeResolver.resolveAfterLoginRegistration(
+                    isAccountActive: { self.credentialsManager.isAccountActive() },
+                    updateAccountSummary: {
+                        await self.credentialsManager.updateAccountSummary(force: true, untilActive: false)
+                    }
+                )
+                sessionCoordinator?.handle(
+                    .session(.authCompleted(outcome: outcome, flow: .login))
+                )
+#else
                 try await credentialsManager.add(credential: credential)
-                onWillRegister?()
                 try await credentialsManager.registerAccount()
                 passphraseText = ""
                 submissionState = .idle
+#endif
             } catch is CancellationError {
-                // Cancelled — keep current state.
+                sessionCoordinator?.handle(.session(.authHandoffCancelled))
+                submissionState = .idle
             } catch {
+                sessionCoordinator?.handle(.session(.authHandoffCancelled))
                 submissionState = .failed
                 SnackbarManager.shared.enqueue(
                     SnackbarItem(

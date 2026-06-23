@@ -6,13 +6,19 @@ public struct StepView: View {
 
     let stepCount: Int
     @Binding var currentStep: Int
+    let animateInitialFill: Bool
 
     @State private var displayedStep: Int = 0
     @State private var animationTask: Task<Void, Never>?
 
-    public init(stepCount: Int, currentStep: Binding<Int>) {
+    public init(
+        stepCount: Int,
+        currentStep: Binding<Int>,
+        animateInitialFill: Bool = true
+    ) {
         self.stepCount = stepCount
         _currentStep = currentStep
+        self.animateInitialFill = animateInitialFill
     }
 
     public var body: some View {
@@ -36,7 +42,11 @@ public struct StepView: View {
             }
         }
         .onAppear {
-            runInitialFill(to: clamped(currentStep))
+            if animateInitialFill {
+                runInitialFill(to: clamped(currentStep))
+            } else {
+                displayedStep = clamped(currentStep)
+            }
         }
         .onChange(of: currentStep) { oldValue, newValue in
             let old = clamped(oldValue)

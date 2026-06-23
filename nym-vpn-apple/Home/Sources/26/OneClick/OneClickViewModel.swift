@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import SwiftUI
 import SnackbarManager
+import AccountPrefetchGates
 import AppSettings
 import ConnectionManager
 import ConnectionTypes
@@ -39,10 +40,17 @@ public final class OneClickViewModel {
 
     var speedMode: OneClickSpeedMode
 
+    var showsIncompleteSubscriptionBanner: Bool {
+        IAPFeedbackPolicy.shouldShowIncompleteSubscriptionBanner(
+            isCredentialImported: credentialsManager.isValidCredentialImported,
+            isAccountActive: credentialsManager.isAccountActive()
+        )
+    }
+
     /// Invoked when the daemon reports `.inactiveSubscription` or when the
     /// pre-flight gate detects an expired account. Routes the user into the
     /// purchase flow.
-    @ObservationIgnored public var onRequestPlanPurchase: (() -> Void)?
+    @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
     /// macOS only: invoked when a connect attempt is made while the helper
     /// daemon is not running, so the user can install/enable it.
     @ObservationIgnored public var onRequestDaemonEnable: (() -> Void)?
@@ -112,8 +120,16 @@ public final class OneClickViewModel {
         guard !isConnectDisconnectInFlight else { return }
         guard connectionManager.currentTunnelStatus != .disconnecting else { return }
 
+        if isAwaitingGatewayIndependenceConsent {
+            impactGenerator.impact()
+            independenceConsentAgreed()
+            return
+        }
+
         impactGenerator.impact()
-        snackbarManager.clear()
+        if !isAwaitingGatewayIndependenceConsent {
+            snackbarManager.clear()
+        }
 
         let isConnectingTap = connectionManager.currentTunnelStatus != .connected
 
@@ -139,8 +155,18 @@ public final class OneClickViewModel {
                 guard credentialsManager.isValidCredentialImported else { return }
                 if await !credentialsManager.isAccountValid() {
                     await credentialsManager.updateAccountSummary()
-                    if !credentialsManager.isAccountActive() {
-                        onRequestPlanPurchase?()
+                    let summary = credentialsManager.accountSummary
+                    let shouldOfferPurchase = ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
+                        isAccountRegistrationInFlight: credentialsManager.isAccountRegistrationInFlight,
+                        accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
+                        isAccountActive: credentialsManager.isAccountActive(),
+                        validUntilIsFuture: LoginSessionPolicy.validUntilIsFuture(
+                            validUntil: summary?.validUntilDate
+                        ),
+                        hasAccountSummary: summary != nil
+                    )
+                    if shouldOfferPurchase {
+                        sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
                         return
                     }
                 }
@@ -162,6 +188,7 @@ public final class OneClickViewModel {
     func independenceConsentAgreed() {
         Task { @MainActor [weak self] in
             guard let self else { return }
+            snackbarManager.clear()
             do {
                 try await connectionManager.acceptRelaxedGatewayIndependence()
             } catch {
@@ -229,6 +256,11 @@ public final class OneClickViewModel {
             }
         }
     }
+
+    func incompleteSubscriptionBannerTapped() {
+        impactGenerator.softImpact()
+        sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
+    }
 }
 
 private extension OneClickViewModel {
@@ -248,6 +280,13 @@ private extension OneClickViewModel {
                 }
                 recomputeConnectState()
                 refreshSelection()
+            }
+            .store(in: &cancellables)
+
+        connectionManager.$lastError
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.recomputeConnectState()
             }
             .store(in: &cancellables)
 
@@ -318,8 +357,13 @@ private extension OneClickViewModel {
             return .connected
         case .disconnecting:
             return .disconnecting
-        case .connecting, .reasserting, .restarting, .offlineReconnect, .error:
+        case .error:
+            if isAwaitingGatewayIndependenceConsent {
+                return .awaitingGatewayConsent
+            }
             return .stop
+        case .connecting, .reasserting, .restarting, .offlineReconnect:
+            return .connecting
         case .disconnected, .offline, .unknown:
 #if os(iOS)
             if !networkMonitor.isAvailable {
@@ -344,16 +388,26 @@ private extension OneClickViewModel {
             reason = nsError.domain == ErrorReason.domain ? ErrorReason(nsError: nsError) : nil
         }
         guard reason == .inactiveSubscription else { return }
-        onRequestPlanPurchase?()
+        sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
     }
 
     func clearLastErrorIfNeeded() {
+        if isAwaitingGatewayIndependenceConsent {
+            return
+        }
         switch connectionManager.currentTunnelStatus {
         case .disconnecting, .disconnected, .error:
             connectionManager.lastError = nil
         default:
             break
         }
+    }
+
+    var isAwaitingGatewayIndependenceConsent: Bool {
+        GatewayIndependenceArcPolicy.shouldPreserveIndependenceConsentError(
+            status: connectionManager.currentTunnelStatus,
+            lastError: connectionManager.lastError
+        )
     }
 
     func applyDisplayMode(_ mode: OneClickDisplayMode) {
