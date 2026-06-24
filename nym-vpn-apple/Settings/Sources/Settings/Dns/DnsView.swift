@@ -173,6 +173,13 @@ private extension DnsView {
     #if os(macOS)
     @ViewBuilder
     func customDnsList() -> some View {
+        if DnsCustomListLayoutPolicy.shouldRenderReorderableList(entryCount: viewModel.customDns.count) {
+            reorderableCustomDnsListMacOS()
+        }
+    }
+
+    @ViewBuilder
+    func reorderableCustomDnsListMacOS() -> some View {
         VStack(spacing: 0) {
             dnsListTitle()
             List {
@@ -215,9 +222,18 @@ private extension DnsView {
             .frame(maxWidth: .infinity)
             .frame(height: (DnsView.dnsEntryHeight * CGFloat(viewModel.customDns.count)) * 1.45)
         }
+        .clipped()
     }
     #elseif os(iOS)
+    @ViewBuilder
     func customDnsList() -> some View {
+        if DnsCustomListLayoutPolicy.shouldRenderReorderableList(entryCount: viewModel.customDns.count) {
+            reorderableCustomDnsListIOS()
+        }
+    }
+
+    @ViewBuilder
+    func reorderableCustomDnsListIOS() -> some View {
         VStack(spacing: 0) {
             dnsListTitle()
             List {
@@ -265,6 +281,7 @@ private extension DnsView {
             .frame(maxWidth: .infinity)
             .frame(height: (DnsView.dnsEntryHeight * CGFloat(viewModel.customDns.count)) * 2)
         }
+        .clipped()
     }
     #endif
 
