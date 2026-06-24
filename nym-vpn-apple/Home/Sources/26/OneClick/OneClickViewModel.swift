@@ -201,30 +201,13 @@ public final class OneClickViewModel {
     }
 
     func cancelGatewayIndependenceConsent() {
-        guard !isConnectDisconnectInFlight,
-              connectionManager.currentTunnelStatus == .error
+        guard connectionManager.currentTunnelStatus == .error,
+              GatewayIndependenceArcPolicy.isIndependenceConsentError(connectionManager.lastError)
         else {
             return
         }
 
-        impactGenerator.impact()
         snackbarManager.clear()
-
-        connectDisconnectTask?.cancel()
-        connectDisconnectTask = Task { @MainActor [weak self] in
-            guard let self else { return }
-            isConnectDisconnectInFlight = true
-            defer { isConnectDisconnectInFlight = false }
-            do {
-                try await connectionManager.connectDisconnect()
-            } catch {
-                impactGenerator.error()
-                presentConnectionErrorAlert(
-                    message: ConnectionStatusViewModel.userFacingMessage(from: error)
-                )
-            }
-            clearLastErrorIfNeeded()
-        }
     }
 
     func upCaretTapped() {

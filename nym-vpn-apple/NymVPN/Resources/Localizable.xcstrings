@@ -10850,6 +10850,28 @@
         }
       }
     },
+    "gatewayIndependence.warning.disableReminders" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable reminders in notification settings."
+          }
+        }
+      }
+    },
+    "gatewayIndependence.warning.notificationSettingsLink" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "notification settings"
+          }
+        }
+      }
+    },
     "gatewayInfo.advancedPrivacy" : {
       "extractionState" : "manual",
       "localizations" : {

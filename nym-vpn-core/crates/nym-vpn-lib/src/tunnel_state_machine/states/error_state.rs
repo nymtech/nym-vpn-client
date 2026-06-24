@@ -267,7 +267,19 @@ impl TunnelStateHandler for ErrorState {
                             }
                         }
 
-                        NextTunnelState::SameState(self)
+                        if diff.should_reconnect(shared_state.tunnel_settings.tunnel_type_used()) {
+                            if shared_state.connectivity_handle.connectivity().await.is_offline() {
+                                NextTunnelState::NewState(
+                                    OfflineState::enter(true, None, shared_state).await,
+                                )
+                            } else {
+                                NextTunnelState::NewState(
+                                    ConnectingState::enter(0, None, shared_state).await,
+                                )
+                            }
+                        } else {
+                            NextTunnelState::SameState(self)
+                        }
                     }
                     TunnelCommand::Block(reason) => {
                         NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)

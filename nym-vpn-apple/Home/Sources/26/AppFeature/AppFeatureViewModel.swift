@@ -66,6 +66,8 @@ import GRPCManager
     @ObservationIgnored private var lastForegroundRefreshAt: Date?
     @ObservationIgnored private var pendingPostDisconnectAccountRefresh: Task<Void, Never>?
     @ObservationIgnored private var credentialImportCompletionTask: Task<Void, Never>?
+    @ObservationIgnored private var isHandlingGatewayIndependenceEpisode = false
+    @ObservationIgnored private var gatewayIndependenceAutoRelaxTask: Task<Void, Never>?
     private static let foregroundRefreshMinInterval: TimeInterval = 300
     private static let postDisconnectAccountRefreshDelay: TimeInterval = 10
 
@@ -134,6 +136,7 @@ import GRPCManager
 
         observeAccountFields()
         wireConnectionStatusDelegates()
+        wireGatewayIndependenceWatcher()
         oneClick.sessionCoordinator = self
     }
 
@@ -415,7 +418,7 @@ private extension AppFeatureViewModel {
         let lastError = connectionStatus.connectionManager.lastError
         guard !ConnectionStatusViewModel.isNeedsRelaxedIndependenceCriteria(lastError)
         else {
-            isFamilyWarningModalDisplayed = true
+            handleGatewayIndependenceConsentRequired()
             return
         }
         snackbarManager.enqueue(
@@ -430,6 +433,80 @@ private extension AppFeatureViewModel {
                 duration: 7
             )
         )
+    }
+
+    func wireGatewayIndependenceWatcher() {
+        Publishers.CombineLatest3(
+            connectionStatus.connectionManager.$lastError,
+            connectionStatus.connectionManager.$currentTunnelStatus,
+            appSettings.$serverFamilyRemindersEnabledPublisher
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] lastError, status, notificationsEnabled in
+            guard let self else { return }
+            if GatewayIndependenceResponsePolicy.shouldClearHandlingEpisode(
+                status: status,
+                lastError: lastError
+            ) {
+                isHandlingGatewayIndependenceEpisode = false
+                gatewayIndependenceAutoRelaxTask?.cancel()
+                gatewayIndependenceAutoRelaxTask = nil
+                return
+            }
+
+            let action = GatewayIndependenceResponsePolicy.action(
+                status: status,
+                lastError: lastError,
+                notificationsEnabled: notificationsEnabled,
+                isHandlingEpisode: isHandlingGatewayIndependenceEpisode
+            )
+            guard action != .noAction else { return }
+
+            handleGatewayIndependenceConsentRequired(
+                notificationsEnabled: notificationsEnabled,
+                action: action
+            )
+        }
+        .store(in: &cancellables)
+    }
+
+    func handleGatewayIndependenceConsentRequired(
+        notificationsEnabled: Bool? = nil,
+        action: GatewayIndependenceResponsePolicy.Action? = nil
+    ) {
+        let manager = connectionStatus.connectionManager
+        let remindersEnabled = notificationsEnabled ?? appSettings.serverFamilyRemindersEnabled
+        let resolvedAction = action ?? GatewayIndependenceResponsePolicy.action(
+            status: manager.currentTunnelStatus,
+            lastError: manager.lastError,
+            notificationsEnabled: remindersEnabled,
+            isHandlingEpisode: isHandlingGatewayIndependenceEpisode
+        )
+
+        switch resolvedAction {
+        case .noAction:
+            return
+        case .showModal:
+            isHandlingGatewayIndependenceEpisode = true
+            isFamilyWarningModalDisplayed = true
+        case .autoRelaxAndReconnect:
+            isHandlingGatewayIndependenceEpisode = true
+            triggerAutoRelaxGatewayIndependence()
+        }
+    }
+
+    func triggerAutoRelaxGatewayIndependence() {
+        guard gatewayIndependenceAutoRelaxTask == nil else { return }
+        gatewayIndependenceAutoRelaxTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            defer { gatewayIndependenceAutoRelaxTask = nil }
+            do {
+                try Task.checkCancellation()
+                oneClick.independenceConsentAgreed()
+            } catch is CancellationError {
+                // Cancelled - keep current state.
+            }
+        }
     }
 
     func observeAccountFields() {

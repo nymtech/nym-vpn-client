@@ -140,9 +140,9 @@ private extension AppFeatureView {
                         maxWidth: NymSpacing.drawerMaxWidth
                     ) {
                         FamilyWarningModalView(
-                            title: "gatewayIndependence.modal.title".localizedString,
-                            reminderText: "gatewayIndependence.modal.disableReminders".localizedString,
-                            reminderLinkText: "gatewayIndependence.modal.notificationSettingsLink".localizedString,
+                            title: "gatewayIndependence.warning.title".localizedString,
+                            reminderText: "gatewayIndependence.warning.disableReminders".localizedString,
+                            reminderLinkText: "gatewayIndependence.warning.notificationSettingsLink".localizedString,
                             connectAnywayTitle: "gatewayIndependence.warning.connectAnyway".localizedString,
                             cancelTitle: "cancel".localizedString,
                             onConnectAnyway: { viewModel.confirmFamilyWarning() },
