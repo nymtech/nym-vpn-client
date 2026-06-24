@@ -121,13 +121,17 @@ jobs:
           echo "$RELEASE_NOTES" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # Setup TAG_NAME, which is used as a general "name"
-      - if: github.event_name == 'workflow_dispatch'
-        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
-      - if: github.event_name == 'schedule'
-        run: echo "TAG_NAME=nym-vpn-android-nightly" >> $GITHUB_ENV
-      - if: github.event_name == 'workflow_call'
-        run: echo "TAG_NAME=${{ inputs.version_tag }}" >> $GITHUB_ENV
+      # Setup TAG_NAME, which is used as a general "name".
+      - name: Set TAG_NAME
+        run: |
+          TAG="${{ inputs.version_tag }}"
+          if [ -z "$TAG" ]; then
+            TAG="${{ github.event.inputs.tag_name }}"
+          fi
+          if [ -z "$TAG" ]; then
+            TAG="nym-vpn-android-nightly"
+          fi
+          echo "TAG_NAME=$TAG" >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: |
           echo "unsupported push action!"
@@ -225,12 +229,20 @@ jobs:
           BRANCH="${GITHUB_REF_NAME}"
           RELEASE_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
 
+          APK_PATH=$(find ${{ github.workspace }}/temp -type f -iname "*.apk" | tail -n1)
+          APK_NAME=$(basename "$APK_PATH")
+          # Strip "nym-vpn-fdroid-" prefix and "-{build_type}.apk" suffix to get the app version.
+          APP_VERSION="${APK_NAME#nym-vpn-fdroid-}"
+          APP_VERSION="${APP_VERSION%-${{ inputs.release_type }}.apk}"
+          APK_URL="${{ github.server_url }}/${{ github.repository }}/releases/download/${TAG}/${APK_NAME}"
+
           {
             echo "ZULIP_MESSAGE<<EOF"
-            echo "**Tag name:** \`${TAG}\`"
+            echo "**Version:** \`${APP_VERSION}\`"
             echo "**Android build type:** \`${{ inputs.release_type }}\`"
             echo "**Branch:** \`${BRANCH}\`"
-            echo "**Link:** ${RELEASE_URL}"
+            echo "**Release:** ${RELEASE_URL}"
+            echo "**APK:** ${APK_URL}"
             echo "EOF"
           } >> "$GITHUB_ENV"
 
