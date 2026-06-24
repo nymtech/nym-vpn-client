@@ -90,6 +90,18 @@ jobs:
         run: |
           echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
 
+      - name: Ensure codemagic-cli-tools uses compatible Python
+        run: |
+          set -euo pipefail
+          # Homebrew's python@3.14 has a pyexpat/libexpat ABI mismatch on
+          # this macOS release. Reinstall codemagic-cli-tools on python@3.12
+          # which links against a libexpat the system dylib actually exports.
+          if ! keychain --version >/dev/null 2>&1; then
+            brew install python@3.12 || brew upgrade python@3.12 || true
+            pipx install --python "$(brew --prefix python@3.12)/bin/python3.12" \
+              codemagic-cli-tools --force
+          fi
+
       - name: Configure sccache
         run: |
           set -euxo pipefail
