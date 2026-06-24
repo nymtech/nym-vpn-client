@@ -1080,7 +1080,9 @@ impl TunnelMonitor {
             entry_signal_rx,
             exit_signal_rx,
             gw_update_version,
-            self.shutdown_token.child_token(),
+            // BandwidthController fatal paths call `shutdown_token.cancel()`; pass the
+            // monitor parent (not a child) so the tunnel monitor loop exits.
+            self.shutdown_token.clone(),
         );
 
         let authenticator_listener_handle = match authenticator_listener_handle {
