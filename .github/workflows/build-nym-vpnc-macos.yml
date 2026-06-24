@@ -97,11 +97,15 @@ jobs:
           # this macOS release. pipx itself also runs on python@3.14 so
           # pipx reinstall fails too. Bypass pipx: create a fresh venv with
           # python@3.12 (which has a working libexpat) and install into it.
+          # Use --without-pip to skip ensurepip (which can fail on some
+          # Homebrew python@3.12 setups), then bootstrap pip via get-pip.py.
           if ! keychain --version >/dev/null 2>&1; then
             PYTHON312="$(brew --prefix python@3.12)/bin/python3.12"
             CODEMAGIC_VENV="$HOME/.local/codemagic-venv"
             rm -rf "$CODEMAGIC_VENV"
-            "$PYTHON312" -m venv "$CODEMAGIC_VENV"
+            "$PYTHON312" -m venv --without-pip "$CODEMAGIC_VENV"
+            curl -fsSL https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
+            "$CODEMAGIC_VENV/bin/python3.12" /tmp/get-pip.py --quiet
             "$CODEMAGIC_VENV/bin/pip" install --quiet codemagic-cli-tools
             echo "$CODEMAGIC_VENV/bin" >> "$GITHUB_PATH"
           fi
