@@ -53,12 +53,13 @@ runs:
         set -euo pipefail
         if ! command -v aws >/dev/null 2>&1; then
           if [[ "$(uname -s)" == "Darwin" ]]; then
-            # AppleSilicon self-hosted runners: Homebrew awscli matches host arch.
-            if ! command -v brew >/dev/null 2>&1; then
-              echo "Homebrew is required on macOS to install AWS CLI"
-              exit 1
-            fi
-            brew install awscli || brew upgrade awscli
+            # Official versioned PKG — avoids Homebrew's python@3.14/libexpat
+            # ABI mismatch with macOS system libexpat.1.dylib. Bundles its own
+            # Python so no host library conflicts. Same pinned version as Linux.
+            curl -fsSL "https://awscli.amazonaws.com/AWSCLIV2-${AWSCLI_VERSION}.pkg" \
+              -o /tmp/awscliv2.pkg
+            pkgutil --check-signature /tmp/awscliv2.pkg
+            sudo installer -pkg /tmp/awscliv2.pkg -target /
           else
             # Linux: pinned zip + OpenPGP verify (supply-chain). Ensure gpg exists.
             if ! command -v gpg >/dev/null 2>&1; then
