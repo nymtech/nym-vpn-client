@@ -500,12 +500,8 @@ private extension AppFeatureViewModel {
         gatewayIndependenceAutoRelaxTask = Task { @MainActor [weak self] in
             guard let self else { return }
             defer { gatewayIndependenceAutoRelaxTask = nil }
-            do {
-                try Task.checkCancellation()
-                oneClick.independenceConsentAgreed()
-            } catch is CancellationError {
-                // Cancelled - keep current state.
-            }
+            guard !Task.isCancelled else { return }
+            oneClick.independenceConsentAgreed()
         }
     }
 
