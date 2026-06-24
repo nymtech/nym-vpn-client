@@ -599,7 +599,10 @@ pub(crate) struct BandwidthController {
     exit_depletion_rate: DepletionRate,
     entry_previous_error_query: bool,
     exit_previous_error_query: bool,
+    /// Local child token; cancelled when `tunnel_shutdown_token` is cancelled.
     shutdown_token: CancellationToken,
+    /// Shared with `TunnelMonitor`; cancelling this tears down the live tunnel.
+    tunnel_shutdown_token: CancellationToken,
     successful_checks: u64,
     upgrade_mode_enabled_on_last_check: bool,
 }
@@ -610,7 +613,7 @@ impl BandwidthController {
         wg_entry_gateway_client: TemporaryBandwidthClient,
         wg_exit_gateway_client: TemporaryBandwidthClient,
         account_command_tx: AccountCommandSender,
-        shutdown_token: CancellationToken,
+        tunnel_shutdown_token: CancellationToken,
     ) -> Self {
         let timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
@@ -625,10 +628,16 @@ impl BandwidthController {
             exit_depletion_rate: Default::default(),
             entry_previous_error_query: false,
             exit_previous_error_query: false,
-            shutdown_token,
+            shutdown_token: tunnel_shutdown_token.child_token(),
+            tunnel_shutdown_token,
             successful_checks: 0,
             upgrade_mode_enabled_on_last_check: false,
         }
+    }
+
+    fn request_tunnel_shutdown(&self, reason: &str) {
+        tracing::debug!("BandwidthController: requesting tunnel shutdown ({reason})");
+        self.tunnel_shutdown_token.cancel();
     }
 
     fn construct_bandwidth_client(
@@ -718,7 +727,7 @@ impl BandwidthController {
         entry_signal_channel: TunUpReceiver,
         exit_signal_channel: TunUpReceiver,
         gateway_metadata_update_version: Option<semver::Version>,
-        cancel_token: CancellationToken,
+        tunnel_shutdown_token: CancellationToken,
     ) -> BandwidthController {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_wireguard_config.private_ipv4.into(),
@@ -740,7 +749,7 @@ impl BandwidthController {
             wg_entry_client,
             wg_exit_client,
             account_command_tx,
-            cancel_token.clone(),
+            tunnel_shutdown_token,
         )
     }
 
@@ -815,7 +824,7 @@ impl BandwidthController {
             // For now let's keep the old behavior of stopping, but only if we've had a successful check before
             if self.successful_checks != 0 {
                 tracing::error!("Gateway {gateway_id} is erroring out; shutting-down the tunnel");
-                self.shutdown_token.cancel();
+                self.request_tunnel_shutdown("repeated gateway bandwidth query failure");
             } else {
                 tracing::warn!("Gateway {gateway_id} is erroring out");
             }
@@ -928,7 +937,7 @@ impl BandwidthController {
                         trace_err_chain!(err, "error sending message to the account controller");
                         // we need to trigger a shutdown here because this message must not fail,
                         // if it did, AC won't exit upgrade mode state and won't resume acquiring zk-nyms
-                        self.shutdown_token.cancel();
+                        self.request_tunnel_shutdown("disable upgrade mode command failed");
                         return None;
                     }
                     // we continue sending zk-nym
@@ -945,7 +954,7 @@ impl BandwidthController {
             trace_err_chain!(e, "error topping up with more bandwidth");
             // TODO: try to return this error in the JoinHandle instead
             // For now let's keep the old behavior of stopping
-            self.shutdown_token.cancel();
+            self.request_tunnel_shutdown("bandwidth top-up failed");
         }
 
         None
@@ -1034,6 +1043,16 @@ impl BandwidthController {
 mod tests {
     use super::*;
     use std::collections::HashMap;
+
+    use async_trait::async_trait;
+    use nym_bandwidth_controller::error::BandwidthControllerError;
+    use nym_config::defaults::WG_TUN_DEVICE_IP_ADDRESS_V4;
+    use nym_credentials_interface::TicketType;
+    use nym_crypto::asymmetric::ed25519;
+    use nym_gateway_directory::Gateway;
+    use nym_vpn_account_controller::AccountCommandSender;
+
+    const TEST_GATEWAY_ID: &str = "2zHiExNRKiCXVKS35SNKtK4apGfZELMpA1jJ2gVevJoz";
 
     const BW_1KB: u64 = 1024;
     const BW_1MB: u64 = 1024 * BW_1KB;
@@ -1280,5 +1299,99 @@ mod tests {
             mock,
         );
         assert!(!monitor.force_bandwidth_checks().await);
+    }
+
+    struct NoopTicketProvider;
+
+    #[async_trait]
+    impl BandwidthTicketProvider for NoopTicketProvider {
+        async fn get_ecash_ticket(
+            &self,
+            _ticket_type: TicketType,
+            _gateway_id: ed25519::PublicKey,
+            _tickets_to_spend: u32,
+        ) -> Result<nym_bandwidth_controller::PreparedCredential, BandwidthControllerError> {
+            Err(BandwidthControllerError::NoCredentialsAvailable)
+        }
+
+        async fn get_upgrade_mode_token(&self) -> Result<Option<String>, BandwidthControllerError> {
+            Ok(None)
+        }
+    }
+
+    fn test_bandwidth_controller(tunnel_shutdown_token: CancellationToken) -> BandwidthController {
+        let gateway = Gateway::builder()
+            .identity(TEST_GATEWAY_ID.parse().expect("valid test gateway id"))
+            .build();
+        let bind_ip: IpAddr = WG_TUN_DEVICE_IP_ADDRESS_V4.into();
+        let (_entry_tx, entry_rx) = tokio::sync::oneshot::channel();
+        let (_exit_tx, exit_rx) = tokio::sync::oneshot::channel();
+        let entry_client = BandwidthController::construct_bandwidth_client(
+            bind_ip,
+            entry_rx,
+            &gateway,
+            None,
+            None,
+        );
+        let exit_client = BandwidthController::construct_bandwidth_client(
+            bind_ip,
+            exit_rx,
+            &gateway,
+            None,
+            None,
+        );
+        let (command_tx, _command_rx) = tokio::sync::mpsc::unbounded_channel();
+        BandwidthController::new(
+            Box::new(NoopTicketProvider),
+            entry_client,
+            exit_client,
+            AccountCommandSender::new(command_tx),
+            tunnel_shutdown_token,
+        )
+    }
+
+    fn test_bandwidth_query_error() -> SpecificGatewayError {
+        SpecificGatewayError::Internal {
+            reason: "test bandwidth query error".to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn request_tunnel_shutdown_cancels_tunnel_monitor_token_not_listener_child_only() {
+        let tunnel_monitor_token = CancellationToken::new();
+        let controller = test_bandwidth_controller(tunnel_monitor_token.clone());
+
+        controller.request_tunnel_shutdown("test");
+
+        assert!(tunnel_monitor_token.is_cancelled());
+        assert!(controller.shutdown_token.is_cancelled());
+    }
+
+    #[tokio::test]
+    async fn repeated_bandwidth_query_error_shuts_down_after_successful_checks() {
+        let tunnel_monitor_token = CancellationToken::new();
+        let mut controller = test_bandwidth_controller(tunnel_monitor_token.clone());
+        controller.successful_checks = 1;
+        controller.entry_previous_error_query = true;
+
+        controller
+            .handle_bandwidth_query_error(true, test_bandwidth_query_error())
+            .await;
+
+        assert!(tunnel_monitor_token.is_cancelled());
+    }
+
+    #[tokio::test]
+    async fn repeated_bandwidth_query_error_warns_before_first_successful_check() {
+        let tunnel_monitor_token = CancellationToken::new();
+        let mut controller = test_bandwidth_controller(tunnel_monitor_token.clone());
+        controller.successful_checks = 0;
+        controller.entry_previous_error_query = true;
+
+        controller
+            .handle_bandwidth_query_error(true, test_bandwidth_query_error())
+            .await;
+
+        assert!(!tunnel_monitor_token.is_cancelled());
     }
 }
