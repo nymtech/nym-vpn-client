@@ -14,13 +14,6 @@ extension ConnectionManager {
     public func acceptRelaxedGatewayIndependence() async throws {
 #if os(iOS)
         await tunnelsManager.send(.setGatewayIndependence(false))
-        guard GatewayIndependenceArcPolicy.shouldAppInitiateConnectAfterRelaxConsent(
-            status: currentTunnelStatus
-        ) else {
-            return
-        }
-        let config = try generateConfig()
-        try await connect(with: config)
 #elseif os(macOS)
         try await grpcManager.setGatewayIndependence(false)
         // The daemon does not auto-reconnect after relaxing, so kick the
