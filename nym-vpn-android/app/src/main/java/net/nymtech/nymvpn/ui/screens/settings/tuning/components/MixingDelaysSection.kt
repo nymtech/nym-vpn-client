@@ -59,7 +59,7 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 
 			if (delayValue == 0f) {
 				Text(
-					text = stringResource(R.string.mixnet_tuning_traffic_warning),
+					text = stringResource(R.string.mixnet_tuning_delays_warning),
 					style = MaterialTheme.typography.bodySmall,
 					color = LocalNymColors.current.warning,
 					fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
