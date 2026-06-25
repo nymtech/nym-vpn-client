@@ -143,10 +143,13 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	override suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig {
 		val poisson = dataStoreManager.getFromStore(mixnetPoissonRate)
 		val avgDelay = dataStoreManager.getFromStore(mixnetAvgPacketDelay)
-
-		if (poisson == null && avgDelay == null) return MIXNET_CONFIG_DEFAULT
-
 		val disablePoisson = dataStoreManager.getFromStore(mixnetDisablePoisson) ?: MIXNET_CONFIG_DEFAULT.disablePoissonRate
+
+		if (poisson == null && avgDelay == null) return MIXNET_CONFIG_DEFAULT.copy(
+			disablePoissonRate = disablePoisson,
+			disableBackgroundCoverTraffic = disablePoisson,
+		)
+
 		return MixnetTrafficConfig(
 			poissonParameterForLoopCoverStream = poisson?.toUInt() ?: MIXNET_CONFIG_DEFAULT.poissonParameterForLoopCoverStream,
 			averagePacketDelay = avgDelay?.toUInt() ?: MIXNET_CONFIG_DEFAULT.averagePacketDelay,
