@@ -97,21 +97,23 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 					horizontalArrangement = Arrangement.SpaceBetween,
 				) {
 					Text(
-						text = stringResource(R.string.mixnet_tuning_traffic_min),
+						text = stringResource(if (trafficEnabled) R.string.mixnet_tuning_max else R.string.mixnet_tuning_traffic_min),
 						style = MaterialTheme.typography.bodySmall,
 						color = MaterialTheme.colorScheme.onBackground,
 					)
 					Text(
-						text = stringResource(R.string.mixnet_tuning_max),
+						text = stringResource(if (trafficEnabled) R.string.mixnet_tuning_traffic_on_max else R.string.mixnet_tuning_max),
 						style = MaterialTheme.typography.bodySmall,
 						color = MaterialTheme.colorScheme.onBackground,
 					)
 				}
 
+				// Slider is inverted: right = fast (low delay), left = slow (high delay).
+				val displayValue = (200f - trafficValue.coerceIn(1f, 200f))
 				Slider(
-					value = trafficValue,
-					onValueChange = onTrafficValueChange,
-					valueRange = 0f..200f,
+					value = displayValue,
+					onValueChange = { onTrafficValueChange((200f - it).coerceIn(1f, 200f)) },
+					valueRange = 0f..199f,
 					interactionSource = interactionSource,
 					thumb = {
 						SliderDefaults.Thumb(
