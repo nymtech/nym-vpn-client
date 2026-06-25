@@ -302,6 +302,10 @@ extension AccountAndDevicesView {
         if !path.isEmpty { path.removeLast() }
     }
 
+    func navigateToRoot() {
+        path = .init()
+    }
+
     func navigateToAccount() {
         impactGenerator.softImpact()
         autologinState.start(kind: .autologinView, using: credentialsManager)
