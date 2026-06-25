@@ -18812,6 +18812,17 @@
         }
       }
     },
+    "mixnetTuning.anonymity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonymity"
+          }
+        }
+      }
+    },
     "mixnetTuning.atLeast" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19021,13 +19032,46 @@
         }
       }
     },
+    "mixnetTuning.packetMixingProfile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Packet mixing profile"
+          }
+        }
+      }
+    },
+    "mixnetTuning.packetRate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Packet rate"
+          }
+        }
+      }
+    },
+    "mixnetTuning.performance" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Performance"
+          }
+        }
+      }
+    },
     "mixnetTuning.reset" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reset to default settings"
+            "value" : "Restore default settings"
           }
         }
       }
@@ -19115,7 +19159,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Expected performance based on current settings:"
+            "value" : "Expected performance of current settings:"
           }
         }
       }

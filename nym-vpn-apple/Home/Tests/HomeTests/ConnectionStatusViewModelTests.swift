@@ -46,6 +46,24 @@ final class ConnectionStatusViewModelTests: XCTestCase {
         }
     }
 
+    func testResumeKeepsReachedStepSoArcDoesNotUnload() {
+        // macOS reaches the middle ring before the independence error; the
+        // resumed connect must keep that step so rings don't unload.
+        XCTAssertEqual(
+            ConnectionStatusViewModel.resumedDisplayedStep(current: .choosingBestServers),
+            .choosingBestServers
+        )
+    }
+
+    func testResumeWithNoReachedStepFallsBackToOuterRing() {
+        // iOS pre-flight errors before any step is reported; fall back to the
+        // outer ring so the consent visual still shows a filled first ring.
+        XCTAssertEqual(
+            ConnectionStatusViewModel.resumedDisplayedStep(current: nil),
+            .authenticatingAccount
+        )
+    }
+
     func testClearingIndependenceErrorRemovesAwaitingGatewayConsentArc() {
         let viewModel = makeViewModel()
         viewModel.status = .error

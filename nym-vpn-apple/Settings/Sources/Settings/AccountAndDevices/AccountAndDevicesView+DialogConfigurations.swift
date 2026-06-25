@@ -20,7 +20,7 @@ extension AccountAndDevicesView {
                     Task { @MainActor in
                         isLogoutConfirmationDisplayed = false
                         isLogoutLoading = false
-                        navigateBack()
+                        navigateToRoot()
                     }
                 }
             },

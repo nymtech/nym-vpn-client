@@ -7,7 +7,6 @@ import UIComponents
 public enum OneClickConnectState: Equatable {
     case disconnected
     case connecting
-    case awaitingGatewayConsent
     case stop
     case connected
     case disconnecting
