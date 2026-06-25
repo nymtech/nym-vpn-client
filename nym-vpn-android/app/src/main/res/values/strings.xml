@@ -553,6 +553,7 @@
 	<string name="node_families_description_text">Disable reminders in </string>
 	<string name="node_families_description_link">notification settings.</string>
 	<string name="node_families_connect_button">Connect anyway</string>
+	<string name="node_families_error_message">Selected servers share a family. Choose a different pair or connect anyway.</string>
 	<!-- Geo Exclusion -->
 	<string name="geo_exclusion_enable_title">Enable Geo Exclusion</string>
 	<string name="geo_exclusion_description">Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.</string>

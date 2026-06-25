@@ -145,17 +145,18 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		val avgDelay = dataStoreManager.getFromStore(mixnetAvgPacketDelay)
 		val disablePoisson = dataStoreManager.getFromStore(mixnetDisablePoisson) ?: MIXNET_CONFIG_DEFAULT.disablePoissonRate
 
-		if (poisson == null && avgDelay == null) return MIXNET_CONFIG_DEFAULT.copy(
-			disablePoissonRate = disablePoisson,
-			disableBackgroundCoverTraffic = disablePoisson,
-		)
+		if (poisson == null && avgDelay == null) {
+			return MIXNET_CONFIG_DEFAULT.copy(
+				disablePoissonRate = disablePoisson,
+				disableBackgroundCoverTraffic = disablePoisson,
+			)
+		}
 
 		return MixnetTrafficConfig(
 			poissonParameterForLoopCoverStream = poisson?.toUInt() ?: MIXNET_CONFIG_DEFAULT.poissonParameterForLoopCoverStream,
 			averagePacketDelay = avgDelay?.toUInt() ?: MIXNET_CONFIG_DEFAULT.averagePacketDelay,
 			messageSendingAverageDelay = dataStoreManager.getFromStore(mixnetMsgSendingDelay)?.toUInt() ?: MIXNET_CONFIG_DEFAULT.messageSendingAverageDelay,
 			disablePoissonRate = disablePoisson,
-			// Keep in sync with disablePoissonRate since both are controlled by the same toggle and only disablePoissonRate is persisted
 			disableBackgroundCoverTraffic = disablePoisson,
 			minMixnodePerformance = null,
 			minGatewayMixnetPerformance = null,

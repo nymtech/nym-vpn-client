@@ -109,7 +109,6 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 				}
 
 				// Slider is inverted: right = fast (low delay), left = slow (high delay).
-				// trafficValue is the raw delay in ms; displayValue maps high delay to left.
 				val displayValue = (200f - trafficValue.coerceIn(1f, 200f))
 				Slider(
 					value = displayValue,
