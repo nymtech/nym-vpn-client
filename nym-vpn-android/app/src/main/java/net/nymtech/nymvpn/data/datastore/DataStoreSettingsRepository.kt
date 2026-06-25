@@ -143,15 +143,21 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	override suspend fun getMixnetTrafficConfig(): MixnetTrafficConfig {
 		val poisson = dataStoreManager.getFromStore(mixnetPoissonRate)
 		val avgDelay = dataStoreManager.getFromStore(mixnetAvgPacketDelay)
+		val disablePoisson = dataStoreManager.getFromStore(mixnetDisablePoisson) ?: MIXNET_CONFIG_DEFAULT.disablePoissonRate
 
-		if (poisson == null && avgDelay == null) return MIXNET_CONFIG_DEFAULT
+		if (poisson == null && avgDelay == null) {
+			return MIXNET_CONFIG_DEFAULT.copy(
+				disablePoissonRate = disablePoisson,
+				disableBackgroundCoverTraffic = disablePoisson,
+			)
+		}
 
 		return MixnetTrafficConfig(
 			poissonParameterForLoopCoverStream = poisson?.toUInt() ?: MIXNET_CONFIG_DEFAULT.poissonParameterForLoopCoverStream,
 			averagePacketDelay = avgDelay?.toUInt() ?: MIXNET_CONFIG_DEFAULT.averagePacketDelay,
 			messageSendingAverageDelay = dataStoreManager.getFromStore(mixnetMsgSendingDelay)?.toUInt() ?: MIXNET_CONFIG_DEFAULT.messageSendingAverageDelay,
-			disablePoissonRate = dataStoreManager.getFromStore(mixnetDisablePoisson) ?: MIXNET_CONFIG_DEFAULT.disablePoissonRate,
-			disableBackgroundCoverTraffic = false,
+			disablePoissonRate = disablePoisson,
+			disableBackgroundCoverTraffic = disablePoisson,
 			minMixnodePerformance = null,
 			minGatewayMixnetPerformance = null,
 		)
@@ -168,6 +174,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
 				try {
+					val mixnetDisable = pref[mixnetDisablePoisson] ?: MIXNET_CONFIG_DEFAULT.disablePoissonRate
 					val mixnetConfig = MixnetTrafficConfig(
 						poissonParameterForLoopCoverStream = pref[mixnetPoissonRate]?.toUInt()
 							?: MIXNET_CONFIG_DEFAULT.poissonParameterForLoopCoverStream,
@@ -175,9 +182,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 							?: MIXNET_CONFIG_DEFAULT.averagePacketDelay,
 						messageSendingAverageDelay = pref[mixnetMsgSendingDelay]?.toUInt()
 							?: MIXNET_CONFIG_DEFAULT.messageSendingAverageDelay,
-						disablePoissonRate = pref[mixnetDisablePoisson]
-							?: MIXNET_CONFIG_DEFAULT.disablePoissonRate,
-						disableBackgroundCoverTraffic = false,
+						disablePoissonRate = mixnetDisable,
+						disableBackgroundCoverTraffic = mixnetDisable,
 						minMixnodePerformance = null,
 						minGatewayMixnetPerformance = null,
 					)
