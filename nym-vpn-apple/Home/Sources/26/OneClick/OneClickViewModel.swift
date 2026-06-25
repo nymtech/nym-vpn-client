@@ -120,16 +120,8 @@ public final class OneClickViewModel {
         guard !isConnectDisconnectInFlight else { return }
         guard connectionManager.currentTunnelStatus != .disconnecting else { return }
 
-        if isAwaitingGatewayIndependenceConsent {
-            impactGenerator.impact()
-            independenceConsentAgreed()
-            return
-        }
-
         impactGenerator.impact()
-        if !isAwaitingGatewayIndependenceConsent {
-            snackbarManager.clear()
-        }
+        snackbarManager.clear()
 
         let isConnectingTap = connectionManager.currentTunnelStatus != .connected
 
@@ -358,9 +350,6 @@ private extension OneClickViewModel {
         case .disconnecting:
             return .disconnecting
         case .error:
-            if isAwaitingGatewayIndependenceConsent {
-                return .awaitingGatewayConsent
-            }
             return .stop
         case .connecting, .reasserting, .restarting, .offlineReconnect:
             return .connecting
