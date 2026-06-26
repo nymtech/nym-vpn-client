@@ -1,0 +1,27 @@
+schema: spec-driven
+context: |
+  nym-vpn-android — NymVPN client for Android (phone, tablet, Android TV). Kotlin
+  + Jetpack Compose + Hilt, multi-module Gradle project. VPN work runs through the
+  Nym Rust core (uniffi bindings) wrapped in an Android bound VpnService,
+  supporting mixnet five-hop and WireGuard two-hop modes.
+
+  Tech stack: Kotlin, Jetpack Compose, Hilt DI, Coroutines/Flow, DataStore
+  Preferences, Google Play Billing (general flavor), Timber/logcat logging,
+  Nym Rust core via uniffi. Modules: app, core, connectivity, billing, logcatter.
+  Architecture: MVVM + repository + DataStore; reactive StateFlow pipeline combined
+  into Compose UI state; build flavors (general / fdroid).
+
+# Auto-detected by openlore
+openlore:
+  generatedAt: "2026-06-26"
+  domains:
+    - overview
+    - architecture
+    - vpn-backend
+    - connection-management
+    - account-billing
+    - gateway-selection
+    - settings-configuration
+    - system-integration
+    - logging-diagnostics
+    - ui-presentation
