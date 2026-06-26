@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "openlore": {
+      "command": "npx",
+      "args": [
+        "--yes",
+        "openlore",
+        "mcp"
+      ]
+    }
+  },
+  "_openlore": {
+    "managed": true,
+    "version": 1,
+    "fingerprint": "feeb5b8350644b5d",
+    "paths": [
+      "mcpServers.openlore"
+    ]
+  }
+}

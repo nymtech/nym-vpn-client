@@ -1,0 +1,27 @@
+schema: spec-driven
+context: |
+  nym-vpn-app — NymVPN desktop client. A Tauri 2 control shell for Windows and
+  Linux that drives an external nym-vpnd daemon (gRPC) for all VPN work.
+
+  Tech stack: Rust (Tauri 2 backend) + React 19 / TypeScript / Tailwind CSS v4
+  (frontend). State via Zustand + React Context. Embedded sled key-value store.
+  IPC TypeScript types are auto-generated from Rust structs via ts-rs.
+  Architecture: two-process model (app UI/control + nym-vpnd daemon), per-domain
+  Tauri command modules, daemon event stream bridged to Tauri events.
+
+# Auto-detected by openlore
+openlore:
+  generatedAt: "2026-06-25"
+  domains:
+    - overview
+    - architecture
+    - tunnel
+    - daemon-connection
+    - account
+    - gateway-selection
+    - network-routing
+    - daemon-config
+    - diagnostics-logging
+    - app-updater
+    - system-integration
+    - frontend-ui
