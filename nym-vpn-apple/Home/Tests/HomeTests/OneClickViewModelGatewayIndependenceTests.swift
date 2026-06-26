@@ -81,6 +81,15 @@ final class OneClickViewModelGatewayIndependenceTests: XCTestCase {
         XCTAssertEqual(viewModel.connectState, .connected)
     }
 
+    func testDisconnectFromErrorDoesNotConnectWhenAlreadyDisconnected() async {
+        let viewModel = makeViewModel()
+        ConnectionManager.shared.currentTunnelStatus = .disconnected
+        ConnectionManager.shared.lastError = nil
+        viewModel.disconnectFromError()
+        await Task.yield()
+        XCTAssertNotEqual(viewModel.connectState, .connecting)
+    }
+
     // The consent error is still preserved (so the arc shows the consent state
     // and the modal stays actionable), but the connect button stays `.stop`.
     func testIndependenceConsentIsPreservedButButtonStaysStop() async {
