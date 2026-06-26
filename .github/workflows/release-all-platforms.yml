@@ -135,6 +135,8 @@ jobs:
         id: v
         env:
           RELEASE_CHANNEL: ${{ steps.flags.outputs.channel }}
+          # beta auto-advances its -beta.N by reading prior beta releases/tags
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/release/resolve-version.sh
 
   prepare-release:
