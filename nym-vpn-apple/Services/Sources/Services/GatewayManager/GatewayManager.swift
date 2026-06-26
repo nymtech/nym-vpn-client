@@ -412,11 +412,11 @@ private extension GatewayManager {
 #else
             self.gatewayStore.lastFetchDate = nil
 #endif
-            Task {
+            Task { @MainActor in
 #if os(iOS)
                 await self.worker.reset()
 #endif
-                await self.fetchGateways()
+                self.updateGateways()
             }
         }
     }
