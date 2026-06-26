@@ -143,17 +143,45 @@ import PathManager
     }
 
     private func applyEnvChange(to env: Env) async {
-        guard self.isTestFlight || Device.isMacOS else { return }
+        guard SantaEnvSwitchPolicy.canApplyEnvironmentChange(isSantaBuild: isSantaClaus) else { return }
+        let previousEnv = currentEnv
         do {
             self.currentEnv = env
 #if os(macOS)
             try await grpcManager.switchEnvironment(to: env.rawValue)
 #endif
             try await self.configure()
+            guard ConfigureEnvSyncPolicy.isEnvironmentConfigured(
+                lastConfiguredEnv: lastConfiguredEnvString,
+                currentEnv: currentEnvString
+            ) else {
+                self.logger.error(
+                    "Network environment did not sync to \(currentEnvString); skipping env-change observers"
+                )
+                await revertEnvironmentChange(to: previousEnv)
+                return
+            }
             self.notifyEnvironmentDidChange()
         } catch {
             self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
+            await revertEnvironmentChange(to: previousEnv)
         }
+    }
+
+    private func revertEnvironmentChange(to previousEnv: Env) async {
+        guard ConfigureEnvSyncPolicy.requiresEnvironmentRollback(
+            isConfigured: ConfigureEnvSyncPolicy.isEnvironmentConfigured(
+                lastConfiguredEnv: lastConfiguredEnvString,
+                currentEnv: currentEnvString
+            )
+        ) else {
+            return
+        }
+        currentEnv = previousEnv
+#if os(macOS)
+        try? await grpcManager.switchEnvironment(to: previousEnv.rawValue)
+#endif
+        try? await configure()
     }
 #endif
 
@@ -228,17 +256,13 @@ private extension ConfigurationManager {
 
     func performConfigure() async throws {
 #if os(iOS)
-        do {
-            self.networkEnv = try await NymEnvironment.newWithCacheDir(
-                cacheDir: PathManager.configFolderURL().path(),
-                networkName: currentEnvString,
-                userAgent: .appUserAgent
-            )
-            logger.info("Configured environment: \(currentEnvString)")
-            lastConfiguredEnvString = currentEnvString
-        } catch {
-            logger.error("Failed to initialize environment: \(currentEnvString). Error: \(error)")
-        }
+        self.networkEnv = try await NymEnvironment.newWithCacheDir(
+            cacheDir: PathManager.configFolderURL().path(),
+            networkName: currentEnvString,
+            userAgent: .appUserAgent
+        )
+        logger.info("Configured environment: \(currentEnvString)")
+        lastConfiguredEnvString = currentEnvString
 #else
         try? await updateErrorReportingIfNeeded()
         try? await updateNetworkStatisticsIfNeeded()
