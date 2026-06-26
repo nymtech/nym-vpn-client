@@ -6,11 +6,10 @@ public enum LoginProcessingUI: Sendable {
     public static let requiresCarousel = true
     public static let carouselStepRange = 2...4
     public static let carouselTitlePrefix = "processingAccount.login"
+    public static let settingUpTitleKey = "\(carouselTitlePrefix).settingUp"
 
     public static var carouselKeys: [String] {
-        carouselStepRange.flatMap { step in
-            ["\(carouselTitlePrefix).title\(step)", "\(carouselTitlePrefix).subtitle\(step)"]
-        }
+        [settingUpTitleKey]
     }
 }
 
