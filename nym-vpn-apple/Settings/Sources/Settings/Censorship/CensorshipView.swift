@@ -1,7 +1,6 @@
 import SwiftUI
 import AppSettings
 import ConnectionManager
-import FeatureFlagsManager
 import Constants
 import UIComponents
 import Theme
@@ -9,7 +8,6 @@ import Theme
 public struct CensorshipView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @Binding private var path: NavigationPath
     @State private var isConfirmationDisplayed = false
 
@@ -21,10 +19,7 @@ public struct CensorshipView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     subtitleSection()
-                    VStack(spacing: 0) {
-                        quicSection()
-                        amneziaWGSection()
-                    }
+                    quicSection()
                     Spacer()
                         .frame(height: 24)
                     stealthApiSection()
@@ -90,7 +85,7 @@ private extension CensorshipView {
                 ),
                 title: "censorship.quic.title".localizedString,
                 multilineText: quicMultilineText(),
-                position: .init(isFirst: true, isLast: false),
+                position: .init(isFirst: true, isLast: true),
                 action: {}
             )
         )
@@ -101,44 +96,6 @@ private extension CensorshipView {
         let second = "censorship.quic.subtitle2".localizedString
         let link = Constants.quicURL.rawValue
         let linkText = "censorship.quic.link".localizedString
-        let markdown = """
-\(first)
-
-\(second)
-
-[\(linkText)](\(link))
-"""
-
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
-        if let range = text.range(of: linkText) {
-            text[range].underlineStyle = .single
-            text[range].foregroundColor = Color.Nym.textPrimary
-        }
-        return text
-    }
-
-    // MARK: - AmneziaWG
-    func amneziaWGSection() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: .constant(true),
-                    isDisabled: true
-                ),
-                title: "censorship.amneziawg.title".localizedString,
-                multilineText: amneziaWGMultilineText(),
-                position: .init(isFirst: false, isLast: true),
-                action: {}
-            )
-        )
-    }
-
-    func amneziaWGMultilineText() -> AttributedString? {
-        let first = "censorship.amneziawg.subtitle1".localizedString
-        let second = "censorship.amneziawg.subtitle2".localizedString
-        let link = Constants.amneziaWGURL.rawValue
-        let linkText = "censorship.amneziawg.link".localizedString
         let markdown = """
 \(first)
 

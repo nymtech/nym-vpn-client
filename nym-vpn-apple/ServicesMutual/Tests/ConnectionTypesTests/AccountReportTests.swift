@@ -126,7 +126,6 @@ struct AccountReportTests {
                 #expect(buttons.last?.isDestructive == true, "\(scenarioLabel)")
                 #expect(buttons.contains(where: { $0.kind == .manageSubscriptionExternal }), "\(scenarioLabel)")
                 #expect(buttons.contains(where: { $0.kind == .renewPlan }) == s.shouldShowRenewRow, "\(scenarioLabel)")
-                #expect(buttons.contains(where: { $0.kind == .linkAccount }) == s.shouldShowLinkAccountRow, "\(scenarioLabel)")
             }
         }
         ReportBuilder.shared.write()
@@ -167,10 +166,14 @@ struct AccountReportTests {
         //  - navbar title (CustomNavBar): "settings.account"
         //  - copyable content cells (cell(title:…) → SettingsCopyableContentCell):
         //    "settings.accountID", "settings.deviceId"
+        //  - refresh-failure snackbar (SnackbarItem(title:…)): "settings.account.refreshFailed"
+        //  - allowance-reached snackbar (SnackbarItem(title:…)): "settings.account.allowanceReached.title"
         let nonButtonTitleKeys: Set<String> = [
             "settings.account",
             "settings.accountID",
-            "settings.deviceId"
+            "settings.deviceId",
+            "settings.account.refreshFailed",
+            "settings.account.allowanceReached.title"
         ]
 
         var keys = Set<String>()

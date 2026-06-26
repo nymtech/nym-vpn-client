@@ -33,6 +33,8 @@ import SnackbarManager
     @Published var customDns: [String] = []
     @Published var isCustomDnsEnabled = false
 
+    var showsCustomDnsList: Bool { !customDns.isEmpty }
+
     @Published var customDnsTextField = ""
     public var isAddButtonDisabled: Bool {
         !isIPAddress(customDnsTextField)

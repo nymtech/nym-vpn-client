@@ -536,6 +536,8 @@ import PathManager
         resetExpiryDismissalsIfNeeded()
     }
 
+    /// Silent poller path: never throws. On failure keeps the last good summary and only
+    /// raises `accountSummaryLastFetchFailed`.
     private func fetchAccountSummary() async {
         guard isValidCredentialImported else { return }
 #if os(macOS)
@@ -548,6 +550,31 @@ import PathManager
             logger.error(
                 "fetchAccountSummary (macOS) failed operation=accountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
             )
+        }
+#endif
+    }
+
+    /// Manual refresh path: force-fetches and **rethrows** on failure so the caller can
+    /// surface the error on screen. Bypasses the freshness cache.
+    public func refreshAccountSummary() async throws {
+#if SANTA
+        guard !isAccountSummaryOverridden else { return }
+#endif
+        guard isValidCredentialImported else { return }
+#if os(iOS)
+        do {
+            try await refreshAccountSummaryOnIOS(untilActive: false, trigger: .general)
+        } catch {
+            accountSummaryLastFetchFailed = true
+            throw error
+        }
+#elseif os(macOS)
+        do {
+            accountSummary = try await grpcManager.accountSummary()
+            accountSummaryLastFetchFailed = false
+        } catch {
+            accountSummaryLastFetchFailed = true
+            throw error
         }
 #endif
     }

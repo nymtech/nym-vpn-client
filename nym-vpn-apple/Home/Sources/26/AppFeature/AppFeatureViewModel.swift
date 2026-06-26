@@ -415,7 +415,12 @@ private extension AppFeatureViewModel {
         let lastError = connectionStatus.connectionManager.lastError
         guard !ConnectionStatusViewModel.isNeedsRelaxedIndependenceCriteria(lastError)
         else {
-            isFamilyWarningModalDisplayed = true
+            if appSettings.serverFamilyRemindersEnabled {
+                isFamilyWarningModalDisplayed = true
+            } else {
+                connectionStatus.showsIndependenceWarning = true
+                oneClick.independenceConsentAgreed()
+            }
             return
         }
         snackbarManager.enqueue(

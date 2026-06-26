@@ -55,20 +55,14 @@ final class OneClickViewModelGatewayIndependenceTests: XCTestCase {
     }
 #endif
 
-    func testIndependenceErrorMapsToAwaitingGatewayConsentConnectState() async {
+    // Consent is surfaced by the family-warning modal, not the connect button.
+    // The drawer button must stay `.stop` so it is not a second consent surface.
+    func testIndependenceErrorMapsToStopConnectState() async {
         let viewModel = makeViewModel()
         ConnectionManager.shared.currentTunnelStatus = .error
         ConnectionManager.shared.lastError = ErrorReason.needsRelaxedIndependenceCriteria
         await Task.yield()
-        XCTAssertEqual(viewModel.connectState, .awaitingGatewayConsent)
-    }
-
-    func testIndependenceErrorDoesNotMapToStopConnectState() async {
-        let viewModel = makeViewModel()
-        ConnectionManager.shared.currentTunnelStatus = .error
-        ConnectionManager.shared.lastError = ErrorReason.needsRelaxedIndependenceCriteria
-        await Task.yield()
-        XCTAssertNotEqual(viewModel.connectState, .stop)
+        XCTAssertEqual(viewModel.connectState, .stop)
     }
 
     func testConnectingTunnelStatusMapsToConnectingConnectState() async {
@@ -87,7 +81,9 @@ final class OneClickViewModelGatewayIndependenceTests: XCTestCase {
         XCTAssertEqual(viewModel.connectState, .connected)
     }
 
-    func testIndependenceConsentPolicyMatchesDerivedConnectState() async {
+    // The consent error is still preserved (so the arc shows the consent state
+    // and the modal stays actionable), but the connect button stays `.stop`.
+    func testIndependenceConsentIsPreservedButButtonStaysStop() async {
         let viewModel = makeViewModel()
         ConnectionManager.shared.currentTunnelStatus = .error
         ConnectionManager.shared.lastError = ErrorReason.needsRelaxedIndependenceCriteria
@@ -98,6 +94,6 @@ final class OneClickViewModelGatewayIndependenceTests: XCTestCase {
                 lastError: ErrorReason.needsRelaxedIndependenceCriteria
             )
         )
-        XCTAssertEqual(viewModel.connectState, .awaitingGatewayConsent)
+        XCTAssertEqual(viewModel.connectState, .stop)
     }
 }
