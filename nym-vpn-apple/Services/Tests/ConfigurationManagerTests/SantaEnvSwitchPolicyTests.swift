@@ -23,7 +23,7 @@ struct SantaEnvSwitchPolicyTests {
         Case(label: "santaIOSRelease", isSantaBuild: true, isTestFlight: false, isMacOS: false, isRunningOnCI: false, isDebugBuild: false, expected: false),
     ]
 
-    @Test(arguments: cases)
+    @Test(arguments: Self.cases)
     func runtimeAccessGate(_ testCase: Case) {
         #expect(
             SantaEnvSwitchPolicy.canApplyEnvironmentChange(
