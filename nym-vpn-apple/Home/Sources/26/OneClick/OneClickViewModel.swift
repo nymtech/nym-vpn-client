@@ -177,6 +177,26 @@ public final class OneClickViewModel {
         }
     }
 
+    func disconnectFromError() {
+        connectDisconnectTask?.cancel()
+        connectDisconnectTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            snackbarManager.clear()
+            guard connectionManager.shouldDisconnectActiveTunnel() else {
+                connectionManager.lastError = nil
+                return
+            }
+            isConnectDisconnectInFlight = true
+            defer { isConnectDisconnectInFlight = false }
+            do {
+                try await connectionManager.disconnectActiveTunnel()
+                connectionManager.lastError = nil
+            } catch {
+                impactGenerator.error()
+            }
+        }
+    }
+
     func independenceConsentAgreed() {
         Task { @MainActor [weak self] in
             guard let self else { return }
@@ -704,7 +724,7 @@ private extension OneClickViewModel {
                 title: "connectionError.title".localizedString,
                 message: ConnectionErrorCopy.message(reason: message),
                 actionTitle: "disconnect".localizedString,
-                onAction: { [weak self] in self?.connectButtonTapped() },
+                onAction: { [weak self] in self?.disconnectFromError() },
                 duration: 7
             )
         )

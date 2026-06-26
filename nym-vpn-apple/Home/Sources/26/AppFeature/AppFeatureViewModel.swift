@@ -430,7 +430,7 @@ private extension AppFeatureViewModel {
                 message: ConnectionErrorCopy.message(reason: message),
                 actionTitle: "disconnect".localizedString,
                 onAction: { [weak self] in
-                    self?.oneClick.connectButtonTapped()
+                    self?.oneClick.disconnectFromError()
                 },
                 duration: 7
             )
