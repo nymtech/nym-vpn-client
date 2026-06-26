@@ -230,6 +230,8 @@ import GRPCManager
     }
 
     func handleSceneBecameActive() {
+        guard !connectionStatus.isConnectingLike, !isFamilyWarningModalDisplayed else { return }
+
         let now = Date()
         let shouldBypassThrottle = DrawerSessionPolicy.shouldBypassForegroundAccountRefreshThrottle(
             isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
