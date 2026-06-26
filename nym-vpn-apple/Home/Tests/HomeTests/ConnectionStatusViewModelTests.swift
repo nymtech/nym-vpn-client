@@ -75,4 +75,39 @@ final class ConnectionStatusViewModelTests: XCTestCase {
             XCTFail("Cleared independence error must not keep awaitingGatewayConsent arc")
         }
     }
+
+    func testHadConnectedSessionFalseInitially() {
+        let viewModel = makeViewModel()
+        XCTAssertFalse(viewModel.hadConnectedSession)
+    }
+
+    func testHadConnectedSessionTrueAfterConnected() {
+        let viewModel = makeViewModel()
+        ConnectionManager.shared.currentTunnelStatus = .connected
+        viewModel.status = .connected
+        XCTAssertTrue(viewModel.hadConnectedSession)
+    }
+
+    func testHadConnectedSessionRemainingTrueOnErrorAfterConnected() {
+        let viewModel = makeViewModel()
+        ConnectionManager.shared.currentTunnelStatus = .connected
+        viewModel.status = .connected
+        XCTAssertTrue(viewModel.hadConnectedSession)
+
+        ConnectionManager.shared.currentTunnelStatus = .error
+        ConnectionManager.shared.lastError = ErrorReason.needsRelaxedIndependenceCriteria
+        viewModel.status = .error
+        XCTAssertTrue(viewModel.hadConnectedSession)
+    }
+
+    func testHadConnectedSessionResetAfterDisconnected() {
+        let viewModel = makeViewModel()
+        ConnectionManager.shared.currentTunnelStatus = .connected
+        viewModel.status = .connected
+        XCTAssertTrue(viewModel.hadConnectedSession)
+
+        ConnectionManager.shared.currentTunnelStatus = .disconnected
+        viewModel.status = .disconnected
+        XCTAssertFalse(viewModel.hadConnectedSession)
+    }
 }

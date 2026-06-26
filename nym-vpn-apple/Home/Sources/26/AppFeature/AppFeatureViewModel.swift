@@ -324,7 +324,11 @@ import GRPCManager
     }
 
     func dismissFamilyWarning() {
-        oneClick.cancelGatewayIndependenceConsent()
+        if connectionStatus.hadConnectedSession {
+            oneClick.clearIndependenceErrorIfNeeded()
+        } else {
+            oneClick.cancelGatewayIndependenceConsent()
+        }
         isFamilyWarningModalDisplayed = false
     }
 
