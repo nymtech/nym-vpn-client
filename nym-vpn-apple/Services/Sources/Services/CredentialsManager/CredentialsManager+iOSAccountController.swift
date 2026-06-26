@@ -259,7 +259,8 @@ extension CredentialsManager {
             isLinked: summary.isLinked(),
             isActive: summary.isSubscriptionActive(),
             isAutoRenewEnabled: innerSub?.isRecurring ?? false,
-            subscription: summary.subscription.map { Subscription(from: $0) }
+            subscription: summary.subscription.map { Subscription(from: $0) },
+            dataUnavailable: summary.fairUsageDataUnavailable
         )
     }
 }
