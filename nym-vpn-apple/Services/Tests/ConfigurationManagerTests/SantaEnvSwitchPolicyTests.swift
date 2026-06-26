@@ -4,93 +4,36 @@ import Testing
 @testable import ConfigurationManager
 
 struct SantaEnvSwitchPolicyTests {
-    @Test func blocksNonSantaBuilds() {
-        #expect(
-            !SantaEnvSwitchPolicy.canApplyEnvironmentChange(
-                isSantaBuild: false,
-                isTestFlight: true,
-                isMacOS: true,
-                isRunningOnCI: true,
-                isDebugBuild: true
-            )
-        )
+    private struct Case: Sendable {
+        let label: String
+        let isSantaBuild: Bool
+        let isTestFlight: Bool
+        let isMacOS: Bool
+        let isRunningOnCI: Bool
+        let isDebugBuild: Bool
+        let expected: Bool
     }
 
-    @Test func allowsSantaDebugBuilds() {
+    private static let cases: [Case] = [
+        Case(label: "nonSanta", isSantaBuild: false, isTestFlight: true, isMacOS: true, isRunningOnCI: true, isDebugBuild: true, expected: false),
+        Case(label: "santaDebug", isSantaBuild: true, isTestFlight: false, isMacOS: false, isRunningOnCI: false, isDebugBuild: true, expected: true),
+        Case(label: "santaTestFlight", isSantaBuild: true, isTestFlight: true, isMacOS: false, isRunningOnCI: false, isDebugBuild: false, expected: true),
+        Case(label: "santaMacOS", isSantaBuild: true, isTestFlight: false, isMacOS: true, isRunningOnCI: false, isDebugBuild: false, expected: true),
+        Case(label: "santaCI", isSantaBuild: true, isTestFlight: false, isMacOS: false, isRunningOnCI: true, isDebugBuild: false, expected: true),
+        Case(label: "santaIOSRelease", isSantaBuild: true, isTestFlight: false, isMacOS: false, isRunningOnCI: false, isDebugBuild: false, expected: false),
+    ]
+
+    @Test(arguments: cases)
+    func runtimeAccessGate(_ testCase: Case) {
         #expect(
             SantaEnvSwitchPolicy.canApplyEnvironmentChange(
-                isSantaBuild: true,
-                isTestFlight: false,
-                isMacOS: false,
-                isRunningOnCI: false,
-                isDebugBuild: true
-            )
-        )
-    }
-
-    @Test func allowsSantaTestFlightOnIOS() {
-        #expect(
-            SantaEnvSwitchPolicy.canApplyEnvironmentChange(
-                isSantaBuild: true,
-                isTestFlight: true,
-                isMacOS: false,
-                isRunningOnCI: false,
-                isDebugBuild: false
-            )
-        )
-    }
-
-    @Test func allowsSantaMacOSQA() {
-        #expect(
-            SantaEnvSwitchPolicy.canApplyEnvironmentChange(
-                isSantaBuild: true,
-                isTestFlight: false,
-                isMacOS: true,
-                isRunningOnCI: false,
-                isDebugBuild: false
-            )
-        )
-    }
-
-    @Test func allowsSantaCIBuilds() {
-        #expect(
-            SantaEnvSwitchPolicy.canApplyEnvironmentChange(
-                isSantaBuild: true,
-                isTestFlight: false,
-                isMacOS: false,
-                isRunningOnCI: true,
-                isDebugBuild: false
-            )
-        )
-    }
-
-    @Test func blocksSantaIOSReleaseWithoutQAContext() {
-        #expect(
-            !SantaEnvSwitchPolicy.canApplyEnvironmentChange(
-                isSantaBuild: true,
-                isTestFlight: false,
-                isMacOS: false,
-                isRunningOnCI: false,
-                isDebugBuild: false
-            )
-        )
-    }
-
-    @Test func isConfiguredWhenLastConfiguredMatchesCurrent() {
-        #expect(
-            SantaEnvSwitchPolicy.isEnvironmentConfigured(
-                lastConfiguredEnv: "sandbox",
-                currentEnv: "sandbox"
-            )
-        )
-    }
-
-    @Test func isNotConfiguredWhenLastConfiguredMissing() {
-        #expect(
-            !SantaEnvSwitchPolicy.isEnvironmentConfigured(
-                lastConfiguredEnv: nil,
-                currentEnv: "sandbox"
-            )
+                isSantaBuild: testCase.isSantaBuild,
+                isTestFlight: testCase.isTestFlight,
+                isMacOS: testCase.isMacOS,
+                isRunningOnCI: testCase.isRunningOnCI,
+                isDebugBuild: testCase.isDebugBuild
+            ) == testCase.expected,
+            Comment(rawValue: testCase.label)
         )
     }
 }

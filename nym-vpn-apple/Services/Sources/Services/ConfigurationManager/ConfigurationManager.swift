@@ -92,7 +92,19 @@ import PathManager
 
     public var isSantaClaus: Bool {
 #if SANTA
-        return hasSantaRuntimeAccess
+        return SantaEnvSwitchPolicy.canApplyEnvironmentChange(
+            isSantaBuild: true,
+            isTestFlight: isTestFlight,
+            isMacOS: Device.isMacOS,
+            isRunningOnCI: isRunningOnCI,
+            isDebugBuild: {
+#if DEBUG
+                true
+#else
+                false
+#endif
+            }()
+        )
 #else
         return false
 #endif
@@ -143,17 +155,14 @@ import PathManager
     }
 
     private func applyEnvChange(to env: Env) async {
-        guard hasSantaRuntimeAccess else { return }
+        guard isSantaClaus else { return }
         do {
             self.currentEnv = env
 #if os(macOS)
             try await grpcManager.switchEnvironment(to: env.rawValue)
 #endif
             try await self.configure()
-            guard SantaEnvSwitchPolicy.isEnvironmentConfigured(
-                lastConfiguredEnv: lastConfiguredEnvString,
-                currentEnv: currentEnvString
-            ) else {
+            guard lastConfiguredEnvString == currentEnvString else {
                 self.logger.error(
                     "Network environment did not sync to \(currentEnvString); skipping env-change observers"
                 )
@@ -203,24 +212,6 @@ import PathManager
 
 private extension ConfigurationManager {
 #if SANTA
-    var hasSantaRuntimeAccess: Bool {
-        SantaEnvSwitchPolicy.canApplyEnvironmentChange(
-            isSantaBuild: true,
-            isTestFlight: isTestFlight,
-            isMacOS: Device.isMacOS,
-            isRunningOnCI: isRunningOnCI,
-            isDebugBuild: Self.isDebugBuild
-        )
-    }
-
-    static var isDebugBuild: Bool {
-#if DEBUG
-        true
-#else
-        false
-#endif
-    }
-
     func notifyEnvironmentDidChange() {
         environmentChangeObservers.notifyAll()
     }
