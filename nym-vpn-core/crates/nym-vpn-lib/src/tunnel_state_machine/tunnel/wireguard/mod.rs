@@ -72,3 +72,65 @@ impl From<MetadataEvent> for nym_wg_metadata_client::TunUpSendData {
 
 pub type MetadataSender = tokio::sync::oneshot::Sender<MetadataEvent>;
 pub type MetadataReceiver = tokio::sync::oneshot::Receiver<MetadataEvent>;
+
+pub(crate) fn one_tunnel_bandwidth_metadata_events(
+    proxy_addr: SocketAddr,
+) -> (MetadataEvent, MetadataEvent) {
+    (
+        MetadataEvent::MetadataProxy(proxy_addr),
+        MetadataEvent::MetadataProxy(proxy_addr),
+    )
+}
+
+pub(crate) fn two_tunnel_bandwidth_metadata_events(
+    entry: &TunnelMetadata,
+    exit: &TunnelMetadata,
+) -> (MetadataEvent, MetadataEvent) {
+    (
+        MetadataEvent::TunnelMetadata(entry.clone()),
+        MetadataEvent::TunnelMetadata(exit.clone()),
+    )
+}
+
+#[cfg(test)]
+mod bandwidth_metadata_events_tests {
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    use super::*;
+
+    fn sample_metadata(interface: &str) -> TunnelMetadata {
+        TunnelMetadata {
+            interface: interface.to_string(),
+            ips: vec![IpAddr::V4(Ipv4Addr::new(10, 1, 0, 2))],
+            ipv4_gateway: None,
+            ipv6_gateway: None,
+        }
+    }
+
+    #[test]
+    fn one_tunnel_uses_metadata_proxy_for_entry_and_exit() {
+        let proxy_addr = SocketAddr::from(([127, 0, 0, 1], 51830));
+
+        let (entry, exit) = one_tunnel_bandwidth_metadata_events(proxy_addr);
+
+        assert!(matches!(entry, MetadataEvent::MetadataProxy(addr) if addr == proxy_addr));
+        assert!(matches!(exit, MetadataEvent::MetadataProxy(addr) if addr == proxy_addr));
+    }
+
+    #[test]
+    fn two_tunnel_uses_tunnel_metadata_for_entry_and_exit() {
+        let entry = sample_metadata("wg0");
+        let exit = sample_metadata("wg1");
+
+        let (entry_event, exit_event) = two_tunnel_bandwidth_metadata_events(&entry, &exit);
+
+        assert!(matches!(
+            entry_event,
+            MetadataEvent::TunnelMetadata(metadata) if metadata.interface == entry.interface
+        ));
+        assert!(matches!(
+            exit_event,
+            MetadataEvent::TunnelMetadata(metadata) if metadata.interface == exit.interface
+        ));
+    }
+}

@@ -90,7 +90,8 @@ use crate::{
             transports::{self, TransportError},
             wireguard::{
                 ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
-                connected_tunnel::ConnectedTunnel,
+                connected_tunnel::ConnectedTunnel, one_tunnel_bandwidth_metadata_events,
+                two_tunnel_bandwidth_metadata_events,
             },
         },
     },
@@ -710,28 +711,22 @@ impl TunnelMonitor {
 
         // Send metadata endpoint data to the bandwidth controller
         match &tunnel_interface {
-            TunnelInterface::One(exit) => {
+            TunnelInterface::One(_) => {
+                let exit_tx = exit_metadata_tx;
                 let _metadata_event_handler = tokio::spawn(async move {
-                    if let Ok(entry_metadata_endpoint) = entry_metadata_addr_rx.await {
-                        tracing::info!(
-                            "Received entry metadata endpoint: {entry_metadata_endpoint}"
-                        );
-                        entry_metadata_tx
-                            .send(MetadataEvent::MetadataProxy(entry_metadata_endpoint))
-                            .ok();
+                    if let Ok(proxy_addr) = entry_metadata_addr_rx.await {
+                        tracing::info!("Received entry metadata endpoint: {proxy_addr}");
+                        let (entry_event, exit_event) =
+                            one_tunnel_bandwidth_metadata_events(proxy_addr);
+                        entry_metadata_tx.send(entry_event).ok();
+                        exit_tx.send(exit_event).ok();
                     }
                 });
-                exit_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(exit.clone()))
-                    .ok();
             }
             TunnelInterface::Two { entry, exit } => {
-                entry_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(entry.clone()))
-                    .ok();
-                exit_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(exit.clone()))
-                    .ok();
+                let (entry_event, exit_event) = two_tunnel_bandwidth_metadata_events(entry, exit);
+                entry_metadata_tx.send(entry_event).ok();
+                exit_metadata_tx.send(exit_event).ok();
             }
         }
 
