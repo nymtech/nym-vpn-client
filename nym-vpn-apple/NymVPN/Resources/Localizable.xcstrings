@@ -23097,68 +23097,13 @@
         }
       }
     },
-    "processingAccount.login.subtitle2" : {
+    "processingAccount.login.settingUp" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Deriving keys from your 24-word phrase on this device"
-          }
-        }
-      }
-    },
-    "processingAccount.login.subtitle3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Re-establishing your anonymous network credentials"
-          }
-        }
-      }
-    },
-    "processingAccount.login.subtitle4" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Encrypting credentials with your device key. Only you can unlock them."
-          }
-        }
-      }
-    },
-    "processingAccount.login.title2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Recovering your cryptographic keypairs..."
-          }
-        }
-      }
-    },
-    "processingAccount.login.title3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Restoring your anonymous identity..."
-          }
-        }
-      }
-    },
-    "processingAccount.login.title4" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Securing your credentials locally..."
+            "state" : "translated",
+            "value" : "Setting up your anonymous account"
           }
         }
       }

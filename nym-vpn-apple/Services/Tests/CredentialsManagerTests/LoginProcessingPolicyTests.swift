@@ -5,7 +5,7 @@ import AccountPrefetchGates
 struct LoginProcessingPolicyTests {
     @Test func loginProcessingUsesAnimatedCarousel() {
         #expect(LoginProcessingUI.requiresCarousel)
-        #expect(LoginProcessingUI.carouselKeys.count == 6)
+        #expect(LoginProcessingUI.carouselKeys.count == 1)
         #expect(ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: false))
     }
 
