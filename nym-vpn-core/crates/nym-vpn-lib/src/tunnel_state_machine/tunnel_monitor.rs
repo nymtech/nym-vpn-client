@@ -90,8 +90,8 @@ use crate::{
             transports::{self, TransportError},
             wireguard::{
                 ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
-                connected_tunnel::ConnectedTunnel, one_tunnel_bandwidth_metadata_events,
-                two_tunnel_bandwidth_metadata_events,
+                MetadataSender, connected_tunnel::ConnectedTunnel,
+                one_tunnel_bandwidth_metadata_events, two_tunnel_bandwidth_metadata_events,
             },
         },
     },
@@ -300,6 +300,17 @@ async fn wait_for_exit_handshake(
                 elapsed.as_secs_f32()
             );
         }
+    }
+}
+
+fn send_bandwidth_metadata_event(
+    tx: MetadataSender,
+    event: MetadataEvent,
+    leg: &'static str,
+    tunnel_layout: &'static str,
+) {
+    if tx.send(event).is_err() {
+        tracing::warn!("Bandwidth metadata receiver dropped before {leg} event ({tunnel_layout})");
     }
 }
 
@@ -718,15 +729,20 @@ impl TunnelMonitor {
                         tracing::info!("Received entry metadata endpoint: {proxy_addr}");
                         let (entry_event, exit_event) =
                             one_tunnel_bandwidth_metadata_events(proxy_addr);
-                        entry_metadata_tx.send(entry_event).ok();
-                        exit_tx.send(exit_event).ok();
+                        send_bandwidth_metadata_event(
+                            entry_metadata_tx,
+                            entry_event,
+                            "entry",
+                            "single-tun",
+                        );
+                        send_bandwidth_metadata_event(exit_tx, exit_event, "exit", "single-tun");
                     }
                 });
             }
             TunnelInterface::Two { entry, exit } => {
                 let (entry_event, exit_event) = two_tunnel_bandwidth_metadata_events(entry, exit);
-                entry_metadata_tx.send(entry_event).ok();
-                exit_metadata_tx.send(exit_event).ok();
+                send_bandwidth_metadata_event(entry_metadata_tx, entry_event, "entry", "dual-tun");
+                send_bandwidth_metadata_event(exit_metadata_tx, exit_event, "exit", "dual-tun");
             }
         }
 
