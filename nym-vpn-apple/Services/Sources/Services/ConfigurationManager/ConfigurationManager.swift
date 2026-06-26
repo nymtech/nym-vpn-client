@@ -92,7 +92,7 @@ import PathManager
 
     public var isSantaClaus: Bool {
 #if SANTA
-        return true
+        return hasSantaRuntimeAccess
 #else
         return false
 #endif
@@ -143,45 +143,26 @@ import PathManager
     }
 
     private func applyEnvChange(to env: Env) async {
-        guard SantaEnvSwitchPolicy.canApplyEnvironmentChange(isSantaBuild: isSantaClaus) else { return }
-        let previousEnv = currentEnv
+        guard hasSantaRuntimeAccess else { return }
         do {
             self.currentEnv = env
 #if os(macOS)
             try await grpcManager.switchEnvironment(to: env.rawValue)
 #endif
             try await self.configure()
-            guard ConfigureEnvSyncPolicy.isEnvironmentConfigured(
+            guard SantaEnvSwitchPolicy.isEnvironmentConfigured(
                 lastConfiguredEnv: lastConfiguredEnvString,
                 currentEnv: currentEnvString
             ) else {
                 self.logger.error(
                     "Network environment did not sync to \(currentEnvString); skipping env-change observers"
                 )
-                await revertEnvironmentChange(to: previousEnv)
                 return
             }
             self.notifyEnvironmentDidChange()
         } catch {
             self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
-            await revertEnvironmentChange(to: previousEnv)
         }
-    }
-
-    private func revertEnvironmentChange(to previousEnv: Env) async {
-        guard ConfigureEnvSyncPolicy.requiresEnvironmentRollback(
-            isConfigured: ConfigureEnvSyncPolicy.isEnvironmentConfigured(
-                lastConfiguredEnv: lastConfiguredEnvString,
-                currentEnv: currentEnvString
-            )
-        ) else {
-            return
-        }
-        currentEnv = previousEnv
-#if os(macOS)
-        try? await grpcManager.switchEnvironment(to: previousEnv.rawValue)
-#endif
-        try? await configure()
     }
 #endif
 
@@ -222,6 +203,24 @@ import PathManager
 
 private extension ConfigurationManager {
 #if SANTA
+    var hasSantaRuntimeAccess: Bool {
+        SantaEnvSwitchPolicy.canApplyEnvironmentChange(
+            isSantaBuild: true,
+            isTestFlight: isTestFlight,
+            isMacOS: Device.isMacOS,
+            isRunningOnCI: isRunningOnCI,
+            isDebugBuild: Self.isDebugBuild
+        )
+    }
+
+    static var isDebugBuild: Bool {
+#if DEBUG
+        true
+#else
+        false
+#endif
+    }
+
     func notifyEnvironmentDidChange() {
         environmentChangeObservers.notifyAll()
     }
