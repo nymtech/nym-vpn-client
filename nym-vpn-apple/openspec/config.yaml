@@ -1,0 +1,30 @@
+schema: spec-driven
+context: |
+  nym-vpn-apple — NymVPN client for iOS, iPadOS, and macOS. A Swift/SwiftUI
+  multi-module Swift Package workspace. VPN connectivity uses two backends behind
+  a unified API: a NetworkExtension packet tunnel with a bundled Nym mixnet
+  library on iOS, and a gRPC privileged helper daemon (net.nymtech.vpn.helper)
+  on macOS.
+
+  Tech stack: Swift, SwiftUI, Combine, NetworkExtension, gRPC (Swift), Sparkle
+  (macOS auto-update), StoreKit, WidgetKit/AppIntents, Sentry. Platform code is
+  split across ServicesIOS / ServicesMacOS with shared types in ServicesMutual.
+  Architecture: manager-based service layer surfaced through observable view
+  models; app-group sharing across app, tunnel extension, and widgets.
+
+# Auto-detected by openlore
+openlore:
+  generatedAt: "2026-06-26"
+  domains:
+    - overview
+    - architecture
+    - connection-management
+    - macos-daemon
+    - account-credentials
+    - gateway-selection
+    - app-configuration
+    - diagnostics-logging
+    - auto-updates
+    - notifications-feedback
+    - navigation-deeplinks
+    - presentation-ui
