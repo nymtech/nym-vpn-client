@@ -148,20 +148,11 @@ struct NymVPNDaemonApp: App {
 }
 
 private extension NymVPNDaemonApp {
-    static let startupLogger = Logger(label: "NymVPNDaemonApp")
-
     func setup() {
         ThemeConfiguration.setup()
         Task {
-            do {
-                // Things dependant on environment beeing set.
-                try await ConfigurationManager.shared.setup()
-            } catch {
-                Self.startupLogger.error(
-                    "Configuration setup failed: \(error.localizedDescription)"
-                )
-                return
-            }
+            // Things dependant on environment beeing set.
+            try await ConfigurationManager.shared.setup()
             CredentialsManager.shared.setup()
             FeatureFlagsManager.shared.setup()
             GatewayManager.shared.setup()

@@ -136,21 +136,12 @@ struct NymVPNApp: App {
 }
 
 private extension NymVPNApp {
-    static let startupLogger = Logger(label: "NymVPNApp")
-
     func setup() {
         ThemeConfiguration.setup()
 
         Task {
-            do {
-                // Things dependant on environment being set.
-                try await ConfigurationManager.shared.setup()
-            } catch {
-                Self.startupLogger.error(
-                    "Configuration setup failed: \(error.localizedDescription)"
-                )
-                return
-            }
+            // Things dependant on environment being set.
+            try await ConfigurationManager.shared.setup()
             CredentialsManager.shared.setup()
             FeatureFlagsManager.shared.setup()
             GatewayManager.shared.setup()
