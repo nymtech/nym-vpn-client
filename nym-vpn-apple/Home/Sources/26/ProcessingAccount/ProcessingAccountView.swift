@@ -189,11 +189,7 @@ private extension ProcessingAccountView {
     }
 
     static func loginCarouselPairs() -> [(String, String)] {
-        LoginProcessingUI.carouselStepRange.map { step in
-            (
-                "\(LoginProcessingUI.carouselTitlePrefix).title\(step)".localizedString,
-                "\(LoginProcessingUI.carouselTitlePrefix).subtitle\(step)".localizedString
-            )
-        }
+        let title = LoginProcessingUI.settingUpTitleKey.localizedString
+        return LoginProcessingUI.carouselStepRange.map { _ in (title, "") }
     }
 }
