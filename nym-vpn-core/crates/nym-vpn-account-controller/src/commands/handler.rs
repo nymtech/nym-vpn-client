@@ -273,6 +273,22 @@ pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
     }
 }
 
+pub(crate) async fn handle_apply_freepass<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
+    code: String,
+) -> Result<(), AccountCommandError> {
+    let account = shared_state
+        .vpn_api_account
+        .clone()
+        .ok_or(AccountCommandError::NoAccountStored)?;
+    shared_state
+        .vpn_api_client
+        .apply_freepass(account.as_ref(), code)
+        .await?;
+    tracing::debug!("Free-pass applied to account");
+    Ok(())
+}
+
 pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     shared_state: &mut SharedAccountState<C>,
     seed: Option<[u8; 32]>,

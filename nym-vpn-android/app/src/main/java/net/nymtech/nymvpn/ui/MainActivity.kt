@@ -303,6 +303,15 @@ class MainActivity : AppCompatActivity() {
 									GeneratingScreen()
 								}
 
+								composable<Route.FreepassScanner> {
+									val args = it.toRoute<Route.FreepassScanner>()
+									net.nymtech.nymvpn.ui.screens.account.scanner.FreepassScannerScreen(existingAccount = args.existingAccount)
+								}
+
+								composable<Route.RedeemVoucher> {
+									net.nymtech.nymvpn.ui.screens.account.redeem.RedeemVoucherScreen()
+								}
+
 								composable<Route.ServerDetails> {
 									val args = runCatching { it.toRoute<Route.ServerDetails>() }.getOrNull()
 									if (args != null) {

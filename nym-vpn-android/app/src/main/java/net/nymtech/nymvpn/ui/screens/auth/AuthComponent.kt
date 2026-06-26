@@ -91,6 +91,10 @@ fun AuthComponent(
 			WelcomeView(
 				onLoginClick = { localNavController.navigate(AuthRoute.Login) },
 				onSignUpClick = { localNavController.navigate(AuthRoute.SignUp) },
+				onScanQrClick = {
+					onAuthSuccess()
+					rootNavController.navigate(Route.FreepassScanner())
+				},
 			)
 		}
 

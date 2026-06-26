@@ -23,6 +23,8 @@ import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
 import net.nymtech.nymvpn.ui.screens.auth.routeName
 import net.nymtech.nymvpn.ui.common.animations.PulsingDotsWave
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import net.nymtech.nymvpn.ui.screens.account.redeem.FreepassSuccessContent
+import net.nymtech.nymvpn.util.FreepassError
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
@@ -37,6 +39,7 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 	val mode = viewModel.mode
 	val errorText = stringResource(R.string.account_generating_error)
 	var animationEnded by remember { mutableStateOf(false) }
+	var showFreepassSuccess by remember { mutableStateOf(false) }
 
 	LaunchedEffect(Unit) {
 		viewModel.error.collect {
@@ -48,20 +51,61 @@ fun GeneratingScreen(viewModel: GeneratingViewModel = hiltViewModel()) {
 	LaunchedEffect(animationEnded, pendingNavigation) {
 		val nav = pendingNavigation ?: return@LaunchedEffect
 		if (!animationEnded) return@LaunchedEffect
+		// Free-pass onboarding ends on the shared success screen; the user taps Continue to proceed.
+		if (mode == GeneratingMode.Freepass) {
+			showFreepassSuccess = true
+			return@LaunchedEffect
+		}
 		when (nav) {
 			Route.SelectPlan -> navController.replaceCurrentWith(Route.SelectPlan)
 			else -> navController.navigateAndForget(nav)
 		}
 	}
 
-	GeneratingContent(
-		mode = mode,
-		onAnimationEnd = {
-			if (mode == GeneratingMode.CreateAccount) {
-				animationEnded = true
-			}
-		},
-	)
+	val freepassError by viewModel.freepassError.collectAsStateWithLifecycle()
+	freepassError?.let { error ->
+		val (titleRes, messageRes) = when (error) {
+			FreepassError.INVALID ->
+				R.string.freepass_error_invalid_title to R.string.freepass_error_invalid_message
+			FreepassError.ALREADY_REDEEMED ->
+				R.string.freepass_error_redeemed_title to R.string.freepass_error_redeemed_message
+			FreepassError.GENERIC ->
+				R.string.freepass_error_generic_title to R.string.freepass_error_generic_message
+		}
+		androidx.compose.material3.AlertDialog(
+			onDismissRequest = { },
+			title = { Text(stringResource(titleRes)) },
+			text = { Text(stringResource(messageRes)) },
+			confirmButton = {
+				androidx.compose.material3.TextButton(onClick = {
+					viewModel.onFreepassErrorHandled()
+					navController.navigate(Route.FreepassScanner()) {
+						popUpTo(Route.Generating()) { inclusive = true }
+					}
+				}) { Text(stringResource(R.string.freepass_error_try_another)) }
+			},
+			dismissButton = {
+				androidx.compose.material3.TextButton(onClick = {
+					viewModel.onFreepassErrorHandled()
+					navController.navigateAndForget(Route.Main(authRoute = AuthRoute.Welcome.routeName))
+				}) { Text(stringResource(R.string.freepass_error_back)) }
+			},
+		)
+	}
+
+	if (showFreepassSuccess) {
+		val nav = pendingNavigation
+		FreepassSuccessContent(onContinue = { nav?.let { navController.navigateAndForget(it) } })
+	} else {
+		GeneratingContent(
+			mode = mode,
+			onAnimationEnd = {
+				if (mode == GeneratingMode.CreateAccount || mode == GeneratingMode.Freepass) {
+					animationEnded = true
+				}
+			},
+		)
+	}
 }
 
 @Composable
@@ -176,4 +220,4 @@ private fun PreviewGeneratingScreens() {
 	}
 }
 
-enum class GeneratingMode { CreateAccount, DeepLinkLogin }
+enum class GeneratingMode { CreateAccount, DeepLinkLogin, Freepass }

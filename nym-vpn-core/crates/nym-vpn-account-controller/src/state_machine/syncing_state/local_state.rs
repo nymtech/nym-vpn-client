@@ -251,6 +251,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                     },
                     AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::ApplyFreepass(return_sender, code) => {
+                        let res = handler::handle_apply_freepass(shared_state, code).await;
+                        return_sender.send(res);
+                    }
                     AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         return if shared_state.firewall_active {

@@ -59,7 +59,13 @@ sealed class Route {
 	data object SelectPlan : Route()
 
 	@Serializable
-	data class Generating(val mode: String = GeneratingMode.CreateAccount.name) : Route()
+	data class Generating(val mode: String = GeneratingMode.CreateAccount.name, val code: String? = null) : Route()
+
+	@Serializable
+	data class FreepassScanner(val existingAccount: Boolean = false) : Route()
+
+	@Serializable
+	data class RedeemVoucher(val code: String) : Route()
 
 	@Serializable
 	data class Payment(val productId: String) : Route()

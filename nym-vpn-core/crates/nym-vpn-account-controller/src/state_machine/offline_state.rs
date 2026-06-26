@@ -67,6 +67,10 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for OfflineState {
                     },
                     AccountCommand::AccountBalance(return_sender) => return_no_connectivity(return_sender),
                     AccountCommand::ObtainTicketbooks(return_sender, _) => return_no_connectivity(return_sender),
+                    AccountCommand::ApplyFreepass(return_sender, code) => {
+                        let res = handler::handle_apply_freepass(shared_state, code).await;
+                        return_sender.send(res);
+                    }
                     // Same comment as above
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_no_connectivity(return_sender),
 

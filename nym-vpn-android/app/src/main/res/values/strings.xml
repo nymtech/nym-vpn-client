@@ -370,6 +370,27 @@
 	<string name="account_generating_description_2">Establishing anonymous network credentials</string>
 	<string name="account_generating_description_3">Encrypting credentials with your device key; only you can unlock them</string>
 	<string name="account_generating_error">Failed to register account. Please, try again later</string>
+	<string name="freepass_error_invalid_title">Invalid code</string>
+	<string name="freepass_error_invalid_message">This free-pass code isn\'t valid. Check it and try again.</string>
+	<string name="freepass_error_redeemed_title">Code already used</string>
+	<string name="freepass_error_redeemed_message">This free-pass code has already been redeemed.</string>
+	<string name="freepass_error_generic_title">Couldn\'t apply code</string>
+	<string name="freepass_error_generic_message">Something went wrong applying this code. Please try again.</string>
+	<string name="freepass_error_try_another">Try another code</string>
+	<string name="freepass_error_back">Back to start</string>
+	<string name="auth_scan_qr_button">Scan QR code</string>
+	<string name="settings_redeem_voucher_title">Redeem a voucher</string>
+	<string name="freepass_redeem_applying">Applying your voucher…</string>
+	<string name="freepass_success_title">Congratulations, the voucher has been applied</string>
+	<string name="freepass_scanner_title">Scan your free-pass QR</string>
+	<string name="freepass_scanner_instruction">Point your camera at the QR code, or enter the code manually below.</string>
+	<string name="freepass_scanner_manual_label">Enter code manually</string>
+	<string name="freepass_scanner_manual_hint">Free-pass code or link</string>
+	<string name="freepass_scanner_submit">Continue</string>
+	<string name="freepass_scanner_invalid_input">Enter a valid free-pass code</string>
+	<string name="freepass_scanner_hint_no_match">That doesn\'t look like a Nym free-pass code — try the code field below.</string>
+	<string name="freepass_scanner_camera_rationale">Camera access is needed to scan the QR code. You can also enter the code manually.</string>
+	<string name="freepass_scanner_open_settings">Open settings</string>
 	<string name="account_generating_deeplink_title">Logging in…</string>
 	<string name="account_generating_deeplink_description">Please wait while we verify your account</string>
 	<!-- Account Payment screen -->

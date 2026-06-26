@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,12 +24,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun WelcomeView(onLoginClick: () -> Unit, onSignUpClick: () -> Unit, modifier: Modifier = Modifier) {
+fun WelcomeView(onLoginClick: () -> Unit, onSignUpClick: () -> Unit, onScanQrClick: () -> Unit, modifier: Modifier = Modifier) {
 	Column(
 		modifier = modifier
 			.background(MaterialTheme.colorScheme.surface)
@@ -68,17 +70,41 @@ fun WelcomeView(onLoginClick: () -> Unit, onSignUpClick: () -> Unit, modifier: M
 			shape = RoundedCornerShape(12.dp),
 		)
 
-		MainStyledButton(
+		OutlineStyledButton(
 			onClick = onLoginClick,
 			content = {
 				Text(
 					stringResource(R.string.auth_welcome_login_button),
 					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimaryContainer,
 				)
 			},
 			modifier = Modifier
 				.fillMaxWidth()
 				.height(48.dp.scaledHeight()),
+			shape = RoundedCornerShape(12.dp),
+		)
+
+		OutlineStyledButton(
+			onClick = onScanQrClick,
+			content = {
+				Row(
+					horizontalArrangement = Arrangement.spacedBy(8.dp),
+					verticalAlignment = Alignment.CenterVertically,
+				) {
+					Icon(
+						imageVector = ImageVector.vectorResource(R.drawable.ic_qr_code),
+						contentDescription = null,
+						tint = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
+					Text(
+						stringResource(R.string.auth_scan_qr_button),
+						style = MaterialTheme.typography.titleMedium,
+						color = MaterialTheme.colorScheme.onPrimaryContainer,
+					)
+				}
+			},
+			modifier = Modifier.fillMaxWidth().height(48.dp.scaledHeight()),
 			shape = RoundedCornerShape(12.dp),
 		)
 
@@ -93,6 +119,7 @@ private fun PreviewWelcomeViewDark() {
 		WelcomeView(
 			onLoginClick = {},
 			onSignUpClick = {},
+			onScanQrClick = {},
 		)
 	}
 }

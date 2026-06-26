@@ -401,6 +401,13 @@ impl NymVpnServiceCommandSender {
             .map_err(NymVpnServiceCommandInnerError::Account)?)
     }
 
+    pub async fn apply_freepass(&self, code: String) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::ApplyFreepass, code)
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::Account)?;
+        Ok(())
+    }
+
     pub async fn handle_subscription_payment(&self) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::HandleSubscriptionPayment, ())
             .await?

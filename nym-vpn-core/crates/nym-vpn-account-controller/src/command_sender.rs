@@ -331,6 +331,15 @@ impl AccountCommandSender {
     }
 
     #[instrument(skip(self))]
+    pub async fn apply_freepass(&self, code: String) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::ApplyFreepass(tx, code))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    #[instrument(skip(self))]
     pub async fn handle_subscription_payment(&self) -> Result<(), AccountCommandError> {
         // A payment changes subscription status server-side, so we must re-fetch from the VPN API
         // rather than re-evaluating the stale cached summary.

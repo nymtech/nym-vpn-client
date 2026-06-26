@@ -141,6 +141,7 @@ pub enum VpnServiceCommand {
         RegisterAccountRequest,
     ),
     CreateAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    ApplyFreepass(oneshot::Sender<Result<(), AccountCommandError>>, String),
     StoreAccount(
         oneshot::Sender<Result<(), AccountCommandError>>,
         StoreAccountRequest,
@@ -1089,6 +1090,9 @@ impl NymVpnService {
             VpnServiceCommand::CreateAccount(tx, ()) => {
                 let _ = tx.send(self.handle_create_account().await);
             }
+            VpnServiceCommand::ApplyFreepass(tx, code) => {
+                let _ = tx.send(self.handle_apply_freepass(code).await);
+            }
             VpnServiceCommand::StoreAccount(tx, account) => {
                 let _ = tx.send(self.handle_store_account(account).await);
             }
@@ -1867,6 +1871,10 @@ impl NymVpnService {
 
     async fn handle_create_account(&self) -> Result<(), AccountCommandError> {
         self.account_command_tx.create_account_command().await
+    }
+
+    async fn handle_apply_freepass(&self, code: String) -> Result<(), AccountCommandError> {
+        self.account_command_tx.apply_freepass(code).await
     }
 
     async fn handle_store_account(

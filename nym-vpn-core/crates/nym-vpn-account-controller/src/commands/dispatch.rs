@@ -46,6 +46,9 @@ pub enum AccountCommand {
     /// Attempt to obtain specified amount of ticketbooks (per type) for the decentralised account
     ObtainTicketbooks(ReturnSender<(), AccountCommandError>, u64),
 
+    /// Apply a free-pass voucher code to the stored account
+    ApplyFreepass(ReturnSender<(), AccountCommandError>, String),
+
     /// Reset the device identity, optionally take a seed for reproducibility
     ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>),
 
@@ -76,6 +79,7 @@ impl AccountCommand {
             AccountCommand::RotateKeys(return_sender) => return_sender.send(Err(error)),
             AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(error)),
             AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(error)),
+            AccountCommand::ApplyFreepass(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::RefreshAccountState(return_sender, _) => return_sender.send(Err(error)),
             AccountCommand::VpnApiFirewallUp(return_sender) => return_sender.send(Err(error)),

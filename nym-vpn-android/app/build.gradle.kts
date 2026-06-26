@@ -256,6 +256,7 @@ dependencies {
 
 	// barcode scanning
 	implementation(libs.zxing.android.embedded)
+	implementation(libs.accompanist.permissions)
 
 	// animations/splash
 	implementation(libs.lottie.compose)

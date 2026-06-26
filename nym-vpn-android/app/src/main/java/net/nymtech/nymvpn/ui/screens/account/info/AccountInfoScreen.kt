@@ -37,7 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.toClipEntry
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
@@ -144,6 +146,9 @@ fun AccountInfoScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewMo
 			}
 		},
 		onRenewClick = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
+		onRedeemVoucherClick = {
+			navController.navigate(Route.FreepassScanner(existingAccount = true))
+		},
 		onLinkAccountClick = {
 			uiState.accountLinkUrl?.let {
 				context.openWebUrl(it)
@@ -186,6 +191,7 @@ fun AccountInfoScreenContent(
 	isMnemonicStored: Boolean,
 	onManageClick: () -> Unit,
 	onRenewClick: () -> Unit,
+	onRedeemVoucherClick: () -> Unit,
 	onLinkAccountClick: () -> Unit,
 	onAccountIdClick: () -> Unit,
 	onDeviceIdClick: () -> Unit,
@@ -220,6 +226,14 @@ fun AccountInfoScreenContent(
 			},
 			icon = Icons.Outlined.Person,
 			onClick = onManageClick,
+		)
+
+		Spacer(Modifier.height(16.dp))
+
+		AccountActionCard(
+			title = stringResource(R.string.settings_redeem_voucher_title),
+			icon = ImageVector.vectorResource(R.drawable.ic_qr_code),
+			onClick = onRedeemVoucherClick,
 		)
 
 		Spacer(Modifier.height(16.dp))
@@ -328,6 +342,7 @@ internal fun PreviewAccountInfoScreen() {
 				isMnemonicStored = true,
 				onManageClick = {},
 				onRenewClick = {},
+				onRedeemVoucherClick = {},
 				onLinkAccountClick = {},
 				onAccountIdClick = {},
 				onDeviceIdClick = {},
