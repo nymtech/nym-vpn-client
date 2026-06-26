@@ -415,6 +415,10 @@ private extension AppFeatureViewModel {
         let lastError = connectionStatus.connectionManager.lastError
         guard !ConnectionStatusViewModel.isNeedsRelaxedIndependenceCriteria(lastError)
         else {
+            if appSettings.isGatewayIndependenceRelaxedThisSession {
+                oneClick.independenceConsentAgreed()
+                return
+            }
             if appSettings.serverFamilyRemindersEnabled {
                 isFamilyWarningModalDisplayed = true
             } else {

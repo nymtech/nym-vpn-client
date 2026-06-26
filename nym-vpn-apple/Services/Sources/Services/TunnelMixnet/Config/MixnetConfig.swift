@@ -29,6 +29,7 @@ public struct MixnetConfig: Codable, Equatable {
 #if os(iOS)
     public let gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig
     public let isServerFamilyRemindersEnabled: Bool
+    public let isGatewayIndependenceAlreadyRelaxed: Bool
 #endif
 
     public var name = "NymVPN Mixnet"
@@ -49,6 +50,7 @@ public struct MixnetConfig: Codable, Equatable {
         isTwoHopEnabled: Bool = false,
         gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(),
         isServerFamilyRemindersEnabled: Bool = true,
+        isGatewayIndependenceAlreadyRelaxed: Bool = false,
         name: String = "NymVPN Mixnet"
     ) {
         self.entryGateway = entryGateway
@@ -66,6 +68,7 @@ public struct MixnetConfig: Codable, Equatable {
         self.isAdBlockingEnabled = isAdBlockingEnabled
         self.gatewaySelectionAlgorithmConfig = gatewaySelectionAlgorithmConfig
         self.isServerFamilyRemindersEnabled = isServerFamilyRemindersEnabled
+        self.isGatewayIndependenceAlreadyRelaxed = isGatewayIndependenceAlreadyRelaxed
         self.name = name
     }
 #endif

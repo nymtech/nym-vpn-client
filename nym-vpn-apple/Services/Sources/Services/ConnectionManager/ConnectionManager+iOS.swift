@@ -113,7 +113,8 @@ extension ConnectionManager {
             isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
             isTwoHopEnabled: connectionType == .wireguard,
             gatewaySelectionAlgorithmConfig: algorithmConfig,
-            isServerFamilyRemindersEnabled: appSettings.serverFamilyRemindersEnabled
+            isServerFamilyRemindersEnabled: appSettings.serverFamilyRemindersEnabled,
+            isGatewayIndependenceAlreadyRelaxed: appSettings.isGatewayIndependenceRelaxedThisSession
         )
     }
 

@@ -92,6 +92,8 @@ import ConnectionTypes
         didSet { serverFamilyRemindersEnabledPublisher = serverFamilyRemindersEnabled }
     }
 
+    public var isGatewayIndependenceRelaxedThisSession = false
+
 #if os(macOS)
     @AppStorage(AppSettingKey.statistics.rawValue)
     public var isStatisticsEnabled = true

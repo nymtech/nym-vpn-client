@@ -10,6 +10,9 @@ import GRPCManager
 extension ConnectionManager {
     public func setGatewayIndependenceNotifications(_ enabled: Bool) {
         appSettings.serverFamilyRemindersEnabled = enabled
+        if enabled {
+            appSettings.isGatewayIndependenceRelaxedThisSession = false
+        }
         Task {
 #if os(iOS)
             await sendAfterPersistingConfig(.setGatewayIndependenceNotifications(enabled))

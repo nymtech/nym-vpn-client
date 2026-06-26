@@ -48,7 +48,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self)
         try await setup(vpnConfig: vpnConfig)
 
-        try await ensureGatewayIndependenceAllowsConnect()
+        try await ensureGatewayIndependenceAllowsConnect(
+            alreadyRelaxed: mixnetConfig.isGatewayIndependenceAlreadyRelaxed
+        )
 
         _ = try await commandSender?.connectTunnel()
         try await tunnelActor.waitUntilStarted()
@@ -70,8 +72,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 }
 
 extension PacketTunnelProvider {
-    func ensureGatewayIndependenceAllowsConnect() async throws {
+    func ensureGatewayIndependenceAllowsConnect(alreadyRelaxed: Bool = false) async throws {
         guard let commandSender else { return }
+
+        guard !alreadyRelaxed else {
+            try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: false)
+            return
+        }
 
         try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: true)
         guard case .needsRelaxedIndependenceCriteria = try await commandSender.getTentativeGateways()

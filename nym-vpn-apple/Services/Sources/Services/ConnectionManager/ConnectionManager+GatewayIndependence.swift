@@ -13,6 +13,7 @@ extension ConnectionManager {
     /// the connect is kicked off explicitly.
     public func acceptRelaxedGatewayIndependence() async throws {
 #if os(iOS)
+        appSettings.isGatewayIndependenceRelaxedThisSession = true
         await tunnelsManager.send(.setGatewayIndependence(false))
 #elseif os(macOS)
         try await grpcManager.setGatewayIndependence(false)
