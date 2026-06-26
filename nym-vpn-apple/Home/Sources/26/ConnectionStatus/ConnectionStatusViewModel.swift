@@ -23,6 +23,7 @@ import UIKit
     var status: TunnelStatus = .unknown
     var connectedDate: Date?
     var showsIndependenceWarning = false
+    private(set) var hadConnectedSession = false
 
     @ObservationIgnored private var lastErrorSignature: ErrorSignature?
     @ObservationIgnored private var didFireForCurrentError = false
@@ -168,6 +169,7 @@ private extension ConnectionStatusViewModel {
             resumeFromIndependenceConsent = false
             lastErrorSignature = nil
             didFireForCurrentError = false
+            hadConnectedSession = true
             cancelQueue()
 
         case .error:
@@ -191,6 +193,7 @@ private extension ConnectionStatusViewModel {
             lastConnectingStep = nil
             resumeFromIndependenceConsent = false
             showsIndependenceWarning = false
+            hadConnectedSession = false
             cancelQueue()
 
         case .connecting, .reasserting, .restarting, .offlineReconnect:

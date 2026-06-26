@@ -264,6 +264,11 @@ private extension AppFeatureView {
             .onChange(of: viewModel.connectionStatus.status) { oldValue, newValue in
                 viewModel.handleTunnelStatusChange(from: oldValue, to: newValue)
             }
+            .onChange(of: viewModel.path.count) { _, newCount in
+                if newCount == 0 {
+                    viewModel.handleReturnToHome()
+                }
+            }
     }
 
     func handlePlanPurchaseNavigationTokenChange(viewModel: AppFeatureViewModel) {

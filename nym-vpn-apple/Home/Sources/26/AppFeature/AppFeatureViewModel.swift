@@ -31,6 +31,7 @@ import GRPCManager
 
     var isSubscriptionPurchaseChoiceDisplayed = false
     var isFamilyWarningModalDisplayed = false
+    var pendingFamilyWarningRestore = false
     public private(set) var webSubscriptionPurchaseToken: UInt = 0
 
     var drawerContent: AppDrawerContent?
@@ -320,18 +321,37 @@ import GRPCManager
 
     func confirmFamilyWarning() {
         isFamilyWarningModalDisplayed = false
+        pendingFamilyWarningRestore = false
         oneClick.independenceConsentAgreed()
     }
 
     func dismissFamilyWarning() {
-        oneClick.cancelGatewayIndependenceConsent()
+        pendingFamilyWarningRestore = false
+        if connectionStatus.hadConnectedSession {
+            oneClick.clearIndependenceErrorIfNeeded()
+        } else {
+            oneClick.cancelGatewayIndependenceConsent()
+        }
         isFamilyWarningModalDisplayed = false
     }
 
     func openNotificationSettingsFromFamilyWarning() {
         isFamilyWarningModalDisplayed = false
+        pendingFamilyWarningRestore = true
         path.append(HomeLink.settings)
         path.append(SettingLink.notifications)
+    }
+
+    func handleReturnToHome() {
+        guard pendingFamilyWarningRestore else { return }
+        pendingFamilyWarningRestore = false
+        let stillAwaiting = connectionStatus.connectionManager.currentTunnelStatus == .error
+            && GatewayIndependenceArcPolicy.isIndependenceConsentError(
+                connectionStatus.connectionManager.lastError
+            )
+        if stillAwaiting {
+            isFamilyWarningModalDisplayed = true
+        }
     }
 
     func requestPlanPurchaseTransition() {

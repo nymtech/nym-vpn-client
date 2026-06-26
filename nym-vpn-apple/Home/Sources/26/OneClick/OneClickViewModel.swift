@@ -192,6 +192,10 @@ public final class OneClickViewModel {
         }
     }
 
+    func clearIndependenceErrorIfNeeded() {
+        snackbarManager.clear()
+    }
+
     func cancelGatewayIndependenceConsent() {
         guard !isConnectDisconnectInFlight,
               connectionManager.currentTunnelStatus == .error
