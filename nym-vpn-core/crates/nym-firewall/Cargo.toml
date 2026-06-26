@@ -23,6 +23,7 @@ tracing.workspace = true
 
 nym-common.workspace = true
 nym-firewall-config.workspace = true
+nym-http-api-client.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 pfctl.workspace = true

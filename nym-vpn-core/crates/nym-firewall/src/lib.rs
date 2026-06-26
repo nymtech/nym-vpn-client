@@ -425,6 +425,7 @@ impl Firewall {
     /// until this method is called again with another policy, or until `reset_policy` is called.
     pub fn apply_policy(&mut self, policy: FirewallPolicy) -> Result<(), Error> {
         tracing::info!("Applying firewall policy: {}", policy);
+        nym_http_api_client::network_reconfigured();
         self.inner.apply_policy(policy)
     }
 
@@ -432,6 +433,7 @@ impl Firewall {
     /// it had before any policy was applied through this `Firewall` instance.
     pub fn reset_policy(&mut self) -> Result<(), Error> {
         tracing::info!("Resetting firewall policy");
+        nym_http_api_client::network_reconfigured();
         self.inner.reset_policy()
     }
 
