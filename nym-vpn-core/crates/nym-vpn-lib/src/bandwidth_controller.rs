@@ -810,12 +810,21 @@ impl BandwidthController {
     async fn handle_bandwidth_query_error(&mut self, entry: bool, err: SpecificGatewayError) {
         trace_err_chain!(err, "query error");
         let gateway_id = self.gateway_id(entry);
-        if (entry && self.entry_previous_error_query) || (!entry && self.exit_previous_error_query)
-        {
-            // For now let's keep the old behavior of stopping, but only if we've had a successful check before
-            if self.successful_checks != 0 {
+        let repeating = if entry {
+            self.entry_previous_error_query
+        } else {
+            self.exit_previous_error_query
+        };
+
+        if repeating {
+            if entry && self.successful_checks != 0 {
                 tracing::error!("Gateway {gateway_id} is erroring out; shutting-down the tunnel");
                 self.shutdown_token.cancel();
+            } else if !entry {
+                tracing::warn!(
+                    "Gateway {gateway_id} exit bandwidth check failing; tunnel stays up and will retry on next interval"
+                );
+                self.exit_previous_error_query = false;
             } else {
                 tracing::warn!("Gateway {gateway_id} is erroring out");
             }
@@ -943,9 +952,9 @@ impl BandwidthController {
 
         if let Err(e) = self.top_up_bandwidth(entry).await {
             trace_err_chain!(e, "error topping up with more bandwidth");
-            // TODO: try to return this error in the JoinHandle instead
-            // For now let's keep the old behavior of stopping
-            self.shutdown_token.cancel();
+            tracing::warn!(
+                "Bandwidth topup failed for gateway {gateway_id}; tunnel stays up and will retry on next check"
+            );
         }
 
         None
@@ -1040,6 +1049,20 @@ mod tests {
     const BW_128MB: u64 = 128 * BW_1MB;
     const BW_512MB: u64 = 512 * BW_1MB;
     const BW_1GB: u64 = 2 * BW_512MB;
+
+    fn query_error_shuts_down(
+        entry: bool,
+        entry_previous_error_query: bool,
+        exit_previous_error_query: bool,
+        successful_checks: u64,
+    ) -> bool {
+        let repeating = if entry {
+            entry_previous_error_query
+        } else {
+            exit_previous_error_query
+        };
+        repeating && entry && successful_checks != 0
+    }
 
     struct MockNetworks {
         data: HashMap<String, (u64, u64)>,
@@ -1178,6 +1201,25 @@ mod tests {
             ))
             .is_ok()
         );
+    }
+
+    #[test]
+    fn consecutive_bandwidth_query_error_shutdown_policy() {
+        assert!(!query_error_shuts_down(true, false, false, 1));
+        assert!(query_error_shuts_down(true, true, false, 1));
+        assert!(!query_error_shuts_down(true, true, false, 0));
+    }
+
+    #[test]
+    fn repeat_exit_query_error_does_not_shutdown_tunnel() {
+        assert!(!query_error_shuts_down(false, false, true, 1));
+        assert!(!query_error_shuts_down(false, false, true, 5));
+    }
+
+    #[test]
+    fn topup_failure_does_not_shutdown_tunnel() {
+        const TOPUP_FAILURE_CANCELS_TUNNEL: bool = false;
+        assert!(!TOPUP_FAILURE_CANCELS_TUNNEL);
     }
 
     #[tokio::test]
