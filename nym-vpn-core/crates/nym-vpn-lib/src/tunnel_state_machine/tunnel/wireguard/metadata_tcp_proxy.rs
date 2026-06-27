@@ -16,10 +16,10 @@ use tokio_util::sync::CancellationToken;
 use crate::tunnel_state_machine::TunnelMetadata;
 
 fn metadata_bind_ip(ips: &[IpAddr], destination: SocketAddr) -> Option<IpAddr> {
-    ips.iter()
-        .find(|ip| matches!(destination, SocketAddr::V4(_) if ip.is_ipv4()))
-        .or_else(|| ips.first())
-        .copied()
+    match destination {
+        SocketAddr::V4(_) => ips.iter().find(|ip| ip.is_ipv4()).copied(),
+        SocketAddr::V6(_) => ips.iter().find(|ip| ip.is_ipv6()).copied(),
+    }
 }
 
 pub struct MetadataTcpProxy {
@@ -51,12 +51,27 @@ impl MetadataTcpProxy {
                         };
                         let interface = interface.clone();
                         tokio::spawn(async move {
-                            let Ok(mut outbound) =
-                                connect_via_tunnel_interface(&interface, bind_ip, destination).await
-                            else {
-                                return;
-                            };
-                            let _ = tokio::io::copy_bidirectional(&mut inbound, &mut outbound).await;
+                            match connect_via_tunnel_interface(
+                                &interface,
+                                bind_ip,
+                                destination,
+                            )
+                            .await
+                            {
+                                Ok(mut outbound) => {
+                                    let _ = tokio::io::copy_bidirectional(
+                                        &mut inbound,
+                                        &mut outbound,
+                                    )
+                                    .await;
+                                }
+                                Err(err) => {
+                                    tracing::warn!(
+                                        %err,
+                                        "Metadata proxy failed to connect outbound via tunnel interface"
+                                    );
+                                }
+                            }
                         });
                     }
                 }
@@ -78,6 +93,8 @@ async fn connect_via_tunnel_interface(
     let socket = create_bound_socket(interface, bind_ip, destination)?;
     #[cfg(unix)]
     {
+        // SAFETY: `socket` is a valid owned fd from `Socket::new`; nonblocking was set before
+        // transfer. Ownership moves to `TcpSocket`, which closes the fd on drop.
         let tcp = unsafe { tokio::net::TcpSocket::from_raw_fd(socket.into_raw_fd()) };
         tcp.connect(destination).await
     }
@@ -132,6 +149,8 @@ fn bind_socket_to_interface(
 
     #[cfg(windows)]
     {
+        // MetadataTcpProxy is only started on unix; this arm exists so the helper compiles on
+        // Windows where outbound connect returns unsupported before bind is exercised.
         let _ = (socket, interface, destination);
         Ok(())
     }
@@ -160,5 +179,27 @@ mod tests {
     #[test]
     fn metadata_bind_ip_empty_returns_none() {
         assert!(metadata_bind_ip(&[], SocketAddr::from(([127, 0, 0, 1], 1))).is_none());
+    }
+
+    #[test]
+    fn metadata_bind_ip_ipv6_destination_requires_ipv6_address() {
+        let ips = [IpAddr::V4(Ipv4Addr::new(10, 1, 0, 2))];
+        let dest = SocketAddr::from((Ipv6Addr::LOCALHOST, 51830));
+
+        assert!(metadata_bind_ip(&ips, dest).is_none());
+    }
+
+    #[test]
+    fn metadata_bind_ip_ipv6_destination_picks_ipv6_when_present() {
+        let ips = [
+            IpAddr::V4(Ipv4Addr::new(10, 1, 0, 2)),
+            IpAddr::V6(Ipv6Addr::new(0xfd, 0, 0, 0, 0, 0, 0, 2)),
+        ];
+        let dest = SocketAddr::from((Ipv6Addr::new(0xfd, 0, 0, 0, 0, 0, 0, 1), 51830));
+
+        assert_eq!(
+            metadata_bind_ip(&ips, dest),
+            Some(IpAddr::V6(Ipv6Addr::new(0xfd, 0, 0, 0, 0, 0, 0, 2)))
+        );
     }
 }

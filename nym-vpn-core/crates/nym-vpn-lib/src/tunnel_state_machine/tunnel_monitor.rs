@@ -735,39 +735,36 @@ impl TunnelMonitor {
                 let metadata_shutdown = self.shutdown_token.child_token();
                 let _metadata_event_handler = tokio::spawn(async move {
                     let Ok(entry_proxy) = entry_metadata_addr_rx.await else {
+                        tracing::error!(
+                            "Entry metadata proxy address channel dropped before bandwidth setup"
+                        );
                         return;
                     };
                     tracing::info!("Received entry metadata endpoint: {entry_proxy}");
 
-                    let exit_event = {
-                        #[cfg(unix)]
-                        {
-                            match MetadataTcpProxy::start(
-                                &exit_tunnel,
-                                metadata_destination,
-                                metadata_shutdown,
-                            )
-                            .await
-                            {
-                                Ok(proxy) => {
-                                    let exit_proxy = proxy.listen_addr;
-                                    let _exit_proxy = proxy;
-                                    tracing::info!("Exit metadata proxy listening on {exit_proxy}");
-                                    MetadataEvent::MetadataProxy(exit_proxy)
-                                }
-                                Err(err) => {
-                                    tracing::warn!(
-                                        "Failed to start exit metadata proxy: {err}; falling back to tunnel interface"
-                                    );
-                                    MetadataEvent::TunnelMetadata(exit_tunnel)
-                                }
-                            }
+                    #[cfg(unix)]
+                    let (exit_event, exit_proxy) = match MetadataTcpProxy::start(
+                        &exit_tunnel,
+                        metadata_destination,
+                        metadata_shutdown.clone(),
+                    )
+                    .await
+                    {
+                        Ok(proxy) => {
+                            let exit_proxy_addr = proxy.listen_addr;
+                            tracing::info!("Exit metadata proxy listening on {exit_proxy_addr}");
+                            (MetadataEvent::MetadataProxy(exit_proxy_addr), Some(proxy))
                         }
-                        #[cfg(not(unix))]
-                        {
-                            MetadataEvent::TunnelMetadata(exit_tunnel)
+                        Err(err) => {
+                            tracing::warn!(
+                                "Failed to start exit metadata proxy: {err}; falling back to tunnel interface"
+                            );
+                            (MetadataEvent::TunnelMetadata(exit_tunnel), None)
                         }
                     };
+
+                    #[cfg(not(unix))]
+                    let exit_event = MetadataEvent::TunnelMetadata(exit_tunnel);
 
                     send_bandwidth_metadata_event(
                         entry_metadata_tx,
@@ -776,6 +773,11 @@ impl TunnelMonitor {
                         "single-tun",
                     );
                     send_bandwidth_metadata_event(exit_tx, exit_event, "exit", "single-tun");
+
+                    #[cfg(unix)]
+                    if let Some(_exit_proxy) = exit_proxy {
+                        metadata_shutdown.cancelled().await;
+                    }
                 });
             }
             TunnelInterface::Two { entry, exit } => {
