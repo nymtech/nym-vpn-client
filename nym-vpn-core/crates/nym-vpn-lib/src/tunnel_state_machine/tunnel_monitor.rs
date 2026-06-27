@@ -728,10 +728,12 @@ impl TunnelMonitor {
             TunnelInterface::One(exit_tunnel) => {
                 let exit_tx = exit_metadata_tx;
                 let exit_tunnel = exit_tunnel.clone();
+                #[cfg(unix)]
                 let metadata_destination = self
                     .tunnel_parameters
                     .tunnel_constants
                     .in_tunnel_bandwidth_metadata_endpoint;
+                #[cfg(unix)]
                 let metadata_shutdown = self.shutdown_token.child_token();
                 let _metadata_event_handler = tokio::spawn(async move {
                     let Ok(entry_proxy) = entry_metadata_addr_rx.await else {
