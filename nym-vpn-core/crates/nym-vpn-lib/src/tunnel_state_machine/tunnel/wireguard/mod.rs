@@ -15,6 +15,8 @@ pub mod dns64;
 pub mod dns_filter_proxy;
 #[cfg(unix)]
 pub mod fd;
+#[cfg(unix)]
+pub mod metadata_tcp_proxy;
 pub mod two_hop_config;
 
 #[derive(Debug)]
@@ -73,15 +75,6 @@ impl From<MetadataEvent> for nym_wg_metadata_client::TunUpSendData {
 pub type MetadataSender = tokio::sync::oneshot::Sender<MetadataEvent>;
 pub type MetadataReceiver = tokio::sync::oneshot::Receiver<MetadataEvent>;
 
-pub(crate) fn one_tunnel_bandwidth_metadata_events(
-    proxy_addr: SocketAddr,
-) -> (MetadataEvent, MetadataEvent) {
-    (
-        MetadataEvent::MetadataProxy(proxy_addr),
-        MetadataEvent::MetadataProxy(proxy_addr),
-    )
-}
-
 pub(crate) fn two_tunnel_bandwidth_metadata_events(
     entry: &TunnelMetadata,
     exit: &TunnelMetadata,
@@ -94,7 +87,7 @@ pub(crate) fn two_tunnel_bandwidth_metadata_events(
 
 #[cfg(test)]
 mod bandwidth_metadata_events_tests {
-    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+    use std::net::{IpAddr, Ipv4Addr};
 
     use super::*;
 
@@ -105,16 +98,6 @@ mod bandwidth_metadata_events_tests {
             ipv4_gateway: None,
             ipv6_gateway: None,
         }
-    }
-
-    #[test]
-    fn one_tunnel_uses_metadata_proxy_for_entry_and_exit() {
-        let proxy_addr = SocketAddr::from(([127, 0, 0, 1], 51830));
-
-        let (entry, exit) = one_tunnel_bandwidth_metadata_events(proxy_addr);
-
-        assert!(matches!(entry, MetadataEvent::MetadataProxy(addr) if addr == proxy_addr));
-        assert!(matches!(exit, MetadataEvent::MetadataProxy(addr) if addr == proxy_addr));
     }
 
     #[test]

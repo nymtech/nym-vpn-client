@@ -91,11 +91,14 @@ use crate::{
             wireguard::{
                 ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
                 MetadataSender, connected_tunnel::ConnectedTunnel,
-                one_tunnel_bandwidth_metadata_events, two_tunnel_bandwidth_metadata_events,
+                two_tunnel_bandwidth_metadata_events,
             },
         },
     },
 };
+
+#[cfg(unix)]
+use crate::tunnel_state_machine::tunnel::wireguard::metadata_tcp_proxy::MetadataTcpProxy;
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -722,21 +725,57 @@ impl TunnelMonitor {
 
         // Send metadata endpoint data to the bandwidth controller
         match &tunnel_interface {
-            TunnelInterface::One(_) => {
+            TunnelInterface::One(exit_tunnel) => {
                 let exit_tx = exit_metadata_tx;
+                let exit_tunnel = exit_tunnel.clone();
+                let metadata_destination = self
+                    .tunnel_parameters
+                    .tunnel_constants
+                    .in_tunnel_bandwidth_metadata_endpoint;
+                let metadata_shutdown = self.shutdown_token.child_token();
                 let _metadata_event_handler = tokio::spawn(async move {
-                    if let Ok(proxy_addr) = entry_metadata_addr_rx.await {
-                        tracing::info!("Received entry metadata endpoint: {proxy_addr}");
-                        let (entry_event, exit_event) =
-                            one_tunnel_bandwidth_metadata_events(proxy_addr);
-                        send_bandwidth_metadata_event(
-                            entry_metadata_tx,
-                            entry_event,
-                            "entry",
-                            "single-tun",
-                        );
-                        send_bandwidth_metadata_event(exit_tx, exit_event, "exit", "single-tun");
-                    }
+                    let Ok(entry_proxy) = entry_metadata_addr_rx.await else {
+                        return;
+                    };
+                    tracing::info!("Received entry metadata endpoint: {entry_proxy}");
+
+                    let exit_event = {
+                        #[cfg(unix)]
+                        {
+                            match MetadataTcpProxy::start(
+                                &exit_tunnel,
+                                metadata_destination,
+                                metadata_shutdown,
+                            )
+                            .await
+                            {
+                                Ok(proxy) => {
+                                    let exit_proxy = proxy.listen_addr;
+                                    let _exit_proxy = proxy;
+                                    tracing::info!("Exit metadata proxy listening on {exit_proxy}");
+                                    MetadataEvent::MetadataProxy(exit_proxy)
+                                }
+                                Err(err) => {
+                                    tracing::warn!(
+                                        "Failed to start exit metadata proxy: {err}; falling back to tunnel interface"
+                                    );
+                                    MetadataEvent::TunnelMetadata(exit_tunnel)
+                                }
+                            }
+                        }
+                        #[cfg(not(unix))]
+                        {
+                            MetadataEvent::TunnelMetadata(exit_tunnel)
+                        }
+                    };
+
+                    send_bandwidth_metadata_event(
+                        entry_metadata_tx,
+                        MetadataEvent::MetadataProxy(entry_proxy),
+                        "entry",
+                        "single-tun",
+                    );
+                    send_bandwidth_metadata_event(exit_tx, exit_event, "exit", "single-tun");
                 });
             }
             TunnelInterface::Two { entry, exit } => {
