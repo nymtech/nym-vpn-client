@@ -3,6 +3,7 @@
 
 use std::io;
 use std::net::{IpAddr, SocketAddr};
+#[cfg(any(target_os = "ios", target_os = "macos"))]
 use std::num::NonZeroU32;
 #[cfg(unix)]
 use std::os::fd::{FromRawFd, IntoRawFd};
