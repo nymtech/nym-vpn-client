@@ -766,7 +766,12 @@ impl TunnelMonitor {
                     };
 
                     #[cfg(not(unix))]
-                    let exit_event = MetadataEvent::TunnelMetadata(exit_tunnel);
+                    let exit_event = {
+                        tracing::warn!(
+                            "Exit metadata TCP proxy unavailable on this platform; using tunnel interface for exit bandwidth metadata"
+                        );
+                        MetadataEvent::TunnelMetadata(exit_tunnel)
+                    };
 
                     send_bandwidth_metadata_event(
                         entry_metadata_tx,
@@ -777,8 +782,9 @@ impl TunnelMonitor {
                     send_bandwidth_metadata_event(exit_tx, exit_event, "exit", "single-tun");
 
                     #[cfg(unix)]
-                    if let Some(_exit_proxy) = exit_proxy {
+                    if let Some(keep_exit_proxy_alive) = exit_proxy {
                         metadata_shutdown.cancelled().await;
+                        drop(keep_exit_proxy_alive);
                     }
                 });
             }

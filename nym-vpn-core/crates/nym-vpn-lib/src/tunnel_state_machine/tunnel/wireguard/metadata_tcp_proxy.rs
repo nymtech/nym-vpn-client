@@ -45,34 +45,46 @@ impl MetadataTcpProxy {
                 tokio::select! {
                     _ = shutdown.cancelled() => break,
                     accept_result = listener.accept() => {
-                        let Ok((mut inbound, _)) = accept_result else {
-                            tracing::debug!("Metadata proxy accept failed; stopping listener");
-                            break;
-                        };
-                        let interface = interface.clone();
-                        tokio::spawn(async move {
-                            match connect_via_tunnel_interface(
-                                &interface,
-                                bind_ip,
-                                destination,
-                            )
-                            .await
-                            {
-                                Ok(mut outbound) => {
-                                    let _ = tokio::io::copy_bidirectional(
-                                        &mut inbound,
-                                        &mut outbound,
+                        match accept_result {
+                            Ok((mut inbound, _)) => {
+                                let interface = interface.clone();
+                                tokio::spawn(async move {
+                                    match connect_via_tunnel_interface(
+                                        &interface,
+                                        bind_ip,
+                                        destination,
                                     )
-                                    .await;
-                                }
-                                Err(err) => {
-                                    tracing::warn!(
-                                        %err,
-                                        "Metadata proxy failed to connect outbound via tunnel interface"
-                                    );
-                                }
+                                    .await
+                                    {
+                                        Ok(mut outbound) => {
+                                            if let Err(err) = tokio::io::copy_bidirectional(
+                                                &mut inbound,
+                                                &mut outbound,
+                                            )
+                                            .await
+                                            {
+                                                tracing::debug!(
+                                                    %err,
+                                                    "Metadata proxy session ended with error"
+                                                );
+                                            }
+                                        }
+                                        Err(err) => {
+                                            tracing::warn!(
+                                                %err,
+                                                "Metadata proxy failed to connect outbound via tunnel interface"
+                                            );
+                                        }
+                                    }
+                                });
                             }
-                        });
+                            Err(err) => {
+                                tracing::warn!(
+                                    %err,
+                                    "Metadata proxy accept error; retrying"
+                                );
+                            }
+                        }
                     }
                 }
             }
@@ -137,6 +149,8 @@ fn bind_socket_to_interface(
 
     #[cfg(any(target_os = "ios", target_os = "macos"))]
     {
+        // bind_device_by_index must run before socket.bind on Apple platforms (IP_BOUND_IF /
+        // IPV6_BOUND_IF ordering).
         let index = nix::net::if_::if_nametoindex(interface)
             .map_err(|err| io::Error::other(format!("if_nametoindex({interface}): {err}")))?;
         let index = NonZeroU32::new(index)
