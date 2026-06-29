@@ -184,6 +184,7 @@ hickory-proto.workspace = true
 nym-socks5-proxy.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
+socket2.workspace = true
 tracing-android.workspace = true
 
 # iOS-specific dependencies

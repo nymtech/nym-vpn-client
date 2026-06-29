@@ -15,6 +15,8 @@ pub mod dns64;
 pub mod dns_filter_proxy;
 #[cfg(unix)]
 pub mod fd;
+#[cfg(unix)]
+pub mod metadata_tcp_proxy;
 pub mod two_hop_config;
 
 #[derive(Debug)]
@@ -72,3 +74,89 @@ impl From<MetadataEvent> for nym_wg_metadata_client::TunUpSendData {
 
 pub type MetadataSender = tokio::sync::oneshot::Sender<MetadataEvent>;
 pub type MetadataReceiver = tokio::sync::oneshot::Receiver<MetadataEvent>;
+
+pub(crate) fn single_tun_exit_metadata_event(
+    exit_proxy_addr: Option<SocketAddr>,
+    fallback_tunnel: TunnelMetadata,
+) -> MetadataEvent {
+    match exit_proxy_addr {
+        Some(proxy_addr) => MetadataEvent::MetadataProxy(proxy_addr),
+        None => MetadataEvent::TunnelMetadata(fallback_tunnel),
+    }
+}
+
+pub(crate) fn two_tunnel_bandwidth_metadata_events(
+    entry: &TunnelMetadata,
+    exit: &TunnelMetadata,
+) -> (MetadataEvent, MetadataEvent) {
+    (
+        MetadataEvent::TunnelMetadata(entry.clone()),
+        MetadataEvent::TunnelMetadata(exit.clone()),
+    )
+}
+
+#[cfg(test)]
+mod bandwidth_metadata_events_tests {
+    use std::net::{IpAddr, Ipv4Addr};
+
+    use super::*;
+
+    fn sample_metadata(interface: &str) -> TunnelMetadata {
+        TunnelMetadata {
+            interface: interface.to_string(),
+            ips: vec![IpAddr::V4(Ipv4Addr::new(10, 1, 0, 2))],
+            ipv4_gateway: None,
+            ipv6_gateway: None,
+        }
+    }
+
+    #[test]
+    fn single_tun_exit_uses_metadata_proxy_when_listener_started() {
+        let exit = sample_metadata("utun42");
+        let proxy = SocketAddr::from(([127, 0, 0, 1], 50607));
+
+        assert!(matches!(
+            single_tun_exit_metadata_event(Some(proxy), exit),
+            MetadataEvent::MetadataProxy(addr) if addr == proxy
+        ));
+    }
+
+    #[test]
+    fn single_tun_exit_falls_back_to_tunnel_metadata_when_proxy_unavailable() {
+        let exit = sample_metadata("utun42");
+
+        assert!(matches!(
+            single_tun_exit_metadata_event(None, exit.clone()),
+            MetadataEvent::TunnelMetadata(metadata) if metadata.interface == exit.interface
+        ));
+    }
+
+    #[test]
+    fn single_tun_exit_proxy_maps_to_tcp_proxy_transport() {
+        let exit = sample_metadata("utun42");
+        let proxy = SocketAddr::from(([127, 0, 0, 1], 50607));
+        let event = single_tun_exit_metadata_event(Some(proxy), exit);
+
+        assert!(matches!(
+            nym_wg_metadata_client::TunUpSendData::from(event),
+            nym_wg_metadata_client::TunUpSendData::TcpProxy(addr) if addr == proxy
+        ));
+    }
+
+    #[test]
+    fn two_tunnel_uses_tunnel_metadata_for_entry_and_exit() {
+        let entry = sample_metadata("wg0");
+        let exit = sample_metadata("wg1");
+
+        let (entry_event, exit_event) = two_tunnel_bandwidth_metadata_events(&entry, &exit);
+
+        assert!(matches!(
+            entry_event,
+            MetadataEvent::TunnelMetadata(metadata) if metadata.interface == entry.interface
+        ));
+        assert!(matches!(
+            exit_event,
+            MetadataEvent::TunnelMetadata(metadata) if metadata.interface == exit.interface
+        ));
+    }
+}

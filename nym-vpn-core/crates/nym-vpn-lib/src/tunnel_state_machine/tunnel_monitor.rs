@@ -90,11 +90,15 @@ use crate::{
             transports::{self, TransportError},
             wireguard::{
                 ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
-                connected_tunnel::ConnectedTunnel,
+                MetadataSender, connected_tunnel::ConnectedTunnel, single_tun_exit_metadata_event,
+                two_tunnel_bandwidth_metadata_events,
             },
         },
     },
 };
+
+#[cfg(unix)]
+use crate::tunnel_state_machine::tunnel::wireguard::metadata_tcp_proxy::MetadataTcpProxy;
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -299,6 +303,17 @@ async fn wait_for_exit_handshake(
                 elapsed.as_secs_f32()
             );
         }
+    }
+}
+
+fn send_bandwidth_metadata_event(
+    tx: MetadataSender,
+    event: MetadataEvent,
+    leg: &'static str,
+    tunnel_layout: &'static str,
+) {
+    if tx.send(event).is_err() {
+        tracing::warn!("Bandwidth metadata receiver dropped before {leg} event ({tunnel_layout})");
     }
 }
 
@@ -710,28 +725,73 @@ impl TunnelMonitor {
 
         // Send metadata endpoint data to the bandwidth controller
         match &tunnel_interface {
-            TunnelInterface::One(exit) => {
+            TunnelInterface::One(exit_tunnel) => {
+                let exit_tx = exit_metadata_tx;
+                let exit_tunnel = exit_tunnel.clone();
+                #[cfg(unix)]
+                let metadata_destination = self
+                    .tunnel_parameters
+                    .tunnel_constants
+                    .in_tunnel_bandwidth_metadata_endpoint;
+                #[cfg(unix)]
+                let metadata_shutdown = self.shutdown_token.child_token();
                 let _metadata_event_handler = tokio::spawn(async move {
-                    if let Ok(entry_metadata_endpoint) = entry_metadata_addr_rx.await {
-                        tracing::info!(
-                            "Received entry metadata endpoint: {entry_metadata_endpoint}"
+                    let Ok(entry_proxy) = entry_metadata_addr_rx.await else {
+                        tracing::error!(
+                            "Entry metadata proxy address channel dropped before bandwidth setup"
                         );
-                        entry_metadata_tx
-                            .send(MetadataEvent::MetadataProxy(entry_metadata_endpoint))
-                            .ok();
+                        return;
+                    };
+                    tracing::info!("Received entry metadata endpoint: {entry_proxy}");
+
+                    #[cfg(unix)]
+                    let (exit_event, exit_proxy) = match MetadataTcpProxy::start(
+                        &exit_tunnel,
+                        metadata_destination,
+                        metadata_shutdown.clone(),
+                    )
+                    .await
+                    {
+                        Ok(proxy) => {
+                            let exit_proxy_addr = proxy.listen_addr;
+                            tracing::info!("Exit metadata proxy listening on {exit_proxy_addr}");
+                            (MetadataEvent::MetadataProxy(exit_proxy_addr), Some(proxy))
+                        }
+                        Err(err) => {
+                            tracing::warn!(
+                                "Failed to start exit metadata proxy: {err}; falling back to tunnel interface"
+                            );
+                            (single_tun_exit_metadata_event(None, exit_tunnel), None)
+                        }
+                    };
+
+                    #[cfg(not(unix))]
+                    let exit_event = {
+                        tracing::warn!(
+                            "Exit metadata TCP proxy unavailable on this platform; using tunnel interface for exit bandwidth metadata"
+                        );
+                        single_tun_exit_metadata_event(None, exit_tunnel)
+                    };
+
+                    send_bandwidth_metadata_event(
+                        entry_metadata_tx,
+                        MetadataEvent::MetadataProxy(entry_proxy),
+                        "entry",
+                        "single-tun",
+                    );
+                    send_bandwidth_metadata_event(exit_tx, exit_event, "exit", "single-tun");
+
+                    #[cfg(unix)]
+                    if let Some(keep_exit_proxy_alive) = exit_proxy {
+                        metadata_shutdown.cancelled().await;
+                        drop(keep_exit_proxy_alive);
                     }
                 });
-                exit_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(exit.clone()))
-                    .ok();
             }
             TunnelInterface::Two { entry, exit } => {
-                entry_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(entry.clone()))
-                    .ok();
-                exit_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(exit.clone()))
-                    .ok();
+                let (entry_event, exit_event) = two_tunnel_bandwidth_metadata_events(entry, exit);
+                send_bandwidth_metadata_event(entry_metadata_tx, entry_event, "entry", "dual-tun");
+                send_bandwidth_metadata_event(exit_metadata_tx, exit_event, "exit", "dual-tun");
             }
         }
 
