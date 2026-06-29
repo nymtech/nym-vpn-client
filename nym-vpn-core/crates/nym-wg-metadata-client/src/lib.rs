@@ -44,7 +44,7 @@ impl LazyMetadataClient {
         let reqwest_builder = ReqwestClientBuilder::new();
         let reqwest_builder = match sent_data {
             TunUpSendData::InterfaceName(interface) => {
-                #[cfg(target_os = "linux")]
+                #[cfg(any(target_os = "linux", target_os = "ios"))]
                 let reqwest_builder = reqwest_builder.interface(&interface);
 
                 interface_name = Some(interface.clone());
