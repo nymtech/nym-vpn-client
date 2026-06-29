@@ -125,7 +125,7 @@ All settings routes live under `/settings`:
 | `/settings/anti-censorship`         | Domain fronting toggle (+ Lewes protocol in DEV)                       |
 | `/settings/socks5`                  | SOCKS5 proxy                                                           |
 | `/settings/mixnet-tuning`           | Mixnet traffic tuning (mixing delays, continuous traffic, performance) |
-| `/settings/split-tunneling`         | Per-app VPN bypass (Windows)                                           |
+| `/settings/split-tunneling`         | Per-app VPN bypass (Windows: daemon-registered apps; Linux: launch-to-exclude via `nym-exclude`) |
 | `/settings/advanced-settings`       | Advanced settings                                                      |
 | `/settings/data-privacy`            | Data & privacy                                                         |
 | `/settings/data-privacy/logs`       | App log viewer                                                         |
@@ -205,6 +205,7 @@ Rust types annotated with `#[derive(Serialize, ts_rs::TS)]` are exported via `ca
 - **i18n**: All user-visible strings go through `useTranslation()` from i18next. Translation files are in `src/i18n/`. 14 active locales including RTL (Arabic, Persian). 17 namespaces. Never hardcode user-visible strings.
 - **Rust formatting**: `cargo fmt` with default settings; clippy must pass without warnings.
 - **Auto-generated files**: Never manually edit `src/types/tauri.ts` — regenerate with `npm run tsgen`.
+- **Platform gating**: By default, gate a platform-specific feature to exactly the OS it targets — `#[cfg(target_os = "linux")]` for Linux-specific behavior, `#[cfg(target_os = "windows")]` for Windows-specific behavior. Only when a requirement explicitly contrasts one platform against all the others use the negation form — e.g. Windows behavior under `#[cfg(target_os = "windows")]` and behavior for all other platforms (Linux and macOS) under `#[cfg(not(target_os = "windows"))]`. The default is single-OS gating unless told otherwise.
 
 ## Environment variables
 

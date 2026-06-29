@@ -74,28 +74,62 @@ The system SHALL persist user-added executable paths in the embedded database an
 - **WHEN** the same path is added again
 - **THEN** a duplicate error is returned
 
-### Requirement: Split Tunneling Activation (Windows)
+### Requirement: Split Tunneling Activation (Platform-Specific)
 
-The system SHALL enable per-app VPN bypass only on Windows; on other platforms split-tunnel operations are no-ops with a warning.
+Split tunneling (per-app VPN bypass) SHALL be available on **both Windows and Linux**, with a platform-specific activation model. On Windows the user MUST explicitly enable split tunneling, then mark individual apps the daemon will bypass. On Linux there is no enable step; the user launches an app to exclude only that process (see [[#Requirement: Linux Launch-to-Exclude]]). Feature availability SHALL be determined by the daemon via `is_split_tunnel_supported`, not a hardcoded platform check.
 
 #### Scenario: Enable split tunneling on Windows
 - **GIVEN** the Windows platform
-- **WHEN** split tunneling is enabled
-- **THEN** the daemon is instructed to activate split-tunnel mode
+- **WHEN** split tunneling is enabled (the enable toggle, shown only on Windows)
+- **THEN** `vpnd.enable_split_tunnel` instructs the daemon to activate split-tunnel mode
 
-#### Scenario: No-op on non-Windows
-- **GIVEN** a non-Windows platform
-- **WHEN** an add-app-to-split-tunnel command is invoked
-- **THEN** a warning is logged and the command returns successfully without effect
+#### Scenario: Feature availability is daemon-driven
+- **GIVEN** any platform
+- **WHEN** the split-tunneling screen loads
+- **THEN** `is_split_tunnel_supported` queries the daemon (no platform gate), and the UI is shown only when the daemon reports support
 
-### Requirement: Split Tunnel App Management
+#### Scenario: Daemon-registration commands no-op on non-Windows
+- **GIVEN** a non-Windows platform (Linux or macOS)
+- **WHEN** a daemon-registration command (`enable_split_tunnel`, `add_app_to_split_tunnel`, or `remove_app_from_split_tunnel`) is invoked
+- **THEN** a warning is logged and the command returns successfully without calling the daemon — Linux uses launch-to-exclude instead, and these commands are not part of its flow
 
-The system SHALL add and remove individual applications from the split-tunnel list and apply changes to the daemon.
+### Requirement: Split Tunnel App Management (Windows)
 
-#### Scenario: Remove an app
-- **GIVEN** an app is in the split-tunnel list
+On Windows, the system SHALL add and remove individual applications from the daemon's split-tunnel list. Adding or removing an app is gated behind the enable toggle and applies the change to the daemon, which enforces the bypass for the registered apps.
+
+#### Scenario: Add an app on Windows
+- **GIVEN** the Windows platform with split tunneling enabled
+- **WHEN** the user marks an app as included
+- **THEN** `vpnd.add_split_tunnel_app` registers it in the daemon config
+
+#### Scenario: Remove an app on Windows
+- **GIVEN** an app is in the daemon's split-tunnel list
 - **WHEN** the remove-app command is invoked
 - **THEN** `vpnd.remove_split_tunnel_app` removes it from the daemon config
+
+### Requirement: Linux Launch-to-Exclude
+
+On Linux, the system SHALL exclude an application from the tunnel by launching it through the `nym-exclude` sidecar, which runs the target executable so its traffic connects directly to the internet instead of through NymVPN. No enable toggle is required: the app list and custom-app picker are available whenever the daemon reports split tunneling is supported. The system SHALL track launched processes, surface launch failures, and guard apps known to misbehave.
+
+#### Scenario: Launch an app outside the tunnel
+- **GIVEN** the Linux platform and a discovered or custom app
+- **WHEN** the user activates the app's launch action
+- **THEN** the app is started via the `nym-exclude` sidecar (with `GDK_BACKEND=wayland,x11` so GTK/WebKit apps can open a display), and its process ID is tracked as running
+
+#### Scenario: Confirm launch of a problematic app
+- **GIVEN** an app whose basename is in the warning list (e.g. a browser or terminal) and has no already-running instance
+- **WHEN** the user activates its launch action
+- **THEN** a launch-confirmation dialog is shown before the app is spawned
+
+#### Scenario: Blocked app does not launch
+- **GIVEN** an app whose basename is in the disabled list (e.g. `gnome-terminal`)
+- **WHEN** the user activates its launch action
+- **THEN** the launch is suppressed and no process is spawned
+
+#### Scenario: Surface an early launch failure
+- **GIVEN** an app launched via `nym-exclude`
+- **WHEN** the process exits abnormally (non-zero code or killed by signal) within the launch-failure window
+- **THEN** an error toast is shown with buffered stderr detail, and the process is removed from the running set
 
 ### Requirement: Windows App Icon Extraction
 
@@ -108,5 +142,6 @@ The system SHALL extract and cache application icons from Windows PE executables
 
 ## Technical Notes
 
-- **Implementation**: `src-tauri/src/commands/socks5.rs`, `src-tauri/src/vpnd/socks5.rs`, `src-tauri/src/fs/app_discovery/{mod,windows_discovery,linux_discovery,custom_apps,utils}.rs`, `src-tauri/src/icon_extractor.rs`, `src-tauri/src/commands/tunnel.rs`
-- **Dependencies**: [[daemon-connection]] (gRPC proxy/DNS/split-tunnel calls), [[daemon-config]] (DNS and split-tunnel config carried in tunnel config), [[system-integration]] (sled DB for custom apps)
+- **Implementation**: `src-tauri/src/commands/socks5.rs`, `src-tauri/src/vpnd/socks5.rs`, `src-tauri/src/fs/app_discovery/{mod,windows_discovery,linux_discovery,custom_apps,utils}.rs`, `src-tauri/src/icon_extractor.rs`, `src-tauri/src/commands/tunnel.rs`, `src-tauri/src/vpnd/client.rs` (platform gating of split-tunnel RPCs), `src/screens/settings/split-tunneling/*` (Linux launch-to-exclude UI)
+- **Platform split**: Windows registers bypassed apps with the daemon (`enable_split_tunnel`/`add_split_tunnel_app`/`remove_split_tunnel_app` in `vpnd/client.rs`, gated `#[cfg(target_os = "windows")]`; non-Windows logs a warning and no-ops). Linux excludes traffic by launching the target through the `nym-exclude` sidecar (declared in `src-tauri/capabilities/app.json`, invoked from `SplitTunneling.tsx` via `@tauri-apps/plugin-shell`). `is_split_tunnel_supported` is daemon-driven on all platforms.
+- **Dependencies**: [[daemon-connection]] (gRPC proxy/DNS/split-tunnel calls), [[daemon-config]] (DNS and split-tunnel config carried in tunnel config), [[system-integration]] (sled DB for custom apps, `nym-exclude` sidecar)

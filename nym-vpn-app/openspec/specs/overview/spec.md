@@ -43,12 +43,24 @@ The application SHALL expose Rust backend functionality to the frontend through 
 
 ### Requirement: Cross-Platform Desktop Support
 
-The application SHALL target Windows and Linux desktops, gating platform-specific behavior (split tunneling, app discovery, tray backend, update watcher) behind platform checks.
+The application SHALL target Windows and Linux desktops, gating platform-specific behavior (split tunneling, app discovery, tray backend, update watcher) behind compile-time `#[cfg(target_os = …)]` checks.
+
+**Platform-gating convention (default assumption):** Unless a requirement explicitly states otherwise, a platform-specific feature SHALL be gated to exactly the OS it targets — `#[cfg(target_os = "linux")]` for Linux-specific behavior, `#[cfg(target_os = "windows")]` for Windows-specific behavior. When a requirement explicitly contrasts one platform against all other platforms, the complementary branch SHALL use a negation: e.g. Windows behavior under `#[cfg(target_os = "windows")]` and behavior for all other platforms (Linux and macOS) under `#[cfg(not(target_os = "windows"))]`.
 
 #### Scenario: Platform-specific feature gating
 - **GIVEN** a feature is supported only on one platform (e.g. split tunneling on Windows)
 - **WHEN** the feature is invoked on an unsupported platform
 - **THEN** the operation is a no-op or unavailable rather than failing destructively
+
+#### Scenario: Default single-platform gating
+- **GIVEN** a requirement names a single target platform for a feature and does not describe the others
+- **WHEN** the feature is implemented
+- **THEN** it is gated to exactly that OS (`#[cfg(target_os = "linux")]` or `#[cfg(target_os = "windows")]`)
+
+#### Scenario: Explicit one-platform-versus-all-others gating
+- **GIVEN** a requirement defines distinct behavior for one platform versus all other platforms (Linux and macOS)
+- **WHEN** the feature is implemented
+- **THEN** the named platform's branch is gated with `#[cfg(target_os = "…")]` and the complementary branch with the negation `#[cfg(not(target_os = "…"))]`
 
 ## Technical Notes
 
