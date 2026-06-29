@@ -616,25 +616,6 @@ private extension AppFeatureViewModel {
         handleAuthCompleted(outcome: outcome, flow: flow)
     }
 
-    func presentPurchaseDismissedFeedbackIfNeeded() {
-        guard IAPFeedbackPolicy.shouldShowCheckoutDismissedFeedback(
-            isCredentialImported: appSettings.isCredentialImported,
-            isAccountActive: credentialsManager.isAccountActive()
-        ) else { return }
-        snackbarManager.enqueue(
-            SnackbarItem(
-                style: .warning,
-                title: "purchasePlan.checkoutDismissed.title".localizedString,
-                message: "purchasePlan.checkoutDismissed.message".localizedString,
-                actionTitle: "oneClick.incompleteSubscription.action".localizedString,
-                onAction: { [weak self] in
-                    self?.requestInactiveSubscriptionPurchase()
-                },
-                duration: 8
-            )
-        )
-    }
-
     func makeSessionEnvironment(processingKind: ProcessingFlowKind? = nil) -> AppSessionEnvironment {
         let summary = credentialsManager.accountSummary
         let resolvedProcessingKind = processingKind
@@ -657,10 +638,6 @@ private extension AppFeatureViewModel {
 
         if result.cancelProcessing {
             cancelProcessingTransition()
-        }
-
-        if result.showCheckoutDismissedFeedback {
-            presentPurchaseDismissedFeedbackIfNeeded()
         }
 
         switch result.drawerCommand {
