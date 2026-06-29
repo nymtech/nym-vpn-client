@@ -90,7 +90,7 @@ use crate::{
             transports::{self, TransportError},
             wireguard::{
                 ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
-                MetadataSender, connected_tunnel::ConnectedTunnel, single_tun_exit_metadata_event,
+                MetadataSender, connected_tunnel::ConnectedTunnel,
                 two_tunnel_bandwidth_metadata_events,
             },
         },
@@ -98,7 +98,10 @@ use crate::{
 };
 
 #[cfg(unix)]
-use crate::tunnel_state_machine::tunnel::wireguard::metadata_tcp_proxy::MetadataTcpProxy;
+use crate::tunnel_state_machine::tunnel::wireguard::SingleTunExitMetadataGuard;
+
+#[cfg(not(unix))]
+use crate::tunnel_state_machine::tunnel::wireguard::single_tun_exit_metadata_for_platform;
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -745,33 +748,17 @@ impl TunnelMonitor {
                     tracing::info!("Received entry metadata endpoint: {entry_proxy}");
 
                     #[cfg(unix)]
-                    let (exit_event, exit_proxy) = match MetadataTcpProxy::start(
-                        &exit_tunnel,
+                    let exit_guard = SingleTunExitMetadataGuard::start(
+                        exit_tunnel,
                         metadata_destination,
                         metadata_shutdown.clone(),
                     )
-                    .await
-                    {
-                        Ok(proxy) => {
-                            let exit_proxy_addr = proxy.listen_addr;
-                            tracing::info!("Exit metadata proxy listening on {exit_proxy_addr}");
-                            (MetadataEvent::MetadataProxy(exit_proxy_addr), Some(proxy))
-                        }
-                        Err(err) => {
-                            tracing::warn!(
-                                "Failed to start exit metadata proxy: {err}; falling back to tunnel interface"
-                            );
-                            (single_tun_exit_metadata_event(None, exit_tunnel), None)
-                        }
-                    };
+                    .await;
+                    #[cfg(unix)]
+                    let exit_event = exit_guard.event.clone();
 
                     #[cfg(not(unix))]
-                    let exit_event = {
-                        tracing::warn!(
-                            "Exit metadata TCP proxy unavailable on this platform; using tunnel interface for exit bandwidth metadata"
-                        );
-                        single_tun_exit_metadata_event(None, exit_tunnel)
-                    };
+                    let exit_event = single_tun_exit_metadata_for_platform(exit_tunnel);
 
                     send_bandwidth_metadata_event(
                         entry_metadata_tx,
@@ -782,10 +769,7 @@ impl TunnelMonitor {
                     send_bandwidth_metadata_event(exit_tx, exit_event, "exit", "single-tun");
 
                     #[cfg(unix)]
-                    if let Some(keep_exit_proxy_alive) = exit_proxy {
-                        metadata_shutdown.cancelled().await;
-                        drop(keep_exit_proxy_alive);
-                    }
+                    exit_guard.hold_until_shutdown(metadata_shutdown).await;
                 });
             }
             TunnelInterface::Two { entry, exit } => {

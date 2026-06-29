@@ -6,6 +6,8 @@ use nym_registration_common::WireguardConfiguration;
 use std::net::SocketAddr;
 
 use nym_vpn_lib_types::BridgeAddress;
+#[cfg(unix)]
+use tokio_util::sync::CancellationToken;
 
 pub mod connected_tunnel;
 
@@ -54,6 +56,7 @@ impl ConnectionData {
     }
 }
 
+#[derive(Clone)]
 pub enum MetadataEvent {
     MetadataProxy(SocketAddr),
     TunnelMetadata(TunnelMetadata),
@@ -83,6 +86,64 @@ pub(crate) fn single_tun_exit_metadata_event(
         Some(proxy_addr) => MetadataEvent::MetadataProxy(proxy_addr),
         None => MetadataEvent::TunnelMetadata(fallback_tunnel),
     }
+}
+
+#[cfg(unix)]
+pub(crate) struct SingleTunExitMetadataGuard {
+    pub event: MetadataEvent,
+    proxy: Option<metadata_tcp_proxy::MetadataTcpProxy>,
+}
+
+#[cfg(unix)]
+impl SingleTunExitMetadataGuard {
+    pub async fn start(
+        exit_tunnel: TunnelMetadata,
+        metadata_destination: SocketAddr,
+        metadata_shutdown: CancellationToken,
+    ) -> Self {
+        use metadata_tcp_proxy::MetadataTcpProxy;
+
+        match MetadataTcpProxy::start(
+            &exit_tunnel,
+            metadata_destination,
+            metadata_shutdown.clone(),
+        )
+        .await
+        {
+            Ok(proxy) => {
+                let exit_proxy_addr = proxy.listen_addr;
+                tracing::info!("Exit metadata proxy listening on {exit_proxy_addr}");
+                Self {
+                    event: MetadataEvent::MetadataProxy(exit_proxy_addr),
+                    proxy: Some(proxy),
+                }
+            }
+            Err(err) => {
+                tracing::warn!(
+                    "Failed to start exit metadata proxy: {err}; falling back to tunnel interface"
+                );
+                Self {
+                    event: single_tun_exit_metadata_event(None, exit_tunnel),
+                    proxy: None,
+                }
+            }
+        }
+    }
+
+    pub async fn hold_until_shutdown(self, metadata_shutdown: CancellationToken) {
+        if let Some(proxy) = self.proxy {
+            metadata_shutdown.cancelled().await;
+            drop(proxy);
+        }
+    }
+}
+
+#[cfg(not(unix))]
+pub(crate) fn single_tun_exit_metadata_for_platform(exit_tunnel: TunnelMetadata) -> MetadataEvent {
+    tracing::warn!(
+        "Exit metadata TCP proxy unavailable on this platform; using tunnel interface for exit bandwidth metadata"
+    );
+    single_tun_exit_metadata_event(None, exit_tunnel)
 }
 
 pub(crate) fn two_tunnel_bandwidth_metadata_events(
