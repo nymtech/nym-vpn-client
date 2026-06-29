@@ -1,0 +1,62 @@
+schema: spec-driven
+context: |
+  nym-vpn-core is the Rust workspace powering the Nym mixnet VPN client across
+  desktop (Linux/macOS/Windows), iOS, and Android. It implements the VPN tunnel
+  lifecycle, gateway selection, WireGuard and mixnet (5-hop) data paths, OS-level
+  network plumbing (DNS, routing, firewall, split tunneling), the local control
+  daemon (nym-vpnd) and its clients, account/credential management against the Nym
+  VPN API, and the FFI surfaces (UniFFI for mobile, gRPC/proto for desktop).
+
+  Tech stack: Rust (tokio async), gRPC/protobuf (tonic/prost), UniFFI for mobile
+  bindings, wireguard-go (cgo) via nym-wg-go, DBus on Linux, WFP on Windows,
+  Network/NetworkExtension and Endpoint Security on Apple platforms.
+  Architecture: Cargo workspace of ~38 single-responsibility crates layered as
+  platform abstractions -> network plumbing -> core VPN library -> daemon/clients
+  -> FFI bindings.
+
+# Auto-detected by openlore
+openlore:
+  generatedAt: "2026-06-26"
+  domains:
+    - overview
+    - architecture
+    - nym-vpn-lib
+    - nym-vpn-lib-types
+    - nym-vpn-lib-uniffi
+    - nym-vpn-rpc-uniffi
+    - nym-vpnd
+    - nym-vpnc
+    - nym-ipc
+    - nym-vpn-proto
+    - nym-vpn-account-controller
+    - nym-vpn-api-client
+    - nym-vpn-network-config
+    - nym-vpn-store
+    - nym-gateway-directory
+    - nym-routing
+    - nym-dns
+    - nym-firewall
+    - nym-firewall-config
+    - nym-split-tunnel
+    - nym-cgroup
+    - nym-exclude
+    - nym-connection-monitor
+    - nym-offline-monitor
+    - nym-statistics
+    - nym-statistics-api-client
+    - nym-diagnostic
+    - nym-dbus
+    - nym-ifconfig
+    - nym-wg-go
+    - nym-wg-metadata-client
+    - nym-socks5-proxy
+    - nym-socks5-proxy-ipc
+    - nym-windows
+    - nym-macos
+    - nym-apple-network
+    - nym-platform-metadata
+    - nym-common
+    - nym-setup
+    - nym-file-updater
+    - uniffi-bindgen
+    - testing
