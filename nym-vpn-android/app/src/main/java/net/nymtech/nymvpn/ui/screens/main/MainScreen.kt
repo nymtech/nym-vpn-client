@@ -330,7 +330,10 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			showNodeFamiliesDialog = false
 			viewModel.onNodeFamiliesConfirm()
 		},
-		onDismissNodeFamilies = { showNodeFamiliesDialog = false },
+		onDismissNodeFamilies = {
+			showNodeFamiliesDialog = false
+			viewModel.onNodeFamiliesCancel()
+		},
 		onNotificationSettingsClick = { navController.goFromRoot(Route.Notifications) },
 		onDismissAuthSheet = {
 			if (!appUiState.settings.isWelcomeShown) appViewModel.setWelcomeShown()
