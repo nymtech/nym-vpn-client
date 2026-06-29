@@ -57,6 +57,13 @@ pub enum MetadataEvent {
     TunnelMetadata(TunnelMetadata),
 }
 
+pub fn metadata_event_description(event: &MetadataEvent) -> String {
+    match event {
+        MetadataEvent::MetadataProxy(addr) => format!("MetadataProxy({addr})"),
+        MetadataEvent::TunnelMetadata(metadata) => format!("TunnelMetadata({metadata:?})"),
+    }
+}
+
 impl From<MetadataEvent> for nym_wg_metadata_client::TunUpSendData {
     fn from(event: MetadataEvent) -> Self {
         match event {

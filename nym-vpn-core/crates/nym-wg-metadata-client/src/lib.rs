@@ -28,6 +28,15 @@ pub enum TunUpSendData {
 pub type TunUpSender = tokio::sync::oneshot::Sender<TunUpSendData>;
 pub type TunUpReceiver = tokio::sync::oneshot::Receiver<TunUpSendData>;
 
+fn transport_label(data: &TunUpSendData) -> String {
+    match data {
+        TunUpSendData::TcpProxy(addr) => format!("TcpProxy({addr})"),
+        #[cfg(not(target_os = "windows"))]
+        TunUpSendData::InterfaceName(interface) => format!("InterfaceName({interface})"),
+        TunUpSendData::Signal => "Signal".to_string(),
+    }
+}
+
 #[derive(Debug, Clone)]
 struct LazyMetadataClient {
     inner: nym_http_api_client::Client,
@@ -98,6 +107,13 @@ impl MetadataClient {
                     .map_err(|_| {
                         MetadataClientError::Internal("interface up signal never sent".to_string())
                     })?;
+                tracing::info!(
+                    "Bandwidth metadata client initializing for gateway {}: bind_ip={} transport={} base_url={}",
+                    self.gateway_id,
+                    self.bind_ip,
+                    transport_label(&data),
+                    self.base_url
+                );
                 LazyMetadataClient::new(
                     self.base_url.clone(),
                     self.bind_ip,

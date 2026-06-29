@@ -87,7 +87,7 @@ use crate::{
             transports::{self, TransportError},
             wireguard::{
                 ConnectionData as WgConnectionData, MetadataEvent, MetadataReceiver,
-                connected_tunnel::ConnectedTunnel,
+                connected_tunnel::ConnectedTunnel, metadata_event_description,
             },
         },
     },
@@ -661,22 +661,34 @@ impl TunnelMonitor {
                         tracing::info!(
                             "Received entry metadata endpoint: {entry_metadata_endpoint}"
                         );
-                        entry_metadata_tx
-                            .send(MetadataEvent::MetadataProxy(entry_metadata_endpoint))
-                            .ok();
+                        let entry_event = MetadataEvent::MetadataProxy(entry_metadata_endpoint);
+                        tracing::info!(
+                            "Entry bandwidth metadata dispatch: {}",
+                            metadata_event_description(&entry_event)
+                        );
+                        entry_metadata_tx.send(entry_event).ok();
                     }
                 });
-                exit_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(exit.clone()))
-                    .ok();
+                let exit_event = MetadataEvent::TunnelMetadata(exit.clone());
+                tracing::info!(
+                    "Exit bandwidth metadata dispatch: {}",
+                    metadata_event_description(&exit_event)
+                );
+                exit_metadata_tx.send(exit_event).ok();
             }
             TunnelInterface::Two { entry, exit } => {
-                entry_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(entry.clone()))
-                    .ok();
-                exit_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(exit.clone()))
-                    .ok();
+                let entry_event = MetadataEvent::TunnelMetadata(entry.clone());
+                tracing::info!(
+                    "Entry bandwidth metadata dispatch: {}",
+                    metadata_event_description(&entry_event)
+                );
+                entry_metadata_tx.send(entry_event).ok();
+                let exit_event = MetadataEvent::TunnelMetadata(exit.clone());
+                tracing::info!(
+                    "Exit bandwidth metadata dispatch: {}",
+                    metadata_event_description(&exit_event)
+                );
+                exit_metadata_tx.send(exit_event).ok();
             }
         }
 
@@ -974,9 +986,17 @@ impl TunnelMonitor {
 
         let _metadata_event_handler = tokio::spawn(async move {
             if let Ok(entry) = entry_metadata_rx.await {
+                tracing::info!(
+                    "Entry bandwidth metadata wiring: {}",
+                    metadata_event_description(&entry)
+                );
                 entry_signal_tx.send(entry.into()).ok();
             }
             if let Ok(exit) = exit_metadata_rx.await {
+                tracing::info!(
+                    "Exit bandwidth metadata wiring: {}",
+                    metadata_event_description(&exit)
+                );
                 exit_signal_tx.send(exit.into()).ok();
             }
         });
