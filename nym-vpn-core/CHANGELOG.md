@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provide escape hatch when reconnecting the tunnel in "time desynced" error state (https://github.com/nymtech/nym-vpn-client/pull/5551)
 - Race when network usage spikes happen during longer bandwidth checks, disconnecting the client from the server (https://github.com/nymtech/nym-vpn-client/pull/5618)
 - [macOS] Disable authentication when flag is set (https://github.com/nymtech/nym-vpn-client/pull/5645)
+- [iOS] Fix metadata endpoint not being reached for exit tunnel (https://github.com/nymtech/nym-vpn-client/pull/5728)
 
 ### Removed
 
