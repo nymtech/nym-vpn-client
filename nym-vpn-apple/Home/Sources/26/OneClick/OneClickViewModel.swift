@@ -41,13 +41,6 @@ public final class OneClickViewModel {
 
     var speedMode: OneClickSpeedMode
 
-    var showsIncompleteSubscriptionBanner: Bool {
-        IAPFeedbackPolicy.shouldShowIncompleteSubscriptionBanner(
-            isCredentialImported: credentialsManager.isValidCredentialImported,
-            isAccountActive: credentialsManager.isAccountActive()
-        )
-    }
-
     /// Invoked when the daemon reports `.inactiveSubscription` or when the
     /// pre-flight gate detects an expired account. Routes the user into the
     /// purchase flow.
@@ -204,10 +197,6 @@ public final class OneClickViewModel {
         }
     }
 
-    func incompleteSubscriptionBannerTapped() {
-        impactGenerator.softImpact()
-        sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
-    }
 }
 
 extension OneClickSpeedMode {
