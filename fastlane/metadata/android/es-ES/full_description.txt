@@ -10,9 +10,9 @@ La mayoría de las VPN dicen "sin registros" como política — pueden registrar
 
 ⚡ DOS MODOS VPN, UNA APLICACIÓN
 
-- Modo Rápido: dVPN de 2 saltos basado en AmneziaWG (WireGuard). Streaming y navegación rápidos en una red descentralizada.
+• Modo Rápido: dVPN de 2 saltos basado en AmneziaWG (WireGuard). Streaming y navegación rápidos en una red descentralizada.
 
-- Modo Anónimo: Noise Generating Mixnet de 5 saltos, un sucesor más privado de Tor. Mezcla tu tráfico con el de otros, añade ruido y tráfico de cobertura. La VPN de consumo más anónima. Ideal para criptomonedas, correo electrónico y mensajería privada como Signal.
+• Modo Anónimo: Noise Generating Mixnet de 5 saltos, un sucesor más privado de Tor. Mezcla tu tráfico con el de otros, añade ruido y tráfico de cobertura. La VPN de consumo más anónima. Ideal para criptomonedas, correo electrónico y mensajería privada como Signal.
 
 💰 PAGA DE FORMA ANÓNIMA CON CRIPTO O EFECTIVO
 
@@ -20,34 +20,34 @@ NymVPN acepta más criptomonedas que cualquier VPN, más pagos en efectivo. Paga
 
 💎 POR QUÉ NYMVPN ES DIFERENTE
 
-- Arquitectura zero-knowledge: tu identidad invisible incluso para Nym
-- Sin registros por arquitectura: la red no puede mantener registros de tráfico significativos
-- Red de proxy descentralizada: ningún servidor central puede comprometer ni vigilar tu tráfico
-- Jurisdicción suiza: fuera de la alianza 14 Eyes, con leyes de privacidad estrictas
-- Protocolos WireGuard y mixnet: VPN rápida y privada
-- Sin registro de correo: no se requieren datos personales
-- Totalmente de código abierto: auditado por investigadores de seguridad independientes
-- Más de 70 países: servidores en todo el mundo para streaming y acceso global
-- Hasta 10 dispositivos en una sola cuenta
+• Arquitectura zero-knowledge: tu identidad invisible incluso para Nym
+• Sin registros por arquitectura: la red no puede mantener registros de tráfico significativos
+• Red de proxy descentralizada: ningún servidor central puede comprometer ni vigilar tu tráfico
+• Jurisdicción suiza: fuera de la alianza 14 Eyes, con leyes de privacidad estrictas
+• Protocolos WireGuard y mixnet: VPN rápida y privada
+• Sin registro de correo: no se requieren datos personales
+• Totalmente de código abierto: auditado por investigadores de seguridad independientes
+• Más de 70 países: servidores en todo el mundo para streaming y acceso global
+• Hasta 10 dispositivos en una sola cuenta
 
 🔒 FUNCIONES DE PRIVACIDAD Y SEGURIDAD
 
-- Kill switch integrado: detiene el tráfico automáticamente si cae la conexión VPN
-- Resistencia a la censura: evita el bloqueo de VPN con QUIC, AmneziaWG y otras técnicas
-- Cifrado multicapa tipo onion
-- Selección de servidor de entrada y salida
-- Túnel dividido: enruta solo las apps que elijas a través de la VPN
-- DNS personalizado: usa cualquier servidor DNS en el que confíes
-- Bloqueador de anuncios y rastreadores
+• Kill switch integrado: detiene el tráfico automáticamente si cae la conexión VPN
+• Resistencia a la censura: evita el bloqueo de VPN con QUIC, AmneziaWG y otras técnicas
+• Cifrado multicapa tipo onion
+• Selección de servidor de entrada y salida
+• Túnel dividido: enruta solo las apps que elijas a través de la VPN
+• DNS personalizado: usa cualquier servidor DNS en el que confíes
+• Bloqueador de anuncios y rastreadores
 
 🌍 LO QUE PUEDES HACER CON NYMVPN
 
-- Navegar de forma anónima sin dejar rastro
-- Cifrar tu tráfico en wifi públicas de aeropuertos, cafeterías y hoteles
-- Saltarte la censura de internet en regiones restrictivas
-- Proteger comunicaciones sensibles para periodismo, activismo e investigación
-- Impedir que tu proveedor perfile tu navegación con fines publicitarios
-- Bloquear sitios maliciosos, rastreadores y anuncios
+• Navegar de forma anónima sin dejar rastro
+• Cifrar tu tráfico en wifi públicas de aeropuertos, cafeterías y hoteles
+• Saltarte la censura de internet en regiones restrictivas
+• Proteger comunicaciones sensibles para periodismo, activismo e investigación
+• Impedir que tu proveedor perfile tu navegación con fines publicitarios
+• Bloquear sitios maliciosos, rastreadores y anuncios
 
 🇨🇭 PRIVACIDAD SUIZA, POR DISEÑO
 
@@ -59,9 +59,9 @@ NymVPN está desarrollado por Nym, en quien confían periodistas, activistas y u
 
 🚫 LO QUE NO HACEMOS
 
-- No te pedimos tu correo ni tu nombre
-- No podemos rastrear qué sitios visitas
-- No podemos vender, compartir ni alquilar tus datos
+• No te pedimos tu correo ni tu nombre
+• No podemos rastrear qué sitios visitas
+• No podemos vender, compartir ni alquilar tus datos
 
 📲 EMPIEZA AHORA
 
