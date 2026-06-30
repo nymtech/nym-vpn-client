@@ -527,7 +527,7 @@
 	<string name="mixnet_tuning_delays_current">Current\n%1$s</string>
 	<string name="mixnet_tuning_max">Max. anonymity</string>
 	<string name="mixnet_tuning_link_text">Learn more about mixnet parameters</string>
-	<string name="mixnet_tuning_link" translatable="false">https://nym.com/features/mixnet-customization</string>
+	<string name="mixnet_tuning_link" translatable="false">https://nym.com/features/mixnet-tuning</string>
 	<string name="mixnet_tuning_save_button">Save custom settings</string>
 	<string name="mixnet_tuning_restore_button">Restore default settings</string>
 	<!-- Diagnostic screen -->
