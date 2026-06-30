@@ -1071,7 +1071,10 @@ mod test {
         let params = ConnectingPolicyParameters {
             enable_ipv6: false,
             allow_lan: false,
-            wg_entry_endpoint: Some(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)), 51822)),
+            wg_entry_endpoint: Some(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)),
+                51822,
+            )),
             bridge_endpoints: vec![SocketAddr::new(IpAddr::V4(Ipv4Addr::new(5, 6, 7, 8)), 4443)],
             ws_entry_endpoints: vec![SocketAddr::new(
                 IpAddr::V4(Ipv4Addr::new(9, 10, 11, 12)),
