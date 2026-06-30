@@ -444,6 +444,10 @@ pub async fn transport_conn(
             tracing::warn!(
                 "QUIC bridge connection to {transport_endpoint} timed out after {QUIC_CONNECT_TIMEOUT:?}"
             );
+            endpoint.close(0u32.into(), b"timeout");
+            // TimedOut has no error_state_reason, so tunnel_monitor propagates it as
+            // TunnelMonitorEvent::Down { error_state_reason: None }, which triggers
+            // ConnectingState::reconnect() with a different gateway selection.
             Err(TransportError::TimedOut(QUIC_CONNECT_TIMEOUT))
         }
     }
