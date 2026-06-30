@@ -26,6 +26,7 @@ public enum SettingLink: Hashable, Identifiable {
     case mixnetTuning
     case censorship
     case notifications
+    case diagnosticTool
 #if os(macOS)
     case proxy
     case appMode
@@ -33,7 +34,6 @@ public enum SettingLink: Hashable, Identifiable {
     case geoExclusion
     case geoExclusionSetup(port: UInt16)
     case splitTunnel
-    case diagnosticTool
 #endif
 
     public var id: String {

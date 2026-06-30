@@ -99,9 +99,9 @@ struct SettingsFlowCoordinator<Content: View>: View {
             GeoExclusionInstructionsView(path: $flowState.path, listenPort: port)
         case .splitTunnel:
             SplitTunnelView(path: $flowState.path)
+#endif
         case .diagnosticTool:
             DiagnosticToolView(path: $flowState.path)
-#endif
         case .privacyAndData:
             privacyAndDataDestination()
         case .dns:

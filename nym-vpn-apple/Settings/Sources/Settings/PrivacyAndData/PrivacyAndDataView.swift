@@ -27,14 +27,12 @@ public struct PrivacyAndDataView: View {
                 logsSection()
                 Spacer()
                     .frame(height: 24)
-#if os(macOS)
                 diagnosticToolSection()
                 Spacer()
                     .frame(height: 24)
                 statisticsSection()
                 Spacer()
                     .frame(height: 24)
-#endif
                 errorReportingSection()
             }
             .frame(maxWidth: MagicNumbers.maxWidth)
@@ -94,7 +92,6 @@ private extension PrivacyAndDataView {
         )
     }
 
-#if os(macOS)
     func diagnosticToolSection() -> some View {
         SettingsListItem(
             viewModel: SettingsListItemViewModel(
@@ -108,7 +105,6 @@ private extension PrivacyAndDataView {
             )
         )
     }
-#endif
 
     func statisticsSection() -> some View {
         SettingsListItem(
@@ -199,12 +195,10 @@ private extension PrivacyAndDataView {
         path.append(SettingLink.logs)
     }
 
-#if os(macOS)
     func navigateToDiagnosticTool() {
         impactGenerator.softImpact()
         path.append(SettingLink.diagnosticTool)
     }
-#endif
 }
 
 #if os(macOS)

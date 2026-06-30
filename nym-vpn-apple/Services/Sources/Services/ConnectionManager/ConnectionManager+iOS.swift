@@ -1,6 +1,7 @@
 #if os(iOS)
 import NetworkExtension
 import AppSettings
+import ConfigurationManager
 import Constants
 import ConnectionTypes
 import NymVPNLib
@@ -160,6 +161,20 @@ extension ConnectionManager {
             MixnetConfigStorage.save(cfg)
         }
         await tunnelsManager.send(message)
+    }
+
+    @MainActor
+    public func runDiagnostic() async -> String? {
+        guard let environment = ConfigurationManager.shared.networkEnv else { return nil }
+        return try? await NymVPNLib.runDiagnostic(
+            params: DiagnosticRunParams(
+                gateway: nil,
+                skipDns: false,
+                skipHttp: false,
+                skipHybridTransport: false
+            ),
+            environment: environment
+        )
     }
 }
 

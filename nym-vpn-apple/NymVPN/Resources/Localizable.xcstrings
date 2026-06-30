@@ -27773,6 +27773,17 @@
         }
       }
     },
+    "settings.diagnosticTool.failed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to run diagnostics. Please try again."
+          }
+        }
+      }
+    },
     "settings.diagnosticTool.report" : {
       "extractionState" : "manual",
       "localizations" : {
