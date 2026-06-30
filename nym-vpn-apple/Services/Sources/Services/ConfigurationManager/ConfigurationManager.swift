@@ -162,14 +162,12 @@ import PathManager
             try await grpcManager.switchEnvironment(to: env.rawValue)
 #endif
             try await self.configure()
-#if os(iOS)
             guard lastConfiguredEnvString == currentEnvString else {
                 self.logger.error(
                     "Network environment did not sync to \(currentEnvString); skipping env-change observers"
                 )
                 return
             }
-#endif
             self.notifyEnvironmentDidChange()
         } catch {
             self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
