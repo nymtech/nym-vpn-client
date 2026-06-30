@@ -38,6 +38,7 @@ public final class ProcessingAccountViewModel {
     @ObservationIgnored var finalMessageDuration: Double = 2
 
     let flow: ProcessingFlow
+    @ObservationIgnored private let deeplinkLoginCallbackURL: String?
     private(set) var phase: ProcessingPhase = .preparing
     var currentStep: Int = 1
 
@@ -62,9 +63,14 @@ public final class ProcessingAccountViewModel {
         }
     }
 
-    public init(processing: AccountProcessing, flow: ProcessingFlow) {
+    public init(
+        processing: AccountProcessing,
+        flow: ProcessingFlow,
+        deeplinkLoginCallbackURL: String? = nil
+    ) {
         self.processing = processing
         self.flow = flow
+        self.deeplinkLoginCallbackURL = deeplinkLoginCallbackURL
         switch flow {
         case .login:
             currentStep = LoginProcessingUI.initialProgressStep
@@ -89,6 +95,7 @@ public final class ProcessingAccountViewModel {
             switch flow {
             case .login:
                 phase = .preparing
+                try await completeDeeplinkLoginIfNeeded()
                 await processing.ensureCredentialImportResolved()
                 try await processing.prepareRegisteredAccount()
                 try await syncSummaryThenPrefetch()
@@ -105,6 +112,14 @@ public final class ProcessingAccountViewModel {
         } catch {
             fail(with: error)
         }
+    }
+
+    private func completeDeeplinkLoginIfNeeded() async throws {
+        guard let deeplinkLoginCallbackURL else { return }
+        try await processing.storeDeeplink(callbackURLString: deeplinkLoginCallbackURL)
+        try Task.checkCancellation()
+        try await processing.registerAccountIfNeeded()
+        try Task.checkCancellation()
     }
 
     /// Login/create-account: sync the account summary, then prefetch zk-nyms when active.

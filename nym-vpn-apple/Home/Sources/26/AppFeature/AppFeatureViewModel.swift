@@ -29,7 +29,6 @@ import GRPCManager
     public private(set) var navigationIntent: NavigationIntent?
     public private(set) var planPurchaseNavigationToken: UInt = 0
 
-    var isSubscriptionPurchaseChoiceDisplayed = false
     var isFamilyWarningModalDisplayed = false
     public private(set) var webSubscriptionPurchaseToken: UInt = 0
 
@@ -284,6 +283,12 @@ import GRPCManager
         handleSessionEvent(.authCompleted(outcome: outcome, flow: flow))
     }
 
+    public func beginPrivyLoginProcessing(callbackURLString: String) {
+        guard drawerContent?.isProcessing != true else { return }
+        handleSessionEvent(.authDeeplinkProcessingStarted)
+        startProcessingTransition(flow: .login, deeplinkLoginCallbackURL: callbackURLString)
+    }
+
     func handleCredentialChange(imported: Bool) {
         if imported {
             let importAction = DrawerCredentialImportPolicy.action(
@@ -342,25 +347,13 @@ import GRPCManager
 
     public func requestInactiveSubscriptionPurchase() {
 #if os(iOS)
-        if SubscriptionPurchaseChoicePolicy.shouldPresentPurchaseChoice(isIOS: true) {
-            isSubscriptionPurchaseChoiceDisplayed = true
-            return
-        }
+        requestPlanPurchaseTransition()
+#elseif os(macOS)
+        beginWebSubscriptionPurchase()
 #endif
-        requestPlanPurchaseTransition()
-    }
-
-    func dismissSubscriptionPurchaseChoice() {
-        isSubscriptionPurchaseChoiceDisplayed = false
-    }
-
-    func beginInAppSubscriptionPurchase() {
-        isSubscriptionPurchaseChoiceDisplayed = false
-        requestPlanPurchaseTransition()
     }
 
     func beginWebSubscriptionPurchase() {
-        isSubscriptionPurchaseChoiceDisplayed = false
         webSubscriptionPurchaseToken &+= 1
     }
 
@@ -485,10 +478,11 @@ private extension AppFeatureViewModel {
         }
     }
 
-    func startProcessingTransition(flow: ProcessingFlow) {
+    func startProcessingTransition(flow: ProcessingFlow, deeplinkLoginCallbackURL: String? = nil) {
         let viewModel = ProcessingAccountViewModel(
             processing: credentialsManager,
-            flow: flow
+            flow: flow,
+            deeplinkLoginCallbackURL: deeplinkLoginCallbackURL
         )
         viewModel.sessionCoordinator = self
         processingViewModel = viewModel

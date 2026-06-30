@@ -12,6 +12,8 @@ public protocol AccountProcessing {
     func prefetchZkNyms(timeout: TimeInterval) async -> ZkNymPrefetchResult
     /// Syncs the native StoreKit receipt through the account controller (post-IAP).
     func handleSubscriptionPayment() async throws
+    func storeDeeplink(callbackURLString: String) async throws
+    func registerAccountIfNeeded() async throws
 }
 
 /// Typed, Equatable failure raised by the processing flow so it can be asserted in
