@@ -6,6 +6,7 @@ import AppVersionProvider
 import ConfigurationManager
 import ConnectionTypes
 import CredentialsManager
+import AccountPrefetchGates
 import NymLogger
 #if os(iOS)
 import NymVPNLib
@@ -55,13 +56,9 @@ import Theme
 
 #if os(iOS)
     var storeKitAccountGuidance: String {
-        if configurationManager.isTestFlight {
-            return "TestFlight IAP uses your TestFlight Apple ID, not Developer Settings sandbox account."
-        }
-        return """
-        Xcode debug IAP uses Settings - Developer - Sandbox Apple Account. \
-        Switching VPN env here does not change the StoreKit Apple ID.
-        """
+        SantaStoreKitEnvironmentPolicy.guidanceMessage(
+            isTestFlight: configurationManager.isTestFlight
+        )
     }
 #endif
 
