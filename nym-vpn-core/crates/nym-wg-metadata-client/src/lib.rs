@@ -155,6 +155,11 @@ impl MetadataClient {
         self.gateway_id
     }
 
+    // Make sure the initialization is done, so that we can get the interface name without having to wait for the first query to complete.
+    pub async fn lazy_init(&mut self) {
+        self.lazy_client().await;
+    }
+
     pub async fn interface_name(&mut self) -> Option<String> {
         self.lazy_client()
             .await

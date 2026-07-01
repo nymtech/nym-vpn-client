@@ -436,6 +436,15 @@ impl TemporaryBandwidthClient {
         }
     }
 
+    pub(crate) async fn lazy_init(&mut self) {
+        match self {
+            TemporaryBandwidthClient::Deprecated(_) => {}
+            TemporaryBandwidthClient::Latest(metadata_client) => {
+                metadata_client.lazy_init().await;
+            }
+        }
+    }
+
     pub(crate) async fn interface_name(&mut self) -> Option<String> {
         match self {
             TemporaryBandwidthClient::Deprecated(_) => None,
@@ -973,12 +982,19 @@ impl BandwidthController {
         None
     }
 
+    async fn init_clients(&self) {
+        tokio::join!(
+            self.wg_entry_gateway_client.lazy_init(),
+            self.wg_exit_gateway_client.lazy_init()
+        );
+    }
+
     pub(crate) async fn run(mut self) {
-        let exit_interface_name = self
-            .shutdown_token
-            .run_until_cancelled(self.wg_exit_gateway_client.interface_name())
-            .await
-            .flatten();
+        // Make sure the clients are up and ready, or notifying early of any problems
+        self.shutdown_token
+            .run_until_cancelled(self.init_clients())
+            .await;
+        let exit_interface_name = self.wg_exit_gateway_client.interface_name().await;
         let mut system_bandwidth_monitor =
             SystemBandwidthMonitor::new(exit_interface_name, SYSTEM_BANDWIDTH_THRESHOLD);
         let mut system_bandwidth_check_interval =
