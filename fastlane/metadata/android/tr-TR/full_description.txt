@@ -51,7 +51,7 @@ NymVPN, diğer VPN’lerden daha fazla kripto para birimini ve nakit ödemeyi ka
 
 🇨🇭 TASARIMDAN GELEN İSVİÇRE GİZLİLİĞİ
 
-NymVPN, İsviçre yasalarına göre faaliyet gösterir: 14 Göz gözetim ittifakının dışında yer alır, anayasal olarak korunan gizlilik haklarına sahiptir ve zorunlu veri saklama yükümlülüğü bulunmaz. Merkeziyetsiz ve kayıt tutmayan mimarimiz sayesinde verileriniz hem yasal olarak hem de tasarım gereği korunur.
+NymVPN, İsviçre yasalarına göre faaliyet gösterir: 14 Göz gözetim ittifakının dışındadır, anayasayla korunan gizlilik haklarına sahiptir ve zorunlu veri saklama yükümlülüğü yoktur. Merkeziyetsiz, kayıt tutmayan mimarimiz sayesinde verileriniz hem yasal olarak hem de tasarım gereği korunur.
 
 🎓 AKADEMİK KRİPTOGRAFLAR TARAFINDAN GELİŞTİRİLDİ
 
@@ -66,5 +66,3 @@ NymVPN, Nym tarafından geliştirilmiştir ve dünya genelinde gazeteciler, akti
 📲 HEMEN BAŞLAYIN
 
 NymVPN’i indirin, e-posta veya isim bile gerektirmeden anonim bir hesap oluşturun ve gizli şekilde gezinmeye başlayın.
-
-NymVPN'i bugün deneyin.
