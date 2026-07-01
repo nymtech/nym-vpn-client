@@ -1,0 +1,254 @@
+import Combine
+import Foundation
+import SwiftUI
+import SnackbarManager
+import AccountPrefetchGates
+import AppSettings
+import ConnectionManager
+import ConnectionTypes
+import CredentialsManager
+import ErrorReason
+import GatewayManager
+import ImpactGenerator
+import NetworkMonitor
+import TunnelStatus
+import UIComponents
+#if os(macOS)
+import GRPCManager
+#endif
+
+extension OneClickViewModel {
+    func seedFromCurrentValues() {
+        recomputeConnectState()
+        refreshSelection()
+    }
+
+    func observe() {
+        observeConnection()
+        observeAccountAndEnvironment()
+    }
+
+    func observeConnection() {
+        connectionManager.$currentTunnelStatus
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] status in
+                guard let self else { return }
+                if case .connected = status {
+                    impactGenerator.success()
+                }
+                recomputeConnectState()
+                refreshSelection()
+            }
+            .store(in: &cancellables)
+
+        connectionManager.$lastError
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.recomputeConnectState()
+            }
+            .store(in: &cancellables)
+
+        connectionManager.$connectionInfoData
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.refreshSelection()
+            }
+            .store(in: &cancellables)
+
+        connectionManager.$connectionConfig
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] config in
+                guard let self else { return }
+                speedMode = OneClickSpeedMode(isTwoHop: config.enableTwoHop)
+                refreshSelection()
+            }
+            .store(in: &cancellables)
+
+#if SANTA
+        Publishers.MergeMany(
+            gatewayManager.$entry.map { _ in () },
+            gatewayManager.$exit.map { _ in () },
+            gatewayManager.$vpn.map { _ in () }
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] in
+            self?.refreshSelection()
+        }
+        .store(in: &cancellables)
+#endif
+    }
+
+    func observeAccountAndEnvironment() {
+        credentialsManager.$accountSummary
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.recomputeConnectState()
+            }
+            .store(in: &cancellables)
+
+#if os(iOS)
+        networkMonitor.$isAvailable
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.recomputeConnectState()
+            }
+            .store(in: &cancellables)
+#endif
+
+#if os(macOS)
+        grpcManager.$isServing
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.recomputeConnectState()
+            }
+            .store(in: &cancellables)
+#endif
+    }
+
+    func recomputeConnectState() {
+        let next = derivedConnectState()
+        guard next != connectState else { return }
+        connectState = next
+    }
+
+    func derivedConnectState() -> OneClickConnectState {
+        switch connectionManager.currentTunnelStatus {
+        case .connected:
+            return .connected
+        case .disconnecting:
+            return .disconnecting
+        case .error:
+            return .stop
+        case .connecting, .reasserting, .restarting, .offlineReconnect:
+            return .connecting
+        case .disconnected, .offline, .unknown:
+#if os(iOS)
+            if !networkMonitor.isAvailable {
+                return .noInternet
+            }
+#endif
+            if credentialsManager.isValidCredentialImported, !credentialsManager.isAccountActive() {
+                return .noSubscription
+            }
+            return .disconnected
+        }
+    }
+
+    func performConnectDisconnect(isConnectingTap: Bool) async {
+        isConnectDisconnectInFlight = true
+        defer { isConnectDisconnectInFlight = false }
+
+        if isConnectingTap {
+            let canProceed = await passesConnectPreflight()
+            guard canProceed else { return }
+        }
+
+        do {
+            try await connectionManager.connectDisconnect()
+        } catch {
+            impactGenerator.error()
+            presentConnectionErrorAlert(
+                message: ConnectionStatusViewModel.userFacingMessage(from: error)
+            )
+        }
+        handleInactiveSubscriptionErrorIfNeeded()
+        clearLastErrorIfNeeded()
+    }
+
+    func passesConnectPreflight() async -> Bool {
+#if os(iOS)
+        if !networkMonitor.isAvailable {
+            presentOfflineAlert()
+            return false
+        }
+#endif
+#if os(macOS)
+        if !grpcManager.isServing {
+            onRequestDaemonEnable?()
+            return false
+        }
+#endif
+        guard credentialsManager.isValidCredentialImported else { return false }
+        guard await !credentialsManager.isAccountValid() else { return true }
+
+        await credentialsManager.updateAccountSummary()
+        let summary = credentialsManager.accountSummary
+        let shouldOfferPurchase = ConnectPlanPurchaseGatePolicy.shouldOfferPlanPurchaseOnConnect(
+            isAccountRegistrationInFlight: credentialsManager.isAccountRegistrationInFlight,
+            accountSummaryLastFetchFailed: credentialsManager.accountSummaryLastFetchFailed,
+            isAccountActive: credentialsManager.isAccountActive(),
+            validUntilIsFuture: LoginSessionPolicy.validUntilIsFuture(
+                validUntil: summary?.validUntilDate
+            ),
+            hasAccountSummary: summary != nil
+        )
+        if shouldOfferPurchase {
+            sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
+            return false
+        }
+        return true
+    }
+
+    func handleInactiveSubscriptionErrorIfNeeded() {
+        guard connectionManager.currentTunnelStatus == .error else { return }
+        guard let error = connectionManager.lastError else { return }
+        let reason: ErrorReason?
+        if let typed = error as? ErrorReason {
+            reason = typed
+        } else {
+            let nsError = error as NSError
+            reason = nsError.domain == ErrorReason.domain ? ErrorReason(nsError: nsError) : nil
+        }
+        guard reason == .inactiveSubscription else { return }
+        sessionCoordinator?.handle(.requestInactiveSubscriptionPurchase)
+    }
+
+    func clearLastErrorIfNeeded() {
+        if isAwaitingGatewayIndependenceConsent {
+            return
+        }
+        switch connectionManager.currentTunnelStatus {
+        case .disconnecting, .disconnected, .error:
+            connectionManager.lastError = nil
+        default:
+            break
+        }
+    }
+
+    var isAwaitingGatewayIndependenceConsent: Bool {
+        GatewayIndependenceArcPolicy.shouldPreserveIndependenceConsentError(
+            status: connectionManager.currentTunnelStatus,
+            lastError: connectionManager.lastError
+        )
+    }
+
+    func applyDisplayMode(_ mode: OneClickDisplayMode) {
+        displayMode = mode
+        appSettings.oneClickDisplayModeRaw = mode.rawValue
+        refreshSelection()
+    }
+
+    func presentOfflineAlert() {
+        snackbarManager.enqueue(
+            SnackbarItem(
+                style: .warning,
+                title: "home.modal.noInternetConnection.title".localizedString,
+                message: "home.modal.noInternetConnection.subtitle".localizedString
+            )
+        )
+    }
+
+    func presentConnectionErrorAlert(message: String) {
+        snackbarManager.enqueue(
+            SnackbarItem(
+                style: .critical,
+                title: "connectionError.title".localizedString,
+                message: ConnectionErrorCopy.message(reason: message),
+                actionTitle: "disconnect".localizedString,
+                onAction: { [weak self] in self?.disconnectFromError() },
+                duration: 7
+            )
+        )
+    }
+}

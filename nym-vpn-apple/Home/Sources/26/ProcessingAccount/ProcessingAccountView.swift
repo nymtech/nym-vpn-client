@@ -159,41 +159,27 @@ private extension ProcessingAccountView {
 
     static func staticPair(for flow: ProcessingFlow) -> (String, String) {
         switch flow {
-        case .login:
-            return loginCarouselPairs().first ?? ("", "")
+        case .login, .createAccount:
+            return processingCarouselPairs().first ?? ("", "")
         case .postPurchase:
             return (
                 PostPurchaseProcessingUI.titleKey.localizedString,
                 PostPurchaseProcessingUI.subtitleKey.localizedString
             )
-        case .createAccount:
-            return ("", "")
         }
     }
 
     static func pairs(for flow: ProcessingFlow) -> [(String, String)] {
         switch flow {
-        case .login:
-            return loginCarouselPairs()
+        case .login, .createAccount:
+            return processingCarouselPairs()
         case .postPurchase:
             return [staticPair(for: .postPurchase)]
-        case .createAccount:
-            let prefix = "processingAccount.createAccount"
-            return (2...4).map { index in
-                (
-                    "\(prefix).title\(index)".localizedString,
-                    "\(prefix).subtitle\(index)".localizedString
-                )
-            }
         }
     }
 
-    static func loginCarouselPairs() -> [(String, String)] {
-        LoginProcessingUI.carouselStepRange.map { step in
-            (
-                "\(LoginProcessingUI.carouselTitlePrefix).title\(step)".localizedString,
-                "\(LoginProcessingUI.carouselTitlePrefix).subtitle\(step)".localizedString
-            )
-        }
+    static func processingCarouselPairs() -> [(String, String)] {
+        let title = LoginProcessingUI.settingUpTitleKey.localizedString
+        return LoginProcessingUI.carouselStepRange.map { _ in (title, "") }
     }
 }

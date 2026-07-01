@@ -1,4 +1,5 @@
 import SwiftUI
+import AccountPrefetchGates
 import CredentialsManager
 import Theme
 import UIComponents
@@ -67,21 +68,9 @@ private extension GeneratePassphraseView {
     }
 
     var switchingTitles: some View {
-        SwitchingTitlesView(
-            pairs: [
-                (
-                    "generatePassphrase.title1".localizedString,
-                    "generatePassphrase.subtitle1".localizedString
-                ),
-                (
-                    "generatePassphrase.title2".localizedString,
-                    "generatePassphrase.subtitle2".localizedString
-                ),
-                (
-                    "generatePassphrase.title3".localizedString,
-                    "generatePassphrase.subtitle3".localizedString
-                )
-            ],
+        let title = LoginProcessingUI.settingUpTitleKey.localizedString
+        return SwitchingTitlesView(
+            pairs: LoginProcessingUI.carouselStepRange.map { _ in (title, "") },
             didFinishAnimating: Binding(
                 get: { viewModel.didFinishAnimatingText },
                 set: { newValue in

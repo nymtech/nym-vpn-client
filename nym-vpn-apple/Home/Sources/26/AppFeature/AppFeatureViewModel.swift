@@ -29,7 +29,6 @@ import GRPCManager
     public private(set) var navigationIntent: NavigationIntent?
     public private(set) var planPurchaseNavigationToken: UInt = 0
 
-    var isSubscriptionPurchaseChoiceDisplayed = false
     var isFamilyWarningModalDisplayed = false
     public private(set) var webSubscriptionPurchaseToken: UInt = 0
 
@@ -230,6 +229,8 @@ import GRPCManager
     }
 
     func handleSceneBecameActive() {
+        guard !connectionStatus.isConnectingLike, !isFamilyWarningModalDisplayed else { return }
+
         let now = Date()
         let shouldBypassThrottle = DrawerSessionPolicy.shouldBypassForegroundAccountRefreshThrottle(
             isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
@@ -280,6 +281,12 @@ import GRPCManager
 
     func handleAuthCompleted(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
         handleSessionEvent(.authCompleted(outcome: outcome, flow: flow))
+    }
+
+    public func beginPrivyLoginProcessing(callbackURLString: String) {
+        guard drawerContent?.isProcessing != true else { return }
+        handleSessionEvent(.authDeeplinkProcessingStarted)
+        startProcessingTransition(flow: .login, deeplinkLoginCallbackURL: callbackURLString)
     }
 
     func handleCredentialChange(imported: Bool) {
@@ -340,25 +347,13 @@ import GRPCManager
 
     public func requestInactiveSubscriptionPurchase() {
 #if os(iOS)
-        if SubscriptionPurchaseChoicePolicy.shouldPresentPurchaseChoice(isIOS: true) {
-            isSubscriptionPurchaseChoiceDisplayed = true
-            return
-        }
+        requestPlanPurchaseTransition()
+#elseif os(macOS)
+        beginWebSubscriptionPurchase()
 #endif
-        requestPlanPurchaseTransition()
-    }
-
-    func dismissSubscriptionPurchaseChoice() {
-        isSubscriptionPurchaseChoiceDisplayed = false
-    }
-
-    func beginInAppSubscriptionPurchase() {
-        isSubscriptionPurchaseChoiceDisplayed = false
-        requestPlanPurchaseTransition()
     }
 
     func beginWebSubscriptionPurchase() {
-        isSubscriptionPurchaseChoiceDisplayed = false
         webSubscriptionPurchaseToken &+= 1
     }
 
@@ -430,7 +425,7 @@ private extension AppFeatureViewModel {
                 message: ConnectionErrorCopy.message(reason: message),
                 actionTitle: "disconnect".localizedString,
                 onAction: { [weak self] in
-                    self?.oneClick.connectButtonTapped()
+                    self?.oneClick.disconnectFromError()
                 },
                 duration: 7
             )
@@ -483,10 +478,11 @@ private extension AppFeatureViewModel {
         }
     }
 
-    func startProcessingTransition(flow: ProcessingFlow) {
+    func startProcessingTransition(flow: ProcessingFlow, deeplinkLoginCallbackURL: String? = nil) {
         let viewModel = ProcessingAccountViewModel(
             processing: credentialsManager,
-            flow: flow
+            flow: flow,
+            deeplinkLoginCallbackURL: deeplinkLoginCallbackURL
         )
         viewModel.sessionCoordinator = self
         processingViewModel = viewModel
@@ -614,25 +610,6 @@ private extension AppFeatureViewModel {
         handleAuthCompleted(outcome: outcome, flow: flow)
     }
 
-    func presentPurchaseDismissedFeedbackIfNeeded() {
-        guard IAPFeedbackPolicy.shouldShowCheckoutDismissedFeedback(
-            isCredentialImported: appSettings.isCredentialImported,
-            isAccountActive: credentialsManager.isAccountActive()
-        ) else { return }
-        snackbarManager.enqueue(
-            SnackbarItem(
-                style: .warning,
-                title: "purchasePlan.checkoutDismissed.title".localizedString,
-                message: "purchasePlan.checkoutDismissed.message".localizedString,
-                actionTitle: "oneClick.incompleteSubscription.action".localizedString,
-                onAction: { [weak self] in
-                    self?.requestInactiveSubscriptionPurchase()
-                },
-                duration: 8
-            )
-        )
-    }
-
     func makeSessionEnvironment(processingKind: ProcessingFlowKind? = nil) -> AppSessionEnvironment {
         let summary = credentialsManager.accountSummary
         let resolvedProcessingKind = processingKind
@@ -655,10 +632,6 @@ private extension AppFeatureViewModel {
 
         if result.cancelProcessing {
             cancelProcessingTransition()
-        }
-
-        if result.showCheckoutDismissedFeedback {
-            presentPurchaseDismissedFeedbackIfNeeded()
         }
 
         switch result.drawerCommand {

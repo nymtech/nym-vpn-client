@@ -36,56 +36,24 @@ final class AppFeatureViewModelSubscriptionPurchaseTests: XCTestCase {
     }
 
 #if os(iOS)
-    func testRequestInactiveSubscriptionPurchasePresentsChoiceWithoutRoutingToIAP() {
-        let viewModel = makeViewModel()
-        let initialNavigationToken = viewModel.planPurchaseNavigationToken
-
-        viewModel.requestInactiveSubscriptionPurchase()
-
-        XCTAssertTrue(viewModel.isSubscriptionPurchaseChoiceDisplayed)
-        XCTAssertEqual(viewModel.planPurchaseNavigationToken, initialNavigationToken)
-        XCTAssertNil(viewModel.navigationIntent)
-    }
-
-    func testDismissSubscriptionPurchaseChoiceClosesDialogWithoutRouting() {
-        let viewModel = makeViewModel()
-        viewModel.requestInactiveSubscriptionPurchase()
-
-        viewModel.dismissSubscriptionPurchaseChoice()
-
-        XCTAssertFalse(viewModel.isSubscriptionPurchaseChoiceDisplayed)
-        XCTAssertNil(viewModel.navigationIntent)
-    }
-
-    func testBeginInAppSubscriptionPurchaseRoutesToPlanPurchase() {
-        let viewModel = makeViewModel()
-        viewModel.requestInactiveSubscriptionPurchase()
-
-        viewModel.beginInAppSubscriptionPurchase()
-
-        XCTAssertFalse(viewModel.isSubscriptionPurchaseChoiceDisplayed)
-        XCTAssertEqual(viewModel.navigationIntent, .pushPlanPurchase)
-    }
-
-    func testBeginWebSubscriptionPurchaseIncrementsTokenWithoutRoutingToIAP() {
+    func testRequestInactiveSubscriptionPurchaseRoutesDirectlyToIAP() {
         let viewModel = makeViewModel()
         let initialWebToken = viewModel.webSubscriptionPurchaseToken
+
         viewModel.requestInactiveSubscriptionPurchase()
 
-        viewModel.beginWebSubscriptionPurchase()
+        XCTAssertEqual(viewModel.navigationIntent, .pushPlanPurchase)
+        XCTAssertEqual(viewModel.webSubscriptionPurchaseToken, initialWebToken)
+    }
+#elseif os(macOS)
+    func testRequestInactiveSubscriptionPurchaseStartsWebPurchaseOnMacOS() {
+        let viewModel = makeViewModel()
+        let initialWebToken = viewModel.webSubscriptionPurchaseToken
 
-        XCTAssertFalse(viewModel.isSubscriptionPurchaseChoiceDisplayed)
+        viewModel.requestInactiveSubscriptionPurchase()
+
         XCTAssertEqual(viewModel.webSubscriptionPurchaseToken, initialWebToken + 1)
         XCTAssertNil(viewModel.navigationIntent)
-    }
-#else
-    func testRequestInactiveSubscriptionPurchaseRoutesDirectlyToPlanPurchaseOnMacOS() {
-        let viewModel = makeViewModel()
-
-        viewModel.requestInactiveSubscriptionPurchase()
-
-        XCTAssertFalse(viewModel.isSubscriptionPurchaseChoiceDisplayed)
-        XCTAssertEqual(viewModel.navigationIntent, .pushPlanPurchase)
     }
 #endif
 }

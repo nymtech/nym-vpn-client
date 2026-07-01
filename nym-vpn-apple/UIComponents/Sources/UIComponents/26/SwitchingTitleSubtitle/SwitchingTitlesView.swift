@@ -27,13 +27,15 @@ public struct SwitchingTitlesView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.9)
 
-            Text(pairs[currentIndex].subtitle)
-                .textStyle(.Body.Medium.regular)
-                .foregroundColor(NymColor.gray1)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .lineLimit(2)
-                .minimumScaleFactor(0.9)
+            if !pairs[currentIndex].subtitle.isEmpty {
+                Text(pairs[currentIndex].subtitle)
+                    .textStyle(.Body.Medium.regular)
+                    .foregroundColor(NymColor.gray1)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.9)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .onAppear {

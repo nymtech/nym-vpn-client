@@ -105,6 +105,9 @@ struct NymVPNApp: App {
                 externalLinkManager.deeplinkHandler = { url in
                     await deeplinkManager.handleURL(url)
                 }
+                deeplinkManager.onPrivyLoginDeeplink = { callbackURLString in
+                    appFeatureViewModel.beginPrivyLoginProcessing(callbackURLString: callbackURLString)
+                }
             }
             .onOpenURL { incomingURL in
                 if WebCheckoutReturnPolicy.shouldDismissOnDeeplink(url: incomingURL) {
