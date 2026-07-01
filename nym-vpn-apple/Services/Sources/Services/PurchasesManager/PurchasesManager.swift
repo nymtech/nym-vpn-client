@@ -2,6 +2,7 @@ import StoreKit
 import SwiftUI
 import AppSettings
 #if SANTA
+import AccountPrefetchGates
 import ConfigurationManager
 #endif
 
@@ -79,6 +80,11 @@ public enum PurchaseOutcome: Equatable, Sendable {
         productsLoaded = false
         products = []
         isEligibleForIntroOffer = []
+#if SANTA
+        if StoreKitEnvironmentResetPolicy.shouldSyncAppStoreOnEnvironmentChange(isSantaBuild: true) {
+            try? await AppStore.sync()
+        }
+#endif
         try? await loadProducts()
         await updateAutoRenewStatus()
     }

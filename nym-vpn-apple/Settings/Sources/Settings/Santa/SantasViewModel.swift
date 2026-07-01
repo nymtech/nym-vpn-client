@@ -53,6 +53,18 @@ import Theme
         Env.allCases
     }
 
+#if os(iOS)
+    var storeKitAccountGuidance: String {
+        if configurationManager.isTestFlight {
+            return "TestFlight IAP uses your TestFlight Apple ID, not Developer Settings sandbox account."
+        }
+        return """
+        Xcode debug IAP uses Settings - Developer - Sandbox Apple Account. \
+        Switching VPN env here does not change the StoreKit Apple ID.
+        """
+    }
+#endif
+
     var libVersion: String {
 #if os(iOS)
         AppVersionProvider.libVersion
