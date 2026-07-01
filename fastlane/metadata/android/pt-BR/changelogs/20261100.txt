@@ -1,0 +1,5 @@
+O que há de novo:
+- Lançamento do recurso de Famílias de Nós 
+- Atualizações de parâmetros Mixnet 
+- Exclusão geográfica para a China
+- Apps agora refletem a franquia diária em vez da mensal

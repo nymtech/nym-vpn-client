@@ -1,0 +1,5 @@
+Yenilikler:
+- Node Aileleri özelliği eklendi 
+- Mixnet parametreleri güncellendi 
+- Çin için Bölgesel Hariç Tutma özelliği eklendi
+- Uygulamalar artık aylık yerine günlük adil kullanım bilgisini gösteriyor

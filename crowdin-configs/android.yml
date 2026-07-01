@@ -44,9 +44,3 @@ files:
   - source: "fastlane/metadata/android/en-US/changelogs/*.txt"
     translation: "fastlane/metadata/android/%locale%/changelogs/%original_file_name%"
     languages_mapping: { locale: *play-locale }
-  # Translate all .txt files except video.txt
-  - source: "fastlane/metadata/android/en-US/*.txt"
-    ignore:
-      - "fastlane/metadata/android/en-US/video.txt"
-    translation: "fastlane/metadata/android/%locale%/%original_file_name%"
-    languages_mapping: { locale: *play-locale }
