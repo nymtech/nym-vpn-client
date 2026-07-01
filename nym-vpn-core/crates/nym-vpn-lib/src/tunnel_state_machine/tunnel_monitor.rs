@@ -714,8 +714,13 @@ impl TunnelMonitor {
             tokio::sync::oneshot::channel::<bool>();
         let (exit_metadata_endpoint_reachable_tx, exit_metadata_endpoint_reachable_rx) =
             tokio::sync::oneshot::channel::<bool>();
+        let uses_metadata_endpoint = wg_tunnel_runtime.is_some();
         let metadata_endpoints_reachable =
             tokio::time::timeout(METADATA_ENDPOINT_REACHABILITY_TIMEOUT, async move {
+                // for mixnet tunnel, we don't have metadata endpoints, so we just return true
+                if !uses_metadata_endpoint {
+                    return true;
+                }
                 let entry_reachable = entry_metadata_endpoint_reachable_rx.await.unwrap_or(false);
                 let exit_reachable = exit_metadata_endpoint_reachable_rx.await.unwrap_or(false);
 

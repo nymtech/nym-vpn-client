@@ -982,7 +982,7 @@ impl BandwidthController {
         None
     }
 
-    async fn init_clients(&self) {
+    async fn init_clients(&mut self) {
         tokio::join!(
             self.wg_entry_gateway_client.lazy_init(),
             self.wg_exit_gateway_client.lazy_init()
@@ -991,9 +991,21 @@ impl BandwidthController {
 
     pub(crate) async fn run(mut self) {
         // Make sure the clients are up and ready, or notifying early of any problems
-        self.shutdown_token
+        if self
+            .shutdown_token
+            .clone()
             .run_until_cancelled(self.init_clients())
-            .await;
+            .await
+            .is_none()
+        {
+            // Explicitly close the credential storage so that the underlying SQLite pool releases
+            // OS file handles promptly (especially important on Windows).
+            self.ticket_provider.close().await;
+
+            tracing::debug!("BandwidthController: Exiting");
+            return;
+        }
+
         let exit_interface_name = self.wg_exit_gateway_client.interface_name().await;
         let mut system_bandwidth_monitor =
             SystemBandwidthMonitor::new(exit_interface_name, SYSTEM_BANDWIDTH_THRESHOLD);
