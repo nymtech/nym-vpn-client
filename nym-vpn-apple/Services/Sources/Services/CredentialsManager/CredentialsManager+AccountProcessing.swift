@@ -1,9 +1,14 @@
 import Foundation
 import AccountPrefetchGates
 
-// All five requirements are already satisfied by CredentialsManager's existing
-// @MainActor methods (ensureCredentialImportResolved, prepareRegisteredAccount,
-// updateAccountSummary(force:untilActive:), isAccountActive, prefetchZkNyms(timeout:)),
-// so the conformance is declaration-only. Cross-platform: the iOS-only work lives
-// behind the methods' own `#if os(iOS)` bodies with macOS fallbacks.
-extension CredentialsManager: AccountProcessing {}
+extension CredentialsManager: AccountProcessing {
+    public func registerAccountIfNeeded() async throws {
+        let token = accountToken
+        guard token == nil || token?.isEmpty == true else { return }
+#if os(iOS)
+        try await performAccountRegistration()
+#else
+        try await registerAccount()
+#endif
+    }
+}

@@ -7,6 +7,7 @@ public enum NavigationIntent: Equatable, Sendable {
 public enum SessionEvent: Equatable, Sendable {
     case authWillBegin(flow: AuthFlowKind, completesOnCredentialImport: Bool)
     case authHandoffCancelled
+    case authDeeplinkProcessingStarted
     case authCompleted(outcome: AuthCompletionOutcome, flow: AuthFlowKind)
     case credentialRemoved
     case checkoutCompleted
@@ -136,6 +137,8 @@ public enum AppSessionReducer: Equatable, Sendable {
             )
         case .authHandoffCancelled:
             return authHandoffCancelled(context: context)
+        case .authDeeplinkProcessingStarted:
+            return authDeeplinkProcessingStarted(context: context)
         case let .authCompleted(outcome, flow):
             return authCompleted(context: context, outcome: outcome, flow: flow)
         case .credentialRemoved:
@@ -172,6 +175,20 @@ public enum AppSessionReducer: Equatable, Sendable {
         var updated = context
         updated.pendingAuthFlow = nil
         updated.authHandoffCompleted = false
+        updated.authHandoffCompletesOnCredentialImport = false
+        updated.lastAuthCompletionOutcome = nil
+        return AppSessionReducerResult(context: updated)
+    }
+
+    private static func authDeeplinkProcessingStarted(
+        context: AppSessionContext
+    ) -> AppSessionReducerResult {
+        // The processing screen drives the login + routing on finish, so close the
+        // handoff here without emitting an authRoute or drawer command. This makes
+        // the imminent credential-import flip a no-op in DrawerCredentialImportPolicy.
+        var updated = context
+        updated.pendingAuthFlow = nil
+        updated.authHandoffCompleted = true
         updated.authHandoffCompletesOnCredentialImport = false
         updated.lastAuthCompletionOutcome = nil
         return AppSessionReducerResult(context: updated)

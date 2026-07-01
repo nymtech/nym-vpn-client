@@ -42,7 +42,7 @@ public struct AppFeatureView: View {
     @State private var welcomeHeight: CGFloat = 0
     @State private var bottomSafeAreaInset: CGFloat = 0
     @State private var drawerOffsetY: CGFloat = 0
-#if os(iOS)
+#if os(macOS)
     @State private var autologinState = AutologinState()
 #endif
     @Environment(\.colorScheme)
@@ -154,9 +154,9 @@ private extension AppFeatureView {
             }
             .preferredColorScheme(appearance.colorScheme)
             .onAppear { wireMacOSDaemonNavigation() }
-#if os(iOS)
+#if os(macOS)
             .modifier(
-                IOSPurchaseChromeModifier(
+                WebSubscriptionPurchaseChromeModifier(
                     viewModel: viewModel,
                     autologinState: autologinState,
                     credentialsManager: credentialsManager

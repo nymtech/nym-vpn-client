@@ -34,6 +34,37 @@ struct AppSessionReducerTests {
         #expect(afterCancel.cancelProcessing == false)
     }
 
+    // Deeplink processing takeover: closes the handoff so the imminent credential
+    // import is a no-op, and emits no route/drawer command (the screen drives it).
+    @Test func authDeeplinkProcessingStarted_closesHandoffWithoutRoute() {
+        var context = AppSessionContext.initial
+        let env = AppSessionEnvironment(
+            isCredentialImported: false,
+            welcomeScreenDidDisplay: false,
+            isAccountActive: false
+        )
+
+        context = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authWillBegin(flow: .login, completesOnCredentialImport: true)
+        ).context
+        #expect(context.pendingAuthFlow == .login)
+
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authDeeplinkProcessingStarted
+        )
+        #expect(result.context.pendingAuthFlow == nil)
+        #expect(result.context.authHandoffCompleted)
+        #expect(!result.context.authHandoffCompletesOnCredentialImport)
+        #expect(result.context.lastAuthCompletionOutcome == nil)
+        #expect(result.drawerCommand == .none)
+        #expect(result.authRoute == nil)
+        #expect(result.cancelProcessing == false)
+    }
+
     // E2: Privy success with inactive account routes to purchase.
     @Test func e2_privySuccessInactiveAccount_routesToPurchase() {
         let env = AppSessionEnvironment(
