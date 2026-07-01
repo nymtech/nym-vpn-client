@@ -132,6 +132,16 @@ impl ConnectingState {
             #[cfg(target_os = "macos")]
             let redirect_interface = shared_state.split_tunnel.interface().await;
 
+            let ws_entry_endpoints = selected_gateways
+                .as_ref()
+                .map(|v| v.entry_gateway().endpoints())
+                .unwrap_or_default();
+
+            let lp_entry_endpoints = selected_gateways
+                .as_ref()
+                .map(|v| v.entry_gateway().lp_endpoints())
+                .unwrap_or_default();
+
             let api_endpoints = shared_state
                 .resolved_api_endpoints
                 .as_ref()
@@ -143,14 +153,8 @@ impl ConnectingState {
                 allow_lan: shared_state.tunnel_settings.allow_lan,
                 wg_entry_endpoint: None,
                 bridge_endpoints,
-                ws_entry_endpoints: selected_gateways
-                    .as_ref()
-                    .map(|v| v.entry_gateway().endpoints())
-                    .unwrap_or_default(),
-                lp_entry_endpoints: selected_gateways
-                    .as_ref()
-                    .map(|v| v.entry_gateway().lp_endpoints())
-                    .unwrap_or_default(),
+                ws_entry_endpoints,
+                lp_entry_endpoints,
                 api_endpoints,
                 // Allow default DNS servers when connecting since those are used by http/client
                 dns_servers: shared_state.tunnel_settings.allowed_default_dns_endpoints(),
