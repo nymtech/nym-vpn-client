@@ -1,0 +1,5 @@
+Nouveautés :
+- Node Families Feature Release 
+- Mixnet Parameters updates 
+- Geo Exclusion for China
+- Apps reflect daily fair usage, instead of monthly

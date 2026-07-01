@@ -1,1 +1,1 @@
-The world's most private VPN
+VPNای غیر متمرکز خصوصی سوئیس. WireGuard، میکس‌نت، پروکسی غیر‌متمرکز، بدون نیاز به ایمیل.
