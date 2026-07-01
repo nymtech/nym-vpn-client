@@ -12,10 +12,14 @@ private final class FakeProcessing: AccountProcessing {
         case isActive
         case prefetch
         case syncPayment
+        case storeDeeplink(String)
+        case register
     }
 
     var prepareError: Error?
     var syncPaymentError: Error?
+    var storeDeeplinkError: Error?
+    var registerError: Error?
     var accountActive = true
     var prefetchResult: ZkNymPrefetchResult = .fetchedTickets
     private(set) var calls: [Call] = []
@@ -51,6 +55,20 @@ private final class FakeProcessing: AccountProcessing {
             throw syncPaymentError
         }
     }
+
+    func storeDeeplink(callbackURLString: String) async throws {
+        calls.append(.storeDeeplink(callbackURLString))
+        if let storeDeeplinkError {
+            throw storeDeeplinkError
+        }
+    }
+
+    func registerAccountIfNeeded() async throws {
+        calls.append(.register)
+        if let registerError {
+            throw registerError
+        }
+    }
 }
 
 @MainActor
@@ -66,9 +84,14 @@ private final class FakeCoordinator: AppSessionCoordinating {
 private func makeViewModel(
     flow: ProcessingFlow,
     processing: FakeProcessing,
-    coordinator: FakeCoordinator
+    coordinator: FakeCoordinator,
+    deeplinkLoginCallbackURL: String? = nil
 ) -> ProcessingAccountViewModel {
-    let viewModel = ProcessingAccountViewModel(processing: processing, flow: flow)
+    let viewModel = ProcessingAccountViewModel(
+        processing: processing,
+        flow: flow,
+        deeplinkLoginCallbackURL: deeplinkLoginCallbackURL
+    )
     viewModel.sessionCoordinator = coordinator
     viewModel.finalMessageDuration = 0
     return viewModel
@@ -86,6 +109,56 @@ struct ProcessingAccountViewModelTests {
         #expect(processing.calls == [.ensure, .prepare, .sync, .isActive, .prefetch])
         #expect(viewModel.phase == .awaitingAdvance)
         #expect(coordinator.actions.isEmpty)
+    }
+
+    @Test func deeplinkLoginStoresAndRegistersBeforePrepare() async {
+        let processing = FakeProcessing()
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(
+            flow: .login,
+            processing: processing,
+            coordinator: coordinator,
+            deeplinkLoginCallbackURL: "nymvpn://auth/privy/privateKey?x=1"
+        )
+
+        await viewModel.run()
+
+        #expect(processing.calls == [
+            .storeDeeplink("nymvpn://auth/privy/privateKey?x=1"),
+            .register,
+            .ensure,
+            .prepare,
+            .sync,
+            .isActive,
+            .prefetch
+        ])
+        #expect(viewModel.phase == .awaitingAdvance)
+        #expect(coordinator.actions.isEmpty)
+    }
+
+    @Test func deeplinkLoginStoreFailureFailsBeforePrepare() async {
+        struct Boom: Error {}
+        let processing = FakeProcessing()
+        processing.storeDeeplinkError = Boom()
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(
+            flow: .login,
+            processing: processing,
+            coordinator: coordinator,
+            deeplinkLoginCallbackURL: "nymvpn://auth/privy/privateKey"
+        )
+
+        await viewModel.run()
+
+        #expect(!processing.calls.contains(.prepare))
+        guard case .failed = viewModel.phase else {
+            Issue.record("expected .failed, got \(viewModel.phase)")
+            return
+        }
+        guard case .session(.processingFailed) = coordinator.actions.first else {
+            Issue.record("expected .session(.processingFailed)")
+            return
+        }
     }
 
     @Test func createAccountSkipsPrepare() async {

@@ -8,6 +8,8 @@ public final class DeeplinkManager {
     private let credentialsManager: CredentialsManager
     private let connectionManager: ConnectionManager
 
+    public var onPrivyLoginDeeplink: ((String) -> Void)?
+
     public init(credentialsManager: CredentialsManager, connectionManager: ConnectionManager) {
         self.credentialsManager = credentialsManager
         self.connectionManager = connectionManager
@@ -35,7 +37,11 @@ public final class DeeplinkManager {
 
         // Privy login
         if components.host == "auth", components.path == "/privy/privateKey" {
-            try? await credentialsManager.storeDeeplink(callbackURLString: url.absoluteString)
+            if let onPrivyLoginDeeplink {
+                onPrivyLoginDeeplink(url.absoluteString)
+            } else {
+                try? await credentialsManager.storeDeeplink(callbackURLString: url.absoluteString)
+            }
             return
         }
         // Account response

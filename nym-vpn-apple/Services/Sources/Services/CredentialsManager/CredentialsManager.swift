@@ -36,6 +36,7 @@ import PathManager
     private(set) public var isAccountRegistrationInFlight = false
 #if os(iOS)
     var registrationCapturedEnvironment: NymEnvironment?
+    var registrationCapturedEnvString: String?
     private var accountRegistrationTask: Task<Void, Error>?
     var accountControllerShutdown: (() async -> Void)?
 #endif
@@ -114,6 +115,7 @@ import PathManager
 
         do {
             let env = try resolvedRegistrationEnvironment()
+            let envString = registrationCapturedEnvString ?? configurationManager.currentEnvString
 
             if let loginCredential {
                 accountSummary = nil
@@ -128,7 +130,7 @@ import PathManager
             ) {
                 try await registerAccount(environment: env)
             }
-            appSettings.setAccountToken(result.accountToken, forEnvironment: configurationManager.currentEnvString)
+            appSettings.setAccountToken(result.accountToken, forEnvironment: envString)
             if loginCredential == nil {
                 try await AccountRegistrationSupport.withAccountStoreRetry(
                     operation: "prepareRegisteredAccount",
@@ -149,11 +151,13 @@ import PathManager
     func beginAccountRegistration() {
         isAccountRegistrationInFlight = true
         registrationCapturedEnvironment = configurationManager.networkEnv
+        registrationCapturedEnvString = configurationManager.currentEnvString
     }
 
     func endAccountRegistration() {
         isAccountRegistrationInFlight = false
         registrationCapturedEnvironment = nil
+        registrationCapturedEnvString = nil
     }
 #endif
 
@@ -461,7 +465,10 @@ import PathManager
         }
 #endif
     }
+}
 
+// MARK: - Account summary refresh
+extension CredentialsManager {
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
         guard !isAccountRegistrationInFlight else { return }
 #if SANTA
@@ -663,9 +670,9 @@ public extension CredentialsManager {
         ) {
             return
         }
-        guard await isAccountStored() else { return }
-
         let env = try resolvedNetworkEnvironment()
+        guard await isAccountStored(environment: env) else { return }
+
         let result = try await AccountRegistrationSupport.withAccountStoreRetry(
             operation: "registerAccountForEnvironment",
             logger: logger
