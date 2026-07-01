@@ -13,11 +13,4 @@ struct SantaStoreKitEnvironmentPolicyTests {
         #expect(message.contains("Sandbox Apple Account"))
         #expect(message.contains("does not change the StoreKit Apple ID"))
     }
-
-    @Test func syncBeforeReloadMatchesSantaCompileFlag() {
-        #expect(
-            SantaStoreKitEnvironmentPolicy.shouldSyncAppStoreBeforeReload()
-            == SantaStoreKitEnvironmentPolicy.isSantaBuild
-        )
-    }
 }

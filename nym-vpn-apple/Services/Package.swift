@@ -237,7 +237,6 @@ let package = Package(
             name: "PurchasesManager",
             dependencies: [
                 "AppSettings",
-                "AccountPrefetchGates",
                 "ConfigurationManager"
             ],
             path: "Sources/Services/PurchasesManager",
