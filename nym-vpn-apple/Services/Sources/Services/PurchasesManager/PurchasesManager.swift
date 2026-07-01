@@ -81,7 +81,7 @@ public enum PurchaseOutcome: Equatable, Sendable {
         products = []
         isEligibleForIntroOffer = []
 #if SANTA
-        if StoreKitEnvironmentResetPolicy.shouldSyncAppStoreOnEnvironmentChange(isSantaBuild: true) {
+        if SantaStoreKitEnvironmentPolicy.shouldSyncAppStoreBeforeReload() {
             try? await AppStore.sync()
         }
 #endif
