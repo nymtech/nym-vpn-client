@@ -107,7 +107,14 @@ jobs:
         working-directory: nym-vpn-app/src-tauri
         run: cargo clippy -- -Dwarnings
 
+      # ts-rs emits src/types/tauri.ts as a side effect of running its generated
+      # `export_bindings_*` tests. Kept as a distinct step so a failure here reads
+      # as a type-generation problem, not a unit-test regression.
       - name: Generate TS types
+        working-directory: nym-vpn-app/src-tauri
+        run: cargo test export_bindings
+
+      - name: Run tests
         working-directory: nym-vpn-app/src-tauri
         run: cargo test
 

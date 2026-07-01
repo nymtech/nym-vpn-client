@@ -205,3 +205,52 @@ commit date:   {}
     }
     println!();
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use clap::Parser;
+
+    #[test]
+    fn parses_with_all_flags_defaulted() {
+        let cli = Cli::try_parse_from(["nym-vpn-app"]).expect("empty args should parse");
+        assert!(!cli.build_info);
+        assert!(!cli.log_file);
+        assert!(!cli.nosplash);
+        assert!(cli.log_level.is_none());
+        assert!(cli.command.is_none());
+    }
+
+    #[test]
+    fn parses_boolean_flags() {
+        let cli = Cli::try_parse_from(["nym-vpn-app", "--log-file", "--nosplash"])
+            .expect("flags should parse");
+        assert!(cli.log_file);
+        assert!(cli.nosplash);
+    }
+
+    #[test]
+    fn parses_the_log_level_option() {
+        let cli = Cli::try_parse_from(["nym-vpn-app", "-L", "debug"])
+            .expect("log level should parse");
+        assert_eq!(cli.log_level, Some(LogLevel::Debug));
+    }
+
+    #[test]
+    fn rejects_an_invalid_log_level() {
+        assert!(Cli::try_parse_from(["nym-vpn-app", "-L", "nope"]).is_err());
+    }
+
+    #[test]
+    fn parses_the_db_subcommand() {
+        let cli = Cli::try_parse_from(["nym-vpn-app", "db", "keys"])
+            .expect("db subcommand should parse");
+        assert!(matches!(cli.command, Some(Commands::Db { .. })));
+    }
+
+    #[test]
+    fn log_level_displays_in_lowercase() {
+        assert_eq!(LogLevel::Debug.to_string(), "debug");
+        assert_eq!(LogLevel::Error.to_string(), "error");
+    }
+}

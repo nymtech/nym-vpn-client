@@ -270,3 +270,33 @@ impl Db {
         key == Key::CustomSplitTunnelApps.as_ref()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use strum::IntoEnumIterator;
+
+    #[test]
+    fn key_display_is_kebab_case() {
+        assert_eq!(Key::UiTheme.to_string(), "ui-theme");
+        assert_eq!(Key::LastNetworkEnv.to_string(), "last-network-env");
+        assert_eq!(
+            Key::CacheMxEntryGateways.to_string(),
+            "cache-mx-entry-gateways"
+        );
+    }
+
+    #[test]
+    fn key_iteration_covers_all_variants() {
+        // Guards against a variant being added without a corresponding
+        // TypeScript `DbKey` consumer being considered.
+        assert_eq!(Key::iter().count(), 13);
+    }
+
+    #[test]
+    fn key_display_matches_as_ref() {
+        for key in Key::iter() {
+            assert_eq!(key.to_string(), key.as_ref());
+        }
+    }
+}

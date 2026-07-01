@@ -37,3 +37,60 @@ fn get_group_flag(fflags: &lib::FeatureFlags, group_name: &str, flag_name: &str)
         None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn group(entries: &[(&str, &str)]) -> FlagValue {
+        FlagValue::Group(
+            entries
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
+        )
+    }
+
+    fn lib_flags(groups: &[(&str, FlagValue)]) -> lib::FeatureFlags {
+        lib::FeatureFlags {
+            flags: groups
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.clone()))
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn maps_group_flags_to_booleans() {
+        let ff: FeatureFlags = lib_flags(&[
+            (KEY_QUIC, group(&[("enabled", "true")])),
+            (KEY_DOMAIN_FRONTING, group(&[("enabled", "false")])),
+            (KEY_ZKNYMS, group(&[("credentialMode", "true")])),
+        ])
+        .into();
+        assert!(ff.quic);
+        assert!(!ff.domain_fronting);
+        assert!(ff.zknym_credential);
+    }
+
+    #[test]
+    fn defaults_missing_flags_to_false() {
+        let ff: FeatureFlags = lib_flags(&[]).into();
+        assert!(!ff.quic);
+        assert!(!ff.domain_fronting);
+        assert!(!ff.zknym_credential);
+    }
+
+    #[test]
+    fn treats_a_non_group_flag_value_as_absent() {
+        let ff: FeatureFlags =
+            lib_flags(&[(KEY_QUIC, FlagValue::Value("true".to_string()))]).into();
+        assert!(!ff.quic);
+    }
+
+    #[test]
+    fn only_the_literal_true_counts_as_enabled() {
+        let ff: FeatureFlags = lib_flags(&[(KEY_QUIC, group(&[("enabled", "1")]))]).into();
+        assert!(!ff.quic);
+    }
+}
