@@ -34,11 +34,29 @@ npm run fmt           # Prettier format
 npm run tscheck       # TypeScript type-check (no emit)
 ```
 
+### Tests
+
+```sh
+npm run test          # Frontend unit tests (Vitest, jsdom) — runs once and exits
+npm run test:watch    # Frontend unit tests in watch mode
+```
+
+Frontend tests live next to the code they cover (`*.test.ts` / `*.test.tsx`) and use a
+shared harness in `src/test/harness.tsx` (`renderWithProviders`, `renderHookWithProviders`,
+`seedStore`, `mockTauriCommands`). Tauri IPC is mocked via `@tauri-apps/api/mocks`; the
+global setup (`src/test/setup.ts`) clears mocks and the DOM between tests. Config lives in
+`vitest.config.ts` (kept separate from `vite.config.ts`).
+
+Backend tests are standard `#[cfg(test)]` modules run with `cargo test` (see below). Both
+suites run in CI (`ci-nym-vpn-app-js.yml`, `ci-nym-vpn-app-rust.yml`) and block PRs on
+failure.
+
 ### Rust backend
 
 ```sh
 cargo build                         # Build Rust backend (from src-tauri/)
 cargo test                          # Run Rust tests (also runs ts-rs type generation)
+cargo test export_bindings          # Only regenerate src/types/tauri.ts (ts-rs codegen)
 cargo +nightly clippy -- -Dwarnings # Lint Rust code
 cargo +nightly fmt                  # Format Rust code
 ```

@@ -178,3 +178,55 @@ impl From<DbError> for BackendError {
         BackendError::internal("db error", None)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_sets_message_and_key_without_data() {
+        let err = BackendError::new("boom", ErrorKey::VpndClient);
+        assert_eq!(err.message, "boom");
+        assert!(matches!(err.key, ErrorKey::VpndClient));
+        assert!(err.data.is_none());
+    }
+
+    #[test]
+    fn with_detail_stores_the_detail_under_details() {
+        let err = BackendError::with_detail("boom", ErrorKey::Internal, "extra".to_string());
+        let data = err.data.expect("detail should populate data");
+        assert_eq!(data.get("details"), Some(&"extra".to_string()));
+    }
+
+    #[test]
+    fn internal_helpers_use_the_internal_key() {
+        assert!(matches!(
+            BackendError::internal("x", None).key,
+            ErrorKey::Internal
+        ));
+        assert!(matches!(
+            BackendError::internal_with_detail("x", "d".to_string()).key,
+            ErrorKey::Internal
+        ));
+    }
+
+    #[test]
+    fn display_includes_the_message() {
+        let err = BackendError::new("something failed", ErrorKey::Internal);
+        assert!(err.to_string().contains("something failed"));
+    }
+
+    #[test]
+    fn error_key_serializes_as_kebab_case() {
+        // This is the wire contract consumed by the typed frontend `ErrorKey`.
+        let json = serde_json::to_string(&ErrorKey::NotConnectedToDaemon)
+            .expect("ErrorKey should serialize");
+        assert_eq!(json, "\"not-connected-to-daemon\"");
+    }
+
+    #[test]
+    fn from_conversions_map_to_internal() {
+        let from_anyhow: BackendError = anyhow::anyhow!("x").into();
+        assert!(matches!(from_anyhow.key, ErrorKey::Internal));
+    }
+}

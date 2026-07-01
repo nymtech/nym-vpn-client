@@ -77,7 +77,7 @@ function Slider({
           step={step}
           defaultValue={defaultValue}
           value={internalValue}
-          onValueCommitted={() => onValueCommitted?.(internalValue)}
+          onValueCommitted={(val) => onValueCommitted?.(val)}
           onValueChange={(val) => {
             setInternalValue(val);
             onChange?.(val);

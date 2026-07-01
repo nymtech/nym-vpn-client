@@ -21,6 +21,8 @@
     "fmt": "prettier --write --ignore-unknown \"**/*\"",
     "fmt:check": "prettier --check --ignore-unknown \"**/*\"",
     "tscheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "tsgen": "cd src-tauri && cargo test && prettier --write ../src/types/tauri.ts",
     "tauri": "tauri",
     "gen:licenses": "run-p --aggregate-output gen:licenses:rust gen:licenses:js",
@@ -70,6 +72,10 @@
     "@eslint/js": "^9.8.0",
     "@tailwindcss/vite": "^4.3.1",
     "@tauri-apps/cli": "=2.11.3",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/eslint__js": "^8.42.3",
     "@types/lodash-es": "^4.17.0",
     "@types/node": "^25.6.0",
@@ -83,6 +89,7 @@
     "eslint-plugin-react": "^7.34.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^17.5.0",
+    "jsdom": "^29.1.1",
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.8.4",
     "prettier-plugin-tailwindcss": "^0.8.0",
@@ -90,6 +97,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.1",
     "vite": "^8.0.16",
-    "vite-plugin-svgr": "^5.2.0"
+    "vite-plugin-svgr": "^5.2.0",
+    "vitest": "^4.1.9"
   }
 }

@@ -36,3 +36,32 @@ impl From<DeeplinkKind> for lib::DeeplinkKind {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn converts_from_lib_kind() {
+        assert_eq!(
+            DeeplinkKind::from(lib::DeeplinkKind::CreateAccount),
+            DeeplinkKind::CreateAccount
+        );
+    }
+
+    #[test]
+    fn round_trips_every_variant_through_the_lib_type() {
+        let variants = [
+            DeeplinkKind::Privy,
+            DeeplinkKind::PrivyLink,
+            DeeplinkKind::AutologinRenew,
+            DeeplinkKind::AutologinView,
+            DeeplinkKind::CreateAccount,
+        ];
+        for kind in variants {
+            let lib_kind: lib::DeeplinkKind = kind.clone().into();
+            let back: DeeplinkKind = lib_kind.into();
+            assert_eq!(kind, back);
+        }
+    }
+}

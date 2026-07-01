@@ -86,3 +86,49 @@ pub fn clean_local_files() {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    // Builds a unique path under the OS temp dir so parallel test runs don't collide.
+    fn unique_temp_path(suffix: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let mut path = std::env::temp_dir();
+        path.push(format!("nym-vpn-app-test-{nanos}-{suffix}"));
+        path
+    }
+
+    #[test]
+    fn check_dir_creates_a_missing_directory() {
+        let dir = unique_temp_path("dir");
+        assert!(!dir.is_dir());
+        check_dir(&dir).expect("check_dir should create the directory");
+        assert!(dir.is_dir());
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn check_dir_is_ok_for_an_existing_directory() {
+        let dir = unique_temp_path("existing");
+        fs::create_dir_all(&dir).unwrap();
+        assert!(check_dir(&dir).is_ok());
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn check_file_creates_a_missing_file() {
+        let dir = unique_temp_path("filedir");
+        fs::create_dir_all(&dir).unwrap();
+        let mut file = dir.clone();
+        file.push("marker.txt");
+        assert!(!file.exists());
+        check_file(&file).expect("check_file should create the file");
+        assert!(file.exists());
+        let _ = fs::remove_dir_all(&dir);
+    }
+}
