@@ -36,6 +36,7 @@ const SYSTEM_BANDWIDTH_THRESHOLD: u64 = 8 * 1024 * 1024; // 8 MB
 const SYSTEM_BANDWIDTH_CHECK_INTERVAL: Duration = Duration::from_secs(1); // 1 second
 
 const DEFAULT_CLIENT_RETRIES: usize = 1;
+const DEFAULT_CLIENT_TIMEOUT: Duration = Duration::from_secs(5); // 5 seconds
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -649,6 +650,7 @@ impl BandwidthController {
             bind_ip,
             signal_channel,
             DEFAULT_CLIENT_RETRIES,
+            DEFAULT_CLIENT_TIMEOUT,
         );
         TemporaryBandwidthClient::new(
             gateway,

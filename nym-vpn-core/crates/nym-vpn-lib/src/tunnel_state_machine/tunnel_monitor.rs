@@ -136,6 +136,8 @@ pub type TunnelMonitorEventReceiver = mpsc::UnboundedReceiver<TunnelMonitorEvent
 /// Timeout when waiting for reply from the event handler.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
 
+const METADATA_ENDPOINT_REACHABILITY_TIMEOUT: Duration = Duration::from_secs(10);
+
 /// Timeout for starting the registration client
 const REGISTRATION_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(8);
 
@@ -708,6 +710,20 @@ impl TunnelMonitor {
             wait_for_exit_handshake(wg_handle, &self.shutdown_token).await;
         }
 
+        let (entry_metadata_endpoint_reachable_tx, entry_metadata_endpoint_reachable_rx) =
+            tokio::sync::oneshot::channel::<bool>();
+        let (exit_metadata_endpoint_reachable_tx, exit_metadata_endpoint_reachable_rx) =
+            tokio::sync::oneshot::channel::<bool>();
+        let metadata_endpoints_reachable =
+            tokio::time::timeout(METADATA_ENDPOINT_REACHABILITY_TIMEOUT, async move {
+                let entry_reachable = entry_metadata_endpoint_reachable_rx.await.unwrap_or(false);
+                let exit_reachable = exit_metadata_endpoint_reachable_rx.await.unwrap_or(false);
+
+                entry_reachable && exit_reachable
+            })
+            .fuse();
+        tokio::pin!(metadata_endpoints_reachable);
+
         // Send metadata endpoint data to the bandwidth controller
         match &tunnel_interface {
             TunnelInterface::One(exit) => {
@@ -717,20 +733,32 @@ impl TunnelMonitor {
                             "Received entry metadata endpoint: {entry_metadata_endpoint}"
                         );
                         entry_metadata_tx
-                            .send(MetadataEvent::MetadataProxy(entry_metadata_endpoint))
+                            .send(MetadataEvent::new_proxy(
+                                entry_metadata_endpoint_reachable_tx,
+                                entry_metadata_endpoint,
+                            ))
                             .ok();
                     }
                 });
                 exit_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(exit.clone()))
+                    .send(MetadataEvent::new_tunnel(
+                        exit_metadata_endpoint_reachable_tx,
+                        exit.clone(),
+                    ))
                     .ok();
             }
             TunnelInterface::Two { entry, exit } => {
                 entry_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(entry.clone()))
+                    .send(MetadataEvent::new_tunnel(
+                        entry_metadata_endpoint_reachable_tx,
+                        entry.clone(),
+                    ))
                     .ok();
                 exit_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(exit.clone()))
+                    .send(MetadataEvent::new_tunnel(
+                        exit_metadata_endpoint_reachable_tx,
+                        exit.clone(),
+                    ))
                     .ok();
             }
         }
@@ -749,6 +777,8 @@ impl TunnelMonitor {
 
         let mut last_connection_status = None;
         let mut has_sent_up_event = false;
+        let mut ping_viable = false;
+        let mut metadata_endpoint_viable = false;
         let connection_data = Box::new(ConnectionData {
             entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
             exit_gateway: GatewayLightInfo::from(selected_gateways.exit_gateway().clone()),
@@ -769,10 +799,10 @@ impl TunnelMonitor {
 
                         match event.status {
                             ConnectionStatusEvent::Viable => {
-                                tracing::info!("Tunnel connection is viable");
-                                if !has_sent_up_event {
+                                ping_viable = true;
+                                if !has_sent_up_event && metadata_endpoint_viable {
+                                    tracing::info!("Tunnel connection is viable");
                                     has_sent_up_event = true;
-
                                     self.send_event(TunnelMonitorEvent::Up {
                                         tunnel_interface: tunnel_interface.clone(),
                                         connection_data: connection_data.clone(),
@@ -789,6 +819,26 @@ impl TunnelMonitor {
                                 });
                                 break;
                             }
+                        }
+                    }
+                }
+                reachable = &mut metadata_endpoints_reachable => {
+                    let reachable = reachable.unwrap_or(false);
+                    if !reachable {
+                        tracing::info!("Metadata endpoints not reachable. Exiting");
+                        self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                            exit_gateway_id: selected_gateways.exit_gateway().identity(),
+                        });
+                        break;
+                    } else {
+                        metadata_endpoint_viable = true;
+                        if !has_sent_up_event && ping_viable {
+                            tracing::info!("Tunnel connection is viable");
+                            has_sent_up_event = true;
+                            self.send_event(TunnelMonitorEvent::Up {
+                                tunnel_interface: tunnel_interface.clone(),
+                                connection_data: connection_data.clone(),
+                            });
                         }
                     }
                 }
