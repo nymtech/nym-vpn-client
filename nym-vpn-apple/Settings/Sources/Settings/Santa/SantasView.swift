@@ -92,7 +92,7 @@ private extension SantasView {
                     .font(.caption)
                     .padding(4)
             }
-            Text("TestFlight IAP uses your TestFlight Apple ID, not Developer Settings sandbox account.")
+            Text(viewModel.storeKitAccountGuidance)
                 .font(.caption)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 8)

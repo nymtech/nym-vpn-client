@@ -79,6 +79,9 @@ public enum PurchaseOutcome: Equatable, Sendable {
         productsLoaded = false
         products = []
         isEligibleForIntroOffer = []
+#if SANTA
+        try? await AppStore.sync()
+#endif
         try? await loadProducts()
         await updateAutoRenewStatus()
     }
