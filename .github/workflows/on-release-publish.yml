@@ -219,7 +219,7 @@ jobs:
     steps:
       - name: Invalidate release cache
         env:
-          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          REVALIDATE_SECRET: ${{ secrets.WEBSITE_REVALIDATE_SECRET }}
         run: |
           set -euo pipefail
           BODY='{"event":"release"}'
