@@ -100,6 +100,8 @@ import TunnelStatus
 
     func disconnect() {
         logger.log(level: .info, "Disconnecting Tunnel \(name)")
+        stopPollingTunnelStatus()
+        lastError = nil
         tunnel.connection.stopVPNTunnel()
     }
 
