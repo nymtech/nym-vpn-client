@@ -297,11 +297,6 @@ impl GatewayCache {
                         Command::Pause(paused) => {
                             tracing::info!("Gateway caching is {}", if paused { "Paused" } else { "Resumed" });
                             self.paused = paused;
-                            if !paused
-                                && self.connectivity_handle.connectivity().await.is_online()
-                            {
-                                self.perform_initial_fetch_once().await;
-                            }
                         }
                     }
                 }
