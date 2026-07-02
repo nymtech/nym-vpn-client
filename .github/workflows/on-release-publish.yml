@@ -207,3 +207,25 @@ jobs:
     secrets: inherit
     with:
       release_tag: ${{ needs.setup.outputs.tag }}
+
+  # Bust the nym.com (Next.js) release cache tag so the public download page picks
+  # up the freshly published version. Only fires here, gated on `setup`, so it runs
+  # exactly when a ship (non-prerelease) release with the nym-vpn-v* tag goes public
+  # — nightly/beta prereleases never reach this workflow. Signs the payload with an
+  # HMAC-SHA256 the endpoint verifies via the X-Hub-Signature-256 header.
+  revalidate-website:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invalidate release cache
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          set -euo pipefail
+          BODY='{"event":"release"}'
+          SIG="sha256=$(printf '%s' "$BODY" | openssl dgst -sha256 -hmac "$REVALIDATE_SECRET" | awk '{print $2}')"
+          curl -fsS --retry 3 --retry-delay 5 -X POST https://nym.com/api/github/revalidate \
+            -H "Content-Type: application/json" \
+            -H "X-Hub-Signature-256: $SIG" \
+            -d "$BODY"
+          echo "::notice:: revalidated nym.com release cache for ${{ needs.setup.outputs.tag }}"
