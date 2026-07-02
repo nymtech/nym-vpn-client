@@ -8,6 +8,7 @@ pub trait GatewayCache: Clone + Send + Sync + 'static {
     async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList, Error>;
     fn replace_gateway_client(&self, gateway_client: GatewayClient) -> Result<(), Error>;
     async fn refresh_all(&self) -> Result<(), Error>;
+    fn set_paused(&self, paused: bool) -> Result<(), Error>;
 }
 
 #[async_trait::async_trait]
@@ -22,6 +23,10 @@ impl GatewayCache for GatewayCacheHandle {
 
     async fn refresh_all(&self) -> Result<(), Error> {
         self.refresh_all().await
+    }
+
+    fn set_paused(&self, paused: bool) -> Result<(), Error> {
+        self.set_paused(paused)
     }
 }
 
@@ -78,6 +83,10 @@ pub mod tests {
         }
 
         async fn refresh_all(&self) -> Result<(), Error> {
+            Ok(())
+        }
+
+        fn set_paused(&self, _paused: bool) -> Result<(), Error> {
             Ok(())
         }
     }
