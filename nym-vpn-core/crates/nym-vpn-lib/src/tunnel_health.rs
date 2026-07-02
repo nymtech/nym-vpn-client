@@ -66,7 +66,10 @@ pub fn record_metadata_path_if_both_legs_ok(
     entry_ok: bool,
     exit_ok: bool,
 ) {
-    if entry_ok && exit_ok && let Some(health) = health {
+    if entry_ok
+        && exit_ok
+        && let Some(health) = health
+    {
         health.record_success();
     }
 }
