@@ -264,7 +264,12 @@ impl<C: GatewayCache> GatewayProvider<C> {
     }
 
     pub fn set_gateway_cache_paused(&self, paused: bool) {
-        self.gateway_cache.set_paused(paused);
+        if let Err(e) = self.gateway_cache.set_paused(paused) {
+            tracing::warn!(
+                "Failed to {} the gateway cache: {e}",
+                if paused { "pause" } else { "resume" }
+            );
+        }
     }
 
     pub fn blacklisted_gateways(&self) -> BlacklistedGateways {
