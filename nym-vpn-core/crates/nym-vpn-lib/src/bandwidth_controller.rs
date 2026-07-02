@@ -5,6 +5,8 @@ use std::{net::IpAddr, time::Duration};
 
 use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
+
+use crate::tunnel_health::{MetadataPathHealth, record_metadata_path_if_both_legs_ok};
 use nym_registration_common::WireguardConfiguration;
 use sysinfo::Networks;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
@@ -612,6 +614,7 @@ pub(crate) struct BandwidthController {
     shutdown_token: CancellationToken,
     successful_checks: u64,
     upgrade_mode_enabled_on_last_check: bool,
+    metadata_path_health: Option<MetadataPathHealth>,
 }
 
 impl BandwidthController {
@@ -621,6 +624,7 @@ impl BandwidthController {
         wg_exit_gateway_client: TemporaryBandwidthClient,
         account_command_tx: AccountCommandSender,
         shutdown_token: CancellationToken,
+        metadata_path_health: Option<MetadataPathHealth>,
     ) -> Self {
         let timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
@@ -638,6 +642,7 @@ impl BandwidthController {
             shutdown_token,
             successful_checks: 0,
             upgrade_mode_enabled_on_last_check: false,
+            metadata_path_health,
         }
     }
 
@@ -730,6 +735,7 @@ impl BandwidthController {
         exit_signal_channel: TunUpReceiver,
         gateway_metadata_update_version: Option<semver::Version>,
         cancel_token: CancellationToken,
+        metadata_path_health: MetadataPathHealth,
     ) -> BandwidthController {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_wireguard_config.private_ipv4.into(),
@@ -752,6 +758,7 @@ impl BandwidthController {
             wg_exit_client,
             account_command_tx,
             cancel_token.clone(),
+            Some(metadata_path_health),
         )
     }
 
@@ -1032,6 +1039,11 @@ impl BandwidthController {
                     let current_period = self.timeout_check_interval.as_ref().period();
                     let entry_duration = self.check_bandwidth(true, current_period).await;
                     let exit_duration = self.check_bandwidth(false, current_period).await;
+                    record_metadata_path_if_both_legs_ok(
+                        &self.metadata_path_health,
+                        entry_duration.is_some(),
+                        exit_duration.is_some(),
+                    );
                     if let Some(minimal_duration) = match (entry_duration, exit_duration) {
                         (Some(d1), Some(d2)) => {
                             if d1 < d2 {
