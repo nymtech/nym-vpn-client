@@ -263,6 +263,10 @@ impl<C: GatewayCache> GatewayProvider<C> {
         self.gateway_cache.refresh_all().await.ok();
     }
 
+    pub fn set_gateway_cache_paused(&self, paused: bool) {
+        self.gateway_cache.set_paused(paused);
+    }
+
     pub fn blacklisted_gateways(&self) -> BlacklistedGateways {
         self.blacklisted_gateways.clone()
     }

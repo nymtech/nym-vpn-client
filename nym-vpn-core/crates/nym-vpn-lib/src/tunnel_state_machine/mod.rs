@@ -786,7 +786,7 @@ pub struct SharedState {
 }
 
 impl SharedState {
-    /// Notify discovery and account controller when network is unrestricted.
+    /// Notify discovery, account controller, and gateway cache when network is unrestricted.
     async fn allow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(false))
@@ -795,15 +795,17 @@ impl SharedState {
             .set_vpn_api_firewall_down()
             .await
             .ok();
+        self.gateway_provider.set_gateway_cache_paused(false);
     }
 
-    /// Notify discovery, account controller and geo-location when network is restricted.
+    /// Notify discovery, account controller, geo-location, and gateway cache when network is restricted.
     async fn disallow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(true))
             .ok();
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
         self.gateway_provider.set_active_geo_location(false).await;
+        self.gateway_provider.set_gateway_cache_paused(true);
     }
 
     async fn enable_ad_blocking(&self, enable: bool) {

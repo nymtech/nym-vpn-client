@@ -118,6 +118,16 @@ impl GatewayCacheHandle {
             .map_err(|_| Error::Cancelled)
     }
 
+    /// Pause or resume the background gateway cache refresh.
+    ///
+    /// While paused, connectivity-triggered fetches are held until [`set_paused(false)`] is called.
+    /// On resume, if the initial refresh has not yet completed, it fires immediately (if online).
+    pub fn set_paused(&self, paused: bool) -> Result<()> {
+        self.tx
+            .send(Command::Pause(paused))
+            .map_err(|_| Error::Cancelled)
+    }
+
     /// Lookup a NymNode by identity, using cached data if available.
     /// This is specifically for SOCKS5 which needs the nr_address field.
     pub async fn lookup_nymnode_by_identity(&self, identity: NodeIdentity) -> Result<NymNode> {
@@ -196,6 +206,7 @@ enum Command {
     LookupNymNodesForSocks5(tokio::sync::oneshot::Sender<Result<NymNodeList>>),
     ReplaceGatewayClient(Box<GatewayClient>),
     ClearCache,
+    Pause(bool),
 }
 
 pub struct GatewayCache {
@@ -217,6 +228,9 @@ pub struct GatewayCache {
     /// Whether the initial refresh has been performed
     is_performed_initial_refresh: bool,
 
+    /// When true, connectivity-triggered fetches are deferred until unpaused.
+    paused: bool,
+
     // Shutdown token
     shutdown_token: CancellationToken,
 }
@@ -236,6 +250,7 @@ impl GatewayCache {
             cached_gateways: HashMap::default(),
             cached_nymnodes: None,
             is_performed_initial_refresh: false,
+            paused: false,
             shutdown_token,
         };
         let join_handle = tokio::spawn(inner.run());
@@ -243,7 +258,7 @@ impl GatewayCache {
     }
 
     async fn run(mut self) {
-        if self.connectivity_handle.connectivity().await.is_online() {
+        if !self.paused && self.connectivity_handle.connectivity().await.is_online() {
             self.perform_initial_fetch_once().await;
         }
 
@@ -279,10 +294,19 @@ impl GatewayCache {
                         Command::ClearCache => {
                             self.clear_cache();
                         }
+                        Command::Pause(paused) => {
+                            tracing::info!("Gateway caching is {}", if paused { "Paused" } else { "Resumed" });
+                            self.paused = paused;
+                            if !paused
+                                && self.connectivity_handle.connectivity().await.is_online()
+                            {
+                                self.perform_initial_fetch_once().await;
+                            }
+                        }
                     }
                 }
                 Some(status) = self.connectivity_handle.next() => {
-                    if status.is_online() {
+                    if status.is_online() && !self.paused {
                         self.perform_initial_fetch_once().await;
                     }
                 }
