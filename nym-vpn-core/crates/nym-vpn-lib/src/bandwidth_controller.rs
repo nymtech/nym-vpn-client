@@ -36,6 +36,7 @@ const SYSTEM_BANDWIDTH_THRESHOLD: u64 = 8 * 1024 * 1024; // 8 MB
 const SYSTEM_BANDWIDTH_CHECK_INTERVAL: Duration = Duration::from_secs(1); // 1 second
 
 const DEFAULT_CLIENT_RETRIES: usize = 1;
+const DEFAULT_CLIENT_TIMEOUT: Duration = Duration::from_secs(5); // 5 seconds
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -435,6 +436,15 @@ impl TemporaryBandwidthClient {
         }
     }
 
+    pub(crate) async fn lazy_init(&mut self) {
+        match self {
+            TemporaryBandwidthClient::Deprecated(_) => {}
+            TemporaryBandwidthClient::Latest(metadata_client) => {
+                metadata_client.lazy_init().await;
+            }
+        }
+    }
+
     pub(crate) async fn interface_name(&mut self) -> Option<String> {
         match self {
             TemporaryBandwidthClient::Deprecated(_) => None,
@@ -649,6 +659,7 @@ impl BandwidthController {
             bind_ip,
             signal_channel,
             DEFAULT_CLIENT_RETRIES,
+            DEFAULT_CLIENT_TIMEOUT,
         );
         TemporaryBandwidthClient::new(
             gateway,
@@ -971,12 +982,31 @@ impl BandwidthController {
         None
     }
 
+    async fn init_clients(&mut self) {
+        tokio::join!(
+            self.wg_entry_gateway_client.lazy_init(),
+            self.wg_exit_gateway_client.lazy_init()
+        );
+    }
+
     pub(crate) async fn run(mut self) {
-        let exit_interface_name = self
+        // Make sure the clients are up and ready, or notifying early of any problems
+        if self
             .shutdown_token
-            .run_until_cancelled(self.wg_exit_gateway_client.interface_name())
+            .clone()
+            .run_until_cancelled(self.init_clients())
             .await
-            .flatten();
+            .is_none()
+        {
+            // Explicitly close the credential storage so that the underlying SQLite pool releases
+            // OS file handles promptly (especially important on Windows).
+            self.ticket_provider.close().await;
+
+            tracing::debug!("BandwidthController: Exiting");
+            return;
+        }
+
+        let exit_interface_name = self.wg_exit_gateway_client.interface_name().await;
         let mut system_bandwidth_monitor =
             SystemBandwidthMonitor::new(exit_interface_name, SYSTEM_BANDWIDTH_THRESHOLD);
         let mut system_bandwidth_check_interval =
