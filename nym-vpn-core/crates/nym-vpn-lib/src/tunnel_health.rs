@@ -158,6 +158,19 @@ mod tests {
     }
 
     #[test]
+    fn update_metadata_path_success_without_interval_adjustment() {
+        let health = MetadataPathHealth::new();
+        // Successful bandwidth queries usually return no interval change; health must still record.
+        update_metadata_path_health(&Some(health.clone()), true, true);
+        assert!(should_defer_probe_teardown(
+            true,
+            Some(&health),
+            METADATA_PATH_HEALTH_GRACE,
+            0,
+        ));
+    }
+
+    #[test]
     fn update_metadata_path_clears_health_on_leg_failure() {
         let health = MetadataPathHealth::new();
         update_metadata_path_health(&Some(health.clone()), true, true);

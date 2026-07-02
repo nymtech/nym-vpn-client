@@ -969,7 +969,11 @@ impl BandwidthController {
         None
     }
 
-    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration> {
+    async fn check_bandwidth(
+        &mut self,
+        entry: bool,
+        current_period: Duration,
+    ) -> (Option<Duration>, bool) {
         let bw_client = if entry {
             &mut self.wg_entry_gateway_client
         } else {
@@ -980,13 +984,21 @@ impl BandwidthController {
                 tracing::trace!("BandwidthController: Received shutdown");
             }
             ret = bw_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
-                match ret {
-                    Ok(query_res) => return self.handle_bandwidth_query(entry, current_period, query_res).await,
-                    Err(err) => self.handle_bandwidth_query_error(entry, err).await,
-                }
+                return match ret {
+                    Ok(query_res) => {
+                        let next_interval = self
+                            .handle_bandwidth_query(entry, current_period, query_res)
+                            .await;
+                        (next_interval, true)
+                    }
+                    Err(err) => {
+                        self.handle_bandwidth_query_error(entry, err).await;
+                        (None, false)
+                    }
+                };
             }
         }
-        None
+        (None, false)
     }
 
     async fn init_clients(&mut self) {
@@ -1037,12 +1049,14 @@ impl BandwidthController {
                 }
                 _ = self.timeout_check_interval.next() => {
                     let current_period = self.timeout_check_interval.as_ref().period();
-                    let entry_duration = self.check_bandwidth(true, current_period).await;
-                    let exit_duration = self.check_bandwidth(false, current_period).await;
+                    let (entry_duration, entry_query_ok) =
+                        self.check_bandwidth(true, current_period).await;
+                    let (exit_duration, exit_query_ok) =
+                        self.check_bandwidth(false, current_period).await;
                     update_metadata_path_health(
                         &self.metadata_path_health,
-                        entry_duration.is_some(),
-                        exit_duration.is_some(),
+                        entry_query_ok,
+                        exit_query_ok,
                     );
                     if let Some(minimal_duration) = match (entry_duration, exit_duration) {
                         (Some(d1), Some(d2)) => {
