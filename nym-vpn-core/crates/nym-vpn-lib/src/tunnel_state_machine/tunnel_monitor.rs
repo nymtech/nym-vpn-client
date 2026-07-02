@@ -855,6 +855,9 @@ impl TunnelMonitor {
                 reachable = &mut metadata_endpoints_reachable => {
                     let reachable = reachable.unwrap_or(false);
                     if !reachable {
+                        if let Some(health) = metadata_path_health.as_ref() {
+                            health.clear_health();
+                        }
                         tracing::info!("Metadata endpoints not reachable. Exiting");
                         self.send_event(TunnelMonitorEvent::ConnectionFailed {
                             exit_gateway_id: selected_gateways.exit_gateway().identity(),

@@ -6,7 +6,7 @@ use std::{net::IpAddr, time::Duration};
 use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
 
-use crate::tunnel_health::{MetadataPathHealth, record_metadata_path_if_both_legs_ok};
+use crate::tunnel_health::{MetadataPathHealth, update_metadata_path_health};
 use nym_registration_common::WireguardConfiguration;
 use sysinfo::Networks;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
@@ -1039,7 +1039,7 @@ impl BandwidthController {
                     let current_period = self.timeout_check_interval.as_ref().period();
                     let entry_duration = self.check_bandwidth(true, current_period).await;
                     let exit_duration = self.check_bandwidth(false, current_period).await;
-                    record_metadata_path_if_both_legs_ok(
+                    update_metadata_path_health(
                         &self.metadata_path_health,
                         entry_duration.is_some(),
                         exit_duration.is_some(),

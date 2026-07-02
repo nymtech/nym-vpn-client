@@ -28,6 +28,10 @@ impl MetadataPathHealth {
         Self::update_last_success(&self.last_success, Instant::now());
     }
 
+    pub fn clear_health(&self) {
+        Self::clear_last_success(&self.last_success);
+    }
+
     pub fn is_recently_healthy(&self, max_age: Duration) -> bool {
         Self::read_last_success(&self.last_success)
             .is_some_and(|instant| instant.elapsed() <= max_age)
@@ -46,6 +50,13 @@ impl MetadataPathHealth {
             Err(poisoned) => *poisoned.into_inner(),
         }
     }
+
+    fn clear_last_success(last_success: &Arc<Mutex<Option<Instant>>>) {
+        match last_success.lock() {
+            Ok(mut guard) => *guard = None,
+            Err(poisoned) => *poisoned.into_inner() = None,
+        }
+    }
 }
 
 /// Returns true when an ICMP probe failure should not tear the tunnel down yet.
@@ -60,17 +71,22 @@ pub fn should_defer_probe_teardown(
         && health.is_some_and(|h| h.is_recently_healthy(grace))
 }
 
-/// Record metadata-path health only when both entry and exit bandwidth checks succeeded.
-pub fn record_metadata_path_if_both_legs_ok(
+/// Update metadata-path health from a bandwidth check interval.
+///
+/// Records success only when both legs succeed; clears any prior success when either leg fails
+/// so probe deferral cannot outlive a real metadata-path outage.
+pub fn update_metadata_path_health(
     health: &Option<MetadataPathHealth>,
     entry_ok: bool,
     exit_ok: bool,
 ) {
-    if entry_ok
-        && exit_ok
-        && let Some(health) = health
-    {
+    let Some(health) = health else {
+        return;
+    };
+    if entry_ok && exit_ok {
         health.record_success();
+    } else if !entry_ok || !exit_ok {
+        health.clear_health();
     }
 }
 
@@ -133,11 +149,40 @@ mod tests {
     }
 
     #[test]
-    fn record_metadata_only_when_both_legs_ok() {
+    fn update_metadata_path_only_when_both_legs_ok() {
         let health = MetadataPathHealth::new();
-        record_metadata_path_if_both_legs_ok(&Some(health.clone()), true, false);
+        update_metadata_path_health(&Some(health.clone()), true, false);
         assert!(!health.is_recently_healthy(METADATA_PATH_HEALTH_GRACE));
-        record_metadata_path_if_both_legs_ok(&Some(health.clone()), true, true);
+        update_metadata_path_health(&Some(health.clone()), true, true);
         assert!(health.is_recently_healthy(METADATA_PATH_HEALTH_GRACE));
+    }
+
+    #[test]
+    fn update_metadata_path_clears_health_on_leg_failure() {
+        let health = MetadataPathHealth::new();
+        update_metadata_path_health(&Some(health.clone()), true, true);
+        assert!(health.is_recently_healthy(METADATA_PATH_HEALTH_GRACE));
+
+        update_metadata_path_health(&Some(health.clone()), true, false);
+        assert!(!health.is_recently_healthy(METADATA_PATH_HEALTH_GRACE));
+        assert!(!should_defer_probe_teardown(
+            true,
+            Some(&health),
+            METADATA_PATH_HEALTH_GRACE,
+            0,
+        ));
+    }
+
+    #[test]
+    fn clear_health_removes_defer_eligibility() {
+        let health = MetadataPathHealth::new();
+        health.record_success();
+        health.clear_health();
+        assert!(!should_defer_probe_teardown(
+            true,
+            Some(&health),
+            METADATA_PATH_HEALTH_GRACE,
+            0,
+        ));
     }
 }
