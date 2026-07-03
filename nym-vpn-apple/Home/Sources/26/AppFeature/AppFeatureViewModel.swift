@@ -81,7 +81,7 @@ import GRPCManager
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.snackbarManager = snackbarManager
-        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager)
+        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager, networkMonitor: networkMonitor)
         self.oneClick = OneClickViewModel(
             appSettings: appSettings,
             connectionManager: connectionManager,
@@ -108,7 +108,7 @@ import GRPCManager
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.snackbarManager = snackbarManager
-        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager)
+        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager, networkMonitor: networkMonitor)
         self.oneClick = OneClickViewModel(
             appSettings: appSettings,
             connectionManager: connectionManager,
