@@ -75,17 +75,15 @@ extension PacketTunnelProvider {
     func ensureGatewayIndependenceAllowsConnect(remindersEnabled: Bool) async throws {
         guard let commandSender else { return }
 
-        // Reminders off means the user opted out of the warning: relax up front
-        // so no `needsRelaxedIndependenceCriteria` error (and no modal) can surface.
-        guard remindersEnabled
-        else {
-            try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: false)
-            return
-        }
-
         try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: true)
         guard case .needsRelaxedIndependenceCriteria = try await commandSender.getTentativeGateways()
         else {
+            return
+        }
+
+        guard remindersEnabled
+        else {
+            try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: false)
             return
         }
 

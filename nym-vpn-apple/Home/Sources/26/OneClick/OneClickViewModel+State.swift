@@ -87,14 +87,20 @@ extension OneClickViewModel {
             }
             .store(in: &cancellables)
 
-#if os(iOS)
         networkMonitor.$isAvailable
+            .removeDuplicates()
+            .dropFirst()
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.recomputeConnectState()
+            .sink { [weak self] isAvailable in
+                guard let self else { return }
+                recomputeConnectState()
+                if isAvailable {
+                    snackbarManager.clear()
+                } else {
+                    presentOfflineAlert()
+                }
             }
             .store(in: &cancellables)
-#endif
 
 #if os(macOS)
         grpcManager.$isServing
@@ -120,14 +126,14 @@ extension OneClickViewModel {
             return .disconnecting
         case .error:
             return .stop
-        case .connecting, .reasserting, .restarting, .offlineReconnect:
+        case .offline, .offlineReconnect:
+            return .noInternet
+        case .connecting, .reasserting, .restarting:
             return .connecting
-        case .disconnected, .offline, .unknown:
-#if os(iOS)
+        case .disconnected, .unknown:
             if !networkMonitor.isAvailable {
                 return .noInternet
             }
-#endif
             if credentialsManager.isValidCredentialImported, !credentialsManager.isAccountActive() {
                 return .noSubscription
             }
@@ -230,13 +236,34 @@ extension OneClickViewModel {
     }
 
     func presentOfflineAlert() {
-        snackbarManager.enqueue(
-            SnackbarItem(
-                style: .warning,
-                title: "home.modal.noInternetConnection.title".localizedString,
-                message: "home.modal.noInternetConnection.subtitle".localizedString
+        let tunnelIsUp: Bool
+        switch connectionManager.currentTunnelStatus {
+        case .offline, .offlineReconnect:
+            tunnelIsUp = true
+        default:
+            tunnelIsUp = false
+        }
+
+        if tunnelIsUp {
+            snackbarManager.enqueue(
+                SnackbarItem(
+                    style: .critical,
+                    title: "offline".localizedString,
+                    message: "connectionError.killswitchHint".localizedString,
+                    actionTitle: "disconnect".localizedString,
+                    onAction: { [weak self] in self?.disconnectFromOffline() },
+                    duration: nil
+                )
             )
-        )
+        } else {
+            snackbarManager.enqueue(
+                SnackbarItem(
+                    style: .critical,
+                    title: "offline".localizedString,
+                    message: "home.deviceNoInternet".localizedString
+                )
+            )
+        }
     }
 
     func presentConnectionErrorAlert(message: String) {

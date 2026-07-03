@@ -111,7 +111,7 @@ private extension ArcProgressView {
             .overlay(
                 Circle()
                     .fill(Constants.errorTint)
-                    .opacity(state == .failed ? 1 : 0)
+                    .opacity(state == .failed || state == .offline ? 1 : 0)
             )
             .frame(width: Constants.sphereDiameter, height: Constants.sphereDiameter)
             .opacity(sphereOpacity)
@@ -172,7 +172,7 @@ private extension ArcProgressView {
     }
 
     var fillColor: Color {
-        if state == .failed {
+        if state == .failed || state == .offline {
             return Constants.errorFill
         }
         switch mode {
@@ -204,7 +204,7 @@ private extension ArcProgressView {
             return 1.0
         case .connected:
             return 1.0
-        case .failed:
+        case .failed, .offline:
             return 1.0
         case .canceling:
             return 0.7
@@ -229,6 +229,8 @@ private extension ArcProgressView {
         switch state {
         case .disconnected:
             return "arcProgress.notProtected".localizedString
+        case .offline:
+            return "offline".localizedString
         case .connected:
             switch mode {
             case .fast:
@@ -261,7 +263,7 @@ private extension ArcProgressView {
 
     var labelColor: Color {
         switch state {
-        case .failed:
+        case .failed, .offline:
             return Constants.errorFill
         case .connected, .step, .awaitingGatewayConsent:
             return Color.Nym.primary
@@ -276,7 +278,7 @@ private extension ArcProgressView {
             return 1.0
         case .disconnected:
             return 0.0
-        case .failed:
+        case .failed, .offline:
             return 1.0
         case .awaitingGatewayConsent:
             // Hold whatever ring the connect had already reached (macOS loads

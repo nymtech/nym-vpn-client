@@ -141,6 +141,18 @@ public final class OneClickViewModel {
         }
     }
 
+    func disconnectFromOffline() {
+        connectDisconnectTask?.cancel()
+        connectDisconnectTask = Task { @MainActor [weak self] in
+            guard let self else { return }
+            snackbarManager.clear()
+            isConnectDisconnectInFlight = true
+            defer { isConnectDisconnectInFlight = false }
+            await connectionManager.disconnectAndWaitForDisconnected()
+            connectionManager.lastError = nil
+        }
+    }
+
     func independenceConsentAgreed() {
         Task { @MainActor [weak self] in
             guard let self else { return }
