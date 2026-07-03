@@ -23,13 +23,14 @@ use crate::{
     },
     storage::VpnCredentialStorage,
 };
+use futures::{FutureExt, future::Fuse};
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, RequestZkNymErrorReason,
     RequestZkNymSuccess,
 };
 use tokio::{
     sync::mpsc,
-    task::{JoinError, JoinHandle},
+    task::{AbortHandle, JoinError, JoinHandle},
 };
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, warn};
@@ -52,7 +53,8 @@ const ZK_NYM_STATE_CONTEXT: &str = "ZK_NYM_STATE";
 /// - LoggedOutState : A successful forget account command was handled
 /// - UpgradeModeState : Instead of retrieving zk-nyms, we have received information about upgrade mode being activated
 pub(crate) struct RequestingZkNymsState {
-    zk_nym_fetching_handle: JoinHandle<Result<ZkNymFetchResult, ZkNymError>>,
+    zk_nym_fetching_handle: Fuse<JoinHandle<Result<ZkNymFetchResult, ZkNymError>>>,
+    zk_nym_fetching_abort: AbortHandle,
     attempts: u32,
     entered_through_upgrade_mode: bool,
 }
@@ -87,7 +89,7 @@ impl RequestingZkNymsState {
 
         // can we make that unique to that state?
         let storage = shared_state.credential_storage.clone();
-        let zk_nym_fetching_handle = tokio::spawn(async move {
+        let join_handle = tokio::spawn(async move {
             RequestingZkNymsState::fetch_zk_nyms(
                 vpn_api_client,
                 vpn_api_account,
@@ -97,10 +99,12 @@ impl RequestingZkNymsState {
             )
             .await
         });
+        let zk_nym_fetching_abort = join_handle.abort_handle();
 
         (
             Box::new(Self {
-                zk_nym_fetching_handle,
+                zk_nym_fetching_handle: join_handle.fuse(),
+                zk_nym_fetching_abort,
                 attempts,
                 entered_through_upgrade_mode,
             }),
@@ -315,7 +319,7 @@ impl RequestingZkNymsState {
                 return_sender.send(res);
             }
             AccountCommand::ForgetAccount(return_sender) => {
-                self.zk_nym_fetching_handle.abort();
+                self.zk_nym_fetching_abort.abort();
                 let res = handler::handle_forget_account(shared_state).await;
                 let error = res.is_err();
                 return_sender.send(res);
@@ -343,7 +347,7 @@ impl RequestingZkNymsState {
                 return_sender.send(Err(AccountCommandError::AccountNotDecentralised))
             }
             AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
-                self.zk_nym_fetching_handle.abort();
+                self.zk_nym_fetching_abort.abort();
                 return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
                 return NextAccountControllerState::NewState(SyncingNetworkState::enter(
                     shared_state,
@@ -355,7 +359,7 @@ impl RequestingZkNymsState {
                 return if shared_state.firewall_active {
                     NextAccountControllerState::SameState(self)
                 } else {
-                    self.zk_nym_fetching_handle.abort();
+                    self.zk_nym_fetching_abort.abort();
                     if force {
                         shared_state.mark_summary_as_stale();
                         return NextAccountControllerState::NewState(SyncingNetworkState::enter(
@@ -388,7 +392,7 @@ impl RequestingZkNymsState {
             }
             AccountCommand::VpnApiFirewallUp(return_sender) => {
                 shared_state.firewall_active = true;
-                self.zk_nym_fetching_handle.abort();
+                self.zk_nym_fetching_abort.abort();
                 return_sender.send(Ok(()));
             }
             AccountCommand::Common(common_command) => {
@@ -427,14 +431,14 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNy
         tokio::select! {
             biased;
             _ = shutdown_token.cancelled() => {
-                self.zk_nym_fetching_handle.abort();
+                self.zk_nym_fetching_abort.abort();
                 NextAccountControllerState::Finished
             }
             fetching_result = &mut self.zk_nym_fetching_handle => self.handle_retrieved_zk_nym(shared_state, fetching_result).await,
             Some(command) = command_rx.recv() => self.handle_account_command(command, shared_state).await,
             Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
-                    self.zk_nym_fetching_handle.abort();
+                    self.zk_nym_fetching_abort.abort();
                     NextAccountControllerState::NewState(OfflineState::enter())
                 } else {
                     NextAccountControllerState::SameState(self)
