@@ -3,6 +3,7 @@ import Foundation
 import ConnectionManager
 import ConnectionTypes
 import ErrorReason
+import NetworkMonitor
 import Theme
 import TunnelStatus
 import UIComponents
@@ -14,8 +15,10 @@ import UIKit
 @Observable
 @MainActor public final class ConnectionStatusViewModel {
     public let connectionManager: ConnectionManager
+    private let networkMonitor: NetworkMonitor
 
     var hasFailure = false
+    var isOnline = true
     var lastConnectingStep: TunnelConnectingState?
     var lastDisplayedStep: ArcProgressState.Step?
     var lastErrorMessage: String?
@@ -38,8 +41,13 @@ import UIKit
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     @ObservationIgnored private var queueTask: Task<Void, Never>?
 
-    public init(connectionManager: ConnectionManager) {
+    public init(
+        connectionManager: ConnectionManager,
+        networkMonitor: NetworkMonitor = .shared
+    ) {
         self.connectionManager = connectionManager
+        self.networkMonitor = networkMonitor
+        self.isOnline = networkMonitor.isAvailable
         seedFromCurrentValues()
         observe()
     }
@@ -49,6 +57,9 @@ import UIKit
     }
 
     var arcProgressState: ArcProgressState {
+        if !isOnline {
+            return .offline
+        }
         switch status {
         case .connected:
             return .connected
@@ -142,6 +153,14 @@ private extension ConnectionStatusViewModel {
                     liveTunnelType: info?.tunnelType,
                     connectionType: self.connectionManager.connectionType
                 )
+            }
+            .store(in: &cancellables)
+
+        networkMonitor.$isAvailable
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isAvailable in
+                self?.isOnline = isAvailable
             }
             .store(in: &cancellables)
     }

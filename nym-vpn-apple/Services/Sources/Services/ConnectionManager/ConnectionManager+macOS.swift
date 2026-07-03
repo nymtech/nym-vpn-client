@@ -9,9 +9,7 @@ import WidgetKit
 
 extension ConnectionManager {
     @MainActor func connect() async throws {
-        // Reminders off means the user opted out of the warning: relax up front
-        // so the daemon never surfaces `needsRelaxedIndependenceCriteria` (no modal).
-        try? await grpcManager.setGatewayIndependence(appSettings.serverFamilyRemindersEnabled)
+        try? await grpcManager.setGatewayIndependence(true)
         try await startTunnel()
     }
 
