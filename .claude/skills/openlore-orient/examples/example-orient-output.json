@@ -1,0 +1,103 @@
+{
+  "_meta": {
+    "captured_from": "this repository (OpenLore)",
+    "task_used": "add a rate limiter to the API client",
+    "note": "Function names, file paths, and line numbers below are real and verifiable in src/. The shape exactly matches the response produced by handleOrient() in src/core/services/mcp-handlers/orient.ts. To regenerate from a live run once the codebase has a vector index built: `bash skills/openlore-orient/scripts/orient.sh \"add a rate limiter to the API client\" > skills/openlore-orient/examples/example-orient-output.json`."
+  },
+  "task": "add a rate limiter to the API client",
+  "searchMode": "bm25_fallback",
+  "note": "Embedding server unavailable — results use keyword matching. Run \"openlore analyze --embed\" for semantic search.",
+  "relevantFiles": [
+    "src/core/services/llm-service.ts",
+    "src/core/services/chat-agent.ts",
+    "src/core/services/chat-tools.ts",
+    "src/cli/commands/doctor.ts",
+    "src/cli/commands/generate.ts"
+  ],
+  "relevantFunctions": [
+    {
+      "id": "src/core/services/llm-service.ts::createLLMService",
+      "name": "createLLMService",
+      "filePath": "src/core/services/llm-service.ts",
+      "lineStart": 1852,
+      "score": 0.61,
+      "role": "factory",
+      "isHub": true,
+      "reason": "Top match: factory for the LLM client used by every CLI command. Hub: 14 inbound callers."
+    },
+    {
+      "id": "src/core/services/chat-agent.ts::fetchWithRetry",
+      "name": "fetchWithRetry",
+      "filePath": "src/core/services/chat-agent.ts",
+      "lineStart": 196,
+      "score": 0.42,
+      "role": "boundary",
+      "isHub": false,
+      "reason": "Outbound HTTP entry with retry; rate-limit would wrap each request here."
+    },
+    {
+      "id": "src/core/services/chat-tools.ts::toChatToolDefinitions",
+      "name": "toChatToolDefinitions",
+      "filePath": "src/core/services/chat-tools.ts",
+      "lineStart": 607,
+      "score": 0.31,
+      "role": "schema",
+      "isHub": false,
+      "reason": "Tool dispatcher schema; per-tool rate budgets would attach here if needed."
+    }
+  ],
+  "specDomains": [
+    {
+      "domain": "services",
+      "specFile": "openspec/specs/services/spec.md",
+      "purpose": "Manages reading, writing, and merging configuration files for openlore and OpenSpec."
+    },
+    {
+      "domain": "chat",
+      "specFile": "openspec/specs/chat/spec.md",
+      "purpose": "Handles interactions with language model providers (Gemini, Anthropic, OpenAI-compatible) to process chat messages and tool calls."
+    }
+  ],
+  "callPaths": [
+    {
+      "function": "createLLMService",
+      "filePath": "src/core/services/llm-service.ts",
+      "callers": [
+        { "name": "doctorCommand", "filePath": "src/cli/commands/doctor.ts" },
+        { "name": "verifyCommand", "filePath": "src/cli/commands/verify.ts" },
+        { "name": "driftCommand", "filePath": "src/cli/commands/drift.ts" },
+        { "name": "generateCommand", "filePath": "src/cli/commands/generate.ts" }
+      ],
+      "callees": [
+        { "name": "fetchWithRetry", "filePath": "src/core/services/chat-agent.ts" }
+      ]
+    }
+  ],
+  "insertionPoints": [
+    {
+      "name": "createLLMService",
+      "filePath": "src/core/services/llm-service.ts",
+      "lineStart": 1852,
+      "rationale": "Highest-leverage point: every caller passes through this factory. Wrap the returned LLMService with a rate-limited proxy here."
+    },
+    {
+      "name": "fetchWithRetry",
+      "filePath": "src/core/services/chat-agent.ts",
+      "lineStart": 196,
+      "rationale": "Alternative: instrument at the HTTP boundary if rate-limit needs awareness of provider-specific tokens-per-minute rather than per-call counts."
+    }
+  ],
+  "suggestedTools": [
+    "record_decision",
+    "analyze_impact",
+    "get_subgraph",
+    "get_spec",
+    "check_spec_drift"
+  ],
+  "nextSteps": [
+    "Before making an architectural choice, call record_decision(title, rationale, consequences, affectedFiles) to document it",
+    "Call get_subgraph(\"createLLMService\") to trace the call neighbourhood",
+    "Call get_spec(\"services\") to read the full spec before writing code",
+    "After implementing, run check_spec_drift to verify the code matches the spec"
+  ]
+}
