@@ -20,7 +20,6 @@ mod desktop;
 #[cfg(target_os = "linux")]
 mod linux;
 
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum IconKind {
     Default,
@@ -144,7 +143,6 @@ impl TrayBackend for Backend {
         update_tray_entry_visible(visible: bool),
     }
 }
-
 
 #[cfg(target_os = "linux")]
 #[derive(Clone)]
