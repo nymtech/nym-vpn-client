@@ -15,7 +15,7 @@ import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
 import net.nymtech.nymvpn.ui.screens.account.info.modal.AutologinLoadingDialog
 import net.nymtech.nymvpn.ui.screens.account.info.modal.PinCodeDialog
 import net.nymtech.nymvpn.ui.screens.auth.AuthBottomSheet
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.screens.auth.MainBottomSheetContent
 import net.nymtech.nymvpn.ui.screens.main.modal.BatteryModal
 import net.nymtech.nymvpn.ui.screens.main.modal.CompatibilityModal
 import net.nymtech.nymvpn.ui.screens.main.modal.NetworkStatsModal
@@ -31,9 +31,7 @@ fun MainModals(
 	showBatteryDialog: Boolean,
 	showNetworkStatsDialog: Boolean,
 	showNodeFamiliesDialog: Boolean,
-	showAuthSheet: Boolean,
-	isMnemonicStored: Boolean,
-	initialAuthRoute: AuthRoute,
+	bottomSheetContent: MainBottomSheetContent,
 	onCancelAutologin: () -> Unit,
 	onDismissAutologin: () -> Unit,
 	onDismissInfo: () -> Unit,
@@ -46,8 +44,11 @@ fun MainModals(
 	onConfirmNodeFamilies: () -> Unit,
 	onDismissNodeFamilies: () -> Unit,
 	onNotificationSettingsClick: () -> Unit,
-	onDismissAuthSheet: () -> Unit,
+	onDismissBottomSheet: () -> Unit,
 	onAuthSuccess: () -> Unit,
+	onLoginProcessingStart: (passphrase: String) -> Unit,
+	authSheetMinHeightPx: Int = 0,
+	onAuthSheetHeightChange: (Int) -> Unit = {},
 	appUiState: AppUiState,
 ) {
 	val context = LocalContext.current
@@ -103,16 +104,17 @@ fun MainModals(
 	)
 
 	AuthBottomSheet(
-		isVisible = showAuthSheet,
-		isMnemonicStored = isMnemonicStored,
-		initialRoute = initialAuthRoute,
-		onDismissRequest = onDismissAuthSheet,
+		content = bottomSheetContent,
+		onDismissRequest = onDismissBottomSheet,
 		onAuthSuccess = onAuthSuccess,
+		onLoginProcessingStart = onLoginProcessingStart,
 		onSaveToPasswordManager = { password ->
 			activity?.lifecycleScope?.launch {
 				savePasswordToManager(context = context, password = password)
 			}
 		},
+		authSheetMinHeightPx = authSheetMinHeightPx,
+		onAuthSheetHeightChange = onAuthSheetHeightChange,
 		appUiState = appUiState,
 	)
 }

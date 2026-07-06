@@ -20,7 +20,6 @@ data class AppUiState(
 	val managerState: TunnelManagerState = TunnelManagerState(),
 	val networkStatus: NetworkStatus = NetworkStatus.Unknown,
 	val subscription: SubscriptionUiState? = null,
-	val isAccountInitializing: Boolean = false,
 ) {
 
 	private val effectiveEntryPoint: EntryPoint

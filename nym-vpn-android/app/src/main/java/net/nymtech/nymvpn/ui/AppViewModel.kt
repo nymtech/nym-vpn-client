@@ -6,7 +6,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -29,15 +27,13 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
-import net.nymtech.nymvpn.ui.screens.auth.routeName
+import net.nymtech.nymvpn.ui.screens.account.login.AccountLoginReadiness
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.toSubscriptionUiState
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.config.CoreVpnConfigUpdate
-import nym_vpn_lib_types.AccountControllerState
 import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
@@ -57,7 +53,6 @@ constructor(
 
 	companion object {
 		private const val TAG = "app-vm"
-		private const val ACCOUNT_INIT_TIMEOUT_MS = 30_000L
 		private const val DISCONNECT_AWAIT_TIMEOUT_MS = 10_000L
 	}
 
@@ -75,10 +70,7 @@ constructor(
 	private val _autologinState = MutableStateFlow<AutologinState>(AutologinState.Idle)
 	val autologinState: StateFlow<AutologinState> = _autologinState.asStateFlow()
 
-	private val accountInitializingState = MutableStateFlow(false)
-
 	private var autologinJob: Job? = null
-	private var accountInitJob: Job? = null
 
 	val uiState =
 		combine(
@@ -98,11 +90,9 @@ constructor(
 				)
 			},
 			backendManager.accountSummaryFlow,
-			accountInitializingState,
-		) { base, accountSummary, isInitializing ->
+		) { base, accountSummary ->
 			base.copy(
 				subscription = accountSummary?.toSubscriptionUiState(),
-				isAccountInitializing = isInitializing,
 			)
 		}.stateIn(
 			viewModelScope,
@@ -147,26 +137,6 @@ constructor(
 	fun dismissAutologin() {
 		_autologinState.value = AutologinState.Idle
 	}
-
-	fun notifyLoginStarted() {
-		accountInitJob?.cancel()
-		accountInitializingState.value = true
-		accountInitJob = viewModelScope.launch {
-			withTimeoutOrNull(ACCOUNT_INIT_TIMEOUT_MS) {
-				backendManager.stateFlow
-					.map { it.accountState }
-					.filter { isSettledAccountState(it) }
-					.first()
-			}
-			accountInitializingState.value = false
-		}
-	}
-
-	private fun isSettledAccountState(state: AccountControllerState): Boolean = state is AccountControllerState.ReadyToConnect ||
-		state is AccountControllerState.Decentralised ||
-		state is AccountControllerState.UpgradeMode ||
-		state is AccountControllerState.PendingSubscription ||
-		state is AccountControllerState.Error
 
 	fun onConfigurationHandled() {
 		_configurationChange.value = false
@@ -325,20 +295,13 @@ constructor(
 	suspend fun isUserLoggedIn(): Boolean = backendManager.isMnemonicStored()
 
 	suspend fun handleDeepLinkAuth(url: String): Route = withContext(Dispatchers.IO) {
-		try {
+		val storeSucceeded = runCatching {
 			Timber.tag(TAG).i("DeepLinkAuth started.")
 			backendManager.storeDeeplinkAccount(url)
-
-			runCatching { backendManager.refreshAccount() }
-
-			delay(2_000L)
-			notifyLoginStarted()
-
-			val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
-			if (shouldShowTechnical) Route.Main(authRoute = AuthRoute.TechOpt.routeName) else Route.Main()
-		} catch (e: Exception) {
+			true
+		}.onFailure { e ->
 			Timber.tag(TAG).e(e, "FailedStoreDeeplink or processing error")
-			Route.Main(autoStart = false)
-		}
+		}.getOrDefault(false)
+		AccountLoginReadiness.routeAfterDeeplinkCredentialStore(storeSucceeded)
 	}
 }

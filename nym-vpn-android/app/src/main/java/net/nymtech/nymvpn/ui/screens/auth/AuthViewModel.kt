@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.ui.screens.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -37,9 +36,8 @@ data class AuthUiState(
 )
 
 sealed class AuthEvent {
-	data class SaveToPasswordManager(val phrase: String) : AuthEvent()
+	data class LoginMnemonicImported(val phrase: String) : AuthEvent()
 	data object NavigateToGenerating : AuthEvent()
-	data class LoginSuccess(val showTechnicalOpt: Boolean) : AuthEvent()
 }
 
 @HiltViewModel
@@ -52,7 +50,6 @@ class AuthViewModel @Inject constructor(
 
 	companion object {
 		private const val TAG = "ui-auth-vm"
-		private const val LOGIN_DELAY_MS = 2_000L
 	}
 
 	private val _uiState = MutableStateFlow(AuthUiState())
@@ -123,16 +120,11 @@ class AuthViewModel @Inject constructor(
 
 		runCatching {
 			backendManager.storeMnemonic(phrase)
-			_events.tryEmit(AuthEvent.SaveToPasswordManager(phrase))
 
 			Timber.tag(TAG).i("MnemonicImportSuccess")
 			SnackbarController.showMessage(StringValue.StringResource(R.string.device_added_success))
 
-			backendManager.refreshAccount()
-			delay(LOGIN_DELAY_MS)
-
-			val shouldShowTechnical = !settingsRepository.isTechnicalOptScreenCompleted()
-			_events.tryEmit(AuthEvent.LoginSuccess(showTechnicalOpt = shouldShowTechnical))
+			_events.emit(AuthEvent.LoginMnemonicImported(phrase))
 			_uiState.update { it.copy(isLoading = false) }
 		}.onFailure { t ->
 			Timber.tag(TAG).w(t, "MnemonicImportFailed")

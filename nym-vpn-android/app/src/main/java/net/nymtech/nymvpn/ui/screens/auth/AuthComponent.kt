@@ -30,6 +30,7 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 fun AuthComponent(
 	initialRoute: AuthRoute,
 	onAuthSuccess: () -> Unit,
+	onLoginProcessingStart: (passphrase: String) -> Unit,
 	onSaveToPasswordManager: (passphrase: String) -> Unit,
 	onWelcomeShown: () -> Unit = {},
 	appUiState: AppUiState,
@@ -47,15 +48,9 @@ fun AuthComponent(
 	LaunchedEffect(Unit) {
 		viewModel.events.collect { event ->
 			when (event) {
-				is AuthEvent.SaveToPasswordManager -> {
+				is AuthEvent.LoginMnemonicImported -> {
+					onLoginProcessingStart(event.phrase)
 					onSaveToPasswordManager(event.phrase)
-				}
-				is AuthEvent.LoginSuccess -> {
-					if (event.showTechnicalOpt) {
-						localNavController.navigate(AuthRoute.TechOpt)
-					} else {
-						onAuthSuccess()
-					}
 				}
 				is AuthEvent.NavigateToGenerating -> {
 					onAuthSuccess()

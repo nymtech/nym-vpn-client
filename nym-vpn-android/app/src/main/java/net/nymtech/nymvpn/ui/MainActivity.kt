@@ -51,7 +51,6 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
-import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingMode
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
@@ -229,7 +228,13 @@ class MainActivity : AppCompatActivity() {
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Main>()
-									MainScreen(appViewModel, appState, args.autoStart, authRoute = AuthRoute.fromName(args.authRoute))
+									MainScreen(
+										appViewModel,
+										appState,
+										args.autoStart,
+										authRoute = AuthRoute.fromName(args.authRoute),
+										loginProcessing = args.loginProcessing,
+									)
 								}
 
 								composable<Route.Permission> {
@@ -395,12 +400,7 @@ class MainActivity : AppCompatActivity() {
 		val path = uri.path
 		if (host == "auth" && path?.startsWith("/privy/privateKey") == true) {
 			lifecycleScope.launch {
-				val fullUrl = uri.toString()
-				val isLoggedIn = appViewModel.isUserLoggedIn()
-				if (!isLoggedIn) {
-					navControllerRef?.navigate(Route.Generating(mode = GeneratingMode.DeepLinkLogin.name))
-				}
-				val destination = appViewModel.handleDeepLinkAuth(fullUrl)
+				val destination = appViewModel.handleDeepLinkAuth(uri.toString())
 				navControllerRef?.navigate(destination) {
 					popUpTo(Route.Splash) { inclusive = true }
 				}
