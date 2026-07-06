@@ -52,7 +52,6 @@ function Logs() {
         settings={[
           {
             title: t('logs.debug-logging.title'),
-            desc: t('logs.debug-logging.desc'),
             leadingIcon: 'bug_report',
             onClick: toggleDebugLogging,
             trailing: (

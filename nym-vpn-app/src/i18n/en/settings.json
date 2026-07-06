@@ -88,8 +88,7 @@
     "app": "App logs",
     "daemon": "Daemon logs",
     "debug-logging": {
-      "title": "Enable debug logging",
-      "desc": "Save app logs to a file for troubleshooting."
+      "title": "Enable debug logging"
     },
     "actions": {
       "delete": {
