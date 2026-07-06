@@ -75,6 +75,7 @@ const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 const DEFAULT_SENTRY_ENABLED: bool = false;
 const DEFAULT_NETSTATS_ENABLED: bool = true;
 const DEFAULT_QUIC: bool = false;
+const DEFAULT_DEBUG_LOGGING: bool = true;
 
 // build time pkg data
 build_info::build_info!(fn build_info);
@@ -100,7 +101,7 @@ async fn main() -> Result<()> {
     let debug_logging = app_config
         .as_ref()
         .map(|cfg| cfg.debug_logging)
-        .unwrap_or(false);
+        .unwrap_or(DEFAULT_DEBUG_LOGGING);
     let debug_logging_control = log::setup_tracing(&cli, sentry_enabled, debug_logging).await?;
     trace!("cli args: {:#?}", cli);
 

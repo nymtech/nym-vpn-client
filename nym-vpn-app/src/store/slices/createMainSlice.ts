@@ -122,7 +122,7 @@ export const initialState: AppState = {
   autostart: false,
   autoConnect: false,
   monitoring: false,
-  debugLogging: false,
+  debugLogging: true,
   desktopNotifications: true,
   entryNode: DefaultNode,
   exitNode: DefaultNode,
