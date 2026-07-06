@@ -44,8 +44,16 @@ class LoginProcessingViewModelTest {
 		viewModel.runCredentialsCarouselTickOnceForTests(AccountControllerState.RequestingZkNyms)
 		assertEquals(1, viewModel.credentialsCarouselTick.value)
 
-		viewModel.runCredentialsCarouselTickOnceForTests(AccountControllerState.Syncing)
+		viewModel.runCredentialsCarouselTickOnceForTests(AccountControllerState.Syncing, setupCarouselFinished = false)
 		assertEquals(0, viewModel.credentialsCarouselTick.value)
+	}
+
+	@Test
+	fun credentialsCarouselTick_advancesDuringSyncingAfterSetup() = runBlocking {
+		val viewModel = LoginProcessingViewModel(FakeBackendManager(), FakeSettingsRepository())
+
+		viewModel.runCredentialsCarouselTickOnceForTests(AccountControllerState.Syncing, setupCarouselFinished = true)
+		assertEquals(1, viewModel.credentialsCarouselTick.value)
 	}
 
 	@Test

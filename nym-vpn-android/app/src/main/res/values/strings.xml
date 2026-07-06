@@ -373,10 +373,13 @@
 	<string name="account_generating_deeplink_title">Logging in…</string>
 	<string name="account_generating_deeplink_description">Please wait while we verify your account</string>
 	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
 	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
 	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
-	<string name="account_login_processing_almost_ready">Almost there…</string>
-	<string name="account_login_processing_almost_ready_subtitle">You can connect as soon as this completes</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processing your payment securely…</string>
 	<string name="account_payment_verifying">We\'re verifying your subscription—no personal details are ever tied to your identity</string>

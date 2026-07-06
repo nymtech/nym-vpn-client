@@ -30,7 +30,9 @@ object AccountLoginReadiness {
 	const val READINESS_TIMEOUT_MS = 60_000L
 	const val LOGIN_PROGRESS_STEP_COUNT = 4
 	const val LOGIN_INITIAL_PROGRESS_STEP = 2
-	const val CAROUSEL_TICK_MS = 2_000L
+	const val CAROUSEL_INITIAL_DWELL_MS = 2_500L
+	const val CAROUSEL_TICK_MS = 2_500L
+	const val CAROUSEL_STEP_ADVANCE_DELAY_MS = 2_000L
 	const val CAROUSEL_TICK_COUNT = 3
 	const val READY_WELCOME_MS = 2_000L
 	const val LOGIN_PROCESSING_MIN_HEIGHT_DP = 320
@@ -38,14 +40,22 @@ object AccountLoginReadiness {
 	const val LOGIN_PROCESSING_BOTTOM_PADDING_DP = 16
 	const val LOGIN_PROCESSING_HORIZONTAL_PADDING_DP = 18
 	const val LOGIN_PROCESSING_LOGO_STEP_SPACING_DP = 12
-	const val STEP_BAR_INITIAL_DELAY_MS = 300L
+	const val STEP_BAR_INITIAL_DELAY_MS = 800L
 	const val STEP_BAR_FILL_MS = 300
-	const val STEP_BAR_INITIAL_PAUSE_MS = 300L
+	const val STEP_BAR_INITIAL_PAUSE_MS = 1_000L
 	const val STEP_BAR_FORWARD_PAUSE_MS = 1_000L
 	const val CREDENTIALS_CAROUSEL_TICK_MS = 10_000L
 	const val CREDENTIALS_CAROUSEL_STEP_COUNT = 2
+	val CREDENTIALS_STEP_TWO_FORBIDDEN_TERMS = listOf("connect", "ready")
 
-	fun carouselDurationMs(): Long = CAROUSEL_TICK_MS * CAROUSEL_TICK_COUNT
+	fun carouselDurationMs(): Long = CAROUSEL_INITIAL_DWELL_MS +
+		(CAROUSEL_TICK_COUNT - 1).toLong() * CAROUSEL_TICK_MS +
+		CAROUSEL_TICK_MS
+
+	fun textAdvancePrecedesStepBarTick(): Boolean = CAROUSEL_STEP_ADVANCE_DELAY_MS > STEP_BAR_FORWARD_PAUSE_MS
+
+	fun shouldShowCredentialsCopy(setupCarouselFinished: Boolean, accountState: AccountControllerState?): Boolean =
+		setupCarouselFinished && (accountState is AccountControllerState.Syncing || accountState is AccountControllerState.RequestingZkNyms)
 
 	fun canAdvanceLoginNavigation(workSettled: Boolean, carouselFinished: Boolean): Boolean = workSettled && carouselFinished
 
@@ -53,15 +63,32 @@ object AccountLoginReadiness {
 
 	fun shouldShowWelcomePhase(settled: AccountControllerState): Boolean = isSettledForLogin(settled)
 
-	fun processingCopyForPhase(phase: LoginProcessingUiPhase, accountState: AccountControllerState?, credentialsCarouselTick: Int = 0): LoginProcessingCopy = when (phase) {
+	fun setupCarouselPairRes(index: Int): LoginProcessingCopy {
+		val subtitleRes = when (index.coerceIn(0, CAROUSEL_TICK_COUNT - 1)) {
+			0 -> R.string.account_login_processing_setting_up_step2_subtitle
+			1 -> R.string.account_login_processing_setting_up_step3_subtitle
+			else -> R.string.account_login_processing_setting_up_step4_subtitle
+		}
+		return LoginProcessingCopy(R.string.account_login_processing_setting_up, subtitleRes)
+	}
+
+	fun processingCopyForPhase(
+		phase: LoginProcessingUiPhase,
+		accountState: AccountControllerState?,
+		credentialsCarouselTick: Int = 0,
+		setupCarouselIndex: Int = 0,
+		setupCarouselFinished: Boolean = false,
+	): LoginProcessingCopy = when (phase) {
 		LoginProcessingUiPhase.Welcome ->
 			LoginProcessingCopy(R.string.account_payment_welcome, subtitleRes = null)
 		LoginProcessingUiPhase.Carousel ->
-			if (accountState is AccountControllerState.RequestingZkNyms) {
-				val (titleRes, subtitleRes) = credentialsCarouselPairRes(credentialsCarouselTick)
-				LoginProcessingCopy(titleRes, subtitleRes)
-			} else {
-				LoginProcessingCopy(R.string.account_login_processing_setting_up, subtitleRes = null)
+			when {
+				!setupCarouselFinished -> setupCarouselPairRes(setupCarouselIndex)
+				shouldShowCredentialsCopy(setupCarouselFinished, accountState) -> {
+					val (titleRes, subtitleRes) = credentialsCarouselPairRes(credentialsCarouselTick)
+					LoginProcessingCopy(titleRes, subtitleRes)
+				}
+				else -> setupCarouselPairRes(CAROUSEL_TICK_COUNT - 1)
 			}
 	}
 

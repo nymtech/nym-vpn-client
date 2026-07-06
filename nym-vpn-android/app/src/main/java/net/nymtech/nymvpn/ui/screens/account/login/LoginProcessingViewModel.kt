@@ -53,6 +53,12 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 	private val _credentialsCarouselTick = MutableStateFlow(0)
 	val credentialsCarouselTick: StateFlow<Int> = _credentialsCarouselTick.asStateFlow()
 
+	private val _setupCarouselIndex = MutableStateFlow(0)
+	val setupCarouselIndex: StateFlow<Int> = _setupCarouselIndex.asStateFlow()
+
+	private val _setupCarouselFinished = MutableStateFlow(false)
+	val setupCarouselFinished: StateFlow<Boolean> = _setupCarouselFinished.asStateFlow()
+
 	private var processingJob: Job? = null
 
 	fun startProcessing() {
@@ -73,6 +79,8 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 		_failureMessageRes.value = null
 		_accountState.value = null
 		_credentialsCarouselTick.value = 0
+		_setupCarouselIndex.value = 0
+		_setupCarouselFinished.value = false
 		processingJob = viewModelScope.launch {
 			Timber.tag(TAG).i("LoginProcessingStarted")
 
@@ -109,18 +117,24 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 	}
 
 	private suspend fun runCarousel() {
+		_setupCarouselIndex.value = 0
+		delay(AccountLoginReadiness.CAROUSEL_INITIAL_DWELL_MS)
 		_progressStep.value = AccountLoginReadiness.loginProgressStepForCarouselIndex(0)
 		repeat(AccountLoginReadiness.CAROUSEL_TICK_COUNT - 1) { index ->
 			delay(AccountLoginReadiness.CAROUSEL_TICK_MS)
+			_setupCarouselIndex.value = index + 1
+			delay(AccountLoginReadiness.CAROUSEL_STEP_ADVANCE_DELAY_MS)
 			_progressStep.value = AccountLoginReadiness.loginProgressStepForCarouselIndex(index + 1)
 		}
 		delay(AccountLoginReadiness.CAROUSEL_TICK_MS)
+		_setupCarouselFinished.value = true
 	}
 
 	private suspend fun runCredentialsCarouselTicks() {
 		var tick = 0
 		while (true) {
-			if (_accountState.value is AccountControllerState.RequestingZkNyms) {
+			val state = _accountState.value
+			if (AccountLoginReadiness.shouldShowCredentialsCopy(_setupCarouselFinished.value, state)) {
 				_credentialsCarouselTick.value = tick
 				delay(AccountLoginReadiness.CREDENTIALS_CAROUSEL_TICK_MS)
 				tick = (tick + 1).coerceAtMost(AccountLoginReadiness.CREDENTIALS_CAROUSEL_STEP_COUNT - 1)
@@ -218,9 +232,10 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 		finishAfterCarouselAndWork(workResult, carouselFinished = true)
 	}
 
-	internal suspend fun runCredentialsCarouselTickOnceForTests(accountState: AccountControllerState?) {
+	internal suspend fun runCredentialsCarouselTickOnceForTests(accountState: AccountControllerState?, setupCarouselFinished: Boolean = true) {
 		_accountState.value = accountState
-		if (accountState is AccountControllerState.RequestingZkNyms) {
+		_setupCarouselFinished.value = setupCarouselFinished
+		if (AccountLoginReadiness.shouldShowCredentialsCopy(setupCarouselFinished, accountState)) {
 			val nextTick = (_credentialsCarouselTick.value + 1)
 				.coerceAtMost(AccountLoginReadiness.CREDENTIALS_CAROUSEL_STEP_COUNT - 1)
 			_credentialsCarouselTick.value = nextTick

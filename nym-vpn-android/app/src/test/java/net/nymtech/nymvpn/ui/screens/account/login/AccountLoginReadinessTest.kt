@@ -115,6 +115,53 @@ class AccountLoginReadinessTest {
 	}
 
 	@Test
+	fun setupCarouselPairs_useDistinctSubtitles() {
+		val subtitles = (0 until AccountLoginReadiness.CAROUSEL_TICK_COUNT).map { index ->
+			AccountLoginReadiness.setupCarouselPairRes(index).subtitleRes
+		}
+		assertEquals(subtitles.toSet().size, subtitles.size)
+		assertTrue(subtitles.all { it != null })
+	}
+
+	@Test
+	fun setupCarouselTextLeadsStepBar_byConfiguredDelay() {
+		assertTrue(AccountLoginReadiness.textAdvancePrecedesStepBarTick())
+	}
+
+	@Test
+	fun shouldShowCredentialsCopy_afterSetupDuringBackendWait() {
+		assertFalse(
+			AccountLoginReadiness.shouldShowCredentialsCopy(
+				setupCarouselFinished = false,
+				accountState = AccountControllerState.Syncing,
+			),
+		)
+		assertTrue(
+			AccountLoginReadiness.shouldShowCredentialsCopy(
+				setupCarouselFinished = true,
+				accountState = AccountControllerState.Syncing,
+			),
+		)
+		assertTrue(
+			AccountLoginReadiness.shouldShowCredentialsCopy(
+				setupCarouselFinished = true,
+				accountState = AccountControllerState.RequestingZkNyms,
+			),
+		)
+	}
+
+	@Test
+	fun credentialsStepTwoCopy_doesNotPromiseConnect() {
+		val combined = listOf(
+			"Finishing up…",
+			"Just a few more seconds",
+		).joinToString(" ").lowercase()
+		AccountLoginReadiness.CREDENTIALS_STEP_TWO_FORBIDDEN_TERMS.forEach { term ->
+			assertFalse("Credentials step 2 must not contain $term", combined.contains(term))
+		}
+	}
+
+	@Test
 	fun credentialsCarouselPairRes_tick0_and_tick1() {
 		assertEquals(
 			R.string.account_login_processing_loading_credentials to
@@ -139,6 +186,7 @@ class AccountLoginReadinessTest {
 			LoginProcessingUiPhase.Carousel,
 			AccountControllerState.RequestingZkNyms,
 			credentialsCarouselTick = 0,
+			setupCarouselFinished = true,
 		)
 		assertEquals(R.string.account_login_processing_loading_credentials, tick0.titleRes)
 		assertEquals(R.string.account_login_processing_loading_credentials_subtitle, tick0.subtitleRes)
@@ -147,20 +195,53 @@ class AccountLoginReadinessTest {
 			LoginProcessingUiPhase.Carousel,
 			AccountControllerState.RequestingZkNyms,
 			credentialsCarouselTick = 1,
+			setupCarouselFinished = true,
 		)
 		assertEquals(R.string.account_login_processing_almost_ready, tick1.titleRes)
 		assertEquals(R.string.account_login_processing_almost_ready_subtitle, tick1.subtitleRes)
 	}
 
 	@Test
-	fun processingCopyForPhase_nonRequestingZkNyms_hasNoSubtitle() {
+	fun processingCopyForPhase_syncingAfterSetup_showsCredentialsCopy() {
+		val copy = AccountLoginReadiness.processingCopyForPhase(
+			LoginProcessingUiPhase.Carousel,
+			AccountControllerState.Syncing,
+			credentialsCarouselTick = 0,
+			setupCarouselFinished = true,
+		)
+		assertEquals(R.string.account_login_processing_loading_credentials, copy.titleRes)
+		assertEquals(R.string.account_login_processing_loading_credentials_subtitle, copy.subtitleRes)
+	}
+
+	@Test
+	fun processingCopyForPhase_setupCarousel_showsDistinctSubtitles() {
+		val step0 = AccountLoginReadiness.processingCopyForPhase(
+			LoginProcessingUiPhase.Carousel,
+			accountState = null,
+			setupCarouselIndex = 0,
+			setupCarouselFinished = false,
+		)
+		assertEquals(R.string.account_login_processing_setting_up_step2_subtitle, step0.subtitleRes)
+
+		val step2 = AccountLoginReadiness.processingCopyForPhase(
+			LoginProcessingUiPhase.Carousel,
+			accountState = null,
+			setupCarouselIndex = 2,
+			setupCarouselFinished = false,
+		)
+		assertEquals(R.string.account_login_processing_setting_up_step4_subtitle, step2.subtitleRes)
+	}
+
+	@Test
+	fun processingCopyForPhase_syncingBeforeSetup_keepsSetupCopy() {
 		val copy = AccountLoginReadiness.processingCopyForPhase(
 			LoginProcessingUiPhase.Carousel,
 			AccountControllerState.Syncing,
 			credentialsCarouselTick = 1,
+			setupCarouselFinished = false,
 		)
 		assertEquals(R.string.account_login_processing_setting_up, copy.titleRes)
-		assertNull(copy.subtitleRes)
+		assertEquals(R.string.account_login_processing_setting_up_step2_subtitle, copy.subtitleRes)
 	}
 
 	@Test
@@ -171,10 +252,11 @@ class AccountLoginReadinessTest {
 		)
 		assertEquals(
 			R.string.account_login_processing_loading_credentials,
-			AccountLoginReadiness.processingTitleForPhase(
+			AccountLoginReadiness.processingCopyForPhase(
 				LoginProcessingUiPhase.Carousel,
 				AccountControllerState.RequestingZkNyms,
-			),
+				setupCarouselFinished = true,
+			).titleRes,
 		)
 		assertEquals(
 			R.string.account_payment_welcome,
@@ -254,8 +336,8 @@ class AccountLoginReadinessTest {
 	}
 
 	@Test
-	fun carouselDurationMs_matchesIosTicks() {
-		assertEquals(6_000L, AccountLoginReadiness.carouselDurationMs())
+	fun carouselDurationMs_matchesSlowerSetupCarousel() {
+		assertEquals(10_000L, AccountLoginReadiness.carouselDurationMs())
 	}
 
 	@Test

@@ -67,6 +67,8 @@ fun LoginProcessingDrawer(onProcessingComplete: () -> Unit, authSheetMinHeightPx
 	val failureMessageRes by viewModel.failureMessageRes.collectAsState()
 	val accountState by viewModel.accountState.collectAsState()
 	val credentialsCarouselTick by viewModel.credentialsCarouselTick.collectAsState()
+	val setupCarouselIndex by viewModel.setupCarouselIndex.collectAsState()
+	val setupCarouselFinished by viewModel.setupCarouselFinished.collectAsState()
 
 	LaunchedEffect(Unit) {
 		viewModel.startProcessing()
@@ -91,12 +93,22 @@ fun LoginProcessingDrawer(onProcessingComplete: () -> Unit, authSheetMinHeightPx
 		progressStep = progressStep,
 		accountState = accountState,
 		credentialsCarouselTick = credentialsCarouselTick,
+		setupCarouselIndex = setupCarouselIndex,
+		setupCarouselFinished = setupCarouselFinished,
 		authSheetMinHeightPx = authSheetMinHeightPx,
 	)
 }
 
 @Composable
-fun LoginProcessingDrawerContent(uiPhase: LoginProcessingUiPhase, progressStep: Int, accountState: AccountControllerState? = null, credentialsCarouselTick: Int = 0, authSheetMinHeightPx: Int = 0) {
+fun LoginProcessingDrawerContent(
+	uiPhase: LoginProcessingUiPhase,
+	progressStep: Int,
+	accountState: AccountControllerState? = null,
+	credentialsCarouselTick: Int = 0,
+	setupCarouselIndex: Int = 0,
+	setupCarouselFinished: Boolean = false,
+	authSheetMinHeightPx: Int = 0,
+) {
 	val density = LocalDensity.current
 	val minHeight = if (authSheetMinHeightPx > 0) {
 		with(density) { authSheetMinHeightPx.toDp() }
@@ -107,6 +119,8 @@ fun LoginProcessingDrawerContent(uiPhase: LoginProcessingUiPhase, progressStep: 
 		uiPhase,
 		accountState,
 		credentialsCarouselTick,
+		setupCarouselIndex,
+		setupCarouselFinished,
 	)
 
 	Column(
