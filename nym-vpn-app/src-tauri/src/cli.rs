@@ -58,10 +58,6 @@ pub struct Cli {
     #[arg(short, long)]
     pub build_info: bool,
 
-    /// Enable writing app logs to a file
-    #[arg(short, long)]
-    pub log_file: bool,
-
     /// Set the log level
     #[arg(short = 'L', long)]
     #[ts(inline)]

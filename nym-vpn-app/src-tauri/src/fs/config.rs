@@ -10,6 +10,9 @@ pub struct AppConfig {
     /// Whether Sentry error monitoring is enabled
     #[serde(default)]
     pub sentry_monitoring: bool,
+    /// Whether app debug logging to a file is enabled
+    #[serde(default)]
+    pub debug_logging: bool,
 }
 
 impl AppConfig {

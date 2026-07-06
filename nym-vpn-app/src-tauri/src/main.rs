@@ -92,11 +92,16 @@ async fn main() -> Result<()> {
         fs::util::clean_local_files();
         return Ok(());
     }
-    let sentry_enabled = AppConfig::read()
-        .ok()
+    let app_config = AppConfig::read().ok();
+    let sentry_enabled = app_config
+        .as_ref()
         .map(|cfg| cfg.sentry_monitoring)
         .unwrap_or(DEFAULT_SENTRY_ENABLED);
-    let _guard = log::setup_tracing(&cli, sentry_enabled).await?;
+    let debug_logging = app_config
+        .as_ref()
+        .map(|cfg| cfg.debug_logging)
+        .unwrap_or(false);
+    let debug_logging_control = log::setup_tracing(&cli, sentry_enabled, debug_logging).await?;
     trace!("cli args: {:#?}", cli);
 
     let os = sys::OsInfo::new();
@@ -192,6 +197,7 @@ async fn main() -> Result<()> {
             linux_update_watcher::spawn(app.handle().clone());
 
             app.manage(cli.clone());
+            app.manage(Mutex::new(debug_logging_control));
 
             info!("Creating k/v embedded db");
             let db = match Db::new() {
@@ -342,6 +348,8 @@ async fn main() -> Result<()> {
             cmd_window::set_background_color,
             commands::cli::cli_args,
             cmd_log::log_js,
+            cmd_log::set_debug_logging,
+            cmd_log::debug_logging_enabled,
             account::get_account_state,
             account::add_account,
             account::get_account_mode,
