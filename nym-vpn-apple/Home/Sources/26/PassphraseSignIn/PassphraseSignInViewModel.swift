@@ -14,7 +14,7 @@ public final class PassphraseSignInViewModel {
         case failed
     }
 
-    private let credentialsManager: CredentialsManager
+    private let credentialStore: PassphraseSignInCredentialStore
     @ObservationIgnored private var loginTask: Task<Void, Never>?
     @ObservationIgnored public weak var sessionCoordinator: AppSessionCoordinating?
 
@@ -29,10 +29,15 @@ public final class PassphraseSignInViewModel {
     var submissionState: SubmissionState = .idle
 
     public init(credentialsManager: CredentialsManager) {
-        self.credentialsManager = credentialsManager
+        self.credentialStore = credentialsManager
+    }
+
+    init(credentialStore: PassphraseSignInCredentialStore) {
+        self.credentialStore = credentialStore
     }
 
     func loginButtonTapped() {
+        guard submissionState != .loading else { return }
         let credential = passphraseText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !credential.isEmpty else { return }
         submissionState = .loading
@@ -43,23 +48,16 @@ public final class PassphraseSignInViewModel {
                 sessionCoordinator?.handle(
                     .session(.authWillBegin(flow: .login, completesOnCredentialImport: false))
                 )
-#if os(iOS)
-                try await credentialsManager.performAccountRegistration(loginCredential: credential)
+                try await credentialStore.storeLoginCredential(credential)
                 let outcome = await AuthCompletionOutcomeResolver.resolveAfterLoginRegistration(
-                    isAccountActive: { self.credentialsManager.isAccountActive() },
+                    isAccountActive: { self.credentialStore.isAccountActive() },
                     updateAccountSummary: {
-                        await self.credentialsManager.updateAccountSummary(force: true, untilActive: false)
+                        await self.credentialStore.updateAccountSummary(force: true, untilActive: false)
                     }
                 )
                 sessionCoordinator?.handle(
                     .session(.authCompleted(outcome: outcome, flow: .login))
                 )
-#else
-                try await credentialsManager.add(credential: credential)
-                try await credentialsManager.registerAccount()
-                passphraseText = ""
-                submissionState = .idle
-#endif
             } catch is CancellationError {
                 sessionCoordinator?.handle(.session(.authHandoffCancelled))
                 submissionState = .idle

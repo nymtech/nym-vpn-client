@@ -102,7 +102,7 @@ import Theme
                 try await credentialsManager.performAccountRegistration(loginCredential: trimmedCredential)
 #elseif os(macOS)
                 try await credentialsManager.add(credential: trimmedCredential)
-                try await credentialsManager.registerAccount()
+                await credentialsManager.updateAccountSummary(force: true, untilActive: false)
 #endif
                 error = CredentialsManagerError.noError
                 credentialsDidAdd()
