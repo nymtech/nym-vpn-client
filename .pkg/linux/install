@@ -211,8 +211,8 @@ latest_nightly_tag() {
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/nymtech/nym-vpn-client/releases?per_page=100" |
     grep -oP '"tag_name":\s*"\Knym-vpn-v[0-9]+\.[0-9]+\.[0-9]+-nightly\.[0-9]+(?=")' |
-    sort -t. -k4 -n -r |
-    head -n1
+    sort -t. -k4 -n |
+    tail -n1
 }
 
 app_dev_setup() {
