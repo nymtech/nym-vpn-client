@@ -1,11 +1,14 @@
-//! Windows / macOS: native Tauri tray backend.
+//! Native Tauri tray backend.
+//!
+//! Used on Windows/macOS, and on Linux as the runtime fallback when no
+//! StatusNotifierWatcher is available for the ksni backend (see [`super::linux`]).
 
 use std::time::Duration;
 
 use anyhow::Result;
 use strum::AsRefStr;
 use tauri::{
-    AppHandle, Manager, Wry,
+    AppHandle, Wry,
     image::Image,
     include_image,
     menu::{Menu, MenuEvent, MenuItem, PredefinedMenuItem},
@@ -14,7 +17,7 @@ use tauri::{
 use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::{debug, error, instrument, trace, warn};
 
-use super::{TrayBackend, TrayManager, quit_app, show_window};
+use super::{TrayBackend, quit_app, show_window};
 use crate::APP_NAME;
 use crate::vpnd::tunnel::TunnelState;
 
@@ -42,7 +45,6 @@ enum MenuItemId {
 }
 
 pub(super) struct Backend {
-    app: AppHandle,
     tray: TrayIcon,
     menu: Menu<Wry>,
     show_hide: MenuItem<Wry>,
@@ -55,17 +57,16 @@ pub(super) struct Backend {
     icon_debounce: Mutex<Option<JoinHandle<()>>>,
 }
 
-impl Backend {
-    fn apply_icon(&self, state: &TunnelState) {
-        let icon = match state {
-            TunnelState::Connected(_) => CONNECTED_ICON,
-            TunnelState::Connecting(_) | TunnelState::Disconnecting(_) => CONNECTING_ICON,
-            TunnelState::Disconnected => DISCONNECTED_ICON,
-            TunnelState::Error(_) | TunnelState::Offline { .. } => ERROR_ICON,
-        };
-        let _ = self.tray.set_icon(Some(icon));
+fn icon_for_state(state: &TunnelState) -> Image<'static> {
+    match state {
+        TunnelState::Connected(_) => CONNECTED_ICON,
+        TunnelState::Connecting(_) | TunnelState::Disconnecting(_) => CONNECTING_ICON,
+        TunnelState::Disconnected => DISCONNECTED_ICON,
+        TunnelState::Error(_) | TunnelState::Offline { .. } => ERROR_ICON,
     }
+}
 
+impl Backend {
     #[instrument(skip_all)]
     fn on_tray_event(tray_icon: &TrayIcon, event: TrayIconEvent) {
         if let TrayIconEvent::Click {
@@ -95,10 +96,8 @@ impl Backend {
             _ => warn!("unhandled menu event: {:?}", event.id),
         }
     }
-}
 
-impl TrayBackend for Backend {
-    fn new(app: &AppHandle) -> Result<Self> {
+    pub(super) fn new(app: &AppHandle) -> Result<Self> {
         debug!("building system tray");
 
         // String labels are set in frontend (<TrayProvider>) to support localization
@@ -184,7 +183,6 @@ impl TrayBackend for Backend {
             .inspect_err(|e| error!("failed to set tray tooltip {e}"));
 
         Ok(Self {
-            app: app.clone(),
             tray,
             menu,
             show_hide,
@@ -197,20 +195,21 @@ impl TrayBackend for Backend {
             icon_debounce: Mutex::new(None),
         })
     }
+}
 
+impl TrayBackend for Backend {
     #[instrument(skip_all)]
     async fn update_tray_icon(&self, state: TunnelState) {
         let mut pending = self.icon_debounce.lock().await;
         if let Some(handle) = pending.take() {
             handle.abort();
         }
-        let app = self.app.clone();
+        // `TrayIcon` is reference-counted and `Clone`, so the debounced task can own a
+        // clone and outlive this `&self` borrow without re-fetching from managed state.
+        let tray = self.tray.clone();
         *pending = Some(tokio::spawn(async move {
             tokio::time::sleep(ICON_DEBOUNCE).await;
-            // Re-fetch ourselves from managed state — the debounced task outlives this
-            // `&self` borrow, and the `AppHandle` is the only thing cheap to capture.
-            let manager = app.state::<TrayManager>();
-            manager.inner().0.apply_icon(&state);
+            let _ = tray.set_icon(Some(icon_for_state(&state)));
         }));
     }
 

@@ -7,26 +7,29 @@ use crate::{
     MAIN_WINDOW_LABEL, state::SharedAppState, vpnd::client::VpndClient, window::AppWindow,
 };
 
-#[cfg(not(target_os = "linux"))]
+// The native Tauri backend is compiled on every platform. On Linux it is the
+// runtime fallback used when there is no StatusNotifierWatcher for ksni to talk to.
 mod desktop;
 #[cfg(target_os = "linux")]
 mod linux;
 
 #[cfg(not(target_os = "linux"))]
 use desktop::Backend;
-#[cfg(target_os = "linux")]
-use linux::Backend;
 
 /// Platform-agnostic contract that every tray backend implements.
 ///
-/// Both the native Tauri backend (Windows/macOS, see [`desktop`]) and the ksni
-/// `StatusNotifierItem` backend (Linux, see [`linux`]) implement this, so the compiler
-/// rejects any signature drift between them — even though only one is compiled per target.
+/// The native Tauri backend ([`desktop`]) and the Linux ksni `StatusNotifierItem`
+/// backend ([`linux`]) both implement this, so the compiler rejects any signature
+/// drift between them. On Linux both are compiled and one is picked at runtime (see
+/// the Linux [`Backend`] enum below); on Windows/macOS only [`desktop`] is used.
+///
+/// Construction is intentionally *not* part of this trait: each backend has its own
+/// inherent constructor, because the Linux [`Backend`] enum decides which inner
+/// backend to build only after probing the session bus for a StatusNotifierWatcher.
 ///
 /// Note this trait is intentionally private: it is consumed only through the [`TrayManager`]
 /// facade via static dispatch, so the async methods never need `Send` bounds added by callers.
-trait TrayBackend: Sized + Send + Sync {
-    fn new(app: &AppHandle) -> Result<Self>;
+trait TrayBackend: Send + Sync {
     async fn update_tray_icon(&self, state: TunnelState);
     async fn update_tray_show_hide(&self, show_hide: String);
     async fn update_tray_quit(&self, quit: String);
@@ -35,6 +38,92 @@ trait TrayBackend: Sized + Send + Sync {
     async fn update_tray_entry(&self, entry: String);
     async fn update_tray_exit(&self, exit: String);
     async fn update_tray_entry_visible(&self, visible: bool);
+}
+
+#[cfg(target_os = "linux")]
+enum Backend {
+    Ksni(linux::Backend),
+    Native(Box<desktop::Backend>),
+}
+
+#[cfg(target_os = "linux")]
+impl Backend {
+    fn new(app: &AppHandle) -> Result<Self> {
+        match linux::Backend::try_new(app) {
+            Some(backend) => {
+                info!("system tray: StatusNotifierWatcher found, using ksni (SNI) backend");
+                Ok(Self::Ksni(backend))
+            }
+            None => {
+                warn!(
+                    "system tray: no StatusNotifierWatcher on the session bus (e.g. i3); \
+                     falling back to the native XEmbed tray — left-click opens the menu \
+                     instead of toggling the window. Run an SNI host such as snixembed \
+                     for the full experience."
+                );
+                Ok(Self::Native(Box::new(desktop::Backend::new(app)?)))
+            }
+        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+impl TrayBackend for Backend {
+    async fn update_tray_icon(&self, state: TunnelState) {
+        match self {
+            Self::Ksni(b) => b.update_tray_icon(state).await,
+            Self::Native(b) => b.update_tray_icon(state).await,
+        }
+    }
+
+    async fn update_tray_show_hide(&self, show_hide: String) {
+        match self {
+            Self::Ksni(b) => b.update_tray_show_hide(show_hide).await,
+            Self::Native(b) => b.update_tray_show_hide(show_hide).await,
+        }
+    }
+
+    async fn update_tray_quit(&self, quit: String) {
+        match self {
+            Self::Ksni(b) => b.update_tray_quit(quit).await,
+            Self::Native(b) => b.update_tray_quit(quit).await,
+        }
+    }
+
+    async fn update_tray_mode(&self, mode: String) {
+        match self {
+            Self::Ksni(b) => b.update_tray_mode(mode).await,
+            Self::Native(b) => b.update_tray_mode(mode).await,
+        }
+    }
+
+    async fn update_tray_state(&self, state: String) {
+        match self {
+            Self::Ksni(b) => b.update_tray_state(state).await,
+            Self::Native(b) => b.update_tray_state(state).await,
+        }
+    }
+
+    async fn update_tray_entry(&self, entry: String) {
+        match self {
+            Self::Ksni(b) => b.update_tray_entry(entry).await,
+            Self::Native(b) => b.update_tray_entry(entry).await,
+        }
+    }
+
+    async fn update_tray_exit(&self, exit: String) {
+        match self {
+            Self::Ksni(b) => b.update_tray_exit(exit).await,
+            Self::Native(b) => b.update_tray_exit(exit).await,
+        }
+    }
+
+    async fn update_tray_entry_visible(&self, visible: bool) {
+        match self {
+            Self::Ksni(b) => b.update_tray_entry_visible(visible).await,
+            Self::Native(b) => b.update_tray_entry_visible(visible).await,
+        }
+    }
 }
 
 /// The system tray, managed as Tauri state and driven from `commands::tray`.

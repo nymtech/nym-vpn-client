@@ -1,19 +1,23 @@
 //! Linux: ksni-based `StatusNotifierItem` backend.
 //!
-//! We avoid Tauri's tray-icon backend on Linux because its GTK implementation only calls
-//! `app_indicator_set_menu()`. There's no API to receive left-click separately from the
-//! menu open, so we can't bind left-click to "toggle window". ksni implements SNI
+//! We prefer this over Tauri's tray-icon backend on Linux because that GTK implementation
+//! only calls `app_indicator_set_menu()`. There's no API to receive left-click separately
+//! from the menu open, so we can't bind left-click to "toggle window". ksni implements SNI
 //! directly and exposes `activate` / `secondary_activate` callbacks.
+//!
+//! The catch is that SNI needs a `StatusNotifierWatcher` on the session bus, which minimal
+//! window managers like i3 don't provide. [`Backend::try_new`] probes for one and returns
+//! `None` when it's absent so the caller ([`super::Backend`]) can fall back to the native
+//! XEmbed backend.
 
-use std::sync::{Arc, LazyLock, Mutex as StdMutex};
+use std::sync::LazyLock;
 use std::time::Duration;
 
-use anyhow::Result;
 use image::ImageFormat;
 use ksni::{Handle, TrayMethods, menu::StandardItem};
 use tauri::AppHandle;
 use tokio::{sync::Mutex, task::JoinHandle};
-use tracing::{debug, instrument, trace, warn};
+use tracing::{debug, instrument, trace};
 
 use super::{TrayBackend, quit_app, show_window};
 use crate::vpnd::tunnel::TunnelState;
@@ -25,8 +29,13 @@ const DISCONNECTED_ICON: &[u8] = include_bytes!("../../icons/tray_icon_disconnec
 const ERROR_ICON: &[u8] = include_bytes!("../../icons/tray_icon_error.png");
 const ICON_DEBOUNCE: Duration = Duration::from_millis(300);
 
-const SPAWN_RETRY_INTERVAL: Duration = Duration::from_secs(10);
-const SPAWN_MAX_ATTEMPTS: u32 = 12;
+// Startup probe for a StatusNotifierWatcher. A watcher provided by a full desktop
+// is already registered before we launch, so the first attempt normally succeeds;
+// the couple of quick retries only absorb a watcher that is still coming up during
+// login. If none appears we return `None` promptly so the caller can fall back to
+// the native XEmbed backend instead of blocking startup.
+const PROBE_ATTEMPTS: u32 = 3;
+const PROBE_INTERVAL: Duration = Duration::from_millis(200);
 
 fn decode_argb(bytes: &[u8]) -> ksni::Icon {
     let img = image::load_from_memory_with_format(bytes, ImageFormat::Png)
@@ -197,175 +206,132 @@ impl ksni::Tray for NymTray {
 }
 
 pub(super) struct Backend {
-    // Source of truth for the tray's current contents. Kept in sync by every
-    // `update_tray_*` call regardless of whether the live tray exists yet, so a
-    // tray spawned late (see `spawn_with_retry`) reflects the real state instead
-    // of the initial defaults.
-    state: Arc<StdMutex<NymTray>>,
-    // Live ksni handle. `None` until the tray successfully spawns. SNI requires a
-    // StatusNotifierWatcher on the session bus.
-    // A background task keeps retrying and fills this in if a watcher appears.
-    handle: Arc<StdMutex<Option<Handle<NymTray>>>>,
+    // Live ksni handle. Always present: [`Backend::try_new`] only returns `Some`
+    // once the tray has successfully registered with a StatusNotifierWatcher, so
+    // every `update_*` call has a live tray to drive.
+    handle: Handle<NymTray>,
     icon_debounce: Mutex<Option<JoinHandle<()>>>,
+    // Mirrors the tray's entry visibility so we can skip redundant menu rebuilds
+    // (each `Handle::update` emits a D-Bus layout-changed signal).
+    entry_visible: Mutex<bool>,
 }
 
 impl Backend {
-    // Drives `ksni::spawn()` on a dedicated thread, retrying until it succeeds.
-    // A failed spawn is non-fatal if there is no StatusNotifierWatcher,
-    // so the first `spawn()` errors. Rather than crashing the app out of the setup hook,
-    // we log once and keep retrying in the background — picking up the tray if a watcher
-    // (panel/applet) appears later.
-    fn spawn_with_retry(
-        state: Arc<StdMutex<NymTray>>,
-        handle: Arc<StdMutex<Option<Handle<NymTray>>>>,
-    ) -> Result<()> {
-        std::thread::Builder::new()
-            .name("ksni-tray-init".into())
-            .spawn(move || {
-                for attempt in 0..SPAWN_MAX_ATTEMPTS {
-                    // Spawn from a snapshot of the current state, so a late spawn
-                    // reflects whatever updates landed while we were waiting.
-                    let snapshot = state.lock().unwrap().clone();
-                    match futures::executor::block_on(snapshot.spawn()) {
-                        Ok(h) => {
-                            debug!("ksni tray spawned (attempt {})", attempt + 1);
-                            *handle.lock().unwrap() = Some(h);
-                            return;
-                        }
-                        Err(e) if attempt == 0 => {
-                            warn!(
-                                "system tray unavailable, retrying in background \
-                                 every {}s ({} attempts): {e:?}",
-                                SPAWN_RETRY_INTERVAL.as_secs(),
-                                SPAWN_MAX_ATTEMPTS
-                            );
-                        }
-                        Err(e) => {
-                            trace!("ksni tray spawn retry {} failed: {e:?}", attempt + 1);
-                        }
-                    }
-                    // Don't sleep after the final attempt — give up promptly.
-                    if attempt + 1 < SPAWN_MAX_ATTEMPTS {
-                        std::thread::sleep(SPAWN_RETRY_INTERVAL);
-                    }
-                }
-                warn!(
-                    "no StatusNotifierWatcher appeared after {} attempts; \
-                     giving up, running without a system tray",
-                    SPAWN_MAX_ATTEMPTS
-                );
-            })?;
-        Ok(())
+    /// Probe for a StatusNotifierWatcher by attempting to bring up the ksni tray.
+    ///
+    /// Returns `Some` with a live handle when a watcher is available on the session
+    /// bus, or `None` when there is none so the caller can fall back to the
+    /// native XEmbed backend.
+    pub(super) fn try_new(app: &AppHandle) -> Option<Self> {
+        debug!("probing for StatusNotifierWatcher (ksni tray)");
+        let handle = Self::spawn_probe(app.clone())?;
+        Some(Self {
+            handle,
+            icon_debounce: Mutex::new(None),
+            entry_visible: Mutex::new(true),
+        })
     }
 
-    fn live_handle(&self) -> Option<Handle<NymTray>> {
-        self.handle.lock().unwrap().clone()
+    // Drive the initial ksni connect/register to completion on a short-lived thread.
+    // Once `spawn()` succeeds the ksni service runs on its own async-io executor, so
+    // this thread is only needed to obtain the handle
+    fn spawn_probe(app: AppHandle) -> Option<Handle<NymTray>> {
+        std::thread::Builder::new()
+            .name("ksni-tray-probe".into())
+            .spawn(move || {
+                let tray = NymTray {
+                    app,
+                    icon: IconKind::Default,
+                    show_hide: "Show/Hide".into(),
+                    quit: "Quit (disconnect)".into(),
+                    status: "Status: Initial".into(),
+                    mode: "Mode: Initial".into(),
+                    entry: "Entry: Initial".into(),
+                    exit: "Exit: Initial".into(),
+                    entry_visible: true,
+                };
+                for attempt in 0..PROBE_ATTEMPTS {
+                    match futures::executor::block_on(tray.clone().spawn()) {
+                        Ok(h) => {
+                            debug!("ksni tray spawned (attempt {})", attempt + 1);
+                            return Some(h);
+                        }
+                        Err(e) => {
+                            trace!("ksni tray spawn attempt {} failed: {e:?}", attempt + 1);
+                        }
+                    }
+                    if attempt + 1 < PROBE_ATTEMPTS {
+                        std::thread::sleep(PROBE_INTERVAL);
+                    }
+                }
+                None
+            })
+            .ok()?
+            .join()
+            .ok()
+            .flatten()
     }
 }
 
 impl TrayBackend for Backend {
-    fn new(app: &AppHandle) -> Result<Self> {
-        debug!("building ksni system tray");
-
-        let tray = NymTray {
-            app: app.clone(),
-            icon: IconKind::Default,
-            show_hide: "Show/Hide".into(),
-            quit: "Quit (disconnect)".into(),
-            status: "Status: Initial".into(),
-            mode: "Mode: Initial".into(),
-            entry: "Entry: Initial".into(),
-            exit: "Exit: Initial".into(),
-            entry_visible: true,
-        };
-
-        let state = Arc::new(StdMutex::new(tray));
-        let handle: Arc<StdMutex<Option<Handle<NymTray>>>> = Arc::new(StdMutex::new(None));
-
-        Self::spawn_with_retry(state.clone(), handle.clone())?;
-
-        Ok(Self {
-            state,
-            handle,
-            icon_debounce: Mutex::new(None),
-        })
-    }
-
     #[instrument(skip_all)]
     async fn update_tray_icon(&self, state: TunnelState) {
         let mut pending = self.icon_debounce.lock().await;
         if let Some(h) = pending.take() {
             h.abort();
         }
-        let cache = self.state.clone();
         let handle = self.handle.clone();
         *pending = Some(tokio::spawn(async move {
             tokio::time::sleep(ICON_DEBOUNCE).await;
             let kind = IconKind::from(&state);
-            cache.lock().unwrap().icon = kind;
-            let live = handle.lock().unwrap().clone();
-            if let Some(live) = live {
-                live.update(move |t: &mut NymTray| t.icon = kind).await;
-            }
+            handle.update(move |t: &mut NymTray| t.icon = kind).await;
         }));
     }
 
     async fn update_tray_show_hide(&self, show_hide: String) {
-        self.state.lock().unwrap().show_hide = show_hide.clone();
-        if let Some(handle) = self.live_handle() {
-            handle
-                .update(move |t: &mut NymTray| t.show_hide = show_hide)
-                .await;
-        }
+        self.handle
+            .update(move |t: &mut NymTray| t.show_hide = show_hide)
+            .await;
     }
 
     async fn update_tray_quit(&self, quit: String) {
-        self.state.lock().unwrap().quit = quit.clone();
-        if let Some(handle) = self.live_handle() {
-            handle.update(move |t: &mut NymTray| t.quit = quit).await;
-        }
+        self.handle
+            .update(move |t: &mut NymTray| t.quit = quit)
+            .await;
     }
 
     async fn update_tray_mode(&self, mode: String) {
-        self.state.lock().unwrap().mode = mode.clone();
-        if let Some(handle) = self.live_handle() {
-            handle.update(move |t: &mut NymTray| t.mode = mode).await;
-        }
+        self.handle
+            .update(move |t: &mut NymTray| t.mode = mode)
+            .await;
     }
 
     async fn update_tray_state(&self, state: String) {
-        self.state.lock().unwrap().status = state.clone();
-        if let Some(handle) = self.live_handle() {
-            handle.update(move |t: &mut NymTray| t.status = state).await;
-        }
+        self.handle
+            .update(move |t: &mut NymTray| t.status = state)
+            .await;
     }
 
     async fn update_tray_entry(&self, entry: String) {
-        self.state.lock().unwrap().entry = entry.clone();
-        if let Some(handle) = self.live_handle() {
-            handle.update(move |t: &mut NymTray| t.entry = entry).await;
-        }
+        self.handle
+            .update(move |t: &mut NymTray| t.entry = entry)
+            .await;
     }
 
     async fn update_tray_exit(&self, exit: String) {
-        self.state.lock().unwrap().exit = exit.clone();
-        if let Some(handle) = self.live_handle() {
-            handle.update(move |t: &mut NymTray| t.exit = exit).await;
-        }
+        self.handle
+            .update(move |t: &mut NymTray| t.exit = exit)
+            .await;
     }
 
     async fn update_tray_entry_visible(&self, visible: bool) {
-        {
-            let mut state = self.state.lock().unwrap();
-            if state.entry_visible == visible {
-                return;
-            }
-            state.entry_visible = visible;
+        let mut current = self.entry_visible.lock().await;
+        if *current == visible {
+            return;
         }
-        if let Some(handle) = self.live_handle() {
-            handle
-                .update(move |t: &mut NymTray| t.entry_visible = visible)
-                .await;
-        }
+        *current = visible;
+        self.handle
+            .update(move |t: &mut NymTray| t.entry_visible = visible)
+            .await;
     }
 }
