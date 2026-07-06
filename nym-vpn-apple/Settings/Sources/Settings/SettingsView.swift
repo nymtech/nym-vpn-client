@@ -64,7 +64,6 @@ private extension SettingsView {
 #endif
             Task {
                 await credentialsManager.updateAccountSummary()
-                viewModel.reloadSections()
             }
         }
     }
