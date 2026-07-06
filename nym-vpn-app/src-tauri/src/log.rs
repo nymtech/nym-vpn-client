@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Result, anyhow};
 use sentry::integrations::tracing as sentry_tracing;
-use tracing::{Level, debug, info};
+use tracing::{Level, debug, error, info};
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
@@ -126,12 +126,11 @@ pub async fn setup_tracing(
         .with(sentry_layer)
         .init();
 
-    let log_dir = APP_LOG_DIR
-        .clone()
-        .ok_or(anyhow!("failed to get log dir"))?;
-
     let apply: ApplyFn = Box::new(move |enabled: bool| -> Result<Option<WorkerGuard>> {
         if enabled {
+            let log_dir = APP_LOG_DIR
+                .clone()
+                .ok_or(anyhow!("failed to get log dir"))?;
             if let Some(old) = rotate_log_file(&log_dir).ok().flatten() {
                 debug!("rotated log file: {}", old.display());
             }
@@ -161,7 +160,11 @@ pub async fn setup_tracing(
 
     let mut control = DebugLogging::new(apply);
     if debug_logging {
-        control.set(true)?;
+        // File logging is optional; if it can't be initialized, log and fall
+        // back to disabled rather than aborting app startup.
+        if let Err(e) = control.set(true) {
+            error!("failed to enable app file logging at startup, continuing without it: {e}");
+        }
     }
 
     Ok(control)

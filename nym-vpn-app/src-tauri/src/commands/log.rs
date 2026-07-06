@@ -38,18 +38,18 @@ pub async fn set_debug_logging(
     app_config: State<'_, SharedAppConfig>,
     control: State<'_, SharedDebugLogging>,
 ) -> Result<(), BackendError> {
-    {
-        let mut config_guard = app_config.lock().await;
-        let mut config = config_guard.read()?;
-        config.debug_logging = enabled;
-        config_guard.data = config;
-        config_guard.write()?;
-    }
+    let mut config_guard = app_config.lock().await;
+    let mut control_guard = control.lock().await;
 
-    control.lock().await.set(enabled).map_err(|e| {
+    control_guard.set(enabled).map_err(|e| {
         error!("failed to apply debug logging state: {e}");
         BackendError::internal_with_detail("failed to apply debug logging state", e.to_string())
     })?;
+
+    let mut config = config_guard.read()?;
+    config.debug_logging = enabled;
+    config_guard.data = config;
+    config_guard.write()?;
 
     info!(
         "app debug logging {}",
