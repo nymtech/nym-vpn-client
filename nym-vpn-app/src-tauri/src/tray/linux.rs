@@ -19,8 +19,7 @@ use tauri::AppHandle;
 use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::{debug, instrument, trace};
 
-use super::{TrayBackend, quit_app, show_window};
-use crate::vpnd::tunnel::TunnelState;
+use super::{IconKind, TrayBackend, TrayState, quit_app, show_window};
 
 const APP_ICON: &[u8] = include_bytes!("../../icons/tray_icon.png");
 const CONNECTED_ICON: &[u8] = include_bytes!("../../icons/tray_icon_connected.png");
@@ -28,14 +27,6 @@ const CONNECTING_ICON: &[u8] = include_bytes!("../../icons/tray_icon_connecting.
 const DISCONNECTED_ICON: &[u8] = include_bytes!("../../icons/tray_icon_disconnected.png");
 const ERROR_ICON: &[u8] = include_bytes!("../../icons/tray_icon_error.png");
 const ICON_DEBOUNCE: Duration = Duration::from_millis(300);
-
-// Startup probe for a StatusNotifierWatcher. A watcher provided by a full desktop
-// is already registered before we launch, so the first attempt normally succeeds;
-// the couple of quick retries only absorb a watcher that is still coming up during
-// login. If none appears we return `None` promptly so the caller can fall back to
-// the native XEmbed backend instead of blocking startup.
-const PROBE_ATTEMPTS: u32 = 3;
-const PROBE_INTERVAL: Duration = Duration::from_millis(200);
 
 fn decode_argb(bytes: &[u8]) -> ksni::Icon {
     let img = image::load_from_memory_with_format(bytes, ImageFormat::Png)
@@ -60,40 +51,18 @@ static CONNECTING_ARGB: LazyLock<ksni::Icon> = LazyLock::new(|| decode_argb(CONN
 static DISCONNECTED_ARGB: LazyLock<ksni::Icon> = LazyLock::new(|| decode_argb(DISCONNECTED_ICON));
 static ERROR_ARGB: LazyLock<ksni::Icon> = LazyLock::new(|| decode_argb(ERROR_ICON));
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum IconKind {
-    Default,
-    Connected,
-    Connecting,
-    Disconnected,
-    Error,
-}
-
-impl IconKind {
-    fn pixmap(self) -> ksni::Icon {
-        match self {
-            IconKind::Default => APP_ARGB.clone(),
-            IconKind::Connected => CONNECTED_ARGB.clone(),
-            IconKind::Connecting => CONNECTING_ARGB.clone(),
-            IconKind::Disconnected => DISCONNECTED_ARGB.clone(),
-            IconKind::Error => ERROR_ARGB.clone(),
-        }
-    }
-}
-
-impl From<&TunnelState> for IconKind {
-    fn from(s: &TunnelState) -> Self {
-        match s {
-            TunnelState::Connected(_) => IconKind::Connected,
-            TunnelState::Connecting(_) | TunnelState::Disconnecting(_) => IconKind::Connecting,
-            TunnelState::Disconnected => IconKind::Disconnected,
-            TunnelState::Error(_) | TunnelState::Offline { .. } => IconKind::Error,
-        }
+fn pixmap_for_kind(kind: IconKind) -> ksni::Icon {
+    match kind {
+        IconKind::Default => APP_ARGB.clone(),
+        IconKind::Connected => CONNECTED_ARGB.clone(),
+        IconKind::Connecting => CONNECTING_ARGB.clone(),
+        IconKind::Disconnected => DISCONNECTED_ARGB.clone(),
+        IconKind::Error => ERROR_ARGB.clone(),
     }
 }
 
 #[derive(Clone)]
-struct NymTray {
+pub(super) struct NymTray {
     app: AppHandle,
     icon: IconKind,
     show_hide: String,
@@ -124,7 +93,7 @@ impl ksni::Tray for NymTray {
     }
 
     fn icon_pixmap(&self) -> Vec<ksni::Icon> {
-        vec![self.icon.pixmap()]
+        vec![pixmap_for_kind(self.icon)]
     }
 
     fn activate(&mut self, _x: i32, _y: i32) {
@@ -217,65 +186,58 @@ pub(super) struct Backend {
 }
 
 impl Backend {
-    /// Probe for a StatusNotifierWatcher by attempting to bring up the ksni tray.
-    ///
-    /// Returns `Some` with a live handle when a watcher is available on the session
-    /// bus, or `None` when there is none so the caller can fall back to the
-    /// native XEmbed backend.
-    pub(super) fn try_new(app: &AppHandle) -> Option<Self> {
-        debug!("probing for StatusNotifierWatcher (ksni tray)");
-        let handle = Self::spawn_probe(app.clone())?;
-        Some(Self {
+    /// Build the ksni backend around an already-spawned handle (see
+    /// [`spawn_ksni_once`]). `entry_visible` seeds the mirror used to skip
+    /// redundant menu rebuilds and must match the spawned tray's state.
+    pub(super) fn from_handle(handle: Handle<NymTray>, entry_visible: bool) -> Self {
+        Self {
             handle,
             icon_debounce: Mutex::new(None),
-            entry_visible: Mutex::new(true),
-        })
+            entry_visible: Mutex::new(entry_visible),
+        }
     }
+}
 
-    // Drive the initial ksni connect/register to completion on a short-lived thread.
-    // Once `spawn()` succeeds the ksni service runs on its own async-io executor, so
-    // this thread is only needed to obtain the handle
-    fn spawn_probe(app: AppHandle) -> Option<Handle<NymTray>> {
-        std::thread::Builder::new()
-            .name("ksni-tray-probe".into())
-            .spawn(move || {
-                let tray = NymTray {
-                    app,
-                    icon: IconKind::Default,
-                    show_hide: "Show/Hide".into(),
-                    quit: "Quit (disconnect)".into(),
-                    status: "Status: Initial".into(),
-                    mode: "Mode: Initial".into(),
-                    entry: "Entry: Initial".into(),
-                    exit: "Exit: Initial".into(),
-                    entry_visible: true,
-                };
-                for attempt in 0..PROBE_ATTEMPTS {
-                    match futures::executor::block_on(tray.clone().spawn()) {
-                        Ok(h) => {
-                            debug!("ksni tray spawned (attempt {})", attempt + 1);
-                            return Some(h);
-                        }
-                        Err(e) => {
-                            trace!("ksni tray spawn attempt {} failed: {e:?}", attempt + 1);
-                        }
-                    }
-                    if attempt + 1 < PROBE_ATTEMPTS {
-                        std::thread::sleep(PROBE_INTERVAL);
-                    }
-                }
+/// Attempt to bring up the ksni tray once, seeded from `state`.
+///
+/// Returns `Some(handle)` when a StatusNotifierWatcher is available on the session
+/// bus, `None` otherwise. `ksni::spawn()` must be driven to completion (it then
+/// detaches its service onto its own async-io executor); we do that on a short-lived
+/// thread so this is safe to call from the main thread or a tokio runtime without
+/// risking a nested-runtime panic.
+pub(super) fn spawn_ksni_once(app: &AppHandle, state: &TrayState) -> Option<Handle<NymTray>> {
+    let tray = NymTray {
+        app: app.clone(),
+        icon: state.icon,
+        show_hide: state.show_hide.clone(),
+        quit: state.quit.clone(),
+        status: state.status.clone(),
+        mode: state.mode.clone(),
+        entry: state.entry.clone(),
+        exit: state.exit.clone(),
+        entry_visible: state.entry_visible,
+    };
+    std::thread::Builder::new()
+        .name("ksni-tray-spawn".into())
+        .spawn(move || match futures::executor::block_on(tray.spawn()) {
+            Ok(handle) => {
+                debug!("ksni tray spawned");
+                Some(handle)
+            }
+            Err(e) => {
+                trace!("ksni tray spawn failed: {e:?}");
                 None
-            })
-            .ok()?
-            .join()
-            .ok()
-            .flatten()
-    }
+            }
+        })
+        .ok()?
+        .join()
+        .ok()
+        .flatten()
 }
 
 impl TrayBackend for Backend {
     #[instrument(skip_all)]
-    async fn update_tray_icon(&self, state: TunnelState) {
+    async fn update_tray_icon(&self, icon: IconKind) {
         let mut pending = self.icon_debounce.lock().await;
         if let Some(h) = pending.take() {
             h.abort();
@@ -283,8 +245,7 @@ impl TrayBackend for Backend {
         let handle = self.handle.clone();
         *pending = Some(tokio::spawn(async move {
             tokio::time::sleep(ICON_DEBOUNCE).await;
-            let kind = IconKind::from(&state);
-            handle.update(move |t: &mut NymTray| t.icon = kind).await;
+            handle.update(move |t: &mut NymTray| t.icon = icon).await;
         }));
     }
 

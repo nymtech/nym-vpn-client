@@ -17,9 +17,8 @@ use tauri::{
 use tokio::{sync::Mutex, task::JoinHandle};
 use tracing::{debug, error, instrument, trace, warn};
 
-use super::{TrayBackend, quit_app, show_window};
+use super::{IconKind, TrayBackend, quit_app, show_window};
 use crate::APP_NAME;
-use crate::vpnd::tunnel::TunnelState;
 
 const TRAY_ICON_ID: &str = "main";
 
@@ -57,12 +56,13 @@ pub(super) struct Backend {
     icon_debounce: Mutex<Option<JoinHandle<()>>>,
 }
 
-fn icon_for_state(state: &TunnelState) -> Image<'static> {
-    match state {
-        TunnelState::Connected(_) => CONNECTED_ICON,
-        TunnelState::Connecting(_) | TunnelState::Disconnecting(_) => CONNECTING_ICON,
-        TunnelState::Disconnected => DISCONNECTED_ICON,
-        TunnelState::Error(_) | TunnelState::Offline { .. } => ERROR_ICON,
+fn image_for_kind(kind: IconKind) -> Image<'static> {
+    match kind {
+        IconKind::Default => APP_ICON,
+        IconKind::Connected => CONNECTED_ICON,
+        IconKind::Connecting => CONNECTING_ICON,
+        IconKind::Disconnected => DISCONNECTED_ICON,
+        IconKind::Error => ERROR_ICON,
     }
 }
 
@@ -199,7 +199,7 @@ impl Backend {
 
 impl TrayBackend for Backend {
     #[instrument(skip_all)]
-    async fn update_tray_icon(&self, state: TunnelState) {
+    async fn update_tray_icon(&self, icon: IconKind) {
         let mut pending = self.icon_debounce.lock().await;
         if let Some(handle) = pending.take() {
             handle.abort();
@@ -209,7 +209,7 @@ impl TrayBackend for Backend {
         let tray = self.tray.clone();
         *pending = Some(tokio::spawn(async move {
             tokio::time::sleep(ICON_DEBOUNCE).await;
-            let _ = tray.set_icon(Some(icon_for_state(&state)));
+            let _ = tray.set_icon(Some(image_for_kind(icon)));
         }));
     }
 
