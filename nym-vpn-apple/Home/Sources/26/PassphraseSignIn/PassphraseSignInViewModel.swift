@@ -74,4 +74,8 @@ public final class PassphraseSignInViewModel {
             }
         }
     }
+
+    func waitForLoginTask() async {
+        await loginTask?.value
+    }
 }

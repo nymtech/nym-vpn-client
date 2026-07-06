@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import AccountPrefetchGates
+import CredentialsManager
 @testable import Home
 
 @MainActor
@@ -62,6 +63,11 @@ private enum PassphraseSignInTestSupport {
 
 @MainActor
 struct PassphraseSignInViewModelTests {
+    @Test func credentialsManagerConformsToPassphraseSignInCredentialStore() {
+        let store: PassphraseSignInCredentialStore = CredentialsManager.shared
+        _ = store.isAccountActive()
+    }
+
     @Test func successfulLoginEmitsAuthCompletedOnce() async {
         let store = FakePassphraseSignInCredentialStore()
         store.accountActive = true
@@ -71,7 +77,7 @@ struct PassphraseSignInViewModelTests {
         viewModel.passphraseText = "alpha beta gamma"
 
         viewModel.loginButtonTapped()
-        try? await Task.sleep(for: .milliseconds(50))
+        await viewModel.waitForLoginTask()
 
         #expect(store.storedCredentials == ["alpha beta gamma"])
         #expect(store.summarySyncCount == 1)
@@ -96,7 +102,7 @@ struct PassphraseSignInViewModelTests {
         viewModel.passphraseText = "alpha beta gamma"
 
         viewModel.loginButtonTapped()
-        try? await Task.sleep(for: .milliseconds(50))
+        await viewModel.waitForLoginTask()
 
         let completed = PassphraseSignInTestSupport.lastAuthCompleted(from: coordinator.actions)
         #expect(completed?.0 == .registeredNeedsPurchase)
@@ -115,7 +121,7 @@ struct PassphraseSignInViewModelTests {
         #expect(viewModel.submissionState == .loading)
 
         viewModel.loginButtonTapped()
-        try? await Task.sleep(for: .milliseconds(50))
+        await viewModel.waitForLoginTask()
 
         #expect(store.storedCredentials == ["alpha beta gamma"])
         #expect(coordinator.actions.count == 2)
@@ -130,7 +136,7 @@ struct PassphraseSignInViewModelTests {
         viewModel.passphraseText = "alpha beta gamma"
 
         viewModel.loginButtonTapped()
-        try? await Task.sleep(for: .milliseconds(50))
+        await viewModel.waitForLoginTask()
 
         #expect(store.storedCredentials.isEmpty)
         #expect(viewModel.submissionState == .failed)
