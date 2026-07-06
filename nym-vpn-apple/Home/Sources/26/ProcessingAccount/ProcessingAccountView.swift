@@ -69,6 +69,8 @@ private extension ProcessingAccountView {
                 staticTitleView
             } else if viewModel.didShowFinalMessage {
                 welcomeMessage
+            } else if showsCredentialsCarousel {
+                credentialsSwitchingTitles
             } else {
                 switchingTitles
             }
@@ -83,7 +85,10 @@ private extension ProcessingAccountView {
 
     var measurementLayer: some View {
         ZStack(alignment: .top) {
-            ForEach(Array(ProcessingAccountView.pairs(for: viewModel.flow).enumerated()), id: \.offset) { _, pair in
+            ForEach(Array(LoginProcessingUI.setupCarouselPairs().enumerated()), id: \.offset) { _, pair in
+                titlePairMeasurement(title: pair.0, subtitle: pair.1)
+            }
+            ForEach(Array(LoginProcessingUI.credentialsCarouselPairs().enumerated()), id: \.offset) { _, pair in
                 titlePairMeasurement(title: pair.0, subtitle: pair.1)
             }
             welcomeMessage
@@ -116,7 +121,10 @@ private extension ProcessingAccountView {
                     get: { viewModel.currentStep },
                     set: { _ in }
                 ),
-                animateInitialFill: !viewModel.usesStaticCopy
+                animateInitialFill: !viewModel.usesStaticCopy,
+                initialFillLeadIn: LoginProcessingUI.stepBarInitialLeadIn,
+                initialFillStepPause: LoginProcessingUI.stepBarStepPause,
+                forwardFillStepPause: LoginProcessingUI.stepBarStepPause
             )
         }
     }
@@ -146,7 +154,31 @@ private extension ProcessingAccountView {
             ),
             timerDidTick: {
                 viewModel.animationDidAdvance()
-            }
+            },
+            tickInterval: LoginProcessingUI.setupCarouselTickInterval,
+            stepAdvanceDelay: LoginProcessingUI.setupCarouselStepAdvanceDelay,
+            initialDwell: LoginProcessingUI.setupCarouselInitialDwell
+        )
+    }
+
+    var credentialsSwitchingTitles: some View {
+        SwitchingTitlesView(
+            pairs: LoginProcessingUI.credentialsCarouselPairs(),
+            didFinishAnimating: .constant(false),
+            timerDidTick: {},
+            tickInterval: LoginProcessingUI.credentialsCarouselTickInterval,
+            holdOnLastPair: true
+        )
+    }
+
+    var showsCredentialsCarousel: Bool {
+        LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
+            usesStaticCopy: viewModel.usesStaticCopy,
+            didShowFinalMessage: viewModel.didShowFinalMessage,
+            didFinishSetupCarousel: viewModel.didFinishAnimatingText,
+            isSyncing: viewModel.phase == .syncing,
+            isPrefetching: viewModel.phase == .prefetching,
+            isPreparing: viewModel.phase == .preparing
         )
     }
 
@@ -179,7 +211,6 @@ private extension ProcessingAccountView {
     }
 
     static func processingCarouselPairs() -> [(String, String)] {
-        let title = LoginProcessingUI.settingUpTitleKey.localizedString
-        return LoginProcessingUI.carouselStepRange.map { _ in (title, "") }
+        LoginProcessingUI.setupCarouselPairs()
     }
 }
