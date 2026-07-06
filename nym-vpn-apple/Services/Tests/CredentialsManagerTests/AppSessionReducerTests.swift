@@ -182,6 +182,58 @@ struct AppSessionReducerTests {
         #expect(!finishResult.context.isPurchaseFlowActive)
     }
 
+    // Passphrase login: authWillBegin(completesOnCredentialImport: false) must still
+    // complete via authCompleted and route to login processing (macOS parity).
+    @Test func passphraseLoginHandoff_completesOnAuthCompleted() {
+        var context = AppSessionContext.initial
+        let env = AppSessionEnvironment(
+            isCredentialImported: true,
+            welcomeScreenDidDisplay: true,
+            isAccountActive: true
+        )
+
+        context = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authWillBegin(flow: .login, completesOnCredentialImport: false)
+        ).context
+        #expect(context.pendingAuthFlow == .login)
+        #expect(!context.authHandoffCompleted)
+
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authCompleted(outcome: .loginReady, flow: .login)
+        )
+
+        #expect(result.context.authHandoffCompleted)
+        #expect(result.context.pendingAuthFlow == nil)
+        #expect(result.authRoute == .startProcessing(.login))
+    }
+
+    @Test func passphraseLoginHandoff_inactiveAccountStartsLoginProcessing() {
+        var context = AppSessionContext.initial
+        let env = AppSessionEnvironment(
+            isCredentialImported: true,
+            welcomeScreenDidDisplay: true,
+            isAccountActive: false
+        )
+
+        context = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authWillBegin(flow: .login, completesOnCredentialImport: false)
+        ).context
+
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authCompleted(outcome: .registeredNeedsPurchase, flow: .login)
+        )
+
+        #expect(result.authRoute == .startProcessing(.login))
+    }
+
     @Test func authCompleted_isIdempotentAfterHandoffCompletes() {
         var context = AppSessionContext.initial
         context.authHandoffCompleted = true
