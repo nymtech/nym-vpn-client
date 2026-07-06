@@ -22,6 +22,7 @@ mod linux;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum IconKind {
+    #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
     Default,
     Connected,
     Connecting,
