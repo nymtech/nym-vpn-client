@@ -129,7 +129,7 @@ private func makeViewModel(
 
 @MainActor
 struct ProcessingAccountViewModelTests {
-    @Test func loginRunsImportPrepSyncPrefetchThenAwaitsAdvance() async {
+    @Test func loginRunsImportPrepSyncPrefetchThenAdvances() async {
         let processing = FakeProcessing()
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
@@ -137,8 +137,9 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
 
         #expect(processing.calls == [.ensure, .ensureDeviceRegistered, .prepare, .sync, .isActive, .prefetch])
-        #expect(viewModel.phase == .awaitingAdvance)
-        #expect(coordinator.actions.isEmpty)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
     }
 
     @Test func deeplinkLoginStoresAndRegistersBeforePrepare() async {
@@ -163,8 +164,10 @@ struct ProcessingAccountViewModelTests {
             .isActive,
             .prefetch
         ])
-        #expect(viewModel.phase == .awaitingAdvance)
-        #expect(coordinator.actions.isEmpty)
+        #expect(viewModel.phase == .finished || viewModel.phase == .finalizing)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
     }
 
     @Test func deeplinkLoginStoreFailureFailsBeforePrepare() async {
@@ -200,7 +203,8 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
 
         #expect(processing.calls == [.ensure, .sync, .isActive, .prefetch])
-        #expect(viewModel.phase == .awaitingAdvance)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
     }
 
     @Test func postPurchaseStaticFinishesWithoutAnimation() async {
@@ -224,7 +228,8 @@ struct ProcessingAccountViewModelTests {
 
         #expect(processing.calls == [.ensure, .sync, .isActive])
         #expect(!processing.calls.contains(.prefetch))
-        #expect(viewModel.phase == .awaitingAdvance)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
     }
 
     @Test func prepareFailurePublishesFailedAndNotifiesCoordinator() async {
@@ -247,19 +252,16 @@ struct ProcessingAccountViewModelTests {
         }
     }
 
-    @Test func advanceWaitsForBothWorkAndAnimation() async {
+    @Test func advanceWhenWorkCompletesWithoutWaitingForCarousel() async {
         let processing = FakeProcessing()
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
 
         await viewModel.run()
-        #expect(viewModel.phase == .awaitingAdvance)
-        #expect(viewModel.currentStep == 4)
-        #expect(coordinator.actions.isEmpty)
 
-        viewModel.animationDidFinish()
+        #expect(viewModel.didFinishSetupCarousel)
         #expect(viewModel.didFinishAnimatingText)
-        #expect(viewModel.phase == .finalizing)
+        #expect(viewModel.currentStep == 4)
 
         await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
@@ -273,25 +275,27 @@ struct ProcessingAccountViewModelTests {
         let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
 
         await viewModel.run()
-        #expect(viewModel.phase == .awaitingAdvance)
         #expect(viewModel.currentStep == 4)
         #expect(viewModel.credentialsDisplayPair == nil)
+        #expect(viewModel.didFinishSetupCarousel)
 
-        viewModel.animationDidFinish()
-
-        #expect(viewModel.didFinishAnimatingText)
-        #expect(viewModel.phase == .finalizing)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
     }
 
-    @Test func navigationBlockedUntilSetupCarouselCompletes() async {
+    @Test func navigationAdvancesWhenWorkCompletesBeforeCarousel() async {
         let processing = FakeProcessing()
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
 
         await viewModel.run()
-        #expect(viewModel.phase == .awaitingAdvance)
-        #expect(!viewModel.didFinishAnimatingText)
-        #expect(coordinator.actions.isEmpty)
+
+        #expect(viewModel.didFinishSetupCarousel)
+        #expect(viewModel.didFinishAnimatingText)
+
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
     }
 
     @Test func cancellationDoesNotFailOrNotify() async {
@@ -436,10 +440,9 @@ struct ProcessingAccountViewModelTests {
 
         await viewModel.run()
 
-        #expect(viewModel.phase == .awaitingAdvance)
         #expect(viewModel.hasReachedPrefetchPhase)
         #expect(viewModel.currentStep == 4)
-        #expect(!viewModel.didFinishSetupCarousel)
+        #expect(viewModel.didFinishSetupCarousel)
 
         viewModel.noteSetupCarouselStepBarTick(atIndex: 0)
         #expect(viewModel.currentStep == 4)
@@ -447,8 +450,23 @@ struct ProcessingAccountViewModelTests {
         viewModel.noteSetupCarouselStepBarTick(atIndex: 1)
         #expect(viewModel.currentStep == 4)
 
-        viewModel.animationDidFinish()
-        #expect(viewModel.currentStep == 4)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
+    }
+
+    @Test func startDoesNotRestartWhenWorkAlreadyCompleted() async {
+        let processing = FakeProcessing()
+        processing.prefetchDelay = .zero
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        await viewModel.run()
+        let callsAfterRun = processing.calls
+
+        viewModel.start()
+
+        #expect(processing.calls == callsAfterRun)
     }
 
     @Test func prepareBackendPhase_showsPrefetchBeforePrepareReturns() async {
@@ -469,7 +487,8 @@ struct ProcessingAccountViewModelTests {
 
         processing.releasePrepare()
         await runTask.value
-        #expect(viewModel.phase == .awaitingAdvance)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
     }
 
     @Test func syncSummaryRefresh_keepsPrefetchPhaseWhenLatchSet() async {

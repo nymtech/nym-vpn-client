@@ -490,6 +490,7 @@ private extension AppFeatureViewModel {
         )
         viewModel.sessionCoordinator = self
         processingViewModel = viewModel
+        viewModel.start()
         // Welcome and processing share the same drawer slide identity, so
         // commit directly instead of staging through pendingDrawerContent —
         // that avoids triggering DrawerView.slideOut and lets the inner
