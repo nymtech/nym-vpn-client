@@ -483,6 +483,8 @@ struct ProcessingAccountViewModelTests {
         #expect(viewModel.phase == .prefetching)
         #expect(viewModel.hasReachedPrefetchPhase)
         #expect(viewModel.currentStep == 4)
+        #expect(viewModel.setupCarouselIndex == 0)
+        #expect(!viewModel.didFinishSetupCarousel)
         #expect(viewModel.credentialsDisplayPair != nil)
 
         processing.releasePrepare()
