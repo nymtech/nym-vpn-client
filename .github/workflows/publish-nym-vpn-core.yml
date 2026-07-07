@@ -187,11 +187,12 @@ jobs:
           echo "ARCHIVE_WINDOWS_X64=${ARCHIVE_WINDOWS_X64}" >> $GITHUB_ENV
           echo "ARCHIVE_WINDOWS_ARM64=${ARCHIVE_WINDOWS_ARM64}" >> $GITHUB_ENV
 
-          mv -v ${{ env.UPLOAD_DIR_LINUX_X86_64 }} ${ARCHIVE_LINUX_X86_64}
-          mv -v ${{ env.UPLOAD_DIR_LINUX_AARCH64 }} ${ARCHIVE_LINUX_AARCH64}
-          mv -v ${{ env.UPLOAD_DIR_ANDROID }} ${ARCHIVE_ANDROID}
-          mv -v ${{ env.UPLOAD_DIR_WINDOWS_X64 }} ${ARCHIVE_WINDOWS_X64}
-          mv -v ${{ env.UPLOAD_DIR_WINDOWS_ARM64 }} ${ARCHIVE_WINDOWS_ARM64}
+          # Only rename artifacts that were actually downloaded.
+          test -d ${{ env.UPLOAD_DIR_LINUX_X86_64 }} && mv -v ${{ env.UPLOAD_DIR_LINUX_X86_64 }} ${ARCHIVE_LINUX_X86_64}
+          test -d ${{ env.UPLOAD_DIR_LINUX_AARCH64 }} && mv -v ${{ env.UPLOAD_DIR_LINUX_AARCH64 }} ${ARCHIVE_LINUX_AARCH64}
+          test -d ${{ env.UPLOAD_DIR_ANDROID }} && mv -v ${{ env.UPLOAD_DIR_ANDROID }} ${ARCHIVE_ANDROID}
+          test -d ${{ env.UPLOAD_DIR_WINDOWS_X64 }} && mv -v ${{ env.UPLOAD_DIR_WINDOWS_X64 }} ${ARCHIVE_WINDOWS_X64}
+          test -d ${{ env.UPLOAD_DIR_WINDOWS_ARM64 }} && mv -v ${{ env.UPLOAD_DIR_WINDOWS_ARM64 }} ${ARCHIVE_WINDOWS_ARM64}
 
           test -d ${ARCHIVE_LINUX_X86_64} && tar cvzf ${ARCHIVE_LINUX_X86_64}.tar.gz ${ARCHIVE_LINUX_X86_64}
           test -d ${ARCHIVE_LINUX_AARCH64} && tar cvzf ${ARCHIVE_LINUX_AARCH64}.tar.gz ${ARCHIVE_LINUX_AARCH64}
@@ -221,11 +222,12 @@ jobs:
           fi
 
           echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
-          cat ${ARCHIVE_LINUX_X86_64}.tar.gz.sha256sum >> $GITHUB_ENV
-          cat ${ARCHIVE_LINUX_AARCH64}.tar.gz.sha256sum >> $GITHUB_ENV
-          cat ${ARCHIVE_ANDROID}.tar.gz.sha256sum >> $GITHUB_ENV
-          cat ${ARCHIVE_WINDOWS_X64}.zip.sha256sum >> $GITHUB_ENV
-          cat ${ARCHIVE_WINDOWS_ARM64}.zip.sha256sum >> $GITHUB_ENV
+          # Only emit checksums for the platforms that were actually archived above.
+          test -f ${ARCHIVE_LINUX_X86_64}.tar.gz.sha256sum && cat ${ARCHIVE_LINUX_X86_64}.tar.gz.sha256sum >> $GITHUB_ENV
+          test -f ${ARCHIVE_LINUX_AARCH64}.tar.gz.sha256sum && cat ${ARCHIVE_LINUX_AARCH64}.tar.gz.sha256sum >> $GITHUB_ENV
+          test -f ${ARCHIVE_ANDROID}.tar.gz.sha256sum && cat ${ARCHIVE_ANDROID}.tar.gz.sha256sum >> $GITHUB_ENV
+          test -f ${ARCHIVE_WINDOWS_X64}.zip.sha256sum && cat ${ARCHIVE_WINDOWS_X64}.zip.sha256sum >> $GITHUB_ENV
+          test -f ${ARCHIVE_WINDOWS_ARM64}.zip.sha256sum && cat ${ARCHIVE_WINDOWS_ARM64}.zip.sha256sum >> $GITHUB_ENV
 
           if [[ -d ${{ env.UPLOAD_DIR_DEB_X86_64 }} ]]; then
             pushd ${{ env.UPLOAD_DIR_DEB_X86_64 }}
@@ -255,20 +257,28 @@ jobs:
       - name: Publish release to github
         if: ${{ inputs.version_tag == '' && steps.determine-ok-to-publish.outputs.ok_to_publish == 'true' }}
         run: |
+          set -euo pipefail
           echo "Setting up the release notes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
-          echo "Creating the release"
-          gh release create $TAG_NAME \
-            --notes-file "$RUNNER_TEMP/release-notes.md" \
-            --title "$SUBJECT" \
-            --target $GITHUB_SHA \
+          # Only publish the archives that were actually produced (see the append step).
+          files=()
+          for f in \
             ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_WINDOWS_X64 }}.zip ${{ env.ARCHIVE_WINDOWS_X64 }}.zip.sha256sum \
-            ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum \
-            ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} \
-            ${{ env.UPLOAD_DIR_DEB_AARCH64 }}/*.{deb,sha256sum}
+            ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum; do
+            [ -f "$f" ] && files+=( "$f" )
+          done
+          for d in ${{ env.UPLOAD_DIR_DEB_X86_64 }} ${{ env.UPLOAD_DIR_DEB_AARCH64 }}; do
+            [ -d "$d" ] && while IFS= read -r f; do files+=( "$f" ); done < <(find "$d" -type f \( -name '*.deb' -o -name '*.sha256sum' \))
+          done
+          echo "Creating the release"
+          gh release create "$TAG_NAME" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            --title "$SUBJECT" \
+            --target "$GITHUB_SHA" \
+            "${files[@]}"
 
       - name: Append core archives to unified release
         if: ${{ inputs.version_tag != '' }}
@@ -277,16 +287,23 @@ jobs:
           VERSION_TAG: ${{ inputs.version_tag }}
         run: |
           set -euo pipefail
-          files=( \
+          # Only append the archives that were actually produced. A platform not
+          # selected in release-all-platforms.yml yields no artifact (hence no archive
+          # here), so it is skipped; a full build (or an empty selection = all) has
+          # every platform.
+          files=()
+          for f in \
             ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum \
             ${{ env.ARCHIVE_WINDOWS_X64 }}.zip ${{ env.ARCHIVE_WINDOWS_X64 }}.zip.sha256sum \
-            ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum \
-          )
+            ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum; do
+            [ -f "$f" ] && files+=( "$f" )
+          done
           for d in ${{ env.UPLOAD_DIR_DEB_X86_64 }} ${{ env.UPLOAD_DIR_DEB_AARCH64 }}; do
             [ -d "$d" ] && while IFS= read -r f; do files+=( "$f" ); done < <(find "$d" -type f \( -name '*.deb' -o -name '*.sha256sum' \))
           done
+          [ "${#files[@]}" -gt 0 ] || { echo "::error:: no core files to append"; exit 1; }
           # Append to the draft. No --clobber: gh refuses a duplicate asset, so a
           # platform's files can't be overwritten across runs (ship is additive;
           # nightly is a fresh draft). GitHub freezes the whole release at publish.
@@ -309,18 +326,20 @@ jobs:
       - name: Prepare build output artifacts
         shell: bash
         run: |
-          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_WINDOWS_X64 }}.zip ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_WINDOWS_X64 }}.zip.sha256sum ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.UPLOAD_DIR_DEB_X86_64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.UPLOAD_DIR_DEB_AARCH64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
+          set -euo pipefail
+          for f in \
+            ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum \
+            ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum \
+            ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum \
+            ${{ env.ARCHIVE_WINDOWS_X64 }}.zip ${{ env.ARCHIVE_WINDOWS_X64 }}.zip.sha256sum \
+            ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum; do
+            [ -f "$f" ] && cp -v "$f" "${{ env.OUTPUT_DIR }}"
+          done
+          for d in ${{ env.UPLOAD_DIR_DEB_X86_64 }} ${{ env.UPLOAD_DIR_DEB_AARCH64 }}; do
+            if [ -d "$d" ]; then
+              find "$d" -type f \( -name '*.deb' -o -name '*.sha256sum' \) -exec cp -v {} "${{ env.OUTPUT_DIR }}" \;
+            fi
+          done
 
       # Garage's web vhost does not generate directory listings, so consumers
       # cannot scrape the bucket to discover the latest build. Publish a manifest
