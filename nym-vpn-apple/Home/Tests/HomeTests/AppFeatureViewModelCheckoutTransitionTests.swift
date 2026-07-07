@@ -10,6 +10,18 @@ import SnackbarManager
 
 @MainActor
 final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
+    private func waitForCheckoutNavigationPending(
+        _ viewModel: AppFeatureViewModel,
+        timeoutMs: Int = 2_000
+    ) async throws {
+        let deadline = ContinuousClock.now + .milliseconds(timeoutMs)
+        while ContinuousClock.now < deadline {
+            if viewModel.isCheckoutNavigationPending { return }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        XCTFail("Timed out waiting for checkout navigation pending")
+    }
+
     private func makeViewModel() -> AppFeatureViewModel {
 #if os(iOS)
         AppFeatureViewModel(
@@ -95,7 +107,7 @@ final class AppFeatureViewModelCheckoutTransitionTests: XCTestCase {
         viewModel.handleSessionEvent(.authCompleted(outcome: .registeredActive, flow: .createAccount))
         viewModel.handleSessionEvent(.requestPlanPurchase)
 
-        try await Task.sleep(for: .milliseconds(750))
+        try await waitForCheckoutNavigationPending(viewModel)
 
         XCTAssertTrue(
             viewModel.isCheckoutNavigationPending,
