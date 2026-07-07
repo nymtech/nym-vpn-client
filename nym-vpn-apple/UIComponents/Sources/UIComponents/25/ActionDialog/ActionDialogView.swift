@@ -132,7 +132,7 @@ private extension ActionDialogView {
 
     @ViewBuilder
     func loadingRow() -> some View {
-        if let loadingText = viewModel.configuration.loadingText {
+        if let loadingText = viewModel.displayedLoadingText {
             HStack(alignment: .center) {
                 Text(loadingText)
                     .textStyle(NymTextStyle.Body.Large.regular)

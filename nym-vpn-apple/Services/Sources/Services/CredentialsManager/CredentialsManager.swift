@@ -39,6 +39,7 @@ import PathManager
     var registrationCapturedEnvString: String?
     private var accountRegistrationTask: Task<Void, Error>?
     var accountControllerShutdown: (() async -> Void)?
+    private(set) var isLoggingOut = false
 #endif
 
     public static let shared = CredentialsManager()
@@ -319,6 +320,18 @@ import PathManager
 #endif
     }
 
+    public func beginLogout() async {
+#if os(iOS)
+        await beginLogoutOnIOS()
+#endif
+    }
+
+    public func endLogout() {
+#if os(iOS)
+        endLogoutOnIOS()
+#endif
+    }
+
     public func removeCredential() async throws {
 #if os(iOS)
         let envOpt = configurationManager.networkEnv
@@ -486,6 +499,9 @@ import PathManager
 extension CredentialsManager {
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
         guard !isAccountRegistrationInFlight else { return }
+#if os(iOS)
+        guard !isLoggingOut else { return }
+#endif
 #if SANTA
         guard !isAccountSummaryOverridden else { return }
 #endif
