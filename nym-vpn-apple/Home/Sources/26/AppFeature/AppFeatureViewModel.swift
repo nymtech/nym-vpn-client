@@ -358,6 +358,10 @@ import GRPCManager
     }
 
     public func reconcilePurchaseFlowAfterAccountRefresh() {
+        guard !pendingPlanPurchaseNavigationAfterDrawerHide,
+              planPurchaseTransitionTask == nil,
+              !isCheckoutNavigationPending
+        else { return }
         guard DrawerSessionPolicy.shouldCompleteCheckoutAfterAccountRefresh(
             isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
             isAccountActive: credentialsManager.isAccountActive()
@@ -687,20 +691,22 @@ private extension AppFeatureViewModel {
             }
             withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
                 self.drawerContent = nil
-            } completion: {
-                self.completeCheckoutDrawerTransition(hadProcessingDrawer: hadProcessingDrawer)
             }
+            try? await Task.sleep(for: .seconds(Self.paywallTransitionDuration))
+            guard !Task.isCancelled else { return }
+            self.completeCheckoutDrawerTransition(hadProcessingDrawer: hadProcessingDrawer)
         }
     }
 
     func completeCheckoutDrawerTransition(hadProcessingDrawer: Bool = false) {
+        let shouldMarkCheckoutNavigationPending = pendingPlanPurchaseNavigationAfterDrawerHide
         planPurchaseTransitionTask = nil
         if PurchaseTransitionPolicy.shouldCancelProcessingAfterDrawerHidden(
             hadProcessingDrawer: hadProcessingDrawer
         ) {
             cancelProcessingTransition()
         }
-        guard pendingPlanPurchaseNavigationAfterDrawerHide else { return }
+        guard shouldMarkCheckoutNavigationPending else { return }
         isCheckoutNavigationPending = true
         planPurchaseTransitionTask = Task { @MainActor [weak self] in
             try? await Task.sleep(

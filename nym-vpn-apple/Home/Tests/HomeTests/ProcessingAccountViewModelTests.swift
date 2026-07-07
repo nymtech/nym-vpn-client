@@ -157,6 +157,7 @@ struct ProcessingAccountViewModelTests {
             .storeDeeplink("nymvpn://auth/privy/privateKey?x=1"),
             .register,
             .ensure,
+            .ensureDeviceRegistered,
             .prepare,
             .sync,
             .isActive,
@@ -272,12 +273,14 @@ struct ProcessingAccountViewModelTests {
         let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
 
         await viewModel.run()
-        viewModel.animationDidFinish()
-
         #expect(viewModel.phase == .awaitingAdvance)
         #expect(viewModel.currentStep == 4)
         #expect(viewModel.credentialsDisplayPair == nil)
+
+        viewModel.animationDidFinish()
+
         #expect(viewModel.didFinishAnimatingText)
+        #expect(viewModel.phase == .finalizing)
     }
 
     @Test func navigationBlockedUntilSetupCarouselCompletes() async {
@@ -362,9 +365,9 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
 
         #expect(processing.calls.contains(.prefetch))
-        #expect(viewModel.phase == .awaitingAdvance)
         #expect(viewModel.currentStep == 4)
         #expect(viewModel.didFinishAnimatingText)
+        #expect(viewModel.phase == .finalizing)
         #expect(coordinator.actions.isEmpty)
     }
 
