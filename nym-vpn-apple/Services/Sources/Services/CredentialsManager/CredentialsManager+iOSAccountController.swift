@@ -25,17 +25,6 @@ extension CredentialsManager {
         }
     }
 
-    func beginLogoutOnIOS() async {
-        isLoggingOut = true
-        accountSummaryUpdateTask?.cancel()
-        accountSummaryUpdateTask = nil
-        await shutdownControllersAndWait()
-    }
-
-    func endLogoutOnIOS() {
-        isLoggingOut = false
-    }
-
     var isTunnelActive: Bool {
         AccountTunnelPrefetchGate.isTunnelActive(status: TunnelsManager.shared.activeTunnel?.status)
     }
