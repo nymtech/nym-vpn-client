@@ -14,12 +14,14 @@ extension AccountAndDevicesView {
             isYesDestructive: true,
             yesAction: {
                 isLogoutLoading = true
+                logoutProgressText = "settings.loggingOut".localizedString
                 Task {
                     await logout()
                     try? await Task.sleep(for: .seconds(0.3))
                     Task { @MainActor in
                         isLogoutConfirmationDisplayed = false
                         isLogoutLoading = false
+                        logoutProgressText = ""
                         navigateToRoot()
                     }
                 }
