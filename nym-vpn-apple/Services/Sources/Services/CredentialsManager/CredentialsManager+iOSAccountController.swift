@@ -18,6 +18,24 @@ extension CredentialsManager {
         }
     }
 
+    func shutdownControllersAndWait() async {
+        if let shutdown = accountControllerShutdown {
+            accountControllerShutdown = nil
+            await shutdown()
+        }
+    }
+
+    func beginLogoutOnIOS() async {
+        isLoggingOut = true
+        accountSummaryUpdateTask?.cancel()
+        accountSummaryUpdateTask = nil
+        await shutdownControllersAndWait()
+    }
+
+    func endLogoutOnIOS() {
+        isLoggingOut = false
+    }
+
     var isTunnelActive: Bool {
         AccountTunnelPrefetchGate.isTunnelActive(status: TunnelsManager.shared.activeTunnel?.status)
     }
