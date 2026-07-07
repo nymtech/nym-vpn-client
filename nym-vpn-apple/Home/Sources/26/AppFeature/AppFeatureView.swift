@@ -411,9 +411,11 @@ private extension AppFeatureView {
                 imageSize: Constants.NavigationBar.TrailingIcon.size,
                 accessibilityLabel: "home.navigationBar.settings.accessibilityLabel".localizedString
             ) {
+                guard viewModel.drawerContent?.isProcessing != true else { return }
                 impactGenerator.softImpact()
                 viewModel.path.append(HomeLink.settings)
             }
+            .allowsHitTesting(viewModel.drawerContent?.isProcessing != true)
             .padding(.leading, NymSpacing.small)
         }
         .frame(height: Constants.NavigationBar.height)
