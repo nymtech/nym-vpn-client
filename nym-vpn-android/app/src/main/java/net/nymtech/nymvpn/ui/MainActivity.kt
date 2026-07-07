@@ -51,7 +51,6 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.navigation.NavBarEvent
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
-import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingMode
 import net.nymtech.nymvpn.ui.screens.account.generating.GeneratingScreen
 import net.nymtech.nymvpn.ui.screens.account.info.AccountInfoScreen
 import net.nymtech.nymvpn.ui.screens.account.passphrase.PassphraseScreen
@@ -60,7 +59,7 @@ import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
@@ -229,7 +228,13 @@ class MainActivity : AppCompatActivity() {
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Main>()
-									MainScreen(appViewModel, appState, args.autoStart, authRoute = AuthRoute.fromName(args.authRoute))
+									MainScreen(
+										appViewModel,
+										appState,
+										args.autoStart,
+										authRoute = AuthRoute.fromName(args.authRoute),
+										loginProcessing = args.loginProcessing,
+									)
 								}
 
 								composable<Route.Permission> {
@@ -395,24 +400,24 @@ class MainActivity : AppCompatActivity() {
 		val path = uri.path
 		if (host == "auth" && path?.startsWith("/privy/privateKey") == true) {
 			lifecycleScope.launch {
-				val fullUrl = uri.toString()
-				val isLoggedIn = appViewModel.isUserLoggedIn()
-				if (!isLoggedIn) {
-					navControllerRef?.navigate(Route.Generating(mode = GeneratingMode.DeepLinkLogin.name))
-				}
-				val destination = appViewModel.handleDeepLinkAuth(fullUrl)
-				navControllerRef?.navigate(destination) {
+				val storeSucceeded = appViewModel.handleDeepLinkAuth(uri.toString())
+				navControllerRef?.navigate(routeAfterDeepLinkAuth(storeSucceeded)) {
 					popUpTo(Route.Splash) { inclusive = true }
 				}
 			}
 		} else if (host == "account" && path?.startsWith("/response") == true) {
 			lifecycleScope.launch {
-				val fullUrl = uri.toString()
-				val destination = appViewModel.handleDeepLinkAuth(fullUrl)
-				navControllerRef?.navigate(destination) {
+				val storeSucceeded = appViewModel.handleDeepLinkAuth(uri.toString())
+				navControllerRef?.navigate(routeAfterDeepLinkAuth(storeSucceeded)) {
 					popUpTo(Route.Splash) { inclusive = true }
 				}
 			}
 		}
+	}
+
+	private fun routeAfterDeepLinkAuth(storeSucceeded: Boolean): Route = if (storeSucceeded) {
+		Route.Main(autoStart = false, loginProcessing = true)
+	} else {
+		Route.Main(autoStart = false)
 	}
 }

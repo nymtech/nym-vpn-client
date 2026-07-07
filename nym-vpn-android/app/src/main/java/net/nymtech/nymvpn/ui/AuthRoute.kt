@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.auth
+package net.nymtech.nymvpn.ui
 
 import kotlinx.serialization.Serializable
 
