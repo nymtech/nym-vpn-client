@@ -90,6 +90,8 @@ export type AppState = {
   autoConnect: boolean;
   // error monitoring
   monitoring: boolean;
+  // app debug logging to a file
+  debugLogging: boolean;
   desktopNotifications: boolean;
   entryNode: SelectedNode;
   exitNode: SelectedNode;
