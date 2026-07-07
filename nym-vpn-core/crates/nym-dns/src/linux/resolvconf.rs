@@ -25,8 +25,8 @@ pub enum Error {
     #[error("failed to execute 'resolvconf' program")]
     RunResolvconf(#[from] io::Error),
 
-    #[error("using 'resolvconf' to add a record failed: {}", stderr)]
-    AddRecord { stderr: String },
+    #[error("using 'resolvconf' to add record '{record_name}' failed: {stderr}")]
+    AddRecord { record_name: String, stderr: String },
 
     #[error("using 'resolvconf' to delete record '{record_name}' failed: {stderr}")]
     DeleteRecord { record_name: String, stderr: String },
@@ -98,7 +98,10 @@ impl Resolvconf {
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-            return Err(Error::AddRecord { stderr });
+            return Err(Error::AddRecord {
+                record_name,
+                stderr,
+            });
         }
 
         self.record_names.insert(record_name);

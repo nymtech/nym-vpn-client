@@ -54,17 +54,15 @@ impl SystemdResolved {
             .map_err(|e| Error::LookupInterfaceIndex(interface_name.to_owned(), e))?;
         self.tunnel_index = tunnel_index;
 
-        if let Err(error) = self.dbus_interface.disable_dot(self.tunnel_index).await {
-            trace_err_chain!(error, "Failed to disable DoT");
-        }
+        self.dbus_interface
+            .disable_dot(self.tunnel_index)
+            .await
+            .map_err(Error::DisableDotError)?;
 
-        if let Err(error) = self
-            .dbus_interface
+        self.dbus_interface
             .set_domains(tunnel_index, &[(".", true)])
             .await
-        {
-            trace_err_chain!(error, "Failed to set search domains");
-        }
+            .map_err(Error::SetDomainsError)?;
 
         let _ = self
             .dbus_interface
