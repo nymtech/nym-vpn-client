@@ -39,6 +39,10 @@ on:
         description: "macOS (.pkg + Sparkle)"
         type: boolean
         default: false
+      core:
+        description: "Core CLI (nym-vpnd/nym-vpnc) — auto-included when Linux is selected"
+        type: boolean
+        default: false
   schedule:
     - cron: "0 4 * * *"
 
@@ -66,6 +70,7 @@ jobs:
       windows: ${{ steps.flags.outputs.windows }}
       ios: ${{ steps.flags.outputs.ios }}
       macos: ${{ steps.flags.outputs.macos }}
+      core: ${{ steps.flags.outputs.core }}
     steps:
       - name: Resolve channel + platform flags
         id: flags
@@ -79,6 +84,7 @@ jobs:
           IN_WINDOWS: ${{ inputs.windows }}
           IN_IOS: ${{ inputs.ios }}
           IN_MACOS: ${{ inputs.macos }}
+          IN_CORE: ${{ inputs.core }}
         run: |
           set -euo pipefail
           echo "::notice:: releasing from ref $REF_NAME (event $EVENT)"
@@ -96,14 +102,15 @@ jobs:
           if [ "$EVENT" = "schedule" ] \
             || { [ "$IN_ANDROID" != "true" ] && [ "$IN_FDROID" != "true" ] \
               && [ "$IN_LINUX" != "true" ] && [ "$IN_WINDOWS" != "true" ] \
-              && [ "$IN_IOS" != "true" ] && [ "$IN_MACOS" != "true" ]; }; then
+              && [ "$IN_IOS" != "true" ] && [ "$IN_MACOS" != "true" ] \
+              && [ "$IN_CORE" != "true" ]; }; then
             ALL=true
           else
             ALL=false
           fi
 
           if [ "$ALL" = "true" ]; then
-            ANDROID=true; LINUX=true; WINDOWS=true; IOS=true; MACOS=true
+            ANDROID=true; LINUX=true; WINDOWS=true; IOS=true; MACOS=true; CORE=true
             # The F-Droid APK is built + attached by the Android job regardless of this
             # flag; `fdroid` only DISPATCHES the F-Droid repo (a store) = ship-only.
             if [ "$CHANNEL" = "ship" ]; then FDROID=true; else FDROID=false; fi
@@ -114,6 +121,11 @@ jobs:
             # F-Droid repo dispatch is ship-only; on nightly/beta the box is a no-op
             # (the F-Droid APK still builds + attaches via the Android job).
             if [ "$CHANNEL" = "ship" ] && [ "$IN_FDROID" = "true" ]; then FDROID=true; else FDROID=false; fi
+            # Core CLI is built whenever it is explicitly selected OR Linux is selected:
+            # a Linux release ships the standalone core (AUR nym-vpnd/nym-vpnc, the Linux
+            # installer, and direct CLI downloads all consume it). Windows does NOT force
+            # it — the Windows app bundles its own core built inline.
+            if [ "$IN_CORE" = "true" ] || [ "$LINUX" = "true" ]; then CORE=true; else CORE=false; fi
             echo "::notice:: $CHANNEL → selected platforms"
           fi
 
@@ -121,6 +133,7 @@ jobs:
             echo "channel=$CHANNEL"
             echo "android=$ANDROID"; echo "fdroid=$FDROID"; echo "linux=$LINUX"
             echo "windows=$WINDOWS"; echo "ios=$IOS"; echo "macos=$MACOS"
+            echo "core=$CORE"
           } >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v7
@@ -159,6 +172,9 @@ jobs:
 
   core:
     needs: [resolve, prepare-release]
+    # Built when Core is explicitly selected OR Linux is (a Linux release ships the
+    # standalone core CLI). Empty selection / cron expands to all, so nightly is unchanged.
+    if: ${{ needs.resolve.outputs.core == 'true' }}
     permissions:
       contents: write
     uses: ./.github/workflows/publish-nym-vpn-core.yml
