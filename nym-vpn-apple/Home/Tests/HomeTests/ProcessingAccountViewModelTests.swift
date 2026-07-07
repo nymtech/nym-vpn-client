@@ -134,7 +134,7 @@ struct ProcessingAccountViewModelTests {
 
         await viewModel.run()
 
-        #expect(processing.calls == [.ensure, .prepare, .sync, .isActive, .prefetch])
+        #expect(processing.calls == [.ensure, .ensureDeviceRegistered, .prepare, .sync, .isActive, .prefetch])
         #expect(viewModel.phase == .awaitingAdvance)
         #expect(coordinator.actions.isEmpty)
     }
