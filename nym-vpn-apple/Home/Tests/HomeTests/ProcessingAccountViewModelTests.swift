@@ -46,7 +46,9 @@ private final class FakeProcessing: AccountProcessing {
             onAccountPhaseChange?(phase)
         }
         if holdPrepareUntilReleased {
-            await withCheckedContinuation { prepareRelease = $0.resume() }
+            await withCheckedContinuation { continuation in
+                prepareRelease = { continuation.resume() }
+            }
         }
         if let prepareError {
             throw prepareError
