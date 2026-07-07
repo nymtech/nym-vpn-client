@@ -104,9 +104,10 @@ public enum LoginProcessingProgressPolicy: Sendable {
         setupCarouselIndex: Int,
         didFinishSetupCarousel: Bool,
         isPrefetching: Bool,
-        isAwaitingAdvance: Bool
+        isAwaitingAdvance: Bool,
+        hasReachedPrefetchPhase: Bool = false
     ) -> Int {
-        if isPrefetching || isAwaitingAdvance {
+        if isPrefetching || isAwaitingAdvance || hasReachedPrefetchPhase {
             return LoginProcessingUI.progressStep
         }
         if didFinishSetupCarousel {

@@ -406,4 +406,27 @@ struct ProcessingAccountViewModelTests {
         }
         #expect(deviceIndex < prepareIndex)
     }
+
+    @Test func prefetchCompletingBeforeCarouselDoesNotRegressProgressBar() async {
+        let processing = FakeProcessing()
+        processing.prefetchDelay = .zero
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        await viewModel.run()
+
+        #expect(viewModel.phase == .awaitingAdvance)
+        #expect(viewModel.hasReachedPrefetchPhase)
+        #expect(viewModel.currentStep == 4)
+        #expect(!viewModel.didFinishSetupCarousel)
+
+        viewModel.noteSetupCarouselStepBarTick(atIndex: 0)
+        #expect(viewModel.currentStep == 4)
+
+        viewModel.noteSetupCarouselStepBarTick(atIndex: 1)
+        #expect(viewModel.currentStep == 4)
+
+        viewModel.animationDidFinish()
+        #expect(viewModel.currentStep == 4)
+    }
 }

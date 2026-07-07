@@ -117,6 +117,27 @@ struct LoginProcessingPolicyTests {
         )
     }
 
+    @Test func progressStep_latchAfterPrefetchPreventsRegressionDuringCarousel() {
+        #expect(
+            LoginProcessingProgressPolicy.progressStep(
+                setupCarouselIndex: 0,
+                didFinishSetupCarousel: false,
+                isPrefetching: false,
+                isAwaitingAdvance: false,
+                hasReachedPrefetchPhase: true
+            ) == 4
+        )
+        #expect(
+            LoginProcessingProgressPolicy.progressStep(
+                setupCarouselIndex: 1,
+                didFinishSetupCarousel: false,
+                isPrefetching: false,
+                isAwaitingAdvance: false,
+                hasReachedPrefetchPhase: true
+            ) == 4
+        )
+    }
+
     @Test func credentialsStepTwoCopy_doesNotPromiseConnect() throws {
         let title = try NymVPNXCStringsReader.englishValue(for: LoginProcessingUI.almostReadyTitleKey)
         let subtitle = try NymVPNXCStringsReader.englishValue(for: LoginProcessingUI.almostReadySubtitleKey)

@@ -43,6 +43,8 @@ public final class ProcessingAccountViewModel {
     var currentStep: Int = 1
     private(set) var didFinishSetupCarousel = false
     private(set) var setupCarouselIndex = 0
+    /// Set when backend prefetch begins; keeps bar segment 4 until navigation advances.
+    private(set) var hasReachedPrefetchPhase = false
 
     var didFinishAnimatingText = false {
         didSet { evaluateAdvance() }
@@ -144,8 +146,10 @@ public final class ProcessingAccountViewModel {
             isAccountActive: processing.isAccountActive()
         ) {
             phase = .prefetching
+            hasReachedPrefetchPhase = true
             syncProgressStep()
             _ = await processing.prefetchZkNyms(timeout: LoginProcessingUI.prefetchTimeoutSeconds)
+            syncProgressStep()
         }
         try Task.checkCancellation()
     }
@@ -229,7 +233,8 @@ public final class ProcessingAccountViewModel {
             setupCarouselIndex: setupCarouselIndex,
             didFinishSetupCarousel: didFinishSetupCarousel,
             isPrefetching: phase == .prefetching,
-            isAwaitingAdvance: phase == .awaitingAdvance
+            isAwaitingAdvance: phase == .awaitingAdvance,
+            hasReachedPrefetchPhase: hasReachedPrefetchPhase
         )
     }
 
