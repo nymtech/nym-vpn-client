@@ -59,6 +59,7 @@ export type StateAction =
   | { type: 'set-tunnel-inerror'; error: TunnelError }
   | { type: 'set-auto-connect'; autoConnect: boolean }
   | { type: 'set-monitoring'; enabled: boolean }
+  | { type: 'set-debug-logging'; enabled: boolean }
   | { type: 'set-desktop-notifications'; enabled: boolean }
   | { type: 'set-gateway-independence-notifications'; enabled: boolean }
   | { type: 'reset' }
@@ -121,6 +122,7 @@ export const initialState: AppState = {
   autostart: false,
   autoConnect: false,
   monitoring: false,
+  debugLogging: true,
   desktopNotifications: true,
   entryNode: DefaultNode,
   exitNode: DefaultNode,
@@ -270,6 +272,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-monitoring':
         set({ monitoring: action.enabled });
+        break;
+
+      case 'set-debug-logging':
+        set({ debugLogging: action.enabled });
         break;
 
       case 'set-ipv6-support':
