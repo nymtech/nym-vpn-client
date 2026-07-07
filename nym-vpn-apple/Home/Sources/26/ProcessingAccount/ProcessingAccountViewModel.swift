@@ -69,6 +69,7 @@ public final class ProcessingAccountViewModel {
 
     var credentialsDisplayPair: (String, String)? {
         guard let keys = LoginProcessingProgressPolicy.credentialsCopyKeys(
+            isSyncing: phase == .syncing,
             isPrefetching: phase == .prefetching
         ) else { return nil }
         return (keys.title.localizedString, keys.subtitle.localizedString)
@@ -108,7 +109,9 @@ public final class ProcessingAccountViewModel {
                 try await completeDeeplinkLoginIfNeeded()
                 await processing.ensureCredentialImportResolved()
                 try await processing.ensureDeviceRegisteredForLogin()
-                try await processing.prepareRegisteredAccount()
+                try await processing.prepareRegisteredAccount { [weak self] accountPhase in
+                    self?.applyBackendAccountPhase(accountPhase)
+                }
                 try await syncSummaryThenPrefetch()
                 completeWork()
             case .createAccount:
@@ -138,20 +141,40 @@ public final class ProcessingAccountViewModel {
     /// Login/create-account: sync the account summary, then prefetch zk-nyms when active.
     private func syncSummaryThenPrefetch() async throws {
         try Task.checkCancellation()
-        phase = .syncing
-        syncProgressStep()
+        if !hasReachedPrefetchPhase {
+            phase = .syncing
+            syncProgressStep()
+        }
         await processing.updateAccountSummary(force: true, untilActive: true)
         try Task.checkCancellation()
         if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
             isAccountActive: processing.isAccountActive()
         ) {
-            phase = .prefetching
-            hasReachedPrefetchPhase = true
-            syncProgressStep()
+            if !hasReachedPrefetchPhase {
+                phase = .prefetching
+                hasReachedPrefetchPhase = true
+                syncProgressStep()
+            }
             _ = await processing.prefetchZkNyms(timeout: LoginProcessingUI.prefetchTimeoutSeconds)
             syncProgressStep()
         }
         try Task.checkCancellation()
+    }
+
+    private func applyBackendAccountPhase(
+        _ accountPhase: OnboardingAccountPreparationPolicy.AccountStatePhase
+    ) {
+        guard let displayPhase = LoginProcessingBackendPhasePolicy.displayPhase(for: accountPhase) else {
+            return
+        }
+        switch displayPhase {
+        case .syncing:
+            phase = .syncing
+        case .prefetching:
+            phase = .prefetching
+            hasReachedPrefetchPhase = true
+        }
+        syncProgressStep()
     }
 
     /// Post-IAP: sync the StoreKit receipt, fail if the account isn't active, else prefetch.

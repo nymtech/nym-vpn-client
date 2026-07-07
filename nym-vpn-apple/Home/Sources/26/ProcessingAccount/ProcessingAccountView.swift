@@ -196,6 +196,7 @@ private extension ProcessingAccountView {
         LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
             usesStaticCopy: viewModel.usesStaticCopy,
             didShowFinalMessage: viewModel.didShowFinalMessage,
+            isSyncing: viewModel.phase == .syncing,
             isPrefetching: viewModel.phase == .prefetching
         )
     }

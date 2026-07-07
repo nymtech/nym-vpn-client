@@ -18,6 +18,9 @@ private final class FakeProcessing: AccountProcessing {
     }
 
     var prepareError: Error?
+    var preparePhaseScript: [OnboardingAccountPreparationPolicy.AccountStatePhase] = []
+    var holdPrepareUntilReleased = false
+    private var prepareRelease: (() -> Void)?
     var syncPaymentError: Error?
     var storeDeeplinkError: Error?
     var registerError: Error?
@@ -26,12 +29,25 @@ private final class FakeProcessing: AccountProcessing {
     var prefetchResult: ZkNymPrefetchResult = .fetchedTickets
     private(set) var calls: [Call] = []
 
+    func releasePrepare() {
+        prepareRelease?()
+        prepareRelease = nil
+    }
+
     func ensureCredentialImportResolved() async {
         calls.append(.ensure)
     }
 
-    func prepareRegisteredAccount() async throws {
+    func prepareRegisteredAccount(
+        onAccountPhaseChange: (@MainActor (OnboardingAccountPreparationPolicy.AccountStatePhase) -> Void)?
+    ) async throws {
         calls.append(.prepare)
+        for phase in preparePhaseScript {
+            onAccountPhaseChange?(phase)
+        }
+        if holdPrepareUntilReleased {
+            await withCheckedContinuation { prepareRelease = $0.resume() }
+        }
         if let prepareError {
             throw prepareError
         }
@@ -427,6 +443,39 @@ struct ProcessingAccountViewModelTests {
         #expect(viewModel.currentStep == 4)
 
         viewModel.animationDidFinish()
+        #expect(viewModel.currentStep == 4)
+    }
+
+    @Test func prepareBackendPhase_showsPrefetchBeforePrepareReturns() async {
+        let processing = FakeProcessing()
+        processing.preparePhaseScript = [.requestingZkNyms]
+        processing.holdPrepareUntilReleased = true
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        let runTask = Task { await viewModel.run() }
+        await Task.yield()
+        try? await Task.sleep(for: .milliseconds(20))
+
+        #expect(viewModel.phase == .prefetching)
+        #expect(viewModel.hasReachedPrefetchPhase)
+        #expect(viewModel.currentStep == 4)
+        #expect(viewModel.credentialsDisplayPair != nil)
+
+        processing.releasePrepare()
+        await runTask.value
+        #expect(viewModel.phase == .awaitingAdvance)
+    }
+
+    @Test func syncSummaryRefresh_keepsPrefetchPhaseWhenLatchSet() async {
+        let processing = FakeProcessing()
+        processing.preparePhaseScript = [.requestingZkNyms]
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        await viewModel.run()
+
+        #expect(viewModel.hasReachedPrefetchPhase)
         #expect(viewModel.currentStep == 4)
     }
 }

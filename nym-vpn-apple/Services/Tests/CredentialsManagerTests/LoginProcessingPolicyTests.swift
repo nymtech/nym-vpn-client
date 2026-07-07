@@ -61,15 +61,37 @@ struct LoginProcessingPolicyTests {
                 isAwaitingAdvance: false
             ) == 3
         )
-        #expect(LoginProcessingProgressPolicy.credentialsCopyKeys(isPrefetching: false) == nil)
+        #expect(
+            LoginProcessingProgressPolicy.credentialsCopyKeys(isSyncing: false, isPrefetching: false) == nil
+        )
     }
 
-    @Test func credentialsCopyKeys_prefetchOnly() {
-        #expect(LoginProcessingProgressPolicy.credentialsCopyKeys(isPrefetching: false) == nil)
+    @Test func credentialsCopyKeys_syncingAndPrefetch() {
+        #expect(LoginProcessingProgressPolicy.credentialsCopyKeys(isSyncing: false, isPrefetching: false) == nil)
 
-        let prefetching = LoginProcessingProgressPolicy.credentialsCopyKeys(isPrefetching: true)
+        let syncing = LoginProcessingProgressPolicy.credentialsCopyKeys(isSyncing: true, isPrefetching: false)
+        #expect(syncing?.title == LoginProcessingUI.loadingCredentialsTitleKey)
+        #expect(syncing?.subtitle == LoginProcessingUI.loadingCredentialsSubtitleKey)
+
+        let prefetching = LoginProcessingProgressPolicy.credentialsCopyKeys(isSyncing: false, isPrefetching: true)
         #expect(prefetching?.title == LoginProcessingUI.almostReadyTitleKey)
         #expect(prefetching?.subtitle == LoginProcessingUI.almostReadySubtitleKey)
+
+        #expect(
+            LoginProcessingProgressPolicy.credentialsCopyKeys(isSyncing: true, isPrefetching: true)?.title
+                == LoginProcessingUI.almostReadyTitleKey
+        )
+    }
+
+    @Test func backendPhasePolicy_mapsControllerPhasesToDisplay() {
+        #expect(
+            LoginProcessingBackendPhasePolicy.displayPhase(for: .syncing) == .syncing
+        )
+        #expect(
+            LoginProcessingBackendPhasePolicy.displayPhase(for: .requestingZkNyms) == .prefetching
+        )
+        #expect(LoginProcessingBackendPhasePolicy.displayPhase(for: .readyToConnect) == nil)
+        #expect(LoginProcessingBackendPhasePolicy.displayPhase(for: .offline) == nil)
     }
 
     @Test func prefetchTimeout_coversTypicalDeviceWait() {
@@ -147,11 +169,12 @@ struct LoginProcessingPolicyTests {
         }
     }
 
-    @Test func credentialsCarouselVisibility_prefetchOnly() {
+    @Test func credentialsCarouselVisibility_syncingAndPrefetch() {
         #expect(
             !LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
                 usesStaticCopy: false,
                 didShowFinalMessage: false,
+                isSyncing: false,
                 isPrefetching: false
             )
         )
@@ -159,6 +182,15 @@ struct LoginProcessingPolicyTests {
             LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
                 usesStaticCopy: false,
                 didShowFinalMessage: false,
+                isSyncing: true,
+                isPrefetching: false
+            )
+        )
+        #expect(
+            LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
+                usesStaticCopy: false,
+                didShowFinalMessage: false,
+                isSyncing: false,
                 isPrefetching: true
             )
         )
@@ -166,6 +198,7 @@ struct LoginProcessingPolicyTests {
             !LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
                 usesStaticCopy: true,
                 didShowFinalMessage: false,
+                isSyncing: true,
                 isPrefetching: true
             )
         )
@@ -173,6 +206,7 @@ struct LoginProcessingPolicyTests {
             !LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
                 usesStaticCopy: false,
                 didShowFinalMessage: true,
+                isSyncing: true,
                 isPrefetching: true
             )
         )

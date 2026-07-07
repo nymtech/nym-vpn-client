@@ -7,7 +7,25 @@ struct ProcessingAccountTitleBlockTests {
         let showsCredentials = LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
             usesStaticCopy: false,
             didShowFinalMessage: false,
+            isSyncing: false,
             isPrefetching: true
+        )
+        #expect(showsCredentials)
+        #expect(
+            ProcessingAccountView.titleBlockMode(
+                usesStaticCopy: false,
+                didShowFinalMessage: false,
+                showsCredentialsCarousel: showsCredentials
+            ) == .credentials
+        )
+    }
+
+    @Test func titleBlockMode_syncing_showsCredentials() {
+        let showsCredentials = LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
+            usesStaticCopy: false,
+            didShowFinalMessage: false,
+            isSyncing: true,
+            isPrefetching: false
         )
         #expect(showsCredentials)
         #expect(
@@ -23,6 +41,7 @@ struct ProcessingAccountTitleBlockTests {
         let showsCredentials = LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
             usesStaticCopy: false,
             didShowFinalMessage: false,
+            isSyncing: false,
             isPrefetching: false
         )
         #expect(!showsCredentials)

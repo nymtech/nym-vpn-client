@@ -86,17 +86,47 @@ public enum LoginProcessingCarouselTimingPolicy: Sendable {
     }
 }
 
+public enum LoginProcessingBackendPhasePolicy: Sendable {
+    public enum DisplayPhase: Equatable, Sendable {
+        case syncing
+        case prefetching
+    }
+
+    public static func displayPhase(
+        for accountPhase: OnboardingAccountPreparationPolicy.AccountStatePhase
+    ) -> DisplayPhase? {
+        switch accountPhase {
+        case .syncing:
+            return .syncing
+        case .requestingZkNyms:
+            return .prefetching
+        case .offline, .loggedOut, .readyToConnect, .decentralised, .upgradeMode,
+             .pendingSubscription, .error:
+            return nil
+        }
+    }
+}
+
 public enum LoginProcessingProgressPolicy: Sendable {
     public static func setupProgressStep(carouselIndex: Int) -> Int {
         let index = max(0, carouselIndex)
         return min(index + 1, LoginProcessingUI.setupCarouselMaxProgressStep)
     }
 
-    public static func credentialsCopyKeys(isPrefetching: Bool) -> (title: String, subtitle: String)? {
-        guard isPrefetching else { return nil }
+    public static func credentialsCopyKeys(
+        isSyncing: Bool,
+        isPrefetching: Bool
+    ) -> (title: String, subtitle: String)? {
+        if isPrefetching {
+            return (
+                LoginProcessingUI.almostReadyTitleKey,
+                LoginProcessingUI.almostReadySubtitleKey
+            )
+        }
+        guard isSyncing else { return nil }
         return (
-            LoginProcessingUI.almostReadyTitleKey,
-            LoginProcessingUI.almostReadySubtitleKey
+            LoginProcessingUI.loadingCredentialsTitleKey,
+            LoginProcessingUI.loadingCredentialsSubtitleKey
         )
     }
 
@@ -121,10 +151,11 @@ public enum LoginProcessingCarouselVisibilityPolicy: Sendable {
     public static func showsCredentialsCopy(
         usesStaticCopy: Bool,
         didShowFinalMessage: Bool,
+        isSyncing: Bool,
         isPrefetching: Bool
     ) -> Bool {
         guard !usesStaticCopy, !didShowFinalMessage else { return false }
-        return isPrefetching
+        return isSyncing || isPrefetching
     }
 }
 
