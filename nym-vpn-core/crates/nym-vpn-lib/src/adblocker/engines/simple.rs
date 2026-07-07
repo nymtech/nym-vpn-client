@@ -6,7 +6,10 @@ use std::{
     sync::Arc,
 };
 
-use adblock::lists::{ParseOptions, ParsedFilter, RuleTypes, parse_filter};
+use adblock::{
+    filters::network::NetworkFilterMaskHelper,
+    lists::{ParseOptions, ParsedFilter, RuleTypes, parse_filter},
+};
 use futures::{StreamExt, TryFutureExt, TryStreamExt, pin_mut};
 use nym_common::trace_err_chain;
 use nym_sqlx_pool_guard::SqlitePoolGuard;
@@ -311,9 +314,17 @@ async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Resu
         let chunk_stream = line_stream
             .try_filter_map(|line| async move {
                 // Ignore errors since they aren't that useful
-                if let Ok(ParsedFilter::Network(filter)) = parse_filter(&line, false, opts)
-                    && let Some(ref domain) = filter.hostname
-                {
+                let Ok(ParsedFilter::Network(filter)) = parse_filter(&line, false, opts) else {
+                    return Ok(None);
+                };
+
+                let Some(ref domain) = filter.hostname else {
+                    return Ok(None);
+                };
+
+                // Only support rules blocking by domain (double pipe)
+                // See: https://adblockplus.org/filter-cheatsheet
+                if filter.is_hostname_anchor() {
                     // Convert to lowercase for case-insensitive comparison
                     Ok(Some(domain.to_lowercase()))
                 } else {
