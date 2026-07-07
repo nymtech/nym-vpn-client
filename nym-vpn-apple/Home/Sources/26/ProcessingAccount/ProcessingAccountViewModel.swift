@@ -98,8 +98,20 @@ public final class ProcessingAccountViewModel {
     }
 
     func start() {
-        processingTask?.cancel()
+        switch phase {
+        case .awaitingAdvance:
+            latchSetupCarouselIfNeeded()
+            updateAnimationReady()
+            evaluateAdvance()
+            return
+        case .finalizing, .finished:
+            return
+        default:
+            break
+        }
+        guard processingTask == nil else { return }
         processingTask = Task { @MainActor [weak self] in
+            defer { self?.processingTask = nil }
             await self?.run()
         }
     }
@@ -247,8 +259,15 @@ public final class ProcessingAccountViewModel {
         }
         phase = .awaitingAdvance
         syncProgressStep()
+        latchSetupCarouselIfNeeded()
         workCompleted = true
         updateAnimationReady()
+    }
+
+    private func latchSetupCarouselIfNeeded() {
+        guard !usesStaticCopy, !didFinishSetupCarousel else { return }
+        didFinishSetupCarousel = true
+        syncProgressStep()
     }
 
     private func updateAnimationReady() {

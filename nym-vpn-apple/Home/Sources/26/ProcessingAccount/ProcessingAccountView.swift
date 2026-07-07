@@ -26,9 +26,6 @@ struct ProcessingAccountView: View {
         .padding(.vertical, AuthLayout.processingCarouselVerticalPadding)
         .frame(maxWidth: .infinity)
         .frame(height: minHeight > 0 ? minHeight : nil, alignment: .top)
-        .task {
-            viewModel.start()
-        }
     }
 }
 
