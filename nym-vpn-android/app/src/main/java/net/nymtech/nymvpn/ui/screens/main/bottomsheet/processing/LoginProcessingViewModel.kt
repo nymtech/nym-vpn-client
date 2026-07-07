@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.account.login
+package net.nymtech.nymvpn.ui.screens.main.bottomsheet.processing
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,6 +22,7 @@ import net.nymtech.nymvpn.ui.Route
 import nym_vpn_lib_types.AccountControllerState
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class LoginProcessingViewModel
@@ -35,7 +36,7 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 	private val _uiPhase = MutableStateFlow(LoginProcessingUiPhase.Carousel)
 	val uiPhase: StateFlow<LoginProcessingUiPhase> = _uiPhase.asStateFlow()
 
-	private val _progressStep = MutableStateFlow(AccountLoginReadiness.LOGIN_INITIAL_PROGRESS_STEP)
+	private val _progressStep = MutableStateFlow(ProcessingCopy.LOGIN_INITIAL_PROGRESS_STEP)
 	val progressStep: StateFlow<Int> = _progressStep.asStateFlow()
 
 	private val _navigationRoute = MutableStateFlow<Route?>(null)
@@ -73,7 +74,7 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 
 		processingJob?.cancel()
 		_uiPhase.value = LoginProcessingUiPhase.Carousel
-		_progressStep.value = AccountLoginReadiness.LOGIN_INITIAL_PROGRESS_STEP
+		_progressStep.value = ProcessingCopy.LOGIN_INITIAL_PROGRESS_STEP
 		_navigationRoute.value = null
 		_timedOut.value = false
 		_failureMessageRes.value = null
@@ -118,15 +119,15 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 
 	private suspend fun runCarousel() {
 		_setupCarouselIndex.value = 0
-		delay(AccountLoginReadiness.CAROUSEL_INITIAL_DWELL_MS)
-		_progressStep.value = AccountLoginReadiness.loginProgressStepForCarouselIndex(0)
-		repeat(AccountLoginReadiness.CAROUSEL_TICK_COUNT - 1) { index ->
-			delay(AccountLoginReadiness.CAROUSEL_TICK_MS)
+		delay(ProcessingCopy.CAROUSEL_INITIAL_DWELL_MS)
+		_progressStep.value = ProcessingCopy.loginProgressStepForCarouselIndex(0)
+		repeat(ProcessingCopy.CAROUSEL_TICK_COUNT - 1) { index ->
+			delay(ProcessingCopy.CAROUSEL_TICK_MS)
 			_setupCarouselIndex.value = index + 1
-			delay(AccountLoginReadiness.CAROUSEL_STEP_ADVANCE_DELAY_MS)
-			_progressStep.value = AccountLoginReadiness.loginProgressStepForCarouselIndex(index + 1)
+			delay(ProcessingCopy.CAROUSEL_STEP_ADVANCE_DELAY_MS)
+			_progressStep.value = ProcessingCopy.loginProgressStepForCarouselIndex(index + 1)
 		}
-		delay(AccountLoginReadiness.CAROUSEL_TICK_MS)
+		delay(ProcessingCopy.CAROUSEL_TICK_MS)
 		_setupCarouselFinished.value = true
 	}
 
@@ -134,10 +135,10 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 		var tick = 0
 		while (true) {
 			val state = _accountState.value
-			if (AccountLoginReadiness.shouldShowCredentialsCopy(_setupCarouselFinished.value, state)) {
+			if (LoginReadiness.shouldShowCredentialsCopy(_setupCarouselFinished.value, state)) {
 				_credentialsCarouselTick.value = tick
-				delay(AccountLoginReadiness.CREDENTIALS_CAROUSEL_TICK_MS)
-				tick = (tick + 1).coerceAtMost(AccountLoginReadiness.CREDENTIALS_CAROUSEL_STEP_COUNT - 1)
+				delay(ProcessingCopy.CREDENTIALS_CAROUSEL_TICK_MS)
+				tick = (tick + 1).coerceAtMost(ProcessingCopy.CREDENTIALS_CAROUSEL_STEP_COUNT - 1)
 			} else {
 				tick = 0
 				_credentialsCarouselTick.value = 0
@@ -159,7 +160,7 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 			.onFailure { Timber.tag(TAG).w(it, "AccountRefreshFailed") }
 
 		val immediate = backendManager.stateFlow.value.accountState
-		AccountLoginReadiness.resolveReadinessWorkResult(immediate)?.let { result ->
+		LoginReadiness.resolveReadinessWorkResult(immediate)?.let { result ->
 			when (result) {
 				is LoginReadinessWorkResult.Success ->
 					Timber.tag(TAG).i("LoginProcessingAlreadySettled state=%s", result.state)
@@ -170,28 +171,28 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 			return result
 		}
 
-		val terminalState = withTimeoutOrNull(AccountLoginReadiness.READINESS_TIMEOUT_MS) {
+		val terminalState = withTimeoutOrNull(LoginReadiness.READINESS_TIMEOUT_MS.milliseconds) {
 			backendManager.stateFlow
 				.map { it.accountState }
 				.drop(1)
 				.first { state ->
-					AccountLoginReadiness.loginPreparationWaitOutcome(state) != LoginPreparationWaitOutcome.ContinueWaiting
+					LoginReadiness.loginPreparationWaitOutcome(state) != LoginPreparationWaitOutcome.ContinueWaiting
 				}
 		}
 
 		if (terminalState == null) {
-			Timber.tag(TAG).w("LoginProcessingTimedOut timeoutMs=%s", AccountLoginReadiness.READINESS_TIMEOUT_MS)
+			Timber.tag(TAG).w("LoginProcessingTimedOut timeoutMs=%s", LoginReadiness.READINESS_TIMEOUT_MS)
 			return LoginReadinessWorkResult.TimedOut
 		}
 
-		return AccountLoginReadiness.resolveReadinessWorkResult(terminalState)
+		return LoginReadiness.resolveReadinessWorkResult(terminalState)
 			?: LoginReadinessWorkResult.TimedOut
 	}
 
 	private suspend fun finishAfterCarouselAndWork(workResult: LoginReadinessWorkResult, carouselFinished: Boolean) {
 		val showTechnicalOpt = !settingsRepository.isTechnicalOptScreenCompleted()
 
-		if (!AccountLoginReadiness.canAdvanceLoginNavigation(workSettled = true, carouselFinished = carouselFinished)) {
+		if (!LoginReadiness.canAdvanceLoginNavigation(workSettled = true, carouselFinished = carouselFinished)) {
 			return
 		}
 
@@ -199,21 +200,21 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 			is LoginReadinessWorkResult.Success -> {
 				Timber.tag(TAG).i("LoginProcessingSettled state=%s", workResult.state)
 				_uiPhase.value = LoginProcessingUiPhase.Welcome
-				_progressStep.value = AccountLoginReadiness.LOGIN_PROGRESS_STEP_COUNT
+				_progressStep.value = ProcessingCopy.LOGIN_PROGRESS_STEP_COUNT
 				Timber.tag(TAG).i("LoginProcessingWelcomePhaseStarted")
-				delay(AccountLoginReadiness.READY_WELCOME_MS)
-				val route = AccountLoginReadiness.postLoginRoute(workResult.state, showTechnicalOpt)
+				delay(ProcessingCopy.READY_WELCOME_MS)
+				val route = ProcessingCopy.postLoginRoute(workResult.state, showTechnicalOpt)
 				Timber.tag(TAG).i("LoginProcessingWelcomePhaseCompleted route=%s", route)
 				_navigationRoute.value = route
 			}
 			is LoginReadinessWorkResult.Failed -> {
 				Timber.tag(TAG).w("LoginProcessingFailed state=%s", workResult.state)
-				_failureMessageRes.value = AccountLoginReadiness.failureMessageResForState(workResult.state)
-				_navigationRoute.value = AccountLoginReadiness.timeoutRoute(showTechnicalOpt)
+				_failureMessageRes.value = ProcessingCopy.failureMessageResForState(workResult.state)
+				_navigationRoute.value = ProcessingCopy.timeoutRoute(showTechnicalOpt)
 			}
 			LoginReadinessWorkResult.TimedOut -> {
 				_timedOut.value = true
-				_navigationRoute.value = AccountLoginReadiness.timeoutRoute(showTechnicalOpt)
+				_navigationRoute.value = ProcessingCopy.timeoutRoute(showTechnicalOpt)
 			}
 		}
 	}
@@ -232,12 +233,12 @@ constructor(private val backendManager: BackendManager, private val settingsRepo
 		finishAfterCarouselAndWork(workResult, carouselFinished = true)
 	}
 
-	internal suspend fun runCredentialsCarouselTickOnceForTests(accountState: AccountControllerState?, setupCarouselFinished: Boolean = true) {
+	internal fun runCredentialsCarouselTickOnceForTests(accountState: AccountControllerState?, setupCarouselFinished: Boolean = true) {
 		_accountState.value = accountState
 		_setupCarouselFinished.value = setupCarouselFinished
-		if (AccountLoginReadiness.shouldShowCredentialsCopy(setupCarouselFinished, accountState)) {
+		if (LoginReadiness.shouldShowCredentialsCopy(setupCarouselFinished, accountState)) {
 			val nextTick = (_credentialsCarouselTick.value + 1)
-				.coerceAtMost(AccountLoginReadiness.CREDENTIALS_CAROUSEL_STEP_COUNT - 1)
+				.coerceAtMost(ProcessingCopy.CREDENTIALS_CAROUSEL_STEP_COUNT - 1)
 			_credentialsCarouselTick.value = nextTick
 		} else {
 			_credentialsCarouselTick.value = 0

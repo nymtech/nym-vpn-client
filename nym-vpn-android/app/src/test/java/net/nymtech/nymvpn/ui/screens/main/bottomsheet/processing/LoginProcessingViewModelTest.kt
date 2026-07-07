@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.account.login
+package net.nymtech.nymvpn.ui.screens.main.bottomsheet.processing
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

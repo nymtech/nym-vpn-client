@@ -1,4 +1,6 @@
-package net.nymtech.nymvpn.ui.screens.auth
+package net.nymtech.nymvpn.ui.screens.main.bottomsheet
+
+import net.nymtech.nymvpn.ui.AuthRoute
 
 sealed interface MainBottomSheetContent {
 	data object Hidden : MainBottomSheetContent

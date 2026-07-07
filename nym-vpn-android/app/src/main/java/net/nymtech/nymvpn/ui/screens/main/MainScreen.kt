@@ -48,8 +48,8 @@ import net.nymtech.nymvpn.ui.common.snackbar.AlertHost
 import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
-import net.nymtech.nymvpn.ui.screens.auth.MainBottomSheetContent
+import net.nymtech.nymvpn.ui.AuthRoute
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.MainBottomSheetContent
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectAction
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode

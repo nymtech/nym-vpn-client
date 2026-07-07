@@ -1,9 +1,9 @@
-package net.nymtech.nymvpn.ui.screens.account.login
+package net.nymtech.nymvpn.ui.screens.main.bottomsheet.processing
 
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
-import net.nymtech.nymvpn.ui.screens.auth.routeName
+import net.nymtech.nymvpn.ui.routeName
 import nym_vpn_lib_types.AccountControllerErrorStateReason
 import nym_vpn_lib_types.AccountControllerState
 
@@ -12,22 +12,9 @@ enum class LoginProcessingUiPhase {
 	Welcome,
 }
 
-enum class LoginPreparationWaitOutcome {
-	Prepared,
-	ContinueWaiting,
-	Failed,
-}
-
-sealed interface LoginReadinessWorkResult {
-	data class Success(val state: AccountControllerState) : LoginReadinessWorkResult
-	data class Failed(val state: AccountControllerState) : LoginReadinessWorkResult
-	data object TimedOut : LoginReadinessWorkResult
-}
-
 data class LoginProcessingCopy(val titleRes: Int, val subtitleRes: Int?)
 
-object AccountLoginReadiness {
-	const val READINESS_TIMEOUT_MS = 60_000L
+object ProcessingCopy {
 	const val LOGIN_PROGRESS_STEP_COUNT = 4
 	const val LOGIN_INITIAL_PROGRESS_STEP = 2
 	const val CAROUSEL_INITIAL_DWELL_MS = 2_500L
@@ -54,14 +41,7 @@ object AccountLoginReadiness {
 
 	fun textAdvancePrecedesStepBarTick(): Boolean = CAROUSEL_STEP_ADVANCE_DELAY_MS > STEP_BAR_FORWARD_PAUSE_MS
 
-	fun shouldShowCredentialsCopy(setupCarouselFinished: Boolean, accountState: AccountControllerState?): Boolean =
-		setupCarouselFinished && (accountState is AccountControllerState.Syncing || accountState is AccountControllerState.RequestingZkNyms)
-
-	fun canAdvanceLoginNavigation(workSettled: Boolean, carouselFinished: Boolean): Boolean = workSettled && carouselFinished
-
 	fun loginProgressStepForCarouselIndex(carouselIndex: Int): Int = (LOGIN_INITIAL_PROGRESS_STEP + carouselIndex).coerceAtMost(LOGIN_PROGRESS_STEP_COUNT)
-
-	fun shouldShowWelcomePhase(settled: AccountControllerState): Boolean = isSettledForLogin(settled)
 
 	fun setupCarouselPairRes(index: Int): LoginProcessingCopy {
 		val subtitleRes = when (index.coerceIn(0, CAROUSEL_TICK_COUNT - 1)) {
@@ -84,7 +64,7 @@ object AccountLoginReadiness {
 		LoginProcessingUiPhase.Carousel ->
 			when {
 				!setupCarouselFinished -> setupCarouselPairRes(setupCarouselIndex)
-				shouldShowCredentialsCopy(setupCarouselFinished, accountState) -> {
+				LoginReadiness.shouldShowCredentialsCopy(setupCarouselFinished, accountState) -> {
 					val (titleRes, subtitleRes) = credentialsCarouselPairRes(credentialsCarouselTick)
 					LoginProcessingCopy(titleRes, subtitleRes)
 				}
@@ -108,33 +88,6 @@ object AccountLoginReadiness {
 		else -> R.string.account_login_processing_setting_up
 	}
 
-	fun loginPreparationWaitOutcome(state: AccountControllerState): LoginPreparationWaitOutcome = when (state) {
-		is AccountControllerState.ReadyToConnect,
-		is AccountControllerState.Decentralised,
-		is AccountControllerState.UpgradeMode,
-		is AccountControllerState.PendingSubscription,
-		-> LoginPreparationWaitOutcome.Prepared
-		is AccountControllerState.Error -> when (state.v1) {
-			is AccountControllerErrorStateReason.InactiveSubscription,
-			is AccountControllerErrorStateReason.AccountStatusNotActive,
-			-> LoginPreparationWaitOutcome.Prepared
-			else -> LoginPreparationWaitOutcome.Failed
-		}
-		is AccountControllerState.Syncing,
-		is AccountControllerState.RequestingZkNyms,
-		-> LoginPreparationWaitOutcome.ContinueWaiting
-		is AccountControllerState.Offline,
-		is AccountControllerState.LoggedOut,
-		-> LoginPreparationWaitOutcome.Failed
-	}
-
-	fun resolveReadinessWorkResult(state: AccountControllerState): LoginReadinessWorkResult? = when (loginPreparationWaitOutcome(state)) {
-		LoginPreparationWaitOutcome.Prepared ->
-			if (isSettledForLogin(state)) LoginReadinessWorkResult.Success(state) else null
-		LoginPreparationWaitOutcome.Failed -> LoginReadinessWorkResult.Failed(state)
-		LoginPreparationWaitOutcome.ContinueWaiting -> null
-	}
-
 	fun failureMessageResForState(state: AccountControllerState): Int = when (state) {
 		is AccountControllerState.Error ->
 			when (state.v1) {
@@ -144,24 +97,8 @@ object AccountLoginReadiness {
 		else -> R.string.account_generating_error
 	}
 
-	fun isReadyToConnect(state: AccountControllerState): Boolean = state is AccountControllerState.ReadyToConnect ||
-		state is AccountControllerState.Decentralised ||
-		state is AccountControllerState.UpgradeMode
-
-	fun isInactiveSubscription(state: AccountControllerState): Boolean = when (state) {
-		is AccountControllerState.PendingSubscription -> true
-		is AccountControllerState.Error ->
-			state.v1 is AccountControllerErrorStateReason.InactiveSubscription ||
-				state.v1 is AccountControllerErrorStateReason.AccountStatusNotActive
-		else -> false
-	}
-
-	fun isSettledForLogin(state: AccountControllerState): Boolean = isReadyToConnect(state) ||
-		isInactiveSubscription(state) ||
-		state is AccountControllerState.PendingSubscription
-
 	fun postLoginRoute(state: AccountControllerState, showTechnicalOpt: Boolean): Route = when {
-		isInactiveSubscription(state) || state is AccountControllerState.PendingSubscription -> Route.SelectPlan
+		LoginReadiness.isInactiveSubscription(state) || state is AccountControllerState.PendingSubscription -> Route.SelectPlan
 		showTechnicalOpt -> Route.Main(authRoute = AuthRoute.TechOpt.routeName)
 		else -> Route.Main()
 	}
@@ -170,11 +107,5 @@ object AccountLoginReadiness {
 		Route.Main(authRoute = AuthRoute.TechOpt.routeName)
 	} else {
 		Route.Main()
-	}
-
-	fun routeAfterDeeplinkCredentialStore(storeSucceeded: Boolean): Route = if (storeSucceeded) {
-		Route.Main(autoStart = false, loginProcessing = true)
-	} else {
-		Route.Main(autoStart = false)
 	}
 }

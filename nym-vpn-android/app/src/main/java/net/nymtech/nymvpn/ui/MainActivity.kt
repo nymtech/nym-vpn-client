@@ -59,7 +59,7 @@ import net.nymtech.nymvpn.ui.screens.account.plan.SelectPlanScreen
 import net.nymtech.nymvpn.ui.screens.details.DetailsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
@@ -400,19 +400,24 @@ class MainActivity : AppCompatActivity() {
 		val path = uri.path
 		if (host == "auth" && path?.startsWith("/privy/privateKey") == true) {
 			lifecycleScope.launch {
-				val destination = appViewModel.handleDeepLinkAuth(uri.toString())
-				navControllerRef?.navigate(destination) {
+				val storeSucceeded = appViewModel.handleDeepLinkAuth(uri.toString())
+				navControllerRef?.navigate(routeAfterDeepLinkAuth(storeSucceeded)) {
 					popUpTo(Route.Splash) { inclusive = true }
 				}
 			}
 		} else if (host == "account" && path?.startsWith("/response") == true) {
 			lifecycleScope.launch {
-				val fullUrl = uri.toString()
-				val destination = appViewModel.handleDeepLinkAuth(fullUrl)
-				navControllerRef?.navigate(destination) {
+				val storeSucceeded = appViewModel.handleDeepLinkAuth(uri.toString())
+				navControllerRef?.navigate(routeAfterDeepLinkAuth(storeSucceeded)) {
 					popUpTo(Route.Splash) { inclusive = true }
 				}
 			}
 		}
+	}
+
+	private fun routeAfterDeepLinkAuth(storeSucceeded: Boolean): Route = if (storeSucceeded) {
+		Route.Main(autoStart = false, loginProcessing = true)
+	} else {
+		Route.Main(autoStart = false)
 	}
 }

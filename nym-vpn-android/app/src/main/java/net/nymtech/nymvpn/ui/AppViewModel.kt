@@ -27,7 +27,6 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.account.info.AutologinState
-import net.nymtech.nymvpn.ui.screens.account.login.AccountLoginReadiness
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
@@ -38,6 +37,7 @@ import nym_vpn_lib_types.DeeplinkKind
 import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class AppViewModel
@@ -148,7 +148,7 @@ constructor(
 			if (backendManager.getState() != Tunnel.State.Down) {
 				Timber.tag(TAG).i("LogoutStoppingTunnel")
 				backendManager.stopTunnel()
-				val disconnected = withTimeoutOrNull(DISCONNECT_AWAIT_TIMEOUT_MS) {
+				val disconnected = withTimeoutOrNull(DISCONNECT_AWAIT_TIMEOUT_MS.milliseconds) {
 					backendManager.stateFlow.first { it.tunnelState == Tunnel.State.Down }
 				}
 				if (disconnected == null) Timber.tag(TAG).w("LogoutDisconnectTimeout")
@@ -231,10 +231,8 @@ constructor(
 			Timber.tag(TAG).d("AutoStartCheck enabled=%s", enabled)
 			if (!enabled) return
 
-			val managerState = withTimeoutOrNull(15_000) {
-				backendManager.stateFlow
-					.filter { it.isInitialized }
-					.first()
+			val managerState = withTimeoutOrNull(15_000.milliseconds) {
+				backendManager.stateFlow.first { it.isInitialized }
 			}
 
 			if (managerState == null) {
@@ -292,16 +290,13 @@ constructor(
 		}
 	}
 
-	suspend fun isUserLoggedIn(): Boolean = backendManager.isMnemonicStored()
-
-	suspend fun handleDeepLinkAuth(url: String): Route = withContext(Dispatchers.IO) {
-		val storeSucceeded = runCatching {
+	suspend fun handleDeepLinkAuth(url: String): Boolean = withContext(Dispatchers.IO) {
+		runCatching {
 			Timber.tag(TAG).i("DeepLinkAuth started.")
 			backendManager.storeDeeplinkAccount(url)
 			true
 		}.onFailure { e ->
 			Timber.tag(TAG).e(e, "FailedStoreDeeplink or processing error")
 		}.getOrDefault(false)
-		AccountLoginReadiness.routeAfterDeeplinkCredentialStore(storeSucceeded)
 	}
 }

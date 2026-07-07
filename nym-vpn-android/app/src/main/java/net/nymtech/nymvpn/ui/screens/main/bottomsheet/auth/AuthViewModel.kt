@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.auth
+package net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,7 +16,7 @@ import net.nymtech.nymvpn.data.config.VpnConfigRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
-import net.nymtech.nymvpn.ui.screens.auth.components.MnemonicError
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.MnemonicError
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.config.CoreVpnConfigUpdate

@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.auth
+package net.nymtech.nymvpn.ui.screens.main.bottomsheet
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,16 +22,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.screens.account.login.LoginProcessingDrawer
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.AuthComponent
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.processing.ProcessingComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthBottomSheet(
+fun MainBottomSheet(
 	content: MainBottomSheetContent,
 	onDismissRequest: () -> Unit,
 	onAuthSuccess: () -> Unit,
 	onLoginProcessingStart: (passphrase: String) -> Unit,
-	onSaveToPasswordManager: (passphrase: String) -> Unit,
 	onWelcomeShown: () -> Unit = {},
 	appUiState: AppUiState,
 	authSheetMinHeightPx: Int = 0,
@@ -95,14 +95,13 @@ fun AuthBottomSheet(
 						onLoginProcessingStart = { phrase ->
 							onLoginProcessingStart(phrase)
 						},
-						onSaveToPasswordManager = onSaveToPasswordManager,
 						onWelcomeShown = onWelcomeShown,
 						appUiState = appUiState,
 					)
 				}
 			}
 			MainBottomSheetContent.LoginProcessing -> {
-				LoginProcessingDrawer(
+				ProcessingComponent(
 					onProcessingComplete = onDismissRequest,
 					authSheetMinHeightPx = authSheetMinHeightPx,
 				)

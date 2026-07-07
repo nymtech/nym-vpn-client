@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.account.login
+package net.nymtech.nymvpn.ui.screens.main.bottomsheet.processing
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
@@ -56,9 +56,10 @@ import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import nym_vpn_lib_types.AccountControllerState
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun LoginProcessingDrawer(onProcessingComplete: () -> Unit, authSheetMinHeightPx: Int = 0, viewModel: LoginProcessingViewModel = hiltViewModel()) {
+fun ProcessingComponent(onProcessingComplete: () -> Unit, authSheetMinHeightPx: Int = 0, viewModel: LoginProcessingViewModel = hiltViewModel()) {
 	val navController = LocalNavController.current
 	val uiPhase by viewModel.uiPhase.collectAsState()
 	val progressStep by viewModel.progressStep.collectAsState()
@@ -88,7 +89,7 @@ fun LoginProcessingDrawer(onProcessingComplete: () -> Unit, authSheetMinHeightPx
 		navController.navigateAndForget(destination)
 	}
 
-	LoginProcessingDrawerContent(
+	ProcessingComponentContent(
 		uiPhase = uiPhase,
 		progressStep = progressStep,
 		accountState = accountState,
@@ -100,7 +101,7 @@ fun LoginProcessingDrawer(onProcessingComplete: () -> Unit, authSheetMinHeightPx
 }
 
 @Composable
-fun LoginProcessingDrawerContent(
+fun ProcessingComponentContent(
 	uiPhase: LoginProcessingUiPhase,
 	progressStep: Int,
 	accountState: AccountControllerState? = null,
@@ -113,9 +114,9 @@ fun LoginProcessingDrawerContent(
 	val minHeight = if (authSheetMinHeightPx > 0) {
 		with(density) { authSheetMinHeightPx.toDp() }
 	} else {
-		AccountLoginReadiness.LOGIN_PROCESSING_MIN_HEIGHT_DP.dp
+		ProcessingCopy.LOGIN_PROCESSING_MIN_HEIGHT_DP.dp
 	}
-	val processingCopy = AccountLoginReadiness.processingCopyForPhase(
+	val processingCopy = ProcessingCopy.processingCopyForPhase(
 		uiPhase,
 		accountState,
 		credentialsCarouselTick,
@@ -127,10 +128,10 @@ fun LoginProcessingDrawerContent(
 		modifier = Modifier
 			.fillMaxWidth()
 			.height(minHeight)
-			.padding(horizontal = AccountLoginReadiness.LOGIN_PROCESSING_HORIZONTAL_PADDING_DP.dp)
+			.padding(horizontal = ProcessingCopy.LOGIN_PROCESSING_HORIZONTAL_PADDING_DP.dp)
 			.padding(
-				top = AccountLoginReadiness.LOGIN_PROCESSING_TOP_PADDING_DP.dp,
-				bottom = AccountLoginReadiness.LOGIN_PROCESSING_BOTTOM_PADDING_DP.dp,
+				top = ProcessingCopy.LOGIN_PROCESSING_TOP_PADDING_DP.dp,
+				bottom = ProcessingCopy.LOGIN_PROCESSING_BOTTOM_PADDING_DP.dp,
 			),
 		horizontalAlignment = Alignment.CenterHorizontally,
 	) {
@@ -140,7 +141,7 @@ fun LoginProcessingDrawerContent(
 			tint = MaterialTheme.colorScheme.onPrimaryContainer,
 		)
 
-		Spacer(modifier = Modifier.height(AccountLoginReadiness.LOGIN_PROCESSING_LOGO_STEP_SPACING_DP.dp))
+		Spacer(modifier = Modifier.height(ProcessingCopy.LOGIN_PROCESSING_LOGO_STEP_SPACING_DP.dp))
 
 		LoginProcessingStepBar(targetStep = progressStep)
 
@@ -174,8 +175,8 @@ fun LoginProcessingDrawerContent(
 			AnimatedContent(
 				targetState = processingCopy,
 				transitionSpec = {
-					fadeIn(tween(AccountLoginReadiness.STEP_BAR_FILL_MS + 100, easing = LinearEasing)) togetherWith
-						fadeOut(tween(AccountLoginReadiness.STEP_BAR_FILL_MS, easing = LinearEasing))
+					fadeIn(tween(ProcessingCopy.STEP_BAR_FILL_MS + 100, easing = LinearEasing)) togetherWith
+						fadeOut(tween(ProcessingCopy.STEP_BAR_FILL_MS, easing = LinearEasing))
 				},
 				label = "loginProcessingCopy",
 			) { animatedCopy ->
@@ -217,14 +218,16 @@ private fun LoginProcessingStepBar(targetStep: Int) {
 	var initialFillDone by remember { mutableStateOf(false) }
 
 	LaunchedEffect(Unit) {
-		delay(AccountLoginReadiness.STEP_BAR_INITIAL_DELAY_MS)
-		val initialTarget = targetStep.coerceIn(0, AccountLoginReadiness.LOGIN_PROGRESS_STEP_COUNT)
+		delay(ProcessingCopy.STEP_BAR_INITIAL_DELAY_MS)
+		val initialTarget = targetStep.coerceIn(0, ProcessingCopy.LOGIN_PROGRESS_STEP_COUNT)
 		if (initialTarget > 0) {
-			for (step in 1..initialTarget.coerceAtMost(AccountLoginReadiness.LOGIN_INITIAL_PROGRESS_STEP)) {
+			for (step in 1..initialTarget.coerceAtMost(ProcessingCopy.LOGIN_INITIAL_PROGRESS_STEP)) {
 				displayedStep = step
 				delay(
-					AccountLoginReadiness.STEP_BAR_FILL_MS.toLong() +
-						AccountLoginReadiness.STEP_BAR_INITIAL_PAUSE_MS,
+					(
+						ProcessingCopy.STEP_BAR_FILL_MS.toLong() +
+							ProcessingCopy.STEP_BAR_INITIAL_PAUSE_MS
+						).milliseconds,
 				)
 			}
 		}
@@ -233,9 +236,9 @@ private fun LoginProcessingStepBar(targetStep: Int) {
 
 	LaunchedEffect(targetStep, initialFillDone) {
 		if (!initialFillDone || targetStep <= displayedStep) return@LaunchedEffect
-		for (step in (displayedStep + 1)..targetStep.coerceAtMost(AccountLoginReadiness.LOGIN_PROGRESS_STEP_COUNT)) {
+		for (step in (displayedStep + 1)..targetStep.coerceAtMost(ProcessingCopy.LOGIN_PROGRESS_STEP_COUNT)) {
 			displayedStep = step
-			delay(AccountLoginReadiness.STEP_BAR_FORWARD_PAUSE_MS)
+			delay(ProcessingCopy.STEP_BAR_FORWARD_PAUSE_MS)
 		}
 	}
 
@@ -245,7 +248,7 @@ private fun LoginProcessingStepBar(targetStep: Int) {
 			.height(4.dp),
 		horizontalArrangement = Arrangement.spacedBy(4.dp),
 	) {
-		repeat(AccountLoginReadiness.LOGIN_PROGRESS_STEP_COUNT) { index ->
+		repeat(ProcessingCopy.LOGIN_PROGRESS_STEP_COUNT) { index ->
 			LoginProcessingStepSegment(
 				segmentStep = index + 1,
 				displayedStep = displayedStep,
@@ -260,7 +263,7 @@ private fun RowScope.LoginProcessingStepSegment(segmentStep: Int, displayedStep:
 	val fillScale by animateFloatAsState(
 		targetValue = targetFill,
 		animationSpec = tween(
-			durationMillis = AccountLoginReadiness.STEP_BAR_FILL_MS,
+			durationMillis = ProcessingCopy.STEP_BAR_FILL_MS,
 			easing = LinearEasing,
 		),
 		label = "loginProcessingStepFill$segmentStep",
@@ -292,9 +295,9 @@ private fun RowScope.LoginProcessingStepSegment(segmentStep: Int, displayedStep:
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
-private fun PreviewLoginProcessingDrawerZkNyms() {
+private fun PreviewProcessingComponentZkNyms() {
 	NymVPNTheme(Theme.default()) {
-		LoginProcessingDrawerContent(
+		ProcessingComponentContent(
 			uiPhase = LoginProcessingUiPhase.Carousel,
 			progressStep = 4,
 			accountState = AccountControllerState.RequestingZkNyms,
@@ -305,9 +308,9 @@ private fun PreviewLoginProcessingDrawerZkNyms() {
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
-private fun PreviewLoginProcessingDrawerCarousel() {
+private fun PreviewProcessingComponentCarousel() {
 	NymVPNTheme(Theme.default()) {
-		LoginProcessingDrawerContent(
+		ProcessingComponentContent(
 			uiPhase = LoginProcessingUiPhase.Carousel,
 			progressStep = 2,
 		)
@@ -316,9 +319,9 @@ private fun PreviewLoginProcessingDrawerCarousel() {
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
 @Composable
-private fun PreviewLoginProcessingDrawerWelcome() {
+private fun PreviewProcessingComponentWelcome() {
 	NymVPNTheme(Theme.default()) {
-		LoginProcessingDrawerContent(
+		ProcessingComponentContent(
 			uiPhase = LoginProcessingUiPhase.Welcome,
 			progressStep = 4,
 		)

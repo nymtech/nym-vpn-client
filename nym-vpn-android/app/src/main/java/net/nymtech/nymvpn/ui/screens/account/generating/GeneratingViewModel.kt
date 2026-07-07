@@ -18,8 +18,8 @@ import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.billing.BillingManager
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
-import net.nymtech.nymvpn.ui.screens.auth.routeName
+import net.nymtech.nymvpn.ui.AuthRoute
+import net.nymtech.nymvpn.ui.routeName
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.StringValue
 import timber.log.Timber

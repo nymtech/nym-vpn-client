@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.auth
+package net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.auth.components
+package net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.size
