@@ -38,6 +38,8 @@ private final class FakeAccountProcessing: AccountProcessing {
     func storeDeeplink(callbackURLString: String) async throws {}
 
     func registerAccountIfNeeded() async throws {}
+
+    func ensureDeviceRegisteredForLogin() async throws {}
 }
 
 @MainActor

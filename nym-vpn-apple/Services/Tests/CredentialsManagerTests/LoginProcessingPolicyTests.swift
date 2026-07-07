@@ -12,24 +12,108 @@ struct LoginProcessingPolicyTests {
         #expect(ProcessingUIPolicy.showsOnboardingProgressBar(usesStaticCopy: false))
     }
 
-    @Test func setupCarouselPairs_useDistinctSubtitles() {
+    @Test func setupCarouselPairs_useDistinctHeadlines() {
+        let pairs = LoginProcessingUI.setupCarouselPairs()
+        let headlines = pairs.map(\.0)
+        #expect(Set(headlines).count == 3)
+        #expect(headlines.allSatisfy { !$0.isEmpty })
+    }
+
+    @Test func setupCarouselPairs_sharesContextSubtitle() {
         let pairs = LoginProcessingUI.setupCarouselPairs()
         let subtitles = pairs.map(\.1)
-        #expect(Set(subtitles).count == 3)
-        #expect(subtitles.allSatisfy { !$0.isEmpty })
+        #expect(Set(subtitles).count == 1)
+        #expect(!subtitles[0].isEmpty)
     }
 
     @Test func setupCarouselTiming_allowsReadableDwellPerStep() {
-        #expect(LoginProcessingUI.setupCarouselInitialDwell >= 2)
-        #expect(LoginProcessingUI.setupCarouselTickInterval >= 2)
-        #expect(LoginProcessingUI.setupCarouselStepAdvanceDelay >= 1.5)
-        #expect(LoginProcessingCarouselTimingPolicy.setupCarouselMinimumDurationSeconds() >= 7)
+        #expect(LoginProcessingUI.setupCarouselInitialDwell >= 3)
+        #expect(LoginProcessingUI.setupCarouselTickInterval >= 3)
+        #expect(LoginProcessingUI.setupCarouselFinalPairDwell >= 3)
+        #expect(LoginProcessingUI.setupCarouselStepAdvanceDelay >= 0)
+        #expect(LoginProcessingCarouselTimingPolicy.setupCarouselMinimumDurationSeconds() >= 12)
     }
 
-    @Test func setupCarouselTextLeadsStepBar_byConfiguredDelay() {
+    @Test func setupCarouselTiming_textSyncsWithStepBar() {
+        #expect(LoginProcessingCarouselTimingPolicy.textAdvanceSyncsWithStepBarTick())
+        #expect(!LoginProcessingCarouselTimingPolicy.textAdvancePrecedesStepBarTick())
+        #expect(LoginProcessingUI.setupCarouselStepAdvanceDelay == 0)
+        #expect(LoginProcessingUI.setupCarouselTextTransitionDuration > 0)
+    }
+
+    @Test func setupProgressStep_mapsEachCarouselIndex() {
+        #expect(LoginProcessingProgressPolicy.setupProgressStep(carouselIndex: 0) == 1)
+        #expect(LoginProcessingProgressPolicy.setupProgressStep(carouselIndex: 1) == 2)
+        #expect(LoginProcessingProgressPolicy.setupProgressStep(carouselIndex: 2) == 3)
+    }
+
+    @Test func stepBar_animatesInitialFillToFirstSegment() {
+        #expect(LoginProcessingUI.stepBarAnimateInitialFill)
+        #expect(LoginProcessingUI.initialProgressStep == 1)
+    }
+
+    @Test func progressStep_holdsThirdSegmentAfterSetupUntilBackendPhase() {
         #expect(
-            LoginProcessingCarouselTimingPolicy.textAdvancePrecedesStepBarTick(),
-            "SwitchingTitlesView advances copy before timerDidTick when stepAdvanceDelay exceeds step bar pause"
+            LoginProcessingProgressPolicy.progressStep(
+                setupCarouselIndex: 2,
+                didFinishSetupCarousel: true,
+                isPrefetching: false,
+                isAwaitingAdvance: false
+            ) == 3
+        )
+        #expect(LoginProcessingProgressPolicy.credentialsCopyKeys(isPrefetching: false) == nil)
+    }
+
+    @Test func credentialsCopyKeys_prefetchOnly() {
+        #expect(LoginProcessingProgressPolicy.credentialsCopyKeys(isPrefetching: false) == nil)
+
+        let prefetching = LoginProcessingProgressPolicy.credentialsCopyKeys(isPrefetching: true)
+        #expect(prefetching?.title == LoginProcessingUI.almostReadyTitleKey)
+        #expect(prefetching?.subtitle == LoginProcessingUI.almostReadySubtitleKey)
+    }
+
+    @Test func prefetchTimeout_coversTypicalDeviceWait() {
+        #expect(LoginProcessingUI.prefetchTimeoutSeconds >= 30)
+    }
+
+    @Test func progressStep_capsSetupAtThirdSegmentDuringCarousel() {
+        #expect(
+            LoginProcessingProgressPolicy.progressStep(
+                setupCarouselIndex: 2,
+                didFinishSetupCarousel: false,
+                isPrefetching: false,
+                isAwaitingAdvance: false
+            ) == 3
+        )
+    }
+
+    @Test func progressStep_holdsThirdSegmentDuringSync() {
+        #expect(
+            LoginProcessingProgressPolicy.progressStep(
+                setupCarouselIndex: 2,
+                didFinishSetupCarousel: true,
+                isPrefetching: false,
+                isAwaitingAdvance: false
+            ) == 3
+        )
+    }
+
+    @Test func progressStep_holdsFourthSegmentUntilPrefetchOrCompletion() {
+        #expect(
+            LoginProcessingProgressPolicy.progressStep(
+                setupCarouselIndex: 2,
+                didFinishSetupCarousel: true,
+                isPrefetching: true,
+                isAwaitingAdvance: false
+            ) == 4
+        )
+        #expect(
+            LoginProcessingProgressPolicy.progressStep(
+                setupCarouselIndex: 2,
+                didFinishSetupCarousel: true,
+                isPrefetching: false,
+                isAwaitingAdvance: true
+            ) == 4
         )
     }
 
@@ -42,71 +126,35 @@ struct LoginProcessingPolicyTests {
         }
     }
 
-    @Test func credentialsCarouselVisibility_afterSetupDuringBackendWait() {
+    @Test func credentialsCarouselVisibility_prefetchOnly() {
         #expect(
             !LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
                 usesStaticCopy: false,
                 didShowFinalMessage: false,
-                didFinishSetupCarousel: false,
-                isSyncing: true,
-                isPrefetching: false,
-                isPreparing: false
+                isPrefetching: false
             )
         )
         #expect(
             LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
                 usesStaticCopy: false,
                 didShowFinalMessage: false,
-                didFinishSetupCarousel: true,
-                isSyncing: true,
-                isPrefetching: false,
-                isPreparing: false
-            )
-        )
-        #expect(
-            LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
-                usesStaticCopy: false,
-                didShowFinalMessage: false,
-                didFinishSetupCarousel: true,
-                isSyncing: false,
-                isPrefetching: false,
-                isPreparing: true
-            )
-        )
-        #expect(
-            LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
-                usesStaticCopy: false,
-                didShowFinalMessage: false,
-                didFinishSetupCarousel: true,
-                isSyncing: false,
-                isPrefetching: true,
-                isPreparing: false
+                isPrefetching: true
             )
         )
         #expect(
             !LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
                 usesStaticCopy: true,
                 didShowFinalMessage: false,
-                didFinishSetupCarousel: true,
-                isSyncing: true,
-                isPrefetching: true,
-                isPreparing: true
+                isPrefetching: true
             )
         )
-    }
-
-    @Test func credentialsCarouselPairKeys_tick0_and_tick1() {
-        let tick0 = LoginProcessingCopyPolicy.credentialsCarouselPairKeys(tickIndex: 0)
-        #expect(tick0.title == LoginProcessingUI.loadingCredentialsTitleKey)
-        #expect(tick0.subtitle == LoginProcessingUI.loadingCredentialsSubtitleKey)
-
-        let tick1 = LoginProcessingCopyPolicy.credentialsCarouselPairKeys(tickIndex: 1)
-        #expect(tick1.title == LoginProcessingUI.almostReadyTitleKey)
-        #expect(tick1.subtitle == LoginProcessingUI.almostReadySubtitleKey)
-
-        let tickOverflow = LoginProcessingCopyPolicy.credentialsCarouselPairKeys(tickIndex: 99)
-        #expect(tickOverflow.title == LoginProcessingUI.almostReadyTitleKey)
-        #expect(tickOverflow.subtitle == LoginProcessingUI.almostReadySubtitleKey)
+        #expect(
+            !LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
+                usesStaticCopy: false,
+                didShowFinalMessage: true,
+                isPrefetching: true
+            )
+        )
     }
 
     @Test func loginCarouselBlocksNavigationUntilAnimationCompletes() {

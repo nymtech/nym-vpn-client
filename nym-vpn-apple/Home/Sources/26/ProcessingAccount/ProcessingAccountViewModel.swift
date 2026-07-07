@@ -41,6 +41,8 @@ public final class ProcessingAccountViewModel {
     @ObservationIgnored private let deeplinkLoginCallbackURL: String?
     private(set) var phase: ProcessingPhase = .preparing
     var currentStep: Int = 1
+    private(set) var didFinishSetupCarousel = false
+    private(set) var setupCarouselIndex = 0
 
     var didFinishAnimatingText = false {
         didSet { evaluateAdvance() }
@@ -63,6 +65,13 @@ public final class ProcessingAccountViewModel {
         }
     }
 
+    var credentialsDisplayPair: (String, String)? {
+        guard let keys = LoginProcessingProgressPolicy.credentialsCopyKeys(
+            isPrefetching: phase == .prefetching
+        ) else { return nil }
+        return (keys.title.localizedString, keys.subtitle.localizedString)
+    }
+
     public init(
         processing: AccountProcessing,
         flow: ProcessingFlow,
@@ -72,13 +81,11 @@ public final class ProcessingAccountViewModel {
         self.flow = flow
         self.deeplinkLoginCallbackURL = deeplinkLoginCallbackURL
         switch flow {
-        case .login:
+        case .login, .createAccount:
             currentStep = LoginProcessingUI.initialProgressStep
         case .postPurchase:
             currentStep = PostPurchaseProcessingUI.progressStep
             didFinishAnimatingText = true
-        case .createAccount:
-            break
         }
     }
 
@@ -95,12 +102,16 @@ public final class ProcessingAccountViewModel {
             switch flow {
             case .login:
                 phase = .preparing
+                syncProgressStep()
                 try await completeDeeplinkLoginIfNeeded()
                 await processing.ensureCredentialImportResolved()
+                try await processing.ensureDeviceRegisteredForLogin()
                 try await processing.prepareRegisteredAccount()
                 try await syncSummaryThenPrefetch()
                 completeWork()
             case .createAccount:
+                phase = .preparing
+                syncProgressStep()
                 await processing.ensureCredentialImportResolved()
                 try await syncSummaryThenPrefetch()
                 completeWork()
@@ -126,13 +137,15 @@ public final class ProcessingAccountViewModel {
     private func syncSummaryThenPrefetch() async throws {
         try Task.checkCancellation()
         phase = .syncing
+        syncProgressStep()
         await processing.updateAccountSummary(force: true, untilActive: true)
         try Task.checkCancellation()
         if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
             isAccountActive: processing.isAccountActive()
         ) {
             phase = .prefetching
-            _ = await processing.prefetchZkNyms(timeout: 60)
+            syncProgressStep()
+            _ = await processing.prefetchZkNyms(timeout: LoginProcessingUI.prefetchTimeoutSeconds)
         }
         try Task.checkCancellation()
     }
@@ -160,7 +173,7 @@ public final class ProcessingAccountViewModel {
         }
 
         phase = .prefetching
-        _ = await processing.prefetchZkNyms(timeout: 60)
+        _ = await processing.prefetchZkNyms(timeout: LoginProcessingUI.prefetchTimeoutSeconds)
         phase = .finished
         sessionCoordinator?.handle(.session(.processingFinished))
     }
@@ -178,12 +191,15 @@ public final class ProcessingAccountViewModel {
         sessionCoordinator?.handle(.dismissPostPurchaseProcessing)
     }
 
-    func animationDidAdvance() {
-        currentStep += 1
+    func noteSetupCarouselStepBarTick(atIndex index: Int) {
+        setupCarouselIndex = index
+        syncProgressStep()
     }
 
     func animationDidFinish() {
-        didFinishAnimatingText = true
+        didFinishSetupCarousel = true
+        syncProgressStep()
+        updateAnimationReady()
     }
 
     /// Awaits the post-advance welcome-message delay. Test hook only.
@@ -198,7 +214,23 @@ public final class ProcessingAccountViewModel {
             return
         }
         phase = .awaitingAdvance
+        syncProgressStep()
         workCompleted = true
+        updateAnimationReady()
+    }
+
+    private func updateAnimationReady() {
+        guard workCompleted, didFinishSetupCarousel else { return }
+        didFinishAnimatingText = true
+    }
+
+    private func syncProgressStep() {
+        currentStep = LoginProcessingProgressPolicy.progressStep(
+            setupCarouselIndex: setupCarouselIndex,
+            didFinishSetupCarousel: didFinishSetupCarousel,
+            isPrefetching: phase == .prefetching,
+            isAwaitingAdvance: phase == .awaitingAdvance
+        )
     }
 
     private func fail(with error: Error) {

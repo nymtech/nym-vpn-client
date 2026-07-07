@@ -65,13 +65,18 @@ private extension ProcessingAccountView {
     @ViewBuilder
     var titleBlock: some View {
         Group {
-            if viewModel.usesStaticCopy {
+            switch ProcessingAccountView.titleBlockMode(
+                usesStaticCopy: viewModel.usesStaticCopy,
+                didShowFinalMessage: viewModel.didShowFinalMessage,
+                showsCredentialsCarousel: showsCredentialsCarousel
+            ) {
+            case .staticCopy:
                 staticTitleView
-            } else if viewModel.didShowFinalMessage {
+            case .welcome:
                 welcomeMessage
-            } else if showsCredentialsCarousel {
-                credentialsSwitchingTitles
-            } else {
+            case .credentials:
+                credentialsTitleView
+            case .setupCarousel:
                 switchingTitles
             }
         }
@@ -121,10 +126,32 @@ private extension ProcessingAccountView {
                     get: { viewModel.currentStep },
                     set: { _ in }
                 ),
-                animateInitialFill: !viewModel.usesStaticCopy,
+                animateInitialFill: LoginProcessingUI.stepBarAnimateInitialFill,
                 initialFillLeadIn: LoginProcessingUI.stepBarInitialLeadIn,
                 initialFillStepPause: LoginProcessingUI.stepBarStepPause,
                 forwardFillStepPause: LoginProcessingUI.stepBarStepPause
+            )
+        }
+    }
+
+    @ViewBuilder
+    var credentialsTitleView: some View {
+        if let pair = viewModel.credentialsDisplayPair {
+            VStack(alignment: .center, spacing: AuthLayout.processingCarouselTitleSpacing) {
+                Text(pair.0)
+                    .textStyle(.Headline.Medium.regular)
+                    .foregroundStyle(NymColor.primary)
+                    .multilineTextAlignment(.center)
+                    .contentTransition(.opacity)
+                Text(pair.1)
+                    .textStyle(.Body.Medium.regular)
+                    .foregroundColor(NymColor.gray1)
+                    .multilineTextAlignment(.center)
+                    .contentTransition(.opacity)
+            }
+            .animation(
+                .easeInOut(duration: LoginProcessingUI.setupCarouselTextTransitionDuration),
+                value: pair.0
             )
         }
     }
@@ -147,27 +174,21 @@ private extension ProcessingAccountView {
         SwitchingTitlesView(
             pairs: ProcessingAccountView.pairs(for: viewModel.flow),
             didFinishAnimating: Binding(
-                get: { viewModel.didFinishAnimatingText },
+                get: { viewModel.didFinishSetupCarousel },
                 set: { newValue in
                     if newValue { viewModel.animationDidFinish() }
                 }
             ),
-            timerDidTick: {
-                viewModel.animationDidAdvance()
-            },
+            timerDidTick: {},
             tickInterval: LoginProcessingUI.setupCarouselTickInterval,
             stepAdvanceDelay: LoginProcessingUI.setupCarouselStepAdvanceDelay,
-            initialDwell: LoginProcessingUI.setupCarouselInitialDwell
-        )
-    }
-
-    var credentialsSwitchingTitles: some View {
-        SwitchingTitlesView(
-            pairs: LoginProcessingUI.credentialsCarouselPairs(),
-            didFinishAnimating: .constant(false),
-            timerDidTick: {},
-            tickInterval: LoginProcessingUI.credentialsCarouselTickInterval,
-            holdOnLastPair: true
+            textTransitionDuration: LoginProcessingUI.setupCarouselTextTransitionDuration,
+            initialDwell: LoginProcessingUI.setupCarouselInitialDwell,
+            retainLastPairOnFinish: true,
+            finalPairDwell: LoginProcessingUI.setupCarouselFinalPairDwell,
+            onIndexChanged: { index in
+                viewModel.noteSetupCarouselStepBarTick(atIndex: index)
+            }
         )
     }
 
@@ -175,10 +196,7 @@ private extension ProcessingAccountView {
         LoginProcessingCarouselVisibilityPolicy.showsCredentialsCopy(
             usesStaticCopy: viewModel.usesStaticCopy,
             didShowFinalMessage: viewModel.didShowFinalMessage,
-            didFinishSetupCarousel: viewModel.didFinishAnimatingText,
-            isSyncing: viewModel.phase == .syncing,
-            isPrefetching: viewModel.phase == .prefetching,
-            isPreparing: viewModel.phase == .preparing
+            isPrefetching: viewModel.phase == .prefetching
         )
     }
 
@@ -212,5 +230,31 @@ private extension ProcessingAccountView {
 
     static func processingCarouselPairs() -> [(String, String)] {
         LoginProcessingUI.setupCarouselPairs()
+    }
+}
+
+enum ProcessingAccountTitleBlockMode: Equatable {
+    case staticCopy
+    case welcome
+    case credentials
+    case setupCarousel
+}
+
+extension ProcessingAccountView {
+    static func titleBlockMode(
+        usesStaticCopy: Bool,
+        didShowFinalMessage: Bool,
+        showsCredentialsCarousel: Bool
+    ) -> ProcessingAccountTitleBlockMode {
+        if usesStaticCopy {
+            return .staticCopy
+        }
+        if didShowFinalMessage {
+            return .welcome
+        }
+        if showsCredentialsCarousel {
+            return .credentials
+        }
+        return .setupCarousel
     }
 }

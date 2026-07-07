@@ -79,6 +79,7 @@ extension CredentialsManager {
     ) async throws {
         let pollInterval: Duration = .milliseconds(250)
         let deadline = ContinuousClock.now + .seconds(timeout)
+        var consecutiveOfflineSeconds: TimeInterval = 0
 
         while ContinuousClock.now < deadline {
             try Task.checkCancellation()
@@ -86,9 +87,20 @@ extension CredentialsManager {
             case .prepared:
                 return
             case .continueWaiting:
+                consecutiveOfflineSeconds = 0
                 try await Task.sleep(for: pollInterval)
             case .fail(let details):
-                throw VpnError.AccountControllerError(details: details)
+                if details == "offline" {
+                    consecutiveOfflineSeconds += OnboardingAccountPreparationPolicy.waitPollIntervalSeconds
+                    if OnboardingAccountPreparationPolicy.shouldFailOnOffline(
+                        consecutiveOfflineSeconds: consecutiveOfflineSeconds
+                    ) {
+                        throw VpnError.AccountControllerError(details: details)
+                    }
+                    try await Task.sleep(for: pollInterval)
+                } else {
+                    throw VpnError.AccountControllerError(details: details)
+                }
             }
         }
         throw VpnError.VpnApiTimeout

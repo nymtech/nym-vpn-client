@@ -14,6 +14,8 @@ public protocol AccountProcessing {
     func handleSubscriptionPayment() async throws
     func storeDeeplink(callbackURLString: String) async throws
     func registerAccountIfNeeded() async throws
+    /// Re-posts account registration with the VPN API before account prep (includes device registration on OAuth re-login when `registerAccountIfNeeded` no-ops).
+    func ensureDeviceRegisteredForLogin() async throws
 }
 
 /// Typed, Equatable failure raised by the processing flow so it can be asserted in

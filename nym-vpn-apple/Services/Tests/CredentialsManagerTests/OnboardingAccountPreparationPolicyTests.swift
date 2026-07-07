@@ -50,4 +50,36 @@ struct OnboardingAccountPreparationPolicyTests {
         )
         #expect(outcome == .fail("Max device numbers reached"))
     }
+
+    @Test func offlineDebounce_transientOfflineDoesNotFailImmediately() {
+        #expect(
+            !OnboardingAccountPreparationPolicy.shouldFailOnOffline(consecutiveOfflineSeconds: 3)
+        )
+        #expect(
+            !OnboardingAccountPreparationPolicy.shouldFailOnOffline(
+                consecutiveOfflineSeconds: OnboardingAccountPreparationPolicy.offlineFailDebounceSeconds - 0.25
+            )
+        )
+    }
+
+    @Test func offlineDebounce_sustainedOfflineFails() {
+        #expect(
+            OnboardingAccountPreparationPolicy.shouldFailOnOffline(
+                consecutiveOfflineSeconds: OnboardingAccountPreparationPolicy.offlineFailDebounceSeconds
+            )
+        )
+        #expect(
+            OnboardingAccountPreparationPolicy.shouldFailOnOffline(consecutiveOfflineSeconds: 6)
+        )
+    }
+
+    @Test func offlineDebounce_resetsAfterNonOfflinePoll() {
+        let interval = OnboardingAccountPreparationPolicy.waitPollIntervalSeconds
+        var streak: TimeInterval = 4.75
+        streak += interval
+        #expect(OnboardingAccountPreparationPolicy.shouldFailOnOffline(consecutiveOfflineSeconds: streak))
+        streak = 0
+        streak += interval
+        #expect(!OnboardingAccountPreparationPolicy.shouldFailOnOffline(consecutiveOfflineSeconds: streak))
+    }
 }

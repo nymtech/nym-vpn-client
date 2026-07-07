@@ -262,6 +262,16 @@ import PathManager
             ).registerAccount()
         }.value
     }
+
+    public func ensureDeviceRegisteredForLogin() async throws {
+        let env = try resolvedRegistrationEnvironment()
+        _ = try await AccountRegistrationSupport.withAccountStoreRetry(
+            operation: "ensureDeviceRegisteredForLogin",
+            logger: logger
+        ) {
+            try await registerAccount(environment: env)
+        }
+    }
 #endif
 
     public func prepareRegisteredAccount() async throws {
