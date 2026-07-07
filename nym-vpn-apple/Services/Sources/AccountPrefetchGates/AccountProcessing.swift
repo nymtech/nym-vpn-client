@@ -6,7 +6,9 @@ import Foundation
 @MainActor
 public protocol AccountProcessing {
     func ensureCredentialImportResolved() async
-    func prepareRegisteredAccount() async throws
+    func prepareRegisteredAccount(
+        onAccountPhaseChange: (@MainActor (OnboardingAccountPreparationPolicy.AccountStatePhase) -> Void)?
+    ) async throws
     func updateAccountSummary(force: Bool, untilActive: Bool) async
     func isAccountActive() -> Bool
     func prefetchZkNyms(timeout: TimeInterval) async -> ZkNymPrefetchResult
@@ -14,6 +16,14 @@ public protocol AccountProcessing {
     func handleSubscriptionPayment() async throws
     func storeDeeplink(callbackURLString: String) async throws
     func registerAccountIfNeeded() async throws
+    /// Re-posts account registration with the VPN API before account prep (includes device registration on OAuth re-login when `registerAccountIfNeeded` no-ops).
+    func ensureDeviceRegisteredForLogin() async throws
+}
+
+extension AccountProcessing {
+    public func prepareRegisteredAccount() async throws {
+        try await prepareRegisteredAccount(onAccountPhaseChange: nil)
+    }
 }
 
 /// Typed, Equatable failure raised by the processing flow so it can be asserted in
