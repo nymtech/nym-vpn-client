@@ -101,8 +101,9 @@ import Theme
 #if os(iOS)
                 try await credentialsManager.performAccountRegistration(loginCredential: trimmedCredential)
 #elseif os(macOS)
+                // add → grpc storeAccount persists the mnemonic on the daemon; registerAccount() is iOS-only.
                 try await credentialsManager.add(credential: trimmedCredential)
-                try await credentialsManager.registerAccount()
+                await credentialsManager.updateAccountSummary(force: true, untilActive: false)
 #endif
                 error = CredentialsManagerError.noError
                 credentialsDidAdd()
