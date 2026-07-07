@@ -322,13 +322,16 @@ import PathManager
 
     public func beginLogout() async {
 #if os(iOS)
-        await beginLogoutOnIOS()
+        isLoggingOut = true
+        accountSummaryUpdateTask?.cancel()
+        accountSummaryUpdateTask = nil
+        await shutdownControllersAndWait()
 #endif
     }
 
     public func endLogout() {
 #if os(iOS)
-        endLogoutOnIOS()
+        isLoggingOut = false
 #endif
     }
 
