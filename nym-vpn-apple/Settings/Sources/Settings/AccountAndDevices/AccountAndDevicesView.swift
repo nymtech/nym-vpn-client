@@ -10,6 +10,7 @@ import CredentialsManager
 import ExternalLinkManager
 import PurchasesManager
 import SnackbarManager
+import TunnelStatus
 import UIComponents
 import Theme
 
@@ -27,6 +28,7 @@ import Theme
     @State private var isPresentedManageSubscription = false
     @State var isLogoutConfirmationDisplayed = false
     @State var isLogoutLoading = false
+    @State var logoutProgressText = ""
     @State var isRefreshingAccount = false
     @State var autologinState = AutologinState()
 
@@ -83,7 +85,8 @@ import Theme
                         isDisplayed: $isLogoutConfirmationDisplayed,
                         configuration: logoutDialogConfiguration,
                         impactGenerator: .shared,
-                        isLoading: $isLogoutLoading
+                        isLoading: $isLogoutLoading,
+                        loadingTextOverride: $logoutProgressText
                     )
                 )
             }
@@ -316,7 +319,15 @@ extension AccountAndDevicesView {
     }
 
     func logout() async {
+        await credentialsManager.prepareForLogout()
+
+        if LogoutTeardownPolicy.needsDisconnectWait(for: connectionManager.currentTunnelStatus) {
+            logoutProgressText = "disconnecting".localizedString
+        }
         await connectionManager.disconnectBeforeLogout()
+
+        logoutProgressText = "settings.loggingOut".localizedString
         try? await credentialsManager.removeCredential()
+        logoutProgressText = ""
     }
 }

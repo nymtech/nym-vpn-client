@@ -117,12 +117,32 @@ import GRPCManager
     /// Disconnects tunnel if connected.
     /// iOS removes tunnel profile.
     public func disconnectBeforeLogout() async {
-        await disconnectAndWaitForDisconnected()
+        await disconnectForLogout()
 #if os(iOS)
         resetVpnProfile()
 #endif
         setEntryGateway(.random)
         setExitGateway(.random)
+    }
+
+    /// Logout path: bounded wait when the user already started disconnecting elsewhere.
+    func disconnectForLogout() async {
+        guard LogoutTeardownPolicy.needsDisconnectWait(for: currentTunnelStatus) else { return }
+#if os(iOS)
+        if LogoutTeardownPolicy.shouldInitiateDisconnect(for: currentTunnelStatus) {
+            try? await disconnectActiveTunnel()
+        }
+        await waitForTunnelStatus(
+            with: .disconnected,
+            timeout: LogoutTeardownPolicy.disconnectWaitCapSeconds
+        )
+#elseif os(macOS)
+        try? await grpcManager.disconnect()
+        await waitForTunnelStatus(
+            with: .disconnected,
+            timeout: LogoutTeardownPolicy.disconnectWaitCapSeconds
+        )
+#endif
     }
 
     /// Disconnect and wait for disconnected status
@@ -168,7 +188,32 @@ public extension ConnectionManager {
 // MARK: - Connection -
 
 extension ConnectionManager {
-    func waitForTunnelStatus(with targetStatus: TunnelStatus) async {
+    func waitForTunnelStatus(with targetStatus: TunnelStatus, timeout: TimeInterval? = nil) async {
+        if currentTunnelStatus == targetStatus { return }
+
+        if let timeout {
+            await withTaskGroup(of: Bool.self) { group in
+                group.addTask { @MainActor in
+                    await self.waitForTunnelStatusChange(to: targetStatus)
+                    return true
+                }
+                group.addTask {
+                    try? await Task.sleep(for: .seconds(timeout))
+                    return false
+                }
+                let finishedInTime = await group.next() ?? false
+                group.cancelAll()
+                _ = finishedInTime
+            }
+            return
+        }
+
+        await waitForTunnelStatusChange(to: targetStatus)
+    }
+
+    private func waitForTunnelStatusChange(to targetStatus: TunnelStatus) async {
+        if currentTunnelStatus == targetStatus { return }
+
         await withCheckedContinuation { continuation in
             var cancellable: AnyCancellable?
 
