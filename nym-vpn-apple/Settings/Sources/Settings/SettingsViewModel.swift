@@ -200,6 +200,19 @@ private extension SettingsViewModel {
         impactGenerator.softImpact()
         path.append(SettingLink.notifications)
     }
+
+    func updateAccountSectionOnly() {
+        guard appSettings.isCredentialImported else {
+            sections.removeAll { $0.kind == .account }
+            return
+        }
+        let updated = accountSection()
+        if let index = sections.firstIndex(where: { $0.kind == .account }) {
+            sections[index] = updated
+        } else {
+            sections.insert(updated, at: 0)
+        }
+    }
 }
 
 // MARK: - Setup -
@@ -246,19 +259,6 @@ private extension SettingsViewModel {
                 }
             }
             .store(in: &cancellables)
-    }
-
-    func updateAccountSectionOnly() {
-        guard appSettings.isCredentialImported else {
-            sections.removeAll { $0.kind == .account }
-            return
-        }
-        let updated = accountSection()
-        if let index = sections.firstIndex(where: { $0.kind == .account }) {
-            sections[index] = updated
-        } else {
-            sections.insert(updated, at: 0)
-        }
     }
 
     /// Configures sections, to reload all the content - use reloadSections
