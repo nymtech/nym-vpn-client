@@ -109,6 +109,15 @@ struct WorkflowReportTests {
         (scheme: "Services-Package", target: "ConfigurationManagerTests"),
         (scheme: "Settings", target: "SettingsTests"),
         (scheme: "ServicesMacOS-Package", target: "AppDiscoveryServiceTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/AppSessionReducerTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/AccountPrefetchOrchestratorTests"),
+        (scheme: "Home", target: "HomeTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/EnvironmentChangeIAPPolicyTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/PostPurchaseProcessingPolicyTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/PostPurchaseProcessingFlowTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/AccountTokenByEnvStorageTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/DrawerSessionPolicyTests"),
+        (scheme: "Services-Package", target: "CredentialsManagerTests/DrawerCredentialImportPolicyTests"),
     ])
     func testStepRunsAdditionalSuite(scheme: String, target: String) throws {
         let action = try loadYAML(Self.actionRelativePath)

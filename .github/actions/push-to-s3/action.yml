@@ -52,20 +52,52 @@ runs:
       run: |
         set -euo pipefail
         if ! command -v aws >/dev/null 2>&1; then
-          # Versioned URL — pinned, not the moving "latest" zip (supply-chain).
-          base="https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWSCLI_VERSION}.zip"
-          curl -fsSL "$base"      -o /tmp/awscliv2.zip
-          curl -fsSL "${base}.sig" -o /tmp/awscliv2.zip.sig
-          # Verify the signature in a throwaway keyring holding ONLY the pinned
-          # key, so a "good signature" can only mean the AWS CLI key signed it.
-          # Fails closed (no publish) if verification cannot be completed.
-          GNUPGHOME="$(mktemp -d)"; export GNUPGHOME
-          gpg --batch --keyserver hkps://keyserver.ubuntu.com --recv-keys "$AWSCLI_PGP_FPR" \
-            || gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$AWSCLI_PGP_FPR"
-          gpg --batch --verify /tmp/awscliv2.zip.sig /tmp/awscliv2.zip
-          unzip -q /tmp/awscliv2.zip -d /tmp
-          (sudo /tmp/aws/install --update || /tmp/aws/install --update --bin-dir "$HOME/.local/bin" --install-dir "$HOME/.local/aws-cli")
-          export PATH="$HOME/.local/bin:$PATH"
+          if [[ "$(uname -s)" == "Darwin" ]]; then
+            # Official versioned PKG — avoids Homebrew's python@3.14/libexpat
+            # ABI mismatch with macOS system libexpat.1.dylib. Bundles its own
+            # Python so no host library conflicts. Same pinned version as Linux.
+            curl -fsSL "https://awscli.amazonaws.com/AWSCLIV2-${AWSCLI_VERSION}.pkg" \
+              -o /tmp/awscliv2.pkg
+            pkgutil --check-signature /tmp/awscliv2.pkg
+            sudo installer -pkg /tmp/awscliv2.pkg -target /
+          else
+            # Linux: pinned zip + OpenPGP verify (supply-chain). Ensure gpg exists.
+            if ! command -v gpg >/dev/null 2>&1; then
+              if command -v apt-get >/dev/null 2>&1; then
+                sudo apt-get update -qq
+                sudo apt-get install -y --no-install-recommends gnupg unzip curl ca-certificates
+              elif command -v brew >/dev/null 2>&1; then
+                brew install gnupg unzip
+              else
+                echo "gpg is required for verified AWS CLI install on Linux"
+                exit 1
+              fi
+            fi
+            command -v unzip >/dev/null 2>&1 || {
+              if command -v apt-get >/dev/null 2>&1; then
+                sudo apt-get install -y --no-install-recommends unzip
+              elif command -v brew >/dev/null 2>&1; then
+                brew install unzip
+              else
+                echo "unzip is required for AWS CLI install"
+                exit 1
+              fi
+            }
+            # Versioned URL — pinned, not the moving "latest" zip (supply-chain).
+            base="https://awscli.amazonaws.com/awscli-exe-linux-x86_64-${AWSCLI_VERSION}.zip"
+            curl -fsSL "$base"      -o /tmp/awscliv2.zip
+            curl -fsSL "${base}.sig" -o /tmp/awscliv2.zip.sig
+            # Verify the signature in a throwaway keyring holding ONLY the pinned
+            # key, so a "good signature" can only mean the AWS CLI key signed it.
+            # Fails closed (no publish) if verification cannot be completed.
+            GNUPGHOME="$(mktemp -d)"; export GNUPGHOME
+            gpg --batch --keyserver hkps://keyserver.ubuntu.com --recv-keys "$AWSCLI_PGP_FPR" \
+              || gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys "$AWSCLI_PGP_FPR"
+            gpg --batch --verify /tmp/awscliv2.zip.sig /tmp/awscliv2.zip
+            unzip -q /tmp/awscliv2.zip -d /tmp
+            (sudo /tmp/aws/install --update || /tmp/aws/install --update --bin-dir "$HOME/.local/bin" --install-dir "$HOME/.local/aws-cli")
+          fi
+          export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
         fi
         aws --version
     - name: Push to S3
@@ -82,7 +114,7 @@ runs:
         ENDPOINT: ${{ inputs.endpoint }}
       run: |
         set -euo pipefail
-        export PATH="$HOME/.local/bin:$PATH"
+        export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
         dest="s3://${BUCKET}/${DESTINATION}"
         # NOTE: ${{ inputs.args }} below is the ONE deliberate verbatim interpolation
         # (flags must word-split); it is documented INTERNAL-USE-ONLY trusted input.

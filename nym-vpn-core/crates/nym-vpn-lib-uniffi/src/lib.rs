@@ -201,9 +201,10 @@ use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use tokio::runtime::Runtime;
 
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, FrontingMode, GatewayIndependence, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, MixnetTrafficConfig, NetworkStatisticsConfig, PrivyDerivationMessage,
-    SplitTunnelSettings, UserAgent, VpnServiceConfig,
+    DiagnosticRunParams, EntryPoint, ExitPoint, FrontingMode, GatewayIndependence,
+    GatewaySelectionAlgorithmConfig, GeoExclusionSettings, MixnetTrafficConfig,
+    NetworkStatisticsConfig, PrivyDerivationMessage, SplitTunnelSettings, UserAgent,
+    VpnServiceConfig,
 };
 
 #[cfg(target_os = "android")]
@@ -238,6 +239,20 @@ pub fn getPrivyDerivationMessage() -> PrivyDerivationMessage {
     PrivyDerivationMessage {
         message: nym_vpn_lib::privy::message_to_sign(),
     }
+}
+
+#[allow(non_snake_case)]
+#[uniffi::export(async_runtime = "tokio")]
+pub async fn runDiagnostic(
+    params: DiagnosticRunParams,
+    environment: Arc<NymEnvironment>,
+) -> Result<String, VpnError> {
+    let network = environment.inner().clone();
+    let report = TOKIO_RUNTIME
+        .spawn(async move { nym_diagnostic::DiagnosticHandler::run(network, params).await })
+        .await
+        .map_err(VpnError::internal)?;
+    serde_json::to_string_pretty(&report).map_err(VpnError::internal)
 }
 
 #[derive(uniffi::Record)]

@@ -459,6 +459,18 @@ impl VpndClient {
         Ok(())
     }
 
+    /// Reconnect the VPN
+    #[instrument(skip_all)]
+    pub async fn vpn_reconnect(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.reconnect_tunnel()
+            .or_else(async |e| self.handle_rpc_error("reconnect_tunnel", e).await)
+            .await?;
+
+        Ok(())
+    }
+
     /// Disconnect from the VPN
     #[instrument(skip_all)]
     pub async fn vpn_disconnect(&self) -> Result<(), VpndError> {
@@ -986,6 +998,14 @@ impl VpndClient {
             .await?;
 
         Ok(summary.map(Into::into))
+    }
+
+    pub async fn refresh_account_state(&self, force: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.refresh_account_state(force)
+            .or_else(async |e| self.handle_rpc_error("refresh_account_state", e).await)
+            .await
     }
 
     pub async fn handle_subscription_payment(&self) -> Result<(), VpndError> {

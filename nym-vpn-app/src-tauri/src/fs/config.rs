@@ -5,11 +5,22 @@ use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use std::fs;
 
-#[derive(Default, Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(default)]
 pub struct AppConfig {
     /// Whether Sentry error monitoring is enabled
-    #[serde(default)]
     pub sentry_monitoring: bool,
+    /// Whether app debug logging to a file is enabled
+    pub debug_logging: bool,
+}
+
+impl Default for AppConfig {
+    fn default() -> Self {
+        Self {
+            sentry_monitoring: false,
+            debug_logging: crate::DEFAULT_DEBUG_LOGGING,
+        }
+    }
 }
 
 impl AppConfig {

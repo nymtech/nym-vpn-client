@@ -68,6 +68,8 @@ constructor(
 
 	private var timerJob: Job? = null
 	private var lastConnectedAt: Long? = null
+	private var pendingNodeFamiliesConfirmAction: (suspend () -> Unit)? = null
+	private var nodeFamiliesEventHandled = false
 
 	init {
 		viewModelScope.launch {
@@ -84,7 +86,12 @@ constructor(
 				handleTunnelStateChange(state.tunnelState, state.connectionData?.connectedAt)
 				val event = state.backendUiEvent
 				if (event is BackendUiEvent.Failure && event.reason is ErrorStateReason.NeedsRelaxedIndependenceCriteria) {
-					handleNeedsRelaxedIndependenceCriteria()
+					if (!nodeFamiliesEventHandled) {
+						nodeFamiliesEventHandled = true
+						handleNeedsRelaxedIndependenceCriteria()
+					}
+				} else {
+					nodeFamiliesEventHandled = false
 				}
 			}
 		}
@@ -162,10 +169,16 @@ constructor(
 
 	fun onNodeFamiliesConfirm() = viewModelScope.launch {
 		Timber.tag(TAG).i("NodeFamiliesModalConfirmed")
+		val action = pendingNodeFamiliesConfirmAction
+		pendingNodeFamiliesConfirmAction = null
 		runCatching {
-			backendManager.setGatewayIndependenceEnabled(false)
-			backendManager.startTunnel()
+			action?.invoke()
 		}.onFailure { Timber.tag(TAG).e(it, "NodeFamiliesConnectFailed") }
+	}
+
+	fun onNodeFamiliesCancel() {
+		Timber.tag(TAG).i("NodeFamiliesModalCancelled")
+		pendingNodeFamiliesConfirmAction = null
 	}
 
 	private suspend fun resolveNodeFamiliesInteraction(onSilent: suspend () -> Unit) {
@@ -173,9 +186,9 @@ constructor(
 			vpnConfigRepository.getConfig().nodeFamiliesNotificationsEnabled
 		}.getOrDefault(true)
 		if (notificationsEnabled) {
+			pendingNodeFamiliesConfirmAction = onSilent
 			_events.tryEmit(MainUiEvent.ShowNodeFamiliesDialog)
 		} else {
-			backendManager.setGatewayIndependenceEnabled(false)
 			onSilent()
 		}
 	}
@@ -183,7 +196,7 @@ constructor(
 	private suspend fun handleNeedsRelaxedIndependenceCriteria() {
 		Timber.tag(TAG).i("NeedsRelaxedIndependenceCriteria (connected state)")
 		runCatching {
-			resolveNodeFamiliesInteraction { backendManager.requestReconnect() }
+			resolveNodeFamiliesInteraction { backendManager.requestReconnect(relaxGatewayIndependence = true) }
 		}.onFailure { Timber.tag(TAG).e(it, "NeedsRelaxedIndependenceCriteriaFailed") }
 	}
 
@@ -191,7 +204,7 @@ constructor(
 		when (result) {
 			is TentativeGateways.NeedsRelaxedIndependenceCriteria -> {
 				Timber.tag(TAG).i("NeedsRelaxedIndependenceCriteria (pre-connect)")
-				resolveNodeFamiliesInteraction { backendManager.startTunnel() }
+				resolveNodeFamiliesInteraction { backendManager.startTunnel(relaxGatewayIndependence = true) }
 			}
 			else -> backendManager.startTunnel()
 		}

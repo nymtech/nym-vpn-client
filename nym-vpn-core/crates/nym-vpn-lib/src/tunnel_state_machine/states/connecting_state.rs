@@ -132,20 +132,30 @@ impl ConnectingState {
             #[cfg(target_os = "macos")]
             let redirect_interface = shared_state.split_tunnel.interface().await;
 
+            let ws_entry_endpoints = selected_gateways
+                .as_ref()
+                .map(|v| v.entry_gateway().endpoints())
+                .unwrap_or_default();
+
+            let lp_entry_endpoints = selected_gateways
+                .as_ref()
+                .map(|v| v.entry_gateway().lp_endpoints())
+                .unwrap_or_default();
+
+            let api_endpoints = shared_state
+                .resolved_api_endpoints
+                .as_ref()
+                .map(|r| r.all_socket_addrs())
+                .unwrap_or_default();
+
             let firewall_policy_params = ConnectingPolicyParameters {
                 enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
                 allow_lan: shared_state.tunnel_settings.allow_lan,
                 wg_entry_endpoint: None,
                 bridge_endpoints,
-                ws_entry_endpoints: selected_gateways
-                    .as_ref()
-                    .map(|v| v.entry_gateway().endpoints())
-                    .unwrap_or_default(),
-                lp_entry_endpoints: selected_gateways
-                    .as_ref()
-                    .map(|v| v.entry_gateway().lp_endpoints())
-                    .unwrap_or_default(),
-                api_endpoints: Vec::new(),
+                ws_entry_endpoints,
+                lp_entry_endpoints,
+                api_endpoints,
                 // Allow default DNS servers when connecting since those are used by http/client
                 dns_servers: shared_state.tunnel_settings.allowed_default_dns_endpoints(),
                 tunnel_interface: None,
@@ -917,7 +927,10 @@ impl ConnectingPolicyParameters {
             .map(|addr| {
                 AllowedEndpoint::new(
                     Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
@@ -930,7 +943,10 @@ impl ConnectingPolicyParameters {
             if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
                 let allow_wg_endpoint = AllowedEndpoint::new(
                     Endpoint::from_socket_address(addr, TransportProtocol::Udp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
@@ -949,7 +965,10 @@ impl ConnectingPolicyParameters {
             .for_each(|addr| {
                 let allow_bridge_endpoint = AllowedEndpoint::new(
                     Endpoint::from_socket_address(*addr, TransportProtocol::Udp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
@@ -1052,5 +1071,38 @@ mod test {
             .map(|i| wait_delay(*i))
             .collect();
         assert_eq!(delay_values, expected_delays);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_connecting_peer_endpoints_allow_all_for_fwmark() {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        let params = ConnectingPolicyParameters {
+            enable_ipv6: false,
+            allow_lan: false,
+            wg_entry_endpoint: Some(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)),
+                51822,
+            )),
+            bridge_endpoints: vec![SocketAddr::new(IpAddr::V4(Ipv4Addr::new(5, 6, 7, 8)), 4443)],
+            ws_entry_endpoints: vec![SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(9, 10, 11, 12)),
+                9000,
+            )],
+            lp_entry_endpoints: vec![],
+            api_endpoints: vec![],
+            dns_servers: vec![],
+            tunnel_interface: None,
+        };
+
+        let policy = params.as_policy();
+
+        for endpoint in policy.peer_endpoints() {
+            assert!(
+                endpoint.clients.allow_all(),
+                "Linux connecting peer endpoints must use AllowedClients::All so nftables mangle sets fwmark"
+            );
+        }
     }
 }

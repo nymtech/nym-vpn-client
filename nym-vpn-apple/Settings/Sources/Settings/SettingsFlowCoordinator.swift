@@ -44,9 +44,23 @@ struct SettingsFlowCoordinator<Content: View>: View {
         case let .accountWelcome(type: type, navigationSource: navigationSource):
             accountWelcomeDestination(type: type, navigationSource: navigationSource)
         case let .generatePassphrase(displayPurchaseView: displayPurchaseView):
-            GeneratePassphraseView(path: $flowState.path, displayPurchaseView: displayPurchaseView)
+            GeneratePassphraseView(
+                path: $flowState.path,
+                displayPurchaseView: displayPurchaseView,
+                onPurchaseFlowDismissed: {
+                    flowState.onSessionEvent?(.checkoutDismissed)
+                }
+            )
         case .processingAccount:
-            ProcessingAccountView(path: $flowState.path)
+            ProcessingAccountView(
+                path: $flowState.path,
+                onPurchaseFlowComplete: {
+                    flowState.onSessionEvent?(.checkoutCompleted)
+                },
+                onPurchaseFlowDismissed: {
+                    flowState.onSessionEvent?(.checkoutDismissed)
+                }
+            )
         case .passphrase:
             PassphraseView(path: $flowState.path)
         case .logs:
@@ -85,9 +99,9 @@ struct SettingsFlowCoordinator<Content: View>: View {
             GeoExclusionInstructionsView(path: $flowState.path, listenPort: port)
         case .splitTunnel:
             SplitTunnelView(path: $flowState.path)
+#endif
         case .diagnosticTool:
             DiagnosticToolView(path: $flowState.path)
-#endif
         case .privacyAndData:
             privacyAndDataDestination()
         case .dns:

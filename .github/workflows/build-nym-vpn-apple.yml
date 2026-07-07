@@ -61,7 +61,7 @@ env:
   S3_BUCKET: builds
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: build-nym-vpn-apple-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -201,6 +201,28 @@ jobs:
           brew --version
           ruby --version
           gem --version
+
+      - name: Ensure codemagic-cli-tools uses compatible Python
+        run: |
+          set -euo pipefail
+          if ! keychain --version >/dev/null 2>&1; then
+            # The runner's system /usr/lib/libexpat.1.dylib is missing
+            # _XML_SetAllocTrackerActivationThreshold. Every Homebrew Python
+            # version (3.12 and 3.14) links pyexpat.so against the system
+            # libexpat, so ALL versions fail — switching Python doesn't help.
+            # Fix: remap each Homebrew Python's pyexpat.so to use Homebrew's
+            # own expat formula (which ships the required symbol), then
+            # ad-hoc re-sign the patched .so so macOS will load it.
+            brew install expat
+            HOMEBREW_EXPAT="$(brew --prefix expat)/lib/libexpat.1.dylib"
+            while IFS= read -r -d '' so; do
+              install_name_tool -change /usr/lib/libexpat.1.dylib \
+                "$HOMEBREW_EXPAT" "$so" \
+                && codesign -f -s - "$so" || true
+            done < <(find /opt/homebrew/Cellar/python@* \
+              -name 'pyexpat*.so' -not -type l -print0 2>/dev/null)
+            keychain --version
+          fi
 
       - name: Apply orchestrated version (apple)
         uses: ./.github/workflows/platform/apply-version
@@ -380,11 +402,13 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         run: |
-          brew tap crowdin/crowdin
-          brew install crowdin@4 || brew upgrade crowdin@4 || true
-
-          # Make sure the crowdin binary is on PATH for this step
-          export PATH="$(brew --prefix crowdin@4)/bin:$PATH"
+          if ! command -v crowdin >/dev/null 2>&1; then
+            brew tap crowdin/crowdin
+            brew trust crowdin/crowdin 2>/dev/null || true
+            brew install crowdin@4 || brew upgrade crowdin@4 || true
+            crowdin_prefix="$(brew --prefix crowdin@4)"
+            export PATH="$crowdin_prefix/bin:$PATH"
+          fi
 
           which crowdin || echo "crowdin not in PATH"
 
@@ -1235,7 +1259,7 @@ jobs:
           set -euo pipefail
           if ! command -v gh >/dev/null 2>&1; then
             echo "::notice:: gh not found on PATH — installing via Homebrew"
-            brew install gh
+            brew install gh || brew upgrade gh
           fi
           gh --version
 

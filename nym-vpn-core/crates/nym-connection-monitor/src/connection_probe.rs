@@ -16,6 +16,11 @@ pub trait ConnectionProbe {
 pub trait ProbeError: std::error::Error + Send + 'static {
     /// Returns true if the error is a timeout error.
     fn is_timeout(&self) -> bool;
+
+    /// Returns true when the probe could not be sent (e.g. raw socket bind on utun).
+    fn is_send_failure(&self) -> bool {
+        false
+    }
 }
 
 /// Convenience wrapper around a boxed probe error.

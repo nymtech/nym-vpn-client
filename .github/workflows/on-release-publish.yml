@@ -56,6 +56,38 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "::notice:: post-release fan-out for ${TAG} (version ${version})"
 
+  # Ship is the line's final release: clear the -beta.N releases that led to it so
+  # the Releases page shows only shipped versions. Scoped to the shipped base line
+  # (a ship of 2026.11.0 only clears 2026.11.0-beta.*). Tags are KEPT (no
+  # --cleanup-tag) — they stay the immutable ledger that resolve-version reads to
+  # never recompute onto a used beta number. Only fires on ship: beta releases are
+  # --prerelease, and 'released' never fires for prereleases.
+  delete-betas:
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete shipped-line beta releases (keep tags)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.setup.outputs.version }}
+        run: |
+          set -euo pipefail
+          BASE="${VERSION%%-*}"          # major.minor.patch of the shipped line
+          BASE_RE="${BASE//./[.]}"       # literal-dot regex for jq test()
+          mapfile -t betas < <(gh release list --limit 200 --json tagName \
+            -q ".[] | .tagName | select(test(\"^nym-vpn-v${BASE_RE}-beta[.][0-9]+\$\"))")
+          if [ "${#betas[@]}" -eq 0 ]; then
+            echo "::notice:: no beta releases for ${BASE} to delete"
+            exit 0
+          fi
+          for t in "${betas[@]}"; do
+            echo "::notice:: deleting beta release ${t} (keeping tag)"
+            gh release delete "$t" --yes   # no --cleanup-tag → tag stays
+          done
+
   aur-vpnd:
     needs: setup
     uses: ./.github/workflows/publish-aur-nym-vpnd.yml

@@ -1,4 +1,5 @@
 import Foundation
+import TunnelStatus
 #if os(macOS)
 import GRPCManager
 #endif

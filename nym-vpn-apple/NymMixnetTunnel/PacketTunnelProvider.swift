@@ -48,7 +48,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         let vpnConfig = try mixnetConfig.asVpnConfig(tunProvider: self)
         try await setup(vpnConfig: vpnConfig)
 
-        try await ensureGatewayIndependenceAllowsConnect()
+        try await ensureGatewayIndependenceAllowsConnect(
+            remindersEnabled: mixnetConfig.isServerFamilyRemindersEnabled
+        )
 
         _ = try await commandSender?.connectTunnel()
         try await tunnelActor.waitUntilStarted()
@@ -70,12 +72,18 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 }
 
 extension PacketTunnelProvider {
-    func ensureGatewayIndependenceAllowsConnect() async throws {
+    func ensureGatewayIndependenceAllowsConnect(remindersEnabled: Bool) async throws {
         guard let commandSender else { return }
 
         try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: true)
         guard case .needsRelaxedIndependenceCriteria = try await commandSender.getTentativeGateways()
         else {
+            return
+        }
+
+        guard remindersEnabled
+        else {
+            try await commandSender.setEnableGatewayIndependence(enableGatewayIndependence: false)
             return
         }
 
@@ -116,7 +124,7 @@ extension PacketTunnelProvider: OsTunProvider {
             try await setTunnelNetworkSettings(networkSettings)
         } catch {
             logger.error("Failed to set tunnel network settings: \(error)")
-            throw error
+            throw VpnErrorUniFFIBoundary.vpnError(from: error)
         }
     }
 }

@@ -86,6 +86,17 @@ private extension SantasView {
             Text("⚠️ Please restart daemon after switching the env ⚠️")
                 .padding(4)
 #endif
+#if os(iOS)
+            if viewModel.currentAppEnv != viewModel.actualEnv {
+                Text("⚠️ App and network env differ - restart may be required ⚠️")
+                    .font(.caption)
+                    .padding(4)
+            }
+            Text(viewModel.storeKitAccountGuidance)
+                .font(.caption)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 8)
+#endif
             HStack {
                 ForEach(viewModel.envs, id: \.self) { env in
                     Button(env.rawValue) {

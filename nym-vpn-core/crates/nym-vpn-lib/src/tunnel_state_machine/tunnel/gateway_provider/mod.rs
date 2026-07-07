@@ -135,10 +135,17 @@ impl<C: GatewayCache> GatewayProvider<C> {
     }
 
     pub async fn tentative_gateways(&self) -> TentativeGateways {
-        // use a very small timeout because we actually expect the stream to always have a value ready
-        // if it doesn't, there's probably some error, but we shouldn't block the RPC call anyway
+        // In steady state the stream always has a value buffered, so this peek
+        // returns immediately. However, `set_tunnel_settings` (triggered on every
+        // connect press via `set_gateway_independence`) swaps in a brand-new,
+        // empty stream and asks the algorithm to recompute. When this RPC is
+        // queried in that window we must wait for the first fresh selection to
+        // land rather than reporting `NoGatewaysAvailable` against an empty
+        // stream. The wait is still bounded: a genuinely failing selection (e.g.
+        // an empty gateway pool) yields an `Err` quickly, so this only ever
+        // blocks while a real selection is in flight.
         match tokio::time::timeout(
-            Duration::from_millis(10),
+            Duration::from_millis(100),
             self.selected_gateways_stream.lock().await.peek(),
         )
         .await
@@ -254,6 +261,15 @@ impl<C: GatewayCache> GatewayProvider<C> {
             .replace_gateway_client(gateway_client)
             .ok();
         self.gateway_cache.refresh_all().await.ok();
+    }
+
+    pub fn set_gateway_cache_paused(&self, paused: bool) {
+        if let Err(e) = self.gateway_cache.set_paused(paused) {
+            tracing::warn!(
+                "Failed to {} the gateway cache: {e}",
+                if paused { "pause" } else { "resume" }
+            );
+        }
     }
 
     pub fn blacklisted_gateways(&self) -> BlacklistedGateways {

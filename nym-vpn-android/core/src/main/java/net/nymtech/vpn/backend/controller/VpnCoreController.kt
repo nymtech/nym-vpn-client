@@ -422,9 +422,6 @@ class VpnCoreController(
 		if (force || prev?.adBlockingEnabled != cfg.adBlockingEnabled) {
 			sender.setEnableAdBlocking(cfg.adBlockingEnabled)
 		}
-		if (force || prev?.nodeFamiliesNotificationsEnabled != cfg.nodeFamiliesNotificationsEnabled) {
-			sender.setEnableGatewayIndependence(cfg.nodeFamiliesNotificationsEnabled)
-		}
 
 		applyGeoExclusionToSender(sender, force, prev, cfg)
 	}

@@ -152,7 +152,9 @@ private extension DnsView {
     func customDnsInstructionsAndList() -> some View {
         VStack(spacing: 0) {
             customDnsInstructions()
-            customDnsList()
+            if viewModel.showsCustomDnsList {
+                customDnsList()
+            }
             dnsTextFieldAndAddButton()
             dnsSaveChangesButton()
         }
@@ -215,6 +217,7 @@ private extension DnsView {
             .frame(maxWidth: .infinity)
             .frame(height: (DnsView.dnsEntryHeight * CGFloat(viewModel.customDns.count)) * 1.45)
         }
+        .clipped()
     }
     #elseif os(iOS)
     func customDnsList() -> some View {
@@ -265,6 +268,7 @@ private extension DnsView {
             .frame(maxWidth: .infinity)
             .frame(height: (DnsView.dnsEntryHeight * CGFloat(viewModel.customDns.count)) * 2)
         }
+        .clipped()
     }
     #endif
 
