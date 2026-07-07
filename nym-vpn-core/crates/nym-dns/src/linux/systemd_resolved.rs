@@ -19,6 +19,12 @@ pub enum Error {
 
     #[error("unable to translate network interface name \"{0}\" into index")]
     LookupInterfaceIndex(String, #[source] nix::Error),
+
+    #[error("failed to set search domains")]
+    SetDomainsError(#[source] SystemdDbusError),
+
+    #[error("failed to disable DoT")]
+    DisableDotError(#[source] SystemdDbusError),
 }
 
 pub struct SystemdResolved {
@@ -69,19 +75,22 @@ impl SystemdResolved {
     }
 
     pub async fn reset(&mut self) -> Result<()> {
+        let mut result = Ok(());
+
         if let Err(error) = self
             .dbus_interface
             .set_domains(self.tunnel_index, &[])
             .await
         {
-            trace_err_chain!(error, "Failed to set search domains");
+            result = Err(Error::SetDomainsError(error));
         }
 
-        let _ = self
-            .dbus_interface
-            .set_dns(self.tunnel_index, vec![])
-            .await?;
+        if let Err(error) = self.dbus_interface.set_dns(self.tunnel_index, vec![]).await {
+            if result.is_ok() {
+                result = Err(Error::SystemdResolvedError(error));
+            }
+        }
 
-        Ok(())
+        result
     }
 }

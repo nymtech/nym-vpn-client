@@ -28,8 +28,8 @@ pub enum Error {
     #[error("using 'resolvconf' to add a record failed: {}", stderr)]
     AddRecord { stderr: String },
 
-    #[error("using 'resolvconf' to delete a record failed")]
-    DeleteRecord,
+    #[error("using 'resolvconf' to delete record '{record_name}' failed: {stderr}")]
+    DeleteRecord { record_name: String, stderr: String },
 
     #[error("detected dnsmasq is running and misconfigured")]
     DnsmasqMisconfiguration,
@@ -116,13 +116,11 @@ impl Resolvconf {
                 .run()
                 .map_err(Error::RunResolvconf)?;
 
-            if !output.status.success() {
-                tracing::error!(
-                    "Failed to delete 'resolvconf' record '{}':\n{}",
+            if !output.status.success() && result.is_ok() {
+                result = Err(Error::DeleteRecord {
                     record_name,
-                    String::from_utf8_lossy(&output.stderr)
-                );
-                result = Err(Error::DeleteRecord);
+                    stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+                });
             }
         }
 
