@@ -154,6 +154,14 @@ export async function initFirstBatch() {
     },
   };
 
+  const getDebugLoggingRq: TauriReq<() => Promise<boolean | undefined>> = {
+    name: 'getDebugLogging',
+    request: () => invoke<boolean>('debug_logging_enabled'),
+    onFulfilled: (enabled) => {
+      dispatch({ type: 'set-debug-logging', enabled: enabled || false });
+    },
+  };
+
   const getDepsRustRq: TauriReq<() => Promise<CodeDependency[] | undefined>> = {
     name: 'getDepsRustRq',
     request: () => getRustLicenses(),
@@ -193,6 +201,7 @@ export async function initFirstBatch() {
     getThemeRq,
     getRootFontSizeRq,
     getMonitoringRq,
+    getDebugLoggingRq,
     getDepsRustRq,
     getDepsJsRq,
     getDesktopNotificationsRq,

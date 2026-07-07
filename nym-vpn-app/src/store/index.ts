@@ -76,6 +76,7 @@ export const useMainState = (): AppState =>
       autostart: s.autostart,
       autoConnect: s.autoConnect,
       monitoring: s.monitoring,
+      debugLogging: s.debugLogging,
       desktopNotifications: s.desktopNotifications,
       entryNode: s.entryNode,
       exitNode: s.exitNode,

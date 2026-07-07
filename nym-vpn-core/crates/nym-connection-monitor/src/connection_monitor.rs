@@ -323,8 +323,10 @@ mod tests {
     use tokio_util::sync::DropGuard;
 
     use super::*;
-    use crate::BoxedProbeError;
-    use crate::mock_probe::{MockProbe, MockProbeError, Outcome};
+    use crate::{
+        BoxedProbeError,
+        mock_probe::{MockProbe, MockProbeError, Outcome},
+    };
 
     const PROBE_RETRY_COUNT: u32 = 3;
     const INITIAL_PROBE_TIMEOUT: Duration = Duration::from_secs(3);
