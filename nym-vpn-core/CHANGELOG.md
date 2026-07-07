@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - While in Connected state swap internal resolver to use custom DNS (via system resolver). (https://github.com/nymtech/nym-vpn-client/pull/5674)
 
+### Fixed
+
+- [iOS] Skip ad-blocking rules that do not block by domain (https://github.com/nymtech/nym-vpn-client/pull/5658)
+
+
 ## [2026.11.0] - TBD
 
 ### Added
