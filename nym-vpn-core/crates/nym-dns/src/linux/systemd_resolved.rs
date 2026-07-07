@@ -4,7 +4,6 @@
 
 use std::net::IpAddr;
 
-use nym_common::trace_err_chain;
 use nym_dbus::systemd_resolved::{AsyncHandle, SystemdResolved as DbusInterface};
 use nym_routing::RouteManagerHandle;
 
