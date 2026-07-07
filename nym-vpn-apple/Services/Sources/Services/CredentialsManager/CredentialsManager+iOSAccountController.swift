@@ -25,12 +25,15 @@ extension CredentialsManager {
         }
     }
 
-    func prepareForLogoutOnIOS() async {
+    func beginLogoutOnIOS() async {
         isLoggingOut = true
-        defer { isLoggingOut = false }
         accountSummaryUpdateTask?.cancel()
         accountSummaryUpdateTask = nil
         await shutdownControllersAndWait()
+    }
+
+    func endLogoutOnIOS() {
+        isLoggingOut = false
     }
 
     var isTunnelActive: Bool {

@@ -320,9 +320,15 @@ import PathManager
 #endif
     }
 
-    public func prepareForLogout() async {
+    public func beginLogout() async {
 #if os(iOS)
-        await prepareForLogoutOnIOS()
+        await beginLogoutOnIOS()
+#endif
+    }
+
+    public func endLogout() {
+#if os(iOS)
+        endLogoutOnIOS()
 #endif
     }
 

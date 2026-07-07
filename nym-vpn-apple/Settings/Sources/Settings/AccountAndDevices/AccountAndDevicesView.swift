@@ -318,8 +318,10 @@ extension AccountAndDevicesView {
         }
     }
 
+    @MainActor
     func logout() async {
-        await credentialsManager.prepareForLogout()
+        await credentialsManager.beginLogout()
+        defer { credentialsManager.endLogout() }
 
         if LogoutTeardownPolicy.needsDisconnectWait(for: connectionManager.currentTunnelStatus) {
             logoutProgressText = "disconnecting".localizedString

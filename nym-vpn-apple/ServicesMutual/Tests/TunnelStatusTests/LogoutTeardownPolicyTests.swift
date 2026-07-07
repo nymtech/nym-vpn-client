@@ -17,8 +17,17 @@ struct LogoutTeardownPolicyTests {
         #expect(LogoutTeardownPolicy.shouldInitiateDisconnect(for: .connected))
     }
 
+    @Test func offlineInitiatesDisconnectAndWaits() {
+        #expect(LogoutTeardownPolicy.needsDisconnectWait(for: .offline))
+        #expect(LogoutTeardownPolicy.shouldInitiateDisconnect(for: .offline))
+    }
+
     @Test func disconnectWaitCapMatchesRustDisconnectBudget() {
-        #expect(LogoutTeardownPolicy.disconnectWaitCapSeconds >= 5)
-        #expect(LogoutTeardownPolicy.disconnectWaitCapSeconds <= 10)
+        #expect(LogoutTeardownPolicy.disconnectWaitCapSeconds == 7)
+    }
+
+    @Test func profileResetRequiresDisconnectWithinCap() {
+        #expect(LogoutTeardownPolicy.shouldResetVpnProfileAfterLogoutDisconnect(disconnectedInTime: true))
+        #expect(!LogoutTeardownPolicy.shouldResetVpnProfileAfterLogoutDisconnect(disconnectedInTime: false))
     }
 }

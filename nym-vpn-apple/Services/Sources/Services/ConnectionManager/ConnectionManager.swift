@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import NetworkExtension
+import os
 import AppSettings
 import ConnectionTypes
 import ConnectionTypes
@@ -13,6 +14,11 @@ import GRPCManager
 #endif
 
 @MainActor public final class ConnectionManager: ObservableObject {
+    private static let logoutLogger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "NymVPN",
+        category: "ConnectionManager.logout"
+    )
+
     private var timerCancellable: AnyCancellable?
 
     let appSettings: AppSettings
@@ -115,30 +121,45 @@ import GRPCManager
 #endif
 
     /// Disconnects tunnel if connected.
-    /// iOS removes tunnel profile.
+    /// iOS removes tunnel profile when disconnect completes within the logout wait cap.
     public func disconnectBeforeLogout() async {
-        await disconnectForLogout()
+        let disconnectedInTime = await disconnectForLogout()
 #if os(iOS)
-        resetVpnProfile()
+        if LogoutTeardownPolicy.shouldResetVpnProfileAfterLogoutDisconnect(
+            disconnectedInTime: disconnectedInTime
+        ) {
+            resetVpnProfile()
+        } else {
+            Self.logoutLogger.warning(
+                "Logout disconnect wait timed out; skipping VPN profile reset"
+            )
+        }
 #endif
         setEntryGateway(.random)
         setExitGateway(.random)
     }
 
     /// Logout path: bounded wait when the user already started disconnecting elsewhere.
-    func disconnectForLogout() async {
-        guard LogoutTeardownPolicy.needsDisconnectWait(for: currentTunnelStatus) else { return }
+    @discardableResult
+    func disconnectForLogout() async -> Bool {
+        guard LogoutTeardownPolicy.needsDisconnectWait(for: currentTunnelStatus) else { return true }
 #if os(iOS)
         if LogoutTeardownPolicy.shouldInitiateDisconnect(for: currentTunnelStatus) {
             try? await disconnectActiveTunnel()
         }
-        await waitForTunnelStatus(
+        let disconnectedInTime = await waitForTunnelStatus(
             with: .disconnected,
             timeout: LogoutTeardownPolicy.disconnectWaitCapSeconds
         )
+        if !disconnectedInTime {
+            Self.logoutLogger.warning(
+                "Logout disconnect wait timed out before tunnel reached disconnected"
+            )
+        }
+        return disconnectedInTime
 #elseif os(macOS)
         try? await grpcManager.disconnect()
-        await waitForTunnelStatus(
+        return await waitForTunnelStatus(
             with: .disconnected,
             timeout: LogoutTeardownPolicy.disconnectWaitCapSeconds
         )
@@ -188,27 +209,22 @@ public extension ConnectionManager {
 // MARK: - Connection -
 
 extension ConnectionManager {
-    func waitForTunnelStatus(with targetStatus: TunnelStatus, timeout: TimeInterval? = nil) async {
-        if currentTunnelStatus == targetStatus { return }
+    @discardableResult
+    func waitForTunnelStatus(with targetStatus: TunnelStatus, timeout: TimeInterval? = nil) async -> Bool {
+        if currentTunnelStatus == targetStatus { return true }
 
         if let timeout {
-            await withTaskGroup(of: Bool.self) { group in
-                group.addTask { @MainActor in
-                    await self.waitForTunnelStatusChange(to: targetStatus)
-                    return true
-                }
-                group.addTask {
-                    try? await Task.sleep(for: .seconds(timeout))
-                    return false
-                }
-                let finishedInTime = await group.next() ?? false
-                group.cancelAll()
-                _ = finishedInTime
+            let pollInterval: Duration = .milliseconds(250)
+            let deadline = ContinuousClock.now + .seconds(timeout)
+            while ContinuousClock.now < deadline {
+                if currentTunnelStatus == targetStatus { return true }
+                try? await Task.sleep(for: pollInterval)
             }
-            return
+            return currentTunnelStatus == targetStatus
         }
 
         await waitForTunnelStatusChange(to: targetStatus)
+        return currentTunnelStatus == targetStatus
     }
 
     private func waitForTunnelStatusChange(to targetStatus: TunnelStatus) async {

@@ -14,7 +14,7 @@ extension AccountAndDevicesView {
             isYesDestructive: true,
             yesAction: {
                 isLogoutLoading = true
-                logoutProgressText = "settings.loggingOut".localizedString
+                logoutProgressText = ""
                 Task {
                     await logout()
                     try? await Task.sleep(for: .seconds(0.3))
