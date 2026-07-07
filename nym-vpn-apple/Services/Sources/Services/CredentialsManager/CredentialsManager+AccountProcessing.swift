@@ -12,3 +12,11 @@ extension CredentialsManager: AccountProcessing {
 #endif
     }
 }
+
+#if os(macOS)
+extension CredentialsManager {
+    public func ensureDeviceRegisteredForLogin() async throws {
+        try await registerAccountIfNeeded()
+    }
+}
+#endif

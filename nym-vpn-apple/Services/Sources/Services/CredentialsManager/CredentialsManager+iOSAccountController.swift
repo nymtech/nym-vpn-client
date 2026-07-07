@@ -55,7 +55,14 @@ extension CredentialsManager {
         return .fetchedTickets
     }
 
-    func prepareRegisteredAccount(environment _: NymEnvironment) async throws {
+    func prepareRegisteredAccount(environment env: NymEnvironment) async throws {
+        try await prepareRegisteredAccount(environment: env, onAccountPhaseChange: nil)
+    }
+
+    func prepareRegisteredAccount(
+        environment _: NymEnvironment,
+        onAccountPhaseChange: (@MainActor (OnboardingAccountPreparationPolicy.AccountStatePhase) -> Void)?
+    ) async throws {
         do {
             try await AccountRegistrationSupport.withAccountStoreRetry(
                 operation: "prepareRegisteredAccount",
@@ -64,7 +71,8 @@ extension CredentialsManager {
                 try await withController { controller in
                     try await waitForOnboardingAccountPrepared(
                         controller: controller,
-                        timeout: 120
+                        timeout: 120,
+                        onAccountPhaseChange: onAccountPhaseChange
                     )
                 }
             }
@@ -75,20 +83,40 @@ extension CredentialsManager {
 
     func waitForOnboardingAccountPrepared(
         controller: NymAccountController,
-        timeout: TimeInterval
+        timeout: TimeInterval,
+        onAccountPhaseChange: (@MainActor (OnboardingAccountPreparationPolicy.AccountStatePhase) -> Void)? = nil
     ) async throws {
         let pollInterval: Duration = .milliseconds(250)
         let deadline = ContinuousClock.now + .seconds(timeout)
+        var consecutiveOfflineSeconds: TimeInterval = 0
+        var lastReportedPhase: OnboardingAccountPreparationPolicy.AccountStatePhase?
 
         while ContinuousClock.now < deadline {
             try Task.checkCancellation()
-            switch Self.accountPreparationWaitOutcome(for: await controller.getAccountState()) {
+            let state = await controller.getAccountState()
+            let accountPhase = Self.accountPreparationPhase(from: state)
+            if accountPhase != lastReportedPhase {
+                lastReportedPhase = accountPhase
+                onAccountPhaseChange?(accountPhase)
+            }
+            switch Self.accountPreparationWaitOutcome(for: state) {
             case .prepared:
                 return
             case .continueWaiting:
+                consecutiveOfflineSeconds = 0
                 try await Task.sleep(for: pollInterval)
             case .fail(let details):
-                throw VpnError.AccountControllerError(details: details)
+                if details == "offline" {
+                    consecutiveOfflineSeconds += OnboardingAccountPreparationPolicy.waitPollIntervalSeconds
+                    if OnboardingAccountPreparationPolicy.shouldFailOnOffline(
+                        consecutiveOfflineSeconds: consecutiveOfflineSeconds
+                    ) {
+                        throw VpnError.AccountControllerError(details: details)
+                    }
+                    try await Task.sleep(for: pollInterval)
+                } else {
+                    throw VpnError.AccountControllerError(details: details)
+                }
             }
         }
         throw VpnError.VpnApiTimeout
