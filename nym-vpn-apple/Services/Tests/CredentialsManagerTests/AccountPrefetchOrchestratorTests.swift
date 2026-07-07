@@ -17,7 +17,9 @@ private final class FakeAccountProcessing: AccountProcessing {
 
     func ensureCredentialImportResolved() async {}
 
-    func prepareRegisteredAccount() async throws {}
+    func prepareRegisteredAccount(
+        onAccountPhaseChange: (@MainActor (OnboardingAccountPreparationPolicy.AccountStatePhase) -> Void)?
+    ) async throws {}
 
     func updateAccountSummary(force: Bool, untilActive: Bool) async {
         events.append(.syncSummary)
@@ -38,6 +40,8 @@ private final class FakeAccountProcessing: AccountProcessing {
     func storeDeeplink(callbackURLString: String) async throws {}
 
     func registerAccountIfNeeded() async throws {}
+
+    func ensureDeviceRegisteredForLogin() async throws {}
 }
 
 @MainActor

@@ -262,12 +262,27 @@ import PathManager
             ).registerAccount()
         }.value
     }
+
+    public func ensureDeviceRegisteredForLogin() async throws {
+        let env = try resolvedRegistrationEnvironment()
+        _ = try await AccountRegistrationSupport.withAccountStoreRetry(
+            operation: "ensureDeviceRegisteredForLogin",
+            logger: logger
+        ) {
+            try await registerAccount(environment: env)
+        }
+    }
 #endif
 
-    public func prepareRegisteredAccount() async throws {
+    public func prepareRegisteredAccount(
+        onAccountPhaseChange: (@MainActor (OnboardingAccountPreparationPolicy.AccountStatePhase) -> Void)?
+    ) async throws {
 #if os(iOS)
         let env = try resolvedNetworkEnvironment()
-        try await prepareRegisteredAccount(environment: env)
+        try await prepareRegisteredAccount(
+            environment: env,
+            onAccountPhaseChange: onAccountPhaseChange
+        )
 #endif
     }
 
