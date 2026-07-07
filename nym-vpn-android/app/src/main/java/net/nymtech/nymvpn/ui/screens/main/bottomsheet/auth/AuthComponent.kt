@@ -1,12 +1,14 @@
-package net.nymtech.nymvpn.ui.screens.auth
+package net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -15,28 +17,32 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.ui.AppUiState
+import net.nymtech.nymvpn.ui.AuthRoute
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.screens.auth.modal.ExistingSubscriptionModal
-import net.nymtech.nymvpn.ui.screens.auth.components.LoginView
-import net.nymtech.nymvpn.ui.screens.auth.components.PassphraseView
-import net.nymtech.nymvpn.ui.screens.auth.components.SignUpView
-import net.nymtech.nymvpn.ui.screens.auth.components.TechOptView
-import net.nymtech.nymvpn.ui.screens.auth.components.WelcomeView
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.modal.ExistingSubscriptionModal
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.LoginView
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.PassphraseView
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.SignUpView
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.TechOptView
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.auth.components.WelcomeView
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.savePasswordToManager
 
 @Composable
 fun AuthComponent(
 	initialRoute: AuthRoute,
 	onAuthSuccess: () -> Unit,
-	onSaveToPasswordManager: (passphrase: String) -> Unit,
+	onLoginProcessingStart: (passphrase: String) -> Unit,
 	onWelcomeShown: () -> Unit = {},
 	appUiState: AppUiState,
 	modifier: Modifier = Modifier,
 	viewModel: AuthViewModel = hiltViewModel(),
 ) {
 	val context = LocalContext.current
+	val coroutineScope = rememberCoroutineScope()
 
 	val localNavController = rememberNavController()
 	val rootNavController = LocalNavController.current
@@ -47,15 +53,9 @@ fun AuthComponent(
 	LaunchedEffect(Unit) {
 		viewModel.events.collect { event ->
 			when (event) {
-				is AuthEvent.SaveToPasswordManager -> {
-					onSaveToPasswordManager(event.phrase)
-				}
-				is AuthEvent.LoginSuccess -> {
-					if (event.showTechnicalOpt) {
-						localNavController.navigate(AuthRoute.TechOpt)
-					} else {
-						onAuthSuccess()
-					}
+				is AuthEvent.LoginMnemonicImported -> {
+					onLoginProcessingStart(event.phrase)
+					coroutineScope.launch { savePasswordToManager(context = context, password = event.phrase) }
 				}
 				is AuthEvent.NavigateToGenerating -> {
 					onAuthSuccess()
@@ -80,7 +80,8 @@ fun AuthComponent(
 		startDestination = initialRoute,
 		modifier = modifier
 			.fillMaxWidth()
-			.wrapContentHeight(),
+			.wrapContentHeight()
+			.animateContentSize(),
 		enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
 		exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(300)) },
 		popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(300)) },
