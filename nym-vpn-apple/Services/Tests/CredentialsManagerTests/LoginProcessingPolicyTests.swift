@@ -81,6 +81,12 @@ struct LoginProcessingPolicyTests {
             LoginProcessingProgressPolicy.credentialsCopyKeys(isSyncing: true, isPrefetching: true)?.title
                 == LoginProcessingUI.almostReadyTitleKey
         )
+        let awaitingAfterPrefetch = LoginProcessingProgressPolicy.credentialsCopyKeys(
+            isSyncing: false,
+            isPrefetching: false,
+            holdsPrefetchCopyThroughAdvance: true
+        )
+        #expect(awaitingAfterPrefetch?.title == LoginProcessingUI.almostReadyTitleKey)
     }
 
     @Test func backendPhasePolicy_mapsControllerPhasesToDisplay() {

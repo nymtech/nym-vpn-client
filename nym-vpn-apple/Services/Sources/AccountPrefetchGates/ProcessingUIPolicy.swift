@@ -115,9 +115,10 @@ public enum LoginProcessingProgressPolicy: Sendable {
 
     public static func credentialsCopyKeys(
         isSyncing: Bool,
-        isPrefetching: Bool
+        isPrefetching: Bool,
+        holdsPrefetchCopyThroughAdvance: Bool = false
     ) -> (title: String, subtitle: String)? {
-        if isPrefetching {
+        if isPrefetching || holdsPrefetchCopyThroughAdvance {
             return (
                 LoginProcessingUI.almostReadyTitleKey,
                 LoginProcessingUI.almostReadySubtitleKey
@@ -152,10 +153,11 @@ public enum LoginProcessingCarouselVisibilityPolicy: Sendable {
         usesStaticCopy: Bool,
         didShowFinalMessage: Bool,
         isSyncing: Bool,
-        isPrefetching: Bool
+        isPrefetching: Bool,
+        holdsPrefetchCopyThroughAdvance: Bool = false
     ) -> Bool {
         guard !usesStaticCopy, !didShowFinalMessage else { return false }
-        return isSyncing || isPrefetching
+        return isSyncing || isPrefetching || holdsPrefetchCopyThroughAdvance
     }
 }
 

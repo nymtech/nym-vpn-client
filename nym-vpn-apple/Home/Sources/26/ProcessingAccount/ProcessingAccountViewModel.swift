@@ -67,10 +67,15 @@ public final class ProcessingAccountViewModel {
         }
     }
 
+    private var holdsPrefetchCopyThroughAdvance: Bool {
+        phase == .awaitingAdvance && hasReachedPrefetchPhase
+    }
+
     var credentialsDisplayPair: (String, String)? {
         guard let keys = LoginProcessingProgressPolicy.credentialsCopyKeys(
             isSyncing: phase == .syncing,
-            isPrefetching: phase == .prefetching
+            isPrefetching: phase == .prefetching,
+            holdsPrefetchCopyThroughAdvance: holdsPrefetchCopyThroughAdvance
         ) else { return nil }
         return (keys.title.localizedString, keys.subtitle.localizedString)
     }

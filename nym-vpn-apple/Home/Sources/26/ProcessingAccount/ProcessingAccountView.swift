@@ -197,7 +197,9 @@ private extension ProcessingAccountView {
             usesStaticCopy: viewModel.usesStaticCopy,
             didShowFinalMessage: viewModel.didShowFinalMessage,
             isSyncing: viewModel.phase == .syncing,
-            isPrefetching: viewModel.phase == .prefetching
+            isPrefetching: viewModel.phase == .prefetching,
+            holdsPrefetchCopyThroughAdvance: viewModel.phase == .awaitingAdvance
+                && viewModel.hasReachedPrefetchPhase
         )
     }
 
