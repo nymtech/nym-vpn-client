@@ -28,7 +28,7 @@ import Theme
     @State private var isPresentedManageSubscription = false
     @State var isLogoutConfirmationDisplayed = false
     @State var isLogoutLoading = false
-    @State var logoutProgressText = ""
+    @State var logoutProgressText: String? = nil
     @State var isRefreshingAccount = false
     @State var autologinState = AutologinState()
 
@@ -330,6 +330,6 @@ extension AccountAndDevicesView {
 
         logoutProgressText = "settings.loggingOut".localizedString
         try? await credentialsManager.removeCredential()
-        logoutProgressText = ""
+        logoutProgressText = nil
     }
 }
