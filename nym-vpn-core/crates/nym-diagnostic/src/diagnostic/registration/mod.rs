@@ -5,7 +5,6 @@ use crate::diagnostic::registration::{
 };
 use nym_bandwidth_controller::{BandwidthController, BandwidthTicketProvider};
 use nym_sdk::mixnet::StoragePaths;
-use nym_validator_client::nyxd::{Config as NyxdClientConfig, NyxdClient};
 use nym_vpn_lib_types::{
     DiagnosticRegisterParams, DiagnosticResult, RegistrationMode, RegistrationReport,
 };
@@ -72,19 +71,8 @@ impl RegistrationDiagnostic {
 }
 
 async fn setup_bandwidth_provider(
-    network: &Network,
     storage_path: &PathBuf,
 ) -> anyhow::Result<Box<dyn BandwidthTicketProvider>> {
-    let config = NyxdClientConfig::try_from_nym_network_details(network.nym_network_details())
-        .map_err(|e| anyhow::anyhow!("Nyx config error : {e}"))?;
-
-    let nyxd_url = network
-        .nym_network_details()
-        .endpoints
-        .first()
-        .map(|ep| ep.nyxd_url())
-        .ok_or(anyhow::anyhow!("Invalid Nyxd URl"))?;
-
     let storage_paths = StoragePaths::new_from_dir(storage_path)
         .map_err(|e| anyhow::anyhow!("Storage setup error : {e}"))?;
     if !storage_paths.credential_database_path.exists() {
@@ -97,11 +85,6 @@ async fn setup_bandwidth_provider(
         .await
         .map_err(|e| anyhow::anyhow!("Credential database : {e}"))?;
 
-    let nyxd_client = NyxdClient::connect(config, nyxd_url.as_str())
-        .map_err(|e| anyhow::anyhow!("NyxdClient connection : {e}"))?;
-
-    Ok(Box::new(BandwidthController::new(
-        credential_storage,
-        nyxd_client,
-    )))
+    // No need for a public data fetcher. Vpn credentials are imported with the global data
+    Ok(Box::new(BandwidthController::new(credential_storage)))
 }
