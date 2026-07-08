@@ -217,6 +217,9 @@ impl ConnectingState {
     ) -> Result<()> {
         let policy = params.as_policy();
 
+        #[cfg(target_os = "linux")]
+        shared_state.disable_nm_connectivity_check();
+
         shared_state
             .firewall
             .apply_policy(policy)

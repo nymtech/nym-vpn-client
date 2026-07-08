@@ -7192,6 +7192,7 @@ dependencies = [
  "nym-connection-monitor",
  "nym-credentials-interface",
  "nym-crypto",
+ "nym-dbus",
  "nym-diagnostic",
  "nym-dns",
  "nym-file-updater",
