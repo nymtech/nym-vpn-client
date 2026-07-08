@@ -426,7 +426,7 @@ fn get_all_subdomains(domain: &str) -> Vec<String> {
         }
         matches
     } else {
-        Vec::from_iter(components.first().map(|v| (*v).to_owned()).into_iter())
+        Vec::from_iter(components.first().map(|v| (*v).to_owned()))
     }
 }
 
