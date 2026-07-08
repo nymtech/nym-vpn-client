@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [iOS] Skip ad-blocking rules that do not block by domain (https://github.com/nymtech/nym-vpn-client/pull/5658)
+- [iOS] Handle sub-domain blocking (https://github.com/nymtech/nym-vpn-client/pull/5810)
 
 
 ## [2026.11.0] - TBD
