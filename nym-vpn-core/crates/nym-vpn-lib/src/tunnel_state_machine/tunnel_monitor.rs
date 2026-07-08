@@ -851,12 +851,12 @@ impl TunnelMonitor {
                                         tracing::info!(
                                             "Probe failed but dual-leg metadata recently healthy; treating tunnel as viable"
                                         );
+                                        has_sent_up_event = true;
                                         self.send_event(TunnelMonitorEvent::Up {
                                             tunnel_interface: tunnel_interface.clone(),
                                             connection_data: connection_data.clone(),
                                         });
                                     }
-                                    break;
                                 } else {
                                     tracing::info!("Tunnel connection is down. Exiting");
                                     self.send_event(TunnelMonitorEvent::ConnectionFailed {

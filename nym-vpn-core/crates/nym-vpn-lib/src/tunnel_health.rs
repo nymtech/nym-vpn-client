@@ -59,8 +59,9 @@ impl MetadataPathHealth {
     }
 }
 
-/// Returns true when dual-leg metadata recently succeeded on a mobile netstack path
-/// and the tunnel should be treated as connect-viable despite probe failure.
+/// Returns true when dual-leg metadata recently succeeded on a wireguard netstack path
+/// (`uses_metadata_endpoint`) and the tunnel should be treated as connect-viable despite
+/// connectivity probe failure.
 pub fn should_treat_metadata_as_connect_viable(
     uses_metadata_endpoint: bool,
     health: Option<&MetadataPathHealth>,
