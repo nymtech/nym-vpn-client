@@ -83,14 +83,25 @@ impl TimingConfig {
         }
     }
 
-    /// Default timings suitable for two-hop connections
-    pub fn two_hop() -> Self {
+    /// Default timings suitable for two-hop connections using ICMP probe
+    pub fn two_hop_icmp() -> Self {
         TimingConfig {
             initial_probe_timeout: Duration::from_secs(3),
             initial_probe_retry_count: 5,
             monitoring_probe_timeout: Duration::from_secs(5),
             monitoring_probe_retry_count: 3,
             probe_periodicity: Duration::from_secs(10),
+        }
+    }
+
+    /// Default timings suitable for two-hop connections using TCP probe
+    pub fn two_hop_tcp() -> Self {
+        TimingConfig {
+            initial_probe_timeout: Duration::from_secs(10),
+            initial_probe_retry_count: 5,
+            monitoring_probe_timeout: Duration::from_secs(10),
+            monitoring_probe_retry_count: 3,
+            probe_periodicity: Duration::from_secs(20),
         }
     }
 }
