@@ -144,6 +144,10 @@ nix = { workspace = true, features = [
     "ioctl",
 ] }
 
+# Linux-specific dependencies
+[target.'cfg(target_os = "linux")'.dependencies]
+nym-dbus.workspace = true
+
 # Windows-specific dependencies
 [target.'cfg(windows)'.dependencies]
 nym-windows.workspace = true
