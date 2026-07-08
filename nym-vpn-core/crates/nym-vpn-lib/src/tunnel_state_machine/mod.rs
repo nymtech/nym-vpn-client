@@ -812,19 +812,19 @@ impl SharedState {
 
     #[cfg(target_os = "linux")]
     pub fn disable_nm_connectivity_check(&mut self) {
-        if self.nm_connectivity_check_enabled.is_none() {
-            if let Ok(nm) = nym_dbus::network_manager::NetworkManager::new() {
-                self.nm_connectivity_check_enabled = nm.disable_connectivity_check();
-            }
+        if self.nm_connectivity_check_enabled.is_none()
+            && let Ok(nm) = nym_dbus::network_manager::NetworkManager::new()
+        {
+            self.nm_connectivity_check_enabled = nm.disable_connectivity_check();
         }
     }
 
     #[cfg(target_os = "linux")]
     pub fn restore_nm_connectivity_check(&mut self) {
-        if let Some(true) = self.nm_connectivity_check_enabled.take() {
-            if let Ok(nm) = nym_dbus::network_manager::NetworkManager::new() {
-                nm.enable_connectivity_check();
-            }
+        if let Some(true) = self.nm_connectivity_check_enabled.take()
+            && let Ok(nm) = nym_dbus::network_manager::NetworkManager::new()
+        {
+            nm.enable_connectivity_check();
         }
     }
 
