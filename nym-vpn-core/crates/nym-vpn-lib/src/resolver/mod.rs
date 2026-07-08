@@ -691,6 +691,7 @@ impl ResolverImpl {
                         .error_msg(&message.metadata, response_code);
                     response_handler.send_response(response).await
                 } else {
+                    // todo: passthrough network error!
                     let response = Self::build_response(message, &AuthLookup::Empty);
                     response_handler.send_response(response).await
                 }
