@@ -73,9 +73,6 @@ impl super::DnsMonitorT for DnsMonitor {
     async fn reset(&mut self) -> Result<()> {
         if let Some(mut inner) = self.inner.take() {
             inner.reset().await?;
-        } else if let Ok(mut inner) = DnsMonitorHolder::new() {
-            // This helps reset the DNS configuration when the system is rebooted while the VPN is still connected.
-            inner.reset().await?;
         }
         Ok(())
     }
