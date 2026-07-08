@@ -473,7 +473,7 @@ Var AppStartMenuFolder
 !insertmacro MUI_PAGE_FINISH
 
 Function RunMainBinary
-  nsis_tauri_utils::RunAsUser "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
+  nsis_tauri_utils::RunAsUser "$INSTDIR\${MAINBINARYNAME}.exe" ""
 FunctionEnd
 
 ; Uninstaller Pages
@@ -1047,14 +1047,14 @@ Function CreateOrUpdateStartMenuShortcut
   !insertmacro IsShortcutTarget "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" "$INSTDIR\$OldMainBinaryName"
   Pop $0
   ${If} $0 = 1
-    !insertmacro SetShortcutTarget "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe" -l -Ldebug'
+    !insertmacro SetShortcutTarget "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe"'
     StrCpy $R0 1
   ${EndIf}
 
   !insertmacro IsShortcutTarget "$SMPROGRAMS\${PRODUCTNAME}.lnk" "$INSTDIR\$OldMainBinaryName"
   Pop $0
   ${If} $0 = 1
-    !insertmacro SetShortcutTarget "$SMPROGRAMS\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe" -l -Ldebug'
+    !insertmacro SetShortcutTarget "$SMPROGRAMS\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe"'
     StrCpy $R0 1
   ${EndIf}
 
@@ -1073,10 +1073,10 @@ Function CreateOrUpdateStartMenuShortcut
 
   !if "${STARTMENUFOLDER}" != ""
     CreateDirectory "$SMPROGRAMS\$AppStartMenuFolder"
-    CreateShortcut "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
+    CreateShortcut "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe"
     !insertmacro SetLnkAppUserModelId "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk"
   !else
-    CreateShortcut "$SMPROGRAMS\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
+    CreateShortcut "$SMPROGRAMS\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe"
     !insertmacro SetLnkAppUserModelId "$SMPROGRAMS\${PRODUCTNAME}.lnk"
   !endif
 FunctionEnd
@@ -1087,7 +1087,7 @@ Function CreateOrUpdateDesktopShortcut
   !insertmacro IsShortcutTarget "$DESKTOP\${PRODUCTNAME}.lnk" "$INSTDIR\$OldMainBinaryName"
   Pop $0
   ${If} $0 = 1
-    !insertmacro SetShortcutTarget "$DESKTOP\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe" -l -Ldebug'
+    !insertmacro SetShortcutTarget "$DESKTOP\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe"'
     Return
   ${EndIf}
 
@@ -1100,6 +1100,6 @@ Function CreateOrUpdateDesktopShortcut
     ${EndIf}
   ${EndIf}
 
-  CreateShortcut "$DESKTOP\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
+  CreateShortcut "$DESKTOP\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe"
   !insertmacro SetLnkAppUserModelId "$DESKTOP\${PRODUCTNAME}.lnk"
 FunctionEnd
