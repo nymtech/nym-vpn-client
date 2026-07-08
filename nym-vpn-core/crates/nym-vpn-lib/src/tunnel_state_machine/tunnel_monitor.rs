@@ -2019,38 +2019,6 @@ impl TunnelMonitor {
         exit_tunnel_metadata: &TunnelMetadata,
         event_tx: mpsc::UnboundedSender<ConnectionEvent>,
     ) -> Result<JoinHandle<Result<(), nym_connection_monitor::Error>>> {
-        let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type_used() {
-            TunnelType::Mixnet => TimingConfig::mixnet(),
-            TunnelType::Wireguard => TimingConfig::two_hop(),
-        };
-
-        #[cfg(any(target_os = "ios", target_os = "android"))]
-        {
-            match self.create_tcp_probe(exit_tunnel_metadata) {
-                Ok(tcp_probe) => {
-                    tracing::info!(
-                        probe_type = "tcp",
-                        probe_selection = "mobile_primary",
-                        "Selected TCP connectivity probe on mobile"
-                    );
-                    return Ok(ConnectionMonitor::spawn(
-                        tcp_probe,
-                        timing_config,
-                        event_tx,
-                        self.shutdown_token.child_token(),
-                    ));
-                }
-                Err(err) => {
-                    tracing::warn!(
-                        probe_type = "icmp",
-                        probe_selection = "mobile_tcp_setup_failed",
-                        fallback_reason = %err.display_chain(),
-                        "TCP probe setup failed on mobile, falling back to ICMP"
-                    );
-                }
-            }
-        }
-
         // Create ICMP probe first, fallback to TCP probe on failure.
         match self.create_icmp_probe(exit_tunnel_metadata) {
             Ok(icmp_probe) => {
@@ -2059,6 +2027,13 @@ impl TunnelMonitor {
                     probe_selection = "default_primary",
                     "Selected ICMP connectivity probe"
                 );
+
+                let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type_used()
+                {
+                    TunnelType::Mixnet => TimingConfig::mixnet(),
+                    TunnelType::Wireguard => TimingConfig::two_hop_icmp(),
+                };
+
                 Ok(ConnectionMonitor::spawn(
                     icmp_probe,
                     timing_config,
@@ -2073,6 +2048,13 @@ impl TunnelMonitor {
                     fallback_reason = %err.display_chain(),
                     "ICMP probe setup failed, falling back to TCP"
                 );
+
+                let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type_used()
+                {
+                    TunnelType::Mixnet => TimingConfig::mixnet(),
+                    TunnelType::Wireguard => TimingConfig::two_hop_tcp(),
+                };
+
                 let tcp_probe = self.create_tcp_probe(exit_tunnel_metadata)?;
                 tracing::info!(
                     probe_type = "tcp",
