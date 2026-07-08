@@ -36,8 +36,10 @@ import PathManager
     private(set) public var isAccountRegistrationInFlight = false
 #if os(iOS)
     var registrationCapturedEnvironment: NymEnvironment?
+    var registrationCapturedEnvString: String?
     private var accountRegistrationTask: Task<Void, Error>?
     var accountControllerShutdown: (() async -> Void)?
+    private(set) var isLoggingOut = false
 #endif
 
     public static let shared = CredentialsManager()
@@ -114,6 +116,7 @@ import PathManager
 
         do {
             let env = try resolvedRegistrationEnvironment()
+            let envString = registrationCapturedEnvString ?? configurationManager.currentEnvString
 
             if let loginCredential {
                 accountSummary = nil
@@ -128,7 +131,7 @@ import PathManager
             ) {
                 try await registerAccount(environment: env)
             }
-            appSettings.setAccountToken(result.accountToken, forEnvironment: configurationManager.currentEnvString)
+            appSettings.setAccountToken(result.accountToken, forEnvironment: envString)
             if loginCredential == nil {
                 try await AccountRegistrationSupport.withAccountStoreRetry(
                     operation: "prepareRegisteredAccount",
@@ -149,11 +152,13 @@ import PathManager
     func beginAccountRegistration() {
         isAccountRegistrationInFlight = true
         registrationCapturedEnvironment = configurationManager.networkEnv
+        registrationCapturedEnvString = configurationManager.currentEnvString
     }
 
     func endAccountRegistration() {
         isAccountRegistrationInFlight = false
         registrationCapturedEnvironment = nil
+        registrationCapturedEnvString = nil
     }
 #endif
 
@@ -258,12 +263,27 @@ import PathManager
             ).registerAccount()
         }.value
     }
+
+    public func ensureDeviceRegisteredForLogin() async throws {
+        let env = try resolvedRegistrationEnvironment()
+        _ = try await AccountRegistrationSupport.withAccountStoreRetry(
+            operation: "ensureDeviceRegisteredForLogin",
+            logger: logger
+        ) {
+            try await registerAccount(environment: env)
+        }
+    }
 #endif
 
-    public func prepareRegisteredAccount() async throws {
+    public func prepareRegisteredAccount(
+        onAccountPhaseChange: (@MainActor (OnboardingAccountPreparationPolicy.AccountStatePhase) -> Void)?
+    ) async throws {
 #if os(iOS)
         let env = try resolvedNetworkEnvironment()
-        try await prepareRegisteredAccount(environment: env)
+        try await prepareRegisteredAccount(
+            environment: env,
+            onAccountPhaseChange: onAccountPhaseChange
+        )
 #endif
     }
 
@@ -297,6 +317,21 @@ import PathManager
         await prefetchZkNymsOnIOS(timeout: timeout)
 #else
         return .skipped
+#endif
+    }
+
+    public func beginLogout() async {
+#if os(iOS)
+        isLoggingOut = true
+        accountSummaryUpdateTask?.cancel()
+        accountSummaryUpdateTask = nil
+        await shutdownControllersAndWait()
+#endif
+    }
+
+    public func endLogout() {
+#if os(iOS)
+        isLoggingOut = false
 #endif
     }
 
@@ -461,9 +496,15 @@ import PathManager
         }
 #endif
     }
+}
 
+// MARK: - Account summary refresh
+extension CredentialsManager {
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
         guard !isAccountRegistrationInFlight else { return }
+#if os(iOS)
+        guard !isLoggingOut else { return }
+#endif
 #if SANTA
         guard !isAccountSummaryOverridden else { return }
 #endif
@@ -536,6 +577,8 @@ import PathManager
         resetExpiryDismissalsIfNeeded()
     }
 
+    /// Silent poller path: never throws. On failure keeps the last good summary and only
+    /// raises `accountSummaryLastFetchFailed`.
     private func fetchAccountSummary() async {
         guard isValidCredentialImported else { return }
 #if os(macOS)
@@ -548,6 +591,31 @@ import PathManager
             logger.error(
                 "fetchAccountSummary (macOS) failed operation=accountSummary \(Self.sanitizedAccountSummaryErrorLog(error))"
             )
+        }
+#endif
+    }
+
+    /// Manual refresh path: force-fetches and **rethrows** on failure so the caller can
+    /// surface the error on screen. Bypasses the freshness cache.
+    public func refreshAccountSummary() async throws {
+#if SANTA
+        guard !isAccountSummaryOverridden else { return }
+#endif
+        guard isValidCredentialImported else { return }
+#if os(iOS)
+        do {
+            try await refreshAccountSummaryOnIOS(untilActive: false, trigger: .general)
+        } catch {
+            accountSummaryLastFetchFailed = true
+            throw error
+        }
+#elseif os(macOS)
+        do {
+            accountSummary = try await grpcManager.accountSummary()
+            accountSummaryLastFetchFailed = false
+        } catch {
+            accountSummaryLastFetchFailed = true
+            throw error
         }
 #endif
     }
@@ -636,9 +704,9 @@ public extension CredentialsManager {
         ) {
             return
         }
-        guard await isAccountStored() else { return }
-
         let env = try resolvedNetworkEnvironment()
+        guard await isAccountStored(environment: env) else { return }
+
         let result = try await AccountRegistrationSupport.withAccountStoreRetry(
             operation: "registerAccountForEnvironment",
             logger: logger

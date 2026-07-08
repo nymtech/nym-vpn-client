@@ -36,6 +36,7 @@ serde_json.workspace = true
 uniffi = { workspace = true, features = ["tokio"] }
 nym-sdk.workspace = true
 nym-offline-monitor.workspace = true
+nym-diagnostic.workspace = true
 nym-vpn-lib.workspace = true
 nym-vpn-lib-types = { workspace = true, features = [
     "uniffi-bindings",

@@ -7,6 +7,9 @@ public struct StepView: View {
     let stepCount: Int
     @Binding var currentStep: Int
     let animateInitialFill: Bool
+    let initialFillLeadIn: TimeInterval
+    let initialFillStepPause: TimeInterval
+    let forwardFillStepPause: TimeInterval
 
     @State private var displayedStep: Int = 0
     @State private var animationTask: Task<Void, Never>?
@@ -14,11 +17,17 @@ public struct StepView: View {
     public init(
         stepCount: Int,
         currentStep: Binding<Int>,
-        animateInitialFill: Bool = true
+        animateInitialFill: Bool = true,
+        initialFillLeadIn: TimeInterval = 0.3,
+        initialFillStepPause: TimeInterval = 0.3,
+        forwardFillStepPause: TimeInterval? = nil
     ) {
         self.stepCount = stepCount
         _currentStep = currentStep
         self.animateInitialFill = animateInitialFill
+        self.initialFillLeadIn = initialFillLeadIn
+        self.initialFillStepPause = initialFillStepPause
+        self.forwardFillStepPause = forwardFillStepPause ?? 0.3
     }
 
     public var body: some View {
@@ -77,7 +86,7 @@ private extension StepView {
         displayedStep = 0
 
         animationTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(0.3))
+            try? await Task.sleep(for: .seconds(initialFillLeadIn))
             guard target > 0 else { return }
             for step in 1...target {
                 guard !Task.isCancelled else { return }
@@ -85,7 +94,7 @@ private extension StepView {
                 withAnimation(.linear(duration: perStepDuration)) {
                     displayedStep = step
                 }
-                try? await Task.sleep(for: .seconds(0.3))
+                try? await Task.sleep(for: .seconds(initialFillStepPause))
             }
         }
     }
@@ -104,7 +113,7 @@ private extension StepView {
                     displayedStep = step
                 }
 
-                try? await Task.sleep(for: .seconds(1))
+                try? await Task.sleep(for: .seconds(forwardFillStepPause))
             }
         }
     }

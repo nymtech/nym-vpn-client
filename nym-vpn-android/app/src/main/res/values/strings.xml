@@ -372,6 +372,14 @@
 	<string name="account_generating_error">Failed to register account. Please, try again later</string>
 	<string name="account_generating_deeplink_title">Logging in…</string>
 	<string name="account_generating_deeplink_description">Please wait while we verify your account</string>
+	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processing your payment securely…</string>
 	<string name="account_payment_verifying">We\'re verifying your subscription—no personal details are ever tied to your identity</string>
@@ -499,7 +507,7 @@
 	<!-- Mixnet tuning screen -->
 	<string name="mixnet_tuning_description">Customize your mixnet traffic patterns</string>
 	<string name="mixnet_tuning_current_title">Expected performance of current settings:</string>
-	<string name="mixnet_tuning_current_speed">Speed</string>
+	<string name="mixnet_tuning_current_speed">Packet rate</string>
 	<string name="mixnet_tuning_current_latency">Latency</string>
 	<string name="mixnet_tuning_internet_speed">Up to internet speed</string>
 	<string name="mixnet_tuning_current_description">Expected round-trip latency (RTT) on a standard network</string>
@@ -509,6 +517,7 @@
 	<string name="mixnet_tuning_traffic_on_description">Cover traffic is always sent to keep the pattern uniform. Adjust the sending rate of your packets.</string>
 	<string name="mixnet_tuning_traffic_off_description">We\'ll still send cover traffic independently of your real traffic.  Choose how much cover you need. </string>
 	<string name="mixnet_tuning_traffic_min">Use less battery &amp; data</string>
+	<string name="mixnet_tuning_traffic_on_max">Fastest</string>
 	<string name="mixnet_tuning_traffic_on_low">Low\n0.7 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_high">High\n2 Mbps</string>
 	<string name="mixnet_tuning_traffic_on_balanced">Balanced\n1 Mbps</string>
@@ -516,6 +525,7 @@
 	<string name="mixnet_tuning_traffic_off_high">High\n20x</string>
 	<string name="mixnet_tuning_traffic_off_balanced">Balanced\n5x</string>
 	<string name="mixnet_tuning_traffic_off_medium">Medium\n10x</string>
+	<string name="mixnet_tuning_delays_warning">⚠️ Setting delay to 0 removes mixing, reducing anonymity</string>
 	<string name="mixnet_tuning_delays_title">Mixing delays</string>
 	<string name="mixnet_tuning_delays_description">Adjust timing delays to change how well your packets are mixed.</string>
 	<string name="mixnet_tuning_delays_min">Faster speed</string>
@@ -525,7 +535,7 @@
 	<string name="mixnet_tuning_delays_current">Current\n%1$s</string>
 	<string name="mixnet_tuning_max">Max. anonymity</string>
 	<string name="mixnet_tuning_link_text">Learn more about mixnet parameters</string>
-	<string name="mixnet_tuning_link" translatable="false">https://nym.com/features/mixnet-customization</string>
+	<string name="mixnet_tuning_link" translatable="false">https://nym.com/features/mixnet-tuning</string>
 	<string name="mixnet_tuning_save_button">Save custom settings</string>
 	<string name="mixnet_tuning_restore_button">Restore default settings</string>
 	<!-- Diagnostic screen -->
@@ -551,6 +561,7 @@
 	<string name="node_families_description_text">Disable reminders in </string>
 	<string name="node_families_description_link">notification settings.</string>
 	<string name="node_families_connect_button">Connect anyway</string>
+	<string name="node_families_error_message">Selected servers share a family. Choose a different pair or connect anyway.</string>
 	<!-- Geo Exclusion -->
 	<string name="geo_exclusion_enable_title">Enable Geo Exclusion</string>
 	<string name="geo_exclusion_description">Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.</string>

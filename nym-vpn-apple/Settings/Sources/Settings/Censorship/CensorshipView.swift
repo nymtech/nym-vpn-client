@@ -1,7 +1,6 @@
 import SwiftUI
 import AppSettings
 import ConnectionManager
-import FeatureFlagsManager
 import Constants
 import UIComponents
 import Theme
@@ -9,9 +8,7 @@ import Theme
 public struct CensorshipView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var connectionManager: ConnectionManager
-    @EnvironmentObject private var featureFlagsManager: FeatureFlagsManager
     @Binding private var path: NavigationPath
-    @State private var isConfirmationDisplayed = false
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -21,10 +18,7 @@ public struct CensorshipView: View {
             VStack(spacing: 0) {
                 ScrollView {
                     subtitleSection()
-                    VStack(spacing: 0) {
-                        quicSection()
-                        amneziaWGSection()
-                    }
+                    quicSection()
                     Spacer()
                         .frame(height: 24)
                     stealthApiSection()
@@ -41,9 +35,6 @@ public struct CensorshipView: View {
         .background {
             Color.Nym.background
                 .ignoresSafeArea()
-        }
-        .overlay {
-            confirmationOnlineOverlay()
         }
     }
 
@@ -73,13 +64,7 @@ private extension CensorshipView {
         let quicBinding = Binding<Bool>(
             get: { appSettings.isQuicEnabled },
             set: { _ in
-                guard connectionManager.currentTunnelStatus == .connected ||
-                        connectionManager.currentTunnelStatus == .connecting
-                else {
-                    connectionManager.setBridges(!appSettings.isQuicEnabled)
-                    return
-                }
-                isConfirmationDisplayed = true
+                connectionManager.setBridges(!appSettings.isQuicEnabled)
             }
         )
 
@@ -90,7 +75,7 @@ private extension CensorshipView {
                 ),
                 title: "censorship.quic.title".localizedString,
                 multilineText: quicMultilineText(),
-                position: .init(isFirst: true, isLast: false),
+                position: .init(isFirst: true, isLast: true),
                 action: {}
             )
         )
@@ -101,44 +86,6 @@ private extension CensorshipView {
         let second = "censorship.quic.subtitle2".localizedString
         let link = Constants.quicURL.rawValue
         let linkText = "censorship.quic.link".localizedString
-        let markdown = """
-\(first)
-
-\(second)
-
-[\(linkText)](\(link))
-"""
-
-        let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        guard var text = try? AttributedString(markdown: markdown, options: options) else { return nil }
-        if let range = text.range(of: linkText) {
-            text[range].underlineStyle = .single
-            text[range].foregroundColor = Color.Nym.textPrimary
-        }
-        return text
-    }
-
-    // MARK: - AmneziaWG
-    func amneziaWGSection() -> some View {
-        SettingsListItem(
-            viewModel: SettingsListItemViewModel(
-                accessory: .toggle(
-                    isOn: .constant(true),
-                    isDisabled: true
-                ),
-                title: "censorship.amneziawg.title".localizedString,
-                multilineText: amneziaWGMultilineText(),
-                position: .init(isFirst: false, isLast: true),
-                action: {}
-            )
-        )
-    }
-
-    func amneziaWGMultilineText() -> AttributedString? {
-        let first = "censorship.amneziawg.subtitle1".localizedString
-        let second = "censorship.amneziawg.subtitle2".localizedString
-        let link = Constants.amneziaWGURL.rawValue
-        let linkText = "censorship.amneziawg.link".localizedString
         let markdown = """
 \(first)
 
@@ -196,56 +143,6 @@ private extension CensorshipView {
         return text
     }
 
-    var overlayConfiguration: ActionDialogConfiguration {
-        let alertTitle = appSettings.isQuicEnabled
-        ? "censorship.quic.disable.alert.title".localizedString
-        : "censorship.quic.enable.alert.title".localizedString
-
-        let subtitle = "censorship.quic.disable.alert.subtitle".localizedString
-        + "\n\n"
-        + "censorship.quic.disable.alert.subtitle1".localizedString
-
-        let yesTitle = appSettings.isQuicEnabled
-        ? "censorship.quic.disableAndReconnect".localizedString
-        : "censorship.quic.enableAndReconnect".localizedString
-
-        let noTitle = appSettings.isQuicEnabled
-        ? "censorship.quic.offAndNext".localizedString
-        : "censorship.quic.onAndNext".localizedString
-
-        return ActionDialogConfiguration(
-            systemIconImageName: "shippingbox",
-            titleLocalizedString: alertTitle,
-            subtitleLocalizedString: subtitle,
-            yesLocalizedString: yesTitle,
-            noLocalizedString: noTitle,
-            yesAction: {
-                connectionManager.setBridges(!appSettings.isQuicEnabled)
-                isConfirmationDisplayed = false
-                path = .init()
-            },
-            noAction: {
-                connectionManager.setBridges(!appSettings.isQuicEnabled)
-                isConfirmationDisplayed = false
-            },
-            verticalButtonsLayout: true
-        )
-    }
-
-    @ViewBuilder
-    func confirmationOnlineOverlay() -> some View {
-        if isConfirmationDisplayed {
-            ActionDialogView(
-                viewModel: ActionDialogViewModel(
-                    isDisplayed: $isConfirmationDisplayed,
-                    configuration: overlayConfiguration,
-                    impactGenerator: .shared
-                )
-            )
-            .transition(.opacity)
-            .animation(.easeInOut, value: isConfirmationDisplayed)
-        }
-    }
 }
 
 // MARK: - Actions -

@@ -38,8 +38,13 @@ public final class ProcessingAccountViewModel {
     @ObservationIgnored var finalMessageDuration: Double = 2
 
     let flow: ProcessingFlow
+    @ObservationIgnored private let deeplinkLoginCallbackURL: String?
     private(set) var phase: ProcessingPhase = .preparing
     var currentStep: Int = 1
+    private(set) var didFinishSetupCarousel = false
+    private(set) var setupCarouselIndex = 0
+    /// Set when backend prefetch begins; keeps bar segment 4 until navigation advances.
+    private(set) var hasReachedPrefetchPhase = false
 
     var didFinishAnimatingText = false {
         didSet { evaluateAdvance() }
@@ -62,23 +67,51 @@ public final class ProcessingAccountViewModel {
         }
     }
 
-    public init(processing: AccountProcessing, flow: ProcessingFlow) {
+    private var holdsPrefetchCopyThroughAdvance: Bool {
+        phase == .awaitingAdvance && hasReachedPrefetchPhase
+    }
+
+    var credentialsDisplayPair: (String, String)? {
+        guard let keys = LoginProcessingProgressPolicy.credentialsCopyKeys(
+            isSyncing: phase == .syncing,
+            isPrefetching: phase == .prefetching,
+            holdsPrefetchCopyThroughAdvance: holdsPrefetchCopyThroughAdvance
+        ) else { return nil }
+        return (keys.title.localizedString, keys.subtitle.localizedString)
+    }
+
+    public init(
+        processing: AccountProcessing,
+        flow: ProcessingFlow,
+        deeplinkLoginCallbackURL: String? = nil
+    ) {
         self.processing = processing
         self.flow = flow
+        self.deeplinkLoginCallbackURL = deeplinkLoginCallbackURL
         switch flow {
-        case .login:
+        case .login, .createAccount:
             currentStep = LoginProcessingUI.initialProgressStep
         case .postPurchase:
             currentStep = PostPurchaseProcessingUI.progressStep
             didFinishAnimatingText = true
-        case .createAccount:
-            break
         }
     }
 
     func start() {
-        processingTask?.cancel()
+        switch phase {
+        case .awaitingAdvance:
+            latchSetupCarouselIfNeeded()
+            updateAnimationReady()
+            evaluateAdvance()
+            return
+        case .finalizing, .finished:
+            return
+        default:
+            break
+        }
+        guard processingTask == nil else { return }
         processingTask = Task { @MainActor [weak self] in
+            defer { self?.processingTask = nil }
             await self?.run()
         }
     }
@@ -89,11 +122,18 @@ public final class ProcessingAccountViewModel {
             switch flow {
             case .login:
                 phase = .preparing
+                syncProgressStep()
+                try await completeDeeplinkLoginIfNeeded()
                 await processing.ensureCredentialImportResolved()
-                try await processing.prepareRegisteredAccount()
+                try await processing.ensureDeviceRegisteredForLogin()
+                try await processing.prepareRegisteredAccount { [weak self] accountPhase in
+                    self?.applyBackendAccountPhase(accountPhase)
+                }
                 try await syncSummaryThenPrefetch()
                 completeWork()
             case .createAccount:
+                phase = .preparing
+                syncProgressStep()
                 await processing.ensureCredentialImportResolved()
                 try await syncSummaryThenPrefetch()
                 completeWork()
@@ -107,19 +147,51 @@ public final class ProcessingAccountViewModel {
         }
     }
 
+    private func completeDeeplinkLoginIfNeeded() async throws {
+        guard let deeplinkLoginCallbackURL else { return }
+        try await processing.storeDeeplink(callbackURLString: deeplinkLoginCallbackURL)
+        try Task.checkCancellation()
+        try await processing.registerAccountIfNeeded()
+        try Task.checkCancellation()
+    }
+
     /// Login/create-account: sync the account summary, then prefetch zk-nyms when active.
     private func syncSummaryThenPrefetch() async throws {
         try Task.checkCancellation()
-        phase = .syncing
+        if !hasReachedPrefetchPhase {
+            phase = .syncing
+            syncProgressStep()
+        }
         await processing.updateAccountSummary(force: true, untilActive: true)
         try Task.checkCancellation()
         if AccountZkNymPrefetchGate.shouldPrefetchAfterSummarySync(
             isAccountActive: processing.isAccountActive()
         ) {
-            phase = .prefetching
-            _ = await processing.prefetchZkNyms(timeout: 60)
+            if !hasReachedPrefetchPhase {
+                phase = .prefetching
+                hasReachedPrefetchPhase = true
+                syncProgressStep()
+            }
+            _ = await processing.prefetchZkNyms(timeout: LoginProcessingUI.prefetchTimeoutSeconds)
+            syncProgressStep()
         }
         try Task.checkCancellation()
+    }
+
+    private func applyBackendAccountPhase(
+        _ accountPhase: OnboardingAccountPreparationPolicy.AccountStatePhase
+    ) {
+        guard let displayPhase = LoginProcessingBackendPhasePolicy.displayPhase(for: accountPhase) else {
+            return
+        }
+        switch displayPhase {
+        case .syncing:
+            phase = .syncing
+        case .prefetching:
+            phase = .prefetching
+            hasReachedPrefetchPhase = true
+        }
+        syncProgressStep()
     }
 
     /// Post-IAP: sync the StoreKit receipt, fail if the account isn't active, else prefetch.
@@ -145,7 +217,7 @@ public final class ProcessingAccountViewModel {
         }
 
         phase = .prefetching
-        _ = await processing.prefetchZkNyms(timeout: 60)
+        _ = await processing.prefetchZkNyms(timeout: LoginProcessingUI.prefetchTimeoutSeconds)
         phase = .finished
         sessionCoordinator?.handle(.session(.processingFinished))
     }
@@ -163,12 +235,15 @@ public final class ProcessingAccountViewModel {
         sessionCoordinator?.handle(.dismissPostPurchaseProcessing)
     }
 
-    func animationDidAdvance() {
-        currentStep += 1
+    func noteSetupCarouselStepBarTick(atIndex index: Int) {
+        setupCarouselIndex = index
+        syncProgressStep()
     }
 
     func animationDidFinish() {
-        didFinishAnimatingText = true
+        didFinishSetupCarousel = true
+        syncProgressStep()
+        updateAnimationReady()
     }
 
     /// Awaits the post-advance welcome-message delay. Test hook only.
@@ -183,7 +258,31 @@ public final class ProcessingAccountViewModel {
             return
         }
         phase = .awaitingAdvance
+        syncProgressStep()
+        latchSetupCarouselIfNeeded()
         workCompleted = true
+        updateAnimationReady()
+    }
+
+    private func latchSetupCarouselIfNeeded() {
+        guard !usesStaticCopy, !didFinishSetupCarousel else { return }
+        didFinishSetupCarousel = true
+        syncProgressStep()
+    }
+
+    private func updateAnimationReady() {
+        guard workCompleted, didFinishSetupCarousel else { return }
+        didFinishAnimatingText = true
+    }
+
+    private func syncProgressStep() {
+        currentStep = LoginProcessingProgressPolicy.progressStep(
+            setupCarouselIndex: setupCarouselIndex,
+            didFinishSetupCarousel: didFinishSetupCarousel,
+            isPrefetching: phase == .prefetching,
+            isAwaitingAdvance: phase == .awaitingAdvance,
+            hasReachedPrefetchPhase: hasReachedPrefetchPhase
+        )
     }
 
     private func fail(with error: Error) {

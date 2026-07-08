@@ -31,6 +31,7 @@ use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::ETHERNET_V2_
 
 const LENGTH_DELIMITER_BYTELEN: usize = 2;
 const INITIAL_CONNECTION_TIMEOUT: Duration = Duration::from_secs(10);
+const QUIC_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(thiserror::Error, Debug)]
 pub enum TransportError {
@@ -48,6 +49,9 @@ pub enum TransportError {
 
     #[error("transport connection was cancelled")]
     Cancelled,
+
+    #[error("quic connection timed out after {0:?}")]
+    TimedOut(Duration),
 
     #[error("transport error: {0}")]
     Other(String),
@@ -430,10 +434,23 @@ pub async fn transport_conn(
     let addr_host = transport_endpoint.ip().to_string();
     let host = options.host.as_deref().unwrap_or(&addr_host);
 
-    endpoint
-        .connect(transport_endpoint, host)?
-        .await
-        .map_err(TransportError::QuicProto)
+    let connecting = endpoint
+        .connect(transport_endpoint, host)
+        .map_err(TransportError::Quic)?;
+
+    match tokio::time::timeout(QUIC_CONNECT_TIMEOUT, connecting).await {
+        Ok(connection) => connection.map_err(TransportError::QuicProto),
+        Err(_) => {
+            tracing::warn!(
+                "QUIC bridge connection to {transport_endpoint} timed out after {QUIC_CONNECT_TIMEOUT:?}"
+            );
+            endpoint.close(0u32.into(), b"timeout");
+            // TimedOut has no error_state_reason, so tunnel_monitor propagates it as
+            // TunnelMonitorEvent::Down { error_state_reason: None }, which triggers
+            // ConnectingState::reconnect() with a different gateway selection.
+            Err(TransportError::TimedOut(QUIC_CONNECT_TIMEOUT))
+        }
+    }
 }
 
 /// Session Keepalive interval to prevent sessions from closing due to lull in user traffic.

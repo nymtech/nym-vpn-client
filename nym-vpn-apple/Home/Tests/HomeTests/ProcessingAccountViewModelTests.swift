@@ -12,20 +12,44 @@ private final class FakeProcessing: AccountProcessing {
         case isActive
         case prefetch
         case syncPayment
+        case storeDeeplink(String)
+        case register
+        case ensureDeviceRegistered
     }
 
     var prepareError: Error?
+    var preparePhaseScript: [OnboardingAccountPreparationPolicy.AccountStatePhase] = []
+    var holdPrepareUntilReleased = false
+    private var prepareRelease: (() -> Void)?
     var syncPaymentError: Error?
+    var storeDeeplinkError: Error?
+    var registerError: Error?
     var accountActive = true
+    var prefetchDelay: Duration = .zero
     var prefetchResult: ZkNymPrefetchResult = .fetchedTickets
     private(set) var calls: [Call] = []
+
+    func releasePrepare() {
+        prepareRelease?()
+        prepareRelease = nil
+    }
 
     func ensureCredentialImportResolved() async {
         calls.append(.ensure)
     }
 
-    func prepareRegisteredAccount() async throws {
+    func prepareRegisteredAccount(
+        onAccountPhaseChange: (@MainActor (OnboardingAccountPreparationPolicy.AccountStatePhase) -> Void)?
+    ) async throws {
         calls.append(.prepare)
+        for phase in preparePhaseScript {
+            onAccountPhaseChange?(phase)
+        }
+        if holdPrepareUntilReleased {
+            await withCheckedContinuation { continuation in
+                prepareRelease = { continuation.resume() }
+            }
+        }
         if let prepareError {
             throw prepareError
         }
@@ -42,6 +66,9 @@ private final class FakeProcessing: AccountProcessing {
 
     func prefetchZkNyms(timeout: TimeInterval) async -> ZkNymPrefetchResult {
         calls.append(.prefetch)
+        if prefetchDelay > .zero {
+            try? await Task.sleep(for: prefetchDelay)
+        }
         return prefetchResult
     }
 
@@ -49,6 +76,27 @@ private final class FakeProcessing: AccountProcessing {
         calls.append(.syncPayment)
         if let syncPaymentError {
             throw syncPaymentError
+        }
+    }
+
+    func storeDeeplink(callbackURLString: String) async throws {
+        calls.append(.storeDeeplink(callbackURLString))
+        if let storeDeeplinkError {
+            throw storeDeeplinkError
+        }
+    }
+
+    func registerAccountIfNeeded() async throws {
+        calls.append(.register)
+        if let registerError {
+            throw registerError
+        }
+    }
+
+    func ensureDeviceRegisteredForLogin() async throws {
+        calls.append(.ensureDeviceRegistered)
+        if let registerError {
+            throw registerError
         }
     }
 }
@@ -66,9 +114,14 @@ private final class FakeCoordinator: AppSessionCoordinating {
 private func makeViewModel(
     flow: ProcessingFlow,
     processing: FakeProcessing,
-    coordinator: FakeCoordinator
+    coordinator: FakeCoordinator,
+    deeplinkLoginCallbackURL: String? = nil
 ) -> ProcessingAccountViewModel {
-    let viewModel = ProcessingAccountViewModel(processing: processing, flow: flow)
+    let viewModel = ProcessingAccountViewModel(
+        processing: processing,
+        flow: flow,
+        deeplinkLoginCallbackURL: deeplinkLoginCallbackURL
+    )
     viewModel.sessionCoordinator = coordinator
     viewModel.finalMessageDuration = 0
     return viewModel
@@ -76,16 +129,70 @@ private func makeViewModel(
 
 @MainActor
 struct ProcessingAccountViewModelTests {
-    @Test func loginRunsImportPrepSyncPrefetchThenAwaitsAdvance() async {
+    @Test func loginRunsImportPrepSyncPrefetchThenAdvances() async {
         let processing = FakeProcessing()
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
 
         await viewModel.run()
 
-        #expect(processing.calls == [.ensure, .prepare, .sync, .isActive, .prefetch])
-        #expect(viewModel.phase == .awaitingAdvance)
-        #expect(coordinator.actions.isEmpty)
+        #expect(processing.calls == [.ensure, .ensureDeviceRegistered, .prepare, .sync, .isActive, .prefetch])
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
+    }
+
+    @Test func deeplinkLoginStoresAndRegistersBeforePrepare() async {
+        let processing = FakeProcessing()
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(
+            flow: .login,
+            processing: processing,
+            coordinator: coordinator,
+            deeplinkLoginCallbackURL: "nymvpn://auth/privy/privateKey?x=1"
+        )
+
+        await viewModel.run()
+
+        #expect(processing.calls == [
+            .storeDeeplink("nymvpn://auth/privy/privateKey?x=1"),
+            .register,
+            .ensure,
+            .ensureDeviceRegistered,
+            .prepare,
+            .sync,
+            .isActive,
+            .prefetch
+        ])
+        #expect(viewModel.phase == .finished || viewModel.phase == .finalizing)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
+    }
+
+    @Test func deeplinkLoginStoreFailureFailsBeforePrepare() async {
+        struct Boom: Error {}
+        let processing = FakeProcessing()
+        processing.storeDeeplinkError = Boom()
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(
+            flow: .login,
+            processing: processing,
+            coordinator: coordinator,
+            deeplinkLoginCallbackURL: "nymvpn://auth/privy/privateKey"
+        )
+
+        await viewModel.run()
+
+        #expect(!processing.calls.contains(.prepare))
+        guard case .failed = viewModel.phase else {
+            Issue.record("expected .failed, got \(viewModel.phase)")
+            return
+        }
+        guard case .session(.processingFailed) = coordinator.actions.first else {
+            Issue.record("expected .session(.processingFailed)")
+            return
+        }
     }
 
     @Test func createAccountSkipsPrepare() async {
@@ -96,7 +203,8 @@ struct ProcessingAccountViewModelTests {
         await viewModel.run()
 
         #expect(processing.calls == [.ensure, .sync, .isActive, .prefetch])
-        #expect(viewModel.phase == .awaitingAdvance)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
     }
 
     @Test func postPurchaseStaticFinishesWithoutAnimation() async {
@@ -120,7 +228,8 @@ struct ProcessingAccountViewModelTests {
 
         #expect(processing.calls == [.ensure, .sync, .isActive])
         #expect(!processing.calls.contains(.prefetch))
-        #expect(viewModel.phase == .awaitingAdvance)
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
     }
 
     @Test func prepareFailurePublishesFailedAndNotifiesCoordinator() async {
@@ -143,17 +252,46 @@ struct ProcessingAccountViewModelTests {
         }
     }
 
-    @Test func advanceWaitsForBothWorkAndAnimation() async {
+    @Test func advanceWhenWorkCompletesWithoutWaitingForCarousel() async {
         let processing = FakeProcessing()
         let coordinator = FakeCoordinator()
         let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
 
         await viewModel.run()
-        #expect(viewModel.phase == .awaitingAdvance)
-        #expect(coordinator.actions.isEmpty)
 
-        viewModel.animationDidFinish()
-        #expect(viewModel.phase == .finalizing)
+        #expect(viewModel.didFinishSetupCarousel)
+        #expect(viewModel.didFinishAnimatingText)
+        #expect(viewModel.currentStep == 4)
+
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
+    }
+
+    @Test func inactiveAccountAdvancesToStepFourWithoutPrefetch() async {
+        let processing = FakeProcessing()
+        processing.accountActive = false
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
+
+        await viewModel.run()
+        #expect(viewModel.currentStep == 4)
+        #expect(viewModel.credentialsDisplayPair == nil)
+        #expect(viewModel.didFinishSetupCarousel)
+
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+    }
+
+    @Test func navigationAdvancesWhenWorkCompletesBeforeCarousel() async {
+        let processing = FakeProcessing()
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
+
+        await viewModel.run()
+
+        #expect(viewModel.didFinishSetupCarousel)
+        #expect(viewModel.didFinishAnimatingText)
 
         await viewModel.awaitFinalMessage()
         #expect(viewModel.phase == .finished)
@@ -219,5 +357,151 @@ struct ProcessingAccountViewModelTests {
             return
         }
         #expect(!processing.calls.contains(.prefetch))
+    }
+
+    @Test func prefetchPhaseHoldsStepFourUntilCallbackReturns() async {
+        let processing = FakeProcessing()
+        processing.prefetchDelay = .milliseconds(100)
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .createAccount, processing: processing, coordinator: coordinator)
+        viewModel.animationDidFinish()
+
+        await viewModel.run()
+
+        #expect(processing.calls.contains(.prefetch))
+        #expect(viewModel.currentStep == 4)
+        #expect(viewModel.didFinishAnimatingText)
+        #expect(viewModel.phase == .finalizing)
+        #expect(coordinator.actions.isEmpty)
+    }
+
+    @Test func setupCarouselStepBarTick_updatesIndexAndProgressTogether() {
+        let processing = FakeProcessing()
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        viewModel.noteSetupCarouselStepBarTick(atIndex: 1)
+
+        #expect(viewModel.setupCarouselIndex == 1)
+        #expect(viewModel.currentStep == 2)
+    }
+
+    @Test func setupCarouselIndexTwoAdvancesBarToStepThree() {
+        let processing = FakeProcessing()
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        viewModel.noteSetupCarouselStepBarTick(atIndex: 2)
+
+        #expect(viewModel.currentStep == 3)
+    }
+
+    @Test func preparingAfterSetupHoldsThirdSegmentUntilPrefetch() {
+        let processing = FakeProcessing()
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        viewModel.animationDidFinish()
+
+        #expect(viewModel.currentStep == 3)
+        #expect(viewModel.credentialsDisplayPair == nil)
+    }
+
+    @Test func loginStartsAtFirstProgressSegment() {
+        let processing = FakeProcessing()
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        #expect(viewModel.currentStep == LoginProcessingUI.initialProgressStep)
+    }
+
+    @Test func loginEnsuresDeviceRegisteredBeforePrepare() async {
+        let processing = FakeProcessing()
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        await viewModel.run()
+
+        guard
+            let deviceIndex = processing.calls.firstIndex(of: .ensureDeviceRegistered),
+            let prepareIndex = processing.calls.firstIndex(of: .prepare)
+        else {
+            Issue.record("expected device registration before prepare")
+            return
+        }
+        #expect(deviceIndex < prepareIndex)
+    }
+
+    @Test func prefetchCompletingBeforeCarouselDoesNotRegressProgressBar() async {
+        let processing = FakeProcessing()
+        processing.prefetchDelay = .zero
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        await viewModel.run()
+
+        #expect(viewModel.hasReachedPrefetchPhase)
+        #expect(viewModel.currentStep == 4)
+        #expect(viewModel.didFinishSetupCarousel)
+
+        viewModel.noteSetupCarouselStepBarTick(atIndex: 0)
+        #expect(viewModel.currentStep == 4)
+
+        viewModel.noteSetupCarouselStepBarTick(atIndex: 1)
+        #expect(viewModel.currentStep == 4)
+
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+        #expect(coordinator.actions == [.session(.processingFinished)])
+    }
+
+    @Test func startDoesNotRestartWhenWorkAlreadyCompleted() async {
+        let processing = FakeProcessing()
+        processing.prefetchDelay = .zero
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        await viewModel.run()
+        let callsAfterRun = processing.calls
+
+        viewModel.start()
+
+        #expect(processing.calls == callsAfterRun)
+    }
+
+    @Test func prepareBackendPhase_showsPrefetchBeforePrepareReturns() async {
+        let processing = FakeProcessing()
+        processing.preparePhaseScript = [.requestingZkNyms]
+        processing.holdPrepareUntilReleased = true
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        let runTask = Task { await viewModel.run() }
+        await Task.yield()
+        try? await Task.sleep(for: .milliseconds(20))
+
+        #expect(viewModel.phase == .prefetching)
+        #expect(viewModel.hasReachedPrefetchPhase)
+        #expect(viewModel.currentStep == 4)
+        #expect(viewModel.setupCarouselIndex == 0)
+        #expect(!viewModel.didFinishSetupCarousel)
+        #expect(viewModel.credentialsDisplayPair != nil)
+
+        processing.releasePrepare()
+        await runTask.value
+        await viewModel.awaitFinalMessage()
+        #expect(viewModel.phase == .finished)
+    }
+
+    @Test func syncSummaryRefresh_keepsPrefetchPhaseWhenLatchSet() async {
+        let processing = FakeProcessing()
+        processing.preparePhaseScript = [.requestingZkNyms]
+        let coordinator = FakeCoordinator()
+        let viewModel = makeViewModel(flow: .login, processing: processing, coordinator: coordinator)
+
+        await viewModel.run()
+
+        #expect(viewModel.hasReachedPrefetchPhase)
+        #expect(viewModel.currentStep == 4)
     }
 }

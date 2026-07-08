@@ -29,7 +29,6 @@ import GRPCManager
     public private(set) var navigationIntent: NavigationIntent?
     public private(set) var planPurchaseNavigationToken: UInt = 0
 
-    var isSubscriptionPurchaseChoiceDisplayed = false
     var isFamilyWarningModalDisplayed = false
     public private(set) var webSubscriptionPurchaseToken: UInt = 0
 
@@ -82,7 +81,7 @@ import GRPCManager
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.snackbarManager = snackbarManager
-        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager)
+        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager, networkMonitor: networkMonitor)
         self.oneClick = OneClickViewModel(
             appSettings: appSettings,
             connectionManager: connectionManager,
@@ -109,7 +108,7 @@ import GRPCManager
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.snackbarManager = snackbarManager
-        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager)
+        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager, networkMonitor: networkMonitor)
         self.oneClick = OneClickViewModel(
             appSettings: appSettings,
             connectionManager: connectionManager,
@@ -230,6 +229,8 @@ import GRPCManager
     }
 
     func handleSceneBecameActive() {
+        guard !connectionStatus.isConnectingLike, !isFamilyWarningModalDisplayed else { return }
+
         let now = Date()
         let shouldBypassThrottle = DrawerSessionPolicy.shouldBypassForegroundAccountRefreshThrottle(
             isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
@@ -280,6 +281,12 @@ import GRPCManager
 
     func handleAuthCompleted(outcome: AuthCompletionOutcome, flow: AuthFlowKind) {
         handleSessionEvent(.authCompleted(outcome: outcome, flow: flow))
+    }
+
+    public func beginPrivyLoginProcessing(callbackURLString: String) {
+        guard drawerContent?.isProcessing != true else { return }
+        handleSessionEvent(.authDeeplinkProcessingStarted)
+        startProcessingTransition(flow: .login, deeplinkLoginCallbackURL: callbackURLString)
     }
 
     func handleCredentialChange(imported: Bool) {
@@ -340,29 +347,21 @@ import GRPCManager
 
     public func requestInactiveSubscriptionPurchase() {
 #if os(iOS)
-        if SubscriptionPurchaseChoicePolicy.shouldPresentPurchaseChoice(isIOS: true) {
-            isSubscriptionPurchaseChoiceDisplayed = true
-            return
-        }
+        requestPlanPurchaseTransition()
+#elseif os(macOS)
+        beginWebSubscriptionPurchase()
 #endif
-        requestPlanPurchaseTransition()
-    }
-
-    func dismissSubscriptionPurchaseChoice() {
-        isSubscriptionPurchaseChoiceDisplayed = false
-    }
-
-    func beginInAppSubscriptionPurchase() {
-        isSubscriptionPurchaseChoiceDisplayed = false
-        requestPlanPurchaseTransition()
     }
 
     func beginWebSubscriptionPurchase() {
-        isSubscriptionPurchaseChoiceDisplayed = false
         webSubscriptionPurchaseToken &+= 1
     }
 
     public func reconcilePurchaseFlowAfterAccountRefresh() {
+        guard !pendingPlanPurchaseNavigationAfterDrawerHide,
+              planPurchaseTransitionTask == nil,
+              !isCheckoutNavigationPending
+        else { return }
         guard DrawerSessionPolicy.shouldCompleteCheckoutAfterAccountRefresh(
             isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
             isAccountActive: credentialsManager.isAccountActive()
@@ -415,7 +414,12 @@ private extension AppFeatureViewModel {
         let lastError = connectionStatus.connectionManager.lastError
         guard !ConnectionStatusViewModel.isNeedsRelaxedIndependenceCriteria(lastError)
         else {
-            isFamilyWarningModalDisplayed = true
+            if appSettings.serverFamilyRemindersEnabled {
+                isFamilyWarningModalDisplayed = true
+            } else {
+                connectionStatus.showsIndependenceWarning = true
+                oneClick.independenceConsentAgreed()
+            }
             return
         }
         snackbarManager.enqueue(
@@ -425,7 +429,7 @@ private extension AppFeatureViewModel {
                 message: ConnectionErrorCopy.message(reason: message),
                 actionTitle: "disconnect".localizedString,
                 onAction: { [weak self] in
-                    self?.oneClick.connectButtonTapped()
+                    self?.oneClick.disconnectFromError()
                 },
                 duration: 7
             )
@@ -478,13 +482,15 @@ private extension AppFeatureViewModel {
         }
     }
 
-    func startProcessingTransition(flow: ProcessingFlow) {
+    func startProcessingTransition(flow: ProcessingFlow, deeplinkLoginCallbackURL: String? = nil) {
         let viewModel = ProcessingAccountViewModel(
             processing: credentialsManager,
-            flow: flow
+            flow: flow,
+            deeplinkLoginCallbackURL: deeplinkLoginCallbackURL
         )
         viewModel.sessionCoordinator = self
         processingViewModel = viewModel
+        viewModel.start()
         // Welcome and processing share the same drawer slide identity, so
         // commit directly instead of staging through pendingDrawerContent —
         // that avoids triggering DrawerView.slideOut and lets the inner
@@ -609,25 +615,6 @@ private extension AppFeatureViewModel {
         handleAuthCompleted(outcome: outcome, flow: flow)
     }
 
-    func presentPurchaseDismissedFeedbackIfNeeded() {
-        guard IAPFeedbackPolicy.shouldShowCheckoutDismissedFeedback(
-            isCredentialImported: appSettings.isCredentialImported,
-            isAccountActive: credentialsManager.isAccountActive()
-        ) else { return }
-        snackbarManager.enqueue(
-            SnackbarItem(
-                style: .warning,
-                title: "purchasePlan.checkoutDismissed.title".localizedString,
-                message: "purchasePlan.checkoutDismissed.message".localizedString,
-                actionTitle: "oneClick.incompleteSubscription.action".localizedString,
-                onAction: { [weak self] in
-                    self?.requestInactiveSubscriptionPurchase()
-                },
-                duration: 8
-            )
-        )
-    }
-
     func makeSessionEnvironment(processingKind: ProcessingFlowKind? = nil) -> AppSessionEnvironment {
         let summary = credentialsManager.accountSummary
         let resolvedProcessingKind = processingKind
@@ -650,10 +637,6 @@ private extension AppFeatureViewModel {
 
         if result.cancelProcessing {
             cancelProcessingTransition()
-        }
-
-        if result.showCheckoutDismissedFeedback {
-            presentPurchaseDismissedFeedbackIfNeeded()
         }
 
         switch result.drawerCommand {
@@ -709,20 +692,22 @@ private extension AppFeatureViewModel {
             }
             withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
                 self.drawerContent = nil
-            } completion: {
-                self.completeCheckoutDrawerTransition(hadProcessingDrawer: hadProcessingDrawer)
             }
+            try? await Task.sleep(for: .seconds(Self.paywallTransitionDuration))
+            guard !Task.isCancelled else { return }
+            self.completeCheckoutDrawerTransition(hadProcessingDrawer: hadProcessingDrawer)
         }
     }
 
     func completeCheckoutDrawerTransition(hadProcessingDrawer: Bool = false) {
+        let shouldMarkCheckoutNavigationPending = pendingPlanPurchaseNavigationAfterDrawerHide
         planPurchaseTransitionTask = nil
         if PurchaseTransitionPolicy.shouldCancelProcessingAfterDrawerHidden(
             hadProcessingDrawer: hadProcessingDrawer
         ) {
             cancelProcessingTransition()
         }
-        guard pendingPlanPurchaseNavigationAfterDrawerHide else { return }
+        guard shouldMarkCheckoutNavigationPending else { return }
         isCheckoutNavigationPending = true
         planPurchaseTransitionTask = Task { @MainActor [weak self] in
             try? await Task.sleep(

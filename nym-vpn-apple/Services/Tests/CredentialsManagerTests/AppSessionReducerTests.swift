@@ -34,6 +34,37 @@ struct AppSessionReducerTests {
         #expect(afterCancel.cancelProcessing == false)
     }
 
+    // Deeplink processing takeover: closes the handoff so the imminent credential
+    // import is a no-op, and emits no route/drawer command (the screen drives it).
+    @Test func authDeeplinkProcessingStarted_closesHandoffWithoutRoute() {
+        var context = AppSessionContext.initial
+        let env = AppSessionEnvironment(
+            isCredentialImported: false,
+            welcomeScreenDidDisplay: false,
+            isAccountActive: false
+        )
+
+        context = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authWillBegin(flow: .login, completesOnCredentialImport: true)
+        ).context
+        #expect(context.pendingAuthFlow == .login)
+
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authDeeplinkProcessingStarted
+        )
+        #expect(result.context.pendingAuthFlow == nil)
+        #expect(result.context.authHandoffCompleted)
+        #expect(!result.context.authHandoffCompletesOnCredentialImport)
+        #expect(result.context.lastAuthCompletionOutcome == nil)
+        #expect(result.drawerCommand == .none)
+        #expect(result.authRoute == nil)
+        #expect(result.cancelProcessing == false)
+    }
+
     // E2: Privy success with inactive account routes to purchase.
     @Test func e2_privySuccessInactiveAccount_routesToPurchase() {
         let env = AppSessionEnvironment(
@@ -149,6 +180,58 @@ struct AppSessionReducerTests {
         #expect(finishResult.drawerCommand == .setOneClick)
         #expect(finishResult.navigationIntent == nil)
         #expect(!finishResult.context.isPurchaseFlowActive)
+    }
+
+    // Passphrase login: authWillBegin(completesOnCredentialImport: false) must still
+    // complete via authCompleted and route to login processing (macOS parity).
+    @Test func passphraseLoginHandoff_completesOnAuthCompleted() {
+        var context = AppSessionContext.initial
+        let env = AppSessionEnvironment(
+            isCredentialImported: true,
+            welcomeScreenDidDisplay: true,
+            isAccountActive: true
+        )
+
+        context = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authWillBegin(flow: .login, completesOnCredentialImport: false)
+        ).context
+        #expect(context.pendingAuthFlow == .login)
+        #expect(!context.authHandoffCompleted)
+
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authCompleted(outcome: .loginReady, flow: .login)
+        )
+
+        #expect(result.context.authHandoffCompleted)
+        #expect(result.context.pendingAuthFlow == nil)
+        #expect(result.authRoute == .startProcessing(.login))
+    }
+
+    @Test func passphraseLoginHandoff_inactiveAccountStartsLoginProcessing() {
+        var context = AppSessionContext.initial
+        let env = AppSessionEnvironment(
+            isCredentialImported: true,
+            welcomeScreenDidDisplay: true,
+            isAccountActive: false
+        )
+
+        context = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authWillBegin(flow: .login, completesOnCredentialImport: false)
+        ).context
+
+        let result = AppSessionReducer.reduce(
+            context: context,
+            environment: env,
+            event: .authCompleted(outcome: .registeredNeedsPurchase, flow: .login)
+        )
+
+        #expect(result.authRoute == .startProcessing(.login))
     }
 
     @Test func authCompleted_isIdempotentAfterHandoffCompletes() {

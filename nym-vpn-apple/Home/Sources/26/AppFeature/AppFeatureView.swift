@@ -42,7 +42,7 @@ public struct AppFeatureView: View {
     @State private var welcomeHeight: CGFloat = 0
     @State private var bottomSafeAreaInset: CGFloat = 0
     @State private var drawerOffsetY: CGFloat = 0
-#if os(iOS)
+#if os(macOS)
     @State private var autologinState = AutologinState()
 #endif
     @Environment(\.colorScheme)
@@ -53,6 +53,8 @@ public struct AppFeatureView: View {
     private var appearance: AppSetting.Appearance = .automatic
     @AppStorage(AppSettingKey.credenitalExists.rawValue)
     private var isCredentialImported = false
+    @AppStorage(AppSettingKey.onboardingDidDisplay.rawValue)
+    private var onboardingDidDisplay = false
 
     public init(viewModel: AppFeatureViewModel) {
         _viewModel = State(wrappedValue: viewModel)
@@ -152,11 +154,20 @@ private extension AppFeatureView {
                     }
                 }
             }
+            .overlay {
+                if !onboardingDidDisplay, !isCredentialImported {
+                    OnboardingView {
+                        appSettings.onboardingDidDisplay = true
+                    }
+                    .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut, value: onboardingDidDisplay)
             .preferredColorScheme(appearance.colorScheme)
             .onAppear { wireMacOSDaemonNavigation() }
-#if os(iOS)
+#if os(macOS)
             .modifier(
-                IOSPurchaseChromeModifier(
+                WebSubscriptionPurchaseChromeModifier(
                     viewModel: viewModel,
                     autologinState: autologinState,
                     credentialsManager: credentialsManager
@@ -411,9 +422,11 @@ private extension AppFeatureView {
                 imageSize: Constants.NavigationBar.TrailingIcon.size,
                 accessibilityLabel: "home.navigationBar.settings.accessibilityLabel".localizedString
             ) {
+                guard viewModel.drawerContent?.isProcessing != true else { return }
                 impactGenerator.softImpact()
                 viewModel.path.append(HomeLink.settings)
             }
+            .allowsHitTesting(viewModel.drawerContent?.isProcessing != true)
             .padding(.leading, NymSpacing.small)
         }
         .frame(height: Constants.NavigationBar.height)

@@ -83,14 +83,25 @@ impl TimingConfig {
         }
     }
 
-    /// Default timings suitable for two-hop connections
-    pub fn two_hop() -> Self {
+    /// Default timings suitable for two-hop connections using ICMP probe
+    pub fn two_hop_icmp() -> Self {
         TimingConfig {
             initial_probe_timeout: Duration::from_secs(3),
             initial_probe_retry_count: 5,
             monitoring_probe_timeout: Duration::from_secs(5),
             monitoring_probe_retry_count: 3,
             probe_periodicity: Duration::from_secs(10),
+        }
+    }
+
+    /// Default timings suitable for two-hop connections using TCP probe
+    pub fn two_hop_tcp() -> Self {
+        TimingConfig {
+            initial_probe_timeout: Duration::from_secs(10),
+            initial_probe_retry_count: 5,
+            monitoring_probe_timeout: Duration::from_secs(10),
+            monitoring_probe_retry_count: 3,
+            probe_periodicity: Duration::from_secs(20),
         }
     }
 }
@@ -323,11 +334,51 @@ mod tests {
     use tokio_util::sync::DropGuard;
 
     use super::*;
-    use crate::mock_probe::{MockProbe, Outcome};
+    use crate::{
+        BoxedProbeError,
+        mock_probe::{MockProbe, MockProbeError, Outcome},
+    };
 
     const PROBE_RETRY_COUNT: u32 = 3;
     const INITIAL_PROBE_TIMEOUT: Duration = Duration::from_secs(3);
     const PROBE_PERIODICITY: Duration = Duration::from_secs(10);
+
+    #[test]
+    fn mock_probe_send_failure_is_not_timeout() {
+        let err = BoxedProbeError::from(MockProbeError::SendFailure);
+        assert!(err.0.is_send_failure());
+        assert!(!err.0.is_timeout());
+    }
+
+    #[test]
+    fn mock_probe_timeout_is_not_send_failure() {
+        let err = BoxedProbeError::from(MockProbeError::Timeout);
+        assert!(!err.0.is_send_failure());
+        assert!(err.0.is_timeout());
+    }
+
+    #[tokio::test(start_paused = true)]
+    #[tracing_test::traced_test]
+    async fn test_send_failures_count_toward_connection_loss() {
+        let probe = MockProbe::repeating(Outcome::SendFailure);
+        let (mut event_rx, _drop_guard) = spawn_monitor(probe);
+
+        let events = collect_events(&mut event_rx, (PROBE_RETRY_COUNT + 1) as usize)
+            .await
+            .into_iter()
+            .map(|event| event.status)
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            events,
+            vec![
+                ConnectionStatusEvent::IntermittentFailure { retry: 1 },
+                ConnectionStatusEvent::IntermittentFailure { retry: 2 },
+                ConnectionStatusEvent::IntermittentFailure { retry: 3 },
+                ConnectionStatusEvent::Failed
+            ]
+        );
+    }
 
     /// Simulated latency of a successful probe.
     const SUCCEEDED_PROBE_LATENCY: Duration = Duration::from_millis(1500);

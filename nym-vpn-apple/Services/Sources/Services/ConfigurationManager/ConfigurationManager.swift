@@ -92,7 +92,19 @@ import PathManager
 
     public var isSantaClaus: Bool {
 #if SANTA
-        return true
+        return SantaEnvSwitchPolicy.canApplyEnvironmentChange(
+            isSantaBuild: true,
+            isTestFlight: isTestFlight,
+            isMacOS: Device.isMacOS,
+            isRunningOnCI: isRunningOnCI,
+            isDebugBuild: {
+#if DEBUG
+                true
+#else
+                false
+#endif
+            }()
+        )
 #else
         return false
 #endif
@@ -143,13 +155,21 @@ import PathManager
     }
 
     private func applyEnvChange(to env: Env) async {
-        guard self.isTestFlight || Device.isMacOS else { return }
+        guard isSantaClaus else { return }
         do {
             self.currentEnv = env
 #if os(macOS)
             try await grpcManager.switchEnvironment(to: env.rawValue)
 #endif
             try await self.configure()
+#if os(iOS)
+            guard lastConfiguredEnvString == currentEnvString else {
+                self.logger.error(
+                    "Network environment did not sync to \(currentEnvString); skipping env-change observers"
+                )
+                return
+            }
+#endif
             self.notifyEnvironmentDidChange()
         } catch {
             self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
@@ -228,17 +248,13 @@ private extension ConfigurationManager {
 
     func performConfigure() async throws {
 #if os(iOS)
-        do {
-            self.networkEnv = try await NymEnvironment.newWithCacheDir(
-                cacheDir: PathManager.configFolderURL().path(),
-                networkName: currentEnvString,
-                userAgent: .appUserAgent
-            )
-            logger.info("Configured environment: \(currentEnvString)")
-            lastConfiguredEnvString = currentEnvString
-        } catch {
-            logger.error("Failed to initialize environment: \(currentEnvString). Error: \(error)")
-        }
+        self.networkEnv = try await NymEnvironment.newWithCacheDir(
+            cacheDir: PathManager.configFolderURL().path(),
+            networkName: currentEnvString,
+            userAgent: .appUserAgent
+        )
+        logger.info("Configured environment: \(currentEnvString)")
+        lastConfiguredEnvString = currentEnvString
 #else
         try? await updateErrorReportingIfNeeded()
         try? await updateNetworkStatisticsIfNeeded()

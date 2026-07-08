@@ -58,6 +58,7 @@ let package = Package(
                 .product(name: "PurchasesManager", package: "Services"),
                 .product(name: "SentryManager", package: "Services"),
                 .product(name: "SnackbarManager", package: "Services"),
+                .product(name: "TunnelStatus", package: "ServicesMutual"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "Routes", package: "Routes"),
                 .product(name: "Theme", package: "Theme"),

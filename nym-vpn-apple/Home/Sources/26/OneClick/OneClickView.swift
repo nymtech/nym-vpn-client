@@ -52,10 +52,6 @@ public struct OneClickView: View {
 private extension OneClickView {
     var baseSection: some View {
         VStack(spacing: 0) {
-            if viewModel.showsIncompleteSubscriptionBanner {
-                incompleteSubscriptionBanner
-                    .padding(.bottom, NymSpacing.small)
-            }
             VStack(alignment: .leading, spacing: 0) {
                 if animatedDisplayMode == .nerd {
                     exitNodeLabel
@@ -80,44 +76,6 @@ private extension OneClickView {
         Divider()
             .background(Color.Nym.textTertiary.opacity(0.35))
             .padding(.vertical, NymSpacing.standard)
-    }
-
-    var incompleteSubscriptionBanner: some View {
-        Button {
-            viewModel.incompleteSubscriptionBannerTapped()
-        } label: {
-            VStack(alignment: .leading, spacing: NymSpacing.small) {
-                HStack(spacing: NymSpacing.small) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(Color.Nym.warning)
-                    Text("oneClick.incompleteSubscription.title".localizedString)
-                        .nymTextStyle(.bodyDefault)
-                        .foregroundStyle(Color.Nym.textPrimary)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.Nym.textSecondary)
-                }
-                Text("oneClick.incompleteSubscription.message".localizedString)
-                    .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.textSecondary)
-                    .multilineTextAlignment(.leading)
-                Text("oneClick.incompleteSubscription.action".localizedString)
-                    .nymTextStyle(.bodySmall)
-                    .foregroundStyle(Color.Nym.primary)
-            }
-            .padding(NymSpacing.component)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.Nym.warning.opacity(0.12))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.Nym.warning.opacity(0.35), lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isButton)
     }
 
     var exitNodeLabel: some View {
@@ -332,8 +290,6 @@ private extension OneClickView {
             "oneClick.connectButton.disconnected".localizedString
         case .connecting:
             "oneClick.connectButton.connecting".localizedString
-        case .awaitingGatewayConsent:
-            "gatewayIndependence.warning.connectAnyway".localizedString
         case .stop:
             "stop".localizedString
         case .connected:
@@ -341,7 +297,7 @@ private extension OneClickView {
         case .disconnecting:
             "disconnecting".localizedString
         case .noInternet:
-            "noInternet".localizedString
+            "offline".localizedString
         case .noSubscription:
             "home.getStarted".localizedString
         }
@@ -349,7 +305,7 @@ private extension OneClickView {
 
     var connectButtonStyle: NymButton.Style {
         switch viewModel.connectState {
-        case .disconnected, .noSubscription, .awaitingGatewayConsent:
+        case .disconnected, .noSubscription:
             .primary
         case .connecting, .disconnecting, .noInternet:
             .connecting
@@ -364,7 +320,7 @@ private extension OneClickView {
         switch viewModel.connectState {
         case .connecting, .disconnecting, .noInternet:
             true
-        case .disconnected, .stop, .connected, .noSubscription, .awaitingGatewayConsent:
+        case .disconnected, .stop, .connected, .noSubscription:
             false
         }
     }

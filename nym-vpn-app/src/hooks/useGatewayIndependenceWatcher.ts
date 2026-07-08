@@ -38,10 +38,13 @@ function useGatewayIndependenceWatcher() {
       await invoke('reconnect');
     };
 
-    handle().catch((e: unknown) => {
-      console.error('gateway independence watcher failed', e);
-      handlingRef.current = false;
-    });
+    handle()
+      .catch((e: unknown) => {
+        console.error('gateway independence watcher failed', e);
+      })
+      .finally(() => {
+        handlingRef.current = false;
+      });
   }, [tunnelError, notificationsEnabled, requestConfirmation]);
 }
 

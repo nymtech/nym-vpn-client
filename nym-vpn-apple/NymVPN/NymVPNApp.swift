@@ -98,12 +98,14 @@ struct NymVPNApp: App {
                     LogoView()
                 }
             }
-            .animation(.easeIn, value: isSecureScreenVisible)
             .preferredColorScheme(appearance.colorScheme)
             .onAppear {
                 configureScreenSize()
                 externalLinkManager.deeplinkHandler = { url in
                     await deeplinkManager.handleURL(url)
+                }
+                deeplinkManager.onPrivyLoginDeeplink = { callbackURLString in
+                    appFeatureViewModel.beginPrivyLoginProcessing(callbackURLString: callbackURLString)
                 }
             }
             .onOpenURL { incomingURL in
@@ -170,13 +172,17 @@ private extension NymVPNApp {
     }
 
     func configureSecureScreen(with newPhase: ScenePhase) {
-        switch newPhase {
-        case .background, .inactive:
-            isSecureScreenVisible = true
-        case .active:
-            isSecureScreenVisible = false
-        @unknown default:
-            break
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            switch newPhase {
+            case .background, .inactive:
+                isSecureScreenVisible = true
+            case .active:
+                isSecureScreenVisible = false
+            @unknown default:
+                break
+            }
         }
     }
 }

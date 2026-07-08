@@ -57,6 +57,9 @@ impl DisconnectedState {
         if let Err(e) = shared_state.firewall.reset_policy() {
             trace_err_chain!(e, "Failed to reset firewall policy");
         }
+
+        #[cfg(target_os = "linux")]
+        shared_state.restore_nm_connectivity_check();
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

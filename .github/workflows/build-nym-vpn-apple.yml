@@ -577,13 +577,8 @@ jobs:
           set -euo pipefail
 
           echo "🚀 Uploading to TestFlight..."
-          # Beta groups by release type (--beta-group is repeatable):
-          #   ship (release) → public 'World' + 'Nym Team External'
-          #   qa   (nightly) → 'Nym Team External' only
-          BETA_GROUPS=( --beta-group='Nym Team External' )
-          if [ "${{ env.RELEASE_TYPE }}" = "ship" ]; then
-            BETA_GROUPS+=( --beta-group='World' )
-          fi
+  
+          BETA_GROUPS=( --beta-group='World' )
           app-store-connect publish \
             --beta-build-localizations=@file:whats_new.json \
             "${BETA_GROUPS[@]}" \

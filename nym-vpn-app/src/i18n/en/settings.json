@@ -87,6 +87,9 @@
     "title": "Logs (stored locally)",
     "app": "App logs",
     "daemon": "Daemon logs",
+    "debug-logging": {
+      "title": "Enable debug logging"
+    },
     "actions": {
       "delete": {
         "action-button": "Delete",

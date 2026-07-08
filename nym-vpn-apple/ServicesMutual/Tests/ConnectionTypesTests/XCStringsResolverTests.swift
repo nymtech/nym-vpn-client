@@ -12,12 +12,14 @@ struct XCStringsResolverTests {
     @Test func resolvesOnboardingProcessingKeys() throws {
         let resolver = try XCStringsResolver.default()
         let keys = [
-            "processingAccount.login.title2",
-            "processingAccount.login.subtitle2",
-            "processingAccount.login.title3",
-            "processingAccount.login.subtitle3",
-            "processingAccount.login.title4",
-            "processingAccount.login.subtitle4",
+            "processingAccount.login.settingUp",
+            "processingAccount.login.settingUpStep2Subtitle",
+            "processingAccount.login.settingUpStep3Subtitle",
+            "processingAccount.login.settingUpStep4Subtitle",
+            "processingAccount.login.loadingCredentials",
+            "processingAccount.login.loadingCredentialsSubtitle",
+            "processingAccount.login.almostReady",
+            "processingAccount.login.almostReadySubtitle",
             "processingAccount.awaitingConfirmation.title",
             "processingAccount.awaitingConfirmation.subtitle"
         ]

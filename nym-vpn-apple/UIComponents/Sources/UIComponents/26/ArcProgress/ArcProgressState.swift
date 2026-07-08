@@ -7,6 +7,9 @@ public enum ArcProgressState: Equatable, Sendable {
     /// Idle / not connected — all rings at track opacity, label "Not protected".
     case disconnected
 
+    /// Device has no internet — idle rings, label "Your device has no internet connection".
+    case offline
+
     /// One of the six connecting steps — fills 50% (first half) or 100% (full)
     /// of the corresponding ring. Outer ring covers steps 1–2, middle 3–4,
     /// inner 5–6.

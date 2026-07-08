@@ -774,6 +774,8 @@ pub struct SharedState {
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
     statistics_event_sender: StatisticsSender,
+    #[cfg(target_os = "linux")]
+    nm_connectivity_check_enabled: Option<bool>,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     topology_service: VpnTopologyServiceHandle,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
@@ -786,7 +788,7 @@ pub struct SharedState {
 }
 
 impl SharedState {
-    /// Notify discovery and account controller when network is unrestricted.
+    /// Notify discovery, account controller, and gateway cache when network is unrestricted.
     async fn allow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(false))
@@ -795,15 +797,35 @@ impl SharedState {
             .set_vpn_api_firewall_down()
             .await
             .ok();
+        self.gateway_provider.set_gateway_cache_paused(false);
     }
 
-    /// Notify discovery, account controller and geo-location when network is restricted.
+    /// Notify discovery, account controller, geo-location, and gateway cache when network is restricted.
     async fn disallow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(true))
             .ok();
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
         self.gateway_provider.set_active_geo_location(false).await;
+        self.gateway_provider.set_gateway_cache_paused(true);
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn disable_nm_connectivity_check(&mut self) {
+        if self.nm_connectivity_check_enabled.is_none()
+            && let Ok(nm) = nym_dbus::network_manager::NetworkManager::new()
+        {
+            self.nm_connectivity_check_enabled = nm.disable_connectivity_check();
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn restore_nm_connectivity_check(&mut self) {
+        if let Some(true) = self.nm_connectivity_check_enabled.take()
+            && let Ok(nm) = nym_dbus::network_manager::NetworkManager::new()
+        {
+            nm.enable_connectivity_check();
+        }
     }
 
     async fn enable_ad_blocking(&self, enable: bool) {
@@ -1117,6 +1139,8 @@ impl TunnelStateMachine {
             account_command_tx,
             account_controller_state,
             statistics_event_sender,
+            #[cfg(target_os = "linux")]
+            nm_connectivity_check_enabled: None,
             gateway_provider,
             topology_service,
             discovery_refresher_command_tx,

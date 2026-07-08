@@ -3,6 +3,7 @@ import Foundation
 import ConnectionManager
 import ConnectionTypes
 import ErrorReason
+import NetworkMonitor
 import Theme
 import TunnelStatus
 import UIComponents
@@ -14,17 +15,21 @@ import UIKit
 @Observable
 @MainActor public final class ConnectionStatusViewModel {
     public let connectionManager: ConnectionManager
+    private let networkMonitor: NetworkMonitor
 
     var hasFailure = false
+    var isOnline = true
     var lastConnectingStep: TunnelConnectingState?
     var lastDisplayedStep: ArcProgressState.Step?
     var lastErrorMessage: String?
     var mode: ArcProgressMode = .fast
     var status: TunnelStatus = .unknown
     var connectedDate: Date?
+    var showsIndependenceWarning = false
 
     @ObservationIgnored private var lastErrorSignature: ErrorSignature?
     @ObservationIgnored private var didFireForCurrentError = false
+    @ObservationIgnored private var resumeFromIndependenceConsent = false
 
     /// Invoked when the tunnel reports `.error`. Parent (AppFeatureViewModel)
     /// uses this to surface a snackbar.
@@ -36,8 +41,13 @@ import UIKit
     @ObservationIgnored private var cancellables = Set<AnyCancellable>()
     @ObservationIgnored private var queueTask: Task<Void, Never>?
 
-    public init(connectionManager: ConnectionManager) {
+    public init(
+        connectionManager: ConnectionManager,
+        networkMonitor: NetworkMonitor = .shared
+    ) {
         self.connectionManager = connectionManager
+        self.networkMonitor = networkMonitor
+        self.isOnline = networkMonitor.isAvailable
         seedFromCurrentValues()
         observe()
     }
@@ -47,6 +57,9 @@ import UIKit
     }
 
     var arcProgressState: ArcProgressState {
+        if !isOnline {
+            return .offline
+        }
         switch status {
         case .connected:
             return .connected
@@ -76,6 +89,8 @@ import UIKit
     public func setMode(_ mode: ArcProgressMode) {
         self.mode = mode
     }
+
+    public var isConnectingLike: Bool { status.isConnectingLike }
 }
 
 private extension ConnectionStatusViewModel {
@@ -140,6 +155,14 @@ private extension ConnectionStatusViewModel {
                 )
             }
             .store(in: &cancellables)
+
+        networkMonitor.$isAvailable
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isAvailable in
+                self?.isOnline = isAvailable
+            }
+            .store(in: &cancellables)
     }
 
     func apply(status newStatus: TunnelStatus) {
@@ -162,12 +185,18 @@ private extension ConnectionStatusViewModel {
         switch newStatus {
         case .connected:
             lastDisplayedStep = .establishingConnection
+            showsIndependenceWarning = false
+            resumeFromIndependenceConsent = false
+            lastErrorSignature = nil
+            didFireForCurrentError = false
             cancelQueue()
 
         case .error:
             cancelQueue()
             if GatewayIndependenceArcPolicy.isIndependenceConsentError(connectionManager.lastError) {
-                lastDisplayedStep = nil
+                // Keep `lastDisplayedStep` (the reached ring) so the consent
+                // arc holds it and the resume rolls forward — don't unload.
+                resumeFromIndependenceConsent = true
             }
             fireConnectionFailedIfReady()
 
@@ -181,11 +210,19 @@ private extension ConnectionStatusViewModel {
             didFireForCurrentError = false
             lastDisplayedStep = nil
             lastConnectingStep = nil
+            resumeFromIndependenceConsent = false
+            showsIndependenceWarning = false
             cancelQueue()
 
         case .connecting, .reasserting, .restarting, .offlineReconnect:
             if !wasConnecting {
-                lastDisplayedStep = nil
+                if resumeFromIndependenceConsent {
+                    lastDisplayedStep = Self.resumedDisplayedStep(current: lastDisplayedStep)
+                } else {
+                    lastDisplayedStep = nil
+                    showsIndependenceWarning = false
+                }
+                resumeFromIndependenceConsent = false
                 onConnectionStarted?()
             }
             scheduleQueueIfNeeded()
@@ -217,13 +254,16 @@ private extension ConnectionStatusViewModel {
         hasFailure = GatewayIndependenceArcPolicy.shouldRecordConnectionFailure(error)
         lastErrorMessage = Self.userFacingMessage(from: error)
         if GatewayIndependenceArcPolicy.isIndependenceConsentError(error) {
-            lastDisplayedStep = nil
+            // Keep the reached ring so the consent arc holds it (no unload).
+            resumeFromIndependenceConsent = true
         }
         fireConnectionFailedIfReady()
     }
 
     func fireConnectionFailedIfReady() {
-        guard status == .error, !didFireForCurrentError, let lastErrorMessage else { return }
+        guard status == .error, !didFireForCurrentError, let lastErrorMessage else {
+            return
+        }
         didFireForCurrentError = true
         onConnectionFailed?(lastErrorMessage)
     }
@@ -331,6 +371,17 @@ extension ConnectionStatusViewModel {
 
     public static func isNeedsRelaxedIndependenceCriteria(_ error: Error?) -> Bool {
         GatewayIndependenceArcPolicy.isIndependenceConsentError(error)
+    }
+
+    /// Displayed step when a connect resumes after gateway-independence
+    /// consent. Keeps whatever ring the connect had already reached so the arc
+    /// only rolls forward (macOS reaches the middle ring before the error);
+    /// falls back to the outer ring when nothing was reached yet (iOS
+    /// pre-flight errors before any step).
+    static func resumedDisplayedStep(
+        current: ArcProgressState.Step?
+    ) -> ArcProgressState.Step? {
+        current ?? .authenticatingAccount
     }
 }
 

@@ -82,6 +82,7 @@ use crate::{
     DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
     bandwidth_controller::BandwidthController,
     mixnet::VpnTopologyServiceHandle,
+    tunnel_health::{METADATA_PATH_HEALTH_GRACE, MetadataPathHealth, should_defer_probe_teardown},
     tunnel_state_machine::{
         TunnelConstants, WireguardMultihopMode, account, ipv6_availability,
         tunnel::{
@@ -135,6 +136,8 @@ pub type TunnelMonitorEventReceiver = mpsc::UnboundedReceiver<TunnelMonitorEvent
 
 /// Timeout when waiting for reply from the event handler.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
+
+const METADATA_ENDPOINT_REACHABILITY_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// Timeout for starting the registration client
 const REGISTRATION_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(8);
@@ -708,6 +711,25 @@ impl TunnelMonitor {
             wait_for_exit_handshake(wg_handle, &self.shutdown_token).await;
         }
 
+        let (entry_metadata_endpoint_reachable_tx, entry_metadata_endpoint_reachable_rx) =
+            tokio::sync::oneshot::channel::<bool>();
+        let (exit_metadata_endpoint_reachable_tx, exit_metadata_endpoint_reachable_rx) =
+            tokio::sync::oneshot::channel::<bool>();
+        let uses_metadata_endpoint = wg_tunnel_runtime.is_some();
+        let metadata_endpoints_reachable =
+            tokio::time::timeout(METADATA_ENDPOINT_REACHABILITY_TIMEOUT, async move {
+                // for mixnet tunnel, we don't have metadata endpoints, so we just return true
+                if !uses_metadata_endpoint {
+                    return true;
+                }
+                let entry_reachable = entry_metadata_endpoint_reachable_rx.await.unwrap_or(false);
+                let exit_reachable = exit_metadata_endpoint_reachable_rx.await.unwrap_or(false);
+
+                entry_reachable && exit_reachable
+            })
+            .fuse();
+        tokio::pin!(metadata_endpoints_reachable);
+
         // Send metadata endpoint data to the bandwidth controller
         match &tunnel_interface {
             TunnelInterface::One(exit) => {
@@ -717,20 +739,32 @@ impl TunnelMonitor {
                             "Received entry metadata endpoint: {entry_metadata_endpoint}"
                         );
                         entry_metadata_tx
-                            .send(MetadataEvent::MetadataProxy(entry_metadata_endpoint))
+                            .send(MetadataEvent::new_proxy(
+                                entry_metadata_endpoint_reachable_tx,
+                                entry_metadata_endpoint,
+                            ))
                             .ok();
                     }
                 });
                 exit_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(exit.clone()))
+                    .send(MetadataEvent::new_tunnel(
+                        exit_metadata_endpoint_reachable_tx,
+                        exit.clone(),
+                    ))
                     .ok();
             }
             TunnelInterface::Two { entry, exit } => {
                 entry_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(entry.clone()))
+                    .send(MetadataEvent::new_tunnel(
+                        entry_metadata_endpoint_reachable_tx,
+                        entry.clone(),
+                    ))
                     .ok();
                 exit_metadata_tx
-                    .send(MetadataEvent::TunnelMetadata(exit.clone()))
+                    .send(MetadataEvent::new_tunnel(
+                        exit_metadata_endpoint_reachable_tx,
+                        exit.clone(),
+                    ))
                     .ok();
             }
         }
@@ -749,6 +783,12 @@ impl TunnelMonitor {
 
         let mut last_connection_status = None;
         let mut has_sent_up_event = false;
+        let mut ping_viable = false;
+        let mut metadata_endpoint_viable = false;
+        let mut consecutive_deferred_probe_failures = 0u32;
+        let metadata_path_health = wg_tunnel_runtime
+            .as_ref()
+            .map(|runtime| runtime.metadata_path_health.clone());
         let connection_data = Box::new(ConnectionData {
             entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
             exit_gateway: GatewayLightInfo::from(selected_gateways.exit_gateway().clone()),
@@ -769,10 +809,11 @@ impl TunnelMonitor {
 
                         match event.status {
                             ConnectionStatusEvent::Viable => {
-                                tracing::info!("Tunnel connection is viable");
-                                if !has_sent_up_event {
+                                ping_viable = true;
+                                consecutive_deferred_probe_failures = 0;
+                                if !has_sent_up_event && metadata_endpoint_viable {
+                                    tracing::info!("Tunnel connection is viable");
                                     has_sent_up_event = true;
-
                                     self.send_event(TunnelMonitorEvent::Up {
                                         tunnel_interface: tunnel_interface.clone(),
                                         connection_data: connection_data.clone(),
@@ -783,12 +824,55 @@ impl TunnelMonitor {
                                 tracing::info!("Tunnel connection is failing (retry: {retry})");
                             }
                             ConnectionStatusEvent::Failed => {
-                                tracing::info!("Tunnel connection is down. Exiting");
-                                self.send_event(TunnelMonitorEvent::ConnectionFailed {
-                                    exit_gateway_id: selected_gateways.exit_gateway().identity(),
-                                });
-                                break;
+                                if should_defer_probe_teardown(
+                                    uses_metadata_endpoint,
+                                    metadata_path_health.as_ref(),
+                                    METADATA_PATH_HEALTH_GRACE,
+                                    consecutive_deferred_probe_failures,
+                                ) {
+                                    consecutive_deferred_probe_failures =
+                                        consecutive_deferred_probe_failures.saturating_add(1);
+                                    tracing::warn!(
+                                        consecutive_deferred_probe_failures,
+                                        max_consecutive_deferred_probe_failures =
+                                            crate::tunnel_health::MAX_CONSECUTIVE_DEFERRED_PROBE_FAILURES,
+                                        "Probe declared tunnel down but in-tunnel metadata path recently succeeded; deferring teardown"
+                                    );
+                                    last_connection_status = None;
+                                } else {
+                                    tracing::info!("Tunnel connection is down. Exiting");
+                                    self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                                        exit_gateway_id: selected_gateways
+                                            .exit_gateway()
+                                            .identity(),
+                                    });
+                                    break;
+                                }
                             }
+                        }
+                    }
+                }
+                reachable = &mut metadata_endpoints_reachable => {
+                    let reachable = reachable.unwrap_or(false);
+                    if !reachable {
+                        if let Some(health) = metadata_path_health.as_ref() {
+                            health.clear_health();
+                        }
+                        tracing::info!("Metadata endpoints not reachable. Exiting");
+                        self.send_event(TunnelMonitorEvent::ConnectionFailed {
+                            exit_gateway_id: selected_gateways.exit_gateway().identity(),
+                        });
+                        break;
+                    } else {
+                        metadata_endpoint_viable = true;
+                        consecutive_deferred_probe_failures = 0;
+                        if !has_sent_up_event && ping_viable {
+                            tracing::info!("Tunnel connection is viable");
+                            has_sent_up_event = true;
+                            self.send_event(TunnelMonitorEvent::Up {
+                                tunnel_interface: tunnel_interface.clone(),
+                                connection_data: connection_data.clone(),
+                            });
                         }
                     }
                 }
@@ -1069,6 +1153,8 @@ impl TunnelMonitor {
             .borrow()
             .gw_update_version();
 
+        let metadata_path_health = MetadataPathHealth::new();
+
         let bw = BandwidthController::create(
             bw_controller,
             self.account_command_tx.clone(),
@@ -1081,6 +1167,7 @@ impl TunnelMonitor {
             exit_signal_rx,
             gw_update_version,
             self.shutdown_token.clone(),
+            metadata_path_health.clone(),
         );
 
         let authenticator_listener_handle = match authenticator_listener_handle {
@@ -1101,6 +1188,7 @@ impl TunnelMonitor {
             bandwidth_controller_handle,
             transport_fwd_handle: None,
             authenticator_listener_handle,
+            metadata_path_health,
         };
 
         let connection_data = WgConnectionData {
@@ -1908,15 +1996,21 @@ impl TunnelMonitor {
         exit_tunnel_metadata: &TunnelMetadata,
         event_tx: mpsc::UnboundedSender<ConnectionEvent>,
     ) -> Result<JoinHandle<Result<(), nym_connection_monitor::Error>>> {
-        let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type_used() {
-            TunnelType::Mixnet => TimingConfig::mixnet(),
-            TunnelType::Wireguard => TimingConfig::two_hop(),
-        };
-
         // Create ICMP probe first, fallback to TCP probe on failure.
         match self.create_icmp_probe(exit_tunnel_metadata) {
             Ok(icmp_probe) => {
-                tracing::info!("Initial ICMP connectivity test");
+                tracing::info!(
+                    probe_type = "icmp",
+                    probe_selection = "default_primary",
+                    "Selected ICMP connectivity probe"
+                );
+
+                let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type_used()
+                {
+                    TunnelType::Mixnet => TimingConfig::mixnet(),
+                    TunnelType::Wireguard => TimingConfig::two_hop_icmp(),
+                };
+
                 Ok(ConnectionMonitor::spawn(
                     icmp_probe,
                     timing_config,
@@ -1925,9 +2019,25 @@ impl TunnelMonitor {
                 ))
             }
             Err(err) => {
-                tracing::warn!("{}", err.display_chain());
-                tracing::info!("Fallback to TCP probe");
+                tracing::warn!(
+                    probe_type = "tcp",
+                    probe_selection = "icmp_setup_failed",
+                    fallback_reason = %err.display_chain(),
+                    "ICMP probe setup failed, falling back to TCP"
+                );
+
+                let timing_config = match self.tunnel_parameters.tunnel_settings.tunnel_type_used()
+                {
+                    TunnelType::Mixnet => TimingConfig::mixnet(),
+                    TunnelType::Wireguard => TimingConfig::two_hop_tcp(),
+                };
+
                 let tcp_probe = self.create_tcp_probe(exit_tunnel_metadata)?;
+                tracing::info!(
+                    probe_type = "tcp",
+                    probe_selection = "icmp_setup_failed_fallback",
+                    "Selected TCP connectivity probe after ICMP setup failure"
+                );
                 Ok(ConnectionMonitor::spawn(
                     tcp_probe,
                     timing_config,
@@ -1949,6 +2059,7 @@ struct WgTunnelRuntime {
     bandwidth_controller_handle: JoinHandle<()>,
     transport_fwd_handle: Option<JoinHandle<()>>,
     authenticator_listener_handle: Option<AuthClientMixnetListenerHandle>,
+    metadata_path_health: MetadataPathHealth,
 }
 
 impl WgTunnelRuntime {
