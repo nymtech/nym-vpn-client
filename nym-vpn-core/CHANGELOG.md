@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - [iOS] Skip ad-blocking rules that do not block by domain (https://github.com/nymtech/nym-vpn-client/pull/5658)
+- [iOS] Handle sub-domain blocking (https://github.com/nymtech/nym-vpn-client/pull/5810)
 
 
 ## [2026.11.0] - TBD
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Permit API networking in error state in order to refresh account data (https://github.com/nymtech/nym-vpn-client/pull/5623)
+- Increase timeout for TCP-based probe for connection monitoring in two-hop mode (https://github.com/nymtech/nym-vpn-client/pull/5803)
 
 ### Fixed
 
@@ -39,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Removed mixnet tuning feature flag
+- Removed mixnet tuning feature flag (https://github.com/nymtech/nym-vpn-client/pull/5581)
 
 
 ## [2026.10.0] - 2026-06-09
