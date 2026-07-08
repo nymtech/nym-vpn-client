@@ -24,11 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Disable authentication when flag is set (https://github.com/nymtech/nym-vpn-client/pull/5645)
 - [iOS] Fix metadata endpoint not being reached for exit tunnel (https://github.com/nymtech/nym-vpn-client/pull/5728)
 - Fix going into Connected state when metadata endpoint might not work (https://github.com/nymtech/nym-vpn-client/pull/5750)
-- [Linux] Fix a deadlock with NetworkManager when the daemon starts after a reboot (https://github.com/nymtech/nym-vpn-client/pull/5801)
+- [Linux] Fix a deadlock with NetworkManager when the daemon starts after a reboot (https://github.com/nymtech/nym-vpn-client/pull/5801) 
 
 ### Removed
 
 - Removed mixnet tuning feature flag
+
 
 ## [2026.10.0] - 2026-06-09
 
@@ -51,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Windows] Fix a crash when the network reconnected (https://github.com/nymtech/nym-vpn-client/pull/5508)
 - [Linux] LP firewalled by allowed_endpoints (https://github.com/nymtech/nym-vpn-client/pull/5516)
 
+
 ## [1.30] - 2026-05-29
 
 ### Added
@@ -68,17 +70,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Disable automatic gateway elections and revert back to hard-coded `Explicit` mode (https://github.com/nymtech/nym-vpn-client/pull/5436)
 
+
 ## [1.29.2] - 2026-05-04
 
 ### Fixed
 
 - [Windows] Fix missing IPv4 on mixnet tunnel adapter (https://github.com/nymtech/nym-vpn-client/pull/5206)
 
+
 ## [1.29.1] - 2026-04-29
 
 ### Changed
 
 - Switch platform to patched `2026.7-tola`
+
 
 ## [1.29.0] - 2026-04-29
 
@@ -96,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Use endpoint-security framework directly instead of parsing eslogger output (https://github.com/nymtech/nym-vpn-client/pull/4749)
 
 ### Fixed
+
 
 - Fix false bandwidth-exceeded errors when the VPN API fair-usage database is temporarily unavailable (https://github.com/nymtech/nym-vpn-client/pull/5217)
 - Fix accounts incorrectly appearing inactive due to malformed API timestamp fields (https://github.com/nymtech/nym-vpn-client/pull/5217)
@@ -120,6 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [macOS] Fix bug in XPC buffering between XPC and gRPC layers (https://github.com/nymtech/nym-vpn-client/pull/4985)
 
+
 ## [1.27.0] - 2026-03-31
 
 - [macOS] XPC as transport layer between clients and daemon (https://github.com/nymtech/nym-vpn-client/pull/4695)
@@ -130,12 +137,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [macOS] XPC client stall when daemon is not running (https://github.com/nymtech/nym-vpn-client/pull/4973)
 
+
 ## [1.26.0] - 2026-03-17
 
 ### Added
 
 - [CLI] `nym-vpnc account set` now uses `--location blockchain`; aliases keep legacy `--mode decentralised` and `--mode decentralized` working.
 - [CLI] `nym-vpnc account obtain-ticketbooks` subcommand renamed (legacy alias `decentralised-obtain-ticketbooks` still works). `--source` (currently parsed but all sources route to smartcontract backend).
+
 
 ## [1.25.0] - 2026-03-02
 
@@ -147,6 +156,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Detect time travel and sleep when obtaining remote time (https://github.com/nymtech/nym-vpn-client/pull/4604)
+
 
 ## [1.24.0] - 2026-02-12
 
@@ -178,6 +188,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] Enable debug logs in production builds for core library (https://github.com/nymtech/nym-vpn-client/pull/4405)
 - [Android] Print library logs to file, in addition to the existing logcat (https://github.com/nymtech/nym-vpn-client/pull/4432)
 
+
 ## [1.21.0] - 2025-12-15
 
 ### Added
@@ -199,6 +210,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - CLI: remove legacy call to connect the tunnel (https://github.com/nymtech/nym-vpn-client/pull/4094)
 
+
 ## [1.20.0] - 2025-12-01
 
 ### Added
@@ -213,6 +225,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Avoid connection looping by temporarily blacklisting the entry gateway (https://github.com/nymtech/nym-vpn-client/pull/4047)
+
 
 ## [1.19.0] - 2025-11-19
 
@@ -234,6 +247,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Remove unnecessary DNS resolutions on mobile platforms where there is no configurable firewall. (https://github.com/nymtech/nym-vpn-client/pull/3913)
+
 
 ## [1.18.0] - 2025-11-03
 
@@ -264,6 +278,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make discovery refresh aware of network connectivity (https://github.com/nymtech/nym-vpn-client/pull/3805)
 - Fix database cleanup when forgetting account (https://github.com/nymtech/nym-vpn-client/pull/3825)
 
+
 ## [1.17.0] - 2025-10-17
 
 ### Added
@@ -290,6 +305,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed countries query (https://github.com/nymtech/nym-vpn-client/pull/3523)
 
+
 ## [1.16.0] - 2025-09-26
 
 ### Added
@@ -305,6 +321,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [macOS] Skip filtering loopback traffic to optimize performance (https://github.com/nymtech/nym-vpn-client/pull/3441)
 - Prioritize high performance gateways first, fallback to medium. This rule does not apply when specific gateway is selected explicitly (https://github.com/nymtech/nym-vpn-client/pull/3511)
+
 
 ## [1.15.0] - 2025-09-10
 
@@ -323,6 +340,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Daemon global and service configuration is now stored in JSON format, allowing versioning to be
   supported (https://github.com/nymtech/nym-vpn-client/pull/3344).
 - Use intra-tunnel endpoint for querying and topping up bandwidth, replacing the mixnet channel (https://github.com/nymtech/nym-vpn-client/pull/3316)
+
 
 ## [1.14.0] - 2025-08-26
 
@@ -354,12 +372,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Bind DNS resolver to random loopback IP on port 53 to fix compatibility issues with other software, notably
   `dig` and `nslookup`. (https://github.com/nymtech/nym-vpn-client/pull/3232)
 
+
 ## [1.13.1] - 2025-07-30
 
 ### Changed
 
 - Update pre-bundled discovery to include account links (https://github.com/nymtech/nym-vpn-client/pull/3167)
 - Reduce noisiness of WireGuard logs (https://github.com/nymtech/nym-vpn-client/pull/3169)
+
 
 ## [1.13.0] - 2025-07-29
 
@@ -371,6 +391,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Box too large futures to fix stackoverflow on Windows (https://github.com/nymtech/nym-vpn-client/pull/3139)
+
 
 ## [1.12.0] - 2025-07-18
 
@@ -403,6 +424,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix tunnel connectivity issues by applying route MTU for multihop
   tunnel (https://github.com/nymtech/nym-vpn-client/pull/3051)
 - Fix prefetching topology not working at no network daemon boot (https://github.com/nymtech/nym-vpn-client/pull/3072)
+
 
 ## [1.11.0] - 2025-06-18
 
