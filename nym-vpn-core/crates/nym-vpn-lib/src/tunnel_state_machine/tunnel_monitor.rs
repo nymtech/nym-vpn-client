@@ -847,13 +847,15 @@ impl TunnelMonitor {
                                     metadata_path_health.as_ref(),
                                     METADATA_PATH_HEALTH_GRACE,
                                 ) {
-                                    tracing::info!(
-                                        "Probe failed but dual-leg metadata recently healthy; treating tunnel as viable"
-                                    );
-                                    self.send_event(TunnelMonitorEvent::Up {
-                                        tunnel_interface: tunnel_interface.clone(),
-                                        connection_data: connection_data.clone(),
-                                    });
+                                    if !has_sent_up_event {
+                                        tracing::info!(
+                                            "Probe failed but dual-leg metadata recently healthy; treating tunnel as viable"
+                                        );
+                                        self.send_event(TunnelMonitorEvent::Up {
+                                            tunnel_interface: tunnel_interface.clone(),
+                                            connection_data: connection_data.clone(),
+                                        });
+                                    }
                                     break;
                                 } else {
                                     tracing::info!("Tunnel connection is down. Exiting");
