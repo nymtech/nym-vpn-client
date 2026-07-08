@@ -15,7 +15,7 @@ use itertools::Itertools;
 use nym_common::trace_err_chain;
 use nym_sqlx_pool_guard::SqlitePoolGuard;
 use sqlx::{
-    Connection, QueryBuilder, Sqlite, SqliteConnection,
+    ConnectOptions, Connection, QueryBuilder, Sqlite, SqliteConnection,
     pool::PoolConnection,
     sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions},
 };
@@ -263,6 +263,7 @@ async fn open_db(db_path: &Path) -> Result<SqlitePoolGuard> {
         .filename(db_path)
         .create_if_missing(true)
         .journal_mode(SqliteJournalMode::Wal)
+        .disable_statement_logging()
         .pragma("soft_heap_limit", SQL_SOFT_HEAP_LIMIT.to_string())
         .pragma("hard_heap_limit", SQL_HARD_HEAP_LIMIT.to_string());
 
