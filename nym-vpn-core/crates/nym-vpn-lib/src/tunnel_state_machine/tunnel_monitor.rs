@@ -2001,33 +2001,6 @@ impl TunnelMonitor {
             TunnelType::Wireguard => TimingConfig::two_hop(),
         };
 
-        #[cfg(any(target_os = "ios", target_os = "android"))]
-        {
-            match self.create_tcp_probe(exit_tunnel_metadata) {
-                Ok(tcp_probe) => {
-                    tracing::info!(
-                        probe_type = "tcp",
-                        probe_selection = "mobile_primary",
-                        "Selected TCP connectivity probe on mobile"
-                    );
-                    return Ok(ConnectionMonitor::spawn(
-                        tcp_probe,
-                        timing_config,
-                        event_tx,
-                        self.shutdown_token.child_token(),
-                    ));
-                }
-                Err(err) => {
-                    tracing::warn!(
-                        probe_type = "icmp",
-                        probe_selection = "mobile_tcp_setup_failed",
-                        fallback_reason = %err.display_chain(),
-                        "TCP probe setup failed on mobile, falling back to ICMP"
-                    );
-                }
-            }
-        }
-
         // Create ICMP probe first, fallback to TCP probe on failure.
         match self.create_icmp_probe(exit_tunnel_metadata) {
             Ok(icmp_probe) => {
