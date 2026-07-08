@@ -80,20 +80,15 @@ fn rotate_log_file(log_dir: &Path) -> Result<Option<PathBuf>> {
 }
 
 pub async fn setup_tracing(
-    cli: &Cli,
+    #[cfg_attr(not(windows), allow(unused_variables))] cli: &Cli,
     sentry_enabled: bool,
     debug_logging: bool,
 ) -> Result<DebugLogging> {
-    let mut filter = EnvFilter::builder()
-        .with_default_directive(LevelFilter::INFO.into())
+    let filter = EnvFilter::builder()
+        .with_default_directive(LevelFilter::DEBUG.into())
         .from_env()?
         .add_directive("hyper::proto=info".parse()?)
         .add_directive("netlink_proto=info".parse()?);
-
-    if let Some(log_level) = cli.log_level.as_ref() {
-        filter =
-            filter.add_directive(format!("{}={}", env!("CARGO_CRATE_NAME"), log_level).parse()?);
-    }
 
     #[cfg(windows)]
     let enable_ansi = !cli.console;
