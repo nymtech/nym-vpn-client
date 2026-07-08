@@ -16,7 +16,7 @@ use nym_sdk::{
     },
 };
 use nym_topology::HardcodedTopologyProvider;
-use nym_validator_client::{client::NymApiClientExt, models::NymNodeDescriptionV2};
+use nym_validator_client::{client::NymApiClientExt, models::described::v2::NymNodeDescriptionV2};
 use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
 use nym_vpn_network_config::Network;
 
