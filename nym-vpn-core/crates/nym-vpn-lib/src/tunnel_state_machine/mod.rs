@@ -774,6 +774,8 @@ pub struct SharedState {
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
     statistics_event_sender: StatisticsSender,
+    #[cfg(target_os = "linux")]
+    nm_connectivity_check_enabled: Option<bool>,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     topology_service: VpnTopologyServiceHandle,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
@@ -786,6 +788,15 @@ pub struct SharedState {
 }
 
 impl SharedState {
+    #[cfg(target_os = "linux")]
+    pub fn restore_nm_connectivity_check(&mut self) {
+        if let Some(true) = self.nm_connectivity_check_enabled.take() {
+            if let Ok(nm) = nym_dbus::network_manager::NetworkManager::new() {
+                nm.enable_connectivity_check();
+            }
+        }
+    }
+
     /// Notify discovery, account controller, and gateway cache when network is unrestricted.
     async fn allow_networking(&self) {
         self.discovery_refresher_command_tx
@@ -1119,6 +1130,8 @@ impl TunnelStateMachine {
             account_command_tx,
             account_controller_state,
             statistics_event_sender,
+            #[cfg(target_os = "linux")]
+            nm_connectivity_check_enabled: None,
             gateway_provider,
             topology_service,
             discovery_refresher_command_tx,

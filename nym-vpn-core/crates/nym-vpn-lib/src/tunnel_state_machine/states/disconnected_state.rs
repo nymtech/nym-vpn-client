@@ -54,6 +54,9 @@ impl DisconnectedState {
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
+        #[cfg(target_os = "linux")]
+        shared_state.restore_nm_connectivity_check();
+
         if let Err(e) = shared_state.firewall.reset_policy() {
             trace_err_chain!(e, "Failed to reset firewall policy");
         }
