@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Disable authentication when flag is set (https://github.com/nymtech/nym-vpn-client/pull/5645)
 - [iOS] Fix metadata endpoint not being reached for exit tunnel (https://github.com/nymtech/nym-vpn-client/pull/5728)
 - Fix going into Connected state when metadata endpoint might not work (https://github.com/nymtech/nym-vpn-client/pull/5750)
+- [Linux] Fix a deadlock with NetworkManager when the daemon starts after a reboot (https://github.com/nymtech/nym-vpn-client/pull/5801) 
 
 ### Removed
 
