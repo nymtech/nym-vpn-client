@@ -218,13 +218,7 @@ impl ConnectingState {
         let policy = params.as_policy();
 
         #[cfg(target_os = "linux")]
-        {
-            if shared_state.nm_connectivity_check_enabled.is_none() {
-                if let Ok(nm) = nym_dbus::network_manager::NetworkManager::new() {
-                    shared_state.nm_connectivity_check_enabled = nm.disable_connectivity_check();
-                }
-            }
-        }
+        shared_state.disable_nm_connectivity_check();
 
         shared_state
             .firewall
