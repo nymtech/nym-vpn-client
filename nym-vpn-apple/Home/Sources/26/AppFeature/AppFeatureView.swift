@@ -53,6 +53,8 @@ public struct AppFeatureView: View {
     private var appearance: AppSetting.Appearance = .automatic
     @AppStorage(AppSettingKey.credenitalExists.rawValue)
     private var isCredentialImported = false
+    @AppStorage(AppSettingKey.onboardingDidDisplay.rawValue)
+    private var onboardingDidDisplay = false
 
     public init(viewModel: AppFeatureViewModel) {
         _viewModel = State(wrappedValue: viewModel)
@@ -152,6 +154,15 @@ private extension AppFeatureView {
                     }
                 }
             }
+            .overlay {
+                if !onboardingDidDisplay, !isCredentialImported {
+                    OnboardingView {
+                        appSettings.onboardingDidDisplay = true
+                    }
+                    .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut, value: onboardingDidDisplay)
             .preferredColorScheme(appearance.colorScheme)
             .onAppear { wireMacOSDaemonNavigation() }
 #if os(macOS)
