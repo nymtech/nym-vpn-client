@@ -9,6 +9,9 @@ public enum SettingLink: Hashable, Identifiable {
     case passphrase
     case appearance
     case displayTheme
+#if os(iOS)
+    case appIcon
+#endif
     case logs
     case support
     case legal
@@ -22,12 +25,15 @@ public enum SettingLink: Hashable, Identifiable {
     case dns
     case mixnetTuning
     case censorship
+    case notifications
+    case diagnosticTool
 #if os(macOS)
     case proxy
     case appMode
     case daemonEnable
+    case geoExclusion
+    case geoExclusionSetup(port: UInt16)
     case splitTunnel
-    case diagnosticTool
 #endif
 
     public var id: String {

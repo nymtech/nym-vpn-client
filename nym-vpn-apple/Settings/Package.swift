@@ -40,6 +40,7 @@ let package = Package(
             name: "Settings",
             dependencies: [
                 .product(name: "AppSettings", package: "Services"),
+                .product(name: "AccountPrefetchGates", package: "Services"),
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "AppDiscoveryService", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "BiometricAuthenticator", package: "Services"),
@@ -57,6 +58,7 @@ let package = Package(
                 .product(name: "PurchasesManager", package: "Services"),
                 .product(name: "SentryManager", package: "Services"),
                 .product(name: "SnackbarManager", package: "Services"),
+                .product(name: "TunnelStatus", package: "ServicesMutual"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "Routes", package: "Routes"),
                 .product(name: "Theme", package: "Theme"),

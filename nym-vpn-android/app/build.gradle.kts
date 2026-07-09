@@ -1,6 +1,9 @@
 import com.android.build.api.variant.BuildConfigField
 import com.android.build.api.variant.ResValue
 import com.android.build.api.variant.impl.VariantOutputImpl
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -18,10 +21,14 @@ val currentCommitHash: Provider<String> = providers.exec {
 	isIgnoreExitValue = true
 }.standardOutput.asText.map { it.trim().ifEmpty { "unknown" } }.orElse("unknown")
 
-val currentAbbreviatedHash: Provider<String> = providers.exec {
-	commandLine("git", "rev-parse", "--short", "HEAD")
-	isIgnoreExitValue = true
-}.standardOutput.asText.map { it.trim().ifEmpty { "unknown" } }.orElse("unknown")
+// Nightly apk timestamp: use the orchestrator-provided value (NIGHTLY_TIMESTAMP, e.g.
+// parsed from the unified nightly tag) so the apk name matches the release tag; only
+// generate one at build time when none is provided.
+val buildTimestamp: String = providers.environmentVariable("NIGHTLY_TIMESTAMP").orNull
+	?.takeIf { it.isNotBlank() }
+	?: DateTimeFormatter
+		.ofPattern("yyyyMMddHHmm")
+		.format(LocalDateTime.now(ZoneOffset.UTC))
 
 val languagesArray: Provider<String> = providers.provider {
 	languageList().joinToString(separator = ", ") { "\"$it\"" }
@@ -118,16 +125,14 @@ android {
 			isShrinkResources = false
 			isDebuggable = true
 			applicationIdSuffix = ".debug"
-			versionNameSuffix = "-debug"
-			resValue("string", "app_name", "${Constants.APP_NAME} - Debug")
+			resValue("string", "app_name", "NymVPN - Debug")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.debug\"")
 		}
 
 		create(Constants.PRERELEASE) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
 			applicationIdSuffix = ".prerelease"
-			versionNameSuffix = "-pre"
-			resValue("string", "app_name", "${Constants.APP_NAME} - Pre")
+			resValue("string", "app_name", "NymVPN - Pre")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.pre\"")
 			buildConfigField("Boolean", "IS_PRERELEASE", "true")
 		}
@@ -135,8 +140,7 @@ android {
 		create(Constants.NIGHTLY) {
 			initWith(buildTypes.getByName(Constants.RELEASE))
 			applicationIdSuffix = ".nightly"
-			versionNameSuffix = "-nightly"
-			resValue("string", "app_name", "${Constants.APP_NAME} - Nightly")
+			resValue("string", "app_name", "NymVPN - Nightly")
 			resValue("string", "provider", "\"${Constants.APP_NAME}.provider.nightly\"")
 		}
 	}
@@ -180,14 +184,16 @@ androidComponents {
 	onVariants { variant ->
 		val flavor = variant.flavorName ?: ""
 		val type = variant.buildType ?: ""
-		val version = when (type) {
-			Constants.NIGHTLY, Constants.PRERELEASE -> "${Constants.VERSION_NAME}-${currentAbbreviatedHash.getOrElse("unknown")}"
-			else -> Constants.VERSION_NAME
+		val version = if (type == Constants.NIGHTLY) {
+			"${Constants.VERSION_NAME}-nightly.$buildTimestamp"
+		} else {
+			"${Constants.VERSION_NAME}-$type"
 		}
-		val fullName = "${Constants.APP_NAME}-$flavor-$type-$version"
+		val fullName = "nym-vpn-$flavor-$version"
 
 		variant.outputs.forEach { output ->
 			(output as? VariantOutputImpl)?.outputFileName?.set("$fullName.apk")
+			(output as? VariantOutputImpl)?.versionName?.set(fullName)
 		}
 
 		variant.buildConfigFields?.put("APP_NAME", BuildConfigField("String", "\"$fullName\"", "App Name"))

@@ -9,8 +9,13 @@ use std::{
     sync::Arc,
 };
 
-use futures::{FutureExt, StreamExt, future::Fuse};
+use futures::{
+    FutureExt, StreamExt,
+    future::{Fuse, FusedFuture},
+};
+use nym_bandwidth_controller::BandwidthController;
 use nym_diagnostic::DiagnosticHandler;
+use nym_sdk::mixnet::StoragePaths;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{RwLock, broadcast, mpsc, oneshot, watch},
@@ -106,6 +111,7 @@ pub enum VpnServiceCommand {
     SetGatewaySelectionAlgorithm(oneshot::Sender<()>, GatewaySelectionAlgorithm),
     SetEnableGeoLocation(oneshot::Sender<Result<(), String>>, bool),
     SetEnableGatewayIndependence(oneshot::Sender<()>, bool),
+    SetGatewayIndependenceNotifications(oneshot::Sender<()>, bool),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<Vec<SystemMessage>>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
@@ -120,7 +126,7 @@ pub enum VpnServiceCommand {
         LookupGatewayFilters,
     ),
     SetGeoExclusionEnabled(oneshot::Sender<()>, bool),
-    SetGeoExclusionListenPort(oneshot::Sender<()>, u16),
+    SetGeoExclusionListenPort(oneshot::Sender<Result<(), GeoExclusionConfigError>>, u16),
     SetGeoExclusionExcludedCountries(
         oneshot::Sender<Result<(), GeoExclusionConfigError>>,
         Vec<String>,
@@ -329,6 +335,9 @@ pub struct NymVpnService {
     // Statistics controller handle
     statistics_controller_handle: JoinHandle<()>,
 
+    // Bandwidth controller handle
+    bandwidth_controller_handle: JoinHandle<()>,
+
     // Topology service join handle
     topology_service_join_handle: JoinHandle<()>,
 
@@ -510,6 +519,17 @@ impl NymVpnService {
         let wireguard_keys_db = account_controller.get_wireguard_keys_storage();
         let account_controller_handle = tokio::task::spawn(account_controller.run());
 
+        let credential_storage = StoragePaths::new_from_dir(network_data_dir.clone())
+            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?
+            .persistent_credential_storage()
+            .await
+            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?;
+        let bandwidth_controller = BandwidthController::new(credential_storage);
+        let bandwidth_command_tx = bandwidth_controller.get_request_sender();
+        let bandwidth_controller_handle = tokio::task::spawn(
+            bandwidth_controller.run(services_shutdown_token.child_token().into()),
+        );
+
         let config_manager = match parameters.service_storage_type {
             ServiceConfigStorageType::Persistent => {
                 VpnServiceConfigManager::new(&config_dir, Some(tunnel_event_tx.clone())).await?
@@ -671,6 +691,7 @@ impl NymVpnService {
             tunnel_constants,
             account_command_tx.clone(),
             account_state_rx.clone(),
+            bandwidth_command_tx.clone(),
             statistics_event_sender.clone(),
             topology_service.clone(),
             connectivity_handle,
@@ -708,6 +729,7 @@ impl NymVpnService {
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
             statistics_controller_handle,
+            bandwidth_controller_handle,
             topology_service_join_handle,
             topology_service_handle: topology_service,
             config_manager,
@@ -800,6 +822,10 @@ impl NymVpnService {
             tracing::error!("Failed to join on account controller handle: {e}");
         }
 
+        if let Err(e) = self.bandwidth_controller_handle.await {
+            tracing::error!("Failed to join on bandwidth controller handle: {e}");
+        }
+
         if let Err(e) = self.statistics_controller_handle.await {
             tracing::error!("Failed to join on statistics controller handle: {e}");
         }
@@ -854,9 +880,17 @@ impl NymVpnService {
         }
     }
 
-    async fn reconnect_tunnel(&self) -> bool {
+    async fn reconnect_tunnel(&mut self) -> bool {
         match self.target_state {
             TargetState::Secured => {
+                // Flush any settings update that is still pending behind the
+                // throttle timer so the upcoming Connect uses the latest config.
+                // Otherwise a reconnect can race ahead of the throttled
+                // SetTunnelSettings and re-run with stale settings
+                if !self.tunnel_settings_update_timer.is_terminated() {
+                    self.tunnel_settings_update_timer.set(Fuse::terminated());
+                    self.update_tunnel_settings();
+                }
                 self.statistics_event_sender.report_connection_request();
                 let _ = self.command_sender.send(TunnelCommand::Connect);
                 true
@@ -1030,6 +1064,11 @@ impl NymVpnService {
             }
             VpnServiceCommand::SetEnableGatewayIndependence(tx, enable_gateway_independence) => {
                 self.handle_set_enable_gateway_independence(enable_gateway_independence)
+                    .await;
+                let _ = tx.send(());
+            }
+            VpnServiceCommand::SetGatewayIndependenceNotifications(tx, enable_notifications) => {
+                self.handle_set_enable_gateway_independence_notifications(enable_notifications)
                     .await;
                 let _ = tx.send(());
             }
@@ -1262,8 +1301,7 @@ impl NymVpnService {
                 let _ = tx.send(());
             }
             VpnServiceCommand::SetGeoExclusionListenPort(tx, listen_port) => {
-                self.handle_set_geo_exclusion_listen_port(listen_port).await;
-                let _ = tx.send(());
+                let _ = tx.send(self.handle_set_geo_exclusion_listen_port(listen_port).await);
             }
             VpnServiceCommand::SetGeoExclusionExcludedCountries(tx, excluded_countries) => {
                 let result = self
@@ -1415,6 +1453,16 @@ impl NymVpnService {
     async fn handle_set_enable_gateway_independence(&mut self, enable_gateway_independence: bool) {
         self.config_manager
             .set_enable_gateway_independence(enable_gateway_independence)
+            .await;
+        self.update_tunnel_settings_with_throttle();
+    }
+
+    async fn handle_set_enable_gateway_independence_notifications(
+        &mut self,
+        enable_notifications: bool,
+    ) {
+        self.config_manager
+            .set_enable_gateway_independence_notifications(enable_notifications)
             .await;
         self.update_tunnel_settings_with_throttle();
     }
@@ -2341,11 +2389,15 @@ impl NymVpnService {
         self.update_tunnel_settings_with_throttle();
     }
 
-    async fn handle_set_geo_exclusion_listen_port(&mut self, listen_port: u16) {
+    async fn handle_set_geo_exclusion_listen_port(
+        &mut self,
+        listen_port: u16,
+    ) -> Result<(), GeoExclusionConfigError> {
         self.config_manager
             .set_geo_exclusion_listen_port(listen_port)
-            .await;
+            .await?;
         self.update_tunnel_settings_with_throttle();
+        Ok(())
     }
 
     async fn handle_set_geo_exclusion_excluded_countries(

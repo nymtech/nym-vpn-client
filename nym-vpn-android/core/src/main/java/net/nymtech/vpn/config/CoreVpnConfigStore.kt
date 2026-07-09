@@ -8,6 +8,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -43,6 +44,10 @@ class CoreVpnConfigStore(private val context: Context) {
 		private val KEY_AD_BLOCKING = booleanPreferencesKey("AD_BLOCKING_ENABLED")
 		private val KEY_STEALTH_MODE = booleanPreferencesKey("STEALTH_MODE_ENABLED")
 		private val KEY_ALGORITHM = stringPreferencesKey("ALGORITHM")
+		private val KEY_NODE_FAMILIES_NOTIFICATIONS = booleanPreferencesKey("NODE_FAMILIES_NOTIFICATIONS_ENABLED")
+		private val KEY_GEO_EXCLUSION_ENABLED = booleanPreferencesKey("GEO_EXCLUSION_ENABLED")
+		private val KEY_GEO_EXCLUSION_PORT = intPreferencesKey("GEO_EXCLUSION_PORT")
+		private val KEY_GEO_EXCLUSION_COUNTRIES = stringPreferencesKey("GEO_EXCLUSION_COUNTRIES")
 
 		private const val SEP = "|"
 		private const val MAX_DNS = 5
@@ -97,6 +102,10 @@ class CoreVpnConfigStore(private val context: Context) {
 		val adBlockingEnabled = this[KEY_AD_BLOCKING] ?: false
 		val stealthMode = this[KEY_STEALTH_MODE] ?: false
 		val algorithm: GatewaySelectionAlgorithm = this[KEY_ALGORITHM]?.let { runCatching { it.asAlgorithm() }.getOrNull() } ?: GatewaySelectionAlgorithm.EXPLICIT
+		val nodeFamiliesNotificationsEnabled = this[KEY_NODE_FAMILIES_NOTIFICATIONS] ?: true
+		val geoExclusionEnabled = this[KEY_GEO_EXCLUSION_ENABLED] ?: false
+		val geoExclusionPort = this[KEY_GEO_EXCLUSION_PORT] ?: 1081
+		val geoExclusionCountries = decodeList(this[KEY_GEO_EXCLUSION_COUNTRIES]).ifEmpty { listOf("CN") }
 
 		return CoreVpnConfig(
 			entryPoint = entry,
@@ -113,6 +122,10 @@ class CoreVpnConfigStore(private val context: Context) {
 			adBlockingEnabled = adBlockingEnabled,
 			stealthMode = stealthMode,
 			algorithm = algorithm,
+			nodeFamiliesNotificationsEnabled = nodeFamiliesNotificationsEnabled,
+			geoExclusionEnabled = geoExclusionEnabled,
+			geoExclusionPort = geoExclusionPort,
+			geoExclusionCountries = geoExclusionCountries,
 		)
 	}
 
@@ -131,6 +144,10 @@ class CoreVpnConfigStore(private val context: Context) {
 		this[KEY_AD_BLOCKING] = cfg.adBlockingEnabled
 		this[KEY_STEALTH_MODE] = cfg.stealthMode
 		this[KEY_ALGORITHM] = cfg.algorithm.name
+		this[KEY_NODE_FAMILIES_NOTIFICATIONS] = cfg.nodeFamiliesNotificationsEnabled
+		this[KEY_GEO_EXCLUSION_ENABLED] = cfg.geoExclusionEnabled
+		this[KEY_GEO_EXCLUSION_PORT] = cfg.geoExclusionPort
+		this[KEY_GEO_EXCLUSION_COUNTRIES] = encodeList(cfg.geoExclusionCountries)
 	}
 
 	private fun encodeList(list: List<String>): String = list.asSequence()

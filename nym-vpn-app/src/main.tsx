@@ -72,6 +72,12 @@ const defaultSplitTunnel = {
   apps: [],
 };
 
+const defaultGeoExclusion = {
+  enabled: false,
+  listenPort: 1081,
+  excludedCountries: ['CN'],
+};
+
 const defaultGatewaySelectionAlgorithmConfig = {
   enableGeoLocation: true,
   gatewaySelectionAlgorithm: 'explicit',
@@ -143,10 +149,13 @@ dayjs.extend(localizedFormat);
     mixnetTrafficDefaults:
       config?.mixnetTrafficDefaults || defaultMixnetTrafficDefaults,
     splitTunnel: config?.splitTunnel || defaultSplitTunnel,
+    geoExclusion: config?.geoExclusion || defaultGeoExclusion,
     gatewaySelectionAlgorithmConfig:
       config?.gatewaySelectionAlgorithmConfig ||
       defaultGatewaySelectionAlgorithmConfig,
     frontingMode: config?.frontingMode || 'onRetry',
+    gatewayIndependenceNotifications:
+      config?.gatewayIndependenceNotifications ?? true,
   };
   console.log('initial state:', initState);
 

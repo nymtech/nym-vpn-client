@@ -119,6 +119,13 @@ pub async fn disconnect(
     Ok(TunnelState::Disconnecting(None))
 }
 
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn reconnect(vpnd: State<'_, VpndClient>) -> Result<(), BackendError> {
+    vpnd.vpn_reconnect().await?;
+    Ok(())
+}
+
 #[instrument(skip(vpnd))]
 #[tauri::command]
 pub async fn set_vpn_mode(vpnd: State<'_, VpndClient>, mode: VpnMode) -> Result<(), BackendError> {
@@ -447,5 +454,35 @@ pub async fn set_enable_geo_location(
     enabled: bool,
 ) -> Result<(), BackendError> {
     vpnd.set_enable_geo_location(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_geo_exclusion_enabled(
+    vpnd: State<'_, VpndClient>,
+    enabled: bool,
+) -> Result<(), BackendError> {
+    vpnd.set_geo_exclusion_enabled(enabled).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_geo_exclusion_listen_port(
+    vpnd: State<'_, VpndClient>,
+    port: u16,
+) -> Result<(), BackendError> {
+    vpnd.set_geo_exclusion_listen_port(port).await?;
+    Ok(())
+}
+
+#[instrument(skip(vpnd))]
+#[tauri::command]
+pub async fn set_geo_exclusion_excluded_countries(
+    vpnd: State<'_, VpndClient>,
+    countries: Vec<String>,
+) -> Result<(), BackendError> {
+    vpnd.set_geo_exclusion_excluded_countries(countries).await?;
     Ok(())
 }

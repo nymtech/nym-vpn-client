@@ -5,7 +5,11 @@ use std::{net::IpAddr, time::Duration};
 
 use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
+
+use crate::tunnel_health::{MetadataPathHealth, update_metadata_path_health};
 use nym_registration_common::WireguardConfiguration;
+use sysinfo::Networks;
+use time::OffsetDateTime;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
@@ -25,9 +29,17 @@ const LOWER_BOUND_CHECK_DURATION: Duration = DEFAULT_PEER_TIMEOUT_CHECK;
 const UPPER_BOUND_CHECK_DURATION: Duration =
     Duration::from_secs(6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs());
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
-const MINIMUM_RAMAINING_BANDWIDTH: u64 = 500 * 1024 * 1024; // 500 MB, the same as a wireguard ticket size (but it doesn't have to be)
+// If we consider a maximum supported connection speed of 1 Gbps, then we can consume 125 MB/s, which is 125 * 5 = 625 MB in 5 seconds, which is the minimum time between checks.
+// So we set the minimum remaining bandwidth to 1000 MB > 625 MB, roughly the size of two tickets
+const MINIMUM_RAMAINING_BANDWIDTH: u64 = 1000 * 1024 * 1024; // 1000 MB, the same as two wireguard ticket size
+
+// 8 MB/s, in the worse case scenario with 30 seconds until the next check => 240 MB consumed, under the 1000 MB bandwidth minimum we have assured with the gateway
+// We consider anything above this threshold to potentially consume bandwidth too fast, so we do a check immediately
+const SYSTEM_BANDWIDTH_THRESHOLD: u64 = 8 * 1024 * 1024; // 8 MB
+const SYSTEM_BANDWIDTH_CHECK_INTERVAL: Duration = Duration::from_secs(1); // 1 second
 
 const DEFAULT_CLIENT_RETRIES: usize = 1;
+const DEFAULT_CLIENT_TIMEOUT: Duration = Duration::from_secs(5); // 5 seconds
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -77,6 +89,12 @@ pub enum SpecificGatewayError {
         ticketbook_type: TicketType,
         #[source]
         source: Box<MetadataClientError>,
+    },
+
+    #[error("No credential of type {ticketbook_type} available to send to gateway: {gateway_id}")]
+    NoCredentialAvailable {
+        ticketbook_type: TicketType,
+        gateway_id: String,
     },
 
     #[error("failed to query bandwidth from gateway: {gateway_id}")]
@@ -427,6 +445,24 @@ impl TemporaryBandwidthClient {
         }
     }
 
+    pub(crate) async fn lazy_init(&mut self) {
+        match self {
+            TemporaryBandwidthClient::Deprecated(_) => {}
+            TemporaryBandwidthClient::Latest(metadata_client) => {
+                metadata_client.lazy_init().await;
+            }
+        }
+    }
+
+    pub(crate) async fn interface_name(&mut self) -> Option<String> {
+        match self {
+            TemporaryBandwidthClient::Deprecated(_) => None,
+            TemporaryBandwidthClient::Latest(metadata_client) => {
+                metadata_client.interface_name().await
+            }
+        }
+    }
+
     pub(crate) async fn topup_bandwidth(
         &mut self,
         credential: nym_credentials_interface::CredentialSpendingData,
@@ -499,6 +535,79 @@ impl TemporaryBandwidthClient {
     }
 }
 
+struct InterfaceStats {
+    interface_name: String,
+    received: u64,
+    transmitted: u64,
+}
+
+trait NetworkInterfaceStats {
+    fn get_interface_stats(&mut self) -> Vec<InterfaceStats>;
+}
+
+impl NetworkInterfaceStats for Networks {
+    fn get_interface_stats(&mut self) -> Vec<InterfaceStats> {
+        Networks::refresh(self, true);
+        Networks::list(self)
+            .iter()
+            .map(|(name, data)| InterfaceStats {
+                interface_name: name.clone(),
+                received: data.received(),
+                transmitted: data.transmitted(),
+            })
+            .collect()
+    }
+}
+
+// Structure used to track network usage by looking at the system stats
+// It is not used as a source of truth for topping up bandwidth, but rather as a simpler
+// way to detect potential bandwidth spikes and react to them faster then waiting for the
+// next bandwidth check tick
+struct SystemBandwidthMonitor<N = Networks> {
+    networks: N,
+    interface_name: Option<String>,
+    threshold: u64,
+}
+
+impl SystemBandwidthMonitor {
+    pub fn new(interface_name: Option<String>, threshold: u64) -> Self {
+        Self {
+            networks: Networks::new_with_refreshed_list(),
+            interface_name,
+            threshold,
+        }
+    }
+}
+
+impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
+    pub async fn force_bandwidth_checks(&mut self) -> bool {
+        let total_network_usage: u64 = self
+            .networks
+            .get_interface_stats()
+            .into_iter()
+            .filter_map(
+                // if interface name is specified, only consider that interface, otherwise consider all interfaces
+                |InterfaceStats {
+                     interface_name,
+                     received,
+                     transmitted,
+                 }| match self.interface_name.as_ref() {
+                    Some(target) => {
+                        if &interface_name == target {
+                            Some(received + transmitted)
+                        } else {
+                            None
+                        }
+                    }
+                    None => Some(received + transmitted),
+                },
+            )
+            .sum();
+        // above the configured threshold, we consider the system to be under heavy load and thus we should attempt to top up bandwidth asap
+        total_network_usage > self.threshold
+    }
+}
+
 pub(crate) struct BandwidthController {
     ticket_provider: Box<dyn BandwidthTicketProvider>,
     wg_entry_gateway_client: TemporaryBandwidthClient,
@@ -512,6 +621,7 @@ pub(crate) struct BandwidthController {
     shutdown_token: CancellationToken,
     successful_checks: u64,
     upgrade_mode_enabled_on_last_check: bool,
+    metadata_path_health: Option<MetadataPathHealth>,
 }
 
 impl BandwidthController {
@@ -521,6 +631,7 @@ impl BandwidthController {
         wg_exit_gateway_client: TemporaryBandwidthClient,
         account_command_tx: AccountCommandSender,
         shutdown_token: CancellationToken,
+        metadata_path_health: Option<MetadataPathHealth>,
     ) -> Self {
         let timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
@@ -538,6 +649,7 @@ impl BandwidthController {
             shutdown_token,
             successful_checks: 0,
             upgrade_mode_enabled_on_last_check: false,
+            metadata_path_health,
         }
     }
 
@@ -559,6 +671,7 @@ impl BandwidthController {
             bind_ip,
             signal_channel,
             DEFAULT_CLIENT_RETRIES,
+            DEFAULT_CLIENT_TIMEOUT,
         );
         TemporaryBandwidthClient::new(
             gateway,
@@ -629,6 +742,7 @@ impl BandwidthController {
         exit_signal_channel: TunUpReceiver,
         gateway_metadata_update_version: Option<semver::Version>,
         cancel_token: CancellationToken,
+        metadata_path_health: MetadataPathHealth,
     ) -> BandwidthController {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_wireguard_config.private_ipv4.into(),
@@ -651,6 +765,7 @@ impl BandwidthController {
             wg_exit_client,
             account_command_tx,
             cancel_token.clone(),
+            Some(metadata_path_health),
         )
     }
 
@@ -673,12 +788,17 @@ impl BandwidthController {
                 ticketbook_type,
                 bw_client.gateway_id(),
                 DEFAULT_TICKETS_TO_SPEND,
+                OffsetDateTime::now_utc(), // Skew input can be fed here
             )
             .await
             .map_err(|source| SpecificGatewayError::RequestCredential {
                 gateway_id: bw_client.gateway_id().to_string(),
                 ticketbook_type,
                 source: Box::new(source),
+            })?
+            .ok_or(SpecificGatewayError::NoCredentialAvailable {
+                ticketbook_type,
+                gateway_id: bw_client.gateway_id().to_string(),
             })?
             .data;
         let remaining_bandwidth = bw_client
@@ -861,7 +981,11 @@ impl BandwidthController {
         None
     }
 
-    async fn check_bandwidth(&mut self, entry: bool, current_period: Duration) -> Option<Duration> {
+    async fn check_bandwidth(
+        &mut self,
+        entry: bool,
+        current_period: Duration,
+    ) -> (Option<Duration>, bool) {
         let bw_client = if entry {
             &mut self.wg_entry_gateway_client
         } else {
@@ -872,16 +996,53 @@ impl BandwidthController {
                 tracing::trace!("BandwidthController: Received shutdown");
             }
             ret = bw_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
-                match ret {
-                    Ok(query_res) => return self.handle_bandwidth_query(entry, current_period, query_res).await,
-                    Err(err) => self.handle_bandwidth_query_error(entry, err).await,
-                }
+                return match ret {
+                    Ok(query_res) => {
+                        let next_interval = self
+                            .handle_bandwidth_query(entry, current_period, query_res)
+                            .await;
+                        (next_interval, true)
+                    }
+                    Err(err) => {
+                        self.handle_bandwidth_query_error(entry, err).await;
+                        (None, false)
+                    }
+                };
             }
         }
-        None
+        (None, false)
+    }
+
+    async fn init_clients(&mut self) {
+        tokio::join!(
+            self.wg_entry_gateway_client.lazy_init(),
+            self.wg_exit_gateway_client.lazy_init()
+        );
     }
 
     pub(crate) async fn run(mut self) {
+        // Make sure the clients are up and ready, or notifying early of any problems
+        if self
+            .shutdown_token
+            .clone()
+            .run_until_cancelled(self.init_clients())
+            .await
+            .is_none()
+        {
+            // Explicitly close the credential storage so that the underlying SQLite pool releases
+            // OS file handles promptly (especially important on Windows).
+            self.ticket_provider.close().await;
+
+            tracing::debug!("BandwidthController: Exiting");
+            return;
+        }
+
+        let exit_interface_name = self.wg_exit_gateway_client.interface_name().await;
+        let mut system_bandwidth_monitor =
+            SystemBandwidthMonitor::new(exit_interface_name, SYSTEM_BANDWIDTH_THRESHOLD);
+        let mut system_bandwidth_check_interval =
+            IntervalStream::new(tokio::time::interval(SYSTEM_BANDWIDTH_CHECK_INTERVAL));
+
         // Skip the first, immediate tick
         self.timeout_check_interval.next().await;
         while !self.shutdown_token.is_cancelled() {
@@ -890,10 +1051,25 @@ impl BandwidthController {
                     tracing::trace!("BandwidthController: Received shutdown");
                     break;
                 }
+                _ = system_bandwidth_check_interval.next() => {
+                    if system_bandwidth_monitor.force_bandwidth_checks().await && self.timeout_check_interval.as_ref().period() > LOWER_BOUND_CHECK_DURATION {
+                        tracing::debug!("System bandwidth usage is above the configured threshold, forcing bandwidth checks");
+                        // we set the check interval to the lower bound, but we don't do the first tick, which is immediate,
+                        // so we implicitely trigger the check branch bellow
+                        self.timeout_check_interval = IntervalStream::new(tokio::time::interval(LOWER_BOUND_CHECK_DURATION));
+                    }
+                }
                 _ = self.timeout_check_interval.next() => {
                     let current_period = self.timeout_check_interval.as_ref().period();
-                    let entry_duration = self.check_bandwidth(true, current_period).await;
-                    let exit_duration = self.check_bandwidth(false, current_period).await;
+                    let (entry_duration, entry_query_ok) =
+                        self.check_bandwidth(true, current_period).await;
+                    let (exit_duration, exit_query_ok) =
+                        self.check_bandwidth(false, current_period).await;
+                    update_metadata_path_health(
+                        &self.metadata_path_health,
+                        entry_query_ok,
+                        exit_query_ok,
+                    );
                     if let Some(minimal_duration) = match (entry_duration, exit_duration) {
                         (Some(d1), Some(d2)) => {
                             if d1 < d2 {
@@ -925,12 +1101,56 @@ impl BandwidthController {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     const BW_1KB: u64 = 1024;
     const BW_1MB: u64 = 1024 * BW_1KB;
     const BW_128MB: u64 = 128 * BW_1MB;
     const BW_512MB: u64 = 512 * BW_1MB;
     const BW_1GB: u64 = 2 * BW_512MB;
+
+    struct MockNetworks {
+        data: HashMap<String, (u64, u64)>,
+        refresh_count: u32,
+    }
+
+    impl MockNetworks {
+        fn new() -> Self {
+            Self {
+                data: HashMap::new(),
+                refresh_count: 0,
+            }
+        }
+
+        fn with_interface(mut self, name: &str, received: u64, transmitted: u64) -> Self {
+            self.data.insert(name.to_string(), (received, transmitted));
+            self
+        }
+    }
+
+    impl NetworkInterfaceStats for MockNetworks {
+        fn get_interface_stats(&mut self) -> Vec<InterfaceStats> {
+            self.refresh_count += 1;
+            self.data
+                .iter()
+                .map(|(name, &(received, transmitted))| InterfaceStats {
+                    interface_name: name.clone(),
+                    received,
+                    transmitted,
+                })
+                .collect()
+        }
+    }
+
+    impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
+        fn with_networks(interface_name: Option<String>, threshold: u64, networks: N) -> Self {
+            Self {
+                networks,
+                interface_name,
+                threshold,
+            }
+        }
+    }
 
     #[test]
     fn depletion_rate_slow() {
@@ -939,7 +1159,7 @@ mod tests {
         // the first check would force the placeholder values to be replaced by the actual values
         assert_eq!(
             depletion_rate
-                .update_dynamic_check_interval(current_period, BW_512MB)
+                .update_dynamic_check_interval(current_period, BW_1GB)
                 .unwrap(),
             Some(DEFAULT_BANDWIDTH_CHECK)
         );
@@ -947,7 +1167,7 @@ mod tests {
         // simulate 1 byte/second depletion rate
         let consumed = current_period.as_secs();
         current_period = depletion_rate
-            .update_dynamic_check_interval(current_period, BW_512MB - consumed)
+            .update_dynamic_check_interval(current_period, BW_1GB - consumed)
             .unwrap()
             .unwrap();
         assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
@@ -979,11 +1199,11 @@ mod tests {
     fn depletion_rate_spike() {
         let mut depletion_rate = DepletionRate::default();
         let mut current_period = DEFAULT_BANDWIDTH_CHECK;
-        let mut current_bandwidth = BW_1GB;
+        let mut current_bandwidth = 2 * BW_1GB;
         // the first check would force the placeholder values to be replaced by the actual values
         assert_eq!(
             depletion_rate
-                .update_dynamic_check_interval(current_period, BW_1GB)
+                .update_dynamic_check_interval(current_period, current_bandwidth)
                 .unwrap(),
             Some(DEFAULT_BANDWIDTH_CHECK)
         );
@@ -999,14 +1219,14 @@ mod tests {
         }
 
         // spike a 1 MB/s depletion rate
-        for _ in 0..17 {
+        for _ in 0..34 {
             current_bandwidth -= current_period.as_secs() * BW_1MB;
             current_period = depletion_rate
                 .update_dynamic_check_interval(current_period, current_bandwidth)
                 .unwrap()
                 .unwrap();
             assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
-            assert!(current_bandwidth > 500 * BW_1MB);
+            assert!(current_bandwidth > 1000 * BW_1MB);
         }
 
         current_bandwidth -= current_period.as_secs() * BW_1MB;
@@ -1014,7 +1234,7 @@ mod tests {
             .update_dynamic_check_interval(current_period, current_bandwidth)
             .unwrap();
         // when we get bellow a convinient dynamic threshold, we start reqwesting more bandwidth (returning None)
-        assert!(current_bandwidth < 500 * BW_1MB);
+        assert!(current_bandwidth < 1000 * BW_1MB);
         assert!(ret.is_none());
     }
 
@@ -1026,5 +1246,107 @@ mod tests {
             ))
             .is_ok()
         );
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_no_interfaces_is_below_threshold() {
+        let mock = MockNetworks::new();
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        assert!(!monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_calls_refresh_on_each_check() {
+        let mock = MockNetworks::new();
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        monitor.force_bandwidth_checks().await;
+        assert_eq!(monitor.networks.refresh_count, 1);
+        monitor.force_bandwidth_checks().await;
+        assert_eq!(monitor.networks.refresh_count, 2);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_below_threshold_returns_false() {
+        // 2 MB combined < 8 MB threshold
+        let mock = MockNetworks::new().with_interface("eth0", BW_1MB, BW_1MB);
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        assert!(!monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_above_threshold_returns_true() {
+        // 10 MB combined > 8 MB threshold
+        let mock = MockNetworks::new().with_interface("eth0", 5 * BW_1MB, 5 * BW_1MB);
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        assert!(monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_exactly_at_threshold_returns_false() {
+        // usage must be strictly greater than threshold, not equal
+        let mock = MockNetworks::new().with_interface(
+            "eth0",
+            SYSTEM_BANDWIDTH_THRESHOLD / 2,
+            SYSTEM_BANDWIDTH_THRESHOLD / 2,
+        );
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        assert!(!monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_sums_all_interfaces_without_filter() {
+        // 3 MB per interface × 3 interfaces = 9 MB total > 8 MB threshold
+        let mock = MockNetworks::new()
+            .with_interface("eth0", 3 * BW_1MB, 0)
+            .with_interface("eth1", 3 * BW_1MB, 0)
+            .with_interface("wlan0", 3 * BW_1MB, 0);
+        let mut monitor =
+            SystemBandwidthMonitor::with_networks(None, SYSTEM_BANDWIDTH_THRESHOLD, mock);
+        assert!(monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_filters_to_target_interface_below_threshold() {
+        // eth0 has 10 MB (above threshold), but we only watch wg0 which has 2 MB
+        let mock = MockNetworks::new()
+            .with_interface("eth0", 5 * BW_1MB, 5 * BW_1MB)
+            .with_interface("wg0", BW_1MB, BW_1MB);
+        let mut monitor = SystemBandwidthMonitor::with_networks(
+            Some("wg0".to_string()),
+            SYSTEM_BANDWIDTH_THRESHOLD,
+            mock,
+        );
+        assert!(!monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_filters_to_target_interface_above_threshold() {
+        // eth0 has 2 MB (below threshold), but we only watch wg0 which has 10 MB
+        let mock = MockNetworks::new()
+            .with_interface("eth0", BW_1MB, BW_1MB)
+            .with_interface("wg0", 5 * BW_1MB, 5 * BW_1MB);
+        let mut monitor = SystemBandwidthMonitor::with_networks(
+            Some("wg0".to_string()),
+            SYSTEM_BANDWIDTH_THRESHOLD,
+            mock,
+        );
+        assert!(monitor.force_bandwidth_checks().await);
+    }
+
+    #[tokio::test]
+    async fn system_bandwidth_monitor_nonexistent_target_interface_returns_false() {
+        // eth0 has 10 MB but we watch a non-existent interface, so total is 0
+        let mock = MockNetworks::new().with_interface("eth0", 5 * BW_1MB, 5 * BW_1MB);
+        let mut monitor = SystemBandwidthMonitor::with_networks(
+            Some("nonexistent".to_string()),
+            SYSTEM_BANDWIDTH_THRESHOLD,
+            mock,
+        );
+        assert!(!monitor.force_bandwidth_checks().await);
     }
 }

@@ -46,6 +46,16 @@ on:
         description: "Skip Crowdin translations download"
         required: false
         default: false
+      version:
+        type: string
+        description: "Orchestrated app version to embed (empty = use Constants.kt as before)"
+        required: false
+        default: ""
+      version_tag:
+        type: string
+        description: "Unified release tag; for *-nightly.<ts> the <ts> is used as the apk timestamp"
+        required: false
+        default: ""
     secrets:
       SCCACHE_REDIS_ENDPOINT:
         required: false
@@ -87,9 +97,15 @@ jobs:
     outputs:
       UPLOAD_DIR_ANDROID: ${{ env.UPLOAD_DIR_ANDROID }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           submodules: true
+
+      - name: Apply orchestrated version
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: android
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
@@ -109,7 +125,7 @@ jobs:
         uses: android-actions/setup-android@v4
 
       - name: Cache NDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: cache-ndk
         with:
           path: /usr/local/lib/android/sdk/ndk/${{ env.NDK_VERSION }}
@@ -137,9 +153,17 @@ jobs:
 
       - name: Set env
         shell: bash
+        env:
+          VERSION_TAG: ${{ inputs.version_tag }}
         run: |
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
           echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
+          # Nightly apk timestamp = the <ts> baked into the unified tag
+          # (nym-vpn-v<ver>-nightly.<ts>), so the apk name matches the release. Ship/beta
+          # tags carry no "-nightly." segment → gradle generates its own.
+          if [[ "$VERSION_TAG" == *-nightly.* ]]; then
+            echo "NIGHTLY_TIMESTAMP=${VERSION_TAG##*-nightly.}" >> "$GITHUB_ENV"
+          fi
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -178,6 +202,12 @@ jobs:
         with:
           crate: cargo-license
 
+      - name: Apply orchestrated version (core)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
       - name: Install deps
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler git curl gcc g++ make unzip rsync
@@ -185,7 +215,7 @@ jobs:
       - name: Decode Keystore
         if: ${{ inputs.build_type != 'debug' }}
         id: decode_keystore
-        uses: timheuer/base64-to-file@v1.2
+        uses: timheuer/base64-to-file@v2.0
         with:
           fileName: ${{ env.KEY_STORE_FILE }}
           fileDir: ${{ env.KEY_STORE_LOCATION }}

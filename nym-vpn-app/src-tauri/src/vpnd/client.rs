@@ -13,6 +13,7 @@ use super::{
     config::{MixnetTrafficConfig, VpndConfig},
     events::MixnetEvent,
     gateway::{Gateway, GatewaySelectionAlgorithm, GatewayType},
+    tentative_gateways::TentativeGateways,
     tunnel::{FrontingMode, SplitApp, TunnelState},
 };
 
@@ -454,6 +455,18 @@ impl VpndClient {
         if !ok {
             warn!("vpn_connect: connect_tunnel returned false");
         }
+
+        Ok(())
+    }
+
+    /// Reconnect the VPN
+    #[instrument(skip_all)]
+    pub async fn vpn_reconnect(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.reconnect_tunnel()
+            .or_else(async |e| self.handle_rpc_error("reconnect_tunnel", e).await)
+            .await?;
 
         Ok(())
     }
@@ -987,6 +1000,14 @@ impl VpndClient {
         Ok(summary.map(Into::into))
     }
 
+    pub async fn refresh_account_state(&self, force: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.refresh_account_state(force)
+            .or_else(async |e| self.handle_rpc_error("refresh_account_state", e).await)
+            .await
+    }
+
     pub async fn handle_subscription_payment(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
@@ -1110,6 +1131,86 @@ impl VpndClient {
 
         vpnd.set_enable_geo_location(enabled)
             .or_else(async |e| self.handle_rpc_error("set_enable_geo_location", e).await)
+            .await
+    }
+
+    #[instrument(skip_all)]
+    /// Get the tentative entry/exit gateway pair for the current settings.
+    #[instrument(skip_all)]
+    pub async fn get_tentative_gateways(&self) -> Result<TentativeGateways, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let tentative = vpnd
+            .get_tentative_gateways()
+            .or_else(async |e| self.handle_rpc_error("get_tentative_gateways", e).await)
+            .await?;
+
+        Ok(tentative.into())
+    }
+
+    /// Enable or disable gateway independence. For this iteration all
+    /// `different_*` constraints move together (all `true` or all `false`).
+    #[instrument(skip_all)]
+    pub async fn set_gateway_independence(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_enable_gateway_independence(enabled)
+            .or_else(async |e| {
+                self.handle_rpc_error("set_enable_gateway_independence", e)
+                    .await
+            })
+            .await
+    }
+
+    /// Enable or disable the gateway-independence reminder notifications.
+    #[instrument(skip_all)]
+    pub async fn set_gateway_independence_notifications(
+        &self,
+        enabled: bool,
+    ) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_gateway_independence_notifications(enabled)
+            .or_else(async |e| {
+                self.handle_rpc_error("set_gateway_independence_notifications", e)
+                    .await
+            })
+            .await
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_geo_exclusion_enabled(&self, enabled: bool) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_geo_exclusion_enabled(enabled)
+            .or_else(async |e| self.handle_rpc_error("set_geo_exclusion_enabled", e).await)
+            .await
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_geo_exclusion_listen_port(&self, port: u16) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_geo_exclusion_listen_port(port)
+            .or_else(async |e| {
+                self.handle_rpc_error("set_geo_exclusion_listen_port", e)
+                    .await
+            })
+            .await
+    }
+
+    #[instrument(skip_all)]
+    pub async fn set_geo_exclusion_excluded_countries(
+        &self,
+        countries: Vec<String>,
+    ) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.set_geo_exclusion_excluded_countries(countries)
+            .or_else(async |e| {
+                self.handle_rpc_error("set_geo_exclusion_excluded_countries", e)
+                    .await
+            })
             .await
     }
 }

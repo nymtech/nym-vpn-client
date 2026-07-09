@@ -49,6 +49,7 @@ use crate::{
 use hickory_resolver::config::NameServerConfig;
 #[cfg(not(target_os = "ios"))]
 use hickory_resolver::config::ProtocolConfig;
+use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
@@ -63,6 +64,8 @@ use tokio_util::sync::CancellationToken;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_gateway_directory::ResolvedConfig;
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, GatewayCacheHandle};
 use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
@@ -771,17 +774,23 @@ pub struct SharedState {
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
+    bandwidth_command_tx: BandwidthControllerRequestSender,
     statistics_event_sender: StatisticsSender,
+    #[cfg(target_os = "linux")]
+    nm_connectivity_check_enabled: Option<bool>,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     topology_service: VpnTopologyServiceHandle,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     user_agent: UserAgent,
+    /// API endpoints resolved in connecting state and used for configuring a bypass in error state.
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    resolved_api_endpoints: Option<ResolvedConfig>,
     #[cfg(not(target_os = "ios"))]
     shutdown_token: CancellationToken,
 }
 
 impl SharedState {
-    /// Notify discovery and account controller when network is unrestricted.
+    /// Notify discovery, account controller, and gateway cache when network is unrestricted.
     async fn allow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(false))
@@ -790,15 +799,35 @@ impl SharedState {
             .set_vpn_api_firewall_down()
             .await
             .ok();
+        self.gateway_provider.set_gateway_cache_paused(false);
     }
 
-    /// Notify discovery, account controller and geo-location when network is restricted.
+    /// Notify discovery, account controller, geo-location, and gateway cache when network is restricted.
     async fn disallow_networking(&self) {
         self.discovery_refresher_command_tx
             .send(DiscoveryRefresherCommand::Pause(true))
             .ok();
         self.account_command_tx.set_vpn_api_firewall_up().await.ok();
         self.gateway_provider.set_active_geo_location(false).await;
+        self.gateway_provider.set_gateway_cache_paused(true);
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn disable_nm_connectivity_check(&mut self) {
+        if self.nm_connectivity_check_enabled.is_none()
+            && let Ok(nm) = nym_dbus::network_manager::NetworkManager::new()
+        {
+            self.nm_connectivity_check_enabled = nm.disable_connectivity_check();
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    pub fn restore_nm_connectivity_check(&mut self) {
+        if let Some(true) = self.nm_connectivity_check_enabled.take()
+            && let Ok(nm) = nym_dbus::network_manager::NetworkManager::new()
+        {
+            nm.enable_connectivity_check();
+        }
     }
 
     async fn enable_ad_blocking(&self, enable: bool) {
@@ -1027,6 +1056,7 @@ impl TunnelStateMachine {
         tunnel_constants: TunnelConstants,
         account_command_tx: AccountCommandSender,
         account_controller_state: AccountStateReceiver,
+        bandwidth_command_tx: BandwidthControllerRequestSender,
         statistics_event_sender: StatisticsSender,
         topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
@@ -1111,11 +1141,16 @@ impl TunnelStateMachine {
             tun_provider,
             account_command_tx,
             account_controller_state,
+            bandwidth_command_tx,
             statistics_event_sender,
+            #[cfg(target_os = "linux")]
+            nm_connectivity_check_enabled: None,
             gateway_provider,
             topology_service,
             discovery_refresher_command_tx,
             user_agent,
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            resolved_api_endpoints: None,
             #[cfg(not(target_os = "ios"))]
             shutdown_token: shutdown_token.clone(),
         };

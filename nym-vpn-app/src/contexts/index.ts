@@ -5,3 +5,4 @@ export * from './socks5';
 export * from './topbar';
 export * from './tray';
 export * from './autologin';
+export * from './gatewayIndependence';

@@ -6,12 +6,16 @@ use std::{
     sync::Arc,
 };
 
-use adblock::lists::{ParseOptions, ParsedFilter, RuleTypes, parse_filter};
+use adblock::{
+    filters::network::NetworkFilterMaskHelper,
+    lists::{ParseOptions, ParsedFilter, RuleTypes, parse_filter},
+};
 use futures::{StreamExt, TryFutureExt, TryStreamExt, pin_mut};
+use itertools::Itertools;
 use nym_common::trace_err_chain;
 use nym_sqlx_pool_guard::SqlitePoolGuard;
 use sqlx::{
-    Connection, QueryBuilder, Sqlite, SqliteConnection,
+    ConnectOptions, Connection, QueryBuilder, Sqlite, SqliteConnection,
     pool::PoolConnection,
     sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions},
 };
@@ -230,13 +234,26 @@ where
 
     /// Returns true if the given domain is blocked.
     pub async fn has_domain(&mut self, domain: &str) -> sqlx::Result<bool> {
-        sqlx::query_scalar!(
-            r#"SELECT EXISTS(SELECT 1 FROM blocked_domains WHERE domain_name = $1 LIMIT 1)"#,
-            domain
-        )
-        .fetch_one(self.executor.as_mut())
-        .map_ok(|res| res == 1)
-        .await
+        let domains: Vec<String> = get_all_subdomains(domain);
+        if domains.is_empty() {
+            return Ok(false);
+        }
+
+        let placeholders = vec!["?"; domains.len()].join(", ");
+        let sql = format!(
+            "SELECT EXISTS(SELECT 1 FROM blocked_domains WHERE domain_name IN ({}) LIMIT 1)",
+            placeholders
+        );
+
+        let mut query = sqlx::query_scalar(&sql);
+        for d in domains {
+            query = query.bind(d);
+        }
+
+        query
+            .fetch_one(self.executor.as_mut())
+            .map_ok(|res: i32| res == 1)
+            .await
     }
 }
 
@@ -246,6 +263,7 @@ async fn open_db(db_path: &Path) -> Result<SqlitePoolGuard> {
         .filename(db_path)
         .create_if_missing(true)
         .journal_mode(SqliteJournalMode::Wal)
+        .disable_statement_logging()
         .pragma("soft_heap_limit", SQL_SOFT_HEAP_LIMIT.to_string())
         .pragma("hard_heap_limit", SQL_HARD_HEAP_LIMIT.to_string());
 
@@ -311,9 +329,17 @@ async fn populate_db(cache_dir: &Path, mut conn: PoolConnection<Sqlite>) -> Resu
         let chunk_stream = line_stream
             .try_filter_map(|line| async move {
                 // Ignore errors since they aren't that useful
-                if let Ok(ParsedFilter::Network(filter)) = parse_filter(&line, false, opts)
-                    && let Some(ref domain) = filter.hostname
-                {
+                let Ok(ParsedFilter::Network(filter)) = parse_filter(&line, false, opts) else {
+                    return Ok(None);
+                };
+
+                let Some(ref domain) = filter.hostname else {
+                    return Ok(None);
+                };
+
+                // Only support rules blocking by domain (double pipe)
+                // See: https://adblockplus.org/filter-cheatsheet
+                if filter.is_hostname_anchor() {
                     // Convert to lowercase for case-insensitive comparison
                     Ok(Some(domain.to_lowercase()))
                 } else {
@@ -385,6 +411,25 @@ fn add_path_suffix(path: &Path, suffix: &str) -> PathBuf {
     new_path
 }
 
+fn get_all_subdomains(domain: &str) -> Vec<String> {
+    let components = domain
+        .split('.')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<&str>>();
+
+    if components.len() > 1 {
+        let mut matches = Vec::with_capacity(8);
+        // skip top-level domain
+        for skip in 0..components.len() - 1 {
+            let subdomain = components.iter().skip(skip).join(".");
+            matches.push(subdomain);
+        }
+        matches
+    } else {
+        Vec::from_iter(components.first().map(|v| (*v).to_owned()))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use tempfile::TempDir;
@@ -393,6 +438,21 @@ mod tests {
     use crate::adblocker::file_manager::tests::init_tests;
 
     const SHOULD_BE_BLOCKED_DOMAIN: &str = "ad.doubleclick.net";
+
+    #[test]
+    fn test_get_all_subdomains() {
+        assert_eq!(
+            get_all_subdomains("ad.doubleclick.net"),
+            vec!["ad.doubleclick.net", "doubleclick.net"]
+        );
+        assert_eq!(
+            get_all_subdomains(".ad..doubleclick.net."),
+            vec!["ad.doubleclick.net", "doubleclick.net"]
+        );
+        assert_eq!(get_all_subdomains("localhost"), vec!["localhost"]);
+        assert_eq!(get_all_subdomains("nym.com"), vec!["nym.com"]);
+        assert_eq!(get_all_subdomains(""), Vec::<&str>::new());
+    }
 
     #[tokio::test]
     #[tracing_test::traced_test]

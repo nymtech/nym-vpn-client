@@ -18,7 +18,7 @@ jobs:
     runs-on: arc-linux-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -69,7 +69,7 @@ jobs:
           echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
           toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
-          cargo update --dry-run
+          cargo fetch
 
       - name: Get package version nym-vpnc
         id: package-version-vpnc

@@ -4,6 +4,7 @@ import android.os.Build
 import net.nymtech.vpn.backend.service.VpnService
 import net.nymtech.vpn.util.extensions.addRoutes
 import nym_vpn_lib.TunnelNetworkSettings
+import nym_vpn_lib.VpnException
 import timber.log.Timber
 
 /**
@@ -31,10 +32,6 @@ class VpnTunController(private val service: VpnService) {
 		val mtu = config.mtu.toInt()
 
 		return try {
-			if (android.net.VpnService.prepare(service) != null) {
-				Timber.tag(TAG).e("VpnService.prepare failed")
-				return -1
-			}
 			val builder = service.Builder()
 
 			disallowedApps.forEach { pkg ->
@@ -62,21 +59,24 @@ class VpnTunController(private val service: VpnService) {
 			builder.setMtu(mtu)
 			builder.setBlocking(false)
 
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 				builder.setMetered(false)
 			}
 
 			val pfd = builder.establish()
 			if (pfd == null) {
-				Timber.tag(TAG).e("Builder.establish() returned null")
-				return -1
+				Timber.tag(TAG).e("configureTunnel: establish() returned null, VPN permission lost")
+				service.onVpnRevoked()
+				throw VpnException.InternalException("Failed to establish VPN tunnel")
 			}
 
 			val fd = pfd.detachFd()
 
 			Timber.tag(TAG).i("Tunnel established. FD=$fd transferred to Rust.")
 
-			return fd
+			fd
+		} catch (e: VpnException) {
+			throw e
 		} catch (t: Throwable) {
 			Timber.tag(TAG).e(t, "TunnelConfigureFailed")
 			-1

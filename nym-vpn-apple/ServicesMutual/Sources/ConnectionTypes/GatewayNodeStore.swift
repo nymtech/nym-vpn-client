@@ -7,7 +7,25 @@ public final class GatewayNodeStore: Codable {
     public var exit: [GatewayNode]
     public var vpn: [GatewayNode]
     public var lastFetchDate: Date?
+#if SANTA
+    public var fetchedForEnv: String?
+#endif
 
+#if SANTA
+    public init(
+        lastFetchDate: Date? = nil,
+        fetchedForEnv: String? = nil,
+        entry: [GatewayNode] = [],
+        exit: [GatewayNode] = [],
+        vpn: [GatewayNode] = []
+    ) {
+        self.lastFetchDate = lastFetchDate
+        self.fetchedForEnv = fetchedForEnv
+        self.entry = entry
+        self.exit = exit
+        self.vpn = vpn
+    }
+#else
     public init(
         lastFetchDate: Date? = nil,
         entry: [GatewayNode] = [],
@@ -19,6 +37,7 @@ public final class GatewayNodeStore: Codable {
         self.exit = exit
         self.vpn = vpn
     }
+#endif
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
@@ -30,6 +49,11 @@ public final class GatewayNodeStore: Codable {
         if let lastFetchDate = lastFetchDate {
             try container.encode(lastFetchDate.timeIntervalSince1970, forKey: .lastFetchDate)
         }
+#if SANTA
+        if let fetchedForEnv = fetchedForEnv {
+            try container.encode(fetchedForEnv, forKey: .fetchedForEnv)
+        }
+#endif
     }
 
     public required init(from decoder: Decoder) throws {
@@ -44,6 +68,9 @@ public final class GatewayNodeStore: Codable {
         } else {
             lastFetchDate = nil
         }
+#if SANTA
+        fetchedForEnv = try container.decodeIfPresent(String.self, forKey: .fetchedForEnv)
+#endif
     }
 
     public var rawValue: RawValue {
@@ -61,12 +88,22 @@ public final class GatewayNodeStore: Codable {
         else {
             return nil
         }
+#if SANTA
+        self.init(
+            lastFetchDate: gatewayNodeStore.lastFetchDate,
+            fetchedForEnv: gatewayNodeStore.fetchedForEnv,
+            entry: gatewayNodeStore.entry,
+            exit: gatewayNodeStore.exit,
+            vpn: gatewayNodeStore.vpn
+        )
+#else
         self.init(
             lastFetchDate: gatewayNodeStore.lastFetchDate,
             entry: gatewayNodeStore.entry,
             exit: gatewayNodeStore.exit,
             vpn: gatewayNodeStore.vpn
         )
+#endif
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -74,5 +111,8 @@ public final class GatewayNodeStore: Codable {
         case exitNodes
         case vpnNodes
         case lastFetchDate
+#if SANTA
+        case fetchedForEnv
+#endif
     }
 }

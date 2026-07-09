@@ -12,8 +12,6 @@ use ts_rs::TS;
 use crate::{AccountControllerState, service::VpnServiceConfig};
 
 #[cfg(feature = "nym-type-conversions")]
-use nym_bandwidth_controller::BandwidthStatusMessage;
-#[cfg(feature = "nym-type-conversions")]
 use nym_statistics_common::clients::packet_statistics::{
     MixnetBandwidthStatisticsEvent, PacketRates,
 };
@@ -235,16 +233,6 @@ impl SphinxPacketRates {
 
     pub fn cover_sent(&self) -> String {
         bibytes2(self.cover_packets_sent_size)
-    }
-}
-
-#[cfg(feature = "nym-type-conversions")]
-impl From<&BandwidthStatusMessage> for BandwidthEvent {
-    fn from(value: &BandwidthStatusMessage) -> Self {
-        match value {
-            BandwidthStatusMessage::NoBandwidth => Self::NoBandwidth,
-            BandwidthStatusMessage::RemainingBandwidth(value) => Self::RemainingBandwidth(*value),
-        }
     }
 }
 

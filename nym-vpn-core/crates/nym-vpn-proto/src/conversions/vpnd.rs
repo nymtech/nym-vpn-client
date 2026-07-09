@@ -337,6 +337,7 @@ impl TryFrom<proto::GatewayResponse> for nym_vpn_lib_types::Gateway {
             build_version,
             bridge_params,
             lewes_protocol_details: lp_details,
+            node_family_name: gateway.node_family_name,
         })
     }
 }
@@ -364,6 +365,7 @@ impl From<nym_vpn_lib_types::Gateway> for proto::GatewayResponse {
             lp_details: gateway
                 .lewes_protocol_details
                 .map(proto::LewesProtocolDetails::from),
+            node_family_name: gateway.node_family_name,
         }
     }
 }
@@ -413,20 +415,20 @@ impl From<nym_vpn_lib_types::TentativeGateways> for proto::TentativeGateways {
                     ),
                 }
             }
-            nym_vpn_lib_types::TentativeGateways::NeedsRelaxedIndependenceCriteria => {
-                proto::TentativeGateways {
-                    tentative_gateways: Some(proto::tentative_gateways::TentativeGateways::NeedsRelaxedIndependenceCriteria(
-                        proto::tentative_gateways::NeedsRelaxedIndependenceCriteria {},
-                    )),
-                }
-            }
-             nym_vpn_lib_types::TentativeGateways::NoGatewaysAvailable   => {
-                proto::TentativeGateways {
-                    tentative_gateways: Some(proto::tentative_gateways::TentativeGateways::NoGatewaysAvailable(
-                        proto::tentative_gateways::NoGatewaysAvailable { },
-                    )),
-                }
-             }
+            nym_vpn_lib_types::TentativeGateways::NeedsRelaxedIndependenceCriteria => proto::TentativeGateways {
+                tentative_gateways: Some(
+                    proto::tentative_gateways::TentativeGateways::NeedsRelaxedIndependenceCriteria(
+                        proto::tentative_gateways::NeedsRelaxedIndependenceCriteria {}
+                    ),
+                ),
+            },
+            nym_vpn_lib_types::TentativeGateways::NoGatewaysAvailable => proto::TentativeGateways {
+                tentative_gateways: Some(
+                    proto::tentative_gateways::TentativeGateways::NoGatewaysAvailable(
+                        proto::tentative_gateways::NoGatewaysAvailable {},
+                    ),
+                ),
+            },
         }
     }
 }

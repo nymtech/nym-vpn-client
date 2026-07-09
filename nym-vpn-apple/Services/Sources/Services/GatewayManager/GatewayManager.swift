@@ -24,6 +24,7 @@ import GRPCManager
     var cancellables = Set<AnyCancellable>()
 
     private var autoUpdateTask: Task<Void, Never>?
+    private var gatewayUpdateTask: Task<Void, Never>?
 
     @Published public var entry: [GatewayNode]
     @Published public var exit: [GatewayNode]
@@ -315,23 +316,25 @@ extension GatewayManager {
             return
         }
         isLoading = true
-
-        Task { [weak self] in
+        gatewayUpdateTask?.cancel()
+        gatewayUpdateTask = Task { [weak self] in
             guard let self else { return }
             await self.fetchGateways()
         }
     }
 
     func fetchGateways() async {
+        defer { isLoading = false }
         do {
             let result = try await worker.fetchGateways()
 
             guard !result.entry.isEmpty, !result.exit.isEmpty, !result.vpn.isEmpty
             else {
                 logger.info("Empty gateways from API")
-                isLoading = false
                 return
             }
+
+            try Task.checkCancellation()
 
             entry = result.entry
             exit = result.exit
@@ -341,13 +344,16 @@ extension GatewayManager {
             gatewayStore.exit  = result.exit
             gatewayStore.vpn = result.vpn
             gatewayStore.lastFetchDate = Date()
+#if SANTA
+            gatewayStore.fetchedForEnv = configurationManager.currentEnvString
+#endif
 
             storeGatewayStore()
             updateCountriesFromGateways()
-            isLoading = false
+        } catch is CancellationError {
+            return
         } catch {
             logger.error("Failed to fetch gateways: \(String(describing: error.localizedDescription))")
-            isLoading = false
         }
     }
 
@@ -384,8 +390,15 @@ private extension GatewayManager {
     }
 
     func needsReload() -> Bool {
+#if SANTA
+        GatewayCacheReloadPolicy.needsReload(
+            store: gatewayStore,
+            currentEnv: configurationManager.currentEnvString
+        )
+#else
         guard let lastFetchDate = gatewayStore.lastFetchDate else { return true }
         return Date().timeIntervalSince(lastFetchDate) > 600
+#endif
     }
 
     func loadGatewaysFromStore() {
@@ -395,13 +408,20 @@ private extension GatewayManager {
     }
 
     func configureEnvironmentChange() {
-        configurationManager.environmentDidChange = { [weak self] in
+        configurationManager.addEnvironmentDidChangeObserver { [weak self] in
             guard let self else { return }
+#if SANTA
+            self.clearGatewayStoreForEnvironmentChange()
+#else
             self.gatewayStore.lastFetchDate = nil
-            Task {
+#endif
+            Task { @MainActor in
+                self.gatewayUpdateTask?.cancel()
+                self.isLoading = false
 #if os(iOS)
                 await self.worker.reset()
 #endif
+                self.isLoading = true
                 await self.fetchGateways()
             }
         }

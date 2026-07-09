@@ -115,6 +115,19 @@ import Theme
     func reloadSections() {
         configureSections()
     }
+
+    func updateAccountSectionOnly() {
+        guard appSettings.isCredentialImported else {
+            sections.removeAll { $0.kind == .account }
+            return
+        }
+        let updated = accountSection()
+        if let index = sections.firstIndex(where: { $0.kind == .account }) {
+            sections[index] = updated
+        } else {
+            sections.insert(updated, at: 0)
+        }
+    }
 }
 
 private extension SettingsViewModel {
@@ -148,6 +161,15 @@ private extension SettingsViewModel {
         path.append(SettingLink.accountAndDevices)
     }
 
+    func navigateToPlanPurchase() {
+        impactGenerator.softImpact()
+#if os(iOS)
+        path.append(SettingLink.generatePassphrase(displayPurchaseView: true))
+#elseif os(macOS)
+        autologinState?.start(kind: .autologinRenew, using: credentialsManager)
+#endif
+    }
+
     func navigateToPassphrase() {
         impactGenerator.softImpact()
         path.append(SettingLink.passphrase)
@@ -171,6 +193,11 @@ private extension SettingsViewModel {
     }
 
 #if os(macOS)
+    func navigateToGeoExclusion() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.geoExclusion)
+    }
+
     func navigateToSplitTunneling() {
         impactGenerator.softImpact()
         path.append(SettingLink.splitTunnel)
@@ -180,6 +207,11 @@ private extension SettingsViewModel {
     func navigateToCensorship() {
         impactGenerator.softImpact()
         path.append(SettingLink.censorship)
+    }
+
+    func navigateToNotifications() {
+        impactGenerator.softImpact()
+        path.append(SettingLink.notifications)
     }
 }
 
@@ -194,6 +226,17 @@ private extension SettingsViewModel {
     func setupAppSettingsObservers() {
         appSettings.$isCredentialImportedPublisher.sink { [weak self] _ in
             self?.reloadSections()
+        }
+        .store(in: &cancellables)
+
+        Publishers.Merge3(
+            appSettings.$isAdBlockerEnabledPublisher,
+            appSettings.$isIPv6TrafficEnabledPublisher,
+            appSettings.$isLanBypassEnabledPublisher
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] _ in
+            self?.objectWillChange.send()
         }
         .store(in: &cancellables)
     }
@@ -212,7 +255,7 @@ private extension SettingsViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 MainActor.assumeIsolated {
-                    self?.reloadSections()
+                    self?.updateAccountSectionOnly()
                 }
             }
             .store(in: &cancellables)
@@ -228,6 +271,7 @@ private extension SettingsViewModel {
             newSections.append(
                 contentsOf: [
                     feedbackSection(),
+                    notificationsSection(),
                     killswitchSection(),
                     appearanceSection(),
                     privacyAndDataSection(),
@@ -276,7 +320,9 @@ private extension SettingsViewModel {
             } else {
                 var first = AttributedString("noActivePlan".localizedString)
                 first.foregroundColor = Color.Nym.error
-                subtitle = first
+                var second = AttributedString("\n\( "purchasePlan.chooseMyPlan".localizedString)")
+                second.foregroundColor = Color.Nym.primary
+                subtitle = first + second
             }
         } else {
             subtitle = AttributedString("requestingZkNyms".localizedString)
@@ -330,6 +376,24 @@ private extension SettingsViewModel {
         )
     }
 
+    func notificationsSection() -> AppSettingsSection {
+        AppSettingsSection(
+            kind: .notifications,
+            viewModels: [
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "settings.notifications.title".localizedString,
+                    systemImageName: "bell",
+                    action: { [weak self] in
+                        Task { @MainActor in
+                            self?.navigateToNotifications()
+                        }
+                    }
+                )
+            ]
+        )
+    }
+
     func feedbackSection() -> AppSettingsSection {
         AppSettingsSection(
             kind: .feedback,
@@ -368,8 +432,8 @@ private extension SettingsViewModel {
         let adBlockViewModel = SettingsListItemViewModel(
             accessory: .toggle(
                 isOn: Binding(
-                    get: { [weak appSettings] in appSettings?.isAdBlockerEnabled ?? false },
-                    set: { [weak connectionManager] in connectionManager?.setAdBlocking($0) }
+                    get: { [appSettings] in appSettings.isAdBlockerEnabled },
+                    set: { [connectionManager] newValue in connectionManager.setAdBlocking(newValue) }
                 )
             ),
             title: "settings.adblock.title".localizedString,
@@ -394,8 +458,8 @@ private extension SettingsViewModel {
             SettingsListItemViewModel(
                 accessory: .toggle(
                     isOn: Binding(
-                        get: { [weak appSettings] in appSettings?.isIPv6TrafficEnabled ?? true },
-                        set: { [weak connectionManager] in connectionManager?.setIPv6TrafficEnabled($0) }
+                        get: { [appSettings] in appSettings.isIPv6TrafficEnabled },
+                        set: { [connectionManager] newValue in connectionManager.setIPv6TrafficEnabled(newValue) }
                     )
                 ),
                 title: "settings.ipv6.title".localizedString,
@@ -409,8 +473,8 @@ private extension SettingsViewModel {
             SettingsListItemViewModel(
                 accessory: .toggle(
                     isOn: Binding(
-                        get: { [weak appSettings] in appSettings?.isLanBypassEnabled ?? false },
-                        set: { [weak connectionManager] in connectionManager?.setLanBypassEnabled($0) }
+                        get: { [appSettings] in appSettings.isLanBypassEnabled },
+                        set: { [connectionManager] newValue in connectionManager.setLanBypassEnabled(newValue) }
                     )
                 ),
                 title: "settings.lanBypass.title".localizedString,
@@ -420,6 +484,18 @@ private extension SettingsViewModel {
             )
         )
 #if os(macOS)
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.geoExclusion".localizedString,
+                subtitle: "settings.geoExclusion.subtitle".localizedString,
+                imageName: "pin",
+                badge: "general.beta".localizedString,
+                action: { [weak self] in
+                    self?.navigateToGeoExclusion()
+                }
+            )
+        )
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,

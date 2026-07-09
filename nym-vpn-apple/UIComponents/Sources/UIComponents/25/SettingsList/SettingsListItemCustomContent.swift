@@ -23,6 +23,13 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
         }
     }
 
+    private var toggleValue: Bool {
+        if case let .toggle(isOn, _) = viewModel.accessory {
+            return isOn.wrappedValue
+        }
+        return false
+    }
+
     public var body: some View {
         VStack(alignment: .center, spacing: 0) {
             HStack(spacing: 0) {
@@ -77,8 +84,13 @@ public struct SettingsListItemCustomContent<CustomContent: View>: View {
             isHovered = newValue
         }
         .onChange(of: isToggleOn) { _, newValue in
-            if case let .toggle(isOn, _) = viewModel.accessory {
+            if case let .toggle(isOn, _) = viewModel.accessory, isOn.wrappedValue != newValue {
                 isOn.wrappedValue = newValue
+            }
+        }
+        .onChange(of: toggleValue) { _, newValue in
+            if isToggleOn != newValue {
+                isToggleOn = newValue
             }
         }
         .settingsListAccessibility(viewModel, combineChildren: combineAccessibilityChildren)

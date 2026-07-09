@@ -26,6 +26,7 @@ let package = Package(
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
         .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
+        .library(name: "AccountPrefetchGates", targets: ["AccountPrefetchGates"]),
         .library(name: "DeeplinkManager", targets: ["DeeplinkManager"]),
         .library(name: "Device", targets: ["Device"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
@@ -76,6 +77,7 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "Constants", package: "ServicesMutual"),
                 "Device",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
@@ -83,23 +85,34 @@ let package = Package(
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 "PathManager"
             ],
-            path: "Sources/Services/ConfigurationManager"
+            path: "Sources/Services/ConfigurationManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "ConnectionManager",
             dependencies: [
                 "CredentialsManager",
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .product(name: "TunnelStatus", package: "ServicesMutual"),
                 "GatewayManager",
                 "NotificationMessages",
                 "Tunnels",
                 "TunnelMixnet"
             ],
-            path: "Sources/Services/ConnectionManager"
+            path: "Sources/Services/ConnectionManager",
+            swiftSettings: santaSwiftSettings
+        ),
+        .target(
+            name: "AccountPrefetchGates",
+            dependencies: [
+                .product(name: "TunnelStatus", package: "ServicesMutual")
+            ],
+            path: "Sources/AccountPrefetchGates"
         ),
         .target(
             name: "CredentialsManager",
             dependencies: [
+                "AccountPrefetchGates",
                 "AppSettings",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 "ConfigurationManager",
@@ -109,6 +122,7 @@ let package = Package(
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "DarwinNotificationCenter", package: "ServicesMutual"),
                 "PathManager",
+                "Tunnels",
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
@@ -143,10 +157,12 @@ let package = Package(
             name: "FeatureFlagsManager",
             dependencies: [
                 "ConfigurationManager",
+                .product(name: "ConnectionTypes", package: "ServicesMutual"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS]))
             ],
-            path: "Sources/Services/FeatureFlagsManager"
+            path: "Sources/Services/FeatureFlagsManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "GatewayManager",
@@ -159,7 +175,8 @@ let package = Package(
                 .product(name: "NymVPNLib", package: "NymVPNLib", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
             ],
-            path: "Sources/Services/GatewayManager"
+            path: "Sources/Services/GatewayManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "ImpactGenerator",
@@ -220,9 +237,11 @@ let package = Package(
         .target(
             name: "PurchasesManager",
             dependencies: [
-                "AppSettings"
+                "AppSettings",
+                "ConfigurationManager"
             ],
-            path: "Sources/Services/PurchasesManager"
+            path: "Sources/Services/PurchasesManager",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "SentryManager",
@@ -260,6 +279,24 @@ let package = Package(
                 "Tunnels"
             ],
             path: "Sources/Services/TunnelMixnet"
+        ),
+        .testTarget(
+            name: "ConfigurationManagerTests",
+            dependencies: ["ConfigurationManager"],
+            path: "Tests/ConfigurationManagerTests"
+        ),
+        .testTarget(
+            name: "CredentialsManagerTests",
+            dependencies: [
+                "AccountPrefetchGates",
+                "AppSettings",
+                "CredentialsManager",
+                .product(name: "ErrorHandler", package: "ServicesIOS"),
+                .product(name: "NymVPNLib", package: "NymVPNLib"),
+                .product(name: "Theme", package: "Theme"),
+                .product(name: "TunnelStatus", package: "ServicesMutual")
+            ],
+            path: "Tests/CredentialsManagerTests"
         )
     ]
 )

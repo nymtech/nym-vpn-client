@@ -1,0 +1,151 @@
+name: Apple unit tests
+description: Run Apple SwiftPM unit-test suites (PR), summarize to the job step summary, then upload + clean result bundles.
+inputs:
+  account-report-path:
+    description: Absolute path where the ConnectionTypes suite writes account-report.md.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Tests
+      shell: bash
+      env:
+        ACCOUNT_REPORT_PATH: ${{ inputs.account-report-path }}
+      run: |
+          set -uo pipefail
+          which jq >/dev/null || brew install jq
+
+          APPLE="$GITHUB_WORKSPACE/nym-vpn-apple"
+          OVERALL=0
+          TP=0; TF=0; TS=0
+
+          # Each SwiftPM package's tests run from its own dir against its auto-generated
+          # scheme (the `*-Package` schemes only resolve inside the package dir). Bundles
+          # land beside each package so the upload step can grab them. We never abort on a
+          # red suite — we still want the full summary + report — but OVERALL gates the exit.
+
+          # Suites: dir | scheme | -only-testing target | bundle (rel $APPLE) | label.
+          # ConnectionTypes also writes account-report.md (ACCOUNT_REPORT_PATH).
+          SUITES=(
+            "ServicesMutual|ServicesMutual-Package|ConnectionTypesTests|ServicesMutual/TestResults.xcresult|ConnectionTypes"
+            "Services|Services-Package|ConfigurationManagerTests|Services/TestResults-ConfigurationManagerTests.xcresult|ConfigurationManager"
+            "Settings|Settings|SettingsTests|Settings/TestResults-SettingsTests.xcresult|Settings"
+            "ServicesMacOS|ServicesMacOS-Package|AppDiscoveryServiceTests|ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult|AppDiscovery"
+            "Services|Services-Package|CredentialsManagerTests/AppSessionReducerTests|Services/TestResults-AppSessionReducerTests.xcresult|AppSessionReducer"
+            "Services|Services-Package|CredentialsManagerTests/AccountPrefetchOrchestratorTests|Services/TestResults-AccountPrefetchOrchestratorTests.xcresult|AccountPrefetch"
+            "Home|Home|HomeTests|Home/TestResults-HomeTests.xcresult|Home"
+            "Services|Services-Package|CredentialsManagerTests/EnvironmentChangeIAPPolicyTests|Services/TestResults-EnvironmentChangeIAPPolicyTests.xcresult|EnvironmentChangeIAP"
+            "Services|Services-Package|CredentialsManagerTests/PostPurchaseProcessingPolicyTests|Services/TestResults-PostPurchaseProcessingPolicyTests.xcresult|PostPurchasePolicy"
+            "Services|Services-Package|CredentialsManagerTests/PostPurchaseProcessingFlowTests|Services/TestResults-PostPurchaseProcessingFlowTests.xcresult|PostPurchaseFlow"
+            "Services|Services-Package|CredentialsManagerTests/AccountTokenByEnvStorageTests|Services/TestResults-AccountTokenByEnvStorageTests.xcresult|AccountTokenByEnv"
+            "Services|Services-Package|CredentialsManagerTests/DrawerSessionPolicyTests|Services/TestResults-DrawerSessionPolicyTests.xcresult|DrawerSessionPolicy"
+            "Services|Services-Package|CredentialsManagerTests/DrawerCredentialImportPolicyTests|Services/TestResults-DrawerCredentialImportPolicyTests.xcresult|DrawerCredImport"
+          )
+
+          for suite in "${SUITES[@]}"; do
+            IFS='|' read -r dir scheme target bundle label <<<"$suite"
+            bundle="$APPLE/$bundle"
+            rm -rf "$bundle"
+            echo "::group::Test $label"
+            if ! ( cd "$APPLE/$dir" && xcodebuild test \
+                -scheme "$scheme" \
+                -destination 'platform=macOS' \
+                CODE_SIGNING_ALLOWED=NO \
+                -only-testing:"$target" \
+                -resultBundlePath "$bundle" \
+              | xcbeautify --renderer github-actions ); then OVERALL=1; fi
+            echo "::endgroup::"
+          done
+
+          # One Markdown section per suite + a combined total → job step summary.
+          summarize() { # $1=label  $2=bundle
+            local label="$1" bundle="$2" json result p f s icon
+            if [[ ! -d "$bundle" ]]; then
+              echo "- ⚠️ **$label** — no result bundle produced" >> "$GITHUB_STEP_SUMMARY"
+              OVERALL=1
+              return
+            fi
+            json="$(xcrun xcresulttool get test-results summary --path "$bundle" --format json 2>/dev/null)"
+            result=$(jq -r '.result // "Unknown"' <<<"$json")
+            p=$(jq -r '.passedTests // 0' <<<"$json")
+            f=$(jq -r '.failedTests // 0' <<<"$json")
+            s=$(jq -r '.skippedTests // 0' <<<"$json")
+            TP=$((TP + p)); TF=$((TF + f)); TS=$((TS + s))
+            icon="✅"; [[ "$result" != "Passed" ]] && icon="❌"
+            echo "- $icon **$label** — ${p} passed, ${f} failed, ${s} skipped" >> "$GITHUB_STEP_SUMMARY"
+            if [[ "$f" != "0" ]]; then
+              {
+                echo ""
+                echo "| Test | Failure |"
+                echo "| --- | --- |"
+                jq -r '.testFailures[]? | "| \(.testName) | \((.failureText // "") | gsub("[\r\n]+"; " ")) |"' <<<"$json"
+                echo ""
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+          }
+
+          {
+            echo "## 🧪 Apple unit tests"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
+          for suite in "${SUITES[@]}"; do
+            IFS='|' read -r _ _ _ bundle label <<<"$suite"
+            summarize "$label" "$APPLE/$bundle"
+          done
+
+          TOT=$((TP + TF + TS))
+          ICON="✅"; [[ "$TF" != "0" ]] && ICON="❌"
+          {
+            echo ""
+            echo "$ICON **Total** — ${TP}/${TOT} passed, ${TF} failed, ${TS} skipped"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # Account report → step summary
+          if [[ -f "$ACCOUNT_REPORT_PATH" ]]; then
+            cat "$ACCOUNT_REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "account-report.md not produced" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          exit "$OVERALL"
+
+    - name: Upload test artifacts
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: apple-unit-tests
+        path: |
+          nym-vpn-apple/ServicesMutual/TestResults.xcresult
+          nym-vpn-apple/Services/TestResults-ConfigurationManagerTests.xcresult
+          nym-vpn-apple/Settings/TestResults-SettingsTests.xcresult
+          nym-vpn-apple/ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult
+          nym-vpn-apple/Services/TestResults-AppSessionReducerTests.xcresult
+          nym-vpn-apple/Services/TestResults-AccountPrefetchOrchestratorTests.xcresult
+          nym-vpn-apple/Home/TestResults-HomeTests.xcresult
+          nym-vpn-apple/Services/TestResults-EnvironmentChangeIAPPolicyTests.xcresult
+          nym-vpn-apple/Services/TestResults-PostPurchaseProcessingPolicyTests.xcresult
+          nym-vpn-apple/Services/TestResults-PostPurchaseProcessingFlowTests.xcresult
+          nym-vpn-apple/Services/TestResults-AccountTokenByEnvStorageTests.xcresult
+          nym-vpn-apple/Services/TestResults-DrawerSessionPolicyTests.xcresult
+          nym-vpn-apple/Services/TestResults-DrawerCredentialImportPolicyTests.xcresult
+          account-report.md
+        if-no-files-found: warn
+        retention-days: 1
+
+    - name: Clean up test results
+      if: always()
+      shell: bash
+      run: |
+        rm -rf nym-vpn-apple/ServicesMutual/TestResults.xcresult \
+               nym-vpn-apple/Services/TestResults-ConfigurationManagerTests.xcresult \
+               nym-vpn-apple/Settings/TestResults-SettingsTests.xcresult \
+               nym-vpn-apple/ServicesMacOS/TestResults-AppDiscoveryServiceTests.xcresult \
+               nym-vpn-apple/Services/TestResults-AppSessionReducerTests.xcresult \
+               nym-vpn-apple/Services/TestResults-AccountPrefetchOrchestratorTests.xcresult \
+               nym-vpn-apple/Home/TestResults-HomeTests.xcresult \
+               nym-vpn-apple/Services/TestResults-EnvironmentChangeIAPPolicyTests.xcresult \
+               nym-vpn-apple/Services/TestResults-PostPurchaseProcessingPolicyTests.xcresult \
+               nym-vpn-apple/Services/TestResults-PostPurchaseProcessingFlowTests.xcresult \
+               nym-vpn-apple/Services/TestResults-AccountTokenByEnvStorageTests.xcresult \
+               nym-vpn-apple/Services/TestResults-DrawerSessionPolicyTests.xcresult \
+               nym-vpn-apple/Services/TestResults-DrawerCredentialImportPolicyTests.xcresult

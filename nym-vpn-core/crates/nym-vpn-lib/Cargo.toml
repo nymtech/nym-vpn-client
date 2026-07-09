@@ -108,6 +108,7 @@ sentry = { workspace = true, features = [
 sha2.workspace = true
 strum.workspace = true
 sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
+sysinfo = { workspace = true, features = ["network"] }
 toml.workspace = true
 thiserror.workspace = true
 time.workspace = true
@@ -142,6 +143,10 @@ nix = { workspace = true, features = [
     "signal",
     "ioctl",
 ] }
+
+# Linux-specific dependencies
+[target.'cfg(target_os = "linux")'.dependencies]
+nym-dbus.workspace = true
 
 # Windows-specific dependencies
 [target.'cfg(windows)'.dependencies]

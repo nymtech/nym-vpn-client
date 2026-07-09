@@ -11,11 +11,14 @@
   "account-status": {
     "title": "Account status",
     "no-plan": "No active plan",
-    "bandwidth-remaining": "Fair usage spent",
-    "limit": "Limit",
-    "resets-on": "Resets on",
+    "daily-allowance-used": "Daily allowance used",
+    "daily-limit": "Daily limit",
+    "data-unavailable": "Usage data temporarily unavailable",
+    "resets-daily": "Resets daily",
+    "reset-unknown": "Unknown",
     "renew-now": "Renew now to stay protected",
-    "contact-customer-support": "⚡️<support>Contact Customer Support</support> if you reach your limit"
+    "failed-to-refresh-account-state": "Failed to refresh account",
+    "refresh": "Refresh account summary"
   },
   "autologin": {
     "title": "Pin code",

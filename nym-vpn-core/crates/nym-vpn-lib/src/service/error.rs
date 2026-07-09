@@ -37,6 +37,9 @@ pub enum Error {
     #[error("failed to create account controller")]
     CreateAccountController(#[source] nym_vpn_account_controller::Error),
 
+    #[error("failed to setup bandwidth controller storage paths")]
+    BandwidthControllerStorage(#[source] Box<nym_sdk::Error>),
+
     #[error("failed to create gateway client")]
     CreateGatewayClient(#[source] crate::gateway_directory::Error),
 
@@ -75,6 +78,15 @@ pub enum GlobalConfigError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum GeoExclusionConfigError {
+    #[error("invalid port")]
+    InvalidPort,
+
+    #[error("port '{0}' is reserved and cannot be used")]
+    ReservedPort(u16),
+
+    #[error("invalid country code '{0}': must be a 2-letter uppercase ISO code")]
+    InvalidCountryCode(String),
+
     #[error("unsupported country code '{0}': only 'CN' is currently supported")]
     UnsupportedCountry(String),
 

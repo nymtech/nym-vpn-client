@@ -10,9 +10,9 @@ use std::{
 use nym_common::trace_err_chain;
 use nym_http_api_client::{Client, FrontPolicy};
 use nym_registration_client::MixnetClientConfig;
+use nym_vpn_lib_types::MixnetTrafficConfigValidationError;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::SplitApp;
-use nym_vpn_lib_types::{GatewayIndependence, MixnetTrafficConfigValidationError};
 use tokio::{fs, sync::broadcast};
 
 use crate::{
@@ -258,8 +258,19 @@ impl VpnServiceConfigManager {
         if (enable_gateway_independence && !self.config.gateway_independence.full_enabled())
             || (!enable_gateway_independence && !self.config.gateway_independence.full_disabled())
         {
-            self.config.gateway_independence =
-                GatewayIndependence::new(enable_gateway_independence);
+            self.config
+                .gateway_independence
+                .set_enabled(enable_gateway_independence);
+            self.save_config_and_send_event().await;
+        }
+    }
+
+    pub async fn set_enable_gateway_independence_notifications(
+        &mut self,
+        enable_notifications: bool,
+    ) {
+        if enable_notifications != self.config.gateway_independence.enable_notifications {
+            self.config.gateway_independence.enable_notifications = enable_notifications;
             self.save_config_and_send_event().await;
         }
     }
@@ -323,10 +334,23 @@ impl VpnServiceConfigManager {
         }
     }
 
-    pub async fn set_geo_exclusion_listen_port(&mut self, listen_port: u16) {
-        if self.config.geo_exclusion.listen_port != listen_port {
+    pub async fn set_geo_exclusion_listen_port(
+        &mut self,
+        listen_port: u16,
+    ) -> Result<(), GeoExclusionConfigError> {
+        // Port 1080 is reserved for mixnet socks5 proxy
+        const RESERVED_PORT: u16 = 1080;
+
+        if listen_port == RESERVED_PORT {
+            Err(GeoExclusionConfigError::ReservedPort(listen_port))
+        } else if listen_port == 0 {
+            Err(GeoExclusionConfigError::InvalidPort)
+        } else if self.config.geo_exclusion.listen_port != listen_port {
             self.config.geo_exclusion.listen_port = listen_port;
             self.save_config_and_send_event().await;
+            Ok(())
+        } else {
+            Ok(())
         }
     }
 
@@ -334,12 +358,15 @@ impl VpnServiceConfigManager {
         &mut self,
         excluded_countries: Vec<String>,
     ) -> Result<(), GeoExclusionConfigError> {
-        // Temporary:  At the moment Geo Exclusion is only supported for China
         for country in &excluded_countries {
-            if country != "CN" {
+            if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
+                return Err(GeoExclusionConfigError::InvalidCountryCode(country.clone()));
+            } else if country != "CN" {
                 return Err(GeoExclusionConfigError::UnsupportedCountry(country.clone()));
             }
         }
+
+        // Temporary:  At the moment Geo Exclusion is only supported for China
         if !excluded_countries.iter().any(|c| c == "CN") {
             return Err(GeoExclusionConfigError::CnRequired);
         }

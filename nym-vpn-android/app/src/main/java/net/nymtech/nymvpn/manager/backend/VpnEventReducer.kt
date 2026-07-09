@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.update
+import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.manager.backend.model.MixnetConnectionState
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.manager.backend.model.toInfo
@@ -17,6 +18,7 @@ import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.backend.api.VpnServiceApi
 import net.nymtech.vpn.model.VpnServiceEvent
+import nym_vpn_lib_types.ErrorStateReason
 import timber.log.Timber
 
 /**
@@ -36,12 +38,15 @@ class VpnEventReducer(private val context: Context, private val state: MutableSt
 	private fun handle(event: VpnServiceEvent) {
 		when (event) {
 			is VpnServiceEvent.StateChanged -> {
-				state.update { it.copy(tunnelState = event.state, isRestarting = false) }
-				context.requestTileServiceStateUpdate()
-
-				if (event.state == Tunnel.State.Down) {
-					state.update { s -> s.copy(establishConnectionState = null, mixnetConnectionState = null) }
+				state.update { s ->
+					val next = s.copy(tunnelState = event.state, isRestarting = false, backendUiEvent = null)
+					if (event.state == Tunnel.State.Down) {
+						next.copy(establishConnectionState = null, mixnetConnectionState = null)
+					} else {
+						next
+					}
 				}
+				context.requestTileServiceStateUpdate()
 			}
 
 			is VpnServiceEvent.EstablishConnection -> {
@@ -82,6 +87,32 @@ class VpnEventReducer(private val context: Context, private val state: MutableSt
 
 			is VpnServiceEvent.FatalError -> {
 				Timber.e("FatalError reason=%s", event.reason)
+				when (event.reason) {
+					ErrorStateReason.TunnelProvider -> {
+						state.update { s ->
+							s.copy(
+								tunnelState = Tunnel.State.Down,
+								establishConnectionState = null,
+								mixnetConnectionState = null,
+								backendUiEvent = null,
+							)
+						}
+						context.requestTileServiceStateUpdate()
+					}
+					else -> state.update { s -> s.copy(backendUiEvent = BackendUiEvent.Failure(event.reason)) }
+				}
+			}
+
+			VpnServiceEvent.CompetingVpnDetected -> {
+				Timber.w("CompetingVpnDetected")
+				state.update { s ->
+					s.copy(
+						tunnelState = Tunnel.State.Down,
+						establishConnectionState = null,
+						mixnetConnectionState = null,
+					)
+				}
+				context.requestTileServiceStateUpdate()
 			}
 
 			is VpnServiceEvent.Log -> Timber.d("ServiceLog: %s", event.message)

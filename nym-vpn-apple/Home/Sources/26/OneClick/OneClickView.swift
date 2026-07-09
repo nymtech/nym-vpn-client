@@ -297,7 +297,7 @@ private extension OneClickView {
         case .disconnecting:
             "disconnecting".localizedString
         case .noInternet:
-            "noInternet".localizedString
+            "offline".localizedString
         case .noSubscription:
             "home.getStarted".localizedString
         }

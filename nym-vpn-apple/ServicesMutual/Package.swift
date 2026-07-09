@@ -2,6 +2,15 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import Foundation
+
+// Santa's-menu code is gated behind `#if SANTA`. Define it for `qa` CI builds
+// (NYM_SANTA=1, any config) and for local debug builds (debug config). Release
+// builds without NYM_SANTA (ship/pr) leave it undefined, so the code is compiled
+// out of App Store binaries entirely (not merely hidden at runtime).
+let santaSwiftSettings: [SwiftSetting] = ProcessInfo.processInfo.environment["NYM_SANTA"] == "1"
+    ? [.define("SANTA")]
+    : [.define("SANTA", .when(configuration: .debug))]
 
 let package = Package(
     name: "ServicesMutual",
@@ -40,7 +49,8 @@ let package = Package(
                 .product(name: "NymVPNRpc", package: "NymVPNRpc", condition: .when(platforms: [.macOS])),
                 "Theme"
             ],
-            path: "Sources/ConnectionTypes"
+            path: "Sources/ConnectionTypes",
+            swiftSettings: santaSwiftSettings
         ),
         .target(
             name: "Constants",
@@ -83,7 +93,13 @@ let package = Package(
         .testTarget(
             name: "ConnectionTypesTests",
             dependencies: ["ConnectionTypes"],
-            path: "Tests/ConnectionTypesTests"
+            path: "Tests/ConnectionTypesTests",
+            swiftSettings: santaSwiftSettings
+        ),
+        .testTarget(
+            name: "TunnelStatusTests",
+            dependencies: ["TunnelStatus", "ErrorReason"],
+            path: "Tests/TunnelStatusTests"
         )
     ]
 )

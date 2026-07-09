@@ -12,6 +12,7 @@ use crate::{
         syncing_state::{SyncMode, local_state::SyncingLocalState},
     },
 };
+use futures::{FutureExt, future::Fuse};
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
@@ -58,7 +59,7 @@ type SyncResult = Result<Option<VpnAccountSummary>, SyncError>;
 /// - OfflineState : the connectivity monitor is telling we're not connected
 /// - DecentralisedState : The loaded account is set to "decentralised" mode
 pub(crate) struct SyncingNetworkState {
-    result_rx: oneshot::Receiver<SyncResult>,
+    result_rx: Fuse<oneshot::Receiver<SyncResult>>,
     sync_cancel_token: Option<DropGuard>,
 }
 
@@ -110,7 +111,7 @@ impl SyncingNetworkState {
 
         (
             Box::new(Self {
-                result_rx,
+                result_rx: result_rx.fuse(),
                 sync_cancel_token: Some(sync_cancel_token.drop_guard()),
             }),
             PrivateAccountControllerState::Syncing,

@@ -18,6 +18,11 @@ on:
         required: true
         type: boolean
         default: false
+      version:
+        description: "Orchestrated app version to embed (empty = use src-tauri/Cargo.toml as before)"
+        required: false
+        type: string
+        default: ""
     secrets:
       TAURI_PRIVATE_KEY:
         required: true
@@ -49,7 +54,7 @@ jobs:
       UPLOAD_DIR_LINUX: linux_artifacts_${{ matrix.arch }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -85,6 +90,18 @@ jobs:
           version: "21.12" # version on ubuntu 24.04
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Apply orchestrated version (tauri)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: tauri
+
+      - name: Apply orchestrated version (core)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
       - name: Get package version
         id: package-version
         uses: nicolaiunrein/cargo-get@master
@@ -115,22 +132,12 @@ jobs:
           rm public/licenses-rust.json || true
           npm run gen:licenses:rust
 
-      - name: Install Crowdin CLI
-        run: |
-          npm install -g @crowdin/cli
-
-      - name: Verify Crowdin install
-        run: |
-          crowdin --version
-
-      - name: Download translations from Crowdin (Linux)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
-          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
-        run: |
-          crowdin download translations \
-            --config crowdin-configs/linux-windows.yml \
+      - name: Download translations artifact
+        uses: actions/download-artifact@v8
+        continue-on-error: true
+        with:
+          name: translations
+          path: nym-vpn-app/src/i18n
 
       - name: Build tauri app
         working-directory: nym-vpn-app/src-tauri

@@ -28,9 +28,7 @@ use nym_vpn_proto::proto::{
     nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 
-use nym_vpn_lib::service::{
-    GeoExclusionConfigError, SetNetworkError, Socks5Error, VpnServiceCommand,
-};
+use nym_vpn_lib::service::{SetNetworkError, Socks5Error, VpnServiceCommand};
 
 pub type Result<T> = std::result::Result<T, tonic::Status>;
 
@@ -369,6 +367,26 @@ impl NymVpnService for CommandInterface {
         Ok(Response::new(()))
     }
 
+    async fn set_gateway_independence_notifications(
+        &self,
+        request: tonic::Request<bool>,
+    ) -> Result<Response<()>> {
+        let enable_notifications = request.into_inner();
+
+        self.send_and_wait(
+            VpnServiceCommand::SetGatewayIndependenceNotifications,
+            enable_notifications,
+        )
+        .await
+        .map_err(|e| {
+            Status::internal(format!(
+                "[set gateway_independence_notifications] transport error: {e}"
+            ))
+        })?;
+
+        Ok(Response::new(()))
+    }
+
     async fn set_geo_exclusion_enabled(
         &self,
         request: tonic::Request<bool>,
@@ -390,7 +408,8 @@ impl NymVpnService for CommandInterface {
             )));
         }
         self.send_and_wait(VpnServiceCommand::SetGeoExclusionListenPort, port as u16)
-            .await?;
+            .await?
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         Ok(tonic::Response::new(()))
     }
 
@@ -399,26 +418,13 @@ impl NymVpnService for CommandInterface {
         request: tonic::Request<proto::StringList>,
     ) -> Result<tonic::Response<()>> {
         let countries = request.into_inner().values;
-        for country in &countries {
-            if country.len() != 2 || !country.chars().all(|c| c.is_ascii_uppercase()) {
-                return Err(tonic::Status::invalid_argument(format!(
-                    "Invalid country code '{country}': must be a 2-letter uppercase ISO code"
-                )));
-            }
-        }
+
         self.send_and_wait(
             VpnServiceCommand::SetGeoExclusionExcludedCountries,
             countries,
         )
         .await?
-        .map_err(|err| match err {
-            GeoExclusionConfigError::UnsupportedCountry(c) => tonic::Status::invalid_argument(
-                format!("unsupported country code '{c}': only 'CN' is currently supported"),
-            ),
-            GeoExclusionConfigError::CnRequired => tonic::Status::invalid_argument(
-                "'CN' must be included in the excluded countries list",
-            ),
-        })?;
+        .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
         Ok(tonic::Response::new(()))
     }
 

@@ -1,6 +1,7 @@
 #if os(iOS)
 import NetworkExtension
 import AppSettings
+import ConfigurationManager
 import Constants
 import ConnectionTypes
 import NymVPNLib
@@ -112,11 +113,13 @@ extension ConnectionManager {
             isLanBypassEnabled: appSettings.isLanBypassEnabled,
             isAdBlockingEnabled: appSettings.isAdBlockerEnabled,
             isTwoHopEnabled: connectionType == .wireguard,
-            gatewaySelectionAlgorithmConfig: algorithmConfig
+            gatewaySelectionAlgorithmConfig: algorithmConfig,
+            isServerFamilyRemindersEnabled: appSettings.serverFamilyRemindersEnabled
         )
     }
 
     @MainActor func connect(with config: MixnetConfig) async throws {
+        credentialsManager.shutdownControllers()
         do {
             try await tunnelsManager.loadTunnels()
             let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)
@@ -159,6 +162,20 @@ extension ConnectionManager {
         }
         await tunnelsManager.send(message)
     }
+
+    @MainActor
+    public func runDiagnostic() async -> String? {
+        guard let environment = ConfigurationManager.shared.networkEnv else { return nil }
+        return try? await NymVPNLib.runDiagnostic(
+            params: DiagnosticRunParams(
+                gateway: nil,
+                skipDns: false,
+                skipHttp: false,
+                skipHybridTransport: false
+            ),
+            environment: environment
+        )
+    }
 }
 
 extension ConnectionManager {
@@ -167,7 +184,9 @@ extension ConnectionManager {
         if shouldDisconnectActiveTunnel() {
             isDisconnecting = true
             try await disconnectActiveTunnel()
-            lastError = nil
+            if !GatewayIndependenceArcPolicy.isIndependenceConsentError(lastError) {
+                lastError = nil
+            }
         } else {
             let config = try generateConfig()
             try await connect(with: config)

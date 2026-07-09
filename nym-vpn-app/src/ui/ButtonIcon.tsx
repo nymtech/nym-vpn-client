@@ -103,6 +103,7 @@ export type ButtonIconProps = {
   clickDuration?: number;
   noDefaultSize?: boolean;
   'data-testid'?: string;
+  'aria-label'?: string;
 };
 
 function ButtonIcon({
@@ -153,6 +154,7 @@ function ButtonIcon({
         onClick();
       }}
       disabled={disabled}
+      aria-label={rest['aria-label']}
       data-testid={testId}
       data-test-disabled={disabled ? 'true' : 'false'}
       data-test-clicked={isClicked ? 'true' : 'false'}

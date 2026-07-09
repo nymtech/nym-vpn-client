@@ -7,6 +7,7 @@ import {
   FeatureFlags,
   FrontingMode,
   GatewaySelectionAlgorithmConfig,
+  GeoExclusionSettings,
   MixnetTrafficConfig,
   MixnetTrafficDefaults,
   NetworkCompat,
@@ -50,8 +51,10 @@ export type InitState = {
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  geoExclusion: GeoExclusionSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   frontingMode: FrontingMode;
+  gatewayIndependenceNotifications: boolean;
 };
 
 export type AppState = {
@@ -87,6 +90,8 @@ export type AppState = {
   autoConnect: boolean;
   // error monitoring
   monitoring: boolean;
+  // app debug logging to a file
+  debugLogging: boolean;
   desktopNotifications: boolean;
   entryNode: SelectedNode;
   exitNode: SelectedNode;
@@ -112,6 +117,9 @@ export type AppState = {
   mixnetTrafficConfig: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  geoExclusion: GeoExclusionSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
   frontingMode: FrontingMode;
+  // gateway-independence reminder toggle ("Server family reminders"); daemon-backed
+  gatewayIndependenceNotifications: boolean;
 };

@@ -13,6 +13,7 @@ mod network;
 mod node;
 pub mod socks5;
 pub mod system_message;
+pub mod tentative_gateways;
 mod timestamp;
 pub mod tunnel;
 mod tunnel_error;

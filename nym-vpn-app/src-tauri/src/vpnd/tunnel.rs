@@ -329,6 +329,25 @@ pub struct SplitTunnelSettings {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "tauri.ts")]
 #[serde(rename_all = "camelCase")]
+pub struct GeoExclusionSettings {
+    pub enabled: bool,
+    pub listen_port: u16,
+    pub excluded_countries: Vec<String>,
+}
+
+impl From<lib::GeoExclusionSettings> for GeoExclusionSettings {
+    fn from(settings: lib::GeoExclusionSettings) -> Self {
+        GeoExclusionSettings {
+            enabled: settings.enabled,
+            listen_port: settings.listen_port,
+            excluded_countries: settings.excluded_countries,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, TS)]
+#[ts(export, export_to = "tauri.ts")]
+#[serde(rename_all = "camelCase")]
 pub struct SplitApp {
     pub path: String,
 }

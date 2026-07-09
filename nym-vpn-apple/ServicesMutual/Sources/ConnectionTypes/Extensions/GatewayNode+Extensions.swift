@@ -16,7 +16,8 @@ extension GatewayNode {
             buildVersion: gateway.buildVersion,
             ipv4s: gateway.exitIpv4s,
             ipv6s: gateway.exitIpv6s,
-            bridges: GatewayBridgeInformation(with: gateway.bridgeParams)
+            bridges: GatewayBridgeInformation(with: gateway.bridgeParams),
+            operatorFamilyName: gateway.nodeFamilyName
         )
     }
 }

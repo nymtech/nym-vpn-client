@@ -215,6 +215,7 @@ impl ConnectedTunnel {
         let wintun_entry_interface = entry_tunnel.wintun_interface().clone();
         #[cfg(windows)]
         let wintun_exit_interface = exit_tunnel.wintun_interface().clone();
+        let exit_stats_reader = exit_tunnel.stats_reader();
 
         let event_handler_task = tokio::spawn(async move {
             #[cfg(windows)]
@@ -264,6 +265,7 @@ impl ConnectedTunnel {
         Ok(TunnelHandle {
             shutdown_token,
             event_handler_task,
+            exit_stats_reader,
             #[cfg(windows)]
             wintun_entry_interface: Some(wintun_entry_interface),
             #[cfg(windows)]
@@ -401,6 +403,7 @@ impl ConnectedTunnel {
 
         #[cfg(windows)]
         let wintun_exit_interface = exit_tunnel.wintun_interface().clone();
+        let exit_stats_reader = exit_tunnel.stats_reader();
 
         let child_shutdown_token = shutdown_token.child_token();
         let event_handler_task = tokio::spawn(async move {
@@ -526,6 +529,7 @@ impl ConnectedTunnel {
         Ok(TunnelHandle {
             shutdown_token,
             event_handler_task,
+            exit_stats_reader,
             #[cfg(windows)]
             wintun_entry_interface: None,
             #[cfg(windows)]
@@ -656,6 +660,7 @@ pub struct NetstackTunnelOptions {
 pub struct TunnelHandle {
     shutdown_token: CancellationToken,
     event_handler_task: JoinHandle<Tombstone>,
+    exit_stats_reader: wireguard_go::TunnelStatsReader,
     #[cfg(windows)]
     wintun_entry_interface: Option<WintunInterface>,
     #[cfg(windows)]
@@ -673,6 +678,11 @@ impl TunnelHandle {
     /// Returns a tombstone containing the no longer used tunnel devices and wireguard tunnels (on Windows).
     pub async fn wait(self) -> Result<Tombstone, JoinError> {
         self.event_handler_task.await
+    }
+
+    /// Query live stats for the exit WireGuard peer via the UAPI GET interface.
+    pub fn get_exit_stats(&self) -> nym_wg_go::Result<wireguard_go::TunnelStats> {
+        self.exit_stats_reader.get_stats()
     }
 
     /// Returns entry wintun interface descriptor when available.

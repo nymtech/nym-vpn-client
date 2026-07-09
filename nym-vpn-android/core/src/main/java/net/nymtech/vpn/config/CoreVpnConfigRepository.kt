@@ -34,6 +34,10 @@ class CoreVpnConfigRepository(context: Context) {
 					is CoreVpnConfigUpdate.SetAdBlockingEnabled -> acc.copy(adBlockingEnabled = update.value)
 					is CoreVpnConfigUpdate.SetStealthMode -> acc.copy(stealthMode = update.value)
 					is CoreVpnConfigUpdate.SetAlgorithm -> acc.copy(algorithm = update.value)
+					is CoreVpnConfigUpdate.SetNodeFamiliesNotificationsEnabled -> acc.copy(nodeFamiliesNotificationsEnabled = update.value)
+					is CoreVpnConfigUpdate.SetGeoExclusionEnabled -> acc.copy(geoExclusionEnabled = update.value)
+					is CoreVpnConfigUpdate.SetGeoExclusionPort -> acc.copy(geoExclusionPort = update.value)
+					is CoreVpnConfigUpdate.SetGeoExclusionCountries -> acc.copy(geoExclusionCountries = update.value)
 				}
 			}
 		}

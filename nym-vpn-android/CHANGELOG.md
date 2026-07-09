@@ -11,9 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add allowed for Split Tunneling system apps list (https://github.com/nymtech/nym-vpn-client/pull/5563)
+- Handle another VPN detection (https://github.com/nymtech/nym-vpn-client/pull/5570)
+- Add Notifications screen (https://github.com/nymtech/nym-vpn-client/pull/5609)
+- Add Node Families support (https://github.com/nymtech/nym-vpn-client/pull/5609)
+- Add Geo Exclusion feature (https://github.com/nymtech/nym-vpn-client/pull/5626)
+- Add UI for Setup Instructions screen (https://github.com/nymtech/nym-vpn-client/pull/5626)
+- Add changes to the core sender for Geo Exclusion (https://github.com/nymtech/nym-vpn-client/pull/5626)
 
 ### Changed
 - Enable Mixnet Tuning (https://github.com/nymtech/nym-vpn-client/pull/5563)
+- Change AccountDetails.kt UI to match daily allowance (https://github.com/nymtech/nym-vpn-client/pull/5604)
 
 ## [v2026.10.0]
 

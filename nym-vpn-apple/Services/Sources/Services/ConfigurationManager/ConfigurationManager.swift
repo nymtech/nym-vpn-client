@@ -9,6 +9,9 @@ import NymVPNLib
 import GRPCManager
 #endif
 import Constants
+#if SANTA
+import ConnectionTypes
+#endif
 import Logging
 import PathManager
 
@@ -70,7 +73,16 @@ import PathManager
     public let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
 
     public var accountLinks: AccountLinks?
-    public var environmentDidChange: (() -> Void)?
+
+    private let environmentChangeObservers = EnvironmentChangeObservers()
+#if SANTA
+    private var environmentReconfigurationTask: Task<Void, Never>?
+#endif
+#if os(iOS)
+    private var configureTask: Task<Void, Error>?
+    private var lastConfiguredEnvString: String?
+    public private(set) var isEnvironmentConfigurationInFlight = false
+#endif
 
     @Published public var isCurrentAppVersionCompatible = true
 
@@ -79,8 +91,23 @@ import PathManager
     }
 
     public var isSantaClaus: Bool {
-        guard isTestFlight || isRunningOnCI else { return false }
-        return true
+#if SANTA
+        return SantaEnvSwitchPolicy.canApplyEnvironmentChange(
+            isSantaBuild: true,
+            isTestFlight: isTestFlight,
+            isMacOS: Device.isMacOS,
+            isRunningOnCI: isRunningOnCI,
+            isDebugBuild: {
+#if DEBUG
+                true
+#else
+                false
+#endif
+            }()
+        )
+#else
+        return false
+#endif
     }
 
     public var debugLevel: DebugLevel {
@@ -109,25 +136,46 @@ import PathManager
             .store(in: &cancellables)
     }
 
+    @discardableResult
+    public func addEnvironmentDidChangeObserver(_ handler: @escaping () -> Void) -> UUID {
+        environmentChangeObservers.add(handler)
+    }
+
+    public func removeEnvironmentDidChangeObserver(_ id: UUID) {
+        environmentChangeObservers.remove(id)
+    }
+
+#if SANTA
     public func updateEnv(to env: Env) {
-        Task {
-            guard self.isTestFlight || Device.isMacOS else { return }
-            do {
-                await MainActor.run {
-                    self.currentEnv = env
-                }
-#if os(macOS)
-                try await grpcManager.switchEnvironment(to: env.rawValue)
-#endif
-                try await self.configure()
-                await MainActor.run {
-                    self.environmentDidChange?()
-                }
-            } catch {
-                self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
-            }
+        let previous = environmentReconfigurationTask
+        environmentReconfigurationTask = Task { @MainActor in
+            await previous?.value
+            await self.applyEnvChange(to: env)
         }
     }
+
+    private func applyEnvChange(to env: Env) async {
+        guard isSantaClaus else { return }
+        do {
+            self.currentEnv = env
+#if os(macOS)
+            try await grpcManager.switchEnvironment(to: env.rawValue)
+#endif
+            try await self.configure()
+#if os(iOS)
+            guard lastConfiguredEnvString == currentEnvString else {
+                self.logger.error(
+                    "Network environment did not sync to \(currentEnvString); skipping env-change observers"
+                )
+                return
+            }
+#endif
+            self.notifyEnvironmentDidChange()
+        } catch {
+            self.logger.error("Failed to set env to \(env.rawValue): \(error.localizedDescription)")
+        }
+    }
+#endif
 
     public func updateAccountLinks() {
         let locale = Locale.current.language.languageCode?.identifier.lowercased() ?? "en"
@@ -165,18 +213,48 @@ import PathManager
 }
 
 private extension ConfigurationManager {
+#if SANTA
+    func notifyEnvironmentDidChange() {
+        environmentChangeObservers.notifyAll()
+    }
+#endif
+
     func configure() async throws {
 #if os(iOS)
-        do {
-            self.networkEnv = try await NymEnvironment.newWithCacheDir(
-                cacheDir: PathManager.configFolderURL().path(),
-                networkName: currentEnvString,
-                userAgent: .appUserAgent
-            )
-            logger.info("Configured environment: \(currentEnvString)")
-        } catch {
-            logger.error("Failed to initialize environment: \(currentEnvString). Error: \(error)")
+        while ConfigureEnvSyncPolicy.needsReconfigure(
+            lastConfiguredEnv: lastConfiguredEnvString,
+            currentEnv: currentEnvString
+        ) {
+            if let inflight = configureTask {
+                try await inflight.value
+                continue
+            }
+
+            let task = Task<Void, Error> { @MainActor in
+                isEnvironmentConfigurationInFlight = true
+                defer {
+                    isEnvironmentConfigurationInFlight = false
+                    configureTask = nil
+                }
+                try await performConfigure()
+            }
+            configureTask = task
+            try await task.value
         }
+#else
+        try await performConfigure()
+#endif
+    }
+
+    func performConfigure() async throws {
+#if os(iOS)
+        self.networkEnv = try await NymEnvironment.newWithCacheDir(
+            cacheDir: PathManager.configFolderURL().path(),
+            networkName: currentEnvString,
+            userAgent: .appUserAgent
+        )
+        logger.info("Configured environment: \(currentEnvString)")
+        lastConfiguredEnvString = currentEnvString
 #else
         try? await updateErrorReportingIfNeeded()
         try? await updateNetworkStatisticsIfNeeded()

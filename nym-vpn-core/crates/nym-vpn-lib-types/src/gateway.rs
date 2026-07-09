@@ -536,6 +536,7 @@ pub struct Gateway {
     pub exit_ipv6s: Vec<Ipv6Addr>,
     pub build_version: Option<String>,
     pub lewes_protocol_details: Option<LewesProtocolDetails>,
+    pub node_family_name: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -908,8 +909,10 @@ impl From<nym_gateway_directory::Country> for Country {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::models::NymNodeDescriptionV1> for Gateway {
-    fn from(node_description: nym_validator_client::models::NymNodeDescriptionV1) -> Self {
+impl From<nym_validator_client::models::described::v1::NymNodeDescriptionV1> for Gateway {
+    fn from(
+        node_description: nym_validator_client::models::described::v1::NymNodeDescriptionV1,
+    ) -> Self {
         let build_version = Some(node_description.version().to_owned());
         let (exit_ipv4s, exit_ipv6s) = nym_gateway_directory::split_ips(
             node_description.description.host_information.ip_address,
@@ -933,13 +936,16 @@ impl From<nym_validator_client::models::NymNodeDescriptionV1> for Gateway {
             build_version,
             // v1 has no lp details
             lewes_protocol_details: None,
+            node_family_name: None,
         }
     }
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::models::NymNodeDescriptionV2> for Gateway {
-    fn from(node_description: nym_validator_client::models::NymNodeDescriptionV2) -> Self {
+impl From<nym_validator_client::models::described::v2::NymNodeDescriptionV2> for Gateway {
+    fn from(
+        node_description: nym_validator_client::models::described::v2::NymNodeDescriptionV2,
+    ) -> Self {
         let build_version = Some(node_description.version().to_owned());
         let (exit_ipv4s, exit_ipv6s) = nym_gateway_directory::split_ips(
             node_description.description.host_information.ip_address,
@@ -962,6 +968,7 @@ impl From<nym_validator_client::models::NymNodeDescriptionV2> for Gateway {
             exit_ipv6s,
             build_version,
             lewes_protocol_details: node_description.description.lewes_protocol.map(Into::into),
+            node_family_name: None,
         }
     }
 }
@@ -1035,8 +1042,12 @@ impl From<nym_gateway_directory::Lp> for Lp {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::models::LewesProtocolDetailsV1> for LewesProtocolDetails {
-    fn from(value: nym_validator_client::models::LewesProtocolDetailsV1) -> Self {
+impl From<nym_validator_client::models::described::type_translation::LewesProtocolDetailsV1>
+    for LewesProtocolDetails
+{
+    fn from(
+        value: nym_validator_client::models::described::type_translation::LewesProtocolDetailsV1,
+    ) -> Self {
         Self {
             content: value.content.into(),
             signature: value.signature.to_base58_string(),
@@ -1045,8 +1056,12 @@ impl From<nym_validator_client::models::LewesProtocolDetailsV1> for LewesProtoco
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_validator_client::models::LewesProtocolDetailsDataV1> for LewesProtocolDetailsData {
-    fn from(value: nym_validator_client::models::LewesProtocolDetailsDataV1) -> Self {
+impl From<nym_validator_client::models::described::type_translation::LewesProtocolDetailsDataV1>
+    for LewesProtocolDetailsData
+{
+    fn from(
+        value: nym_validator_client::models::described::type_translation::LewesProtocolDetailsDataV1,
+    ) -> Self {
         let kem_keys = value
             .kem_keys
             .into_iter()
@@ -1124,6 +1139,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             lewes_protocol_details: gateway
                 .lewes_protocol_details
                 .map(LewesProtocolDetails::from),
+            node_family_name: gateway.node_family.map(|family| family.name),
         }
     }
 }

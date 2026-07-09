@@ -18,8 +18,14 @@ import { CCache } from '../../../cache';
 import { useAutologin } from '../../../contexts';
 import { useMainState } from '../../../store';
 import { routes } from '../../../router';
-import { useDeepLink, useLogout, useToast } from '../../../hooks';
+import {
+  useDeepLink,
+  useLogout,
+  useRefreshAccountSummary,
+  useToast,
+} from '../../../hooks';
 import { DeeplinkTimeout } from '../../../errors';
+import { ContactSupportUrl } from '../../../constants';
 import { AccountStatus } from './account-status';
 import { AccountDescription } from './AccountDescription';
 
@@ -47,6 +53,7 @@ function Account() {
 
   const { startListening } = useDeepLink();
   const { add } = useToast();
+  const { refresh, refreshing } = useRefreshAccountSummary();
 
   const getDeviceId = async () => {
     const deviceId = await CCache.get<string>('cache-device-id');
@@ -82,6 +89,15 @@ function Account() {
     getDeviceId();
     getAccountId();
   }, []);
+
+  // Force-refresh account state/summary each time the account view opens.
+  useEffect(() => {
+    if (account) {
+      refresh().catch((error: unknown) => {
+        console.error('Failed to refresh account state on mount: ', error);
+      });
+    }
+  }, [account, refresh]);
 
   // When logged out, navigate to settings
   useEffect(() => {
@@ -150,7 +166,7 @@ function Account() {
         </Button>
       )}
 
-      <AccountStatus />
+      <AccountStatus refresh={refresh} refreshing={refreshing} />
 
       <SettingsGroup
         settings={[
@@ -207,9 +223,21 @@ function Account() {
         </CardNewBody>
       </CardNew>
 
-      <p className="text-text-secondary text-sm">
-        {t('account.account-id-description')}
-      </p>
+      <span className="text-text-secondary text-sm">
+        <Trans
+          ns="settings"
+          i18nKey="account.account-id-description"
+          components={{
+            support: (
+              <button
+                type="button"
+                className="hover:text-shadow-text-primary underline dark:hover:text-white"
+                onClick={() => openUrl(ContactSupportUrl)}
+              />
+            ),
+          }}
+        />
+      </span>
 
       <CardNew>
         <CardNewHeader>
@@ -228,10 +256,6 @@ function Account() {
           />
         </CardNewBody>
       </CardNew>
-
-      <p className="text-text-secondary text-sm">
-        {t('account.device-id-description')}
-      </p>
 
       <div className="flex flex-col gap-2">
         <Button

@@ -3214,6 +3214,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "ksni"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7ca513d0be42df5edb485af9f44a12b2cb85af773d91c27dc796d1c58b78edc"
+dependencies = [
+ "async-executor",
+ "async-io",
+ "async-lock",
+ "futures-channel",
+ "futures-lite",
+ "futures-util",
+ "once_cell",
+ "pastey",
+ "serde",
+ "zbus",
+]
+
+[[package]]
 name = "language-tags"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3697,8 +3715,8 @@ dependencies = [
 
 [[package]]
 name = "nym-crypto"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.2"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.12-yaroslavsky#821381fb1baac73fe85fecca550246db6ec30296"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -3714,7 +3732,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "dbus",
  "libc",
@@ -3725,7 +3743,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "block2",
  "cc",
@@ -3744,8 +3762,8 @@ dependencies = [
 
 [[package]]
 name = "nym-pemstore"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.2"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.12-yaroslavsky#821381fb1baac73fe85fecca550246db6ec30296"
 dependencies = [
  "pem",
  "tracing",
@@ -3754,7 +3772,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "nym-dbus",
  "objc2-foundation",
@@ -3766,7 +3784,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3779,6 +3797,7 @@ dependencies = [
  "futures",
  "image",
  "itertools",
+ "ksni",
  "notify",
  "nym-platform-metadata",
  "nym-vpn-lib-types",
@@ -3826,7 +3845,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "bip39",
  "nym-crypto",
@@ -3843,7 +3862,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "hyper",
  "nym-ipc",
@@ -4343,6 +4362,12 @@ dependencies = [
  "smallvec",
  "windows-link 0.2.1",
 ]
+
+[[package]]
+name = "pastey"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ee67f1008b1ba2321834326597b8e186293b049a023cdef258527550b9935b4"
 
 [[package]]
 name = "pathdiff"

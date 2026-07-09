@@ -12,6 +12,7 @@ import nym_vpn_lib_types.GatewayType
 import nym_vpn_lib_types.ParsedAccountLinks
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.SystemMessage
+import nym_vpn_lib_types.TentativeGateways
 import nym_vpn_lib_types.VpnAccountSummary
 
 interface BackendManager {
@@ -20,8 +21,8 @@ interface BackendManager {
 	val accountSummaryFlow: StateFlow<VpnAccountSummary?>
 
 	suspend fun stopTunnel()
-	suspend fun startTunnel()
-	suspend fun requestReconnect()
+	suspend fun startTunnel(relaxGatewayIndependence: Boolean = false)
+	suspend fun requestReconnect(relaxGatewayIndependence: Boolean = false)
 	suspend fun storeMnemonic(mnemonic: String)
 	suspend fun isMnemonicStored(): Boolean
 	suspend fun removeMnemonic()
@@ -45,4 +46,6 @@ interface BackendManager {
 	suspend fun getAccountMode(): StoredAccountMode?
 	suspend fun getAccountSummary(): VpnAccountSummary?
 	suspend fun runDiagnostic(): String?
+	suspend fun getTentativeGateways(): TentativeGateways?
+	suspend fun setGatewayIndependenceEnabled(enabled: Boolean)
 }

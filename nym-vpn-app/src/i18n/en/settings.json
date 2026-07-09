@@ -21,7 +21,14 @@
     }
   },
   "notifications": {
-    "title": "Desktop notifications"
+    "title": "Notifications",
+    "server-family-reminders": {
+      "title": "Server family reminders",
+      "description": "Keeps reminding you of shared family"
+    },
+    "desktop-notifications": {
+      "title": "Desktop notifications"
+    }
   },
   "support": {
     "intro": {
@@ -80,6 +87,9 @@
     "title": "Logs (stored locally)",
     "app": "App logs",
     "daemon": "Daemon logs",
+    "debug-logging": {
+      "title": "Enable debug logging"
+    },
     "actions": {
       "delete": {
         "action-button": "Delete",
@@ -110,7 +120,7 @@
     "performance": {
       "title": "Expected performance based on current settings",
       "speed": {
-        "title": "Speed",
+        "title": "Packet Rate",
         "value": "Up to {{value}}"
       },
       "privacy": {
@@ -261,9 +271,8 @@
     "auto-renews": "Auto-renews",
     "manage-subscriptoin": "Manage your subscription",
     "account-id": "Account ID",
-    "account-id-description": "Safe to share. Use to contact Nym Support.",
+    "account-id-description": "Safe to share. Use this to <support>connect with Nym Support</support>.",
     "device-id": "Device ID",
-    "device-id-description": "Use this to link this device to your account on nym.com",
     "logout": "Log out",
     "title": "Account",
     "account-linked": "Backup login method linked via Privy.",
@@ -272,7 +281,7 @@
     "choose-plan": "Choose plan",
     "syncing": "Syncing…",
     "no-plan": "No active plan",
-    "bandwidth-exceeded": "Bandwidth exceeded",
+    "bandwidth-exceeded": "Daily allowance reached",
     "max-device-reached": "Max devices reached",
     "status-inactive": "Account is inactive",
     "requesting-zknyms": "Requesting ZkNyms"
@@ -328,6 +337,98 @@
       "failed-to-remove-app-from-split-tunneling": "Failed to remove app from split tunneling",
       "failed-to-add-custom-app": "Failed to add custom app",
       "failed-to-remove-custom-app": "Failed to remove custom app"
+    }
+  },
+  "geo-exclusion": {
+    "title": "Geo Exclusion",
+    "beta": "Beta",
+    "enable": "Enable Geo Exclusion",
+    "description": "Routes traffic for selected regions outside the VPN tunnel, so domestic apps work at full speed. Everything else stays protected.",
+    "beta-note": "Beta version: China only for now. More regions coming.",
+    "warning": "Traffic to excluded regions bypasses the VPN.",
+    "port": {
+      "socks5-port": "SOCKS5 port",
+      "custom-port": "Custom port",
+      "range": "1024–65535",
+      "invalid": "Invalid port. Keeping {{port}}."
+    },
+    "excluded-regions": {
+      "title": "Excluded regions",
+      "add-region": "Add region"
+    },
+    "setup-instructions": {
+      "title": "Setup instructions",
+      "proxy-address": "Proxy address",
+      "sections": {
+        "macos": [
+          {
+            "intro": "Works with any app that supports SOCKS5 in its network settings:",
+            "steps": [
+              "Copy the SOCKS5 port.",
+              "Open your app's proxy or network settings.",
+              "Set proxy to 127.0.0.1 with the copied port."
+            ]
+          }
+        ],
+        "windows": [
+          {
+            "heading": "System-wide (Proxifier)",
+            "intro": "Windows' built-in proxy settings don't support SOCKS5. Use a tool like Proxifier:",
+            "steps": [
+              "Add a proxy: host 127.0.0.1, port {{port}}, type SOCKS5.",
+              "Leave authentication empty.",
+              "Add a rule to route the apps you want through it."
+            ]
+          },
+          {
+            "heading": "App (e.g. browser)",
+            "intro": "Any app with SOCKS5 support. Firefox example:",
+            "steps": [
+              "Settings → Network Settings → Manual proxy.",
+              "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
+              "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
+            ],
+            "note": "Chrome and Edge do not have built-in SOCKS5 UI on Windows. Use Firefox, a browser extension that supports SOCKS5, or route the browser through Proxifier instead."
+          },
+          {
+            "heading": "Web3 wallet",
+            "steps": [
+              "Open your wallet's network / RPC settings.",
+              "Set the RPC URL to http://127.0.0.1:8545."
+            ]
+          }
+        ],
+        "linux": [
+          {
+            "heading": "System-wide (proxychains)",
+            "intro": "Use proxychains-ng:",
+            "steps": [
+              "In /etc/proxychains.conf, set the last line to socks5 127.0.0.1 {{port}}.",
+              "Launch an app through it: proxychains4 <command>."
+            ]
+          },
+          {
+            "heading": "App (e.g. browser)",
+            "intro": "Any app with SOCKS5 support. Firefox example:",
+            "steps": [
+              "Settings → Network Settings → Manual proxy.",
+              "SOCKS Host 127.0.0.1, Port {{port}}, select SOCKS v5.",
+              "Check Proxy DNS when using SOCKS v5 (prevents DNS leaks)."
+            ]
+          },
+          {
+            "heading": "Web3 wallet",
+            "steps": [
+              "Open your wallet's network / RPC settings.",
+              "Set the RPC URL to http://127.0.0.1:8545."
+            ]
+          }
+        ]
+      }
+    },
+    "errors": {
+      "failed-to-start": "Geo Exclusion couldn't start. Reconnect and try again.",
+      "failed-to-set-port": "Couldn't update the SOCKS5 port. Please try again."
     }
   }
 }

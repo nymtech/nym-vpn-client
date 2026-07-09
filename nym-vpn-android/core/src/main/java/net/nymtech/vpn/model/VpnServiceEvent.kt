@@ -24,5 +24,7 @@ sealed interface VpnServiceEvent {
 
 	data class FatalError(val reason: ErrorStateReason) : VpnServiceEvent
 
+	data object CompetingVpnDetected : VpnServiceEvent
+
 	data class Log(val message: String) : VpnServiceEvent
 }

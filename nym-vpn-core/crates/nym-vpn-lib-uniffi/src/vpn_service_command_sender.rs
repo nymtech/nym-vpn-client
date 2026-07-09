@@ -4,7 +4,9 @@
 use std::{net::IpAddr, sync::Arc};
 
 use nym_common::ErrorExt;
-use nym_vpn_lib::service::{AccountLinksError, ListGatewaysError, VpnServiceCommand};
+use nym_vpn_lib::service::{
+    AccountLinksError, GeoExclusionConfigError, ListGatewaysError, VpnServiceCommand,
+};
 use tokio::sync::{mpsc, oneshot};
 
 use nym_vpn_lib_types::{
@@ -22,15 +24,29 @@ enum NymVpnServiceCommandInnerError {
     ListGateway(#[source] ListGatewaysError),
     Account(#[source] AccountCommandError),
     AccountLinks(#[source] AccountLinksError),
+    GeoExclusionConfig(#[source] GeoExclusionConfigError),
+}
+
+impl NymVpnServiceCommandInnerError {
+    pub fn error_chain(&self) -> String {
+        match self {
+            Self::Internal(msg) => msg.to_string(),
+            Self::ListGateway(err) => err.display_chain(),
+            Self::Account(err) => err.display_chain(),
+            Self::AccountLinks(err) => err.display_chain(),
+            Self::GeoExclusionConfig(err) => err.display_chain(),
+        }
+    }
 }
 
 impl std::fmt::Display for NymVpnServiceCommandInnerError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Internal(msg) => f.write_str(msg),
-            Self::ListGateway(err) => write!(f, "{}", err.display_chain()),
-            Self::Account(err) => write!(f, "{}", err.display_chain()),
-            Self::AccountLinks(err) => write!(f, "{}", err.display_chain()),
+            Self::ListGateway(err) => write!(f, "{}", err),
+            Self::Account(err) => write!(f, "{}", err),
+            Self::AccountLinks(err) => write!(f, "{}", err),
+            Self::GeoExclusionConfig(err) => write!(f, "{}", err),
         }
     }
 }
@@ -47,9 +63,17 @@ impl NymVpnServiceCommandError {
     }
 }
 
+#[uniffi::export]
+impl NymVpnServiceCommandError {
+    /// Returns formatted error chain
+    pub fn error_chain(&self) -> String {
+        self.inner.error_chain()
+    }
+}
+
 impl std::fmt::Display for NymVpnServiceCommandError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.inner.fmt(f)
+        f.write_str(&self.inner.to_string())
     }
 }
 
@@ -163,6 +187,17 @@ impl NymVpnServiceCommandSender {
         .await
     }
 
+    pub async fn set_gateway_independence_notifications(
+        &self,
+        enable_notifications: bool,
+    ) -> Result<()> {
+        self.send_and_wait(
+            VpnServiceCommand::SetGatewayIndependenceNotifications,
+            enable_notifications,
+        )
+        .await
+    }
+
     pub async fn set_fronting_mode(&self, fronting_mode: FrontingMode) -> Result<()> {
         self.send_and_wait(VpnServiceCommand::SetFrontingMode, fronting_mode)
             .await
@@ -214,6 +249,31 @@ impl NymVpnServiceCommandSender {
             .send_and_wait(VpnServiceCommand::ListGateways, options)
             .await?
             .map_err(NymVpnServiceCommandInnerError::ListGateway)?)
+    }
+
+    pub async fn set_geo_exclusion_enabled(&self, enabled: bool) -> Result<()> {
+        self.send_and_wait(VpnServiceCommand::SetGeoExclusionEnabled, enabled)
+            .await
+    }
+
+    pub async fn set_geo_exclusion_listen_port(&self, listen_port: u16) -> Result<()> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::SetGeoExclusionListenPort, listen_port)
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::GeoExclusionConfig)?)
+    }
+
+    pub async fn set_geo_exclusion_excluded_countries(
+        &self,
+        excluded_countries: Vec<String>,
+    ) -> Result<()> {
+        Ok(self
+            .send_and_wait(
+                VpnServiceCommand::SetGeoExclusionExcludedCountries,
+                excluded_countries,
+            )
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::GeoExclusionConfig)?)
     }
 
     pub async fn connect_tunnel(&self) -> Result<bool> {

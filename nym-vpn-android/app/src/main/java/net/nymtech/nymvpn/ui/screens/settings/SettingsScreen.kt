@@ -32,8 +32,8 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
-import net.nymtech.nymvpn.ui.screens.auth.routeName
+import net.nymtech.nymvpn.ui.AuthRoute
+import net.nymtech.nymvpn.ui.routeName
 import net.nymtech.nymvpn.ui.common.events.UiEvent
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
@@ -57,7 +57,6 @@ import net.nymtech.nymvpn.util.DeviceAuthHelper
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.isPrivateDnsEnabled
 import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
-import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchPrivateDnsSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -212,13 +211,16 @@ fun SettingsScreen(appUiState: AppUiState, appViewModel: AppViewModel, showVpnSe
 				navController.navigate(Route.Privacy)
 			},
 			onNotificationsClick = {
-				context.launchNotificationSettings()
+				navController.navigate(Route.Notifications)
 			},
 			onBatterySettingsClick = {
 				context.launchBatteryOptSettingsScreen()
 			},
 			onMixnetTuningClick = {
 				navController.navigate(Route.MixnetTuning)
+			},
+			onGeoExclusionClick = {
+				navController.navigate(Route.GeoExclusion)
 			},
 		),
 	)

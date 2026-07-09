@@ -6,13 +6,12 @@ Experimente gratuitamente por 7 dias, sem compromisso. Pague com cripto, cartão
 
 🛡️ PRIVACIDADE POR DESIGN
 
-A maioria das VPNs depende de servidores centralizados e pede que você confie em suas promessas de "no-logs". VPNs grátis rastreiam você para vender seus dados. A arquitetura da NymVPN impossibilita registros de tráfego significativos: nenhum servidor vê quem você é NEM o que você faz. Nem mesmo a Nym consegue conectar sua identidade à sua atividade.
+A maioria das VPNs depende de servidores centralizados e pede que você confie em suas promessas de "no-logs". VPNs grátis rastreiam você para vender seus dados. A arquitetura da NymVPN impossibilita registros de tráfego significativos: nenhum servidor vê quem você é E o que você faz. Nem mesmo a Nym consegue conectar sua identidade à sua atividade.
 
 ⚡ DOIS MODOS DE VPN, UM APP
 
-• Modo rápido: 2-hop dVPN baseado em AmneziaWG (WireGuard). Streaming rápido e navegação em uma rede descentralizada.
-
-• Modo anônimo: uma Noise Generating Mixnet de 5 saltos, um sucessor mais privado do Tor. Mistura e mascara o seu tráfego, adicionando ruído. A VPN mais anônima para os consumidores. Perfeito para cripto, e-mail e comunicações privadas como o Signal.
+- Modo rápido: 2-hop dVPN baseado em AmneziaWG (WireGuard). Streaming rápido e navegação em uma rede descentralizada.
+- Modo anônimo: uma Noise Generating Mixnet de 5 saltos, um sucessor mais privado do Tor. Mistura e mascara o seu tráfego, adicionando ruído. A VPN de consumidor mais anônima. Perfeito para cripto, e-mail e comunicações privadas como o Signal.
 
 💰 PAGUE ANONIMAMENTE COM CRIPTO OU DINHEIRO
 
@@ -20,34 +19,34 @@ A NymVPN aceita a maior variedade de criptomoedas do mercado, além de pagamento
 
 💎 POR QUE A NymVPN É DIFERENTE
 
-• Arquitetura zero-knowledge: sua identidade é invisível até mesmo para a Nym
-• Sem registros por arquitetura: a rede não pode manter registros significativos de tráfego
-• Rede de proxy descentralizada: nenhum servidor central para comprometer
-• Jurisdição suíça: fora de 14 Eyes, leis de privacidade fortes
-• Protocolos WireGuard e mixnet
-• Sem inscrições de e-mail: criação de conta anônima
-• Código-fonte totalmente aberto, auditado por pesquisadores de segurança independentes
-• Mais de 70 países: rede global de servidores para streaming e acesso
-• Até 10 dispositivos com uma única conta anônima
+- Arquitetura zero-knowledge: sua identidade é invisível até mesmo para a Nym
+- Sem registros por arquitetura: a rede não pode manter registros significativos de tráfego
+- Rede de proxy descentralizada: nenhum servidor central para comprometer
+- Jurisdição suíça: fora de 14 Eyes, leis de privacidade fortes
+- Protocolos WireGuard e mixnet
+- Sem inscrições de e-mail: criação de conta anônima
+- Código-fonte totalmente aberto, auditado por pesquisadores de segurança independentes
+- Mais de 70 países: rede global de servidores para streaming e acesso
+- Até 10 dispositivos com uma única conta anônima
 
 🔒 RECURSOS DE PRIVACIDADE E SEGURANÇA
 
-• Kill switch integrado: parada automática de tráfego se a VPN cair
-• Resistência à censura: evite o bloqueio de VPN com QUIC, AmneziaWG e outras técnicas
+- Kill switch: parada automática de tráfego se a VPN cair
+- Resistência à censura: evite o bloqueio de VPN com QUIC, AmneziaWG e outras técnicas
 - Criptografia em várias camadas
-• Seleção do servidor de entrada e saída
-• Split tunneling: rotear apenas os aplicativos escolhidos através da VPN
-• DNS personalizado: use qualquer servidor DNS que você confia
-• Bloqueador de anúncios e rastreadores
+- Seleção do servidor de entrada e saída
+- Split tunneling: rotear apenas os aplicativos escolhidos através da VPN
+- DNS personalizado: use qualquer servidor DNS que você confia
+- Bloqueador de anúncios e rastreadores
 
 🌍 O QUE VOCÊ PODE FAZER COM A NymVPN
 
-• Navegar anonimamente sem deixar rastros
-• Criptografar o seu tráfego em redes Wi-Fi públicas de aeroportos, cafés e hotéis
-• Contornar a censura de Internet em regiões restritivas
-• Proteger comunicações sensíveis para jornalismo e ativismo
-• Impedir que as ISPs te vigiem para marketing direcionado
-• Bloquear sites maliciosos, rastreadores e anúncios
+- Navegue anonimamente sem deixar rastros
+- Criptografe o seu tráfego em redes Wi-Fi públicas de aeroportos, cafés e hotéis
+- Contorne a censura de Internet em regiões restritivas
+- Proteja comunicações sensíveis para jornalismo e ativismo
+- Impeça que as ISPs te vigiem para marketing direcionado
+- Bloqueie sites maliciosos, rastreadores e anúncios
 
 🇨🇭 PRIVACIDADE SUÍÇA, POR DESIGN
 
@@ -59,9 +58,9 @@ A NymVPN é construída pela Nym, confiada por jornalistas, ativistas e usuário
 
 🚫 O QUE NÓS NÃO FAZEMOS
 
-• Não pedimos o seu e-mail ou o seu nome
-• Não podemos rastrear quais sites você visita
-• Não podemos vender, compartilhar ou alugar seus dados
+- Não pedimos o seu e-mail ou o seu nome
+- Não podemos rastrear quais sites você visita
+- Não podemos vender, compartilhar ou alugar seus dados
 
 📲 COMECE
 

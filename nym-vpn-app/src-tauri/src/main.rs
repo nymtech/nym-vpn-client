@@ -75,6 +75,7 @@ const VPND_RETRY_INTERVAL: Duration = Duration::from_secs(2);
 const DEFAULT_SENTRY_ENABLED: bool = false;
 const DEFAULT_NETSTATS_ENABLED: bool = true;
 const DEFAULT_QUIC: bool = false;
+const DEFAULT_DEBUG_LOGGING: bool = true;
 
 // build time pkg data
 build_info::build_info!(fn build_info);
@@ -92,11 +93,16 @@ async fn main() -> Result<()> {
         fs::util::clean_local_files();
         return Ok(());
     }
-    let sentry_enabled = AppConfig::read()
-        .ok()
+    let app_config = AppConfig::read().ok();
+    let sentry_enabled = app_config
+        .as_ref()
         .map(|cfg| cfg.sentry_monitoring)
         .unwrap_or(DEFAULT_SENTRY_ENABLED);
-    let _guard = log::setup_tracing(&cli, sentry_enabled).await?;
+    let debug_logging = app_config
+        .as_ref()
+        .map(|cfg| cfg.debug_logging)
+        .unwrap_or(DEFAULT_DEBUG_LOGGING);
+    let debug_logging_control = log::setup_tracing(&cli, sentry_enabled, debug_logging).await?;
     trace!("cli args: {:#?}", cli);
 
     let os = sys::OsInfo::new();
@@ -192,6 +198,7 @@ async fn main() -> Result<()> {
             linux_update_watcher::spawn(app.handle().clone());
 
             app.manage(cli.clone());
+            app.manage(Mutex::new(debug_logging_control));
 
             info!("Creating k/v embedded db");
             let db = match Db::new() {
@@ -304,6 +311,7 @@ async fn main() -> Result<()> {
             tunnel::get_tunnel_state,
             tunnel::connect,
             tunnel::disconnect,
+            tunnel::reconnect,
             tunnel::set_node,
             tunnel::set_quic,
             tunnel::set_fronting_mode,
@@ -326,6 +334,12 @@ async fn main() -> Result<()> {
             tunnel::remove_custom_split_tunnel_app,
             tunnel::set_gateway_selection_algorithm,
             tunnel::set_enable_geo_location,
+            tunnel::set_geo_exclusion_enabled,
+            tunnel::set_geo_exclusion_listen_port,
+            tunnel::set_geo_exclusion_excluded_countries,
+            gateway_independence::get_tentative_gateways,
+            gateway_independence::set_gateway_independence,
+            gateway_independence::set_gateway_independence_notifications,
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_del,
@@ -335,6 +349,8 @@ async fn main() -> Result<()> {
             cmd_window::set_background_color,
             commands::cli::cli_args,
             cmd_log::log_js,
+            cmd_log::set_debug_logging,
+            cmd_log::debug_logging_enabled,
             account::get_account_state,
             account::add_account,
             account::get_account_mode,
@@ -348,6 +364,7 @@ async fn main() -> Result<()> {
             account::store_deeplink_account,
             account::get_autologin_deeplink,
             account::get_account_summary,
+            account::refresh_account_state,
             account::handle_subscription_payment,
             cmd_daemon::daemon_status,
             cmd_daemon::set_network,

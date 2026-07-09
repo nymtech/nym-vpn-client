@@ -1,22 +1,70 @@
+use crate::Cli;
 use crate::fs::path::APP_LOG_DIR;
-use crate::{Cli, env};
-use std::io::{self, IsTerminal};
-use std::{fs, path::PathBuf};
+use std::fs;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Result, anyhow};
 use sentry::integrations::tracing as sentry_tracing;
-use tracing::{Level, debug, info};
+use tracing::{Level, debug, error, info};
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::reload;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::{EnvFilter, Layer};
 
-const ENV_LOG_FILE: &str = "LOG_FILE";
 const LOG_FILE: &str = "app.log";
 const LOG_FILE_OLD: &str = "app.old.log";
 
-fn rotate_log_file(log_dir: PathBuf) -> Result<Option<PathBuf>> {
+/// Closure that toggles the file logging layer at runtime.
+/// Returns the new [`WorkerGuard`] when enabling (which must be kept alive
+/// while logging to file), or `None` when disabling.
+type ApplyFn = Box<dyn Fn(bool) -> Result<Option<WorkerGuard>> + Send + Sync>;
+
+/// Runtime control for app file logging.
+///
+/// The tracing subscriber is initialized once at startup with a reloadable
+/// layer. Toggling this control hot-swaps the file layer in place.
+pub struct DebugLogging {
+    apply: ApplyFn,
+    /// Keeps the non-blocking appender's worker thread alive while enabled.
+    /// Dropping it flushes and stops the writer.
+    guard: Option<WorkerGuard>,
+    enabled: bool,
+}
+
+impl DebugLogging {
+    fn new(apply: ApplyFn) -> Self {
+        DebugLogging {
+            apply,
+            guard: None,
+            enabled: false,
+        }
+    }
+
+    pub fn set(&mut self, enabled: bool) -> Result<()> {
+        if self.enabled == enabled {
+            return Ok(());
+        }
+        self.guard = (self.apply)(enabled)?;
+        self.enabled = enabled;
+        Ok(())
+    }
+
+    pub fn enabled(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl std::fmt::Debug for DebugLogging {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("DebugLogging")
+            .field("enabled", &self.enabled)
+            .finish()
+    }
+}
+
+fn rotate_log_file(log_dir: &Path) -> Result<Option<PathBuf>> {
     let log_file = log_dir.join(LOG_FILE);
     if log_file.is_file() {
         let old_file = log_dir.join(LOG_FILE_OLD);
@@ -31,22 +79,17 @@ fn rotate_log_file(log_dir: PathBuf) -> Result<Option<PathBuf>> {
     Ok(None)
 }
 
-pub async fn setup_tracing(cli: &Cli, sentry_enabled: bool) -> Result<Option<WorkerGuard>> {
-    let mut filter = EnvFilter::builder()
-        .with_default_directive(LevelFilter::INFO.into())
+pub async fn setup_tracing(
+    #[cfg_attr(not(windows), allow(unused_variables))] cli: &Cli,
+    sentry_enabled: bool,
+    debug_logging: bool,
+) -> Result<DebugLogging> {
+    let filter = EnvFilter::builder()
+        .with_default_directive(LevelFilter::DEBUG.into())
         .from_env()?
         .add_directive("hyper::proto=info".parse()?)
         .add_directive("netlink_proto=info".parse()?);
 
-    if let Some(log_level) = cli.log_level.as_ref() {
-        filter =
-            filter.add_directive(format!("{}={}", env!("CARGO_CRATE_NAME"), log_level).parse()?);
-    }
-
-    let mut layers = Vec::new();
-    let mut worker = None;
-    let mut log_file = None;
-    let mut old_file = None;
     #[cfg(windows)]
     let enable_ansi = !cli.console;
     #[cfg(not(windows))]
@@ -56,32 +99,11 @@ pub async fn setup_tracing(cli: &Cli, sentry_enabled: bool) -> Result<Option<Wor
         .compact()
         .with_ansi(enable_ansi);
 
-    if cli.log_file || env::is_truthy(ENV_LOG_FILE) {
-        let log_dir = APP_LOG_DIR
-            .clone()
-            .ok_or(anyhow!("failed to get log dir"))?;
-        log_file = Some(log_dir.join(LOG_FILE));
-        old_file = rotate_log_file(log_dir.clone()).ok().flatten();
+    let none_layer: Option<Box<dyn Layer<_> + Send + Sync>> = None;
+    let (file_reload_layer, reload_handle) = reload::Layer::new(none_layer);
 
-        let appender = rolling::never(log_dir.clone(), LOG_FILE);
-        let (writer, guard) = tracing_appender::non_blocking(appender);
-        worker = Some(guard);
-
-        let file_layer = tracing_subscriber::fmt::layer()
-            .with_writer(writer)
-            .compact()
-            .with_ansi(false);
-        layers.push(file_layer.boxed());
-
-        if io::stdout().is_terminal() {
-            layers.push(stdout_layer.boxed());
-        }
-    } else {
-        layers.push(stdout_layer.boxed());
-    }
-
-    if sentry_enabled {
-        let layer = sentry_tracing::layer().event_filter(|md| match md.level() {
+    let sentry_layer = sentry_enabled.then(|| {
+        sentry_tracing::layer().event_filter(|md| match md.level() {
             &Level::ERROR | &Level::WARN => {
                 sentry_tracing::EventFilter::Event | sentry_tracing::EventFilter::Log
             }
@@ -89,21 +111,56 @@ pub async fn setup_tracing(cli: &Cli, sentry_enabled: bool) -> Result<Option<Wor
                 sentry_tracing::EventFilter::Breadcrumb | sentry_tracing::EventFilter::Log
             }
             _ => sentry_tracing::EventFilter::Ignore,
-        });
-        layers.push(layer.boxed());
-    }
+        })
+    });
 
     tracing_subscriber::registry()
         .with(filter)
-        .with(layers)
+        .with(stdout_layer)
+        .with(file_reload_layer)
+        .with(sentry_layer)
         .init();
 
-    if let Some(file) = old_file {
-        debug!("rotated log file: {}", file.display());
-    }
-    if let Some(file) = log_file {
-        info!("logging to file: {}", file.display());
+    let apply: ApplyFn = Box::new(move |enabled: bool| -> Result<Option<WorkerGuard>> {
+        if enabled {
+            let log_dir = APP_LOG_DIR
+                .clone()
+                .ok_or(anyhow!("failed to get log dir"))?;
+            if let Some(old) = rotate_log_file(&log_dir).ok().flatten() {
+                debug!("rotated log file: {}", old.display());
+            }
+            let appender = rolling::never(&log_dir, LOG_FILE);
+            let (writer, guard) = tracing_appender::non_blocking(appender);
+            let layer = tracing_subscriber::fmt::layer()
+                .with_writer(writer)
+                .compact()
+                .with_ansi(false)
+                .boxed();
+            reload_handle
+                .reload(Some(layer))
+                .map_err(|e| anyhow!("failed to enable file logging: {e}"))?;
+            info!(
+                "app file logging enabled: {}",
+                log_dir.join(LOG_FILE).display()
+            );
+            Ok(Some(guard))
+        } else {
+            reload_handle
+                .reload(None)
+                .map_err(|e| anyhow!("failed to disable file logging: {e}"))?;
+            info!("app file logging disabled");
+            Ok(None)
+        }
+    });
+
+    let mut control = DebugLogging::new(apply);
+    if debug_logging {
+        // File logging is optional; if it can't be initialized, log and fall
+        // back to disabled rather than aborting app startup.
+        if let Err(e) = control.set(true) {
+            error!("failed to enable app file logging at startup, continuing without it: {e}");
+        }
     }
 
-    Ok(worker)
+    Ok(control)
 }

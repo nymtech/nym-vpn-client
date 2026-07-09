@@ -28,6 +28,7 @@ use nym_common::trace_err_chain;
 use nym_firewall::{
     AllowedClients, AllowedDns, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol,
 };
+use nym_http_api_client::HickoryDnsResolver;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use nym_vpn_lib_types::TunnelConnectionData;
 
@@ -116,6 +117,10 @@ impl ConnectedState {
             .await;
         }
 
+        // point the internal DNS resolver to the system so that it routes over the tunnel
+        // using the custom / commodity DNS flow while in the connected state
+        HickoryDnsResolver::shared().use_system_resolver();
+
         #[cfg(not(any(target_os = "android")))]
         if let Err(e) = connected_state.set_dns(shared_state).await {
             trace_err_chain!(e, "failed to set dns");
@@ -127,8 +132,21 @@ impl ConnectedState {
             .await;
         }
 
-        #[cfg(any(target_os = "android", target_os = "ios"))]
+        #[cfg(target_os = "android")]
         let _ = shared_state; // Avoid unused variable warning
+
+        // Statistics reports must be sent through a socket bound to the tunnel interface,
+        // since the packet tunnel provider's traffic is otherwise excluded from the tunnel.
+        #[cfg(target_os = "ios")]
+        shared_state
+            .statistics_event_sender
+            .report_tunnel_interface(Some(
+                connected_state
+                    .tunnel_interface
+                    .exit_tunnel_metadata()
+                    .interface
+                    .clone(),
+            ));
 
         (
             Box::new(connected_state),
@@ -230,14 +248,7 @@ impl ConnectedState {
         after_disconnect: PrivateActionAfterDisconnect,
         shared_state: &mut SharedState,
     ) -> NextTunnelState {
-        #[cfg(not(target_os = "android"))]
-        {
-            Self::reset_dns(shared_state).await;
-        }
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            Self::reset_routes(shared_state).await;
-        }
+        Self::prepare_for_disconnect(shared_state).await;
 
         NextTunnelState::NewState(
             DisconnectingState::enter(
@@ -258,14 +269,7 @@ impl ConnectedState {
             tracing::info!("Tunnel closed. Reconnecting.");
         }
 
-        #[cfg(not(target_os = "android"))]
-        {
-            Self::reset_dns(shared_state).await;
-        }
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        {
-            Self::reset_routes(shared_state).await;
-        }
+        Self::prepare_for_disconnect(shared_state).await;
 
         match error_state_reason {
             Some(block_reason) => {
@@ -275,6 +279,25 @@ impl ConnectedState {
                 ConnectingState::enter(0, Some(self.selected_gateways), shared_state).await,
             ),
         }
+    }
+
+    async fn prepare_for_disconnect(shared_state: &mut SharedState) {
+        #[cfg(target_os = "ios")]
+        shared_state
+            .statistics_event_sender
+            .report_tunnel_interface(None);
+
+        // Revert the internal resolver to use the configured nameserver group
+        HickoryDnsResolver::shared().use_configured_resolver();
+
+        #[cfg(not(target_os = "android"))]
+        Self::reset_dns(shared_state).await;
+
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        Self::reset_routes(shared_state).await;
+
+        #[cfg(target_os = "android")]
+        let _ = shared_state; // Avoid unused variable warning
     }
 }
 

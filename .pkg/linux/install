@@ -48,7 +48,9 @@ BI_MGT="$ITL$B_MGT"
 
 BUILD_CHANNEL=${BUILD_CHANNEL:-stable}
 # these are only used when BUILD_CHANNEL=dev
-APP_RELEASE=${APP_RELEASE:-"nym-vpn-app-nightly"}
+# leave empty to auto-resolve the latest nightly release tag
+# (e.g. nym-vpn-v2026.12.0-nightly.20260706)
+APP_RELEASE=${APP_RELEASE:-}
 CORE_BUILD=${CORE_BUILD:-0}
 
 # detect CPU architecture
@@ -199,12 +201,38 @@ _app=1
 sys_pkgs=()
 
 ########################
-app_dev_setup() {
-  app_tag=$APP_RELEASE
-  app_version=$(curl -sSL \
+# resolve the latest nightly release tag from the GitHub releases API.
+# nightly tags look like `nym-vpn-v2026.12.0-nightly.20260706`, i.e.
+# `nym-vpn-vXXXX.YY.ZZ-nightly.TIMESTAMP`; we keep the one with the highest
+# trailing timestamp.
+latest_nightly_tag() {
+  curl -sSL \
     -H "Accept: application/vnd.github+json" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
-    https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/"$app_tag" |
+    "https://api.github.com/repos/nymtech/nym-vpn-client/releases?per_page=100" |
+    grep -oP '"tag_name":\s*"\Knym-vpn-v[0-9]+\.[0-9]+\.[0-9]+-nightly\.[0-9]+(?=")' |
+    sort -t. -k4 -n |
+    tail -n1
+}
+
+app_dev_setup() {
+  if [ -z "$APP_RELEASE" ]; then
+    APP_RELEASE=$(latest_nightly_tag)
+    if [ -z "$APP_RELEASE" ]; then
+      echo "failed to resolve latest nightly app release tag from GitHub" >&2
+      exit 1
+    fi
+    log "${I_GRY}resolved latest nightly tag: $APP_RELEASE$RS"
+  fi
+  app_tag=$APP_RELEASE
+  # capture the response first; piping curl straight into `grep -m1` makes grep
+  # close the pipe early on a large release payload, killing curl with SIGPIPE
+  # (exit 23) under pipefail.
+  app_release_json=$(curl -sSL \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/"$app_tag")
+  app_version=$(printf '%s' "$app_release_json" |
     grep -m1 -oP "(?<=\"name\": \"NymVPN_).+(?=_${app_image_arch}\.AppImage)")
   appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_${app_image_arch}.AppImage"
   app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_${deb_arch}.deb"
@@ -213,40 +241,53 @@ app_dev_setup() {
 }
 
 get_core_dev() {
-  core_archive=$(curl -s "$1" |
-    grep -oP "(?<=^<a href=\")nym-vpn-core-v.+_linux_${arch}\.tar\.gz(?=\">)")
-  vpnd_raw_url="$1$core_archive"
+  # $1 = build manifest (json), $2 = build url
+  core_archive=$(printf '%s' "$1" |
+    grep -oP "nym-vpn-core-v[^\"]+_linux_${arch}\.tar\.gz" |
+    head -n 1)
+  vpnd_raw_url="$2$core_archive"
   ver="${core_archive#nym-vpn-core-v}"
   vpnd_version="${ver%_linux_${arch}.tar.gz}"
 }
 
 get_vpnd_dev_deb() {
-  vpnd_deb=$(curl -s "$1" |
-    grep -oP "(?<=^<a href=\")nym-vpnd_.+_${deb_arch}\.deb(?=\">)")
+  # $1 = build manifest (json), $2 = build url
+  vpnd_deb=$(printf '%s' "$1" |
+    grep -oP "nym-vpnd_[^\"]+_${deb_arch}\.deb" |
+    head -n 1)
   ver="${vpnd_deb#nym-vpnd_}"
   vpnd_deb_ver="${ver%_${deb_arch}.deb}"
-  vpnd_deb_url="$1$vpnd_deb"
+  vpnd_deb_url="$2$vpnd_deb"
 }
 
 vpnd_dev_setup() {
+  # Garage's web vhost serves no directory listing, so we read the published
+  # manifest (see publish-nym-vpn-core.yml) instead of scraping the build dir.
   if [ "$CORE_BUILD" = 0 ]; then
-    core_build_url=https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core/develop/
-    latest=$(curl -s $core_build_url |
-      grep -oP '(?<=<a href=")\d+/' |
-      sort -r |
-      head -n 1)
-    build_url="$core_build_url$latest"
+    core_build_base=https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core/develop
+    manifest=$(curl -s "$core_build_base/latest.json")
+    latest=$(printf '%s' "$manifest" | grep -oP '"timestamp"\s*:\s*"\K[0-9]+')
+    if [ -z "$latest" ]; then
+      echo "failed to resolve latest dev build from $core_build_base/latest.json" >&2
+      exit 1
+    fi
+    build_url="$core_build_base/$latest/"
   else
     build_url="$CORE_BUILD/"
+    manifest=$(curl -s "${build_url}manifest.json")
   fi
 
-  get_core_dev "$build_url"
-  get_vpnd_dev_deb "$build_url"
+  get_core_dev "$manifest" "$build_url"
+  get_vpnd_dev_deb "$manifest" "$build_url"
 }
 
 dev_setup() {
   log "${BI_YLW}⚠ dev channel$RS"
-  log "${I_GRY}fetching app release $APP_RELEASE…$RS"
+  if [ -n "$APP_RELEASE" ]; then
+    log "${I_GRY}fetching app release $APP_RELEASE…$RS"
+  else
+    log "${I_GRY}fetching latest nightly app release…$RS"
+  fi
   app_dev_setup
   if [ "$CORE_BUILD" = 0 ]; then
     log "${I_GRY}fetching latest vpn-core dev build…$RS"

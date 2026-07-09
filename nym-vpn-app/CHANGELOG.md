@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Mixnet tuning settings
+- Node families support
+- Add new "Geo exclusion" settings to allow bypass the VPN tunnel when accessing from certain geographic regions. Currently only China is supported
+- Add account refresh button to account settings page
+- Debug logging settings toggle
+
+### CHANGED
+
+- Switch to daily allowance usage from monthly
+
 ## [2026.10.0] - 2026-06-09
 
 ### Added

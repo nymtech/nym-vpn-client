@@ -45,7 +45,7 @@ use std::{
 };
 
 use async_trait::async_trait;
-use hickory_resolver::config::NameServerConfig;
+use hickory_resolver::config::{LookupIpStrategy, NameServerConfig, ResolverOpts};
 use hickory_server::{
     net::runtime::Time,
     proto::{
@@ -584,7 +584,11 @@ impl LocalResolver {
         #[cfg(not(target_os = "ios"))]
         let connection_provider = TokioRuntimeProvider::default();
 
+        let mut resolver_opts = ResolverOpts::default();
+        resolver_opts.ip_strategy = LookupIpStrategy::Ipv4AndIpv6;
+
         let resolver = TokioResolver::builder_with_config(forward_config, connection_provider)
+            .with_options(resolver_opts)
             .build()
             .map_err(Error::CreateResolver)?;
 

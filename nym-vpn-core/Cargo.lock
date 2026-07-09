@@ -1199,7 +1199,7 @@ dependencies = [
  "find-msvc-tools",
  "jobserver",
  "libc",
- "shlex",
+ "shlex 1.3.0",
 ]
 
 [[package]]
@@ -5098,8 +5098,8 @@ dependencies = [
 
 [[package]]
 name = "nym-api-requests"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bs58",
  "celes",
@@ -5139,7 +5139,7 @@ dependencies = [
 
 [[package]]
 name = "nym-apple-network"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "block2",
  "dispatch2",
@@ -5151,8 +5151,8 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-client"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bincode",
  "futures",
@@ -5167,6 +5167,7 @@ dependencies = [
  "nym-wireguard-types",
  "semver",
  "thiserror 2.0.18",
+ "time",
  "tokio",
  "tokio-util",
  "tracing",
@@ -5174,8 +5175,8 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-requests"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -5198,9 +5199,10 @@ dependencies = [
 
 [[package]]
 name = "nym-bandwidth-controller"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
+ "arc-swap",
  "async-trait",
  "log",
  "nym-credential-storage",
@@ -5211,13 +5213,16 @@ dependencies = [
  "nym-task",
  "nym-validator-client",
  "rand 0.8.6",
+ "strum",
  "thiserror 2.0.18",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
 name = "nym-bin-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "const-str",
  "log",
@@ -5248,7 +5253,7 @@ dependencies = [
 
 [[package]]
 name = "nym-cgroup"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "anyhow",
  "log",
@@ -5258,8 +5263,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -5318,8 +5323,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-config-types"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -5334,8 +5339,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-gateways-storage"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5354,8 +5359,8 @@ dependencies = [
 
 [[package]]
 name = "nym-client-core-surb-storage"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5373,8 +5378,8 @@ dependencies = [
 
 [[package]]
 name = "nym-coconut-dkg-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5387,8 +5392,8 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -5396,7 +5401,7 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -5404,8 +5409,8 @@ dependencies = [
 
 [[package]]
 name = "nym-compact-ecash"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bincode",
  "bs58",
@@ -5427,8 +5432,8 @@ dependencies = [
 
 [[package]]
 name = "nym-config"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "dirs",
  "handlebars",
@@ -5442,12 +5447,12 @@ dependencies = [
 
 [[package]]
 name = "nym-connection-monitor"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "async-trait",
  "futures",
  "nix 0.31.3",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "pretty_assertions",
  "socket2 0.6.3",
  "surge-ping",
@@ -5460,8 +5465,8 @@ dependencies = [
 
 [[package]]
 name = "nym-contracts-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -5475,8 +5480,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-proxy-requests"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -5496,8 +5501,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-storage"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5517,8 +5522,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credential-utils"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -5536,8 +5541,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credentials"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bincode",
  "cosmrs",
@@ -5562,8 +5567,8 @@ dependencies = [
 
 [[package]]
 name = "nym-credentials-interface"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-bls12_381-fork",
  "nym-compact-ecash",
@@ -5581,8 +5586,8 @@ dependencies = [
 
 [[package]]
 name = "nym-crypto"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "aead",
  "aes 0.8.4",
@@ -5616,7 +5621,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "dbus",
  "libc",
@@ -5627,7 +5632,7 @@ dependencies = [
 
 [[package]]
 name = "nym-diagnostic"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5677,13 +5682,13 @@ dependencies = [
 
 [[package]]
 name = "nym-dns"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "duct",
  "futures",
  "inotify",
  "nix 0.31.3",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "nym-dbus",
  "nym-routing",
  "nym-windows",
@@ -5701,8 +5706,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-contract-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -5715,8 +5720,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-signer-check-types"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-coconut-dkg-common",
  "nym-crypto",
@@ -5731,8 +5736,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ecash-time"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -5740,7 +5745,7 @@ dependencies = [
 
 [[package]]
 name = "nym-exclude"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "nix 0.31.3",
  "nym-cgroup",
@@ -5749,8 +5754,8 @@ dependencies = [
 
 [[package]]
 name = "nym-exit-policy"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "serde",
  "serde_json",
@@ -5761,7 +5766,7 @@ dependencies = [
 
 [[package]]
 name = "nym-file-updater"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "futures",
  "reqwest 0.13.3",
@@ -5776,7 +5781,7 @@ dependencies = [
 
 [[package]]
 name = "nym-firewall"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "ipnetwork",
  "libc",
@@ -5785,7 +5790,7 @@ dependencies = [
  "nftnl",
  "nix 0.31.3",
  "nym-cgroup",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "nym-firewall-config",
  "nym-platform-metadata",
  "pfctl",
@@ -5798,15 +5803,15 @@ dependencies = [
 
 [[package]]
 name = "nym-firewall-config"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "ipnetwork",
 ]
 
 [[package]]
 name = "nym-gateway-client"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -5844,7 +5849,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-directory"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "anyhow",
  "ipnetwork",
@@ -5870,8 +5875,8 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-requests"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bs58",
  "futures",
@@ -5900,8 +5905,8 @@ dependencies = [
 
 [[package]]
 name = "nym-group-contract-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -5912,8 +5917,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-client"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "async-trait",
  "bincode",
@@ -5946,8 +5951,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-client-macro"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -5958,8 +5963,8 @@ dependencies = [
 
 [[package]]
 name = "nym-http-api-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bincode",
  "serde",
@@ -5969,8 +5974,8 @@ dependencies = [
 
 [[package]]
 name = "nym-id"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -5982,7 +5987,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ifconfig"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "bitflags 2.11.0",
  "futures",
@@ -5997,8 +6002,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-client"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bincode",
  "bytes",
@@ -6014,8 +6019,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-requests"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bincode",
  "bytes",
@@ -6034,7 +6039,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -6062,8 +6067,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "libcrux-chacha20poly1305",
  "libcrux-ecdh",
@@ -6083,8 +6088,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt-ciphersuite"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "blake3",
  "libcrux-sha3",
@@ -6097,8 +6102,8 @@ dependencies = [
 
 [[package]]
 name = "nym-kkt-context"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "num_enum",
  "nym-kkt-ciphersuite",
@@ -6107,13 +6112,13 @@ dependencies = [
 
 [[package]]
 name = "nym-lp"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bs58",
  "bytes",
  "libcrux-psq",
- "nym-common 1.21.1",
+ "nym-common 1.21.3",
  "nym-crypto",
  "nym-kkt",
  "nym-kkt-ciphersuite",
@@ -6128,19 +6133,19 @@ dependencies = [
 
 [[package]]
 name = "nym-lp-data"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bytes",
  "num_enum",
- "nym-common 1.21.1",
+ "nym-common 1.21.3",
  "thiserror 2.0.18",
  "tracing",
 ]
 
 [[package]]
 name = "nym-macos"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "nix 0.31.3",
  "tokio",
@@ -6149,8 +6154,8 @@ dependencies = [
 
 [[package]]
 name = "nym-metrics"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -6160,14 +6165,16 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-client"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "dashmap",
  "futures",
+ "nym-metrics",
  "nym-noise",
  "nym-sphinx",
  "nym-task",
+ "strum",
  "tokio",
  "tokio-stream",
  "tokio-util",
@@ -6176,8 +6183,8 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-contract-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -6197,8 +6204,8 @@ dependencies = [
 
 [[package]]
 name = "nym-multisig-contract-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6213,8 +6220,8 @@ dependencies = [
 
 [[package]]
 name = "nym-network-defaults"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "cargo_metadata 0.19.2",
  "dotenvy",
@@ -6229,8 +6236,8 @@ dependencies = [
 
 [[package]]
 name = "nym-network-monitors-contract-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6242,8 +6249,8 @@ dependencies = [
 
 [[package]]
 name = "nym-node-families-contract-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6258,8 +6265,8 @@ dependencies = [
 
 [[package]]
 name = "nym-node-requests"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "celes",
  "humantime-serde",
@@ -6283,8 +6290,8 @@ dependencies = [
 
 [[package]]
 name = "nym-noise"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "arc-swap",
  "bytes",
@@ -6304,8 +6311,8 @@ dependencies = [
 
 [[package]]
 name = "nym-noise-keys"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-crypto",
  "schemars 0.8.22",
@@ -6315,8 +6322,8 @@ dependencies = [
 
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -6326,14 +6333,14 @@ dependencies = [
 
 [[package]]
 name = "nym-offline-monitor"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "async-trait",
  "debounced",
  "dispatch2",
  "futures",
  "nym-apple-network",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "nym-routing",
  "nym-windows",
  "thiserror 2.0.18",
@@ -6345,8 +6352,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ordered-buffer"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "log",
  "thiserror 2.0.18",
@@ -6354,8 +6361,8 @@ dependencies = [
 
 [[package]]
 name = "nym-outfox"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "blake3",
  "chacha20 0.9.1",
@@ -6368,8 +6375,8 @@ dependencies = [
 
 [[package]]
 name = "nym-pemstore"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "pem",
  "tracing",
@@ -6378,8 +6385,8 @@ dependencies = [
 
 [[package]]
 name = "nym-performance-contract-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -6392,7 +6399,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "nym-bin-common",
  "nym-dbus",
@@ -6406,8 +6413,8 @@ dependencies = [
 
 [[package]]
 name = "nym-registration-client"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bincode",
  "bytes",
@@ -6422,10 +6429,10 @@ dependencies = [
  "nym-lp-data",
  "nym-registration-common",
  "nym-sdk",
- "nym-validator-client",
  "nym-wireguard-types",
  "rand 0.9.2",
  "thiserror 2.0.18",
+ "time",
  "tokio",
  "tokio-util",
  "tracing",
@@ -6434,8 +6441,8 @@ dependencies = [
 
 [[package]]
 name = "nym-registration-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bincode",
  "nym-authenticator-requests",
@@ -6451,14 +6458,14 @@ dependencies = [
 
 [[package]]
 name = "nym-routing"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "bitflags 2.11.0",
  "futures",
  "ipnetwork",
  "libc",
  "nix 0.31.3",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "nym-windows",
  "rtnetlink",
  "system-configuration 0.7.0",
@@ -6471,8 +6478,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sdk"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -6529,8 +6536,8 @@ dependencies = [
 
 [[package]]
 name = "nym-serde-helpers"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -6541,8 +6548,8 @@ dependencies = [
 
 [[package]]
 name = "nym-service-provider-requests-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
@@ -6550,8 +6557,8 @@ dependencies = [
 
 [[package]]
 name = "nym-service-providers-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "async-trait",
  "log",
@@ -6564,7 +6571,7 @@ dependencies = [
 
 [[package]]
 name = "nym-setup"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -6574,8 +6581,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-client-core"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "anyhow",
  "dirs",
@@ -6607,7 +6614,7 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "anyhow",
  "async-compression",
@@ -6634,8 +6641,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy-helpers"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bytes",
  "futures",
@@ -6649,7 +6656,7 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-proxy-ipc"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -6657,8 +6664,8 @@ dependencies = [
 
 [[package]]
 name = "nym-socks5-requests"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bincode",
  "log",
@@ -6673,8 +6680,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-crypto",
  "nym-metrics",
@@ -6699,8 +6706,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-acknowledgements"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -6716,8 +6723,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-addressing"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -6727,8 +6734,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-anonymous-replies"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -6745,8 +6752,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-chunking"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "dashmap",
  "log",
@@ -6764,8 +6771,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-cover"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -6782,8 +6789,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-forwarding"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-anonymous-replies",
@@ -6794,8 +6801,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-framing"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "bytes",
  "cfg-if",
@@ -6811,8 +6818,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-params"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -6822,8 +6829,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-routing"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -6832,8 +6839,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sphinx-types"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -6842,7 +6849,7 @@ dependencies = [
 
 [[package]]
 name = "nym-split-tunnel"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "bitflags 2.11.0",
  "bytes",
@@ -6856,7 +6863,7 @@ dependencies = [
  "nftnl",
  "nix 0.31.3",
  "nym-cgroup",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "nym-dbus",
  "nym-firewall",
  "nym-firewall-config",
@@ -6881,8 +6888,8 @@ dependencies = [
 
 [[package]]
 name = "nym-sqlx-pool-guard"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "proc_pidinfo",
  "sqlx",
@@ -6893,7 +6900,7 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "futures",
  "nym-bin-common",
@@ -6914,7 +6921,7 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics-api-client"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "nym-http-api-client",
  "nym-statistics-common",
@@ -6925,8 +6932,8 @@ dependencies = [
 
 [[package]]
 name = "nym-statistics-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "futures",
  "log",
@@ -6941,7 +6948,7 @@ dependencies = [
  "si-scale 0.2.3",
  "strum",
  "strum_macros",
- "sysinfo 0.37.2",
+ "sysinfo 0.38.4",
  "thiserror 2.0.18",
  "time",
  "tokio",
@@ -6950,8 +6957,8 @@ dependencies = [
 
 [[package]]
 name = "nym-task"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "cfg-if",
  "futures",
@@ -6967,8 +6974,8 @@ dependencies = [
 
 [[package]]
 name = "nym-ticketbooks-merkle"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -6982,8 +6989,8 @@ dependencies = [
 
 [[package]]
 name = "nym-topology"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -7002,8 +7009,8 @@ dependencies = [
 
 [[package]]
 name = "nym-upgrade-mode-check"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "jwt-simple",
  "nym-crypto",
@@ -7019,8 +7026,8 @@ dependencies = [
 
 [[package]]
 name = "nym-validator-client"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -7071,8 +7078,8 @@ dependencies = [
 
 [[package]]
 name = "nym-vesting-contract-common"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -7084,7 +7091,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-account-controller"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "aes-gcm",
  "anyhow",
@@ -7094,7 +7101,7 @@ dependencies = [
  "bs58",
  "futures",
  "hkdf",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "nym-compact-ecash",
  "nym-credential-proxy-requests",
  "nym-credential-storage",
@@ -7137,7 +7144,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-api-client"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "async-trait",
  "backon",
@@ -7146,7 +7153,7 @@ dependencies = [
  "bs58",
  "hex",
  "itertools 0.14.0",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "nym-compact-ecash",
  "nym-config",
  "nym-contracts-common",
@@ -7173,7 +7180,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "adblock",
  "anyhow",
@@ -7208,11 +7215,12 @@ dependencies = [
  "nym-bin-common",
  "nym-cgroup",
  "nym-client-core",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "nym-config",
  "nym-connection-monitor",
  "nym-credentials-interface",
  "nym-crypto",
+ "nym-dbus",
  "nym-diagnostic",
  "nym-dns",
  "nym-file-updater",
@@ -7264,6 +7272,7 @@ dependencies = [
  "socket2 0.6.3",
  "sqlx",
  "strum",
+ "sysinfo 0.39.1",
  "tempfile",
  "thiserror 2.0.18",
  "time",
@@ -7290,7 +7299,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "bip39",
  "ipnetwork",
@@ -7320,7 +7329,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-uniffi"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "async-trait",
  "inventory",
@@ -7331,7 +7340,8 @@ dependencies = [
  "jni 0.22.4",
  "log",
  "ndk-context",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
+ "nym-diagnostic",
  "nym-firewall-config",
  "nym-gateway-directory",
  "nym-http-api-client",
@@ -7362,10 +7372,10 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-network-config"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "itertools 0.14.0",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "nym-http-api-client",
  "nym-network-defaults",
  "nym-offline-monitor",
@@ -7386,7 +7396,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "hyper 1.9.0",
  "nym-ipc",
@@ -7405,10 +7415,10 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-rpc-uniffi"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "futures",
- "nym-common 2026.11.0-beta.1",
+ "nym-common 2026.12.0-beta.1",
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "tokio",
@@ -7419,7 +7429,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-store"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -7443,7 +7453,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "anyhow",
  "celes",
@@ -7452,6 +7462,7 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-vpn-proto",
  "serde_json",
+ "shlex 2.0.1",
  "tabled",
  "tokio",
  "tokio-stream",
@@ -7459,7 +7470,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "anyhow",
  "clap",
@@ -7487,8 +7498,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wasm-utils"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -7502,7 +7513,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-go"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "hex",
  "ipnetwork",
@@ -7518,7 +7529,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-metadata-client"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "nym-credentials-interface",
  "nym-gateway-directory",
@@ -7533,7 +7544,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "bitflags 2.11.0",
  "futures",
@@ -7549,8 +7560,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-private-metadata-client"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "async-trait",
  "nym-http-api-client",
@@ -7560,8 +7571,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-private-metadata-shared"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "axum",
  "bincode",
@@ -7574,8 +7585,8 @@ dependencies = [
 
 [[package]]
 name = "nym-wireguard-types"
-version = "1.21.1"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.11-xynomizithra#1bc51696914134766d06872267c6f8d03e7454df"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "base64 0.22.1",
  "nym-crypto",
@@ -10047,6 +10058,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
+name = "shlex"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
+
+[[package]]
 name = "si-scale"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10638,16 +10655,16 @@ dependencies = [
 
 [[package]]
 name = "sysinfo"
-version = "0.37.2"
+version = "0.38.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16607d5caffd1c07ce073528f9ed972d88db15dd44023fa57142963be3feb11f"
+checksum = "92ab6a2f8bfe508deb3c6406578252e491d299cbbf3bc0529ecc3313aee4a52f"
 dependencies = [
  "libc",
  "memchr",
  "ntapi",
  "objc2-core-foundation",
  "objc2-io-kit",
- "windows 0.61.3",
+ "windows 0.62.2",
 ]
 
 [[package]]
@@ -10903,7 +10920,7 @@ dependencies = [
 
 [[package]]
 name = "test-manager"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "anyhow",
  "async-tempfile",
@@ -10948,7 +10965,7 @@ dependencies = [
 
 [[package]]
 name = "test-rpc"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "async-trait",
  "bytes",
@@ -10973,7 +10990,7 @@ dependencies = [
 
 [[package]]
 name = "test-runner"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "bytes",
  "dirs",
@@ -10999,7 +11016,7 @@ dependencies = [
 
 [[package]]
 name = "test_macro"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -11963,7 +11980,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "2026.11.0-beta.1"
+version = "2026.12.0-beta.1"
 dependencies = [
  "uniffi",
 ]

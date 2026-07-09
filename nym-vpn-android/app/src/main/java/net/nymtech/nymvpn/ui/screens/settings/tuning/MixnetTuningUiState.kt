@@ -2,6 +2,9 @@ package net.nymtech.nymvpn.ui.screens.settings.tuning
 
 import net.nymtech.nymvpn.data.domain.Settings
 import nym_vpn_lib_types.MixnetTrafficConfig
+import kotlin.math.roundToInt
+
+internal const val MBPS_TO_DELAY_CONSTANT = 20f
 
 data class MixnetTuningUiState(
 	val trafficEnabled: Boolean = false,
@@ -18,7 +21,8 @@ data class MixnetTuningUiState(
 	fun fromConfig(config: MixnetTrafficConfig): MixnetTuningUiState {
 		val trafficEnabled = !config.disableBackgroundCoverTraffic
 		val trafficValue = if (trafficEnabled) {
-			config.messageSendingAverageDelay?.toFloat() ?: 0f
+			val delayMs = config.messageSendingAverageDelay?.toFloat() ?: MBPS_TO_DELAY_CONSTANT
+			MBPS_TO_DELAY_CONSTANT / delayMs
 		} else {
 			config.poissonParameterForLoopCoverStream?.toFloat() ?: 0f
 		}
@@ -34,7 +38,7 @@ data class MixnetTuningUiState(
 		disableBackgroundCoverTraffic = !trafficEnabled,
 		disablePoissonRate = !trafficEnabled,
 		averagePacketDelay = averagePacketDelay.toUInt(),
-		messageSendingAverageDelay = if (trafficEnabled) currentTrafficValue.toUInt() else original.messageSendingAverageDelay,
+		messageSendingAverageDelay = if (trafficEnabled) (MBPS_TO_DELAY_CONSTANT / currentTrafficValue).roundToInt().toUInt() else original.messageSendingAverageDelay,
 		poissonParameterForLoopCoverStream = if (!trafficEnabled) currentTrafficValue.toUInt() else original.poissonParameterForLoopCoverStream,
 	)
 

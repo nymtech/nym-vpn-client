@@ -90,6 +90,10 @@ pub struct SetParams {
     /// Enable or disable geo-location data being used for determining gateway proximity
     #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
     geo_location: Option<BooleanOption>,
+
+    /// Enable or disable gateway independence criteria when selecting the pair of servers
+    #[arg(long, value_parser = clap::value_parser!(BooleanOption))]
+    gateway_independence: Option<BooleanOption>,
 }
 
 impl Command {
@@ -109,6 +113,7 @@ impl Command {
                     "Gateway selection algorithm configuration: {}",
                     config.gateway_selection_algorithm_config
                 );
+                println!("Gateway independence: {}", config.gateway_independence);
 
                 Ok(())
             }
@@ -169,6 +174,12 @@ impl Command {
                 if let Some(enable_geo_location) = params.geo_location {
                     rpc_client
                         .set_enable_geo_location(*enable_geo_location)
+                        .await?;
+                }
+
+                if let Some(gateway_independence) = params.gateway_independence {
+                    rpc_client
+                        .set_enable_gateway_independence(*gateway_independence)
                         .await?;
                 }
 

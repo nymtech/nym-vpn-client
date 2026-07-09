@@ -36,19 +36,32 @@ on:
         description: "Build type: pr | qa | ship (raw or labeled)"
         type: string
         default: "pr"
+      version_tag:
+        description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
+        type: string
+        default: ""
+      version:
+        description: "Orchestrated app version (empty = use Xcode MARKETING_VERSION as before)"
+        type: string
+        default: ""
+      build_ios:
+        type: boolean
+        default: false
+      build_macos:
+        type: boolean
+        default: false
     outputs:
       RUST_VERSION:
         value: ${{ jobs.build-apple.outputs.RUST_VERSION }}
-  schedule:
-    - cron: "0 1 * * *"
-
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
+  S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
+  S3_BUCKET: builds
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: build-nym-vpn-apple-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -61,7 +74,7 @@ jobs:
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -188,6 +201,40 @@ jobs:
           brew --version
           ruby --version
           gem --version
+
+      - name: Ensure codemagic-cli-tools uses compatible Python
+        run: |
+          set -euo pipefail
+          if ! keychain --version >/dev/null 2>&1; then
+            # The runner's system /usr/lib/libexpat.1.dylib is missing
+            # _XML_SetAllocTrackerActivationThreshold. Every Homebrew Python
+            # version (3.12 and 3.14) links pyexpat.so against the system
+            # libexpat, so ALL versions fail — switching Python doesn't help.
+            # Fix: remap each Homebrew Python's pyexpat.so to use Homebrew's
+            # own expat formula (which ships the required symbol), then
+            # ad-hoc re-sign the patched .so so macOS will load it.
+            brew install expat
+            HOMEBREW_EXPAT="$(brew --prefix expat)/lib/libexpat.1.dylib"
+            while IFS= read -r -d '' so; do
+              install_name_tool -change /usr/lib/libexpat.1.dylib \
+                "$HOMEBREW_EXPAT" "$so" \
+                && codesign -f -s - "$so" || true
+            done < <(find /opt/homebrew/Cellar/python@* \
+              -name 'pyexpat*.so' -not -type l -print0 2>/dev/null)
+            keychain --version
+          fi
+
+      - name: Apply orchestrated version (apple)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: apple
+
+      - name: Apply orchestrated version (core)
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
 
       - name: Update prebundled servers
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
@@ -355,11 +402,13 @@ jobs:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
         run: |
-          brew tap crowdin/crowdin
-          brew install crowdin@4 || brew upgrade crowdin@4 || true
-
-          # Make sure the crowdin binary is on PATH for this step
-          export PATH="$(brew --prefix crowdin@4)/bin:$PATH"
+          if ! command -v crowdin >/dev/null 2>&1; then
+            brew tap crowdin/crowdin
+            brew trust crowdin/crowdin 2>/dev/null || true
+            brew install crowdin@4 || brew upgrade crowdin@4 || true
+            crowdin_prefix="$(brew --prefix crowdin@4)"
+            export PATH="$crowdin_prefix/bin:$PATH"
+          fi
 
           which crowdin || echo "crowdin not in PATH"
 
@@ -381,77 +430,11 @@ jobs:
           echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
 
-      - name: Tests
+      - name: Apple unit tests
         if: ${{ env.RELEASE_TYPE == 'pr' }}
-        working-directory: nym-vpn-apple/ServicesMutual
-        env:
-          ACCOUNT_REPORT_PATH: ${{ github.workspace }}/account-report.md
-        run: |
-          set -uo pipefail
-          which jq >/dev/null || brew install jq
-
-          # Run tests — don't abort on failure, we still want summary + report
-          set +e
-          xcodebuild test \
-            -scheme ServicesMutual-Package \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            -only-testing:ConnectionTypesTests \
-            -resultBundlePath TestResults.xcresult \
-            | xcbeautify --renderer github-actions
-          TEST_STATUS=${PIPESTATUS[0]}
-          set -e
-
-          # Test summary → step summary
-          BUNDLE="TestResults.xcresult"
-          if [[ -d "$BUNDLE" ]]; then
-            JSON="$(xcrun xcresulttool get test-results summary --path "$BUNDLE" --format json 2>/dev/null)"
-            RESULT=$(jq -r '.result // "Unknown"' <<<"$JSON")
-            PASSED=$(jq -r '.passedTests // 0' <<<"$JSON")
-            FAILED=$(jq -r '.failedTests // 0' <<<"$JSON")
-            SKIPPED=$(jq -r '.skippedTests // 0' <<<"$JSON")
-            ICON="✅"; [[ "$RESULT" != "Passed" ]] && ICON="❌"
-            {
-              echo "## 🧪 ConnectionTypes tests"
-              echo ""
-              echo "$ICON **$RESULT** — ${PASSED} passed, ${FAILED} failed, ${SKIPPED} skipped"
-            } >> "$GITHUB_STEP_SUMMARY"
-            if [[ "$FAILED" != "0" ]]; then
-              {
-                echo ""
-                echo "| Test | Failure |"
-                echo "| --- | --- |"
-                jq -r '.testFailures[]? | "| \(.testName) | \((.failureText // "") | gsub("[\r\n]+"; " ")) |"' <<<"$JSON"
-              } >> "$GITHUB_STEP_SUMMARY"
-            fi
-          else
-            echo "⚠️ No test results bundle found." >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-          # Account report → step summary
-          if [[ -f "$ACCOUNT_REPORT_PATH" ]]; then
-            cat "$ACCOUNT_REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "account-report.md not produced" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-          exit "$TEST_STATUS"
-
-      - name: Upload test artifacts
-        if: ${{ always() && env.RELEASE_TYPE == 'pr' }}
-        uses: actions/upload-artifact@v7
+        uses: ./.github/workflows/apple/tests
         with:
-          name: connectiontypes-tests
-          path: |
-            nym-vpn-apple/ServicesMutual/TestResults.xcresult
-            account-report.md
-          if-no-files-found: warn
-          retention-days: 1
-
-      - name: Clean up test results
-        if: ${{ always() && env.RELEASE_TYPE == 'pr' }}
-        working-directory: nym-vpn-apple/ServicesMutual
-        run: rm -rf TestResults.xcresult
+          account-report-path: ${{ github.workspace }}/account-report.md
 
       - name: Resolve iOS build number (qa/ship only)
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
@@ -594,13 +577,12 @@ jobs:
           set -euo pipefail
 
           echo "🚀 Uploading to TestFlight..."
+  
+          BETA_GROUPS=( --beta-group='World' )
           app-store-connect publish \
             --beta-build-localizations=@file:whats_new.json \
-            --beta-group='External QA' \
-            --beta-group='Nym Team External' \
+            "${BETA_GROUPS[@]}" \
             --testflight
-            # --beta-group="World" \
-            # --expire-build-submitted-for-review
 
           echo "✅ Upload completed successfully."
 
@@ -1022,6 +1004,7 @@ jobs:
         env:
           APPLE_SPARKLE_PRIVATE_KEY: ${{ secrets.APPLE_SPARKLE_PRIVATE_KEY }}
           APP_PATH: ${{ steps.archive-macos.outputs.app_path }}
+          VERSION_TAG: ${{ inputs.version_tag }}
         run: |
           set -euo pipefail
           which jq || brew install jq
@@ -1116,7 +1099,12 @@ jobs:
           echo "✅ sha256-hash.txt:"
           cat sha256-hash.txt
 
-          DOWNLOAD_URL="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-macos-v${MACOS_VERSION}/NymVPN-${MACOS_VERSION}.pkg"
+          if [[ -n "${VERSION_TAG:-}" ]]; then
+            DOWNLOAD_TAG="${VERSION_TAG}"
+          else
+            DOWNLOAD_TAG="nym-vpn-macos-v${MACOS_VERSION}"
+          fi
+          DOWNLOAD_URL="https://github.com/nymtech/nym-vpn-client/releases/download/${DOWNLOAD_TAG}/NymVPN-${MACOS_VERSION}.pkg"
           HOST_LINK="https://nymvpn.com"
           PUB_DATE="$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S %z')"
 
@@ -1210,7 +1198,7 @@ jobs:
 
       - name: Publish macOS nightly GitHub Release
         if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -1241,8 +1229,8 @@ jobs:
           fi
 
       - name: Publish macOS GitHub Release
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && steps.macos_tag.outputs.exists != 'true' }}
-        uses: softprops/action-gh-release@v2
+        if: ${{ inputs.version_tag == '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && steps.macos_tag.outputs.exists != 'true' }}
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -1259,6 +1247,45 @@ jobs:
             - Branch: ${{ github.ref_name }}
             - Commit: ${{ github.sha }}
             - Built at: ${{ github.run_started_at }}
+
+      - name: Ensure gh CLI is available (macOS runner)
+        if: ${{ inputs.version_tag != '' && env.BUILD_MACOS == 'true' }}
+        run: |
+          set -euo pipefail
+          if ! command -v gh >/dev/null 2>&1; then
+            echo "::notice:: gh not found on PATH — installing via Homebrew"
+            brew install gh || brew upgrade gh
+          fi
+          gh --version
+
+      - name: Append macOS pkg to unified release
+        if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_TAG: ${{ inputs.version_tag }}
+        run: |
+          set -euo pipefail
+          # Carry the Sparkle appcast <item> as a release asset so the deferred
+          # nym-websites PR (opened post-publish by on-release-publish.yml) can recover
+          # it. Version is in the asset name → that job needs no unified->macOS mapping.
+          cp "${{ env.APPCAST_ITEM_RELATIVE_PATH }}" "appcast-item-${{ env.MACOS_VERSION }}.xml"
+          files=( \
+            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg \
+            nym-vpn-apple/build/pkg/publish/sha256-hash.txt \
+            "appcast-item-${{ env.MACOS_VERSION }}.xml" \
+          )
+          # Append to the (ship) draft. No --clobber: gh refuses a duplicate.
+          gh release upload "$VERSION_TAG" "${files[@]}"
+
+      - name: Append macOS pkg to unified nightly release
+        if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION_TAG: ${{ inputs.version_tag }}
+        run: |
+          set -euo pipefail
+          # Append the qa pkg to the fresh nightly draft (finalize-nightly publishes it).
+          gh release upload "$VERSION_TAG" "$renamed_pkg_relative_path"
 
       - name: Upload artifacts (Ship + appcast + hash)
         if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
@@ -1277,30 +1304,35 @@ jobs:
           if [[ "${RELEASE_TYPE}" == "qa" ]]; then
             UPLOAD_SOURCE="${renamed_pkg_relative_path}"
             echo "UPLOAD_SOURCE=${UPLOAD_SOURCE}" >> "$GITHUB_ENV"
+            # single PKG file -> bucket key nym-vpn-client/macOS/<pkg>
+            echo "UPLOAD_DEST=nym-vpn-client/macOS/" >> "$GITHUB_ENV"
             echo "🌐 QA: will upload PKG only → ${UPLOAD_SOURCE}"
           else
             UPLOAD_SOURCE="${publish_relative_path}"
             echo "UPLOAD_SOURCE=${UPLOAD_SOURCE}" >> "$GITHUB_ENV"
+            # contents of the publish/ dir -> bucket keys under nym-vpn-client/macOS/publish/
+            # (preserves the .../publish/NymVPN-<ver>.pkg download URL used in the appcast)
+            echo "UPLOAD_DEST=nym-vpn-client/macOS/publish/" >> "$GITHUB_ENV"
             echo "🌐 Ship: will upload PKG + appcast.xml + sha256-hash.txt → ${UPLOAD_SOURCE}"
           fi
 
-      - name: Upload to www
+      - name: Publish build to S3
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        uses: easingthemes/ssh-deploy@main
+        uses: ./.github/actions/push-to-s3
         with:
-          REMOTE_PORT: 22
-          ARGS: -avzr
-          SSH_CMD_ARGS: -o StrictHostKeyChecking=no
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
-          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/
-          SOURCE: ${{ env.UPLOAD_SOURCE }}
+          source_path: ${{ env.UPLOAD_SOURCE }}
+          destination: ${{ env.UPLOAD_DEST }}
+          endpoint: ${{ env.S3_ENDPOINT }}
+          bucket: ${{ env.S3_BUCKET }}
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
 
       - name: Checkout nym-websites
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        uses: actions/checkout@v6
+        # Legacy path only. Under orchestration (version_tag set) the appcast <item> is
+        # attached to the unified release and the nym-websites PR is opened post-publish
+        # by on-release-publish.yml — gated behind the human ship/publish action.
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && inputs.version_tag == '' }}
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           repository: nymtech/nym-websites
@@ -1308,7 +1340,7 @@ jobs:
           path: nym-websites
 
       - name: Insert new Sparkle <item> into nym-websites appcast.xml
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && inputs.version_tag == '' }}
         working-directory: nym-websites
         env:
           ITEM_FILE: ${{ github.workspace }}/${{ env.APPCAST_ITEM_RELATIVE_PATH }}
@@ -1333,7 +1365,7 @@ jobs:
           sed -n '1,40p' "$TARGET" || true
 
       - name: Create PR in nym-websites
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && inputs.version_tag == '' }}
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}

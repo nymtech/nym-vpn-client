@@ -1,4 +1,5 @@
 export { default as ButtonIcon } from './ButtonIcon';
+export { default as BetaPill } from './BetaPill';
 export { default as Button } from './Button';
 export { default as ButtonText } from './ButtonText';
 export { default as Dialog } from './Dialog';
@@ -25,6 +26,7 @@ export { default as Toast } from './Toast';
 export { default as ConfirmationDialog } from './ConfirmationDialog';
 export { default as Spinner } from './Spinner';
 export { default as SmileyIcon } from './SmileyIcon';
+export { default as InfoBanner } from './InfoBanner';
 export * from './ButtonIcon';
 export * from './Button';
 export * from './ButtonText';

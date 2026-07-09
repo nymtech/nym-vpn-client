@@ -59,7 +59,9 @@ export type StateAction =
   | { type: 'set-tunnel-inerror'; error: TunnelError }
   | { type: 'set-auto-connect'; autoConnect: boolean }
   | { type: 'set-monitoring'; enabled: boolean }
+  | { type: 'set-debug-logging'; enabled: boolean }
   | { type: 'set-desktop-notifications'; enabled: boolean }
+  | { type: 'set-gateway-independence-notifications'; enabled: boolean }
   | { type: 'reset' }
   | { type: 'set-ui-theme'; theme: UiTheme }
   | { type: 'set-theme-mode'; mode: ThemeMode }
@@ -91,6 +93,9 @@ export type StateAction =
   | { type: 'set-account-summary'; summary: TAccountSummary | null }
   | { type: 'set-enable-split-tunnel'; enabled: boolean }
   | { type: 'set-split-tunnel-apps'; apps: SplitApp[] }
+  | { type: 'set-geo-exclusion-enabled'; enabled: boolean }
+  | { type: 'set-geo-exclusion-listen-port'; port: number }
+  | { type: 'set-geo-exclusion-excluded-countries'; countries: string[] }
   | {
       type: 'set-gateway-selection-algorithm-config';
       config: GatewaySelectionAlgorithmConfig;
@@ -117,6 +122,7 @@ export const initialState: AppState = {
   autostart: false,
   autoConnect: false,
   monitoring: false,
+  debugLogging: true,
   desktopNotifications: true,
   entryNode: DefaultNode,
   exitNode: DefaultNode,
@@ -135,7 +141,6 @@ export const initialState: AppState = {
     quic: false,
     domainFronting: false,
     zknymCredential: false,
-    mixnetTuning: false,
   },
   customDnsEnabled: false,
   customDns: [],
@@ -158,10 +163,12 @@ export const initialState: AppState = {
     allContinuousTraffic: [],
   },
   splitTunnel: { enabled: false, apps: [] },
+  geoExclusion: { enabled: false, listenPort: 1080, excludedCountries: ['CN'] },
   gatewaySelectionAlgorithmConfig: {
     enableGeoLocation: true,
     gatewaySelectionAlgorithm: 'explicit',
   },
+  gatewayIndependenceNotifications: true,
 };
 
 export type MainSlice = AppState & {
@@ -230,8 +237,11 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
           customDns: action.config.customDns ?? [],
           mixnetTrafficConfig: action.config.mixnetTraffic,
           mixnetTrafficDefaults: action.config.mixnetTrafficDefaults,
+          gatewayIndependenceNotifications:
+            action.config.gatewayIndependenceNotifications,
           enableAdBlocking: action.config.enableAdBlocking,
           splitTunnel: action.config.splitTunnel,
+          geoExclusion: action.config.geoExclusion,
           gatewaySelectionAlgorithmConfig:
             action.config.gatewaySelectionAlgorithmConfig,
         });
@@ -264,6 +274,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
         set({ monitoring: action.enabled });
         break;
 
+      case 'set-debug-logging':
+        set({ debugLogging: action.enabled });
+        break;
+
       case 'set-ipv6-support':
         set({ ipv6Support: action.enabled });
         break;
@@ -278,6 +292,10 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-desktop-notifications':
         set({ desktopNotifications: action.enabled });
+        break;
+
+      case 'set-gateway-independence-notifications':
+        set({ gatewayIndependenceNotifications: action.enabled });
         break;
 
       case 'set-tunnel':
@@ -485,6 +503,27 @@ export const createMainSlice: StateCreator<BoundStore, [], [], MainSlice> = (
 
       case 'set-split-tunnel-apps':
         set((s) => ({ splitTunnel: { ...s.splitTunnel, apps: action.apps } }));
+        break;
+
+      case 'set-geo-exclusion-enabled':
+        set((s) => ({
+          geoExclusion: { ...s.geoExclusion, enabled: action.enabled },
+        }));
+        break;
+
+      case 'set-geo-exclusion-listen-port':
+        set((s) => ({
+          geoExclusion: { ...s.geoExclusion, listenPort: action.port },
+        }));
+        break;
+
+      case 'set-geo-exclusion-excluded-countries':
+        set((s) => ({
+          geoExclusion: {
+            ...s.geoExclusion,
+            excludedCountries: action.countries,
+          },
+        }));
         break;
 
       case 'set-gateway-selection-algorithm-config':

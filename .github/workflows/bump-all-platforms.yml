@@ -113,7 +113,7 @@ jobs:
           git config --global user.email "${{ env.GIT_EMAIL }}"
 
       - name: Checkout selected branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           ref: ${{ inputs.branch || github.ref }}
@@ -220,7 +220,7 @@ jobs:
           toml set Cargo.toml workspace.package.version "${{ steps.version.outputs.core_version }}" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
           # update Cargo.lock with new workspace version (no other changes)
-          cargo update --dry-run
+          cargo fetch
 
       # --- tauri app (Linux + Windows) ---
       - name: Update nym-vpn-app/src-tauri/Cargo.toml
@@ -228,7 +228,7 @@ jobs:
         run: |
           toml set Cargo.toml package.version "${{ steps.version.outputs.core_version }}" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
-          cargo update --dry-run
+          cargo fetch
 
       - name: Update nym-vpn-app/vpnd_compat.toml
         working-directory: nym-vpn-app

@@ -58,5 +58,11 @@
   },
   "gateway-selection-algorithm": {
     "error": "Failed to set gateway selection algorithm"
+  },
+  "gateway-independence-warning": {
+    "title": "The selected servers are in the same operator family!",
+    "disable-reminders": "Disable reminders in <settingsLink>notification settings</settingsLink>.",
+    "cancel": "Cancel",
+    "connect-anyway": "Connect anyway"
   }
 }

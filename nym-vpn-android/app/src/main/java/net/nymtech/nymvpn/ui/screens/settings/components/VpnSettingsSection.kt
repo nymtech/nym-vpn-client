@@ -6,6 +6,7 @@ import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Power
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -125,6 +126,31 @@ fun VpnSettingsSection(values: SettingsValues, actions: SettingsActions) {
 					title = {
 						SettingsTitle(stringResource(R.string.settings_ad_blocking_title))
 					},
+				),
+			)
+
+			add(
+				SelectionItem(
+					leading = {
+						SettingsIcon(
+							Icons.Outlined.Public,
+							stringResource(R.string.settings_geo_exclusion_title),
+						)
+					},
+					trailing = {
+						SettingsArrowIcon()
+					},
+					title = {
+						SettingsTitle(stringResource(R.string.settings_geo_exclusion_title))
+					},
+					description = {
+						Text(
+							stringResource(R.string.settings_geo_exclusion_desciption),
+							style = MaterialTheme.typography.bodySmall,
+							color = MaterialTheme.colorScheme.onBackground,
+						)
+					},
+					onClick = actions.onGeoExclusionClick,
 				),
 			)
 

@@ -14,7 +14,7 @@ import Constants
 @MainActor public final class ExternalLinkManager: NSObject, ObservableObject {
     public static let shared = ExternalLinkManager()
 
-    public var deeplinkHandler: ((URL) -> Void)?
+    public var deeplinkHandler: ((URL) async -> Void)?
 
     private var currentAuthSession: ASWebAuthenticationSession?
 
@@ -49,6 +49,12 @@ import Constants
             return
         }
         inAppSafariURL = InAppSafariURL(url: url)
+    }
+
+    public func dismissActiveWebCheckoutSessions() {
+        currentAuthSession?.cancel()
+        currentAuthSession = nil
+        inAppSafariURL = nil
     }
 #endif
 
@@ -107,7 +113,10 @@ import Constants
             }
         }
         currentAuthSession = nil
-        deeplinkHandler?(callbackURL)
+        if let deeplinkHandler {
+            await deeplinkHandler(callbackURL)
+        }
+        dismissActiveWebCheckoutSessions()
 #endif
     }
 }

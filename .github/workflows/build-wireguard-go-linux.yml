@@ -7,10 +7,6 @@ on:
       - ".github/workflows/build-wireguard-go-linux.yml"
   workflow_dispatch:
   workflow_call:
-    inputs:
-      artifact_suffix:
-        required: false
-        type: string
 
 env:
   CARGO_TERM_COLOR: always
@@ -29,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout nym-vpn-client
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -37,7 +33,7 @@ jobs:
         uses: xom9ikk/dotenv@v2.4.0
 
       - name: Cache libwg
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: cache
         with:
           path: build/lib
@@ -58,19 +54,10 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: ./wireguard/build-wireguard-go.sh
 
-      - name: Set artifact name
-        id: set_artifact_name
-        run: |
-          if [ -z "${{ inputs.artifact_suffix }}" ]; then
-            echo "artifact_name=wireguard_go-${{ matrix.arch }}" >> $GITHUB_OUTPUT
-          else
-            echo "artifact_name=wireguard_go_${{ inputs.artifact_suffix }}-${{ matrix.arch }}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.set_artifact_name.outputs.artifact_name }}
+          name: wireguard_go-${{ matrix.arch }}
           path: build/lib
           if-no-files-found: error
           retention-days: 1

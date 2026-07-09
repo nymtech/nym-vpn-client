@@ -149,8 +149,7 @@ export function CardHeaderSwitch({
     <div
       className={clsx(
         'flex w-full flex-row items-center justify-between gap-4 select-none',
-        'min-h-16 rounded-t-lg px-4 py-4',
-        'bg-surface-bg',
+        'min-h-14 rounded-t-lg px-4 py-4',
         !noHoverEffect && 'hover:bg-surface-hair',
         'cursor-default',
         disabled && 'pointer-events-none opacity-50',
@@ -207,7 +206,7 @@ export function CardNew({ children, disabled, className }: CardNewProps) {
     <div
       className={clsx([
         'flex flex-col overflow-hidden select-none',
-        'bg-surface-elev min-h-16 rounded-2xl',
+        'bg-surface-elev min-h-14 rounded-2xl',
         'cursor-default transition',
         disabled && 'pointer-events-none opacity-50',
         className,

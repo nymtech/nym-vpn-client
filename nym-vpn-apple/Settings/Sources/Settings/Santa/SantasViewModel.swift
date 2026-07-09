@@ -6,6 +6,7 @@ import AppVersionProvider
 import ConfigurationManager
 import ConnectionTypes
 import CredentialsManager
+import AccountPrefetchGates
 import NymLogger
 #if os(iOS)
 import NymVPNLib
@@ -52,6 +53,14 @@ import Theme
     var envs: [Env] {
         Env.allCases
     }
+
+#if os(iOS)
+    var storeKitAccountGuidance: String {
+        SantaStoreKitEnvironmentPolicy.guidanceMessage(
+            isTestFlight: configurationManager.isTestFlight
+        )
+    }
+#endif
 
     var libVersion: String {
 #if os(iOS)

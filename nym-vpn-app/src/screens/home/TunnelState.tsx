@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'motion/react';
 import { useShallow } from 'zustand/react/shallow';
@@ -43,6 +43,11 @@ const FILL_FAST = 'var(--nv-brand-primary)';
 const FILL_ANON = 'var(--nv-connection-arc-anon)';
 const ERROR_CLR = 'var(--nv-status-error)';
 
+// Delay (ms) before surfacing the transient `needs-relaxed-independence-criteria`
+// error, so a quick auto-relax + reconnect (e.g. when switching servers while
+// connected) doesn't flash the error UI for an error that resolves on its own.
+const RELAXED_INDEPENDENCE_ERROR_DELAY = 1000;
+
 type Phase =
   | 'disconnected'
   | 'connecting'
@@ -82,16 +87,41 @@ export function TunnelState() {
     accountState === 'status-not-active' ||
     accountState === 'error';
 
+  // ─── Throttle the transient relaxed-independence error ────────────────────
+  // While connected, switching servers can make the daemon briefly surface
+  // `needs-relaxed-independence-criteria` before the watcher auto-relaxes and
+  // reconnects. Delay surfacing it.
+  const isRelaxedIndependenceError =
+    state === 'error' && tunnelError === 'needs-relaxed-independence-criteria';
+
+  const [showRelaxedIndependenceError, setShowRelaxedIndependenceError] =
+    useState(false);
+  useEffect(() => {
+    if (!isRelaxedIndependenceError) {
+      setShowRelaxedIndependenceError(false);
+      return;
+    }
+    const id = setTimeout(
+      () => setShowRelaxedIndependenceError(true),
+      RELAXED_INDEPENDENCE_ERROR_DELAY,
+    );
+    return () => clearTimeout(id);
+  }, [isRelaxedIndependenceError]);
+
+  const suppressRelaxedIndependenceError =
+    isRelaxedIndependenceError && !showRelaxedIndependenceError;
+
   const isError =
-    state === 'error' ||
-    state === 'unknown' ||
-    state === 'offline' ||
-    state === 'offline-auto-reconnect';
+    !suppressRelaxedIndependenceError &&
+    (state === 'error' ||
+      state === 'unknown' ||
+      state === 'offline' ||
+      state === 'offline-auto-reconnect');
   const isConnected = state === 'connected';
   const isConnecting = state === 'connecting';
   const isCanceling = state === 'disconnecting';
 
-  const phase: Phase = isError
+  const computedPhase: Phase = isError
     ? 'error'
     : isCanceling
       ? 'canceling'
@@ -100,6 +130,18 @@ export function TunnelState() {
         : isConnecting
           ? 'connecting'
           : 'disconnected';
+
+  // While suppressing the transient error, keep showing the previous phase
+  // (typically `connecting` during a server switch) so nothing flashes.
+  const lastPhaseRef = useRef<Phase>('disconnected');
+  const phase: Phase = suppressRelaxedIndependenceError
+    ? lastPhaseRef.current
+    : computedPhase;
+  useEffect(() => {
+    if (!suppressRelaxedIndependenceError) {
+      lastPhaseRef.current = computedPhase;
+    }
+  }, [suppressRelaxedIndependenceError, computedPhase]);
 
   // ─── Mode → sweep duration and fill color ─────────────────────────────────
   const isMixnet = vpnMode === 'mixnet';

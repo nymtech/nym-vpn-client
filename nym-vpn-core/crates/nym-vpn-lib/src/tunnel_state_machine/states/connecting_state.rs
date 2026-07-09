@@ -100,7 +100,7 @@ impl ConnectingState {
 
         #[cfg(target_os = "macos")]
         if let Err(e) = Self::set_local_dns_resolver(shared_state).await {
-            trace_err_chain!(e, "Failed to configure system to use filtering resolver",);
+            trace_err_chain!(e, "Failed to configure system to use filtering resolver");
             return ErrorState::enter(ErrorStateReason::SetDns, shared_state).await;
         }
 
@@ -132,20 +132,30 @@ impl ConnectingState {
             #[cfg(target_os = "macos")]
             let redirect_interface = shared_state.split_tunnel.interface().await;
 
+            let ws_entry_endpoints = selected_gateways
+                .as_ref()
+                .map(|v| v.entry_gateway().endpoints())
+                .unwrap_or_default();
+
+            let lp_entry_endpoints = selected_gateways
+                .as_ref()
+                .map(|v| v.entry_gateway().lp_endpoints())
+                .unwrap_or_default();
+
+            let api_endpoints = shared_state
+                .resolved_api_endpoints
+                .as_ref()
+                .map(|r| r.all_socket_addrs())
+                .unwrap_or_default();
+
             let firewall_policy_params = ConnectingPolicyParameters {
                 enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
                 allow_lan: shared_state.tunnel_settings.allow_lan,
                 wg_entry_endpoint: None,
                 bridge_endpoints,
-                ws_entry_endpoints: selected_gateways
-                    .as_ref()
-                    .map(|v| v.entry_gateway().endpoints())
-                    .unwrap_or_default(),
-                lp_entry_endpoints: selected_gateways
-                    .as_ref()
-                    .map(|v| v.entry_gateway().lp_endpoints())
-                    .unwrap_or_default(),
-                api_endpoints: Vec::new(),
+                ws_entry_endpoints,
+                lp_entry_endpoints,
+                api_endpoints,
                 // Allow default DNS servers when connecting since those are used by http/client
                 dns_servers: shared_state.tunnel_settings.allowed_default_dns_endpoints(),
                 tunnel_interface: None,
@@ -206,6 +216,9 @@ impl ConnectingState {
         params: &ConnectingPolicyParameters,
     ) -> Result<()> {
         let policy = params.as_policy();
+
+        #[cfg(target_os = "linux")]
+        shared_state.disable_nm_connectivity_check();
 
         shared_state
             .firewall
@@ -326,6 +339,10 @@ impl ConnectingState {
         HickoryDnsResolver::shared().set_static_preresolve(resolved_gateway_config.addr_map());
 
         self.firewall_policy_params.api_endpoints = resolved_gateway_config.all_socket_addrs();
+
+        // Store resolved API endpoints for reuse in error state to enable API communication while blocking network.
+        shared_state.resolved_api_endpoints = Some(resolved_gateway_config);
+
         if let Err(err) = Self::set_firewall_policy(shared_state, &self.firewall_policy_params) {
             trace_err_chain!(err, "failed to set firewall policy");
             return NextTunnelState::NewState(
@@ -383,7 +400,7 @@ impl ConnectingState {
             tunnel_constants: shared_state.tunnel_constants,
             selected_gateways: self.selected_gateways.clone(),
             user_agent: shared_state.user_agent.clone(),
-            #[cfg(target_os = "ios")]
+            #[cfg(not(target_os = "android"))]
             filtering_resolver_addr: shared_state.filtering_resolver.listen_addr(),
         };
         #[cfg(target_os = "android")]
@@ -397,6 +414,7 @@ impl ConnectingState {
             tunnel_parameters,
             shared_state.account_controller_state.clone(),
             shared_state.account_command_tx.clone(),
+            shared_state.bandwidth_command_tx.clone(),
             shared_state.gateway_provider.clone(),
             shared_state.topology_service.clone(),
             tunnel_monitor_event_sender,
@@ -913,7 +931,10 @@ impl ConnectingPolicyParameters {
             .map(|addr| {
                 AllowedEndpoint::new(
                     Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
@@ -926,7 +947,10 @@ impl ConnectingPolicyParameters {
             if addr.is_ipv4() || (self.enable_ipv6 && addr.is_ipv6()) {
                 let allow_wg_endpoint = AllowedEndpoint::new(
                     Endpoint::from_socket_address(addr, TransportProtocol::Udp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
@@ -945,7 +969,10 @@ impl ConnectingPolicyParameters {
             .for_each(|addr| {
                 let allow_bridge_endpoint = AllowedEndpoint::new(
                     Endpoint::from_socket_address(*addr, TransportProtocol::Udp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
+                    #[cfg(target_os = "linux")]
+                    // On Linux, All is needed so the mangle chain rule sets fwmark for outbound traffic
+                    AllowedClients::All,
+                    #[cfg(target_os = "macos")]
                     AllowedClients::Root,
                     #[cfg(target_os = "windows")]
                     AllowedClients::current_exe(),
@@ -1048,5 +1075,38 @@ mod test {
             .map(|i| wait_delay(*i))
             .collect();
         assert_eq!(delay_values, expected_delays);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_connecting_peer_endpoints_allow_all_for_fwmark() {
+        use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+        let params = ConnectingPolicyParameters {
+            enable_ipv6: false,
+            allow_lan: false,
+            wg_entry_endpoint: Some(SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(1, 2, 3, 4)),
+                51822,
+            )),
+            bridge_endpoints: vec![SocketAddr::new(IpAddr::V4(Ipv4Addr::new(5, 6, 7, 8)), 4443)],
+            ws_entry_endpoints: vec![SocketAddr::new(
+                IpAddr::V4(Ipv4Addr::new(9, 10, 11, 12)),
+                9000,
+            )],
+            lp_entry_endpoints: vec![],
+            api_endpoints: vec![],
+            dns_servers: vec![],
+            tunnel_interface: None,
+        };
+
+        let policy = params.as_policy();
+
+        for endpoint in policy.peer_endpoints() {
+            assert!(
+                endpoint.clients.allow_all(),
+                "Linux connecting peer endpoints must use AllowedClients::All so nftables mangle sets fwmark"
+            );
+        }
     }
 }

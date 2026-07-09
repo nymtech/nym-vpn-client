@@ -23,6 +23,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -47,7 +48,8 @@ import net.nymtech.nymvpn.ui.common.snackbar.AlertHost
 import net.nymtech.nymvpn.ui.common.snackbar.AlertMessage
 import net.nymtech.nymvpn.ui.common.snackbar.AlertType
 import net.nymtech.nymvpn.ui.model.ConnectionState
-import net.nymtech.nymvpn.ui.screens.auth.AuthRoute
+import net.nymtech.nymvpn.ui.AuthRoute
+import net.nymtech.nymvpn.ui.screens.main.bottomsheet.MainBottomSheetContent
 import net.nymtech.nymvpn.ui.screens.main.components.ConnectionStatus
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectAction
 import net.nymtech.nymvpn.ui.screens.main.panel.ConnectMode
@@ -70,7 +72,7 @@ import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.Score
 
 @Composable
-fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, authRoute: AuthRoute? = null, viewModel: MainViewModel = hiltViewModel()) {
+fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, authRoute: AuthRoute? = null, loginProcessing: Boolean = false, viewModel: MainViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val context = LocalContext.current
 	val navController = LocalNavController.current
@@ -81,8 +83,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val autologinState by appViewModel.autologinState.collectAsStateWithLifecycle()
 	val expiryBannerDismissed by viewModel.expiryBannerDismissed.collectAsStateWithLifecycle()
 
-	var showAuthSheet by remember { mutableStateOf(false) }
-	var initialAuthRoute by remember { mutableStateOf<AuthRoute>(AuthRoute.Welcome) }
+	var bottomSheetContent by remember { mutableStateOf<MainBottomSheetContent>(MainBottomSheetContent.Hidden) }
+	var authSheetHeightPx by remember { mutableIntStateOf(0) }
 	var authSheetChecked by rememberSaveable { mutableStateOf(false) }
 	var didAutoStart by rememberSaveable { mutableStateOf(false) }
 
@@ -90,6 +92,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	var showBatteryDialog by remember { mutableStateOf(false) }
 	var showNetworkStatsDialog by remember { mutableStateOf(false) }
+	var showNodeFamiliesDialog by remember { mutableStateOf(false) }
 
 	// ── Launchers ────────────────────────────────────────────────────────────
 
@@ -180,8 +183,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			appUiState.subscription?.expiryState == ExpiryState.EXPIRED && appUiState.managerState.isMnemonicStored ->
 				navController.goFromRoot(Route.SelectPlan)
 			!appUiState.managerState.isMnemonicStored -> {
-				initialAuthRoute = AuthRoute.Welcome
-				showAuthSheet = true
+				bottomSheetContent = MainBottomSheetContent.Auth(AuthRoute.Welcome)
 			}
 		}
 	}
@@ -192,8 +194,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		if (appUiState.managerState.isInitialized && !authSheetChecked) {
 			authSheetChecked = true
 			if (!appUiState.managerState.isMnemonicStored && !appUiState.settings.isWelcomeShown) {
-				initialAuthRoute = AuthRoute.Welcome
-				showAuthSheet = true
+				bottomSheetContent = MainBottomSheetContent.Auth(AuthRoute.Welcome)
 			}
 		}
 	}
@@ -201,14 +202,28 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	LaunchedEffect(authRoute) {
 		if (authRoute == null) return@LaunchedEffect
 		if (authRoute == AuthRoute.TechOpt || !appUiState.managerState.isMnemonicStored) {
-			initialAuthRoute = authRoute
-			showAuthSheet = true
+			bottomSheetContent = MainBottomSheetContent.Auth(authRoute)
+		}
+	}
+
+	LaunchedEffect(loginProcessing) {
+		if (loginProcessing) {
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing
 		}
 	}
 
 	LaunchedEffect(Unit) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 			requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+		}
+	}
+
+	LaunchedEffect(Unit) {
+		viewModel.events.collect { event ->
+			when (event) {
+				is MainUiEvent.ShowNodeFamiliesDialog -> showNodeFamiliesDialog = true
+				is MainUiEvent.NavigateToSelectPlan -> navController.goFromRoot(Route.SelectPlan)
+			}
 		}
 	}
 
@@ -228,7 +243,6 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		expiryState = appUiState.subscription?.expiryState,
 		validUntilDate = appUiState.subscription?.validUntilDate ?: "",
 		expiryBannerDismissed = expiryBannerDismissed,
-		registerAccountNavigation = viewModel.registerAccountNavigation,
 		onRetryConnect = ::onConnectPressed,
 		onDismissExpiryBanner = viewModel::dismissExpiryBanner,
 		onRenewSubscription = { appViewModel.fetchAutologin(DeeplinkKind.AUTOLOGIN_RENEW) },
@@ -285,9 +299,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		showCompatibilityDialog = showCompatibilityDialog,
 		showBatteryDialog = showBatteryDialog,
 		showNetworkStatsDialog = showNetworkStatsDialog,
-		showAuthSheet = showAuthSheet,
-		isMnemonicStored = appUiState.managerState.isMnemonicStored,
-		initialAuthRoute = initialAuthRoute,
+		showNodeFamiliesDialog = showNodeFamiliesDialog,
+		bottomSheetContent = bottomSheetContent,
 		onCancelAutologin = appViewModel::cancelAutologin,
 		onDismissAutologin = appViewModel::dismissAutologin,
 		onDismissInfo = { showInfoDialog = false },
@@ -316,11 +329,25 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			viewModel.onNetworkStatsSkipped()
 			showNetworkStatsDialog = false
 		},
-		onDismissAuthSheet = {
-			if (!appUiState.settings.isWelcomeShown) appViewModel.setWelcomeShown()
-			showAuthSheet = false
+		onConfirmNodeFamilies = {
+			showNodeFamiliesDialog = false
+			viewModel.onNodeFamiliesConfirm()
 		},
-		onAuthSuccess = { showAuthSheet = false },
+		onDismissNodeFamilies = {
+			showNodeFamiliesDialog = false
+			viewModel.onNodeFamiliesCancel()
+		},
+		onNotificationSettingsClick = { navController.goFromRoot(Route.Notifications) },
+		onDismissBottomSheet = {
+			if (!appUiState.settings.isWelcomeShown) appViewModel.setWelcomeShown()
+			bottomSheetContent = MainBottomSheetContent.Hidden
+		},
+		onAuthSuccess = { bottomSheetContent = MainBottomSheetContent.Hidden },
+		onLoginProcessingStart = {
+			bottomSheetContent = MainBottomSheetContent.LoginProcessing
+		},
+		authSheetMinHeightPx = authSheetHeightPx,
+		onAuthSheetHeightChange = { height -> authSheetHeightPx = height },
 		appUiState = appUiState,
 	)
 }

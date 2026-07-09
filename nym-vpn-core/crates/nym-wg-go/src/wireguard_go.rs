@@ -6,7 +6,10 @@ use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 use std::{
     ffi::{CStr, CString, c_char, c_void},
     fmt,
-    sync::Arc,
+    mem::replace,
+    net::SocketAddr,
+    sync::{Arc, PoisonError, RwLock},
+    time::{Duration, SystemTime},
 };
 
 use nym_crypto::asymmetric::x25519;
@@ -142,7 +145,7 @@ pub struct TunnelConfig {
 /// Classic WireGuard tunnel.
 #[derive(Debug)]
 pub struct Tunnel {
-    tunnel_handle: i32,
+    tunnel_handle: Arc<RwLock<i32>>, // Handle is shared between Tunnel and TunnelStatsReader
     #[cfg(windows)]
     wintun_interface: WintunInterface,
 }
@@ -191,7 +194,9 @@ impl Tunnel {
         };
 
         if tunnel_handle >= 0 {
-            Ok(Self { tunnel_handle })
+            Ok(Self {
+                tunnel_handle: Arc::new(RwLock::new(tunnel_handle)),
+            })
         } else {
             Err(Error::StartTunnel(tunnel_handle))
         }
@@ -254,7 +259,7 @@ impl Tunnel {
             };
 
             Ok(Self {
-                tunnel_handle,
+                tunnel_handle: Arc::new(RwLock::new(tunnel_handle)),
                 wintun_interface,
             })
         } else {
@@ -283,7 +288,9 @@ impl Tunnel {
         };
 
         if tunnel_handle >= 0 {
-            Ok(Self { tunnel_handle })
+            Ok(Self {
+                tunnel_handle: Arc::new(RwLock::new(tunnel_handle)),
+            })
         } else {
             Err(Error::StartTunnel(tunnel_handle))
         }
@@ -305,7 +312,13 @@ impl Tunnel {
     /// Typically used on default route change.
     #[cfg(target_os = "ios")]
     pub fn bump_sockets(&mut self) {
-        unsafe { wgBumpSockets(self.tunnel_handle) }
+        let handle = self
+            .tunnel_handle
+            .read()
+            .unwrap_or_else(PoisonError::into_inner);
+        if *handle >= 0 {
+            unsafe { wgBumpSockets(*handle) }
+        }
     }
 
     /// Re-bind tunnel socket to the new network interface.
@@ -323,7 +336,14 @@ impl Tunnel {
         }
         let settings = CString::new(config_builder.into_bytes())
             .map_err(|_| Error::ConvertToCString("peer update config"))?;
-        let ret_code = unsafe { wgSetConfig(self.tunnel_handle, settings.as_ptr()) };
+        let handle = self
+            .tunnel_handle
+            .read()
+            .unwrap_or_else(PoisonError::into_inner);
+        if *handle < 0 {
+            return Err(Error::TunnelStopped);
+        }
+        let ret_code = unsafe { wgSetConfig(*handle, settings.as_ptr()) };
 
         if ret_code == 0 {
             Ok(())
@@ -332,10 +352,23 @@ impl Tunnel {
         }
     }
 
+    /// Create a stats reader that can query live peer stats without owning the tunnel.
+    pub fn stats_reader(&self) -> TunnelStatsReader {
+        TunnelStatsReader {
+            tunnel_handle: self.tunnel_handle.clone(),
+        }
+    }
+
     fn stop_inner(&mut self) {
-        if self.tunnel_handle >= 0 {
-            unsafe { wgTurnOff(self.tunnel_handle) };
-            self.tunnel_handle = -1;
+        let handle = replace(
+            &mut *self
+                .tunnel_handle
+                .write()
+                .unwrap_or_else(PoisonError::into_inner),
+            -1,
+        );
+        if handle >= 0 {
+            unsafe { wgTurnOff(handle) };
         }
     }
 }
@@ -343,6 +376,150 @@ impl Tunnel {
 impl Drop for Tunnel {
     fn drop(&mut self) {
         self.stop_inner()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PeerStats {
+    pub public_key: [u8; 32],
+    pub endpoint: Option<SocketAddr>,
+    pub last_handshake_time: Option<SystemTime>,
+    pub rx_bytes: u64,
+    pub tx_bytes: u64,
+}
+
+impl PeerStats {
+    pub fn has_completed_handshake(&self) -> bool {
+        self.last_handshake_time.is_some()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TunnelStats {
+    pub listen_port: Option<u16>,
+    pub peers: Vec<PeerStats>,
+}
+
+impl TunnelStats {
+    pub fn all_peers_connected(&self) -> bool {
+        !self.peers.is_empty() && self.peers.iter().all(|p| p.has_completed_handshake())
+    }
+}
+
+pub struct TunnelStatsReader {
+    tunnel_handle: Arc<RwLock<i32>>, // Handle is shared between Tunnel and TunnelStatsReader
+}
+
+impl TunnelStatsReader {
+    pub fn get_stats(&self) -> Result<TunnelStats> {
+        let handle = self
+            .tunnel_handle
+            .read()
+            .unwrap_or_else(PoisonError::into_inner);
+        if *handle < 0 {
+            return Err(Error::TunnelStopped);
+        }
+        let raw = unsafe { wgGetConfig(*handle) };
+        if raw.is_null() {
+            return Err(Error::GetUapiConfig);
+        }
+        let s = unsafe { CStr::from_ptr(raw).to_string_lossy().into_owned() };
+        unsafe { wgFreePtr(raw as *mut c_void) };
+        tracing::trace!("TunnelStats: '{s}'");
+        Ok(Self::parse_tunnel_stats(&s))
+    }
+
+    fn parse_tunnel_stats(response: &str) -> TunnelStats {
+        let mut listen_port: Option<u16> = None;
+        let mut peers: Vec<PeerStats> = Vec::new();
+        let mut current: Option<PeerBuilder> = None;
+
+        for line in response.lines() {
+            let Some((key, value)) = line.split_once('=') else {
+                continue;
+            };
+            match key {
+                "listen_port" => listen_port = value.parse().ok(),
+                "public_key" => {
+                    if let Some(builder) = current.take() {
+                        peers.push(builder.build());
+                    }
+                    current = hex::decode(value)
+                        .ok()
+                        .and_then(|b| b.try_into().ok())
+                        .map(PeerBuilder::new);
+                }
+                "endpoint" => {
+                    if let Some(ref mut b) = current {
+                        b.endpoint = value.parse().ok();
+                    }
+                }
+                "last_handshake_time_sec" => {
+                    if let Some(ref mut b) = current {
+                        b.handshake_sec = value.parse().unwrap_or(0);
+                    }
+                }
+                "last_handshake_time_nsec" => {
+                    if let Some(ref mut b) = current {
+                        b.handshake_nsec = value.parse().unwrap_or(0);
+                    }
+                }
+                "rx_bytes" => {
+                    if let Some(ref mut b) = current {
+                        b.rx_bytes = value.parse().unwrap_or(0);
+                    }
+                }
+                "tx_bytes" => {
+                    if let Some(ref mut b) = current {
+                        b.tx_bytes = value.parse().unwrap_or(0);
+                    }
+                }
+                _ => {}
+            }
+        }
+        if let Some(builder) = current {
+            peers.push(builder.build());
+        }
+
+        TunnelStats { listen_port, peers }
+    }
+}
+
+struct PeerBuilder {
+    public_key: [u8; 32],
+    endpoint: Option<SocketAddr>,
+    handshake_sec: u64,
+    handshake_nsec: u32,
+    rx_bytes: u64,
+    tx_bytes: u64,
+}
+
+impl PeerBuilder {
+    fn new(public_key: [u8; 32]) -> Self {
+        Self {
+            public_key,
+            endpoint: None,
+            handshake_sec: 0,
+            handshake_nsec: 0,
+            rx_bytes: 0,
+            tx_bytes: 0,
+        }
+    }
+
+    fn build(self) -> PeerStats {
+        let last_handshake_time = if self.handshake_sec > 0 {
+            SystemTime::UNIX_EPOCH
+                .checked_add(Duration::new(self.handshake_sec, self.handshake_nsec))
+        } else {
+            None
+        };
+        PeerStats {
+            public_key: self.public_key,
+            endpoint: self.endpoint,
+            last_handshake_time,
+            rx_bytes: self.rx_bytes,
+            tx_bytes: self.tx_bytes,
+        }
     }
 }
 

@@ -16,6 +16,8 @@ env:
   BINARY_NAME: nym-vpnc
   PKG_IDENTIFIER: net.nymtech.vpnc
   PKG_INSTALL_LOCATION: /usr/local/bin
+  S3_ENDPOINT: https://s3.nymte.ch # API endpoint for uploads
+  S3_BUCKET: builds
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -28,7 +30,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
 
@@ -76,7 +78,7 @@ jobs:
           echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
           toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
           mv Cargo-patched.toml Cargo.toml
-          cargo update --dry-run
+          cargo fetch
 
       - name: Get workspace version
         id: workspace-version
@@ -87,6 +89,28 @@ jobs:
       - name: Add Homebrew to PATH
         run: |
           echo "/opt/homebrew/bin" >> "$GITHUB_PATH"
+
+      - name: Ensure codemagic-cli-tools uses compatible Python
+        run: |
+          set -euo pipefail
+          if ! keychain --version >/dev/null 2>&1; then
+            # The runner's system /usr/lib/libexpat.1.dylib is missing
+            # _XML_SetAllocTrackerActivationThreshold. Every Homebrew Python
+            # version (3.12 and 3.14) links pyexpat.so against the system
+            # libexpat, so ALL versions fail — switching Python doesn't help.
+            # Fix: remap each Homebrew Python's pyexpat.so to use Homebrew's
+            # own expat formula (which ships the required symbol), then
+            # ad-hoc re-sign the patched .so so macOS will load it.
+            brew install expat
+            HOMEBREW_EXPAT="$(brew --prefix expat)/lib/libexpat.1.dylib"
+            while IFS= read -r -d '' so; do
+              install_name_tool -change /usr/lib/libexpat.1.dylib \
+                "$HOMEBREW_EXPAT" "$so" \
+                && codesign -f -s - "$so" || true
+            done < <(find /opt/homebrew/Cellar/python@* \
+              -name 'pyexpat*.so' -not -type l -print0 2>/dev/null)
+            keychain --version
+          fi
 
       - name: Configure sccache
         run: |
@@ -346,22 +370,19 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Upload to www
-        uses: easingthemes/ssh-deploy@main
+      - name: Publish PKG to S3
+        uses: ./.github/actions/push-to-s3
         with:
-          REMOTE_PORT: 22
-          ARGS: -avzr
-          SSH_CMD_ARGS: -o StrictHostKeyChecking=no
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.CI_WWW_SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.CI_WWW_REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.CI_WWW_REMOTE_USER }}
-          TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/macOS/vpnc/
-          SOURCE: ${{ env.renamed_pkg_relative_path }}
+          source_path: ${{ env.renamed_pkg_relative_path }}
+          destination: nym-vpn-client/macOS/vpnc/
+          endpoint: ${{ env.S3_ENDPOINT }}
+          bucket: ${{ env.S3_BUCKET }}
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
 
       - name: Publish GitHub Release
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.release == true }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -379,7 +400,7 @@ jobs:
 
       - name: Publish GitHub Pre-release
         if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch' && inputs.release != true) }}
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

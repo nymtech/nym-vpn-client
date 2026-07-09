@@ -38,10 +38,6 @@ export type Cli = {
    */
   buildInfo: boolean;
   /**
-   * Enable writing app logs to a file
-   */
-  logFile: boolean;
-  /**
    * Set the log level
    */
   logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | null;
@@ -144,7 +140,6 @@ export type FeatureFlags = {
   quic: boolean;
   domainFronting: boolean;
   zknymCredential: boolean;
-  mixnetTuning: boolean;
 };
 
 export type FrontingMode = 'off' | 'onRetry' | 'always';
@@ -164,6 +159,7 @@ export type Gateway = {
   exitIpv6: string | null;
   buildVersion: string | null;
   quic: boolean;
+  nodeFamilyName: string | null;
 };
 
 export type GatewaySelectionAlgorithm =
@@ -184,6 +180,12 @@ export type GatewaysByCountry = {
   gateways: Array<Gateway>;
   type: GatewayType;
   quic: boolean;
+};
+
+export type GeoExclusionSettings = {
+  enabled: boolean;
+  listenPort: number;
+  excludedCountries: Array<string>;
 };
 
 export type GpuType = 'nvidia' | 'amd' | 'intel' | { unknown: string | null };
@@ -350,6 +352,7 @@ export type TAccountSummary = {
   trafficUsedGb: bigint;
   trafficLimitGb: bigint;
   trafficResetTime: bigint | null;
+  fairUsageDataUnavailable: boolean;
   accountAddr: string;
   canonicalAccountAddr: string | null;
   authMethods: Array<TAuthMethod>;
@@ -500,6 +503,15 @@ export type TVpnSubscriptionKind =
   | 'freepass'
   | { other: string };
 
+/**
+ * Only the discriminant is needed by the UI to decide the connect flow, so the
+ * `Selected` entry/exit payload is intentionally dropped.
+ */
+export type TentativeGateways =
+  | 'selected'
+  | 'needs-relaxed-independence-criteria'
+  | 'no-gateways-available';
+
 export type ThemeMode = 'system' | 'light' | 'dark';
 
 export type Tunnel = {
@@ -573,7 +585,9 @@ export type VpndConfig = {
   mixnetTraffic: MixnetTrafficConfig;
   mixnetTrafficDefaults: MixnetTrafficDefaults;
   splitTunnel: SplitTunnelSettings;
+  geoExclusion: GeoExclusionSettings;
   gatewaySelectionAlgorithmConfig: GatewaySelectionAlgorithmConfig;
+  gatewayIndependenceNotifications: boolean;
 };
 
 export type VpndInfo = { version: string; network: string; gitCommit: string };

@@ -44,7 +44,9 @@ impl OfflineState {
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         let firewall_policy_params = BlockedPolicyParameters {
+            enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
             allow_lan: shared_state.tunnel_settings.allow_lan,
+            api_endpoints: vec![],
         };
 
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -78,6 +80,9 @@ impl OfflineState {
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
+        #[cfg(target_os = "linux")]
+        shared_state.restore_nm_connectivity_check();
+
         if let Err(e) = shared_state.firewall.reset_policy() {
             trace_err_chain!(e, "Failed to reset firewall policy");
         }

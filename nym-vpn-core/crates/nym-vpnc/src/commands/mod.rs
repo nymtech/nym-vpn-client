@@ -12,6 +12,7 @@ pub mod lan;
 pub mod network;
 pub mod network_stats;
 pub mod sentry;
+pub mod session;
 pub mod socks5;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 pub mod split_tunnel;

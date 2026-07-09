@@ -196,6 +196,18 @@ fun NavBar(
 				titleRes = R.string.privacy_diagnostic_tool,
 				onBack = { navController.safePopBackStack() },
 			)
+			route.startsWith(Route.Notifications::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.settings_notifications_title,
+				onBack = { navController.safePopBackStack() },
+			)
+			route.startsWith(Route.GeoExclusion::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.settings_geo_exclusion_title,
+				onBack = { navController.safePopBackStack() },
+			)
+			route.startsWith(Route.Setup::class.qualifiedName!!) -> NavBarState.WithBack(
+				titleRes = R.string.setup_instructions_title,
+				onBack = { navController.safePopBackStack() },
+			)
 
 			else -> NavBarState.Hidden
 		}

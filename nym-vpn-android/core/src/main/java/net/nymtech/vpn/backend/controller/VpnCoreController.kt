@@ -29,6 +29,7 @@ import nym_vpn_lib_types.EntryPoint
 import nym_vpn_lib_types.ExitPoint
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 import nym_vpn_lib_types.GatewaySelectionAlgorithmConfig
+
 import nym_vpn_lib_types.FrontingMode
 import nym_vpn_lib_types.GatewayIndependence
 import nym_vpn_lib_types.MixnetEvent
@@ -103,6 +104,7 @@ class VpnCoreController(
 				mixnetParamConfig = null,
 				adBlockingEnabled = savedConfig.adBlockingEnabled,
 				stealthMode = savedConfig.stealthMode,
+				nodeFamiliesNotificationsEnabled = savedConfig.nodeFamiliesNotificationsEnabled,
 			)
 			applyCanonicalConfigToRustIfReady(force = false, canonical = savedConfig)
 		}.onFailure { Timber.tag(TAG).w(it, "ensureReadyForManagement failed") }
@@ -123,6 +125,7 @@ class VpnCoreController(
 				mixnetParamConfig = req.mixnetParamConfig,
 				adBlockingEnabled = config.adBlockingEnabled,
 				stealthMode = config.stealthMode,
+				nodeFamiliesNotificationsEnabled = config.nodeFamiliesNotificationsEnabled,
 			)
 
 			applyCanonicalConfigToRustIfReady(force = true, canonical = config)
@@ -182,6 +185,7 @@ class VpnCoreController(
 				mixnetParamConfig = null,
 				adBlockingEnabled = cfg.adBlockingEnabled,
 				stealthMode = cfg.stealthMode,
+				nodeFamiliesNotificationsEnabled = cfg.nodeFamiliesNotificationsEnabled,
 			)
 		}.onFailure { t ->
 			Timber.tag(TAG).e(t, "CoreInitFailed")
@@ -313,6 +317,7 @@ class VpnCoreController(
 		mixnetParamConfig: MixnetTrafficConfig?,
 		adBlockingEnabled: Boolean,
 		stealthMode: Boolean,
+		nodeFamiliesNotificationsEnabled: Boolean,
 	) {
 		if (initialized.isCompleted && commandSender != null && nymEnvironment != null && nymVpnService != null) return
 
@@ -357,7 +362,7 @@ class VpnCoreController(
 			tunProvider = service,
 			connectivityMonitor = service,
 			gatewaySelectionAlgorithmConfig = GatewaySelectionAlgorithmConfig(false, GatewaySelectionAlgorithm.AUTO),
-			gatewayIndependence = GatewayIndependence(differentNodeFamily = true, differentAsn = true, differentSubnet = true),
+			gatewayIndependence = GatewayIndependence(enableNotifications = nodeFamiliesNotificationsEnabled, differentNodeFamily = true, differentAsn = true, differentSubnet = true),
 		)
 
 		val svc = NymVpnService.newService(initialConfig, env, service)
@@ -381,37 +386,7 @@ class VpnCoreController(
 		syncLocalFieldsFromConfig(cfg)
 
 		requireCoreSender { sender ->
-			if (force || prev?.mode?.isTwoHop() != cfg.mode.isTwoHop()) {
-				sender.setEnableTwoHop(cfg.mode.isTwoHop())
-			}
-
-			if (force || prev?.algorithm != cfg.algorithm) {
-				sender.setGatewaySelectionAlgorithm(cfg.algorithm)
-			}
-
-			if (force || prev?.enableBridges != cfg.enableBridges) {
-				sender.setEnableBridges(cfg.enableBridges)
-			}
-
-			if (force || prev?.customDnsEnabled != cfg.customDnsEnabled) {
-				sender.setEnableCustomDns(cfg.customDnsEnabled)
-			}
-
-			if (cfg.customDnsEnabled && (force || prev?.customDns != cfg.customDns)) {
-				sender.setCustomDns(cfg.customDns.toList())
-			}
-
-			if (force || prev?.entryPoint != cfg.entryPoint) {
-				sender.setEntryPoint(cfg.entryPoint)
-			}
-
-			if (force || prev?.exitPoint != cfg.exitPoint) {
-				sender.setExitPoint(cfg.exitPoint)
-			}
-
-			if (force || prev?.adBlockingEnabled != cfg.adBlockingEnabled) {
-				sender.setEnableAdBlocking(cfg.adBlockingEnabled)
-			}
+			applyConfigDiffToSender(sender, force, prev, cfg)
 		}
 
 		lastAppliedConfig = cfg
@@ -419,6 +394,47 @@ class VpnCoreController(
 		if (tunSettingsChanged && state != Tunnel.State.Down) {
 			Timber.tag(TAG).i("Routing changed, triggering reconnect")
 			reconnectLocked()
+		}
+	}
+
+	private suspend fun applyConfigDiffToSender(sender: NymVpnServiceCommandSender, force: Boolean, prev: CoreVpnConfig?, cfg: CoreVpnConfig) {
+		if (force || prev?.mode?.isTwoHop() != cfg.mode.isTwoHop()) {
+			sender.setEnableTwoHop(cfg.mode.isTwoHop())
+		}
+		if (force || prev?.algorithm != cfg.algorithm) {
+			sender.setGatewaySelectionAlgorithm(cfg.algorithm)
+		}
+		if (force || prev?.enableBridges != cfg.enableBridges) {
+			sender.setEnableBridges(cfg.enableBridges)
+		}
+		if (force || prev?.customDnsEnabled != cfg.customDnsEnabled) {
+			sender.setEnableCustomDns(cfg.customDnsEnabled)
+		}
+		if (cfg.customDnsEnabled && (force || prev?.customDns != cfg.customDns)) {
+			sender.setCustomDns(cfg.customDns.toList())
+		}
+		if (force || prev?.entryPoint != cfg.entryPoint) {
+			sender.setEntryPoint(cfg.entryPoint)
+		}
+		if (force || prev?.exitPoint != cfg.exitPoint) {
+			sender.setExitPoint(cfg.exitPoint)
+		}
+		if (force || prev?.adBlockingEnabled != cfg.adBlockingEnabled) {
+			sender.setEnableAdBlocking(cfg.adBlockingEnabled)
+		}
+
+		applyGeoExclusionToSender(sender, force, prev, cfg)
+	}
+
+	private suspend fun applyGeoExclusionToSender(sender: NymVpnServiceCommandSender, force: Boolean, prev: CoreVpnConfig?, cfg: CoreVpnConfig) {
+		if (force || prev?.geoExclusionEnabled != cfg.geoExclusionEnabled) {
+			sender.setGeoExclusionEnabled(cfg.geoExclusionEnabled)
+		}
+		if (force || prev?.geoExclusionPort != cfg.geoExclusionPort) {
+			sender.setGeoExclusionListenPort(cfg.geoExclusionPort.coerceIn(UShort.MIN_VALUE.toInt(), UShort.MAX_VALUE.toInt()).toUShort())
+		}
+		if (force || prev?.geoExclusionCountries != cfg.geoExclusionCountries) {
+			sender.setGeoExclusionExcludedCountries(cfg.geoExclusionCountries)
 		}
 	}
 

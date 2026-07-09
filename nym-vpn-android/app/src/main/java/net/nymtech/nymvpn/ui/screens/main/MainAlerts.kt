@@ -8,7 +8,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import kotlinx.coroutines.flow.SharedFlow
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.snackbar.AlertAction
 import net.nymtech.nymvpn.ui.common.snackbar.AlertController
@@ -30,7 +29,6 @@ fun MainAlerts(
 	expiryState: ExpiryState?,
 	validUntilDate: String,
 	expiryBannerDismissed: Boolean,
-	registerAccountNavigation: SharedFlow<Unit>,
 	onRetryConnect: () -> Unit,
 	onDismissExpiryBanner: () -> Unit,
 	onRenewSubscription: () -> Unit,
@@ -104,10 +102,6 @@ fun MainAlerts(
 		} else {
 			AlertController.dismiss(id = AlertId.InactiveAccount)
 		}
-	}
-
-	LaunchedEffect(Unit) {
-		registerAccountNavigation.collect { onNavigateToSelectPlan() }
 	}
 
 	val retryLabel = stringResource(R.string.try_reconnecting)

@@ -21,19 +21,20 @@
     "performant-entry-gw-unavailable": "Can't reach entry server. Try another!",
     "performant-exit-gw-unavailable": "Can't reach exit server. Try another!",
     "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
-    "bandwidth-exceeded": "Monthly data limit reached. Contact Support for a quick data boost.",
+    "bandwidth-exceeded": "Daily allowance reached. Resets at midnight UTC. Contact Support if this seems wrong.",
     "subscription-expired": "Subscription has expired. Kill switch protects you. Tap Stop and renew your plan.",
     "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
     "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4",
     "tun-device": "TUN device error",
     "tunnel-provider": "Tunnel provider error",
     "inactive-account": "Your account is inactive",
-    "device-logged-out": "This device has been logged out. Please log in to continue using the VPN."
+    "device-logged-out": "This device has been logged out. Please log in to continue using the VPN.",
+    "needs-relaxed-independence-criteria": "Needs relaxed independence criteria"
   },
   "account": {
     "internal": "Internal account error",
     "max-devices-reached": "Account device limit exceeded.",
-    "bandwidth-exceeded": "Monthly data limit reached. Contact Support for a quick data boost.",
+    "bandwidth-exceeded": "Daily allowance reached. Resets at midnight UTC. Contact Support if this seems wrong.",
     "invalid-recovery-phrase": "Invalid passphrase",
     "no-account-stored": "No account stored",
     "no-device-stored": "No device stored",

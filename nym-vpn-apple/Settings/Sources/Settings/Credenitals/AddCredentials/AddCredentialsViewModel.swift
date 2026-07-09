@@ -5,7 +5,9 @@ import CredentialsManager
 import ConnectionManager
 import ConfigurationManager
 #if os(iOS)
+import ErrorHandler
 import KeyboardManager
+import NymVPNLib
 #endif
 import Routes
 import Theme
@@ -96,14 +98,31 @@ import Theme
 
         Task {
             do {
+#if os(iOS)
+                try await credentialsManager.performAccountRegistration(loginCredential: trimmedCredential)
+#elseif os(macOS)
+                // add → grpc storeAccount persists the mnemonic on the daemon; registerAccount() is iOS-only.
                 try await credentialsManager.add(credential: trimmedCredential)
-                try await credentialsManager.registerAccount()
+                await credentialsManager.updateAccountSummary(force: true, untilActive: false)
+#endif
                 error = CredentialsManagerError.noError
                 credentialsDidAdd()
             } catch let newError {
                 Task { @MainActor in
                     credentialText = trimmedCredential
-                    error = CredentialsManagerError.generalError(String(describing: newError.localizedDescription))
+#if os(iOS)
+                    if let reason = newError as? VPNErrorReason {
+                        error = CredentialsManagerError.generalError(reason.localizedDescription)
+                    } else if let vpnError = newError as? VpnError {
+                        error = CredentialsManagerError.generalError(
+                            VPNErrorReason(with: vpnError).localizedDescription
+                        )
+                    } else {
+                        error = CredentialsManagerError.generalError(newError.localizedDescription)
+                    }
+#elseif os(macOS)
+                    error = CredentialsManagerError.generalError(newError.localizedDescription)
+#endif
                 }
             }
         }
@@ -115,7 +134,7 @@ extension AddCredentialsViewModel {
     func navigateBack() {
         switch navigationSource {
         case .onboarding:
-            path = .init([HomeLink.onboarding])
+            path = .init()
         case .accountWelcome:
             if !path.isEmpty { path.removeLast() }
         case .settings:
@@ -129,11 +148,7 @@ extension AddCredentialsViewModel {
     }
 
     func navigateHomeOrTechnicalOptIn() {
-        if appSettings.welcomeScreenDidDisplay {
-            path = .init()
-        } else {
-            path = .init([HomeLink.technicalOptIns])
-        }
+        path = .init()
     }
 }
 

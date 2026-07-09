@@ -1,6 +1,7 @@
 import SwiftUI
 import StoreKit
 import AppSettings
+import AccountPrefetchGates
 import CredentialsManager
 import ExternalLinkManager
 #if os(iOS)
@@ -28,9 +29,16 @@ public struct GeneratePassphraseView: View {
     @State var isAlertDisplayed = false
     @State var isPurchasing = false
     @State var isPlanAlertDisplayed = false
-#if os(macOS)
+    @State var alertOffersRegistrationRetry = false
+    @State private var didLeaveForSuccessfulPurchase = false
+#if os(iOS)
+    @State private var autologinState = AutologinState()
+#elseif os(macOS)
     @State var autologinState = AutologinState()
 #endif
+
+    private let isPurchaseOnly: Bool
+    private let onPurchaseFlowDismissed: (() -> Void)?
 
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var credentialsManager: CredentialsManager
@@ -42,7 +50,13 @@ public struct GeneratePassphraseView: View {
                 .frame(height: 24)
 
             VStack(spacing: 0) {
-                StepView(stepCount: 4, currentStep: $currentStep)
+                if showsOnboardingProgressBar {
+                    StepView(
+                        stepCount: 4,
+                        currentStep: $currentStep,
+                        animateInitialFill: !isPurchaseOnly
+                    )
+                }
                 Spacer()
 
                 if !(didFinishAnimatingText && didRegisterAccount) {
@@ -60,6 +74,13 @@ public struct GeneratePassphraseView: View {
                         .frame(height: 12)
                     titleSubtitleView
                     Spacer()
+#if os(iOS)
+                    if showsWebSubscribeOnSubscriptionPage {
+                        webSubscribeButton
+                        Spacer()
+                            .frame(height: 12)
+                    }
+#endif
                     selectPlanButton
                 }
             }
@@ -72,29 +93,73 @@ public struct GeneratePassphraseView: View {
                 .ignoresSafeArea()
         }
         .task {
-            await generateAndRegisterMnemonic()
-        }
-        .alert(alertTitle, isPresented: $isAlertDisplayed) {
-            Button("retry".localizedString, role: .cancel) {
-                Task {
-                    await generateAndRegisterMnemonic()
-                }
+            if isPurchaseOnly {
+                didRegisterAccount = true
+            } else {
+                await generateAndRegisterMnemonic()
             }
         }
-#if os(macOS)
+        .alert(alertTitle, isPresented: $isAlertDisplayed) {
+            if alertOffersRegistrationRetry {
+                Button("retry".localizedString, role: .cancel) {
+                    Task {
+                        await generateAndRegisterMnemonic()
+                    }
+                }
+            } else {
+                Button("ok".localizedString, role: .cancel) {}
+            }
+        }
+#if os(iOS)
+        .autologinOverlay(state: autologinState, onRetry: { beginWebSubscriptionPurchase() })
+        .onChange(of: credentialsManager.didReceiveSubscriptionPayment) { _, received in
+            guard received else { return }
+            autologinState.dismissAfterWebReturn()
+        }
+#elseif os(macOS)
         .autologinOverlay(state: autologinState)
 #endif
+        .onDisappear {
+            isAlertDisplayed = false
+            isPlanAlertDisplayed = false
+            guard !didLeaveForSuccessfulPurchase else { return }
+            onPurchaseFlowDismissed?()
+        }
     }
 
-    public init(path: Binding<NavigationPath>, displayPurchaseView: Bool = false) {
+    public init(
+        path: Binding<NavigationPath>,
+        displayPurchaseView: Bool = false,
+        onPurchaseFlowDismissed: (() -> Void)? = nil
+    ) {
         _path = path
+        isPurchaseOnly = displayPurchaseView
+        self.onPurchaseFlowDismissed = onPurchaseFlowDismissed
         didFinishAnimatingText = displayPurchaseView
-        currentStep = displayPurchaseView ? 4 : 1
+        currentStep = displayPurchaseView
+            ? OnboardingSessionPolicy.progressStep(for: .iapPurchaseRequired)
+            : 1
     }
 }
 
 // MARK: - Views -
 private extension GeneratePassphraseView {
+    var showsOnboardingProgressBar: Bool {
+        PurchasePresentationPolicy.showsOnboardingProgressBar(
+            isPurchaseOnly: isPurchaseOnly,
+            didFinishAnimatingText: didFinishAnimatingText,
+            didRegisterAccount: didRegisterAccount
+        )
+    }
+
+    var showsWebSubscribeOnSubscriptionPage: Bool {
+#if os(iOS)
+        WebPurchasePresentationPolicy.showsWebOnSubscriptionPage(isIOS: true)
+#else
+        WebPurchasePresentationPolicy.showsWebOnSubscriptionPage(isIOS: false)
+#endif
+    }
+
     @ViewBuilder
     func navbar() -> some View {
         if didFinishAnimatingText {
@@ -228,11 +293,31 @@ private extension GeneratePassphraseView {
             }
 #endif
     }
+
+#if os(iOS)
+    var webSubscribeButton: some View {
+        Button {
+            beginWebSubscriptionPurchase()
+        } label: {
+            Text("subscriptionPurchase.choice.web".localizedString)
+                .nymTextStyle(.bodyDefault)
+                .foregroundStyle(Color.Nym.primary)
+        }
+        .accessibilityLabel("subscriptionPurchase.choice.web".localizedString)
+    }
+#endif
 }
 
 // MARK: - Actions -
 extension GeneratePassphraseView {
     func navigateToPaymentSuccessView() {
+        didLeaveForSuccessfulPurchase = true
         path.append(SettingLink.processingAccount)
     }
+
+#if os(iOS)
+    func beginWebSubscriptionPurchase() {
+        autologinState.start(kind: .autologinRenew, using: credentialsManager)
+    }
+#endif
 }
