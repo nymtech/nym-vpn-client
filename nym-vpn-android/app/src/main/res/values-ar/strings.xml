@@ -355,6 +355,14 @@
 	<string name="account_generating_error">فشل في تسجيل الحساب. الرجاء المحاولة مرة أخرى لاحقاً</string>
 	<string name="account_generating_deeplink_title">جاري تسجيل الدخول...</string>
 	<string name="account_generating_deeplink_description">الرجاء الانتظار بينما نقوم بالتحقق من حسابك</string>
+	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">معالجة الدفع الخاص بك بشكل آمن…</string>
 	<string name="account_payment_verifying">نحن نقوم بالتحقق من اشتراكك - لا توجد تفاصيل شخصية مرتبطة بهويتك</string>

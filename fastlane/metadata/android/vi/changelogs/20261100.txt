@@ -1,5 +1,5 @@
 Có gì mới:
-- Node Families Feature Release 
-- Mixnet Parameters updates 
-- Geo Exclusion for China
-- Apps reflect daily fair usage, instead of monthly
+- Ra mắt tính năng Nhóm Node 
+- Cập nhật các tham số Mixnet 
+- Loại Trừ Khu Vực Địa Lý đối với Trung Quốc
+- Các ứng dụng phản ánh mức sử dụng hợp lý theo ngày thay vì theo tháng

@@ -328,7 +328,7 @@
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Отображение только быстрого режима местоположения и серверов, поддерживающих протокол QUIC. Чтобы открыть все серверы, выключите QUIC</string>
-	<string name="censorship_amnezia_title">Минимальное обфускация (AmneziaWG)</string>
+	<string name="censorship_amnezia_title">Минимальная обфускация (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Маскирует трафик WireGuard с помощью ложных пакетов для предотвращения блокировки VPN.\n\nПримечание: Реализовано только на стороне клиента.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/ru/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
@@ -355,6 +355,14 @@
 	<string name="account_generating_error">Не удалось зарегистрировать учетную запись. Пожалуйста, повторите попытку позже</string>
 	<string name="account_generating_deeplink_title">Выполняется вход…</string>
 	<string name="account_generating_deeplink_description">Пожалуйста, подождите, пока мы верифицируем вашу аккаунт</string>
+	<string name="account_login_processing_setting_up">Настройка вашего анонимного аккаунта</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Проверка входа</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Подготовка аккаунта для этого устройства</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Завершение настройки аккаунта</string>
+	<string name="account_login_processing_loading_credentials">Загрузка анонимных пропусков…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">При первом входе это может занять некоторое время</string>
+	<string name="account_login_processing_almost_ready">Завершаем…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Нужно ещё несколько секунд</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Обрабатываем ваш платёж в безопасном режиме…</string>
 	<string name="account_payment_verifying">Мы проверяем вашу подписку — никакие личные данные никогда не связываются с вашей личностью</string>

@@ -1,5 +1,5 @@
 Was ist Neu:
-- Node Families Feature Release 
-- Mixnet Parameters updates 
-- Geo Exclusion for China
-- Apps reflect daily fair usage, instead of monthly
+- Veröffentlichung der „Node Familien“-Funktion 
+- Einstellungsmöglichkeit für Mixnet-Parameter 
+- Geografische Ausschlüsse für China
+- Es wird jetzt die tägliche faire Nutzung berücksichtigt, statt der monatlichen
