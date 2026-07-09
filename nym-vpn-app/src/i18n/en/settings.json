@@ -120,7 +120,7 @@
     "performance": {
       "title": "Expected performance based on current settings",
       "speed": {
-        "title": "Speed",
+        "title": "Packet Rate",
         "value": "Up to {{value}}"
       },
       "privacy": {
