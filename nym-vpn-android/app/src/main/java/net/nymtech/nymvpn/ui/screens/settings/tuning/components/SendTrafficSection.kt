@@ -6,16 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -25,7 +21,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
@@ -33,7 +28,6 @@ import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boolean) -> Unit, trafficValue: Float, onTrafficValueChange: (Float) -> Unit) {
 	val interactionSource = remember { MutableInteractionSource() }
@@ -108,33 +102,22 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 					)
 				}
 
-				// Slider is inverted: right = fast (low delay), left = slow (high delay).
-				val displayValue = (200f - trafficValue.coerceIn(1f, 200f))
-				Slider(
-					value = displayValue,
-					onValueChange = { onTrafficValueChange((200f - it).coerceIn(1f, 200f)) },
-					valueRange = 0f..199f,
-					interactionSource = interactionSource,
-					thumb = {
-						SliderDefaults.Thumb(
-							interactionSource = interactionSource,
-							colors = SliderDefaults.colors(thumbColor = MaterialTheme.colorScheme.onBackground),
-							thumbSize = DpSize(20.dp, 20.dp),
-						)
-					},
-					track = { sliderState ->
-						SliderDefaults.Track(
-							sliderState = sliderState,
-							modifier = Modifier.height(4.dp),
-							colors = SliderDefaults.colors(
-								activeTrackColor = MaterialTheme.colorScheme.primary,
-								inactiveTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-							),
-							thumbTrackGapSize = 0.dp,
-							drawStopIndicator = null,
-						)
-					},
-				)
+				if (trafficEnabled) {
+					TuningSlider(
+						value = trafficValue.coerceIn(0.7f, 2f),
+						onValueChange = { onTrafficValueChange(it.coerceIn(0.7f, 2f)) },
+						valueRange = 0.7f..2f,
+						interactionSource = interactionSource,
+					)
+				} else {
+					val displayValue = 200f - trafficValue.coerceIn(1f, 200f)
+					TuningSlider(
+						value = displayValue,
+						onValueChange = { onTrafficValueChange((200f - it).coerceIn(1f, 200f)) },
+						valueRange = 0f..199f,
+						interactionSource = interactionSource,
+					)
+				}
 			}
 
 			Row(
