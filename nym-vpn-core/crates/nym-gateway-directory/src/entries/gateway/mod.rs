@@ -8,7 +8,10 @@ use ipnetwork::IpNetwork;
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
-use nym_validator_client::models::{KeyRotationId, LewesProtocolDetailsV1, NymNodeDescriptionV2};
+use nym_validator_client::models::{
+    KeyRotationId,
+    described::{type_translation::LewesProtocolDetailsV1, v2::NymNodeDescriptionV2},
+};
 use nym_vpn_api_client::{
     response::{BridgeInformation, BridgeParameters, NodeFamily, NodeStaking},
     types::Percent,

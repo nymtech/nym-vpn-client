@@ -10,7 +10,8 @@ use std::{
 use nym_network_defaults::ApiUrl;
 use nym_sdk::UserAgent;
 use nym_validator_client::{
-    models::NymNodeDescriptionV2, nym_api::NymApiClientExt, nym_nodes::SkimmedNodesWithMetadata,
+    models::described::v2::NymNodeDescriptionV2, nym_api::NymApiClientExt,
+    nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::{
     ResolverOverrides, api_urls_to_urls, fronted_http_client,

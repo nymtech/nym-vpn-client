@@ -5,15 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -23,14 +19,12 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) {
 	val interactionSource = remember { MutableInteractionSource() }
@@ -89,33 +83,13 @@ fun MixingDelaysSection(delayValue: Float, onDelayValueChange: (Float) -> Unit) 
 				)
 			}
 
-			Slider(
+			TuningSlider(
 				value = delayValue,
 				onValueChange = { newValue ->
 					onDelayValueChange(newValue.roundToInt().toFloat())
 				},
 				valueRange = 0f..200f,
 				interactionSource = interactionSource,
-				modifier = Modifier.fillMaxWidth(),
-				thumb = {
-					SliderDefaults.Thumb(
-						interactionSource = interactionSource,
-						colors = SliderDefaults.colors(thumbColor = MaterialTheme.colorScheme.onBackground),
-						thumbSize = DpSize(20.dp, 20.dp),
-					)
-				},
-				track = { sliderState ->
-					SliderDefaults.Track(
-						sliderState = sliderState,
-						modifier = Modifier.height(4.dp),
-						colors = SliderDefaults.colors(
-							activeTrackColor = MaterialTheme.colorScheme.primary,
-							inactiveTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-						),
-						thumbTrackGapSize = 0.dp,
-						drawStopIndicator = null,
-					)
-				},
 			)
 
 			Row(

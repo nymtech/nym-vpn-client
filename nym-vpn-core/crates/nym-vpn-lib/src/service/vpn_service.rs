@@ -13,7 +13,9 @@ use futures::{
     FutureExt, StreamExt,
     future::{Fuse, FusedFuture},
 };
+use nym_bandwidth_controller::BandwidthController;
 use nym_diagnostic::DiagnosticHandler;
+use nym_sdk::mixnet::StoragePaths;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{RwLock, broadcast, mpsc, oneshot, watch},
@@ -333,6 +335,9 @@ pub struct NymVpnService {
     // Statistics controller handle
     statistics_controller_handle: JoinHandle<()>,
 
+    // Bandwidth controller handle
+    bandwidth_controller_handle: JoinHandle<()>,
+
     // Topology service join handle
     topology_service_join_handle: JoinHandle<()>,
 
@@ -514,6 +519,17 @@ impl NymVpnService {
         let wireguard_keys_db = account_controller.get_wireguard_keys_storage();
         let account_controller_handle = tokio::task::spawn(account_controller.run());
 
+        let credential_storage = StoragePaths::new_from_dir(network_data_dir.clone())
+            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?
+            .persistent_credential_storage()
+            .await
+            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?;
+        let bandwidth_controller = BandwidthController::new(credential_storage);
+        let bandwidth_command_tx = bandwidth_controller.get_request_sender();
+        let bandwidth_controller_handle = tokio::task::spawn(
+            bandwidth_controller.run(services_shutdown_token.child_token().into()),
+        );
+
         let config_manager = match parameters.service_storage_type {
             ServiceConfigStorageType::Persistent => {
                 VpnServiceConfigManager::new(&config_dir, Some(tunnel_event_tx.clone())).await?
@@ -675,6 +691,7 @@ impl NymVpnService {
             tunnel_constants,
             account_command_tx.clone(),
             account_state_rx.clone(),
+            bandwidth_command_tx.clone(),
             statistics_event_sender.clone(),
             topology_service.clone(),
             connectivity_handle,
@@ -712,6 +729,7 @@ impl NymVpnService {
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
             statistics_controller_handle,
+            bandwidth_controller_handle,
             topology_service_join_handle,
             topology_service_handle: topology_service,
             config_manager,
@@ -802,6 +820,10 @@ impl NymVpnService {
 
         if let Err(e) = self.account_controller_handle.await {
             tracing::error!("Failed to join on account controller handle: {e}");
+        }
+
+        if let Err(e) = self.bandwidth_controller_handle.await {
+            tracing::error!("Failed to join on bandwidth controller handle: {e}");
         }
 
         if let Err(e) = self.statistics_controller_handle.await {
