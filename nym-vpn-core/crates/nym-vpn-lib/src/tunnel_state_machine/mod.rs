@@ -35,15 +35,15 @@ use crate::tunnel_provider::OSTunProvider;
 use crate::adblocker;
 #[cfg(not(target_os = "android"))]
 use crate::resolver;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use crate::socks5_proxy::find_proxy_binary;
 #[cfg(not(target_os = "ios"))]
 use crate::socks5_proxy::Socks5ProxyManager;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::socks5_proxy::find_proxy_binary;
 
 use crate::{
-    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
-    GatewayProviderError,
-    UserAgent,
+    GatewayProviderError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    mixnet::VpnTopologyServiceHandle,
+    tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
 
 use hickory_resolver::config::NameServerConfig;
@@ -1019,6 +1019,16 @@ impl SharedState {
         let old_log_file = new_data_dir.join("nym-socks5-proxy.log");
         if old_log_file.exists() {
             let _ = std::fs::remove_file(&old_log_file);
+        }
+
+        // The nym-socks5-proxy directory must exist in order for ProxyConfig::validate() to succeed.
+        if !new_data_dir.exists()
+            && let Err(err) = std::fs::create_dir_all(&new_data_dir)
+        {
+            return Err(format!(
+                "Failed to create directory {}: {err}",
+                new_data_dir.display()
+            ));
         }
 
         let log_dir = self.nym_config.paths.log_dir.clone();
