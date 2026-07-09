@@ -66,7 +66,6 @@ static WARN_TARGETS: [&str; 3] = ["hickory_server", "quinn::connection", "zbus"]
 
 pub struct Options {
     pub verbosity_level: Level,
-    pub enable_file_log: bool,
     pub enable_stdout_log: bool,
     pub enable_json_log: bool,
     pub log_dir: Option<PathBuf>,
@@ -343,9 +342,7 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     layers.push(tracing_oslog::OsLogger::new("net.nymtech.vpn.agent", "default").boxed());
 
     // Create file logger but only when running as a service on windows or macos
-    let worker_guard = if let Some(log_dir) = options.log_dir
-        && options.enable_file_log
-    {
+    let worker_guard = if let Some(log_dir) = options.log_dir {
         let file_appender = FileAppender::new(log_dir, DEFAULT_LOG_FILE, DEFAULT_OLD_LOG_FILE);
         let file_manager = FileManager::new(file_appender.clone());
         let (file_writer, worker_guard) = tracing_appender::non_blocking(file_manager);
