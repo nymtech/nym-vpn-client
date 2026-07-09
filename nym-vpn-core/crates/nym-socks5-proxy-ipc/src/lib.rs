@@ -37,6 +37,7 @@ impl FromStr for DaemonMessage {
 pub struct ProxyConfig {
     pub listen_port: u16,
     pub data_dir: PathBuf,
+    pub log_dir: PathBuf,
     pub log_level: String,
     pub excluded_countries: Vec<String>,
 }

@@ -122,6 +122,7 @@ async fn run_service() -> anyhow::Result<()> {
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
     let network_cache = crate::environment::setup_environment(
+        &run_params.paths.config_dir,
         &service_state.global_config.network_name,
         run_params.user_agent.clone(),
     )

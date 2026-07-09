@@ -39,9 +39,9 @@ mod diagnostic;
 mod gateway;
 mod gateway_independence;
 mod gateway_selection_algorithm;
-mod log_path;
 mod network;
 mod network_stats;
+mod paths;
 mod privy;
 mod rpc_requests;
 mod service;
@@ -86,13 +86,13 @@ pub use gateway::{
 };
 pub use gateway_independence::GatewayIndependence;
 pub use gateway_selection_algorithm::{GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig};
-pub use log_path::LogPath;
 pub use network::{
     ApiUrl, ChainDetails, DenomDetailsOwned, FeatureFlags, FlagValue, Network,
     NetworkCompatibility, NymContracts, NymNetworkDetails, NymVpnNetwork, ParsedAccountLinks,
     SystemConfiguration, SystemMessage, ValidatorDetails,
 };
 pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
+pub use paths::{LogPath, Paths};
 pub use privy::PrivyDerivationMessage;
 pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
