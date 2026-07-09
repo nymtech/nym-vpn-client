@@ -39,6 +39,10 @@ on:
         description: "macOS (.pkg + Sparkle)"
         type: boolean
         default: false
+      publish-metadata:
+        description: "Skip Google Play metadata"
+        type: boolean
+        default: true
   schedule:
     - cron: "0 4 * * *"
 
@@ -66,6 +70,7 @@ jobs:
       windows: ${{ steps.flags.outputs.windows }}
       ios: ${{ steps.flags.outputs.ios }}
       macos: ${{ steps.flags.outputs.macos }}
+      publish_metadata: ${{ steps.flags.outputs.publish_metadata }}
     steps:
       - name: Resolve channel + platform flags
         id: flags
@@ -79,6 +84,7 @@ jobs:
           IN_WINDOWS: ${{ inputs.windows }}
           IN_IOS: ${{ inputs.ios }}
           IN_MACOS: ${{ inputs.macos }}
+          IN_PUBLISH_METADATA: ${{ inputs.publish-metadata }}
         run: |
           set -euo pipefail
           echo "::notice:: releasing from ref $REF_NAME (event $EVENT)"
@@ -117,10 +123,14 @@ jobs:
             echo "::notice:: $CHANNEL → selected platforms"
           fi
 
+          # Google Play metadata skip toggle (schedule/cron defaults to true = skip).
+          PUBLISH_METADATA="${IN_PUBLISH_METADATA:-true}"
+
           {
             echo "channel=$CHANNEL"
             echo "android=$ANDROID"; echo "fdroid=$FDROID"; echo "linux=$LINUX"
             echo "windows=$WINDOWS"; echo "ios=$IOS"; echo "macos=$MACOS"
+            echo "publish_metadata=$PUBLISH_METADATA"
           } >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v7
@@ -194,6 +204,7 @@ jobs:
       # Play push is ship-only (beta builds the same as nightly = no store). Requires the
       # Android platform actually selected, not just an F-Droid-only dispatch.
       track: ${{ (needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship') && 'production' || 'none' }}
+      publish-metadata: ${{ needs.resolve.outputs.publish_metadata == 'true' }}
     secrets: inherit
 
   # Linux + Windows desktop app. publish-nym-vpn-app.yml builds each OS as its own
