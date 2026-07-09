@@ -19,12 +19,12 @@
 	<string name="error_reason_same_entry_and_exit_gateway">Os gateways de Entrada e Saída não podem ser os mesmos.</string>
 	<string name="error_reason_performant_entry_gateway_unavailable">Nenhum gateway de entrada adequado encontrado.</string>
 	<string name="error_reason_performant_exit_gateway_unavailable">Nenhum gateway de saída adequado encontrado.</string>
-	<string name="error_reason_invalid_entry_gateway_identity">Identidade de gateway de referência inválida.</string>
+	<string name="error_reason_invalid_entry_gateway_identity">Identidade de gateway de entrada inválida.</string>
 	<string name="error_reason_invalid_exit_gateway_identity">Identidade do gateway de saída inválida.</string>
-	<string name="error_reason_invalid_entry_gateway_country">País do item selecionado é inválido.</string>
+	<string name="error_reason_invalid_entry_gateway_country">País da Entrada selecionada é inválido.</string>
 	<string name="error_reason_invalid_exit_gateway_country">O país de saída selecionado é inválido.</string>
 	<string name="error_reason_credential_wasted_on_entry_gateway">O gateway de entrada não é responsivo.</string>
-	<string name="error_reason_credential_wasted_on_exit_gateway">Sair do gateway não é responsivo.</string>
+	<string name="error_reason_credential_wasted_on_exit_gateway">O gateway de saída não é responsivo.</string>
 	<string name="error_reason_bandwidth_exceeded">Limite de banda excedido.</string>
 	<string name="error_reason_inactive_account">Sua conta está inativa.</string>
 	<string name="error_reason_inactive_subscription">Sua assinatura está inativa.</string>

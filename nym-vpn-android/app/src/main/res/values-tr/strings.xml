@@ -354,6 +354,14 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="account_generating_error">Hesap kaydı başarısız oldu. Lütfen daha sonra tekrar deneyin</string>
 	<string name="account_generating_deeplink_title">Giriş yapılıyor...</string>
 	<string name="account_generating_deeplink_description">Lütfen hesabınızı doğrularken bekleyin</string>
+	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Ödemeniz güvenli bir şekilde işleniyor…</string>
 	<string name="account_payment_verifying">Aboneliğinizi doğruluyoruz. Kişisel bilgileriniz asla kimliğinizle ilişkilendirilmez.</string>
@@ -430,7 +438,8 @@ Derin Paket İnceleme (DPI) sansür sistemlerinde sıkça kullanılan basit kura
 	<string name="logs_download">İndir</string>
 	<string name="logs_delete">Sil</string>
 	<string name="logs_delete_title">NymVPN kayıtları silinsin mi?</string>
-	<string name="logs_delete_description">Kayıtları silmek gizliliği artırır, ancak Destek ekibinin bağlantı sorunlarınızı tespit etmesini engeller.</string>
+	<string name="logs_delete_description">Kayıtları silmek gizliliği artırır, ancak Destek ekibinin bağlantı sorunlarınızı tespit etmesini engeller.
+</string>
 	<string name="logs_delete_button">Kayıtları sil</string>
 	<string name="logs_share_title">NymVPN kayıtlarını paylaşmak ister misiniz?</string>
 	<string name="logs_share_description">Paylaşılan kayıt dosyalarını alıcılar ve dosyayı paylaştıkları kişiler görüntüleyebilir.</string>

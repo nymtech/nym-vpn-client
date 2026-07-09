@@ -87,7 +87,7 @@
 	<string name="credential_modal_description">Para adicionar esse dispositivo, acesse a página “Dispositivos” da sua conta, remova um dos dispositivos existentes e, em seguida, faça login nesse dispositivo com sua frase de recuperação.</string>
 	<string name="manage_devices">Gerencie seus dispositivos</string>
 	<string name="close">Fechar</string>
-	<string name="enter_access_code">Digite seu código de acesso anônimo.</string>
+	<string name="enter_access_code">Digite ou cole sua frase secreta: 24 palavras separadas por espaços</string>
 	<string name="get_in_touch">Entre em contato com o suporte</string>
 	<string name="loading">Carregando</string>
 	<string name="offline">Sem internet</string>
@@ -207,7 +207,7 @@
 	<string name="auth_passphrase_input_placeholder">Frase secreta de 24 palavras</string>
 	<!-- Settings Screen -->
 	<string name="settings_censorship_title">Anti-censura</string>
-	<string name="settings_passphrase_title">Palavra-chave</string>
+	<string name="settings_passphrase_title">Frase secreta</string>
 	<string name="settings_dns_title">Personalizar DNS</string>
 	<string name="settings_ipv6_title">Suporte IPv6</string>
 	<string name="settings_ipv6_description">Permitir conexões IPv6</string>
@@ -330,13 +330,13 @@ Nota: Limita as opções do servidor de entrada apenas a servidores compatíveis
 	<string name="censorship_stealth_link">https://nym.com/features/stealth-api-connect</string>
 	<string name="quic">QUIC</string>
 	<string name="quic_gateway_filter_info_msg">Exibindo apenas locais e servidores do Modo rápido compatíveis com o protocolo QUIC. Para ver todos os servidores, desative o QUIC</string>
-	<string name="censorship_amnezia_title">ofuscação mínima (AmneziaWG)</string>
+	<string name="censorship_amnezia_title">Ofuscação mínima (AmneziaWG)</string>
 	<string name="censorship_amnezia_description">Disfarça o tráfego do WireGuard com pacotes de distração para impedir o bloqueio de VPN.
 
 Nota: Implementado apenas no lado do cliente.</string>
 	<string name="censorship_amnezia_link">https://support.nym.com/hc/pt-br/articles/28104383231121-How-does-NymVPN-implement-Wireguard</string>
 	<!-- Account Welcome screen -->
-	<string name="account_welcome_create_title">⚡ Instantâneo e anônimo</string>
+	<string name="account_welcome_create_title">⚡ Instantâneo e anônimo </string>
 	<string name="account_welcome_create_description">Um toque para começar. Conta anônima gerada no seu dispositivo. Sem senha, sem dados pessoais.</string>
 	<string name="account_welcome_create_button">Criar conta anônima</string>
 	<string name="account_welcome_social_title">🔑️ Use um login existente</string>
@@ -359,6 +359,15 @@ Nota: Implementado apenas no lado do cliente.</string>
 	<string name="account_generating_error">Falha ao registrar a conta. Por favor, tente novamente mais tarde</string>
 	<string name="account_generating_deeplink_title">Iniciando sessão...</string>
 	<string name="account_generating_deeplink_description">Por favor, aguarde enquanto verificamos sua conta</string>
+	<string name="account_login_processing_setting_up">Configurando sua conta anônima
+</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processando seu pagamento com segurança…</string>
 	<string name="account_payment_verifying">Estamos verificando sua assinatura — nenhum dado pessoal está vinculado à sua identidade</string>
@@ -380,7 +389,7 @@ Nota: Implementado apenas no lado do cliente.</string>
 	<string name="passphrase_download">Baixar</string>
 	<string name="passphrase_lose">⚠️ Perda essas palavras = perder a sua conta para sempre.</string>
 	<string name="passphrase_never">Nunca as compartilhe com ninguém, incluindo o suporte da Nym.</string>
-	<string name="passphrase_saved">Salvei essas 24 palavras em segurança e nunca as compartilhe</string>
+	<string name="passphrase_saved">Salvei essas 24 palavras em segurança e nunca irei compartilhar</string>
 	<string name="passphrase_info_title">O que é a frase secreta</string>
 	<string name="passphrase_info_description">É um conjunto único de 24 palavras, geradas no seu dispositivo, que atua como seu login seguro. Só você tem acesso a ele — não há backup, reset ou recuperação.\n\n ⚠️ Mantenha-a segura: esta senha é a única maneira de acessar sua conta.</string>
 	<string name="passphrase_info_privacy_removed">Por sua privacidade, nós removemos:</string>
@@ -416,7 +425,7 @@ Nota: Implementado apenas no lado do cliente.</string>
 	<string name="account_info_autologin_fetching">Buscando código de acesso…</string>
 	<string name="account_info_autologin_error">Falha ao buscar o código de acesso. Tente novamente.</string>
 	<string name="account_info_add_social_action">Adicionar login social</string>
-	<string name="account_info_add_social_suffix">\u0020método para a sua conta.</string>
+	<string name="account_info_add_social_suffix"> método para a sua conta.</string>
 	<string name="account_info_backup">Método de login de backup vinculado via Privy.</string>
 	<string name="pin_code_title">Código PIN</string>
 	<string name="pin_code_subtitle">Digite este código na web</string>
@@ -433,7 +442,7 @@ Nota: Implementado apenas no lado do cliente.</string>
 	<string name="logs_empty_placeholder">Ainda não há registros</string>
 	<string name="logs_share">Compartilhar</string>
 	<string name="logs_download">Baixar</string>
-	<string name="logs_delete">excluir</string>
+	<string name="logs_delete">Deletar</string>
 	<string name="logs_delete_title">Excluir registros da NymVPN?</string>
 	<string name="logs_delete_description">Excluir os registros melhora sua privacidade, mas impede o suporte de diagnosticar problemas de conexão.</string>
 	<string name="logs_delete_button">Excluir registros</string>

@@ -353,6 +353,14 @@
 	<string name="account_generating_error">अकाउंट रजिस्टर नहीं हो सका। कृपया बाद में दोबारा कोशिश करें।</string>
 	<string name="account_generating_deeplink_title">लॉग-इन किया जा रहा है…</string>
 	<string name="account_generating_deeplink_description">कृपया प्रतीक्षा करें जब तक हम आपके अकाउंट की पुष्टि नहीं कर लेते</string>
+	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">आपका भुगतान सुरक्षित रूप से संसाधित किया जा रहा है…</string>
 	<string name="account_payment_verifying">हम आपकी सदस्यता सत्यापित कर रहे हैं—आपकी पहचान से व्यक्तिगत विवरण कभी नहीं जुड़े होते</string>
