@@ -23,6 +23,7 @@ use futures::{FutureExt, StreamExt, future::Fuse};
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
+use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::{
     GatewayCacheHandle, GatewayClient, GatewayMinPerformance, NodeIdentity,
 };
@@ -253,6 +254,7 @@ pub struct TunnelMonitor {
     dns_filter: Option<crate::dns_filter::DnsFilter>,
     account_controller_state: AccountStateReceiver,
     account_command_tx: AccountCommandSender,
+    bandwidth_command_tx: BandwidthControllerRequestSender,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     custom_topology_provider: VpnTopologyServiceHandle,
     shutdown_token: CancellationToken,
@@ -311,6 +313,7 @@ impl TunnelMonitor {
         tunnel_parameters: TunnelParameters,
         account_controller_state: AccountStateReceiver,
         account_command_tx: AccountCommandSender,
+        bandwidth_command_tx: BandwidthControllerRequestSender,
         gateway_provider: GatewayProvider<GatewayCacheHandle>,
         custom_topology_provider: VpnTopologyServiceHandle,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
@@ -331,6 +334,7 @@ impl TunnelMonitor {
             dns_filter,
             account_controller_state,
             account_command_tx,
+            bandwidth_command_tx,
             gateway_provider,
             custom_topology_provider,
             shutdown_token: shutdown_token.clone(),
@@ -528,10 +532,11 @@ impl TunnelMonitor {
         let rcb_config_builder = RegistrationClientBuilderConfig::builder()
             .entry_node(entry_node)
             .exit_node(exit_node)
-            .data_path(Some(self.tunnel_parameters.nym_config.data_path.clone()))
+            .data_path(self.tunnel_parameters.nym_config.data_path.clone())
             .mixnet_client_config(mixnet_client_config)
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)
+            .bandwidth_request_sender(self.bandwidth_command_tx.clone())
             .enable_lp_registration(true)
             .user_agent(user_agent)
             .custom_topology_provider(Box::new(
@@ -1126,7 +1131,6 @@ impl TunnelMonitor {
             entry_gateway_data,
             exit_gateway_data,
             authenticator_listener_handle,
-            bw_controller,
         ) = match registration_result {
             WireguardRegistrationResult::Legacy(res) => (
                 Some(res.entry_gateway_client),
@@ -1134,7 +1138,6 @@ impl TunnelMonitor {
                 res.entry_gateway_data,
                 res.exit_gateway_data,
                 Some(res.authenticator_listener_handle),
-                res.bw_controller,
             ),
             WireguardRegistrationResult::LewesProtocol(res) => (
                 None,
@@ -1142,7 +1145,6 @@ impl TunnelMonitor {
                 res.entry_gateway_data,
                 res.exit_gateway_data,
                 None,
-                res.bw_controller,
             ),
         };
 
@@ -1156,7 +1158,7 @@ impl TunnelMonitor {
         let metadata_path_health = MetadataPathHealth::new();
 
         let bw = BandwidthController::create(
-            bw_controller,
+            Box::new(self.bandwidth_command_tx.clone()),
             self.account_command_tx.clone(),
             selected_gateways,
             entry_gateway_client,

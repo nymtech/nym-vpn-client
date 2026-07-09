@@ -49,6 +49,7 @@ use crate::{
 use hickory_resolver::config::NameServerConfig;
 #[cfg(not(target_os = "ios"))]
 use hickory_resolver::config::ProtocolConfig;
+use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
@@ -773,6 +774,7 @@ pub struct SharedState {
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
+    bandwidth_command_tx: BandwidthControllerRequestSender,
     statistics_event_sender: StatisticsSender,
     #[cfg(target_os = "linux")]
     nm_connectivity_check_enabled: Option<bool>,
@@ -1054,6 +1056,7 @@ impl TunnelStateMachine {
         tunnel_constants: TunnelConstants,
         account_command_tx: AccountCommandSender,
         account_controller_state: AccountStateReceiver,
+        bandwidth_command_tx: BandwidthControllerRequestSender,
         statistics_event_sender: StatisticsSender,
         topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
@@ -1138,6 +1141,7 @@ impl TunnelStateMachine {
             tun_provider,
             account_command_tx,
             account_controller_state,
+            bandwidth_command_tx,
             statistics_event_sender,
             #[cfg(target_os = "linux")]
             nm_connectivity_check_enabled: None,

@@ -16,7 +16,7 @@ use nym_sdk::{
     },
 };
 use nym_topology::HardcodedTopologyProvider;
-use nym_validator_client::{client::NymApiClientExt, models::NymNodeDescriptionV2};
+use nym_validator_client::{client::NymApiClientExt, models::described::v2::NymNodeDescriptionV2};
 use nym_vpn_lib_types::{DiagnosticRegisterParams, DiagnosticResult, RegistrationReport};
 use nym_vpn_network_config::Network;
 
@@ -125,22 +125,17 @@ impl MixnetClientRegistration {
             }
         };
 
-        let registration_config = match setup_wg_registration(
-            network,
-            &gateway,
-            parameters.storage_path.as_ref(),
-        )
-        .await
-        {
-            Ok(config) => config,
-            Err(e) => {
-                registration_report.mixnet_based_dvpn_registration = Some(
-                    DiagnosticResult::from_err(format!("Registration not possible: {e}")),
-                );
-                mixnet_client.disconnect().await;
-                return None;
-            }
-        };
+        let registration_config =
+            match setup_wg_registration(&gateway, parameters.storage_path.as_ref()).await {
+                Ok(config) => config,
+                Err(e) => {
+                    registration_report.mixnet_based_dvpn_registration = Some(
+                        DiagnosticResult::from_err(format!("Registration not possible: {e}")),
+                    );
+                    mixnet_client.disconnect().await;
+                    return None;
+                }
+            };
 
         tracing::info!("Registering...");
 
@@ -295,7 +290,6 @@ fn lookup_ipr_address(gateway: &NymNodeDescriptionV2) -> anyhow::Result<Recipien
 }
 
 async fn setup_wg_registration(
-    network: &Network,
     gateway: &NymNodeDescriptionV2,
     storage_path: Option<&PathBuf>,
 ) -> anyhow::Result<WgRegistrationConfig> {
@@ -321,7 +315,7 @@ async fn setup_wg_registration(
             "Chosen gateway does not have announced IP addresses",
         ))?;
 
-    let bandwidth_provider = setup_bandwidth_provider(network, storage_path)
+    let bandwidth_provider = setup_bandwidth_provider(storage_path)
         .await
         .map_err(|e| anyhow::anyhow!("Failed to setup bandwidth provider : {e}"))?;
 

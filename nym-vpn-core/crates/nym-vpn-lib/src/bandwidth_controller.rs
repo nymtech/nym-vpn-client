@@ -9,6 +9,7 @@ use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND
 use crate::tunnel_health::{MetadataPathHealth, update_metadata_path_health};
 use nym_registration_common::WireguardConfiguration;
 use sysinfo::Networks;
+use time::OffsetDateTime;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
@@ -88,6 +89,12 @@ pub enum SpecificGatewayError {
         ticketbook_type: TicketType,
         #[source]
         source: Box<MetadataClientError>,
+    },
+
+    #[error("No credential of type {ticketbook_type} available to send to gateway: {gateway_id}")]
+    NoCredentialAvailable {
+        ticketbook_type: TicketType,
+        gateway_id: String,
     },
 
     #[error("failed to query bandwidth from gateway: {gateway_id}")]
@@ -781,12 +788,17 @@ impl BandwidthController {
                 ticketbook_type,
                 bw_client.gateway_id(),
                 DEFAULT_TICKETS_TO_SPEND,
+                OffsetDateTime::now_utc(), // Skew input can be fed here
             )
             .await
             .map_err(|source| SpecificGatewayError::RequestCredential {
                 gateway_id: bw_client.gateway_id().to_string(),
                 ticketbook_type,
                 source: Box::new(source),
+            })?
+            .ok_or(SpecificGatewayError::NoCredentialAvailable {
+                ticketbook_type,
+                gateway_id: bw_client.gateway_id().to_string(),
             })?
             .data;
         let remaining_bandwidth = bw_client
