@@ -23,7 +23,7 @@ use nym_vpn_lib::{
 };
 #[cfg(target_os = "windows")]
 use nym_vpn_lib::{install_split_tunnel_driver_service, uninstall_split_tunnel_driver_service};
-use nym_vpn_lib_types::LogPath;
+use nym_vpn_lib_types::{LogPath, Paths};
 use nym_vpn_network_config::NetworkCache;
 #[cfg(target_os = "windows")]
 use windows_service::{
@@ -68,7 +68,9 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result<()> {
-    let global_config = GlobalConfig::read_from_config_dir(&paths::config_dir())
+    let paths = paths::get_paths();
+
+    let global_config = GlobalConfig::read_from_config_dir(&paths.config_dir)
         .await
         .unwrap_or_default();
 
@@ -83,10 +85,13 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
     let run_as_service = cli_args.is_run_as_service();
     let options = nym_vpn_lib::logging::Options {
         verbosity_level: cli_args.verbosity_level(),
-        enable_file_log: run_as_service,
         enable_stdout_log: !run_as_service,
         enable_json_log: cli_args.json_output,
-        log_dir: Some(crate::paths::log_dir()),
+        log_dir: if run_as_service {
+            Some(paths.log_dir.clone())
+        } else {
+            None
+        },
         sentry: sentry_enabled,
     };
     let logging_setup = nym_vpn_lib::logging::setup_logging_with_file_remover(
@@ -98,8 +103,9 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
         .as_ref()
         .map(|s| s.log_file_remover_handle.clone());
     let run_parameters = RunParameters {
-        user_agent: cli_args.user_agent.unwrap_or_else(|| new_user_agent!()),
+        paths,
         log_path,
+        user_agent: cli_args.user_agent.unwrap_or_else(|| new_user_agent!()),
         sentry_enabled,
         disable_client_verification: run_args.disable_client_verification,
     };
@@ -151,6 +157,7 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
 
 #[derive(Debug, Clone)]
 struct RunParameters {
+    paths: Paths,
     log_path: Option<LogPath>,
     sentry_enabled: bool,
     user_agent: UserAgent,
@@ -165,6 +172,7 @@ async fn run_standalone(
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let network_cache = environment::setup_environment(
+        &parameters.paths.config_dir,
         &global_config_file.network_name,
         parameters.user_agent.clone(),
     )
@@ -196,9 +204,8 @@ async fn spawn_vpn_service(
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<JoinHandle<()>> {
     let vpn_service_params = NymVpnServiceParameters {
+        paths: parameters.paths,
         log_path: parameters.log_path,
-        config_dir: paths::config_dir(),
-        data_dir: paths::data_dir(),
         network_cache,
         sentry_enabled: parameters.sentry_enabled,
         user_agent: parameters.user_agent,

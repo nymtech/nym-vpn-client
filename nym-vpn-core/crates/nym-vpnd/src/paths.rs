@@ -1,6 +1,8 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_lib_types::Paths;
+
 use std::path::PathBuf;
 
 #[cfg(not(windows))]
@@ -11,48 +13,47 @@ const DEFAULT_LOG_DIR: &str = "/var/log/nym-vpnd";
 const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
 
 #[cfg(windows)]
-pub fn program_data_path() -> PathBuf {
-    PathBuf::from(std::env::var("ProgramData").unwrap_or(std::env::var("PROGRAMDATA").unwrap()))
-}
+pub fn get_paths() -> Paths {
+    let program_data_path = PathBuf::from(
+        std::env::var("ProgramData").unwrap_or(std::env::var("PROGRAMDATA").unwrap()),
+    );
 
-fn default_data_dir() -> PathBuf {
-    #[cfg(windows)]
-    return program_data_path().join("nym-vpnd").join("data");
-
-    #[cfg(not(windows))]
-    return DEFAULT_DATA_DIR.into();
-}
-
-pub fn data_dir() -> PathBuf {
-    std::env::var("NYM_VPND_DATA_DIR")
+    let data_dir = std::env::var("NYM_VPND_DATA_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| default_data_dir())
-}
+        .unwrap_or_else(|_| program_data_path.join("nym-vpnd").join("data"));
 
-fn default_log_dir() -> PathBuf {
-    #[cfg(windows)]
-    return program_data_path().join("nym-vpnd").join("log");
-
-    #[cfg(not(windows))]
-    return DEFAULT_LOG_DIR.into();
-}
-
-pub fn log_dir() -> PathBuf {
-    std::env::var("NYM_VPND_LOG_DIR")
+    let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| default_log_dir())
-}
+        .unwrap_or_else(|_| program_data_path.join("nym-vpnd").join("config"));
 
-pub fn default_config_dir() -> PathBuf {
-    #[cfg(windows)]
-    return program_data_path().join("nym-vpnd").join("config");
-
-    #[cfg(not(windows))]
-    return DEFAULT_CONFIG_DIR.into();
-}
-
-pub fn config_dir() -> PathBuf {
-    std::env::var("NYM_VPND_CONFIG_DIR")
+    let log_dir = std::env::var("NYM_VPND_LOG_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| default_config_dir())
+        .unwrap_or_else(|_| program_data_path.join("nym-vpnd").join("log"));
+
+    Paths {
+        data_dir,
+        config_dir,
+        log_dir,
+    }
+}
+
+#[cfg(not(windows))]
+pub fn get_paths() -> Paths {
+    let data_dir = std::env::var("NYM_VPND_DATA_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| DEFAULT_LOG_DIR.into());
+
+    let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| DEFAULT_CONFIG_DIR.into());
+
+    let log_dir = std::env::var("NYM_VPND_LOG_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| DEFAULT_LOG_DIR.into());
+
+    Paths {
+        data_dir,
+        config_dir,
+        log_dir,
+    }
 }
