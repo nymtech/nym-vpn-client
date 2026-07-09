@@ -52,6 +52,10 @@ impl ProxyConfig {
             return Err("data_dir must be a valid path".into());
         }
 
+        if self.log_dir.as_os_str().is_empty() || !self.log_dir.is_dir() {
+            return Err("log_dir must be a valid path".into());
+        }
+
         // The log_level can be more than just "info", "debug", etc., so just check it's not empty
         if self.log_level.is_empty() {
             return Err("log_level cannot be empty".into());
