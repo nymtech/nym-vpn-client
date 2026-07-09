@@ -41,7 +41,7 @@ pub fn get_paths() -> Paths {
 pub fn get_paths() -> Paths {
     let data_dir = std::env::var("NYM_VPND_DATA_DIR")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| DEFAULT_LOG_DIR.into());
+        .unwrap_or_else(|_| DEFAULT_DATA_DIR.into());
 
     let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
         .map(PathBuf::from)
