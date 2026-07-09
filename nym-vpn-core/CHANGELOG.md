@@ -11,11 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - While in Connected state swap internal resolver to use custom DNS (via system resolver). (https://github.com/nymtech/nym-vpn-client/pull/5674)
 
-### Fixed
-
-- [iOS] Skip ad-blocking rules that do not block by domain (https://github.com/nymtech/nym-vpn-client/pull/5658)
-- [iOS] Handle sub-domain blocking (https://github.com/nymtech/nym-vpn-client/pull/5810)
-
 
 ## [2026.11.0] - TBD
 
@@ -37,7 +32,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Disable authentication when flag is set (https://github.com/nymtech/nym-vpn-client/pull/5645)
 - [iOS] Fix metadata endpoint not being reached for exit tunnel (https://github.com/nymtech/nym-vpn-client/pull/5728)
 - Fix going into Connected state when metadata endpoint might not work (https://github.com/nymtech/nym-vpn-client/pull/5750)
-- [Linux] Fix a deadlock with NetworkManager when the daemon starts after a reboot (https://github.com/nymtech/nym-vpn-client/pull/5801) 
+- [Linux] Disable NetworkManager's connectivity check before applying firewall rules (https://github.com/nymtech/nym-vpn-client/pull/5801) 
+- [iOS] Skip ad-blocking rules that do not block by domain (https://github.com/nymtech/nym-vpn-client/pull/5658)
+- [iOS] Handle sub-domain blocking (https://github.com/nymtech/nym-vpn-client/pull/5810)
 
 ### Removed
 
