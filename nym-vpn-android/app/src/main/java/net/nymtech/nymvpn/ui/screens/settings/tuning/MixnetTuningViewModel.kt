@@ -13,7 +13,6 @@ import net.nymtech.nymvpn.data.domain.Settings
 import nym_vpn_lib_types.MixnetTrafficConfig
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.math.roundToInt
 
 @HiltViewModel
 class MixnetTuningViewModel @Inject constructor(private val settingsRepository: SettingsRepository) : ViewModel() {
@@ -35,8 +34,13 @@ class MixnetTuningViewModel @Inject constructor(private val settingsRepository: 
 	}
 
 	fun onTrafficEnable(enabled: Boolean) {
-		_uiState.update {
-			it.copy(trafficEnabled = enabled)
+		_uiState.update { currentState ->
+			val newTrafficValue = if (enabled) {
+				DEFAULT_MESSAGE_STREAM_MBPS
+			} else {
+				Settings.MIXNET_CONFIG_DEFAULT.poissonParameterForLoopCoverStream!!.toFloat()
+			}
+			currentState.copy(trafficEnabled = enabled, currentTrafficValue = newTrafficValue)
 				.recalculateMetrics()
 				.checkState(savedConfig)
 		}
@@ -97,27 +101,16 @@ class MixnetTuningViewModel @Inject constructor(private val settingsRepository: 
 	}
 
 	private fun MixnetTuningUiState.recalculateMetrics(): MixnetTuningUiState {
-		val tempDelay = this.averagePacketDelay.roundToInt().toUInt()
-		val tempTraffic = this.currentTrafficValue.roundToInt().toUInt()
-
-		val tempConfig = Settings.MIXNET_CONFIG_DEFAULT.copy(
-			disableBackgroundCoverTraffic = !this.trafficEnabled,
-			averagePacketDelay = tempDelay,
-			messageSendingAverageDelay = if (this.trafficEnabled) tempTraffic else Settings.MIXNET_CONFIG_DEFAULT.messageSendingAverageDelay,
-			poissonParameterForLoopCoverStream = if (!this.trafficEnabled) tempTraffic else Settings.MIXNET_CONFIG_DEFAULT.poissonParameterForLoopCoverStream,
-		)
-
-		val latencyResult = tempConfig.calculateTrafficLatency()
-
-		val mbps = if (this.trafficEnabled && this.currentTrafficValue > 0) {
-			20f / this.currentTrafficValue
-		} else {
-			0f
-		}
+		val latencyResult = this.toConfig(original = Settings.MIXNET_CONFIG_DEFAULT).calculateTrafficLatency()
+		val mbps = if (this.trafficEnabled) this.currentTrafficValue else 0f
 
 		return this.copy(
 			calculatedLatencyMs = latencyResult,
 			calculatedSpeedMbps = mbps,
 		)
+	}
+
+	companion object {
+		private const val DEFAULT_MESSAGE_STREAM_MBPS = 1f
 	}
 }

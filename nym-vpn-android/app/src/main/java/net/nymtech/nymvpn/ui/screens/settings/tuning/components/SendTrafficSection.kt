@@ -108,33 +108,22 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 					)
 				}
 
-				// Slider is inverted: right = fast (low delay), left = slow (high delay).
-				val displayValue = (200f - trafficValue.coerceIn(1f, 200f))
-				Slider(
-					value = displayValue,
-					onValueChange = { onTrafficValueChange((200f - it).coerceIn(1f, 200f)) },
-					valueRange = 0f..199f,
-					interactionSource = interactionSource,
-					thumb = {
-						SliderDefaults.Thumb(
-							interactionSource = interactionSource,
-							colors = SliderDefaults.colors(thumbColor = MaterialTheme.colorScheme.onBackground),
-							thumbSize = DpSize(20.dp, 20.dp),
-						)
-					},
-					track = { sliderState ->
-						SliderDefaults.Track(
-							sliderState = sliderState,
-							modifier = Modifier.height(4.dp),
-							colors = SliderDefaults.colors(
-								activeTrackColor = MaterialTheme.colorScheme.primary,
-								inactiveTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-							),
-							thumbTrackGapSize = 0.dp,
-							drawStopIndicator = null,
-						)
-					},
-				)
+				if (trafficEnabled) {
+					TuningSlider(
+						value = trafficValue.coerceIn(0.7f, 2f),
+						onValueChange = { onTrafficValueChange(it.coerceIn(0.7f, 2f)) },
+						valueRange = 0.7f..2f,
+						interactionSource = interactionSource,
+					)
+				} else {
+					val displayValue = 200f - trafficValue.coerceIn(1f, 200f)
+					TuningSlider(
+						value = displayValue,
+						onValueChange = { onTrafficValueChange((200f - it).coerceIn(1f, 200f)) },
+						valueRange = 0f..199f,
+						interactionSource = interactionSource,
+					)
+				}
 			}
 
 			Row(
@@ -176,6 +165,36 @@ fun SendTrafficSection(trafficEnabled: Boolean, onTrafficEnable: (enabled: Boole
 			}
 		}
 	}
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TuningSlider(value: Float, onValueChange: (Float) -> Unit, valueRange: ClosedFloatingPointRange<Float>, interactionSource: MutableInteractionSource) {
+	Slider(
+		value = value,
+		onValueChange = onValueChange,
+		valueRange = valueRange,
+		interactionSource = interactionSource,
+		thumb = {
+			SliderDefaults.Thumb(
+				interactionSource = interactionSource,
+				colors = SliderDefaults.colors(thumbColor = MaterialTheme.colorScheme.onBackground),
+				thumbSize = DpSize(20.dp, 20.dp),
+			)
+		},
+		track = { sliderState ->
+			SliderDefaults.Track(
+				sliderState = sliderState,
+				modifier = Modifier.height(4.dp),
+				colors = SliderDefaults.colors(
+					activeTrackColor = MaterialTheme.colorScheme.primary,
+					inactiveTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+				),
+				thumbTrackGapSize = 0.dp,
+				drawStopIndicator = null,
+			)
+		},
+	)
 }
 
 @Composable
