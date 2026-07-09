@@ -217,7 +217,7 @@ internal fun PreviewMixnetTuningScreen() {
 			latency = "At least 690 ms",
 			trafficEnabled = true,
 			onTrafficEnable = {},
-			trafficValue = 20f,
+			trafficValue = 1f,
 			onTrafficValueChange = {},
 			delayValue = 15f,
 			onDelayValueChange = {},
