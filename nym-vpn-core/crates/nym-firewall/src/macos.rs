@@ -332,6 +332,11 @@ impl Firewall {
             return Ok(vec![]);
         };
 
+        if policy.redirect_interface().is_some() {
+            tracing::debug!("Skipping NAT masquerade because split tunneling is active");
+            return Ok(vec![]);
+        }
+
         let allowed_endpoints = policy.allowed_endpoints();
 
         let mut rules = vec![];
