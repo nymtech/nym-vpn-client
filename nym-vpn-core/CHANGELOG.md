@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - While in Connected state swap internal resolver to use custom DNS (via system resolver). (https://github.com/nymtech/nym-vpn-client/pull/5674)
 
+### Fixed
+
+- Ad-blocker and nym-socks5-proxy files are no longer stored in the network directory. (https://github.com/nymtech/nym-vpn-client/pull/5826)
+
 
 ## [2026.11.0] - TBD
 
