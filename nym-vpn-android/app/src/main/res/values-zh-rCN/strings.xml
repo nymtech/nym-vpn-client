@@ -355,6 +355,14 @@
 	<string name="account_generating_error">注册账号失败。请稍后再试</string>
 	<string name="account_generating_deeplink_title">正在登录……</string>
 	<string name="account_generating_deeplink_description">请稍等，我们正在验证您的账号</string>
+	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">正在处理您的付款…</string>
 	<string name="account_payment_verifying">我们正在验证您的订阅——我们的零知识证明技术确保您的付款信息和线上活动永远不会关联</string>

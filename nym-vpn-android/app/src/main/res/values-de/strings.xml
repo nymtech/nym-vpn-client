@@ -355,6 +355,14 @@
 	<string name="account_generating_error">Konto konnte nicht registriert werden. Bitte versuchen Sie es später erneut</string>
 	<string name="account_generating_deeplink_title">Anmelden...</string>
 	<string name="account_generating_deeplink_description">Bitte warte, während wir dein Konto verifizieren</string>
+	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Deine Zahlung wird sicher verarbeitet…</string>
 	<string name="account_payment_verifying">Wir verifizieren dein Abonnement - keine persönlichen Daten sind jemals an deine Identität gebunden</string>
@@ -519,7 +527,8 @@
 	<string name="diagnostic_error">Diagnose fehlgeschlagen</string>
 	<!-- Support screen -->
 	<string name="support_protect_title">⚠️ Schütze dich vor Betrug</string>
-	<string name="support_protect_description">Wende dich ausschließlich über die unten aufgeführten offiziellen Kanäle an den NymVPN-Support. Wir werden dich niemals nach deiner Passphrase fragen oder dich von uns aus per Direktnachricht kontaktieren.\n\nHast du eine unerwartete Nachricht erhalten? Dabei handelt es sich höchstwahrscheinlich um Betrug (Scam).</string>
+	<string name="support_protect_description">Wende dich ausschließlich über die unten aufgeführten offiziellen Kanäle an den NymVPN-Support. Wir werden dich niemals nach deiner Passphrase fragen oder dich von uns aus per Direktnachricht kontaktieren.\n\nHast du eine unerwartete Nachricht erhalten? Dabei handelt es sich höchstwahrscheinlich um Betrug (Scam).
+</string>
 	<!-- Private DNS modal -->
 	<string name="private_dns_title">Deaktiviere \"Privates DNS\", um Werbeblockierung zu verwenden.</string>
 	<string name="private_dns_button">Einstellungen öffnen</string>
