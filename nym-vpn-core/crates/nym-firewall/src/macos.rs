@@ -387,6 +387,11 @@ impl Firewall {
             rules.push(no_nat_on_tun);
         }
 
+        if policy.redirect_interface().is_some() {
+            tracing::debug!("Skipping NAT masquerade because split tunneling is active");
+            return Ok(rules);
+        }
+
         // Masquerade other traffic via VPN utun
         for ip in &tunnel.exit_metadata().ips {
             // nat from {inet,inet6} any to any -> [tun ip]

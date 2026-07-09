@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - While in Connected state swap internal resolver to use custom DNS (via system resolver). (https://github.com/nymtech/nym-vpn-client/pull/5674)
 
+### Fixed
+
+- [macOS] Skip catch-all NAT masquerade when split tunneling is active (macOS >=14.6, <15.1 only). (https://github.com/nymtech/nym-vpn-client/pull/5569)
+
 
 ## [2026.11.0] - TBD
 
