@@ -144,6 +144,7 @@ impl ErrorState {
     ) -> Result<()> {
         let policy = params.as_policy();
 
+        nym_http_api_client::network_reconfigured();
         shared_state
             .firewall
             .apply_policy(policy)
@@ -158,6 +159,7 @@ impl ErrorState {
         if let Err(e) = shared_state.firewall.reset_policy() {
             trace_err_chain!(e, "Failed to reset firewall policy");
         }
+        nym_http_api_client::network_reconfigured();
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

@@ -167,6 +167,7 @@ impl ConnectedState {
     ) -> Result<()> {
         let policy = params.as_policy();
 
+        nym_http_api_client::network_reconfigured();
         shared_state
             .firewall
             .apply_policy(policy)
