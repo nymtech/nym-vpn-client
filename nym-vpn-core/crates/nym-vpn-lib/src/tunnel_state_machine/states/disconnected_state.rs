@@ -60,6 +60,8 @@ impl DisconnectedState {
 
         #[cfg(target_os = "linux")]
         shared_state.restore_nm_connectivity_check();
+
+        nym_http_api_client::network_reconfigured();
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

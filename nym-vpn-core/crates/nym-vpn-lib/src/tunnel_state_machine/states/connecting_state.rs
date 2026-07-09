@@ -220,6 +220,7 @@ impl ConnectingState {
         #[cfg(target_os = "linux")]
         shared_state.disable_nm_connectivity_check();
 
+        nym_http_api_client::network_reconfigured();
         shared_state
             .firewall
             .apply_policy(policy)
