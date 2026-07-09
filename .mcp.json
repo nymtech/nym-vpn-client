@@ -5,14 +5,16 @@
       "args": [
         "--yes",
         "openlore",
-        "mcp"
+        "mcp",
+        "--preset",
+        "substrate"
       ]
     }
   },
   "_openlore": {
     "managed": true,
     "version": 1,
-    "fingerprint": "feeb5b8350644b5d",
+    "fingerprint": "89c314c0a65f5af5",
     "paths": [
       "mcpServers.openlore"
     ]
