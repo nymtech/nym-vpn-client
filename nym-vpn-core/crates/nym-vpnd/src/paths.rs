@@ -15,7 +15,7 @@ const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
 #[cfg(windows)]
 pub fn get_paths() -> Paths {
     let program_data_path = PathBuf::from(
-        std::env::var("ProgramData").unwrap_or(std::env::var("PROGRAMDATA").unwrap()),
+        std::env::var("ProgramData").unwrap_or_else(|_| "C:\\ProgramData".to_string()),
     );
 
     let data_dir = std::env::var("NYM_VPND_DATA_DIR")
