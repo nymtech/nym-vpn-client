@@ -35,15 +35,15 @@ use crate::tunnel_provider::OSTunProvider;
 use crate::adblocker;
 #[cfg(not(target_os = "android"))]
 use crate::resolver;
-#[cfg(not(target_os = "ios"))]
-use crate::socks5_proxy::Socks5ProxyManager;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::socks5_proxy::find_proxy_binary;
+#[cfg(not(target_os = "ios"))]
+use crate::socks5_proxy::Socks5ProxyManager;
 
 use crate::{
-    GatewayProviderError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
-    mixnet::VpnTopologyServiceHandle,
-    tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
+    bandwidth_controller::Error as BandwidthControllerError, mixnet::VpnTopologyServiceHandle, tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
+    GatewayProviderError,
+    UserAgent,
 };
 
 use hickory_resolver::config::NameServerConfig;
@@ -1013,6 +1013,12 @@ impl SharedState {
         if old_data_dir.exists() {
             // Either both new and old exists or we failed to migrate.
             let _ = std::fs::remove_dir(&old_data_dir);
+        }
+
+        // The log file will be written to the actual log directory now, so the old log file can be removed.
+        let old_log_file = new_data_dir.join("nym-socks5-proxy.log");
+        if old_log_file.exists() {
+            let _ = std::fs::remove_file(&old_log_file);
         }
 
         let log_dir = self.nym_config.paths.log_dir.clone();
