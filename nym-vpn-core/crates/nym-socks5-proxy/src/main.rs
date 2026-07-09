@@ -5,7 +5,7 @@ use nym_file_updater::FileUpdater;
 use nym_socks5_proxy::{default_interface, proxy};
 
 use std::{
-    fs::{File, create_dir_all},
+    fs::File,
     io::{Write, stdout},
     mem::discriminant,
     path::Path,
@@ -39,21 +39,17 @@ async fn main() -> Result<()> {
         }
     };
 
+    // ProxyConfig::validate() will ensure the data and log directories exist, amongst other things.
+    if let Err(err) = config.validate() {
+        send_error_message(&format!("Invalid configuration: {err}"));
+        bail!("Invalid configuration");
+    }
+
     // Get the default interface addresses and monitor for changes in the routing.
     let default_interface_rx = default_interface::start_monitor(shutdown_token.child_token()).await;
 
     // Shared VPN tunnel addressese
     let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());
-
-    if let Err(err) = create_dir_all(&config.data_dir).with_context(|| {
-        format!(
-            "Failed to create proxy data directory '{}'",
-            config.data_dir.display()
-        )
-    }) {
-        send_error_message(&format!("{err:#}"));
-        return Err(err);
-    }
 
     if let Err(err) = init_tracing(&config.log_dir, &config.log_level) {
         send_error_message(&format!("{err:#}"));
