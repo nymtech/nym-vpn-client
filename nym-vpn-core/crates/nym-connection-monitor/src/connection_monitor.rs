@@ -55,6 +55,12 @@ pub enum Phase {
 
 #[derive(Debug, Copy, Clone)]
 pub struct TimingConfig {
+    /// Timeout of the very first probe in the initial phase.
+    /// The first probe is commonly lost when sent before the tunnel path has settled, and its
+    /// timeout also paces the first retransmission, so a shorter value here puts a lower floor
+    /// on time-to-connected.
+    pub first_probe_timeout: Duration,
+
     /// Probe timeout in the initial phase
     pub initial_probe_timeout: Duration,
 
@@ -75,6 +81,7 @@ impl TimingConfig {
     /// Default timings suitable for mixnet connections
     pub fn mixnet() -> Self {
         TimingConfig {
+            first_probe_timeout: Duration::from_secs(10),
             initial_probe_timeout: Duration::from_secs(10),
             initial_probe_retry_count: 5,
             monitoring_probe_timeout: Duration::from_secs(10),
@@ -86,6 +93,7 @@ impl TimingConfig {
     /// Default timings suitable for two-hop connections using ICMP probe
     pub fn two_hop_icmp() -> Self {
         TimingConfig {
+            first_probe_timeout: Duration::from_secs(1),
             initial_probe_timeout: Duration::from_secs(3),
             initial_probe_retry_count: 5,
             monitoring_probe_timeout: Duration::from_secs(5),
@@ -97,6 +105,7 @@ impl TimingConfig {
     /// Default timings suitable for two-hop connections using TCP probe
     pub fn two_hop_tcp() -> Self {
         TimingConfig {
+            first_probe_timeout: Duration::from_secs(10),
             initial_probe_timeout: Duration::from_secs(10),
             initial_probe_retry_count: 5,
             monitoring_probe_timeout: Duration::from_secs(10),
@@ -169,6 +178,7 @@ impl State {
 
     fn timeout(&self, timing_config: &TimingConfig) -> Duration {
         match self.phase {
+            Phase::Initial if self.retry == 0 => timing_config.first_probe_timeout,
             Phase::Initial => timing_config.initial_probe_timeout,
             Phase::Monitoring => timing_config.monitoring_probe_timeout,
         }
@@ -264,6 +274,10 @@ where
                         Err(err) => {
                             trace_err_chain!(err);
 
+                            // Pace the retransmission by the failed probe's own timeout, computed
+                            // before the retry counter changes which timeout applies.
+                            let delay = self.state.timeout(&self.timing_config);
+
                             self.state.increment_retry();
 
                             // Check if retry count has been reached to declare that connection is lost
@@ -283,7 +297,6 @@ where
                             }
 
                             // Re-transmit in equal intervals to avoid the flood in the event of socket failure
-                            let delay = self.state.timeout(&self.timing_config);
                             self.state.last_sent_at
                                 .checked_add(delay)
                                 .ok_or(Error::ComputeNextProbeTime(self.state.last_sent_at, delay))?
@@ -402,6 +415,68 @@ mod tests {
             relative_pace,
             vec![
                 INITIAL_PROBE_TIMEOUT,
+                INITIAL_PROBE_TIMEOUT,
+                INITIAL_PROBE_TIMEOUT
+            ]
+        )
+    }
+
+    /// Timeout of the very first probe, shorter than the regular initial probe timeout.
+    const FIRST_PROBE_TIMEOUT: Duration = Duration::from_secs(1);
+
+    // The first in-tunnel probe is commonly lost while routes settle right after the tunnel
+    // comes up. The retransmit must be paced by the short first-probe timeout, so that
+    // time-to-connected doesn't have a floor at `initial_probe_timeout`.
+    #[tokio::test(start_paused = true)]
+    #[tracing_test::traced_test]
+    async fn test_lost_first_probe_retransmitted_after_first_probe_timeout() {
+        let probe = MockProbe::new(
+            vec![
+                Outcome::Timeout,
+                Outcome::Succeed {
+                    after: Duration::from_millis(100),
+                },
+            ],
+            Outcome::Timeout,
+        );
+        let (mut event_rx, _drop_guard) = spawn_monitor_with_config(probe, first_probe_config());
+
+        let events = collect_events(&mut event_rx, 2).await;
+
+        assert_eq!(
+            events
+                .iter()
+                .map(|event| event.status)
+                .collect::<Vec<_>>(),
+            vec![
+                ConnectionStatusEvent::IntermittentFailure { retry: 1 },
+                ConnectionStatusEvent::Viable
+            ]
+        );
+        assert_eq!(
+            events[1].start_timestamp.duration_since(events[0].start_timestamp),
+            FIRST_PROBE_TIMEOUT
+        );
+    }
+
+    // After the first short-timeout probe fails, subsequent retransmissions must return to the
+    // regular `initial_probe_timeout` pacing to avoid flooding.
+    #[tokio::test(start_paused = true)]
+    #[tracing_test::traced_test]
+    async fn test_initial_retry_pacing_after_short_first_probe() {
+        let probe = MockProbe::repeating(Outcome::Timeout);
+        let (mut event_rx, _drop_guard) = spawn_monitor_with_config(probe, first_probe_config());
+
+        let events = collect_events(&mut event_rx, (PROBE_RETRY_COUNT + 1) as usize).await;
+        let relative_pace = events
+            .windows(2)
+            .map(|w| w[1].start_timestamp.duration_since(w[0].start_timestamp))
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            relative_pace,
+            vec![
+                FIRST_PROBE_TIMEOUT,
                 INITIAL_PROBE_TIMEOUT,
                 INITIAL_PROBE_TIMEOUT
             ]
@@ -551,10 +626,17 @@ mod tests {
     }
 
     fn spawn_monitor(probe: MockProbe) -> (mpsc::UnboundedReceiver<ConnectionEvent>, DropGuard) {
+        spawn_monitor_with_config(probe, test_config())
+    }
+
+    fn spawn_monitor_with_config(
+        probe: MockProbe,
+        timing_config: TimingConfig,
+    ) -> (mpsc::UnboundedReceiver<ConnectionEvent>, DropGuard) {
         let (event_tx, event_rx) = mpsc::unbounded_channel();
         let shutdown_token = CancellationToken::new();
 
-        ConnectionMonitor::spawn(probe, test_config(), event_tx, shutdown_token.child_token());
+        ConnectionMonitor::spawn(probe, timing_config, event_tx, shutdown_token.child_token());
 
         (event_rx, shutdown_token.drop_guard())
     }
@@ -578,11 +660,19 @@ mod tests {
     fn test_config() -> TimingConfig {
         // timings are not important since tokio timers are being advanced.
         TimingConfig {
+            first_probe_timeout: INITIAL_PROBE_TIMEOUT,
             initial_probe_timeout: INITIAL_PROBE_TIMEOUT,
             initial_probe_retry_count: PROBE_RETRY_COUNT,
             monitoring_probe_timeout: Duration::from_secs(5),
             monitoring_probe_retry_count: PROBE_RETRY_COUNT,
             probe_periodicity: PROBE_PERIODICITY,
+        }
+    }
+
+    fn first_probe_config() -> TimingConfig {
+        TimingConfig {
+            first_probe_timeout: FIRST_PROBE_TIMEOUT,
+            ..test_config()
         }
     }
 }
