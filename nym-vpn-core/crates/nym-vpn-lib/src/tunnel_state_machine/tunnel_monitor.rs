@@ -532,7 +532,13 @@ impl TunnelMonitor {
         let rcb_config_builder = RegistrationClientBuilderConfig::builder()
             .entry_node(entry_node)
             .exit_node(exit_node)
-            .data_path(self.tunnel_parameters.nym_config.data_path.clone())
+            .data_path(
+                self.tunnel_parameters
+                    .nym_config
+                    .paths
+                    .network_data_dir
+                    .clone(),
+            )
             .mixnet_client_config(mixnet_client_config)
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)

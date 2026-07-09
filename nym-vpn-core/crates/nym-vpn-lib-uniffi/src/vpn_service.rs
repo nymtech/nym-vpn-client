@@ -4,7 +4,7 @@
 use std::{sync::Arc, time::Duration};
 
 use nym_vpn_lib::service::ServiceConfigStorageType;
-use nym_vpn_lib_types::{TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{Paths, TunnelEvent, TunnelState};
 use nym_vpn_network_config::NetworkCache;
 use tokio::{
     sync::{Mutex, broadcast, mpsc},
@@ -73,18 +73,22 @@ impl NymVpnService {
 
                 let shutdown_token = CancellationToken::new();
                 let network_cache = NetworkCache::new(
-                    config.config_dir.clone(),
+                    config.config_dir.to_path_buf(),
                     &environment.current().nym_network.network_name,
                     Some(config.user_agent.clone().into()),
                 )
                 .await
                 .map_err(VpnError::internal)?;
 
-                let vpn_service_params = nym_vpn_lib::service::NymVpnServiceParameters {
-                    // This is only needed for log removal helper
-                    log_path: None,
-                    config_dir: config.config_dir.clone(),
+                let paths = Paths {
                     data_dir: config.data_dir.clone(),
+                    config_dir: config.config_dir.clone(),
+                    log_dir: config.data_dir.clone(), // This must be set, but we don't have it VPNConfig!
+                };
+
+                let vpn_service_params = nym_vpn_lib::service::NymVpnServiceParameters {
+                    paths,
+                    log_path: None,
                     network_cache,
                     sentry_enabled: crate::logging::is_sentry_enabled(),
                     user_agent: config.user_agent.clone().into(),

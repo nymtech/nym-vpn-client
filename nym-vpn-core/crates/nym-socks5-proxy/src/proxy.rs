@@ -3,7 +3,7 @@
 
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::{Path, PathBuf},
+    path::PathBuf,
     sync::Arc,
     time::Duration,
 };
@@ -43,7 +43,6 @@ const SOCKS5_UPDATE_INTERVAL: Duration = Duration::from_hours(8);
 
 pub async fn run(
     config: ProxyConfig,
-    data_dir: &Path,
     default_interface_rx: watch::Receiver<DefaultInterface>,
     tunnel_addrs_rx: watch::Receiver<InterfaceAddresses>,
     shutdown_token: CancellationToken,
@@ -58,13 +57,12 @@ pub async fn run(
     tracing::info!("SOCKS5 proxy listener bound: {listen_addr}");
 
     // Seed builtin files to disk on first run.
-    file_manager::init_files(data_dir)
+    file_manager::init_files(&config.data_dir)
         .await
         .context("Failed to initialise SOCKS5 routing data files")?;
 
     // Register each source file with the updater for periodic refresh.
     let excluded_countries = config.excluded_countries.clone();
-    let data_dir_buf = data_dir.to_path_buf();
     let mut receivers: Vec<mpsc::UnboundedReceiver<Result<UpdateOutcome, FileUpdaterError>>> =
         Vec::new();
 
@@ -73,7 +71,7 @@ pub async fn run(
             .url
             .parse::<Url>()
             .with_context(|| format!("Invalid SOCKS5 source URL: {}", source.url))?;
-        let dest = data_dir.join(source.file_name);
+        let dest = config.data_dir.join(source.file_name);
         match file_updater_handle
             .register(
                 url,
@@ -94,7 +92,7 @@ pub async fn run(
     }
 
     // Load the initial routing database.
-    let db = RoutingDatabase::load(&config.excluded_countries, data_dir)
+    let db = RoutingDatabase::load(&config.excluded_countries, &config.data_dir)
         .await
         .context("Failed to build routing database")?;
     let (db_tx, db_rx) = watch::channel(Arc::new(db));
@@ -104,7 +102,7 @@ pub async fn run(
     // of this task — dropping it earlier would cause the updater to exit.
     tokio::spawn(handle_db_updates(
         excluded_countries,
-        data_dir_buf,
+        config.data_dir.clone(),
         db_tx,
         receivers,
         file_updater_handle,

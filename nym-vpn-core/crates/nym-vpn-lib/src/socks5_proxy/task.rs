@@ -82,12 +82,10 @@ async fn supervisor(
     event_tx: mpsc::UnboundedSender<Socks5ProxyEvent>,
     shutdown_token: CancellationToken,
 ) {
-    let proxy_dir = config.data_dir.join("nym-socks5-proxy");
-
-    if let Err(err) = tokio::fs::create_dir_all(&proxy_dir).await {
+    if let Err(err) = tokio::fs::create_dir_all(&config.data_dir).await {
         let msg = format!(
             "Failed to create proxy data directory '{}': {err:#}",
-            proxy_dir.display()
+            config.data_dir.display()
         );
         tracing::error!("{msg}");
         let _ = ready_tx.send(Err(msg));
@@ -112,7 +110,6 @@ async fn supervisor(
 
     match nym_socks5_proxy::run(
         config,
-        &proxy_dir,
         default_interface_rx,
         tunnel_addrs_rx,
         shutdown_token.clone(),
