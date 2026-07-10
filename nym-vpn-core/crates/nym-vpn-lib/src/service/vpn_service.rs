@@ -8,10 +8,10 @@ use std::{
     sync::Arc,
 };
 
-use futures::{
-    FutureExt, StreamExt,
-    future::{Fuse, FusedFuture},
-};
+#[cfg(target_os = "linux")]
+use std::path::PathBuf;
+
+use futures::{FutureExt, StreamExt, future::Fuse};
 use nym_bandwidth_controller::BandwidthController;
 use nym_diagnostic::DiagnosticHandler;
 use nym_sdk::mixnet::StoragePaths;
