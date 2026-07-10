@@ -10,6 +10,7 @@ pub struct Paths {
     pub data_dir: PathBuf,
     pub config_dir: PathBuf,
     pub log_dir: PathBuf,
+    pub log_path: Option<LogPath>,
 }
 
 #[cfg(not(windows))]
@@ -44,6 +45,7 @@ impl Paths {
             data_dir,
             config_dir,
             log_dir,
+            log_path: None,
         }
     }
 
@@ -65,6 +67,7 @@ impl Paths {
             data_dir,
             config_dir,
             log_dir,
+            log_path: None,
         }
     }
 }

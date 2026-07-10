@@ -268,7 +268,6 @@ pub enum ServiceConfigStorageType {
 
 pub struct NymVpnServiceParameters {
     pub paths: Paths,
-    pub log_path: Option<LogPath>,
     pub network_cache: NetworkCache,
     pub sentry_enabled: bool,
     pub user_agent: UserAgent,
@@ -450,8 +449,8 @@ impl NymVpnService {
             data_dir: parameters.paths.data_dir.clone(),
             network_data_dir: parameters.paths.data_dir.join(&network_name),
             config_dir: parameters.paths.config_dir.clone(),
-            log_dir: parameters.paths.log_dir,
-            log_path: parameters.log_path,
+            log_dir: parameters.paths.log_dir.clone(),
+            log_path: parameters.paths.log_path.clone(),
         };
 
         let storage = crate::storage::VpnClientOnDiskStorage::new(paths.network_data_dir.clone());
