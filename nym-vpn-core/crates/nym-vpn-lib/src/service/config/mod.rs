@@ -38,16 +38,20 @@ use tokio::{
     io::{self, AsyncWriteExt},
 };
 
-use crate::service::config::{
-    circumvention::v9::FrontingMode,
-    entry_exit::v2::{EntryPoint, ExitPoint},
-    gateway_independence::v11::GatewayIndependence,
-    gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
-    geo_exclusion_settings::v9::GeoExclusionSettings,
-    mixnet_traffic::v5::MixnetTrafficConfig,
-    network_stats::v1::NetworkStatisticsConfig,
-    split_tunnel_settings::v8::SplitTunnelSettings,
+use crate::{
+    service::config::{
+        circumvention::v9::FrontingMode,
+        entry_exit::v2::{EntryPoint, ExitPoint},
+        gateway_independence::v11::GatewayIndependence,
+        gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
+        geo_exclusion_settings::v9::GeoExclusionSettings,
+        mixnet_traffic::v5::MixnetTrafficConfig,
+        network_stats::v1::NetworkStatisticsConfig,
+        split_tunnel_settings::v8::SplitTunnelSettings,
+    },
+    tunnel_state_machine::NymConfigPaths,
 };
+
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 
@@ -409,41 +413,37 @@ where
         })
 }
 
-pub async fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(), ConfigSetupError> {
-    let network_data_dir = data_dir.join(network_name);
+pub async fn create_directories(paths: &NymConfigPaths) -> Result<(), ConfigSetupError> {
+    // There is an edge-case here, that probably only occurs during development, in that if
+    // nym-vpnd is not run as a service, then the log directory won't exist as logging is
+    // written to the console.  However nym-socks5-proxy must have a log directory.
+    for dir in [&paths.data_dir, &paths.network_data_dir, &paths.log_dir] {
+        fs::create_dir_all(dir)
+            .await
+            .map_err(|error| ConfigSetupError::CreateDirectory {
+                dir: dir.to_path_buf(),
+                error,
+            })?;
 
-    fs::create_dir_all(&network_data_dir)
-        .await
-        .map_err(|error| ConfigSetupError::CreateDirectory {
-            dir: network_data_dir.clone(),
-            error,
-        })?;
+        tracing::debug!("Making sure directory exists at {}", dir.display());
 
-    tracing::debug!(
-        "Making sure data dir exists at {}",
-        network_data_dir.display()
-    );
-
-    for dir_path in [&network_data_dir, data_dir] {
         #[cfg(unix)]
         {
             // Set directory permissions to 700 (rwx------)
             let permissions = std::fs::Permissions::from_mode(0o700);
-            fs::set_permissions(dir_path, permissions)
+            fs::set_permissions(dir, permissions)
                 .await
                 .map_err(|error| ConfigSetupError::SetPermissions {
-                    dir: dir_path.to_path_buf(),
+                    dir: dir.to_path_buf(),
                     error,
                 })?;
         }
 
         #[cfg(windows)]
         {
-            set_data_dir_permissions(dir_path).map_err(|error| {
-                ConfigSetupError::SetPermissions {
-                    dir: dir_path.to_path_buf(),
-                    error,
-                }
+            set_data_dir_permissions(dir).map_err(|error| ConfigSetupError::SetPermissions {
+                dir: dir.to_path_buf(),
+                error,
             })?;
         }
     }
