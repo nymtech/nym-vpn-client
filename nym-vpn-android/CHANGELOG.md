@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [v2026.11.0]
+## [v2026.12.0]
+
+### Added
+- Add Icon Switcher to Appearance settings. With camouflage options (https://github.com/nymtech/nym-vpn-client/pull/5837)
+
+## [v2026.11.0] - 10.07.2026
 
 ### Added
 - Add allowed for Split Tunneling system apps list (https://github.com/nymtech/nym-vpn-client/pull/5563)
@@ -22,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable Mixnet Tuning (https://github.com/nymtech/nym-vpn-client/pull/5563)
 - Change AccountDetails.kt UI to match daily allowance (https://github.com/nymtech/nym-vpn-client/pull/5604)
 
-## [v2026.10.0]
+## [v2026.10.0] - 09.06.2026
 
 ### Added
 - Add local account creation flow for de-googled version (https://github.com/nymtech/nym-vpn-client/pull/5474)
@@ -36,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix VPN revoke race and idle disconnect (https://github.com/nymtech/nym-vpn-client/pull/5483)
 
-## [3.5.0]
+## [3.5.0] - 01.06.2026
 
 ### Added
 - Add 1-click (https://github.com/nymtech/nym-vpn-client/pull/5236)
