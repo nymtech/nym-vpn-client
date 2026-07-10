@@ -367,14 +367,3 @@ jobs:
           bucket: ${{ env.S3_BUCKET }}
           aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
-
-  gen-hashes:
-    needs: publish
-    # Skipped under orchestration (version_tag set): TAG_NAME is only set on the
-    # standalone dispatch/schedule/push paths, so the unified run would pass an empty
-    # release_tag. Hashes are generated post-publish instead.
-    if: ${{ inputs.version_tag == '' && needs.publish.outputs.ok_to_publish == 'true' }}
-    uses: ./.github/workflows/gen-hashes-json.yml
-    with:
-      release_tag: ${{ needs.publish.outputs.tag }}
-    secrets: inherit

@@ -228,22 +228,6 @@ jobs:
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
     secrets: inherit
 
-  # Ship draft: hash the assembled draft assets and freeze hashes.json into the release
-  # BEFORE the human publishes (immutable releases reject asset adds after publish).
-  # Reads draft assets via GITHUB_TOKEN — the public-URL 404 that blocks AUR/curl on a
-  # draft doesn't apply to the authenticated API. Ship-only: nightly/beta don't carry a
-  # hashes asset. Replaces the post-publish gen-hashes that produced only a detached artifact.
-  gen-hashes:
-    needs: [resolve, prepare-release, core, apple, android, app]
-    if: ${{ always() && needs.resolve.outputs.channel == 'ship' }}
-    permissions:
-      contents: write
-    uses: ./.github/workflows/gen-hashes-json.yml
-    with:
-      release_tag: ${{ needs.resolve.outputs.tag }}
-      attach_to_release: true
-    secrets: inherit
-
   # Nightly + beta: assets can't be added after publish, so platforms assemble into a
   # prerelease draft and this job publishes it once they finish. Only ship is published
   # manually (its draft gates the store/AUR propagation in on-release-publish.yml).
