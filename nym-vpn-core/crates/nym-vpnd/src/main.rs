@@ -23,7 +23,6 @@ use nym_vpn_lib::{
 };
 #[cfg(target_os = "windows")]
 use nym_vpn_lib::{install_split_tunnel_driver_service, uninstall_split_tunnel_driver_service};
-use nym_vpn_lib_types::LogPath;
 use nym_vpn_network_config::NetworkCache;
 #[cfg(target_os = "windows")]
 use windows_service::{
@@ -68,7 +67,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result<()> {
-    let paths = Paths::new();
+    let mut paths = Paths::new();
 
     let global_config = GlobalConfig::read_from_config_dir(&paths.config_dir)
         .await
@@ -98,13 +97,12 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
         options,
         shutdown_token.child_token(),
     );
-    let log_path = logging_setup.as_ref().map(|s| s.log_path.clone());
+    paths.log_path = logging_setup.as_ref().map(|s| s.log_path.clone());
     let remove_log_file_signal = logging_setup
         .as_ref()
         .map(|s| s.log_file_remover_handle.clone());
     let run_parameters = RunParameters {
         paths,
-        log_path,
         user_agent: cli_args.user_agent.unwrap_or_else(|| new_user_agent!()),
         sentry_enabled,
         disable_client_verification: run_args.disable_client_verification,
@@ -158,7 +156,6 @@ async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result
 #[derive(Debug, Clone)]
 struct RunParameters {
     paths: Paths,
-    log_path: Option<LogPath>,
     sentry_enabled: bool,
     user_agent: UserAgent,
     disable_client_verification: bool,
@@ -211,7 +208,6 @@ async fn spawn_vpn_service(
 ) -> anyhow::Result<JoinHandle<()>> {
     let vpn_service_params = NymVpnServiceParameters {
         paths: parameters.paths,
-        log_path: parameters.log_path,
         network_cache,
         sentry_enabled: parameters.sentry_enabled,
         user_agent: parameters.user_agent,
