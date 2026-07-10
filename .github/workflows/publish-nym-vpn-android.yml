@@ -397,9 +397,9 @@ jobs:
           targets: aarch64-linux-android,x86_64-linux-android
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-ndk cargo-license
+          tool: cargo-ndk cargo-license
 
       - name: Decode Keystore
         id: decode_keystore

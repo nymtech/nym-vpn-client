@@ -181,9 +181,9 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-get
+          tool: cargo-get
 
       - name: Get nym-vpn-core workspace version
         id: workspace-version

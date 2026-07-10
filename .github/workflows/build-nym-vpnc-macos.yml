@@ -49,9 +49,9 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-get cargo-edit toml-cli
+          tool: cargo-get cargo-edit toml-cli
 
       - name: Set version for nightly builds
         shell: bash

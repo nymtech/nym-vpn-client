@@ -23,9 +23,9 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-deny
+          tool: cargo-deny
 
       - name: Run cargo-deny
         run: cargo deny --manifest-path ./nym-vpn-core/Cargo.toml --locked --all-features check licenses bans sources

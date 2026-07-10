@@ -61,9 +61,9 @@ jobs:
           ref: ${{ env.GIT_BRANCH }}
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-get
+          tool: cargo-get
 
       - name: Compute version
         id: version

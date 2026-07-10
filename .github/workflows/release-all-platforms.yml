@@ -138,9 +138,9 @@ jobs:
           fetch-depth: 1
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-get
+          tool: cargo-get
 
       - name: Resolve version + tag
         id: v

@@ -150,9 +150,9 @@ jobs:
           targets: x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: |
+          tool: |
             cargo-edit
             cargo-license
             cargo-swift@${{ env.CARGO_SWIFT_VERSION }}

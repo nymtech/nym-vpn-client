@@ -91,9 +91,9 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-get cargo-edit toml-cli
+          tool: cargo-get cargo-edit toml-cli
 
       - name: Apply orchestrated version
         uses: ./.github/workflows/platform/apply-version

@@ -91,9 +91,9 @@ jobs:
 
       - name: Install rust tools
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-get
+          tool: cargo-get
 
       - name: Setup VS dev shell
         if: steps.cache.outputs.cache-hit != 'true'

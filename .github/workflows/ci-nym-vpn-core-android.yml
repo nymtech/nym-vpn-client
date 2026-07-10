@@ -49,9 +49,9 @@ jobs:
           targets: aarch64-linux-android,x86_64-linux-android
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-ndk
+          tool: cargo-ndk
 
       - name: Setup NDK
         uses: nttld/setup-ndk@v1

@@ -189,9 +189,9 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-get cargo-license
+          tool: cargo-get cargo-license
 
       - name: Install Node
         uses: actions/setup-node@v6

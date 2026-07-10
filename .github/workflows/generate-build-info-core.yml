@@ -40,9 +40,9 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
 
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-edit cargo-get toml-cli
+          tool: cargo-edit cargo-get toml-cli
 
       - name: Set version for nightly builds
         shell: bash

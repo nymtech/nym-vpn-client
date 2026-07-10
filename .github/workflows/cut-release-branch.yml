@@ -40,9 +40,9 @@ jobs:
       patch: ${{ steps.next_version.outputs.patch }}
     steps:
       - name: Install rust tools
-        uses: ./.github/workflows/platform/binstall
+        uses: taiki-e/install-action@v2
         with:
-          crates: cargo-get
+          tool: cargo-get
 
       - name: Validate input
         env:
