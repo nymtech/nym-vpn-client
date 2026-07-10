@@ -452,8 +452,9 @@ impl NymVpnService {
 
         let storage = crate::storage::VpnClientOnDiskStorage::new(paths.network_data_dir.clone());
 
-        // Make sure the data dir exists
-        super::config::create_data_dir(&paths.data_dir, &network_name)
+        // Make sure the directories exist
+        paths
+            .create_directories()
             .await
             .map_err(Error::ConfigSetup)?;
 

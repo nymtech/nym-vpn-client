@@ -21,10 +21,10 @@ mod wintun;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
+
 use std::{
     collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
 };
 
 #[cfg(target_os = "android")]
@@ -71,7 +71,7 @@ use nym_vpn_lib_types::{
     AccountControllerErrorStateReason, ActionAfterDisconnect, ConnectionData, EntryPoint,
     ErrorStateReason, EstablishConnectionData, EstablishConnectionState, ExitPoint,
     GatewayIndependence, GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig,
-    GeoExclusionSettings, LogPath, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
+    GeoExclusionSettings, SplitTunnelSettings, TunnelEvent, TunnelState, TunnelType,
 };
 
 use tunnel::SelectedGateways;
@@ -1071,20 +1071,13 @@ pub struct LinuxSplitTunnelConfiguration {
     pub net_cls: Option<u32>,
 }
 
+use crate::paths::NymConfigPaths;
+
 #[derive(Debug, Clone)]
 pub struct NymConfig {
     pub paths: NymConfigPaths,
     pub gateway_config: GatewayDirectoryConfig,
     pub network_rx: watch::Receiver<Box<Network>>,
-}
-
-#[derive(Debug, Clone)]
-pub struct NymConfigPaths {
-    pub data_dir: PathBuf,
-    pub network_data_dir: PathBuf,
-    pub config_dir: PathBuf,
-    pub log_dir: PathBuf,
-    pub log_path: Option<LogPath>,
 }
 
 pub struct TunnelStateMachine {

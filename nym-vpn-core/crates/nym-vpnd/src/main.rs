@@ -4,7 +4,6 @@
 mod cli;
 mod command_interface;
 mod environment;
-mod paths;
 mod shutdown_handler;
 #[cfg(windows)]
 mod windows_service;
@@ -19,11 +18,12 @@ use nym_vpn_lib::{
     UserAgent,
     config::GlobalConfig,
     logging::LogFileRemoverHandle,
+    paths::Paths,
     service::{NymVpnService, NymVpnServiceParameters, ServiceConfigStorageType},
 };
 #[cfg(target_os = "windows")]
 use nym_vpn_lib::{install_split_tunnel_driver_service, uninstall_split_tunnel_driver_service};
-use nym_vpn_lib_types::{LogPath, Paths};
+use nym_vpn_lib_types::LogPath;
 use nym_vpn_network_config::NetworkCache;
 #[cfg(target_os = "windows")]
 use windows_service::{
@@ -68,7 +68,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn run_vpn_service(cli_args: CliArgs, run_args: RunArgs) -> anyhow::Result<()> {
-    let paths = paths::get_paths();
+    let paths = Paths::new();
 
     let global_config = GlobalConfig::read_from_config_dir(&paths.config_dir)
         .await

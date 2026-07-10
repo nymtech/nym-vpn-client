@@ -92,7 +92,7 @@ pub use network::{
     SystemConfiguration, SystemMessage, ValidatorDetails,
 };
 pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
-pub use paths::{LogPath, Paths};
+pub use paths::LogPath;
 pub use privy::PrivyDerivationMessage;
 pub use rpc_requests::{
     AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
