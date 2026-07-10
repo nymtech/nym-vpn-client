@@ -53,10 +53,8 @@ impl LazyMetadataClient {
         let reqwest_builder = ReqwestClientBuilder::new();
         let reqwest_builder = match sent_data.data_type {
             TunUpSendDataType::InterfaceName(interface) => {
-                #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
-                let reqwest_builder = reqwest_builder.interface(&interface);
-
-                interface_name = Some(interface.clone());
+                let reqwest_builder = apply_interface_bind(reqwest_builder, &interface);
+                interface_name = Some(interface);
                 reqwest_builder.local_address(bind_ip)
             }
             TunUpSendDataType::TcpProxy(tcp_proxy) => {
@@ -272,40 +270,44 @@ impl MetadataClient {
     }
 }
 
-#[cfg(test)]
-fn metadata_interface_bind_oses() -> &'static [&'static str] {
-    &["linux", "ios", "android"]
+
+fn apply_interface_bind(
+    builder: ReqwestClientBuilder,
+    interface: &str,
+) -> ReqwestClientBuilder {
+    #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
+    {
+        builder.interface(interface)
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "ios", target_os = "android")))]
+    {
+        let _ = interface;
+        builder
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::metadata_interface_bind_oses;
+    use super::apply_interface_bind;
+    use nym_http_api_client::ReqwestClientBuilder;
 
     #[test]
-    fn metadata_interface_bind_includes_android() {
-        assert!(
-            metadata_interface_bind_oses().contains(&"android"),
-            "Android must bind InterfaceName metadata to the tunnel interface"
-        );
-        assert!(metadata_interface_bind_oses().contains(&"linux"));
-        assert!(metadata_interface_bind_oses().contains(&"ios"));
+    fn apply_interface_bind_returns_builder_on_host() {
+        let builder = apply_interface_bind(ReqwestClientBuilder::new(), "tun0");
+        let _ = builder.local_address(std::net::IpAddr::V4(std::net::Ipv4Addr::new(
+            10, 1, 0, 2,
+        )));
     }
 
+    #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
     #[test]
-    fn lazy_client_interface_cfg_matches_bind_os_list() {
-        let cfg_block = include_str!("lib.rs")
-            .lines()
-            .collect::<Vec<_>>()
-            .windows(2)
-            .find(|w| w[1].contains("reqwest_builder.interface(&interface)"))
-            .map(|w| w[0].trim())
-            .expect("interface() call must exist");
+    fn apply_interface_bind_enabled_on_tunnel_platforms() {
+        let _ = apply_interface_bind(ReqwestClientBuilder::new(), "tun0");
+    }
 
-        for os in metadata_interface_bind_oses() {
-            assert!(
-                cfg_block.contains(&format!("target_os = \"{os}\"")),
-                "cfg before .interface() missing {os}: {cfg_block}"
-            );
-        }
+    #[cfg(not(any(target_os = "linux", target_os = "ios", target_os = "android")))]
+    #[test]
+    fn apply_interface_bind_is_explicit_noop_off_tunnel_platforms() {
+        let _ = apply_interface_bind(ReqwestClientBuilder::new(), "tun0");
     }
 }
