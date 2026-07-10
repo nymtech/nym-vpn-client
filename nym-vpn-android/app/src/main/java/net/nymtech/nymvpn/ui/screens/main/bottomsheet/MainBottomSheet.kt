@@ -15,7 +15,7 @@ import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,14 +40,13 @@ fun MainBottomSheet(
 	if (content is MainBottomSheetContent.Hidden) return
 
 	val isProcessing = content is MainBottomSheetContent.LoginProcessing
-	val sheetState = key(isProcessing) {
-		rememberModalBottomSheetState(
-			skipPartiallyExpanded = true,
-			confirmValueChange = { newValue ->
-				!isProcessing || newValue != SheetValue.Hidden
-			},
-		)
-	}
+	val isProcessingState = rememberUpdatedState(isProcessing)
+	val sheetState = rememberModalBottomSheetState(
+		skipPartiallyExpanded = true,
+		confirmValueChange = { newValue ->
+			!isProcessingState.value || newValue != SheetValue.Hidden
+		},
+	)
 	val containerColor = MaterialTheme.colorScheme.surface
 
 	ModalBottomSheet(
