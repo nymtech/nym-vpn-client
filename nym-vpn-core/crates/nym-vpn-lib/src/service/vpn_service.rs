@@ -8,6 +8,9 @@ use std::{
     sync::Arc,
 };
 
+#[cfg(target_os = "linux")]
+use std::path::PathBuf;
+
 use futures::{FutureExt, StreamExt, future::Fuse};
 use nym_bandwidth_controller::BandwidthController;
 use nym_diagnostic::DiagnosticHandler;
@@ -449,8 +452,8 @@ impl NymVpnService {
 
         let storage = crate::storage::VpnClientOnDiskStorage::new(paths.network_data_dir.clone());
 
-        // Make sure the data dir exists
-        super::config::create_data_dir(&paths.data_dir, &network_name)
+        // Make sure the directories exist
+        super::config::create_directories(&paths)
             .await
             .map_err(Error::ConfigSetup)?;
 
