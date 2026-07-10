@@ -68,7 +68,7 @@ pub enum Command {
     /// Get the current connection status
     Status {
         /// Monitor tunnel state continuously until ctrl+c.
-        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        #[arg(short, long, default_value = "false", action = ArgAction::SetTrue)]
         listen: bool,
     },
 
