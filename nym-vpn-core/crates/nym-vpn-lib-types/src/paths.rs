@@ -9,13 +9,6 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 #[derive(Clone, Debug)]
-pub struct Paths {
-    pub data_dir: PathBuf,
-    pub config_dir: PathBuf,
-    pub log_dir: PathBuf,
-}
-
-#[derive(Clone, Debug)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
 #[cfg_attr(
     feature = "typescript-bindings",

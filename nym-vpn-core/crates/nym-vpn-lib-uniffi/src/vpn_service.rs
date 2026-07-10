@@ -3,8 +3,8 @@
 
 use std::{sync::Arc, time::Duration};
 
-use nym_vpn_lib::service::ServiceConfigStorageType;
-use nym_vpn_lib_types::{Paths, TunnelEvent, TunnelState};
+use nym_vpn_lib::{paths::Paths, service::ServiceConfigStorageType};
+use nym_vpn_lib_types::{TunnelEvent, TunnelState};
 use nym_vpn_network_config::NetworkCache;
 use tokio::{
     sync::{Mutex, broadcast, mpsc},

@@ -38,22 +38,16 @@ use tokio::{
     io::{self, AsyncWriteExt},
 };
 
-use crate::{
-    service::config::{
-        circumvention::v9::FrontingMode,
-        entry_exit::v2::{EntryPoint, ExitPoint},
-        gateway_independence::v11::GatewayIndependence,
-        gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
-        geo_exclusion_settings::v9::GeoExclusionSettings,
-        mixnet_traffic::v5::MixnetTrafficConfig,
-        network_stats::v1::NetworkStatisticsConfig,
-        split_tunnel_settings::v8::SplitTunnelSettings,
-    },
-    tunnel_state_machine::NymConfigPaths,
+use crate::service::config::{
+    circumvention::v9::FrontingMode,
+    entry_exit::v2::{EntryPoint, ExitPoint},
+    gateway_independence::v11::GatewayIndependence,
+    gateway_selection_algorithm::v9::GatewaySelectionAlgorithmConfig,
+    geo_exclusion_settings::v9::GeoExclusionSettings,
+    mixnet_traffic::v5::MixnetTrafficConfig,
+    network_stats::v1::NetworkStatisticsConfig,
+    split_tunnel_settings::v8::SplitTunnelSettings,
 };
-
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
 
 pub const DEFAULT_CONFIG_FILE_TOML: &str = "nym-vpnd.toml";
 pub const DEFAULT_CONFIG_FILE_JSON: &str = "nym-vpnd.json";
@@ -330,6 +324,24 @@ pub enum ConfigSetupError {
     },
 }
 
+impl From<crate::paths::PathsSetupError> for ConfigSetupError {
+    fn from(error: crate::paths::PathsSetupError) -> Self {
+        match error {
+            crate::paths::PathsSetupError::CreateDirectory { dir, error } => {
+                Self::CreateDirectory { dir, error }
+            }
+            #[cfg(unix)]
+            crate::paths::PathsSetupError::SetPermissions { dir, error } => {
+                Self::SetPermissions { dir, error }
+            }
+            #[cfg(windows)]
+            crate::paths::PathsSetupError::SetPermissions { dir, error } => {
+                Self::SetPermissions { dir, error }
+            }
+        }
+    }
+}
+
 pub async fn read_toml_config_file<C>(file_path: &Path) -> Result<C, ConfigSetupError>
 where
     C: DeserializeOwned,
@@ -411,73 +423,4 @@ where
             file: file_path.to_path_buf(),
             error,
         })
-}
-
-pub async fn create_directories(paths: &NymConfigPaths) -> Result<(), ConfigSetupError> {
-    // There is an edge-case here, that probably only occurs during development, in that if
-    // nym-vpnd is not run as a service, then the log directory won't exist as logging is
-    // written to the console.  However nym-socks5-proxy must have a log directory.
-    for dir in [&paths.data_dir, &paths.network_data_dir, &paths.log_dir] {
-        fs::create_dir_all(dir)
-            .await
-            .map_err(|error| ConfigSetupError::CreateDirectory {
-                dir: dir.to_path_buf(),
-                error,
-            })?;
-
-        tracing::debug!("Making sure directory exists at {}", dir.display());
-
-        #[cfg(unix)]
-        {
-            // Set directory permissions to 700 (rwx------)
-            let permissions = std::fs::Permissions::from_mode(0o700);
-            fs::set_permissions(dir, permissions)
-                .await
-                .map_err(|error| ConfigSetupError::SetPermissions {
-                    dir: dir.to_path_buf(),
-                    error,
-                })?;
-        }
-
-        #[cfg(windows)]
-        {
-            set_data_dir_permissions(dir).map_err(|error| ConfigSetupError::SetPermissions {
-                dir: dir.to_path_buf(),
-                error,
-            })?;
-        }
-    }
-
-    Ok(())
-}
-
-/// Set directory permissions to Administrators with Full Control.
-#[cfg(windows)]
-fn set_data_dir_permissions(data_dir: &Path) -> nym_windows::security::Result<()> {
-    use nym_windows::security::{
-        AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights, SecurityInfo,
-        SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid, set_named_security_info,
-    };
-
-    let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;
-
-    let allow_admin_group_access = ExplicitAccess::new(
-        Trustee::new(administrators_sid.try_clone()?, TrusteeType::WellKnownGroup),
-        AccessMode::SetAccess,
-        FileAccessRights::FILE_ALL_ACCESS.into(),
-        AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
-    );
-
-    let acl = Acl::new(vec![allow_admin_group_access])?;
-
-    set_named_security_info(
-        data_dir,
-        SecurityObjectType::FileObject,
-        SecurityInfo::DACL | SecurityInfo::PROTECTED_DACL,
-        None,
-        None,
-        Some(&acl),
-    )?;
-
-    Ok(())
 }
