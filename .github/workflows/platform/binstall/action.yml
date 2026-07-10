@@ -18,9 +18,11 @@ runs:
 
     - name: Install crates
       shell: bash
+      env:
+        CRATES_INPUT: ${{ inputs.crates }}
       run: |
         # Replace commas with spaces, reduce multiple spaces, and trim leading/trailing whitespace
-        CRATES_LIST=$(echo "${{ inputs.crates }}" | tr ',' ' ' | xargs)
+        CRATES_LIST=$(echo "$CRATES_INPUT" | tr ',' ' ' | xargs)
 
         if [ -z "$CRATES_LIST" ]; then
           echo "No crates provided to install."
