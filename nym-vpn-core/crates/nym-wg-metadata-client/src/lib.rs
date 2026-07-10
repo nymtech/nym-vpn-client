@@ -53,7 +53,7 @@ impl LazyMetadataClient {
         let reqwest_builder = ReqwestClientBuilder::new();
         let reqwest_builder = match sent_data.data_type {
             TunUpSendDataType::InterfaceName(interface) => {
-                #[cfg(any(target_os = "linux", target_os = "ios"))]
+                #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
                 let reqwest_builder = reqwest_builder.interface(&interface);
 
                 interface_name = Some(interface.clone());
@@ -269,5 +269,43 @@ impl MetadataClient {
         };
 
         Ok(upgrade_mode_enabled)
+    }
+}
+
+#[cfg(test)]
+fn metadata_interface_bind_oses() -> &'static [&'static str] {
+    &["linux", "ios", "android"]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::metadata_interface_bind_oses;
+
+    #[test]
+    fn metadata_interface_bind_includes_android() {
+        assert!(
+            metadata_interface_bind_oses().contains(&"android"),
+            "Android must bind InterfaceName metadata to the tunnel interface"
+        );
+        assert!(metadata_interface_bind_oses().contains(&"linux"));
+        assert!(metadata_interface_bind_oses().contains(&"ios"));
+    }
+
+    #[test]
+    fn lazy_client_interface_cfg_matches_bind_os_list() {
+        let cfg_block = include_str!("lib.rs")
+            .lines()
+            .collect::<Vec<_>>()
+            .windows(2)
+            .find(|w| w[1].contains("reqwest_builder.interface(&interface)"))
+            .map(|w| w[0].trim())
+            .expect("interface() call must exist");
+
+        for os in metadata_interface_bind_oses() {
+            assert!(
+                cfg_block.contains(&format!("target_os = \"{os}\"")),
+                "cfg before .interface() missing {os}: {cfg_block}"
+            );
+        }
     }
 }
