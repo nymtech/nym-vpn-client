@@ -730,6 +730,7 @@ impl TunnelMonitor {
                 tunnel_interface,
                 tunnel_conn_data,
                 mut tunnel_handle,
+                interface_up_notified,
             },
             wg_tunnel_runtime,
             mixnet_client_token,
@@ -784,7 +785,8 @@ impl TunnelMonitor {
                 {
                     #[cfg(not(any(target_os = "android", target_os = "ios")))]
                     WireguardMultihopMode::TunTun => {
-                        self.start_wireguard_tunnel(connected_tunnel).await?
+                        self.start_wireguard_tunnel(connected_tunnel, &selected_gateways)
+                            .await?
                     }
                     WireguardMultihopMode::Netstack => {
                         self.start_wireguard_netstack_tunnel(
@@ -806,21 +808,9 @@ impl TunnelMonitor {
             }
         };
 
-        let establishing_connection_data = EstablishConnectionData {
-            entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
-            exit_gateway: GatewayLightInfo::from(selected_gateways.exit_gateway().clone()),
-            tunnel: Some(tunnel_conn_data.clone()),
-        };
-
-        let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
-        self.send_event(TunnelMonitorEvent::InterfaceUp {
-            tunnel_interface: tunnel_interface.clone(),
-            connection_data: Box::new(establishing_connection_data),
-            reply_tx,
-        });
-
-        if tokio::time::timeout(REPLY_TIMEOUT, reply_rx).await.is_err() {
-            tracing::warn!("Interface up reply timeout");
+        if !interface_up_notified {
+            self.notify_interface_up(&tunnel_interface, &tunnel_conn_data, &selected_gateways)
+                .await;
         }
 
         // The firewall now allows traffic through the tunnel. Wait for the exit WG handshake.
@@ -1140,6 +1130,32 @@ impl TunnelMonitor {
         }
     }
 
+    /// Send InterfaceUp and wait until the state machine confirms it, which guarantees that
+    /// the firewall allows tunnel traffic.
+    async fn notify_interface_up(
+        &mut self,
+        tunnel_interface: &TunnelInterface,
+        tunnel_conn_data: &TunnelConnectionData,
+        selected_gateways: &SelectedGateways,
+    ) {
+        let establishing_connection_data = EstablishConnectionData {
+            entry_gateway: GatewayLightInfo::from(selected_gateways.entry_gateway().clone()),
+            exit_gateway: GatewayLightInfo::from(selected_gateways.exit_gateway().clone()),
+            tunnel: Some(tunnel_conn_data.clone()),
+        };
+
+        let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
+        self.send_event(TunnelMonitorEvent::InterfaceUp {
+            tunnel_interface: tunnel_interface.clone(),
+            connection_data: Box::new(establishing_connection_data),
+            reply_tx,
+        });
+
+        if tokio::time::timeout(REPLY_TIMEOUT, reply_rx).await.is_err() {
+            tracing::warn!("Interface up reply timeout");
+        }
+    }
+
     async fn start_mixnet_tunnel(
         &mut self,
         registration_result: MixnetRegistrationResult,
@@ -1270,6 +1286,7 @@ impl TunnelMonitor {
             tunnel_interface: TunnelInterface::One(tunnel_metadata),
             tunnel_conn_data,
             tunnel_handle: AnyTunnelHandle::from(tunnel_handle),
+            interface_up_notified: false,
         })
     }
 
@@ -1503,6 +1520,7 @@ impl TunnelMonitor {
             tunnel_interface: TunnelInterface::One(tunnel_metadata),
             tunnel_conn_data,
             tunnel_handle,
+            interface_up_notified: false,
         })
     }
 
@@ -1609,6 +1627,7 @@ impl TunnelMonitor {
             tunnel_interface: TunnelInterface::One(tunnel_metadata),
             tunnel_handle: AnyTunnelHandle::from(tunnel_handle),
             tunnel_conn_data,
+            interface_up_notified: false,
         })
     }
 
@@ -1616,6 +1635,7 @@ impl TunnelMonitor {
     async fn start_wireguard_tunnel(
         &mut self,
         connected_tunnel: ConnectedTunnel,
+        selected_gateways: &SelectedGateways,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
         let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
@@ -1699,6 +1719,17 @@ impl TunnelMonitor {
             exit: WireguardNode::from(&conn_data.exit),
         });
 
+        let tunnel_interface = TunnelInterface::Two {
+            entry: entry_tunnel_metadata,
+            exit: exit_tunnel_metadata,
+        };
+
+        // Let the firewall allow tunnel traffic before starting WireGuard. Otherwise the first
+        // handshake initiation is dropped, and WireGuard doesn't retry it for RekeyTimeout (5s),
+        // delaying every connect.
+        self.notify_interface_up(&tunnel_interface, &tunnel_conn_data, selected_gateways)
+            .await;
+
         let tunnel_options = TunnelOptions::TunTun(TunTunTunnelOptions {
             entry_tun,
             exit_tun,
@@ -1715,12 +1746,10 @@ impl TunnelMonitor {
         let tunnel_handle = AnyTunnelHandle::from(tunnel_handle);
 
         Ok(StartTunnelResult {
-            tunnel_interface: TunnelInterface::Two {
-                entry: entry_tunnel_metadata,
-                exit: exit_tunnel_metadata,
-            },
+            tunnel_interface,
             tunnel_conn_data,
             tunnel_handle,
+            interface_up_notified: true,
         })
     }
 
@@ -1728,6 +1757,9 @@ impl TunnelMonitor {
     async fn start_wireguard_tunnel(
         &mut self,
         connected_tunnel: ConnectedTunnel,
+        // Wintun adapters are created by wireguard-go itself, so the firewall cannot be
+        // configured for the tunnel before starting wireguard like on linux/macos.
+        _selected_gateways: &SelectedGateways,
     ) -> Result<StartTunnelResult> {
         let conn_data = connected_tunnel.connection_data();
         let use_bridges = self.tunnel_parameters.tunnel_settings.bridges_enabled();
@@ -1871,6 +1903,7 @@ impl TunnelMonitor {
             tunnel_interface,
             tunnel_handle: AnyTunnelHandle::from(tunnel_handle),
             tunnel_conn_data,
+            interface_up_notified: false,
         })
     }
 
@@ -1947,6 +1980,7 @@ impl TunnelMonitor {
             tunnel_conn_data,
             tunnel_interface: TunnelInterface::One(tunnel_metadata),
             tunnel_handle: AnyTunnelHandle::from(tunnel_handle),
+            interface_up_notified: false,
         })
     }
 
@@ -2133,6 +2167,27 @@ impl TunnelMonitor {
             icmp_probe_config = icmp_probe_config.with_local_address(*local_addr);
         }
 
+        // On android, additionally try to bind to the tunnel interface so that the first
+        // probes egress through the tunnel even before the per-UID VPN routes settle.
+        // SO_BINDTODEVICE may be denied to the app, in which case fall back to plain
+        // address binding rather than to the TCP probe.
+        #[cfg(target_os = "android")]
+        {
+            let interface_bound_config = icmp_probe_config
+                .clone()
+                .with_interface(exit_tunnel_metadata.interface.clone());
+            match IcmpProbe::new(interface_bound_config) {
+                Ok(probe) => return Ok(probe),
+                Err(err) => {
+                    tracing::warn!(
+                        interface = exit_tunnel_metadata.interface,
+                        "Failed to bind ICMP probe to tunnel interface, falling back to address binding: {}",
+                        err.display_chain()
+                    );
+                }
+            }
+        }
+
         IcmpProbe::new(icmp_probe_config).map_err(Error::CreateIcmpProbe)
     }
 
@@ -2222,6 +2277,10 @@ struct StartTunnelResult {
     tunnel_interface: TunnelInterface,
     tunnel_conn_data: TunnelConnectionData,
     tunnel_handle: AnyTunnelHandle,
+    /// Set when InterfaceUp was already sent before starting the tunnel, so that the firewall
+    /// allows tunnel traffic before WireGuard sends its first handshake. A blocked initiation
+    /// is not retried for RekeyTimeout (5s), delaying every connect.
+    interface_up_notified: bool,
 }
 
 struct WgTunnelRuntime {
