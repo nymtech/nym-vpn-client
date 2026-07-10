@@ -188,10 +188,10 @@ jobs:
           targets: ${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || 'x86_64-pc-windows-msvc' }}
           components: rustfmt, clippy
 
-      - name: Install cargo-license
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
+      - name: Install rust tools
+        uses: ./.github/workflows/platform/binstall
         with:
-          crate: cargo-license
+          crates: cargo-get cargo-license
 
       - name: Install Node
         uses: actions/setup-node@v6
@@ -202,11 +202,6 @@ jobs:
         uses: arduino/setup-protoc@v3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3
-        with:
-          crate: cargo-get
 
       - name: Apply orchestrated version
         uses: ./.github/workflows/platform/apply-version

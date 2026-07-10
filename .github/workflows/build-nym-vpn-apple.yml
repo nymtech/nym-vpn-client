@@ -149,17 +149,13 @@ jobs:
           components: rustfmt, clippy
           targets: x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim
 
-      - name: Install cargo-swift
-        uses: baptiste0928/cargo-install@v3
+      - name: Install rust tools
+        uses: ./.github/workflows/platform/binstall
         with:
-          crate: cargo-swift
-          version: ${{ env.CARGO_SWIFT_VERSION }}
-
-      - name: Install cargo-license
-        if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-license
+          crates: |
+            cargo-edit
+            cargo-license
+            cargo-swift@${{ env.CARGO_SWIFT_VERSION }}
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -177,11 +173,6 @@ jobs:
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: workspace.package.version --entry nym-vpn-core
-
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-edit
 
       - name: Add Homebrew, Ruby, and user Python tools to PATH
         run: |
@@ -577,7 +568,7 @@ jobs:
           set -euo pipefail
 
           echo "🚀 Uploading to TestFlight..."
-  
+
           BETA_GROUPS=( --beta-group='World' )
           app-store-connect publish \
             --beta-build-localizations=@file:whats_new.json \

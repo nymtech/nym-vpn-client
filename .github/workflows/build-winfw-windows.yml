@@ -54,11 +54,11 @@ jobs:
           path: nym-vpn-windows/winfw/bin
           key: winfw-${{ inputs.cpu_arch || 'x64' }}-${{ hashFiles('nym-vpn-windows/winfw/src', 'nym-vpn-windows/libshared/src', 'nym-vpn-windows/libwfp/**/src', 'nym-vpn-windows/windows-libraries/src') }}
 
-      - name: Install cargo-get
+      - name: Install rust tools
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: baptiste0928/cargo-install@v3
+        uses: ./.github/workflows/platform/binstall
         with:
-          crate: cargo-get
+          crates: cargo-get
 
       - name: Setup MSBuild.exe
         if: steps.cache.outputs.cache-hit != 'true'

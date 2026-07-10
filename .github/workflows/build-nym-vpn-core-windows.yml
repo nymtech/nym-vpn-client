@@ -90,20 +90,10 @@ jobs:
           targets: ${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || 'x86_64-pc-windows-msvc' }}
           components: rustfmt, clippy
 
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
+      - name: Install rust tools
+        uses: ./.github/workflows/platform/binstall
         with:
-          crate: cargo-edit
-
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-get
-
-      - name: Install toml-cli
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: toml-cli
+          crates: cargo-get cargo-edit toml-cli
 
       - name: Apply orchestrated version
         uses: ./.github/workflows/platform/apply-version

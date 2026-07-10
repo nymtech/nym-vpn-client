@@ -180,10 +180,10 @@ jobs:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
 
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
+      - name: Install rust tools
+        uses: ./.github/workflows/platform/binstall
         with:
-          crate: cargo-get
+          crates: cargo-get
 
       - name: Get nym-vpn-core workspace version
         id: workspace-version

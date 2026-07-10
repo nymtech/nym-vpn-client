@@ -48,20 +48,10 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install cargo-edit
-        uses: baptiste0928/cargo-install@v3
+      - name: Install rust tools
+        uses: ./.github/workflows/platform/binstall
         with:
-          crate: cargo-edit
-
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-get
-
-      - name: Install toml-cli
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: toml-cli
+          crates: cargo-get cargo-edit toml-cli
 
       - name: Set version for nightly builds
         shell: bash

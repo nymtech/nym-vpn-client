@@ -48,10 +48,10 @@ jobs:
           components: rustfmt, clippy
           targets: aarch64-linux-android,x86_64-linux-android
 
-      - name: Install cargo-ndk
-        uses: baptiste0928/cargo-install@v3
+      - name: Install rust tools
+        uses: ./.github/workflows/platform/binstall
         with:
-          crate: cargo-ndk
+          crates: cargo-ndk
 
       - name: Setup NDK
         uses: nttld/setup-ndk@v1

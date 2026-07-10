@@ -192,15 +192,10 @@ jobs:
           echo "SCCACHE_REDIS_PASSWORD=${{ secrets.SCCACHE_REDIS_PASSWORD }}" >> $GITHUB_ENV
           echo "SCCACHE_REDIS_EXPIRATION=86400" >> $GITHUB_ENV
 
-      - name: Install cargo-ndk
-        uses: baptiste0928/cargo-install@v3
+      - name: Install rust tools
+        uses: ./.github/workflows/platform/binstall
         with:
-          crate: cargo-ndk
-
-      - name: Install cargo-license
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-license
+          crates: cargo-ndk cargo-license
 
       - name: Apply orchestrated version (core)
         uses: ./.github/workflows/platform/apply-version

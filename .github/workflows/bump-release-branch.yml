@@ -60,10 +60,10 @@ jobs:
           fetch-depth: 1
           ref: ${{ env.GIT_BRANCH }}
 
-      - name: Install cargo-get
-        uses: baptiste0928/cargo-install@v3
+      - name: Install rust tools
+        uses: ./.github/workflows/platform/binstall
         with:
-          crate: cargo-get
+          crates: cargo-get
 
       - name: Compute version
         id: version
