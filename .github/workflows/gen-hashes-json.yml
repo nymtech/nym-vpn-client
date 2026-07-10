@@ -7,6 +7,11 @@ on:
         description: "Release tag"
         required: true
         type: string
+      attach_to_release:
+        description: "Attach hashes.json to the release as an asset. Use during the DRAFT phase only — uploading to an immutable published release fails."
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       release_tag:
@@ -19,6 +24,8 @@ jobs:
     name: Generate hashes.json
     runs-on: arc-linux-latest
     continue-on-error: true
+    permissions:
+      contents: write
     steps:
       - name: Generate hashes.json
         uses: nymtech/nym/.github/actions/nym-hash-releases@develop
@@ -34,3 +41,13 @@ jobs:
           name: Asset Hashes
           path: hashes.json
           if-no-files-found: error
+
+      # Draft phase only: freeze hashes.json into the release before publish. Uploading
+      # to an immutable published release would fail, so this is gated on the caller flag.
+      - name: Attach hashes.json to release
+        if: ${{ inputs.attach_to_release && hashFiles('hashes.json') != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ inputs.release_tag }}
+        run: gh release upload "$TAG" hashes.json --clobber
