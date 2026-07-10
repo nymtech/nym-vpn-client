@@ -171,6 +171,12 @@ async fn run_standalone(
     log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
+    parameters
+        .paths
+        .create_directories()
+        .await
+        .context("failed to create base directories")?;
+
     let network_cache = environment::setup_environment(
         &parameters.paths.config_dir,
         &global_config_file.network_name,
