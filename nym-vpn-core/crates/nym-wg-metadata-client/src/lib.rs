@@ -53,8 +53,10 @@ impl LazyMetadataClient {
         let reqwest_builder = ReqwestClientBuilder::new();
         let reqwest_builder = match sent_data.data_type {
             TunUpSendDataType::InterfaceName(interface) => {
-                let reqwest_builder = apply_interface_bind(reqwest_builder, &interface);
-                interface_name = Some(interface);
+                #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
+                let reqwest_builder = reqwest_builder.interface(&interface);
+
+                interface_name = Some(interface.clone());
                 reqwest_builder.local_address(bind_ip)
             }
             TunUpSendDataType::TcpProxy(tcp_proxy) => {
@@ -267,47 +269,5 @@ impl MetadataClient {
         };
 
         Ok(upgrade_mode_enabled)
-    }
-}
-
-
-fn apply_interface_bind(
-    builder: ReqwestClientBuilder,
-    interface: &str,
-) -> ReqwestClientBuilder {
-    #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
-    {
-        builder.interface(interface)
-    }
-    #[cfg(not(any(target_os = "linux", target_os = "ios", target_os = "android")))]
-    {
-        let _ = interface;
-        builder
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::apply_interface_bind;
-    use nym_http_api_client::ReqwestClientBuilder;
-
-    #[test]
-    fn apply_interface_bind_returns_builder_on_host() {
-        let builder = apply_interface_bind(ReqwestClientBuilder::new(), "tun0");
-        let _ = builder.local_address(std::net::IpAddr::V4(std::net::Ipv4Addr::new(
-            10, 1, 0, 2,
-        )));
-    }
-
-    #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
-    #[test]
-    fn apply_interface_bind_enabled_on_tunnel_platforms() {
-        let _ = apply_interface_bind(ReqwestClientBuilder::new(), "tun0");
-    }
-
-    #[cfg(not(any(target_os = "linux", target_os = "ios", target_os = "android")))]
-    #[test]
-    fn apply_interface_bind_is_explicit_noop_off_tunnel_platforms() {
-        let _ = apply_interface_bind(ReqwestClientBuilder::new(), "tun0");
     }
 }
