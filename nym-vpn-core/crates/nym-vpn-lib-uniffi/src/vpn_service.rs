@@ -72,11 +72,13 @@ impl NymVpnService {
                 );
 
                 let shutdown_token = CancellationToken::new();
+
                 let paths = Paths {
                     data_dir: config.data_dir.clone(),
                     config_dir: config.config_dir.clone(),
-                    log_dir: config.log_dir.clone(),
+                    log_dir: config.data_dir.clone(), // This must be set, but we don't have it in VPNConfig.
                 };
+
                 paths
                     .create_directories()
                     .await
