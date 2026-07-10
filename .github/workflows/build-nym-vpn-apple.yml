@@ -1100,9 +1100,10 @@ jobs:
           echo "✅ Sparkle attributes: $SPARKLE_ATTRS"
 
           echo "🔐 Computing SHA-256 (PKG payload)"
-          shasum -a 256 "$PKG_FILE" > sha256-hash.txt
-          echo "✅ sha256-hash.txt:"
-          cat sha256-hash.txt
+          SHA_FILE="NymVPN-${MACOS_VERSION}.pkg.sha256sum"
+          shasum -a 256 "$PKG_FILE" > "$SHA_FILE"
+          echo "✅ ${SHA_FILE}:"
+          cat "$SHA_FILE"
 
           if [[ -n "${VERSION_TAG:-}" ]]; then
             DOWNLOAD_TAG="${VERSION_TAG}"
@@ -1145,7 +1146,7 @@ jobs:
 
           cp "$FINAL_PKG_PATH" "$PUBLISH_DIR/"
           cp appcast.xml "$PUBLISH_DIR/"
-          cp sha256-hash.txt "$PUBLISH_DIR/"
+          cp "$SHA_FILE" "$PUBLISH_DIR/"
 
           echo "📂 Publish folder contents:"
           ls -la "$PUBLISH_DIR"
@@ -1245,7 +1246,7 @@ jobs:
           draft: false
           files: |
             nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg
-            nym-vpn-apple/build/pkg/publish/sha256-hash.txt
+            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg.sha256sum
           body: |
             Release macOS build of NymVPN.
             - Version: ${{ env.MACOS_VERSION }}
@@ -1270,14 +1271,9 @@ jobs:
           VERSION_TAG: ${{ inputs.version_tag }}
         run: |
           set -euo pipefail
-          # Carry the Sparkle appcast <item> as a release asset so the deferred
-          # nym-websites PR (opened post-publish by on-release-publish.yml) can recover
-          # it. Version is in the asset name → that job needs no unified->macOS mapping.
-          cp "${{ env.APPCAST_ITEM_RELATIVE_PATH }}" "appcast-item-${{ env.MACOS_VERSION }}.xml"
           files=( \
             nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg \
-            nym-vpn-apple/build/pkg/publish/sha256-hash.txt \
-            "appcast-item-${{ env.MACOS_VERSION }}.xml" \
+            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg.sha256sum \
           )
           # Append to the (ship) draft. No --clobber: gh refuses a duplicate.
           gh release upload "$VERSION_TAG" "${files[@]}"
@@ -1318,7 +1314,7 @@ jobs:
             # contents of the publish/ dir -> bucket keys under nym-vpn-client/macOS/publish/
             # (preserves the .../publish/NymVPN-<ver>.pkg download URL used in the appcast)
             echo "UPLOAD_DEST=nym-vpn-client/macOS/publish/" >> "$GITHUB_ENV"
-            echo "🌐 Ship: will upload PKG + appcast.xml + sha256-hash.txt → ${UPLOAD_SOURCE}"
+            echo "🌐 Ship: will upload PKG + appcast.xml + NymVPN-${MACOS_VERSION}.pkg.sha256sum → ${UPLOAD_SOURCE}"
           fi
 
       - name: Publish build to S3
@@ -1333,10 +1329,11 @@ jobs:
           aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
 
       - name: Checkout nym-websites
-        # Legacy path only. Under orchestration (version_tag set) the appcast <item> is
-        # attached to the unified release and the nym-websites PR is opened post-publish
-        # by on-release-publish.yml — gated behind the human ship/publish action.
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && inputs.version_tag == '' }}
+        # Opens the nym-websites appcast PR straight from the build (both legacy and
+        # orchestrated ship). Under orchestration the enclosure URL points at the unified
+        # draft tag, which 404s until publish — so that PR is opened as a DRAFT (see
+        # Create PR below) to hold it behind the human ship/publish action.
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
@@ -1345,7 +1342,7 @@ jobs:
           path: nym-websites
 
       - name: Insert new Sparkle <item> into nym-websites appcast.xml
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && inputs.version_tag == '' }}
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
         working-directory: nym-websites
         env:
           ITEM_FILE: ${{ github.workspace }}/${{ env.APPCAST_ITEM_RELATIVE_PATH }}
@@ -1370,16 +1367,23 @@ jobs:
           sed -n '1,40p' "$TARGET" || true
 
       - name: Create PR in nym-websites
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && inputs.version_tag == '' }}
+        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
           path: nym-websites
           commit-message: Update Appcast.xml with v${{ env.MACOS_VERSION }}
           title: Update Appcast.xml with v${{ env.MACOS_VERSION }}
+          # Orchestrated ship: enclosure points at the unified draft tag (404 until
+          # publish) → open as draft so it isn't merged before the client release is live.
+          # Legacy: its macOS release publishes immediately, so a normal PR is fine.
+          # Fixed per-version branch → create-pull-request force-updates an existing
+          # branch/PR (re-run = overwrite, no duplicates).
+          draft: ${{ inputs.version_tag != '' }}
           body: |
             Automated Sparkle appcast update for macOS v${{ env.MACOS_VERSION }}.
             Source: nym-vpn-client build-nym-vpn-apple (ship).
+            ${{ inputs.version_tag != '' && format('⚠️ Merge only after nym-vpn-client {0} is published — the enclosure URL 404s until then.', inputs.version_tag) || '' }}
           branch: automation/update-macos-appcast-v${{ env.MACOS_VERSION }}
           base: main
           delete-branch: true
