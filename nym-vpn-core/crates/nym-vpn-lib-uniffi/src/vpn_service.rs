@@ -77,6 +77,7 @@ impl NymVpnService {
                     data_dir: config.data_dir.clone(),
                     config_dir: config.config_dir.clone(),
                     log_dir: config.data_dir.clone(), // This must be set, but we don't have it in VPNConfig.
+                    log_path: None,
                 };
 
                 paths
@@ -96,7 +97,6 @@ impl NymVpnService {
 
                 let vpn_service_params = nym_vpn_lib::service::NymVpnServiceParameters {
                     paths,
-                    log_path: None,
                     network_cache,
                     sentry_enabled: crate::logging::is_sentry_enabled(),
                     user_agent: config.user_agent.clone().into(),
