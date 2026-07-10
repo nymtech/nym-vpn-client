@@ -4,20 +4,21 @@
 use std::{
     collections::HashSet,
     net::IpAddr,
-    pin::{Pin, pin},
+    pin::{pin, Pin},
     sync::Arc,
 };
 
 #[cfg(target_os = "linux")]
 use std::path::PathBuf;
 
-use futures::{FutureExt, StreamExt, future::Fuse};
+use futures::future::FusedFuture;
+use futures::{future::Fuse, FutureExt, StreamExt};
 use nym_bandwidth_controller::BandwidthController;
 use nym_diagnostic::DiagnosticHandler;
 use nym_sdk::mixnet::StoragePaths;
-use time::{OffsetDateTime, format_description::well_known::Rfc3339};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
-    sync::{RwLock, broadcast, mpsc, oneshot, watch},
+    sync::{broadcast, mpsc, oneshot, watch, RwLock},
     task::JoinHandle,
     time::{Duration, Instant},
 };
@@ -49,7 +50,7 @@ use nym_vpn_lib_types::{
     FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams, ListGatewaysOptions,
     LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, Paths, RegistrationReport, StorableAccount, StoreAccountRequest,
+    ParsedAccountLinks, RegistrationReport, StorableAccount, StoreAccountRequest,
     StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelEvent, TunnelState,
     VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
@@ -58,14 +59,14 @@ use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
 use nym_vpn_network_config::{DiscoveryRefresher, Network, NetworkCache};
 
 use super::{
-    Socks5Error, Socks5Service, Socks5Status,
-    config::{NetworkEnvironments, VpnServiceConfigManager},
-    error::{
+    config::{NetworkEnvironments, VpnServiceConfigManager}, error::{
         AccountLinksError, Error, GeoExclusionConfigError, GlobalConfigError, ListGatewaysError,
         Result, SetNetworkError,
-    },
-    socks5::Socks5EnableConfig,
-    socks5_idle_timeout, socks5_request_timeout,
+    }, socks5::Socks5EnableConfig,
+    socks5_idle_timeout,
+    socks5_request_timeout,
+    Socks5Error,
+    Socks5Service, Socks5Status,
 };
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::AndroidTunProvider;
@@ -74,14 +75,15 @@ use crate::tunnel_provider::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
-    DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
-    config::GlobalConfig,
-    gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
-    logging::LogFileRemoverHandle,
+    config::GlobalConfig, gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient}, logging::LogFileRemoverHandle, paths::{NymConfigPaths, Paths},
     tunnel_state_machine::{
-        NymConfig, NymConfigPaths, TunnelCommand, TunnelConstants, TunnelStateMachine,
-        tunnel::gateway_provider::GatewayProvider,
+        tunnel::gateway_provider::GatewayProvider, NymConfig, TunnelCommand, TunnelConstants,
+        TunnelStateMachine,
     },
+    NodeIdentity,
+    UserAgent,
+    VpnTopologyService,
+    DEFAULT_DNS_SERVERS_CONFIG,
 };
 
 // Seed used to generate device identity keys
@@ -456,7 +458,7 @@ impl NymVpnService {
         paths
             .create_directories()
             .await
-            .map_err(Error::ConfigSetup)?;
+            .map_err(|e| Error::ConfigSetup(e.into()))?;
 
         let state_machine_shutdown_token = CancellationToken::new();
         let services_shutdown_token = CancellationToken::new();
