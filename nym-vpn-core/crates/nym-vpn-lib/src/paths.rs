@@ -75,21 +75,9 @@ impl Default for Paths {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct NymConfigPaths {
-    pub data_dir: PathBuf,
-    pub network_data_dir: PathBuf,
-    pub config_dir: PathBuf,
-    pub log_dir: PathBuf,
-    pub log_path: Option<LogPath>,
-}
-
-impl NymConfigPaths {
+impl Paths {
     pub async fn create_directories(&self) -> Result<(), PathsSetupError> {
-        // There is an edge-case here, that probably only occurs during development, in that if
-        // nym-vpnd is not run as a service, then the log directory won't exist as logging is
-        // written to the console.  However nym-socks5-proxy must have a log directory.
-        for dir in [&self.data_dir, &self.network_data_dir, &self.log_dir] {
+        for dir in [&self.data_dir, &self.config_dir, &self.log_dir] {
             tracing::debug!("Making sure directory exists at {}", dir.display());
 
             fs::create_dir_all(dir)
@@ -106,6 +94,38 @@ impl NymConfigPaths {
                     error,
                 })?;
         }
+
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct NymConfigPaths {
+    pub data_dir: PathBuf,
+    pub network_data_dir: PathBuf,
+    pub config_dir: PathBuf,
+    pub log_dir: PathBuf,
+    pub log_path: Option<LogPath>,
+}
+
+impl NymConfigPaths {
+    pub async fn create_directories(&self) -> Result<(), PathsSetupError> {
+        let dir = &self.network_data_dir;
+        tracing::debug!("Making sure directory exists at {}", dir.display());
+
+        fs::create_dir_all(dir)
+            .await
+            .map_err(|error| PathsSetupError::CreateDirectory {
+                dir: dir.to_path_buf(),
+                error,
+            })?;
+
+        set_permissions(dir)
+            .await
+            .map_err(|error| PathsSetupError::SetPermissions {
+                dir: dir.to_path_buf(),
+                error,
+            })?;
 
         Ok(())
     }

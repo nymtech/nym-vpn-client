@@ -72,6 +72,18 @@ impl NymVpnService {
                 );
 
                 let shutdown_token = CancellationToken::new();
+                let paths = Paths {
+                    data_dir: config.data_dir.clone(),
+                    config_dir: config.config_dir.clone(),
+                    log_dir: config.log_dir.clone(),
+                };
+                paths
+                    .create_directories()
+                    .await
+                    .map_err(|e| VpnError::InternalError {
+                        details: e.to_string(),
+                    })?;
+
                 let network_cache = NetworkCache::new(
                     config.config_dir.to_path_buf(),
                     &environment.current().nym_network.network_name,
@@ -79,12 +91,6 @@ impl NymVpnService {
                 )
                 .await
                 .map_err(VpnError::internal)?;
-
-                let paths = Paths {
-                    data_dir: config.data_dir.clone(),
-                    config_dir: config.config_dir.clone(),
-                    log_dir: config.data_dir.clone(), // This must be set, but we don't have it in VPNConfig!
-                };
 
                 let vpn_service_params = nym_vpn_lib::service::NymVpnServiceParameters {
                     paths,
