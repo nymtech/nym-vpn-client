@@ -5,9 +5,10 @@ name: on-release-publish
 # on a draft). Fires the moment a human clicks "Publish release" on the ship draft:
 #   aur-vpnd, aur-app        -> publish PKGBUILDs to AUR
 #   post-release             -> changelog/installer/flatpak PR
-#   gen-hashes               -> hashes.json artifact of the published assets
 #   win-sigs + windows-updater -> tauri Windows updater feed PR (skips if no win build)
-#   macos-appcast            -> calls publish-macos-appcast.yml (Sparkle PR; skips if no macOS)
+#
+# (macOS Sparkle appcast PR is opened during the build/draft phase by
+#  build-nym-vpn-apple.yml as a DRAFT PR — not deferred here.)
 #
 # Why 'released' (not 'published'):
 #   - 'released'  matches NON-prerelease publishes only  -> ship  (nym-vpn-v*)
@@ -97,14 +98,6 @@ jobs:
       version: ${{ needs.setup.outputs.version }}
       core_release_tag: ${{ needs.setup.outputs.tag }}
 
-  # Hashes JSON of the published assets. The action uploads a workflow ARTIFACT
-  # (not a release asset), so it's safe against immutable-release freezing.
-  gen-hashes:
-    needs: setup
-    uses: ./.github/workflows/gen-hashes-json.yml
-    with:
-      release_tag: ${{ needs.setup.outputs.tag }}
-
   # Tauri Windows updater feed. tauri-updater.yml wants the bundle signatures as
   # inputs; under orchestration they came from the build job's outputs, which are
   # gone by publish time. Recover them from the *setup.exe.sig assets attached to
@@ -163,15 +156,3 @@ jobs:
       base_url: https://github.com/${{ github.repository }}/releases/download/${{ needs.setup.outputs.tag }}
       signature_x64: ${{ needs.win-sigs.outputs.sig_x64 }}
       signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
-
-  # macOS Sparkle appcast PR into nym-websites — delegated to the apple-owned reusable
-  # workflow so the Sparkle logic lives with the macOS pipeline. The build attached the
-  # appcast <item> to this release as appcast-item-<ver>.xml; publish-macos-appcast
-  # recovers it and opens the PR. Running it here (post-publish) keeps the Sparkle update
-  # behind the human ship gate. secrets: inherit forwards WEB_REPO_TOKEN_FOR_APPCAST.
-  macos-appcast:
-    needs: setup
-    uses: ./.github/workflows/publish-macos-appcast.yml
-    secrets: inherit
-    with:
-      release_tag: ${{ needs.setup.outputs.tag }}
