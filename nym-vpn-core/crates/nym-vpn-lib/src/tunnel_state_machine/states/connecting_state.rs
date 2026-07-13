@@ -132,20 +132,30 @@ impl ConnectingState {
             #[cfg(target_os = "macos")]
             let redirect_interface = shared_state.split_tunnel.interface().await;
 
+            let ws_entry_endpoints = selected_gateways
+                .as_ref()
+                .map(|v| v.entry_gateway().endpoints())
+                .unwrap_or_default();
+
+            let lp_entry_endpoints = selected_gateways
+                .as_ref()
+                .map(|v| v.entry_gateway().lp_endpoints())
+                .unwrap_or_default();
+
+            let api_endpoints = shared_state
+                .resolved_api_endpoints
+                .as_ref()
+                .map(|r| r.all_socket_addrs())
+                .unwrap_or_default();
+
             let firewall_policy_params = ConnectingPolicyParameters {
                 enable_ipv6: shared_state.tunnel_settings.enable_ipv6,
                 allow_lan: shared_state.tunnel_settings.allow_lan,
                 wg_entry_endpoint: None,
                 bridge_endpoints,
-                ws_entry_endpoints: selected_gateways
-                    .as_ref()
-                    .map(|v| v.entry_gateway().endpoints())
-                    .unwrap_or_default(),
-                lp_entry_endpoints: selected_gateways
-                    .as_ref()
-                    .map(|v| v.entry_gateway().lp_endpoints())
-                    .unwrap_or_default(),
-                api_endpoints: Vec::new(),
+                ws_entry_endpoints,
+                lp_entry_endpoints,
+                api_endpoints,
                 // Allow default DNS servers when connecting since those are used by http/client
                 dns_servers: shared_state.tunnel_settings.allowed_default_dns_endpoints(),
                 tunnel_interface: None,
@@ -206,6 +216,9 @@ impl ConnectingState {
         params: &ConnectingPolicyParameters,
     ) -> Result<()> {
         let policy = params.as_policy();
+
+        #[cfg(target_os = "linux")]
+        shared_state.disable_nm_connectivity_check();
 
         shared_state
             .firewall
@@ -401,6 +414,7 @@ impl ConnectingState {
             tunnel_parameters,
             shared_state.account_controller_state.clone(),
             shared_state.account_command_tx.clone(),
+            shared_state.bandwidth_command_tx.clone(),
             shared_state.gateway_provider.clone(),
             shared_state.topology_service.clone(),
             tunnel_monitor_event_sender,

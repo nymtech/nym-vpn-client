@@ -81,7 +81,7 @@ import GRPCManager
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.snackbarManager = snackbarManager
-        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager)
+        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager, networkMonitor: networkMonitor)
         self.oneClick = OneClickViewModel(
             appSettings: appSettings,
             connectionManager: connectionManager,
@@ -108,7 +108,7 @@ import GRPCManager
         self.appSettings = appSettings
         self.credentialsManager = credentialsManager
         self.snackbarManager = snackbarManager
-        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager)
+        self.connectionStatus = ConnectionStatusViewModel(connectionManager: connectionManager, networkMonitor: networkMonitor)
         self.oneClick = OneClickViewModel(
             appSettings: appSettings,
             connectionManager: connectionManager,
@@ -358,6 +358,10 @@ import GRPCManager
     }
 
     public func reconcilePurchaseFlowAfterAccountRefresh() {
+        guard !pendingPlanPurchaseNavigationAfterDrawerHide,
+              planPurchaseTransitionTask == nil,
+              !isCheckoutNavigationPending
+        else { return }
         guard DrawerSessionPolicy.shouldCompleteCheckoutAfterAccountRefresh(
             isPurchaseFlowActive: sessionContext.isPurchaseFlowActive,
             isAccountActive: credentialsManager.isAccountActive()
@@ -486,6 +490,7 @@ private extension AppFeatureViewModel {
         )
         viewModel.sessionCoordinator = self
         processingViewModel = viewModel
+        viewModel.start()
         // Welcome and processing share the same drawer slide identity, so
         // commit directly instead of staging through pendingDrawerContent —
         // that avoids triggering DrawerView.slideOut and lets the inner
@@ -687,20 +692,22 @@ private extension AppFeatureViewModel {
             }
             withAnimation(.easeInOut(duration: Self.paywallTransitionDuration)) {
                 self.drawerContent = nil
-            } completion: {
-                self.completeCheckoutDrawerTransition(hadProcessingDrawer: hadProcessingDrawer)
             }
+            try? await Task.sleep(for: .seconds(Self.paywallTransitionDuration))
+            guard !Task.isCancelled else { return }
+            self.completeCheckoutDrawerTransition(hadProcessingDrawer: hadProcessingDrawer)
         }
     }
 
     func completeCheckoutDrawerTransition(hadProcessingDrawer: Bool = false) {
+        let shouldMarkCheckoutNavigationPending = pendingPlanPurchaseNavigationAfterDrawerHide
         planPurchaseTransitionTask = nil
         if PurchaseTransitionPolicy.shouldCancelProcessingAfterDrawerHidden(
             hadProcessingDrawer: hadProcessingDrawer
         ) {
             cancelProcessingTransition()
         }
-        guard pendingPlanPurchaseNavigationAfterDrawerHide else { return }
+        guard shouldMarkCheckoutNavigationPending else { return }
         isCheckoutNavigationPending = true
         planPurchaseTransitionTask = Task { @MainActor [weak self] in
             try? await Task.sleep(

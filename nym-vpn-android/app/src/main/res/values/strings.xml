@@ -372,6 +372,14 @@
 	<string name="account_generating_error">Failed to register account. Please, try again later</string>
 	<string name="account_generating_deeplink_title">Logging in…</string>
 	<string name="account_generating_deeplink_description">Please wait while we verify your account</string>
+	<string name="account_login_processing_setting_up">Setting up your anonymous account</string>
+	<string name="account_login_processing_setting_up_step2_subtitle">Verifying your sign-in</string>
+	<string name="account_login_processing_setting_up_step3_subtitle">Preparing your account for this device</string>
+	<string name="account_login_processing_setting_up_step4_subtitle">Finishing account setup</string>
+	<string name="account_login_processing_loading_credentials">Loading your anonymous credentials…</string>
+	<string name="account_login_processing_loading_credentials_subtitle">This can take a moment on first sign-in</string>
+	<string name="account_login_processing_almost_ready">Finishing up…</string>
+	<string name="account_login_processing_almost_ready_subtitle">Just a few more seconds</string>
 	<!-- Account Payment screen -->
 	<string name="account_payment_processing">Processing your payment securely…</string>
 	<string name="account_payment_verifying">We\'re verifying your subscription—no personal details are ever tied to your identity</string>
@@ -591,4 +599,15 @@
 	<string name="setup_instructions_wallet_step_1">Set the RPC URL to</string>
 	<string name="setup_instructions_wallet_step_2">http://127.0.0.1:8545</string>
 	<string name="setup_instructions_proxy_title">PROXY ADDRESS</string>
+	<!-- Icons appearance -->
+	<string name="app_icon_title">App icon</string>
+	<string name="app_icon_label_default">Default</string>
+	<string name="app_icon_label_dark">Dark</string>
+	<string name="app_icon_label_light">Light</string>
+	<string name="app_icon_label_calculator" translatable="false">Calculator</string>
+	<string name="app_icon_label_notes" translatable="false">Notes</string>
+	<string name="app_icon_disconnect_first">Disconnect the VPN to change the app icon.</string>
+	<string name="app_icon_change_title">Change app icon?</string>
+	<string name="app_icon_change_body">The app will close briefly to apply the new icon. Only the home-screen icon and label change — notifications and system search still show NymVPN.</string>
+	<string name="app_icon_change_confirm">Change icon</string>
 </resources>

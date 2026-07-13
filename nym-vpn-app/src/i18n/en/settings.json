@@ -87,6 +87,9 @@
     "title": "Logs (stored locally)",
     "app": "App logs",
     "daemon": "Daemon logs",
+    "debug-logging": {
+      "title": "Enable debug logging"
+    },
     "actions": {
       "delete": {
         "action-button": "Delete",
@@ -117,7 +120,7 @@
     "performance": {
       "title": "Expected performance based on current settings",
       "speed": {
-        "title": "Speed",
+        "title": "Packet Rate",
         "value": "Up to {{value}}"
       },
       "privacy": {

@@ -9,8 +9,13 @@ use std::{
     sync::Arc,
 };
 
-use futures::{FutureExt, StreamExt, future::Fuse};
+use futures::{
+    FutureExt, StreamExt,
+    future::{Fuse, FusedFuture},
+};
+use nym_bandwidth_controller::BandwidthController;
 use nym_diagnostic::DiagnosticHandler;
+use nym_sdk::mixnet::StoragePaths;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{RwLock, broadcast, mpsc, oneshot, watch},
@@ -330,6 +335,9 @@ pub struct NymVpnService {
     // Statistics controller handle
     statistics_controller_handle: JoinHandle<()>,
 
+    // Bandwidth controller handle
+    bandwidth_controller_handle: JoinHandle<()>,
+
     // Topology service join handle
     topology_service_join_handle: JoinHandle<()>,
 
@@ -511,6 +519,17 @@ impl NymVpnService {
         let wireguard_keys_db = account_controller.get_wireguard_keys_storage();
         let account_controller_handle = tokio::task::spawn(account_controller.run());
 
+        let credential_storage = StoragePaths::new_from_dir(network_data_dir.clone())
+            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?
+            .persistent_credential_storage()
+            .await
+            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?;
+        let bandwidth_controller = BandwidthController::new(credential_storage);
+        let bandwidth_command_tx = bandwidth_controller.get_request_sender();
+        let bandwidth_controller_handle = tokio::task::spawn(
+            bandwidth_controller.run(services_shutdown_token.child_token().into()),
+        );
+
         let config_manager = match parameters.service_storage_type {
             ServiceConfigStorageType::Persistent => {
                 VpnServiceConfigManager::new(&config_dir, Some(tunnel_event_tx.clone())).await?
@@ -672,6 +691,7 @@ impl NymVpnService {
             tunnel_constants,
             account_command_tx.clone(),
             account_state_rx.clone(),
+            bandwidth_command_tx.clone(),
             statistics_event_sender.clone(),
             topology_service.clone(),
             connectivity_handle,
@@ -709,6 +729,7 @@ impl NymVpnService {
             state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
             statistics_controller_handle,
+            bandwidth_controller_handle,
             topology_service_join_handle,
             topology_service_handle: topology_service,
             config_manager,
@@ -801,6 +822,10 @@ impl NymVpnService {
             tracing::error!("Failed to join on account controller handle: {e}");
         }
 
+        if let Err(e) = self.bandwidth_controller_handle.await {
+            tracing::error!("Failed to join on bandwidth controller handle: {e}");
+        }
+
         if let Err(e) = self.statistics_controller_handle.await {
             tracing::error!("Failed to join on statistics controller handle: {e}");
         }
@@ -855,14 +880,17 @@ impl NymVpnService {
         }
     }
 
-    async fn reconnect_tunnel(&self) -> bool {
+    async fn reconnect_tunnel(&mut self) -> bool {
         match self.target_state {
             TargetState::Secured => {
                 // Flush any settings update that is still pending behind the
                 // throttle timer so the upcoming Connect uses the latest config.
                 // Otherwise a reconnect can race ahead of the throttled
                 // SetTunnelSettings and re-run with stale settings
-                self.update_tunnel_settings();
+                if !self.tunnel_settings_update_timer.is_terminated() {
+                    self.tunnel_settings_update_timer.set(Fuse::terminated());
+                    self.update_tunnel_settings();
+                }
                 self.statistics_event_sender.report_connection_request();
                 let _ = self.command_sender.send(TunnelCommand::Connect);
                 true

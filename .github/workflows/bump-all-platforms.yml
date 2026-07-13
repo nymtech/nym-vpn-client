@@ -278,8 +278,8 @@ jobs:
         working-directory: .pkg/linux
         if: ${{ inputs.update_linux_installer }}
         env:
-          APP_TAG: nym-vpn-app-v${{ steps.version.outputs.core_version }}
-          CORE_TAG: nym-vpn-core-v${{ steps.version.outputs.core_version }}
+          APP_TAG: nym-vpn-v${{ steps.version.outputs.core_version }}
+          CORE_TAG: nym-vpn-v${{ steps.version.outputs.core_version }}
         run: |
           ./bump.sh
 

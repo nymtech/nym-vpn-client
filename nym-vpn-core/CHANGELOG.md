@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - While in Connected state swap internal resolver to use custom DNS (via system resolver). (https://github.com/nymtech/nym-vpn-client/pull/5674)
 
+### Fixed
+
+- Improve behavior of forwarding resolver by not sending empty response when hostname resolution fails. Instead simulate timeout to let clients retry more aggressively. (https://github.com/nymtech/nym-vpn-client/pull/5832)
+
+
 ## [2026.11.0] - TBD
 
 ### Added
@@ -21,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Permit API networking in error state in order to refresh account data (https://github.com/nymtech/nym-vpn-client/pull/5623)
+- Increase timeout for TCP-based probe for connection monitoring in two-hop mode (https://github.com/nymtech/nym-vpn-client/pull/5803)
 
 ### Fixed
 
@@ -30,10 +36,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [macOS] Disable authentication when flag is set (https://github.com/nymtech/nym-vpn-client/pull/5645)
 - [iOS] Fix metadata endpoint not being reached for exit tunnel (https://github.com/nymtech/nym-vpn-client/pull/5728)
 - Fix going into Connected state when metadata endpoint might not work (https://github.com/nymtech/nym-vpn-client/pull/5750)
+- [Linux] Disable NetworkManager's connectivity check before applying firewall rules (https://github.com/nymtech/nym-vpn-client/pull/5801) 
+- [iOS] Skip ad-blocking rules that do not block by domain (https://github.com/nymtech/nym-vpn-client/pull/5658)
+- [iOS] Handle sub-domain blocking (https://github.com/nymtech/nym-vpn-client/pull/5810)
+- [macOS] Skip catch-all NAT masquerade when split tunneling is active (macOS >=14.6, <15.1 only). (https://github.com/nymtech/nym-vpn-client/pull/5569)
 
 ### Removed
 
-- Removed mixnet tuning feature flag
+- Removed mixnet tuning feature flag (https://github.com/nymtech/nym-vpn-client/pull/5581)
 
 
 ## [2026.10.0] - 2026-06-09

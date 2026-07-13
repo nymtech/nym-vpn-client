@@ -61,6 +61,10 @@ on:
         description: "Orchestrated app version to embed (empty = use Constants.kt as before)"
         type: string
         default: ""
+      publish-metadata:
+        description: "Skip app metadata"
+        type: boolean
+        default: true
 
 env:
   UPLOAD_DIR_ANDROID: android_artifacts
@@ -426,6 +430,6 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           bundle install
-          bundle exec fastlane ${{ inputs.track }} skip_bundle:${{ github.event.inputs.publish-bundle == 'true' }} skip_metadata:${{ github.event.inputs.publish-metadata == 'true' }}
+          bundle exec fastlane ${{ inputs.track }} skip_bundle:${{ github.event.inputs.publish-bundle == 'true' }} skip_metadata:${{ inputs.publish-metadata }}
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}

@@ -38,10 +38,6 @@ export type Cli = {
    */
   buildInfo: boolean;
   /**
-   * Enable writing app logs to a file
-   */
-  logFile: boolean;
-  /**
    * Set the log level
    */
   logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | null;

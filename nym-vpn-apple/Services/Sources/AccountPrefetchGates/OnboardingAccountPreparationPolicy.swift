@@ -8,6 +8,13 @@ public enum AccountPreparationWaitOutcome: Equatable, Sendable {
 
 /// Pure policy for onboarding account prep: sync may end without an active subscription.
 public enum OnboardingAccountPreparationPolicy {
+    public static let offlineFailDebounceSeconds: TimeInterval = 5
+    public static let waitPollIntervalSeconds: TimeInterval = 0.25
+
+    public static func shouldFailOnOffline(consecutiveOfflineSeconds: TimeInterval) -> Bool {
+        consecutiveOfflineSeconds >= offlineFailDebounceSeconds
+    }
+
     public enum AccountStatePhase: Equatable, Sendable {
         case offline
         case loggedOut

@@ -636,15 +636,3 @@ jobs:
           type: "stream"
           topic: ${{ env.TOPIC }}
           content: ${{ env.MESSAGE }}
-
-  gen-hashes:
-    uses: ./.github/workflows/gen-hashes-json.yml
-    needs: publish
-    # Deferred under orchestration (version_tag set): hashes the public release assets.
-    # Run after manual publish.
-    if: ${{ inputs.release_type == 'stable' && inputs.version_tag == '' }}
-    permissions:
-      contents: write
-    with:
-      release_tag: ${{ needs.publish.outputs.release_tag }}
-    secrets: inherit

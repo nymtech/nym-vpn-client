@@ -32,6 +32,14 @@ jobs:
     runs-on: "custom-windows-11"
 
     steps:
+      - name: Cleanup working directory
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
@@ -41,7 +49,7 @@ jobs:
         uses: xom9ikk/dotenv@v2.4.0
 
       - name: Cache libwg
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: cache
         with:
           path: build/lib

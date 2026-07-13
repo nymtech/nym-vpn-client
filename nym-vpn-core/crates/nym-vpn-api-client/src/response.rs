@@ -12,7 +12,7 @@ use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 pub use nym_credential_proxy_requests::api::v1::ticketbook::models::UpgradeModeAttestation;
-use nym_validator_client::models::LewesProtocolDetailsV1;
+use nym_validator_client::models::described::type_translation::LewesProtocolDetailsV1;
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, UtcDateTime, format_description::well_known::Iso8601};
 

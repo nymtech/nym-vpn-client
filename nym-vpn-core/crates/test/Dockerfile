@@ -22,7 +22,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Go toolchain (version matches wireguard/libwg/go.mod)
-RUN curl -fsSL https://go.dev/dl/go1.24.4.linux-amd64.tar.gz \
+RUN curl -fsSL https://go.dev/dl/go1.25.0.linux-amd64.tar.gz \
     | tar -C /usr/local -xz
 ENV PATH="/usr/local/go/bin:${PATH}"
 

@@ -39,6 +39,7 @@ import PathManager
     var registrationCapturedEnvString: String?
     private var accountRegistrationTask: Task<Void, Error>?
     var accountControllerShutdown: (() async -> Void)?
+    private(set) var isLoggingOut = false
 #endif
 
     public static let shared = CredentialsManager()
@@ -262,12 +263,27 @@ import PathManager
             ).registerAccount()
         }.value
     }
+
+    public func ensureDeviceRegisteredForLogin() async throws {
+        let env = try resolvedRegistrationEnvironment()
+        _ = try await AccountRegistrationSupport.withAccountStoreRetry(
+            operation: "ensureDeviceRegisteredForLogin",
+            logger: logger
+        ) {
+            try await registerAccount(environment: env)
+        }
+    }
 #endif
 
-    public func prepareRegisteredAccount() async throws {
+    public func prepareRegisteredAccount(
+        onAccountPhaseChange: (@MainActor (OnboardingAccountPreparationPolicy.AccountStatePhase) -> Void)?
+    ) async throws {
 #if os(iOS)
         let env = try resolvedNetworkEnvironment()
-        try await prepareRegisteredAccount(environment: env)
+        try await prepareRegisteredAccount(
+            environment: env,
+            onAccountPhaseChange: onAccountPhaseChange
+        )
 #endif
     }
 
@@ -301,6 +317,21 @@ import PathManager
         await prefetchZkNymsOnIOS(timeout: timeout)
 #else
         return .skipped
+#endif
+    }
+
+    public func beginLogout() async {
+#if os(iOS)
+        isLoggingOut = true
+        accountSummaryUpdateTask?.cancel()
+        accountSummaryUpdateTask = nil
+        await shutdownControllersAndWait()
+#endif
+    }
+
+    public func endLogout() {
+#if os(iOS)
+        isLoggingOut = false
 #endif
     }
 
@@ -471,6 +502,9 @@ import PathManager
 extension CredentialsManager {
     public func updateAccountSummary(force: Bool = false, untilActive: Bool = false) async {
         guard !isAccountRegistrationInFlight else { return }
+#if os(iOS)
+        guard !isLoggingOut else { return }
+#endif
 #if SANTA
         guard !isAccountSummaryOverridden else { return }
 #endif

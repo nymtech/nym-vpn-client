@@ -1,6 +1,182 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "onboarding26.card.tagline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To the world’s most private VPN"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.amnesia" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " to protect against Deep Packet Inspection (DPI)"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.amnesiaBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AmnesiaWG"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.quic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " servers for extra protection against firewalls"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.quicBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QUIC"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.stealth" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " connect protects against filtering"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.stealthBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "stealth api"
+          }
+        }
+      }
+    },
+    "onboarding26.censorship.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Packing heavy censorship resistance tech"
+          }
+        }
+      }
+    },
+    "onboarding26.getStarted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get started"
+          }
+        }
+      }
+    },
+    "onboarding26.modes.subtitleAnonymous" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go anonymous with mixnet mode"
+          }
+        }
+      }
+    },
+    "onboarding26.modes.subtitleFast" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "250+ Mbps)"
+          }
+        }
+      }
+    },
+    "onboarding26.modes.subtitleFastBold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stream anything in fast mode ("
+          }
+        }
+      }
+    },
+    "onboarding26.modes.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One app, two modes"
+          }
+        }
+      }
+    },
+    "onboarding26.welcome.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your access to private, unrestricted "
+          }
+        }
+      }
+    },
+    "onboarding26.welcome.subtitleEmphasis" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "internet."
+          }
+        }
+      }
+    },
+    "onboarding26.welcome.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to Nym VPN!"
+          }
+        }
+      }
+    },
     "%@" : {
       "localizations" : {
         "ar" : {
@@ -23038,6 +23214,83 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Setting up your anonymous account"
+          }
+        }
+      }
+    },
+    "processingAccount.login.settingUpStep2Subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifying your sign-in"
+          }
+        }
+      }
+    },
+    "processingAccount.login.settingUpStep3Subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing your account for this device"
+          }
+        }
+      }
+    },
+    "processingAccount.login.settingUpStep4Subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finishing account setup"
+          }
+        }
+      }
+    },
+    "processingAccount.login.loadingCredentials" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading your anonymous credentials…"
+          }
+        }
+      }
+    },
+    "processingAccount.login.loadingCredentialsSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This can take a moment on first sign-in"
+          }
+        }
+      }
+    },
+    "processingAccount.login.almostReady" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finishing up…"
+          }
+        }
+      }
+    },
+    "processingAccount.login.almostReadySubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just a few more seconds"
           }
         }
       }

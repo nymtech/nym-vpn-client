@@ -15,6 +15,7 @@
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 mod unix;
 
+use nym_common::trace_err_chain;
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 pub(crate) use unix::flush_system_cache;
 
@@ -501,7 +502,7 @@ impl LocalResolver {
                 request = self.rx.recv() => {
                     match request {
                         Some(ResolverMessage::SetConfig { new_config, response_tx }) => {
-                            let res = self.update_config(new_config) ;
+                            let res = self.update_config(new_config);
                             #[cfg(not(target_os = "ios"))]
                             if res.is_ok() {
                                 flush_system_cache().await;
@@ -677,31 +678,34 @@ impl ResolverImpl {
             return Ok(make_response_info(message, ResponseCode::ServFail));
         };
 
-        let lookup_result = response_rx.await;
-        let response_result = match lookup_result {
+        match response_rx.await {
             Ok(Ok(ref lookup)) => {
                 let response = Self::build_response(message, lookup);
-                response_handler.send_response(response).await
+                response_handler
+                    .send_response(response)
+                    .await
+                    .inspect_err(|err| {
+                        trace_err_chain!(err, "failed to send response");
+                    })
             }
-            Err(_error) => Ok(make_response_info(message, ResponseCode::ServFail)),
             Ok(Err(resolve_err)) => {
                 if let NetError::Dns(DnsError::NoRecordsFound(no_records)) = resolve_err {
                     let response_code = no_records.response_code;
                     let response = MessageResponseBuilder::from_message_request(message)
                         .error_msg(&message.metadata, response_code);
-                    response_handler.send_response(response).await
+                    response_handler
+                        .send_response(response)
+                        .await
+                        .inspect_err(|err| {
+                            trace_err_chain!(err, "failed to send response");
+                        })
                 } else {
-                    let response = Self::build_response(message, &AuthLookup::Empty);
-                    response_handler.send_response(response).await
+                    trace_err_chain!(resolve_err, "failed to resolve hostname");
+                    Err(resolve_err)
                 }
             }
-        };
-
-        if let Err(err) = &response_result {
-            tracing::error!("Failed to send response: {err}");
+            Err(_error) => Err(NetError::Message("channel is closed")),
         }
-
-        response_result
     }
 }
 
