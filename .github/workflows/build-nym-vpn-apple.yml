@@ -36,10 +36,6 @@ on:
         description: "Build type: pr | qa | ship (raw or labeled)"
         type: string
         default: "pr"
-      version_tag:
-        description: "Unified release tag (empty = legacy; nym-vpn-nightly = mutable; nym-vpn-v* = immutable ship)"
-        type: string
-        default: ""
       version:
         description: "Orchestrated app version (empty = use Xcode MARKETING_VERSION as before)"
         type: string
@@ -56,6 +52,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
+  UPLOAD_DIR_MACOS: macos_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
   S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
   S3_BUCKET: builds
@@ -71,6 +68,7 @@ jobs:
     timeout-minutes: 90
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
+      UPLOAD_DIR_MACOS: ${{ env.UPLOAD_DIR_MACOS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
     steps:
       - name: Checkout repo
@@ -171,12 +169,6 @@ jobs:
         with:
           go-version: ${{ env.GOLANG_VERSION }}
           cache-dependency-path: wireguard/libwg/go.sum
-
-      - name: Get workspace version
-        id: workspace-version
-        uses: nicolaiunrein/cargo-get@master
-        with:
-          subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Install cargo-edit
         uses: baptiste0928/cargo-install@v3
@@ -540,52 +532,6 @@ jobs:
           echo "IOS_VERSION=$IOS_VERSION" >> "$GITHUB_ENV"
           echo "✅ iOS version captured: $IOS_VERSION ($IOS_BUILD_NUMBER)"
 
-      - name: Generate what to test notes for iOS
-        if: ${{ env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true' }}
-        working-directory: nym-vpn-apple
-        run: |
-          set -euo pipefail
-
-          DATE_TIME="$(date '+%Y-%m-%d %H:%M:%S')"
-          BRANCH_NAME="${GITHUB_REF_NAME}"
-
-          # Get ONLY the latest commit
-          LATEST_COMMIT="$(git log -1 --pretty=format:'%h, %ar, message: %s')"
-
-          # Build release notes (real newlines so TestFlight renders line breaks)
-          RELEASE_NOTES="$(printf 'Date: %s\nBranch: %s\nLatest commit:\n- %s' "$DATE_TIME" "$BRANCH_NAME" "$LATEST_COMMIT")"
-
-          # Build whats_new.json with proper JSON escaping
-          export RELEASE_NOTES
-          ruby -rjson -e '
-            notes = ENV.fetch("RELEASE_NOTES")
-            payload = [{ language: "en-US", locale: "en-US", whats_new: notes }]
-            puts JSON.pretty_generate(payload)
-          ' > whats_new.json
-
-          echo "Generated whats_new.json:"
-          cat whats_new.json
-
-      - name: Upload to TestFlight
-        if: ${{ env.RELEASE_TYPE != 'pr' && env.BUILD_IOS == 'true' }}
-        working-directory: nym-vpn-apple
-        env:
-          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-
-          echo "🚀 Uploading to TestFlight..."
-  
-          BETA_GROUPS=( --beta-group='World' )
-          app-store-connect publish \
-            --beta-build-localizations=@file:whats_new.json \
-            "${BETA_GROUPS[@]}" \
-            --testflight
-
-          echo "✅ Upload completed successfully."
-
       - name: Restore project signing for macOS
         working-directory: nym-vpn-apple
         run: |
@@ -811,28 +757,6 @@ jobs:
             --type elem --name "title" --value "$PRODUCT_NAME" \
             "$DIST_XML_FILE"
 
-          # Add background image for light mode
-          # xmlstarlet edit --inplace \
-          #   --subnode '//installer-gui-script' \
-          #   --type elem --name "background" \
-          #   --var new_node '$prev' \
-          #   --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
-          #   --append '$new_node' --type attr -n 'file' --value 'background-light.png' \
-          #   --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
-          #   --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
-          #   "$DIST_XML_FILE"
-
-          # Add background image for dark mode
-          # xmlstarlet edit --inplace \
-          #   --subnode '//installer-gui-script' \
-          #   --type elem --name "background-darkAqua" \
-          #   --var new_node '$prev' \
-          #   --append '$new_node' --type attr -n 'alignment' --value 'topleft' \
-          #   --append '$new_node' --type attr -n 'file' --value 'background-dark.png' \
-          #   --append '$new_node' --type attr -n 'mime-type' --value 'image/png' \
-          #   --append '$new_node' --type attr -n 'scaling' --value 'proportional' \
-          #   "$DIST_XML_FILE"
-
           echo "✅ Distribution XML:"
           cat "$DIST_XML_FILE"
 
@@ -913,475 +837,37 @@ jobs:
           xcrun stapler staple "$PKG"
           xcrun stapler validate "$PKG"
 
-          echo "pkg_path=$PKG" >> "$GITHUB_OUTPUT"
-
-      - name: Generate artifact name
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        run: |
-          TIMESTAMP=$(date +"%Y%m%d-%H%M")
-          SAFE_BRANCH=$(echo "${GITHUB_REF_NAME}" | tr '/' '-')
-          echo "ARTIFACT_NAME=apple-${RELEASE_TYPE}-${TIMESTAMP}-${SAFE_BRANCH}" >> "$GITHUB_ENV"
-
-      - name: Rename PKG for upload
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        working-directory: nym-vpn-apple/build/pkg
-        run: |
-          set -euo pipefail
-          ORIGINAL_PKG=$(basename "${{ steps.notarize-pkg.outputs.pkg_path || steps.make-pkg.outputs.pkg_path }}")
-
-          # Strip "apple-" prefix → keep timestamp-branch only
-          PREFIX_PART=$(echo "${ARTIFACT_NAME}" | sed 's/^apple-//')
-          NEW_NAME="${PREFIX_PART}-${ORIGINAL_PKG}"
-
-          echo "📦 Renaming package:"
-          echo "  Old: $ORIGINAL_PKG"
-          echo "  New: $NEW_NAME"
-
-          mv "$ORIGINAL_PKG" "$NEW_NAME"
-
-          # Export relative path (relative to repository root)
-          RELATIVE_PATH="nym-vpn-apple/build/pkg/$NEW_NAME"
-          echo "renamed_pkg_relative_path=$RELATIVE_PATH" >> "$GITHUB_ENV"
-          echo "✅ Renamed and ready: $RELATIVE_PATH"
-
-      - name: Prepare final signed PKG for release (ship)
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        working-directory: nym-vpn-apple
-        run: |
-          set -euo pipefail
-
-          if [[ -z "${renamed_pkg_relative_path:-}" ]]; then
-            echo "❌ renamed_pkg_relative_path not set (did Rename PKG for upload run?)"
-            exit 1
-          fi
-
-          # Resolve signed, renamed PKG path (ship-20251119-2202-feat-sparkle-NymVPN-2.13.0.pkg)
-          PKG_BASENAME="$(basename "${renamed_pkg_relative_path}")"
-          PKG_PATH="$PWD/build/pkg/$PKG_BASENAME"
-
-          if [[ ! -f "$PKG_PATH" ]]; then
-            echo "❌ Signed PKG not found at $PKG_PATH"
-            ls -la "$PWD/build/pkg"
-            exit 1
-          fi
-
-          echo "📦 Using signed PKG: $PKG_PATH"
-
-          echo "📄 Reading MARKETING_VERSION from Xcode build settings…"
-          VERSION=$(
-            xcodebuild -showBuildSettings \
-              -workspace "NymVPN.xcworkspace" \
-              -scheme "NymVPNDaemon" \
-              -configuration "Release" 2>/dev/null |
-            awk '/MARKETING_VERSION/ { print $3; exit }'
-          )
-
-          if [[ -z "$VERSION" ]]; then
-            echo "❌ Could not determine MARKETING_VERSION from Xcode (MARKETING_VERSION)"
-            exit 1
-          fi
-
-          echo "✅ MARKETING_VERSION: $VERSION"
-
-          ARCHIVE_DIR="$PWD/build/pkg"
-
-          # 🚩 This is the **final** PKG name we want user-facing
-          FINAL_PKG_NAME="NymVPN-${VERSION}.pkg"
-          FINAL_PKG_PATH="$ARCHIVE_DIR/$FINAL_PKG_NAME"
-
-          echo "📛 Copying signed PKG to final name: $FINAL_PKG_PATH"
-          cp "$PKG_PATH" "$FINAL_PKG_PATH"
-
-          echo "📂 Build/pkg directory contents:"
-          ls -la "$ARCHIVE_DIR"
-
-          echo "FINAL_PKG_PATH=$FINAL_PKG_PATH" >> "$GITHUB_ENV"
-          echo "MACOS_VERSION=$VERSION" >> "$GITHUB_ENV"
-
-      - name: Generate Sparkle appcast & SHA-256 hash (sign_update)
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        working-directory: nym-vpn-apple/build/pkg
+      - name: Move assets for upload (macOS)
+        if: ${{ env.BUILD_MACOS == 'true' }}
         env:
-          APPLE_SPARKLE_PRIVATE_KEY: ${{ secrets.APPLE_SPARKLE_PRIVATE_KEY }}
-          APP_PATH: ${{ steps.archive-macos.outputs.app_path }}
-          VERSION_TAG: ${{ inputs.version_tag }}
+          PKG: ${{ steps.make-pkg.outputs.pkg_path }}
         run: |
-          set -euo pipefail
-          which jq || brew install jq
+          cp "$PKG" "${{ env.UPLOAD_DIR_MACOS }}"
 
-          if [[ -z "${FINAL_PKG_PATH:-}" || ! -f "$FINAL_PKG_PATH" ]]; then
-            echo "❌ FINAL_PKG_PATH invalid or missing: ${FINAL_PKG_PATH:-<unset>}"
-            ls -la
-            exit 1
-          fi
+      - name: Move assets for upload (iOS)
+        if: ${{ env.BUILD_IOS == 'true' }}
+        env:
+          IPA_DIR: nym-vpn-apple/build/ios/ipa
+        run: |
+          cp -R "$IPA_DIR" "${{ env.UPLOAD_DIR_IOS }}"
 
-          PKG_FILE="$(basename "$FINAL_PKG_PATH")"
-          if [[ "$PKG_FILE" != *.pkg ]]; then
-            echo "❌ FINAL_PKG_PATH does not look like a .pkg: $PKG_FILE"
-            exit 1
-          fi
-
-          # Make sure the pkg is in the current working directory (build/pkg)
-          if [[ ! -f "$PKG_FILE" ]]; then
-            echo "📥 Copying pkg into working dir…"
-            cp "$FINAL_PKG_PATH" .
-          fi
-
-          echo "📦 Using signed + notarized + stapled PKG for Sparkle signing: $PKG_FILE"
-
-          if [[ -z "${APP_PATH:-}" || ! -d "$APP_PATH" ]]; then
-            echo "❌ APP_PATH not set or invalid: $APP_PATH"
-            exit 1
-          fi
-
-          APP_PLIST="$APP_PATH/Contents/Info.plist"
-          SHORT_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PLIST")"
-
-          echo "ℹ️  CFBundleShortVersionString: $SHORT_VERSION"
-
-          # --- Download latest Sparkle distribution for sign_update ---
-          SPARKLE_DIR="$RUNNER_TEMP/sparkle"
-          mkdir -p "$SPARKLE_DIR"
-
-          echo "📥 Fetching latest Sparkle release metadata…"
-          curl -fsSL "https://api.github.com/repos/sparkle-project/Sparkle/releases/latest" \
-            -o "$SPARKLE_DIR/release.json"
-
-          ASSET_URL=$(jq -r '.assets[] | select(.name | endswith(".tar.xz")) | .browser_download_url' \
-            "$SPARKLE_DIR/release.json" | head -n 1)
-
-          if [[ -z "$ASSET_URL" || "$ASSET_URL" == "null" ]]; then
-            echo "❌ Could not find Sparkle .tar.xz asset in latest release"
-            jq '.' "$SPARKLE_DIR/release.json" || true
-            exit 1
-          fi
-
-          echo "⬇️ Downloading Sparkle from: $ASSET_URL"
-          SPARKLE_TAR="$SPARKLE_DIR/Sparkle.tar.xz"
-          curl -fsSL "$ASSET_URL" -o "$SPARKLE_TAR"
-
-          EXTRACT_DIR="$SPARKLE_DIR/extracted"
-          mkdir -p "$EXTRACT_DIR"
-          tar -xf "$SPARKLE_TAR" -C "$EXTRACT_DIR" --strip-components=1
-
-          SPARKLE_BIN="$EXTRACT_DIR/bin"
-          if [[ ! -x "$SPARKLE_BIN/sign_update" ]]; then
-            echo "❌ sign_update not found in Sparkle distribution"
-            ls -R "$EXTRACT_DIR"
-            exit 1
-          fi
-
-          if [[ -z "${APPLE_SPARKLE_PRIVATE_KEY:-}" ]]; then
-            echo "❌ APPLE_SPARKLE_PRIVATE_KEY secret is empty"
-            exit 1
-          fi
-
-          # 🔑 Write EdDSA private key to a file and ensure it's removed afterwards
-          KEY_FILE="$SPARKLE_DIR/sparkle_private_key_file"
-          printf '%s' "$APPLE_SPARKLE_PRIVATE_KEY" > "$KEY_FILE"
-          chmod 600 "$KEY_FILE"
-          trap "rm -f '$KEY_FILE'" EXIT
-
-          echo "📝 Signing PKG with Sparkle EdDSA key…"
-          # sign_update prints something like:
-          #   sparkle:edSignature="…" length="123456"
-          SPARKLE_ATTRS=$("$SPARKLE_BIN/sign_update" --ed-key-file "$KEY_FILE" "$PKG_FILE")
-
-          if [[ -z "${SPARKLE_ATTRS:-}" ]]; then
-            echo "❌ Failed to obtain Sparkle signature attributes from sign_update"
-            exit 1
-          fi
-
-          echo "✅ Sparkle attributes: $SPARKLE_ATTRS"
-
-          echo "🔐 Computing SHA-256 (PKG payload)"
-          SHA_FILE="NymVPN-${MACOS_VERSION}.pkg.sha256sum"
-          shasum -a 256 "$PKG_FILE" > "$SHA_FILE"
-          echo "✅ ${SHA_FILE}:"
-          cat "$SHA_FILE"
-
-          if [[ -n "${VERSION_TAG:-}" ]]; then
-            DOWNLOAD_TAG="${VERSION_TAG}"
-          else
-            DOWNLOAD_TAG="nym-vpn-macos-v${MACOS_VERSION}"
-          fi
-          DOWNLOAD_URL="https://github.com/nymtech/nym-vpn-client/releases/download/${DOWNLOAD_TAG}/NymVPN-${MACOS_VERSION}.pkg"
-          HOST_LINK="https://nymvpn.com"
-          PUB_DATE="$(LC_ALL=C date -u '+%a, %d %b %Y %H:%M:%S %z')"
-
-          echo "🧾 Creating appcast.xml…"
-          {
-            echo '<?xml version="1.0" standalone="yes"?>'
-            echo '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">'
-            echo '    <channel>'
-            echo '        <title>NymVPN</title>'
-            echo "        <link>${HOST_LINK}</link>"
-            echo '        <item>'
-            echo "            <title>${SHORT_VERSION}</title>"
-            echo "            <pubDate>${PUB_DATE}</pubDate>"
-            echo "            <sparkle:version>${IOS_BUILD_NUMBER}</sparkle:version>"
-            echo "            <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>"
-            echo "            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>"
-            echo '            <enclosure'
-            echo "                url=\"${DOWNLOAD_URL}\""
-            echo '                sparkle:os="macos" sparkle:installationType="package"'
-            echo '                type="application/octet-stream"'
-            printf '                %s />\n' "${SPARKLE_ATTRS}"
-            echo '        </item>'
-            echo '    </channel>'
-            echo '</rss>'
-          } > appcast.xml
-
-          echo "✅ Generated appcast.xml:"
-          cat appcast.xml
-
-          PUBLISH_DIR="publish"
-          rm -rf "$PUBLISH_DIR"
-          mkdir -p "$PUBLISH_DIR"
-
-          cp "$FINAL_PKG_PATH" "$PUBLISH_DIR/"
-          cp appcast.xml "$PUBLISH_DIR/"
-          cp "$SHA_FILE" "$PUBLISH_DIR/"
-
-          echo "📂 Publish folder contents:"
-          ls -la "$PUBLISH_DIR"
-
-          echo "publish_relative_path=nym-vpn-apple/build/pkg/$PUBLISH_DIR" >> "$GITHUB_ENV"
-
-          echo "🧩 Extracting <item> block for nym-websites…"
-          awk '
-            BEGIN { p=0 }
-            /<item>/{ p=1 }
-            p { print }
-            /<\/item>/{ p=0 }
-          ' appcast.xml > appcast-item.xml
-
-          echo "✅ appcast-item.xml:"
-          cat appcast-item.xml
-
-          # Export for later steps
-          echo "APPCAST_ITEM_RELATIVE_PATH=nym-vpn-apple/build/pkg/appcast-item.xml" >> "$GITHUB_ENV"
-
-      - name: Upload artifacts (QA)
-        if: ${{ env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+      - name: Upload artifacts
+        if: ${{ env.BUILD_MACOS == 'true' }}
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ env.renamed_pkg_relative_path }}
+          name: ${{ env.UPLOAD_DIR_MACOS }}
+          path: ${{ env.UPLOAD_DIR_MACOS }}
           if-no-files-found: error
           retention-days: 1
 
-      - name: Prepare nightly PKG asset
-        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
-        working-directory: nym-vpn-apple/build/pkg
-        run: |
-          set -euo pipefail
-
-          if [[ -z "${renamed_pkg_relative_path:-}" ]]; then
-            echo "❌ renamed_pkg_relative_path not set"
-            exit 1
-          fi
-
-          SRC_BASENAME="$(basename "${renamed_pkg_relative_path}")"
-
-          if [[ ! -f "$SRC_BASENAME" ]]; then
-            echo "❌ Source PKG not found: $SRC_BASENAME"
-            ls -la
-            exit 1
-          fi
-
-          echo "📦 Using source PKG: $SRC_BASENAME"
-          cp "$SRC_BASENAME" "NymVPN-nightly.pkg"
-
-          # Export path for the release step (from repo root)
-          echo "NIGHTLY_PKG_PATH=nym-vpn-apple/build/pkg/NymVPN-nightly.pkg" >> "$GITHUB_ENV"
-          echo "✅ Nightly PKG prepared as NymVPN-nightly.pkg"
-
-      - name: Publish macOS nightly GitHub Release
-        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
-        uses: softprops/action-gh-release@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: macos-nightly
-          name: "NymVPN macOS nightly"
-          prerelease: true
-          draft: false
-          files: ${{ env.NIGHTLY_PKG_PATH }}
-          body: |
-            Nightly macOS build of NymVPN.
-            - Branch: ${{ github.ref_name }}
-            - Commit: ${{ github.sha }}
-            - Built at: ${{ github.run_started_at }}
-
-      - name: Check if macOS release tag already exists
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        id: macos_tag
-        shell: bash
-        run: |
-          set -euo pipefail
-          TAG="nym-vpn-macos-v${MACOS_VERSION}"
-          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "Tag already exists: ${TAG}"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-            echo "Tag does not exist: ${TAG}"
-          fi
-
-      - name: Publish macOS GitHub Release
-        if: ${{ inputs.version_tag == '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' && steps.macos_tag.outputs.exists != 'true' }}
-        uses: softprops/action-gh-release@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: nym-vpn-macos-v${{ env.MACOS_VERSION }}
-          name: "NymVPN macOS v${{ env.MACOS_VERSION }}"
-          prerelease: false
-          draft: false
-          files: |
-            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg
-            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg.sha256sum
-          body: |
-            Release macOS build of NymVPN.
-            - Version: ${{ env.MACOS_VERSION }}
-            - Branch: ${{ github.ref_name }}
-            - Commit: ${{ github.sha }}
-            - Built at: ${{ github.run_started_at }}
-
-      - name: Ensure gh CLI is available (macOS runner)
-        if: ${{ inputs.version_tag != '' && env.BUILD_MACOS == 'true' }}
-        run: |
-          set -euo pipefail
-          if ! command -v gh >/dev/null 2>&1; then
-            echo "::notice:: gh not found on PATH — installing via Homebrew"
-            brew install gh || brew upgrade gh
-          fi
-          gh --version
-
-      - name: Append macOS pkg to unified release
-        if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION_TAG: ${{ inputs.version_tag }}
-        run: |
-          set -euo pipefail
-          files=( \
-            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg \
-            nym-vpn-apple/build/pkg/publish/NymVPN-${{ env.MACOS_VERSION }}.pkg.sha256sum \
-          )
-          # Append to the (ship) draft. No --clobber: gh refuses a duplicate.
-          gh release upload "$VERSION_TAG" "${files[@]}"
-
-      - name: Append macOS pkg to unified nightly release
-        if: ${{ inputs.version_tag != '' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION_TAG: ${{ inputs.version_tag }}
-        run: |
-          set -euo pipefail
-          # Append the qa pkg to the fresh nightly draft (finalize-nightly publishes it).
-          gh release upload "$VERSION_TAG" "$renamed_pkg_relative_path"
-
-      - name: Upload artifacts (Ship + appcast + hash)
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
+      - name: Upload artifacts
+        if: ${{ env.BUILD_IOS == 'true' }}
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ env.publish_relative_path }}
+          name: ${{ env.UPLOAD_DIR_IOS }}
+          path: ${{ env.UPLOAD_DIR_IOS }}
           if-no-files-found: error
           retention-days: 1
-
-      - name: Select upload source for www
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        run: |
-          set -euo pipefail
-
-          if [[ "${RELEASE_TYPE}" == "qa" ]]; then
-            UPLOAD_SOURCE="${renamed_pkg_relative_path}"
-            echo "UPLOAD_SOURCE=${UPLOAD_SOURCE}" >> "$GITHUB_ENV"
-            # single PKG file -> bucket key nym-vpn-client/macOS/<pkg>
-            echo "UPLOAD_DEST=nym-vpn-client/macOS/" >> "$GITHUB_ENV"
-            echo "🌐 QA: will upload PKG only → ${UPLOAD_SOURCE}"
-          else
-            UPLOAD_SOURCE="${publish_relative_path}"
-            echo "UPLOAD_SOURCE=${UPLOAD_SOURCE}" >> "$GITHUB_ENV"
-            # contents of the publish/ dir -> bucket keys under nym-vpn-client/macOS/publish/
-            # (preserves the .../publish/NymVPN-<ver>.pkg download URL used in the appcast)
-            echo "UPLOAD_DEST=nym-vpn-client/macOS/publish/" >> "$GITHUB_ENV"
-            echo "🌐 Ship: will upload PKG + appcast.xml + NymVPN-${MACOS_VERSION}.pkg.sha256sum → ${UPLOAD_SOURCE}"
-          fi
-
-      - name: Publish build to S3
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        uses: ./.github/actions/push-to-s3
-        with:
-          source_path: ${{ env.UPLOAD_SOURCE }}
-          destination: ${{ env.UPLOAD_DEST }}
-          endpoint: ${{ env.S3_ENDPOINT }}
-          bucket: ${{ env.S3_BUCKET }}
-          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
-
-      - name: Checkout nym-websites
-        # Opens the nym-websites appcast PR straight from the build (both legacy and
-        # orchestrated ship). Under orchestration the enclosure URL points at the unified
-        # draft tag, which 404s until publish — so that PR is opened as a DRAFT (see
-        # Create PR below) to hold it behind the human ship/publish action.
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-          repository: nymtech/nym-websites
-          token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
-          path: nym-websites
-
-      - name: Insert new Sparkle <item> into nym-websites appcast.xml
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        working-directory: nym-websites
-        env:
-          ITEM_FILE: ${{ github.workspace }}/${{ env.APPCAST_ITEM_RELATIVE_PATH }}
-          VERSION: ${{ env.MACOS_VERSION }}
-        run: |
-          set -euo pipefail
-
-          TARGET="websites/nym/www/public/.wellknown/macos-vpn/appcast.xml"
-
-          test -f "$ITEM_FILE" || { echo "❌ Missing ITEM_FILE: $ITEM_FILE"; exit 1; }
-          test -f "$TARGET" || { echo "❌ Missing TARGET: $TARGET"; exit 1; }
-
-          tmp="$(mktemp)"
-          {
-            head -n 4 "$TARGET"
-            cat "$ITEM_FILE"
-            tail -n +5 "$TARGET"
-          } > "$tmp"
-          mv "$tmp" "$TARGET"
-
-          echo "✅ Updated $TARGET (inserted after line 4)"
-          sed -n '1,40p' "$TARGET" || true
-
-      - name: Create PR in nym-websites
-        if: ${{ env.RELEASE_TYPE == 'ship' && env.BUILD_MACOS == 'true' }}
-        uses: peter-evans/create-pull-request@v8
-        with:
-          token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
-          path: nym-websites
-          commit-message: Update Appcast.xml with v${{ env.MACOS_VERSION }}
-          title: Update Appcast.xml with v${{ env.MACOS_VERSION }}
-          # Orchestrated ship: enclosure points at the unified draft tag (404 until
-          # publish) → open as draft so it isn't merged before the client release is live.
-          # Legacy: its macOS release publishes immediately, so a normal PR is fine.
-          # Fixed per-version branch → create-pull-request force-updates an existing
-          # branch/PR (re-run = overwrite, no duplicates).
-          draft: ${{ inputs.version_tag != '' }}
-          body: |
-            Automated Sparkle appcast update for macOS v${{ env.MACOS_VERSION }}.
-            Source: nym-vpn-client build-nym-vpn-apple (ship).
-            ${{ inputs.version_tag != '' && format('⚠️ Merge only after nym-vpn-client {0} is published — the enclosure URL 404s until then.', inputs.version_tag) || '' }}
-          branch: automation/update-macos-appcast-v${{ env.MACOS_VERSION }}
-          base: main
-          delete-branch: true
 
       - name: Install Sentry (nightly)
         if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_IOS == 'true' }}
@@ -1456,98 +942,6 @@ jobs:
             --org "$SENTRY_ORG" \
             --project "$SENTRY_PROJECT" \
             --include-sources "$DSYMS_DIR"
-
-      - name: Compute macOS download URL (www)
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        env:
-          BASE_URL: ${{ secrets.ZULIP_BOT_APPLE_BUILD_SERVER_URL }}
-        run: |
-          set -euo pipefail
-
-          if [[ -z "${BASE_URL:-}" ]]; then
-            echo "❌ BASE_URL secret (WWW_MACOS_BASE_URL) is empty"
-            exit 1
-          fi
-
-          if [[ "${RELEASE_TYPE}" == "qa" ]]; then
-            FILE="$(basename "${renamed_pkg_relative_path}")"
-            URL="${BASE_URL}/nym-vpn-client/macOS/${FILE}"
-          else
-            URL="${BASE_URL}/publish/NymVPN-${MACOS_VERSION}.pkg"
-          fi
-
-          echo "MACOS_DOWNLOAD_URL=$URL" >> "$GITHUB_ENV"
-          echo "✅ macOS download URL: $URL"
-
-      - name: Compose Zulip message (iOS)
-        if: >-
-          ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship')
-              && env.BUILD_IOS == 'true' }}
-        run: |
-          set -euo pipefail
-
-          BRANCH="${GITHUB_REF_NAME}"
-          MODE="${RELEASE_TYPE}"
-
-          {
-            echo "MESSAGE_IOS<<EOF"
-            echo "📱 iOS ${MODE} build"
-            echo "• Branch: \`${BRANCH}\`"
-            echo "• Version: \`${IOS_VERSION}\`"
-            echo "• Build: \`${IOS_BUILD_NUMBER}\`"
-            echo "EOF"
-          } >> "$GITHUB_ENV"
-
-      - name: Send Zulip message (iOS)
-        if: >-
-          ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship')
-              && env.BUILD_IOS == 'true' }}
-        uses: zulip/github-actions-zulip/send-message@v2
-        with:
-          api-key: ${{ secrets.ZULIP_BOT_APPLE_API_KEY }}
-          email: ${{ secrets.ZULIP_BOT_APPLE_EMAIL }}
-          organization-url: ${{ secrets.ZULIP_ORG_URL }}
-          to: ${{ secrets.ZULIP_BOT_APPLE_CHANNEL }}
-          type: "stream"
-          topic: ${{ secrets.ZULIP_BOT_APPLE_TOPIC_IOS }}
-          content: ${{ env.MESSAGE_IOS }}
-
-      - name: Compose Zulip message (macOS)
-        if: >-
-          ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship')
-              && env.BUILD_MACOS == 'true' }}
-        run: |
-          set -euo pipefail
-
-          BRANCH="${GITHUB_REF_NAME}"
-          MODE="${RELEASE_TYPE}"
-
-          if [[ -z "${MACOS_DOWNLOAD_URL:-}" ]]; then
-            echo "❌ MACOS_DOWNLOAD_URL is empty (Compute macOS download URL step didn't run?)"
-            exit 1
-          fi
-
-          {
-            echo "MESSAGE_MACOS<<EOF"
-            echo "🖥️ macOS ${MODE} build"
-            echo "• Branch: \`${BRANCH}\`"
-            echo "• Download: ${MACOS_DOWNLOAD_URL}"
-            echo "EOF"
-          } >> "$GITHUB_ENV"
-
-      - name: Send Zulip message (macOS)
-        if: >-
-          ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship')
-              && env.BUILD_MACOS == 'true' }}
-        uses: zulip/github-actions-zulip/send-message@v2
-        with:
-          api-key: ${{ secrets.ZULIP_BOT_APPLE_API_KEY }}
-          email: ${{ secrets.ZULIP_BOT_APPLE_EMAIL }}
-          organization-url: ${{ secrets.ZULIP_ORG_URL }}
-          to: ${{ secrets.ZULIP_BOT_APPLE_CHANNEL }}
-          type: "stream"
-          topic: ${{ secrets.ZULIP_BOT_APPLE_TOPIC_MACOS }}
-          content: ${{ env.MESSAGE_MACOS }}
 
       - name: Cleanup Keychain
         if: always()

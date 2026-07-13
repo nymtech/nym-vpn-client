@@ -171,7 +171,7 @@ jobs:
     needs: [resolve, prepare-release]
     permissions:
       contents: write
-    uses: ./.github/workflows/publish-nym-vpn-core.yml
+    uses: ./.github/workflows/build-nym-vpn-core.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
       version_tag: ${{ needs.resolve.outputs.tag }}
