@@ -108,11 +108,6 @@ jobs:
         with:
           subcommand: package.version --entry nym-vpn-app/src-tauri
 
-      - name: Get rust version used for build
-        id: rust-version
-        run: |
-          echo "rustc=$(rustc -V)" >> $GITHUB_OUTPUT
-
       - name: Install JS dependencies
         working-directory: nym-vpn-app
         shell: bash

@@ -126,19 +126,6 @@ jobs:
           echo "unsupported push action!"
           exit 1
 
-      - name: On nightly release
-        if: ${{ contains(env.TAG_NAME, 'nightly') }}
-        run: |
-          echo "RELEASE_NOTES=Nightly build of the latest development version of the android client." >> $GITHUB_ENV
-          gh release delete nym-vpn-android-nightly --yes || true
-          git push origin :nym-vpn-android-nightly || true
-
-      - name: On prerelease release notes
-        if: ${{ inputs.release_type == 'prerelease' }}
-        run: |
-          echo "RELEASE_NOTES=Testing version of the android app." >> $GITHUB_ENV
-          gh release delete ${{ github.event.inputs.tag_name }} --yes || true
-
       - name: Make download dir
         run: mkdir ${{ github.workspace }}/temp
 
