@@ -324,24 +324,6 @@ pub enum ConfigSetupError {
     },
 }
 
-impl From<crate::paths::PathsSetupError> for ConfigSetupError {
-    fn from(error: crate::paths::PathsSetupError) -> Self {
-        match error {
-            crate::paths::PathsSetupError::CreateDirectory { dir, error } => {
-                Self::CreateDirectory { dir, error }
-            }
-            #[cfg(unix)]
-            crate::paths::PathsSetupError::SetPermissions { dir, error } => {
-                Self::SetPermissions { dir, error }
-            }
-            #[cfg(windows)]
-            crate::paths::PathsSetupError::SetPermissions { dir, error } => {
-                Self::SetPermissions { dir, error }
-            }
-        }
-    }
-}
-
 pub async fn read_toml_config_file<C>(file_path: &Path) -> Result<C, ConfigSetupError>
 where
     C: DeserializeOwned,

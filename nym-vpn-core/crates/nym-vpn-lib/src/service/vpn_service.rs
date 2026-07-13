@@ -453,13 +453,13 @@ impl NymVpnService {
             log_path: parameters.paths.log_path.clone(),
         };
 
-        let storage = crate::storage::VpnClientOnDiskStorage::new(paths.network_data_dir.clone());
-
         // Make sure the directories exist
         paths
             .create_directories()
             .await
-            .map_err(|e| Error::ConfigSetup(e.into()))?;
+            .map_err(Error::PathsSetup)?;
+
+        let storage = crate::storage::VpnClientOnDiskStorage::new(paths.network_data_dir.clone());
 
         let state_machine_shutdown_token = CancellationToken::new();
         let services_shutdown_token = CancellationToken::new();

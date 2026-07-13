@@ -13,6 +13,10 @@ pub struct Paths {
     pub log_path: Option<LogPath>,
 }
 
+const DATA_DIR_VAR: &str = "NYM_VPND_DATA_DIR";
+const CONFIG_DIR_VAR: &str = "NYM_VPND_CONFIG_DIR";
+const LOG_DIR_VAR: &str = "NYM_VPND_LOG_DIR";
+
 #[cfg(not(windows))]
 const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
 #[cfg(not(windows))]
@@ -29,15 +33,15 @@ impl Paths {
 
         let nym_vpnd_dir = program_data_dir.join("nym-vpnd");
 
-        let data_dir = std::env::var("NYM_VPND_DATA_DIR")
+        let data_dir = std::env::var(DATA_DIR_VAR)
             .map(PathBuf::from)
             .unwrap_or_else(|_| nym_vpnd_dir.join("data"));
 
-        let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
+        let config_dir = std::env::var(CONFIG_DIR_VAR)
             .map(PathBuf::from)
             .unwrap_or_else(|_| nym_vpnd_dir.join("config"));
 
-        let log_dir = std::env::var("NYM_VPND_LOG_DIR")
+        let log_dir = std::env::var(LOG_DIR_VAR)
             .map(PathBuf::from)
             .unwrap_or_else(|_| nym_vpnd_dir.join("log"));
 
@@ -51,15 +55,15 @@ impl Paths {
 
     #[cfg(not(windows))]
     pub fn new() -> Self {
-        let data_dir = std::env::var("NYM_VPND_DATA_DIR")
+        let data_dir = std::env::var(DATA_DIR_VAR)
             .map(PathBuf::from)
             .unwrap_or_else(|_| DEFAULT_DATA_DIR.into());
 
-        let config_dir = std::env::var("NYM_VPND_CONFIG_DIR")
+        let config_dir = std::env::var(CONFIG_DIR_VAR)
             .map(PathBuf::from)
             .unwrap_or_else(|_| DEFAULT_CONFIG_DIR.into());
 
-        let log_dir = std::env::var("NYM_VPND_LOG_DIR")
+        let log_dir = std::env::var(LOG_DIR_VAR)
             .map(PathBuf::from)
             .unwrap_or_else(|_| DEFAULT_LOG_DIR.into());
 
