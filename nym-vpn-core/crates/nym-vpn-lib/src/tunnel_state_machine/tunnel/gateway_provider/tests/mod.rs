@@ -123,7 +123,7 @@ fn gw_full(id: &str, family_id: u32, asn: &str, route: &str) -> Gateway {
             load: ScoreValue::Low,
             uptime_percentage_last_24_hours: Default::default(),
         })
-        .node_family(Some(NodeFamily {
+        .family_data(Some(NodeFamily {
             id: family_id,
             name: format!("Family {family_id}"),
             description: String::new(),
@@ -450,7 +450,7 @@ async fn mainnet_syntethic_node_families() {
     for gw in &mut gateways {
         let name = gw.name.trim().to_string();
         if let Some((id, label, size)) = name_to_family.get(&name) {
-            gw.node_family = Some(NodeFamily {
+            gw.family_data = Some(NodeFamily {
                 id: *id,
                 name: label.clone(),
                 description: String::new(),
@@ -496,7 +496,7 @@ async fn mainnet_syntethic_node_families() {
     // ── Index structures shared by all scenarios ──────────────────────────
     let mut by_family_id: HashMap<u32, Vec<Gateway>> = HashMap::new();
     for gw in &gateways {
-        if let Some(nf) = &gw.node_family {
+        if let Some(nf) = &gw.family_data {
             by_family_id.entry(nf.id).or_default().push(gw.clone());
         }
     }
@@ -559,7 +559,7 @@ async fn mainnet_syntethic_node_families() {
     // The default independence settings (different_node_family: true) make this
     // an impossible pair, even though the full gateway pool is available.
     let same_family_pair = by_family_id.values().find(|v| v.len() >= 2).map(|v| {
-        let label = v[0].node_family.as_ref().unwrap().name.clone();
+        let label = v[0].family_data.as_ref().unwrap().name.clone();
         (v[0].clone(), v[1].clone(), label)
     });
     if let Some((gw_a, gw_b, family_name)) = same_family_pair {
@@ -664,8 +664,8 @@ async fn mainnet_syntethic_node_families() {
         "random selection on full pool under default criteria should succeed; got {result:?}"
     );
     let selected = result.unwrap();
-    let entry_family = selected.entry_gateway().node_family.as_ref().map(|f| f.id);
-    let exit_family = selected.exit_gateway().node_family.as_ref().map(|f| f.id);
+    let entry_family = selected.entry_gateway().family_data.as_ref().map(|f| f.id);
+    let exit_family = selected.exit_gateway().family_data.as_ref().map(|f| f.id);
     if let (Some(ef), Some(xf)) = (entry_family, exit_family) {
         assert_ne!(
             ef, xf,
@@ -763,10 +763,10 @@ async fn mainnet_syntethic_node_families() {
     let single_family_countries: Vec<(String, Vec<Gateway>)> = by_country
         .iter()
         .filter(|(_, gws)| {
-            gws.len() >= 2 && gws.iter().all(|gw| gw.node_family.is_some()) && {
-                let first_family = gws[0].node_family.as_ref().map(|f| f.id);
+            gws.len() >= 2 && gws.iter().all(|gw| gw.family_data.is_some()) && {
+                let first_family = gws[0].family_data.as_ref().map(|f| f.id);
                 gws.iter()
-                    .all(|gw| gw.node_family.as_ref().map(|f| f.id) == first_family)
+                    .all(|gw| gw.family_data.as_ref().map(|f| f.id) == first_family)
             }
         })
         .map(|(cc, gws)| (cc.clone(), gws.clone()))
@@ -778,7 +778,7 @@ async fn mainnet_syntethic_node_families() {
     }
     for (cc, country_gws) in single_family_countries {
         let family_label = country_gws[0]
-            .node_family
+            .family_data
             .as_ref()
             .map(|f| f.name.as_str())
             .unwrap_or("?");
