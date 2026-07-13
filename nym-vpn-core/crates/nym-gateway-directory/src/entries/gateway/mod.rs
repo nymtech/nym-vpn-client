@@ -72,9 +72,9 @@ pub struct Gateway {
     #[builder(default)]
     pub lewes_protocol_details: Option<LewesProtocolDetailsV1>,
     #[builder(default)]
-    pub node_staking: Option<NodeStaking>,
+    pub staking_data: Option<NodeStaking>,
     #[builder(default)]
-    pub node_family: Option<NodeFamily>,
+    pub family_data: Option<NodeFamily>,
 }
 
 impl Gateway {
@@ -160,8 +160,8 @@ impl Gateway {
             performance: None,
             version,
             lewes_protocol_details,
-            node_staking: None,
-            node_family: None,
+            staking_data: None,
+            family_data: None,
         })
     }
 
@@ -688,8 +688,8 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             performance,
             version: gateway.build_information.map(|info| info.build_version),
             lewes_protocol_details: gateway.lewes_protocol_details,
-            node_staking: gateway.node_staking,
-            node_family: gateway.node_family,
+            staking_data: gateway.staking_data,
+            family_data: gateway.family_data,
         })
     }
 }
