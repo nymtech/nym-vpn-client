@@ -24,6 +24,14 @@ on:
         options:
           - bundle
           - apk
+      build_flavor:
+        type: choice
+        description: "Build flavor"
+        required: true
+        default: fdroid
+        options:
+          - fdroid
+          - play
       skip_crowdin:
         type: boolean
         description: "Skip Crowdin translations download"
@@ -41,6 +49,10 @@ on:
         description: "Build format"
         required: true
         default: apk
+      build_flavor:
+        type: string
+        description: "Build flavor"
+        required: true
       skip_crowdin:
         type: boolean
         description: "Skip Crowdin translations download"
@@ -49,11 +61,6 @@ on:
       version:
         type: string
         description: "Orchestrated app version to embed (empty = use Constants.kt as before)"
-        required: false
-        default: ""
-      version_tag:
-        type: string
-        description: "Unified release tag; for *-nightly.<ts> the <ts> is used as the apk timestamp"
         required: false
         default: ""
     secrets:
@@ -153,17 +160,11 @@ jobs:
 
       - name: Set env
         shell: bash
-        env:
-          VERSION_TAG: ${{ inputs.version_tag }}
         run: |
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
           echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
-          # Nightly apk timestamp = the <ts> baked into the unified tag
-          # (nym-vpn-v<ver>-nightly.<ts>), so the apk name matches the release. Ship/beta
-          # tags carry no "-nightly." segment → gradle generates its own.
-          if [[ "$VERSION_TAG" == *-nightly.* ]]; then
-            echo "NIGHTLY_TIMESTAMP=${VERSION_TAG##*-nightly.}" >> "$GITHUB_ENV"
-          fi
+          # Used by gradle to name nightly apks
+          echo "NIGHTLY_TIMESTAMP=FIXME" >> "$GITHUB_ENV"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -232,8 +233,16 @@ jobs:
         id: createServiceAccount
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
+      - name: Build Google Play Release Bundle
+        if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'release' && inputs.build_format == 'aab' }}
+        timeout-minutes: 45
+        run: ./gradlew :app:bundleGeneralRelease --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+
       - name: Build Fdroid Release Apk
-        if: ${{ inputs.build_type == 'release' && inputs.build_format == 'apk' }}
+        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidRelease --info
         env:
@@ -241,7 +250,7 @@ jobs:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Release Bundle
-        if: ${{ inputs.build_type == 'release' && inputs.build_format == 'aab' }}
+        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidRelease --info
         env:
@@ -249,7 +258,7 @@ jobs:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Prerelease Apk
-        if: ${{ inputs.build_type == 'prerelease' && inputs.build_format == 'apk' }}
+        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'prerelease' && inputs.build_format == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidPrerelease --info
         env:
@@ -257,7 +266,7 @@ jobs:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Prerelease Bundle
-        if: ${{ inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
+        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidPrerelease --info
         env:
@@ -265,7 +274,7 @@ jobs:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Nightly Apk
-        if: ${{ inputs.build_type == 'nightly' && inputs.build_format == 'apk' }}
+        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'nightly' && inputs.build_format == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidNightly --info
         env:
@@ -273,7 +282,7 @@ jobs:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Fdroid Nightly Bundle
-        if: ${{ inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
+        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidNightly --info
         env:
@@ -281,7 +290,7 @@ jobs:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Debug Apk
-        if: ${{ inputs.build_type == 'debug' && inputs.build_format == 'apk' }}
+        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'debug' && inputs.build_format == 'apk' }}
         timeout-minutes: 45
         run: ./gradlew :app:assembleFdroidDebug --stacktrace
         env:
@@ -289,7 +298,7 @@ jobs:
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
       - name: Build Debug Bundle
-        if: ${{ inputs.build_type == 'debug' && inputs.build_format == 'aab' }}
+        if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'debug' && inputs.build_format == 'aab' }}
         timeout-minutes: 45
         run: ./gradlew :app:bundleFdroidDebug --stacktrace
         env:

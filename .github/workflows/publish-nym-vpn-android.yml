@@ -74,182 +74,24 @@ jobs:
     with:
       build_type: ${{ inputs.release_type == '' && 'nightly' || inputs.release_type }}
       build_format: apk
+      build_flavor: fdroid
       version: ${{ inputs.version }}
       version_tag: ${{ inputs.version_tag }}
 
-  publish-github:
+  build-nym-vpn-android-aab:
     if: ${{ inputs.release_type != 'none' }}
-    needs:
-      - build-nym-vpn-android-apk
-    runs-on: arc-linux-latest
-    defaults:
-      run:
-        working-directory: nym-vpn-android
-    env:
-      # GH needed for gh cli
-      GH_REPO: ${{ github.repository }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-
-      - name: Install system dependencies
-        run: |
-          sudo apt update && sudo apt install -y gettext-base gh zip apksigner rsync
-
-      - name: Get version code
-        uses: ./.github/workflows/android/get-version-code
-
-      - name: Set version release notes
-        if: ${{ inputs.release_type == 'release' }}
-        run: |
-          RELEASE_NOTES="$(cat ${{ github.workspace }}/fastlane/metadata/android/en-US/changelogs/${{ env.VERSION_CODE }}.txt)"
-          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
-          echo "$RELEASE_NOTES" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      # Setup TAG_NAME, which is used as a general "name".
-      - name: Set TAG_NAME
-        run: |
-          TAG="${{ inputs.version_tag }}"
-          if [ -z "$TAG" ]; then
-            TAG="${{ github.event.inputs.tag_name }}"
-          fi
-          if [ -z "$TAG" ]; then
-            TAG="nym-vpn-android-nightly"
-          fi
-          echo "TAG_NAME=$TAG" >> $GITHUB_ENV
-      - if: github.event_name == 'push'
-        run: |
-          echo "unsupported push action!"
-          exit 1
-
-      - name: Make download dir
-        run: mkdir ${{ github.workspace }}/temp
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v8
-        with:
-          name: ${{ env.UPLOAD_DIR_ANDROID }}
-          path: ${{ github.workspace }}/temp
-
-      - name: Get checksum
-        id: checksum
-        run: |
-          file_path=$(find ${{ github.workspace }}/temp -type f -iname "*.apk" | tail -n1)
-          echo "checksum=$(apksigner verify -print-certs $file_path | grep -Po "(?<=SHA-256 digest:) .*" | tr -d "[:blank:]")" >> $GITHUB_OUTPUT
-
-      - name: Create release with fastlane changelog notes
-        id: create_release
-        if: ${{ inputs.version_tag == '' }}
-        uses: softprops/action-gh-release@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          token: ${{ env.GITHUB_TOKEN }}
-          body: ${{ env.RELEASE_NOTES }}
-          tag_name: ${{ env.TAG_NAME }}
-          name: ${{ env.TAG_NAME }}
-          draft: false
-          make_latest: ${{ inputs.release_type == 'release' }}
-          prerelease: ${{ inputs.release_type != 'release' }}
-          target_commitish: ${{ github.sha }}
-          files: |
-            ${{ github.workspace }}/temp/*
-
-      - name: Append checksum
-        id: append_checksum
-        if: ${{ inputs.version_tag == '' }}
-        uses: softprops/action-gh-release@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          body: |
-
-            SHA-256 fingerprint for the 4096-bit signing certificate:
-            ```sh
-            ${{ steps.checksum.outputs.checksum }}
-            ```
-
-            To verify fingerprint:
-            ```sh
-            apksigner verify --print-certs [path to APK file] | grep SHA-256
-            ```
-          token: ${{ env.GITHUB_TOKEN }}
-          tag_name: ${{ env.TAG_NAME }}
-          name: ${{ env.TAG_NAME }}
-          draft: false
-          prerelease: ${{ inputs.release_type != 'release' }}
-          append_body: true
-
-      - name: Append APK to unified release
-        if: ${{ inputs.version_tag != '' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION_TAG: ${{ inputs.version_tag }}
-        working-directory: ${{ github.workspace }}
-        run: |
-          set -euo pipefail
-          mapfile -t apks < <(find "${{ github.workspace }}/temp" -type f -iname '*.apk')
-          # Append to the draft. No --clobber: gh refuses a duplicate so the APK
-          # can't be overwritten. GitHub freezes the release at publish.
-          gh release upload "$VERSION_TAG" "${apks[@]}"
-
-      - name: Compose Zulip message (Android)
-        if: ${{ inputs.release_type == 'prerelease' || inputs.release_type == 'release' }}
-        run: |
-          set -euo pipefail
-          TAG="${TAG_NAME}"
-          BRANCH="${GITHUB_REF_NAME}"
-          RELEASE_URL="${{ github.server_url }}/${{ github.repository }}/releases/tag/${TAG}"
-
-          APK_PATH=$(find ${{ github.workspace }}/temp -type f -iname "*.apk" | tail -n1)
-          APK_NAME=$(basename "$APK_PATH")
-          # Strip "nym-vpn-fdroid-" prefix and "-{build_type}.apk" suffix to get the app version.
-          APP_VERSION="${APK_NAME#nym-vpn-fdroid-}"
-          APP_VERSION="${APP_VERSION%-${{ inputs.release_type }}.apk}"
-          APK_URL="${{ github.server_url }}/${{ github.repository }}/releases/download/${TAG}/${APK_NAME}"
-
-          {
-            echo "ZULIP_MESSAGE<<EOF"
-            echo "**Version:** \`${APP_VERSION}\`"
-            echo "**Android build type:** \`${{ inputs.release_type }}\`"
-            echo "**Branch:** \`${BRANCH}\`"
-            echo "**Release:** ${RELEASE_URL}"
-            echo "**APK:** ${APK_URL}"
-            echo "EOF"
-          } >> "$GITHUB_ENV"
-
-      - name: Send Zulip message (Android)
-        if: ${{ inputs.release_type == 'prerelease' || inputs.release_type == 'release' }}
-        uses: zulip/github-actions-zulip/send-message@v2
-        with:
-          api-key: ${{ secrets.ZULIP_BOT_ANDROID_API_KEY }}
-          email: ${{ secrets.ZULIP_BOT_ANDROID_EMAIL }}
-          organization-url: ${{ secrets.ZULIP_ORG_URL }}
-          type: "stream"
-          to: ${{ secrets.ZULIP_BOT_APPLE_CHANNEL }}
-          topic: ${{ secrets.ZULIP_BOT_ANDROID_TOPIC }}
-          content: ${{ env.ZULIP_MESSAGE }}
-
-  publish-nym-fdroid:
-    runs-on: arc-linux-latest
-    needs:
-      - publish-github
-    if: ${{ inputs.release_type == 'release' && (inputs.version_tag == '' || (inputs.fdroid && inputs.version_tag != 'nym-vpn-nightly')) }}
-    steps:
-      - name: Dispatch update for fdroid repo
-        uses: peter-evans/repository-dispatch@v4
-        with:
-          token: ${{ secrets.ANDROID_PAT }}
-          repository: nymtech/fdroid
-          event-type: fdroid-update
+    uses: ./.github/workflows/build-nym-vpn-android.yml
+    secrets: inherit
+    with:
+      build_type: ${{ inputs.release_type == '' && 'nightly' || inputs.release_type }}
+      build_format: aab
+      build_flavor: play
+      version: ${{ inputs.version }}
+      version_tag: ${{ inputs.version_tag }}
 
   publish-play:
-    needs: [build-nym-vpn-android-apk]
-    if: ${{ always() && inputs.track != 'none' && inputs.track != '' && (needs.build-nym-vpn-android-apk.result == 'success' || needs.build-nym-vpn-android-apk.result == 'skipped') }}
+    needs: [build-nym-vpn-android-aab]
+    if: ${{ always() && inputs.track != 'none' && inputs.track != '' && (needs.build-nym-vpn-android-aab.result == 'success' || needs.build-nym-vpn-android-aab.result == 'skipped') }}
     runs-on: arc-linux-latest
     defaults:
       run:
