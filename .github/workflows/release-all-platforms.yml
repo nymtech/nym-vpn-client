@@ -149,107 +149,42 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/release/resolve-version.sh
 
-  prepare-release:
+  build:
     needs: resolve
+    permissions:
+      contents: write
+    uses: ./.github/workflows/build-release-artifacts.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+    secrets: inherit
+
+  release:
+    needs: [resolve, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-      - name: Ensure unified release object
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHANNEL: ${{ needs.resolve.outputs.channel }}
-          TAG: ${{ needs.resolve.outputs.tag }}
-          TARGET_SHA: ${{ github.sha }}
-          NOTES: "Unified release ${{ needs.resolve.outputs.tag }} assembled by release-all-platforms."
-        run: bash .github/scripts/release/ensure-release.sh
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
 
-  core:
-    needs: [resolve, prepare-release]
-    permissions:
-      contents: write
-    uses: ./.github/workflows/build-nym-vpn-core.yml
-    with:
-      version: ${{ needs.resolve.outputs.version }}
-      version_tag: ${{ needs.resolve.outputs.tag }}
-    secrets: inherit
+      - run: |
+          ls -la
+          tree -d .
 
-  apple:
-    needs: [resolve, prepare-release]
-    if: ${{ needs.resolve.outputs.ios == 'true' || needs.resolve.outputs.macos == 'true' }}
-    permissions:
-      contents: write
-    uses: ./.github/workflows/build-nym-vpn-apple.yml
-    with:
-      # beta maps to qa (apple ship-only path creates a standalone macOS release + appcast).
-      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
-      version: ${{ needs.resolve.outputs.version }}
-      version_tag: ${{ needs.resolve.outputs.tag }}
-      build_ios: ${{ needs.resolve.outputs.ios == 'true' }}
-      build_macos: ${{ needs.resolve.outputs.macos == 'true' }}
-    secrets: inherit
+      # - name: Publish GitHub Release
+      #   if: ${{ github.event_name == 'workflow_dispatch' && inputs.release == true }}
+      #   uses: softprops/action-gh-release@v3
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ steps.v.outputs.tag }}
+      #     name: "nym-vpnc macOS v${{ steps.resolve-version.outputs.version }}"
+      #     prerelease: false
+      #     draft: false
+      #     files: |
+      #         tbd
+      #     body: |
+      #       TBD
 
-  android:
-    needs: [resolve, prepare-release]
-    if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
-    permissions:
-      contents: write
-    uses: ./.github/workflows/publish-nym-vpn-android.yml
-    with:
-      version: ${{ needs.resolve.outputs.version }}
-      version_tag: ${{ needs.resolve.outputs.tag }}
-      fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
-      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
-      # Play push is ship-only (beta builds the same as nightly = no store). Requires the
-      # Android platform actually selected, not just an F-Droid-only dispatch.
-      track: ${{ (needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship') && 'production' || 'none' }}
-      publish-metadata: ${{ needs.resolve.outputs.publish_metadata == 'true' }}
-    secrets: inherit
-
-  # Linux + Windows desktop app. publish-nym-vpn-app.yml builds each OS as its own
-  # internal job (build-linux on ubuntu, build-windows-* on windows) and aggregates in
-  # one Linux publish job, so a single invocation covers both. Core is built INLINE here
-  # (no core_release_tag): consuming core from the unified release can't work because it
-  # is a DRAFT at build time and /releases/tags/<tag> doesn't return drafts. The `linux`/
-  # `windows` flags only gate which built artifacts get appended to the release.
-  app:
-    needs: [resolve, prepare-release]
-    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
-    permissions: write-all
-    uses: ./.github/workflows/publish-nym-vpn-app.yml
-    with:
-      version: ${{ needs.resolve.outputs.version }}
-      version_tag: ${{ needs.resolve.outputs.tag }}
-      linux: ${{ needs.resolve.outputs.linux == 'true' }}
-      windows: ${{ needs.resolve.outputs.windows == 'true' }}
-      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
-    secrets: inherit
-
-  # Nightly + beta: assets can't be added after publish, so platforms assemble into a
-  # prerelease draft and this job publishes it once they finish. Only ship is published
-  # manually (its draft gates the store/AUR propagation in on-release-publish.yml).
-  finalize-nightly:
-    needs: [resolve, prepare-release, core, apple, android, app]
-    if: ${{ always() && (needs.resolve.outputs.channel == 'nightly' || needs.resolve.outputs.channel == 'beta') }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Publish the draft (only if it has assets)
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          TAG: ${{ needs.resolve.outputs.tag }}
-          CHANNEL: ${{ needs.resolve.outputs.channel }}
-        run: |
-          set -euo pipefail
-          count=$(gh release view "$TAG" --json assets -q '.assets | length' 2>/dev/null || echo 0)
-          if [ "${count:-0}" -gt 0 ]; then
-            gh release edit "$TAG" --draft=false
-            echo "::notice:: published $CHANNEL $TAG ($count assets)"
-          else
-            echo "::warning:: $CHANNEL $TAG has no assets — leaving as draft"
-          fi
+  # distribute:
+  #   needs: [resolve, build]

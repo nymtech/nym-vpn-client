@@ -1,0 +1,145 @@
+name: release-all-platforms
+
+on:
+  # NOTE: pick the release branch in the "Run workflow" ref selector. Reusable callees
+  # always run at the SAME ref as this orchestrator, so the dispatch ref IS the release
+  # branch — there is no separate branch input (it could not redirect the callees).
+  # Scheduled (nightly) runs use the repository default branch (develop).
+  workflow_dispatch:
+    inputs:
+      release_channel:
+        description: "Release channel"
+        type: choice
+        default: nightly
+        options:
+          - nightly   # mutable, auto-published prerelease; app version <base>-nightly
+          - beta      # release candidate; core version MUST contain -beta; prerelease draft
+          - ship      # stable release; core version MUST NOT contain -beta; draft
+      android:
+        description: "Android → Google Play"
+        type: boolean
+        default: false
+      fdroid:
+        description: "F-Droid"
+        type: boolean
+        default: false
+      linux:
+        description: "Linux (deb/AppImage + AUR)"
+        type: boolean
+        default: false
+      windows:
+        description: "Windows (signed exe + updater)"
+        type: boolean
+        default: false
+      ios:
+        description: "iOS → TestFlight/App Store"
+        type: boolean
+        default: false
+      macos:
+        description: "macOS (.pkg + Sparkle)"
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      release_channel:
+        description: "Release channel"
+        type: string
+        default: nightly
+      android:
+        description: "Android → Google Play"
+        type: boolean
+        default: false
+      fdroid:
+        description: "F-Droid"
+        type: boolean
+        default: false
+      linux:
+        description: "Linux (deb/AppImage + AUR)"
+        type: boolean
+        default: false
+      windows:
+        description: "Windows (signed exe + updater)"
+        type: boolean
+        default: false
+      ios:
+        description: "iOS → TestFlight/App Store"
+        type: boolean
+        default: false
+      macos:
+        description: "macOS (.pkg + Sparkle)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.v.outputs.tag }}
+      version: ${{ steps.v.outputs.version }}
+      channel: ${{ steps.flags.outputs.channel }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Resolve version + tag
+        id: v
+        env:
+          RELEASE_CHANNEL: ${{ steps.flags.outputs.channel }}
+          # beta auto-advances its -beta.N by reading prior beta releases/tags
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash .github/scripts/release/resolve-version.sh
+
+  core:
+    needs: resolve
+    uses: ./.github/workflows/build-nym-vpn-core.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+    secrets: inherit
+
+  apple:
+    needs: resolve
+    if: ${{ inputs.ios == 'true' || inputs.macos == 'true' }
+    uses: ./.github/workflows/build-nym-vpn-apple.yml
+    with:
+      # beta maps to qa (apple ship-only path creates a standalone macOS release + appcast).
+      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
+      version: ${{ needs.resolve.outputs.version }}
+      build_ios: ${{ inputs.ios == 'true' }}
+      build_macos: ${{ inputs.macos == 'true' }}
+    secrets: inherit
+
+  android:
+    needs: resolve
+    if: ${{ inputs.android == 'true' || inputs.fdroid == 'true' }}
+    uses: ./.github/workflows/build-release-artifacts-android.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+      fdroid: ${{ inputs.fdroid == 'true' }}
+      play: ${{ inputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
+      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
+    secrets: inherit
+
+  # Linux + Windows desktop app. build-nym-vpn-app.yml builds each OS as its own
+  # internal job (build-linux on ubuntu, build-windows-* on windows) and aggregates in
+  # one Linux publish job, so a single invocation covers both. Core is built INLINE here
+  # (no core_release_tag): consuming core from the unified release can't work because it
+  # is a DRAFT at build time and /releases/tags/<tag> doesn't return drafts. The `linux`/
+  # `windows` flags only gate which built artifacts get appended to the release.
+  app:
+    needs: resolve
+    if: ${{ inputs.linux == 'true' || inputs.windows == 'true' }}
+    uses: ./.github/workflows/build-nym-vpn-app.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+      linux: ${{ inputs.linux == 'true' }}
+      windows: ${{ inputs.windows == 'true' }}
+      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
+    secrets: inherit

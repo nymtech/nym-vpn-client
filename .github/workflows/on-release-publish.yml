@@ -189,6 +189,18 @@ jobs:
       signature_x64: ${{ needs.win-sigs.outputs.sig_x64 }}
       signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
 
+  update-nym-fdroid:
+    runs-on: arc-linux-latest
+    needs: setup
+    if: ${{ inputs.release_type == 'release' && (inputs.version_tag == '' || (inputs.fdroid && inputs.version_tag != 'nym-vpn-nightly')) }}
+    steps:
+      - name: Dispatch update for fdroid repo
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          token: ${{ secrets.ANDROID_PAT }}
+          repository: nymtech/fdroid
+          event-type: fdroid-update
+
   # Bust the nym.com (Next.js) release cache tag so the public download page picks
   # up the freshly published version. Only fires here, gated on `setup`, so it runs
   # exactly when a ship (non-prerelease) release with the nym-vpn-v* tag goes public
