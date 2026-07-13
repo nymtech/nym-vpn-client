@@ -26,7 +26,7 @@ pub(crate) fn gateways_are_independent(
     }
     // node family not present is assumed that they are independent, as no node family is the default node configuration
     if criteria.different_node_family
-        && let (Some(nf1), Some(nf2)) = (&gw1.node_family, &gw2.node_family)
+        && let (Some(nf1), Some(nf2)) = (&gw1.family_data, &gw2.family_data)
         && nf1.id == nf2.id
     {
         return false;

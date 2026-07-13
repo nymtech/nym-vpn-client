@@ -425,8 +425,8 @@ pub struct NymDirectoryGateway {
     pub performance_v2: Option<DVpnGatewayPerformance>,
     pub build_information: Option<BuildInformation>,
     pub lewes_protocol_details: Option<LewesProtocolDetailsV1>,
-    pub node_staking: Option<NodeStaking>,
-    pub node_family: Option<NodeFamily>,
+    pub staking_data: Option<NodeStaking>,
+    pub family_data: Option<NodeFamily>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

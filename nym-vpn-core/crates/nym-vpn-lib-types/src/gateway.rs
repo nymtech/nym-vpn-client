@@ -1127,7 +1127,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
             lewes_protocol_details: gateway
                 .lewes_protocol_details
                 .map(LewesProtocolDetails::from),
-            node_family_name: gateway.node_family.map(|family| family.name),
+            node_family_name: gateway.family_data.map(|family| family.name),
         }
     }
 }
