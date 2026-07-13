@@ -201,6 +201,7 @@ jobs:
       - name: Invalidate release cache
         env:
           REVALIDATE_SECRET: ${{ secrets.WEBSITE_REVALIDATE_SECRET }}
+          RELEASE_TAG: ${{ needs.setup.outputs.tag }}
         run: |
           set -euo pipefail
           BODY='{"event":"release"}'
@@ -209,9 +210,5 @@ jobs:
             -H "Content-Type: application/json" \
             -H "X-Hub-Signature-256: $SIG" \
             -d "$BODY"
-          env:
-            REVALIDATE_SECRET: ${{ env.REVALIDATE_SECRET }}
-            RELEASE_TAG: ${{ needs.setup.outputs.tag }}
-          run: |
-            set -euo pipefail
-            echo "::notice:: revalidated nym.com release cache for ${RELEASE_TAG}"
+
+          echo "::notice:: revalidated nym.com release cache for ${RELEASE_TAG}"
