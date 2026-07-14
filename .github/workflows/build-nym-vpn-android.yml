@@ -63,6 +63,10 @@ on:
         description: "Orchestrated app version to embed (empty = use Constants.kt as before)"
         required: false
         default: ""
+    outputs:
+      artifact_name:
+        description: "Name of the built artifact"
+        value: ${{ steps.output-path.outputs.artifact_name }}
     secrets:
       SCCACHE_REDIS_ENDPOINT:
         required: false
@@ -85,7 +89,7 @@ on:
       CROWDIN_PERSONAL_TOKEN:
         required: false
 env:
-  UPLOAD_DIR_ANDROID: android_artifacts
+  UPLOAD_DIR_ANDROID: android_artifacts_${{ inputs.build_flavor }}
 
 jobs:
   build:
@@ -164,6 +168,7 @@ jobs:
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
           echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
           # Used by gradle to name nightly apks
+          # todo: provide timestamp!!!
           echo "NIGHTLY_TIMESTAMP=FIXME" >> "$GITHUB_ENV"
 
       - name: Grant execute permission for gradlew
@@ -308,17 +313,32 @@ jobs:
       - name: Get output path
         id: output-path
         run: |
-          if [ "${{ inputs.build_format }}" == "apk" ]; then
-            echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/${{ inputs.build_type }}/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
-          else
-            BUILD_TYPE=$(echo "${{ inputs.build_type }}" | sed 's/./\u&/')
-            echo "path=$(find . -regex '^.*/build/outputs/bundle/fdroidRelease/.*\.aab$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
-          fi
+            ls -la build || true
+            ls -la build/outputs || true
+            ls -la build/outputs/apk/fdroid || true
+            ls -la build/outputs/bundle/generalRelease || true
+
+            if ${{ inputs.build_flavor == "fdroid" }}; then
+              if [ "${{ inputs.build_format }}" == "apk" ]; then
+                ARTIFACT_FILE=$(find . -name '${{ github.workspace }}/nym-vpn-android/build/outputs/apk/fdroid/*.apk' -type f | head -1)
+              else
+                ARTIFACT_FILE=$(find . -name '${{ github.workspace }}/nym-vpn-android/build/outputs/bundle/fdroidRelease/*.aab' -type f | head -1)
+              fi
+            else if ${{ inputs.build_flavor == "play" }}; then
+                ARTIFACT_FILE=$(find . -name '${{ github.workspace }}/nym-vpn-android/build/outputs/bundle/generalRelease/*.aab' -type f | head -1)
+            else
+              exit 1
+            fi
+
+            ARTIFACT_NAME=$(basename $ARTIFACT_FILE)
+
+            echo "artifact_path=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
+            echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
-          path: ${{ github.workspace }}/nym-vpn-android${{ steps.output-path.outputs.path }}
+          path: ${{ steps.output-path.outputs.artifact_path }}
           if-no-files-found: error
           retention-days: 1
