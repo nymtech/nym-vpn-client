@@ -148,11 +148,11 @@ jobs:
 
   apple:
     needs: resolve
-    if: ${{ needs.resolve.ios == 'true' || needs.resolve.macos == 'true' }}
+    if: ${{ needs.resolve.outputs.ios == 'true' || needs.resolve.outputs.macos == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-apple.yml
     with:
       # beta maps to qa (apple ship-only path creates a standalone macOS release + appcast).
-      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
+      release_type: ${{ needs.resolve.outputs.release_channel == 'ship' && 'ship' || 'qa' }}
       version: ${{ needs.resolve.outputs.version }}
       build_ios: ${{ needs.resolve.outputs.ios == 'true' }}
       build_macos: ${{ needs.resolve.outputs.macos == 'true' }}
@@ -165,8 +165,8 @@ jobs:
     with:
       version: ${{ needs.resolve.outputs.version }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
-      play: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
-      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
+      play: ${{ needs.resolve.outputs.android == 'true' }}
+      release_type: ${{ needs.resolve.outputs.release_channel == 'ship' && 'release' || (needs.resolve.outputs.release_channel == 'beta' && 'prerelease' || 'nightly') }}
     secrets: inherit
 
   # Linux + Windows desktop app. build-nym-vpn-app.yml builds each OS as its own
@@ -183,5 +183,5 @@ jobs:
       version: ${{ needs.resolve.outputs.version }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
       windows: ${{ needs.resolve.outputs.windows == 'true' }}
-      release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
+      release_type: ${{ needs.resolve.outputs.release_channel == 'ship' && 'stable' || (needs.resolve.outputs.release_channel == 'beta' && 'rc' || 'nightly') }}
     secrets: inherit
