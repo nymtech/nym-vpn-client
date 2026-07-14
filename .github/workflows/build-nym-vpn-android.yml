@@ -337,13 +337,21 @@ jobs:
               fdroid-apk) EXT='apk' ;;
               fdroid-aab) EXT='aab' ;;
               play-aab) EXT='aab' ;;
-              *) exit 1
+              *)
+                echo "::error:: Unsupported build flavor/format: ${{ inputs.build_flavor }}-${{ inputs.build_format }}"
+                exit 1
+                ;;
             esac
 
             ARTIFACT_FILE=$(find "$OUT_DIR" -name "*.$EXT" -type f | head -1)
-            ARTIFACT_NAME=$(basename $ARTIFACT_FILE)
+            if [ -z "$ARTIFACT_FILE" ]; then
+              echo "::error:: No artifact found"
+              exit 1
+            else
+              echo "::notice:: Found artifact: $ARTIFACT_FILE"
+            fi
 
-            echo "::notice:: Found artifact: $ARTIFACT_FILE"
+            ARTIFACT_NAME=$(basename $ARTIFACT_FILE)
 
             echo "artifact_path=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
             echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
