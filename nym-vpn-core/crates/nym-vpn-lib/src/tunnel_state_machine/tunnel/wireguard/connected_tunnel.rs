@@ -451,6 +451,8 @@ impl ConnectedTunnel {
                 });
                 path_monitor.start();
 
+                let mut old_resolved_peer = entry_peer_update.clone();
+
                 loop {
                     tokio::select! {
                         Some(new_path) = default_path_rx.next() => {
@@ -460,16 +462,23 @@ impl ConnectedTunnel {
                             // For instance when device connects to IPv4-only server from IPv6-only network,
                             // it needs to use an IPv4-mapped address, which can be received by re-resolving
                             // the original peer IP.
-                            match entry_peer_update.clone().resolved() {
-                                Ok(resolved_peer) => {
-
-                                    // Update wireguard-go configuration with re-resolved peer endpoints.
-                                    if let Err(e) = entry_tunnel.update_peers(&[resolved_peer]) {
-                                       tracing::error!("Failed to update peers on network change: {}", e);
+                            if !entry_peer_update.is_loopback() {
+                                match entry_peer_update.clone().resolved() {
+                                    Ok(resolved_peer) => {
+                                        // check if peer has changed
+                                        if resolved_peer != old_resolved_peer {
+                                            old_resolved_peer = resolved_peer.clone();
+                                            // Update wireguard-go configuration with re-resolved peer endpoints.
+                                            if let Err(e) = entry_tunnel.update_peers(&[resolved_peer]) {
+                                                tracing::error!("Failed to update peers on network change: {}", e);
+                                            }
+                                        } else {
+                                            tracing::debug!("Skipping peer update: resolved address unchanged: {}", resolved_peer.endpoint);
+                                        }
                                     }
-                                }
-                                Err(e) => {
-                                    tracing::error!("Failed to re-resolve peer on default path update: {}", e);
+                                    Err(e) => {
+                                        tracing::error!("Failed to re-resolve peer on default path update: {}", e);
+                                    }
                                 }
                             }
 
