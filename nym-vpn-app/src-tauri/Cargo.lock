@@ -3715,8 +3715,8 @@ dependencies = [
 
 [[package]]
 name = "nym-crypto"
-version = "1.21.2"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.12-yaroslavsky#821381fb1baac73fe85fecca550246db6ec30296"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -3762,8 +3762,8 @@ dependencies = [
 
 [[package]]
 name = "nym-pemstore"
-version = "1.21.2"
-source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.12-yaroslavsky#821381fb1baac73fe85fecca550246db6ec30296"
+version = "1.21.3"
+source = "git+https://github.com/nymtech/nym?branch=vpn%2Frelease%2F2026.13-ziller#34f587edcba4263d40a26ad988335480639499da"
 dependencies = [
  "pem",
  "tracing",

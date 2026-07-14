@@ -21,10 +21,10 @@ mod wintun;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
+
 use std::{
     collections::HashSet,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
-    path::PathBuf,
 };
 
 #[cfg(target_os = "android")]
@@ -985,7 +985,53 @@ impl SharedState {
     #[cfg(not(target_os = "ios"))]
     fn build_proxy_config(&self) -> Result<ProxyConfig, String> {
         let listen_port = self.tunnel_settings.geo_exclusion_settings.listen_port;
-        let data_dir = self.nym_config.data_path.clone();
+
+        // nym-socks5-proxy files are not network-specific so are stored in data_dir, not network_data_dir.
+        // However they used to be stored in the network directory, so migrate them if possible.
+        let old_data_dir = self
+            .nym_config
+            .paths
+            .network_data_dir
+            .join("nym-socks5-proxy");
+        let new_data_dir = self.nym_config.paths.data_dir.join("nym-socks5-proxy");
+        if old_data_dir.exists() && !new_data_dir.exists() {
+            if let Err(err) = std::fs::rename(&old_data_dir, &new_data_dir) {
+                tracing::warn!(
+                    "Failed to migrate nym-socks5-proxy directory from {} to {}: {err}",
+                    old_data_dir.display(),
+                    new_data_dir.display()
+                );
+            } else {
+                tracing::info!(
+                    "Migrated nym-socks5-proxy directory from {} to {}",
+                    old_data_dir.display(),
+                    new_data_dir.display()
+                );
+            }
+        }
+
+        if old_data_dir.exists() {
+            // Either both new and old exists or we failed to migrate.
+            let _ = std::fs::remove_dir(&old_data_dir);
+        }
+
+        // The log file will be written to the actual log directory now, so the old log file can be removed.
+        let old_log_file = new_data_dir.join("nym-socks5-proxy.log");
+        if old_log_file.exists() {
+            let _ = std::fs::remove_file(&old_log_file);
+        }
+
+        // The nym-socks5-proxy directory must exist in order for ProxyConfig::validate() to succeed.
+        if !new_data_dir.exists()
+            && let Err(err) = std::fs::create_dir_all(&new_data_dir)
+        {
+            return Err(format!(
+                "Failed to create directory {}: {err}",
+                new_data_dir.display()
+            ));
+        }
+
+        let log_dir = self.nym_config.paths.log_dir.clone();
 
         let log_level = if cfg!(debug_assertions) {
             "debug"
@@ -1002,7 +1048,8 @@ impl SharedState {
 
         let proxy_config = ProxyConfig {
             listen_port,
-            data_dir,
+            data_dir: new_data_dir,
+            log_dir,
             log_level,
             excluded_countries,
         };
@@ -1024,10 +1071,11 @@ pub struct LinuxSplitTunnelConfiguration {
     pub net_cls: Option<u32>,
 }
 
+use crate::paths::NymConfigPaths;
+
 #[derive(Debug, Clone)]
 pub struct NymConfig {
-    pub config_path: PathBuf,
-    pub data_path: PathBuf,
+    pub paths: NymConfigPaths,
     pub gateway_config: GatewayDirectoryConfig,
     pub network_rx: watch::Receiver<Box<Network>>,
 }
@@ -1081,10 +1129,7 @@ impl TunnelStateMachine {
                 .await
                 .map_err(Error::StartLocalDnsResolver)?;
 
-        let adblocker = adblocker::AdBlocker::new(
-            nym_config.data_path.join("ad-blocking"),
-            file_updater_handle,
-        );
+        let adblocker = create_adblocker(&nym_config, file_updater_handle);
         if tunnel_settings.enable_ad_blocking {
             adblocker.enable().await;
         }
@@ -1248,6 +1293,38 @@ impl TunnelStateMachine {
 
         self.shared_state.adblocker.stop().await;
     }
+}
+
+fn create_adblocker(
+    nym_config: &NymConfig,
+    file_updater_handle: nym_file_updater::FileUpdaterHandle,
+) -> adblocker::AdBlocker {
+    // Ad-blocker files are not network-specific so are stored in data_dir, not network_data_dir.
+    // However they used to be stored in the network directory, so migrate them if possible.
+    let old_adblocker_data_dir = nym_config.paths.network_data_dir.join("ad-blocking");
+    let new_adblocker_data_dir = nym_config.paths.data_dir.join("ad-blocking");
+    if old_adblocker_data_dir.exists() && !new_adblocker_data_dir.exists() {
+        if let Err(err) = std::fs::rename(&old_adblocker_data_dir, &new_adblocker_data_dir) {
+            tracing::warn!(
+                "Failed to migrate ad-blocking directory from {} to {}: {err}",
+                old_adblocker_data_dir.display(),
+                new_adblocker_data_dir.display()
+            );
+        } else {
+            tracing::info!(
+                "Migrated ad-blocking directory from {} to {}",
+                old_adblocker_data_dir.display(),
+                new_adblocker_data_dir.display()
+            );
+        }
+    }
+
+    if old_adblocker_data_dir.exists() {
+        // Either both new and old exists or we failed to migrate.
+        let _ = std::fs::remove_dir(&old_adblocker_data_dir);
+    }
+
+    adblocker::AdBlocker::new(new_adblocker_data_dir, file_updater_handle)
 }
 
 #[derive(Debug, thiserror::Error)]

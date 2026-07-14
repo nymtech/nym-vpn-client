@@ -48,8 +48,6 @@ use crate::service::config::{
     network_stats::v1::NetworkStatisticsConfig,
     split_tunnel_settings::v8::SplitTunnelSettings,
 };
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
 
 pub const DEFAULT_CONFIG_FILE_TOML: &str = "nym-vpnd.toml";
 pub const DEFAULT_CONFIG_FILE_JSON: &str = "nym-vpnd.json";
@@ -407,77 +405,4 @@ where
             file: file_path.to_path_buf(),
             error,
         })
-}
-
-pub async fn create_data_dir(data_dir: &Path, network_name: &str) -> Result<(), ConfigSetupError> {
-    let network_data_dir = data_dir.join(network_name);
-
-    fs::create_dir_all(&network_data_dir)
-        .await
-        .map_err(|error| ConfigSetupError::CreateDirectory {
-            dir: network_data_dir.clone(),
-            error,
-        })?;
-
-    tracing::debug!(
-        "Making sure data dir exists at {}",
-        network_data_dir.display()
-    );
-
-    for dir_path in [&network_data_dir, data_dir] {
-        #[cfg(unix)]
-        {
-            // Set directory permissions to 700 (rwx------)
-            let permissions = std::fs::Permissions::from_mode(0o700);
-            fs::set_permissions(dir_path, permissions)
-                .await
-                .map_err(|error| ConfigSetupError::SetPermissions {
-                    dir: dir_path.to_path_buf(),
-                    error,
-                })?;
-        }
-
-        #[cfg(windows)]
-        {
-            set_data_dir_permissions(dir_path).map_err(|error| {
-                ConfigSetupError::SetPermissions {
-                    dir: dir_path.to_path_buf(),
-                    error,
-                }
-            })?;
-        }
-    }
-
-    Ok(())
-}
-
-/// Set directory permissions to Administrators with Full Control.
-#[cfg(windows)]
-fn set_data_dir_permissions(data_dir: &Path) -> nym_windows::security::Result<()> {
-    use nym_windows::security::{
-        AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights, SecurityInfo,
-        SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid, set_named_security_info,
-    };
-
-    let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;
-
-    let allow_admin_group_access = ExplicitAccess::new(
-        Trustee::new(administrators_sid.try_clone()?, TrusteeType::WellKnownGroup),
-        AccessMode::SetAccess,
-        FileAccessRights::FILE_ALL_ACCESS.into(),
-        AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
-    );
-
-    let acl = Acl::new(vec![allow_admin_group_access])?;
-
-    set_named_security_info(
-        data_dir,
-        SecurityObjectType::FileObject,
-        SecurityInfo::DACL | SecurityInfo::PROTECTED_DACL,
-        None,
-        None,
-        Some(&acl),
-    )?;
-
-    Ok(())
 }

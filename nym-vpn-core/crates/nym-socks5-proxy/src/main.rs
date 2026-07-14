@@ -5,7 +5,7 @@ use nym_file_updater::FileUpdater;
 use nym_socks5_proxy::{default_interface, proxy};
 
 use std::{
-    fs::{File, create_dir_all},
+    fs::File,
     io::{Write, stdout},
     mem::discriminant,
     path::Path,
@@ -39,24 +39,19 @@ async fn main() -> Result<()> {
         }
     };
 
+    // ProxyConfig::validate() will ensure the data and log directories exist, amongst other things.
+    if let Err(err) = config.validate() {
+        send_error_message(&format!("Invalid configuration: {err}"));
+        bail!("Invalid configuration");
+    }
+
     // Get the default interface addresses and monitor for changes in the routing.
     let default_interface_rx = default_interface::start_monitor(shutdown_token.child_token()).await;
 
     // Shared VPN tunnel addressese
     let (tunnel_addrs_tx, tunnel_addrs_rx) = watch::channel(InterfaceAddresses::default());
 
-    let proxy_dir = config.data_dir.join("nym-socks5-proxy");
-    if let Err(err) = create_dir_all(&proxy_dir).with_context(|| {
-        format!(
-            "Failed to create proxy data directory '{}'",
-            proxy_dir.display()
-        )
-    }) {
-        send_error_message(&format!("{err:#}"));
-        return Err(err);
-    }
-
-    if let Err(err) = init_tracing(&proxy_dir, &config.log_level) {
+    if let Err(err) = init_tracing(&config.log_dir, &config.log_level) {
         send_error_message(&format!("{err:#}"));
         return Err(err);
     }
@@ -77,7 +72,6 @@ async fn main() -> Result<()> {
     // Start the SOCKS5 proxy listener.
     if let Err(err) = proxy::run(
         config,
-        &proxy_dir,
         default_interface_rx,
         tunnel_addrs_rx,
         shutdown_token.clone(),
@@ -217,8 +211,8 @@ fn install_signal_handlers(shutdown_token: CancellationToken) {
     });
 }
 
-fn init_tracing(proxy_dir: &Path, log_level: &str) -> Result<()> {
-    let log_path = proxy_dir.join("nym-socks5-proxy.log");
+fn init_tracing(log_dir: &Path, log_level: &str) -> Result<()> {
+    let log_path = log_dir.join("nym-socks5-proxy.log");
     let file = File::create(&log_path)
         .with_context(|| format!("Failed to open log file '{}'", log_path.display()))?;
 

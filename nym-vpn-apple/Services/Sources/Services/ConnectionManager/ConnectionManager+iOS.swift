@@ -4,6 +4,7 @@ import AppSettings
 import ConfigurationManager
 import Constants
 import ConnectionTypes
+import NymLogger
 import NymVPNLib
 import PathManager
 import TunnelMixnet
@@ -97,6 +98,9 @@ extension ConnectionManager {
         let isErrorReportingEnabled = appSettings.currentEnv == "sandbox" ? true : appSettings.isErrorReportingOn
         let dataURL = try PathManager.dataFolderURL()
         let configURL = try PathManager.configFolderURL()
+        guard let logsURL = LogFileManager.logsDirectory() else {
+            throw PathManagerError.cannotCreateDB
+        }
         let algorithmConfig = connectionConfig.gatewaySelectionAlgorithmConfig
 
         return MixnetConfig(
@@ -104,6 +108,7 @@ extension ConnectionManager {
             exitRouter: exitRouter,
             configPath: configURL.path(),
             dataPath: dataURL.path(),
+            logPath: logsURL.path(),
             customDns: appSettings.isCustomDnsEnabled ? appSettings.customDns : [],
             mixnetTuning: connectionConfig.mixnetTuningConfig,
             isErrorReportingEnabled: isErrorReportingEnabled,

@@ -37,6 +37,7 @@ impl FromStr for DaemonMessage {
 pub struct ProxyConfig {
     pub listen_port: u16,
     pub data_dir: PathBuf,
+    pub log_dir: PathBuf,
     pub log_level: String,
     pub excluded_countries: Vec<String>,
 }
@@ -49,6 +50,10 @@ impl ProxyConfig {
 
         if self.data_dir.as_os_str().is_empty() || !self.data_dir.is_dir() {
             return Err("data_dir must be a valid path".into());
+        }
+
+        if self.log_dir.as_os_str().is_empty() || !self.log_dir.is_dir() {
+            return Err("log_dir must be a valid path".into());
         }
 
         // The log_level can be more than just "info", "debug", etc., so just check it's not empty
