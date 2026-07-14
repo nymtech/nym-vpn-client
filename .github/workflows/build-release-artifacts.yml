@@ -84,7 +84,7 @@ jobs:
     outputs:
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
-      channel: ${{ steps.flags.outputs.channel }}
+      channel: ${{ inputs.release_channel }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -97,7 +97,7 @@ jobs:
       - name: Resolve version + tag
         id: v
         env:
-          RELEASE_CHANNEL: ${{ steps.flags.outputs.channel }}
+          RELEASE_CHANNEL: ${{ inputs.release_channel }}
           # beta auto-advances its -beta.N by reading prior beta releases/tags
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/release/resolve-version.sh
