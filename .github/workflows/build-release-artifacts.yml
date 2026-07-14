@@ -129,6 +129,8 @@ jobs:
           echo "ios=$IOS" >> "$GITHUB_OUTPUT"
           echo "macos=$MACOS" >> "$GITHUB_OUTPUT"
 
+          echo "::notice:: release_channel=$RELEASE_CHANNEL, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
+
       - name: Resolve version + tag
         id: v
         env:
@@ -152,18 +154,18 @@ jobs:
       # beta maps to qa (apple ship-only path creates a standalone macOS release + appcast).
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
       version: ${{ needs.resolve.outputs.version }}
-      build_ios: ${{ needs.resolve.ios == 'true' }}
-      build_macos: ${{ needs.resolve.macos == 'true' }}
+      build_ios: ${{ needs.resolve.outputs.ios == 'true' }}
+      build_macos: ${{ needs.resolve.outputs.macos == 'true' }}
     secrets: inherit
 
   android:
     needs: resolve
-    if: ${{ needs.resolve.android == 'true' || needs.resolve.fdroid == 'true' }}
+    if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
     uses: ./.github/workflows/build-release-artifacts-android.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
-      fdroid: ${{ needs.resolve.fdroid == 'true' }}
-      play: ${{ needs.resolve.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
+      fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
+      play: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
     secrets: inherit
 
@@ -175,11 +177,11 @@ jobs:
   # `windows` flags only gate which built artifacts get appended to the release.
   app:
     needs: resolve
-    if: ${{ needs.resolve.linux == 'true' || needs.resolve.windows == 'true' }}
+    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-app.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
-      linux: ${{ needs.resolve.linux == 'true' }}
-      windows: ${{ needs.resolve.windows == 'true' }}
+      linux: ${{ needs.resolve.outputs.linux == 'true' }}
+      windows: ${{ needs.resolve.outputs.windows == 'true' }}
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
     secrets: inherit
