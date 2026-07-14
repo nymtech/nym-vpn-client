@@ -327,24 +327,33 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-app-build
+          path: nym-vpn-android/app/build
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Get output path
         id: output-path
+        working-directory: ${{ github.workspace }}
         run: |
             ls -la app || true
-            ls -la app/mobile/build || true
-            ls -la app/mobile/build/outputs || true
-            ls -la app/mobile/build/outputs/apk/fdroid || true
-            ls -la app/mobile/build/outputs/bundle/generalRelease || true
-            ls -la app/mobile/build/outputs/bundle/generalNightly || true
+            ls -la app/build || true
+            ls -la app/build/outputs || true
+            ls -la app/build/outputs/apk/fdroid || true
+            ls -la app/build/outputs/bundle/generalRelease || true
+            ls -la app/build/outputs/bundle/generalNightly || true
 
             if [ "${{ inputs.build_flavor }}" == "fdroid" ]; then
               if [ "${{ inputs.build_format }}" == "apk" ]; then
-                ARTIFACT_FILE=$(find "${{ github.workspace }}/nym-vpn-android/build/outputs/apk/fdroid" -name '*.apk' -type f | head -1)
+                ARTIFACT_FILE=$(find "nym-vpn-android/app/build/outputs/apk/fdroid" -name '*.apk' -type f | head -1)
               else
-                ARTIFACT_FILE=$(find "${{ github.workspace }}/nym-vpn-android/build/outputs/bundle/fdroidRelease" -name '*.aab' -type f | head -1)
+                ARTIFACT_FILE=$(find "nym-vpn-android/app/build/outputs/bundle/fdroidRelease" -name '*.aab' -type f | head -1)
               fi
             elif [ "${{ inputs.build_flavor }}" == "play" ]; then
-                ARTIFACT_FILE=$(find "${{ github.workspace }}/nym-vpn-android/build/outputs/bundle/generalRelease/" -name '*.aab' -type f | head -1)
+                ARTIFACT_FILE=$(find "nym-vpn-android/app/build/outputs/bundle/generalRelease/" -name '*.aab' -type f | head -1)
             else
               exit 1
             fi
