@@ -320,12 +320,12 @@ jobs:
 
             if ${{ inputs.build_flavor == "fdroid" }}; then
               if [ "${{ inputs.build_format }}" == "apk" ]; then
-                ARTIFACT_FILE=$(find . -name '${{ github.workspace }}/nym-vpn-android/build/outputs/apk/fdroid/*.apk' -type f | head -1)
+                ARTIFACT_FILE=$(find "${{ github.workspace }}/nym-vpn-android/build/outputs/apk/fdroid" -name '*.apk' -type f | head -1)
               else
-                ARTIFACT_FILE=$(find . -name '${{ github.workspace }}/nym-vpn-android/build/outputs/bundle/fdroidRelease/*.aab' -type f | head -1)
+                ARTIFACT_FILE=$(find "${{ github.workspace }}/nym-vpn-android/build/outputs/bundle/fdroidRelease" -name '*.aab' -type f | head -1)
               fi
             else if ${{ inputs.build_flavor == "play" }}; then
-                ARTIFACT_FILE=$(find . -name '${{ github.workspace }}/nym-vpn-android/build/outputs/bundle/generalRelease/*.aab' -type f | head -1)
+                ARTIFACT_FILE=$(find "${{ github.workspace }}/nym-vpn-android/build/outputs/bundle/generalRelease/" -name '*.aab' -type f | head -1)
             else
               exit 1
             fi
