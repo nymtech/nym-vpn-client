@@ -1,5 +1,9 @@
-name: publish-nym-vpn-core
+name: build-nym-vpn-core
 on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/build-nym-vpn-core.yml"
   workflow_dispatch:
     inputs:
       version:
