@@ -2,6 +2,7 @@ package net.nymtech.vpn.backend.controller
 
 import android.content.Intent
 import android.os.UserManager
+import java.io.File
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.sync.Mutex
@@ -328,6 +329,7 @@ class VpnCoreController(
 		}
 
 		val storagePath = service.filesDir.absolutePath
+		val logPath = "$storagePath${File.separator}logs"
 		val level = if (enableDebugLog) LogLevel.DEBUG else LogLevel.INFO
 		initLogger(storagePath, level, sentryMonitoring = sentry)
 
@@ -348,6 +350,7 @@ class VpnCoreController(
 		val initialConfig = VpnConfig(
 			configDir = storagePath,
 			dataDir = storagePath,
+			logDir = logPath,
 			entryGateway = EntryPoint.Random,
 			exitRouter = ExitPoint.Random,
 			enableTwoHop = false,

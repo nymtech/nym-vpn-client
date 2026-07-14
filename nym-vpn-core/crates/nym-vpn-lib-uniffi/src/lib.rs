@@ -263,6 +263,9 @@ pub struct VPNConfig {
     /// Path to data directory on disk
     pub data_dir: PathBuf,
 
+    /// Path to log directory on disk
+    pub log_dir: PathBuf,
+
     pub entry_gateway: EntryPoint,
     pub exit_router: ExitPoint,
     pub enable_two_hop: bool,

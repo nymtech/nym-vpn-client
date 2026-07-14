@@ -92,7 +92,9 @@ let package = Package(
             name: "ConnectionManager",
             dependencies: [
                 "CredentialsManager",
+                "PathManager",
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "TunnelStatus", package: "ServicesMutual"),
                 "GatewayManager",
                 "NotificationMessages",
