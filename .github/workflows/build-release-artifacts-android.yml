@@ -32,7 +32,6 @@ permissions:
 
 jobs:
   build-android-fdroid:
-    needs: resolve
     name: F-Droid build
     if: ${{ inputs.fdroid == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
@@ -44,7 +43,6 @@ jobs:
       version: ${{ inputs.version }}
 
   build-android-play:
-    needs: resolve
     name: Google Play build
     if: ${{ inputs.play == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
