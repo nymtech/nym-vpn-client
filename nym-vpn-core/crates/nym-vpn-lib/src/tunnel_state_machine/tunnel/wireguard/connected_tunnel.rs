@@ -451,7 +451,7 @@ impl ConnectedTunnel {
                 });
                 path_monitor.start();
 
-                let mut old_resolved_peer = entry_peer_update;
+                let mut old_resolved_peer = entry_peer_update.clone();
 
                 loop {
                     tokio::select! {
@@ -462,7 +462,7 @@ impl ConnectedTunnel {
                             // For instance when device connects to IPv4-only server from IPv6-only network,
                             // it needs to use an IPv4-mapped address, which can be received by re-resolving
                             // the original peer IP.
-                            match old_resolved_peer.clone().resolved() {
+                            match entry_peer_update.clone().resolved() {
                                 Ok(resolved_peer) => {
                                     // check if peer has changed
                                     if resolved_peer != old_resolved_peer {
