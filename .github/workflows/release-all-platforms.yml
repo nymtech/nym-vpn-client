@@ -1,6 +1,11 @@
 name: release-all-platforms
 
 on:
+  # Temporary for initial PR
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/release-all-platforms.yml"
   # NOTE: pick the release branch in the "Run workflow" ref selector. Reusable callees
   # always run at the SAME ref as this orchestrator, so the dispatch ref IS the release
   # branch — there is no separate branch input (it could not redirect the callees).
@@ -12,7 +17,7 @@ on:
         type: choice
         default: nightly
         options:
-          - nightly   # mutable, auto-published prerelease; app version <base>-nightly
+          - nightly   # immutable, auto-published prerelease; app version <base>-nightly
           - beta      # release candidate; core version MUST contain -beta; prerelease draft
           - ship      # stable release; core version MUST NOT contain -beta; draft
       android:
@@ -43,8 +48,9 @@ on:
         description: "Skip Google Play metadata"
         type: boolean
         default: true
-  schedule:
-    - cron: "0 4 * * *"
+  # todo: move that to separate workflow that can feed inputs into `release-all-platforms` instead of second guessing every step of the way
+  # schedule:
+  #   - cron: "0 4 * * *"
 
 permissions:
   contents: read
@@ -54,7 +60,7 @@ permissions:
 # ensure-release.sh deletes ALL prior nightly releases, so two concurrent nightlies would
 # clobber each other's release state regardless of ref.
 concurrency:
-  group: ${{ github.workflow }}-${{ (github.event_name == 'schedule' || (inputs.release_channel != 'ship' && inputs.release_channel != 'beta')) && 'nightly' || github.ref }}
+  group: ${{ github.workflow }}-${{ inputs.release_channel }}
   cancel-in-progress: false
 
 jobs:
@@ -73,6 +79,7 @@ jobs:
       publish_metadata: ${{ steps.flags.outputs.publish_metadata }}
     steps:
       - name: Resolve channel + platform flags
+        if: ${{ github.event_name != 'push' && github.event_name != 'pull_request' }}
         id: flags
         env:
           EVENT: ${{ github.event_name }}
@@ -133,6 +140,18 @@ jobs:
             echo "publish_metadata=$PUBLISH_METADATA"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Resolve channel + platform flags
+        if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+        id: flags
+        run: |
+          echo "::notice:: nightly → all platforms (dry run)"
+          {
+            echo "channel=nightly"
+            echo "android=true"; echo "fdroid=true"; echo "linux=true"
+            echo "windows=true"; echo "ios=true"; echo "macos=true"
+            echo "publish_metadata=false"
+          } >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v7
         with:
           fetch-depth: 1
@@ -177,14 +196,23 @@ jobs:
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #   with:
-      #     tag_name: ${{ steps.v.outputs.tag }}
-      #     name: "nym-vpnc macOS v${{ steps.resolve-version.outputs.version }}"
+      #     tag_name: ${{ needs.resolve.outputs.tag }}
+      #     name: "nym-vpn-v${{ steps.resolve-version.outputs.version }}"
       #     prerelease: false
-      #     draft: false
+      #     draft: true
       #     files: |
-      #         tbd
-      #     body: |
-      #       TBD
+      #       tbd
 
-  # distribute:
-  #   needs: [resolve, build]
+  distribute:
+    needs: [resolve, build, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Publish to Google Play
+        uses: .github/workflows/publish-nym-vpn-android.yml
+        with:
+          track: alpha
+          publish-bundle: ${{ github.event_name != 'push' && github.event_name != 'pull_request' }}
+          publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
+          release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
