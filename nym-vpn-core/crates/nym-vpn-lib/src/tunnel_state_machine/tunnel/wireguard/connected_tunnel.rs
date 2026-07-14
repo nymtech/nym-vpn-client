@@ -451,10 +451,29 @@ impl ConnectedTunnel {
                 });
                 path_monitor.start();
 
+                let mut last_material_path: Option<(String, bool, bool)> = None;
+
                 loop {
                     tokio::select! {
                         Some(new_path) = default_path_rx.next() => {
                             tracing::debug!("New default path: {}", new_path.description());
+
+                            let current_material_path = (
+                                new_path.interface_name(),
+                                new_path.supports_ipv4(),
+                                new_path.supports_ipv6(),
+                            );
+
+                            if last_material_path
+                                .as_ref()
+                                .is_some_and(|prev| prev == &current_material_path)
+                            {
+                                tracing::debug!(
+                                    "Skipping peer update and socket bump: default path material identity unchanged"
+                                );
+                                continue;
+                            }
+                            last_material_path = Some(current_material_path);
 
                             // Depending on the network device is connected to, we may need to re-resolve the IP addresses.
                             // For instance when device connects to IPv4-only server from IPv6-only network,
