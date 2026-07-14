@@ -202,12 +202,17 @@ jobs:
           ruby --version
           gem --version
 
-      - name: Install fastlane
+      - name: Set locale
         run: |
-          brew install fastlane
+          echo "LC_ALL=en_US.UTF-8" >> $GITHUB_ENV
+          echo "LANG=en_US.UTF-8" >> $GITHUB_ENV
+
+      - name: Install fastlane
+        working-directory: nym-vpn-apple
+        run: |
+          bundle install
           fastlane --version
-          export LC_ALL=en_US.UTF-8
-          export LANG=en_US.UTF-8
+
 
       - name: Install python3
         run: |
