@@ -247,6 +247,22 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
+      - name: Build Google Play Prerelease Bundle
+        if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
+        timeout-minutes: 45
+        run: ./gradlew :app:bundleGeneralPrerelease --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+
+      - name: Build Google Play Nightly Bundle
+        if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
+        timeout-minutes: 45
+        run: ./gradlew :app:bundleGeneralNightly --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+
       - name: Build Fdroid Release Apk
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'apk' }}
         timeout-minutes: 45
@@ -318,6 +334,7 @@ jobs:
             ls -la build/outputs || true
             ls -la build/outputs/apk/fdroid || true
             ls -la build/outputs/bundle/generalRelease || true
+            ls -la build/outputs/bundle/generalNightly || true
 
             ls -la
             tree -d .
