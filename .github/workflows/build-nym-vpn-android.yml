@@ -319,6 +319,9 @@ jobs:
             ls -la build/outputs/apk/fdroid || true
             ls -la build/outputs/bundle/generalRelease || true
 
+            ls -la
+            tree -d .
+
             if [ "${{ inputs.build_flavor }}" == "fdroid" ]; then
               if [ "${{ inputs.build_format }}" == "apk" ]; then
                 ARTIFACT_FILE=$(find "${{ github.workspace }}/nym-vpn-android/build/outputs/apk/fdroid" -name '*.apk' -type f | head -1)
