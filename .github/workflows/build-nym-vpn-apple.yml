@@ -64,7 +64,7 @@ concurrency:
 jobs:
   build-apple:
     if: github.actor != 'dependabot[bot]'
-    runs-on: AppleSilicon
+    runs-on: custom-macos-15
     timeout-minutes: 90
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
