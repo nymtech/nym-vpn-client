@@ -127,7 +127,6 @@ jobs:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build --release
-          ls -la nym-vpn-core/target/release/ || true
 
       # Reuses the release artifacts compiled above (same target dir), so this
       # only packages the .deb files instead of recompiling from scratch.
@@ -138,7 +137,6 @@ jobs:
         run: |
           cargo deb -p nym-vpnd --no-build
           cargo deb -p nym-vpnc --no-build
-          ls -la target/debian/ || true
 
       - name: Get rust version used for build
         id: rust-version
