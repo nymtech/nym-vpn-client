@@ -214,9 +214,19 @@ jobs:
           brew install python
           python3 --version
 
+      - name: Cache virtual env
+        id: cache-virtual-env
+        uses: actions/cache@v6
+        with:
+          path: python-venv
+          key: ${{ runner.os }}-python-venv
+
       - name: Setup virtual env
+        if: steps.cache-virtual-env.outputs.cache-hit != 'true'
+        run: python3 -m venv python-venv
+
+      - name: Activate virtual env
         run: |
-          python3 -m venv python-venv
           source python-venv/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
 
