@@ -71,6 +71,14 @@ jobs:
       UPLOAD_DIR_MACOS: ${{ env.UPLOAD_DIR_MACOS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
@@ -198,6 +206,12 @@ jobs:
         run: |
           brew install python
           python3 --version
+
+      - name: Setup virtual env
+        run: |
+          python3 -m venv python-venv
+          source python-venv/bin/activate
+          echo PATH=$PATH >> $GITHUB_ENV
 
       - name: Install codemagic-cli-tools
         run: |
