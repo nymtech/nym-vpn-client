@@ -202,6 +202,11 @@ jobs:
           ruby --version
           gem --version
 
+      - name: Install fastlane
+        run: |
+          brew install fastlane
+          fastlane --version
+
       - name: Install python3
         run: |
           brew install python
