@@ -327,38 +327,23 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: test-app-build
-          path: nym-vpn-android/app/build
-          if-no-files-found: error
-          retention-days: 1
-
       - name: Get output path
         id: output-path
         working-directory: ${{ github.workspace }}
         run: |
-            ls -la app || true
-            ls -la app/build || true
-            ls -la app/build/outputs || true
-            ls -la app/build/outputs/apk/fdroid || true
-            ls -la app/build/outputs/bundle/generalRelease || true
-            ls -la app/build/outputs/bundle/generalNightly || true
+            OUT_DIR="nym-vpn-android/app/build/outputs"
 
-            if [ "${{ inputs.build_flavor }}" == "fdroid" ]; then
-              if [ "${{ inputs.build_format }}" == "apk" ]; then
-                ARTIFACT_FILE=$(find "nym-vpn-android/app/build/outputs/apk/fdroid" -name '*.apk' -type f | head -1)
-              else
-                ARTIFACT_FILE=$(find "nym-vpn-android/app/build/outputs/bundle/fdroidRelease" -name '*.aab' -type f | head -1)
-              fi
-            elif [ "${{ inputs.build_flavor }}" == "play" ]; then
-                ARTIFACT_FILE=$(find "nym-vpn-android/app/build/outputs/bundle/generalRelease/" -name '*.aab' -type f | head -1)
-            else
-              exit 1
-            fi
+            case "${{ inputs.build_flavor }}-${{ inputs.build_format }}" in
+              fdroid-apk) EXT='apk' ;;
+              fdroid-aab) EXT='aab' ;;
+              play-aab) EXT='aab' ;;
+              *) exit 1
+            esac
 
+            ARTIFACT_FILE=$(find "$OUT_DIR" -name "*.$EXT" -type f | head -1)
             ARTIFACT_NAME=$(basename $ARTIFACT_FILE)
+
+            echo "::notice:: Found artifact: $ARTIFACT_FILE"
 
             echo "artifact_path=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
             echo "artifact_name=$ARTIFACT_NAME" >> $GITHUB_OUTPUT
