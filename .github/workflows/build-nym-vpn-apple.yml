@@ -206,6 +206,8 @@ jobs:
         run: |
           brew install fastlane
           fastlane --version
+          export LC_ALL=en_US.UTF-8
+          export LANG=en_US.UTF-8
 
       - name: Install python3
         run: |
