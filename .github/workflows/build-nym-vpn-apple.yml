@@ -194,27 +194,37 @@ jobs:
           ruby --version
           gem --version
 
-      - name: Ensure codemagic-cli-tools uses compatible Python
+      - name: Install python3
         run: |
-          set -euo pipefail
-          if ! keychain --version >/dev/null 2>&1; then
-            # The runner's system /usr/lib/libexpat.1.dylib is missing
-            # _XML_SetAllocTrackerActivationThreshold. Every Homebrew Python
-            # version (3.12 and 3.14) links pyexpat.so against the system
-            # libexpat, so ALL versions fail — switching Python doesn't help.
-            # Fix: remap each Homebrew Python's pyexpat.so to use Homebrew's
-            # own expat formula (which ships the required symbol), then
-            # ad-hoc re-sign the patched .so so macOS will load it.
-            brew install expat
-            HOMEBREW_EXPAT="$(brew --prefix expat)/lib/libexpat.1.dylib"
-            while IFS= read -r -d '' so; do
-              install_name_tool -change /usr/lib/libexpat.1.dylib \
-                "$HOMEBREW_EXPAT" "$so" \
-                && codesign -f -s - "$so" || true
-            done < <(find /opt/homebrew/Cellar/python@* \
-              -name 'pyexpat*.so' -not -type l -print0 2>/dev/null)
-            keychain --version
-          fi
+          brew install python
+          python3 --version
+
+      - name: Install codemagic-cli-tools
+        run: |
+          pip3 install codemagic-cli-tools
+          keychain --version
+
+      # - name: Ensure codemagic-cli-tools uses compatible Python
+      #   run: |
+      #     set -euo pipefail
+      #     if ! keychain --version >/dev/null 2>&1; then
+      #       # The runner's system /usr/lib/libexpat.1.dylib is missing
+      #       # _XML_SetAllocTrackerActivationThreshold. Every Homebrew Python
+      #       # version (3.12 and 3.14) links pyexpat.so against the system
+      #       # libexpat, so ALL versions fail — switching Python doesn't help.
+      #       # Fix: remap each Homebrew Python's pyexpat.so to use Homebrew's
+      #       # own expat formula (which ships the required symbol), then
+      #       # ad-hoc re-sign the patched .so so macOS will load it.
+      #       brew install expat
+      #       HOMEBREW_EXPAT="$(brew --prefix expat)/lib/libexpat.1.dylib"
+      #       while IFS= read -r -d '' so; do
+      #         install_name_tool -change /usr/lib/libexpat.1.dylib \
+      #           "$HOMEBREW_EXPAT" "$so" \
+      #           && codesign -f -s - "$so" || true
+      #       done < <(find /opt/homebrew/Cellar/python@* \
+      #         -name 'pyexpat*.so' -not -type l -print0 2>/dev/null)
+      #       keychain --version
+      #     fi
 
       - name: Apply orchestrated version (apple)
         uses: ./.github/workflows/platform/apply-version
