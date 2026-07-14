@@ -140,14 +140,14 @@ jobs:
         run: bash .github/scripts/release/resolve-version.sh
 
   core:
-    needs: resolve
+    needs: [resolve]
     uses: ./.github/workflows/build-nym-vpn-core.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
     secrets: inherit
 
   apple:
-    needs: resolve
+    needs: [resolve]
     if: ${{ needs.resolve.outputs.ios == 'true' || needs.resolve.outputs.macos == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-apple.yml
     with:
@@ -159,7 +159,7 @@ jobs:
     secrets: inherit
 
   android:
-    needs: resolve
+    needs: [resolve]
     if: ${{ needs.resolve.outputs.android == 'true' || needs.resolve.outputs.fdroid == 'true' }}
     uses: ./.github/workflows/build-release-artifacts-android.yml
     with:
@@ -176,7 +176,7 @@ jobs:
   # is a DRAFT at build time and /releases/tags/<tag> doesn't return drafts. The `linux`/
   # `windows` flags only gate which built artifacts get appended to the release.
   app:
-    needs: resolve
+    needs: [resolve]
     if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-app.yml
     with:
