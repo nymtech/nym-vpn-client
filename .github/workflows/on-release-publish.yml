@@ -192,7 +192,6 @@ jobs:
   update-nym-fdroid:
     runs-on: arc-linux-latest
     needs: setup
-    if: ${{ inputs.release_type == 'release' && (inputs.version_tag == '' || (inputs.fdroid && inputs.version_tag != 'nym-vpn-nightly')) }}
     steps:
       - name: Dispatch update for fdroid repo
         uses: peter-evans/repository-dispatch@v4
