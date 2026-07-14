@@ -471,7 +471,7 @@ impl ConnectedTunnel {
                                             tracing::error!("Failed to update peers on network change: {}", e);
                                         }
 
-                                        // update the peer if it has changed 
+                                        // update the peer if it has changed
                                         old_resolved_peer = resolved_peer;
                                     } else {
                                         tracing::debug!("Skipping peer update: resolved address unchanged: {}", resolved_peer.endpoint);
