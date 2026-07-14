@@ -66,7 +66,7 @@ on:
     outputs:
       artifact_name:
         description: "Name of the built artifact"
-        value: ${{ steps.output-path.outputs.artifact_name }}
+        value: ${{ jobs.build.outputs.artifact_name }}
     secrets:
       SCCACHE_REDIS_ENDPOINT:
         required: false
@@ -106,7 +106,8 @@ jobs:
       run:
         working-directory: nym-vpn-android
     outputs:
-      UPLOAD_DIR_ANDROID: ${{ env.UPLOAD_DIR_ANDROID }}
+      upload_dir: ${{ env.UPLOAD_DIR_ANDROID }}
+      artifact_name: ${{ steps.output-path.outputs.artifact_name }}
     steps:
       - uses: actions/checkout@v7
         with:
