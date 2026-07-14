@@ -84,13 +84,13 @@ jobs:
     outputs:
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
-      channel: ${{ steps.sanitize-inputs.outputs.release_channel }}
-      android: ${{ steps.sanitize-inputs.outputs.android }}
-      fdroid: ${{ steps.sanitize-inputs.outputs.fdroid }}
-      linux: ${{ steps.sanitize-inputs.outputs.linux }}
-      windows: ${{ steps.sanitize-inputs.outputs.windows }}
-      ios: ${{ steps.sanitize-inputs.outputs.ios }}
-      macos: ${{ steps.sanitize-inputs.outputs.macos }}
+      channel: ${{ steps.process-inputs.outputs.release_channel }}
+      android: ${{ steps.process-inputs.outputs.android }}
+      fdroid: ${{ steps.process-inputs.outputs.fdroid }}
+      linux: ${{ steps.process-inputs.outputs.linux }}
+      windows: ${{ steps.process-inputs.outputs.windows }}
+      ios: ${{ steps.process-inputs.outputs.ios }}
+      macos: ${{ steps.process-inputs.outputs.macos }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -100,8 +100,8 @@ jobs:
         with:
           crate: cargo-get
 
-      - name: Inputs
-        id: sanitize-inputs
+      - name: Process inputs
+        id: process-inputs
         run: |
           if ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}; then
             RELEASE_CHANNEL='nightly'
@@ -134,7 +134,7 @@ jobs:
       - name: Resolve version + tag
         id: v
         env:
-          RELEASE_CHANNEL: ${{ steps.sanitize-inputs.outputs.release_channel }}
+          RELEASE_CHANNEL: ${{ steps.process-inputs.outputs.release_channel }}
           # beta auto-advances its -beta.N by reading prior beta releases/tags
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/release/resolve-version.sh
