@@ -211,7 +211,7 @@ jobs:
       contents: read
     steps:
       - name: Publish to Google Play
-        uses: .github/workflows/publish-nym-vpn-android.yml
+        uses: ./.github/workflows/publish-nym-vpn-android.yml
         with:
           track: alpha
           publish-bundle: ${{ github.event_name != 'push' && github.event_name != 'pull_request' }}
