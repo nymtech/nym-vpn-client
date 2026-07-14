@@ -38,8 +38,8 @@ jobs:
     secrets: inherit
     with:
       build_type: ${{ inputs.release_type }}
-      build_format: apk
-      build_flavor: fdroid
+      build_format: 'apk'
+      build_flavor: 'fdroid'
       version: ${{ inputs.version }}
 
   build-android-play:
@@ -49,6 +49,6 @@ jobs:
     secrets: inherit
     with:
       build_type: ${{ inputs.release_type }}
-      build_format: aab
-      build_flavor: play
+      build_format: 'aab'
+      build_flavor: 'play'
       version: ${{ inputs.version }}
