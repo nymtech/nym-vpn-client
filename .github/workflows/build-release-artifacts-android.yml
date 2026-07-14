@@ -33,11 +33,12 @@ permissions:
 jobs:
   inputs:
     runs-on: ubuntu-latest
-    run: |
-        echo "release_type: ${{ inputs.release_type }}"
-        echo "version: ${{ inputs.version }}"
-        echo "play: ${{ inputs.play }}"
-        echo "fdroid: ${{ inputs.fdroid }}"
+    steps:
+      - run: |
+          echo "release_type: ${{ inputs.release_type }}"
+          echo "version: ${{ inputs.version }}"
+          echo "play: ${{ inputs.play }}"
+          echo "fdroid: ${{ inputs.fdroid }}"
 
   build-android-fdroid:
     name: F-Droid build
