@@ -111,7 +111,7 @@ jobs:
 
   apple:
     needs: resolve
-    if: ${{ inputs.ios == 'true' || inputs.macos == 'true' }
+    if: ${{ inputs.ios == 'true' || inputs.macos == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-apple.yml
     with:
       # beta maps to qa (apple ship-only path creates a standalone macOS release + appcast).
