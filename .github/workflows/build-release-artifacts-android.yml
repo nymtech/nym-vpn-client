@@ -60,6 +60,7 @@ jobs:
 
   build-android-fdroid:
     needs: resolve
+    name: F-Droid build
     if: ${{ needs.resolve.outputs.fdroid == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
@@ -71,6 +72,7 @@ jobs:
 
   build-android-play:
     needs: resolve
+    name: Google Play build
     if: ${{ needs.resolve.outputs.play == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
