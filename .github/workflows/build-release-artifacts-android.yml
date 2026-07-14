@@ -1,10 +1,6 @@
 name: build-release-artifacts-android
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/build-release-artifacts-android.yml"
   workflow_call:
     inputs:
       release_type:
@@ -35,56 +31,26 @@ permissions:
   contents: read
 
 jobs:
-  resolve:
-    runs-on: ubuntu-latest
-    outputs:
-      release_type: ${{ steps.process-inputs.outputs.release_type }}
-      version: ${{ steps.process-inputs.outputs.version }}
-      play: ${{ steps.process-inputs.outputs.play }}
-      fdroid: ${{ steps.process-inputs.outputs.fdroid }}
-    steps:
-      - name: Process inputs
-        id: process-inputs
-        run: |
-          if ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}; then
-            RELEASE_TYPE='nightly'
-            VERSION=''
-            PLAY=true
-            FDROID=true
-          else
-            RELEASE_TYPE="${{ inputs.release_type }}"
-            VERSION="${{ inputs.version }}"
-            PLAY="${{ inputs.play }}"
-            FDROID="${{ inputs.fdroid }}"
-          fi
-
-          echo "release_channel=$RELEASE_CHANNEL" >> "$GITHUB_OUTPUT"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "play=$PLAY" >> "$GITHUB_OUTPUT"
-          echo "fdroid=$FDROID" >> "$GITHUB_OUTPUT"
-
-          echo "release_type=$RELEASE_TYPE, version=$VERSION, play=$PLAY, fdroid=$FDROID"
-
   build-android-fdroid:
     needs: resolve
     name: F-Droid build
-    if: ${{ needs.resolve.outputs.fdroid == 'true' }}
+    if: ${{ inputs.fdroid == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
-      build_type: ${{ needs.resolve.outputs.release_type }}
+      build_type: ${{ inputs.release_type }}
       build_format: apk
       build_flavor: fdroid
-      version: ${{ needs.resolve.outputs.version }}
+      version: ${{ inputs.version }}
 
   build-android-play:
     needs: resolve
     name: Google Play build
-    if: ${{ needs.resolve.outputs.play == 'true' }}
+    if: ${{ inputs.play == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
-      build_type: ${{ needs.resolve.outputs.release_type }}
+      build_type: ${{ inputs.release_type }}
       build_format: aab
       build_flavor: play
-      version: ${{ needs.resolve.outputs.version }}
+      version: ${{ inputs.version }}
