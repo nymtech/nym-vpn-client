@@ -2,7 +2,7 @@ name: build-nym-vpn-apple
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/build-nym-vpn-apple.yml"
       - "nym-vpn-apple/**"
