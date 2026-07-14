@@ -467,13 +467,11 @@ impl ConnectedTunnel {
                                     Ok(resolved_peer) => {
                                         // check if peer has changed
                                         if resolved_peer != old_resolved_peer {
+                                            old_resolved_peer = resolved_peer.clone();
                                             // Update wireguard-go configuration with re-resolved peer endpoints.
                                             if let Err(e) = entry_tunnel.update_peers(&[resolved_peer]) {
                                                 tracing::error!("Failed to update peers on network change: {}", e);
                                             }
-
-                                            // update the peer if it has changed
-                                            old_resolved_peer = resolved_peer;
                                         } else {
                                             tracing::debug!("Skipping peer update: resolved address unchanged: {}", resolved_peer.endpoint);
                                         }
