@@ -35,7 +35,7 @@ jobs:
       - run: echo "release_type=${{ inputs.release_type }}, version=${{ inputs.version }}, play=${{ inputs.play }}, fdroid=${{ inputs.fdroid }}"
 
   build-android-fdroid:
-    if: ${{ inputs.fdroid == 'true' }}
+    # if: ${{ inputs.fdroid == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
@@ -45,7 +45,7 @@ jobs:
       version: ${{ inputs.version }}
 
   build-android-play:
-    if: ${{ inputs.play == 'true' }}
+    # if: ${{ inputs.play == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
