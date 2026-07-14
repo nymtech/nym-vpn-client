@@ -84,7 +84,13 @@ jobs:
     outputs:
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
-      channel: ${{ inputs.release_channel }}
+      channel: ${{ steps.sanitize-inputs.outputs.release_channel }}
+      android: ${{ steps.sanitize-inputs.outputs.android }}
+      fdroid: ${{ steps.sanitize-inputs.outputs.fdroid }}
+      linux: ${{ steps.sanitize-inputs.outputs.linux }}
+      windows: ${{ steps.sanitize-inputs.outputs.windows }}
+      ios: ${{ steps.sanitize-inputs.outputs.ios }}
+      macos: ${{ steps.sanitize-inputs.outputs.macos }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -94,10 +100,39 @@ jobs:
         with:
           crate: cargo-get
 
+      - name: Inputs
+        id: sanitize-inputs
+        run: |
+          if ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}; then
+            RELEASE_CHANNEL='nightly'
+            ANDROID=true
+            FDROID=true
+            LINUX=true
+            WINDOWS=true
+            IOS=true
+            MACOS=true
+          else
+            RELEASE_CHANNEL="${{ inputs.release_channel }}"
+            ANDROID="${{ inputs.outputs.android }}"
+            FDROID="${{ inputs.outputs.fdroid }}"
+            LINUX="${{ inputs.outputs.linux }}"
+            WINDOWS="${{ inputs.outputs.windows }}"
+            IOS="${{ inputs.outputs.ios }}"
+            MACOS="${{ inputs.outputs.macos }}"
+          fi
+
+          echo "release_channel=$RELEASE_CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "android=$ANDROID" >> "$GITHUB_OUTPUT"
+          echo "fdroid=$FDROID" >> "$GITHUB_OUTPUT"
+          echo "linux=$LINUX" >> "$GITHUB_OUTPUT"
+          echo "windows=$WINDOWS" >> "$GITHUB_OUTPUT"
+          echo "ios=$IOS" >> "$GITHUB_OUTPUT"
+          echo "macos=$MACOS" >> "$GITHUB_OUTPUT"
+
       - name: Resolve version + tag
         id: v
         env:
-          RELEASE_CHANNEL: ${{ inputs.release_channel }}
+          RELEASE_CHANNEL: ${{ steps.sanitize-inputs.outputs.release_channel }}
           # beta auto-advances its -beta.N by reading prior beta releases/tags
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/release/resolve-version.sh
@@ -111,24 +146,24 @@ jobs:
 
   apple:
     needs: resolve
-    if: ${{ inputs.ios == 'true' || inputs.macos == 'true' }}
+    if: ${{ needs.resolve.ios == 'true' || needs.resolve.macos == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-apple.yml
     with:
       # beta maps to qa (apple ship-only path creates a standalone macOS release + appcast).
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
       version: ${{ needs.resolve.outputs.version }}
-      build_ios: ${{ inputs.ios == 'true' }}
-      build_macos: ${{ inputs.macos == 'true' }}
+      build_ios: ${{ needs.resolve.ios == 'true' }}
+      build_macos: ${{ needs.resolve.macos == 'true' }}
     secrets: inherit
 
   android:
     needs: resolve
-    if: ${{ inputs.android == 'true' || inputs.fdroid == 'true' }}
+    if: ${{ needs.resolve.android == 'true' || needs.resolve.fdroid == 'true' }}
     uses: ./.github/workflows/build-release-artifacts-android.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
-      fdroid: ${{ inputs.fdroid == 'true' }}
-      play: ${{ inputs.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
+      fdroid: ${{ needs.resolve.fdroid == 'true' }}
+      play: ${{ needs.resolve.android == 'true' && needs.resolve.outputs.channel == 'ship' }}
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
     secrets: inherit
 
@@ -140,11 +175,11 @@ jobs:
   # `windows` flags only gate which built artifacts get appended to the release.
   app:
     needs: resolve
-    if: ${{ inputs.linux == 'true' || inputs.windows == 'true' }}
+    if: ${{ needs.resolve.linux == 'true' || needs.resolve.windows == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-app.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
-      linux: ${{ inputs.linux == 'true' }}
-      windows: ${{ inputs.windows == 'true' }}
+      linux: ${{ needs.resolve.linux == 'true' }}
+      windows: ${{ needs.resolve.windows == 'true' }}
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
     secrets: inherit
