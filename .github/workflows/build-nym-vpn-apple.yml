@@ -500,13 +500,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          IOS_BUILD_NUMBER="$(
+          IOS_BUILD_NUMBER=$(
             xcodebuild -showBuildSettings \
               -workspace "NymVPN.xcworkspace" \
               -scheme "NymVPN" \
-              -configuration "Release" 2>/dev/null |
-            awk '/CURRENT_PROJECT_VERSION/ { print $3; exit }'
-          )"
+              -configuration "Release" 2>/dev/null | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
+          )
           echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
           echo "🔢 PR build number (no bump): $IOS_BUILD_NUMBER"
 
