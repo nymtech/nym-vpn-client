@@ -181,7 +181,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-app.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
-      linux: always() && needs.resolve.outputs.linux
-      windows: always() && needs.resolve.outputs.windows
+      linux: ${{ needs.resolve.outputs.linux == 'true' }}
+      windows: ${{ needs.resolve.outputs.windows == 'true' }}
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'stable' || (needs.resolve.outputs.channel == 'beta' && 'rc' || 'nightly') }}
     secrets: inherit

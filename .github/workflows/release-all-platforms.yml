@@ -175,12 +175,12 @@ jobs:
     uses: ./.github/workflows/build-release-artifacts.yml
     with:
       channel: ${{ needs.resolve.outputs.release_channel }}
-      android: always() && needs.resolve.outputs.android
-      fdroid: always() && needs.resolve.outputs.fdroid
-      linux: always() && needs.resolve.outputs.linux
-      windows: always() && needs.resolve.outputs.windows
-      ios: always() && needs.resolve.outputs.ios
-      macos: always() && needs.resolve.outputs.macos
+      android: ${{ needs.resolve.outputs.android == 'true' }}
+      fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
+      linux: ${{ needs.resolve.outputs.linux == 'true' }}
+      windows: ${{ needs.resolve.outputs.windows == 'true' }}
+      ios: ${{ needs.resolve.outputs.ios == 'true' }}
+      macos: ${{ needs.resolve.outputs.macos == 'true' }}
     secrets: inherit
 
   release:
