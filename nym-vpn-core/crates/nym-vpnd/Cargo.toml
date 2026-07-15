@@ -13,6 +13,7 @@ license.workspace = true
 workspace = true
 
 [features]
+default = ["cgroup2"]
 cgroup2 = ["nym-vpn-lib/cgroup2"]
 
 [dependencies]

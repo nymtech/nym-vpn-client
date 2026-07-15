@@ -212,7 +212,7 @@ vergen-gitcl = { workspace = true, default-features = false, features = [
 
 
 [features]
-default = []
+default = ["cgroup2"]
 metrics-server = ["nym-client-core/metrics-server"]
 cgroup2 = ["nym-split-tunnel/cgroup2", "nym-firewall/cgroup2"]
 

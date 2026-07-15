@@ -19,4 +19,5 @@ nym-cgroup = { workspace = true }
 thiserror = { workspace = true }
 
 [features]
+default = ["cgroup2"]
 cgroup2 = []
