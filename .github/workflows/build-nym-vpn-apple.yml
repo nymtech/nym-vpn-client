@@ -466,8 +466,7 @@ jobs:
             xcodebuild -showBuildSettings \
               -workspace "NymVPN.xcworkspace" \
               -scheme "NymVPN" \
-              -configuration "Release" 2>/dev/null |
-            awk '/CURRENT_PROJECT_VERSION/ { print $3; exit }'
+              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
           )"
 
           echo "🚜 Resolve build number (max across all TestFlight versions)"
