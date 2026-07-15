@@ -12,6 +12,7 @@ license.workspace = true
 workspace = true
 
 [features]
+default = ["cgroup2"]
 cgroup2 = []
 
 [dependencies]
