@@ -148,6 +148,25 @@ jobs:
       - name: Show selected release type
         run: echo "RELEASE_TYPE=${{ env.RELEASE_TYPE }}"
 
+      - name: Resolve iOS build number (PR only)
+        if: ${{ env.RELEASE_TYPE == 'pr' }}
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
+
+          IOS_BUILD_NUMBER=$(
+            xcodebuild -showBuildSettings \
+              -workspace "NymVPN.xcworkspace" \
+              -scheme "NymVPN" \
+              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
+          )
+          if [[ -z "${IOS_BUILD_NUMBER:-}" ]]; then
+            echo "❌ Could not determine iOS CURRENT_PROJECT_VERSION"
+            exit 1
+          fi
+          echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "🔢 PR build number (no bump): $IOS_BUILD_NUMBER"
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -493,21 +512,6 @@ jobs:
           # Export for downstream steps (build, Zulip)
           echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"
           echo "IOS_TESTFLIGHT_LATEST=$LATEST" >> "$GITHUB_ENV"
-
-      - name: Resolve iOS build number (PR only)
-        if: ${{ env.RELEASE_TYPE == 'pr' }}
-        working-directory: nym-vpn-apple
-        run: |
-          set -euo pipefail
-
-          IOS_BUILD_NUMBER=$(
-            xcodebuild -showBuildSettings \
-              -workspace "NymVPN.xcworkspace" \
-              -scheme "NymVPN" \
-              -configuration "Release" 2>/dev/null | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
-          )
-          echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
-          echo "🔢 PR build number (no bump): $IOS_BUILD_NUMBER"
 
       - name: Build iOS (Release, signed)
         working-directory: nym-vpn-apple
