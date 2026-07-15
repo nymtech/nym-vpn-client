@@ -504,7 +504,7 @@ jobs:
             xcodebuild -showBuildSettings \
               -workspace "NymVPN.xcworkspace" \
               -scheme "NymVPN" \
-              -configuration "Release" 2>/dev/null | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
+              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
           )
           echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
           echo "🔢 PR build number (no bump): $IOS_BUILD_NUMBER"
@@ -543,7 +543,7 @@ jobs:
             xcodebuild -showBuildSettings \
               -workspace "NymVPN.xcworkspace" \
               -scheme "NymVPN" \
-              -configuration "Release" 2>/dev/null | grep MARKETING_VERSION | tr -d 'MARKETING_VERSION ='
+              -configuration "Release" | grep MARKETING_VERSION | tr -d 'MARKETING_VERSION ='
           )
 
           if [[ -z "${IOS_VERSION:-}" ]]; then
