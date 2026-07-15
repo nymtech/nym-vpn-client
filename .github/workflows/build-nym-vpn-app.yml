@@ -41,9 +41,6 @@ on:
       release_type:
         type: string
         default: "stable"
-      core_release_tag:
-        type: string
-        default: ""
 
 permissions:
   contents: read
@@ -100,8 +97,6 @@ jobs:
       cpu_arch: x64
       version: ${{ inputs.version }}
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
-      core_build_it: ${{ inputs.core_release_tag == '' }}
-      core_release_tag: ${{ inputs.core_release_tag }}
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
@@ -114,22 +109,7 @@ jobs:
       cpu_arch: ARM64
       version: ${{ inputs.version }}
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
-      core_build_it: ${{ inputs.core_release_tag == '' }}
-      core_release_tag: ${{ inputs.core_release_tag }}
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
-    secrets: inherit
-
-  # For rc builds, also build the Linux core (binaries + .deb) from this branch
-  # and upload it to the CI www server, so the Zulip core link resolves to a
-  # matching build without a separate publish-nym-vpn-core run. Windows is not
-  # uploaded: its installer bundles the core, so there is nothing to publish.
-  # Builds both the Linux core binaries and the .deb packages in a single job
-  # (the .deb step reuses the release build, so there is no second compile).
-  build-core-linux:
-    if: ${{ inputs.release_type == 'rc' }}
-    uses: ./.github/workflows/build-nym-vpn-core-linux.yml
-    with:
-      version: ${{ inputs.version }}
     secrets: inherit
