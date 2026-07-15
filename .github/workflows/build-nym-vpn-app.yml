@@ -99,6 +99,7 @@ jobs:
           - cpu_arch: x64
           - cpu_arch: ARM64
     steps:
+      - uses: actions/checkout@v7
       - uses: ./.github/workflows/build-nym-vpn-app-windows.yml
         with:
           cpu_arch: ${{ matrix.cpu_arch }}
