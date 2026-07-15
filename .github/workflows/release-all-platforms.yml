@@ -174,8 +174,8 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml
-    with:
-      version: ${{ needs.resolve.outputs.version }}
+    # with:
+    #   version: ${{ needs.resolve.outputs.version }}
     secrets: inherit
 
   release:
@@ -198,7 +198,7 @@ jobs:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       #   with:
       #     tag_name: ${{ needs.resolve.outputs.tag }}
-      #     name: "nym-vpn-v${{ steps.resolve-version.outputs.version }}"
+      #     name: "nym-vpn-v${{ needs.resolve.outputs.version }}"
       #     prerelease: false
       #     draft: true
       #     files: |
