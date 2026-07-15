@@ -176,7 +176,7 @@ jobs:
   # is a DRAFT at build time and /releases/tags/<tag> doesn't return drafts. The `linux`/
   # `windows` flags only gate which built artifacts get appended to the release.
   app:
-    needs: [resolve]
+    needs: [resolve, core]
     if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-app.yml
     with:
