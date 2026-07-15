@@ -79,7 +79,6 @@ jobs:
       publish_metadata: ${{ steps.flags.outputs.publish_metadata }}
     steps:
       - name: Resolve channel + platform flags
-        if: ${{ github.event_name != 'push' && github.event_name != 'pull_request' }}
         id: flags
         env:
           EVENT: ${{ github.event_name }}
