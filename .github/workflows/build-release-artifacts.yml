@@ -6,50 +6,17 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - ".github/workflows/build-release-artifacts.yml"
-  # NOTE: pick the release branch in the "Run workflow" ref selector. Reusable callees
-  # always run at the SAME ref as this orchestrator, so the dispatch ref IS the release
-  # branch — there is no separate branch input (it could not redirect the callees).
-  # Scheduled (nightly) runs use the repository default branch (develop).
-  workflow_dispatch:
-    inputs:
-      release_channel:
-        description: "Release channel"
-        type: choice
-        default: nightly
-        options:
-          - nightly   # mutable, auto-published prerelease; app version <base>-nightly
-          - beta      # release candidate; core version MUST contain -beta; prerelease draft
-          - ship      # stable release; core version MUST NOT contain -beta; draft
-      android:
-        description: "Android → Google Play"
-        type: boolean
-        default: false
-      fdroid:
-        description: "F-Droid"
-        type: boolean
-        default: false
-      linux:
-        description: "Linux (deb/AppImage + AUR)"
-        type: boolean
-        default: false
-      windows:
-        description: "Windows (signed exe + updater)"
-        type: boolean
-        default: false
-      ios:
-        description: "iOS → TestFlight/App Store"
-        type: boolean
-        default: false
-      macos:
-        description: "macOS (.pkg + Sparkle)"
-        type: boolean
-        default: false
   workflow_call:
     inputs:
       release_channel:
         description: "Release channel"
         type: string
         default: nightly
+      version:
+        description: "Orchestrated app version to embed (empty = use the one from Cargo.toml as before)"
+        required: false
+        type: string
+        default: ""
       android:
         description: "Android → Google Play"
         type: boolean
@@ -85,12 +52,12 @@ jobs:
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
       channel: ${{ steps.v.outputs.channel }}
-      android: ${{ steps.process-inputs.outputs.android }}
-      fdroid: ${{ steps.process-inputs.outputs.fdroid }}
-      linux: ${{ steps.process-inputs.outputs.linux }}
-      windows: ${{ steps.process-inputs.outputs.windows }}
-      ios: ${{ steps.process-inputs.outputs.ios }}
-      macos: ${{ steps.process-inputs.outputs.macos }}
+      android: ${{ steps.resolve.outputs.android }}
+      fdroid: ${{ steps.resolve.outputs.fdroid }}
+      linux: ${{ steps.resolve.outputs.linux }}
+      windows: ${{ steps.resolve.outputs.windows }}
+      ios: ${{ steps.resolve.outputs.ios }}
+      macos: ${{ steps.resolve.outputs.macos }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -100,11 +67,12 @@ jobs:
         with:
           crate: cargo-get
 
-      - name: Process inputs
-        id: process-inputs
+      - name: Resolve
+        id: resolve
         run: |
           if ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}; then
-            RELEASE_CHANNEL='nightly'
+            RELEASE_CHANNEL="nightly"
+            VERSION=""
             ANDROID=true
             FDROID=true
             LINUX=true
@@ -113,15 +81,17 @@ jobs:
             MACOS=true
           else
             RELEASE_CHANNEL="${{ inputs.release_channel }}"
-            ANDROID="${{ inputs.outputs.android }}"
-            FDROID="${{ inputs.outputs.fdroid }}"
-            LINUX="${{ inputs.outputs.linux }}"
-            WINDOWS="${{ inputs.outputs.windows }}"
-            IOS="${{ inputs.outputs.ios }}"
-            MACOS="${{ inputs.outputs.macos }}"
+            VERSION="${{ inputs.version }}"
+            ANDROID="${{ inputs.android }}"
+            FDROID="${{ inputs.fdroid }}"
+            LINUX="${{ inputs.linux }}"
+            WINDOWS="${{ inputs.windows }}"
+            IOS="${{ inputs.ios }}"
+            MACOS="${{ inputs.macos }}"
           fi
 
           echo "release_channel=$RELEASE_CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "android=$ANDROID" >> "$GITHUB_OUTPUT"
           echo "fdroid=$FDROID" >> "$GITHUB_OUTPUT"
           echo "linux=$LINUX" >> "$GITHUB_OUTPUT"
@@ -130,14 +100,6 @@ jobs:
           echo "macos=$MACOS" >> "$GITHUB_OUTPUT"
 
           echo "::notice:: release_channel=$RELEASE_CHANNEL, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
-
-      - name: Resolve version + tag
-        id: v
-        env:
-          RELEASE_CHANNEL: ${{ steps.process-inputs.outputs.release_channel }}
-          # beta auto-advances its -beta.N by reading prior beta releases/tags
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash .github/scripts/release/resolve-version.sh
 
   core:
     needs: [resolve]
