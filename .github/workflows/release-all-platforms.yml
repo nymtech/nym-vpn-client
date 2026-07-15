@@ -173,8 +173,8 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml
-    # with:
-    #   version: ${{ needs.resolve.outputs.version }}
+    with:
+      channel: ${{ needs.resolve.outputs.release_channel }}
     secrets: inherit
 
   release:
