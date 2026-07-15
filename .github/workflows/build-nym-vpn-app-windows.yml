@@ -100,7 +100,6 @@ env:
 jobs:
   build-nym-vpn-app:
     runs-on: custom-windows-11
-    needs: [build-core]
     env:
       VPN_CORE_BUILDS_URL: https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core
       UPDATER_URL_STABLE: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable.json
