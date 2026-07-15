@@ -304,6 +304,13 @@ async fn serve_socks5(
          default_interface={default_interface:?} tunnel_addrs={tunnel_addrs:?}"
     );
 
+    if routing_decision == RoutingDecision::Reject {
+        let _ = proto.reply_error(&ReplyError::NetworkUnreachable).await;
+        bail!(
+            "Refusing non-excluded {target_addr} (from {peer_addr}): no active VPN tunnel to carry it"
+        );
+    }
+
     let outbound = match connect_to_target(
         if routing_decision == RoutingDecision::DefaultInterface {
             Some(default_interface)
