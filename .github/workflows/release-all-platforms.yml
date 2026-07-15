@@ -69,7 +69,7 @@ jobs:
     outputs:
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
-      channel: ${{ steps.flags.outputs.channel }}
+      channel: ${{ steps.v.outputs.channel }}
       android: ${{ steps.flags.outputs.android }}
       fdroid: ${{ steps.flags.outputs.fdroid }}
       linux: ${{ steps.flags.outputs.linux }}
@@ -174,7 +174,7 @@ jobs:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml
     with:
-      channel: ${{ needs.resolve.outputs.release_channel }}
+      release_channel: ${{ needs.resolve.outputs.channel }}
       android: ${{ needs.resolve.outputs.android == 'true' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
