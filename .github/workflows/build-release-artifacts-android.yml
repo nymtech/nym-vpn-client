@@ -33,7 +33,7 @@ permissions:
 jobs:
   build-android-fdroid:
     name: F-Droid build
-    if: ${{ always() && inputs.fdroid }}
+    if: always() && inputs.fdroid
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
@@ -44,7 +44,7 @@ jobs:
 
   build-android-play:
     name: Google Play build
-    if: ${{ always() && inputs.play }}
+    if: always() && inputs.play
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
