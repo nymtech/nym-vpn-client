@@ -25,6 +25,7 @@ use tokio::io::AsyncReadExt;
 pub enum RoutingDecision {
     VpnTunnelInterface,
     DefaultInterface,
+    Reject,
 }
 
 pub struct RoutingDatabase {
@@ -63,7 +64,7 @@ pub fn decide_route_for_addrs(
     if tunnel_can_reach_any {
         RoutingDecision::VpnTunnelInterface
     } else {
-        RoutingDecision::DefaultInterface
+        RoutingDecision::Reject
     }
 }
 

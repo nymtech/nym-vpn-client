@@ -193,8 +193,29 @@ fn ipv6_empty_set() {
 
 #[test]
 fn decide_route_no_tunnel() {
+    // With no tunnel active, non-excluded traffic must be rejected rather than
+    // leaked over the default interface (kill-switch behaviour).
     let db = GeoIpDatabase {
         excluded_countries: HashMap::new(),
+    };
+    assert_eq!(
+        decide_route_for_addrs(&sa("1.0.1.1"), &InterfaceAddresses::default(), &db),
+        RoutingDecision::Reject,
+    );
+}
+
+#[test]
+fn decide_route_no_tunnel_excluded_still_direct() {
+    // Excluded destinations continue to route directly even when no tunnel is
+    // active: they were always meant to bypass the VPN, so this leaks nothing new.
+    let mut countries = HashMap::new();
+    let set = CountryIpSet {
+        v4: make_v4_set(&["1.0.1.0/24"]),
+        v6: IpRange::new(),
+    };
+    countries.insert("CN".to_string(), set);
+    let db = GeoIpDatabase {
+        excluded_countries: countries,
     };
     assert_eq!(
         decide_route_for_addrs(&sa("1.0.1.1"), &InterfaceAddresses::default(), &db),
@@ -234,19 +255,21 @@ fn decide_route_excluded_country() {
 
 #[test]
 fn decide_route_no_tunnel_ipv6() {
-    // With no tunnel addresses at all, all traffic must use the default interface.
+    // With no tunnel addresses at all, non-excluded traffic must be rejected.
     let db = GeoIpDatabase {
         excluded_countries: HashMap::new(),
     };
     assert_eq!(
         decide_route_for_addrs(&sa("2001:db8::1"), &InterfaceAddresses::default(), &db),
-        RoutingDecision::DefaultInterface,
+        RoutingDecision::Reject,
     );
 }
 
 #[test]
 fn decide_route_ipv6_no_v6_tunnel() {
-    // Tunnel has only an IPv4 address — IPv6 destinations must use default interface.
+    // Tunnel has only an IPv4 address — non-excluded IPv6 destinations cannot be
+    // carried by the tunnel and must be rejected, not leaked over the default
+    // interface.
     let db = GeoIpDatabase {
         excluded_countries: HashMap::new(),
     };
@@ -256,7 +279,7 @@ fn decide_route_ipv6_no_v6_tunnel() {
     };
     assert_eq!(
         decide_route_for_addrs(&sa("2606:4700::1"), &tunnel_addrs, &db),
-        RoutingDecision::DefaultInterface,
+        RoutingDecision::Reject,
     );
     // IPv4 destinations can still use the tunnel.
     assert_eq!(
