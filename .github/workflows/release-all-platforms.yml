@@ -170,7 +170,7 @@ jobs:
         run: bash .github/scripts/release/resolve-version.sh
 
   build:
-    needs: resolve
+    needs: [resolve]
     permissions:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml
