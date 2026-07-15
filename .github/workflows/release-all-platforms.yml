@@ -45,12 +45,43 @@ on:
         type: boolean
         default: false
       publish-metadata:
-        description: "Skip Google Play metadata"
+        description: "Publish Google Play metadata"
         type: boolean
-        default: true
-  # todo: move that to separate workflow that can feed inputs into `release-all-platforms` instead of second guessing every step of the way
-  # schedule:
-  #   - cron: "0 4 * * *"
+        default: false
+  workflow_call:
+    inputs:
+      release_channel:
+        description: "Release channel"
+        type: string # nightly, beta, ship
+        default: nightly
+      android:
+        description: "Android → Google Play"
+        type: boolean
+        default: false
+      fdroid:
+        description: "F-Droid (ship only)"
+        type: boolean
+        default: false
+      linux:
+        description: "Linux (deb/AppImage + AUR)"
+        type: boolean
+        default: false
+      windows:
+        description: "Windows (signed exe + updater)"
+        type: boolean
+        default: false
+      ios:
+        description: "iOS → TestFlight/App Store"
+        type: boolean
+        default: false
+      macos:
+        description: "macOS (.pkg + Sparkle)"
+        type: boolean
+        default: false
+      publish-metadata:
+        description: "Publish Google Play metadata"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -94,6 +125,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Used for testing purposes when running this workflow from PR
           if ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}; then
             echo "::notice:: dry-run release from ref $REF_NAME (event $EVENT)"
             echo "::notice:: nightly → all platforms (dry run)"
