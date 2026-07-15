@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Ad-blocker and nym-socks5-proxy files are no longer stored in the network directory. (https://github.com/nymtech/nym-vpn-client/pull/5826)
 - Improve behavior of forwarding resolver by not sending empty response when hostname resolution fails. Instead simulate timeout to let clients retry more aggressively. (https://github.com/nymtech/nym-vpn-client/pull/5832)
+- When no VPN tunnel is active the geo-exclusion feature rejects non-excluded traffic. (https://github.com/nymtech/nym-vpn-client/pull/5872)
 
 
 ## [2026.11.0] - 2026-07-10
