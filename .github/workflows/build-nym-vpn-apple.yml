@@ -543,8 +543,7 @@ jobs:
             xcodebuild -showBuildSettings \
               -workspace "NymVPN.xcworkspace" \
               -scheme "NymVPN" \
-              -configuration "Release" 2>/dev/null |
-            awk '/MARKETING_VERSION/ { print $3; exit }'
+              -configuration "Release" 2>/dev/null | grep MARKETING_VERSION | tr -d 'MARKETING_VERSION ='
           )
 
           if [[ -z "${IOS_VERSION:-}" ]]; then
