@@ -616,7 +616,7 @@ jobs:
           security find-identity -v -p codesigning
 
           echo "🔐 Resolving macOS provisioning profile specifiers..."
-          PROFILE_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          PROFILE_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
           DAEMON_PROFILE_SPEC=""
           WIDGET_PROFILE_SPEC=""
 
