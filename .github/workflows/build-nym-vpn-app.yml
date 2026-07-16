@@ -100,6 +100,7 @@ jobs:
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
+      secrets: inherit
 
   build-windows-arm64:
     needs: download-translations
@@ -111,3 +112,4 @@ jobs:
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
+      secrets: inherit
