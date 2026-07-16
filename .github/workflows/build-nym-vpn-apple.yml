@@ -363,6 +363,21 @@ jobs:
 
           echo "✅ Signing files successfully fetched and imported."
 
+      - name: Resolve certs
+        run: |
+          DAEMON_PROFILE_SPEC=""
+          WIDGET_PROFILE_SPEC=""
+
+          for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
+            [[ -f "$profile" ]] || continue
+            name=$(security cms -D -i "$profile" 2>/dev/null | plutil -extract Name raw -o - -- -)
+            echo "Certificate name: $name"
+            case "$name" in
+              "NymVPN macOS + Daemon") DAEMON_PROFILE_SPEC="$name" ;;
+              "NymVPN macOS Widget")   WIDGET_PROFILE_SPEC="$name" ;;
+            esac
+          done
+
       - name: Configure sccache
         if: ${{ env.RELEASE_TYPE != 'ship' }}
         run: |
@@ -624,6 +639,7 @@ jobs:
           for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
             [[ -f "$profile" ]] || continue
             name=$(security cms -D -i "$profile" 2>/dev/null | plutil -extract Name raw -o - -- -)
+            echo "Certificate name: $name"
             case "$name" in
               "NymVPN macOS + Daemon") DAEMON_PROFILE_SPEC="$name" ;;
               "NymVPN macOS Widget")   WIDGET_PROFILE_SPEC="$name" ;;
