@@ -43,7 +43,7 @@ env:
   WINFW_PATH: build/winfw/${{ inputs.cpu_arch || 'x64' }}-Release
   STDRIVER_PATH: nym-vpn-windows/split-tunnel-driver/signed/${{ inputs.cpu_arch || 'x64' }}
   WINTUN_DIST_DIR: wintun-dist
-  UPLOAD_DIR_WINDOWS: windows_core_artifacts_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
+  UPLOAD_DIR_WINDOWS: core_artifacts_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
 
 jobs:
   build-wireguard-go-windows:
