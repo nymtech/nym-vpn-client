@@ -281,7 +281,7 @@ jobs:
             --avoid-build-deps \
             > ./nym-vpn-apple/NymVPN/Resources/LibLicences.json
 
-      - name: Fetch and import signing files
+      - name: Fetch signing files
         working-directory: nym-vpn-apple
         env:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
@@ -345,18 +345,14 @@ jobs:
           keychain add-certificates \
             --certificate developer_id.p12 \
             --certificate-password "$DEVELOPER_ID_CERT_PASS" \
-            --allow-app productbuild \
-            --allow-app codesign \
-            --allow-app productsign
+            -A
 
           echo "📥 Importing Developer ID Installer certificate..."
           echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
           keychain add-certificates \
             --certificate developer_id_installer.p12 \
             --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
-            --allow-app productbuild \
-            --allow-app codesign \
-            --allow-app productsign
+            -A
 
           keychain add-certificates
           echo "✅ Keychain and certificates imported successfully."
