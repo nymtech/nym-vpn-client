@@ -308,7 +308,7 @@ jobs:
             --allow-app /usr/bin/productbuild \
             --allow-app /usr/bin/codesign \
             --allow-app /usr/bin/productsign \
-            --allow-app /Applications/Xcode-26.3.app
+            --allow-app /usr/bin/xcodebuild
 
           echo "📥 Importing Developer ID Installer certificate..."
           echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
@@ -318,7 +318,7 @@ jobs:
             --allow-app /usr/bin/productbuild \
             --allow-app /usr/bin/codesign \
             --allow-app /usr/bin/productsign \
-            --allow-app /Applications/Xcode-26.3.app
+            --allow-app /usr/bin/xcodebuild
           echo "✅ Keychain and certificates imported successfully."
 
           echo "Set key partition list..."
