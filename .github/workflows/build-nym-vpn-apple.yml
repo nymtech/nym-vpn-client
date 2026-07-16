@@ -368,6 +368,8 @@ jobs:
           DAEMON_PROFILE_SPEC=""
           WIDGET_PROFILE_SPEC=""
 
+          ls -la "$PROVISIONING_PROFILES_DIR/" || true
+
           for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
             [[ -f "$profile" ]] || continue
             name=$(security cms -D -i "$profile" 2>/dev/null | plutil -extract Name raw -o - -- -)
