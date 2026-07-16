@@ -42,6 +42,23 @@ struct LazyMetadataClient {
 }
 
 impl LazyMetadataClient {
+    fn build_client(
+        base_url: Url,
+        reqwest_builder: ReqwestClientBuilder,
+        retries: usize,
+        timeout: Duration,
+    ) -> Result<nym_http_api_client::Client> {
+        nym_http_api_client::Client::builder(base_url)
+            .and_then(|builder| {
+                builder
+                    .with_reqwest_builder(reqwest_builder)
+                    .with_retries(retries)
+                    .with_timeout(timeout)
+                    .build()
+            })
+            .map_err(|err| MetadataClientError::from(Box::new(err)))
+    }
+
     async fn new(
         mut base_url: Url,
         bind_ip: IpAddr,
@@ -50,14 +67,48 @@ impl LazyMetadataClient {
         sent_data: TunUpSendData,
     ) -> Result<Self> {
         let mut interface_name = None;
-        let reqwest_builder = ReqwestClientBuilder::new();
-        let reqwest_builder = match sent_data.data_type {
+        let (inner, response) = match sent_data.data_type {
             TunUpSendDataType::InterfaceName(interface) => {
+                let reqwest_builder = ReqwestClientBuilder::new();
                 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
                 let reqwest_builder = reqwest_builder.interface(&interface);
 
-                interface_name = Some(interface.clone());
-                reqwest_builder.local_address(bind_ip)
+                let inner = Self::build_client(
+                    base_url.clone(),
+                    reqwest_builder.local_address(bind_ip),
+                    retries,
+                    timeout,
+                )?;
+                let response = inner.version().await.map_err(Box::new);
+
+                // Unprivileged SO_BINDTODEVICE is only permitted since Linux 5.7, so the
+                // interface-bound client fails with EPERM on older Android kernels. Fall
+                // back to binding the source address only before declaring the endpoint
+                // unreachable, which would otherwise tear down the tunnel.
+                #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
+                let (inner, response) = if let Err(err) = response {
+                    tracing::warn!(
+                        "Metadata endpoint probe failed with interface-bound client, \
+                         retrying without interface binding: {err}"
+                    );
+                    let unbound = Self::build_client(
+                        base_url,
+                        ReqwestClientBuilder::new().local_address(bind_ip),
+                        retries,
+                        timeout,
+                    )?;
+                    let retry_response = unbound.version().await.map_err(Box::new);
+                    if retry_response.is_ok() {
+                        (unbound, retry_response)
+                    } else {
+                        (inner, Err(err))
+                    }
+                } else {
+                    (inner, response)
+                };
+
+                interface_name = Some(interface);
+                (inner, response)
             }
             TunUpSendDataType::TcpProxy(tcp_proxy) => {
                 base_url.set_ip_host(tcp_proxy.ip()).map_err(|_| {
@@ -68,20 +119,16 @@ impl LazyMetadataClient {
                     MetadataClientError::Internal("failed to set tcp proxy port".to_owned())
                 })?;
 
-                reqwest_builder
+                let inner = Self::build_client(
+                    base_url,
+                    ReqwestClientBuilder::new(),
+                    retries,
+                    timeout,
+                )?;
+                let response = inner.version().await.map_err(Box::new);
+                (inner, response)
             }
         };
-
-        let inner = nym_http_api_client::Client::builder(base_url)
-            .and_then(|builder| {
-                builder
-                    .with_reqwest_builder(reqwest_builder)
-                    .with_retries(retries)
-                    .with_timeout(timeout)
-                    .build()
-            })
-            .map_err(Box::new)?;
-        let response = inner.version().await.map_err(Box::new);
 
         let endpoint_reachable = response.is_ok();
         let _ = sent_data
