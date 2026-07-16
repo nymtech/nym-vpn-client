@@ -482,7 +482,6 @@ jobs:
           echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
 
-
       # todo: delete this before merging PR
       - name: Cache core build
         uses: actions/cache/save@v6
@@ -541,65 +540,65 @@ jobs:
           echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"
           echo "IOS_TESTFLIGHT_LATEST=$LATEST" >> "$GITHUB_ENV"
 
-      # - name: Resolve iOS build number (PR only)
-      #   if: ${{ env.RELEASE_TYPE == 'pr' }}
-      #   working-directory: nym-vpn-apple
-      #   run: |
-      #     set -euo pipefail
+      - name: Resolve iOS build number (PR only)
+        if: ${{ env.RELEASE_TYPE == 'pr' }}
+        working-directory: nym-vpn-apple
+        run: |
+          set -euo pipefail
 
-      #     IOS_BUILD_NUMBER=$(
-      #       xcodebuild -showBuildSettings \
-      #         -workspace "NymVPN.xcworkspace" \
-      #         -scheme "NymVPN" \
-      #         -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
-      #     )
-      #     echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
-      #     echo "🔢 PR build number (no bump): $IOS_BUILD_NUMBER"
+          IOS_BUILD_NUMBER=$(
+            xcodebuild -showBuildSettings \
+              -workspace "NymVPN.xcworkspace" \
+              -scheme "NymVPN" \
+              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
+          )
+          echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "🔢 PR build number (no bump): $IOS_BUILD_NUMBER"
 
-      # - name: Build iOS (Release, signed)
-      #   working-directory: nym-vpn-apple
-      #   env:
-      #     APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-      #     APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-      #     APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-      #   run: |
-      #     set -euo pipefail
+      - name: Build iOS (Release, signed)
+        working-directory: nym-vpn-apple
+        env:
+          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
 
-      #     echo "🚜 Update signing (iOS only)"
-      #     # Save project.pbxproj before use-profiles mutates it, so macOS
-      #     # Release signing settings are preserved for the archive step.
-      #     cp NymVPN.xcodeproj/project.pbxproj NymVPN.xcodeproj/project.pbxproj.pre-ios-signing
+          echo "🚜 Update signing (iOS only)"
+          # Save project.pbxproj before use-profiles mutates it, so macOS
+          # Release signing settings are preserved for the archive step.
+          cp NymVPN.xcodeproj/project.pbxproj NymVPN.xcodeproj/project.pbxproj.pre-ios-signing
 
-      #     xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
+          xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
 
-      #     echo "🚀 Building signed iOS Release with Codemagic CLI..."
-      #     xcode-project build-ipa \
-      #       --workspace "NymVPN.xcworkspace" \
-      #       --scheme "NymVPN" \
-      #       --config "Release" \
-      #       --clean \
-      #       --no-color \
-      #       --log-stream stdout \
-      #       2>&1 | xcbeautify --renderer github-actions
+          echo "🚀 Building signed iOS Release with Codemagic CLI..."
+          xcode-project build-ipa \
+            --workspace "NymVPN.xcworkspace" \
+            --scheme "NymVPN" \
+            --config "Release" \
+            --clean \
+            --no-color \
+            --log-stream stdout \
+            2>&1 | xcbeautify --renderer github-actions
 
-      #     echo "✅ Signed archive + .ipa exported"
-      #     echo "🔢 Build used: $IOS_BUILD_NUMBER (TestFlight latest=${IOS_TESTFLIGHT_LATEST:-n/a})"
+          echo "✅ Signed archive + .ipa exported"
+          echo "🔢 Build used: $IOS_BUILD_NUMBER (TestFlight latest=${IOS_TESTFLIGHT_LATEST:-n/a})"
 
-      #     # Capture iOS version (MARKETING_VERSION) for later steps (Zulip)
-      #     IOS_VERSION=$(
-      #       xcodebuild -showBuildSettings \
-      #         -workspace "NymVPN.xcworkspace" \
-      #         -scheme "NymVPN" \
-      #         -configuration "Release" | grep MARKETING_VERSION | tr -d 'MARKETING_VERSION ='
-      #     )
+          # Capture iOS version (MARKETING_VERSION) for later steps (Zulip)
+          IOS_VERSION=$(
+            xcodebuild -showBuildSettings \
+              -workspace "NymVPN.xcworkspace" \
+              -scheme "NymVPN" \
+              -configuration "Release" | grep MARKETING_VERSION | tr -d 'MARKETING_VERSION ='
+          )
 
-      #     if [[ -z "${IOS_VERSION:-}" ]]; then
-      #       echo "❌ Could not determine iOS MARKETING_VERSION"
-      #       exit 1
-      #     fi
+          if [[ -z "${IOS_VERSION:-}" ]]; then
+            echo "❌ Could not determine iOS MARKETING_VERSION"
+            exit 1
+          fi
 
-      #     echo "IOS_VERSION=$IOS_VERSION" >> "$GITHUB_ENV"
-      #     echo "✅ iOS version captured: $IOS_VERSION ($IOS_BUILD_NUMBER)"
+          echo "IOS_VERSION=$IOS_VERSION" >> "$GITHUB_ENV"
+          echo "✅ iOS version captured: $IOS_VERSION ($IOS_BUILD_NUMBER)"
 
       - name: Restore project signing for macOS
         working-directory: nym-vpn-apple
