@@ -325,20 +325,18 @@ jobs:
           keychain add-certificates \
             --certificate developer_id.p12 \
             --certificate-password "$DEVELOPER_ID_CERT_PASS" \
-            -A
-            # --allow-app productbuild \
-            # --allow-app codesign \
-            # --allow-app productsign
+            --allow-app productbuild \
+            --allow-app codesign \
+            --allow-app productsign
 
           echo "📥 Importing Developer ID Installer certificate..."
           echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
           keychain add-certificates \
             --certificate developer_id_installer.p12 \
             --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
-            -A
-            #--allow-app productbuild \
-            #--allow-app codesign \
-            #--allow-app productsign
+            --allow-app productbuild \
+            --allow-app codesign \
+            --allow-app productsign
 
           echo "✅ Keychain and certificates imported successfully."
 
@@ -1030,14 +1028,14 @@ jobs:
           set -euo pipefail
 
           echo "🧹 Cleaning up Codemagic keychain..."
-          #keychain delete
+          keychain delete
 
           echo "🧹 Removing downloaded certificates..."
-          #if [ -d "$CERTIFICATES_DIR" ]; then
-          #  rm -rf "$CERTIFICATES_DIR"/*
-          #fi
+          if [ -d "$CERTIFICATES_DIR" ]; then
+            rm -rf "$CERTIFICATES_DIR"/*
+          fi
 
           echo "🧹 Removing downloaded provisioning profiles..."
-          #if [ -d "$PROVISIONING_PROFILES_DIR" ]; then
-          #  rm -rf "$PROVISIONING_PROFILES_DIR"/*
-          #fi
+          if [ -d "$PROVISIONING_PROFILES_DIR" ]; then
+            rm -rf "$PROVISIONING_PROFILES_DIR"/*
+          fi
