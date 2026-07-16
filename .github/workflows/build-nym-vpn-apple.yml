@@ -300,6 +300,11 @@ jobs:
           keychain initialize --path "$KEYCHAIN_PATH" --password "$KEYCHAIN_PASSPHRASE"
           keychain show-info
 
+          echo "Downloading WWDR certificate..."
+          curl -o AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          security import AppleWWDRCAG3.cer -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -T /usr/bin/productsign
+          rm AppleWWDRCAG3.cer
+
           echo "📥 Importing Developer ID certificate..."
           echo "$DEVELOPER_ID_CERT_BASE64" | base64 --decode > developer_id.p12
           keychain add-certificates \
