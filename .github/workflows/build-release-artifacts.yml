@@ -1,11 +1,10 @@
 name: build-release-artifacts
 
 on:
-  # Temporary for initial PR
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - ".github/workflows/build-release-artifacts.yml"
+  # pull_request:
+  #   types: [opened, synchronize, reopened]
+  #   paths:
+  #     - ".github/workflows/build-release-artifacts.yml"
   workflow_call:
     inputs:
       release_channel:
