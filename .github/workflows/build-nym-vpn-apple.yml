@@ -363,24 +363,6 @@ jobs:
 
           echo "✅ Signing files successfully fetched and imported."
 
-      - name: Resolve certs
-        run: |
-          DAEMON_PROFILE_SPEC=""
-          WIDGET_PROFILE_SPEC=""
-
-          ls -la "$PROVISIONING_PROFILES_DIR/" || true
-
-          for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
-            [[ -f "$profile" ]] || continue
-            echo "Processing profile: $profile"
-            name=$(security cms -D -i "$profile" | plutil -extract Name raw -o - -- -)
-            echo "Certificate name: $name"
-            case "$name" in
-              "NymVPN macOS + Daemon") DAEMON_PROFILE_SPEC="$name" ;;
-              "NymVPN macOS Widget")   WIDGET_PROFILE_SPEC="$name" ;;
-            esac
-          done
-
       - name: Configure sccache
         if: ${{ env.RELEASE_TYPE != 'ship' }}
         run: |
@@ -401,6 +383,25 @@ jobs:
           echo "CARGO_INCREMENTAL=$CARGO_INCREMENTAL" >> "$GITHUB_ENV"
 
           mkdir -p "$SCCACHE_DIR"
+
+      - name: Resolve certs
+        run: |
+          DAEMON_PROFILE_SPEC=""
+          WIDGET_PROFILE_SPEC=""
+
+          echo "PROVISIONING_PROFILES_DIR: $PROVISIONING_PROFILES_DIR"
+          ls -la "$PROVISIONING_PROFILES_DIR/" || true
+
+          for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
+            [[ -f "$profile" ]] || continue
+            echo "Processing profile: $profile"
+            name=$(security cms -D -i "$profile" | plutil -extract Name raw -o - -- -)
+            echo "Certificate name: $name"
+            case "$name" in
+              "NymVPN macOS + Daemon") DAEMON_PROFILE_SPEC="$name" ;;
+              "NymVPN macOS Widget")   WIDGET_PROFILE_SPEC="$name" ;;
+            esac
+          done
 
       - name: Update core version in app
         if: ${{ env.RELEASE_TYPE != 'pr' }}
@@ -638,6 +639,9 @@ jobs:
           echo "🔐 Resolving macOS provisioning profile specifiers..."
           DAEMON_PROFILE_SPEC=""
           WIDGET_PROFILE_SPEC=""
+
+          echo "PROVISIONING_PROFILES_DIR: $PROVISIONING_PROFILES_DIR"
+          ls -la "$PROVISIONING_PROFILES_DIR/" || true
 
           for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
             [[ -f "$profile" ]] || continue
