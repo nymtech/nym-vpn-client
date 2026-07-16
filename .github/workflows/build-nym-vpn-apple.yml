@@ -325,26 +325,25 @@ jobs:
           keychain add-certificates \
             --certificate developer_id.p12 \
             --certificate-password "$DEVELOPER_ID_CERT_PASS" \
-            --allow-app productbuild \
-            --allow-app codesign \
-            --allow-app productsign
+            -A
+            # --allow-app productbuild \
+            # --allow-app codesign \
+            # --allow-app productsign
 
           echo "📥 Importing Developer ID Installer certificate..."
           echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
           keychain add-certificates \
             --certificate developer_id_installer.p12 \
             --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
-            --allow-app productbuild \
-            --allow-app codesign \
-            --allow-app productsign
+            -A
+            #--allow-app productbuild \
+            #--allow-app codesign \
+            #--allow-app productsign
 
           echo "✅ Keychain and certificates imported successfully."
 
-          echo "Set key partition list..."
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
-          echo "✅ Shared key partition with apple tools."
-
           echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
+          echo "keychain_pass=$KEYCHAIN_PASSPHRASE" >> "$GITHUB_OUTPUT"
 
       - name: Fetch and import signing files
         working-directory: nym-vpn-apple
@@ -353,6 +352,8 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
           CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY }}
+          KEYCHAIN_PATH: ${{ steps.setup-keychain.outputs.keychain_path }}
+          KEYCHAIN_PASSPHRASE: ${{ steps.setup-keychain.outputs.keychain_pass }}
         run: |
           set -euo pipefail
 
@@ -383,6 +384,10 @@ jobs:
             --save
 
           keychain add-certificates
+
+          echo "Set key partition list..."
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
+          echo "✅ Shared key partition with apple tools."
 
           echo "✅ Signing files successfully fetched and imported."
 
