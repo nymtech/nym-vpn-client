@@ -300,26 +300,6 @@ jobs:
           keychain initialize --path "$KEYCHAIN_PATH" --password "$KEYCHAIN_PASSPHRASE"
           keychain show-info
 
-          echo "Downloading WWDR certificate..."
-          curl -o AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
-          curl -o AppleWWDRCAG4.cer https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
-          curl -o DeveloperIDG2CA.cer https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
-          curl -o AppleIncRootCertificate.cer https://www.apple.com/appleca/AppleIncRootCertificate.cer
-          curl -o AppleRootCA-G2.cer https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
-          curl -o AppleRootCA-G3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
-          security import AppleWWDRCAG3.cer -k "$KEYCHAIN_PATH"
-          security import AppleWWDRCAG4.cer -k "$KEYCHAIN_PATH"
-          security import DeveloperIDG2CA.cer -k "$KEYCHAIN_PATH"
-          security import AppleIncRootCertificate.cer -k "$KEYCHAIN_PATH"
-          security import AppleRootCA-G2.cer -k "$KEYCHAIN_PATH"
-          security import AppleRootCA-G3.cer -k "$KEYCHAIN_PATH"
-          rm AppleWWDRCAG3.cer
-          rm AppleWWDRCAG4.cer
-          rm DeveloperIDG2CA.cer
-          rm AppleIncRootCertificate.cer
-          rm AppleRootCA-G2.cer
-          rm AppleRootCA-G3.cer
-
           echo "📥 Importing Developer ID certificate..."
           echo "$DEVELOPER_ID_CERT_BASE64" | base64 --decode > developer_id.p12
           keychain add-certificates \
@@ -342,6 +322,30 @@ jobs:
 
           echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
           echo "keychain_pass=$KEYCHAIN_PASSPHRASE" >> "$GITHUB_OUTPUT"
+
+      - name: Setup WWDR and Apple root certificates
+        env:
+          KEYCHAIN_PATH: ${{ steps.keychain.outputs.keychain_path }}
+        run: |
+          echo "Downloading WWDR certificates..."
+          curl -o AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
+          curl -o AppleWWDRCAG4.cer https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
+          curl -o DeveloperIDG2CA.cer https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+          curl -o AppleIncRootCertificate.cer https://www.apple.com/appleca/AppleIncRootCertificate.cer
+          curl -o AppleRootCA-G2.cer https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
+          curl -o AppleRootCA-G3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
+          security import AppleWWDRCAG3.cer -k "$KEYCHAIN_PATH"
+          security import AppleWWDRCAG4.cer -k "$KEYCHAIN_PATH"
+          security import DeveloperIDG2CA.cer -k "$KEYCHAIN_PATH"
+          security import AppleIncRootCertificate.cer -k "$KEYCHAIN_PATH"
+          security import AppleRootCA-G2.cer -k "$KEYCHAIN_PATH"
+          security import AppleRootCA-G3.cer -k "$KEYCHAIN_PATH"
+          rm AppleWWDRCAG3.cer
+          rm AppleWWDRCAG4.cer
+          rm DeveloperIDG2CA.cer
+          rm AppleIncRootCertificate.cer
+          rm AppleRootCA-G2.cer
+          rm AppleRootCA-G3.cer
 
       - name: Fetch and import signing files
         working-directory: nym-vpn-apple
