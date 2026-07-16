@@ -372,7 +372,8 @@ jobs:
 
           for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
             [[ -f "$profile" ]] || continue
-            name=$(security cms -D -i "$profile" 2>/dev/null | plutil -extract Name raw -o - -- -)
+            echo "Processing profile: $profile"
+            name=$(security cms -D -i "$profile" | plutil -extract Name raw -o - -- -)
             echo "Certificate name: $name"
             case "$name" in
               "NymVPN macOS + Daemon") DAEMON_PROFILE_SPEC="$name" ;;
@@ -640,7 +641,8 @@ jobs:
 
           for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
             [[ -f "$profile" ]] || continue
-            name=$(security cms -D -i "$profile" 2>/dev/null | plutil -extract Name raw -o - -- -)
+            echo "Processing profile: $profile"
+            name=$(security cms -D -i "$profile" | plutil -extract Name raw -o - -- -)
             echo "Certificate name: $name"
             case "$name" in
               "NymVPN macOS + Daemon") DAEMON_PROFILE_SPEC="$name" ;;
