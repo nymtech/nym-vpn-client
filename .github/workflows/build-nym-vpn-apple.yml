@@ -288,45 +288,6 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
           CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY }}
-          KEYCHAIN_PATH: ${{ steps.setup-keychain.outputs.keychain_path }}
-        run: |
-          set -euo pipefail
-
-          echo "📦 Fetching iOS signing files from App Store Connect..."
-          app-store-connect fetch-signing-files net.nymtech.vpn \
-            --type IOS_APP_ADHOC \
-            --create \
-            --delete-stale-profiles \
-            --platform IOS
-
-          echo "📦 Downloading macOS provisioning profiles..."
-          app-store-connect profiles list \
-            --type MAC_APP_DIRECT \
-            --state ACTIVE \
-            --name "NymVPN macOS + Daemon" \
-            --save
-
-          app-store-connect profiles list \
-            --type MAC_APP_DIRECT \
-            --state ACTIVE \
-            --name "NymVPN daemon" \
-            --save
-
-          app-store-connect profiles list \
-            --type MAC_APP_DIRECT \
-            --state ACTIVE \
-            --name "NymVPN macOS Widget" \
-            --save
-
-          echo "✅ Signing files successfully fetched and imported."
-
-      - name: Fetch and import signing files
-        working-directory: nym-vpn-apple
-        env:
-          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-          CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY }}
         run: |
           set -euo pipefail
 
