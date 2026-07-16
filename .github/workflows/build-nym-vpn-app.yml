@@ -92,6 +92,7 @@ jobs:
 
   build-windows-x64:
     needs: download-translations
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/workflows/build-nym-vpn-app-windows.yml
@@ -105,6 +106,7 @@ jobs:
 
   build-windows-arm64:
     needs: download-translations
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/workflows/build-nym-vpn-app-windows.yml
