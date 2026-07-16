@@ -56,8 +56,6 @@ env:
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
   S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
   S3_BUCKET: builds
-  PROVISIONING_PROFILES_DIR: "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
-  CERTIFICATES_DIR: "$HOME/Library/Developer/Xcode/UserData/Certificates"
 
 jobs:
   build-apple:
@@ -204,6 +202,11 @@ jobs:
         run: |
           echo "LC_ALL=en_US.UTF-8" >> $GITHUB_ENV
           echo "LANG=en_US.UTF-8" >> $GITHUB_ENV
+
+      - name: Set Xcode directories
+        run: |
+          echo "PROVISIONING_PROFILES_DIR=$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles" >> $GITHUB_ENV
+          echo "CERTIFICATES_DIR=$HOME/Library/Developer/Xcode/UserData/Certificates" >> $GITHUB_ENV
 
       - name: Install fastlane
         working-directory: nym-vpn-apple
