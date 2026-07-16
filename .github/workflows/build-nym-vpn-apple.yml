@@ -57,10 +57,6 @@ env:
   S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
   S3_BUCKET: builds
 
-concurrency:
-  group: build-nym-vpn-apple-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   build-apple:
     if: github.actor != 'dependabot[bot]'
