@@ -343,18 +343,18 @@ jobs:
           keychain add-certificates \
             --certificate developer_id.p12 \
             --certificate-password "$DEVELOPER_ID_CERT_PASS" \
-            --allow-app /usr/bin/productbuild \
-            --allow-app /usr/bin/codesign \
-            --allow-app /usr/bin/productsign
+            --allow-app=productbuild \
+            --allow-app=codesign \
+            --allow-app=productsign
 
           echo "📥 Importing Developer ID Installer certificate..."
           echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
           keychain add-certificates \
             --certificate developer_id_installer.p12 \
             --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
-            --allow-app /usr/bin/productbuild \
-            --allow-app /usr/bin/codesign \
-            --allow-app /usr/bin/productsign
+            --allow-app=productbuild \
+            --allow-app=codesign \
+            --allow-app=productsign
           echo "✅ Keychain and certificates imported successfully."
 
           keychain add-certificates
