@@ -998,14 +998,14 @@ jobs:
           set -euo pipefail
 
           echo "🧹 Cleaning up Codemagic keychain..."
-          keychain delete
+          #keychain delete
 
           echo "🧹 Removing downloaded certificates..."
-          if [ -d "$CERTIFICATES_DIR" ]; then
-            rm -rf "$CERTIFICATES_DIR"/*
-          fi
+          #if [ -d "$CERTIFICATES_DIR" ]; then
+          #  rm -rf "$CERTIFICATES_DIR"/*
+          #fi
 
           echo "🧹 Removing downloaded provisioning profiles..."
-          if [ -d "$PROVISIONING_PROFILES_DIR" ]; then
-            rm -rf "$PROVISIONING_PROFILES_DIR"/*
-          fi
+          #if [ -d "$PROVISIONING_PROFILES_DIR" ]; then
+          #  rm -rf "$PROVISIONING_PROFILES_DIR"/*
+          #fi
