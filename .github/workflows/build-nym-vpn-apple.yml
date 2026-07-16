@@ -46,9 +46,6 @@ on:
       build_macos:
         type: boolean
         default: false
-    outputs:
-      RUST_VERSION:
-        value: ${{ jobs.build-apple.outputs.RUST_VERSION }}
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
@@ -65,7 +62,6 @@ jobs:
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
       UPLOAD_DIR_MACOS: ${{ env.UPLOAD_DIR_MACOS }}
-      RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
     steps:
       - name: "Cleanup working directory"
         shell: bash

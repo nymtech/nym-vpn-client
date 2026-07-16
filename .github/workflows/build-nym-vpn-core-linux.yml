@@ -14,9 +14,6 @@ on:
     secrets:
       VPND_SENTRY_DSN:
         required: true
-    outputs:
-      RUST_VERSION:
-        value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
 
 env:
   CARGO_TERM_COLOR: always

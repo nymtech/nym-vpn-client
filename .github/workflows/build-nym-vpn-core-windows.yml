@@ -31,8 +31,6 @@ on:
       VPND_SENTRY_DSN:
         required: true
     outputs:
-      RUST_VERSION:
-        value: ${{ jobs.build-nym-vpn-core.outputs.RUST_VERSION }}
       UPLOAD_DIR_WINDOWS:
         value: ${{ jobs.build-nym-vpn-core.outputs.UPLOAD_DIR_WINDOWS }}
 
