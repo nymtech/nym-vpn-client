@@ -173,7 +173,7 @@ jobs:
       - name: Download nym-vpn-core
         uses: actions/download-artifact@v8
         with:
-          name: core_artifacts_windows_${{ inputs.cpu_arch }}
+          name: core_artifacts_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
           path: nym-vpn-app/src-tauri
 
       - name: Install JS dependencies
