@@ -56,6 +56,8 @@ env:
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
   S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
   S3_BUCKET: builds
+  PROVISIONING_PROFILES_DIR: "$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+  CERTIFICATES_DIR: "$HOME/Library/Developer/Xcode/UserData/Certificates"
 
 jobs:
   build-apple:
@@ -616,11 +618,10 @@ jobs:
           security find-identity -v -p codesigning
 
           echo "🔐 Resolving macOS provisioning profile specifiers..."
-          PROFILE_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
           DAEMON_PROFILE_SPEC=""
           WIDGET_PROFILE_SPEC=""
 
-          for profile in "$PROFILE_DIR"/*.provisionprofile "$PROFILE_DIR"/*.mobileprovision; do
+          for profile in "$PROVISIONING_PROFILES_DIR"/*.provisionprofile "$PROVISIONING_PROFILES_DIR"/*.mobileprovision; do
             [[ -f "$profile" ]] || continue
             name=$(security cms -D -i "$profile" 2>/dev/null | plutil -extract Name raw -o - -- -)
             case "$name" in
@@ -969,11 +970,11 @@ jobs:
           keychain delete
 
           echo "🧹 Removing downloaded certificates..."
-          if [ -d ~/Library/MobileDevice/Certificates ]; then
-            rm -rf ~/Library/MobileDevice/Certificates/*
+          if [ -d "$CERTIFICATES_DIR" ]; then
+            rm -rf "$CERTIFICATES_DIR"/*
           fi
 
           echo "🧹 Removing downloaded provisioning profiles..."
-          if [ -d ~/Library/MobileDevice/Provisioning\ Profiles ]; then
-            rm -rf ~/Library/MobileDevice/Provisioning\ Profiles/*
+          if [ -d "$PROVISIONING_PROFILES_DIR" ]; then
+            rm -rf "$PROVISIONING_PROFILES_DIR"/*
           fi
