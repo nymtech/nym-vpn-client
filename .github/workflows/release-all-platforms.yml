@@ -200,12 +200,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/release/resolve-version.sh
 
-  download-runtime:
-    permissions:
-      contents: write
-    uses: ./.github/workflows/download-runtime.yml
-    secrets: inherit
-
   build:
     needs: [resolve]
     permissions:
