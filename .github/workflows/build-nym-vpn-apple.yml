@@ -302,8 +302,23 @@ jobs:
 
           echo "Downloading WWDR certificate..."
           curl -o AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
-          security import AppleWWDRCAG3.cer -k "$KEYCHAIN_PATH" -T /usr/bin/codesign -T /usr/bin/productsign
+          curl -o AppleWWDRCAG4.cer https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
+          curl -o DeveloperIDG2CA.cer https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+          curl -o AppleIncRootCertificate.cer https://www.apple.com/appleca/AppleIncRootCertificate.cer
+          curl -o AppleRootCA-G2.cer https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
+          curl -o AppleRootCA-G3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
+          sudo security import AppleWWDRCAG3.cer -k "$KEYCHAIN_PATH"
+          sudo security import AppleWWDRCAG4.cer -k "$KEYCHAIN_PATH"
+          sudo security import DeveloperIDG2CA.cer -k "$KEYCHAIN_PATH"
+          sudo security import AppleIncRootCertificate.cer -k "$KEYCHAIN_PATH"
+          sudo security import AppleRootCA-G2.cer -k "$KEYCHAIN_PATH"
+          sudo security import AppleRootCA-G3.cer -k "$KEYCHAIN_PATH"
           rm AppleWWDRCAG3.cer
+          rm AppleWWDRCAG4.cer
+          rm DeveloperIDG2CA.cer
+          rm AppleIncRootCertificate.cer
+          rm AppleRootCA-G2.cer
+          rm AppleRootCA-G3.cer
 
           echo "📥 Importing Developer ID certificate..."
           echo "$DEVELOPER_ID_CERT_BASE64" | base64 --decode > developer_id.p12
