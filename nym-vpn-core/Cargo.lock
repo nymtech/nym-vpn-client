@@ -7502,11 +7502,13 @@ dependencies = [
 name = "nym-wg-metadata-client"
 version = "2026.11.2"
 dependencies = [
+ "nix 0.31.3",
  "nym-credentials-interface",
  "nym-gateway-directory",
  "nym-http-api-client",
  "nym-wireguard-private-metadata-client",
  "nym-wireguard-private-metadata-shared",
+ "semver",
  "thiserror 2.0.18",
  "tokio",
  "tracing",
