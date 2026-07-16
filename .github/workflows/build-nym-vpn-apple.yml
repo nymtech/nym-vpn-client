@@ -853,7 +853,8 @@ jobs:
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Write App Store Connect API key
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        #if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        if: ${{ env.BUILD_MACOS == 'true' }}
         id: asc-key
         env:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
@@ -867,7 +868,8 @@ jobs:
           echo "✅ ASC API key written to $KEY_PATH"
 
       - name: Notarize PKG (Developer Installer ID)
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        #if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        if: ${{ env.BUILD_MACOS == 'true' }}
         id: notarize-pkg
         working-directory: nym-vpn-apple
         env:
