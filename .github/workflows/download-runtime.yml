@@ -1,0 +1,50 @@
+name: Download and Upload iOS Simulator Runtime
+
+on:
+  workflow_dispatch: # Allows you to trigger this workflow manually
+  workflow_call:
+    secrets:
+      GARAGE_AWS_ACCESS_KEY_ID:
+        required: true
+      GARAGE_AWS_SECRET_ACCESS_KEY:
+        required: true
+
+env:
+  CARGO_TERM_COLOR: always
+  S3_ENDPOINT: https://s3.nymte.ch # API endpoint for uploads
+  S3_BUCKET: builds
+
+jobs:
+  download-runtime:
+    runs-on: macos-latest # Required to run xcodebuild commands
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download iOS Simulator Runtime
+        run: |
+          xcodebuild -downloadPlatform iOS \
+            -verbose \
+            -architectureVariant universal \
+            -buildVersion 26.2 \
+            -exportPath Simruntime-26.2 || true
+
+          if [ -z "$( ls -A 'Simruntime-26.2' )" ]; then
+            exit "Failed to download simruntime"
+          else
+             echo "Not Empty"
+          fi
+
+      - name: Zip Runtime Folder
+        run: zip -r Simruntime-26.2.zip Simruntime-26.2
+
+      - name: Publish PKG to S3
+        uses: ./.github/actions/push-to-s3
+        with:
+          source_path: Simruntime-26.2.zip
+          destination: nym-vpn-client/Xcode/ios-runtimes
+          endpoint: ${{ env.S3_ENDPOINT }}
+          bucket: ${{ env.S3_BUCKET }}
+          aws_access_key_id: ${{ secrets.GARAGE_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.GARAGE_AWS_SECRET_ACCESS_KEY }}
