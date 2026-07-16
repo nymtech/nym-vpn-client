@@ -307,12 +307,12 @@ jobs:
           curl -o AppleIncRootCertificate.cer https://www.apple.com/appleca/AppleIncRootCertificate.cer
           curl -o AppleRootCA-G2.cer https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
           curl -o AppleRootCA-G3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
-          sudo security import AppleWWDRCAG3.cer -k "$KEYCHAIN_PATH"
-          sudo security import AppleWWDRCAG4.cer -k "$KEYCHAIN_PATH"
-          sudo security import DeveloperIDG2CA.cer -k "$KEYCHAIN_PATH"
-          sudo security import AppleIncRootCertificate.cer -k "$KEYCHAIN_PATH"
-          sudo security import AppleRootCA-G2.cer -k "$KEYCHAIN_PATH"
-          sudo security import AppleRootCA-G3.cer -k "$KEYCHAIN_PATH"
+          security import AppleWWDRCAG3.cer -k "$KEYCHAIN_PATH"
+          security import AppleWWDRCAG4.cer -k "$KEYCHAIN_PATH"
+          security import DeveloperIDG2CA.cer -k "$KEYCHAIN_PATH"
+          security import AppleIncRootCertificate.cer -k "$KEYCHAIN_PATH"
+          security import AppleRootCA-G2.cer -k "$KEYCHAIN_PATH"
+          security import AppleRootCA-G3.cer -k "$KEYCHAIN_PATH"
           rm AppleWWDRCAG3.cer
           rm AppleWWDRCAG4.cer
           rm DeveloperIDG2CA.cer
