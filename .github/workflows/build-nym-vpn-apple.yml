@@ -453,16 +453,16 @@ jobs:
             --project-id "$CROWDIN_PROJECT_ID" \
             --token "$CROWDIN_PERSONAL_TOKEN"
 
-      # todo: delete this before merging PR
-      - name: Restore core build
-        id: cache-core-build
-        uses: actions/cache/restore@v6
-        with:
-          key: ${{ runner.os }}-core-build
-          path: |
-            nym-vpn-apple/NymVPND
-            nym-vpn-apple/NymVPNRpc
-            nym-vpn-apple/NymVPNLib
+      # todo: only uncomment when developing workflow
+      # - name: Restore core build
+      #   id: cache-core-build
+      #   uses: actions/cache/restore@v6
+      #   with:
+      #     key: ${{ runner.os }}-core-build
+      #     path: |
+      #       nym-vpn-apple/NymVPND
+      #       nym-vpn-apple/NymVPNRpc
+      #       nym-vpn-apple/NymVPNLib
 
       - name: Build core
         working-directory: nym-vpn-apple/scripts
@@ -478,15 +478,15 @@ jobs:
           echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
 
-      # todo: delete this before merging PR
-      - name: Cache core build
-        uses: actions/cache/save@v6
-        with:
-          key: ${{ runner.os }}-core-build
-          path: |
-            nym-vpn-apple/NymVPND
-            nym-vpn-apple/NymVPNRpc
-            nym-vpn-apple/NymVPNLib
+      # todo: only uncomment when developing workflow
+      # - name: Cache core build
+      #   uses: actions/cache/save@v6
+      #   with:
+      #     key: ${{ runner.os }}-core-build
+      #     path: |
+      #       nym-vpn-apple/NymVPND
+      #       nym-vpn-apple/NymVPNRpc
+      #       nym-vpn-apple/NymVPNLib
 
       # todo: uncomment once tests are fixed
       # - name: Apple unit tests
@@ -724,7 +724,6 @@ jobs:
           echo "app_path=$APP_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Create PKG
-        #if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         if: ${{ env.BUILD_MACOS == 'true' }}
         id: make-pkg
         working-directory: nym-vpn-apple
@@ -837,8 +836,7 @@ jobs:
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Write App Store Connect API key
-        #if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        if: ${{ env.BUILD_MACOS == 'true' }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         id: asc-key
         env:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
@@ -852,8 +850,7 @@ jobs:
           echo "✅ ASC API key written to $KEY_PATH"
 
       - name: Notarize PKG (Developer Installer ID)
-        #if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
-        if: ${{ env.BUILD_MACOS == 'true' }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
         id: notarize-pkg
         working-directory: nym-vpn-apple
         env:
@@ -917,7 +914,7 @@ jobs:
         run: |
           cp -R "$IPA_DIR" "${{ env.UPLOAD_DIR_IOS }}"
 
-      - name: Upload artifacts
+      - name: Upload artifacts (macOS)
         if: ${{ env.BUILD_MACOS == 'true' }}
         uses: actions/upload-artifact@v7
         with:
@@ -926,7 +923,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      - name: Upload artifacts
+      - name: Upload artifacts (iOS)
         if: ${{ env.BUILD_IOS == 'true' }}
         uses: actions/upload-artifact@v7
         with:
