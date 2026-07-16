@@ -690,20 +690,6 @@ jobs:
           echo "✅ Widget profile: $WIDGET_PROFILE_SPEC"
 
           echo "Archiving macOS app..."
-          # xcodebuild archive \
-          #   -workspace "NymVPN.xcworkspace" \
-          #   -scheme "NymVPNDaemon" \
-          #   -configuration "Release" \
-          #   -archivePath "$ARCHIVE_PATH" \
-          #   -destination "generic/platform=macOS" \
-          #   CODE_SIGN_STYLE=Manual \
-          #   DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
-          #   CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
-          #   MACOS_DAEMON_PROFILE_SPECIFIER="${DAEMON_PROFILE_SPEC}" \
-          #   MACOS_WIDGET_PROFILE_SPECIFIER="${WIDGET_PROFILE_SPEC}" \
-          #   ENABLE_HARDENED_RUNTIME=YES \
-          #   OTHER_CODE_SIGN_FLAGS="--timestamp" | xcbeautify --renderer github-actions
-
           xcodebuild archive \
             -workspace "NymVPN.xcworkspace" \
             -scheme "NymVPNDaemon" \
@@ -712,10 +698,11 @@ jobs:
             -destination "generic/platform=macOS" \
             CODE_SIGN_STYLE=Manual \
             DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM}" \
-            CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED="NO" CODE_SIGNING_ALLOWED="NO" \
+            CODE_SIGN_IDENTITY="${DEVELOPER_ID_APP_IDENTITY}" \
             MACOS_DAEMON_PROFILE_SPECIFIER="${DAEMON_PROFILE_SPEC}" \
             MACOS_WIDGET_PROFILE_SPECIFIER="${WIDGET_PROFILE_SPEC}" \
-            ENABLE_HARDENED_RUNTIME=YES | xcbeautify --renderer github-actions
+            ENABLE_HARDENED_RUNTIME=YES \
+            OTHER_CODE_SIGN_FLAGS="--timestamp" | xcbeautify --renderer github-actions
 
           # Verify archive was created
           if [[ ! -d "$ARCHIVE_PATH" ]]; then
