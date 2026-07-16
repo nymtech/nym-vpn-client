@@ -32,7 +32,7 @@ public struct MixnetConfig: Codable, Equatable {
     public let isServerFamilyRemindersEnabled: Bool
 #endif
 
-    public var name = "NymVPN Mixnet"
+    public var name = "NymVPN"
 #if os(iOS)
     public init(
         entryGateway: EntryGateway,
@@ -51,7 +51,7 @@ public struct MixnetConfig: Codable, Equatable {
         isTwoHopEnabled: Bool = false,
         gatewaySelectionAlgorithmConfig: NymGatewaySelectionAlgorithmConfig = NymGatewaySelectionAlgorithmConfig(),
         isServerFamilyRemindersEnabled: Bool = true,
-        name: String = "NymVPN Mixnet"
+        name: String = "NymVPN"
     ) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
