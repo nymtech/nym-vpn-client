@@ -281,7 +281,51 @@ jobs:
             --avoid-build-deps \
             > ./nym-vpn-apple/NymVPN/Resources/LibLicences.json
 
-      - name: Fetch signing files
+      - name: Prepare Keychain and import Developer ID certificate
+        working-directory: nym-vpn-apple
+        id: setup-keychain
+        env:
+          DEVELOPER_ID_CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
+          DEVELOPER_ID_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
+          DEVELOPER_ID_INSTALLER_CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT }}
+          DEVELOPER_ID_INSTALLER_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT_PASS }}
+        run: |
+          set -euo pipefail
+
+          KEYCHAIN_PASSPHRASE=$(echo $(date +%s%N) | sha256sum | head -c 10)
+          KEYCHAIN_NAME="$(date +%d-%m-%y)_$(echo $(date +%s%N) | sha256sum | head -c 10).keychain-db"
+          KEYCHAIN_PATH="$HOME/Library/codemagic-cli-tools/keychains/$KEYCHAIN_NAME"
+
+          echo "🔐 Initializing Codemagic keychain..."
+          keychain initialize --path "$KEYCHAIN_PATH" --password "$KEYCHAIN_PASSPHRASE"
+          keychain show-info
+
+          echo "📥 Importing Developer ID certificate..."
+          echo "$DEVELOPER_ID_CERT_BASE64" | base64 --decode > developer_id.p12
+          keychain add-certificates \
+            --certificate developer_id.p12 \
+            --certificate-password "$DEVELOPER_ID_CERT_PASS" \
+            --allow-app /usr/bin/productbuild \
+            --allow-app /usr/bin/codesign \
+            --allow-app /usr/bin/productsign
+
+          echo "📥 Importing Developer ID Installer certificate..."
+          echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
+          keychain add-certificates \
+            --certificate developer_id_installer.p12 \
+            --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
+            --allow-app /usr/bin/productbuild \
+            --allow-app /usr/bin/codesign \
+            --allow-app /usr/bin/productsign
+          echo "✅ Keychain and certificates imported successfully."
+
+          echo "Set key partition list..."
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
+          echo "✅ Shared key partition with apple tools."
+
+          echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch and import signing files
         working-directory: nym-vpn-apple
         env:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
@@ -319,49 +363,9 @@ jobs:
             --name "NymVPN macOS Widget" \
             --save
 
-          echo "✅ Signing files successfully fetched."
-
-      - name: Prepare Keychain and import Developer ID certificate
-        working-directory: nym-vpn-apple
-        id: setup-keychain
-        env:
-          DEVELOPER_ID_CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT }}
-          DEVELOPER_ID_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS }}
-          DEVELOPER_ID_INSTALLER_CERT_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT }}
-          DEVELOPER_ID_INSTALLER_CERT_PASS: ${{ secrets.APPLE_DEVELOPER_ID_INSTALLER_CERT_PASS }}
-        run: |
-          set -euo pipefail
-
-          KEYCHAIN_PASSPHRASE=$(echo $(date +%s%N) | sha256sum | head -c 10)
-          KEYCHAIN_NAME="$(date +%d-%m-%y)_$(echo $(date +%s%N) | sha256sum | head -c 10).keychain-db"
-          KEYCHAIN_PATH="$HOME/Library/codemagic-cli-tools/keychains/$KEYCHAIN_NAME"
-
-          echo "🔐 Initializing Codemagic keychain..."
-          keychain initialize --path "$KEYCHAIN_PATH" --password "$KEYCHAIN_PASSPHRASE"
-          keychain show-info
-
-          echo "📥 Importing Developer ID certificate..."
-          echo "$DEVELOPER_ID_CERT_BASE64" | base64 --decode > developer_id.p12
-          keychain add-certificates \
-            --certificate developer_id.p12 \
-            --certificate-password "$DEVELOPER_ID_CERT_PASS" \
-            -A
-
-          echo "📥 Importing Developer ID Installer certificate..."
-          echo "$DEVELOPER_ID_INSTALLER_CERT_BASE64" | base64 --decode > developer_id_installer.p12
-          keychain add-certificates \
-            --certificate developer_id_installer.p12 \
-            --certificate-password "$DEVELOPER_ID_INSTALLER_CERT_PASS" \
-            -A
-
           keychain add-certificates
-          echo "✅ Keychain and certificates imported successfully."
 
-          echo "Set key partition list..."
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
-          echo "✅ Shared key partition with apple tools."
-
-          echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
+          echo "✅ Signing files successfully fetched and imported."
 
       - name: Setup WWDR and Apple root certificates
         env:
