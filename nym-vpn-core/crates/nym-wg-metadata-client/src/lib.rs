@@ -42,6 +42,23 @@ struct LazyMetadataClient {
 }
 
 impl LazyMetadataClient {
+    fn build_client(
+        base_url: Url,
+        reqwest_builder: ReqwestClientBuilder,
+        retries: usize,
+        timeout: Duration,
+    ) -> Result<nym_http_api_client::Client> {
+        nym_http_api_client::Client::builder(base_url)
+            .and_then(|builder| {
+                builder
+                    .with_reqwest_builder(reqwest_builder)
+                    .with_retries(retries)
+                    .with_timeout(timeout)
+                    .build()
+            })
+            .map_err(|err| MetadataClientError::from(Box::new(err)))
+    }
+
     async fn new(
         mut base_url: Url,
         bind_ip: IpAddr,
@@ -72,16 +89,30 @@ impl LazyMetadataClient {
             }
         };
 
-        let inner = nym_http_api_client::Client::builder(base_url)
-            .and_then(|builder| {
-                builder
-                    .with_reqwest_builder(reqwest_builder)
-                    .with_retries(retries)
-                    .with_timeout(timeout)
-                    .build()
-            })
-            .map_err(Box::new)?;
-        let response = inner.version().await.map_err(Box::new);
+        let mut inner = Self::build_client(base_url.clone(), reqwest_builder, retries, timeout)?;
+        let mut response = inner.version().await;
+        if let Err(err) = &response
+            && !err.is_timeout()
+            && interface_name.is_some()
+            && cfg!(target_os = "android")
+        {
+            // some old android versions don't support binding to a specific interface, so we try again without it
+            inner = Self::build_client(
+                base_url,
+                ReqwestClientBuilder::new().local_address(bind_ip),
+                retries,
+                timeout,
+            )?;
+            tracing::debug!(
+                "Retrying metadata endpoint version check without binding to interface"
+            );
+            response = inner.version().await;
+        }
+
+        let response = response.map_err(|err| {
+            tracing::error!("Failed to get metadata endpoint version: {err:?}");
+            Box::new(err)
+        });
 
         let endpoint_reachable = response.is_ok();
         let _ = sent_data
