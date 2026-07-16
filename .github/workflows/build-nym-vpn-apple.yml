@@ -433,8 +433,20 @@ jobs:
             --project-id "$CROWDIN_PROJECT_ID" \
             --token "$CROWDIN_PERSONAL_TOKEN"
 
+      # todo: delete this before merging PR
+      - name: Cache core build
+        id: cache-core-build
+        uses: actions/cache@v6
+        with:
+          key: ${{ runner.os }}-core-build
+          path: |
+            nym-vpn-apple/NymVPND
+            nym-vpn-apple/NymVPNRpc
+            nym-vpn-apple/NymVPNLib
+
       - name: Build core
         working-directory: nym-vpn-apple/scripts
+        if: steps.cache-core-build.outputs.cache-hit != 'true'
         env:
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
           RUSTC_WRAPPER: ${{ env.RUSTC_WRAPPER }}
