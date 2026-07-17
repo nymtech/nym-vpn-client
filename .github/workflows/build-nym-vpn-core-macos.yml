@@ -39,10 +39,6 @@ jobs:
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
-
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
