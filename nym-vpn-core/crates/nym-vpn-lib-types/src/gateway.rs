@@ -19,6 +19,8 @@ use nym_crypto::asymmetric::{
     x25519,
 };
 
+use crate::TunnelType;
+
 // Types that duplicate what nym-sdk already offers without pulling the whole nym-sdk into types crate
 pub type ClientEncryptionKey = x25519::PublicKey;
 pub type ClientIdentity = ed25519::PublicKey;
@@ -556,6 +558,35 @@ pub enum TentativeGateways {
     },
     NeedsRelaxedIndependenceCriteria,
     NoGatewaysAvailable,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct GetRecentGatewaysParams {
+    pub tunnel_type: TunnelType,
+}
+
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Record))]
+#[cfg_attr(
+    feature = "typescript-bindings",
+    derive(TS),
+    ts(export),
+    ts(export_to = "bindings.ts")
+)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "typescript-bindings", serde(rename_all = "camelCase"))]
+pub struct RecentGateways {
+    pub entry: Vec<Gateway>,
+    pub exit: Vec<Gateway>,
 }
 
 #[derive(Debug, Clone)]

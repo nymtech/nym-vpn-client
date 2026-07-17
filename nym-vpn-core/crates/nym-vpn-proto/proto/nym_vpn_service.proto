@@ -396,6 +396,11 @@ message GatewayResponse {
   optional string node_family_name = 14;
 }
 
+message RecentGateways {
+  repeated GatewayResponse entry = 1;
+  repeated GatewayResponse exit = 2;
+}
+
 message KemKeyDigests {
   map<string, string> digests = 1;
 }
@@ -1137,6 +1142,10 @@ message SplitTunnelExcludedProcessList {
   repeated SplitTunnelExcludedProcess processes = 1;
 }
 
+message GetRecentGatewaysParams {
+  TunnelType tunnel_type = 1;
+}
+
 service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info(google.protobuf.Empty) returns (InfoResponse) {}
@@ -1341,4 +1350,7 @@ service NymVpnService {
   // Split-tunnel (macOS only)
   // Check whether the app needs TCC approval for split tunneling (macOS)
   rpc NeedFullDiskPermissions(google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+
+  // Get recent gateways
+  rpc GetRecentGateways(GetRecentGatewaysParams) returns (RecentGateways) {}
 }
