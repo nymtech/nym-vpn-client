@@ -274,7 +274,7 @@ jobs:
           echo "✅ Signing files successfully fetched and imported."
 
       - name: Install Apple WWDR Intermediates
-        uses: ./.github/actions/install-wwdr
+        uses: ./.github/workflows/apple/install-wwdr
         with:
           keychain-name: ${{steps.setup-keychain.outputs.keychain_path }}
 
