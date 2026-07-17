@@ -32,13 +32,13 @@ use crate::tunnel_provider::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::OSTunProvider;
 
-use crate::adblocker;
 #[cfg(not(target_os = "android"))]
 use crate::resolver;
 #[cfg(not(target_os = "ios"))]
 use crate::socks5_proxy::Socks5ProxyManager;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::socks5_proxy::find_proxy_binary;
+use crate::{adblocker, recents::RecentsManager};
 
 use crate::{
     GatewayProviderError, UserAgent, bandwidth_monitor::Error as BandwidthMonitorError,
@@ -780,6 +780,7 @@ pub struct SharedState {
     nm_connectivity_check_enabled: Option<bool>,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     topology_service: VpnTopologyServiceHandle,
+    recents_manager: RecentsManager<GatewayCacheHandle>,
     discovery_refresher_command_tx: mpsc::UnboundedSender<DiscoveryRefresherCommand>,
     user_agent: UserAgent,
     /// API endpoints resolved in connecting state and used for configuring a bypass in error state.
@@ -1112,6 +1113,7 @@ impl TunnelStateMachine {
         #[cfg(any(target_os = "macos", target_os = "windows"))]
         split_tunnel: nym_split_tunnel::SplitTunnelHandle,
         gateway_provider: GatewayProvider<GatewayCacheHandle>,
+        recents_manager: RecentsManager<GatewayCacheHandle>,
         #[cfg(target_os = "linux")] split_tunnel_config: LinuxSplitTunnelConfiguration,
         #[cfg(not(any(target_os = "android", target_os = "ios")))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
@@ -1192,6 +1194,7 @@ impl TunnelStateMachine {
             nm_connectivity_check_enabled: None,
             gateway_provider,
             topology_service,
+            recents_manager,
             discovery_refresher_command_tx,
             user_agent,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]

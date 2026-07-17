@@ -16,9 +16,9 @@ use nym_vpn_lib_types::{
     AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TentativeGateways, TunnelEvent, TunnelState,
-    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    PrivyDerivationMessage, RecentGateways, RegistrationReport, Socks5Settings, Socks5Status,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TentativeGateways, TunnelEvent,
+    TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
@@ -932,6 +932,20 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
         TentativeGateways::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn get_recent_gateways(
+        &mut self,
+        params: nym_vpn_lib_types::GetRecentGatewaysParams,
+    ) -> Result<RecentGateways> {
+        let request = proto::GetRecentGatewaysParams::from(params);
+        let response = self
+            .0
+            .get_recent_gateways(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+        RecentGateways::try_from(response).map_err(Error::InvalidResponse)
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

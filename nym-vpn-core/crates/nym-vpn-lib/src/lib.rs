@@ -12,6 +12,7 @@ mod dns_filter;
 pub mod logging;
 mod mixnet;
 pub mod privy;
+mod recents;
 #[cfg(not(target_os = "android"))]
 mod resolver;
 pub mod sentry;
