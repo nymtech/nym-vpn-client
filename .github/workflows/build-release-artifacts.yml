@@ -102,14 +102,14 @@ jobs:
 
   core:
     needs: [resolve]
-    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}
+    if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' || needs.resolve.outputs.macos == 'true' }}
     uses: ./.github/workflows/build-nym-vpn-core.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
     secrets: inherit
 
   apple:
-    needs: [resolve]
+    needs: [resolve, core]
     if: ${{ needs.resolve.outputs.ios == 'true' || needs.resolve.outputs.macos == 'true' }}
     uses: ./.github/workflows/build-release-artifacts-apple.yml
     with:

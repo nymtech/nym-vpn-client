@@ -30,6 +30,20 @@ jobs:
     secrets:
       VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
+  build-nym-vpn-core-macos:
+    uses: ./.github/workflows/build-nym-vpn-core-macos.yml
+    with:
+      version: ${{ inputs.version }}
+    secrets:
+      VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+
+  build-nym-vpn-core-ios:
+    uses: ./.github/workflows/build-nym-vpn-core-ios.yml
+    with:
+      version: ${{ inputs.version }}
+    secrets:
+      VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+
   build-nym-vpn-core-windows:
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
     with:

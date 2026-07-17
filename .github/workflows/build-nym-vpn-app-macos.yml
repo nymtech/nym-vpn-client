@@ -33,10 +33,6 @@ env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_MACOS: macos_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
-  RUSTC_WRAPPER: sccache
-  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
-  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
-  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-macos:
@@ -62,7 +58,17 @@ jobs:
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
 
-      - uses: mozilla-actions/sccache-action@v0.0.10
+      - name: Run sccache-cache only for non-release runs
+        if: ${{ inputs.release_type == 'pr' }}
+        uses: mozilla-actions/sccache-action@v0.0.10
+
+      - name: Set Rust caching env vars only for non-release runs
+        if: ${{ inputs.release_type == 'pr' }}
+        run: |
+          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
+          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" >> $GITHUB_ENV
+          echo "SCCACHE_REDIS_PASSWORD=${{ secrets.SCCACHE_REDIS_PASSWORD }}" >> $GITHUB_ENV
+          echo "SCCACHE_REDIS_EXPIRATION=86400" >> $GITHUB_ENV
 
       - name: Normalize release_type
         run: |
@@ -112,13 +118,7 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
-          targets: x86_64-apple-darwin
-
-      - name: Install cargo-swift
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-swift
-          version: ${{ env.CARGO_SWIFT_VERSION }}
+          targets: x86_64-apple-darwin aarch64-apple-darwin
 
       - name: Install cargo-license
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
@@ -371,17 +371,6 @@ jobs:
             --project-id "$CROWDIN_PROJECT_ID" \
             --token "$CROWDIN_PERSONAL_TOKEN"
 
-      # todo: only uncomment when developing workflow
-      # - name: Restore core build
-      #   id: cache-core-build
-      #   uses: actions/cache/restore@v6
-      #   with:
-      #     key: ${{ runner.os }}-core-build
-      #     path: |
-      #       nym-vpn-apple/NymVPND
-      #       nym-vpn-apple/NymVPNRpc
-      #       nym-vpn-apple/NymVPNLib
-
       - name: Handle santa menu
         working-directory: nym-vpn-apple
         env:
@@ -413,42 +402,26 @@ jobs:
           swift package init --type library --name NymVPNLib --disable-xctest --disable-swift-testing
           echo "✅ Stubs added successfully."
 
-      - name: Build core
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: core_artifacts_macos
+          path: core_artifacts_macos
+
+      - name: Move core artifacts
         working-directory: nym-vpn-core
-        # if: steps.cache-core-build.outputs.cache-hit != 'true'
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
           RELEASE: ${{ env.RELEASE_TYPE != 'pr' }}
         run: |
-          make -f macOS.mk libwg nym-setup nym-vpnd nym-socks5-proxy rpc-swift-package RELEASE="${RELEASE}"
-          RPC_SRC="crates/nym-vpn-rpc-uniffi/NymVPNRpc"
-          RPC_DEST="../nym-vpn-apple/NymVPNRpc"
-
-          rm -rf "${RPC_DEST}"
-          cp -R "${RPC_SRC}" "${RPC_DEST}"
-          echo "Copied NymVPNRpc → ${RPC_DEST}"
-
-          VPND_SRC_DIR="upload/mac"
           VPND_DEST_DIR="../nym-vpn-apple/NymVPND"
+
           for f in nym-vpnd nym-socks5-proxy nym-setup; do
-            if [[ ! -f "${VPND_SRC_DIR}/${f}" ]]; then
-              echo "::error::${VPND_SRC_DIR}/${f} not found"
-              exit 1
-            fi
-            cp -f "${VPND_SRC_DIR}/${f}" "${VPND_DEST_DIR}"
+            mv "core_artifacts_macos/${f}" "${VPND_DEST_DIR}"
             chmod +x "${VPND_DEST_DIR}/${f}"
-            echo "Copied ${f} → ${VPND_DEST_DIR}"
           done
 
-      # todo: only uncomment when developing workflow
-      # - name: Cache core build
-      #   uses: actions/cache/save@v6
-      #   with:
-      #     key: ${{ runner.os }}-core-build
-      #     path: |
-      #       nym-vpn-apple/NymVPND
-      #       nym-vpn-apple/NymVPNRpc
-      #       nym-vpn-apple/NymVPNLib
+          mv core_artifacts_macos/NymVPNRpc ../nym-vpn-apple/NymVPNRpc
 
       # todo: uncomment once tests are fixed
       # - name: Apple unit tests
