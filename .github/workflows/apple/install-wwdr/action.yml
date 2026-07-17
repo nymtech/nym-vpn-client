@@ -51,7 +51,7 @@ runs:
 
                     # Apply optional password flag if provided
                     local pwd_flag=""
-                    if [ -not -z "${{ inputs.keychain-password }}" ]; then
+                    if [ -n "${{ inputs.keychain-password }}" ]; then
                         pwd_flag="-P ${{ inputs.keychain-password }}"
                     fi
 
