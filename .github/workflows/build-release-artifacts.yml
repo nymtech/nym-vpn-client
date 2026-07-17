@@ -106,6 +106,10 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-core.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
+      linux: ${{ needs.resolve.outputs.linux == 'true' }}
+      windows: ${{ needs.resolve.outputs.windows == 'true' }}
+      ios: ${{ needs.resolve.outputs.ios == 'true' }}
+      macos: ${{ needs.resolve.outputs.macos == 'true' }}
     secrets: inherit
 
   apple:
