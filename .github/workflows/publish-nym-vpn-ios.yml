@@ -2,9 +2,10 @@ name: publish-nym-vpn-ios
 
 on:
   workflow_call:
-    beta_group:
-      description: "Beta group (World, Nym Team External, External QA)"
-      type: string
+    inputs:
+      beta_group:
+        description: "Beta group (World, Nym Team External, External QA)"
+        type: string
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
