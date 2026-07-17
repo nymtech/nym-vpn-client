@@ -54,17 +54,6 @@ else
   echo "[BuildCore] ⚠️ ${DAEMON_PLIST} not found, skipping Santa plist flag"
 fi
 
-# Configure sccache if available
-if command -v sccache &>/dev/null; then
-  export RUSTC_WRAPPER="$(which sccache)"
-  export SCCACHE_DIR="${HOME}/.cache/sccache"
-  export SCCACHE_CACHE_SIZE="50G"
-  export SCCACHE_IDLE_TIMEOUT="0"
-  echo "[BuildCore] Using sccache at ${RUSTC_WRAPPER}"
-else
-  echo "[BuildCore] ⚠️ sccache not found, skipping cache setup"
-fi
-
 # 1) Build iOS
 cd "${CORE_ROOT}"
 make -f iOS.mk RELEASE="${RELEASE}"
