@@ -81,7 +81,7 @@ impl SkewManager {
         let cached_remote_time = match status {
             Some(SkewStatus::Valid(skew)) => {
                 tracing::debug!("Valid VPN API time skew");
-                let local_time = self.now();
+                let local_time = self.device_time();
                 let estimated_remote_time = local_time - skew;
 
                 VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time)
@@ -110,14 +110,43 @@ impl SkewManager {
         }
     }
 
+    pub fn sync_with_response_timestamp(
+        &mut self,
+        time_before: OffsetDateTime,
+        remote_timestamp: OffsetDateTime,
+        time_after: OffsetDateTime,
+    ) -> Result<Option<VpnApiTime>> {
+        let request_time = time_after - time_before;
+
+        // Detect sleep or time travel, in which case the timestamp cannot be trusted
+        if request_time.is_negative() {
+            tracing::warn!("Request time is negative. Time traveling?");
+            return Err(VpnApiClientError::TimeTravelTooMuch);
+        }
+        if request_time > NYM_VPN_API_TIMEOUT {
+            tracing::warn!("Request time exceeds the timeout. Device fell asleep?");
+            return Err(VpnApiClientError::TimeTravelTooMuch);
+        }
+
+        let remote_time =
+            VpnApiTime::from_remote_timestamp(time_before, remote_timestamp, time_after);
+        self.store_skew(remote_time);
+
+        if Self::use_remote_time(remote_time) {
+            Ok(Some(remote_time))
+        } else {
+            Ok(None)
+        }
+    }
+
     pub async fn get_remote_time(&mut self) -> Result<VpnApiTime> {
         let mut last_error: Option<VpnApiClientError> = None;
 
         for retry in 0..=REMOTE_TIME_MAX_RETRIES {
-            let time_before = self.now();
+            let time_before = self.device_time();
             match self.remote_time_provider.request_remote_time().await {
                 Ok(remote_timestamp) => {
-                    let time_after = self.now();
+                    let time_after = self.device_time();
                     let request_time = time_after - time_before;
 
                     // Detect sleep or time travel and retry the request
@@ -170,16 +199,21 @@ impl SkewManager {
 
     async fn refresh_skew(&mut self) -> Result<VpnApiTime> {
         let remote_time = self.get_remote_time().await?;
+        self.store_skew(remote_time);
+
+        Ok(remote_time)
+    }
+
+    fn store_skew(&mut self, remote_time: VpnApiTime) {
         let skew = remote_time.local_time_ahead_skew();
         let now = Instant::now();
 
         self.skew_state.replace(SkewState::new(skew, now));
         tracing::debug!(skew = ?skew, "Refreshed VPN API time skew");
-
-        Ok(remote_time)
     }
 
-    fn now(&self) -> OffsetDateTime {
+    /// Returns the current device time.
+    pub fn device_time(&self) -> OffsetDateTime {
         self.device_time_provider.device_time()
     }
 }
@@ -253,6 +287,72 @@ mod tests {
         ));
     }
 
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_sync_with_response_timestamp_updates_cache() {
+        let mut skew_manager = SkewManager::new_for_testing(
+            MockDeviceTimeProvider::new(vec![]),
+            PanickingTimeProvider,
+        );
+
+        let time_before = OffsetDateTime::now_utc();
+        let remote_timestamp = time_before - Duration::from_hours(2);
+        let time_after = time_before + Duration::from_secs(1);
+
+        let remote_time = skew_manager
+            .sync_with_response_timestamp(time_before, remote_timestamp, time_after)
+            .unwrap()
+            .expect("skew is significant");
+        assert_eq!(remote_time.local_time_ahead_skew().whole_hours(), 2);
+
+        // The derived skew is cached and reused without a remote time request
+        // (which would panic)
+        let cached = skew_manager
+            .current_remote_time()
+            .await
+            .unwrap()
+            .expect("cached skew is significant");
+        assert_eq!(cached.local_time_ahead_skew().whole_hours(), 2);
+    }
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_sync_with_response_timestamp_negligible_skew() {
+        let mut skew_manager = SkewManager::new_for_testing(
+            MockDeviceTimeProvider::new(vec![]),
+            PanickingTimeProvider,
+        );
+
+        let time_before = OffsetDateTime::now_utc();
+        let remote_timestamp = time_before + Duration::from_secs(30);
+
+        let remote_time = skew_manager
+            .sync_with_response_timestamp(time_before, remote_timestamp, time_before)
+            .unwrap();
+        assert!(remote_time.is_none());
+
+        // The negligible skew is still cached: no remote time request is made
+        // (which would panic) and no override is returned
+        let cached = skew_manager.current_remote_time().await.unwrap();
+        assert!(cached.is_none());
+    }
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_sync_with_response_timestamp_time_travel() {
+        let mut skew_manager = SkewManager::new_for_testing(
+            MockDeviceTimeProvider::new(vec![]),
+            PanickingTimeProvider,
+        );
+
+        let time_before = OffsetDateTime::now_utc();
+        let time_after = time_before - Duration::from_secs(1);
+
+        let result =
+            skew_manager.sync_with_response_timestamp(time_before, time_before, time_after);
+        assert!(matches!(result, Err(VpnApiClientError::TimeTravelTooMuch)));
+    }
+
     #[derive(Debug)]
     struct MockTimeProvider;
 
@@ -260,6 +360,16 @@ mod tests {
     impl RemoteTimeProvider for MockTimeProvider {
         async fn request_remote_time(&self) -> Result<OffsetDateTime> {
             Ok(OffsetDateTime::now_utc())
+        }
+    }
+
+    #[derive(Debug)]
+    struct PanickingTimeProvider;
+
+    #[async_trait::async_trait]
+    impl RemoteTimeProvider for PanickingTimeProvider {
+        async fn request_remote_time(&self) -> Result<OffsetDateTime> {
+            panic!("remote time must not be requested");
         }
     }
 
