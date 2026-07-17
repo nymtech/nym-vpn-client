@@ -107,6 +107,17 @@ jobs:
       version: ${{ needs.resolve.outputs.version }}
     secrets: inherit
 
+  print-inputs:
+    needs: [resolve]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print inputs
+        run: |
+          echo "release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}"
+          echo "version: ${{ needs.resolve.outputs.version }}"
+          echo "build_ios: ${{ needs.resolve.outputs.ios == 'true' }}"
+          echo "build_macos: ${{ needs.resolve.outputs.macos == 'true' }}"
+
   apple:
     needs: [resolve]
     if: ${{ needs.resolve.outputs.ios == 'true' || needs.resolve.outputs.macos == 'true' }}
