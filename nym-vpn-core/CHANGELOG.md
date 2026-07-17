@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [CLI] Add short option `-l` for `nym-vpnc status --listen` (https://github.com/nymtech/nym-vpn-client/pull/5839)
+- Recents manager for storing successful gateway connections (https://github.com/nymtech/nym-vpn-client/pull/5903)
 
 ### Changed
 
