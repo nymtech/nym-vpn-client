@@ -41,6 +41,23 @@ struct LazyMetadataClient {
     version: Version,
 }
 
+#[cfg(target_os = "android")]
+// Kernel after version 5.7 supports binding without root or `CAP_NET_RAW` capability
+// Linux is already ran as root so the version only needs to be > 2.0.30 (released in 1997)
+// so we don't check for that
+fn kernel_supports_interface_binding() -> bool {
+    let Ok(uts_name) = nix::sys::utsname::uname() else {
+        return false;
+    };
+    let Some(release_str) = uts_name.release().to_str() else {
+        return false;
+    };
+    let Ok(version) = semver::Version::parse(release_str) else {
+        return false;
+    };
+    version >= semver::Version::new(5, 7, 0)
+}
+
 impl LazyMetadataClient {
     async fn new(
         mut base_url: Url,
@@ -53,8 +70,14 @@ impl LazyMetadataClient {
         let reqwest_builder = ReqwestClientBuilder::new();
         let reqwest_builder = match sent_data.data_type {
             TunUpSendDataType::InterfaceName(interface) => {
-                #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
+                #[cfg(any(target_os = "linux", target_os = "ios"))]
                 let reqwest_builder = reqwest_builder.interface(&interface);
+                #[cfg(target_os = "android")]
+                let reqwest_builder = if kernel_supports_interface_binding() {
+                    reqwest_builder.interface(&interface)
+                } else {
+                    reqwest_builder
+                };
 
                 interface_name = Some(interface.clone());
                 reqwest_builder.local_address(bind_ip)

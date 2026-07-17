@@ -12,11 +12,13 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+nix.workspace = true
 nym-credentials-interface.workspace = true
 nym-gateway-directory.workspace = true
 nym-http-api-client.workspace = true
 nym-wireguard-private-metadata-client = { workspace = true }
 nym-wireguard-private-metadata-shared = { workspace = true }
+semver.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 tracing.workspace = true
