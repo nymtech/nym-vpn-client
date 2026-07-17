@@ -1,11 +1,10 @@
-name: build-nym-vpn-apple
+name: build-nym-vpn-app-macos
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - ".github/workflows/build-nym-vpn-apple.yml"
-      - "nym-vpn-apple/**"
+      - ".github/workflows/build-nym-vpn-app-macos.yml"
   workflow_dispatch:
     inputs:
       release_type:
@@ -20,16 +19,6 @@ on:
           - qa
           - ship
         default: "pr"
-      build_ios:
-        description: "📱 iOS app (only applies for QA/Ship builds)"
-        required: false
-        type: boolean
-        default: false
-      build_macos:
-        description: "🖥️ macOS app (only applies for QA/Ship builds)"
-        required: false
-        type: boolean
-        default: false
   workflow_call:
     inputs:
       release_type:
@@ -40,19 +29,10 @@ on:
         description: "Orchestrated app version (empty = use Xcode MARKETING_VERSION as before)"
         type: string
         default: ""
-      build_ios:
-        type: boolean
-        default: false
-      build_macos:
-        type: boolean
-        default: false
 env:
   CARGO_TERM_COLOR: always
-  UPLOAD_DIR_IOS: ios_artifacts
   UPLOAD_DIR_MACOS: macos_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
-  S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
-  S3_BUCKET: builds
   RUSTC_WRAPPER: sccache
   SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
   SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
@@ -62,9 +42,8 @@ jobs:
   build-apple:
     if: github.actor != 'dependabot[bot]'
     runs-on: custom-macos-15
-    timeout-minutes: 90
+    timeout-minutes: 45
     outputs:
-      UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
       UPLOAD_DIR_MACOS: ${{ env.UPLOAD_DIR_MACOS }}
     steps:
       - name: "Cleanup working directory"
@@ -93,8 +72,6 @@ jobs:
           echo "--------------------------------------------------"
 
           sel="${{ env.RAW_RELEASE_TYPE }}"
-          ios="${{ inputs.build_ios || 'false' }}"
-          macos="${{ inputs.build_macos || 'false' }}"
 
           # Determine normalized mode (pr / qa / ship)
           case "$sel" in
@@ -107,23 +84,11 @@ jobs:
           # If triggered by schedule, force QA and build both platforms
           if [[ "${GITHUB_EVENT_NAME:-}" == "schedule" ]]; then
             mode=qa
-            ios=true
-            macos=true
-            echo "🕒 Scheduled run detected → forcing QA with iOS+macOS"
+            echo "🕒 Scheduled run detected → forcing QA with macOS"
           fi
 
           echo "🧩 Selected mode (raw): $sel"
           echo "🧩 Normalized mode: $mode"
-          echo "📱 Build iOS: $ios"
-          echo "🖥️ Build macOS: $macos"
-
-          # Validate at least one platform selected for QA or Ship
-          if [[ "$mode" =~ ^(qa|ship)$ ]]; then
-            if [[ "$ios" != "true" && "$macos" != "true" ]]; then
-              echo "❌ ERROR: At least one platform (iOS or macOS) must be selected for QA or Ship builds."
-              exit 1
-            fi
-          fi
 
           # Santa's-menu QA code is gated behind `#if SANTA`. Compile it in for
           # `qa` only; left OUT of `pr` and `ship` so it is physically absent
@@ -132,14 +97,10 @@ jobs:
 
           # Export environment variables for later steps
           echo "RELEASE_TYPE=$mode" >> "$GITHUB_ENV"
-          echo "BUILD_IOS=$ios" >> "$GITHUB_ENV"
-          echo "BUILD_MACOS=$macos" >> "$GITHUB_ENV"
           echo "NYM_SANTA=$santa" >> "$GITHUB_ENV"
 
           echo "✅ Environment successfully configured:"
           echo "   RELEASE_TYPE=$mode"
-          echo "   BUILD_IOS=$ios"
-          echo "   BUILD_MACOS=$macos"
           echo "   NYM_SANTA=$santa"
           echo "--------------------------------------------------"
 
@@ -151,7 +112,7 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
-          targets: x86_64-apple-darwin aarch64-apple-ios aarch64-apple-ios-sim
+          targets: x86_64-apple-darwin
 
       - name: Install cargo-swift
         uses: baptiste0928/cargo-install@v3
@@ -335,16 +296,8 @@ jobs:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-          CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_DISTRIBUTION_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-
-          echo "📦 Fetching iOS signing files from App Store Connect..."
-          app-store-connect fetch-signing-files net.nymtech.vpn \
-            --type IOS_APP_ADHOC \
-            --create \
-            --delete-stale-profiles \
-            --platform IOS
 
           echo "📦 Downloading macOS provisioning profiles..."
           app-store-connect profiles list \
@@ -368,29 +321,10 @@ jobs:
           keychain add-certificates
           echo "✅ Signing files successfully fetched and imported."
 
-      - name: Setup WWDR and Apple root certificates
-        env:
-          KEYCHAIN_PATH: ${{ steps.setup-keychain.outputs.keychain_path }}
-        run: |
-          echo "Downloading WWDR certificates..."
-          curl -o AppleWWDRCAG3.cer https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer
-          curl -o AppleWWDRCAG4.cer https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer
-          curl -o DeveloperIDG2CA.cer https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
-          curl -o AppleIncRootCertificate.cer https://www.apple.com/appleca/AppleIncRootCertificate.cer
-          curl -o AppleRootCA-G2.cer https://www.apple.com/certificateauthority/AppleRootCA-G2.cer
-          curl -o AppleRootCA-G3.cer https://www.apple.com/certificateauthority/AppleRootCA-G3.cer
-          security import AppleWWDRCAG3.cer -k "$KEYCHAIN_PATH"
-          security import AppleWWDRCAG4.cer -k "$KEYCHAIN_PATH"
-          security import DeveloperIDG2CA.cer -k "$KEYCHAIN_PATH"
-          security import AppleIncRootCertificate.cer -k "$KEYCHAIN_PATH"
-          security import AppleRootCA-G2.cer -k "$KEYCHAIN_PATH"
-          security import AppleRootCA-G3.cer -k "$KEYCHAIN_PATH"
-          rm AppleWWDRCAG3.cer
-          rm AppleWWDRCAG4.cer
-          rm DeveloperIDG2CA.cer
-          rm AppleIncRootCertificate.cer
-          rm AppleRootCA-G2.cer
-          rm AppleRootCA-G3.cer
+      - name: Install Apple WWDR Intermediates
+        uses: ./.github/actions/install-wwdr
+        with:
+          keychain-name: ${{steps.setup-keychain.outputs.keychain_path }}
 
       - name: Update core version in app
         if: ${{ env.RELEASE_TYPE != 'pr' }}
@@ -449,14 +383,40 @@ jobs:
       #       nym-vpn-apple/NymVPNRpc
       #       nym-vpn-apple/NymVPNLib
 
+      - name: Handle santa menu
+        working-directory: nym-vpn-apple
+        env:
+          RELEASE: ${{ env.RELEASE_TYPE != 'pr' }}
+        run: |
+          DAEMON_PLIST="NymVPNDaemon/Resources/Info.plist"
+          if [[ -f "${DAEMON_PLIST}" ]]; then
+            if [[ "${RELEASE}" == "false" ]]; then
+              # String, not bool: isRunningOnCI reads this via `as? String` (a bool cast
+              # fails → Santa silently off). Tracked plist + CI Set both keep it a string.
+              /usr/libexec/PlistBuddy -c "Set :IsCiBuild true" "${DAEMON_PLIST}" 2>/dev/null \
+                || /usr/libexec/PlistBuddy -c "Add :IsCiBuild string true" "${DAEMON_PLIST}"
+              echo "[BuildCore] 🎅 Santa's menu enabled (IsCiBuild=true)"
+            else
+              /usr/libexec/PlistBuddy -c 'Set :IsCiBuild $(IS_CI_BUILD)' "${DAEMON_PLIST}" 2>/dev/null || true
+              echo "[BuildCore] Santa's menu plist flag restored to \$(IS_CI_BUILD)"
+            fi
+          else
+            echo "[BuildCore] ⚠️ ${DAEMON_PLIST} not found, skipping Santa plist flag"
+          fi
+
       - name: Build core
-        working-directory: nym-vpn-apple/scripts
+        working-directory: nym-vpn-core
         if: steps.cache-core-build.outputs.cache-hit != 'true'
         env:
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
           RELEASE: ${{ env.RELEASE_TYPE != 'pr' }} # macOS.mk and iOS.mk both respect RELEASE=true|false
         run: |
-          sh BuildCore.sh
+          make -f macOS.mk libwg nym-setup nym-vpnd nym-socks5-proxy rpc-swift-package RELEASE="${RELEASE}"
+          RPC_SRC="crates/nym-vpn-rpc-uniffi/NymVPNRpc"
+          RPC_DEST="../nym-vpn-apple/NymVPNRpc"
+          rm -rf "${RPC_DEST}"
+          cp -R "${RPC_SRC}" "${RPC_DEST}"
+          echo "Copied NymVPNRpc → ${RPC_DEST}"
 
       # todo: only uncomment when developing workflow
       # - name: Cache core build
@@ -474,123 +434,6 @@ jobs:
       #   uses: ./.github/workflows/apple/tests
       #   with:
       #     account-report-path: ${{ github.workspace }}/account-report.md
-
-      - name: Resolve iOS build number (qa/ship only)
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
-        working-directory: nym-vpn-apple
-        env:
-          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-
-          PROJECT="$(
-            xcodebuild -showBuildSettings \
-              -workspace "NymVPN.xcworkspace" \
-              -scheme "NymVPN" \
-              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
-          )"
-
-          echo "🚜 Resolve build number (max across all TestFlight versions)"
-          LATEST="$(
-            app-store-connect builds list \
-              --app-id 6471254143 \
-              --platform IOS \
-              --silent \
-              --no-color \
-              --json 2>/dev/null \
-            | jq '[.[].attributes.version | tonumber] | max // 0'
-          )"
-          REQUIRED=$((LATEST + 1))
-          TARGET=$(( PROJECT > REQUIRED ? PROJECT : REQUIRED ))
-
-          if (( TARGET != PROJECT )); then
-            echo "🚜 Bump build: $PROJECT → $TARGET (TestFlight latest=$LATEST)"
-            fastlane mac bump_build build:"$TARGET"
-          else
-            echo "✅ Keep build: $PROJECT (TestFlight latest=$LATEST)"
-          fi
-
-          # Export for downstream steps (build, Zulip)
-          echo "IOS_BUILD_NUMBER=$TARGET" >> "$GITHUB_ENV"
-          echo "IOS_TESTFLIGHT_LATEST=$LATEST" >> "$GITHUB_ENV"
-
-      - name: Resolve iOS build number (PR only)
-        if: ${{ env.RELEASE_TYPE == 'pr' }}
-        working-directory: nym-vpn-apple
-        run: |
-          set -euo pipefail
-
-          IOS_BUILD_NUMBER=$(
-            xcodebuild -showBuildSettings \
-              -workspace "NymVPN.xcworkspace" \
-              -scheme "NymVPN" \
-              -configuration "Release" | grep CURRENT_PROJECT_VERSION | tr -d 'CURRENT_PROJECT_VERSION ='
-          )
-          echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
-          echo "🔢 PR build number (no bump): $IOS_BUILD_NUMBER"
-
-      - name: Build iOS (Release, signed)
-        working-directory: nym-vpn-apple
-        env:
-          APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-
-          echo "🚜 Update signing (iOS only)"
-          # Save project.pbxproj before use-profiles mutates it, so macOS
-          # Release signing settings are preserved for the archive step.
-          cp NymVPN.xcodeproj/project.pbxproj NymVPN.xcodeproj/project.pbxproj.pre-ios-signing
-
-          xcode-project use-profiles --archive-method "ad-hoc" --code-signing-setup-verbose-logging
-
-          echo "🚀 Building signed iOS Release with Codemagic CLI..."
-          xcode-project build-ipa \
-            --workspace "NymVPN.xcworkspace" \
-            --scheme "NymVPN" \
-            --config "Release" \
-            --clean \
-            --no-color \
-            --log-stream stdout \
-            2>&1 | xcbeautify --renderer github-actions
-
-          echo "✅ Signed archive + .ipa exported"
-          echo "🔢 Build used: $IOS_BUILD_NUMBER (TestFlight latest=${IOS_TESTFLIGHT_LATEST:-n/a})"
-
-          # Capture iOS version (MARKETING_VERSION) for later steps (Zulip)
-          IOS_VERSION=$(
-            xcodebuild -showBuildSettings \
-              -workspace "NymVPN.xcworkspace" \
-              -scheme "NymVPN" \
-              -configuration "Release" | grep MARKETING_VERSION | tr -d 'MARKETING_VERSION ='
-          )
-
-          if [[ -z "${IOS_VERSION:-}" ]]; then
-            echo "❌ Could not determine iOS MARKETING_VERSION"
-            exit 1
-          fi
-
-          echo "IOS_VERSION=$IOS_VERSION" >> "$GITHUB_ENV"
-          echo "✅ iOS version captured: $IOS_VERSION ($IOS_BUILD_NUMBER)"
-
-      - name: Restore project signing for macOS
-        working-directory: nym-vpn-apple
-        run: |
-          set -euo pipefail
-          # Restore project.pbxproj to undo any changes made by
-          # xcode-project use-profiles (iOS ad-hoc signing step).
-          # This ensures macOS Release targets retain their original
-          # manual signing settings from the committed project file.
-          if [[ -f NymVPN.xcodeproj/project.pbxproj.pre-ios-signing ]]; then
-            echo "🔄 Restoring project.pbxproj from pre-iOS-signing backup..."
-            mv NymVPN.xcodeproj/project.pbxproj.pre-ios-signing NymVPN.xcodeproj/project.pbxproj
-            echo "✅ macOS signing settings restored."
-          else
-            echo "ℹ️  No backup found (iOS build may have been skipped). Using project as-is."
-          fi
 
       - name: Archive macOS
         id: archive-macos
@@ -704,7 +547,6 @@ jobs:
           echo "app_path=$APP_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Create PKG
-        if: ${{ env.BUILD_MACOS == 'true' }}
         id: make-pkg
         working-directory: nym-vpn-apple
         env:
@@ -816,7 +658,7 @@ jobs:
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Write App Store Connect API key
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
         id: asc-key
         env:
           ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
@@ -830,7 +672,7 @@ jobs:
           echo "✅ ASC API key written to $KEY_PATH"
 
       - name: Notarize PKG (Developer Installer ID)
-        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') && env.BUILD_MACOS == 'true' }}
+        if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}
         id: notarize-pkg
         working-directory: nym-vpn-apple
         env:
@@ -879,23 +721,14 @@ jobs:
           xcrun stapler staple "$PKG"
           xcrun stapler validate "$PKG"
 
-      - name: Move assets for upload (macOS)
-        if: ${{ env.BUILD_MACOS == 'true' }}
+      - name: Move assets for upload
         env:
           PKG: ${{ steps.make-pkg.outputs.pkg_path }}
         run: |
           mkdir -p "${{ env.UPLOAD_DIR_MACOS }}"
           cp "$PKG" "${{ env.UPLOAD_DIR_MACOS }}"
 
-      - name: Move assets for upload (iOS)
-        if: ${{ env.BUILD_IOS == 'true' }}
-        env:
-          IPA_DIR: nym-vpn-apple/build/ios/ipa
-        run: |
-          cp -R "$IPA_DIR" "${{ env.UPLOAD_DIR_IOS }}"
-
-      - name: Upload artifacts (macOS)
-        if: ${{ env.BUILD_MACOS == 'true' }}
+      - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.UPLOAD_DIR_MACOS }}
@@ -903,62 +736,8 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-      - name: Upload artifacts (iOS)
-        if: ${{ env.BUILD_IOS == 'true' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ env.UPLOAD_DIR_IOS }}
-          path: ${{ env.UPLOAD_DIR_IOS }}
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Install Sentry (nightly)
-        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_IOS == 'true' }}
-        run: |
-          brew install sentry-cli || brew upgrade sentry-cli || true
-          sentry-cli --version
-
-      - name: Upload iOS dSYMs to Sentry (nightly)
-        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_IOS == 'true' }}
-        working-directory: nym-vpn-apple
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.APPLE_SENTRY_CLI_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.APPLE_SENTRY_CLI_ORG }}
-          SENTRY_PROJECT: ${{ secrets.APPLE_SENTRY_CLI_PROJECT }}
-        run: |
-          set -euo pipefail
-
-          BASE="$PWD/build/ios/xcarchive"
-          echo "🔎 Locating iOS xcarchive under: $BASE"
-
-          IOS_XCARCHIVE="$(find "$BASE" -maxdepth 1 -type d -name "*.xcarchive" -print -quit 2>/dev/null || true)"
-
-          if [[ -z "${IOS_XCARCHIVE:-}" || ! -d "$IOS_XCARCHIVE" ]]; then
-            echo "❌ No iOS .xcarchive found in $BASE"
-            ls -la "$BASE" || true
-            exit 1
-          fi
-
-          DSYMS_DIR="$IOS_XCARCHIVE/dSYMs"
-          if [[ ! -d "$DSYMS_DIR" ]]; then
-            echo "No debug symbols dir found at $DSYMS_DIR, skip publishing to Sentry"
-            exit 0
-          fi
-
-          if ! find "$DSYMS_DIR" -name "*.dSYM" -print -quit | grep -q .; then
-            echo "No .dSYM bundles found in $DSYMS_DIR, skip publishing to Sentry"
-            exit 0
-          fi
-
-          echo "📤 Uploading iOS debug files from: $DSYMS_DIR"
-          sentry-cli debug-files upload  \
-            --auth-token "$SENTRY_AUTH_TOKEN" \
-            --org "$SENTRY_ORG" \
-            --project "$SENTRY_PROJECT" \
-            --include-sources "$DSYMS_DIR"
-
       - name: Upload macOS dSYMs to Sentry (nightly)
-        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' && env.BUILD_MACOS == 'true' }}
+        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' }}
         working-directory: nym-vpn-apple
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.APPLE_SENTRY_CLI_AUTH_TOKEN }}

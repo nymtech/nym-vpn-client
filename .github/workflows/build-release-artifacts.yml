@@ -110,7 +110,7 @@ jobs:
   apple:
     needs: [resolve]
     if: ${{ needs.resolve.outputs.ios == 'true' || needs.resolve.outputs.macos == 'true' }}
-    uses: ./.github/workflows/build-nym-vpn-apple.yml
+    uses: ./.github/workflows/build-release-artifacts-apple.yml
     with:
       # beta maps to qa (apple ship-only path creates a standalone macOS release + appcast).
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
