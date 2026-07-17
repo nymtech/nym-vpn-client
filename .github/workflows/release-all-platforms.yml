@@ -94,6 +94,23 @@ concurrency:
   group: ${{ github.workflow }}-${{ inputs.release_channel }}
   cancel-in-progress: false
 
+
+env:
+  APP_ARTIFACTS_LINUX_AARCH64: app_artifacts_linux_aarch64
+  APP_ARTIFACTS_LINUX_X86_64: app_artifacts_linux_x86_64
+  APP_ARTIFACTS_WINDOWS_ARM64: app_artifacts_windows_arm64
+  APP_ARTIFACTS_WINDOWS_X64: app_artifacts_windows_x64
+  APP_ARTIFACTS_ANDROID_FDROID: android_artifacts_fdroid
+  APP_ARTIFACTS_ANDROID_PLAY: android_artifacts_play
+  CORE_ARTIFACTS_LINUX_X86_64: core_artifacts_linux_x86_64
+  CORE_ARTIFACTS_LINUX_AARCH64: core_artifacts_linux_aarch64
+  CORE_ARTIFACTS_WINDOWS_X64: core_artifacts_windows_x64
+  CORE_ARTIFACTS_WINDOWS_ARM64: core_artifacts_windows_arm64
+  DEB_ARTIFACTS_X86_64: deb_artifacts_x86_64
+  DEB_ARTIFACTS_AARCH64: deb_artifacts_aarch64
+  IOS_ARTIFACTS: ios_artifacts
+  MACOS_ARTIFACTS: macos_artifacts
+
 jobs:
   resolve:
     runs-on: ubuntu-latest
@@ -200,8 +217,34 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/release/resolve-version.sh
 
-  build:
+  restore-build-cache:
     needs: [resolve]
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+    steps:
+      - uses: actions/cache/restore@v6
+        id: cache
+        with:
+          path: |
+            ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+            ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+            ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+            ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+            ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+            ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+            ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+            ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+            ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+            ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+            ${{ env.DEB_ARTIFACTS_X86_64 }}
+            ${{ env.DEB_ARTIFACTS_AARCH64 }}
+            ${{ env.IOS_ARTIFACTS }}
+            ${{ env.MACOS_ARTIFACTS }}
+          key: ${{ runner.os }}
+
+  build:
+    needs: [resolve, restore-build-cache]
     permissions:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml
@@ -215,31 +258,220 @@ jobs:
       macos: ${{ needs.resolve.outputs.macos == 'true' }}
     secrets: inherit
 
+  save-build-cache:
+    needs: [resolve, build, restore-build-cache]
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ needs.restore-build-cache.outputs.cache-hit == false }}
+    steps:
+      - uses: actions/download-artifact@v8
+      - uses: actions/cache/save@v6
+        id: cache
+        with:
+          path: |
+            ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+            ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+            ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+            ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+            ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+            ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+            ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+            ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+            ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+            ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+            ${{ env.DEB_ARTIFACTS_X86_64 }}
+            ${{ env.DEB_ARTIFACTS_AARCH64 }}
+            ${{ env.IOS_ARTIFACTS }}
+            ${{ env.MACOS_ARTIFACTS }}
+          key: ${{ runner.os }}
+
   release:
-    needs: [resolve, build]
+    needs: [resolve, build, save-build-cache]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Download artifacts
+        if: ${{ needs.restore-build-cache.outputs.cache-hit == false }}
         uses: actions/download-artifact@v8
+
+      - uses: actions/cache/restore@v6
+        if: ${{ needs.restore-build-cache.outputs.cache-hit == true }}
+        with:
+          path: |
+            ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+            ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+            ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+            ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+            ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+            ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+            ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+            ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+            ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+            ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+            ${{ env.DEB_ARTIFACTS_X86_64 }}
+            ${{ env.DEB_ARTIFACTS_AARCH64 }}
+            ${{ env.IOS_ARTIFACTS }}
+            ${{ env.MACOS_ARTIFACTS }}
+          key: ${{ runner.os }}
 
       - run: |
           ls -la
           tree -d .
 
-      # - name: Publish GitHub Release
-      #   if: ${{ github.event_name == 'workflow_dispatch' && inputs.release == true }}
-      #   uses: softprops/action-gh-release@v3
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     tag_name: ${{ needs.resolve.outputs.tag }}
-      #     name: "nym-vpn-v${{ needs.resolve.outputs.version }}"
-      #     prerelease: false
-      #     draft: true
-      #     files: |
-      #       tbd
+      - name: Generate checksums and create tar.gz archive per platform (Linux)
+        if: ${{ needs.resolve.outputs.linux == true }}
+        env:
+          BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
+        run: |
+          ARCHIVE_LINUX_X86_64=${BASENAME}_linux_x86_64
+          ARCHIVE_LINUX_AARCH64=${BASENAME}_linux_aarch64
+
+          echo "ARCHIVE_LINUX_X86_64=${ARCHIVE_LINUX_X86_64}" >> $GITHUB_ENV
+          echo "ARCHIVE_LINUX_AARCH64=${ARCHIVE_LINUX_AARCH64}" >> $GITHUB_ENV
+
+          mv -v ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }} ${ARCHIVE_LINUX_X86_64}
+          mv -v ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }} ${ARCHIVE_LINUX_AARCH64}
+          mv -v ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }} ${ARCHIVE_WINDOWS_X64}
+          mv -v ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }} ${ARCHIVE_WINDOWS_ARM64}
+
+          test -d ${ARCHIVE_LINUX_X86_64} && tar cvzf ${ARCHIVE_LINUX_X86_64}.tar.gz ${ARCHIVE_LINUX_X86_64}
+          test -d ${ARCHIVE_LINUX_AARCH64} && tar cvzf ${ARCHIVE_LINUX_AARCH64}.tar.gz ${ARCHIVE_LINUX_AARCH64}
+
+          test -f ${ARCHIVE_LINUX_X86_64}.tar.gz && sha256sum ${ARCHIVE_LINUX_X86_64}.tar.gz > "${ARCHIVE_LINUX_X86_64}.tar.gz.sha256sum"
+          test -f ${ARCHIVE_LINUX_AARCH64}.tar.gz && sha256sum ${ARCHIVE_LINUX_AARCH64}.tar.gz > "${ARCHIVE_LINUX_AARCH64}.tar.gz.sha256sum"
+
+          if [[ -d ${{ env.DEB_ARTIFACTS_X86_64 }} ]]; then
+            pushd ${{ env.DEB_ARTIFACTS_X86_64 }}
+            for deb in *.deb; do
+              sha256sum ${deb} > ${deb}.sha256sum
+            done
+            popd
+          fi
+          if [[ -d ${{ env.DEB_ARTIFACTS_AARCH64 }} ]]; then
+            pushd ${{ env.DEB_ARTIFACTS_AARCH64 }}
+            for deb in *.deb; do
+              sha256sum ${deb} > ${deb}.sha256sum
+            done
+            popd
+          fi
+
+
+      - name: Generate checksums and create tar.gz archive per platform (Windows)
+        if: ${{ needs.resolve.outputs.windows == true }}
+        env:
+          BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
+        run: |
+          ARCHIVE_WINDOWS_X64=${BASENAME}_windows_x86_64
+          ARCHIVE_WINDOWS_ARM64=${BASENAME}_windows_aarch64
+
+          echo "ARCHIVE_WINDOWS_X64=${ARCHIVE_WINDOWS_X64}" >> $GITHUB_ENV
+          echo "ARCHIVE_WINDOWS_ARM64=${ARCHIVE_WINDOWS_ARM64}" >> $GITHUB_ENV
+
+          mv -v ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }} ${ARCHIVE_WINDOWS_X64}
+          mv -v ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }} ${ARCHIVE_WINDOWS_ARM64}
+
+          test -d ${ARCHIVE_WINDOWS_X64} && zip -r ${ARCHIVE_WINDOWS_X64}.zip ${ARCHIVE_WINDOWS_X64}
+          test -d ${ARCHIVE_WINDOWS_ARM64} && zip -r ${ARCHIVE_WINDOWS_ARM64}.zip ${ARCHIVE_WINDOWS_ARM64}
+
+          test -f ${ARCHIVE_WINDOWS_X64}.zip && sha256sum ${ARCHIVE_WINDOWS_X64}.zip > "${ARCHIVE_WINDOWS_X64}.zip.sha256sum"
+          test -f ${ARCHIVE_WINDOWS_ARM64}.zip && sha256sum ${ARCHIVE_WINDOWS_ARM64}.zip > "${ARCHIVE_WINDOWS_ARM64}.zip.sha256sum"
+
+      - name: Generate checksums and create tar.gz archive per platform (macOS)
+        if: ${{ needs.resolve.outputs.macos == true }}
+        env:
+          BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
+          MACOS_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
+        run: |
+          echo "MACOS_INSTALLER_NAME=${MACOS_INSTALLER_NAME}" >> $GITHUB_ENV
+
+          mv -v ${{ env.APP_ARTIFACTS_MACOS }}/${MACOS_INSTALLER_NAME} .
+          test -f ${MACOS_INSTALLER_NAME} && sha256sum ${MACOS_INSTALLER_NAME} > "${MACOS_INSTALLER_NAME}.sha256sum"
+
+      - name: Generate checksums and create tar.gz archive per platform (Linux)
+        if: ${{ needs.resolve.outputs.fdroid == true && needs.resolve.outputs.android == true }}
+        env:
+          BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
+          ANDROID_APK: ${{ needs.build.outputs.fdroid_artifact_name }}
+        run: |
+          echo "ANDROID_APK=${ANDROID_APK}" >> $GITHUB_ENV
+
+          mv -v ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}.apk .
+          test -f ${ANDROID_APK} && sha256sum ${ANDROID_APK} > "${ANDROID_APK}.sha256sum"
+
+      - name: Prepare build output directory
+        shell: bash
+        env:
+          OUTPUT_DIR_BASE: ci-builds/${{ github.ref_name }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
+          OUTPUT_DIR="$OUTPUT_DIR_BASE/$TIMESTAMP"
+          echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
+          rm -rf ci-builds || true
+          mkdir -p $OUTPUT_DIR
+          echo $OUTPUT_DIR
+
+      - name: Prepare build output artifacts (Linux)
+        if: ${{ needs.resolve.outputs.linux == true }}
+        shell: bash
+        run: |
+          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.DEB_ARTIFACTS_X86_64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.DEB_ARTIFACTS_AARCH64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
+
+      - name: Prepare build output artifacts (Windows)
+        if: ${{ needs.resolve.outputs.windows == true }}
+        shell: bash
+        run: |
+          cp -v ${{ env.ARCHIVE_WINDOWS_X64 }}.zip ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_WINDOWS_X64 }}.zip.sha256sum ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum ${{ env.OUTPUT_DIR }}
+
+      - name: Prepare build output artifacts (macOS)
+        if: ${{ needs.resolve.outputs.macos == true }}
+        shell: bash
+        run: |
+          cp -v ${{ env.MACOS_INSTALLER_NAME }} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.MACOS_INSTALLER_NAME }}.sha256sum ${{ env.OUTPUT_DIR }}
+
+      - name: Prepare build output artifacts (Android)
+        if: ${{ needs.resolve.outputs.android == true && needs.resolve.outputs.fdroid == true }}
+        shell: bash
+        run: |
+          cp -v ${{ env.ANDROID_APK }} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ANDROID_APK }}.sha256sum ${{ env.OUTPUT_DIR }}
+
+      - name: Publish GitHub Release
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release == true }}
+        uses: softprops/action-gh-release@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          #tag_name: ${{ needs.resolve.outputs.tag }}
+          name: "nym-vpn-v${{ needs.resolve.outputs.version }}"
+          prerelease: false
+          draft: true
+          files: |
+            ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz
+            ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum
+            ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz
+            ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum
+            ${{ env.ARCHIVE_WINDOWS_X64 }}.tar.gz
+            ${{ env.ARCHIVE_WINDOWS_X64 }}.tar.gz.sha256sum
+            ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip
+            ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum
+            ${{ env.DEB_ARTIFACTS_X86_64 }}.deb
+            ${{ env.DEB_ARTIFACTS_X86_64 }}.deb.sha256sum
+            ${{ env.DEB_ARTIFACTS_AARCH64 }}.deb
+            ${{ env.DEB_ARTIFACTS_AARCH64 }}.deb.sha256sum
+            ${{ env.ANDROID_APK }}
+            ${{ env.ANDROID_APK }}.sha256sum
+            ${{ env.MACOS_INSTALLER_NAME }}
+            ${{ env.MACOS_INSTALLER_NAME }}.sha256sum
 
   # distribute:
   #   needs: [resolve, build, release]
