@@ -49,18 +49,9 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  print-inputs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print inputs
-        run: |
-          echo "release_type: ${{ inputs.release_type }}"
-          echo "version: ${{ inputs.version }}"
-          echo "build_ios: ${{ inputs.build_ios }}"
-          echo "build_macos: ${{ inputs.build_macos }}"
   build-ios-app:
     uses: ./.github/workflows/build-nym-vpn-app-ios.yml
-    if: ${{ inputs.build_ios == 'true' }}
+    if: ${{ inputs.build_ios == true }}
     with:
       release_type: ${{ inputs.release_type }}
       version: ${{ inputs.version }}
@@ -68,7 +59,7 @@ jobs:
 
   build-macos-app:
     uses: ./.github/workflows/build-nym-vpn-app-macos.yml
-    if: ${{ inputs.build_macos == 'true' }}
+    if: ${{ inputs.build_macos == true }}
     with:
       release_type: ${{ inputs.release_type }}
       version: ${{ inputs.version }}
