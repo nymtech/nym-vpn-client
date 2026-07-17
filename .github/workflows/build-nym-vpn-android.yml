@@ -246,6 +246,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Google Play Prerelease Bundle
         if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
@@ -254,6 +255,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Google Play Nightly Bundle
         if: ${{ inputs.build_flavor == 'play' && inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
@@ -262,6 +264,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Release Apk
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'apk' }}
@@ -270,6 +273,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Release Bundle
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'release' && inputs.build_format == 'aab' }}
@@ -278,6 +282,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Prerelease Apk
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'prerelease' && inputs.build_format == 'apk' }}
@@ -286,6 +291,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Prerelease Bundle
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
@@ -294,6 +300,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Nightly Apk
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'nightly' && inputs.build_format == 'apk' }}
@@ -302,6 +309,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Fdroid Nightly Bundle
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
@@ -310,6 +318,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Debug Apk
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'debug' && inputs.build_format == 'apk' }}
@@ -318,6 +327,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Build Debug Bundle
         if: ${{ inputs.build_flavor == 'fdroid' && inputs.build_type == 'debug' && inputs.build_format == 'aab' }}
@@ -326,6 +336,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
       - name: Get output path
         id: output-path

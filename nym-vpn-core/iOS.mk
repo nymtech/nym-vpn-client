@@ -6,6 +6,7 @@ include reproducible_builds.mk
 export IPHONEOS_DEPLOYMENT_TARGET = 16.0
 
 RELEASE ?= true
+VPNLIB_SENTRY_DSN ?=
 
 RELEASE_FLAG :=
 TARGET_DIR := debug
@@ -32,6 +33,11 @@ LIBWG_SOURCES := $(wildcard $(WIREGUARD_DIR)/libwg/*.go) $(wildcard $(WIREGUARD_
 all: $(LIBWG_BUILD_DIR)/libwg.a swift-package
 
 build: $(LIBWG_BUILD_DIR)/libwg.a
+	@if [ -z "$(VPNLIB_SENTRY_DSN)" ]; then \
+		echo "Sentry DSN not set!" ; \
+	else \
+		echo "Sentry DSN is set!" ; \
+	fi
 	$(ALL_IDEMPOTENT_FLAGS) cargo build --package $(LIB_CRATE_NAME) --target $(RUST_TRIPLET) $(RELEASE_FLAG)
 
 swift-package: $(LIBWG_BUILD_DIR)/libwg.a

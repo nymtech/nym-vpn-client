@@ -8,6 +8,7 @@ export MACOSX_DEPLOYMENT_TARGET = 10.14
 RELEASE ?= true
 RELEASE_FLAG :=
 BUILD_PROFILE := debug
+SENTRY_DSN ?=
 
 ifeq ($(RELEASE), true)
 RELEASE_FLAG := --release
@@ -62,6 +63,14 @@ rpc-swift-package:
 	$(ALL_IDEMPOTENT_FLAGS) $(CARGO) swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RELEASE_FLAG)
 
 $(BIN_TARGETS): create-upload-dir
+	@if [ "$@" == "nym-vpnd" ]; then \
+    	if [ -z "$(SENTRY_DSN)" ]; then \
+    		echo "Sentry DSN not set!" ; \
+    	else \
+    		echo "Sentry DSN is set!" ; \
+    	fi \
+	fi
+
 	@echo "🔨 Building $@ binaries (x86_64)…"
 	$(ALL_IDEMPOTENT_FLAGS) \
 	$(CARGO) build --package $@ --target x86_64-apple-darwin $(RELEASE_FLAG)
