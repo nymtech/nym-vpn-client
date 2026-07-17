@@ -1,7 +1,7 @@
 name: 'Install Apple WWDR Certificates'
 description: 'Checks, downloads, and installs missing or expired Apple WWDR G3 and G4 certificates.'
 inputs:
-  keychain-name:
+  keychain-path:
     description: 'The target keychain name (e.g., login.keychain or a custom build keychain)'
     required: false
     default: 'login.keychain'
@@ -15,20 +15,11 @@ runs:
   steps:
     - name: Run WWDR Installation Script
       shell: bash
+      env:
+        KEYCHAIN: ${{ inputs.keychain-path }}
       run: |
-        # 1. Standardise keychain paths for macOS runners
-        if [ "${{ inputs.keychain-name }}" == "login.keychain" ] || [ "${{ inputs.keychain-name }}" == "login.keychain-db" ]; then
-          KEYCHAIN="$HOME/Library/Keychains/login.keychain-db"
-        else
-          KEYCHAIN="$HOME/Library/Keychains/${{ inputs.keychain-name }}"
-          if [[ "$KEYCHAIN" != *"-db" ]] && [ ! -f "$KEYCHAIN" ] && [ -f "${KEYCHAIN}-db" ]; then
-            KEYCHAIN="${KEYCHAIN}-db"
-          fi
-        fi
-
         echo "Target Keychain: $KEYCHAIN"
 
-        # 2. Define Apple PKI infrastructure URLs
         URL_G3="https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer"
         URL_G4="https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer"
         FILE_G3="AppleWWDRCAG3.cer"
