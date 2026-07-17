@@ -428,6 +428,26 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(()))
     }
 
+    async fn get_recent_gateways(
+        &self,
+        request: tonic::Request<proto::GetRecentGatewaysParams>,
+    ) -> Result<tonic::Response<proto::RecentGateways>> {
+        let tunnel_type =
+            nym_vpn_lib_types::GetRecentGatewaysParams::try_from(request.into_inner())
+                .map_err(|e| {
+                    tonic::Status::invalid_argument(format!("Invalid recent gateway params: {e}"))
+                })?
+                .tunnel_type;
+        let response = self
+            .send_and_wait(VpnServiceCommand::GetRecentGateways, tunnel_type)
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get recent gateways: {err}"))
+            })?;
+
+        Ok(tonic::Response::new(response.into()))
+    }
+
     async fn set_network(&self, request: tonic::Request<String>) -> Result<tonic::Response<()>> {
         let network = request.into_inner();
         let status = self

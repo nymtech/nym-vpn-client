@@ -5,8 +5,8 @@ use anyhow::{Result, anyhow};
 use tabled::Table;
 
 use nym_vpn_lib_types::{
-    EntryPoint, ExitPoint, GatewayFilter, ListGatewaysOptions, LookupGatewayFilters, NodeIdentity,
-    Recipient,
+    EntryPoint, ExitPoint, GatewayFilter, GetRecentGatewaysParams, ListGatewaysOptions,
+    LookupGatewayFilters, NodeIdentity, Recipient,
 };
 use nym_vpn_proto::rpc_client::RpcClient;
 
@@ -57,6 +57,10 @@ pub enum Command {
 
         #[command(flatten)]
         filters: FilterArgs,
+    },
+
+    Recents {
+        tunnel_type: TunnelType,
     },
 }
 
@@ -187,6 +191,10 @@ impl Args {
                     .await?;
                 Ok(())
             }
+            Command::Recents { tunnel_type } => {
+                self.recent_gateways(rpc_client, tunnel_type).await?;
+                Ok(())
+            }
         }
     }
 
@@ -225,6 +233,54 @@ impl Args {
             gateways.len()
         );
         let models = gateways
+            .into_iter()
+            .map(|gateway| GatewayModel::new(gateway, gw_type))
+            .collect::<Vec<_>>();
+        let mut table = Table::new(models);
+        self.table_style.apply_style(&mut table);
+        println!("{table}");
+
+        Ok(())
+    }
+
+    async fn recent_gateways(
+        &self,
+        mut rpc_client: RpcClient,
+        tunnel_type: TunnelType,
+    ) -> Result<()> {
+        let recent_gateways = rpc_client
+            .get_recent_gateways(GetRecentGatewaysParams {
+                tunnel_type: tunnel_type.into(),
+            })
+            .await?;
+
+        println!(
+            "Recent entry gateways for:  {tunnel_type:?} ({})",
+            recent_gateways.entry.len(),
+        );
+        let gw_type = match tunnel_type {
+            TunnelType::Mixnet => GatewayType::MixnetEntry,
+            TunnelType::Wg => GatewayType::Wg,
+        };
+        let models = recent_gateways
+            .entry
+            .into_iter()
+            .map(|gateway| GatewayModel::new(gateway, gw_type))
+            .collect::<Vec<_>>();
+        let mut table = Table::new(models);
+        self.table_style.apply_style(&mut table);
+        println!("{table}");
+
+        println!(
+            "Recent exit gateways for:  {tunnel_type:?} ({})",
+            recent_gateways.exit.len(),
+        );
+        let gw_type = match tunnel_type {
+            TunnelType::Mixnet => GatewayType::MixnetExit,
+            TunnelType::Wg => GatewayType::Wg,
+        };
+        let models = recent_gateways
+            .exit
             .into_iter()
             .map(|gateway| GatewayModel::new(gateway, gw_type))
             .collect::<Vec<_>>();
@@ -332,6 +388,23 @@ impl From<GatewayType> for nym_vpn_lib_types::GatewayType {
             GatewayType::MixnetEntry => Self::MixnetEntry,
             GatewayType::MixnetExit => Self::MixnetExit,
             GatewayType::Wg => Self::Wg,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, clap::ValueEnum)]
+pub enum TunnelType {
+    /// Mixnet tunnel
+    Mixnet,
+    /// Wireguard tunnel
+    Wg,
+}
+
+impl From<TunnelType> for nym_vpn_lib_types::TunnelType {
+    fn from(value: TunnelType) -> Self {
+        match value {
+            TunnelType::Mixnet => nym_vpn_lib_types::TunnelType::Mixnet,
+            TunnelType::Wg => nym_vpn_lib_types::TunnelType::Wireguard,
         }
     }
 }
