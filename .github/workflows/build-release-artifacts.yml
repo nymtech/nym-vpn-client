@@ -72,10 +72,10 @@ jobs:
           if ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}; then
             RELEASE_CHANNEL="nightly"
             VERSION=""
-            ANDROID=false
-            FDROID=false
-            LINUX=false
-            WINDOWS=false
+            ANDROID=true
+            FDROID=true
+            LINUX=true
+            WINDOWS=true
             IOS=true
             MACOS=true
           else
