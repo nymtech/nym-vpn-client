@@ -21,9 +21,10 @@ runs:
         echo "Target Keychain: $KEYCHAIN"
 
         URL_G3="https://www.apple.com/certificateauthority/AppleWWDRCAG3.cer"
-        URL_G4="https://www.apple.com/certificateauthority/AppleWWDRCAG4.cer"
+        URL_DEVELOPER_ID="https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer"
+
         FILE_G3="AppleWWDRCAG3.cer"
-        FILE_G4="AppleWWDRCAG4.cer"
+        FILE_DEVELOPER_ID="DeveloperIDG2CA.cer"
 
         # 3. Dynamic verification and installation function
         install_wwdr_if_needed() {
@@ -68,4 +69,4 @@ runs:
 
         # 4. Trigger validation for both G3 (signing) and G4 (services/APNs)
         install_wwdr_if_needed "Worldwide Developer Relations Certification Authority" "$URL_G3" "$FILE_G3"
-        install_wwdr_if_needed "Worldwide Developer Relations G4" "$URL_G4" "$FILE_G4"
+        install_wwdr_if_needed "Developer ID Certification Authority" "$URL_DEVELOPER_ID" "$FILE_DEVELOPER_ID"
