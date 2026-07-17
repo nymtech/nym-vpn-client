@@ -122,13 +122,15 @@ impl<T: AsFd> Tun<'_, T> {
 
     /// Assign interface to a given user
     pub fn set_owner(&self, uid: u64) -> Result<()> {
-        unsafe { tunsetowner(self.as_fd().as_raw_fd(), uid)? };
+        // the ioctl parameter is c_ulong, which is u32 on 32-bit targets; uids never exceed u32
+        unsafe { tunsetowner(self.as_fd().as_raw_fd(), uid as _)? };
         Ok(())
     }
 
     /// Assign interface to a given group
     pub fn set_group(&self, gid: u64) -> Result<()> {
-        unsafe { tunsetgroup(self.as_fd().as_raw_fd(), gid)? };
+        // the ioctl parameter is c_ulong, which is u32 on 32-bit targets; gids never exceed u32
+        unsafe { tunsetgroup(self.as_fd().as_raw_fd(), gid as _)? };
         Ok(())
     }
 }
