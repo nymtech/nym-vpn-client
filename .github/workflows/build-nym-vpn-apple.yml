@@ -53,6 +53,10 @@ env:
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
   S3_ENDPOINT: https://s3.nymte.ch     # API endpoint for uploads
   S3_BUCKET: builds
+  RUSTC_WRAPPER: sccache
+  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-apple:
@@ -78,6 +82,8 @@ jobs:
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
+
+      - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Normalize release_type
         run: |
@@ -386,27 +392,6 @@ jobs:
           rm AppleRootCA-G2.cer
           rm AppleRootCA-G3.cer
 
-      - name: Configure sccache
-        if: ${{ env.RELEASE_TYPE != 'ship' }}
-        run: |
-          set -euxo pipefail
-          echo "🧱 Configuring sccache (incremental disabled — incompatible)..."
-          which sccache || brew install sccache
-
-          export RUSTC_WRAPPER="$(which sccache)"
-          export SCCACHE_DIR="$HOME/.cache/sccache"
-          export SCCACHE_CACHE_SIZE="50G"
-          export SCCACHE_IDLE_TIMEOUT="0"
-          export CARGO_INCREMENTAL=0  # ✅ disable incremental for sccache
-
-          echo "RUSTC_WRAPPER=$RUSTC_WRAPPER" >> "$GITHUB_ENV"
-          echo "SCCACHE_DIR=$SCCACHE_DIR" >> "$GITHUB_ENV"
-          echo "SCCACHE_CACHE_SIZE=$SCCACHE_CACHE_SIZE" >> "$GITHUB_ENV"
-          echo "SCCACHE_IDLE_TIMEOUT=$SCCACHE_IDLE_TIMEOUT" >> "$GITHUB_ENV"
-          echo "CARGO_INCREMENTAL=$CARGO_INCREMENTAL" >> "$GITHUB_ENV"
-
-          mkdir -p "$SCCACHE_DIR"
-
       - name: Update core version in app
         if: ${{ env.RELEASE_TYPE != 'pr' }}
         run: |
@@ -469,13 +454,8 @@ jobs:
         if: steps.cache-core-build.outputs.cache-hit != 'true'
         env:
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-          RUSTC_WRAPPER: ${{ env.RUSTC_WRAPPER }}
-          SCCACHE_DIR: ${{ env.SCCACHE_DIR }}
-          SCCACHE_CACHE_SIZE: ${{ env.SCCACHE_CACHE_SIZE }}
-          SCCACHE_IDLE_TIMEOUT: ${{ env.SCCACHE_IDLE_TIMEOUT }}
           RELEASE: ${{ env.RELEASE_TYPE != 'pr' }} # macOS.mk and iOS.mk both respect RELEASE=true|false
         run: |
-          echo "🧱 Using sccache wrapper: $RUSTC_WRAPPER"
           sh BuildCore.sh
 
       # todo: only uncomment when developing workflow
