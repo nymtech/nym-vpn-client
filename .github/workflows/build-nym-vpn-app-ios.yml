@@ -344,7 +344,7 @@ jobs:
         if: steps.cache-core-build.outputs.cache-hit != 'true'
         env:
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-          RELEASE: ${{ env.RELEASE_TYPE != 'pr' }} # macOS.mk and iOS.mk both respect RELEASE=true|false
+          RELEASE: ${{ env.RELEASE_TYPE != 'pr' }}
         run: |
           make -f iOS.mk RELEASE="${RELEASE}"
           LIB_SRC="crates/nym-vpn-lib-uniffi/NymVPNLib"
