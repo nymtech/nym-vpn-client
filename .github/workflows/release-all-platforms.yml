@@ -241,16 +241,23 @@ jobs:
       #     files: |
       #       tbd
 
-  distribute:
-    needs: [resolve, build, release]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Publish to Google Play
-        uses: ./.github/workflows/publish-nym-vpn-android.yml
-        with:
-          track: alpha
-          publish-bundle: ${{ github.event_name != 'push' && github.event_name != 'pull_request' }}
-          publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
-          release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
+  # distribute:
+  #   needs: [resolve, build, release]
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: read
+  #   steps:
+  #     - name: Publish to TestFlight
+  #       if: ${{ needs.resolve.outputs.ios == true }}
+  #       uses: ./.github/workflows/publish-nym-vpn-ios.yml
+  #       with:
+  #         beta_group: 'Nym Team External' # replace with actual beta group
+
+  #     - name: Publish to Google Play
+  #       if: ${{ needs.resolve.outputs.android == true }}
+  #       uses: ./.github/workflows/publish-nym-vpn-android.yml
+  #       with:
+  #         track: alpha
+  #         publish-bundle: ${{ github.event_name != 'push' && github.event_name != 'pull_request' }}
+  #         publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
+  #         release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
