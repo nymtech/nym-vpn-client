@@ -276,7 +276,7 @@ jobs:
       - name: Install Apple WWDR Intermediates
         uses: ./.github/workflows/apple/install-wwdr
         with:
-          keychain-name: ${{steps.setup-keychain.outputs.keychain_path }}
+          keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
 
       - name: Update core version in app
         if: ${{ env.RELEASE_TYPE != 'pr' }}
@@ -325,13 +325,13 @@ jobs:
             --token "$CROWDIN_PERSONAL_TOKEN"
 
       # todo: only uncomment when developing workflow
-      - name: Restore core build
-        id: cache-core-build
-        uses: actions/cache/restore@v6
-        with:
-          key: ${{ runner.os }}-core-build
-          path: |
-            nym-vpn-apple/NymVPNLib
+      # - name: Restore core build
+      #   id: cache-core-build
+      #   uses: actions/cache/restore@v6
+      #   with:
+      #     key: ${{ runner.os }}-core-build
+      #     path: |
+      #       nym-vpn-apple/NymVPNLib
 
       - name: Add stubs for unused packages
         working-directory: nym-vpn-apple
@@ -345,7 +345,7 @@ jobs:
 
       - name: Build core
         working-directory: nym-vpn-core
-        if: steps.cache-core-build.outputs.cache-hit != 'true'
+        # if: steps.cache-core-build.outputs.cache-hit != 'true'
         env:
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
           RELEASE: ${{ env.RELEASE_TYPE != 'pr' }}
@@ -358,12 +358,12 @@ jobs:
           echo "Copied NymVPNLib → ${LIB_DEST}"
 
       # todo: only uncomment when developing workflow
-      - name: Cache core build
-        uses: actions/cache/save@v6
-        with:
-          key: ${{ runner.os }}-core-build
-          path: |
-            nym-vpn-apple/NymVPNLib
+      # - name: Cache core build
+      #   uses: actions/cache/save@v6
+      #   with:
+      #     key: ${{ runner.os }}-core-build
+      #     path: |
+      #       nym-vpn-apple/NymVPNLib
 
       # todo: uncomment once tests are fixed
       # - name: Apple unit tests

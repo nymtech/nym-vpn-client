@@ -323,7 +323,7 @@ jobs:
       - name: Install Apple WWDR Intermediates
         uses: ./.github/workflows/apple/install-wwdr
         with:
-          keychain-name: ${{steps.setup-keychain.outputs.keychain_path }}
+          keychain-path: ${{steps.setup-keychain.outputs.keychain_path }}
 
       - name: Update core version in app
         if: ${{ env.RELEASE_TYPE != 'pr' }}
@@ -415,7 +415,7 @@ jobs:
 
       - name: Build core
         working-directory: nym-vpn-core
-        if: steps.cache-core-build.outputs.cache-hit != 'true'
+        # if: steps.cache-core-build.outputs.cache-hit != 'true'
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
           RELEASE: ${{ env.RELEASE_TYPE != 'pr' }}
