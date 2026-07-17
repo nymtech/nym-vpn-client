@@ -251,10 +251,6 @@ jobs:
           keychain initialize --path "$KEYCHAIN_PATH" --password "$KEYCHAIN_PASSPHRASE"
           keychain show-info
 
-          echo "Set key partition list..."
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSPHRASE" "$KEYCHAIN_PATH"
-          echo "✅ Shared key partition with apple tools."
-
           echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Fetch and import signing files

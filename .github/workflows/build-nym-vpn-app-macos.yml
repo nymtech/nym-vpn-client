@@ -318,7 +318,6 @@ jobs:
             --name "NymVPN macOS Widget" \
             --save
 
-          keychain add-certificates
           echo "✅ Signing files successfully fetched and imported."
 
       - name: Install Apple WWDR Intermediates
