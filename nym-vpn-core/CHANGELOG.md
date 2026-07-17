@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [iOS] Skip ad-blocking rules that do not block by domain (https://github.com/nymtech/nym-vpn-client/pull/5658)
 - [iOS] Handle sub-domain blocking (https://github.com/nymtech/nym-vpn-client/pull/5810)
 - [macOS] Skip catch-all NAT masquerade when split tunneling is active (macOS >=14.6, <15.1 only). (https://github.com/nymtech/nym-vpn-client/pull/5569)
+- [Android] Fix old Android devices failing to bind for metadata endpoint (https://github.com/nymtech/nym-vpn-client/pull/5878)
 
 ### Removed
 
