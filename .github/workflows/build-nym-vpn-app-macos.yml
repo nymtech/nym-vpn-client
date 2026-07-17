@@ -410,7 +410,7 @@ jobs:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
           RELEASE: ${{ env.RELEASE_TYPE != 'pr' }}
         run: |
-          make -f macOS.mk nym-setup nym-vpnd nym-socks5-proxy rpc-swift-package RELEASE="${RELEASE}"
+          make -f macOS.mk libwg nym-setup nym-vpnd nym-socks5-proxy rpc-swift-package RELEASE="${RELEASE}"
           RPC_SRC="crates/nym-vpn-rpc-uniffi/NymVPNRpc"
           RPC_DEST="../nym-vpn-apple/NymVPNRpc"
           rm -rf "${RPC_DEST}"

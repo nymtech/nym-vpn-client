@@ -325,15 +325,22 @@ jobs:
             --token "$CROWDIN_PERSONAL_TOKEN"
 
       # todo: only uncomment when developing workflow
-      # - name: Restore core build
-      #   id: cache-core-build
-      #   uses: actions/cache/restore@v6
-      #   with:
-      #     key: ${{ runner.os }}-core-build
-      #     path: |
-      #       nym-vpn-apple/NymVPND
-      #       nym-vpn-apple/NymVPNRpc
-      #       nym-vpn-apple/NymVPNLib
+      - name: Restore core build
+        id: cache-core-build
+        uses: actions/cache/restore@v6
+        with:
+          key: ${{ runner.os }}-core-build
+          path: |
+            nym-vpn-apple/NymVPNLib
+
+      - name: Add stubs for unused packages
+        working-directory: nym-vpn-apple
+        run: |
+          echo "📦 Adding stubs for unused packages..."
+          mkdir NymVPNRpc || true
+          cd NymVPNRpc
+          swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
+          echo "✅ Stubs added successfully."
 
       - name: Build core
         working-directory: nym-vpn-core
@@ -350,14 +357,12 @@ jobs:
           echo "Copied NymVPNLib → ${LIB_DEST}"
 
       # todo: only uncomment when developing workflow
-      # - name: Cache core build
-      #   uses: actions/cache/save@v6
-      #   with:
-      #     key: ${{ runner.os }}-core-build
-      #     path: |
-      #       nym-vpn-apple/NymVPND
-      #       nym-vpn-apple/NymVPNRpc
-      #       nym-vpn-apple/NymVPNLib
+      - name: Cache core build
+        uses: actions/cache/save@v6
+        with:
+          key: ${{ runner.os }}-core-build
+          path: |
+            nym-vpn-apple/NymVPNLib
 
       # todo: uncomment once tests are fixed
       # - name: Apple unit tests
