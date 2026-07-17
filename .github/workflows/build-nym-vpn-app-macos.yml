@@ -408,7 +408,7 @@ jobs:
         working-directory: nym-vpn-core
         if: steps.cache-core-build.outputs.cache-hit != 'true'
         env:
-          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
           RELEASE: ${{ env.RELEASE_TYPE != 'pr' }}
         run: |
           make -f macOS.mk nym-setup nym-vpnd nym-socks5-proxy rpc-swift-package RELEASE="${RELEASE}"
