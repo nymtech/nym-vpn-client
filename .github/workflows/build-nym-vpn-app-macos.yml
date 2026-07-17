@@ -403,6 +403,16 @@ jobs:
             echo "[BuildCore] ⚠️ ${DAEMON_PLIST} not found, skipping Santa plist flag"
           fi
 
+      - name: Add stubs for unused packages
+        working-directory: nym-vpn-apple
+        run: |
+          echo "📦 Adding stubs for unused packages..."
+          rm -rf NymVPNLib || true
+          mkdir NymVPNLib || true
+          cd NymVPNLib
+          swift package init --type library --name NymVPNLib --disable-xctest --disable-swift-testing
+          echo "✅ Stubs added successfully."
+
       - name: Build core
         working-directory: nym-vpn-core
         if: steps.cache-core-build.outputs.cache-hit != 'true'
@@ -413,9 +423,22 @@ jobs:
           make -f macOS.mk libwg nym-setup nym-vpnd nym-socks5-proxy rpc-swift-package RELEASE="${RELEASE}"
           RPC_SRC="crates/nym-vpn-rpc-uniffi/NymVPNRpc"
           RPC_DEST="../nym-vpn-apple/NymVPNRpc"
+
           rm -rf "${RPC_DEST}"
           cp -R "${RPC_SRC}" "${RPC_DEST}"
           echo "Copied NymVPNRpc → ${RPC_DEST}"
+
+          VPND_SRC_DIR="upload/mac"
+          VPND_DEST_DIR="../nym-vpn-apple/NymVPND"
+          for f in nym-vpnd nym-socks5-proxy nym-setup; do
+            if [[ ! -f "${VPND_SRC_DIR}/${f}" ]]; then
+              echo "::error::${VPND_SRC_DIR}/${f} not found"
+              exit 1
+            fi
+            cp -f "${VPND_SRC_DIR}/${f}" "${VPND_DEST_DIR}"
+            chmod +x "${VPND_DEST_DIR}/${f}"
+            echo "Copied ${f} → ${VPND_DEST_DIR}"
+          done
 
       # todo: only uncomment when developing workflow
       # - name: Cache core build

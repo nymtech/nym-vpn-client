@@ -337,6 +337,7 @@ jobs:
         working-directory: nym-vpn-apple
         run: |
           echo "📦 Adding stubs for unused packages..."
+          rm -rf NymVPNRpc || true
           mkdir NymVPNRpc || true
           cd NymVPNRpc
           swift package init --type library --name NymVPNRpc --disable-xctest --disable-swift-testing
