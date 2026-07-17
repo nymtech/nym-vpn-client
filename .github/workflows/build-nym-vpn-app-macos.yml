@@ -29,6 +29,10 @@ on:
         description: "Orchestrated app version (empty = use Xcode MARKETING_VERSION as before)"
         type: string
         default: ""
+    outputs:
+      pkg_installer_name:
+        description: "PKG installer artifact name"
+        value: ${{ jobs.build-macos.outputs.pkg_installer_name }}
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_MACOS: macos_artifacts
@@ -41,6 +45,7 @@ jobs:
     timeout-minutes: 45
     outputs:
       UPLOAD_DIR_MACOS: ${{ env.UPLOAD_DIR_MACOS }}
+      pkg_installer_name: ${{ steps.make-pkg.outputs.pkg_name }}
     steps:
       - name: "Cleanup working directory"
         shell: bash
@@ -559,7 +564,8 @@ jobs:
           MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
 
           STAGING_DIRECTORY="$PWD/build/pkg"
-          PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION.pkg"
+          PKG_NAME="NymVPN-$MARKETING_VERSION.pkg"
+          PKG_PATH="$STAGING_DIRECTORY/$PKG_NAME"
           STAGING_APP_DIR="$STAGING_DIRECTORY/macos"
 
           COMPONENT_PLIST_FILE="$STAGING_DIRECTORY/component.plist"
@@ -651,6 +657,7 @@ jobs:
 
           echo "✅ Signed PKG is written to: $PKG_PATH"
           echo "pkg_path=$PKG_PATH" >> "$GITHUB_OUTPUT"
+          echo "pkg_name=$PKG_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Write App Store Connect API key
         if: ${{ (env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship') }}

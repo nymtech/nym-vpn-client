@@ -45,6 +45,10 @@ on:
       build_macos:
         type: boolean
         default: false
+    outputs:
+      pkg_installer_name:
+        description: "Name of the PKG installer artifact"
+        value: ${{ jobs.build-macos-app.outputs.pkg_installer_name }}
 env:
   CARGO_TERM_COLOR: always
 

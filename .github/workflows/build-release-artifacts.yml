@@ -40,6 +40,16 @@ on:
         description: "macOS (.pkg + Sparkle)"
         type: boolean
         default: false
+    outputs:
+      pkg_installer_name:
+        description: "Name of the PKG installer artifact"
+        value: ${{ jobs.apple.outputs.pkg_installer_name }}
+      fdroid_artifact_name:
+        description: "Name of the F-Droid artifact"
+        value: ${{ jobs.android.outputs.fdroid_artifact_name }}
+      play_artifact_name:
+        description: "Name of the Google Play artifact"
+        value: ${{ jobs.android.outputs.play_artifact_name }}
 
 permissions:
   contents: read
