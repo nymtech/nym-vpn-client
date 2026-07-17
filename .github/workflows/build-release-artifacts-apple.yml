@@ -1,4 +1,4 @@
-name: build-nym-vpn-apple
+name: build-release-artifacts-apple
 
 on:
   pull_request:
