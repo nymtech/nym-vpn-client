@@ -1,3 +1,10 @@
 [bindings.kotlin]
 cdylib_name = "nym_vpn_lib"
 package_name = "nym_vpn_lib"
+# Skip the runtime API-checksum integrity check. Bindings are always generated
+# from the exact library being shipped (see Android.mk `uniffi: build`), so the
+# check is redundant here. It also miscompiles on 32-bit ARM under ART: the
+# checksum FFI functions return a 16-bit value that ART's armv7 compiled code
+# fails to truncate, so the check spuriously fails and UniffiLib init throws
+# (login hangs on e.g. Android 9 armeabi-v7a). See uniffi 0.29.1+ omit_checksums.
+omit_checksums = true
