@@ -350,8 +350,6 @@ jobs:
 
           mv -v ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }} ${ARCHIVE_LINUX_X86_64}
           mv -v ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }} ${ARCHIVE_LINUX_AARCH64}
-          mv -v ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }} ${ARCHIVE_WINDOWS_X64}
-          mv -v ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }} ${ARCHIVE_WINDOWS_ARM64}
 
           test -d ${ARCHIVE_LINUX_X86_64} && tar cvzf ${ARCHIVE_LINUX_X86_64}.tar.gz ${ARCHIVE_LINUX_X86_64}
           test -d ${ARCHIVE_LINUX_AARCH64} && tar cvzf ${ARCHIVE_LINUX_AARCH64}.tar.gz ${ARCHIVE_LINUX_AARCH64}
