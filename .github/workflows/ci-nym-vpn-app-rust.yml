@@ -21,19 +21,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: arc-linux-latest
-            sccache_endpoint: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
-          - os: custom-macos-15
-            sccache_endpoint: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
-          - os: custom-windows-11
-            sccache_endpoint: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
-
+        os: [arc-linux-latest, custom-macos-15, custom-windows-11]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
-
-    env:
-      SCCACHE_REDIS_ENDPOINT: ${{ matrix.sccache_endpoint }}
 
     steps:
       - name: "Cleanup working directory"
@@ -64,6 +54,21 @@ jobs:
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Enable Redis for sscache (Linux)
+        if: ${{ matrix.os == 'arc-linux-latest' }}
+        run: |
+          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_ENDPOINT }}" >> $GITHUB_ENV
+
+      - name: Enable Redis for sscache (macOS)
+        if: ${{ matrix.os == 'custom-macos-15' }}
+        run: |
+          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" >> $GITHUB_ENV
+
+      - name: Enable Redis for sscache (Windows)
+        if: ${{ matrix.os == 'custom-windows-11' }}
+        run: |
+          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" >> $env:GITHUB_ENV
 
       - uses: mozilla-actions/sccache-action@v0.0.10
 
