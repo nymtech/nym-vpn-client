@@ -251,6 +251,7 @@ jobs:
     uses: ./.github/workflows/build-release-artifacts.yml
     with:
       release_channel: ${{ needs.resolve.outputs.channel }}
+      version: ${{ needs.resolve.outputs.version }}
       android: ${{ needs.resolve.outputs.android == 'true' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}
@@ -284,7 +285,7 @@ jobs:
             ${{ env.DEB_ARTIFACTS_AARCH64 }}
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
-          key: ${{ runner.os }}
+          key: ${{ runner.os }}-1
 
   release:
     needs: [resolve, build, restore-build-cache, save-build-cache]
@@ -319,7 +320,7 @@ jobs:
             ${{ env.DEB_ARTIFACTS_AARCH64 }}
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
-          key: ${{ runner.os }}
+          key: ${{ runner.os }}-1
 
       - run: |
           ls -la
