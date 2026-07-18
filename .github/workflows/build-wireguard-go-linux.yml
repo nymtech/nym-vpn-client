@@ -57,7 +57,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: wireguard_go-${{ matrix.arch }}
+          name: wireguard-go-${{ matrix.arch }}-linux-unknown
           path: build/lib
           if-no-files-found: error
           retention-days: 1

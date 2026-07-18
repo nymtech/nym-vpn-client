@@ -63,7 +63,7 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v8
         with:
-          name: wireguard_go-x86_64
+          name: wireguard-go_x86_64-linux-unknown
           path: build/lib
 
       - name: rustfmt check

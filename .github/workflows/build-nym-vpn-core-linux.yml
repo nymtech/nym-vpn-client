@@ -116,7 +116,7 @@ jobs:
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v8
         with:
-          name: wireguard_go-${{ matrix.arch }}
+          name: wireguard-go_${{ matrix.arch }}-linux-unknown
           path: build/lib
 
       - name: Build nym-vpn-core
