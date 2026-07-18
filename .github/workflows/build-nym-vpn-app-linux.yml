@@ -30,8 +30,17 @@ on:
         required: true
       DESKTOP_JS_SENTRY_DSN:
         required: true
+      SCCACHE_REDIS_ENDPOINT:
+        required: false
+      SCCACHE_REDIS_PASSWORD:
+        required: false
+
 env:
   CARGO_TERM_COLOR: always
+  RUSTC_WRAPPER: sccache
+  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-linux:
@@ -59,6 +68,8 @@ jobs:
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
+
+      - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Install system dependencies
         run: |

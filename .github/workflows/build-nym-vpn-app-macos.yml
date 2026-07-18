@@ -33,10 +33,20 @@ on:
       pkg_installer_name:
         description: "PKG installer artifact name"
         value: ${{ jobs.build-macos.outputs.pkg_installer_name }}
+    secrets:
+      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
+        required: false
+      SCCACHE_REDIS_PASSWORD:
+        required: false
+
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_MACOS: macos_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
+  RUSTC_WRAPPER: sccache
+  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-macos:
@@ -63,17 +73,7 @@ jobs:
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
 
-      - name: Run sccache-cache only for non-release runs
-        if: ${{ inputs.release_type == 'pr' }}
-        uses: mozilla-actions/sccache-action@v0.0.10
-
-      - name: Set Rust caching env vars only for non-release runs
-        if: ${{ inputs.release_type == 'pr' }}
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_PASSWORD=${{ secrets.SCCACHE_REDIS_PASSWORD }}" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_EXPIRATION=86400" >> $GITHUB_ENV
+      - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Normalize release_type
         run: |

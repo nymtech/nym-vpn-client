@@ -30,6 +30,10 @@ on:
     secrets:
       VPND_SENTRY_DSN:
         required: true
+      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
+        required: false
+      SCCACHE_REDIS_PASSWORD:
+        required: false
     outputs:
       UPLOAD_DIR_WINDOWS:
         value: ${{ jobs.build-nym-vpn-core.outputs.UPLOAD_DIR_WINDOWS }}

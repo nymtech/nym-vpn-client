@@ -83,6 +83,10 @@ on:
         required: true
       WINDOWS_SIGNING_PFX_PASSWORD:
         required: true
+      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
+        required: false
+      SCCACHE_REDIS_PASSWORD:
+        required: false
     outputs:
       UPLOAD_DIR_WINDOWS:
         value: ${{ jobs.build-nym-vpn-app.outputs.UPLOAD_DIR_WINDOWS }}
@@ -95,6 +99,10 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   UPLOAD_DIR_WINDOWS: app_artifacts_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
   TAURI_SRC: "${{ github.workspace }}/nym-vpn-app/src-tauri/"
+  RUSTC_WRAPPER: sccache
+  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-nym-vpn-app:
@@ -122,6 +130,8 @@ jobs:
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
+
+      - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57

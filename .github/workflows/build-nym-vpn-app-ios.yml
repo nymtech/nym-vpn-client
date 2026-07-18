@@ -29,10 +29,19 @@ on:
         description: "Orchestrated app version (empty = use Xcode MARKETING_VERSION as before)"
         type: string
         default: ""
+    secrets:
+      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
+        required: false
+      SCCACHE_REDIS_PASSWORD:
+        required: false
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
+  RUSTC_WRAPPER: sccache
+  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-ios:
