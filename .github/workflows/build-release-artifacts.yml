@@ -113,9 +113,8 @@ jobs:
   resolve:
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.v.outputs.tag }}
-      version: ${{ steps.v.outputs.version }}
-      channel: ${{ steps.v.outputs.channel }}
+      version: ${{ steps.resolve.outputs.version }}
+      channel: ${{ steps.resolve.outputs.channel }}
       android: ${{ steps.resolve.outputs.android }}
       fdroid: ${{ steps.resolve.outputs.fdroid }}
       linux: ${{ steps.resolve.outputs.linux }}
