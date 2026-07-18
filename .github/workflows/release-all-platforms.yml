@@ -241,7 +241,7 @@ jobs:
             ${{ env.DEB_ARTIFACTS_AARCH64 }}
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
-          key: ${{ runner.os }}
+          key: ${{ runner.os }}-1
 
   build:
     needs: [resolve, restore-build-cache]
