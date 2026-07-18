@@ -17,19 +17,116 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  NYM_RPC_ARTIFACTS_MACOS: nym_rpc_artifacts_macos
+  CORE_ARTIFACTS_MACOS: core_artifacts_macos
 
 jobs:
   build-wireguard-go-macos:
     uses: ./.github/workflows/build-wireguard-go-mac.yml
 
   build-nym-vpn-core-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cpu_arch: x86_64
+            target: x86_64-apple-darwin
+          - cpu_arch: arm64
+            target: aarch64-apple-darwin
+
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-macos
     env:
-      UPLOAD_DIR_MACOS: core_artifacts_macos
+      UPLOAD_DIR_MACOS: core_artifacts_macos_${{ matrix.cpu_arch }}
     runs-on: custom-macos-15
-    outputs:
-      UPLOAD_DIR_MACOS: ${{ env.UPLOAD_DIR_MACOS }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
+
+      - name: Dotenv Action
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+          targets: ${{ matrix.target }}
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
+
+      - name: Install cargo-get
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-get
+
+      - name: Install toml-cli
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: toml-cli
+
+      - name: Apply orchestrated version
+        uses: ./.github/workflows/platform/apply-version
+        with:
+          version: ${{ inputs.version }}
+          target: core
+
+      - name: Set version for nightly builds
+        working-directory: nym-vpn-core
+        if: ${{ github.ref_name == 'develop' && inputs.version == '' }}
+        run: |
+          if [ ${{ github.event_name }} = 'schedule' ]; then
+            TAG="nightly"
+          else
+            TAG="dev"
+          fi
+          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
+          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
+          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
+          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
+          mv Cargo-patched.toml Cargo.toml
+          cargo fetch
+
+      - name: Download wireguard-go artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: wireguard-go_apple_universal
+          path: build/lib
+
+      - name: Build nym-vpn-core
+        env:
+          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+        run: |
+          make -C nym-vpn-core -f macOS.mk nym-setup nym-vpnd nym-socks5-proxy \
+            RELEASE="true" \
+            ARCH="${{ matrix.cpu_arch }}" \
+            UPLOAD_DIR_MAC="${{ env.UPLOAD_DIR_MACOS }}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.UPLOAD_DIR_MACOS }}
+          path: ${{ env.UPLOAD_DIR_MACOS }}
+          if-no-files-found: error
+          retention-days: 1
+
+  build-nym-vpn-rpc:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: custom-macos-15
     steps:
       - name: Checkout repo
         uses: actions/checkout@v7
@@ -104,15 +201,49 @@ jobs:
           name: wireguard-go_apple_universal
           path: build/lib
 
-      - name: Build nym-vpn-core
+      - name: Build rpc-swift-package
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          make -C nym-vpn-core -f macOS.mk nym-setup nym-vpnd nym-socks5-proxy rpc-swift-package \
-            RELEASE="true" \
-            UPLOAD_DIR_MAC="${{ github.workspace }}/${{ env.UPLOAD_DIR_MACOS }}"
+          make -C nym-vpn-core -f macOS.mk rpc-swift-package RELEASE="true"
+          mkdir "${{ env.NYM_RPC_ARTIFACTS_MACOS }}"
+          mv "nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc" "${{ env.NYM_RPC_ARTIFACTS_MACOS }}"
 
-          mv "nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc" "${{ env.UPLOAD_DIR_MACOS }}"
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
+          path: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
+          if-no-files-found: error
+          retention-days: 1
+
+  combine-artifacts:
+    needs: [build-nym-vpn-core-macos, build-nym-vpn-rpc]
+    runs-on: custom-macos-15
+    env:
+      UPLOAD_DIR_MACOS: ${{ env.CORE_ARTIFACTS_MACOS }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: core_artifacts_macos_x86_64
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: core_artifacts_macos_arm64
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
+
+      - name: Combine artifacts
+        run: |
+          mkdir "${{ env.UPLOAD_DIR_MACOS }}"
+
+          for file in core_artifacts_macos_x86_64/*; do
+            lipo -create -output "${{ env.UPLOAD_DIR_MACOS }}/$file" "core_artifacts_macos_x86_64/$file" "core_artifacts_macos_arm64/$file"
+          done
+
+          mv "${{ env.NYM_RPC_ARTIFACTS_MACOS }}/NymVPNRpc" "${{ env.UPLOAD_DIR_MACOS }}"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
