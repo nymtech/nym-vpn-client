@@ -79,6 +79,9 @@ jobs:
         with:
           crate: toml-cli
 
+      - run: |
+          echo "::notice:: Input version = ${{ inputs.version }}"
+
       - name: Apply orchestrated version
         uses: ./.github/workflows/platform/apply-version
         with:
@@ -238,8 +241,13 @@ jobs:
         run: |
           mkdir "${{ env.CORE_ARTIFACTS_MACOS }}"
 
-          for file in core_artifacts_macos_x86_64/*; do
-            lipo -create -output "${{ env.CORE_ARTIFACTS_MACOS }}/$file" "core_artifacts_macos_x86_64/$file" "core_artifacts_macos_arm64/$file"
+          for filepath in core_artifacts_macos_x86_64/*; do
+            file=$(basename "$filepath")
+            if [ -f "$filepath" ]; then
+              lipo -create -output "${{ env.CORE_ARTIFACTS_MACOS }}/$file" \
+                "core_artifacts_macos_x86_64/$file" \
+                "core_artifacts_macos_arm64/$file"
+            fi
           done
 
           mv "${{ env.NYM_RPC_ARTIFACTS_MACOS }}/NymVPNRpc" "${{ env.CORE_ARTIFACTS_MACOS }}"
