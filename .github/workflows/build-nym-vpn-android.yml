@@ -1,5 +1,4 @@
 name: build-nym-vpn-android
-run-name: build-nym-vpn-android (${{ inputs.build_type }}, ${{ inputs.build_format }}, ${{ inputs.build_flavor }})
 on:
   pull_request:
     types: [opened, synchronize, reopened]
