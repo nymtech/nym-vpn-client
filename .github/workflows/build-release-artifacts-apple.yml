@@ -76,6 +76,21 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  print:
+    name: Print inputs
+    runs-on: ubuntu-latest
+    env:
+      release_type: ${{ inputs.release_type }}
+      version: ${{ inputs.version }}
+      build_ios: ${{ inputs.build_ios }}
+      build_macos: ${{ inputs.build_macos }}
+    steps:
+      - run: |
+          echo "release_type: $release_type"
+          echo "version: $version"
+          echo "build_ios: $build_ios"
+          echo "build_macos: $build_macos"
+
   build-ios-app:
     uses: ./.github/workflows/build-nym-vpn-app-ios.yml
     if: ${{ inputs.build_ios == true }}
