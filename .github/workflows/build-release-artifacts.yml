@@ -132,7 +132,7 @@ jobs:
         run: |
           if ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}; then
             RELEASE_CHANNEL="nightly"
-            VERSION=""
+            VERSION="${{ inputs.version }}"
             ANDROID=true
             FDROID=true
             LINUX=true

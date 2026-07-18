@@ -110,6 +110,7 @@ env:
   DEB_ARTIFACTS_AARCH64: deb_artifacts_aarch64
   IOS_ARTIFACTS: ios_artifacts
   MACOS_ARTIFACTS: macos_artifacts
+  CACHE_KEY: ${{ runner.os }}-2 # used when testing workflow
 
 jobs:
   resolve:
@@ -241,7 +242,7 @@ jobs:
             ${{ env.DEB_ARTIFACTS_AARCH64 }}
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
-          key: ${{ runner.os }}-1
+          key: ${{ env.CACHE_KEY }}
 
   build:
     needs: [resolve, restore-build-cache]
@@ -283,7 +284,7 @@ jobs:
             ${{ env.DEB_ARTIFACTS_AARCH64 }}
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
-          key: ${{ runner.os }}-1
+          key: ${{ env.CACHE_KEY }}
 
   release:
     needs: [resolve, build, restore-build-cache, save-build-cache]
