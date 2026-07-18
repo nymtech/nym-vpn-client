@@ -6,22 +6,7 @@ on:
       - ".github/workflows/build-winfw-windows.yml"
       - "nym-windows/**"
   workflow_dispatch:
-    inputs:
-      cpu_arch:
-        description: "Target CPU architecture"
-        required: false
-        default: x64
-        type: choice
-        options:
-          - x64
-          - ARM64
   workflow_call:
-    inputs:
-      cpu_arch:
-        description: "Target CPU architecture"
-        required: false
-        default: x64
-        type: string
 
 env:
   CARGO_TERM_COLOR: always
@@ -30,6 +15,10 @@ env:
 
 jobs:
   build-winfw:
+    strategy:
+      fail-fast: false
+      matrix:
+        cpu_arch: [x64, ARM64]
     runs-on: "custom-windows-11"
 
     steps:
@@ -52,7 +41,7 @@ jobs:
         id: cache
         with:
           path: nym-vpn-windows/winfw/bin
-          key: winfw-${{ inputs.cpu_arch || 'x64' }}-${{ hashFiles('nym-vpn-windows/winfw/src', 'nym-vpn-windows/libshared/src', 'nym-vpn-windows/libwfp/**/src', 'nym-vpn-windows/windows-libraries/src') }}
+          key: winfw-${{ matrix.cpu_arch }}-${{ hashFiles('nym-vpn-windows/winfw/src', 'nym-vpn-windows/libshared/src', 'nym-vpn-windows/libwfp/**/src', 'nym-vpn-windows/windows-libraries/src') }}
 
       - name: Install cargo-get
         if: steps.cache.outputs.cache-hit != 'true'
@@ -78,14 +67,14 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         shell: vsdevenv x64 pwsh {0}
         working-directory: nym-vpn-core
-        run: make -f Windows.mk winfw CPU_ARCH=${{ inputs.cpu_arch == 'ARM64' && 'ARM64' || 'AMD64' }} RELEASE=1 PWSH=1
+        run: make -f Windows.mk winfw CPU_ARCH=${{ matrix.cpu_arch == 'ARM64' && 'ARM64' || 'AMD64' }} RELEASE=1 PWSH=1
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: winfw_${{ inputs.cpu_arch || 'x64' }}
+          name: winfw_${{ matrix.cpu_arch }}
           path: |
-            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/${{ inputs.cpu_arch || 'x64' }}-Release/winfw.dll
-            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/${{ inputs.cpu_arch || 'x64' }}-Release/winfw.lib
+            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/${{ matrix.cpu_arch }}-Release/winfw.dll
+            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/${{ matrix.cpu_arch }}-Release/winfw.lib
           if-no-files-found: error
           retention-days: 1
