@@ -1,5 +1,5 @@
 name: 'Install Apple WWDR Certificates'
-description: 'Checks, downloads, and installs missing or expired Apple WWDR G3 and G4 certificates.'
+description: 'Checks, downloads, and installs missing or expired Apple WWDR G3 and Developer ID certificates.'
 inputs:
   keychain-path:
     description: 'The target keychain name (e.g., login.keychain or a custom build keychain)'
