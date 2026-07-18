@@ -245,7 +245,7 @@ jobs:
 
   build:
     needs: [resolve, restore-build-cache]
-    if: ${{ needs.restore-build-cache.outputs.cache-hit == false }}
+    if: ${{ needs.restore-build-cache.outputs.cache-hit == 'false' }}
     permissions:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml
@@ -264,7 +264,7 @@ jobs:
     needs: [resolve, build, restore-build-cache]
     runs-on: ubuntu-latest
     outputs:
-      cache-hit: ${{ needs.restore-build-cache.outputs.cache-hit == false }}
+      cache-hit: ${{ needs.restore-build-cache.outputs.cache-hit == 'false' }}
     steps:
       - uses: actions/download-artifact@v8
       - uses: actions/cache/save@v6
@@ -297,13 +297,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      DOWNLOAD_ARTIFACTS: ${{ needs.restore-build-cache.outputs.cache-hit == 'false' }}
     steps:
       - name: Download artifacts
-        if: ${{ needs.restore-build-cache.outputs.cache-hit == 'false' }}
+        if: ${{ env.DOWNLOAD_ARTIFACTS == true }}
         uses: actions/download-artifact@v8
 
       - uses: actions/cache/restore@v6
-        if: ${{ needs.restore-build-cache.outputs.cache-hit == 'true' }}
+        if: ${{ env.DOWNLOAD_ARTIFACTS == false }}
         with:
           path: |
             ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
