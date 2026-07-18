@@ -37,7 +37,8 @@ jobs:
           fetch-depth: 1
 
       - uses: mozilla-actions/sccache-action@v0.0.10
-      - run: |
+      - name: Configure sccache
+        run: |
           echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
           echo "SCCACHE_DIR=$HOME/.cache/sccache" >> "$GITHUB_ENV"
           echo "SCCACHE_CACHE_SIZE=20G" >> "$GITHUB_ENV"

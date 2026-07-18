@@ -56,7 +56,8 @@ jobs:
           fetch-depth: 1
 
       - uses: mozilla-actions/sccache-action@v0.0.10
-      - shell: pwsh
+      - name: Configure sccache
+        shell: pwsh
         run: |
           "RUSTC_WRAPPER=sccache" | Out-File -FilePath $env:GITHUB_ENV -Append
           "SCCACHE_DIR=$HOME\.cache\sccache" | Out-File -FilePath $env:GITHUB_ENV -Append
