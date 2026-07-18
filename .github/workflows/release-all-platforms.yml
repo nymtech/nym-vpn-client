@@ -288,6 +288,11 @@ jobs:
 
   release:
     needs: [resolve, build, save-build-cache]
+    if: |
+      !cancelled() && (
+        needs.restore-build-cache.outputs.cache-hit == 'true' ||
+        needs.build.result == 'success'
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
