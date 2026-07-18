@@ -20,10 +20,6 @@ on:
         type: boolean
         default: false
     secrets:
-      SCCACHE_REDIS_ENDPOINT:
-        required: true
-      SCCACHE_REDIS_PASSWORD:
-        required: true
       VPND_SENTRY_DSN:
         required: true
       ANDROID_SIGNING_KEY_ALIAS:

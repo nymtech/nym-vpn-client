@@ -51,12 +51,6 @@ on:
     secrets:
       VPND_SENTRY_DSN:
         required: true
-      SCCACHE_REDIS_ENDPOINT:
-        required: true
-      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
-        required: true
-      SCCACHE_REDIS_PASSWORD:
-        required: true
 
 env:
   CARGO_TERM_COLOR: always

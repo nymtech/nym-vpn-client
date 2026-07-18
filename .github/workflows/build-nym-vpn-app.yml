@@ -42,12 +42,6 @@ on:
         type: string
         default: "stable"
     secrets:
-      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
-        required: true
-      SCCACHE_REDIS_PASSWORD:
-        required: true
-      SCCACHE_REDIS_ENDPOINT:
-        required: true
       CROWDIN_PROJECT_ID:
         required: true
       CROWDIN_PERSONAL_TOKEN:

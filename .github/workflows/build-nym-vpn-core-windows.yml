@@ -55,13 +55,8 @@ jobs:
         with:
           fetch-depth: 1
 
-      - uses: mozilla-actions/sccache-action@v0.0.10
-      - name: Configure sccache
-        shell: pwsh
-        run: |
-          "RUSTC_WRAPPER=sccache" | Out-File -FilePath $env:GITHUB_ENV -Append
-          "SCCACHE_DIR=$HOME\.cache\sccache" | Out-File -FilePath $env:GITHUB_ENV -Append
-          "SCCACHE_CACHE_SIZE=20G" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Setup sccache
+        uses: ./.github/actions/setup-sccache
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
