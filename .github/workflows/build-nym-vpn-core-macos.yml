@@ -79,9 +79,6 @@ jobs:
         with:
           crate: toml-cli
 
-      - run: |
-          echo "::notice:: Input version = ${{ inputs.version }}"
-
       - name: Apply orchestrated version
         uses: ./.github/workflows/platform/apply-version
         with:
