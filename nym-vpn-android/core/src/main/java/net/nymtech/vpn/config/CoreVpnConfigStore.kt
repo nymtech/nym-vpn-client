@@ -21,14 +21,16 @@ import androidx.datastore.preferences.core.Preferences
 import net.nymtech.vpn.model.config.CoreVpnConfig
 import nym_vpn_lib_types.GatewaySelectionAlgorithm
 
+private const val DS_NAME = "core_vpn_config"
+
+private val Context.coreVpnDataStore by preferencesDataStore(name = DS_NAME)
+
 /**
  * Canonical persisted VPN config store.
  */
 class CoreVpnConfigStore(private val context: Context) {
 
 	private companion object Companion {
-		private const val DS_NAME = "core_vpn_config"
-
 		private val KEY_ENTRY = stringPreferencesKey("ENTRY_POINT")
 		private val KEY_EXIT = stringPreferencesKey("EXIT_POINT")
 		private val KEY_MODE = stringPreferencesKey("MODE")
@@ -53,16 +55,14 @@ class CoreVpnConfigStore(private val context: Context) {
 		private const val MAX_DNS = 5
 	}
 
-	private val Context.dataStore by preferencesDataStore(name = DS_NAME)
-
-	val configFlow: Flow<CoreVpnConfig> = context.dataStore.data.map { prefs ->
+	val configFlow: Flow<CoreVpnConfig> = context.coreVpnDataStore.data.map { prefs ->
 		prefs.toCoreConfig()
 	}
 
 	suspend fun get(): CoreVpnConfig = throw UnsupportedOperationException("Use CoreVpnConfigRepository.get() instead")
 
 	suspend fun migrateAlgorithmIfNeeded() {
-		context.dataStore.edit { prefs ->
+		context.coreVpnDataStore.edit { prefs ->
 			val raw = prefs[KEY_ALGORITHM]
 			if (raw == "AUTO" || raw == "AUTO_ENTRY_EXPLICIT_EXIT") {
 				prefs[KEY_ALGORITHM] = GatewaySelectionAlgorithm.EXPLICIT.name
@@ -71,7 +71,7 @@ class CoreVpnConfigStore(private val context: Context) {
 	}
 
 	suspend fun update(transform: (CoreVpnConfig) -> CoreVpnConfig) {
-		context.dataStore.edit { prefs ->
+		context.coreVpnDataStore.edit { prefs ->
 			val current = prefs.toCoreConfig()
 			val updated = transform(current)
 			prefs.fromCoreConfig(updated)
