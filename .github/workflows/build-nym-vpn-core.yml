@@ -89,14 +89,5 @@ jobs:
     if: ${{ inputs.windows == true }}
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
     with:
-      cpu_arch: x64
-      version: ${{ inputs.version }}
-    secrets: inherit
-
-  build-nym-vpn-core-windows-arm64:
-    if: ${{ inputs.windows == true }}
-    uses: ./.github/workflows/build-nym-vpn-core-windows.yml
-    with:
-      cpu_arch: ARM64
       version: ${{ inputs.version }}
     secrets: inherit
