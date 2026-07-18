@@ -412,7 +412,15 @@ jobs:
         env:
           MACOS_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
         run: |
-          echo "MACOS_INSTALLER_NAME=${MACOS_INSTALLER_NAME}" >> $GITHUB_ENV
+          if [ -z "$MACOS_INSTALLER_NAME" ]; then
+            MACOS_INSTALLER_NAME=$(find "${{ env.DEB_ARTIFACTS_AARCH64 }}" -name "*.pkg" -type f -printf "%f" | head -1)
+            if [ -z "$MACOS_INSTALLER_NAME" ]; then
+              echo "::error:: Failed to locate pkg installer"
+              exit 1
+            fi
+          fi
+
+          echo "MACOS_INSTALLER_NAME=$MACOS_INSTALLER_NAME" >> $GITHUB_ENV
 
           cp -v ${{ env.MACOS_ARTIFACTS }}/${MACOS_INSTALLER_NAME} ${{ env.OUTPUT_DIR }}
 
@@ -461,6 +469,14 @@ jobs:
         env:
           ANDROID_APK: ${{ needs.build.outputs.fdroid_artifact_name }}
         run: |
+          if [ -z "$ANDROID_APK" ]; then
+            ANDROID_APK=$(find "${{ env.APP_ARTIFACTS_ANDROID_FDROID }}" -name "*.apk" -type f -printf "%f" | head -1)
+            if [ -z "$ANDROID_APK" ]; then
+              echo "::error:: Failed to locate fdroid apk"
+              exit 1
+            fi
+          fi
+
           echo "ANDROID_APK=${ANDROID_APK}" >> $GITHUB_ENV
 
           cp -v ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}.apk {{ env.OUTPUT_DIR }}
