@@ -118,25 +118,6 @@ jobs:
             keychain --version
           fi
 
-      - name: Configure sccache
-        run: |
-          set -euxo pipefail
-          which sccache || brew install sccache
-
-          export RUSTC_WRAPPER="$(which sccache)"
-          export SCCACHE_DIR="$HOME/.cache/sccache"
-          export SCCACHE_CACHE_SIZE="50G"
-          export SCCACHE_IDLE_TIMEOUT="0"
-          export CARGO_INCREMENTAL=0
-
-          echo "RUSTC_WRAPPER=$RUSTC_WRAPPER" >> "$GITHUB_ENV"
-          echo "SCCACHE_DIR=$SCCACHE_DIR" >> "$GITHUB_ENV"
-          echo "SCCACHE_CACHE_SIZE=$SCCACHE_CACHE_SIZE" >> "$GITHUB_ENV"
-          echo "SCCACHE_IDLE_TIMEOUT=$SCCACHE_IDLE_TIMEOUT" >> "$GITHUB_ENV"
-          echo "CARGO_INCREMENTAL=$CARGO_INCREMENTAL" >> "$GITHUB_ENV"
-
-          mkdir -p "$SCCACHE_DIR"
-
       - name: Build nym-vpnc (aarch64)
         working-directory: nym-vpn-core
         run: |
