@@ -1,5 +1,5 @@
 name: build-nym-vpn-app-macos
-
+run-name: build-nym-vpn-app-macos (${{ inputs.release_type }})
 on:
   # pull_request:
   #   types: [opened, synchronize, reopened]
