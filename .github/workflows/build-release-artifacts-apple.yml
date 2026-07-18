@@ -71,6 +71,7 @@ on:
       CROWDIN_PROJECT_ID:
         required: true
       APPLE_TEAM_ID:
+        required: true
     outputs:
       pkg_installer_name:
         description: "Name of the PKG installer artifact"
