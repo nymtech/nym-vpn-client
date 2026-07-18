@@ -117,23 +117,10 @@ jobs:
       version: ${{ inputs.version }}
     secrets: inherit
 
-  build-windows-x64:
+  build-windows:
     needs: download-translations
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
     with:
-      cpu_arch: x64
-      version: ${{ inputs.version }}
-      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
-      sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
-      updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
-      updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
-    secrets: inherit
-
-  build-windows-arm64:
-    needs: download-translations
-    uses: ./.github/workflows/build-nym-vpn-app-windows.yml
-    with:
-      cpu_arch: ARM64
       version: ${{ inputs.version }}
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}

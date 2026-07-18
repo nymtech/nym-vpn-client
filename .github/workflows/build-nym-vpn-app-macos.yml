@@ -68,7 +68,7 @@ env:
   SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
-  build-macos:
+  build-nym-vpn-app-macos:
     if: github.actor != 'dependabot[bot]'
     runs-on: custom-macos-15
     timeout-minutes: 45

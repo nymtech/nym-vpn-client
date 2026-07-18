@@ -35,8 +35,9 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-linux:
+  build-nym-vpn-app-linux:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: "ubuntu-22.04"

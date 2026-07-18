@@ -1,5 +1,4 @@
 name: build-nym-vpn-app-windows
-run-name: "build-nym-vpn-app-windows (${{ inputs.cpu_arch || 'x64' }})"
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -7,14 +6,6 @@ on:
       - ".github/workflows/build-nym-vpn-app-windows.yml"
   workflow_dispatch:
     inputs:
-      cpu_arch:
-        description: "Target CPU architecture"
-        required: false
-        default: x64
-        type: choice
-        options:
-          - x64
-          - ARM64
       dev_mode:
         description: "dev build"
         required: true
@@ -40,10 +31,6 @@ on:
         default: dev
   workflow_call:
     inputs:
-      cpu_arch:
-        required: false
-        type: string
-        default: x64
       # set to true when it is a 'dev' build
       dev_mode:
         required: true
@@ -87,9 +74,6 @@ on:
         required: true
       SCCACHE_REDIS_PASSWORD:
         required: true
-    outputs:
-      UPLOAD_DIR_WINDOWS:
-        value: ${{ jobs.build-nym-vpn-app.outputs.UPLOAD_DIR_WINDOWS }}
 
 permissions:
   contents: read
@@ -97,7 +81,6 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  UPLOAD_DIR_WINDOWS: app_artifacts_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
   TAURI_SRC: "${{ github.workspace }}/nym-vpn-app/src-tauri/"
   RUSTC_WRAPPER: sccache
   SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
@@ -105,14 +88,18 @@ env:
   SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
-  build-nym-vpn-app:
+  build-nym-vpn-app-windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        cpu_arch: [x64, ARM64]
+
     runs-on: custom-windows-11
     env:
       VPN_CORE_BUILDS_URL: https://builds.cdn.nymte.ch/nym-vpn-client/nym-vpn-core
       UPDATER_URL_STABLE: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable.json
       UPDATER_URL_DEV: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/dev.json
-    outputs:
-      UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
+      UPLOAD_DIR_WINDOWS: app_artifacts_windows_${{ matrix.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
 
     steps:
       - name: "Cleanup working directory"
@@ -143,7 +130,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ env.RUST_VERSION }}
-          targets: ${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || 'x86_64-pc-windows-msvc' }}
+          targets: ${{ matrix.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || 'x86_64-pc-windows-msvc' }}
           components: rustfmt, clippy
 
       - name: Install cargo-license
@@ -182,7 +169,7 @@ jobs:
       - name: Download nym-vpn-core
         uses: actions/download-artifact@v8
         with:
-          name: core_artifacts_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
+          name: core_artifacts_windows_${{ matrix.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
           path: nym-vpn-app/src-tauri
 
       - name: Install JS dependencies
@@ -256,8 +243,8 @@ jobs:
           SSL_COM_TOTP_SECRET: ${{ secrets.SSL_COM_TOTP_SECRET }}
           SSL_COM_CREDENTIAL_ID: ${{ steps.get_credential_ids.outputs.SSL_COM_CREDENTIAL_ID }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
-          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || 'x86_64-pc-windows-msvc' }} -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/${{ inputs.cpu_arch || 'x64' }}-Release"
-          TAURI_TARGET: ${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || '' }}
+          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/${{ matrix.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || 'x86_64-pc-windows-msvc' }} -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/${{ matrix.cpu_arch  }}-Release"
+          TAURI_TARGET: ${{ matrix.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc' || '' }}
           DEV_MODE: ${{ inputs.dev_mode == true }}
           UPDATER_ENABLED: ${{ inputs.updater_bundle == true }}
           UPDATER_ENDPOINT: ${{ inputs.updater_channel == 'stable' && env.UPDATER_URL_STABLE || env.UPDATER_URL_DEV }}
@@ -276,8 +263,8 @@ jobs:
       - name: Move things around to prepare for upload
         shell: bash
         env:
-          NSIS_DIR: nym-vpn-app/src-tauri/target/${{ inputs.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc/' || '' }}release/bundle/nsis
-          NSIS_ARCH: ${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
+          NSIS_DIR: nym-vpn-app/src-tauri/target/${{ matrix.cpu_arch == 'ARM64' && 'aarch64-pc-windows-msvc/' || '' }}release/bundle/nsis
+          NSIS_ARCH: ${{ matrix.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
         run: |
           echo "moving binaries into $UPLOAD_DIR_WINDOWS"
           rm -rf "$UPLOAD_DIR_WINDOWS" || true
