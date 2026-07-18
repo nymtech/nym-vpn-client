@@ -87,6 +87,7 @@ jobs:
     with:
       build_type: "debug"
       build_format: "apk"
+      build_flavor: "fdroid"
     secrets:
       SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
       SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
