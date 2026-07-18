@@ -356,10 +356,38 @@ jobs:
           test -d ${ARCHIVE_LINUX_X86_64} && tar cvzf ${ARCHIVE_LINUX_X86_64}.tar.gz ${ARCHIVE_LINUX_X86_64}
           test -d ${ARCHIVE_LINUX_AARCH64} && tar cvzf ${ARCHIVE_LINUX_AARCH64}.tar.gz ${ARCHIVE_LINUX_AARCH64}
 
-          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.DEB_ARTIFACTS_X86_64 }}/*.deb ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.DEB_ARTIFACTS_AARCH64 }}/*.deb ${{ env.OUTPUT_DIR }}
+          VPNC_DEB_X86_64=$(find "${DEB_ARTIFACTS_X86_64}" -name "nym-vpnc_*.deb" -type f | head -1)
+          if [ -n "$VPNC_DEB_X86_64" ]; then
+            echo "::error:: Failed to locate nym-vpnc deb (x86_64)"
+            exit 1
+          fi
+          VPNC_DEB_AARCH64=$(find "${DEB_ARTIFACTS_AARCH64}" -name "nym-vpnc_*.deb" -type f | head -1)
+          if [ -n "$VPNC_DEB_AARCH64" ]; then
+            echo "::error:: Failed to locate nym-vpnc deb (aarch64)"
+            exit 1
+          fi
+          VPND_DEB_X86_64=$(find "${DEB_ARTIFACTS_X86_64}" -name "nym-vpnd_*.deb" -type f | head -1)
+          if [ -n "$VPND_DEB_X86_64" ]; then
+            echo "::error:: Failed to locate nym-vpnd deb (x86_64)"
+            exit 1
+          fi
+          VPND_DEB_AARCH64=$(find "${DEB_ARTIFACTS_AARCH64}" -name "nym-vpnd_*.deb" -type f | head -1)
+          if [ -n "$VPND_DEB_AARCH64" ]; then
+            echo "::error:: Failed to locate nym-vpnd deb (aarch64)"
+            exit 1
+          fi
+
+          echo "VPNC_DEB_X86_64=${VPNC_DEB_X86_64}" >> $GITHUB_ENV
+          echo "VPNC_DEB_AARCH64=${VPNC_DEB_AARCH64}" >> $GITHUB_ENV
+          echo "VPND_DEB_X86_64=${VPND_DEB_X86_64}" >> $GITHUB_ENV
+          echo "VPND_DEB_AARCH64=${VPND_DEB_AARCH64}" >> $GITHUB_ENV
+
+          cp -v ${ARCHIVE_LINUX_X86_64}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${ARCHIVE_LINUX_AARCH64}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${DEB_ARTIFACTS_X86_64}/${VPNC_DEB_X86_64} ${{ env.OUTPUT_DIR }}
+          cp -v ${DEB_ARTIFACTS_AARCH64}/${VPNC_DEB_AARCH64} ${{ env.OUTPUT_DIR }}
+          cp -v ${DEB_ARTIFACTS_X86_64}/${VPND_DEB_X86_64} ${{ env.OUTPUT_DIR }}
+          cp -v ${DEB_ARTIFACTS_AARCH64}/${VPND_DEB_AARCH64} ${{ env.OUTPUT_DIR }}
 
       - name: Copy artifacts (Windows)
         if: ${{ needs.resolve.outputs.windows == 'true' }}
@@ -467,10 +495,14 @@ jobs:
             ${{ env.ARCHIVE_WINDOWS_X64 }}.tar.gz.sha256sum
             ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip
             ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum
-            ${{ env.DEB_ARTIFACTS_X86_64 }}.deb
-            ${{ env.DEB_ARTIFACTS_X86_64 }}.deb.sha256sum
-            ${{ env.DEB_ARTIFACTS_AARCH64 }}.deb
-            ${{ env.DEB_ARTIFACTS_AARCH64 }}.deb.sha256sum
+            ${{ env.VPNC_DEB_X86_64 }}
+            ${{ env.VPNC_DEB_X86_64 }}.sha256sum
+            ${{ env.VPNC_DEB_AARCH64 }}
+            ${{ env.VPNC_DEB_AARCH64 }}.sha256sum
+            ${{ env.VPND_DEB_X86_64 }}
+            ${{ env.VPND_DEB_X86_64 }}.sha256sum
+            ${{ env.VPND_DEB_AARCH64 }}
+            ${{ env.VPND_DEB_AARCH64 }}.sha256sum
             ${{ env.ANDROID_APK }}
             ${{ env.ANDROID_APK }}.sha256sum
             ${{ env.MACOS_INSTALLER_NAME }}
