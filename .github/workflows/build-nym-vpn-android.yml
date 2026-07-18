@@ -100,6 +100,7 @@ env:
 
 jobs:
   build-nym-vpn-app-android:
+    name: build-nym-vpn-android (${{ inputs.build_flavor }})
     runs-on: arc-linux-latest
     timeout-minutes: 90
     env:
