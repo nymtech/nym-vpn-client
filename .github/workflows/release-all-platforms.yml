@@ -320,7 +320,19 @@ jobs:
           ls -la
           tree -d .
 
-      - name: Generate checksums and create tar.gz archive per platform (Linux)
+      - name: Prepare build output directory
+        shell: bash
+        env:
+          OUTPUT_DIR_BASE: ci-builds/${{ github.ref_name }}
+        run: |
+          TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
+          OUTPUT_DIR="$OUTPUT_DIR_BASE/$TIMESTAMP"
+          echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
+          rm -rf ci-builds || true
+          mkdir -p $OUTPUT_DIR
+          echo $OUTPUT_DIR
+
+      - name: Copy artifacts (Linux)
         if: ${{ needs.resolve.outputs.linux == true }}
         env:
           BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
@@ -339,25 +351,12 @@ jobs:
           test -d ${ARCHIVE_LINUX_X86_64} && tar cvzf ${ARCHIVE_LINUX_X86_64}.tar.gz ${ARCHIVE_LINUX_X86_64}
           test -d ${ARCHIVE_LINUX_AARCH64} && tar cvzf ${ARCHIVE_LINUX_AARCH64}.tar.gz ${ARCHIVE_LINUX_AARCH64}
 
-          test -f ${ARCHIVE_LINUX_X86_64}.tar.gz && sha256sum ${ARCHIVE_LINUX_X86_64}.tar.gz > "${ARCHIVE_LINUX_X86_64}.tar.gz.sha256sum"
-          test -f ${ARCHIVE_LINUX_AARCH64}.tar.gz && sha256sum ${ARCHIVE_LINUX_AARCH64}.tar.gz > "${ARCHIVE_LINUX_AARCH64}.tar.gz.sha256sum"
+          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.DEB_ARTIFACTS_X86_64 }}/*.deb ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.DEB_ARTIFACTS_AARCH64 }}/*.deb ${{ env.OUTPUT_DIR }}
 
-          if [[ -d ${{ env.DEB_ARTIFACTS_X86_64 }} ]]; then
-            pushd ${{ env.DEB_ARTIFACTS_X86_64 }}
-            for deb in *.deb; do
-              sha256sum ${deb} > ${deb}.sha256sum
-            done
-            popd
-          fi
-          if [[ -d ${{ env.DEB_ARTIFACTS_AARCH64 }} ]]; then
-            pushd ${{ env.DEB_ARTIFACTS_AARCH64 }}
-            for deb in *.deb; do
-              sha256sum ${deb} > ${deb}.sha256sum
-            done
-            popd
-          fi
-
-      - name: Generate checksums and create tar.gz archive per platform (Windows)
+      - name: Copy artifacts (Windows)
         if: ${{ needs.resolve.outputs.windows == true }}
         env:
           BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
@@ -374,76 +373,74 @@ jobs:
           test -d ${ARCHIVE_WINDOWS_X64} && zip -r ${ARCHIVE_WINDOWS_X64}.zip ${ARCHIVE_WINDOWS_X64}
           test -d ${ARCHIVE_WINDOWS_ARM64} && zip -r ${ARCHIVE_WINDOWS_ARM64}.zip ${ARCHIVE_WINDOWS_ARM64}
 
-          test -f ${ARCHIVE_WINDOWS_X64}.zip && sha256sum ${ARCHIVE_WINDOWS_X64}.zip > "${ARCHIVE_WINDOWS_X64}.zip.sha256sum"
-          test -f ${ARCHIVE_WINDOWS_ARM64}.zip && sha256sum ${ARCHIVE_WINDOWS_ARM64}.zip > "${ARCHIVE_WINDOWS_ARM64}.zip.sha256sum"
+          cp -v ${{ env.ARCHIVE_WINDOWS_X64 }}.zip ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.OUTPUT_DIR }}
 
-      - name: Generate checksums and create tar.gz archive per platform (macOS)
+      - name: Copy artifacts (macOS)
         if: ${{ needs.resolve.outputs.macos == true }}
         env:
-          BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
           MACOS_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
         run: |
           echo "MACOS_INSTALLER_NAME=${MACOS_INSTALLER_NAME}" >> $GITHUB_ENV
 
-          mv -v ${{ env.APP_ARTIFACTS_MACOS }}/${MACOS_INSTALLER_NAME} .
-          test -f ${MACOS_INSTALLER_NAME} && sha256sum ${MACOS_INSTALLER_NAME} > "${MACOS_INSTALLER_NAME}.sha256sum"
+          cp -v ${{ env.APP_ARTIFACTS_MACOS }}/${MACOS_INSTALLER_NAME} ${{ env.OUTPUT_DIR }}
 
-      - name: Generate checksums and create tar.gz archive per platform (Linux)
-        if: ${{ needs.resolve.outputs.fdroid == true && needs.resolve.outputs.android == true }}
+      - name: Copy artifacts (Linux/App)
+        if: ${{ needs.resolve.outputs.linux == true }}
         env:
-          BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
+          BIN_BASENAME: nym-vpn_${{ needs.resolve.outputs.version }}
+          DEB_BASENAME: nym-vpn-app_${{ needs.resolve.outputs.version }}
+        run: |
+          LINUX_INSTALL=install
+          LINUX_APP_X64_BIN="${BIN_BASENAME}_linux_x64"
+          LINUX_APP_ARM64_BIN="${BIN_BASENAME}_linux_arm64"
+          LINUX_APP_DEB_X64="${DEB_BASENAME}_amd64.deb"
+          LINUX_APP_DEB_ARM64="${DEB_BASENAME}_arm64.deb"
+
+          echo "LINUX_INSTALL=$LINUX_INSTALL" >> $GITHUB_ENV
+          echo "LINUX_APP_X64_BIN=$LINUX_APP_X64_BIN" >> $GITHUB_ENV
+          echo "LINUX_APP_ARM64_BIN=$LINUX_APP_ARM64_BIN" >> $GITHUB_ENV
+          echo "LINUX_APP_DEB_X64=$LINUX_APP_DEB_X64" >> $GITHUB_ENV
+          echo "LINUX_APP_DEB_ARM64=$LINUX_APP_DEB_ARM64" >> $GITHUB_ENV
+
+          cp -v ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/$LINUX_INSTALL ${{ env.OUTPUT_DIR }}
+
+          cp -v ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_X64_BIN} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_ARM64_BIN} ${{ env.OUTPUT_DIR }}
+
+          cp -v ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_X64} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_ARM64} ${{ env.OUTPUT_DIR }}
+
+      - name: Copy artifacts (Windows/App)
+        if: ${{ needs.resolve.outputs.windows == true }}
+        env:
+          BASENAME: NymVPN_${{ needs.resolve.outputs.version }}
+        run: |
+          WINDOWS_APP_INSTALLER_X64="${BASENAME}_x64-setup.exe"
+          WINDOWS_APP_INSTALLER_ARM64="${BASENAME}_arm64-setup.exe"
+
+          echo "WINDOWS_APP_INSTALLER_X64=$WINDOWS_APP_INSTALLER_X64" >> $GITHUB_ENV
+          echo "WINDOWS_APP_INSTALLER_ARM64=$WINDOWS_APP_INSTALLER_ARM64" >> $GITHUB_ENV
+
+          cp -v ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_X64} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_ARM64} ${{ env.OUTPUT_DIR }}
+
+      - name: Copy artifacts (Android)
+        if: ${{ needs.resolve.outputs.android == true && needs.resolve.outputs.fdroid == true }}
+        env:
           ANDROID_APK: ${{ needs.build.outputs.fdroid_artifact_name }}
         run: |
           echo "ANDROID_APK=${ANDROID_APK}" >> $GITHUB_ENV
 
-          mv -v ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}.apk .
-          test -f ${ANDROID_APK} && sha256sum ${ANDROID_APK} > "${ANDROID_APK}.sha256sum"
+          cp -v ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}.apk {{ env.OUTPUT_DIR }}
 
-      - name: Prepare build output directory
-        shell: bash
-        env:
-          OUTPUT_DIR_BASE: ci-builds/${{ github.ref_name }}
+      - name: Generate checksums
         run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
-          OUTPUT_DIR="$OUTPUT_DIR_BASE/$TIMESTAMP"
-          echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
-          rm -rf ci-builds || true
-          mkdir -p $OUTPUT_DIR
-          echo $OUTPUT_DIR
-
-      - name: Prepare build output artifacts (Linux)
-        if: ${{ needs.resolve.outputs.linux == true }}
-        shell: bash
-        run: |
-          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.DEB_ARTIFACTS_X86_64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.DEB_ARTIFACTS_AARCH64 }}/*.{deb,sha256sum} ${{ env.OUTPUT_DIR }}
-
-      - name: Prepare build output artifacts (Windows)
-        if: ${{ needs.resolve.outputs.windows == true }}
-        shell: bash
-        run: |
-          cp -v ${{ env.ARCHIVE_WINDOWS_X64 }}.zip ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_WINDOWS_X64 }}.zip.sha256sum ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum ${{ env.OUTPUT_DIR }}
-
-      - name: Prepare build output artifacts (macOS)
-        if: ${{ needs.resolve.outputs.macos == true }}
-        shell: bash
-        run: |
-          cp -v ${{ env.MACOS_INSTALLER_NAME }} ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.MACOS_INSTALLER_NAME }}.sha256sum ${{ env.OUTPUT_DIR }}
-
-      - name: Prepare build output artifacts (Android)
-        if: ${{ needs.resolve.outputs.android == true && needs.resolve.outputs.fdroid == true }}
-        shell: bash
-        run: |
-          cp -v ${{ env.ANDROID_APK }} ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ANDROID_APK }}.sha256sum ${{ env.OUTPUT_DIR }}
+          for file in "${{ env.OUTPUT_DIR }}/*"; do
+              if [ -f "$file" ] && [[ "$file" != *.sha256sum ]]; then
+                  sha256sum "$file" > "${file}.sha256sum"
+              fi
+          done
 
       - name: Publish GitHub Release
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.release == true }}
@@ -472,6 +469,20 @@ jobs:
             ${{ env.ANDROID_APK }}.sha256sum
             ${{ env.MACOS_INSTALLER_NAME }}
             ${{ env.MACOS_INSTALLER_NAME }}.sha256sum
+            ${{ env.LINUX_INSTALL }}
+            ${{ env.LINUX_INSTALL }}.sha256sum
+            ${{ env.LINUX_APP_X64_BIN }}
+            ${{ env.LINUX_APP_X64_BIN }}.sha256sum
+            ${{ env.LINUX_APP_ARM64_BIN }}
+            ${{ env.LINUX_APP_ARM64_BIN }}.sha256sum
+            ${{ env.LINUX_APP_DEB_X64 }}
+            ${{ env.LINUX_APP_DEB_X64 }}.sha256sum
+            ${{ env.LINUX_APP_DEB_ARM64 }}
+            ${{ env.LINUX_APP_DEB_ARM64 }}.sha256sum
+            ${{ env.WINDOWS_APP_INSTALLER_X64 }}
+            ${{ env.WINDOWS_APP_INSTALLER_X64 }}.sha256sum
+            ${{ env.WINDOWS_APP_INSTALLER_ARM64 }}
+            ${{ env.WINDOWS_APP_INSTALLER_ARM64 }}.sha256sum
 
   # distribute:
   #   needs: [resolve, build, release]
