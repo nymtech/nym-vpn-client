@@ -70,10 +70,6 @@ on:
         required: true
       WINDOWS_SIGNING_PFX_PASSWORD:
         required: true
-      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
-        required: true
-      SCCACHE_REDIS_PASSWORD:
-        required: true
 
 permissions:
   contents: read
@@ -82,10 +78,6 @@ env:
   CARGO_TERM_COLOR: always
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   TAURI_SRC: "${{ github.workspace }}/nym-vpn-app/src-tauri/"
-  RUSTC_WRAPPER: sccache
-  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
-  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
-  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-nym-vpn-app-windows:
@@ -119,6 +111,11 @@ jobs:
         uses: xom9ikk/dotenv@v2.4.0
 
       - uses: mozilla-actions/sccache-action@v0.0.10
+      - shell: pwsh
+        run: |
+          "RUSTC_WRAPPER=sccache" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "SCCACHE_DIR=$HOME\.cache\sccache" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "SCCACHE_CACHE_SIZE=20G" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57

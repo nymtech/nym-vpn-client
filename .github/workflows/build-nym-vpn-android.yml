@@ -69,10 +69,6 @@ on:
         description: "Name of the built artifact"
         value: ${{ jobs.build.outputs.artifact_name }}
     secrets:
-      SCCACHE_REDIS_ENDPOINT:
-        required: true
-      SCCACHE_REDIS_PASSWORD:
-        required: true
       VPND_SENTRY_DSN:
         required: true
       ANDROID_SIGNING_KEY_ALIAS:
@@ -93,10 +89,6 @@ on:
         required: true
 env:
   UPLOAD_DIR_ANDROID: android_artifacts_${{ inputs.build_flavor }}
-  RUSTC_WRAPPER: sccache
-  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
-  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
-  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-nym-vpn-app-android:
@@ -122,6 +114,10 @@ jobs:
           submodules: true
 
       - uses: mozilla-actions/sccache-action@v0.0.10
+      - run: |
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+          echo "SCCACHE_DIR=$HOME/.cache/sccache" >> "$GITHUB_ENV"
+          echo "SCCACHE_CACHE_SIZE=20G" >> "$GITHUB_ENV"
 
       - name: Apply orchestrated version
         uses: ./.github/workflows/platform/apply-version

@@ -1,5 +1,4 @@
 name: build-nym-vpn-app-macos
-run-name: build-nym-vpn-app-macos (${{ inputs.release_type }})
 on:
   # pull_request:
   #   types: [opened, synchronize, reopened]
@@ -34,10 +33,6 @@ on:
         description: "PKG installer artifact name"
         value: ${{ jobs.build-macos.outputs.pkg_installer_name }}
     secrets:
-      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
-        required: true
-      SCCACHE_REDIS_PASSWORD:
-        required: true
       APPLE_DEVELOPER_ID_APPLICATION_CERT:
         required: true
       APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS:
@@ -62,10 +57,6 @@ env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_MACOS: macos_artifacts
   RAW_RELEASE_TYPE: ${{ (github.event_name == 'pull_request' && 'pr') || inputs.release_type || 'pr' }}
-  RUSTC_WRAPPER: sccache
-  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
-  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
-  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-nym-vpn-app-macos:
@@ -93,6 +84,10 @@ jobs:
         uses: xom9ikk/dotenv@v2.4.0
 
       - uses: mozilla-actions/sccache-action@v0.0.10
+      - run: |
+          echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+          echo "SCCACHE_DIR=$HOME/.cache/sccache" >> "$GITHUB_ENV"
+          echo "SCCACHE_CACHE_SIZE=20G" >> "$GITHUB_ENV"
 
       - name: Normalize release_type
         run: |
@@ -433,16 +428,18 @@ jobs:
           path: core_artifacts_macos
 
       - name: Move core artifacts
-        working-directory: nym-vpn-core
         run: |
-          VPND_DEST_DIR="../nym-vpn-apple/NymVPND"
+          VPND_DEST_DIR="nym-vpn-apple/NymVPND"
+
+          ls -la core_artifacts_macos || true
+          ls -la "${VPND_DEST_DIR}" || true
 
           for f in nym-vpnd nym-socks5-proxy nym-setup; do
-            mv "core_artifacts_macos/${f}" "${VPND_DEST_DIR}"
+            mv "core_artifacts_macos/${f}" "${VPND_DEST_DIR}/${f}"
             chmod +x "${VPND_DEST_DIR}/${f}"
           done
 
-          mv core_artifacts_macos/NymVPNRpc ../nym-vpn-apple/NymVPNRpc
+          mv core_artifacts_macos/NymVPNRpc nym-vpn-apple/NymVPNRpc
 
       # todo: uncomment once tests are fixed
       # - name: Apple unit tests
