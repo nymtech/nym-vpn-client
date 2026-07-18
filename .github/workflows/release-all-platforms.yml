@@ -245,6 +245,7 @@ jobs:
 
   build:
     needs: [resolve, restore-build-cache]
+    if: ${{ needs.restore-build-cache.outputs.cache-hit == false }}
     permissions:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml
