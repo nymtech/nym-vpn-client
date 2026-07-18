@@ -404,8 +404,8 @@ jobs:
           test -d ${ARCHIVE_WINDOWS_X64} && zip -r ${ARCHIVE_WINDOWS_X64}.zip ${ARCHIVE_WINDOWS_X64}
           test -d ${ARCHIVE_WINDOWS_ARM64} && zip -r ${ARCHIVE_WINDOWS_ARM64}.zip ${ARCHIVE_WINDOWS_ARM64}
 
-          cp -v ${{ env.ARCHIVE_WINDOWS_X64 }}.zip ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip ${{ env.OUTPUT_DIR }}
+          cp -v ${ARCHIVE_WINDOWS_X64}.zip ${{ env.OUTPUT_DIR }}
+          cp -v ${ARCHIVE_WINDOWS_ARM64}.zip ${{ env.OUTPUT_DIR }}
 
       - name: Copy artifacts (macOS)
         if: ${{ needs.resolve.outputs.macos == 'true' }}
@@ -414,7 +414,7 @@ jobs:
         run: |
           echo "MACOS_INSTALLER_NAME=${MACOS_INSTALLER_NAME}" >> $GITHUB_ENV
 
-          cp -v ${{ env.APP_ARTIFACTS_MACOS }}/${MACOS_INSTALLER_NAME} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.MACOS_ARTIFACTS }}/${MACOS_INSTALLER_NAME} ${{ env.OUTPUT_DIR }}
 
       - name: Copy artifacts (Linux/App)
         if: ${{ needs.resolve.outputs.linux == 'true' }}
@@ -439,7 +439,7 @@ jobs:
           cp -v ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_X64_BIN} ${{ env.OUTPUT_DIR }}
           cp -v ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_ARM64_BIN} ${{ env.OUTPUT_DIR }}
 
-          cp -v ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_X64} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_DEB_X64} ${{ env.OUTPUT_DIR }}
           cp -v ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_ARM64} ${{ env.OUTPUT_DIR }}
 
       - name: Copy artifacts (Windows/App)
@@ -453,8 +453,8 @@ jobs:
           echo "WINDOWS_APP_INSTALLER_X64=$WINDOWS_APP_INSTALLER_X64" >> $GITHUB_ENV
           echo "WINDOWS_APP_INSTALLER_ARM64=$WINDOWS_APP_INSTALLER_ARM64" >> $GITHUB_ENV
 
-          cp -v ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_X64} ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_ARM64} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64} ${{ env.OUTPUT_DIR }}
+          cp -v ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64} ${{ env.OUTPUT_DIR }}
 
       - name: Copy artifacts (Android)
         if: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.fdroid == 'true' }}
