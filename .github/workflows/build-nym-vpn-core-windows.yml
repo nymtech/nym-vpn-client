@@ -1,5 +1,5 @@
 name: build-nym-vpn-core-windows
-run-name: "build-nym-vpn-core-windows (${{ matrix.cpu_arch || 'x64' }})"
+run-name: "build-nym-vpn-core-windows"
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -47,8 +47,8 @@ jobs:
 
     env:
       LIBS_PATH: build/lib/${{ matrix.cpu_arch == 'ARM64' && 'aarch64' || 'x86_64' }}-pc-windows-msvc
-      WINFW_PATH: build/winfw/${{ matrix.cpu_arch || 'x64' }}-Release
-      STDRIVER_PATH: nym-vpn-windows/split-tunnel-driver/signed/${{ matrix.cpu_arch || 'x64' }}
+      WINFW_PATH: build/winfw/${{ matrix.cpu_arch }}-Release
+      STDRIVER_PATH: nym-vpn-windows/split-tunnel-driver/signed/${{ matrix.cpu_arch }}
       WINTUN_DIST_DIR: wintun-dist
       UPLOAD_DIR_WINDOWS: core_artifacts_windows_${{ matrix.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
 
@@ -134,7 +134,7 @@ jobs:
       - name: Download winfw artifacts
         uses: actions/download-artifact@v8
         with:
-          name: winfw_${{ matrix.cpu_arch || 'x64' }}
+          name: winfw_${{ matrix.cpu_arch }}
           path: ${{ env.WINFW_PATH }}
 
       - name: Download wintun
