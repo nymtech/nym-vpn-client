@@ -298,11 +298,11 @@ jobs:
       contents: write
     steps:
       - name: Download artifacts
-        if: ${{ needs.restore-build-cache.outputs.cache-hit == false }}
+        if: ${{ needs.restore-build-cache.outputs.cache-hit == 'false' }}
         uses: actions/download-artifact@v8
 
       - uses: actions/cache/restore@v6
-        if: ${{ needs.restore-build-cache.outputs.cache-hit == true }}
+        if: ${{ needs.restore-build-cache.outputs.cache-hit == 'true' }}
         with:
           path: |
             ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
