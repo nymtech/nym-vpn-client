@@ -19,6 +19,8 @@ env:
   CARGO_TERM_COLOR: always
   NYM_RPC_ARTIFACTS_MACOS: nym_rpc_artifacts_macos
   CORE_ARTIFACTS_MACOS: core_artifacts_macos
+  CORE_ARTIFACTS_MACOS_X86_64: core_artifacts_macos_x86_64
+  CORE_ARTIFACTS_MACOS_ARM64: core_artifacts_macos_arm64
 
 jobs:
   build-wireguard-go-macos:
@@ -222,28 +224,37 @@ jobs:
     needs: [build-nym-vpn-core-macos, build-nym-vpn-rpc]
     runs-on: custom-macos-15
     steps:
-      - uses: actions/download-artifact@v8
+      - name: Download core artifacts (x86_64)
+        uses: actions/download-artifact@v8
         with:
-          name: core_artifacts_macos_x86_64
+          name: ${{ env.CORE_ARTIFACTS_MACOS_X86_64 }}
+          path: ${{ env.CORE_ARTIFACTS_MACOS_X86_64 }}
 
-      - uses: actions/download-artifact@v8
+      - name: Download core artifacts (arm64)
+        uses: actions/download-artifact@v8
         with:
-          name: core_artifacts_macos_arm64
+          name: ${{ env.CORE_ARTIFACTS_MACOS_ARM64 }}
+          path: ${{ env.CORE_ARTIFACTS_MACOS_ARM64 }}
 
-      - uses: actions/download-artifact@v8
+      - name: Download nym-vpn-rpc artifacts
+        uses: actions/download-artifact@v8
         with:
           name: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
+          path: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
 
       - name: Combine artifacts
         run: |
+          ls -la .
+          ls -la "${{ env.NYM_RPC_ARTIFACTS_MACOS }}"
+
           mkdir "${{ env.CORE_ARTIFACTS_MACOS }}"
 
-          for filepath in core_artifacts_macos_x86_64/*; do
+          for filepath in ${{ env.CORE_ARTIFACTS_MACOS_X86_64 }}/*; do
             file=$(basename "$filepath")
             if [ -f "$filepath" ]; then
               lipo -create -output "${{ env.CORE_ARTIFACTS_MACOS }}/$file" \
-                "core_artifacts_macos_x86_64/$file" \
-                "core_artifacts_macos_arm64/$file"
+                "${{ env.CORE_ARTIFACTS_MACOS_X86_64 }}/$file" \
+                "${{ env.CORE_ARTIFACTS_MACOS_ARM64 }}/$file"
             fi
           done
 
