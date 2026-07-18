@@ -287,7 +287,7 @@ jobs:
           key: ${{ runner.os }}
 
   release:
-    needs: [resolve, build, save-build-cache]
+    needs: [resolve, build, restore-build-cache, save-build-cache]
     if: |
       !cancelled() && (
         needs.restore-build-cache.outputs.cache-hit == 'true' ||
