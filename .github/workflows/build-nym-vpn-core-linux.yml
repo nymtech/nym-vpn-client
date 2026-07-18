@@ -17,8 +17,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUSTC_WRAPPER: sccache
-  SCCACHE_GHA_ENABLED: true
 
 jobs:
   build-wireguard-go-linux:
@@ -49,8 +47,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
-
-      - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
