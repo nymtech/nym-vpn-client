@@ -47,6 +47,7 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: rustfmt, clippy
+          targets: x86_64-apple-darwin aarch64-apple-darwin
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
