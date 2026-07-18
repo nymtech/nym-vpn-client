@@ -25,7 +25,9 @@ RPC_CRATE_DIR := $(CURDIR)/crates/nym-vpn-rpc-uniffi
 # Output dir for the final universal binary
 UPLOAD_DIR_MAC ?= $(CURDIR)/upload/mac
 
-LIBWG_BUILD_DIR := $(CURDIR)/../build/lib/universal-apple-darwin
+LIBWG_AARCH64_BUILD_DIR := $(CURDIR)/../build/lib/aarch64-apple-darwin
+LIBWG_X86_64_BUILD_DIR := $(CURDIR)/../build/lib/x86_64-apple-darwin
+LIBWG_OBJS := $(LIBWG_AARCH64_BUILD_DIR)/libwg.a $(LIBWG_X86_64_BUILD_DIR)/libwg.a
 WIREGUARD_DIR := $(CURDIR)/../wireguard
 
 # Target artifact dirs
@@ -53,9 +55,9 @@ build-dev:
 
 build-all: libwg $(BIN_TARGETS) rpc-swift-package
 
-libwg: $(LIBWG_BUILD_DIR)/libwg.a
+libwg: $(LIBWG_OBJS)
 
-$(LIBWG_BUILD_DIR)/libwg.a: $(LIBWG_SOURCES)
+$(LIBWG_OBJS): $(LIBWG_SOURCES)
 	$(WIREGUARD_DIR)/build-wireguard-go.sh
 
 rpc-swift-package:
