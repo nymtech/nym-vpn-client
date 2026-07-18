@@ -1,13 +1,14 @@
-New beta feature: MIXNET TUNING allows for customizing traffic patterns over the mixnet to increase anonymity or performance.
+2026.11.3: Fixes to kernel and added 32-bit arch support to address reported connection problems with exit servers on Android 7-14 devices.
 
-Introducing SERVER FAMILIES: NymVPN now alerts you to when the servers you’ve chosen may belong to the same operator family to ensure decentralization in your use of the network.
+2026.11:
+- New beta feature: MIXNET TUNING allows for customizing traffic patterns over the mixnet to increase anonymity or performance.
 
-Better access in restricted regions and improved connectivity on heavily filtered networks.
+- Introducing SERVER FAMILIES: NymVPN now alerts you to when the servers you’ve chosen may belong to the same operator family to ensure decentralization in your use of the network.
 
-New daily data allowance: fair-usage limits are now a daily allowance instead of a monthly one.
+- Better access in restricted regions and improved connectivity on heavily filtered networks.
 
-Android Auto fix: Android Auto is no longer routed through the VPN, so in-car connections work normally.
+- New daily data allowance: fair-usage limits are now a daily allowance instead of a monthly one.
 
-Connection reliability and performance improvements.
+- Android Auto fix: Android Auto is no longer routed through the VPN, so in-car connections work normally.
 
-Disguise the app: switch to an alternate app icon to keep NymVPN discreet.
+- Connection reliability and performance improvements.
