@@ -42,6 +42,10 @@ env:
   STDRIVER_PATH: nym-vpn-windows/split-tunnel-driver/signed/${{ inputs.cpu_arch || 'x64' }}
   WINTUN_DIST_DIR: wintun-dist
   UPLOAD_DIR_WINDOWS: core_artifacts_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
+  RUSTC_WRAPPER: sccache
+  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-wireguard-go-windows:
@@ -66,6 +70,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
+
+      - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0

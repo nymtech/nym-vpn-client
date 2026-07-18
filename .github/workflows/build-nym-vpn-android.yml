@@ -90,6 +90,10 @@ on:
         required: false
 env:
   UPLOAD_DIR_ANDROID: android_artifacts_${{ inputs.build_flavor }}
+  RUSTC_WRAPPER: sccache
+  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build:
@@ -112,6 +116,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           submodules: true
+
+      - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Apply orchestrated version
         uses: ./.github/workflows/platform/apply-version
@@ -186,18 +192,6 @@ jobs:
         with:
           toolchain: ${{ env.RUST_VERSION }}
           targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
-
-      - name: Run sccache-cache only for non-release runs
-        if: ${{ inputs.build_type == 'debug' }}
-        uses: mozilla-actions/sccache-action@v0.0.10
-
-      - name: Set Rust caching env vars only for non-release runs
-        if: ${{ inputs.build_type == 'debug' }}
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_ENDPOINT }}" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_PASSWORD=${{ secrets.SCCACHE_REDIS_PASSWORD }}" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_EXPIRATION=86400" >> $GITHUB_ENV
 
       - name: Install cargo-ndk
         uses: baptiste0928/cargo-install@v3

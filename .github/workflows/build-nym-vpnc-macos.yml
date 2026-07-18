@@ -18,6 +18,10 @@ env:
   PKG_INSTALL_LOCATION: /usr/local/bin
   S3_ENDPOINT: https://s3.nymte.ch # API endpoint for uploads
   S3_BUCKET: builds
+  RUSTC_WRAPPER: sccache
+  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -33,6 +37,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 1
+
+      - uses: mozilla-actions/sccache-action@v0.0.10
 
       - name: Dotenv Action
         uses: xom9ikk/dotenv@v2.4.0
