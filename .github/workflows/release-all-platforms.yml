@@ -448,6 +448,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          working_directory: ${{ env.OUTPUT_DIR }}
           #tag_name: ${{ needs.resolve.outputs.tag }}
           name: "nym-vpn-v${{ needs.resolve.outputs.version }}"
           prerelease: false
