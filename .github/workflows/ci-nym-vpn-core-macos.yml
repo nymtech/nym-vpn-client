@@ -61,7 +61,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: wireguard-go_apple_universal
-          path: build/lib/universal-apple-darwin
+          path: build/lib
 
       - name: rustfmt check
         working-directory: nym-vpn-core

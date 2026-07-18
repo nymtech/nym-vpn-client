@@ -37,7 +37,7 @@ jobs:
         id: cache
         with:
           path: build/lib
-          key: libwg-${{ matrix.os }}-go${{ env.GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: libwg-${{ matrix.os }}-go${{ env.GOLANG_VERSION }}-cachev2-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
 
       - name: Install system dependencies
         if: steps.cache.outputs.cache-hit != 'true'

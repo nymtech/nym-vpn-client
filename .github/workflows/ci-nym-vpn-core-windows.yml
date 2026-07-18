@@ -19,7 +19,6 @@ env:
   SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}
   SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
   SCCACHE_REDIS_EXPIRATION: 86400
-  LIBS_PATH: build/lib/x86_64-pc-windows-msvc
   WINFW_PATH: build/winfw/x64-Debug
   STDRIVER_PATH: build/st-driver/x64-Debug
 
@@ -87,7 +86,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
-          path: ${{ env.LIBS_PATH }}
+          path: build/lib
 
       - name: Download winfw artifacts
         uses: actions/download-artifact@v8

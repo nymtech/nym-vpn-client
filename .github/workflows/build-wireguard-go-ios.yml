@@ -30,7 +30,7 @@ jobs:
         id: cache
         with:
           path: build/lib
-          key: libwg-ios-go${{ env.GOLANG_VERSION }}-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
+          key: libwg-ios-go${{ env.GOLANG_VERSION }}-cachev2-${{ hashFiles('wireguard/libwg/**/*.{go,diff,mod,h}', 'wireguard/build-wireguard-go.sh') }}
 
       - name: Install Go
         if: steps.cache.outputs.cache-hit != 'true'
@@ -47,8 +47,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: wireguard-go_ios_universal
-          path: |
-            build/lib/aarch64-apple-ios
-            build/lib/aarch64-apple-ios-sim
+          path: build/lib
           if-no-files-found: error
           retention-days: 1

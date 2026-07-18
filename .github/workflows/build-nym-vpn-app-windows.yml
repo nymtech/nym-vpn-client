@@ -93,7 +93,6 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  LIBS_PATH: "${{ github.workspace }}/lib"
   UPLOAD_DIR_WINDOWS: app_artifacts_windows_${{ inputs.cpu_arch == 'ARM64' && 'arm64' || 'x64' }}
   TAURI_SRC: "${{ github.workspace }}/nym-vpn-app/src-tauri/"
 
