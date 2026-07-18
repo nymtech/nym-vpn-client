@@ -69,24 +69,21 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-core-linux.yml
     with:
       version: ${{ inputs.version }}
-    secrets:
-      inherit: true
+    secrets: inherit
 
   build-nym-vpn-core-macos:
     if: ${{ inputs.macos == true }}
     uses: ./.github/workflows/build-nym-vpn-core-macos.yml
     with:
       version: ${{ inputs.version }}
-    secrets:
-      inherit: true
+    secrets: inherit
 
   build-nym-vpn-core-ios:
     if: ${{ inputs.ios == true }}
     uses: ./.github/workflows/build-nym-vpn-core-ios.yml
     with:
       version: ${{ inputs.version }}
-    secrets:
-      inherit: true
+    secrets: inherit
 
   build-nym-vpn-core-windows:
     if: ${{ inputs.windows == true }}
@@ -94,8 +91,7 @@ jobs:
     with:
       cpu_arch: x64
       version: ${{ inputs.version }}
-    secrets:
-      inherit: true
+    secrets: inherit
 
   build-nym-vpn-core-windows-arm64:
     if: ${{ inputs.windows == true }}
@@ -103,5 +99,4 @@ jobs:
     with:
       cpu_arch: ARM64
       version: ${{ inputs.version }}
-    secrets:
-      inherit: true
+    secrets: inherit

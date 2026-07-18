@@ -356,7 +356,6 @@ jobs:
             popd
           fi
 
-
       - name: Generate checksums and create tar.gz archive per platform (Windows)
         if: ${{ needs.resolve.outputs.windows == true }}
         env:
