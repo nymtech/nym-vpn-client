@@ -1,4 +1,5 @@
 name: build-nym-vpn-android
+run-name: build-nym-vpn-android (${{ inputs.build_type }}, ${{ inputs.build_format }}, ${{ inputs.build_flavor }})
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -98,7 +99,7 @@ env:
   SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
-  build:
+  build-nym-vpn-app-android:
     runs-on: arc-linux-latest
     timeout-minutes: 90
     env:
