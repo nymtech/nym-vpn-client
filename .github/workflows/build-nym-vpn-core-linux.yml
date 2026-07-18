@@ -15,9 +15,9 @@ on:
       VPND_SENTRY_DSN:
         required: true
       SCCACHE_REDIS_ENDPOINT:
-        required: false
+        required: true
       SCCACHE_REDIS_PASSWORD:
-        required: false
+        required: true
 
 env:
   CARGO_TERM_COLOR: always

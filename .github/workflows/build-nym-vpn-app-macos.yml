@@ -35,9 +35,9 @@ on:
         value: ${{ jobs.build-macos.outputs.pkg_installer_name }}
     secrets:
       SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
-        required: false
+        required: true
       SCCACHE_REDIS_PASSWORD:
-        required: false
+        required: true
 
 env:
   CARGO_TERM_COLOR: always

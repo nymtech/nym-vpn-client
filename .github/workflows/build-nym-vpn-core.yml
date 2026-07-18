@@ -48,6 +48,15 @@ on:
         description: "macOS"
         type: boolean
         default: false
+    secrets:
+      VPND_SENTRY_DSN:
+        required: true
+      SCCACHE_REDIS_ENDPOINT:
+        required: true
+      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
+        required: true
+      SCCACHE_REDIS_PASSWORD:
+        required: true
 
 env:
   CARGO_TERM_COLOR: always
@@ -61,7 +70,7 @@ jobs:
     with:
       version: ${{ inputs.version }}
     secrets:
-      VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+      inherit: true
 
   build-nym-vpn-core-macos:
     if: ${{ inputs.macos == true }}
@@ -69,7 +78,7 @@ jobs:
     with:
       version: ${{ inputs.version }}
     secrets:
-      VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+      inherit: true
 
   build-nym-vpn-core-ios:
     if: ${{ inputs.ios == true }}
@@ -77,7 +86,7 @@ jobs:
     with:
       version: ${{ inputs.version }}
     secrets:
-      VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+      inherit: true
 
   build-nym-vpn-core-windows:
     if: ${{ inputs.windows == true }}
@@ -86,7 +95,7 @@ jobs:
       cpu_arch: x64
       version: ${{ inputs.version }}
     secrets:
-      VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+      inherit: true
 
   build-nym-vpn-core-windows-arm64:
     if: ${{ inputs.windows == true }}
@@ -95,4 +104,4 @@ jobs:
       cpu_arch: ARM64
       version: ${{ inputs.version }}
     secrets:
-      VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+      inherit: true

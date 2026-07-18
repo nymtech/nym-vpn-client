@@ -69,9 +69,9 @@ on:
         value: ${{ jobs.build.outputs.artifact_name }}
     secrets:
       SCCACHE_REDIS_ENDPOINT:
-        required: false
+        required: true
       SCCACHE_REDIS_PASSWORD:
-        required: false
+        required: true
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
       ANDROID_SIGNING_KEY_PASSWORD:

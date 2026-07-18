@@ -45,6 +45,11 @@ on:
       build_macos:
         type: boolean
         default: false
+    secrets:
+      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
+        required: true
+      SCCACHE_REDIS_PASSWORD:
+        required: true
     outputs:
       pkg_installer_name:
         description: "Name of the PKG installer artifact"
