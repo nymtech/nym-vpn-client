@@ -110,7 +110,7 @@ env:
   DEB_ARTIFACTS_AARCH64: deb_artifacts_aarch64
   IOS_ARTIFACTS: ios_artifacts
   MACOS_ARTIFACTS: macos_artifacts
-  CACHE_KEY: ${{ runner.os }}-2 # used when testing workflow
+  CACHE_KEY: all_artifacts # used when testing workflow
 
 jobs:
   resolve:
@@ -222,7 +222,7 @@ jobs:
     needs: [resolve]
     runs-on: ubuntu-latest
     outputs:
-      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+      cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
     steps:
       - uses: actions/cache/restore@v6
         id: cache
@@ -246,7 +246,7 @@ jobs:
 
   build:
     needs: [resolve, restore-build-cache]
-    if: needs.restore-build-cache.outputs.cache-hit == 'false'
+    if: ${{ needs.restore-build-cache.outputs.cache-hit == 'false' }}
     permissions:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml
@@ -319,7 +319,7 @@ jobs:
             ${{ env.DEB_ARTIFACTS_AARCH64 }}
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
-          key: ${{ runner.os }}-1
+          key: ${{ env.CACHE_KEY }}
 
       - run: |
           ls -la
