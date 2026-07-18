@@ -38,8 +38,6 @@ on:
         required: true
       SCCACHE_REDIS_PASSWORD:
         required: true
-      VPND_SENTRY_DSN:
-        required: true
       APPLE_DEVELOPER_ID_APPLICATION_CERT:
         required: true
       APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS:
@@ -436,9 +434,6 @@ jobs:
 
       - name: Move core artifacts
         working-directory: nym-vpn-core
-        env:
-          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-          RELEASE: ${{ env.RELEASE_TYPE != 'pr' }}
         run: |
           VPND_DEST_DIR="../nym-vpn-apple/NymVPND"
 

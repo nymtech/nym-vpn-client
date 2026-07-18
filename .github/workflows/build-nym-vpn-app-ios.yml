@@ -34,8 +34,6 @@ on:
         required: true
       SCCACHE_REDIS_PASSWORD:
         required: true
-      VPND_SENTRY_DSN:
-        required: true
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
@@ -70,16 +68,7 @@ jobs:
         uses: xom9ikk/dotenv@v2.4.0
 
       - name: Run sccache-cache only for non-release runs
-        if: ${{ inputs.release_type == 'pr' }}
         uses: mozilla-actions/sccache-action@v0.0.10
-
-      - name: Set Rust caching env vars only for non-release runs
-        if: ${{ inputs.release_type == 'pr' }}
-        run: |
-          echo "RUSTC_WRAPPER=sccache" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_ENDPOINT=${{ secrets.SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT }}" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_PASSWORD=${{ secrets.SCCACHE_REDIS_PASSWORD }}" >> $GITHUB_ENV
-          echo "SCCACHE_REDIS_EXPIRATION=86400" >> $GITHUB_ENV
 
       - name: Normalize release_type
         run: |
@@ -352,9 +341,6 @@ jobs:
           path: core_artifacts_ios
 
       - name: Move core artifacts
-        env:
-          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-          RELEASE: ${{ env.RELEASE_TYPE != 'pr' }}
         run: |
           mv core_artifacts_ios/NymVPNLib ../nym-vpn-apple/NymVPNLib
 
