@@ -114,7 +114,7 @@ jobs:
           make -C nym-vpn-core -f macOS.mk nym-setup nym-vpnd nym-socks5-proxy \
             RELEASE="true" \
             ARCH="${{ matrix.cpu_arch }}" \
-            UPLOAD_DIR_MAC="${{ env.UPLOAD_DIR_MACOS }}"
+            UPLOAD_DIR_MAC="${{ github.workspace }}/${{ env.UPLOAD_DIR_MACOS }}"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
