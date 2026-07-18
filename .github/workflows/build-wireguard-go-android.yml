@@ -12,7 +12,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-libwg:
+  build-libwg-android:
     runs-on: arc-linux-latest
 
     steps:

@@ -12,7 +12,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-libwg:
+  build-libwg-ios:
     runs-on: custom-macos-15
     timeout-minutes: 5
 
