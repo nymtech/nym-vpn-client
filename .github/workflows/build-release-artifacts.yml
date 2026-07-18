@@ -43,6 +43,10 @@ on:
     secrets:
       VPND_SENTRY_DSN:
         required: true
+      SCCACHE_REDIS_ENDPOINT:
+        required: true
+      SCCACHE_REDIS_PASSWORD:
+        required: true
       ANDROID_SIGNING_KEY_ALIAS:
         required: true
       ANDROID_SIGNING_KEY_PASSWORD:
