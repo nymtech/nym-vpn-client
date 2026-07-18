@@ -41,6 +41,8 @@ on:
         type: boolean
         default: false
     secrets:
+      SCCACHE_REDIS_ENDPOINT:
+        required: true
       SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
         required: true
       SCCACHE_REDIS_PASSWORD:
