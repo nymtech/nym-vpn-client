@@ -413,7 +413,7 @@ jobs:
           MACOS_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
         run: |
           if [ -z "$MACOS_INSTALLER_NAME" ]; then
-            MACOS_INSTALLER_NAME=$(find "${{ env.DEB_ARTIFACTS_AARCH64 }}" -name "*.pkg" -type f -printf "%f" | head -1)
+            MACOS_INSTALLER_NAME=$(find "${{ env.MACOS_ARTIFACTS }}" -name "*.pkg" -type f -printf "%f" | head -1)
             if [ -z "$MACOS_INSTALLER_NAME" ]; then
               echo "::error:: Failed to locate pkg installer"
               exit 1

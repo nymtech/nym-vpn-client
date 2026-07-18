@@ -102,6 +102,10 @@ jobs:
         id: find_artifact
         run: |
           ARTIFACT_FILE=$(find "dist/" -name '*.aab' -type f | head -1)
+          if [ -z "$ARTIFACT_FILE" ]; then
+            echo "::error:: Failed to locate aab artifact"
+            exit 1
+          fi
           echo "artifact_file=$ARTIFACT_FILE" >> $GITHUB_ENV
           echo "::notice:: Found artifact for upload: $ARTIFACT_FILE"
 
