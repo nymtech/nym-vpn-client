@@ -62,7 +62,7 @@ jobs:
     with:
       cpu_arch: ${{ inputs.cpu_arch || 'x64' }}
 
-  build-nym-vpn-core:
+  build-nym-vpn-core-windows:
     if: github.actor != 'dependabot[bot]'
     needs: [build-wireguard-go-windows, build-winfw-windows]
     runs-on: custom-windows-11

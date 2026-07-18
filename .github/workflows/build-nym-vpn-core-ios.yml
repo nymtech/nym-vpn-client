@@ -29,7 +29,7 @@ jobs:
   build-wireguard-go-ios:
     uses: ./.github/workflows/build-wireguard-go-ios.yml
 
-  build-ios:
+  build-nym-vpn-core-ios:
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-ios
     env:

@@ -22,7 +22,7 @@ jobs:
   build-wireguard-go-linux:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
 
-  build-linux:
+  build-nym-vpn-core-linux:
     strategy:
       fail-fast: false
       matrix:

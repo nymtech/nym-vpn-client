@@ -30,7 +30,7 @@ jobs:
   build-wireguard-go-macos:
     uses: ./.github/workflows/build-wireguard-go-mac.yml
 
-  build-macos:
+  build-nym-vpn-core-macos:
     if: github.actor != 'dependabot[bot]'
     needs: build-wireguard-go-macos
     env:
