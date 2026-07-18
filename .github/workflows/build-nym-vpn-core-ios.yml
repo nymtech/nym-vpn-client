@@ -108,6 +108,10 @@ jobs:
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           make -C nym-vpn-core -f iOS.mk RELEASE="true"
+
+      - name: Move assets for upload
+        run: |
+          mkdir "${{ env.UPLOAD_DIR_IOS }}"
           mv nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib "${{ env.UPLOAD_DIR_IOS }}"
 
       - name: Upload artifacts
