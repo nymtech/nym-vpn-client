@@ -354,25 +354,23 @@ jobs:
           test -d ${ARCHIVE_LINUX_X86_64} && tar cvzf ${ARCHIVE_LINUX_X86_64}.tar.gz ${ARCHIVE_LINUX_X86_64}
           test -d ${ARCHIVE_LINUX_AARCH64} && tar cvzf ${ARCHIVE_LINUX_AARCH64}.tar.gz ${ARCHIVE_LINUX_AARCH64}
 
-          ls -la ${DEB_ARTIFACTS_X86_64}
-          ls -la ${DEB_ARTIFACTS_AARCH64}
           VPNC_DEB_X86_64=$(find "${DEB_ARTIFACTS_X86_64}" -name "nym-vpnc_*.deb" -type f | head -1)
-          if [ -n "$VPNC_DEB_X86_64" ]; then
+          if [ -z "$VPNC_DEB_X86_64" ]; then
             echo "::error:: Failed to locate nym-vpnc deb (x86_64)"
             exit 1
           fi
           VPNC_DEB_AARCH64=$(find "${DEB_ARTIFACTS_AARCH64}" -name "nym-vpnc_*.deb" -type f | head -1)
-          if [ -n "$VPNC_DEB_AARCH64" ]; then
+          if [ -z "$VPNC_DEB_AARCH64" ]; then
             echo "::error:: Failed to locate nym-vpnc deb (aarch64)"
             exit 1
           fi
           VPND_DEB_X86_64=$(find "${DEB_ARTIFACTS_X86_64}" -name "nym-vpnd_*.deb" -type f | head -1)
-          if [ -n "$VPND_DEB_X86_64" ]; then
+          if [ -z "$VPND_DEB_X86_64" ]; then
             echo "::error:: Failed to locate nym-vpnd deb (x86_64)"
             exit 1
           fi
           VPND_DEB_AARCH64=$(find "${DEB_ARTIFACTS_AARCH64}" -name "nym-vpnd_*.deb" -type f | head -1)
-          if [ -n "$VPND_DEB_AARCH64" ]; then
+          if [ -z "$VPND_DEB_AARCH64" ]; then
             echo "::error:: Failed to locate nym-vpnd deb (aarch64)"
             exit 1
           fi
