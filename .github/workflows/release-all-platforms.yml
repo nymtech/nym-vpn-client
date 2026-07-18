@@ -244,6 +244,30 @@ jobs:
             ${{ env.MACOS_ARTIFACTS }}
           key: ${{ env.CACHE_KEY }}
 
+  print:
+    name: Print resolve output
+    needs: [resolve]
+    runs-on: ubuntu-latest
+    env:
+      release_channel: ${{ needs.resolve.outputs.channel }}
+      version: ${{ needs.resolve.outputs.version }}
+      android: ${{ needs.resolve.outputs.android == 'true' }}
+      fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
+      linux: ${{ needs.resolve.outputs.linux == 'true' }}
+      windows: ${{ needs.resolve.outputs.windows == 'true' }}
+      ios: ${{ needs.resolve.outputs.ios == 'true' }}
+      macos: ${{ needs.resolve.outputs.macos == 'true' }}
+    steps:
+      - run: |
+          echo "release_channel: ${{ env.release_channel }}"
+          echo "version: ${{ env.version }}"
+          echo "android: ${{ env.android }}"
+          echo "fdroid: ${{ env.fdroid }}"
+          echo "linux: ${{ env.linux }}"
+          echo "windows: ${{ env.windows }}"
+          echo "ios: ${{ env.ios }}"
+          echo "macos: ${{ env.macos }}"
+
   build:
     needs: [resolve, restore-build-cache]
     if: ${{ needs.restore-build-cache.outputs.cache-hit == 'false' }}

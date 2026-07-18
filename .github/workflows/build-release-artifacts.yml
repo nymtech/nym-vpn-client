@@ -163,7 +163,7 @@ jobs:
           echo "ios=$IOS" >> "$GITHUB_OUTPUT"
           echo "macos=$MACOS" >> "$GITHUB_OUTPUT"
 
-          echo "::notice:: release_channel=$RELEASE_CHANNEL, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
+          echo "::notice:: release_channel=$RELEASE_CHANNEL, version=$VERSION, android=$ANDROID, fdroid=$FDROID, linux=$LINUX, windows=$WINDOWS, ios=$IOS, macos=$MACOS"
 
   core:
     needs: [resolve]
