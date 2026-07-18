@@ -70,6 +70,10 @@ on:
     secrets:
       VPND_SENTRY_DSN:
         required: true
+      SCCACHE_REDIS_ENDPOINT:
+        required: true
+      SCCACHE_REDIS_PASSWORD:
+        required: true
       ANDROID_SIGNING_KEY_ALIAS:
         required: true
       ANDROID_SIGNING_KEY_PASSWORD:
@@ -88,6 +92,9 @@ on:
         required: true
 env:
   UPLOAD_DIR_ANDROID: android_artifacts_${{ inputs.build_flavor }}
+  SCCACHE_REDIS_ENDPOINT: ${{ secrets.SCCACHE_REDIS_ENDPOINT }}
+  SCCACHE_REDIS_PASSWORD: ${{ secrets.SCCACHE_REDIS_PASSWORD }}
+  SCCACHE_REDIS_EXPIRATION: 86400
 
 jobs:
   build-nym-vpn-app-android:
