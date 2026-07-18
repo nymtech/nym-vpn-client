@@ -47,6 +47,54 @@ on:
         required: true
       VPND_SENTRY_DSN:
         required: true
+      ANDROID_SIGNING_KEY_ALIAS:
+        required: true
+      ANDROID_SIGNING_KEY_PASSWORD:
+        required: true
+      ANDROID_SIGNING_STORE_PASSWORD:
+        required: true
+      ANDROID_SENTRY_DSN:
+        required: true
+      ANDROID_SERVICE_ACCOUNT_JSON:
+        required: true
+      ANDROID_KEYSTORE:
+        required: true
+      CROWDIN_PROJECT_ID:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
+      APPLE_DEVELOPER_ID_APPLICATION_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS:
+        required: true
+      APPLE_DEVELOPER_ID_INSTALLER_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_INSTALLER_CERT_PASS:
+        required: true
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+      APPLE_TEAM_ID:
+        required: true
+      SSL_COM_USERNAME:
+        required: true
+      SSL_COM_PASSWORD:
+        required: true
+      SSL_COM_TOTP_SECRET:
+        required: true
+      TAURI_PRIVATE_KEY:
+        required: true
+      TAURI_KEY_PASSWORD:
+        required: true
+      DESKTOP_JS_SENTRY_DSN:
+        required: true
+      WINDOWS_SIGNING_PFX_BASE64:
+        required: true
+      WINDOWS_SIGNING_PFX_PASSWORD:
+        required: true
     outputs:
       pkg_installer_name:
         description: "Name of the PKG installer artifact"

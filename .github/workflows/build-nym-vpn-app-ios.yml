@@ -34,6 +34,8 @@ on:
         required: true
       SCCACHE_REDIS_PASSWORD:
         required: true
+      VPND_SENTRY_DSN:
+        required: true
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts

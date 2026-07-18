@@ -19,6 +19,29 @@ on:
         description: "F-Droid"
         type: boolean
         default: false
+    secrets:
+      SCCACHE_REDIS_ENDPOINT:
+        required: true
+      SCCACHE_REDIS_PASSWORD:
+        required: true
+      VPND_SENTRY_DSN:
+        required: true
+      ANDROID_SIGNING_KEY_ALIAS:
+        required: true
+      ANDROID_SIGNING_KEY_PASSWORD:
+        required: true
+      ANDROID_SIGNING_STORE_PASSWORD:
+        required: true
+      ANDROID_SENTRY_DSN:
+        required: true
+      ANDROID_SERVICE_ACCOUNT_JSON:
+        required: true
+      ANDROID_KEYSTORE:
+        required: true
+      CROWDIN_PROJECT_ID:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
     outputs:
       fdroid_artifact_name:
         description: "Name of the F-Droid artifact"

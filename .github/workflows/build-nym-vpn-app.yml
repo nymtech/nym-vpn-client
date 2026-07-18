@@ -41,6 +41,33 @@ on:
       release_type:
         type: string
         default: "stable"
+    secrets:
+      SCCACHE_REDIS_OUTSIDE_CLUSTER_ENDPOINT:
+        required: true
+      SCCACHE_REDIS_PASSWORD:
+        required: true
+      SCCACHE_REDIS_ENDPOINT:
+        required: true
+      CROWDIN_PROJECT_ID:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
+      SSL_COM_USERNAME:
+        required: true
+      SSL_COM_PASSWORD:
+        required: true
+      SSL_COM_TOTP_SECRET:
+        required: true
+      TAURI_PRIVATE_KEY:
+        required: true
+      TAURI_KEY_PASSWORD:
+        required: true
+      DESKTOP_JS_SENTRY_DSN:
+        required: true
+      WINDOWS_SIGNING_PFX_BASE64:
+        required: true
+      WINDOWS_SIGNING_PFX_PASSWORD:
+        required: true
 
 permissions:
   contents: read

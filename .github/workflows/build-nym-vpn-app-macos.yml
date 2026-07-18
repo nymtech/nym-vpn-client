@@ -38,7 +38,28 @@ on:
         required: true
       SCCACHE_REDIS_PASSWORD:
         required: true
-
+      VPND_SENTRY_DSN:
+        required: true
+      APPLE_DEVELOPER_ID_APPLICATION_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_APPLICATION_CERT_PASS:
+        required: true
+      APPLE_DEVELOPER_ID_INSTALLER_CERT:
+        required: true
+      APPLE_DEVELOPER_ID_INSTALLER_CERT_PASS:
+        required: true
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
+      CROWDIN_PERSONAL_TOKEN:
+        required: true
+      CROWDIN_PROJECT_ID:
+        required: true
+      APPLE_TEAM_ID:
+        required: true
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_MACOS: macos_artifacts
