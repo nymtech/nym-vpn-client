@@ -107,7 +107,7 @@ jobs:
       - name: Find artifact file
         id: find_artifact
         run: |
-          ARTIFACT_FILE=$(find "dist/" -name '*.aab' -type f | head -1)
+          ARTIFACT_FILE=$(find "${{ github.workspace }}/dist/" -name '*.aab' -type f | head -1)
           if [ -z "$ARTIFACT_FILE" ]; then
             echo "::error:: Failed to locate aab artifact"
             exit 1
