@@ -20,6 +20,7 @@ jobs:
       - name: Publish nightly release
         uses: ./.github/workflows/release-all-platforms.yml
         with:
+          release: true
           release_channel: nightly
           android: true
           frdoid: true

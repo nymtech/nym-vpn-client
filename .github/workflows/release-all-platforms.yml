@@ -12,6 +12,10 @@ on:
   # Scheduled (nightly) runs use the repository default branch (develop).
   workflow_dispatch:
     inputs:
+      release:
+        description: "Release? (leave unchecked for dry-run)"
+        type: boolean
+        default: false
       release_channel:
         description: "Release channel"
         type: choice
@@ -50,6 +54,10 @@ on:
         default: false
   workflow_call:
     inputs:
+      release:
+        description: "Release? (leave unchecked for dry-run)"
+        type: boolean
+        default: false
       release_channel:
         description: "Release channel"
         type: string # nightly, beta, ship
@@ -490,7 +498,7 @@ jobs:
           done
 
       - name: Publish GitHub Release
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release == true }}
+        #if: ${{ inputs.release == 'true' }}
         uses: softprops/action-gh-release@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -536,23 +544,24 @@ jobs:
             ${{ env.WINDOWS_APP_INSTALLER_ARM64 }}
             ${{ env.WINDOWS_APP_INSTALLER_ARM64 }}.sha256sum
 
-  # distribute:
-  #   needs: [resolve, build, release]
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #   steps:
-  #     - name: Publish to TestFlight
-  #       if: ${{ needs.resolve.outputs.ios == true }}
-  #       uses: ./.github/workflows/publish-nym-vpn-ios.yml
-  #       with:
-  #         beta_group: 'Nym Team External' # replace with actual beta group
+  distribute:
+    # if: ${{ inputs.release == 'true' }}
+    needs: [resolve, build, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Publish to TestFlight
+        if: ${{ needs.resolve.outputs.ios == true }}
+        uses: ./.github/workflows/publish-nym-vpn-ios.yml
+        with:
+          is_public: false
 
-  #     - name: Publish to Google Play
-  #       if: ${{ needs.resolve.outputs.android == true }}
-  #       uses: ./.github/workflows/publish-nym-vpn-android.yml
-  #       with:
-  #         track: alpha
-  #         publish-bundle: ${{ github.event_name != 'push' && github.event_name != 'pull_request' }}
-  #         publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
-  #         release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
+      - name: Publish to Google Play
+        if: ${{ needs.resolve.outputs.android == true }}
+        uses: ./.github/workflows/publish-nym-vpn-android.yml
+        with:
+          track: alpha
+          publish-bundle: true
+          publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
+          release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
