@@ -557,8 +557,9 @@ jobs:
             )
           fi
 
-          echo "LIST<<EOF" >> $GITHUB_OUTPUT
-          printf "%s\n" "$FILES[@]" >> $GITHUB_OUTPUT
+          printf -v JOINED '%s\n' "${FILES[@]}"
+          echo "asset_paths<<EOF" >> $GITHUB_OUTPUT
+          echo "$JOINED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Publish GitHub Release
@@ -577,7 +578,7 @@ jobs:
           overwrite_files: false
           preserve_order: true
           files: |
-            ${{ steps.assets.outputs.LIST }}
+            ${{ steps.assets.outputs.asset_paths }}
 
       - name: Extract asset URLs
         id: extract_urls
