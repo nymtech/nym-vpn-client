@@ -220,7 +220,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  combine-artifacts:
+  merge-artifacts:
     needs: [build-nym-vpn-core-macos, build-nym-vpn-rpc]
     runs-on: custom-macos-15
     steps:
@@ -242,11 +242,8 @@ jobs:
           name: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
           path: ${{ env.NYM_RPC_ARTIFACTS_MACOS }}
 
-      - name: Combine artifacts
+      - name: Merge x86_64 and arm64 artifacts
         run: |
-          ls -la .
-          ls -la "${{ env.NYM_RPC_ARTIFACTS_MACOS }}"
-
           mkdir "${{ env.CORE_ARTIFACTS_MACOS }}"
 
           for filepath in ${{ env.CORE_ARTIFACTS_MACOS_X86_64 }}/*; do

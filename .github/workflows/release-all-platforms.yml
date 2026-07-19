@@ -479,7 +479,7 @@ jobs:
 
           echo "ANDROID_APK=${ANDROID_APK}" >> $GITHUB_ENV
 
-          cp -v ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK}.apk {{ env.OUTPUT_DIR }}
+          cp -v ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK} ${{ env.OUTPUT_DIR }}
 
       - name: Generate checksums
         run: |
