@@ -179,7 +179,7 @@ jobs:
           echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
           # Used by gradle to name nightly apks
           # todo: provide timestamp!!!
-          echo "NIGHTLY_TIMESTAMP=FIXME" >> "$GITHUB_ENV"
+          # echo "NIGHTLY_TIMESTAMP=FIXME" >> "$GITHUB_ENV"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew

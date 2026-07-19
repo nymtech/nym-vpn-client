@@ -17,6 +17,12 @@ on:
     secrets:
       ANDROID_SERVICE_ACCOUNT_JSON:
         required: true
+      ANDROID_SIGNING_KEY_ALIAS:
+        required: true
+      ANDROID_SIGNING_KEY_PASSWORD:
+        required: true
+      ANDROID_SIGNING_STORE_PASSWORD:
+        required: true
 
 env:
   UPLOAD_DIR_ANDROID: android_artifacts_play
@@ -27,11 +33,11 @@ jobs:
     runs-on: arc-linux-latest
     timeout-minutes: 30
     env:
-      # SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-      # SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-      # SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-      # KEY_STORE_FILE: "android_keystore.jks"
-      # KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
+      SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+      SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      KEY_STORE_FILE: "android_keystore.jks"
+      KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
       RUBYOPT: "-rresolv-replace"
       BUNDLE_TIMEOUT: "120"
     steps:
@@ -69,18 +75,18 @@ jobs:
       #     echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
       #     echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
 
-      # - name: Decode Keystore
-      #   id: decode_keystore
-      #   uses: timheuer/base64-to-file@v2.0
-      #   with:
-      #     fileName: ${{ env.KEY_STORE_FILE }}
-      #     fileDir: ${{ env.KEY_STORE_LOCATION }}
-      #     encodedString: ${{ secrets.ANDROID_KEYSTORE }}
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v2.0
+        with:
+          fileName: ${{ env.KEY_STORE_FILE }}
+          fileDir: ${{ env.KEY_STORE_LOCATION }}
+          encodedString: ${{ secrets.ANDROID_KEYSTORE }}
 
-      # - name: Create keystore path env var
-      #   run: |
-      #     store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
-      #     echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
+      - name: Create keystore path env var
+        run: |
+          store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
+          echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
 
       - name: Create service_account.json
         id: createServiceAccount

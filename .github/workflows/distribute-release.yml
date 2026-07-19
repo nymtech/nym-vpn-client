@@ -22,6 +22,12 @@ on:
     secrets:
       ANDROID_SERVICE_ACCOUNT_JSON:
         required: true
+      ANDROID_SIGNING_KEY_ALIAS:
+        required: true
+      ANDROID_SIGNING_KEY_PASSWORD:
+        required: true
+      ANDROID_SIGNING_STORE_PASSWORD:
+        required: true
       APP_STORE_CONNECT_API_KEY:
         required: true
       APP_STORE_CONNECT_API_ISSUER_ID:
@@ -55,7 +61,7 @@ jobs:
     needs: [publish-testflight]
     name: Handle TestFlight failures
     runs-on: arc-linux-latest
-    if: needs.publish-testflight.result == 'failure'
+    if: needs.publish-testflight.outcome == 'failure'
     steps:
       - name: Print failure message
         run: |
@@ -65,7 +71,7 @@ jobs:
     needs: [publish-playstore]
     runs-on: arc-linux-latest
     name: Handle Play Store failures
-    if: needs.publish-playstore.result == 'failure'
+    if: needs.publish-playstore.outcome == 'failure'
     steps:
       - name: Print failure message
         run: |

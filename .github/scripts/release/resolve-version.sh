@@ -30,10 +30,11 @@ echo "::notice:: channel=${CHANNEL} cargo_version=${FULL} base=${BASE}"
 
 case "$CHANNEL" in
   nightly)
-    VERSION="${BASE}-nightly"
+    NIGHTLY_TIMESTAMP="$(date -u +%Y%m%d)"
+    VERSION="${BASE}-nightly.${NIGHTLY_TIMESTAMP}"
     # Date-only tag (cron runs once/day). Native immutable releases forbid REUSING a
     # published tag name, so a manual same-day re-run can collide — accepted.
-    TAG="nym-vpn-v${BASE}-nightly.$(date -u +%Y%m%d)"
+    TAG="nym-vpn-v${BASE}-nightly.${NIGHTLY_TIMESTAMP}"
     ;;
   beta)
     # Auto-advance the -beta.N suffix off the BASE pinned by the branch. Find the
@@ -85,3 +86,7 @@ echo "::notice:: version=${VERSION} tag=${TAG}"
   echo "version=${VERSION}"
   echo "tag=${TAG}"
 } >> "$GITHUB_OUTPUT"
+
+if [ -n "$NIGHTLY_TIMESTAMP" ]; then
+  echo "nightly_timestamp=${NIGHTLY_TIMESTAMP}" >> "$GITHUB_OUTPUT"
+fi
