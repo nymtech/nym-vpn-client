@@ -107,7 +107,7 @@ jobs:
     needs: download-translations
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
     with:
-      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true }}
+      dev_mode: ${{ contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true }}
       version: ${{ inputs.version }}
     secrets: inherit
 
@@ -116,7 +116,7 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
     with:
       version: ${{ inputs.version }}
-      dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
+      dev_mode: ${{ contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
       sign: ${{ inputs.release_type == 'stable' || inputs.release_type == 'rc' }}
       updater_bundle: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
       updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}

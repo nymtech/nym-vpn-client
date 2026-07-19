@@ -746,7 +746,7 @@ jobs:
           retention-days: 1
 
       - name: Upload macOS dSYMs to Sentry (nightly)
-        if: ${{ github.event_name == 'schedule' && env.RELEASE_TYPE == 'qa' }}
+        if: ${{ env.RELEASE_TYPE == 'qa' }}
         working-directory: nym-vpn-apple
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.APPLE_SENTRY_CLI_AUTH_TOKEN }}
