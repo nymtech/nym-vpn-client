@@ -270,6 +270,8 @@ jobs:
       # --- apple (fastlane) ---
       - name: Update nym-vpn-apple via fastlane
         working-directory: nym-vpn-apple
+        env:
+          FASTLANE_OPT_OUT_USAGE: YES
         run: |
           bundle exec fastlane mac bump_version "${{ steps.version.outputs.apple_version }}"
 

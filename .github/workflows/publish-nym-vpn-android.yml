@@ -92,6 +92,11 @@ jobs:
         working-directory: nym-vpn-android
         run: bundle install
 
+      - name: Set locale (for Fastlane)
+        run: |
+          echo "LC_ALL=en_US.UTF-8" >> $GITHUB_ENV
+          echo "LANG=en_US.UTF-8" >> $GITHUB_ENV
+
       - name: Download Android artifacts
         uses: actions/download-artifact@v8
         with:
@@ -112,10 +117,11 @@ jobs:
       - name: Distribute app to fastlane track ${{ inputs.track }} 🚀
         working-directory: nym-vpn-android
         env:
+          FASTLANE_OPT_OUT_USAGE: YES
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           ARTIFACT_FILE: ${{ steps.find_artifact.outputs.artifact_file }}
         run: |
             bundle exec fastlane supply --aab "$ARTIFACT_FILE" \
               --track ${{ inputs.track }} \
-              --skip_upload_aab ${{ github.event.inputs.publish-bundle != 'true' }} \
-              --skip_metadata ${{ inputs.publish-metadata != 'true' }}
+              --skip-upload-aab ${{ github.event.inputs.publish-bundle != 'true' }} \
+              --skip-upload-metadata ${{ inputs.publish-metadata != 'true' }}
