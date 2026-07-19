@@ -612,28 +612,58 @@ jobs:
 
           if [ "${{ needs.resolve.outputs.linux }}" = "true" ]; then
             LINUX_APP_DEB_X64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.LINUX_APP_DEB_X64 }}")) | .browser_download_url')
-            echo "::notice:: Linux app deb (x64): $LINUX_APP_DEB_X64"
+            if [ -z "$LINUX_APP_DEB_X64" ]; then
+              echo "::error:: URL for Linux app deb (x64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Linux app deb (x64): $LINUX_APP_DEB_X64"
+            fi
 
             LINUX_APP_DEB_ARM64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.LINUX_APP_DEB_ARM64 }}")) | .browser_download_url')
-            echo "::notice:: Linux app deb (arm64): $LINUX_APP_DEB_ARM64"
+            if [ -z "$LINUX_APP_DEB_ARM64" ]; then
+              echo "::error:: URL for Linux app deb (arm64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Linux app deb (arm64): $LINUX_APP_DEB_ARM64"
+            fi
           fi
 
           if [ "${{ needs.resolve.outputs.windows }}" = "true" ]; then
             WINDOWS_INSTALLER_X64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.WINDOWS_APP_INSTALLER_X64 }}")) | .browser_download_url')
-            echo "::notice:: Windows installer (x64): $WINDOWS_INSTALLER_X64"
+            if [ -z "$WINDOWS_INSTALLER_X64" ]; then
+              echo "::error:: URL for Windows installer (x64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Windows installer (x64): $WINDOWS_INSTALLER_X64"
+            fi
 
             WINDOWS_INSTALLER_ARM64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.WINDOWS_APP_INSTALLER_ARM64 }}")) | .browser_download_url')
-            echo "::notice:: Windows installer (arm64): $WINDOWS_INSTALLER_ARM64"
+            if [ -z "$WINDOWS_INSTALLER_ARM64" ]; then
+              echo "::error:: URL for Windows installer (arm64) could not be found."
+              exit 1
+            else
+              echo "::notice:: Windows installer (arm64): $WINDOWS_INSTALLER_ARM64"
+            fi
           fi
 
           if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
             MACOS_INSTALLER=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.MACOS_INSTALLER_NAME }}")) | .browser_download_url')
-            echo "::notice:: macOS installer: $MACOS_INSTALLER"
+            if [ -z "$MACOS_INSTALLER" ]; then
+              echo "::error:: URL for macOS installer could not be found."
+              exit 1
+            else
+              echo "::notice:: macOS installer: $MACOS_INSTALLER"
+            fi
           fi
 
           if [[ "${{ needs.resolve.outputs.android }}" = "true" && "${{ needs.resolve.outputs.fdroid }}" = "true" ]]; then
             ANDROID_APK=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.ANDROID_APK }}")) | .browser_download_url')
-            echo "::notice:: Android APK: $ANDROID_APK"
+            if [ -z "$ANDROID_APK" ]; then
+              echo "::error:: URL for Android APK could not be found."
+              exit 1
+            else
+              echo "::notice:: Android APK: $ANDROID_APK"
+            fi
           fi
 
   distribute:
@@ -645,3 +675,6 @@ jobs:
     uses: ./.github/workflows/distribute-release.yml
     permissions:
       contents: read
+    with:
+      publish_play: ${{ needs.resolve.outputs.android == 'true' }}
+      publish_testflight: ${{ needs.resolve.outputs.ios == 'true' }}

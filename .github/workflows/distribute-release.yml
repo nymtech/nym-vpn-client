@@ -2,6 +2,11 @@ name: distribute-release
 
 on:
   workflow_call:
+    inputs:
+      publish_play:
+        type: boolean
+      publish_testflight:
+        type: boolean
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
@@ -9,7 +14,7 @@ env:
 jobs:
   publish-testflight:
     name: Publish to TestFlight
-    if: ${{ needs.resolve.outputs.ios == 'true' }}
+    if: ${{ inputs.publish_testflight == 'true' }}
     uses: ./.github/workflows/publish-nym-vpn-ios.yml
     with:
       is_public: false
@@ -17,7 +22,7 @@ jobs:
 
   publish-playstore:
     name: Publish to Google Play
-    if: ${{ needs.resolve.outputs.android == 'true' }}
+    if: ${{ inputs.publish_play == 'true' }}
     uses: ./.github/workflows/publish-nym-vpn-android.yml
     with:
       track: alpha
@@ -28,7 +33,7 @@ jobs:
     needs: [publish-testflight]
     name: Handle TestFlight failures
     runs-on: arc-linux-latest
-    if: needs.publish-testflight.outcome == 'failure'
+    if: needs.publish-testflight.result == 'failure'
     steps:
       - name: Print failure message
         run: |
@@ -38,7 +43,7 @@ jobs:
     needs: [publish-playstore]
     runs-on: arc-linux-latest
     name: Handle Play Store failures
-    if: needs.publish-playstore.outcome == 'failure'
+    if: needs.publish-playstore.result == 'failure'
     steps:
       - name: Print failure message
         run: |
