@@ -336,7 +336,7 @@ jobs:
         run: |
           mv core_artifacts_ios/NymVPNLib nym-vpn-apple/NymVPNLib
 
-      # todo: uncomment once tests are fixed
+      # todo: move to ci-nym-vpn-app-ios.yml workflow
       # - name: Apple unit tests
       #   if: ${{ env.RELEASE_TYPE == 'pr' }}
       #   uses: ./.github/workflows/apple/tests
