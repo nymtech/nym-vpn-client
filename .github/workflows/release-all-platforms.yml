@@ -100,7 +100,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ inputs.release_channel }}
   cancel-in-progress: false
 
-
 env:
   APP_ARTIFACTS_LINUX_AARCH64: app_artifacts_linux_aarch64
   APP_ARTIFACTS_LINUX_X86_64: app_artifacts_linux_x86_64
@@ -116,7 +115,9 @@ env:
   DEB_ARTIFACTS_AARCH64: deb_artifacts_aarch64
   IOS_ARTIFACTS: ios_artifacts
   MACOS_ARTIFACTS: macos_artifacts
-  CACHE_KEY: all_artifacts # used when testing workflow
+  # Only used for testing purposes and must not be used in production
+  DANGER_CACHE_BUILDS: true
+  DANGER_BUILD_CACHE_KEY: all_artifacts_v2 # used when testing workflow
 
 jobs:
   resolve:
@@ -241,8 +242,10 @@ jobs:
             #exit 1
           fi
 
+  # This step is only used for testing purposes when developing this workflow
   restore-build-cache:
     needs: [resolve, check-release-exists]
+    if: env.DANGER_CACHE_BUILDS == 'true'
     runs-on: ubuntu-latest
     outputs:
       cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
@@ -265,7 +268,7 @@ jobs:
             ${{ env.DEB_ARTIFACTS_AARCH64 }}
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
-          key: ${{ env.CACHE_KEY }}
+          key: ${{ env.DANGER_BUILD_CACHE_KEY }}
 
       - uses: actions/upload-artifact@v7
         if: ${{ steps.cache.outputs.cache-hit == 'true' }}
@@ -353,7 +356,8 @@ jobs:
 
   build:
     needs: [resolve, check-release-exists, restore-build-cache]
-    if: ${{ needs.restore-build-cache.outputs.cache-hit != 'true' }}
+    if: |
+        !cancelled() && needs.restore-build-cache.outputs.cache-hit != 'true'
     permissions:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml
@@ -369,8 +373,11 @@ jobs:
       macos: ${{ needs.resolve.outputs.macos == 'true' }}
     secrets: inherit
 
+  # This step is only used for testing purposes when developing this workflow
   save-build-cache:
     needs: [resolve, build, restore-build-cache]
+    if: |
+      !cancelled() && needs.restore-build-cache.result == 'success' && env.DANGER_CACHE_BUILDS == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
@@ -392,7 +399,7 @@ jobs:
             ${{ env.DEB_ARTIFACTS_AARCH64 }}
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
-          key: ${{ env.CACHE_KEY }}
+          key: ${{ env.DANGER_BUILD_CACHE_KEY }}
 
   release:
     needs: [resolve, build, restore-build-cache, save-build-cache]
