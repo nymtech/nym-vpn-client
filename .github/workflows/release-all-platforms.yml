@@ -96,8 +96,6 @@ permissions:
 
 # Ship/beta runs key off the ref so different release branches/versions run in parallel.
 # Nightly runs (cron + the no-platform-selected fallback) all share ONE group:
-# ensure-release.sh deletes ALL prior nightly releases, so two concurrent nightlies would
-# clobber each other's release state regardless of ref.
 concurrency:
   group: ${{ github.workflow }}-${{ inputs.release_channel }}
   cancel-in-progress: false
@@ -126,6 +124,7 @@ jobs:
     outputs:
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
+      nightly_timestamp: ${{ steps.v.outputs.nightly_timestamp || '' }}
       channel: ${{ steps.v.outputs.channel }}
       android: ${{ steps.flags.outputs.android }}
       fdroid: ${{ steps.flags.outputs.fdroid }}
@@ -361,6 +360,7 @@ jobs:
     with:
       release_channel: ${{ needs.resolve.outputs.channel }}
       version: ${{ needs.resolve.outputs.version }}
+      nightly_timestamp: ${{ needs.resolve.outputs.nightly_timestamp }}
       android: ${{ needs.resolve.outputs.android == 'true' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       linux: ${{ needs.resolve.outputs.linux == 'true' }}

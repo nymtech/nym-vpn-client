@@ -16,6 +16,11 @@ on:
         required: false
         type: string
         default: ""
+      nightly_timestamp:
+        description: "Nightly timestamp used by Android app (nightly only)"
+        required: false
+        type: string
+        default: ""
       android:
         description: "Android → Google Play"
         type: boolean
@@ -194,6 +199,7 @@ jobs:
     uses: ./.github/workflows/build-release-artifacts-android.yml
     with:
       version: ${{ needs.resolve.outputs.version }}
+      nightly_timestamp: ${{ needs.resolve.outputs.nightly_timestamp }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
       play: ${{ needs.resolve.outputs.android == 'true' }}
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
