@@ -592,7 +592,7 @@ jobs:
           working_directory: ${{ env.OUTPUT_DIR }}
           #tag_name: ${{ needs.resolve.outputs.tag }}
           name: "nym-vpn-v${{ needs.resolve.outputs.version }}"
-          prerelease: false
+          prerelease: ${{ needs.resolve.outputs.channel != 'ship' && inputs.release == 'true' }}
           make_latest: ${{ needs.resolve.outputs.channel == 'ship' && inputs.release == 'true' }}
           draft: true
           fail_on_unmatched_files: true
