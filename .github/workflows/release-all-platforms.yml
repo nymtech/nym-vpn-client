@@ -492,9 +492,10 @@ jobs:
       - name: Generate checksums
         run: |
           for file in "${{ env.OUTPUT_DIR }}/*"; do
-              if [ -f "$file" ] && [[ "$file" != *.sha256sum ]]; then
-                  sha256sum "$file" > "${file}.sha256sum"
-              fi
+            if [ -f "$file" ] && [[ "$file" != *.sha256sum ]]; then
+              echo "Generating SHA for $file > ${file}.sha256sum"
+              sha256sum "$file" > "${file}.sha256sum"
+            fi
           done
 
       - name: Publish GitHub Release
@@ -513,8 +514,8 @@ jobs:
             ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum
             ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz
             ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum
-            ${{ env.ARCHIVE_WINDOWS_X64 }}.tar.gz
-            ${{ env.ARCHIVE_WINDOWS_X64 }}.tar.gz.sha256sum
+            ${{ env.ARCHIVE_WINDOWS_X64 }}.zip
+            ${{ env.ARCHIVE_WINDOWS_X64 }}.zip.sha256sum
             ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip
             ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum
             ${{ env.VPNC_DEB_X86_64 }}
