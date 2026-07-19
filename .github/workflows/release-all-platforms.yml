@@ -645,7 +645,7 @@ jobs:
     steps:
       - parallel:
         - name: Publish to TestFlight
-          if: ${{ needs.resolve.outputs.ios == true }}
+          if: ${{ needs.resolve.outputs.ios == 'true' }}
           id: publish-testflight
           uses: ./.github/workflows/publish-nym-vpn-ios.yml
           continue-on-error: true
@@ -653,7 +653,7 @@ jobs:
             is_public: false
 
         - name: Publish to Google Play
-          if: ${{ needs.resolve.outputs.android == true }}
+          if: ${{ needs.resolve.outputs.android == 'true' }}
           id: publish-playstore
           uses: ./.github/workflows/publish-nym-vpn-android.yml
           continue-on-error: true
