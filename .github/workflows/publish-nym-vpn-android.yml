@@ -144,7 +144,6 @@ jobs:
           echo "::notice:: Found artifact for upload: $ARTIFACT_FILE"
 
       - name: Distribute app to fastlane track ${{ inputs.track }} 🚀
-        working-directory: nym-vpn-android
         env:
           FASTLANE_OPT_OUT_USAGE: YES
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
