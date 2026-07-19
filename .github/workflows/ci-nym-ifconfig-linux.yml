@@ -1,6 +1,7 @@
 name: ci-nym-ifconfig-linux
 on:
   pull_request:
+    types: [opened, reopened]
     paths:
       - .github/workflows/ci-nym-ifconfig-linux.yml
       - "crates/nym-ifconfig/**/*.rs"

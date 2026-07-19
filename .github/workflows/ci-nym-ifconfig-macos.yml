@@ -1,6 +1,7 @@
 name: ci-nym-ifconfig-macos
 on:
   pull_request:
+    types: [opened, reopened]
     paths:
       - .github/workflows/ci-nym-ifconfig-macos.yml
       - "crates/nym-ifconfig/**/*.rs"
