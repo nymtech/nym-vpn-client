@@ -126,5 +126,5 @@ jobs:
 
           bundle exec fastlane supply --aab "$ARTIFACT_FILE" \
             --track ${{ inputs.track }} \
-            --skip-upload-aab ${{ github.event.inputs.publish-bundle != 'true' }} \
+            --skip-upload-aab ${{ inputs.publish-bundle != 'true' }} \
             --skip-upload-metadata ${{ inputs.publish-metadata != 'true' }}
