@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import MainPage from '../pages/MainPage';
 
 test.describe('Connection', () => {
@@ -7,47 +7,73 @@ test.describe('Connection', () => {
   test.beforeEach(async ({ page }) => {
     mainPage = new MainPage(page);
     await mainPage.goto();
-    await mainPage.waitForPageLoad();
+  });
+
+  test('shows the connecting state after tapping connect', async () => {
+    await mainPage.connectButton.click();
+
+    // While connecting the primary action becomes a cancel affordance and the
+    // status label reports tunnel progress.
+    await expect(mainPage.cancelButton).toBeVisible();
+    await expect(mainPage.statusText).toBeVisible();
   });
 
   test('connects to VPN correctly', async () => {
-    expect(await mainPage.getConnectionStatusText()).toBe('Disconnected');
-    await mainPage.clickConnectionButton();
+    await expect(mainPage.statusText).toHaveText('Not protected');
 
-    expect(await mainPage.getConnectionStatusText()).toBe('Connecting');
+    await mainPage.connectButton.click();
 
-    await mainPage.waitForConnected();
-    expect(await mainPage.getConnectionStatusText()).toBe('Connected');
-    await expect(mainPage.SELECTORS.timer).toBeVisible();
-    await expect(mainPage.SELECTORS.timerLabel).toBeVisible();
+    await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
+    await expect(mainPage.connectionTimer).toBeVisible();
+    // The connected state replaces the status label with the connection timer.
+    await expect(mainPage.statusText).toHaveCount(0);
   });
 
-  test('disconnects from VPN correctly', async ({ page }) => {
-    await mainPage.clickConnectionButton();
-    await mainPage.waitForConnected();
-    await mainPage.clickConnectionButton();
-    await mainPage.waitForDisconnected();
+  test('resolves entry and exit servers once connected', async () => {
+    await mainPage.connectButton.click();
+    await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
 
-    expect(await mainPage.getConnectionStatusText()).toBe('Disconnected');
-    await expect(mainPage.SELECTORS.timer).not.toBeVisible();
-    await expect(mainPage.SELECTORS.timerLabel).not.toBeVisible();
+    // Rows switch from the "Random" placeholder to the resolved gateways.
+    await expect(mainPage.serverRow('Entry')).not.toContainText('Random');
+    await expect(mainPage.serverRow('Exit')).not.toContainText('Random');
   });
 
-  test('connects from different modes correctly', async ({ page }) => {
-    await mainPage.clickWireguardModeCard();
-    await mainPage.clickConnectionButton();
-    await mainPage.waitForConnected();
-    expect(await mainPage.getConnectionStatusText()).toBe('Connected');
-    await mainPage.clickConnectionButton();
-    await mainPage.waitForDisconnected();
-    expect(await mainPage.getConnectionStatusText()).toBe('Disconnected');
+  test('disconnects from VPN correctly', async () => {
+    await mainPage.connectButton.click();
+    await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
 
-    await mainPage.clickMixnetModeCard();
-    await mainPage.clickConnectionButton();
-    await mainPage.waitForConnected();
-    expect(await mainPage.getConnectionStatusText()).toBe('Connected');
-    await mainPage.clickConnectionButton();
-    await mainPage.waitForDisconnected();
-    expect(await mainPage.getConnectionStatusText()).toBe('Disconnected');
+    await mainPage.disconnectButton.click();
+
+    await expect(mainPage.connectButton).toBeVisible({ timeout: 15_000 });
+    await expect(mainPage.statusText).toHaveText('Not protected');
+    await expect(mainPage.connectionTimer).toHaveCount(0);
+  });
+
+  test('connects from different modes correctly', async () => {
+    await mainPage.fastMode.click();
+    await expect(mainPage.fastMode).toHaveAttribute('aria-pressed', 'true');
+    await mainPage.connectButton.click();
+    await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
+    await mainPage.disconnectButton.click();
+    await expect(mainPage.statusText).toHaveText('Not protected', {
+      timeout: 15_000,
+    });
+
+    await mainPage.mixnetMode.click();
+    await expect(mainPage.mixnetMode).toHaveAttribute('aria-pressed', 'true');
+    await mainPage.connectButton.click();
+    await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
+    await mainPage.disconnectButton.click();
+    await expect(mainPage.statusText).toHaveText('Not protected', {
+      timeout: 15_000,
+    });
+  });
+
+  test('keeps the mode toggle available while connected', async () => {
+    await mainPage.connectButton.click();
+    await expect(mainPage.disconnectButton).toBeVisible({ timeout: 15_000 });
+
+    await expect(mainPage.fastMode).toBeVisible();
+    await expect(mainPage.mixnetMode).toBeVisible();
   });
 });

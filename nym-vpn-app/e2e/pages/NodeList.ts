@@ -1,85 +1,109 @@
 import { Locator, Page } from '@playwright/test';
 
-type Selectors = Record<string, Locator>;
-
+/**
+ * Node location screen ("/node-location").
+ *
+ * Replaces the former separate "/entry-node-location" and "/exit-node-location"
+ * routes: a single screen with an Entry/Exit tab pair.
+ */
 class NodeListPage {
-  readonly SELECTORS: Selectors;
+  readonly backButton: Locator;
+  readonly infoButton: Locator;
+  readonly entryTab: Locator;
+  readonly exitTab: Locator;
+  readonly searchInput: Locator;
+  readonly randomOption: Locator;
+  readonly countSummary: Locator;
+  readonly accordion: Locator;
+  readonly expandButtons: Locator;
+  readonly nodeDetailsButtons: Locator;
+
+  // Info modal
+  readonly infoModal: Locator;
+  readonly infoModalTitle: Locator;
+  readonly streamingHeading: Locator;
+  readonly locationAccuracyHeading: Locator;
+  readonly closeModalButton: Locator;
 
   constructor(private readonly page: Page) {
-    this.page = page;
-    this.SELECTORS = {
-      title: this.page.getByTestId('top-bar-title-text'),
-      searchInput: this.page.getByRole('textbox', { name: 'Search' }),
-      countryItems: this.page.getByTestId(/country-info/),
-      infoButton: this.page
-        .getByTestId('top-bar-right-button-container')
-        .getByTestId('button-icon'),
-      clearSearchButton: this.page
-        .getByTestId('node-search-container')
-        .getByTestId('button-icon'),
-      backButton: this.page
-        .getByTestId('top-bar-left-button-container')
-        .getByTestId('button-icon'),
-      expandButton: this.page.getByRole('button', {
-        name: 'keyboard_arrow_down',
-      }),
-      nodeDetailsButton: this.page.getByRole('button', { name: 'arrow_right' }),
+    this.backButton = page.getByRole('button', { name: 'keyboard_arrow_left' });
+    this.infoButton = page.getByRole('button', { name: 'info' }).first();
+    this.entryTab = page.getByRole('tab', { name: 'Entry' });
+    this.exitTab = page.getByRole('tab', { name: 'Exit' });
+    this.searchInput = page.getByRole('textbox', { name: 'Search location' });
+    this.randomOption = page.getByRole('button', { name: /Random/ }).first();
+    this.countSummary = page.getByText(/\d+ countries · \d+ nodes/);
+    this.accordion = page.getByTestId('node-list-accordion');
+    this.expandButtons = page.getByRole('button', {
+      name: 'keyboard_arrow_down',
+    });
+    this.nodeDetailsButtons = page.getByRole('button', {
+      name: 'chevron_right',
+    });
 
-      // Info modal
-      nodeInfoModal: this.page.getByTestId('location-details-dialog-panel'),
-      closeModalButton: this.page.getByTestId('location-details-close-button'),
-      quicProtocolText: this.page.getByRole('heading', {
-        name: 'QUIC protocol',
-      }),
-      streamingText: this.page.getByRole('heading', { name: 'Streaming' }),
-      locationAccuracyText: this.page.getByRole('heading', {
-        name: 'Location accuracy',
-      }),
-    };
+    this.infoModal = page.getByTestId('location-details-dialog-panel');
+    this.infoModalTitle = page.getByTestId('location-details-title');
+    this.streamingHeading = page.getByRole('heading', { name: 'Streaming' });
+    this.locationAccuracyHeading = page.getByRole('heading', {
+      name: 'Location accuracy',
+    });
+    this.closeModalButton = page.getByRole('button', { name: 'Ok' });
   }
 
-  async gotoEntryServer() {
-    await this.page.goto('/entry-node-location');
-  }
-
-  async gotoExitServer() {
-    await this.page.goto('/exit-node-location');
+  async goto() {
+    await this.page.goto('/node-location');
+    await this.waitForPageLoad();
   }
 
   async waitForPageLoad() {
     await this.page.waitForLoadState('networkidle');
   }
 
-  async pickCountry(country: string) {
-    await this.page.getByTestId(`country-info-${country}`).click();
+  country(code: string): Locator {
+    return this.page.getByTestId(`country-name-${code}`);
   }
 
-  async clickInfoButton() {
-    await this.SELECTORS.infoButton.click();
+  countryFlag(code: string): Locator {
+    return this.page.getByTestId(`country-flag-${code}`);
   }
 
-  async clickClearSearchButton() {
-    await this.SELECTORS.clearSearchButton.click();
+  async pickCountry(code: string) {
+    await this.page.getByTestId(`country-info-${code}`).click();
   }
 
-  async fillSearchInput(search: string) {
-    await this.SELECTORS.searchInput.fill(search);
+  /**
+   * Types into the search box key by key. `fill()` sets the value in one shot,
+   * which the list's incremental filter does not react to the same way.
+   */
+  async fillSearchInput(term: string) {
+    await this.searchInput.click();
+    await this.searchInput.fill('');
+    await this.searchInput.pressSequentially(term, { delay: 30 });
+  }
+
+  async clearSearchInput() {
+    await this.searchInput.click();
+    await this.searchInput.fill('');
   }
 
   async getSearchInputValue() {
-    return await this.SELECTORS.searchInput.inputValue();
+    return await this.searchInput.inputValue();
+  }
+
+  async clickExpandButton(index: number) {
+    await this.expandButtons.nth(index).click();
+  }
+
+  async clickNodeDetailsButton(index: number) {
+    await this.nodeDetailsButtons.nth(index).click();
+  }
+
+  async openInfoModal() {
+    await this.infoButton.click();
   }
 
   async closeInfoModal() {
-    await this.SELECTORS.closeModalButton.click();
-  }
-
-  async clickExpandButton(number: number) {
-    await this.SELECTORS.expandButton.nth(number).click();
-  }
-
-  async clickNodeDetailsButton(number: number) {
-    await this.SELECTORS.nodeDetailsButton.nth(number).click();
+    await this.closeModalButton.click();
   }
 }
 

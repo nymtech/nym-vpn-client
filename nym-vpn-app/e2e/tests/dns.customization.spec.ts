@@ -1,60 +1,69 @@
-import { test, expect } from '@playwright/test';
-import MainPage from '../pages/MainPage';
+import { expect, test } from '@playwright/test';
 import SettingsPage from '../pages/SettingsPage';
 
+const DNS_ADDRESS = '192.168.1.1';
+const INVALID_DNS_ADDRESS = '192.168.1.1.1';
+
 test.describe('DNS', () => {
-  let mainPage: MainPage;
   let settingsPage: SettingsPage;
-  const DNS_ADDRESS = '192.168.1.1';
-  const INVALID_DNS_ADDRESS = '192.168.1.1.1';
 
   test.beforeEach(async ({ page }) => {
-    mainPage = new MainPage(page);
     settingsPage = new SettingsPage(page);
-    await mainPage.goto();
-    await mainPage.waitForPageLoad();
-    await mainPage.clickSettingsButton();
-    await settingsPage.clickCustomizeDNSButton();
+    await settingsPage.goto('/settings/dns');
   });
 
   test('renders DNS customization screen correctly', async () => {
-    await expect(settingsPage.SELECTORS.viewDefaultDNSButton).toBeVisible();
-    await expect(settingsPage.SELECTORS.dnsAddressInput).toBeVisible();
-    await expect(settingsPage.SELECTORS.addDNSButton).toBeVisible();
-    await expect(settingsPage.SELECTORS.saveChangesButton).toBeVisible();
-    await expect(settingsPage.SELECTORS.learnMoreAboutDNSLink).toBeVisible();
+    await expect(settingsPage.viewDefaultDnsButton).toBeVisible();
+    await expect(settingsPage.dnsAddressInput).toBeVisible();
+    await expect(settingsPage.addDnsButton).toBeVisible();
+    await expect(settingsPage.saveChangesButton).toBeVisible();
+    await expect(settingsPage.learnMoreAboutDnsLink).toBeVisible();
   });
 
-  test('adds custom DNS correctly', async ({ page }) => {
-    await expect(settingsPage.SELECTORS.switchDNSButton).toBeDisabled();
-    await settingsPage.fillDNSAddressInput(DNS_ADDRESS);
-    await settingsPage.clickAddDNSButton();
-    await settingsPage.clickSaveChangesButton();
-
-    await expect(settingsPage.SELECTORS.notification).toBeVisible();
-    await expect(page.getByText(DNS_ADDRESS)).toBeVisible();
-    await expect(settingsPage.SELECTORS.deleteDNSButton).toBeVisible();
-    await expect(settingsPage.SELECTORS.switchDNSButton).toBeEnabled();
-  });
-
-  test('deletes custom DNS correctly', async ({ page }) => {
-    await settingsPage.fillDNSAddressInput(DNS_ADDRESS);
-    await settingsPage.clickAddDNSButton();
-    await settingsPage.clickSaveChangesButton();
-    await expect(settingsPage.SELECTORS.notification).toBeVisible();
-    await expect(page.getByText(DNS_ADDRESS)).toBeVisible();
-
-    await settingsPage.clickDeleteDNSButton();
-    await settingsPage.clickSaveChangesButton();
-    await expect(settingsPage.SELECTORS.notification).toBeVisible();
-    await expect(page.getByText(DNS_ADDRESS)).not.toBeVisible();
-    await expect(settingsPage.SELECTORS.deleteDNSButton).not.toBeVisible();
-    await expect(settingsPage.SELECTORS.switchDNSButton).toBeDisabled();
+  test('disables custom DNS and saving until a server is added', async () => {
+    await expect(
+      settingsPage.customDnsToggle.getByRole('switch'),
+    ).toBeDisabled();
+    await expect(settingsPage.saveChangesButton).toBeDisabled();
   });
 
   test('displays error message for invalid DNS address', async () => {
-    await settingsPage.fillDNSAddressInput(INVALID_DNS_ADDRESS);
-    await settingsPage.clickAddDNSButton();
-    await expect(settingsPage.SELECTORS.invalidDNSAddressError).toBeVisible();
+    await settingsPage.dnsAddressInput.fill(INVALID_DNS_ADDRESS);
+    await settingsPage.addDnsButton.click();
+
+    await expect(settingsPage.invalidDnsError).toBeVisible();
+    await expect(settingsPage.saveChangesButton).toBeDisabled();
+  });
+
+  test('adds custom DNS correctly', async ({ page }) => {
+    await settingsPage.dnsAddressInput.fill(DNS_ADDRESS);
+    await settingsPage.addDnsButton.click();
+
+    await expect(settingsPage.customDnsList).toBeVisible();
+    await expect(page.getByText(DNS_ADDRESS)).toBeVisible();
+    await expect(settingsPage.deleteDnsButton).toBeVisible();
+    await expect(settingsPage.saveChangesButton).toBeEnabled();
+
+    await settingsPage.saveChangesButton.click();
+
+    await expect(settingsPage.toast).toBeVisible();
+    await expect(
+      settingsPage.customDnsToggle.getByRole('switch'),
+    ).toBeEnabled();
+    // Saving clears the pending-changes state.
+    await expect(settingsPage.saveChangesButton).toBeDisabled();
+  });
+
+  test('deletes custom DNS correctly', async ({ page }) => {
+    await settingsPage.dnsAddressInput.fill(DNS_ADDRESS);
+    await settingsPage.addDnsButton.click();
+    await settingsPage.saveChangesButton.click();
+    await expect(page.getByText(DNS_ADDRESS)).toBeVisible();
+
+    await settingsPage.deleteDnsButton.click();
+    await settingsPage.saveChangesButton.click();
+
+    await expect(page.getByText(DNS_ADDRESS)).toHaveCount(0);
+    await expect(settingsPage.deleteDnsButton).toHaveCount(0);
   });
 });

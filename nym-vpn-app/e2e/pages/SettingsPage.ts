@@ -1,197 +1,120 @@
 import { Locator, Page } from '@playwright/test';
 
-type Selectors = Record<string, Locator>;
-
+/**
+ * Settings index ("/settings") and its sub-screens.
+ *
+ * Menu rows expose their icon ligature and chevron in the accessible name
+ * (e.g. "dns Customize DNS chevron_right"), so rows are matched by substring
+ * rather than exact text.
+ */
 class SettingsPage {
-  readonly SELECTORS: Selectors;
+  readonly backButton: Locator;
+  readonly quitButton: Locator;
+  readonly appVersion: Locator;
+  readonly daemonVersion: Locator;
+  readonly networkName: Locator;
+  readonly toast: Locator;
+
+  // Account
+  readonly accountRow: Locator;
+  readonly logoutButton: Locator;
+  readonly accountId: Locator;
+  readonly deviceId: Locator;
+  readonly getStartedButton: Locator;
+
+  // Anti-censorship
+  readonly quicToggle: Locator;
+  readonly amneziaToggle: Locator;
+  readonly stealthApiToggle: Locator;
+
+  // DNS
+  readonly viewDefaultDnsButton: Locator;
+  readonly customDnsToggle: Locator;
+  readonly dnsAddressInput: Locator;
+  readonly addDnsButton: Locator;
+  readonly saveChangesButton: Locator;
+  readonly learnMoreAboutDnsLink: Locator;
+  readonly deleteDnsButton: Locator;
+  readonly invalidDnsError: Locator;
+  readonly customDnsList: Locator;
+
+  // Appearance / display
+  readonly displayModeRow: Locator;
+  readonly languageRow: Locator;
+  readonly automaticTheme: Locator;
+  readonly lightTheme: Locator;
+  readonly darkTheme: Locator;
+  /** Wrapper that carries the active theme via `data-test-theme`. */
+  readonly themeSetter: Locator;
 
   constructor(private readonly page: Page) {
-    this.page = page;
-    this.SELECTORS = {
-      title: this.page.getByTestId('top-bar-title-text'),
-      backButton: this.page
-        .getByTestId('top-bar-left-button-container')
-        .getByTestId('button-icon'),
+    this.backButton = page.getByRole('button', { name: 'keyboard_arrow_left' });
+    this.quitButton = page.getByRole('button', { name: 'Quit NymVPN' });
+    this.appVersion = page.getByTestId('client-version-value');
+    this.daemonVersion = page.getByTestId('daemon-version-value');
+    this.networkName = page.getByTestId('network-name-value');
+    this.toast = page.getByRole('dialog');
 
-      notification: this.page.getByTestId('notifications-toast'),
+    this.accountRow = page.getByRole('button', { name: /Account/ }).first();
+    this.logoutButton = page.getByRole('button', { name: /Log ?out/i });
+    this.accountId = page.getByText('Account ID', { exact: true });
+    this.deviceId = page.getByText('Device ID', { exact: true });
+    this.getStartedButton = page.getByRole('button', { name: 'Get started' });
 
-      // Settings rows
-      accountButton: this.page.getByRole('button', { name: /Account/ }),
+    this.quicToggle = page.getByRole('button', {
+      name: /Enhanced connection \(QUIC\)/,
+    });
+    this.amneziaToggle = page.getByRole('button', {
+      name: /Minimal obfuscation \(AmneziaWG\)/,
+    });
+    this.stealthApiToggle = page.getByRole('button', {
+      name: /Stealth API connect/,
+    });
 
-      supportFeedbackButton: this.page.getByRole('button', {
-        name: /Support &/,
-      }),
+    this.viewDefaultDnsButton = page.getByRole('button', {
+      name: 'View default DNS',
+    });
+    this.customDnsToggle = page.getByRole('button', {
+      name: /Use custom DNS servers/,
+    });
+    this.dnsAddressInput = page.getByRole('textbox', {
+      name: 'IPv4 or IPv6 address',
+    });
+    this.addDnsButton = page.getByRole('button', { name: 'Add', exact: true });
+    this.saveChangesButton = page.getByRole('button', { name: 'Save changes' });
+    this.learnMoreAboutDnsLink = page.getByTestId('link-learn-more-about-dns');
+    this.deleteDnsButton = page.getByRole('button', { name: 'delete_outline' });
+    this.invalidDnsError = page.getByText('Invalid DNS address format');
+    this.customDnsList = page.getByText(/Custom DNS servers \(\d\/\d\)/);
 
-      killswitchButton: this.page.getByRole('button', { name: /Killswitch/ }),
-      blockAdsButton: this.page.getByRole('button', { name: /Block ads/ }),
-      supportIPv6Button: this.page.getByRole('button', {
-        name: /Support IPv6/,
-      }),
-      bypassLANButton: this.page.getByRole('button', { name: /Bypass LAN/ }),
-      customizeDNSButton: this.page.getByRole('button', {
-        name: /Customize DNS/,
-      }),
-      antiCensorshipButton: this.page.getByRole('button', {
-        name: /Anti-censorship/,
-      }),
-      appWalletProxyButton: this.page.getByRole('button', {
-        name: /App & wallet proxy/,
-      }),
-
-      launchOnStartupButton: this.page.getByRole('button', {
-        name: /Launch on/,
-      }),
-      appearanceButton: this.page.getByRole('button', { name: /Appearance/ }),
-      desktopNotificationsButton: this.page.getByRole('button', {
-        name: /Desktop notifications/,
-      }),
-
-      dataPrivacyButton: this.page.getByRole('button', {
-        name: /Data, privacy/,
-      }),
-
-      legalButton: this.page.getByRole('button', { name: /Legal/ }),
-
-      quitButton: this.page.getByRole('button', { name: 'Quit NymVPN' }),
-
-      // App version
-      clientVersionLabel: this.page.getByTestId('client-version-label'),
-      clientVersionValue: this.page.getByTestId('client-version-value'),
-
-      daemonVersionLabel: this.page.getByTestId('daemon-version-label'),
-      daemonVersionValue: this.page.getByTestId('daemon-version-value'),
-
-      networkNameLabel: this.page.getByTestId('network-name-label'),
-      networkNameValue: this.page.getByTestId('network-name-value'),
-
-      // Anti censorship
-      enhancedConnectionText: this.page.getByRole('button', {
-        name: 'Enhanced connection (QUIC)',
-      }),
-      howQUICImprovesLink: this.page.getByTestId(
-        'link-how-quic-improves-connections',
-      ),
-
-      minimalObfuscationText: this.page.getByRole('button', {
-        name: 'Minimal obfuscation (AmneziaWG)',
-      }),
-      howAmneziaWGPreventsDPILink: this.page.getByTestId(
-        'link-how-amneziawg-prevents-dpi',
-      ),
-
-      stealAPIConnectText: this.page.getByRole('button', {
-        name: 'Stealth API connect',
-      }),
-      howStealthAPIConnectWorksLink: this.page.getByTestId(
-        'link-how-the-stealth-api-connect-mode-works',
-      ),
-
-      // DNS customization
-      viewDefaultDNSButton: this.page.getByRole('button', {
-        name: 'View default DNS',
-      }),
-      dnsAddressInput: this.page.getByRole('textbox', { name: 'DNS address' }),
-      addDNSButton: this.page.getByRole('button', { name: 'Add' }),
-      saveChangesButton: this.page.getByRole('button', {
-        name: 'Save changes',
-      }),
-      deleteDNSButton: this.page
-        .getByTestId('page-animation')
-        .getByTestId('button-icon'),
-      switchDNSButton: this.page
-        .getByRole('button', { name: /Use custom DNS servers/ })
-        .getByTestId('switch'),
-      learnMoreAboutDNSLink: this.page.getByTestId('link-learn-more-about-dns'),
-      invalidDNSAddressError: this.page.getByText('Invalid DNS address format'),
-
-      // Appearance
-      displayModeButton: this.page.getByRole('button', {
-        name: /Display mode/,
-      }),
-      themesLabel: this.page.getByTestId('theme-radio-group-label'),
-      automaticThemeButton: this.page.getByTestId(
-        'theme-radio-group-option-system',
-      ),
-      lightThemeButton: this.page.getByTestId('theme-radio-group-option-light'),
-      darkThemeButton: this.page.getByTestId('theme-radio-group-option-dark'),
-      zoomSectionTitle: this.page.getByTestId('zoom-section-title'),
-
-      // Account
-      manageSubscriptionButton: this.page.getByRole('button', {
-        name: /Manage your subscription/,
-      }),
-      accountId: this.page.getByText('Account ID', { exact: true }),
-      deviceId: this.page.getByText('Device ID'),
-      logoutButton: this.page.getByTestId('button'),
-    };
+    this.displayModeRow = page.getByRole('button', { name: /Display mode/ });
+    this.languageRow = page.getByRole('button', { name: /Language/ });
+    this.automaticTheme = page.getByRole('radio', { name: /Automatic/ });
+    this.lightTheme = page.getByRole('radio', { name: /Light theme/ });
+    this.darkTheme = page.getByRole('radio', { name: /Dark theme/ });
+    this.themeSetter = page.getByTestId('theme-setter');
   }
 
-  async goto() {
-    await this.page.goto('/settings');
+  async goto(path = '/settings') {
+    await this.page.goto(path);
+    await this.waitForPageLoad();
   }
 
   async waitForPageLoad() {
     await this.page.waitForLoadState('networkidle');
   }
 
-  async clickBackButton() {
-    await this.SELECTORS.backButton.click();
+  /** A settings menu row, matched on a substring of its label. */
+  row(label: string | RegExp): Locator {
+    return this.page
+      .getByRole('button', {
+        name: typeof label === 'string' ? new RegExp(label) : label,
+      })
+      .first();
   }
 
-  async clickAntiCensorshipButton() {
-    await this.SELECTORS.antiCensorshipButton.click();
-  }
-
-  async clickCustomizeDNSButton() {
-    await this.SELECTORS.customizeDNSButton.click();
-  }
-
-  async clickViewDefaultDNSButton() {
-    await this.SELECTORS.viewDefaultDNSButton.click();
-  }
-
-  async fillDNSAddressInput(address: string) {
-    await this.SELECTORS.dnsAddressInput.fill(address);
-  }
-
-  async clickAddDNSButton() {
-    await this.SELECTORS.addDNSButton.click();
-  }
-
-  async clickSaveChangesButton() {
-    await this.SELECTORS.saveChangesButton.click();
-  }
-
-  async clickDeleteDNSButton() {
-    await this.SELECTORS.deleteDNSButton.click();
-  }
-
-  async clickSwitchDNSButton() {
-    await this.SELECTORS.switchDNSButton.click();
-  }
-
-  async clickAppearanceButton() {
-    await this.SELECTORS.appearanceButton.click();
-  }
-
-  async clickDisplayModeButton() {
-    await this.SELECTORS.displayModeButton.click();
-  }
-
-  async clickDarkThemeButton() {
-    await this.SELECTORS.darkThemeButton.click();
-  }
-
-  async clickLightThemeButton() {
-    await this.SELECTORS.lightThemeButton.click();
-  }
-
-  async clickAccountButton() {
-    await this.SELECTORS.accountButton.click();
-  }
-
-  async clickLogoutButton() {
-    await this.SELECTORS.logoutButton.click();
+  async openRow(label: string | RegExp) {
+    await this.row(label).click();
   }
 }
 

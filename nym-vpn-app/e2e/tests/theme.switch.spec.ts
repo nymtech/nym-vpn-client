@@ -1,40 +1,45 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import MainPage from '../pages/MainPage';
 import SettingsPage from '../pages/SettingsPage';
 
 test.describe('Theme', () => {
-  let mainPage: MainPage;
   let settingsPage: SettingsPage;
 
   test.beforeEach(async ({ page }) => {
-    mainPage = new MainPage(page);
+    const mainPage = new MainPage(page);
     settingsPage = new SettingsPage(page);
     await mainPage.goto();
-    await mainPage.waitForPageLoad();
-    await mainPage.clickSettingsButton();
-    await settingsPage.clickAppearanceButton();
-    await settingsPage.clickDisplayModeButton();
+    await mainPage.settingsButton.click();
+    await settingsPage.openRow('Appearance');
+    await settingsPage.displayModeRow.click();
+    await expect(page).toHaveURL(/\/settings\/appearance\/display/);
   });
 
-  test('renders theme switch screen correctly', async () => {
-    await expect(settingsPage.SELECTORS.themesLabel).toBeVisible();
-    await expect(settingsPage.SELECTORS.automaticThemeButton).toBeVisible();
-    await expect(settingsPage.SELECTORS.lightThemeButton).toBeVisible();
-    await expect(settingsPage.SELECTORS.darkThemeButton).toBeVisible();
-    await expect(settingsPage.SELECTORS.zoomSectionTitle).toBeVisible();
+  test('renders theme switch screen correctly', async ({ page }) => {
+    await expect(settingsPage.automaticTheme).toBeVisible();
+    await expect(settingsPage.lightTheme).toBeVisible();
+    await expect(settingsPage.darkTheme).toBeVisible();
+    await expect(page.getByText('Zoom level')).toBeVisible();
   });
 
-  test('switches theme correctly', async ({ page }) => {
-    await settingsPage.clickDarkThemeButton();
-    await expect(page.getByTestId('theme-setter')).toHaveAttribute(
-      'data-test-theme',
-      'dark',
-    );
+  test('marks the active theme as checked', async () => {
+    await expect(settingsPage.darkTheme).toBeChecked();
+    await expect(settingsPage.lightTheme).not.toBeChecked();
+  });
 
-    await settingsPage.clickLightThemeButton();
-    await expect(page.getByTestId('theme-setter')).toHaveAttribute(
+  test('switches theme correctly', async () => {
+    await settingsPage.lightTheme.click();
+    await expect(settingsPage.themeSetter).toHaveAttribute(
       'data-test-theme',
       'light',
     );
+    await expect(settingsPage.lightTheme).toBeChecked();
+
+    await settingsPage.darkTheme.click();
+    await expect(settingsPage.themeSetter).toHaveAttribute(
+      'data-test-theme',
+      'dark',
+    );
+    await expect(settingsPage.darkTheme).toBeChecked();
   });
 });

@@ -1,7 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import MainPage from '../pages/MainPage';
-import SettingsPage from '../pages/SettingsPage';
-import NodeListPage from '../pages/NodeList';
 
 test.describe('MainScreen', () => {
   let mainPage: MainPage;
@@ -9,72 +7,58 @@ test.describe('MainScreen', () => {
   test.beforeEach(async ({ page }) => {
     mainPage = new MainPage(page);
     await mainPage.goto();
-    await mainPage.waitForPageLoad();
   });
 
   test('renders home screen correctly', async () => {
-    const connectionStatusText = await mainPage.getConnectionStatusText();
-
-    expect(connectionStatusText).toBe('Disconnected');
-    await expect(mainPage.SELECTORS.connectionStatusText).toBeVisible();
-    await expect(mainPage.SELECTORS.wireguardModeCard).toBeVisible();
-    await expect(mainPage.SELECTORS.mixnetModeCard).toBeVisible();
-    await expect(mainPage.SELECTORS.entryServer).toBeVisible();
-    await expect(mainPage.SELECTORS.exitServer).toBeVisible();
-    await expect(mainPage.SELECTORS.connectButton).toBeVisible();
-    await expect(mainPage.SELECTORS.settingsButton).toBeVisible();
-    await expect(mainPage.SELECTORS.modeInfoButton).toBeVisible();
+    await expect(mainPage.statusText).toHaveText('Not protected');
+    await expect(mainPage.connectButton).toBeVisible();
+    await expect(mainPage.settingsButton).toBeVisible();
+    await expect(mainPage.fastMode).toBeVisible();
+    await expect(mainPage.mixnetMode).toBeVisible();
+    await expect(mainPage.entryServerLabel).toBeVisible();
+    await expect(mainPage.exitServerLabel).toBeVisible();
   });
 
-  test('navigates to settings screen correctly', async ({ page }) => {
-    await mainPage.clickSettingsButton();
-
-    await page.goto('/settings');
-    await page.waitForLoadState('networkidle');
-
-    const settingsPage = new SettingsPage(page);
-    await settingsPage.waitForPageLoad();
-    await expect(settingsPage.SELECTORS.title).toBeVisible();
-
-    await settingsPage.clickBackButton();
-    await mainPage.waitForPageLoad();
-    await expect(mainPage.SELECTORS.connectionStatusText).toBeVisible();
-    await expect(settingsPage.SELECTORS.title).not.toBeVisible();
+  test('selects Fast mode by default', async () => {
+    expect(await mainPage.selectedMode()).toBe('Fast');
   });
 
   test('switches to different modes correctly', async () => {
-    await mainPage.clickWireguardModeCard();
-    expect(await mainPage.isWireguardModeChecked()).toBe(true);
-    expect(await mainPage.isMixnetModeChecked()).toBe(false);
-    await mainPage.clickMixnetModeCard();
-    expect(await mainPage.isMixnetModeChecked()).toBe(true);
-    expect(await mainPage.isWireguardModeChecked()).toBe(false);
+    await mainPage.mixnetMode.click();
+    await expect(mainPage.mixnetMode).toHaveAttribute('aria-pressed', 'true');
+    await expect(mainPage.fastMode).toHaveAttribute('aria-pressed', 'false');
+
+    await mainPage.fastMode.click();
+    await expect(mainPage.fastMode).toHaveAttribute('aria-pressed', 'true');
+    await expect(mainPage.mixnetMode).toHaveAttribute('aria-pressed', 'false');
   });
 
-  test('opens mode info dialog correctly', async () => {
-    await mainPage.clickModeInfoButton();
-
-    await expect(mainPage.SELECTORS.dialog).toBeVisible();
-    await expect(mainPage.SELECTORS.title).toBeVisible();
-    await expect(mainPage.SELECTORS.fastTitle).toBeVisible();
-    await expect(mainPage.SELECTORS.mixnetTitle).toBeVisible();
-    await expect(mainPage.SELECTORS.readMoreLink).toBeVisible();
-    await expect(mainPage.SELECTORS.closeButton).toBeVisible();
-
-    await mainPage.closeModeInfoDialog();
-
-    await expect(mainPage.SELECTORS.dialog).not.toBeVisible();
+  test('renders entry and exit server rows', async () => {
+    await expect(mainPage.serverRow('Entry')).toBeVisible();
+    await expect(mainPage.serverRow('Exit')).toBeVisible();
+    await expect(mainPage.serverRow('Entry')).toContainText('Random');
   });
 
-  test('switches to different entry and exit servers correctly', async ({
-    page,
-  }) => {
-    await mainPage.clickEntryServer();
+  test('navigates to settings screen correctly', async ({ page }) => {
+    await mainPage.settingsButton.click();
 
-    const nodeListPage = new NodeListPage(page);
-    await nodeListPage.waitForPageLoad();
+    await expect(page).toHaveURL(/\/settings$/);
+    await expect(page.getByText('Settings', { exact: true })).toBeVisible();
+  });
 
-    await nodeListPage.pickCountry('RU');
-    await expect(page.getByText('Russia')).toBeVisible();
+  test('closes settings screen correctly', async ({ page }) => {
+    await mainPage.settingsButton.click();
+    await expect(page).toHaveURL(/\/settings$/);
+
+    await page.getByRole('button', { name: 'keyboard_arrow_left' }).click();
+
+    await expect(page).toHaveURL(/\/home/);
+    await expect(mainPage.statusText).toBeVisible();
+  });
+
+  test('opens node location from a server row', async ({ page }) => {
+    await mainPage.serverRow('Entry').click();
+
+    await expect(page).toHaveURL(/\/node-location/);
   });
 });
