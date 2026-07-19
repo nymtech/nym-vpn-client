@@ -639,12 +639,17 @@ jobs:
   distribute:
     needs: [resolve, release]
     #if: ${{ inputs.release == 'true' }}
+    # condition is needed because 'release' may be skipped due to dependence on cache actions
     if: |
       !cancelled() && needs.release.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+
       - parallel:
         - name: Publish to TestFlight
           if: ${{ needs.resolve.outputs.ios == 'true' }}
