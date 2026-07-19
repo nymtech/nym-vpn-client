@@ -1,5 +1,4 @@
 import { mockIPC, mockWindows } from '@tauri-apps/api/mocks';
-import { InvokeArgs } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
 import {
   AccountLinks,
@@ -24,15 +23,12 @@ import mxEntryGwJson from './mocked/mx-entry-gw.json';
 import mxExitGwJson from './mocked/mx-exit-gw.json';
 import wgTunnel from './mocked/wg-tunnel.json';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MockIpcFn = (cmd: string, payload?: InvokeArgs) => Promise<any>;
 type ArgsObj<T> = Record<string, T>;
 
 // fake state
 const appVersion = '0.0.0';
 const uiTheme: UiTheme = 'dark';
 const lang = 'en';
-const showWelcome = false;
 // const daemon: VpndStatus = 'down';
 const daemon: VpndStatus = {
   ok: {
@@ -61,7 +57,6 @@ const featureFlags: FeatureFlags = {
   quic: true,
   domainFronting: true,
   zknymCredential: true,
-  mixnetTuning: false,
 };
 
 export function mockTauriIPC() {
@@ -73,7 +68,7 @@ export function mockTauriIPC() {
     family: 'unix',
   };
   mockIPC(
-    (async (cmd, args) => {
+    async (cmd, args) => {
       console.debug(`IPC call mocked "${cmd}"`);
       console.debug(args);
 
@@ -120,10 +115,10 @@ export function mockTauriIPC() {
         return new Promise<GatewaysByCountry[]>((resolve) => {
           switch ((args as ArgsObj<GatewayType>).nodeType) {
             case 'mx-entry':
-              resolve(mxEntryGwJson as GatewaysByCountry[]);
+              resolve(mxEntryGwJson);
               return;
             case 'mx-exit':
-              resolve(mxExitGwJson as GatewaysByCountry[]);
+              resolve(mxExitGwJson);
               return;
             case 'wg':
               resolve(wgGwJson as GatewaysByCountry[]);
@@ -146,9 +141,6 @@ export function mockTauriIPC() {
             break;
           case 'ui-language':
             res = lang;
-            break;
-          case 'welcome-screen-seen':
-            res = !showWelcome;
             break;
 
           /* 1740391345259 */
@@ -184,7 +176,6 @@ export function mockTauriIPC() {
             buildInfo: false,
             cleanLocalFiles: false,
             devMode: true,
-            logFile: false,
             logLevel: 'trace',
           }),
         );
@@ -288,7 +279,7 @@ export function mockTauriIPC() {
       if (cmd === 'plugin:clipboard-manager|write_text') {
         console.log(`copied to clipboard: ${(args as ArgsObj<string>).text}`);
       }
-    }) as MockIpcFn,
+    },
     { shouldMockEvents: true },
   );
 }

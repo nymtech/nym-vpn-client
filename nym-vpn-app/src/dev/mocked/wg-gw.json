@@ -240,6 +240,12 @@
           "name": "United States of America"
         },
         "id": "29U3LythwEaqigL5YajXALw1c7DE7YNcRW7Vn7KcYMQL",
+        "location": {
+          "city": "New York",
+          "latitude": 40.7128,
+          "longitude": -74.006,
+          "region": "New York"
+        },
         "mxScore": "high",
         "name": "High speed gateway",
         "type": "wg",

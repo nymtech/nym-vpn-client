@@ -7,6 +7,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import duration from 'dayjs/plugin/duration';
 import App from './App';
+import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import {
   GatewaySelectionAlgorithmConfig,
@@ -88,6 +89,11 @@ if (!import.meta.env.DEV) {
   document.oncontextmenu = (event) => {
     event.preventDefault();
   };
+}
+
+if (import.meta.env.MODE === 'dev-browser') {
+  console.log('Running in dev-browser mode. Mocking tauri window and IPCs');
+  mockTauriIPC();
 }
 
 dayjs.extend(relativeTime);

@@ -11,6 +11,7 @@
   "repository": "github:nymtech/nym-vpn-client",
   "scripts": {
     "dev": "vite",
+    "dev:browser": "vite --mode dev-browser",
     "dev:app": "tauri dev",
     "check": "run-s lint tscheck fmt",
     "build": "tsc && vite build",
