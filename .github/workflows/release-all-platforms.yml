@@ -226,8 +226,23 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/release/resolve-version.sh
 
-  restore-build-cache:
+  check-release-exists:
+    runs-on: ubuntu-latest
     needs: [resolve]
+    steps:
+      - name: Check if release exists
+        id: check_release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ needs.resolve.outputs.tag }}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" ; then
+            echo "Release $TAG already exists. Aborting"
+            exit 1
+          fi
+
+  restore-build-cache:
+    needs: [resolve, check-release-exists]
     runs-on: ubuntu-latest
     outputs:
       cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
@@ -253,7 +268,7 @@ jobs:
           key: ${{ env.CACHE_KEY }}
 
   build:
-    needs: [resolve, restore-build-cache]
+    needs: [resolve, check-release-exists, restore-build-cache]
     if: ${{ needs.restore-build-cache.outputs.cache-hit == 'false' }}
     permissions:
       contents: write
@@ -578,7 +593,7 @@ jobs:
           #tag_name: ${{ needs.resolve.outputs.tag }}
           name: "nym-vpn-v${{ needs.resolve.outputs.version }}"
           prerelease: false
-          make_latest: false
+          make_latest: ${{ needs.resolve.outputs.channel == 'ship' && inputs.release == 'true' }}
           draft: true
           fail_on_unmatched_files: true
           overwrite_files: false
