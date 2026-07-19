@@ -116,7 +116,7 @@ env:
   IOS_ARTIFACTS: ios_artifacts
   MACOS_ARTIFACTS: macos_artifacts
   # Only used for testing purposes and must not be used in production
-  DANGER_BUILD_CACHE_KEY: all_artifacts_v2 # used when testing workflow
+  DANGER_BUILD_CACHE_KEY: all_artifacts_v3 # used when testing workflow
 
 jobs:
   resolve:
@@ -157,7 +157,7 @@ jobs:
             echo "::notice:: dry-run release from ref $REF_NAME (event $EVENT)"
             echo "::notice:: nightly → all platforms (dry run)"
             {
-              echo "publish_github_release=false"
+              echo "publish_github_release=true"
               echo "channel=nightly"
               echo "android=true"; echo "fdroid=true"; echo "linux=true"
               echo "windows=true"; echo "ios=true"; echo "macos=true"
