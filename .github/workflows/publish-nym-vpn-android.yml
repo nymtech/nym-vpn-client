@@ -121,10 +121,13 @@ jobs:
           FASTLANE_OPT_OUT_USAGE: YES
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           ARTIFACT_FILE: ${{ steps.find_artifact.outputs.artifact_file }}
+          TRACK: ${{ inputs.track }}
+          SKIP_UPLOAD_BUNDLE: ${{ !inputs.publish-bundle }}
+          SKIP_UPLOAD_METADATA: ${{ !inputs.publish-metadata }}
         run: |
-          echo "🚀 Uploading to Google Play Store..."
+          echo "🚀 Uploading to Google Play Store... (track=$TRACK, skip_bundle=$SKIP_UPLOAD_BUNDLE, skip_metadata=$SKIP_UPLOAD_METADATA)"
 
           bundle exec fastlane supply --aab "$ARTIFACT_FILE" \
-            --track ${{ inputs.track }} \
-            --skip-upload-aab ${{ inputs.publish-bundle != 'true' }} \
-            --skip-upload-metadata ${{ inputs.publish-metadata != 'true' }}
+            --track "$TRACK" \
+            --skip-upload-aab $SKIP_UPLOAD_BUNDLE \
+            --skip-upload-metadata $SKIP_UPLOAD_METADATA
