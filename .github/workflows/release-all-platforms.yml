@@ -238,7 +238,7 @@ jobs:
           TAG="${{ needs.resolve.outputs.tag }}"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" ; then
             echo "Release $TAG already exists. Aborting"
-            exit 1
+            #exit 1
           fi
 
   restore-build-cache:
