@@ -116,7 +116,6 @@ env:
   IOS_ARTIFACTS: ios_artifacts
   MACOS_ARTIFACTS: macos_artifacts
   # Only used for testing purposes and must not be used in production
-  DANGER_CACHE_BUILDS: true
   DANGER_BUILD_CACHE_KEY: all_artifacts_v2 # used when testing workflow
 
 jobs:
@@ -245,7 +244,7 @@ jobs:
   # This step is only used for testing purposes when developing this workflow
   restore-build-cache:
     needs: [resolve, check-release-exists]
-    if: ${{ env.DANGER_CACHE_BUILDS == 'true' }}
+    if: true
     runs-on: ubuntu-latest
     outputs:
       cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
@@ -377,7 +376,7 @@ jobs:
   save-build-cache:
     needs: [resolve, build, restore-build-cache]
     if: |
-      !cancelled() && needs.restore-build-cache.result == 'success' && env.DANGER_CACHE_BUILDS == 'true'
+      !cancelled() && needs.restore-build-cache.result == 'success' && true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
