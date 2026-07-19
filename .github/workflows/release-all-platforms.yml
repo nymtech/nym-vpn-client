@@ -550,21 +550,27 @@ jobs:
             )
           fi
 
-          if [ "${{ needs.resolve.outputs.android }}" = "true" && "${{ needs.resolve.outputs.fdroid }}" = "true" ]; then
+          if [[ "${{ needs.resolve.outputs.android }}" = "true" && "${{ needs.resolve.outputs.fdroid }}" = "true" ]]; then
             FILES+=(
               ${{ env.ANDROID_APK }}
               ${{ env.ANDROID_APK }}.sha256sum
             )
           fi
 
-          printf -v JOINED '%s\n' "${FILES[@]}"
-          echo "asset_paths<<EOF" >> $GITHUB_OUTPUT
-          echo "$JOINED" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          if [ ${#FILES[@]} -gt 0 ]; then
+            printf -v JOINED '%s\n' "${FILES[@]}"
+            echo "asset_paths<<EOF" >> $GITHUB_OUTPUT
+            echo "$JOINED" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "::error::No files to upload"
+            exit 1
+          fi
 
       - name: Publish GitHub Release
         #if: ${{ inputs.release == 'true' }}
         uses: softprops/action-gh-release@v3
+        id: gh-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -583,7 +589,7 @@ jobs:
       - name: Extract asset URLs
         id: extract_urls
         run: |
-          echo "${{ steps.assets.outputs.assets }}"
+          echo "${{ steps.gh-release.outputs.assets }}"
 
   distribute:
     if: ${{ inputs.release == 'true' }}
