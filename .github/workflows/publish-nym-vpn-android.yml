@@ -25,6 +25,7 @@ env:
 jobs:
   publish-play:
     runs-on: arc-linux-latest
+    timeout-minutes: 30
     env:
       # SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
       # SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
@@ -111,7 +112,7 @@ jobs:
             echo "::error:: Failed to locate aab artifact"
             exit 1
           fi
-          echo "artifact_file=$ARTIFACT_FILE" >> $GITHUB_ENV
+          echo "artifact_file=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
           echo "::notice:: Found artifact for upload: $ARTIFACT_FILE"
 
       - name: Distribute app to fastlane track ${{ inputs.track }} 🚀
@@ -121,7 +122,9 @@ jobs:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           ARTIFACT_FILE: ${{ steps.find_artifact.outputs.artifact_file }}
         run: |
-            bundle exec fastlane supply --aab "$ARTIFACT_FILE" \
-              --track ${{ inputs.track }} \
-              --skip-upload-aab ${{ github.event.inputs.publish-bundle != 'true' }} \
-              --skip-upload-metadata ${{ inputs.publish-metadata != 'true' }}
+          echo "🚀 Uploading to Google Play Store..."
+
+          bundle exec fastlane supply --aab "$ARTIFACT_FILE" \
+            --track ${{ inputs.track }} \
+            --skip-upload-aab ${{ github.event.inputs.publish-bundle != 'true' }} \
+            --skip-upload-metadata ${{ inputs.publish-metadata != 'true' }}
