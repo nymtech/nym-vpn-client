@@ -603,28 +603,72 @@ jobs:
 
       - name: Extract asset URLs
         id: extract_urls
+        env:
+          RELEASE_PAYLOAD: ${{ steps.gh-release.outputs.assets }}
         run: |
+          set -euo pipefail
+
           echo "::notice:: Github release URL: ${{ steps.gh-release.outputs.url }}"
-          echo "${{ steps.gh-release.outputs.assets }}" | jq
+
+          if [ "${{ needs.resolve.outputs.linux }}" = "true" ]; then
+            LINUX_APP_DEB_X64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.LINUX_APP_DEB_X64 }}")) | .browser_download_url')
+            echo "::notice:: Linux app deb (x64): $LINUX_APP_DEB_X64"
+
+            LINUX_APP_DEB_ARM64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.LINUX_APP_DEB_ARM64 }}")) | .browser_download_url')
+            echo "::notice:: Linux app deb (arm64): $LINUX_APP_DEB_ARM64"
+          fi
+
+          if [ "${{ needs.resolve.outputs.windows }}" = "true" ]; then
+            WINDOWS_INSTALLER_X64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.WINDOWS_APP_INSTALLER_X64 }}")) | .browser_download_url')
+            echo "::notice:: Windows installer (x64): $WINDOWS_INSTALLER_X64"
+
+            WINDOWS_INSTALLER_ARM64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.WINDOWS_APP_INSTALLER_ARM64 }}")) | .browser_download_url')
+            echo "::notice:: Windows installer (arm64): $WINDOWS_INSTALLER_ARM64"
+          fi
+
+          if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
+            MACOS_INSTALLER=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.MACOS_INSTALLER_NAME }}")) | .browser_download_url')
+            echo "::notice:: macOS installer: $MACOS_INSTALLER"
+          fi
+
+          if [[ "${{ needs.resolve.outputs.android }}" = "true" && "${{ needs.resolve.outputs.fdroid }}" = "true" ]]; then
+            ANDROID_APK=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.ANDROID_APK }}")) | .browser_download_url')
+            echo "::notice:: Android APK: $ANDROID_APK"
+          fi
 
   distribute:
-    if: ${{ inputs.release == 'true' }}
+    #if: ${{ inputs.release == 'true' }}
     needs: [resolve, build, release]
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
-      - name: Publish to TestFlight
-        if: ${{ needs.resolve.outputs.ios == true }}
-        uses: ./.github/workflows/publish-nym-vpn-ios.yml
-        with:
-          is_public: false
+      - parallel:
+        - name: Publish to TestFlight
+          if: ${{ needs.resolve.outputs.ios == true }}
+          id: publish-testflight
+          uses: ./.github/workflows/publish-nym-vpn-ios.yml
+          continue-on-error: true
+          with:
+            is_public: false
 
-      - name: Publish to Google Play
-        if: ${{ needs.resolve.outputs.android == true }}
-        uses: ./.github/workflows/publish-nym-vpn-android.yml
-        with:
-          track: alpha
-          publish-bundle: true
-          publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
-          release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
+        - name: Publish to Google Play
+          if: ${{ needs.resolve.outputs.android == true }}
+          id: publish-playstore
+          uses: ./.github/workflows/publish-nym-vpn-android.yml
+          continue-on-error: true
+          with:
+            track: alpha
+            publish-bundle: true
+            publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
+            release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
+
+      - name: Handle TestFlight failures
+        if: steps.publish-testflight.outcome == 'failure'
+        run: |
+          echo "::warning:: Failed to publish to TestFlight!"
+
+      - name: Handle Play Store failures
+        if: steps.publish-playstore.outcome == 'failure'
+        run: |
+          echo "::warning:: Failed to publish to Google Play!"
