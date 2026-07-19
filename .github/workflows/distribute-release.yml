@@ -19,9 +19,17 @@ env:
   UPLOAD_DIR_IOS: ios_artifacts
 
 jobs:
+  print-inputs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print inputs
+        run: |
+          echo "publish_play: ${{ inputs.publish_play }}"
+          echo "publish_testflight: ${{ inputs.publish_testflight }}"
+
   publish-testflight:
     name: Publish to TestFlight
-    if: ${{ inputs.publish_testflight == true }}
+    if: ${{ inputs.publish_testflight == 'true' }}
     uses: ./.github/workflows/publish-nym-vpn-ios.yml
     with:
       is_public: false
@@ -29,7 +37,7 @@ jobs:
 
   publish-playstore:
     name: Publish to Google Play
-    if: ${{ inputs.publish_play == true }}
+    if: ${{ inputs.publish_play == 'true' }}
     uses: ./.github/workflows/publish-nym-vpn-android.yml
     with:
       track: alpha
