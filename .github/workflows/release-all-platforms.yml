@@ -354,7 +354,7 @@ jobs:
 
   build:
     needs: [resolve, check-release-exists, restore-build-cache]
-    if: ${{ needs.restore-build-cache.outputs.cache-hit == 'false' }}
+    if: ${{ needs.restore-build-cache.outputs.cache-hit != 'true' }}
     permissions:
       contents: write
     uses: ./.github/workflows/build-release-artifacts.yml

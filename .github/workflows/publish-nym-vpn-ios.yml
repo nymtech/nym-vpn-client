@@ -60,7 +60,7 @@ jobs:
         id: find_artifact
         run: |
           ARTIFACT_FILE=$(find "${{ github.workspace }}/dist/" -name '*.ipa' -type f | head -1)
-          echo "artifact_file=$ARTIFACT_FILE" >> $GITHUB_ENV
+          echo "artifact_file=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
           echo "::notice:: Found artifact for upload: $ARTIFACT_FILE"
 
       - name: Upload to TestFlight
