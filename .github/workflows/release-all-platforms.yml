@@ -353,8 +353,8 @@ jobs:
           ARCHIVE_LINUX_X86_64=${BASENAME}_linux_x86_64
           ARCHIVE_LINUX_AARCH64=${BASENAME}_linux_aarch64
 
-          echo "ARCHIVE_LINUX_X86_64=${ARCHIVE_LINUX_X86_64}" >> $GITHUB_ENV
-          echo "ARCHIVE_LINUX_AARCH64=${ARCHIVE_LINUX_AARCH64}" >> $GITHUB_ENV
+          echo "ARCHIVE_LINUX_X86_64=${ARCHIVE_LINUX_X86_64}.tar.gz" >> $GITHUB_ENV
+          echo "ARCHIVE_LINUX_AARCH64=${ARCHIVE_LINUX_AARCH64}.tar.gz" >> $GITHUB_ENV
 
           mv -v ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }} ${ARCHIVE_LINUX_X86_64}
           mv -v ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }} ${ARCHIVE_LINUX_AARCH64}
@@ -403,8 +403,8 @@ jobs:
           ARCHIVE_WINDOWS_X64=${BASENAME}_windows_x86_64
           ARCHIVE_WINDOWS_ARM64=${BASENAME}_windows_aarch64
 
-          echo "ARCHIVE_WINDOWS_X64=${ARCHIVE_WINDOWS_X64}" >> $GITHUB_ENV
-          echo "ARCHIVE_WINDOWS_ARM64=${ARCHIVE_WINDOWS_ARM64}" >> $GITHUB_ENV
+          echo "ARCHIVE_WINDOWS_X64=${ARCHIVE_WINDOWS_X64}.zip" >> $GITHUB_ENV
+          echo "ARCHIVE_WINDOWS_ARM64=${ARCHIVE_WINDOWS_ARM64}.zip" >> $GITHUB_ENV
 
           mv -v ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }} ${ARCHIVE_WINDOWS_X64}
           mv -v ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }} ${ARCHIVE_WINDOWS_ARM64}
@@ -491,12 +491,75 @@ jobs:
 
       - name: Generate checksums
         run: |
-          for file in "${{ env.OUTPUT_DIR }}/*"; do
+          for file in "${{ env.OUTPUT_DIR }}/"*; do
             if [ -f "$file" ] && [[ "$file" != *.sha256sum ]]; then
-              echo "Generating SHA for $file > ${file}.sha256sum"
+              echo "#️⃣ Generating SHA: $file > ${file}.sha256sum"
               sha256sum "$file" > "${file}.sha256sum"
             fi
           done
+
+      - name: Generate Release Assets List
+        id: assets
+        run: |
+          FILES=()
+
+          if [ "${{ needs.resolve.outputs.linux }}" = "true" ]; then
+            FILES+=(
+              ${{ env.ARCHIVE_LINUX_X86_64 }}
+              ${{ env.ARCHIVE_LINUX_X86_64 }}.sha256sum
+              ${{ env.ARCHIVE_LINUX_AARCH64 }}
+              ${{ env.ARCHIVE_LINUX_AARCH64 }}.sha256sum
+              ${{ env.LINUX_INSTALL }}
+              ${{ env.LINUX_INSTALL }}.sha256sum
+              ${{ env.LINUX_APP_X64_BIN }}
+              ${{ env.LINUX_APP_X64_BIN }}.sha256sum
+              ${{ env.LINUX_APP_ARM64_BIN }}
+              ${{ env.LINUX_APP_ARM64_BIN }}.sha256sum
+              ${{ env.LINUX_APP_DEB_X64 }}
+              ${{ env.LINUX_APP_DEB_X64 }}.sha256sum
+              ${{ env.LINUX_APP_DEB_ARM64 }}
+              ${{ env.LINUX_APP_DEB_ARM64 }}.sha256sum
+              ${{ env.VPNC_DEB_X86_64 }}
+              ${{ env.VPNC_DEB_X86_64 }}.sha256sum
+              ${{ env.VPNC_DEB_AARCH64 }}
+              ${{ env.VPNC_DEB_AARCH64 }}.sha256sum
+              ${{ env.VPND_DEB_X86_64 }}
+              ${{ env.VPND_DEB_X86_64 }}.sha256sum
+              ${{ env.VPND_DEB_AARCH64 }}
+              ${{ env.VPND_DEB_AARCH64 }}.sha256sum
+            )
+          fi
+
+          if [ "${{ needs.resolve.outputs.windows }}" = "true" ]; then
+            FILES+=(
+              ${{ env.ARCHIVE_WINDOWS_X64 }}
+              ${{ env.ARCHIVE_WINDOWS_X64 }}.sha256sum
+              ${{ env.ARCHIVE_WINDOWS_ARM64 }}
+              ${{ env.ARCHIVE_WINDOWS_ARM64 }}.sha256sum
+              ${{ env.WINDOWS_APP_INSTALLER_X64 }}
+              ${{ env.WINDOWS_APP_INSTALLER_X64 }}.sha256sum
+              ${{ env.WINDOWS_APP_INSTALLER_ARM64 }}
+              ${{ env.WINDOWS_APP_INSTALLER_ARM64 }}.sha256sum
+            )
+          fi
+
+          if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
+            FILES+=(
+              ${{ env.MACOS_INSTALLER_NAME }}
+              ${{ env.MACOS_INSTALLER_NAME }}.sha256sum
+            )
+          fi
+
+          if [ "${{ needs.resolve.outputs.android }}" = "true" && "${{ needs.resolve.outputs.fdroid }}" = "true" ]; then
+            FILES+=(
+              ${{ env.ANDROID_APK }}
+              ${{ env.ANDROID_APK }}.sha256sum
+            )
+          fi
+
+          echo "LIST<<EOF" >> $GITHUB_OUTPUT
+          printf "%s\n" "$FILES[@]" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Publish GitHub Release
         #if: ${{ inputs.release == 'true' }}
@@ -508,45 +571,21 @@ jobs:
           #tag_name: ${{ needs.resolve.outputs.tag }}
           name: "nym-vpn-v${{ needs.resolve.outputs.version }}"
           prerelease: false
+          make_latest: false
           draft: true
+          fail_on_unmatched_files: true
+          overwrite_files: false
+          preserve_order: true
           files: |
-            ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz
-            ${{ env.ARCHIVE_LINUX_X86_64 }}.tar.gz.sha256sum
-            ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz
-            ${{ env.ARCHIVE_LINUX_AARCH64 }}.tar.gz.sha256sum
-            ${{ env.ARCHIVE_WINDOWS_X64 }}.zip
-            ${{ env.ARCHIVE_WINDOWS_X64 }}.zip.sha256sum
-            ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip
-            ${{ env.ARCHIVE_WINDOWS_ARM64 }}.zip.sha256sum
-            ${{ env.VPNC_DEB_X86_64 }}
-            ${{ env.VPNC_DEB_X86_64 }}.sha256sum
-            ${{ env.VPNC_DEB_AARCH64 }}
-            ${{ env.VPNC_DEB_AARCH64 }}.sha256sum
-            ${{ env.VPND_DEB_X86_64 }}
-            ${{ env.VPND_DEB_X86_64 }}.sha256sum
-            ${{ env.VPND_DEB_AARCH64 }}
-            ${{ env.VPND_DEB_AARCH64 }}.sha256sum
-            ${{ env.ANDROID_APK }}
-            ${{ env.ANDROID_APK }}.sha256sum
-            ${{ env.MACOS_INSTALLER_NAME }}
-            ${{ env.MACOS_INSTALLER_NAME }}.sha256sum
-            ${{ env.LINUX_INSTALL }}
-            ${{ env.LINUX_INSTALL }}.sha256sum
-            ${{ env.LINUX_APP_X64_BIN }}
-            ${{ env.LINUX_APP_X64_BIN }}.sha256sum
-            ${{ env.LINUX_APP_ARM64_BIN }}
-            ${{ env.LINUX_APP_ARM64_BIN }}.sha256sum
-            ${{ env.LINUX_APP_DEB_X64 }}
-            ${{ env.LINUX_APP_DEB_X64 }}.sha256sum
-            ${{ env.LINUX_APP_DEB_ARM64 }}
-            ${{ env.LINUX_APP_DEB_ARM64 }}.sha256sum
-            ${{ env.WINDOWS_APP_INSTALLER_X64 }}
-            ${{ env.WINDOWS_APP_INSTALLER_X64 }}.sha256sum
-            ${{ env.WINDOWS_APP_INSTALLER_ARM64 }}
-            ${{ env.WINDOWS_APP_INSTALLER_ARM64 }}.sha256sum
+            ${{ steps.assets.outputs.LIST }}
+
+      - name: Extract asset URLs
+        id: extract_urls
+        run: |
+          echo "${{ steps.assets.outputs.assets }}"
 
   distribute:
-    # if: ${{ inputs.release == 'true' }}
+    if: ${{ inputs.release == 'true' }}
     needs: [resolve, build, release]
     runs-on: ubuntu-latest
     permissions:
