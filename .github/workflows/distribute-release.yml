@@ -61,7 +61,8 @@ jobs:
     needs: [publish-testflight]
     name: Handle TestFlight failures
     runs-on: arc-linux-latest
-    if: needs.publish-testflight.outcome == 'failure'
+    if: |
+        !cancelled() && needs.publish-testflight.result == 'failure'
     steps:
       - name: Print failure message
         run: |
@@ -71,7 +72,8 @@ jobs:
     needs: [publish-playstore]
     runs-on: arc-linux-latest
     name: Handle Play Store failures
-    if: needs.publish-playstore.outcome == 'failure'
+    if: |
+        !cancelled() && needs.publish-playstore.result == 'failure'
     steps:
       - name: Print failure message
         run: |
