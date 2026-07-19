@@ -87,22 +87,6 @@ jobs:
           version: ${{ inputs.version }}
           target: core
 
-      - name: Set version for nightly builds
-        working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' && inputs.version == '' }}
-        run: |
-          if [ ${{ github.event_name }} = 'schedule' ]; then
-            TAG="nightly"
-          else
-            TAG="dev"
-          fi
-          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
-          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
-          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
-          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
-          mv Cargo-patched.toml Cargo.toml
-          cargo fetch
-
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v8
         with:
@@ -181,22 +165,6 @@ jobs:
         with:
           version: ${{ inputs.version }}
           target: core
-
-      - name: Set version for nightly builds
-        working-directory: nym-vpn-core
-        if: ${{ github.ref_name == 'develop' && inputs.version == '' }}
-        run: |
-          if [ ${{ github.event_name }} = 'schedule' ]; then
-            TAG="nightly"
-          else
-            TAG="dev"
-          fi
-          VERSION=$(cargo-get workspace.package.version --major --minor --patch --delimiter='.')
-          NEW_VERSION="${VERSION}-${TAG}.$(date -u +%Y%m%d%H%M)"
-          echo "::notice:: Update version for nightly build: ${NEW_VERSION}"
-          toml set Cargo.toml workspace.package.version "$NEW_VERSION" > Cargo-patched.toml
-          mv Cargo-patched.toml Cargo.toml
-          cargo fetch
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v8
