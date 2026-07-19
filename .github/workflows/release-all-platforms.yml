@@ -678,3 +678,4 @@ jobs:
     with:
       publish_play: ${{ needs.resolve.outputs.android == 'true' }}
       publish_testflight: ${{ needs.resolve.outputs.ios == 'true' }}
+    secrets: inherit

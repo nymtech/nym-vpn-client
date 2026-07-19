@@ -7,6 +7,13 @@ on:
         type: boolean
       publish_testflight:
         type: boolean
+    secrets:
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
@@ -14,20 +21,21 @@ env:
 jobs:
   publish-testflight:
     name: Publish to TestFlight
-    if: ${{ inputs.publish_testflight == 'true' }}
+    if: ${{ inputs.publish_testflight == true }}
     uses: ./.github/workflows/publish-nym-vpn-ios.yml
     with:
       is_public: false
-
+    secrets: inherit
 
   publish-playstore:
     name: Publish to Google Play
-    if: ${{ inputs.publish_play == 'true' }}
+    if: ${{ inputs.publish_play == true }}
     uses: ./.github/workflows/publish-nym-vpn-android.yml
     with:
       track: alpha
       publish-bundle: true
       publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
+    secrets: inherit
 
   handle-testflight-failures:
     needs: [publish-testflight]

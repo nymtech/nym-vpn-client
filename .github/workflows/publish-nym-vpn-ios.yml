@@ -5,7 +5,14 @@ on:
     inputs:
       is_public:
         description: "Whether the build is available to the general public (true/false)"
-        type: string
+        type: boolean
+    secrets:
+      APP_STORE_CONNECT_API_KEY:
+        required: true
+      APP_STORE_CONNECT_API_ISSUER_ID:
+        required: true
+      APP_STORE_CONNECT_API_PRIVATE_KEY:
+        required: true
 env:
   CARGO_TERM_COLOR: always
   UPLOAD_DIR_IOS: ios_artifacts
@@ -63,7 +70,7 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_API_PRIVATE_KEY }}
           ARTIFACT_FILE: ${{ steps.find_artifact.artifact_file }}
-          BETA_GROUP: ${{ inputs.is_public == 'true' && 'World' || 'Nym Team External' }}
+          BETA_GROUP: ${{ inputs.is_public == true && 'World' || 'Nym Team External' }}
         run: |
           set -euo pipefail
 
