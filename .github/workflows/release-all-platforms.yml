@@ -604,6 +604,7 @@ jobs:
       - name: Extract asset URLs
         id: extract_urls
         run: |
+          echo "::notice:: Github release URL: ${{ steps.gh-release.outputs.url }}"
           echo "${{ steps.gh-release.outputs.assets }}" | jq
 
   distribute:
