@@ -1,7 +1,7 @@
 name: build-nym-vpn-app
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened]
     paths:
       - ".github/workflows/build-nym-vpn-app.yml"
   workflow_dispatch:

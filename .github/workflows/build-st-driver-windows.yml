@@ -1,7 +1,7 @@
 name: build-st-driver-windows
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened]
     paths:
       - ".github/workflows/build-st-driver-windows.yml"
       - "nym-windows/**"

@@ -2,7 +2,7 @@ name: build-release-artifacts-apple
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, reopened]
     paths:
       - ".github/workflows/build-release-artifacts-apple.yml"
   workflow_dispatch:
