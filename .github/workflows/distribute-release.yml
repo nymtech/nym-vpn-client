@@ -1,0 +1,45 @@
+name: distribute-release
+
+on:
+  workflow_call:
+env:
+  CARGO_TERM_COLOR: always
+  UPLOAD_DIR_IOS: ios_artifacts
+
+jobs:
+  publish-testflight:
+    name: Publish to TestFlight
+    if: ${{ needs.resolve.outputs.ios == 'true' }}
+    uses: ./.github/workflows/publish-nym-vpn-ios.yml
+    with:
+      is_public: false
+
+
+  publish-playstore:
+    name: Publish to Google Play
+    if: ${{ needs.resolve.outputs.android == 'true' }}
+    uses: ./.github/workflows/publish-nym-vpn-android.yml
+    with:
+      track: alpha
+      publish-bundle: true
+      publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
+
+  handle-testflight-failures:
+    needs: [publish-testflight]
+    name: Handle TestFlight failures
+    runs-on: arc-linux-latest
+    if: needs.publish-testflight.outcome == 'failure'
+    steps:
+      - name: Print failure message
+        run: |
+          echo "::warning:: Failed to publish to TestFlight!"
+
+  handle-playstore-failures:
+    needs: [publish-playstore]
+    runs-on: arc-linux-latest
+    name: Handle Play Store failures
+    if: needs.publish-playstore.outcome == 'failure'
+    steps:
+      - name: Print failure message
+        run: |
+          echo "::warning:: Failed to publish to Google Play!"

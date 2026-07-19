@@ -6,9 +6,6 @@ on:
       track:
         type: string
         default: "none"
-      release_type:
-        type: string
-        default: "release"
       publish-bundle:
         type: boolean
         default: false

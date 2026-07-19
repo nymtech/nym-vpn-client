@@ -642,44 +642,6 @@ jobs:
     # condition is needed because 'release' may be skipped due to dependence on cache actions
     if: |
       !cancelled() && needs.release.result == 'success'
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/distribute-release.yml
     permissions:
       contents: read
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 1
-
-      - name: Publish to TestFlight
-        if: ${{ needs.resolve.outputs.ios == 'true' }}
-        id: publish-testflight
-        uses: ./.github/workflows/publish-nym-vpn-ios.yml
-        continue-on-error: true
-        background: true
-        with:
-          is_public: false
-
-      - name: Publish to Google Play
-        if: ${{ needs.resolve.outputs.android == 'true' }}
-        id: publish-playstore
-        uses: ./.github/workflows/publish-nym-vpn-android.yml
-        continue-on-error: true
-        background: true
-        with:
-          track: alpha
-          publish-bundle: true
-          publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
-          release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
-
-      - name: Wait for uploads to complete
-        wait-all:
-
-      - name: Handle TestFlight failures
-        if: steps.publish-testflight.outcome == 'failure'
-        run: |
-          echo "::warning:: Failed to publish to TestFlight!"
-
-      - name: Handle Play Store failures
-        if: steps.publish-playstore.outcome == 'failure'
-        run: |
-          echo "::warning:: Failed to publish to Google Play!"
