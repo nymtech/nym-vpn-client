@@ -638,7 +638,7 @@ jobs:
 
   distribute:
     #if: ${{ inputs.release == 'true' }}
-    needs: [resolve, build, release]
+    needs: [resolve, release]
     runs-on: ubuntu-latest
     permissions:
       contents: read
