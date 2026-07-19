@@ -31,7 +31,7 @@ echo "::notice:: channel=${CHANNEL} cargo_version=${FULL} base=${BASE}"
 case "$CHANNEL" in
   nightly)
     NIGHTLY_TIMESTAMP="$(date -u +%Y%m%d)"
-    VERSION="${BASE}-nightly.${NIGHTLY_TIMESTAMP}"
+    VERSION="${BASE}-nightly"
     # Date-only tag (cron runs once/day). Native immutable releases forbid REUSING a
     # published tag name, so a manual same-day re-run can collide — accepted.
     TAG="nym-vpn-v${BASE}-nightly.${NIGHTLY_TIMESTAMP}"
