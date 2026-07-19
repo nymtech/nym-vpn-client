@@ -388,7 +388,7 @@ jobs:
         with:
           working_directory: ${{ env.OUTPUT_DIR }}
           tag_name: ${{ needs.resolve.outputs.tag }}
-          name: "nym-vpn-v${{ needs.resolve.outputs.version }}"
+          name: "v${{ needs.resolve.outputs.version }}"
           prerelease: ${{ needs.resolve.outputs.github_release_type == 'prerelease' }}
           make_latest: ${{ needs.resolve.outputs.github_release_type == 'release' }}
           draft: ${{ needs.resolve.outputs.github_release_type == 'draft' }}
