@@ -4,12 +4,24 @@ on:
   workflow_call:
     inputs:
       publish_play:
+        description: Publish to Play Store
+        type: boolean
+        required: true
+      publish_play_metadata:
+        description: Publish Play Store metadata
         type: boolean
         required: true
       publish_testflight:
+        description: Publish to TestFlight
+        type: boolean
+        required: true
+      publish_to_public_testflight:
+        description: Publish to public TestFlight group
         type: boolean
         required: true
     secrets:
+      ANDROID_SERVICE_ACCOUNT_JSON:
+        required: true
       APP_STORE_CONNECT_API_KEY:
         required: true
       APP_STORE_CONNECT_API_ISSUER_ID:
@@ -21,22 +33,14 @@ env:
   UPLOAD_DIR_IOS: ios_artifacts
 
 jobs:
-  print-inputs:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print inputs
-        run: |
-          echo "publish_play: ${{ inputs.publish_play }}"
-          echo "publish_testflight: ${{ inputs.publish_testflight }}"
-
   publish-playstore:
     name: Publish to Google Play
-    # if: ${{ inputs.publish_play }}
+    if: ${{ inputs.publish_play }}
     uses: ./.github/workflows/publish-nym-vpn-android.yml
     with:
       track: alpha
       publish-bundle: true
-      publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
+      publish-metadata: ${{ inputs.publish_play_metadata }}
     secrets: inherit
 
   publish-testflight:
@@ -44,7 +48,7 @@ jobs:
     if: ${{ inputs.publish_testflight }}
     uses: ./.github/workflows/publish-nym-vpn-ios.yml
     with:
-      is_public: false
+      is_public: ${{ inputs.publish_to_public_testflight }}
     secrets: inherit
 
   handle-testflight-failures:

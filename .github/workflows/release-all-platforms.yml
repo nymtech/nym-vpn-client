@@ -427,5 +427,7 @@ jobs:
       contents: read
     with:
       publish_play: ${{ needs.resolve.outputs.android == 'true' }}
+      publish_play_metadata: ${{ needs.resolve.outputs.publish_metadata == 'true' }}
       publish_testflight: ${{ needs.resolve.outputs.ios == 'true' }}
+      publish_to_public_testflight: false
     secrets: inherit

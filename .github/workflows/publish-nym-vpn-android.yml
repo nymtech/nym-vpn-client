@@ -14,6 +14,9 @@ on:
         description: "Publish app metadata"
         type: boolean
         default: true
+    secrets:
+      ANDROID_SERVICE_ACCOUNT_JSON:
+        required: true
 
 env:
   UPLOAD_DIR_ANDROID: android_artifacts_play
@@ -78,9 +81,9 @@ jobs:
       #     store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
       #     echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
 
-      # - name: Create service_account.json
-      #   id: createServiceAccount
-      #   run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
+      - name: Create service_account.json
+        id: createServiceAccount
+        run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
       - name: Get version code
         uses: ./.github/workflows/android/get-version-code
@@ -110,8 +113,9 @@ jobs:
         working-directory: nym-vpn-android
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ARTIFACT_FILE: ${{ steps.find_artifact.outputs.artifact_file }}
         run: |
-            bundle exec fastlane supply --aab "${{ steps.find_artifact.outputs.artifact_file }}" \
+            bundle exec fastlane supply --aab "$ARTIFACT_FILE" \
               --track ${{ inputs.track }} \
               --skip_upload_aab ${{ github.event.inputs.publish-bundle != 'true' }} \
               --skip_metadata ${{ inputs.publish-metadata != 'true' }}
