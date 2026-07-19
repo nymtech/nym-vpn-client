@@ -39,7 +39,9 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
         with:
-          targets: aarch64-linux-android,x86_64-linux-android
+          # Android.mk cross-compiles arm64-v8a, armeabi-v7a and x86_64, so all
+          # three rust targets must be installed.
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
 
       - name: Install cargo-ndk
         run: cargo install cargo-ndk
