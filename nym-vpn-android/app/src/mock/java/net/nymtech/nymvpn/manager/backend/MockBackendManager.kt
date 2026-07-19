@@ -30,6 +30,7 @@ import nym_vpn_lib_types.Score
 import nym_vpn_lib_types.StoredAccountMode
 import nym_vpn_lib_types.Subscription
 import nym_vpn_lib_types.SystemMessage
+import nym_vpn_lib_types.TentativeGateways
 import nym_vpn_lib_types.FeatureFlags as SdkFeatureFlags
 import nym_vpn_lib_types.VpnAccountSummary
 import javax.inject.Inject
@@ -48,6 +49,8 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		private const val SHOW_MOCK_SYSTEM_MESSAGE = false
 		private const val MOCK_SYSTEM_MESSAGE_TTL_MS = 60 * 1000L
 	}
+
+	private var isGatewayIndependenceEnabled = false
 
 	private val _state = MutableStateFlow(
 		TunnelManagerState(
@@ -258,6 +261,14 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		GatewayType.MIXNET_ENTRY -> mockEntryGateways
 		GatewayType.MIXNET_EXIT -> mockExitGateways
 		GatewayType.WG -> mockWgGateways
+	}
+
+	// Gateway independence is a daemon-side negotiation with no mock equivalent:
+	// report "nothing tentative" and accept the toggle without side effects.
+	override suspend fun getTentativeGateways(): TentativeGateways? = null
+
+	override suspend fun setGatewayIndependenceEnabled(enabled: Boolean) {
+		isGatewayIndependenceEnabled = enabled
 	}
 
 	override suspend fun createAccount() {
