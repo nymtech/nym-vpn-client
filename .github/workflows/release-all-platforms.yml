@@ -12,8 +12,8 @@ on:
   # Scheduled (nightly) runs use the repository default branch (develop).
   workflow_dispatch:
     inputs:
-      release:
-        description: "Release? (leave unchecked for dry-run)"
+      publish_github_release:
+        description: "Publish on GitHub (leave unchecked for dry-run)"
         type: boolean
         default: false
       release_channel:
@@ -21,9 +21,9 @@ on:
         type: choice
         default: nightly
         options:
-          - nightly   # immutable, auto-published prerelease; app version <base>-nightly
-          - beta      # release candidate; core version MUST contain -beta; prerelease draft
-          - ship      # stable release; core version MUST NOT contain -beta; draft
+          - nightly   # daily prerelease
+          - beta      # release candidate
+          - ship      # stable release
       android:
         description: "Android → Google Play"
         type: boolean
@@ -54,8 +54,8 @@ on:
         default: false
   workflow_call:
     inputs:
-      release:
-        description: "Release? (leave unchecked for dry-run)"
+      publish_github_release:
+        description: "Release on GitHub? (leave unchecked for dry-run)"
         type: boolean
         default: false
       release_channel:
@@ -122,6 +122,7 @@ jobs:
   resolve:
     runs-on: ubuntu-latest
     outputs:
+      publish_github_release: ${{ steps.flags.outputs.publish_github_release }}
       tag: ${{ steps.v.outputs.tag }}
       version: ${{ steps.v.outputs.version }}
       nightly_timestamp: ${{ steps.v.outputs.nightly_timestamp || '' }}
@@ -147,6 +148,7 @@ jobs:
           IN_IOS: ${{ inputs.ios }}
           IN_MACOS: ${{ inputs.macos }}
           IN_PUBLISH_METADATA: ${{ inputs.publish-metadata }}
+          IN_PUBLISH_GITHUB_RELEASE: ${{ inputs.publish_github_release }}
         run: |
           set -euo pipefail
 
@@ -155,6 +157,7 @@ jobs:
             echo "::notice:: dry-run release from ref $REF_NAME (event $EVENT)"
             echo "::notice:: nightly → all platforms (dry run)"
             {
+              echo "publish_github_release=false"
               echo "channel=nightly"
               echo "android=true"; echo "fdroid=true"; echo "linux=true"
               echo "windows=true"; echo "ios=true"; echo "macos=true"
@@ -199,10 +202,12 @@ jobs:
             echo "::notice:: $CHANNEL → selected platforms"
           fi
 
-          # Google Play metadata skip toggle (schedule/cron defaults to true = skip).
+          # Google Play metadata skip toggle
           PUBLISH_METADATA="${IN_PUBLISH_METADATA:-true}"
+          PUBLISH_GITHUB_RELEASE="${IN_PUBLISH_GITHUB_RELEASE:-true}"
 
           {
+            echo "publish_github_release=$PUBLISH_GITHUB_RELEASE"
             echo "channel=$CHANNEL"
             echo "android=$ANDROID"; echo "fdroid=$FDROID"; echo "linux=$LINUX"
             echo "windows=$WINDOWS"; echo "ios=$IOS"; echo "macos=$MACOS"
@@ -244,6 +249,7 @@ jobs:
   # This step is only used for testing purposes when developing this workflow
   restore-build-cache:
     needs: [resolve, check-release-exists]
+    # IMPORTANT: Disable this workflow with `if: false` once done testing!
     if: true
     runs-on: ubuntu-latest
     outputs:
@@ -375,6 +381,7 @@ jobs:
   # This step is only used for testing purposes when developing this workflow
   save-build-cache:
     needs: [resolve, build, restore-build-cache]
+    # IMPORTANT: Disable this workflow with `&& false` once done testing!
     if: |
       !cancelled() && needs.restore-build-cache.result == 'success' && true
     runs-on: ubuntu-latest
@@ -406,13 +413,13 @@ jobs:
       !cancelled() && (
         needs.restore-build-cache.outputs.cache-hit == 'true' ||
         needs.build.result == 'success'
-      )
+      ) && needs.resolve.outputs.publish_github_release == 'true'
     uses: ./.github/workflows/release-release-artifacts.yml
     permissions:
       contents: write
     with:
-      tag: '' # ${{ needs.resolve.outputs.tag }}
-      github_release_type: draft
+      tag: ${{ needs.resolve.outputs.tag }}
+      github_release_type: draft # ${{ needs.resolve.outputs.channel == 'ship' && 'release' || 'prerelease' }}
       version: ${{ needs.resolve.outputs.version }}
       android: ${{ needs.resolve.outputs.android == 'true' }}
       fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
@@ -424,7 +431,6 @@ jobs:
 
   distribute:
     needs: [resolve, restore-build-cache, release]
-    #if: ${{ inputs.release == 'true' }}
     # condition is needed because 'release' may be skipped due to dependence on cache actions
     if: |
       !cancelled() && needs.release.result == 'success'
@@ -434,6 +440,7 @@ jobs:
     with:
       publish_play: ${{ needs.resolve.outputs.android == 'true' }}
       publish_play_metadata: ${{ needs.resolve.outputs.publish_metadata == 'true' }}
-      publish_testflight: ${{ needs.resolve.outputs.ios == 'true' }}
-      publish_to_public_testflight: false
+      # only publish nightly builds to avoid downgrades
+      publish_testflight: ${{ needs.resolve.outputs.ios == 'true' && needs.resolve.outputs.channel == 'nightly' }}
+      publish_to_public_testflight: true
     secrets: inherit

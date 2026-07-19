@@ -186,7 +186,6 @@ jobs:
     if: ${{ needs.resolve.outputs.ios == 'true' || needs.resolve.outputs.macos == 'true' }}
     uses: ./.github/workflows/build-release-artifacts-apple.yml
     with:
-      # beta maps to qa (apple ship-only path creates a standalone macOS release + appcast).
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'ship' || 'qa' }}
       version: ${{ needs.resolve.outputs.version }}
       build_ios: ${{ needs.resolve.outputs.ios == 'true' }}
@@ -205,12 +204,6 @@ jobs:
       release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
     secrets: inherit
 
-  # Linux + Windows desktop app. build-nym-vpn-app.yml builds each OS as its own
-  # internal job (build-linux on ubuntu, build-windows-* on windows) and aggregates in
-  # one Linux publish job, so a single invocation covers both. Core is built INLINE here
-  # (no core_release_tag): consuming core from the unified release can't work because it
-  # is a DRAFT at build time and /releases/tags/<tag> doesn't return drafts. The `linux`/
-  # `windows` flags only gate which built artifacts get appended to the release.
   app:
     needs: [resolve, core]
     if: ${{ needs.resolve.outputs.linux == 'true' || needs.resolve.outputs.windows == 'true' }}

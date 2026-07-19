@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       tag:
-        description: "GitHub Release Tag"
+        description: "GitHub Release tag"
         type: string
         required: true
       github_release_type:
@@ -80,7 +80,7 @@ jobs:
       github_release_type: ${{ steps.resolve.outputs.github_release_type }}
       version: ${{ steps.resolve.outputs.version }}
       channel: ${{ steps.resolve.outputs.channel }}
-      android: ${{ steps.resolve.outputs.android }}
+      android: ${{ steps.resolve.outputs.android }} # unused
       fdroid: ${{ steps.resolve.outputs.fdroid }}
       linux: ${{ steps.resolve.outputs.linux }}
       windows: ${{ steps.resolve.outputs.windows }}
@@ -286,7 +286,7 @@ jobs:
           cp -v ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64} ${{ env.OUTPUT_DIR }}
 
       - name: Copy artifacts (Android)
-        if: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.fdroid == 'true' }}
+        if: ${{ needs.resolve.outputs.fdroid == 'true' }}
         env:
           ANDROID_APK: ${{ needs.build.outputs.fdroid_artifact_name }}
         run: |
@@ -363,7 +363,7 @@ jobs:
             )
           fi
 
-          if [[ "${{ needs.resolve.outputs.android }}" = "true" && "${{ needs.resolve.outputs.fdroid }}" = "true" ]]; then
+          if [[ "${{ needs.resolve.outputs.fdroid }}" = "true" ]]; then
             FILES+=(
               ${{ env.ANDROID_APK }}
               ${{ env.ANDROID_APK }}.sha256sum
@@ -387,7 +387,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           working_directory: ${{ env.OUTPUT_DIR }}
-          tag_name: ${{ needs.resolve.outputs.tag }}
+          # Use blank tag_name to avoid tagging draft releases
+          tag_name: ${{ case(needs.resolve.outputs.github_release_type == 'draft', '', needs.resolve.outputs.tag) }}
           name: "v${{ needs.resolve.outputs.version }}"
           prerelease: ${{ needs.resolve.outputs.github_release_type == 'prerelease' }}
           make_latest: ${{ needs.resolve.outputs.github_release_type == 'release' }}
@@ -460,7 +461,7 @@ jobs:
             fi
           fi
 
-          if [[ "${{ needs.resolve.outputs.android }}" = "true" && "${{ needs.resolve.outputs.fdroid }}" = "true" ]]; then
+          if [ "${{ needs.resolve.outputs.fdroid }}" = "true" ]; then
             ANDROID_APK=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.ANDROID_APK }}")) | .browser_download_url')
             if [ -z "$ANDROID_APK" ]; then
               echo "::error:: URL for Android APK could not be found."
