@@ -62,7 +62,7 @@ runs:
             # "-nightly.<timestamp>" suffix, so strip the orchestrator's trailing
             # "-nightly" to avoid doubling. Keep "-beta.N" so the beta apk name
             # carries it. VERSION_CODE is an integer and is left untouched.
-            VN="${VERSION%-nightly}"
+            VN=$(echo "$VERSION" | sed 's/\(-nightly\).*/\1/')
             f="nym-vpn-android/buildSrc/src/main/kotlin/Constants.kt"
             VN="$VN" perl -0777 -pi -e 's/(VERSION_NAME\s*=\s*")[^"]*(")/$1 . "v" . $ENV{VN} . $2/e' "$f"
             ;;

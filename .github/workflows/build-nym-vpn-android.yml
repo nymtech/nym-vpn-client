@@ -179,13 +179,15 @@ jobs:
 
       - name: Set env
         shell: bash
+        env:
+          NIGHTLY_TIMESTAMP: ${{ inputs.nightly_timestamp }}
         run: |
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
           echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
           # Used by gradle to name nightly apks
-          # todo: refactor it, version should be sufficient
-          if [ -n "${{ inputs.nightly_timestamp || '' }}" ]; then
-            echo "NIGHTLY_TIMESTAMP=${{ inputs.nightly_timestamp }}" >> "$GITHUB_ENV"
+          if [ -n "$NIGHTLY_TIMESTAMP" ]; then
+            echo "NIGHTLY_TIMESTAMP=$NIGHTLY_TIMESTAMP" >> "$GITHUB_ENV"
+            echo "::notice:: Set nightly timestamp for Android: $NIGHTLY_TIMESTAMP"
           fi
 
       - name: Grant execute permission for gradlew
