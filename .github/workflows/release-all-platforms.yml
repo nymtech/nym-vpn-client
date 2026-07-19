@@ -604,7 +604,7 @@ jobs:
       - name: Extract asset URLs
         id: extract_urls
         run: |
-          echo "${{ steps.gh-release.outputs.assets }}"
+          echo "${{ steps.gh-release.outputs.assets }}" | jq
 
   distribute:
     if: ${{ inputs.release == 'true' }}
