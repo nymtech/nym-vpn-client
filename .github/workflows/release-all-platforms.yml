@@ -238,6 +238,7 @@ jobs:
           TAG="${{ needs.resolve.outputs.tag }}"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" ; then
             echo "Release $TAG already exists. Aborting"
+            # todo: uncomment this line!
             #exit 1
           fi
 
@@ -266,6 +267,90 @@ jobs:
             ${{ env.IOS_ARTIFACTS }}
             ${{ env.MACOS_ARTIFACTS }}
           key: ${{ env.CACHE_KEY }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+          path: ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+          path: ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+          path: ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+          path: ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+          path: ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+          path: ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+          path: ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+          path: ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+          path: ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+          path: ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.DEB_ARTIFACTS_X86_64 }}
+          path: ${{ env.DEB_ARTIFACTS_X86_64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.DEB_ARTIFACTS_AARCH64 }}
+          path: ${{ env.DEB_ARTIFACTS_AARCH64 }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.IOS_ARTIFACTS }}
+          path: ${{ env.IOS_ARTIFACTS }}
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ steps.cache.outputs.cache-hit == 'true' }}
+        with:
+          name: ${{ env.MACOS_ARTIFACTS }}
+          path: ${{ env.MACOS_ARTIFACTS }}
 
   build:
     needs: [resolve, check-release-exists, restore-build-cache]
@@ -316,358 +401,23 @@ jobs:
         needs.restore-build-cache.outputs.cache-hit == 'true' ||
         needs.build.result == 'success'
       )
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/release-release-artifacts.yml
     permissions:
       contents: write
-    steps:
-      - name: Download artifacts
-        if: needs.restore-build-cache.outputs.cache-hit == 'false'
-        uses: actions/download-artifact@v8
-
-      - uses: actions/cache/restore@v6
-        if: needs.restore-build-cache.outputs.cache-hit == 'true'
-        with:
-          path: |
-            ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}
-            ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}
-            ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}
-            ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}
-            ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }}
-            ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }}
-            ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}
-            ${{ env.APP_ARTIFACTS_ANDROID_PLAY }}
-            ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }}
-            ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }}
-            ${{ env.DEB_ARTIFACTS_X86_64 }}
-            ${{ env.DEB_ARTIFACTS_AARCH64 }}
-            ${{ env.IOS_ARTIFACTS }}
-            ${{ env.MACOS_ARTIFACTS }}
-          key: ${{ env.CACHE_KEY }}
-
-      - run: |
-          ls -la
-          tree -d .
-
-      - name: Prepare build output directory
-        shell: bash
-        env:
-          OUTPUT_DIR_BASE: ci-builds/${{ github.ref_name }}
-        run: |
-          TIMESTAMP=$(date +%Y%m%d%H%M) # Short and suitable for paths
-          OUTPUT_DIR="$OUTPUT_DIR_BASE/$TIMESTAMP"
-          echo "OUTPUT_DIR=$OUTPUT_DIR" >> $GITHUB_ENV
-          rm -rf ci-builds || true
-          mkdir -p $OUTPUT_DIR
-          echo $OUTPUT_DIR
-
-      - name: Copy artifacts (Linux)
-        if: ${{ needs.resolve.outputs.linux == 'true' }}
-        env:
-          BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
-        run: |
-          ARCHIVE_LINUX_X86_64=${BASENAME}_linux_x86_64
-          ARCHIVE_LINUX_AARCH64=${BASENAME}_linux_aarch64
-
-          echo "ARCHIVE_LINUX_X86_64=${ARCHIVE_LINUX_X86_64}.tar.gz" >> $GITHUB_ENV
-          echo "ARCHIVE_LINUX_AARCH64=${ARCHIVE_LINUX_AARCH64}.tar.gz" >> $GITHUB_ENV
-
-          mv -v ${{ env.CORE_ARTIFACTS_LINUX_X86_64 }} ${ARCHIVE_LINUX_X86_64}
-          mv -v ${{ env.CORE_ARTIFACTS_LINUX_AARCH64 }} ${ARCHIVE_LINUX_AARCH64}
-
-          test -d ${ARCHIVE_LINUX_X86_64} && tar cvzf ${ARCHIVE_LINUX_X86_64}.tar.gz ${ARCHIVE_LINUX_X86_64}
-          test -d ${ARCHIVE_LINUX_AARCH64} && tar cvzf ${ARCHIVE_LINUX_AARCH64}.tar.gz ${ARCHIVE_LINUX_AARCH64}
-
-          VPNC_DEB_X86_64=$(find "${{ env.DEB_ARTIFACTS_X86_64 }}" -name "nym-vpnc_*.deb" -type f -printf "%f" | head -1)
-          if [ -z "$VPNC_DEB_X86_64" ]; then
-            echo "::error:: Failed to locate nym-vpnc deb (x86_64)"
-            exit 1
-          fi
-          VPNC_DEB_AARCH64=$(find "${{ env.DEB_ARTIFACTS_AARCH64 }}" -name "nym-vpnc_*.deb" -type f -printf "%f" | head -1)
-          if [ -z "$VPNC_DEB_AARCH64" ]; then
-            echo "::error:: Failed to locate nym-vpnc deb (aarch64)"
-            exit 1
-          fi
-          VPND_DEB_X86_64=$(find "${{ env.DEB_ARTIFACTS_X86_64 }}" -name "nym-vpnd_*.deb" -type f -printf "%f" | head -1)
-          if [ -z "$VPND_DEB_X86_64" ]; then
-            echo "::error:: Failed to locate nym-vpnd deb (x86_64)"
-            exit 1
-          fi
-          VPND_DEB_AARCH64=$(find "${{ env.DEB_ARTIFACTS_AARCH64 }}" -name "nym-vpnd_*.deb" -type f -printf "%f" | head -1)
-          if [ -z "$VPND_DEB_AARCH64" ]; then
-            echo "::error:: Failed to locate nym-vpnd deb (aarch64)"
-            exit 1
-          fi
-
-          echo "VPNC_DEB_X86_64=${VPNC_DEB_X86_64}" >> $GITHUB_ENV
-          echo "VPNC_DEB_AARCH64=${VPNC_DEB_AARCH64}" >> $GITHUB_ENV
-          echo "VPND_DEB_X86_64=${VPND_DEB_X86_64}" >> $GITHUB_ENV
-          echo "VPND_DEB_AARCH64=${VPND_DEB_AARCH64}" >> $GITHUB_ENV
-
-          cp -v ${ARCHIVE_LINUX_X86_64}.tar.gz ${{ env.OUTPUT_DIR }}
-          cp -v ${ARCHIVE_LINUX_AARCH64}.tar.gz ${{ env.OUTPUT_DIR }}
-          cp -v ${DEB_ARTIFACTS_X86_64}/${VPNC_DEB_X86_64} ${{ env.OUTPUT_DIR }}
-          cp -v ${DEB_ARTIFACTS_AARCH64}/${VPNC_DEB_AARCH64} ${{ env.OUTPUT_DIR }}
-          cp -v ${DEB_ARTIFACTS_X86_64}/${VPND_DEB_X86_64} ${{ env.OUTPUT_DIR }}
-          cp -v ${DEB_ARTIFACTS_AARCH64}/${VPND_DEB_AARCH64} ${{ env.OUTPUT_DIR }}
-
-      - name: Copy artifacts (Windows)
-        if: ${{ needs.resolve.outputs.windows == 'true' }}
-        env:
-          BASENAME: nym-vpn-core-v${{ needs.resolve.outputs.version }}
-        run: |
-          ARCHIVE_WINDOWS_X64=${BASENAME}_windows_x86_64
-          ARCHIVE_WINDOWS_ARM64=${BASENAME}_windows_aarch64
-
-          echo "ARCHIVE_WINDOWS_X64=${ARCHIVE_WINDOWS_X64}.zip" >> $GITHUB_ENV
-          echo "ARCHIVE_WINDOWS_ARM64=${ARCHIVE_WINDOWS_ARM64}.zip" >> $GITHUB_ENV
-
-          mv -v ${{ env.CORE_ARTIFACTS_WINDOWS_X64 }} ${ARCHIVE_WINDOWS_X64}
-          mv -v ${{ env.CORE_ARTIFACTS_WINDOWS_ARM64 }} ${ARCHIVE_WINDOWS_ARM64}
-
-          test -d ${ARCHIVE_WINDOWS_X64} && zip -r ${ARCHIVE_WINDOWS_X64}.zip ${ARCHIVE_WINDOWS_X64}
-          test -d ${ARCHIVE_WINDOWS_ARM64} && zip -r ${ARCHIVE_WINDOWS_ARM64}.zip ${ARCHIVE_WINDOWS_ARM64}
-
-          cp -v ${ARCHIVE_WINDOWS_X64}.zip ${{ env.OUTPUT_DIR }}
-          cp -v ${ARCHIVE_WINDOWS_ARM64}.zip ${{ env.OUTPUT_DIR }}
-
-      - name: Copy artifacts (macOS)
-        if: ${{ needs.resolve.outputs.macos == 'true' }}
-        env:
-          MACOS_INSTALLER_NAME: ${{ needs.build.outputs.pkg_installer_name }}
-        run: |
-          if [ -z "$MACOS_INSTALLER_NAME" ]; then
-            MACOS_INSTALLER_NAME=$(find "${{ env.MACOS_ARTIFACTS }}" -name "*.pkg" -type f -printf "%f" | head -1)
-            if [ -z "$MACOS_INSTALLER_NAME" ]; then
-              echo "::error:: Failed to locate pkg installer"
-              exit 1
-            fi
-          fi
-
-          echo "MACOS_INSTALLER_NAME=$MACOS_INSTALLER_NAME" >> $GITHUB_ENV
-
-          cp -v ${{ env.MACOS_ARTIFACTS }}/${MACOS_INSTALLER_NAME} ${{ env.OUTPUT_DIR }}
-
-      - name: Copy artifacts (Linux/App)
-        if: ${{ needs.resolve.outputs.linux == 'true' }}
-        env:
-          BIN_BASENAME: nym-vpn_${{ needs.resolve.outputs.version }}
-          DEB_BASENAME: nym-vpn-app_${{ needs.resolve.outputs.version }}
-        run: |
-          LINUX_INSTALL=install
-          LINUX_APP_X64_BIN="${BIN_BASENAME}_linux_x64"
-          LINUX_APP_ARM64_BIN="${BIN_BASENAME}_linux_arm64"
-          LINUX_APP_DEB_X64="${DEB_BASENAME}_amd64.deb"
-          LINUX_APP_DEB_ARM64="${DEB_BASENAME}_arm64.deb"
-
-          echo "LINUX_INSTALL=$LINUX_INSTALL" >> $GITHUB_ENV
-          echo "LINUX_APP_X64_BIN=$LINUX_APP_X64_BIN" >> $GITHUB_ENV
-          echo "LINUX_APP_ARM64_BIN=$LINUX_APP_ARM64_BIN" >> $GITHUB_ENV
-          echo "LINUX_APP_DEB_X64=$LINUX_APP_DEB_X64" >> $GITHUB_ENV
-          echo "LINUX_APP_DEB_ARM64=$LINUX_APP_DEB_ARM64" >> $GITHUB_ENV
-
-          cp -v ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/$LINUX_INSTALL ${{ env.OUTPUT_DIR }}
-
-          cp -v ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_X64_BIN} ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_ARM64_BIN} ${{ env.OUTPUT_DIR }}
-
-          cp -v ${{ env.APP_ARTIFACTS_LINUX_X86_64 }}/${LINUX_APP_DEB_X64} ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.APP_ARTIFACTS_LINUX_AARCH64 }}/${LINUX_APP_DEB_ARM64} ${{ env.OUTPUT_DIR }}
-
-      - name: Copy artifacts (Windows/App)
-        if: ${{ needs.resolve.outputs.windows == 'true' }}
-        env:
-          BASENAME: NymVPN_${{ needs.resolve.outputs.version }}
-        run: |
-          WINDOWS_APP_INSTALLER_X64="${BASENAME}_x64-setup.exe"
-          WINDOWS_APP_INSTALLER_ARM64="${BASENAME}_arm64-setup.exe"
-
-          echo "WINDOWS_APP_INSTALLER_X64=$WINDOWS_APP_INSTALLER_X64" >> $GITHUB_ENV
-          echo "WINDOWS_APP_INSTALLER_ARM64=$WINDOWS_APP_INSTALLER_ARM64" >> $GITHUB_ENV
-
-          cp -v ${{ env.APP_ARTIFACTS_WINDOWS_X64 }}/${WINDOWS_APP_INSTALLER_X64} ${{ env.OUTPUT_DIR }}
-          cp -v ${{ env.APP_ARTIFACTS_WINDOWS_ARM64 }}/${WINDOWS_APP_INSTALLER_ARM64} ${{ env.OUTPUT_DIR }}
-
-      - name: Copy artifacts (Android)
-        if: ${{ needs.resolve.outputs.android == 'true' && needs.resolve.outputs.fdroid == 'true' }}
-        env:
-          ANDROID_APK: ${{ needs.build.outputs.fdroid_artifact_name }}
-        run: |
-          if [ -z "$ANDROID_APK" ]; then
-            ANDROID_APK=$(find "${{ env.APP_ARTIFACTS_ANDROID_FDROID }}" -name "*.apk" -type f -printf "%f" | head -1)
-            if [ -z "$ANDROID_APK" ]; then
-              echo "::error:: Failed to locate fdroid apk"
-              exit 1
-            fi
-          fi
-
-          echo "ANDROID_APK=${ANDROID_APK}" >> $GITHUB_ENV
-
-          cp -v ${{ env.APP_ARTIFACTS_ANDROID_FDROID }}/${ANDROID_APK} ${{ env.OUTPUT_DIR }}
-
-      - name: Generate checksums
-        run: |
-          for file in "${{ env.OUTPUT_DIR }}/"*; do
-            if [ -f "$file" ] && [[ "$file" != *.sha256sum ]]; then
-              echo "#️⃣ Generating SHA: $file > ${file}.sha256sum"
-              sha256sum "$file" > "${file}.sha256sum"
-            fi
-          done
-
-      - name: Generate Release Assets List
-        id: assets
-        run: |
-          FILES=()
-
-          if [ "${{ needs.resolve.outputs.linux }}" = "true" ]; then
-            FILES+=(
-              ${{ env.ARCHIVE_LINUX_X86_64 }}
-              ${{ env.ARCHIVE_LINUX_X86_64 }}.sha256sum
-              ${{ env.ARCHIVE_LINUX_AARCH64 }}
-              ${{ env.ARCHIVE_LINUX_AARCH64 }}.sha256sum
-              ${{ env.LINUX_INSTALL }}
-              ${{ env.LINUX_INSTALL }}.sha256sum
-              ${{ env.LINUX_APP_X64_BIN }}
-              ${{ env.LINUX_APP_X64_BIN }}.sha256sum
-              ${{ env.LINUX_APP_ARM64_BIN }}
-              ${{ env.LINUX_APP_ARM64_BIN }}.sha256sum
-              ${{ env.LINUX_APP_DEB_X64 }}
-              ${{ env.LINUX_APP_DEB_X64 }}.sha256sum
-              ${{ env.LINUX_APP_DEB_ARM64 }}
-              ${{ env.LINUX_APP_DEB_ARM64 }}.sha256sum
-              ${{ env.VPNC_DEB_X86_64 }}
-              ${{ env.VPNC_DEB_X86_64 }}.sha256sum
-              ${{ env.VPNC_DEB_AARCH64 }}
-              ${{ env.VPNC_DEB_AARCH64 }}.sha256sum
-              ${{ env.VPND_DEB_X86_64 }}
-              ${{ env.VPND_DEB_X86_64 }}.sha256sum
-              ${{ env.VPND_DEB_AARCH64 }}
-              ${{ env.VPND_DEB_AARCH64 }}.sha256sum
-            )
-          fi
-
-          if [ "${{ needs.resolve.outputs.windows }}" = "true" ]; then
-            FILES+=(
-              ${{ env.ARCHIVE_WINDOWS_X64 }}
-              ${{ env.ARCHIVE_WINDOWS_X64 }}.sha256sum
-              ${{ env.ARCHIVE_WINDOWS_ARM64 }}
-              ${{ env.ARCHIVE_WINDOWS_ARM64 }}.sha256sum
-              ${{ env.WINDOWS_APP_INSTALLER_X64 }}
-              ${{ env.WINDOWS_APP_INSTALLER_X64 }}.sha256sum
-              ${{ env.WINDOWS_APP_INSTALLER_ARM64 }}
-              ${{ env.WINDOWS_APP_INSTALLER_ARM64 }}.sha256sum
-            )
-          fi
-
-          if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
-            FILES+=(
-              ${{ env.MACOS_INSTALLER_NAME }}
-              ${{ env.MACOS_INSTALLER_NAME }}.sha256sum
-            )
-          fi
-
-          if [[ "${{ needs.resolve.outputs.android }}" = "true" && "${{ needs.resolve.outputs.fdroid }}" = "true" ]]; then
-            FILES+=(
-              ${{ env.ANDROID_APK }}
-              ${{ env.ANDROID_APK }}.sha256sum
-            )
-          fi
-
-          if [ ${#FILES[@]} -gt 0 ]; then
-            printf -v JOINED '%s\n' "${FILES[@]}"
-            echo "asset_paths<<EOF" >> $GITHUB_OUTPUT
-            echo "$JOINED" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "::error::No files to upload"
-            exit 1
-          fi
-
-      - name: Publish GitHub Release
-        #if: ${{ inputs.release == 'true' }}
-        uses: softprops/action-gh-release@v3
-        id: gh-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          working_directory: ${{ env.OUTPUT_DIR }}
-          #tag_name: ${{ needs.resolve.outputs.tag }}
-          name: "nym-vpn-v${{ needs.resolve.outputs.version }}"
-          prerelease: ${{ needs.resolve.outputs.channel != 'ship' && inputs.release == 'true' }}
-          make_latest: ${{ needs.resolve.outputs.channel == 'ship' && inputs.release == 'true' }}
-          draft: true
-          fail_on_unmatched_files: true
-          overwrite_files: false
-          preserve_order: true
-          files: |
-            ${{ steps.assets.outputs.asset_paths }}
-
-      - name: Extract asset URLs
-        id: extract_urls
-        env:
-          RELEASE_PAYLOAD: ${{ steps.gh-release.outputs.assets }}
-        run: |
-          set -euo pipefail
-
-          echo "::notice:: Github release URL: ${{ steps.gh-release.outputs.url }}"
-
-          if [ "${{ needs.resolve.outputs.linux }}" = "true" ]; then
-            LINUX_APP_DEB_X64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.LINUX_APP_DEB_X64 }}")) | .browser_download_url')
-            if [ -z "$LINUX_APP_DEB_X64" ]; then
-              echo "::error:: URL for Linux app deb (x64) could not be found."
-              exit 1
-            else
-              echo "::notice:: Linux app deb (x64): $LINUX_APP_DEB_X64"
-            fi
-
-            LINUX_APP_DEB_ARM64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.LINUX_APP_DEB_ARM64 }}")) | .browser_download_url')
-            if [ -z "$LINUX_APP_DEB_ARM64" ]; then
-              echo "::error:: URL for Linux app deb (arm64) could not be found."
-              exit 1
-            else
-              echo "::notice:: Linux app deb (arm64): $LINUX_APP_DEB_ARM64"
-            fi
-          fi
-
-          if [ "${{ needs.resolve.outputs.windows }}" = "true" ]; then
-            WINDOWS_INSTALLER_X64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.WINDOWS_APP_INSTALLER_X64 }}")) | .browser_download_url')
-            if [ -z "$WINDOWS_INSTALLER_X64" ]; then
-              echo "::error:: URL for Windows installer (x64) could not be found."
-              exit 1
-            else
-              echo "::notice:: Windows installer (x64): $WINDOWS_INSTALLER_X64"
-            fi
-
-            WINDOWS_INSTALLER_ARM64=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.WINDOWS_APP_INSTALLER_ARM64 }}")) | .browser_download_url')
-            if [ -z "$WINDOWS_INSTALLER_ARM64" ]; then
-              echo "::error:: URL for Windows installer (arm64) could not be found."
-              exit 1
-            else
-              echo "::notice:: Windows installer (arm64): $WINDOWS_INSTALLER_ARM64"
-            fi
-          fi
-
-          if [ "${{ needs.resolve.outputs.macos }}" = "true" ]; then
-            MACOS_INSTALLER=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.MACOS_INSTALLER_NAME }}")) | .browser_download_url')
-            if [ -z "$MACOS_INSTALLER" ]; then
-              echo "::error:: URL for macOS installer could not be found."
-              exit 1
-            else
-              echo "::notice:: macOS installer: $MACOS_INSTALLER"
-            fi
-          fi
-
-          if [[ "${{ needs.resolve.outputs.android }}" = "true" && "${{ needs.resolve.outputs.fdroid }}" = "true" ]]; then
-            ANDROID_APK=$(echo "$RELEASE_PAYLOAD" | jq -r '.[] | select(.name | endswith("${{ env.ANDROID_APK }}")) | .browser_download_url')
-            if [ -z "$ANDROID_APK" ]; then
-              echo "::error:: URL for Android APK could not be found."
-              exit 1
-            else
-              echo "::notice:: Android APK: $ANDROID_APK"
-            fi
-          fi
+    with:
+      tag: '' # ${{ needs.resolve.outputs.tag }}
+      github_release_type: draft
+      version: ${{ needs.resolve.outputs.version }}
+      android: ${{ needs.resolve.outputs.android == 'true' }}
+      fdroid: ${{ needs.resolve.outputs.fdroid == 'true' }}
+      linux: ${{ needs.resolve.outputs.linux == 'true' }}
+      windows: ${{ needs.resolve.outputs.windows == 'true' }}
+      ios: ${{ needs.resolve.outputs.ios == 'true' }}
+      macos: ${{ needs.resolve.outputs.macos == 'true' }}
+    secrets: inherit
 
   distribute:
-    needs: [resolve, release]
+    needs: [resolve, restore-build-cache, release]
     #if: ${{ inputs.release == 'true' }}
     # condition is needed because 'release' may be skipped due to dependence on cache actions
     if: |
