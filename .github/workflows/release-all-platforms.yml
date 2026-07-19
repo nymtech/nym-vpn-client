@@ -245,7 +245,7 @@ jobs:
   # This step is only used for testing purposes when developing this workflow
   restore-build-cache:
     needs: [resolve, check-release-exists]
-    if: env.DANGER_CACHE_BUILDS == 'true'
+    if: ${{ env.DANGER_CACHE_BUILDS == 'true' }}
     runs-on: ubuntu-latest
     outputs:
       cache-hit: ${{ steps.cache.outputs.cache-hit || 'false' }}
