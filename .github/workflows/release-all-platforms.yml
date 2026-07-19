@@ -650,25 +650,29 @@ jobs:
         with:
           fetch-depth: 1
 
-      - parallel:
-        - name: Publish to TestFlight
-          if: ${{ needs.resolve.outputs.ios == 'true' }}
-          id: publish-testflight
-          uses: ./.github/workflows/publish-nym-vpn-ios.yml
-          continue-on-error: true
-          with:
-            is_public: false
+      - name: Publish to TestFlight
+        if: ${{ needs.resolve.outputs.ios == 'true' }}
+        id: publish-testflight
+        uses: ./.github/workflows/publish-nym-vpn-ios.yml
+        continue-on-error: true
+        background: true
+        with:
+          is_public: false
 
-        - name: Publish to Google Play
-          if: ${{ needs.resolve.outputs.android == 'true' }}
-          id: publish-playstore
-          uses: ./.github/workflows/publish-nym-vpn-android.yml
-          continue-on-error: true
-          with:
-            track: alpha
-            publish-bundle: true
-            publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
-            release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
+      - name: Publish to Google Play
+        if: ${{ needs.resolve.outputs.android == 'true' }}
+        id: publish-playstore
+        uses: ./.github/workflows/publish-nym-vpn-android.yml
+        continue-on-error: true
+        background: true
+        with:
+          track: alpha
+          publish-bundle: true
+          publish-metadata: ${{ needs.resolve.outputs.publish-metadata }}
+          release_type: ${{ needs.resolve.outputs.channel == 'ship' && 'release' || (needs.resolve.outputs.channel == 'beta' && 'prerelease' || 'nightly') }}
+
+      - name: Wait for uploads to complete
+        wait-all:
 
       - name: Handle TestFlight failures
         if: steps.publish-testflight.outcome == 'failure'
