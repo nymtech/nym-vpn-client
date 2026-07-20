@@ -32,6 +32,7 @@ import nym_vpn_lib_types.Subscription
 import nym_vpn_lib_types.SystemMessage
 import nym_vpn_lib_types.TentativeGateways
 import nym_vpn_lib_types.FeatureFlags as SdkFeatureFlags
+import nym_vpn_lib_types.VpnAccountStatus
 import nym_vpn_lib_types.VpnAccountSummary
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -152,7 +153,6 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 	private val mockFeatureFlags: FeatureFlags =
 		object : SdkFeatureFlags(NoHandle) {
 			override fun isPrivyEnabled(): Boolean? = true
-			override fun isMixnetTuningEnabled(): Boolean? = true
 			override fun isDomainFrontingEnabled(): Boolean? = true
 			override fun isQuicEnabled(): Boolean? = true
 			override fun getGroupFlag(groupName: String, flagName: String): Boolean? = null
@@ -203,6 +203,12 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		accountMode = StoredAccountMode.PRIVY,
 		subscription = mockSubscription,
 		isSubscriptionStacked = false,
+		accountStatus = VpnAccountStatus.ACTIVE,
+		remainingDevices = 4uL,
+		isDeviceActive = true,
+		timeSynced = true,
+		stale = false,
+		lastSyncedUtc = 1767225600L, // 2026-01-01
 	)
 
 	override val stateFlow: StateFlow<TunnelManagerState> =
@@ -215,7 +221,8 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		_state.update { it.copy(isInitialized = true) }
 	}
 
-	override suspend fun startTunnel() {
+	// Kotlin forbids default values on overrides; the interface supplies them.
+	override suspend fun startTunnel(relaxGatewayIndependence: Boolean) {
 		_state.update { it.copy(tunnelState = Tunnel.State.EstablishingConnection) }
 		delay(CONNECT_DELAY_MS)
 		_state.update { it.copy(tunnelState = Tunnel.State.Up) }
@@ -227,9 +234,9 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		_state.update { it.copy(tunnelState = Tunnel.State.Down) }
 	}
 
-	override suspend fun requestReconnect() {
+	override suspend fun requestReconnect(relaxGatewayIndependence: Boolean) {
 		stopTunnel()
-		startTunnel()
+		startTunnel(relaxGatewayIndependence)
 	}
 
 	override fun getState(): Tunnel.State = _state.value.tunnelState
@@ -275,7 +282,7 @@ class MockBackendManager @Inject constructor(@ApplicationScope private val appli
 		_state.update { it.copy(isMnemonicStored = true) }
 	}
 
-	override suspend fun registerAccount(purchaseToken: String): String = "mock-registration-id"
+	override suspend fun registerAccount(purchaseToken: String?): String = "mock-registration-id"
 
 	override suspend fun refreshAccount() {}
 
