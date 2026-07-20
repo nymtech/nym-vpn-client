@@ -4,13 +4,19 @@
 use std::{sync::Arc, time::Duration};
 
 use backon::Retryable;
-use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
+use nym_credential_proxy_requests::api::v1::ticketbook::models::{
+    AggregatedCoinIndicesSignaturesResponse, AggregatedExpirationDateSignaturesResponse,
+    MasterVerificationKeyResponse, PartialVerificationKeysResponse,
+};
 use nym_http_api_client::{
     ApiClient, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url, UserAgent,
     reqwest::header::{DATE, HeaderMap},
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use time::{OffsetDateTime, format_description::well_known::Rfc2822};
+use time::{
+    Date, OffsetDateTime,
+    format_description::{BorrowedFormatItem, well_known::Rfc2822},
+};
 use tokio::sync::RwLock;
 
 use crate::{
@@ -38,6 +44,9 @@ use crate::{
         Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform, VpnAccount, VpnApiTime,
     },
 };
+
+const RFC_3339_DATE: &[BorrowedFormatItem<'static>] =
+    time::macros::format_description!("[year]-[month]-[day]");
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 
@@ -1410,6 +1419,73 @@ impl VpnApiClient {
         .await
         .map_err(Box::new)
         .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookPartialVerificationKeys)
+    }
+
+    pub async fn get_directory_zk_nyms_ticketbook_master_verification_key(
+        &self,
+        epoch_id: u64,
+    ) -> Result<MasterVerificationKeyResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::ZK_NYMS,
+                routes::TICKETBOOK,
+                routes::MASTER_VERIFICATION_KEY,
+            ],
+            &[(routes::EPOCH_ID, epoch_id.to_string())],
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookMasterVerificationKey)
+    }
+
+    pub async fn get_directory_zk_nyms_ticketbook_aggregated_coin_indices_signatures(
+        &self,
+        epoch_id: u64,
+    ) -> Result<AggregatedCoinIndicesSignaturesResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::ZK_NYMS,
+                routes::TICKETBOOK,
+                routes::AGGREGATED_COIN_INDICES_SIGNATURES,
+            ],
+            &[(routes::EPOCH_ID, epoch_id.to_string())],
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookAggregatedCoinIndicesSignatures)
+    }
+
+    pub async fn get_directory_zk_nyms_ticketbook_aggregated_expiration_date_signatures(
+        &self,
+        epoch_id: u64,
+        expiration_date: Date,
+    ) -> Result<AggregatedExpirationDateSignaturesResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::ZK_NYMS,
+                routes::TICKETBOOK,
+                routes::AGGREGATED_EXPIRATION_DATE_SIGNATURES,
+            ],
+            &[
+                (routes::EPOCH_ID, epoch_id.to_string()),
+                (
+                    routes::EXPIRATION_DATE,
+                    expiration_date.format(&RFC_3339_DATE).unwrap(),
+                ),
+            ],
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookAggregatedExpirationDateSignatures)
     }
 
     pub async fn get_wellknown_current_env(&self) -> Result<NymWellknownDiscoveryItem> {
