@@ -741,7 +741,7 @@ impl TunnelMonitor {
             .fuse();
         tokio::pin!(metadata_endpoints_reachable);
 
-        // Send metadata endpoint data to the bandwidth controller
+        // Send metadata endpoint data to the bandwidth monitor
         match &tunnel_interface {
             TunnelInterface::One(exit) => {
                 let _metadata_event_handler = tokio::spawn(async move {
@@ -911,7 +911,7 @@ impl TunnelMonitor {
         // Shutdown WireGuard tunnel runtime
         if let Some(wg_tunnel_runtime) = wg_tunnel_runtime {
             if let Err(err) = wg_tunnel_runtime.bandwidth_monitor_handle.await {
-                tracing::error!("Failed to await bandwidth controller handle: {}", err);
+                tracing::error!("Failed to await bandwidth monitor handle: {}", err);
             }
 
             if let Some(transport_fwd_handle) = wg_tunnel_runtime.transport_fwd_handle
@@ -1182,7 +1182,7 @@ impl TunnelMonitor {
             Some(handle) if bw.is_using_latest_client() => {
                 // We don't need the mixnet client anymore
                 tracing::info!(
-                    "Disconnecting mixnet client as we are using the latest bandwidth controller"
+                    "Disconnecting mixnet client as we are using the latest bandwidth monitor"
                 );
                 handle.stop().await;
                 None

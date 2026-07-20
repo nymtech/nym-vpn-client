@@ -28,7 +28,7 @@ pub enum Error {
     #[error("{} has no ip addresses announced", gateway_id)]
     NoIpAddressAnnounced { gateway_id: String },
 
-    #[error("bandwidth controller error")]
+    #[error("bandwidth monitor error")]
     BandwidthMonitor(#[from] crate::bandwidth_monitor::Error),
 
     #[error("registration client error")]

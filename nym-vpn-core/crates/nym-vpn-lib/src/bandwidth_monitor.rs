@@ -359,20 +359,20 @@ impl TemporaryBandwidthClient {
                     .unwrap_or(false)
             {
                 tracing::debug!(
-                    "Using latest metadata client for {}'s bandwidth controller",
+                    "Using latest metadata client for {}'s bandwidth monitor",
                     gateway.identity()
                 );
                 TemporaryBandwidthClient::Latest(Box::new(metadata_client))
             } else {
                 tracing::debug!(
-                    "Using deprecated mixnet client for {}'s bandwidth controller",
+                    "Using deprecated mixnet client for {}'s bandwidth monitor",
                     gateway.identity()
                 );
                 TemporaryBandwidthClient::Deprecated(Box::new(auth_client))
             }
         } else {
             tracing::debug!(
-                "No authenticator client provided, using latest metadata client for {}'s bandwidth controller",
+                "No authenticator client provided, using latest metadata client for {}'s bandwidth monitor",
                 gateway.identity()
             );
             TemporaryBandwidthClient::Latest(Box::new(metadata_client))
