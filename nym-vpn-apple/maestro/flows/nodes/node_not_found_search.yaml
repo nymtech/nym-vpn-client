@@ -1,0 +1,20 @@
+# Searching for a nonexistent server shows the empty-results state.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Exit server"
+- extendedWaitUntil:
+    visible:
+      text: "Search location or server"
+    timeout: 10000
+
+- tapOn: "Search location or server"
+- inputText: "zzzzzzzzzz"
+
+- extendedWaitUntil:
+    visible:
+      text: "No results found."
+    timeout: 10000

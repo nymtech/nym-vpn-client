@@ -7,21 +7,82 @@ on:
     branches: [main, develop]
     paths:
       - 'nym-vpn-apple/**'
+      - 'nym-vpn-core/**'
+      - 'wireguard/**'
       - '.github/workflows/ci-maestro-ios.yml'
   workflow_dispatch:
 
 jobs:
   maestro-ui-tests:
     if: github.actor != 'dependabot[bot]'
-    runs-on: macos-latest
-    timeout-minutes: 25
+    # Self-hosted Apple Silicon: the mock app links NymVPNLib (the Rust FFI core),
+    # which must be built for the simulator (aarch64-apple-ios-sim) before Xcode
+    # can compile the NymVPN-Mock scheme. Mirrors build-nym-vpn-apple.yml.
+    runs-on: AppleSilicon
+    timeout-minutes: 90
 
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: Load .env versions
+        uses: xom9ikk/dotenv@v2.4.0
+
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          # ios = device slice, ios-sim = simulator slice (needed to run the mock
+          # app on the iPhone 16 simulator that Maestro drives).
+          targets: aarch64-apple-ios aarch64-apple-ios-sim x86_64-apple-darwin
+
+      - name: Install cargo-swift
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-swift
+          version: ${{ env.CARGO_SWIFT_VERSION }}
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+          cache-dependency-path: wireguard/libwg/go.sum
+
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      # Build the iOS Rust core (libwg + NymVPNLibUniffi.xcframework with device
+      # AND simulator slices) and stage it where the Xcode packages expect it.
+      # Debug build (RELEASE=false) — no code signing required.
+      - name: Build NymVPNLib (iOS core)
+        working-directory: nym-vpn-core
+        run: make -f iOS.mk RELEASE=false
+
+      - name: Stage NymVPNLib into the apple project
+        run: |
+          set -euo pipefail
+          LIB_SRC="nym-vpn-core/crates/nym-vpn-lib-uniffi/NymVPNLib"
+          LIB_DEST="nym-vpn-apple/NymVPNLib"
+          rm -rf "$LIB_DEST"
+          cp -R "$LIB_SRC" "$LIB_DEST"
+          echo "Staged NymVPNLib -> $LIB_DEST"
+          # Flatten xcframework headers for Xcode 26+ explicit module builds
+          # (matches scripts/BuildCore.sh). No-op on older Xcode.
+          XCODE_VER="$(xcodebuild -version | head -1 | awk '{print $2}')"
+          if [[ "$(printf '%s\n' "26.4" "$XCODE_VER" | sort -V | head -1)" == "26.4" ]]; then
+            for HEADERS_DIR in "$LIB_DEST"/NymVPNLibUniffi.xcframework/*/Headers; do
+              for SUBDIR in "$HEADERS_DIR"/*/; do
+                [[ -d "$SUBDIR" ]] || continue
+                cp -n "$SUBDIR"* "$HEADERS_DIR/" 2>/dev/null || true
+              done
+            done
+            echo "Flattened NymVPNLib xcframework headers (Xcode $XCODE_VER)"
+          fi
 
       - name: Build mock app for simulator
         working-directory: nym-vpn-apple
@@ -66,6 +127,8 @@ jobs:
         run: |
           echo "--- Xcode ---"
           xcodebuild -version
+          echo "--- Rust ---"
+          rustc --version
           echo "--- Maestro ---"
           $HOME/.maestro/bin/maestro --version
           echo "--- Simulator ---"

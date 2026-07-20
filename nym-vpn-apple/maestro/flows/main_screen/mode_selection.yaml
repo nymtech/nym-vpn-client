@@ -1,0 +1,15 @@
+# Switching between Fast and Mixnet speed modes on the home screen.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- assertVisible: "Fast"
+- assertVisible: "Mixnet"
+
+- tapOn: "Mixnet"
+- assertVisible: "Mixnet"
+
+- tapOn: "Fast"
+- assertVisible: "Fast"

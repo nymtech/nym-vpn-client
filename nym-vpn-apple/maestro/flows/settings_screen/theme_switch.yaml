@@ -1,0 +1,19 @@
+# Appearance settings screen opens and exposes the theme controls.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible:
+      text: "Appearance"
+    timeout: 10000
+
+- tapOn: "Appearance"
+- extendedWaitUntil:
+    visible:
+      text: "Display theme"
+    timeout: 10000
+- assertVisible: "App mode"

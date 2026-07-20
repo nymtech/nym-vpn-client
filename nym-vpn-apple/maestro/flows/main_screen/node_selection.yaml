@@ -1,0 +1,17 @@
+# Opening the entry/exit server pickers from the home screen.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+# Open the exit server picker from the home hop row.
+- tapOn: "Exit server"
+- extendedWaitUntil:
+    visible:
+      text: "Search location or server"
+    timeout: 10000
+
+# Back to home.
+- runFlow: ../../subflows/open_app.yaml
+- assertVisible: "Entry server"

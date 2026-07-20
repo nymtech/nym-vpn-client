@@ -1,0 +1,10 @@
+# Welcome/auth screen renders its login options after logging out.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/logout_to_welcome.yaml
+
+- assertVisible: "Welcome!"
+- assertVisible: "Login to my account"
+- assertVisible: "Sign up"

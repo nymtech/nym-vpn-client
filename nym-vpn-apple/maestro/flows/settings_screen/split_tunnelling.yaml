@@ -1,0 +1,23 @@
+# Split tunneling settings screen opens from settings.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible:
+      text: "Account and devices"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      text: "Split tunneling"
+    direction: DOWN
+- tapOn: "Split tunneling"
+
+- extendedWaitUntil:
+    visible:
+      text: "Add application"
+    timeout: 10000

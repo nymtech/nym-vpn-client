@@ -1,0 +1,23 @@
+# DNS customization screen opens from settings.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible:
+      text: "Account and devices"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      text: "Customize DNS"
+    direction: DOWN
+- tapOn: "Customize DNS"
+
+- extendedWaitUntil:
+    visible:
+      text: "Use custom DNS servers"
+    timeout: 10000

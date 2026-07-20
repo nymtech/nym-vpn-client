@@ -1,0 +1,17 @@
+# Taps Connect and clears any VPN permission dialog, leaving the tunnel
+# transitioning toward the connected state. Assumes the home screen is showing.
+appId: net.nymtech.vpn
+---
+- tapOn: "Connect"
+
+# Accept the system VPN configuration prompt if the simulator surfaces one.
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+
+- extendedWaitUntil:
+    visible:
+      text: "Connecting"
+    timeout: 10000

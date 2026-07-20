@@ -1,0 +1,19 @@
+# Anti-censorship settings screen opens and shows its feature toggles.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible:
+      text: "Anti-censorship"
+    timeout: 10000
+
+- tapOn: "Anti-censorship"
+- extendedWaitUntil:
+    visible:
+      text: "Enhanced connection (QUIC)"
+    timeout: 10000
+- assertVisible: "Stealth API connect"

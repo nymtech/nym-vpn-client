@@ -1,0 +1,18 @@
+# Settings screen opens from home and lists its main entries.
+appId: net.nymtech.vpn
+tags:
+  - ui-validation
+  - smoke
+---
+- runFlow: ../../subflows/open_app.yaml
+
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible:
+      text: "Account and devices"
+    timeout: 10000
+
+- assertVisible: "Appearance"
+- assertVisible: "Anti-censorship"
+- assertVisible: "Customize DNS"
+- assertVisible: "Split tunneling"
