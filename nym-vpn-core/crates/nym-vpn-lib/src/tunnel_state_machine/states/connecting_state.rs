@@ -655,6 +655,10 @@ impl TunnelStateHandler for ConnectingState {
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingAccountReadiness);
                         NextTunnelState::NewState((self, new_state))
                     }
+                    TunnelMonitorEvent::AwaitingCredentialsAvailability => {
+                        let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::AwaitingCredentialsAvailability);
+                        NextTunnelState::NewState((self, new_state))
+                    }
                     TunnelMonitorEvent::RefreshingGateways => {
                         let new_state = self.make_connecting_tunnel_state(shared_state, EstablishConnectionState::RefreshingGateways);
                         NextTunnelState::NewState((self, new_state))
