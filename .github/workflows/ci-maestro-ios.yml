@@ -4,7 +4,9 @@ on:
   schedule:
     - cron: '0 4 * * *'
   push:
-    branches: [main, develop]
+    # feature/ui-testing is temporary — lets this workflow run before it lands
+    # on develop (workflow_dispatch/schedule only work from the default branch).
+    branches: [main, develop, feature/ui-testing]
     paths:
       - 'nym-vpn-apple/**'
       - 'nym-vpn-core/**'
