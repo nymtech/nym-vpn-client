@@ -1,0 +1,136 @@
+FROM fedora:44
+
+ARG TARGETARCH
+ARG RUST_VERSION=1.95.0
+ARG GO_VERSION=1.24.4
+ARG GO_LINUX_AMD64_SHA256=77e5da33bb72aeaef1ba4418b6fe511bc4d041873cbf82e5aa6318740df98717
+ARG GO_LINUX_ARM64_SHA256=d5501ee5aca0f258d5fe9bfaed401958445014495dc115f202d43d5210b45241
+ARG NODE_VERSION=24.18.0
+ARG NODE_LINUX_X64_SHA256=55aa7153f9d88f28d765fcdad5ae6945b5c0f98a36881703817e4c450fa76742
+ARG NODE_LINUX_ARM64_SHA256=58c9520501f6ae2b52d5b210444e24b9d0c029a58c5011b797bc1fe7105886f6
+ARG PROTOC_VERSION=21.12
+ARG PROTOC_LINUX_X86_64_SHA256=3a4c1e5f2516c639d3079b1586e703fc7bcfa2136d58bda24d1d54f949c315e8
+ARG PROTOC_LINUX_AARCH_64_SHA256=2dd17f75d66a682640b136e31848da9fb2eefe68d55303baf8b32617374f6711
+
+ENV RUSTUP_HOME=/opt/rustup \
+    CARGO_HOME=/opt/cargo \
+    GOROOT=/opt/go \
+    NODE_HOME=/opt/node \
+    PATH=/opt/cargo/bin:/opt/go/bin:/opt/node/bin:/opt/protoc/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin \
+    CARGO_NET_GIT_FETCH_WITH_CLI=true \
+    NPM_CONFIG_CACHE=/var/cache/npm
+
+RUN dnf -y upgrade --refresh && \
+    dnf -y install \
+        appstream \
+        bash \
+        binutils \
+        clang \
+        cmake \
+        cpio \
+        curl \
+        dbus-daemon \
+        dbus-devel \
+        dbus-libs \
+        desktop-file-utils \
+        diffutils \
+        file \
+        findutils \
+        gcc \
+        gcc-c++ \
+        gettext \
+        git \
+        gtk3 \
+        gtk3-devel \
+        hicolor-icon-theme \
+        javascriptcoregtk4.1-devel \
+        libayatana-appindicator-gtk3-devel \
+        libmnl \
+        libmnl-devel \
+        libnftnl \
+        libnftnl-devel \
+        librsvg2-devel \
+        libsoup3-devel \
+        libxdo-devel \
+        libxml2 \
+        make \
+        NetworkManager \
+        openssl-devel \
+        openssl-libs \
+        patch \
+        perl \
+        pkgconf-pkg-config \
+        polkit \
+        procps-ng \
+        rpm-build \
+        rpmdevtools \
+        rpmlint \
+        rsync \
+        systemd \
+        systemd-rpm-macros \
+        tar \
+        unzip \
+        util-linux \
+        webkit2gtk4.1 \
+        webkit2gtk4.1-devel \
+        which \
+        xdg-utils \
+        xorg-x11-server-Xvfb \
+        xz && \
+    dnf clean all
+
+RUN dnf -y --setopt=install_weak_deps=False install busybox && \
+    dnf clean all
+
+RUN set -eux; \
+    case "${TARGETARCH:-$(uname -m)}" in \
+        amd64|x86_64) \
+            go_arch=amd64; \
+            go_sha="${GO_LINUX_AMD64_SHA256}"; \
+            node_arch=x64; \
+            node_sha="${NODE_LINUX_X64_SHA256}"; \
+            protoc_arch=x86_64; \
+            protoc_sha="${PROTOC_LINUX_X86_64_SHA256}"; \
+            rust_arch=x86_64 \
+            ;; \
+        arm64|aarch64) \
+            go_arch=arm64; \
+            go_sha="${GO_LINUX_ARM64_SHA256}"; \
+            node_arch=arm64; \
+            node_sha="${NODE_LINUX_ARM64_SHA256}"; \
+            protoc_arch=aarch_64; \
+            protoc_sha="${PROTOC_LINUX_AARCH_64_SHA256}"; \
+            rust_arch=aarch64 \
+            ;; \
+        *) echo "Unsupported builder architecture: ${TARGETARCH:-$(uname -m)}" >&2; exit 2 ;; \
+    esac; \
+    go_archive="go${GO_VERSION}.linux-${go_arch}.tar.gz"; \
+    curl --fail --location --retry 5 --output "/tmp/${go_archive}" "https://go.dev/dl/${go_archive}"; \
+    echo "${go_sha}  /tmp/${go_archive}" | sha256sum --check --strict; \
+    busybox tar -C /opt -xzf "/tmp/${go_archive}"; \
+    node_archive="node-v${NODE_VERSION}-linux-${node_arch}.tar.xz"; \
+    curl --fail --location --retry 5 --output "/tmp/${node_archive}" "https://nodejs.org/dist/v${NODE_VERSION}/${node_archive}"; \
+    echo "${node_sha}  /tmp/${node_archive}" | sha256sum --check --strict; \
+    mkdir -p /opt/node; \
+    busybox tar -C /opt/node --strip-components=1 -xJf "/tmp/${node_archive}"; \
+    protoc_archive="protoc-${PROTOC_VERSION}-linux-${protoc_arch}.zip"; \
+    curl --fail --location --retry 5 --output "/tmp/${protoc_archive}" "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${protoc_archive}"; \
+    echo "${protoc_sha}  /tmp/${protoc_archive}" | sha256sum --check --strict; \
+    mkdir -p /opt/protoc; \
+    unzip -q "/tmp/${protoc_archive}" -d /opt/protoc; \
+    rustup_init=/tmp/rustup-init; \
+    curl --fail --location --retry 5 --output "${rustup_init}" "https://static.rust-lang.org/rustup/dist/${rust_arch}-unknown-linux-gnu/rustup-init"; \
+    curl --fail --location --retry 5 --output "${rustup_init}.sha256" "https://static.rust-lang.org/rustup/dist/${rust_arch}-unknown-linux-gnu/rustup-init.sha256"; \
+    echo "$(cut -d ' ' -f 1 "${rustup_init}.sha256")  ${rustup_init}" | sha256sum --check --strict; \
+    chmod 0755 "${rustup_init}"; \
+    "${rustup_init}" -y --no-modify-path --profile minimal --default-toolchain "${RUST_VERSION}"; \
+    rm -f /tmp/go*.tar.gz /tmp/node*.tar.xz /tmp/protoc*.zip /tmp/rustup-init /tmp/rustup-init.sha256; \
+    rustc --version | grep -F "rustc ${RUST_VERSION}"; \
+    go version | grep -F "go${GO_VERSION}"; \
+    node --version | grep -F "v${NODE_VERSION}"; \
+    protoc --version | grep -F "libprotoc 3.${PROTOC_VERSION}"
+
+RUN cargo install cargo-license --version 0.6.1 --locked
+
+WORKDIR /workspace
+CMD ["/bin/bash"]
