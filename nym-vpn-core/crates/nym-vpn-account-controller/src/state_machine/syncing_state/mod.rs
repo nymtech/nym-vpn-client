@@ -3,7 +3,6 @@
 
 pub(super) mod local_state;
 pub(super) mod network_state;
-pub(super) mod requesting_zknym_state;
 
 pub(crate) use network_state::SyncingNetworkState;
 

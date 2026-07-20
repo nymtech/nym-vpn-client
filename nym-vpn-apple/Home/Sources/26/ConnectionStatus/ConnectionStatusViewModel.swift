@@ -459,6 +459,8 @@ private func arcStep(from step: TunnelConnectingState?) -> ArcProgressState.Step
         return .initializingNym
     case .awaitingAccountReadiness:
         return .authenticatingAccount
+    case .awaitingCredentialsAvailability:
+        return .downloadingZkNyms
     case .refreshingGateways:
         return .updatingServerList
     case .selectingGateways:

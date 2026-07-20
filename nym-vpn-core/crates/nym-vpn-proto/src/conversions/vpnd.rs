@@ -710,26 +710,6 @@ impl From<StoreAccountRequest> for proto::StoreAccountRequest {
     }
 }
 
-impl From<proto::DecentralisedObtainTicketbooksRequest>
-    for nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest
-{
-    fn from(value: proto::DecentralisedObtainTicketbooksRequest) -> Self {
-        Self {
-            amount: value.amount,
-        }
-    }
-}
-
-impl From<nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest>
-    for proto::DecentralisedObtainTicketbooksRequest
-{
-    fn from(value: nym_vpn_lib_types::DecentralisedObtainTicketbooksRequest) -> Self {
-        Self {
-            amount: value.amount,
-        }
-    }
-}
-
 impl TryFrom<proto::AccountCommandResponse> for nym_vpn_lib_types::AccountCommandResponse {
     type Error = ConversionError;
     fn try_from(value: proto::AccountCommandResponse) -> Result<Self, Self::Error> {

@@ -82,6 +82,8 @@ fun ErrorStateReason.toHumanReadableString(context: Context): String = when (thi
 	ErrorStateReason.MaxDevicesReached -> context.getString(R.string.error_reason_max_devices_reached)
 	ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.error_reason_device_time_out_of_sync)
 	ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_reason_device_logged_out)
+	ErrorStateReason.CredentialFetchingFailed -> context.getString(R.string.error_reason_credential_fetching_failed)
+	ErrorStateReason.NoCredentialAvailable -> context.getString(R.string.error_reason_no_credential_available)
 
 	// unused on Android
 	ErrorStateReason.NeedFullDiskPermissions, ErrorStateReason.SplitTunnel -> ""

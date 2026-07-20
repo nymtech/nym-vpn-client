@@ -134,15 +134,6 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
     }
 
     shared_state
-        .credential_storage
-        .reset()
-        .await
-        .map_err(|source| {
-            tracing::error!("Failed to reset credential storage: {source:?}");
-            AccountCommandError::Storage(source.to_string())
-        })?;
-
-    shared_state
         .wireguard_keys_storage
         .clear_keys()
         .await
@@ -160,6 +151,12 @@ pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
             .inspect_err(|err| {
                 tracing::error!("Failed to remove files for account: {err:?}");
             });
+
+    shared_state
+        .bandwidth_control_command_tx
+        .reset()
+        .await
+        .map_err(AccountCommandError::storage)?;
 
     // Removing mnemonic and keys in storage
     let (tx, rx) = ReturnSender::new();
@@ -294,6 +291,10 @@ pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
     shared_state.mark_summary_as_stale();
 
     shared_state.device = Some(device);
+
+    // The device identity changed, so any installed credential fetcher is bound to a stale device.
+    // Drop it; the next time we reach a state that needs one it will be rebuilt with the new device.
+    shared_state.clear_credential_fetcher().await?;
 
     Ok(())
 }

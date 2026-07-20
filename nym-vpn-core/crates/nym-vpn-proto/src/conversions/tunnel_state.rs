@@ -51,6 +51,8 @@ impl TryFrom<proto::tunnel_state::Error> for ErrorStateReason {
             Reason::CredentialWastedOnEntryGateway => Self::CredentialWastedOnEntryGateway,
             Reason::CredentialWastedOnExitGateway => Self::CredentialWastedOnExitGateway,
             Reason::BandwidthExceeded => Self::BandwidthExceeded,
+            Reason::CredentialFetchingFailed => Self::CredentialFetchingFailed,
+            Reason::NoCredentialAvailable => Self::NoCredentialAvailable,
             Reason::InactiveAccount => Self::InactiveAccount,
             Reason::InactiveSubscription => Self::InactiveSubscription,
             Reason::MaxDevicesReached => Self::MaxDevicesReached,
@@ -131,6 +133,14 @@ impl From<ErrorStateReason> for proto::tunnel_state::Error {
             },
             ErrorStateReason::BandwidthExceeded => Self {
                 reason: Reason::BandwidthExceeded.into(),
+                message: None,
+            },
+            ErrorStateReason::CredentialFetchingFailed => Self {
+                reason: Reason::CredentialFetchingFailed.into(),
+                message: None,
+            },
+            ErrorStateReason::NoCredentialAvailable => Self {
+                reason: Reason::NoCredentialAvailable.into(),
                 message: None,
             },
             ErrorStateReason::InactiveAccount => Self {
@@ -260,6 +270,9 @@ impl From<proto::EstablishConnectionState> for EstablishConnectionState {
             proto::EstablishConnectionState::AwaitingAccountReadiness => {
                 Self::AwaitingAccountReadiness
             }
+            proto::EstablishConnectionState::AwaitingCredentialsAvailability => {
+                Self::AwaitingCredentialsAvailability
+            }
             proto::EstablishConnectionState::ResolvingApiAddresses => Self::ResolvingApiAddresses,
             proto::EstablishConnectionState::RefreshingGateways => Self::RefreshingGateways,
             proto::EstablishConnectionState::SelectingGateways => Self::SelectingGateways,
@@ -275,6 +288,9 @@ impl From<EstablishConnectionState> for proto::EstablishConnectionState {
     fn from(value: EstablishConnectionState) -> Self {
         match value {
             EstablishConnectionState::AwaitingAccountReadiness => Self::AwaitingAccountReadiness,
+            EstablishConnectionState::AwaitingCredentialsAvailability => {
+                Self::AwaitingCredentialsAvailability
+            }
             EstablishConnectionState::ResolvingApiAddresses => Self::ResolvingApiAddresses,
             EstablishConnectionState::RefreshingGateways => Self::RefreshingGateways,
             EstablishConnectionState::SelectingGateways => Self::SelectingGateways,

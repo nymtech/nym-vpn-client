@@ -5,7 +5,7 @@ use std::{sync::Arc, time::Duration};
 
 use crate::{
     SharedAccountState,
-    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
+    commands::{AccountCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
         NextAccountControllerState, OfflineState, PrivateAccountControllerState,
@@ -25,13 +25,12 @@ use nym_vpn_lib_types::{
 };
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
-use tracing::warn;
 
 const SYNCING_NETWORK_STATE_CONTEXT: &str = "SYNCING_NETWORK_STATE";
 
 /// In optimistic mode, how long we wait for the summary fetch before falling back to the cached
 /// summary.
-const OPTIMISTIC_SYNC_TIMEOUT: Duration = Duration::from_secs(3);
+const OPTIMISTIC_SYNC_TIMEOUT: Duration = Duration::from_secs(5);
 
 type SyncResult = Result<Option<VpnAccountSummary>, SyncError>;
 
@@ -64,24 +63,28 @@ pub(crate) struct SyncingNetworkState {
 }
 
 impl SyncingNetworkState {
-    pub(crate) fn enter<C: ConnectivityMonitor>(
-        shared_state: &SharedAccountState<C>,
+    pub(crate) async fn enter<C: ConnectivityMonitor>(
+        shared_state: &mut SharedAccountState<C>,
         sync_mode: SyncMode,
     ) -> (
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
         let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
-            return LoggedOutState::enter();
+            return LoggedOutState::enter(shared_state).await;
         };
         if vpn_api_account.mode().is_decentralised() {
             return DecentralisedState::enter();
         }
         let Some(device) = shared_state.device.clone() else {
-            return ErrorState::enter(AccountControllerErrorStateReason::Internal {
-                context: SYNCING_NETWORK_STATE_CONTEXT.into(),
-                details: "Logged in, but no device keys".into(),
-            });
+            return ErrorState::enter(
+                shared_state,
+                AccountControllerErrorStateReason::Internal {
+                    context: SYNCING_NETWORK_STATE_CONTEXT.into(),
+                    details: "Logged in, but no device keys".into(),
+                },
+            )
+            .await;
         };
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
@@ -201,17 +204,17 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                         // The summary is stored (and propagated to disk) even if the subsequent
                         // local checks eventually fail.
                         shared_state.store_summary(response);
-                        NextAccountControllerState::NewState(SyncingLocalState::enter(shared_state))
+                        NextAccountControllerState::NewState(SyncingLocalState::enter(shared_state).await)
 
                     }
                     Ok(Ok(None)) => {
                         // An optimistic refresh failed, no big deal
-                        NextAccountControllerState::NewState(SyncingLocalState::enter(shared_state))
+                        NextAccountControllerState::NewState(SyncingLocalState::enter(shared_state).await)
                     }
                     Ok(Err(err)) => {
                         // A mandatory sync failed
                         tracing::error!("Mandatory sync failed ({err})");
-                        NextAccountControllerState::NewState(ErrorState::enter(err.into_error_reason()))
+                        NextAccountControllerState::NewState(ErrorState::enter(shared_state, err.into_error_reason()).await)
                     }
                     Err(e) => {
                         tracing::error!("No result from network sync, task probably got cancelled : {e}");
@@ -234,7 +237,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                         return if error {
                             NextAccountControllerState::SameState(self)
                         } else {
-                            NextAccountControllerState::NewState(LoggedOutState::enter())
+                            NextAccountControllerState::NewState(LoggedOutState::enter(shared_state).await)
                         }
                     },
                     AccountCommand::LinkAccount(return_sender, privy_account) => {
@@ -246,7 +249,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                         return_sender.send(res);
                     },
                     AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
-                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         return if shared_state.firewall_active {
@@ -254,47 +257,36 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingNetwork
                         } else {
                             if force {
                                 shared_state.mark_summary_as_stale();
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                             } else {
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);
                             }
                         }
                     },
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
-                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                     },
 
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
                         return_sender.send(Ok(()));
                         // No-op if the firewall was already down
-                        if shared_state.firewall_active {
-                            shared_state.firewall_active = false;
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
+                        if shared_state.set_firewall_state(false) {
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);
                         }
                     },
 
                     AccountCommand::VpnApiFirewallUp(return_sender) => {
-                        shared_state.firewall_active = true;
-                        // Explicitly cancel sync task since the same state persists.
-                        // Sync will restart once firewall permits traffic to flow again.
-                        self.sync_cancel_token.take();
+                        if shared_state.set_firewall_state(true) {
+                            // Explicitly cancel sync task since the same state persists.
+                            // Sync will restart once firewall permits traffic to flow again.
+                            self.sync_cancel_token.take();
+                        }
                         return_sender.send(Ok(()));
                     },
 
                     AccountCommand::Common(common_command) => {
                         common_handler::handle_common_command(common_command, shared_state).await
-                    },
-                    AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
-                        UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
-                            return_sender.send(Ok(false))
-                        }
-                        UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
-                            warn!(
-                                "received unexpected command to disable upgrade mode while in 'SyncingNetworkState' state"
-                            );
-                            return_sender.send(Ok(()))
-                        }
                     },
                 }
                 NextAccountControllerState::SameState(self)

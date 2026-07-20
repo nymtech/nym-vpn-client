@@ -25,8 +25,15 @@ pub(crate) const EXIT: &str = "exit";
 pub(crate) const ZK_NYMS: &str = "zk-nyms";
 pub(crate) const TICKETBOOK: &str = "ticketbook";
 pub(crate) const PARTIAL_VERIFICATION_KEYS: &str = "partial-verification-keys";
+pub(crate) const MASTER_VERIFICATION_KEY: &str = "master-verification-key";
+pub(crate) const AGGREGATED_COIN_INDICES_SIGNATURES: &str = "aggregated-coin-indices-signatures";
+pub(crate) const AGGREGATED_EXPIRATION_DATE_SIGNATURES: &str =
+    "aggregated-expiration-date-signatures";
 pub(crate) const GEO: &str = "geo";
 pub(crate) const IP: &str = "ip";
+
+pub(crate) const EPOCH_ID: &str = "epoch-id";
+pub(crate) const EXPIRATION_DATE: &str = "expiration-date";
 
 pub(crate) const SHOW_VPN_ONLY: &str = "show_vpn_only";
 pub(crate) const VPN_MIN_PERFORMANCE: &str = "vpn_min_performance";
