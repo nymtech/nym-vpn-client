@@ -171,12 +171,12 @@
 	<string name="error_expired_subscription_description">O método de pagamento recorrente foi recusado</string>
 	<string name="error_expired_subscription_button">Renovar agora</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Inicializando NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">Configurando sua conta (2/6)</string>
-	<string name="connection_state_refreshing_gateways">Atualizando lista de servidores (3/6)</string>
-	<string name="connection_state_selecting_gateways">Escolhendo os melhores servidores (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">Registrando anonimamente com servidores (5/6)</string>
-	<string name="connection_state_connecting_tunnel">Estabelecendo conexão com o servidor (6/6)</string>
+	<string name="connection_state_resolving_addresses">Inicializando NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Configurando sua conta (2/7)</string>
+	<string name="connection_state_refreshing_gateways">Atualizando lista de servidores (4/7)</string>
+	<string name="connection_state_selecting_gateways">Escolhendo os melhores servidores (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Registrando anonimamente com servidores (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Estabelecendo conexão com o servidor (7/7)</string>
 	<!-- One-click mode -->
 	<string name="one_click_auto_server">Use o melhor servidor</string>
 	<string name="one_click_mode_fast">Rápido</string>

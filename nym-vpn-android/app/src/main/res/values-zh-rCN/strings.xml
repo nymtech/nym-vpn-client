@@ -171,12 +171,12 @@
 	<string name="error_expired_subscription_description">重复的支付已被拒绝</string>
 	<string name="error_expired_subscription_button">立即续订</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">正在初始化 NymVPN（1/6）</string>
-	<string name="connection_state_awaiting_readiness">正在设置您的帐户 (2/6)</string>
-	<string name="connection_state_refreshing_gateways">正在更新服务器列表（3/6）</string>
-	<string name="connection_state_selecting_gateways">正在选择最佳服务器（4/6）</string>
-	<string name="connection_state_connecting_mixnet_client">正在匿名注册服务器（5/6）</string>
-	<string name="connection_state_connecting_tunnel">正在建立服务器连接（6/6）</string>
+	<string name="connection_state_resolving_addresses">正在初始化 NymVPN（1/7）</string>
+	<string name="connection_state_awaiting_readiness">正在设置您的帐户 (2/7)</string>
+	<string name="connection_state_refreshing_gateways">正在更新服务器列表（4/7）</string>
+	<string name="connection_state_selecting_gateways">正在选择最佳服务器（5/7）</string>
+	<string name="connection_state_connecting_mixnet_client">正在匿名注册服务器（6/7）</string>
+	<string name="connection_state_connecting_tunnel">正在建立服务器连接（7/7）</string>
 	<!-- One-click mode -->
 	<string name="one_click_auto_server">使用最佳服务器</string>
 	<string name="one_click_mode_fast">快速</string>

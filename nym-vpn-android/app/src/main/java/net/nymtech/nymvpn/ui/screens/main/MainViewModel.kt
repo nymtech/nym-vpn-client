@@ -259,8 +259,7 @@ constructor(
 					val isSubError = event.reason is ErrorStateReason.InactiveSubscription ||
 						event.reason is ErrorStateReason.InactiveAccount
 					val isAccountReady = managerState.accountState is AccountControllerState.ReadyToConnect ||
-						managerState.accountState is AccountControllerState.Decentralised ||
-						managerState.accountState is AccountControllerState.UpgradeMode
+						managerState.accountState is AccountControllerState.Decentralised
 					if (isSubError && isAccountReady) baseState else ConnectionState.Error(event.reason)
 				}
 			}

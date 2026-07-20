@@ -315,6 +315,8 @@ private extension ArcProgressView {
             return "arcProgress.step.initializingNym".localizedString
         case .authenticatingAccount:
             return "arcProgress.step.authenticatingAccount".localizedString
+        case .downloadingZkNyms:
+            return "arcProgress.step.downloadingZkNyms".localizedString
         case .updatingServerList:
             return "arcProgress.step.updatingServerList".localizedString
         case .choosingBestServers:
@@ -424,7 +426,7 @@ private extension ArcProgressView {
 private extension ArcProgressState.Step {
     var ring: ArcProgressView.Ring {
         switch self {
-        case .initializingNym, .authenticatingAccount:
+        case .initializingNym, .authenticatingAccount, .downloadingZkNyms:
             return .outer
         case .updatingServerList, .choosingBestServers:
             return .middle
@@ -437,7 +439,7 @@ private extension ArcProgressState.Step {
         switch self {
         case .initializingNym, .updatingServerList, .registeringWithServers:
             return true
-        case .authenticatingAccount, .choosingBestServers, .establishingConnection:
+        case .authenticatingAccount, .downloadingZkNyms, .choosingBestServers, .establishingConnection:
             return false
         }
     }

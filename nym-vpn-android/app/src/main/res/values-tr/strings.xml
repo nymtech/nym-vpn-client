@@ -169,12 +169,12 @@
 	<string name="error_expired_subscription_description">Otomatik ödeme yöntemi kabul edilmedi</string>
 	<string name="error_expired_subscription_button">Şimdi Yenile</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">NymVPN başlatılıyor (1/6)</string>
-	<string name="connection_state_awaiting_readiness">Hesabınız hazırlanıyor (2/6)</string>
-	<string name="connection_state_refreshing_gateways">Sunucu listesi güncelleniyor (3/6)</string>
-	<string name="connection_state_selecting_gateways">En iyi sunucular seçiliyor (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">Sunucularla anonim bağlantı kaydı yapılıyor (5/6)</string>
-	<string name="connection_state_connecting_tunnel">Sunucu bağlantısı kuruluyor (6/6)</string>
+	<string name="connection_state_resolving_addresses">NymVPN başlatılıyor (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Hesabınız hazırlanıyor (2/7)</string>
+	<string name="connection_state_refreshing_gateways">Sunucu listesi güncelleniyor (4/7)</string>
+	<string name="connection_state_selecting_gateways">En iyi sunucular seçiliyor (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Sunucularla anonim bağlantı kaydı yapılıyor (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Sunucu bağlantısı kuruluyor (7/7)</string>
 	<!-- One-click mode -->
 	<string name="one_click_auto_server">En iyi sunucuyu kullanın</string>
 	<string name="one_click_mode_fast">Hızlı</string>

@@ -16,13 +16,11 @@ pub enum AccountState {
     Syncing,
     Offline,
     Decentralised,
-    UpgradeMode,
     BandwidthExceeded,
     StatusNotActive,
     NoSubscription,
     PendingSubscription,
     MaxDeviceReached,
-    RequestingZkNyms,
     Error(BackendError),
 }
 
@@ -34,9 +32,7 @@ impl AccountState {
             lib::AccountControllerState::Syncing => AccountState::Syncing,
             lib::AccountControllerState::ReadyToConnect => AccountState::Ready,
             lib::AccountControllerState::Decentralised => AccountState::Decentralised,
-            lib::AccountControllerState::UpgradeMode => AccountState::UpgradeMode,
             lib::AccountControllerState::Offline => AccountState::Offline,
-            lib::AccountControllerState::RequestingZkNyms => AccountState::RequestingZkNyms,
             lib::AccountControllerState::Error(error) => match error {
                 lib::AccountControllerErrorStateReason::BandwidthExceeded {
                     context: _, /* TODO */
