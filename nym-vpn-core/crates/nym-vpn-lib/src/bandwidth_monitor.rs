@@ -7,7 +7,7 @@ use nym_authenticator_client::AuthenticatorClient;
 
 use crate::tunnel_health::{MetadataPathHealth, update_metadata_path_health};
 use nym_bandwidth_controller::{
-    BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND, requests::BandwidthControllerRequestSender,
+    DEFAULT_TICKETS_TO_SPEND, requests::BandwidthControllerRequestSender,
 };
 use nym_registration_common::WireguardConfiguration;
 use sysinfo::Networks;
