@@ -41,16 +41,6 @@ impl SqliteZkNymRequestsStorageManager {
         Ok(())
     }
 
-    pub async fn get_pending_request_by_id(
-        &self,
-        id: &str,
-    ) -> Result<Option<PendingCredentialRequestStored>, sqlx::Error> {
-        sqlx::query_as("SELECT * FROM pending_zk_nym_requests WHERE id = ?")
-            .bind(id)
-            .fetch_optional(&*self.connection_pool)
-            .await
-    }
-
     pub async fn insert_pending_request(
         &self,
         id: &str,
