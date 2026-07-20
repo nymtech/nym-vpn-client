@@ -41,7 +41,7 @@ use crate::socks5_proxy::Socks5ProxyManager;
 use crate::socks5_proxy::find_proxy_binary;
 
 use crate::{
-    GatewayProviderError, UserAgent, bandwidth_controller::Error as BandwidthControllerError,
+    GatewayProviderError, UserAgent, bandwidth_monitor::Error as BandwidthMonitorError,
     mixnet::VpnTopologyServiceHandle,
     tunnel_state_machine::tunnel::gateway_provider::GatewayProvider,
 };
@@ -1496,14 +1496,14 @@ impl tunnel::Error {
                 }
                 _ => None,
             },
-            Self::BandwidthController(BandwidthControllerError::EntryGateway(error)) => {
+            Self::BandwidthMonitor(BandwidthMonitorError::EntryGateway(error)) => {
                 if error.is_no_retry() {
                     Some(ErrorStateReason::CredentialWastedOnEntryGateway)
                 } else {
                     None
                 }
             }
-            Self::BandwidthController(BandwidthControllerError::ExitGateway(error)) => {
+            Self::BandwidthMonitor(BandwidthMonitorError::ExitGateway(error)) => {
                 if error.is_no_retry() {
                     Some(ErrorStateReason::CredentialWastedOnExitGateway)
                 } else {
@@ -1524,7 +1524,7 @@ impl tunnel::Error {
             )),
             Self::NoIpAddressAnnounced { .. }
             | Self::MixnetClient(_)
-            | Self::BandwidthController(_)
+            | Self::BandwidthMonitor(_)
             | Self::Wireguard(_)
             | Self::Cancelled
             | Self::Transport(_) => None,

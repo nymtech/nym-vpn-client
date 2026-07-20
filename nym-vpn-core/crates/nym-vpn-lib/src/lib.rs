@@ -5,7 +5,7 @@ pub mod paths;
 pub mod storage;
 
 mod adblocker;
-mod bandwidth_controller;
+mod bandwidth_monitor;
 pub mod cache_refresh;
 pub mod config;
 mod dns_filter;

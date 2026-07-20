@@ -81,7 +81,7 @@ use crate::tunnel_provider::AndroidTunProvider;
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
     DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
-    bandwidth_controller::BandwidthController,
+    bandwidth_monitor::BandwidthMonitor,
     mixnet::VpnTopologyServiceHandle,
     tunnel_health::{METADATA_PATH_HEALTH_GRACE, MetadataPathHealth, should_defer_probe_teardown},
     tunnel_state_machine::{
@@ -741,7 +741,7 @@ impl TunnelMonitor {
             .fuse();
         tokio::pin!(metadata_endpoints_reachable);
 
-        // Send metadata endpoint data to the bandwidth controller
+        // Send metadata endpoint data to the bandwidth monitor
         match &tunnel_interface {
             TunnelInterface::One(exit) => {
                 let _metadata_event_handler = tokio::spawn(async move {
@@ -910,8 +910,8 @@ impl TunnelMonitor {
 
         // Shutdown WireGuard tunnel runtime
         if let Some(wg_tunnel_runtime) = wg_tunnel_runtime {
-            if let Err(err) = wg_tunnel_runtime.bandwidth_controller_handle.await {
-                tracing::error!("Failed to await bandwidth controller handle: {}", err);
+            if let Err(err) = wg_tunnel_runtime.bandwidth_monitor_handle.await {
+                tracing::error!("Failed to await bandwidth monitor handle: {}", err);
             }
 
             if let Some(transport_fwd_handle) = wg_tunnel_runtime.transport_fwd_handle
@@ -1163,7 +1163,7 @@ impl TunnelMonitor {
 
         let metadata_path_health = MetadataPathHealth::new();
 
-        let bw = BandwidthController::create(
+        let bw = BandwidthMonitor::create(
             Box::new(self.bandwidth_command_tx.clone()),
             self.account_command_tx.clone(),
             selected_gateways,
@@ -1182,7 +1182,7 @@ impl TunnelMonitor {
             Some(handle) if bw.is_using_latest_client() => {
                 // We don't need the mixnet client anymore
                 tracing::info!(
-                    "Disconnecting mixnet client as we are using the latest bandwidth controller"
+                    "Disconnecting mixnet client as we are using the latest bandwidth monitor"
                 );
                 handle.stop().await;
                 None
@@ -1190,10 +1190,10 @@ impl TunnelMonitor {
             Some(handle) => Some(handle),
             None => None,
         };
-        let bandwidth_controller_handle = tokio::spawn(bw.run());
+        let bandwidth_monitor_handle = tokio::spawn(bw.run());
 
         let rt = WgTunnelRuntime {
-            bandwidth_controller_handle,
+            bandwidth_monitor_handle,
             transport_fwd_handle: None,
             authenticator_listener_handle,
             metadata_path_health,
@@ -2064,7 +2064,7 @@ struct StartTunnelResult {
 }
 
 struct WgTunnelRuntime {
-    bandwidth_controller_handle: JoinHandle<()>,
+    bandwidth_monitor_handle: JoinHandle<()>,
     transport_fwd_handle: Option<JoinHandle<()>>,
     authenticator_listener_handle: Option<AuthClientMixnetListenerHandle>,
     metadata_path_health: MetadataPathHealth,
