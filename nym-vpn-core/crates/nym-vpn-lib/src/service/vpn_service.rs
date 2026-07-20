@@ -673,7 +673,7 @@ impl NymVpnService {
 
         let (gateway_provider, gateway_provider_handle) = GatewayProvider::new(
             gateway_cache_handle.clone(),
-            nym_vpn_api_client,
+            nym_vpn_api_client.clone(),
             tunnel_settings.clone(),
             wireguard_keys_db,
             state_machine_shutdown_token.child_token(),
@@ -692,6 +692,7 @@ impl NymVpnService {
             account_command_tx.clone(),
             account_state_rx.clone(),
             bandwidth_command_tx.clone(),
+            nym_vpn_api_client,
             statistics_event_sender.clone(),
             topology_service.clone(),
             connectivity_handle,
