@@ -1,64 +1,37 @@
+# Navigating between the sign-up and log-in sheets from the welcome screen.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
-- clearState
-- launchApp
+- runFlow: ../../subflows/logout_to_welcome.yaml
 
-- extendedWaitUntil:
-    visible:
-      text: "Disconnected"
-    timeout: 20000
-
-- tapOn: "Settings"
-
-- extendedWaitUntil:
-    visible:
-      text: "Settings"
-    timeout: 5000
-
-- tapOn:
-    text: "Account"
-
-- extendedWaitUntil:
-    visible:
-      text: "Account and devices"
-    timeout: 5000
-
-- scrollUntilVisible:
-    element:
-      text: "Log out"
-    direction: DOWN
-
-- tapOn:
-    text: "Log out"
-
-- extendedWaitUntil:
-    visible:
-      text: "Log out of this device?"
-    timeout: 5000
-
-- tapOn:
-    text: "Log out"
-
-- tapOn:
-    text: "Get started"
-
-- extendedWaitUntil:
-    visible:
-      text: "Welcome to NymVPN"
-    timeout: 15000
-
-- assertVisible: "Log in"
-- tapOn: "Create account"
-
-- assertVisible: "Create account"
-
-- assertVisible: "Create anonymous account"
-- assertVisible: "Continue with social account"
-
-- tapOn: "Log in"
-
+- assertVisible: "Welcome!"
+- assertVisible: "To the world's most private VPN"
+- assertVisible: "Sign Up"
+- assertVisible: "Login to my account"
 - assertVisible:
-    text: "Log in"
-    index: 0
+    text: "By continuing, you agree to NymVPN.*"
 
-- tapOn: "Create account"
+- tapOn: "Sign Up"
+- extendedWaitUntil:
+    visible:
+      text: "Anonymous account"
+    timeout: 10000
+- assertVisible: "Sign up with socials *"
+
+- back
+
+- extendedWaitUntil:
+    visible:
+      text: "Login to my account"
+    timeout: 10000
+- tapOn: "Login to my account"
+
+- extendedWaitUntil:
+    visible:
+      text: "Log in with 24 words"
+    timeout: 10000
+- assertVisible: "Log in using socials *"
+
+- back
+- assertVisible: "Welcome!"

@@ -1,56 +1,65 @@
+# Choosing entry and exit locations, then connecting through them.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
-- clearState
-- launchApp
+- runFlow: ../../subflows/open_app.yaml
 
-- assertVisible: "CONNECT TO"
-- assertVisible: "Entry location"
-- assertVisible: "Exit location"
-
-# Change entry location
-- tapOn:
-      text: "Random"
-      index: 0
-
-- assertVisible: "Entry location"
+- assertVisible: "Entry server"
+- assertVisible: "Exit server"
 
 - tapOn:
-      text: "Expand"
-      index: 3
+    text: "Random"
+    below: "Exit server"
 
-- tapOn: "New York"
-
-- assertVisible: "United States, New York"
-- assertVisible: "Flag of us"
-
-- tapOn: "Random"
+- extendedWaitUntil:
+    visible:
+      text: "Exit location"
+    timeout: 10000
+- assertVisible: "Random server"
 
 - tapOn: "Germany"
 
+- extendedWaitUntil:
+    visible:
+      text: "Exit server"
+    timeout: 10000
 - assertVisible: "Germany"
-- assertVisible: "Flag of DE"
-
-- assertNotVisible: "Random"
 
 - tapOn:
-      text: "Connect"
-
-- runFlow:
-      when:
-          visible: "Connection request"
-      commands:
-          - tapOn: "OK"
-
-- runFlow:
-      when:
-          visible: "For best connection"
-      commands:
-          - tapOn: "Skip"
+    text: "Random"
+    below: "Entry server"
 
 - extendedWaitUntil:
-      visible:
-          text: "Connected"
-      timeout: 20000
+    visible:
+      text: "Entry location"
+    timeout: 10000
 
-- tapOn:
-      text: "Disconnect"
+- tapOn: "United States"
+
+- extendedWaitUntil:
+    visible:
+      text: "Entry server"
+    timeout: 10000
+- assertVisible: "United States"
+
+- runFlow: ../../subflows/connect.yaml
+
+- extendedWaitUntil:
+    visible:
+      text: ".* MODE PROTECTION"
+    timeout: 30000
+- assertVisible: "Disconnect"
+
+- tapOn: "Disconnect"
+
+- runFlow:
+    when:
+      visible: "For best connection"
+    commands:
+      - tapOn: "Skip"
+
+- extendedWaitUntil:
+    visible:
+      text: "NOT PROTECTED"
+    timeout: 30000

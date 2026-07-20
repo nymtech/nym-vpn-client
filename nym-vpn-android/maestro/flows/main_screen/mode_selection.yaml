@@ -1,33 +1,25 @@
+# Switching between Fast and Mixnet modes, and that the choice persists.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
-- launchApp
+- runFlow: ../../subflows/open_app.yaml
 
-- assertVisible: "SELECT MODE"
+- assertVisible: "Fast"
+- assertVisible: "Mixnet"
+- assertVisible: "NOT PROTECTED"
 
-- assertVisible:
-    text: "Fast (WireGuard)"
+- tapOn: "Mixnet"
+- assertVisible: "Mixnet"
+- assertVisible: "NOT PROTECTED"
 
-- assertVisible:
-    text: "Anonymous (mixnet)"
+- tapOn: "Fast"
+- assertVisible: "Fast"
+- assertVisible: "NOT PROTECTED"
 
-- tapOn:
-    text: "Anonymous (mixnet)"
-
-- tapOn:
-    text: "Fast (WireGuard)"
-
-- tapOn: "Info"
-
-
-# Mode selection info modal
-- assertVisible: "Mode selection"
-- assertVisible: "Fastest"
-- assertVisible: "Anonymous"
-- assertVisible: "Continue reading"
-- assertVisible: "Okay"
-
-- tapOn: "Okay"
-
-- assertNotVisible: "Mode selection"
-- assertNotVisible: "Continue reading"
-- assertNotVisible: "Okay"
+- tapOn: "Mixnet"
+- tapOn: "Settings"
+- assertVisible: "Settings"
+- back
+- assertVisible: "Mixnet"
+- assertVisible: "Connect"

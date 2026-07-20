@@ -1,0 +1,16 @@
+# Taps Connect and clears the VPN consent and battery optimisation dialogs.
+appId: net.nymtech.nymvpn.mock.debug
+---
+- tapOn: "Connect"
+
+- runFlow:
+    when:
+      visible: "Connection request"
+    commands:
+      - tapOn: "OK"
+
+- runFlow:
+    when:
+      visible: "For best connection"
+    commands:
+      - tapOn: "Skip"

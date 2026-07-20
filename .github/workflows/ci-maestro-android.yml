@@ -110,6 +110,11 @@ jobs:
         with:
           api-level: 34
           arch: x86_64
+          # Without an explicit profile avdmanager falls back to a 320x640
+          # mdpi screen, which no real device has: most of the UI ends up
+          # below the fold and flows fail on elements that are merely
+          # off-screen. Pixel 6 is 1080x2400 @ 420dpi.
+          profile: pixel_6
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
           disable-animations: true
           script: |

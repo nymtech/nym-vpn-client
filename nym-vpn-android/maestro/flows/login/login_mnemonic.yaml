@@ -1,116 +1,30 @@
+# Logging back in with a 24-word passphrase returns to the signed-in home screen.
 appId: net.nymtech.nymvpn.mock.debug
+tags:
+  - ui-validation
 ---
-- clearState
-- launchApp
+- runFlow: ../../subflows/logout_to_welcome.yaml
 
-- runFlow:
-      when:
-          visible: "Allow"
-      commands:
-          - tapOn: "Allow"
-
-- runFlow:
-      when:
-          visible: "OK"
-      commands:
-          - tapOn: "OK"
-
-- runFlow:
-      when:
-          visible: "Skip"
-      commands:
-          - tapOn: "Skip"
-
-# Wait for main screen to fully load (mock starts in logged-in state)
-- extendedWaitUntil:
-      visible:
-          text: "Disconnected"
-      timeout: 20000
-
-# Tap the Settings gear icon (top right corner)
-- tapOn: "Settings"
+- tapOn: "Login to my account"
 
 - extendedWaitUntil:
-      visible:
-          text: "Settings"
-      timeout: 5000
-
-# Tap Account to go to Account Info screen
-- tapOn:
-      text: "Account"
+    visible:
+      text: "Log in with 24 words"
+    timeout: 10000
+- tapOn: "Log in with 24 words"
 
 - extendedWaitUntil:
-      visible:
-          text: "Account and devices"
-      timeout: 5000
+    visible:
+      text: "24 word-passphrase"
+    timeout: 10000
 
-# Find and tap Log out
-- scrollUntilVisible:
-      element:
-          text: "Log out"
-      direction: DOWN
-
-- tapOn:
-      text: "Log out"
-
-# Confirm logout in dialog
-- extendedWaitUntil:
-      visible:
-          text: "Log out of this device?"
-      timeout: 5000
-
-- tapOn:
-      text: "Log out"
-
-# Wait for Settings screen showing "Get started"
-- extendedWaitUntil:
-      visible:
-          text: "Get started"
-      timeout: 15000
-
-# Tap Get started to navigate to welcome screen
-- tapOn:
-      text: "Get started"
-
-# Welcome screen
-- extendedWaitUntil:
-      visible:
-          text: "Welcome to NymVPN"
-      timeout: 15000
-
-# Tap Log in on the welcome screen
-- tapOn:
-      text: "Log in"
-
-# Wait for the login form with passphrase field
-- extendedWaitUntil:
-      visible:
-          text: ".*passphrase.*"
-      timeout: 15000
-
-# Tap the passphrase input area and enter dummy mnemonic
 - tapOn: "24 word-passphrase"
-
 - inputText: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
 
-- assertVisible: "Continue with social account"
-
-- tapOn:
-      id: "loginTag"
-
-- assertVisible: "Help us improve NymVPN"
-
-- assertVisible:
-      text: "Share error reports"
-      index: 0
-
-- assertVisible:
-      text: "Share usage analytics"
-      index: 0
-
-- tapOn: "Continue"
+- tapOn: "Login"
 
 - extendedWaitUntil:
-      visible:
-          text: "Connect"
-      timeout: 20000
+    visible:
+      text: "Connect"
+    timeout: 30000
+- assertVisible: "NOT PROTECTED"
