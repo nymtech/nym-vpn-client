@@ -99,11 +99,7 @@ use crate::{
 };
 
 /// Default MTU for mixnet tun device.
-const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
-    1280
-} else {
-    1500
-};
+const DEFAULT_TUN_MTU: u16 = 1280;
 
 /// User-facing tunnel type identifier.
 #[cfg(windows)]
@@ -1004,6 +1000,7 @@ impl TunnelMonitor {
                             e.display_chain_with_msg("Failed to detect mtu for route")
                         );
                     })
+                    .map(|mtu| mtu.min(DEFAULT_TUN_MTU))
                     .unwrap_or(DEFAULT_TUN_MTU)
             }
 
