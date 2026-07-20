@@ -608,7 +608,7 @@ impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
     }
 }
 
-pub(crate) struct BandwidthController {
+pub(crate) struct BandwidthMonitor {
     ticket_provider: Box<dyn BandwidthTicketProvider>,
     wg_entry_gateway_client: TemporaryBandwidthClient,
     wg_exit_gateway_client: TemporaryBandwidthClient,
@@ -624,7 +624,7 @@ pub(crate) struct BandwidthController {
     metadata_path_health: Option<MetadataPathHealth>,
 }
 
-impl BandwidthController {
+impl BandwidthMonitor {
     pub fn new(
         ticket_provider: Box<dyn BandwidthTicketProvider>,
         wg_entry_gateway_client: TemporaryBandwidthClient,
@@ -636,7 +636,7 @@ impl BandwidthController {
         let timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
 
-        BandwidthController {
+        BandwidthMonitor {
             ticket_provider,
             wg_entry_gateway_client,
             wg_exit_gateway_client,
@@ -743,7 +743,7 @@ impl BandwidthController {
         gateway_metadata_update_version: Option<semver::Version>,
         cancel_token: CancellationToken,
         metadata_path_health: MetadataPathHealth,
-    ) -> BandwidthController {
+    ) -> BandwidthMonitor {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_wireguard_config.private_ipv4.into(),
             entry_signal_channel,
@@ -993,7 +993,7 @@ impl BandwidthController {
         };
         tokio::select! {
             _ = self.shutdown_token.cancelled() => {
-                tracing::trace!("BandwidthController: Received shutdown");
+                tracing::trace!("BandwidthMonitor: Received shutdown");
             }
             ret = bw_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
                 return match ret {
@@ -1033,7 +1033,7 @@ impl BandwidthController {
             // OS file handles promptly (especially important on Windows).
             self.ticket_provider.close().await;
 
-            tracing::debug!("BandwidthController: Exiting");
+            tracing::debug!("BandwidthMonitor: Exiting");
             return;
         }
 
@@ -1048,7 +1048,7 @@ impl BandwidthController {
         while !self.shutdown_token.is_cancelled() {
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {
-                    tracing::trace!("BandwidthController: Received shutdown");
+                    tracing::trace!("BandwidthMonitor: Received shutdown");
                     break;
                 }
                 _ = system_bandwidth_check_interval.next() => {
@@ -1094,7 +1094,7 @@ impl BandwidthController {
         // OS file handles promptly (especially important on Windows).
         self.ticket_provider.close().await;
 
-        tracing::debug!("BandwidthController: Exiting");
+        tracing::debug!("BandwidthMonitor: Exiting");
     }
 }
 
