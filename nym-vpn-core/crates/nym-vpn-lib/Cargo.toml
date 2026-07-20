@@ -196,6 +196,7 @@ debounced.workspace = true
 dispatch2.workspace = true
 
 [dev-dependencies]
+async-trait.workspace = true
 pretty_assertions.workspace = true
 socket2.workspace = true
 tempfile.workspace = true

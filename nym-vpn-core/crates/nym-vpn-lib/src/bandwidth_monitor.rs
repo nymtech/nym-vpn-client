@@ -5,6 +5,7 @@ use std::{net::IpAddr, time::Duration};
 
 use nym_authenticator_client::AuthenticatorClient;
 use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
+use nym_vpn_api_client::VpnApiClient;
 
 use crate::tunnel_health::{MetadataPathHealth, update_metadata_path_health};
 use nym_registration_common::WireguardConfiguration;
@@ -608,11 +609,54 @@ impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
     }
 }
 
-pub(crate) struct BandwidthMonitor {
+/// Narrow interface providing a skew-corrected timestamp for ecash ticket spend times.
+///
+/// Exists so `BandwidthMonitor` isn't hard-wired to a concrete `VpnApiClient`, letting tests
+/// substitute a controllable time source instead of requiring a live client.
+pub(crate) trait BandwidthSpendTimeSource: Send + Sync {
+    /// Returns the timestamp to use as the `spend_time` for an ecash ticket request: a
+    /// skew-corrected timestamp when the clock skew relative to the VPN API is significant,
+    /// falling back to device time otherwise (including when the skew lookup itself fails, so a
+    /// skew lookup failure never blocks or delays a bandwidth top-up).
+    async fn skew_corrected_time(&self) -> OffsetDateTime;
+}
+
+impl BandwidthSpendTimeSource for VpnApiClient {
+    async fn skew_corrected_time(&self) -> OffsetDateTime {
+        VpnApiClient::skew_corrected_time(self).await
+    }
+}
+
+/// Resolves the skew-corrected (or device-time-fallback) spend time and requests an ecash
+/// ticket for it. Extracted out of `top_up_bandwidth` so the spend-time wiring can be unit
+/// tested without needing a full `BandwidthMonitor` (which otherwise requires collaborators,
+/// such as `AccountCommandSender`, that can only be constructed by their owning crate).
+async fn request_ecash_ticket(
+    ticket_provider: &dyn BandwidthTicketProvider,
+    spend_time_source: &impl BandwidthSpendTimeSource,
+    ticketbook_type: TicketType,
+    gateway_id: nym_gateway_directory::NodeIdentity,
+) -> std::result::Result<
+    Option<nym_bandwidth_controller::PreparedCredential>,
+    nym_bandwidth_controller::error::BandwidthControllerError,
+> {
+    let spend_time = spend_time_source.skew_corrected_time().await;
+    ticket_provider
+        .get_ecash_ticket(
+            ticketbook_type,
+            gateway_id,
+            DEFAULT_TICKETS_TO_SPEND,
+            spend_time,
+        )
+        .await
+}
+
+pub(crate) struct BandwidthMonitor<T = VpnApiClient> {
     ticket_provider: Box<dyn BandwidthTicketProvider>,
     wg_entry_gateway_client: TemporaryBandwidthClient,
     wg_exit_gateway_client: TemporaryBandwidthClient,
     account_command_tx: AccountCommandSender,
+    spend_time_source: T,
     timeout_check_interval: IntervalStream,
     entry_depletion_rate: DepletionRate,
     exit_depletion_rate: DepletionRate,
@@ -624,12 +668,14 @@ pub(crate) struct BandwidthMonitor {
     metadata_path_health: Option<MetadataPathHealth>,
 }
 
-impl BandwidthMonitor {
+impl<T: BandwidthSpendTimeSource> BandwidthMonitor<T> {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         ticket_provider: Box<dyn BandwidthTicketProvider>,
         wg_entry_gateway_client: TemporaryBandwidthClient,
         wg_exit_gateway_client: TemporaryBandwidthClient,
         account_command_tx: AccountCommandSender,
+        spend_time_source: T,
         shutdown_token: CancellationToken,
         metadata_path_health: Option<MetadataPathHealth>,
     ) -> Self {
@@ -641,6 +687,7 @@ impl BandwidthMonitor {
             wg_entry_gateway_client,
             wg_exit_gateway_client,
             account_command_tx,
+            spend_time_source,
             timeout_check_interval,
             entry_depletion_rate: Default::default(),
             exit_depletion_rate: Default::default(),
@@ -733,6 +780,7 @@ impl BandwidthMonitor {
     pub(crate) fn create(
         ticket_provider: Box<dyn BandwidthTicketProvider>,
         account_command_tx: AccountCommandSender,
+        spend_time_source: T,
         selected_gateways: &SelectedGateways,
         entry_auth_client: Option<AuthenticatorClient>,
         exit_auth_client: Option<AuthenticatorClient>,
@@ -743,7 +791,7 @@ impl BandwidthMonitor {
         gateway_metadata_update_version: Option<semver::Version>,
         cancel_token: CancellationToken,
         metadata_path_health: MetadataPathHealth,
-    ) -> BandwidthMonitor {
+    ) -> BandwidthMonitor<T> {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_wireguard_config.private_ipv4.into(),
             entry_signal_channel,
@@ -764,6 +812,7 @@ impl BandwidthMonitor {
             wg_entry_client,
             wg_exit_client,
             account_command_tx,
+            spend_time_source,
             cancel_token.clone(),
             Some(metadata_path_health),
         )
@@ -782,25 +831,23 @@ impl BandwidthMonitor {
             &mut self.wg_exit_gateway_client
         };
 
-        let credential = self
-            .ticket_provider
-            .get_ecash_ticket(
-                ticketbook_type,
-                bw_client.gateway_id(),
-                DEFAULT_TICKETS_TO_SPEND,
-                OffsetDateTime::now_utc(), // Skew input can be fed here
-            )
-            .await
-            .map_err(|source| SpecificGatewayError::RequestCredential {
-                gateway_id: bw_client.gateway_id().to_string(),
-                ticketbook_type,
-                source: Box::new(source),
-            })?
-            .ok_or(SpecificGatewayError::NoCredentialAvailable {
-                ticketbook_type,
-                gateway_id: bw_client.gateway_id().to_string(),
-            })?
-            .data;
+        let credential = request_ecash_ticket(
+            self.ticket_provider.as_ref(),
+            &self.spend_time_source,
+            ticketbook_type,
+            bw_client.gateway_id(),
+        )
+        .await
+        .map_err(|source| SpecificGatewayError::RequestCredential {
+            gateway_id: bw_client.gateway_id().to_string(),
+            ticketbook_type,
+            source: Box::new(source),
+        })?
+        .ok_or(SpecificGatewayError::NoCredentialAvailable {
+            ticketbook_type,
+            gateway_id: bw_client.gateway_id().to_string(),
+        })?
+        .data;
         let remaining_bandwidth = bw_client
             .topup_bandwidth(credential, ticketbook_type)
             .await?;
@@ -1348,5 +1395,117 @@ mod tests {
             mock,
         );
         assert!(!monitor.force_bandwidth_checks().await);
+    }
+
+    // Thu, 16 Jul 2026 12:00:00 UTC
+    fn fixed_time() -> OffsetDateTime {
+        OffsetDateTime::from_unix_timestamp(1_784_203_200).unwrap()
+    }
+
+    fn test_gateway_id() -> nym_gateway_directory::NodeIdentity {
+        nym_gateway_directory::NodeIdentity::from_base58_string(
+            "7CWjY3QFoA9dgE535u9bQiXCfzgMZvSpJu842GA1Wn42",
+        )
+        .unwrap()
+    }
+
+    /// A `BandwidthSpendTimeSource` double that always returns a fixed timestamp, letting tests
+    /// stand in for whichever value `VpnApiClient::skew_corrected_time` would have resolved to
+    /// (skew-corrected, or a device-time fallback).
+    struct MockTimeSource(OffsetDateTime);
+
+    impl BandwidthSpendTimeSource for MockTimeSource {
+        async fn skew_corrected_time(&self) -> OffsetDateTime {
+            self.0
+        }
+    }
+
+    /// A `BandwidthTicketProvider` double that records the `spend_time` it was called with and
+    /// declines to issue a credential, so callers never need a live gateway or ticket backend.
+    #[derive(Default)]
+    struct SpendTimeCapturingTicketProvider {
+        captured_spend_time: std::sync::Mutex<Option<OffsetDateTime>>,
+    }
+
+    #[async_trait::async_trait]
+    impl BandwidthTicketProvider for SpendTimeCapturingTicketProvider {
+        async fn get_ecash_ticket(
+            &self,
+            _ticket_type: TicketType,
+            _gateway_id: nym_gateway_directory::NodeIdentity,
+            _tickets_to_spend: u32,
+            spend_time: OffsetDateTime,
+        ) -> std::result::Result<
+            Option<nym_bandwidth_controller::PreparedCredential>,
+            nym_bandwidth_controller::error::BandwidthControllerError,
+        > {
+            *self.captured_spend_time.lock().unwrap() = Some(spend_time);
+            Ok(None)
+        }
+
+        async fn get_upgrade_mode_token(
+            &self,
+        ) -> std::result::Result<
+            Option<String>,
+            nym_bandwidth_controller::error::BandwidthControllerError,
+        > {
+            Ok(None)
+        }
+
+        async fn attempt_revert_spending(
+            &self,
+            _metadata: nym_bandwidth_controller::PreparedCredentialMetadata,
+        ) -> std::result::Result<bool, nym_bandwidth_controller::error::BandwidthControllerError>
+        {
+            Ok(true)
+        }
+
+        async fn close(&self) {}
+    }
+
+    #[tokio::test]
+    async fn ecash_ticket_uses_skew_corrected_time_when_skew_significant() {
+        // Stands in for the value `VpnApiClient::skew_corrected_time` returns when the clock
+        // skew relative to the VPN API is significant: a time visibly different from device time.
+        let corrected_time = fixed_time() - Duration::from_hours(2);
+        let ticket_provider = SpendTimeCapturingTicketProvider::default();
+
+        request_ecash_ticket(
+            &ticket_provider,
+            &MockTimeSource(corrected_time),
+            TicketType::V1WireguardEntry,
+            test_gateway_id(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            *ticket_provider.captured_spend_time.lock().unwrap(),
+            Some(corrected_time)
+        );
+    }
+
+    #[tokio::test]
+    async fn ecash_ticket_falls_back_to_device_time_when_skew_negligible_or_unavailable() {
+        // `VpnApiClient::skew_corrected_time` itself resolves to device time whenever the skew
+        // is negligible or the lookup fails (covered by nym-vpn-api-client's tests); this
+        // verifies the controller forwards whatever it returns unchanged as `spend_time`,
+        // without ever blocking or failing the top-up on a skew lookup failure.
+        let device_time = fixed_time();
+        let ticket_provider = SpendTimeCapturingTicketProvider::default();
+
+        request_ecash_ticket(
+            &ticket_provider,
+            &MockTimeSource(device_time),
+            TicketType::V1WireguardExit,
+            test_gateway_id(),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            *ticket_provider.captured_spend_time.lock().unwrap(),
+            Some(device_time)
+        );
     }
 }

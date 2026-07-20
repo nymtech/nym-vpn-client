@@ -14,7 +14,7 @@ pub struct TestLocation(glob::Pattern, Vec<String>);
 
 impl fmt::Debug for TestLocation {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}: {:?}", self.0, &self.1)
+        write!(f, "{}: {:?}", self.0, self.1)
     }
 }
 

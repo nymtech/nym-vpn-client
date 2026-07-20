@@ -128,6 +128,34 @@ impl VpnApiClient {
         self.skew_manager.read().await.device_time()
     }
 
+    /// Returns a timestamp corrected for the skew between the local device clock and the
+    /// VPN API server clock, suitable for time-sensitive requests such as ecash ticket spend
+    /// times.
+    ///
+    /// Uses the cached skew state when it is valid (no additional network request), and falls
+    /// back to device time when the skew is not significant or cannot be determined: a skew
+    /// lookup failure must never block or delay the caller.
+    pub async fn skew_corrected_time(&self) -> OffsetDateTime {
+        let remote_time = self
+            .skew_manager
+            .write()
+            .await
+            .current_remote_time()
+            .await
+            .unwrap_or_else(|err| {
+                tracing::debug!(
+                    error = %err,
+                    "Failed to determine cached remote time, falling back to device time"
+                );
+                None
+            });
+
+        match remote_time {
+            Some(vpn_api_time) => self.device_time().await - vpn_api_time.local_time_ahead_skew(),
+            None => self.device_time().await,
+        }
+    }
+
     async fn remote_time_for_retry(
         &self,
         headers: &HeaderMap,
@@ -1518,6 +1546,19 @@ mod tests {
         }
     }
 
+    #[derive(Debug)]
+    struct ErroringRemoteTimeProvider {
+        calls: Arc<AtomicUsize>,
+    }
+
+    #[async_trait::async_trait]
+    impl RemoteTimeProvider for ErroringRemoteTimeProvider {
+        async fn request_remote_time(&self) -> Result<OffsetDateTime> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            Err(VpnApiClientError::TimeTravelTooMuch)
+        }
+    }
+
     // Returns a client that never makes real network requests: the device clock is fixed and
     // remote time requests are counted and answered with `remote_time`.
     fn test_client(remote_time: OffsetDateTime) -> (VpnApiClient, Arc<AtomicUsize>) {
@@ -1525,6 +1566,30 @@ mod tests {
         let remote_time_provider = CountingRemoteTimeProvider {
             calls: calls.clone(),
             remote_time,
+        };
+        let skew_manager =
+            SkewManager::new_for_testing(FixedDeviceTimeProvider, remote_time_provider);
+        let inner = fronted_http_client(
+            vec![Url::new("https://nymvpn.test/api/", None).unwrap()],
+            None,
+            Some(NYM_VPN_API_TIMEOUT),
+        )
+        .unwrap();
+        (
+            VpnApiClient {
+                inner,
+                skew_manager: Arc::new(RwLock::new(skew_manager)),
+            },
+            calls,
+        )
+    }
+
+    // Returns a client whose remote time requests always fail, to exercise the fallback path
+    // when the skew cannot be determined at all.
+    fn erroring_test_client() -> (VpnApiClient, Arc<AtomicUsize>) {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let remote_time_provider = ErroringRemoteTimeProvider {
+            calls: calls.clone(),
         };
         let skew_manager =
             SkewManager::new_for_testing(FixedDeviceTimeProvider, remote_time_provider);
@@ -1696,5 +1761,49 @@ mod tests {
 
         assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
         assert_eq!(jwt.local_time_ahead_skew().whole_hours(), 2);
+    }
+
+    #[tokio::test]
+    async fn skew_corrected_time_uses_remote_time_when_skew_significant() {
+        // Remote clock is 2 hours behind the device clock
+        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2));
+
+        let corrected = client.skew_corrected_time().await;
+
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(corrected, device_time() - Duration::from_hours(2));
+    }
+
+    #[tokio::test]
+    async fn skew_corrected_time_falls_back_to_device_time_when_skew_negligible() {
+        // Remote clock is only 30 seconds ahead of the device clock: below the threshold
+        let (client, remote_calls) = test_client(device_time() + Duration::from_secs(30));
+
+        let corrected = client.skew_corrected_time().await;
+
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(corrected, device_time());
+    }
+
+    #[tokio::test]
+    async fn skew_corrected_time_falls_back_to_device_time_when_remote_time_unavailable() {
+        let (client, _remote_calls) = erroring_test_client();
+
+        let corrected = client.skew_corrected_time().await;
+
+        assert_eq!(corrected, device_time());
+    }
+
+    #[tokio::test]
+    async fn skew_corrected_time_reuses_cached_skew_without_extra_remote_request() {
+        let (client, remote_calls) = test_client(device_time() - Duration::from_hours(2));
+
+        let first = client.skew_corrected_time().await;
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+
+        // A second call within the cache TTL must not trigger another remote time request
+        let second = client.skew_corrected_time().await;
+        assert_eq!(remote_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(first, second);
     }
 }
