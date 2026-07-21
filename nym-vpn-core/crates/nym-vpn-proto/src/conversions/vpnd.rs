@@ -433,6 +433,34 @@ impl From<nym_vpn_lib_types::TentativeGateways> for proto::TentativeGateways {
     }
 }
 
+impl From<nym_vpn_lib_types::RecentGateways> for proto::RecentGateways {
+    fn from(value: nym_vpn_lib_types::RecentGateways) -> Self {
+        Self {
+            entry: value.entry.into_iter().map(Into::into).collect(),
+            exit: value.exit.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
+impl TryFrom<proto::RecentGateways> for nym_vpn_lib_types::RecentGateways {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::RecentGateways) -> Result<Self, Self::Error> {
+        Ok(Self {
+            entry: value
+                .entry
+                .into_iter()
+                .map(TryInto::try_into)
+                .collect::<Result<Vec<_>, Self::Error>>()?,
+            exit: value
+                .exit
+                .into_iter()
+                .map(TryInto::try_into)
+                .collect::<Result<Vec<_>, Self::Error>>()?,
+        })
+    }
+}
+
 impl From<BridgeInformation> for proto::BridgeInformation {
     fn from(value: BridgeInformation) -> Self {
         let transports = value

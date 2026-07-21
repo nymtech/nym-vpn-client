@@ -3,7 +3,7 @@
 
 use crate::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
 use nym_vpn_api_client::error::VpnApiClientError;
-use nym_vpn_lib_types::GatewayType;
+use nym_vpn_lib_types::{GatewayType, TunnelType};
 
 use super::config::ConfigSetupError;
 
@@ -108,6 +108,12 @@ pub enum ListGatewaysError {
     #[error("failed to get filtered gateways ({gw_type:?})")]
     GetFilteredGateways {
         gw_type: GatewayType,
+        source: crate::gateway_directory::Error,
+    },
+
+    #[error("failed to get recent gateways ({tunnel_type:?})")]
+    GetRecentGateways {
+        tunnel_type: TunnelType,
         source: crate::gateway_directory::Error,
     },
 }

@@ -80,9 +80,10 @@ pub use diagnostic::{
 };
 pub use gateway::{
     Asn, AsnKind, BridgeInformation, BridgeParameters, Country, Entry, EntryPoint, Exit, ExitPoint,
-    Gateway, GatewayFilter, GatewayType, LewesProtocolDetails, LewesProtocolDetailsData, Location,
-    LookupGatewayFilters, Lp, NodeIdentity, ParseRecipientError, Performance, Probe, ProbeOutcome,
-    QuicClientOptions, Recipient, Score, Socks5, TentativeGateways,
+    Gateway, GatewayFilter, GatewayType, GetRecentGatewaysParams, LewesProtocolDetails,
+    LewesProtocolDetailsData, Location, LookupGatewayFilters, Lp, NodeIdentity,
+    ParseRecipientError, Performance, Probe, ProbeOutcome, QuicClientOptions, RecentGateways,
+    Recipient, Score, Socks5, TentativeGateways,
 };
 pub use gateway_independence::GatewayIndependence;
 pub use gateway_selection_algorithm::{GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig};

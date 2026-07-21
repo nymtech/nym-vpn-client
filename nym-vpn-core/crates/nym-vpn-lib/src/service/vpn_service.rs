@@ -52,9 +52,9 @@ use nym_vpn_lib_types::{
     FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams, ListGatewaysOptions,
     LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
     NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, RegistrationReport, StorableAccount, StoreAccountRequest,
+    ParsedAccountLinks, RecentGateways, RegistrationReport, StorableAccount, StoreAccountRequest,
     StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelEvent, TunnelState,
-    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -82,6 +82,7 @@ use crate::{
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     logging::LogFileRemoverHandle,
     paths::{NymConfigPaths, Paths},
+    recents::RecentsManager,
     tunnel_state_machine::{
         NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
         tunnel::gateway_provider::GatewayProvider,
@@ -235,6 +236,10 @@ pub enum VpnServiceCommand {
         DiagnosticRegisterParams,
     ),
     GetTentativeGateways(oneshot::Sender<TentativeGateways>, ()),
+    GetRecentGateways(
+        oneshot::Sender<Result<RecentGateways, ListGatewaysError>>,
+        TunnelType,
+    ),
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     IsSplitTunnelSupported(oneshot::Sender<bool>, ()),
     #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -389,6 +394,9 @@ pub struct NymVpnService {
 
     // Gateway provider join handle
     gateway_provider_handle: JoinHandle<()>,
+
+    // Manager of recent gateways
+    recents_manager: RecentsManager<GatewayCacheHandle>,
 
     #[cfg(target_os = "linux")]
     split_tunnel_pid_manager: nym_split_tunnel::PidManager,
@@ -679,6 +687,12 @@ impl NymVpnService {
             state_machine_shutdown_token.child_token(),
         );
 
+        let recents_manager = RecentsManager::new(
+            nym_config.paths.network_data_dir.clone(),
+            gateway_cache_handle.clone(),
+        )
+        .await;
+
         let (file_updater, file_updater_handle) =
             nym_file_updater::FileUpdater::new().map_err(Error::CreateFileUpdater)?;
         tokio::spawn(file_updater.run(services_shutdown_token.child_token()));
@@ -699,6 +713,7 @@ impl NymVpnService {
             #[cfg(any(target_os = "macos", target_os = "windows"))]
             split_tunnel.clone(),
             gateway_provider.clone(),
+            recents_manager.clone(),
             #[cfg(target_os = "linux")]
             split_tunnel_config,
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -750,6 +765,7 @@ impl NymVpnService {
             split_tunnel_join_handle,
             gateway_provider,
             gateway_provider_handle,
+            recents_manager,
             #[cfg(target_os = "linux")]
             split_tunnel_pid_manager,
         })
@@ -1306,6 +1322,9 @@ impl NymVpnService {
                     .handle_set_geo_exclusion_excluded_countries(excluded_countries)
                     .await;
                 let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetRecentGateways(tx, gateway_type) => {
+                let _ = tx.send(self.handle_get_recent_gateways(gateway_type).await);
             }
         }
     }
@@ -2407,5 +2426,18 @@ impl NymVpnService {
             .await?;
         self.update_tunnel_settings_with_throttle();
         Ok(())
+    }
+
+    async fn handle_get_recent_gateways(
+        &mut self,
+        tunnel_type: TunnelType,
+    ) -> Result<RecentGateways, ListGatewaysError> {
+        self.recents_manager
+            .get_recent(tunnel_type)
+            .await
+            .map_err(|source| ListGatewaysError::GetRecentGateways {
+                tunnel_type,
+                source,
+            })
     }
 }
