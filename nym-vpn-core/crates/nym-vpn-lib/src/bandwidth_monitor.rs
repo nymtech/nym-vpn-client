@@ -627,24 +627,34 @@ impl BandwidthSpendTimeSource for VpnApiClient {
     }
 }
 
+/// Result of an ecash ticket request: the credential, if one was available.
+type EcashTicketResult = std::result::Result<
+    Option<nym_bandwidth_controller::PreparedCredential>,
+    nym_bandwidth_controller::error::BandwidthControllerError,
+>;
+
+/// The collaborators and parameters needed to request an ecash ticket, bundled together so
+/// `request_ecash_ticket` takes a single argument.
+struct EcashTicketRequest<'a, T> {
+    ticket_provider: &'a dyn BandwidthTicketProvider,
+    spend_time_source: &'a T,
+    ticketbook_type: TicketType,
+    gateway_id: nym_gateway_directory::NodeIdentity,
+}
+
 /// Resolves the skew-corrected (or device-time-fallback) spend time and requests an ecash
 /// ticket for it. Extracted out of `top_up_bandwidth` so the spend-time wiring can be unit
 /// tested without needing a full `BandwidthMonitor` (which otherwise requires collaborators,
 /// such as `AccountCommandSender`, that can only be constructed by their owning crate).
-async fn request_ecash_ticket(
-    ticket_provider: &dyn BandwidthTicketProvider,
-    spend_time_source: &impl BandwidthSpendTimeSource,
-    ticketbook_type: TicketType,
-    gateway_id: nym_gateway_directory::NodeIdentity,
-) -> std::result::Result<
-    Option<nym_bandwidth_controller::PreparedCredential>,
-    nym_bandwidth_controller::error::BandwidthControllerError,
-> {
-    let spend_time = spend_time_source.skew_corrected_time().await;
-    ticket_provider
+async fn request_ecash_ticket<T: BandwidthSpendTimeSource>(
+    request: EcashTicketRequest<'_, T>,
+) -> EcashTicketResult {
+    let spend_time = request.spend_time_source.skew_corrected_time().await;
+    request
+        .ticket_provider
         .get_ecash_ticket(
-            ticketbook_type,
-            gateway_id,
+            request.ticketbook_type,
+            request.gateway_id,
             DEFAULT_TICKETS_TO_SPEND,
             spend_time,
         )
@@ -831,12 +841,12 @@ impl<T: BandwidthSpendTimeSource> BandwidthMonitor<T> {
             &mut self.wg_exit_gateway_client
         };
 
-        let credential = request_ecash_ticket(
-            self.ticket_provider.as_ref(),
-            &self.spend_time_source,
+        let credential = request_ecash_ticket(EcashTicketRequest {
+            ticket_provider: self.ticket_provider.as_ref(),
+            spend_time_source: &self.spend_time_source,
             ticketbook_type,
-            bw_client.gateway_id(),
-        )
+            gateway_id: bw_client.gateway_id(),
+        })
         .await
         .map_err(|source| SpecificGatewayError::RequestCredential {
             gateway_id: bw_client.gateway_id().to_string(),
@@ -1435,10 +1445,7 @@ mod tests {
             _gateway_id: nym_gateway_directory::NodeIdentity,
             _tickets_to_spend: u32,
             spend_time: OffsetDateTime,
-        ) -> std::result::Result<
-            Option<nym_bandwidth_controller::PreparedCredential>,
-            nym_bandwidth_controller::error::BandwidthControllerError,
-        > {
+        ) -> EcashTicketResult {
             *self.captured_spend_time.lock().unwrap() = Some(spend_time);
             Ok(None)
         }
@@ -1470,12 +1477,12 @@ mod tests {
         let corrected_time = fixed_time() - Duration::from_hours(2);
         let ticket_provider = SpendTimeCapturingTicketProvider::default();
 
-        request_ecash_ticket(
-            &ticket_provider,
-            &MockTimeSource(corrected_time),
-            TicketType::V1WireguardEntry,
-            test_gateway_id(),
-        )
+        request_ecash_ticket(EcashTicketRequest {
+            ticket_provider: &ticket_provider,
+            spend_time_source: &MockTimeSource(corrected_time),
+            ticketbook_type: TicketType::V1WireguardEntry,
+            gateway_id: test_gateway_id(),
+        })
         .await
         .unwrap();
 
@@ -1494,12 +1501,12 @@ mod tests {
         let device_time = fixed_time();
         let ticket_provider = SpendTimeCapturingTicketProvider::default();
 
-        request_ecash_ticket(
-            &ticket_provider,
-            &MockTimeSource(device_time),
-            TicketType::V1WireguardExit,
-            test_gateway_id(),
-        )
+        request_ecash_ticket(EcashTicketRequest {
+            ticket_provider: &ticket_provider,
+            spend_time_source: &MockTimeSource(device_time),
+            ticketbook_type: TicketType::V1WireguardExit,
+            gateway_id: test_gateway_id(),
+        })
         .await
         .unwrap();
 
