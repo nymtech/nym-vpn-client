@@ -3,15 +3,13 @@ name: ci-maestro-ios
 on:
   schedule:
     - cron: '0 4 * * *'
-  push:
-    # feature/ui-testing is temporary — lets this workflow run before it lands
-    # on develop (workflow_dispatch/schedule only work from the default branch).
-    branches: [main, develop, feature/ui-testing]
+  pull_request:
+    types: [opened, synchronize, reopened]
     paths:
+      - '.github/workflows/ci-maestro-ios.yml'
       - 'nym-vpn-apple/**'
       - 'nym-vpn-core/**'
       - 'wireguard/**'
-      - '.github/workflows/ci-maestro-ios.yml'
   workflow_dispatch:
 
 jobs:
