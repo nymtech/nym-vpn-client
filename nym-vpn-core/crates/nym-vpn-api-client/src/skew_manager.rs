@@ -1,10 +1,10 @@
 // Copyright 2026 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use time::{Duration as TimeDuration, OffsetDateTime};
-use tokio::time::Instant;
+use tokio::{sync::RwLock, time::Instant};
 
 use crate::{
     client::NYM_VPN_API_TIMEOUT,
@@ -45,38 +45,59 @@ impl DeviceTimeProvider for DefaultDeviceTimeProvider {
     }
 }
 
-/// Type managing skew between device time and API server time.
-#[derive(Debug)]
+/// Shared component tracking the clock skew between the local device and the VPN API server.
+///
+/// Cheaply `Clone`-able: every clone shares the same underlying cache (via an internal `Arc`),
+/// so multiple owners can hold a handle to the same skew state without needing an actor/task of
+/// its own. `VpnApiClient` holds one and opportunistically refreshes it from response headers,
+/// but it can just as well refresh itself on demand via the remote time provider (e.g. the
+/// health endpoint) when nobody has updated it recently.
+#[derive(Clone, Debug)]
 pub struct SkewManager {
-    skew_state: Option<SkewState>,
+    inner: Arc<SkewManagerInner>,
+}
+
+#[derive(Debug)]
+struct SkewManagerInner {
+    skew_state: RwLock<Option<SkewState>>,
     device_time_provider: Box<dyn DeviceTimeProvider + Send + Sync>,
     remote_time_provider: Box<dyn RemoteTimeProvider + Send + Sync>,
 }
 
 impl SkewManager {
     pub fn new(remote_time_provider: impl RemoteTimeProvider + Send + Sync + 'static) -> Self {
-        Self {
-            skew_state: None,
-            device_time_provider: Box::new(DefaultDeviceTimeProvider),
-            remote_time_provider: Box::new(remote_time_provider),
-        }
+        Self::with_device_time_provider(DefaultDeviceTimeProvider, remote_time_provider)
     }
 
-    #[cfg(test)]
     pub fn new_for_testing(
         device_time_provider: impl DeviceTimeProvider + Send + Sync + 'static,
         remote_time_provider: impl RemoteTimeProvider + Send + Sync + 'static,
     ) -> Self {
+        Self::with_device_time_provider(device_time_provider, remote_time_provider)
+    }
+
+    fn with_device_time_provider(
+        device_time_provider: impl DeviceTimeProvider + Send + Sync + 'static,
+        remote_time_provider: impl RemoteTimeProvider + Send + Sync + 'static,
+    ) -> Self {
         Self {
-            skew_state: None,
-            device_time_provider: Box::new(device_time_provider),
-            remote_time_provider: Box::new(remote_time_provider),
+            inner: Arc::new(SkewManagerInner {
+                skew_state: RwLock::new(None),
+                device_time_provider: Box::new(device_time_provider),
+                remote_time_provider: Box::new(remote_time_provider),
+            }),
         }
     }
 
-    pub async fn current_remote_time(&mut self) -> Result<Option<VpnApiTime>> {
+    pub async fn current_remote_time(&self) -> Result<Option<VpnApiTime>> {
         let now = Instant::now();
-        let status = self.skew_state.as_ref().map(|state| state.status(now));
+        let status = self
+            .inner
+            .skew_state
+            .read()
+            .await
+            .as_ref()
+            .map(|state| state.status(now));
 
         let cached_remote_time = match status {
             Some(SkewStatus::Valid(skew)) => {
@@ -100,7 +121,7 @@ impl SkewManager {
         })
     }
 
-    pub async fn sync_with_remote_time(&mut self) -> Result<Option<VpnApiTime>> {
+    pub async fn sync_with_remote_time(&self) -> Result<Option<VpnApiTime>> {
         let remote_time = self.refresh_skew().await?;
 
         if Self::use_remote_time(remote_time) {
@@ -110,8 +131,8 @@ impl SkewManager {
         }
     }
 
-    pub fn sync_with_response_timestamp(
-        &mut self,
+    pub async fn sync_with_response_timestamp(
+        &self,
         time_before: OffsetDateTime,
         remote_timestamp: OffsetDateTime,
         time_after: OffsetDateTime,
@@ -130,7 +151,7 @@ impl SkewManager {
 
         let remote_time =
             VpnApiTime::from_remote_timestamp(time_before, remote_timestamp, time_after);
-        self.store_skew(remote_time);
+        self.store_skew(remote_time).await;
 
         if Self::use_remote_time(remote_time) {
             Ok(Some(remote_time))
@@ -139,12 +160,12 @@ impl SkewManager {
         }
     }
 
-    pub async fn get_remote_time(&mut self) -> Result<VpnApiTime> {
+    pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
         let mut last_error: Option<VpnApiClientError> = None;
 
         for retry in 0..=REMOTE_TIME_MAX_RETRIES {
             let time_before = self.device_time();
-            match self.remote_time_provider.request_remote_time().await {
+            match self.inner.remote_time_provider.request_remote_time().await {
                 Ok(remote_timestamp) => {
                     let time_after = self.device_time();
                     let request_time = time_after - time_before;
@@ -197,24 +218,50 @@ impl SkewManager {
         }
     }
 
-    async fn refresh_skew(&mut self) -> Result<VpnApiTime> {
+    async fn refresh_skew(&self) -> Result<VpnApiTime> {
         let remote_time = self.get_remote_time().await?;
-        self.store_skew(remote_time);
+        self.store_skew(remote_time).await;
 
         Ok(remote_time)
     }
 
-    fn store_skew(&mut self, remote_time: VpnApiTime) {
+    async fn store_skew(&self, remote_time: VpnApiTime) {
         let skew = remote_time.local_time_ahead_skew();
         let now = Instant::now();
 
-        self.skew_state.replace(SkewState::new(skew, now));
+        self.inner
+            .skew_state
+            .write()
+            .await
+            .replace(SkewState::new(skew, now));
         tracing::debug!(skew = ?skew, "Refreshed VPN API time skew");
     }
 
     /// Returns the current device time.
     pub fn device_time(&self) -> OffsetDateTime {
-        self.device_time_provider.device_time()
+        self.inner.device_time_provider.device_time()
+    }
+
+    /// Returns a timestamp corrected for the skew between the local device clock and the
+    /// VPN API server clock, suitable for time-sensitive requests such as ecash ticket spend
+    /// times.
+    ///
+    /// Uses the cached skew state when it is valid (no additional network request), and falls
+    /// back to device time when the skew is not significant or cannot be determined: a skew
+    /// lookup failure must never block or delay the caller.
+    pub async fn skew_corrected_time(&self) -> OffsetDateTime {
+        let remote_time = self.current_remote_time().await.unwrap_or_else(|err| {
+            tracing::debug!(
+                error = %err,
+                "Failed to determine cached remote time, falling back to device time"
+            );
+            None
+        });
+
+        match remote_time {
+            Some(vpn_api_time) => self.device_time() - vpn_api_time.local_time_ahead_skew(),
+            None => self.device_time(),
+        }
     }
 }
 
@@ -261,7 +308,7 @@ mod tests {
             ]
             .repeat(3),
         );
-        let mut skew_manager = SkewManager::new_for_testing(device_time_provider, MockTimeProvider);
+        let skew_manager = SkewManager::new_for_testing(device_time_provider, MockTimeProvider);
         let time_result = skew_manager.current_remote_time().await;
         assert!(matches!(
             time_result,
@@ -279,7 +326,7 @@ mod tests {
             ]
             .repeat(3),
         );
-        let mut skew_manager = SkewManager::new_for_testing(device_time_provider, MockTimeProvider);
+        let skew_manager = SkewManager::new_for_testing(device_time_provider, MockTimeProvider);
         let time_result = skew_manager.current_remote_time().await;
         assert!(matches!(
             time_result,
@@ -290,7 +337,7 @@ mod tests {
     #[tokio::test]
     #[tracing_test::traced_test]
     async fn test_sync_with_response_timestamp_updates_cache() {
-        let mut skew_manager = SkewManager::new_for_testing(
+        let skew_manager = SkewManager::new_for_testing(
             MockDeviceTimeProvider::new(vec![]),
             PanickingTimeProvider,
         );
@@ -301,6 +348,7 @@ mod tests {
 
         let remote_time = skew_manager
             .sync_with_response_timestamp(time_before, remote_timestamp, time_after)
+            .await
             .unwrap()
             .expect("skew is significant");
         assert_eq!(remote_time.local_time_ahead_skew().whole_hours(), 2);
@@ -318,7 +366,7 @@ mod tests {
     #[tokio::test]
     #[tracing_test::traced_test]
     async fn test_sync_with_response_timestamp_negligible_skew() {
-        let mut skew_manager = SkewManager::new_for_testing(
+        let skew_manager = SkewManager::new_for_testing(
             MockDeviceTimeProvider::new(vec![]),
             PanickingTimeProvider,
         );
@@ -328,6 +376,7 @@ mod tests {
 
         let remote_time = skew_manager
             .sync_with_response_timestamp(time_before, remote_timestamp, time_before)
+            .await
             .unwrap();
         assert!(remote_time.is_none());
 
@@ -340,7 +389,7 @@ mod tests {
     #[tokio::test]
     #[tracing_test::traced_test]
     async fn test_sync_with_response_timestamp_time_travel() {
-        let mut skew_manager = SkewManager::new_for_testing(
+        let skew_manager = SkewManager::new_for_testing(
             MockDeviceTimeProvider::new(vec![]),
             PanickingTimeProvider,
         );
@@ -348,8 +397,9 @@ mod tests {
         let time_before = OffsetDateTime::now_utc();
         let time_after = time_before - Duration::from_secs(1);
 
-        let result =
-            skew_manager.sync_with_response_timestamp(time_before, time_before, time_after);
+        let result = skew_manager
+            .sync_with_response_timestamp(time_before, time_before, time_after)
+            .await;
         assert!(matches!(result, Err(VpnApiClientError::TimeTravelTooMuch)));
     }
 

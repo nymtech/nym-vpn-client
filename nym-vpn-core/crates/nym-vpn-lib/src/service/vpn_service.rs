@@ -679,9 +679,14 @@ impl NymVpnService {
             net_cls: split_tunnel_pid_manager.net_cls_classid(),
         };
 
+        // Grab a handle to the shared skew manager before `nym_vpn_api_client` is moved into
+        // `GatewayProvider::new` below: cloning the handle is cheap and shares the same
+        // underlying skew cache, so the tunnel state machine doesn't need the whole client.
+        let skew_manager = nym_vpn_api_client.skew_manager();
+
         let (gateway_provider, gateway_provider_handle) = GatewayProvider::new(
             gateway_cache_handle.clone(),
-            nym_vpn_api_client.clone(),
+            nym_vpn_api_client,
             tunnel_settings.clone(),
             wireguard_keys_db,
             state_machine_shutdown_token.child_token(),
@@ -706,7 +711,7 @@ impl NymVpnService {
             account_command_tx.clone(),
             account_state_rx.clone(),
             bandwidth_command_tx.clone(),
-            nym_vpn_api_client,
+            skew_manager,
             statistics_event_sender.clone(),
             topology_service.clone(),
             connectivity_handle,
