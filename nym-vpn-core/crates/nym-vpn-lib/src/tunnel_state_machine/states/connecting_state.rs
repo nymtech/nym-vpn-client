@@ -415,7 +415,7 @@ impl ConnectingState {
             shared_state.account_controller_state.clone(),
             shared_state.account_command_tx.clone(),
             shared_state.bandwidth_command_tx.clone(),
-            shared_state.nym_vpn_api_client.clone(),
+            shared_state.skew_manager.clone(),
             shared_state.gateway_provider.clone(),
             shared_state.topology_service.clone(),
             tunnel_monitor_event_sender,

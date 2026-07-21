@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
@@ -11,7 +11,6 @@ use nym_http_api_client::{
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use time::{OffsetDateTime, format_description::well_known::Rfc2822};
-use tokio::sync::RwLock;
 
 use crate::{
     api_urls_to_urls,
@@ -58,7 +57,7 @@ enum RemoteTimeRetry {
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: Client,
-    skew_manager: Arc<RwLock<SkewManager>>,
+    skew_manager: SkewManager,
 }
 
 impl AsRef<Client> for VpnApiClient {
@@ -82,7 +81,7 @@ impl VpnApiClient {
 
         Ok(Self {
             inner,
-            skew_manager: Arc::new(RwLock::new(SkewManager::new(time_provider))),
+            skew_manager: SkewManager::new(time_provider),
         })
     }
 
@@ -108,7 +107,7 @@ impl VpnApiClient {
 
         Ok(Self {
             inner,
-            skew_manager: Arc::new(RwLock::new(SkewManager::new(time_provider))),
+            skew_manager: SkewManager::new(time_provider),
         })
     }
 
@@ -120,12 +119,19 @@ impl VpnApiClient {
         self.inner.current_url().as_ref()
     }
 
+    /// Returns a handle to the shared skew manager tracking clock skew between this device and
+    /// the VPN API server. Cheap to clone: every handle (including this client's own) observes
+    /// and updates the same underlying cache.
+    pub fn skew_manager(&self) -> SkewManager {
+        self.skew_manager.clone()
+    }
+
     pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
-        self.skew_manager.write().await.get_remote_time().await
+        self.skew_manager.get_remote_time().await
     }
 
     async fn device_time(&self) -> OffsetDateTime {
-        self.skew_manager.read().await.device_time()
+        self.skew_manager.device_time()
     }
 
     /// Returns a timestamp corrected for the skew between the local device clock and the
@@ -136,24 +142,7 @@ impl VpnApiClient {
     /// back to device time when the skew is not significant or cannot be determined: a skew
     /// lookup failure must never block or delay the caller.
     pub async fn skew_corrected_time(&self) -> OffsetDateTime {
-        let remote_time = self
-            .skew_manager
-            .write()
-            .await
-            .current_remote_time()
-            .await
-            .unwrap_or_else(|err| {
-                tracing::debug!(
-                    error = %err,
-                    "Failed to determine cached remote time, falling back to device time"
-                );
-                None
-            });
-
-        match remote_time {
-            Some(vpn_api_time) => self.device_time().await - vpn_api_time.local_time_ahead_skew(),
-            None => self.device_time().await,
-        }
+        self.skew_manager.skew_corrected_time().await
     }
 
     async fn remote_time_for_retry(
@@ -165,9 +154,8 @@ impl VpnApiClient {
         if let Some(remote_timestamp) = parse_date_header(headers) {
             match self
                 .skew_manager
-                .write()
-                .await
                 .sync_with_response_timestamp(time_before, remote_timestamp, time_after)
+                .await
             {
                 Ok(jwt) => return RemoteTimeRetry::Retry(jwt),
                 Err(err) => {
@@ -182,13 +170,7 @@ impl VpnApiClient {
             );
         }
 
-        match self
-            .skew_manager
-            .write()
-            .await
-            .sync_with_remote_time()
-            .await
-        {
+        match self.skew_manager.sync_with_remote_time().await {
             Ok(jwt) => RemoteTimeRetry::Retry(jwt),
             Err(err) => {
                 tracing::error!("Failed to get remote time: {err}. Not retrying anymore");
@@ -234,8 +216,6 @@ impl VpnApiClient {
     {
         let jwt = self
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
@@ -418,8 +398,6 @@ impl VpnApiClient {
     {
         let jwt = self
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
@@ -499,8 +477,6 @@ impl VpnApiClient {
     {
         let jwt = self
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
@@ -581,8 +557,6 @@ impl VpnApiClient {
     {
         let jwt = self
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
@@ -1511,7 +1485,10 @@ impl RemoteTimeProvider for VpnApiRemoteTimeProvider {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
 
     use nym_http_api_client::reqwest::header::HeaderValue;
 
@@ -1578,7 +1555,7 @@ mod tests {
         (
             VpnApiClient {
                 inner,
-                skew_manager: Arc::new(RwLock::new(skew_manager)),
+                skew_manager,
             },
             calls,
         )
@@ -1602,7 +1579,7 @@ mod tests {
         (
             VpnApiClient {
                 inner,
-                skew_manager: Arc::new(RwLock::new(skew_manager)),
+                skew_manager,
             },
             calls,
         )
@@ -1646,8 +1623,6 @@ mod tests {
         // The derived skew is cached and reused without any network request
         let cached = client
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap()
@@ -1677,13 +1652,12 @@ mod tests {
         // Seed the cache with a stale skew: the device clock used to be 2 hours ahead
         client
             .skew_manager
-            .write()
-            .await
             .sync_with_response_timestamp(
                 device_time(),
                 device_time() - Duration::from_hours(2),
                 device_time(),
             )
+            .await
             .unwrap()
             .expect("seeded skew is significant");
 
@@ -1699,13 +1673,7 @@ mod tests {
         assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
 
         // The stale cached skew was replaced: no override and no network request
-        let cached = client
-            .skew_manager
-            .write()
-            .await
-            .current_remote_time()
-            .await
-            .unwrap();
+        let cached = client.skew_manager.current_remote_time().await.unwrap();
         assert!(cached.is_none());
         assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
     }
