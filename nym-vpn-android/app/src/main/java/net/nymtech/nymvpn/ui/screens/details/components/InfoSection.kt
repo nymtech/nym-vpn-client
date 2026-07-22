@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.details.components
 
-import androidx.appcompat.R
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,15 +19,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun InfoSection(
-	titleResId: Int,
-	items: List<Pair<String, @Composable () -> Unit>>,
-				bottomContent: (@Composable () -> Unit)? = null, modifier: Modifier = Modifier) {
+fun InfoSection(titleResId: Int, items: List<Pair<String, @Composable () -> Unit>>, bottomContent: (@Composable () -> Unit)? = null, modifier: Modifier = Modifier) {
 	Column(
 		modifier = modifier
 			.fillMaxWidth()
 			.background(
-				color = MaterialTheme.colorScheme.surface,
+				color = MaterialTheme.colorScheme.primaryContainer,
 				shape = RoundedCornerShape(size = 14.dp),
 			)
 			.padding(16.dp),

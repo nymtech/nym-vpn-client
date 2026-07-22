@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.details.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -25,9 +23,9 @@ internal fun DetailsTopSection(name: String, location: String, countryCode: Stri
 		modifier = Modifier
 			.fillMaxWidth()
 			.background(
-				color = MaterialTheme.colorScheme.surface,
+				color = MaterialTheme.colorScheme.primaryContainer,
 				shape = RoundedCornerShape(size = 14.dp),
-			)
+			),
 	) {
 		Row(
 			modifier = Modifier.padding(16.dp),
@@ -63,5 +61,4 @@ internal fun DetailsTopSection(name: String, location: String, countryCode: Stri
 			}
 		}
 	}
-
 }

@@ -122,7 +122,9 @@ fun DetailsSectionIP(exitIpv4: String?, exitIpv6: String?, asn: String?, asnName
 	}
 
 	InfoSection(
-		titleResId = R.string.details_features_title, items = items)
+		titleResId = R.string.details_connection_title,
+		items = items,
+	)
 }
 
 @Composable
