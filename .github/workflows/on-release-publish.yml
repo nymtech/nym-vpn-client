@@ -189,6 +189,16 @@ jobs:
       signature_x64: ${{ needs.win-sigs.outputs.sig_x64 }}
       signature_arm64: ${{ needs.win-sigs.outputs.sig_arm64 }}
 
+  macos-updater:
+    needs: [setup, win-sigs]
+    if: ${{ needs.win-sigs.outputs.enabled == 'true' }}
+    uses: ./.github/workflows/macos-updater.yml
+    permissions:
+      contents: write
+      pull-requests: write
+    with:
+      version_tag: ${{ needs.setup.outputs.tag }}
+
   update-nym-fdroid:
     runs-on: arc-linux-latest
     needs: setup
