@@ -20,6 +20,10 @@ const PROXY_BINARY_NAME: &str = if cfg!(windows) {
     "nym-socks5-proxy"
 };
 
+/// Maximum time to wait for nym-socks5-proxy to report readiness before giving up
+/// on it.
+const READY_TIMEOUT: Duration = Duration::from_secs(30);
+
 pub struct RunningProcess {
     msg_tx: mpsc::UnboundedSender<DaemonMessage>,
     shutdown_token: CancellationToken,
@@ -101,12 +105,10 @@ pub async fn spawn(
         supervisor_token.clone(),
     ));
 
-    // Wait for the proxy to become ready.
-    match ready_rx.await {
-        Ok(Ok(())) => {}
-        Ok(Err(msg)) => return Err(SpawnError::ProxyError(msg)),
-        Err(_) => return Err(SpawnError::ExitedBeforeReady),
-    }
+    // Wait for the proxy to become ready, but never block forever: a proxy that
+    // starts yet never reports ready would otherwise wedge the tunnel state
+    // machine
+    await_ready(ready_rx, READY_TIMEOUT, &supervisor_token).await?;
 
     tracing::info!("nym-socks5-proxy is ready");
 
@@ -115,6 +117,26 @@ pub async fn spawn(
         shutdown_token: supervisor_token,
         join_handle,
     })
+}
+
+/// Await the proxy readiness signal
+async fn await_ready(
+    ready_rx: oneshot::Receiver<Result<(), String>>,
+    timeout: Duration,
+    supervisor_token: &CancellationToken,
+) -> Result<(), SpawnError> {
+    match tokio::time::timeout(timeout, ready_rx).await {
+        Ok(Ok(Ok(()))) => Ok(()),
+        Ok(Ok(Err(msg))) => Err(SpawnError::ProxyError(msg)),
+        Ok(Err(_)) => Err(SpawnError::ExitedBeforeReady),
+        Err(_) => {
+            tracing::warn!(
+                "nym-socks5-proxy did not report ready within {timeout:?}; tearing it down and continuing without it"
+            );
+            supervisor_token.cancel();
+            Err(SpawnError::ReadyTimeout(timeout))
+        }
+    }
 }
 
 async fn supervisor(
@@ -295,6 +317,9 @@ pub enum SpawnError {
 
     #[error("Proxy process exited before reporting ready")]
     ExitedBeforeReady,
+
+    #[error("Proxy did not report ready within {0:?}")]
+    ReadyTimeout(Duration),
 
     #[error("Proxy reported an error: {0}")]
     ProxyError(String),
