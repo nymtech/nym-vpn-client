@@ -1,0 +1,51 @@
+[package]
+name = "nym-vpn-credential-fetcher"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+async-trait.workspace = true
+bincode.workspace = true
+nym-bandwidth-controller.workspace = true
+nym-common.workspace = true
+nym-credential-proxy-requests.workspace = true
+nym-credentials-interface.workspace = true
+nym-credentials.workspace = true
+nym-ecash-time.workspace = true
+nym-offline-monitor.workspace = true
+nym-sqlx-pool-guard.workspace = true
+nym-upgrade-mode-check.workspace = true
+nym-http-api-client.workspace = true # SW testing stuff
+nym-vpn-api-client.workspace = true
+nym-validator-client.workspace = true
+nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
+serde.workspace = true
+sqlx = { workspace = true, features = [
+    "runtime-tokio-rustls",
+    "sqlite",
+    "time",
+] }
+thiserror.workspace = true
+time.workspace = true
+tokio = { workspace = true, features = ["fs", "sync", "macros", "rt"] }
+tokio-util.workspace = true
+tracing.workspace = true
+zeroize.workspace = true
+
+[build-dependencies]
+sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+
+[dev-dependencies]
+anyhow.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["test-util"] }
+tracing-subscriber.workspace = true

@@ -5,7 +5,6 @@ pub mod controller_error;
 pub mod controller_event;
 pub mod controller_state;
 pub mod deeplink;
-pub mod request_zknym;
 pub mod storage;
 pub mod ticketbooks;
 

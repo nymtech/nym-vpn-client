@@ -157,6 +157,10 @@ extension GRPCManager {
             ErrorReason.splitTunnel
         case .needsRelaxedIndependenceCriteria:
             ErrorReason.needsRelaxedIndependenceCriteria
+        case .credentialFetchingFailed:
+            ErrorReason.credentialFetchingFailed
+        case .noCredentialAvailable:
+            ErrorReason.noCredentialAvailable
         }
     }
 }
@@ -215,6 +219,10 @@ extension ErrorReason {
             self = .splitTunnel
         case .needsRelaxedIndependenceCriteria:
             self = .needsRelaxedIndependenceCriteria
+        case .credentialFetchingFailed:
+            self = .credentialFetchingFailed
+        case .noCredentialAvailable:
+            self = .noCredentialAvailable
         }
     }
 }
@@ -247,6 +255,8 @@ private extension TunnelConnectingState {
             self = .resolvingApiAddresses
         case .awaitingAccountReadiness:
             self = .awaitingAccountReadiness
+        case .awaitingCredentialsAvailability:
+            self = .awaitingCredentialsAvailability
         case .refreshingGateways:
             self = .refreshingGateways
         case .selectingGateways:

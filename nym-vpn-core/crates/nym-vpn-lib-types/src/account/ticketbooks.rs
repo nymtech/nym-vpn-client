@@ -34,3 +34,28 @@ pub struct AvailableTickets {
     pub vpn_exit_data: u64,
     pub vpn_exit_data_si: String,
 }
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_bandwidth_controller::AvailableTicketbooks> for AvailableTickets {
+    fn from(ticketbooks: nym_bandwidth_controller::AvailableTicketbooks) -> Self {
+        use nym_bandwidth_controller::TicketType;
+
+        Self {
+            mixnet_entry_tickets: ticketbooks.remaining_tickets(TicketType::V1MixnetEntry),
+            mixnet_entry_data: ticketbooks.remaining_data(TicketType::V1MixnetEntry),
+            mixnet_entry_data_si: ticketbooks.remaining_data_si(TicketType::V1MixnetEntry),
+
+            mixnet_exit_tickets: ticketbooks.remaining_tickets(TicketType::V1MixnetExit),
+            mixnet_exit_data: ticketbooks.remaining_data(TicketType::V1MixnetExit),
+            mixnet_exit_data_si: ticketbooks.remaining_data_si(TicketType::V1MixnetExit),
+
+            vpn_entry_tickets: ticketbooks.remaining_tickets(TicketType::V1WireguardEntry),
+            vpn_entry_data: ticketbooks.remaining_data(TicketType::V1WireguardEntry),
+            vpn_entry_data_si: ticketbooks.remaining_data_si(TicketType::V1WireguardEntry),
+
+            vpn_exit_tickets: ticketbooks.remaining_tickets(TicketType::V1WireguardExit),
+            vpn_exit_data: ticketbooks.remaining_data(TicketType::V1WireguardExit),
+            vpn_exit_data_si: ticketbooks.remaining_data_si(TicketType::V1WireguardExit),
+        }
+    }
+}

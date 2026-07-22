@@ -31,6 +31,8 @@
 	<string name="error_reason_credential_wasted_on_exit_gateway">Exit gateway is unresponsive.</string>
 
 	<string name="error_reason_bandwidth_exceeded">Bandwidth limit exceeded.</string>
+	<string name="error_reason_credential_fetching_failed">Failed to fetch credentials.</string>
+	<string name="error_reason_no_credential_available">No credentials available.</string>
 	<string name="error_reason_inactive_account">Your account is inactive.</string>
 	<string name="error_reason_inactive_subscription">Your subscription is inactive.</string>
 	<string name="error_reason_max_devices_reached">Maximum number of devices reached.</string>

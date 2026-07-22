@@ -3,8 +3,8 @@
 
 use crate::{
     commands::{
-        AccountCommand, CommonCommand, ReturnSender, UpgradeModeCommand, common_handler,
-        decentralised_zknym_handler, handler,
+        AccountCommand, CommonCommand, ReturnSender, common_handler, decentralised_zknym_handler,
+        handler,
     },
     shared_state::SharedAccountState,
     state_machine::{
@@ -16,7 +16,6 @@ use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio_util::sync::CancellationToken;
-use tracing::warn;
 
 /// DecentralisedState
 /// We are operating independently of the VPN API which means:
@@ -65,7 +64,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                         let error = res.is_err();
                         return_sender.send(res);
                         if !error {
-                            return NextAccountControllerState::NewState(LoggedOutState::enter())
+                            return NextAccountControllerState::NewState(LoggedOutState::enter(shared_state).await)
                         }
                     },
                     AccountCommand::RotateKeys(return_sender) => {
@@ -75,8 +74,8 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                     AccountCommand::AccountBalance(return_sender) => {
                         return_sender.send(decentralised_zknym_handler::handle_account_balance(shared_state).await);
                     }
-                    AccountCommand::ObtainTicketbooks(return_sender, amount) => {
-                        return_sender.send(decentralised_zknym_handler::handle_obtain_ticketbooks(shared_state, amount).await);
+                    AccountCommand::ObtainTicketbooks(return_sender) => {
+                        return_sender.send(decentralised_zknym_handler::handle_obtain_ticketbooks(shared_state).await);
                     }
                     AccountCommand::Common(common_command) => {
                          match common_command {
@@ -88,23 +87,19 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for DecentralisedS
                             CommonCommand::GetUsage(return_sender) => return_decentralised(return_sender),
                             CommonCommand::GetDevices(return_sender) => return_decentralised(return_sender),
                             CommonCommand::GetActiveDevices(return_sender) => return_decentralised(return_sender),
-                            CommonCommand::GetAvailableTickets(return_sender) => return_sender.send(common_handler::handle_get_available_tickets(shared_state).await),
                             CommonCommand::GetAccountSummary(return_sender) => return_sender.send(common_handler::handle_get_account_summary(shared_state).await),
                             CommonCommand::GetDeeplink(return_sender, params) => return_sender.send(common_handler::handle_get_deeplink(shared_state, params).await),
                             CommonCommand::GetAutologinDeeplink(return_sender, params) => return_sender.send(common_handler::handle_get_autologin_deeplink(shared_state, params).await),
                             CommonCommand::DeriveDeeplinkMnemonic(return_sender, deeplink_callback_url) => return_sender.send(common_handler::handle_derive_deeplink_mnemonic(shared_state, deeplink_callback_url).await),
                         }
                     },
-                   AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
-                       UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
-                           return_sender.send(Ok(false))
-                       }
-                       UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
-                           warn!(
-                               "received unexpected command to disable upgrade mode while in 'DecentralisedState' state"
-                           );
-                           return_sender.send(Ok(()))
-                       }
+                    AccountCommand::VpnApiFirewallUp(return_sender) => {
+                        shared_state.set_firewall_state(true);
+                        return_sender.send(Ok(()));
+                    },
+                    AccountCommand::VpnApiFirewallDown(return_sender) => {
+                        shared_state.set_firewall_state(false);
+                        return_sender.send(Ok(()));
                     },
                     other => {
                         other.return_error(AccountCommandError::AccountDecentralised);

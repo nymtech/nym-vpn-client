@@ -49,8 +49,11 @@ use crate::{
 use hickory_resolver::config::NameServerConfig;
 #[cfg(not(target_os = "ios"))]
 use hickory_resolver::config::ProtocolConfig;
-use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
+use nym_bandwidth_controller::{
+    error::BandwidthControllerError, requests::BandwidthControllerRequestSender,
+};
 use nym_config::defaults::{WG_METADATA_PORT, WG_TUN_DEVICE_IP_ADDRESS_V4};
+use nym_credentials_interface::TicketType;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;
@@ -205,6 +208,22 @@ impl TunnelSettings {
             TunnelType::Wireguard
         } else {
             self.tunnel_type
+        }
+    }
+
+    pub fn ticket_types_required(&self, enabled_lp: bool) -> Vec<TicketType> {
+        match self.tunnel_type_used() {
+            TunnelType::Mixnet => {
+                vec![TicketType::V1MixnetEntry]
+            }
+            TunnelType::Wireguard => {
+                let mut types = vec![TicketType::V1WireguardEntry, TicketType::V1WireguardExit];
+                if !enabled_lp {
+                    // Mixnet registration requires a Mixnet Ticket
+                    types.push(TicketType::V1MixnetEntry);
+                }
+                types
+            }
         }
     }
 
@@ -1513,6 +1532,13 @@ impl tunnel::Error {
                     None
                 }
             }
+            Self::BandwidthController(BandwidthControllerError::TicketbookFetchFailed { .. }) => {
+                Some(ErrorStateReason::CredentialFetchingFailed)
+            },
+            Self::BandwidthController(BandwidthControllerError::TicketbooksUnavailable) => {
+                Some(ErrorStateReason::NoCredentialAvailable)
+            },
+
             Self::RegistrationClient(e) => match *e {
                 nym_registration_client::RegistrationClientError::WireguardEntryRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnEntryGateway),
                 nym_registration_client::RegistrationClientError::WireguardExitRegistrationCredentialSent { .. } => Some(ErrorStateReason::CredentialWastedOnExitGateway),
@@ -1528,6 +1554,7 @@ impl tunnel::Error {
             Self::NoIpAddressAnnounced { .. }
             | Self::MixnetClient(_)
             | Self::BandwidthMonitor(_)
+            | Self::BandwidthController(_)
             | Self::Wireguard(_)
             | Self::Cancelled
             | Self::Transport(_) => None,
