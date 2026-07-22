@@ -36,10 +36,6 @@ enum Status {
 
 /// A [`CredentialFetcher`] that acquires zk-nym ticketbooks from the Nym VPN API.
 ///
-/// It is connectivity- and firewall-aware: an internal [state machine](crate::state) tracks whether
-/// the VPN API is reachable, and [`fetch_ticketbooks`](CredentialFetcher::fetch_ticketbooks) waits
-/// for that to be the case before issuing requests rather than failing.
-///
 /// Bind one to a specific account + device; install it on the
 /// [`BandwidthController`](nym_bandwidth_controller::BandwidthController) via
 /// `set_credential_fetcher`, and replace/unset it when the account or device changes.
@@ -271,7 +267,7 @@ impl CredentialFetcher for VpnApiCredentialFetcher {
         self.pending_storage.close().await;
     }
 
-    async fn reset(mut self) -> Result<(), CredentialFetcherError> {
+    async fn reset(self) -> Result<(), CredentialFetcherError> {
         self.cancellation_token.cancel();
         Ok(self
             .pending_storage

@@ -23,7 +23,6 @@ nym-ecash-time.workspace = true
 nym-offline-monitor.workspace = true
 nym-sqlx-pool-guard.workspace = true
 nym-upgrade-mode-check.workspace = true
-nym-http-api-client.workspace = true # SW testing stuff
 nym-vpn-api-client.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }

@@ -17,7 +17,6 @@ mod offline_state;
 mod pending_subscription_state;
 mod ready_state;
 mod syncing_state;
-//mod upgrade_mode_state;
 // Account Controller state machine available states
 
 /// Account stored, online, can't proceed without user action and/or temporary failure somewhere
