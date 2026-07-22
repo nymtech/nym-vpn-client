@@ -171,12 +171,12 @@
 	<string name="error_expired_subscription_description">Die wiederkehrende Zahlungsmethode wurde abgelehnt</string>
 	<string name="error_expired_subscription_button">Jetzt verlängern</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Initialisiere NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">Einrichtung deines Kontos (2/6)</string>
-	<string name="connection_state_refreshing_gateways">Serverliste wird aktualisiert (3/6)</string>
-	<string name="connection_state_selecting_gateways">Auswahl der besten Server (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">Anonym bei Servern registrieren (5/6)</string>
-	<string name="connection_state_connecting_tunnel">Serververbindung wird hergestellt (6/6)</string>
+	<string name="connection_state_resolving_addresses">Initialisiere NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Einrichtung deines Kontos (2/7)</string>
+	<string name="connection_state_refreshing_gateways">Serverliste wird aktualisiert (4/7)</string>
+	<string name="connection_state_selecting_gateways">Auswahl der besten Server (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Anonym bei Servern registrieren (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Serververbindung wird hergestellt (7/7)</string>
 	<!-- One-click mode -->
 	<string name="one_click_auto_server">Besten Server verwenden</string>
 	<string name="one_click_mode_fast">Schnell</string>

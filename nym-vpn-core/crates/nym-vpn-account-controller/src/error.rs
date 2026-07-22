@@ -25,24 +25,7 @@ pub enum Error {
     StoragePaths(#[source] Box<nym_sdk::Error>),
 
     #[error(transparent)]
-    CredentialStorage(#[from] nym_credential_storage::error::StorageError),
-
-    #[error(transparent)]
     WireguardKeysStorage(#[from] nym_vpn_store::keys::wireguard::KeysDbError),
-
-    #[error(transparent)]
-    PendingCredentialRequestsStorage(#[from] crate::storage::PendingCredentialRequestsStorageError),
-
-    #[error("failed to setup credential storage")]
-    SetupCredentialStorage(#[source] Box<nym_sdk::Error>),
-
-    #[error("failed to setup pending credential requests storage")]
-    SetupPendingCredentialRequestsStorage(
-        #[source] crate::storage::PendingCredentialRequestsStorageError,
-    ),
-
-    #[error("failed to remove credential storage")]
-    RemoveCredentialStorage(std::io::Error),
 
     #[error("internal error: {0}")]
     Internal(String),

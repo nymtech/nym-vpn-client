@@ -143,10 +143,19 @@ const METADATA_ENDPOINT_REACHABILITY_TIMEOUT: Duration = Duration::from_secs(10)
 /// Timeout for starting the registration client
 const REGISTRATION_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(8);
 
+/// How long we wait for the bandwidth controller to have the ticketbooks we need before connecting.
+const TICKETBOOK_READINESS_TIMEOUT: Duration = Duration::from_secs(120);
+
+/// Whether LP registration is enabled
+const ENABLE_LP_REGISTRATION: bool = true;
+
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
     /// Checking account
     AwaitingAccountReadiness,
+
+    /// Checking Credentials,
+    AwaitingCredentialsAvailability,
 
     /// Refreshing gateways
     RefreshingGateways,
@@ -381,6 +390,14 @@ impl TunnelMonitor {
             .await
             .ok_or(tunnel::Error::Cancelled)??;
 
+        self.send_event(TunnelMonitorEvent::AwaitingCredentialsAvailability);
+
+        self.shutdown_token
+            .clone()
+            .run_until_cancelled(self.await_ticketbook_readiness())
+            .await
+            .ok_or(tunnel::Error::Cancelled)??;
+
         self.send_event(TunnelMonitorEvent::RefreshingGateways);
 
         let gateway_performance_options = self
@@ -543,7 +560,7 @@ impl TunnelMonitor {
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)
             .bandwidth_request_sender(self.bandwidth_command_tx.clone())
-            .enable_lp_registration(true)
+            .enable_lp_registration(ENABLE_LP_REGISTRATION)
             .user_agent(user_agent)
             .custom_topology_provider(Box::new(
                 self.custom_topology_provider.make_topology_provider(),
@@ -971,6 +988,30 @@ impl TunnelMonitor {
         .map_err(|e| Error::Account(account::Error::ControllerState(e)))
     }
 
+    /// Wait until the bandwidth controller has the ticketbooks needed to connect, erroring if they
+    /// can't be obtained or we time out.
+    async fn await_ticketbook_readiness(&self) -> Result<()> {
+        let required_ticketbooks = self
+            .tunnel_parameters
+            .tunnel_settings
+            .ticket_types_required(ENABLE_LP_REGISTRATION);
+        match tokio::time::timeout(
+            TICKETBOOK_READINESS_TIMEOUT,
+            self.bandwidth_command_tx
+                .wait_for_ticketbooks(required_ticketbooks),
+        )
+        .await
+        {
+            Ok(result) => result.map_err(|e| tunnel::Error::BandwidthController(e).into()),
+            Err(_elapsed) => Err(tunnel::Error::BandwidthController(
+                nym_bandwidth_controller::error::BandwidthControllerError::internal(
+                    "timed out waiting for the required ticketbooks",
+                ),
+            )
+            .into()),
+        }
+    }
+
     fn send_event(&mut self, event: TunnelMonitorEvent) {
         if let Err(e) = self.monitor_event_sender.send(event)
             && !self.shutdown_token.is_cancelled()
@@ -1164,8 +1205,7 @@ impl TunnelMonitor {
         let metadata_path_health = MetadataPathHealth::new();
 
         let bw = BandwidthMonitor::create(
-            Box::new(self.bandwidth_command_tx.clone()),
-            self.account_command_tx.clone(),
+            self.bandwidth_command_tx.clone(),
             selected_gateways,
             entry_gateway_client,
             exit_gateway_client,

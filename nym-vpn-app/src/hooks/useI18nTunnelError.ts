@@ -61,6 +61,10 @@ function useI18nTunnelError() {
           return t('tunnel.performant-exit-gw-unavailable');
         case 'needs-relaxed-independence-criteria':
           return t('tunnel.needs-relaxed-independence-criteria');
+        case 'credential-fetching-failed':
+          return t('tunnel.credential-fetching-failed');
+        case 'no-credential-available':
+          return t('tunnel.no-credential-available');
       }
 
       console.warn('unhandled tunnel error', error);

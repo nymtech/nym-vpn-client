@@ -192,6 +192,8 @@ private extension TunnelConnectingState {
             self = .resolvingApiAddresses
         case .awaitingAccountReadiness:
             self = .awaitingAccountReadiness
+        case .awaitingCredentialsAvailability:
+            self = .awaitingCredentialsAvailability
         case .refreshingGateways:
             self = .refreshingGateways
         case .selectingGateways:

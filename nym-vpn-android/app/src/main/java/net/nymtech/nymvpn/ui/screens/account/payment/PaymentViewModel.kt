@@ -180,7 +180,6 @@ constructor(private val billingManager: BillingManager, private val backendManag
 					when (state) {
 						is AccountControllerState.ReadyToConnect,
 						is AccountControllerState.Decentralised,
-						is AccountControllerState.UpgradeMode,
 						-> {
 							Timber.tag(TAG).i("AccountStateReadyToConnect")
 							stateUpdatesJob?.cancel()

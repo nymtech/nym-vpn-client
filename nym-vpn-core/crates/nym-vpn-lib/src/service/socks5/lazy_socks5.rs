@@ -1,6 +1,7 @@
 //! Lazy SOCKS5 wrapper that initializes the Nym mixnet on first connection.
 
 use super::util::ConnectionGuard;
+use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_gateway_directory::{GatewayCacheHandle, ScoreValue};
 use nym_sdk::{
     NymNetworkDetails,
@@ -46,6 +47,8 @@ pub struct LazySocks5Config {
     pub network_details: Option<NymNetworkDetails>,
     /// VPN exit gateway identity to exclude during random Network Requester selection (for privacy)
     pub vpn_exit_gateway_identity: Option<String>,
+    /// Bandwidth controller handle, used as the mixnet client's ticket provider.
+    pub bandwidth_command_tx: BandwidthControllerRequestSender,
 }
 
 /// Errors from the LazySocks5
@@ -551,6 +554,7 @@ impl LazySocks5 {
 
         let mixnet_client = builder
             .socks5_config(socks5_config.clone())
+            .with_custom_bandwidth_provider(Box::new(self.config.bandwidth_command_tx.clone()))
             .build()
             .map_err(|e| {
                 error!("Failed to build mixnet client: {}", e);
@@ -699,27 +703,14 @@ impl LazySocks5 {
             debug!("Created fresh socks5 directory for new identity");
         }
 
-        // Create base storage paths for the main VPN (to get the shared credential DB path)
-        let main_storage_paths = StoragePaths::new_from_dir(&self.config.mixnet_data_path)
-            .map_err(|e| {
-                error!("Failed to create main storage paths: {}", e);
-                LazySocks5Error::Internal(format!("Failed to create main storage paths: {}", e))
-            })?;
-
         // Create storage paths for SOCKS5 identity
-        let mut socks5_storage_paths =
-            StoragePaths::new_from_dir(&socks5_data_path).map_err(|e| {
-                error!("Failed to create socks5 storage paths: {}", e);
-                LazySocks5Error::Internal(format!("Failed to create socks5 storage paths: {}", e))
-            })?;
+        let socks5_storage_paths = StoragePaths::new_from_dir(&socks5_data_path).map_err(|e| {
+            error!("Failed to create socks5 storage paths: {}", e);
+            LazySocks5Error::Internal(format!("Failed to create socks5 storage paths: {}", e))
+        })?;
 
-        // Override the credential database path to use the shared one from main VPN
-        socks5_storage_paths.credential_database_path = main_storage_paths.credential_database_path;
-
-        debug!(
-            "Using shared credential store: {}",
-            socks5_storage_paths.credential_database_path.display()
-        );
+        // BC note : We are NOT overriding the credential store, because it's not supposed to be shared anymore
+        // Credential requests go through the channel for it now
         debug!(
             "Using separate identity keys in: {}",
             socks5_data_path.display()
@@ -1343,6 +1334,9 @@ mod tests {
             gateway_cache_handle: None,
             network_details: None,
             vpn_exit_gateway_identity: None,
+            bandwidth_command_tx: BandwidthControllerRequestSender::new(
+                tokio::sync::mpsc::unbounded_channel().0,
+            ),
         }
     }
 

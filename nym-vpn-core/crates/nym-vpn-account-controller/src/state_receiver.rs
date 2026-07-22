@@ -31,9 +31,7 @@ impl AccountStateReceiver {
                 AccountControllerState::Error(reason) => {
                     return Err(AccountControllerError::ErrorState(reason));
                 }
-                AccountControllerState::Syncing
-                | AccountControllerState::RequestingZkNyms
-                | AccountControllerState::PendingSubscription => {
+                AccountControllerState::Syncing | AccountControllerState::PendingSubscription => {
                     tracing::debug!("Account controller is {state}, waiting for the next state");
 
                     self.inner.changed().await.map_err(|_| {
@@ -42,9 +40,7 @@ impl AccountStateReceiver {
                         )
                     })?;
                 }
-                AccountControllerState::ReadyToConnect
-                | AccountControllerState::Decentralised
-                | AccountControllerState::UpgradeMode => {
+                AccountControllerState::ReadyToConnect | AccountControllerState::Decentralised => {
                     return Ok(());
                 }
             }

@@ -19,6 +19,8 @@ function useI18nProgressMsg() {
           return t('connection-progress.resolving-api-addresses');
         case 'awaiting-account-readiness':
           return t('connection-progress.awaiting-account-readiness');
+        case 'awaiting-credentials-availability':
+          return t('connection-progress.awaiting-credentials-availability');
         case 'refreshing-gateways':
           return t('connection-progress.refreshing-gateways');
         case 'selecting-gateways':

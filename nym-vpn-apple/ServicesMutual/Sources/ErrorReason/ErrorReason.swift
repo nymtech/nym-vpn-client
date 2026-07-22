@@ -26,6 +26,8 @@ public enum ErrorReason: LocalizedError, Codable {
     case invalidExitGatewayIdentity
     case maxDevicesReached
     case bandwidthExceeded
+    case credentialFetchingFailed
+    case noCredentialAvailable
     case apiTimeout
     case apiStatusCode(String)
     case apiResponse(String)
@@ -70,6 +72,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
+        case .credentialFetchingFailed:
+            self = .credentialFetchingFailed
+        case .noCredentialAvailable:
+            self = .noCredentialAvailable
         case .deviceTimeOutOfSync:
             self = .deviceTimeOutOfSync
         case .ipv6Unavailable:
@@ -149,6 +155,10 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
+        case .credentialFetchingFailed:
+            self = .credentialFetchingFailed
+        case .noCredentialAvailable:
+            self = .noCredentialAvailable
         case .registrationInProgress:
             self = .registrationInProgress
         case .internalError:
@@ -294,6 +304,10 @@ private extension ErrorReason {
 #endif
         case .needsRelaxedIndependenceCriteria:
             "errorReason.needsRelaxedIndependenceCriteria".localizedString
+        case .credentialFetchingFailed:
+            "errorReason.credentialFetchingFailed".localizedString
+        case .noCredentialAvailable:
+            "errorReason.noCredentialAvailable".localizedString
         }
     }
 }
@@ -324,6 +338,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case invalidExitGatewayIdentity
     case maxDevicesReached
     case bandwidthExceeded
+    case credentialFetchingFailed
+    case noCredentialAvailable
     case apiTimeout
     case apiStatusCode
     case apiResponse
@@ -372,6 +388,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .maxDevicesReached
         case .bandwidthExceeded:
             self = .bandwidthExceeded
+        case .credentialFetchingFailed:
+            self = .credentialFetchingFailed
+        case .noCredentialAvailable:
+            self = .noCredentialAvailable
         case .registrationInProgress:
             self = .registrationInProgress
         case .internalError:
