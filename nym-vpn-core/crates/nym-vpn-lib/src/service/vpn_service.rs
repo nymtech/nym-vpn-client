@@ -2435,9 +2435,6 @@ impl NymVpnService {
         self.recents_manager
             .get_recent(tunnel_type)
             .await
-            .map_err(|source| ListGatewaysError::GetRecentGateways {
-                tunnel_type,
-                source,
-            })
+            .map_err(ListGatewaysError::GetRecentGateways)
     }
 }
