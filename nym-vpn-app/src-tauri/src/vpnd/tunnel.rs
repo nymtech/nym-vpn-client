@@ -86,6 +86,7 @@ pub enum ConnectingProgress {
     #[default]
     ResolvingApiAddresses,
     AwaitingAccountReadiness,
+    AwaitingCredentialsAvailability,
     RefreshingGateways,
     SelectingGateways,
     RegisteringWithGateways,
@@ -303,6 +304,9 @@ impl From<lib::EstablishConnectionState> for ConnectingProgress {
             }
             lib::EstablishConnectionState::AwaitingAccountReadiness => {
                 ConnectingProgress::AwaitingAccountReadiness
+            }
+            lib::EstablishConnectionState::AwaitingCredentialsAvailability => {
+                ConnectingProgress::AwaitingCredentialsAvailability
             }
             lib::EstablishConnectionState::RefreshingGateways => {
                 ConnectingProgress::RefreshingGateways

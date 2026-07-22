@@ -1,11 +1,12 @@
 {
   "connection-progress": {
     "canceling": "Canceling…",
-    "resolving-api-addresses": "Initializing NymVPN (1/6)",
-    "awaiting-account-readiness": "Setting up your account (2/6)",
-    "refreshing-gateways": "Updating server list (3/6)",
-    "selecting-gateways": "Choosing best servers (4/6)",
-    "registering-with-gateways": "Registering anonymously with servers (5/6)",
-    "connecting-tunnel": "Establishing server connection (6/6)"
+    "resolving-api-addresses": "Initializing NymVPN (1/7)",
+    "awaiting-account-readiness": "Setting up your account (2/7)",
+    "awaiting-credentials-availability": "Downloading ZKNyms (3/7)",
+    "refreshing-gateways": "Updating server list (4/7)",
+    "selecting-gateways": "Choosing best servers (5/7)",
+    "registering-with-gateways": "Registering anonymously with servers (6/7)",
+    "connecting-tunnel": "Establishing server connection (7/7)"
   }
 }

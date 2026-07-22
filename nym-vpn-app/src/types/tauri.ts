@@ -55,6 +55,7 @@ export type Cli = {
 export type ConnectingProgress =
   | 'resolving-api-addresses'
   | 'awaiting-account-readiness'
+  | 'awaiting-credentials-availability'
   | 'refreshing-gateways'
   | 'selecting-gateways'
   | 'registering-with-gateways'
@@ -339,13 +340,11 @@ export type TAccountState =
   | 'syncing'
   | 'offline'
   | 'decentralised'
-  | 'upgrade-mode'
   | 'bandwidth-exceeded'
   | 'status-not-active'
   | 'no-subscription'
   | 'pending-subscription'
   | 'max-device-reached'
-  | 'requesting-zk-nyms'
   | { error: TBackendError };
 
 export type TAccountSummary = {
@@ -550,7 +549,9 @@ export type TunnelError =
   | 'credential-wasted-on-exit-gateway'
   | 'need-full-disk-permissions'
   | 'split-tunnel'
-  | 'needs-relaxed-independence-criteria';
+  | 'needs-relaxed-independence-criteria'
+  | 'credential-fetching-failed'
+  | 'no-credential-available';
 
 export type TunnelStateEvent = {
   state: TTunnelState;

@@ -300,7 +300,7 @@ private fun PreviewProcessingComponentZkNyms() {
 		ProcessingComponentContent(
 			uiPhase = LoginProcessingUiPhase.Carousel,
 			progressStep = 4,
-			accountState = AccountControllerState.RequestingZkNyms,
+			accountState = AccountControllerState.Syncing,
 			credentialsCarouselTick = 1,
 		)
 	}
