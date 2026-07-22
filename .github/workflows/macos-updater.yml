@@ -295,6 +295,7 @@ jobs:
       #     delete-branch: true
       #     reviewers: |
       #       pronebird
+      #       agentpietrucha
 
       # - name: Check outputs
       #   if: ${{ steps.cpr.outputs.pull-request-number }}
