@@ -314,7 +314,7 @@ impl CredentialRequestTask {
             }
 
             tracing::trace!("Sleeping for {ZK_NYM_POLLING_INTERVAL:?}");
-            tokio::time::sleep(ZK_NYM_POLLING_INTERVAL).await; // SW consider reverse exponential backoff? the longer the faster we poll? TBC with seeing how long it usually takes
+            tokio::time::sleep(ZK_NYM_POLLING_INTERVAL).await;
         }
     }
 
