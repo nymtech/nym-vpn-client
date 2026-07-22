@@ -54,14 +54,6 @@ extension CredentialsManager {
         return try await body(controller)
     }
 
-    func mapPrefetchResult(from controller: NymAccountController) async -> ZkNymPrefetchResult {
-        let state = await controller.getAccountState()
-        if state == .upgradeMode {
-            return .upgradeMode
-        }
-        return .fetchedTickets
-    }
-
     func prepareRegisteredAccount(environment env: NymEnvironment) async throws {
         try await prepareRegisteredAccount(environment: env, onAccountPhaseChange: nil)
     }
@@ -147,14 +139,10 @@ extension CredentialsManager {
             return .loggedOut
         case .syncing:
             return .syncing
-        case .requestingZkNyms:
-            return .requestingZkNyms
         case .readyToConnect:
             return .readyToConnect
         case .decentralised:
             return .decentralised
-        case .upgradeMode:
-            return .upgradeMode
         case .pendingSubscription:
             return .pendingSubscription
         case .error(let reason):
@@ -195,7 +183,8 @@ extension CredentialsManager {
             ) {
                 try await withController { controller in
                     try await controller.waitForAccountReadyToConnect(timeout: timeout)
-                    return await mapPrefetchResult(from: controller)
+                    try await controller.waitForTicketbooks(timeout: timeout)
+                    return ZkNymPrefetchResult.fetchedTickets
                 }
             }
             logger.info("prefetchZkNyms (iOS) outcome=\(result)")

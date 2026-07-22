@@ -245,7 +245,7 @@ async fn main() -> Result<()> {
             } else {
                 config::Display::Local
             };
-            log::info!("🖥️ Display mode: {:?}", &config.runtime_opts.display);
+            log::info!("🖥️ Display mode: {:?}", config.runtime_opts.display);
 
             let mut instance = vm::run(&config, &vm).await.context("Failed to start VM")?;
 
@@ -278,7 +278,7 @@ async fn main() -> Result<()> {
                 (false, true) => config::Display::Vnc,
                 (true, true) => unreachable!("invalid combination"),
             };
-            log::info!("🖥️ Display mode: {:?}", &config.runtime_opts.display);
+            log::info!("🖥️ Display mode: {:?}", config.runtime_opts.display);
 
             let vm_config = vm::get_vm_config(&config, &vm).context("Cannot get VM config")?;
 
@@ -287,7 +287,7 @@ async fn main() -> Result<()> {
                 log::debug!("Using default runner dir");
                 vm_config.get_default_runner_dir()
             });
-            log::debug!("Runner dir: {}", &runner_dir.display());
+            log::debug!("Runner dir: {}", runner_dir.display());
             let artifacts_dir = provision::provision(vm_config, &*instance, runner_dir)
                 .await
                 .context("Failed to run provisioning for VM")?;
@@ -311,7 +311,7 @@ async fn main() -> Result<()> {
             ));
 
             let mut tests = get_filtered_tests(&test_filters, &skip)?;
-            log::info!("{} filtered tests:\n{:#?}", tests.len(), &tests);
+            log::info!("{} filtered tests:\n{:#?}", tests.len(), tests);
 
             for test in tests.iter_mut() {
                 test.location = config.test_locations.lookup(test.name).cloned();
@@ -371,7 +371,7 @@ async fn main() -> Result<()> {
             let update_output = vm::update_packages(vm_config.clone(), &*instance)
                 .await
                 .context("Failed to update packages to the VM image")?;
-            log::info!("Update command finished with output: {}", &update_output);
+            log::info!("Update command finished with output: {}", update_output);
             // TODO: If the update was successful, commit the changes to the VM image.
             log::info!("Note: updates have not been persisted to the image");
             Ok(())

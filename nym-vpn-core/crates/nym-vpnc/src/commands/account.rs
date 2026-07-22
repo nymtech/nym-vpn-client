@@ -36,13 +36,13 @@ pub enum Command {
         alias = "decentralised-obtain-ticketbooks"
     )]
     ObtainTicketbooks {
-        /// Amount of ticketbooks (per type) to attempt to obtain
-        #[arg(long, default_value_t = 1)]
-        amount: u64,
         /// Ticketbook source (parsed for future compatibility?, currently ignored)
         #[arg(long, value_enum, default_value_t = TicketbookSource::Smartcontract)]
         source: TicketbookSource,
     },
+    /// Manually restock ticketbooks running low, via the bandwidth controller
+    #[clap(hide = true)]
+    RestockTicketbooks,
     /// Refresh account state
     #[clap(hide = true)]
     Refresh {
@@ -164,19 +164,25 @@ impl Command {
                 }
                 Ok(())
             }
-            Command::ObtainTicketbooks { amount, source: _ } => {
+            Command::ObtainTicketbooks { source: _ } => {
                 // Note: source is currently ignored; backend always uses smartcontract blockchain for tickets.
                 println!(
-                    "starting acquisition of {amount} ticketbooks (per type). this might take a while..."
+                    "Ensuring presence of enough tickets for each type. this might take a while..."
                 );
-                let response = rpc_client.decentralised_obtain_ticketbooks(amount).await?;
+                let response = rpc_client.decentralised_obtain_ticketbooks().await?;
                 if let Some(err) = response.error {
                     println!("Failed to obtain ticketbooks: {err}");
                     return Err(err.into());
                 } else {
-                    println!("Successfully managed to obtain {amount} (per type) ticketbooks!");
+                    println!("Enough ticketbooks are present for all types!");
                 }
 
+                Ok(())
+            }
+            Command::RestockTicketbooks => {
+                println!("Triggering a restock of low ticketbooks...");
+                rpc_client.restock_ticketbooks().await?;
+                println!("Restock scheduled.");
                 Ok(())
             }
             Command::Refresh { force } => {

@@ -107,7 +107,7 @@ fun PaymentScreen(appUiState: AppUiState, productId: String, viewModel: PaymentV
 @Composable
 fun PaymentScreen(accountState: AccountControllerState?, start: Boolean, onAnimationEnd: () -> Unit) {
 	val backgroundColor =
-		if (accountState == AccountControllerState.ReadyToConnect || accountState == AccountControllerState.RequestingZkNyms) {
+		if (accountState == AccountControllerState.ReadyToConnect) {
 			MaterialTheme.colorScheme.primary
 		} else {
 			MaterialTheme.colorScheme.surfaceContainer
@@ -134,13 +134,6 @@ fun PaymentScreen(accountState: AccountControllerState?, start: Boolean, onAnima
 				)
 				delay(3_000)
 				onAnimationEnd()
-			}
-
-			is AccountControllerState.RequestingZkNyms -> {
-				textData = Pair(
-					R.string.account_payment_saving,
-					R.string.account_payment_anonymous,
-				)
 			}
 
 			is AccountControllerState.Syncing -> {

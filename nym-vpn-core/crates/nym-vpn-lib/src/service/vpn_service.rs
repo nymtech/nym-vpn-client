@@ -15,7 +15,10 @@ use futures::{
     FutureExt, StreamExt,
     future::{Fuse, FusedFuture},
 };
-use nym_bandwidth_controller::BandwidthController;
+use nym_bandwidth_controller::{
+    AvailableTicketbooks, BandwidthController, error::BandwidthControllerError,
+    requests::BandwidthControllerRequestSender,
+};
 use nym_diagnostic::DiagnosticHandler;
 use nym_sdk::mixnet::StoragePaths;
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
@@ -34,7 +37,7 @@ use nym_statistics::{
 };
 use nym_vpn_account_controller::{
     AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
-    AvailableTicketbooks, NyxdClient,
+    NyxdClient,
 };
 use nym_vpn_api_client::api_urls_to_urls;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
@@ -47,14 +50,14 @@ use nym_vpn_lib_types::SplitTunnelExcludedProcess;
 use nym_vpn_lib_types::SplitTunnelExcludedProcessList;
 use nym_vpn_lib_types::{
     AccountBalanceResponse, AccountCommandError, AccountControllerState, AutologinResponse,
-    DecentralisedObtainTicketbooksRequest, DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams,
-    DiagnosticReport, DiagnosticRunParams, EnableSocks5Request, EntryPoint, ExitPoint,
-    FeatureFlags, Gateway, GatewaySelectionAlgorithm, GetDeeplinkParams, ListGatewaysOptions,
-    LogPath, LookupGatewayFilters, MixnetTrafficConfig, NetworkCompatibility,
-    NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice, NymVpnNetwork, NymVpnUsage,
-    ParsedAccountLinks, RecentGateways, RegistrationReport, StorableAccount, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelEvent, TunnelState,
-    TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    DeeplinkClient, DeeplinkKind, DiagnosticRegisterParams, DiagnosticReport, DiagnosticRunParams,
+    EnableSocks5Request, EntryPoint, ExitPoint, FeatureFlags, Gateway, GatewaySelectionAlgorithm,
+    GetDeeplinkParams, ListGatewaysOptions, LogPath, LookupGatewayFilters, MixnetTrafficConfig,
+    NetworkCompatibility, NetworkStatisticsIdentity, NymNetworkDetails, NymVpnDevice,
+    NymVpnNetwork, NymVpnUsage, ParsedAccountLinks, RecentGateways, RegistrationReport,
+    StorableAccount, StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState,
+    TentativeGateways, TunnelEvent, TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig,
+    VpnServiceInfo,
 };
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use nym_vpn_lib_types::{RegisterAccountRequest, RegisterAccountResponse};
@@ -156,10 +159,7 @@ pub enum VpnServiceCommand {
     ),
     GetStoredMnemonic(oneshot::Sender<Result<String, AccountCommandError>>, ()),
     DecentralisedBalance(oneshot::Sender<AccountBalanceResponse>, ()),
-    DecentralisedObtainTicketbooks(
-        oneshot::Sender<Result<(), AccountCommandError>>,
-        DecentralisedObtainTicketbooksRequest,
-    ),
+    DecentralisedObtainTicketbooks(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     RotateKeys(oneshot::Sender<Result<(), AccountCommandError>>, ()),
@@ -199,9 +199,10 @@ pub enum VpnServiceCommand {
         (),
     ),
     GetAvailableTickets(
-        oneshot::Sender<Result<AvailableTicketbooks, AccountCommandError>>,
+        oneshot::Sender<Result<AvailableTicketbooks, BandwidthControllerError>>,
         (),
     ),
+    RestockTicketbooks(oneshot::Sender<Result<(), BandwidthControllerError>>, ()),
     GetAccountSummary(
         oneshot::Sender<Result<Option<VpnAccountSummary>, AccountCommandError>>,
         (),
@@ -307,6 +308,9 @@ pub struct NymVpnService {
 
     // Receive state from account controller,
     account_state_rx: AccountStateReceiver,
+
+    // Send commands to Bandwidth controller
+    bandwidth_command_tx: BandwidthControllerRequestSender,
 
     // Broadcast channel for sending tunnel events to the outside world
     tunnel_event_tx: broadcast::Sender<TunnelEvent>,
@@ -495,18 +499,48 @@ impl NymVpnService {
         )
         .await;
 
+        let storage_paths = StoragePaths::new_from_dir(paths.network_data_dir.clone())
+            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?;
+
+        // Bandwidth control
+        let credential_storage = storage_paths
+            .persistent_credential_storage()
+            .await
+            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?;
+        let bandwidth_controller = BandwidthController::new(credential_storage);
+        let bandwidth_command_tx = bandwidth_controller.get_request_sender();
+        let bandwidth_controller_handle = tokio::task::spawn(
+            bandwidth_controller.run(services_shutdown_token.child_token().into()),
+        );
+
+        // Account control
         let account_controller_config = AccountControllerConfig {
             data_dir: paths.network_data_dir.clone(),
+            storage_paths,
             network_env: *network_env.clone(),
         };
 
         let network_details = network_env.nym_network_details();
+
+        // Built here (rather than owned solely by `VpnApiClient`) so it can be shared with the
+        // tunnel state machine's bandwidth monitor further down.
+        let skew_time_provider_urls = network_env
+            .nym_vpn_api_urls()
+            .ok_or(Error::InvalidEnvironment("empty nym_vpn_api_urls"))?;
+        let skew_time_provider = nym_vpn_api_client::VpnApiClient::health_endpoint_time_provider(
+            api_urls_to_urls(&skew_time_provider_urls).map_err(Error::ConvertApiUrls)?,
+            Some(parameters.user_agent.clone()),
+        )
+        .map_err(Error::CreateApiClient)?;
+        let skew_manager = nym_vpn_api_client::SkewManager::new(skew_time_provider);
+
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             network_details,
             Some(parameters.user_agent.clone()),
         )
         .await
-        .map_err(Error::CreateApiClient)?;
+        .map_err(Error::CreateApiClient)?
+        .with_skew_manager(skew_manager.clone());
 
         let nyxd_client = NyxdClient::new(&network_env);
 
@@ -516,6 +550,7 @@ impl NymVpnService {
             account_controller_config,
             storage,
             connectivity_handle.clone(),
+            bandwidth_command_tx.clone(),
             services_shutdown_token.child_token(),
         )
         .await
@@ -526,17 +561,6 @@ impl NymVpnService {
         let account_state_rx = account_controller.get_state_receiver();
         let wireguard_keys_db = account_controller.get_wireguard_keys_storage();
         let account_controller_handle = tokio::task::spawn(account_controller.run());
-
-        let credential_storage = StoragePaths::new_from_dir(paths.network_data_dir.clone())
-            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?
-            .persistent_credential_storage()
-            .await
-            .map_err(|e| Error::BandwidthControllerStorage(Box::new(e)))?;
-        let bandwidth_controller = BandwidthController::new(credential_storage);
-        let bandwidth_command_tx = bandwidth_controller.get_request_sender();
-        let bandwidth_controller_handle = tokio::task::spawn(
-            bandwidth_controller.run(services_shutdown_token.child_token().into()),
-        );
 
         let config_manager = match parameters.service_storage_type {
             ServiceConfigStorageType::Persistent => {
@@ -706,6 +730,7 @@ impl NymVpnService {
             account_command_tx.clone(),
             account_state_rx.clone(),
             bandwidth_command_tx.clone(),
+            skew_manager,
             statistics_event_sender.clone(),
             topology_service.clone(),
             connectivity_handle,
@@ -736,6 +761,7 @@ impl NymVpnService {
             log_file_remover_handle,
             account_command_tx,
             account_state_rx,
+            bandwidth_command_tx,
             target_state: TargetState::Unsecured,
             tunnel_state,
             tunnel_settings_update_timer: Box::pin(Fuse::terminated()),
@@ -1140,8 +1166,8 @@ impl NymVpnService {
             VpnServiceCommand::DecentralisedBalance(tx, ()) => {
                 let _ = tx.send(self.handle_decentralised_balance().await);
             }
-            VpnServiceCommand::DecentralisedObtainTicketbooks(tx, request) => {
-                let _ = tx.send(self.handle_decentralised_obtain_ticketbooks(request).await);
+            VpnServiceCommand::DecentralisedObtainTicketbooks(tx, ()) => {
+                let _ = tx.send(self.handle_decentralised_obtain_ticketbooks().await);
             }
             VpnServiceCommand::IsAccountStored(tx, ()) => {
                 let _ = tx.send(self.handle_is_account_stored().await);
@@ -1188,6 +1214,9 @@ impl NymVpnService {
             }
             VpnServiceCommand::GetAvailableTickets(tx, ()) => {
                 let _ = tx.send(self.handle_get_available_tickets().await);
+            }
+            VpnServiceCommand::RestockTicketbooks(tx, ()) => {
+                let _ = tx.send(self.handle_restock_ticketbooks().await);
             }
             VpnServiceCommand::GetAccountSummary(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_summary().await);
@@ -1865,6 +1894,7 @@ impl NymVpnService {
                 idle_timeout,
                 network_details,
                 vpn_exit_gateway_identity, // Exclude VPN exit gateway during random selection
+                bandwidth_command_tx: self.bandwidth_command_tx.clone(),
             })
             .await?;
 
@@ -1943,15 +1973,11 @@ impl NymVpnService {
         }
     }
 
-    async fn handle_decentralised_obtain_ticketbooks(
-        &mut self,
-        request: DecentralisedObtainTicketbooksRequest,
-    ) -> Result<(), AccountCommandError> {
-        let amount = request.amount;
-        tracing::info!("received request to attempt to obtain {amount} ticketbooks of each type");
+    async fn handle_decentralised_obtain_ticketbooks(&mut self) -> Result<(), AccountCommandError> {
+        tracing::info!("received request to ensure enough ticketbooks of each type");
 
         self.account_command_tx
-            .decentralised_obtain_ticketbooks(amount)
+            .decentralised_obtain_ticketbooks()
             .await
     }
 
@@ -2099,8 +2125,13 @@ impl NymVpnService {
 
     async fn handle_get_available_tickets(
         &self,
-    ) -> Result<AvailableTicketbooks, AccountCommandError> {
-        self.account_command_tx.get_available_tickets().await
+    ) -> Result<AvailableTicketbooks, BandwidthControllerError> {
+        self.bandwidth_command_tx.get_available_ticketbooks().await
+    }
+
+    async fn handle_restock_ticketbooks(&self) -> Result<(), BandwidthControllerError> {
+        tracing::info!("received request to restock ticketbooks");
+        self.bandwidth_command_tx.restock_all_ticketbooks().await
     }
 
     async fn handle_get_account_summary(

@@ -1,17 +1,22 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{sync::Arc, time::Duration};
+use std::time::Duration;
 
 use backon::Retryable;
-use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
+use nym_credential_proxy_requests::api::v1::ticketbook::models::{
+    AggregatedCoinIndicesSignaturesResponse, AggregatedExpirationDateSignaturesResponse,
+    MasterVerificationKeyResponse, PartialVerificationKeysResponse,
+};
 use nym_http_api_client::{
     ApiClient, Client, HttpClientError, NO_PARAMS, Params, PathSegments, Url, UserAgent,
     reqwest::header::{DATE, HeaderMap},
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use time::{OffsetDateTime, format_description::well_known::Rfc2822};
-use tokio::sync::RwLock;
+use time::{
+    Date, OffsetDateTime,
+    format_description::{BorrowedFormatItem, well_known::Rfc2822},
+};
 
 use crate::{
     api_urls_to_urls,
@@ -39,6 +44,9 @@ use crate::{
     },
 };
 
+const RFC_3339_DATE: &[BorrowedFormatItem<'static>] =
+    time::macros::format_description!("[year]-[month]-[day]");
+
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 
 // GET requests can unfortunately take a long time over the mixnet
@@ -58,7 +66,7 @@ enum RemoteTimeRetry {
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: Client,
-    skew_manager: Arc<RwLock<SkewManager>>,
+    skew_manager: SkewManager,
 }
 
 impl AsRef<Client> for VpnApiClient {
@@ -74,15 +82,27 @@ impl AsMut<Client> for VpnApiClient {
 }
 
 impl VpnApiClient {
+    /// Builds a `RemoteTimeProvider` that queries this VPN API's health endpoint, over its own
+    /// dedicated HTTP client. Useful for constructing a `SkewManager` before any `VpnApiClient`
+    /// exists, so it can be shared (injected via `new`/`from_network`) rather than owned solely
+    /// by the client.
+    pub fn health_endpoint_time_provider(
+        urls: Vec<Url>,
+        user_agent: Option<UserAgent>,
+    ) -> Result<impl RemoteTimeProvider + Send + Sync + 'static> {
+        let inner = fronted_http_client(urls, user_agent, Some(NYM_VPN_API_TIMEOUT))?;
+        Ok(VpnApiRemoteTimeProvider::new(inner))
+    }
+
     pub fn new(urls: Vec<Url>, user_agent: Option<UserAgent>) -> Result<Self> {
         let inner =
             fronted_http_client(urls.clone(), user_agent.clone(), Some(NYM_VPN_API_TIMEOUT))?;
 
-        let time_provider = VpnApiRemoteTimeProvider::new(inner.clone());
+        let skew_manager = SkewManager::new(VpnApiRemoteTimeProvider::new(inner.clone()));
 
         Ok(Self {
             inner,
-            skew_manager: Arc::new(RwLock::new(SkewManager::new(time_provider))),
+            skew_manager,
         })
     }
 
@@ -104,12 +124,20 @@ impl VpnApiClient {
         let inner =
             fronted_http_client(urls.clone(), user_agent.clone(), Some(NYM_VPN_API_TIMEOUT))?;
 
-        let time_provider = VpnApiRemoteTimeProvider::new(inner.clone());
+        let skew_manager = SkewManager::new(VpnApiRemoteTimeProvider::new(inner.clone()));
 
         Ok(Self {
             inner,
-            skew_manager: Arc::new(RwLock::new(SkewManager::new(time_provider))),
+            skew_manager,
         })
+    }
+
+    /// Replaces this client's skew manager with an externally-shared one (e.g. built via
+    /// [`Self::health_endpoint_time_provider`]), so both observe and update the same cache
+    /// instead of the client tracking its own, unshared skew state.
+    pub fn with_skew_manager(mut self, skew_manager: SkewManager) -> Self {
+        self.skew_manager = skew_manager;
+        self
     }
 
     pub fn api_client(&self) -> &impl ApiClient {
@@ -121,11 +149,11 @@ impl VpnApiClient {
     }
 
     pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
-        self.skew_manager.write().await.get_remote_time().await
+        self.skew_manager.get_remote_time().await
     }
 
     async fn device_time(&self) -> OffsetDateTime {
-        self.skew_manager.read().await.device_time()
+        self.skew_manager.device_time()
     }
 
     async fn remote_time_for_retry(
@@ -137,9 +165,8 @@ impl VpnApiClient {
         if let Some(remote_timestamp) = parse_date_header(headers) {
             match self
                 .skew_manager
-                .write()
-                .await
                 .sync_with_response_timestamp(time_before, remote_timestamp, time_after)
+                .await
             {
                 Ok(jwt) => return RemoteTimeRetry::Retry(jwt),
                 Err(err) => {
@@ -154,13 +181,7 @@ impl VpnApiClient {
             );
         }
 
-        match self
-            .skew_manager
-            .write()
-            .await
-            .sync_with_remote_time()
-            .await
-        {
+        match self.skew_manager.sync_with_remote_time().await {
             Ok(jwt) => RemoteTimeRetry::Retry(jwt),
             Err(err) => {
                 tracing::error!("Failed to get remote time: {err}. Not retrying anymore");
@@ -206,8 +227,6 @@ impl VpnApiClient {
     {
         let jwt = self
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
@@ -390,8 +409,6 @@ impl VpnApiClient {
     {
         let jwt = self
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
@@ -471,8 +488,6 @@ impl VpnApiClient {
     {
         let jwt = self
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
@@ -553,8 +568,6 @@ impl VpnApiClient {
     {
         let jwt = self
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap_or_else(|err| {
@@ -1434,6 +1447,73 @@ impl VpnApiClient {
         .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookPartialVerificationKeys)
     }
 
+    pub async fn get_directory_zk_nyms_ticketbook_master_verification_key(
+        &self,
+        epoch_id: u64,
+    ) -> Result<MasterVerificationKeyResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::ZK_NYMS,
+                routes::TICKETBOOK,
+                routes::MASTER_VERIFICATION_KEY,
+            ],
+            &[(routes::EPOCH_ID, epoch_id.to_string())],
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookMasterVerificationKey)
+    }
+
+    pub async fn get_directory_zk_nyms_ticketbook_aggregated_coin_indices_signatures(
+        &self,
+        epoch_id: u64,
+    ) -> Result<AggregatedCoinIndicesSignaturesResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::ZK_NYMS,
+                routes::TICKETBOOK,
+                routes::AGGREGATED_COIN_INDICES_SIGNATURES,
+            ],
+            &[(routes::EPOCH_ID, epoch_id.to_string())],
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookAggregatedCoinIndicesSignatures)
+    }
+
+    pub async fn get_directory_zk_nyms_ticketbook_aggregated_expiration_date_signatures(
+        &self,
+        epoch_id: u64,
+        expiration_date: Date,
+    ) -> Result<AggregatedExpirationDateSignaturesResponse> {
+        self.get_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::DIRECTORY,
+                routes::ZK_NYMS,
+                routes::TICKETBOOK,
+                routes::AGGREGATED_EXPIRATION_DATE_SIGNATURES,
+            ],
+            &[
+                (routes::EPOCH_ID, epoch_id.to_string()),
+                (
+                    routes::EXPIRATION_DATE,
+                    expiration_date.format(&RFC_3339_DATE).unwrap(),
+                ),
+            ],
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookAggregatedExpirationDateSignatures)
+    }
+
     pub async fn get_wellknown_current_env(&self) -> Result<NymWellknownDiscoveryItem> {
         tracing::debug!("Fetching nym vpn network details");
         self.inner
@@ -1505,7 +1585,10 @@ impl RemoteTimeProvider for VpnApiRemoteTimeProvider {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
 
     use nym_http_api_client::reqwest::header::HeaderValue;
 
@@ -1559,7 +1642,7 @@ mod tests {
         (
             VpnApiClient {
                 inner,
-                skew_manager: Arc::new(RwLock::new(skew_manager)),
+                skew_manager,
             },
             calls,
         )
@@ -1603,8 +1686,6 @@ mod tests {
         // The derived skew is cached and reused without any network request
         let cached = client
             .skew_manager
-            .write()
-            .await
             .current_remote_time()
             .await
             .unwrap()
@@ -1634,13 +1715,12 @@ mod tests {
         // Seed the cache with a stale skew: the device clock used to be 2 hours ahead
         client
             .skew_manager
-            .write()
-            .await
             .sync_with_response_timestamp(
                 device_time(),
                 device_time() - Duration::from_hours(2),
                 device_time(),
             )
+            .await
             .unwrap()
             .expect("seeded skew is significant");
 
@@ -1656,13 +1736,7 @@ mod tests {
         assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
 
         // The stale cached skew was replaced: no override and no network request
-        let cached = client
-            .skew_manager
-            .write()
-            .await
-            .current_remote_time()
-            .await
-            .unwrap();
+        let cached = client.skew_manager.current_remote_time().await.unwrap();
         assert!(cached.is_none());
         assert_eq!(remote_calls.load(Ordering::SeqCst), 0);
     }

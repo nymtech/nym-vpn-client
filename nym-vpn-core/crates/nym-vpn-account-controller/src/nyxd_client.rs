@@ -7,13 +7,13 @@ use nym_validator_client::{
 };
 use nym_vpn_lib_types::{AccountCommandError, Mnemonic};
 use nym_vpn_network_config::Network;
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 
 pub struct NyxdClient {
     network: Network,
 
     // TODO: does it need locking or are we guaranteed sequential access?
-    client: Option<DirectSigningHttpRpcNyxdClient>,
+    client: Option<Arc<DirectSigningHttpRpcNyxdClient>>,
 }
 
 impl NyxdClient {
@@ -44,7 +44,7 @@ impl NyxdClient {
         )
         .map_err(|err| AccountCommandError::NyxdConnectionFailure(err.to_string()))?;
 
-        self.client = Some(client);
+        self.client = Some(Arc::new(client));
         Ok(())
     }
 
@@ -85,11 +85,11 @@ impl NyxdClient {
     pub(crate) fn inner_client(
         &mut self,
         mnemonic: &str,
-    ) -> Result<&mut DirectSigningHttpRpcNyxdClient, AccountCommandError> {
+    ) -> Result<Arc<DirectSigningHttpRpcNyxdClient>, AccountCommandError> {
         self.ensure_connected(mnemonic)?;
         // SAFETY: we just connected
         #[allow(clippy::unwrap_used)]
-        let client = self.client.as_mut().unwrap();
+        let client = self.client.clone().unwrap();
         Ok(client)
     }
 }

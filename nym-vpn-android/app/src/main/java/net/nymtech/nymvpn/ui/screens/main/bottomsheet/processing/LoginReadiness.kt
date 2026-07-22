@@ -21,7 +21,6 @@ object LoginReadiness {
 	fun loginPreparationWaitOutcome(state: AccountControllerState): LoginPreparationWaitOutcome = when (state) {
 		is AccountControllerState.ReadyToConnect,
 		is AccountControllerState.Decentralised,
-		is AccountControllerState.UpgradeMode,
 		is AccountControllerState.PendingSubscription,
 		-> LoginPreparationWaitOutcome.Prepared
 		is AccountControllerState.Error -> when (state.v1) {
@@ -30,9 +29,7 @@ object LoginReadiness {
 			-> LoginPreparationWaitOutcome.Prepared
 			else -> LoginPreparationWaitOutcome.Failed
 		}
-		is AccountControllerState.Syncing,
-		is AccountControllerState.RequestingZkNyms,
-		-> LoginPreparationWaitOutcome.ContinueWaiting
+		is AccountControllerState.Syncing -> LoginPreparationWaitOutcome.ContinueWaiting
 		is AccountControllerState.Offline,
 		is AccountControllerState.LoggedOut,
 		-> LoginPreparationWaitOutcome.Failed
@@ -46,8 +43,7 @@ object LoginReadiness {
 	}
 
 	fun isReadyToConnect(state: AccountControllerState): Boolean = state is AccountControllerState.ReadyToConnect ||
-		state is AccountControllerState.Decentralised ||
-		state is AccountControllerState.UpgradeMode
+		state is AccountControllerState.Decentralised
 
 	fun isInactiveSubscription(state: AccountControllerState): Boolean = when (state) {
 		is AccountControllerState.PendingSubscription -> true
@@ -65,6 +61,5 @@ object LoginReadiness {
 
 	fun canAdvanceLoginNavigation(workSettled: Boolean, carouselFinished: Boolean): Boolean = workSettled && carouselFinished
 
-	fun shouldShowCredentialsCopy(setupCarouselFinished: Boolean, accountState: AccountControllerState?): Boolean =
-		setupCarouselFinished && (accountState is AccountControllerState.Syncing || accountState is AccountControllerState.RequestingZkNyms)
+	fun shouldShowCredentialsCopy(setupCarouselFinished: Boolean, accountState: AccountControllerState?): Boolean = setupCarouselFinished && accountState is AccountControllerState.Syncing
 }

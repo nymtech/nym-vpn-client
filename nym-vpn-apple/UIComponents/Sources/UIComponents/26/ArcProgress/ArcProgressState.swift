@@ -31,6 +31,7 @@ public enum ArcProgressState: Equatable, Sendable {
     public enum Step: Equatable, Sendable, CaseIterable {
         case initializingNym
         case authenticatingAccount
+        case downloadingZkNyms
         case updatingServerList
         case choosingBestServers
         case registeringWithServers

@@ -47,9 +47,6 @@ impl From<lib::AccountCommandError> for BackendError {
             lib::AccountCommandError::AccountDoesntExistOnChain => {
                 BackendError::internal("account doesn't exist on chain", None)
             }
-            lib::AccountCommandError::InsufficientFunds => {
-                BackendError::internal("account does not have sufficient funds", None)
-            }
             lib::AccountCommandError::AccountDecentralised => {
                 BackendError::internal("account is set in decentralised mode", None)
             }
@@ -61,6 +58,9 @@ impl From<lib::AccountCommandError> for BackendError {
             }
             lib::AccountCommandError::DeeplinkError(message) => {
                 BackendError::internal_with_detail("deeplink error", message)
+            }
+            lib::AccountCommandError::InsufficientFunds => {
+                BackendError::new("insufficient funds", ErrorKey::InsufficientFunds)
             }
         }
     }

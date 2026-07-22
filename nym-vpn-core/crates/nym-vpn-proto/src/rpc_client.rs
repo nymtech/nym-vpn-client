@@ -523,14 +523,10 @@ impl RpcClient {
         AccountBalanceResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn decentralised_obtain_ticketbooks(
-        &mut self,
-        amount: u64,
-    ) -> Result<AccountCommandResponse> {
-        let request = proto::DecentralisedObtainTicketbooksRequest { amount };
+    pub async fn decentralised_obtain_ticketbooks(&mut self) -> Result<AccountCommandResponse> {
         let response = self
             .0
-            .decentralised_obtain_ticketbooks(request)
+            .decentralised_obtain_ticketbooks(())
             .await
             .map_err(Error::Rpc)?
             .into_inner();
@@ -639,6 +635,12 @@ impl RpcClient {
             .into_inner();
 
         Ok(AvailableTickets::from(response))
+    }
+
+    pub async fn restock_ticketbooks(&mut self) -> Result<()> {
+        self.0.restock_ticketbooks(()).await.map_err(Error::Rpc)?;
+
+        Ok(())
     }
 
     pub async fn get_account_summary(&mut self) -> Result<Option<VpnAccountSummary>> {
