@@ -58,6 +58,7 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_registration_client::MixnetClientConfig;
 use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_api_client::SkewManager;
 use nym_vpn_network_config::{DiscoveryRefresherCommand, Network};
 use tokio::{
     sync::{mpsc, watch},
@@ -794,6 +795,7 @@ pub struct SharedState {
     account_command_tx: AccountCommandSender,
     account_controller_state: AccountStateReceiver,
     bandwidth_command_tx: BandwidthControllerRequestSender,
+    skew_manager: SkewManager,
     statistics_event_sender: StatisticsSender,
     #[cfg(target_os = "linux")]
     nm_connectivity_check_enabled: Option<bool>,
@@ -1125,6 +1127,7 @@ impl TunnelStateMachine {
         account_command_tx: AccountCommandSender,
         account_controller_state: AccountStateReceiver,
         bandwidth_command_tx: BandwidthControllerRequestSender,
+        skew_manager: SkewManager,
         statistics_event_sender: StatisticsSender,
         topology_service: VpnTopologyServiceHandle,
         connectivity_handle: ConnectivityHandle,
@@ -1208,6 +1211,7 @@ impl TunnelStateMachine {
             account_command_tx,
             account_controller_state,
             bandwidth_command_tx,
+            skew_manager,
             statistics_event_sender,
             #[cfg(target_os = "linux")]
             nm_connectivity_check_enabled: None,

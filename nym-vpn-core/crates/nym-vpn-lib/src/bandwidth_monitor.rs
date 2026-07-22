@@ -10,8 +10,8 @@ use nym_bandwidth_controller::{
     DEFAULT_TICKETS_TO_SPEND, requests::BandwidthControllerRequestSender,
 };
 use nym_registration_common::WireguardConfiguration;
+use nym_vpn_api_client::SkewManager;
 use sysinfo::Networks;
-use time::OffsetDateTime;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
@@ -611,6 +611,7 @@ impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
 
 pub(crate) struct BandwidthMonitor {
     bc_command_tx: BandwidthControllerRequestSender,
+    skew_manager: SkewManager,
     wg_entry_gateway_client: TemporaryBandwidthClient,
     wg_exit_gateway_client: TemporaryBandwidthClient,
     timeout_check_interval: IntervalStream,
@@ -625,8 +626,10 @@ pub(crate) struct BandwidthMonitor {
 }
 
 impl BandwidthMonitor {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         bc_command_tx: BandwidthControllerRequestSender,
+        skew_manager: SkewManager,
         wg_entry_gateway_client: TemporaryBandwidthClient,
         wg_exit_gateway_client: TemporaryBandwidthClient,
         shutdown_token: CancellationToken,
@@ -637,6 +640,7 @@ impl BandwidthMonitor {
 
         BandwidthMonitor {
             bc_command_tx,
+            skew_manager,
             wg_entry_gateway_client,
             wg_exit_gateway_client,
             timeout_check_interval,
@@ -730,6 +734,7 @@ impl BandwidthMonitor {
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn create(
         bc_command_tx: BandwidthControllerRequestSender,
+        skew_manager: SkewManager,
         selected_gateways: &SelectedGateways,
         entry_auth_client: Option<AuthenticatorClient>,
         exit_auth_client: Option<AuthenticatorClient>,
@@ -758,6 +763,7 @@ impl BandwidthMonitor {
 
         Self::new(
             bc_command_tx,
+            skew_manager,
             wg_entry_client,
             wg_exit_client,
             cancel_token.clone(),
@@ -778,13 +784,18 @@ impl BandwidthMonitor {
             &mut self.wg_exit_gateway_client
         };
 
+        let spend_time = self
+            .skew_manager
+            .cached_skew_corrected_time()
+            .unwrap_or_else(|| self.skew_manager.device_time());
+
         let credential = self
             .bc_command_tx
             .get_ecash_ticket(
                 ticketbook_type,
                 bw_client.gateway_id(),
                 DEFAULT_TICKETS_TO_SPEND,
-                OffsetDateTime::now_utc(), // Skew input can be fed here
+                spend_time,
             )
             .await
             .map_err(|source| SpecificGatewayError::RequestCredential {

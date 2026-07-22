@@ -104,7 +104,7 @@ impl fmt::Display for Config {
                 .map(|url| url.url.clone())
                 .collect::<Vec<_>>()
                 .join(", "),
-            &self.min_gateway_performance,
+            self.min_gateway_performance,
         )
     }
 }
