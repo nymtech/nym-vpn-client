@@ -5,6 +5,7 @@ import ConnectionManager
 import ConnectionTypes
 import FeatureFlagsManager
 import GatewayManager
+import TunnelStatus
 import UIComponents
 
 @MainActor public class GatewaysViewModel: ObservableObject {
@@ -24,6 +25,7 @@ import UIComponents
     @Published var foundCountries = [NymCountry]()
     @Published var foundRegions = [(country: NymCountry, region: String)]()
     @Published var foundGateways = [GatewayNode]()
+    @Published var recentGateways = [GatewayNode]()
     @Published var scrollToModel: GatewayScrollToModel
     @Published var shouldScroll = false
     @Published var searchText: String = "" {
@@ -154,9 +156,39 @@ private extension GatewaysViewModel {
                 gateways = gateways.filter { $0.id != excludedGatewayId }
             }
             shouldScroll = true
+            await updateRecents()
         }
     }
+}
 
+// MARK: - Recents -
+extension GatewaysViewModel {
+    /// Recents come from core as raw gateway lists; keep only nodes still selectable for this
+    /// hop (same filtering as `gateways`), in the recency order core returned them in.
+    func updateRecents() async {
+        let tunnelType: ConnectionTunnelType
+        switch connectionManager.connectionType {
+        case .mixnet5hop:
+            tunnelType = .mixnet
+        case .wireguard:
+            tunnelType = .wireguard
+        }
+
+        let recents = await gatewayManager.recentGateways(for: tunnelType)
+        let recentIds: [String]
+        switch type {
+        case .entry:
+            recentIds = recents.entry.map { $0.id }
+        case .exit:
+            recentIds = recents.exit.map { $0.id }
+        }
+
+        let selectable = Dictionary(gateways.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        recentGateways = recentIds.compactMap { selectable[$0] }
+    }
+}
+
+private extension GatewaysViewModel {
     func searchCountriesGateways() {
         Task { [weak self] in
             guard let self, searchText.count >= minimumSearchSymbols

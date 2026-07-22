@@ -16,9 +16,9 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, EntryPoint, ExitPoint,
     FeatureFlags, FrontingMode, Gateway, GatewaySelectionAlgorithm, GatewayType, GetDeeplinkParams,
     HttpRpcSettings, LogPath, MixnetTrafficConfig, NetworkCompatibility, NymVpnDevice, NymVpnUsage,
-    ParsedAccountLinks, PrivyDerivationMessage, Socks5Settings, Socks5Status, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, VpnAccountSummary,
-    VpnServiceConfig, VpnServiceInfo,
+    ParsedAccountLinks, PrivyDerivationMessage, RecentGateways, Socks5Settings, Socks5Status,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TunnelEvent, TunnelState, TunnelType,
+    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 #[cfg(target_os = "macos")]
 use nym_vpn_lib_types::{SplitApp, SplitTunnelExcludedProcessList};
@@ -272,6 +272,11 @@ impl RpcClient {
             .into_iter()
             .collect();
         Ok(gateways)
+    }
+
+    pub async fn get_recent_gateways(&self, tunnel_type: TunnelType) -> Result<RecentGateways> {
+        let params = nym_vpn_lib_types::GetRecentGatewaysParams { tunnel_type };
+        Ok(self.inner.clone().get_recent_gateways(params).await?)
     }
 
     pub async fn store_account(&self, request: StoreAccountRequest) -> Result<()> {

@@ -1,12 +1,27 @@
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
+import PathManager
+import TunnelStatus
 #if os(iOS)
 import NymVPNLib
 #elseif os(macOS)
 import GRPCManager
 #endif
 import Logging
+
+#if os(iOS)
+private extension ConnectionTunnelType {
+    var libValue: NymVPNLib.TunnelType {
+        switch self {
+        case .mixnet:
+            .mixnet
+        case .wireguard:
+            .wireguard
+        }
+    }
+}
+#endif
 
 #if os(iOS)
 enum State {
@@ -64,6 +79,35 @@ actor GatewayWorker {
     }
 
     func fetchGateways() async throws -> (entry: [GatewayNode], exit: [GatewayNode], vpn: [GatewayNode]) {
+        let gatewayCache = try await gatewayCache()
+
+        let entryNodes = try await gatewayCache.getGateways(gwType: .mixnetEntry)
+        let exitNodes = try await gatewayCache.getGateways(gwType: .mixnetExit)
+        let vpnNodes = try await gatewayCache.getGateways(gwType: .wg)
+
+        let entry = entryNodes.map { GatewayNode(with: $0) }
+        let exit = exitNodes.map { GatewayNode(with: $0) }
+        let vpn = vpnNodes.map { GatewayNode(with: $0) }
+
+        return (entry, exit, vpn)
+    }
+
+    /// Recently connected gateways, read from the network data dir the tunnel extension writes them to.
+    /// Runs in the app process — no tunnel and no vpn service required.
+    func fetchRecents(
+        for tunnelType: ConnectionTunnelType
+    ) async throws -> (entry: [GatewayNode], exit: [GatewayNode]) {
+        guard let networkName = await configurationManager.networkEnv?.networkName() else { return ([], []) }
+        let networkDataURL = try PathManager.dataFolderURL().appendingPathComponent(networkName)
+        let recents = try await getRecentGatewaysNoService(
+            dataDir: networkDataURL.path(),
+            gatewayCache: gatewayCache(),
+            tunnelType: tunnelType.libValue
+        )
+        return (recents.entry.map { GatewayNode(with: $0) }, recents.exit.map { GatewayNode(with: $0) })
+    }
+
+    private func gatewayCache() async throws -> NymGatewayCache {
         let gatewayCache: NymGatewayCache
 
         switch state {
@@ -104,15 +148,7 @@ actor GatewayWorker {
             gatewayCache = gwCache
         }
 
-        let entryNodes = try await gatewayCache.getGateways(gwType: .mixnetEntry)
-        let exitNodes = try await gatewayCache.getGateways(gwType: .mixnetExit)
-        let vpnNodes = try await gatewayCache.getGateways(gwType: .wg)
-
-        let entry = entryNodes.map { GatewayNode(with: $0) }
-        let exit = exitNodes.map { GatewayNode(with: $0) }
-        let vpn = vpnNodes.map { GatewayNode(with: $0) }
-
-        return (entry, exit, vpn)
+        return gatewayCache
     }
 #elseif os(macOS)
     func fetchGateways() async throws -> (entry: [GatewayNode], exit: [GatewayNode], vpn: [GatewayNode]) {
@@ -120,6 +156,13 @@ actor GatewayWorker {
         let exit = try await grpcManager.gateways(for: .exit)
         let vpn = try await grpcManager.gateways(for: .vpn)
         return (entry, exit, vpn)
+    }
+
+    /// Recently connected gateways, as recorded by the daemon.
+    func fetchRecents(
+        for tunnelType: ConnectionTunnelType
+    ) async throws -> (entry: [GatewayNode], exit: [GatewayNode]) {
+        try await grpcManager.recentGateways(for: tunnelType)
     }
 #endif
 
