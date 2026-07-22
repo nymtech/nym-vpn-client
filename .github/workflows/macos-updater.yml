@@ -1,5 +1,10 @@
 name: macos-updater
 on:
+    # Temporary for initial PR
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/macos-updater.yml"
   workflow_dispatch:
     inputs:
       version_tag:
@@ -37,6 +42,13 @@ jobs:
       #   with:
       #     fetch-depth: 1
 
+      - name: Resolve
+        id: resolve
+        env:
+          VERSION_TAG: ${{ inputs.version_tag || 'nym-vpn-v2026.11.0' }}
+        run: |
+          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+
       - name: Install dependencies
         run: |
           brew install jq
@@ -46,7 +58,7 @@ jobs:
       - name: Download release PKG
         working-directory: nym-vpn-apple/build/pkg
         env:
-          RELEASE_TAG: ${{ inputs.version_tag }}
+          RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
         run: |
           gh release download "$RELEASE_TAG" --pattern "*.pkg"
 
@@ -66,7 +78,7 @@ jobs:
       - name: Find artifact download URL
         id: find_pkg_url
         env:
-          RELEASE_TAG: ${{ inputs.version_tag }}
+          RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
           ARTIFACT_NAME: ${{ steps.find_pkg.outputs.pkg_file }}
         run: |
           set -euo pipefail
@@ -82,7 +94,7 @@ jobs:
       - name: Find publish date
         id: find_publish_date
         env:
-          RELEASE_TAG: ${{ inputs.version_tag }}
+          RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
         run: |
           set -euo pipefail
 
@@ -281,6 +293,8 @@ jobs:
       #     branch: automation/update-macos-appcast-v${{ steps.find_pkg.outputs.short_version }}
       #     base: main
       #     delete-branch: true
+      #     reviewers: |
+      #       pronebird
 
       # - name: Check outputs
       #   if: ${{ steps.cpr.outputs.pull-request-number }}
