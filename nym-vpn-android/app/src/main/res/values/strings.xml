@@ -307,9 +307,13 @@
 	<string name="select_plan_modal_free_trial">7-day free trial starts today</string>
 	<!-- Server Details screen -->
 	<string name="details_title">Server details</string>
-	<string name="details_select_server_button">Select server</string>
+	<string name="details_features_title">Node features</string>
+	<string name="details_performance_title">Performance metrics</string>
+	<string name="details_connection_details_title">Connection details</string>
+	<string name="details_build_info_title">Build information</string>
+	<string name="details_select_server_button">Select node</string>
 	<string name="details_advanced_privacy">Advanced privacy</string>
-	<string name="details_with_mixnet">With mixnet (5-hop)</string>
+	<string name="details_with_mixnet">Mixnet</string>
 	<string name="details_streaming_content">Streaming &amp; content</string>
 	<string name="details_residental_ip">Residential IP</string>
 	<string name="details_datacenter_ip">Datacenter IP</string>

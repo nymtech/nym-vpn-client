@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,6 +41,7 @@ import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionPerformanc
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsSectionPrivacy
 import net.nymtech.nymvpn.ui.screens.details.components.DetailsTopSection
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
+import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.NymVPNTheme
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
@@ -92,62 +94,47 @@ fun DetailsScreen(appUiState: AppUiState, id: String, gatewayLocation: String, v
 @Composable
 fun DetailsScreen(detailsUiState: DetailsUiState, onSelectServerClick: () -> Unit, onEnableQuicProtocolClick: () -> Unit) {
 	Column(
-		verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
-		horizontalAlignment = Alignment.Start,
+		verticalArrangement = Arrangement.spacedBy(16.dp.scaledHeight()),
 		modifier = Modifier
-			.fillMaxSize()
-			.background(MaterialTheme.colorScheme.background),
+			.fillMaxWidth()
+			.background(MaterialTheme.colorScheme.background)
+			.verticalScroll(rememberScrollState())
+			.navigationBarsPadding()
+			.padding(vertical = 20.dp, horizontal = 16.dp),
 	) {
-		Column(
+
+		MainStyledButton(
+			onClick = {
+				onSelectServerClick()
+			},
+			content = {
+				Text(
+					stringResource(R.string.details_select_server_button),
+					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onPrimary,
+				)
+			},
 			modifier = Modifier
 				.fillMaxWidth()
-				.background(MaterialTheme.colorScheme.background)
-				.weight(1f)
-				.verticalScroll(rememberScrollState())
-				.padding(24.dp),
-		) {
-			DetailsTopSection(
-				name = detailsUiState.name,
-				countryCode = detailsUiState.countryCode,
-				location = detailsUiState.location,
-				description = detailsUiState.description,
-			)
-			DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
-			DetailsSectionPrivacy(
-				asnKind = detailsUiState.asnKind,
-				isQuicSupportedByGateway = detailsUiState.isQuickSupportedByGateway,
-				onEnableQuicProtocolClick = onEnableQuicProtocolClick,
-			)
-			DetailsSectionPerformance(detailsUiState.score, detailsUiState.load, detailsUiState.uptime, detailsUiState.lastUpdated)
-			DetailsSectionIdentity(detailsUiState.identity, detailsUiState.buildVersion)
-			DetailsSectionBottom(detailsUiState.identity)
-		}
+				.height(48.dp.scaledHeight()),
+			shape = RoundedCornerShape(12.dp),
+		)
 
-		Box(
-			modifier = Modifier
-				.shadow(elevation = 20.dp, spotColor = Color(0x26000000), ambientColor = Color(0x26000000))
-				.topBorder(height = 1.dp, color = MaterialTheme.colorScheme.outline)
-				.background(MaterialTheme.colorScheme.surface)
-				.navigationBarsPadding()
-				.padding(24.dp),
-		) {
-			MainStyledButton(
-				onClick = {
-					onSelectServerClick()
-				},
-				content = {
-					Text(
-						stringResource(R.string.details_select_server_button),
-						style = Typography.titleMedium,
-						fontFamily = FontFamily(Font(R.font.lab_grotesque_regular)),
-					)
-				},
-				color = MaterialTheme.colorScheme.primary,
-				modifier = Modifier
-					.fillMaxWidth()
-					.height(42.dp.scaledHeight()),
-			)
-		}
+		DetailsTopSection(
+			name = detailsUiState.name,
+			countryCode = detailsUiState.countryCode,
+			location = detailsUiState.location,
+			description = detailsUiState.description,
+		)
+		DetailsSectionPrivacy(
+			asnKind = detailsUiState.asnKind,
+			isQuicSupportedByGateway = detailsUiState.isQuickSupportedByGateway,
+			onEnableQuicProtocolClick = onEnableQuicProtocolClick,
+		)
+		DetailsSectionPerformance(detailsUiState.score, detailsUiState.load, detailsUiState.uptime, detailsUiState.lastUpdated)
+		DetailsSectionIP(detailsUiState.exitIpv4, detailsUiState.exitIpv6, detailsUiState.asn, detailsUiState.asnName)
+		DetailsSectionIdentity(detailsUiState.identity, detailsUiState.buildVersion)
+		DetailsSectionBottom(detailsUiState.identity)
 	}
 }
 

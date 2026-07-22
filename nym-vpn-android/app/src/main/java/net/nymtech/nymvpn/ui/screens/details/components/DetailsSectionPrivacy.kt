@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,10 +25,13 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.theme.LocalNymColors
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 import nym_vpn_lib_types.AsnKind
 
@@ -44,6 +48,7 @@ fun DetailsSectionPrivacy(asnKind: AsnKind?, isQuicSupportedByGateway: Boolean, 
 	}
 
 	InfoSection(
+		titleResId = R.string.details_features_title,
 		items = items,
 		bottomContent = {
 			if (isQuicSupportedByGateway) {
@@ -75,9 +80,9 @@ private fun DetailsRow(icon: ImageVector, iconTint: Color, iconSize: Dp, textRes
 @Composable
 private fun MixnetItem() {
 	DetailsRow(
-		icon = ImageVector.vectorResource(R.drawable.visibility_off),
-		iconTint = Color.Green,
-		iconSize = 20.dp,
+		icon = ImageVector.vectorResource(R.drawable.ic_mixnet),
+		iconTint = MaterialTheme.colorScheme.primary,
+		iconSize = 16.dp,
 		textResId = R.string.details_with_mixnet,
 	)
 }
@@ -130,4 +135,18 @@ private fun QuicBottomContent(onEnableQuicProtocolClick: () -> Unit) {
 			onEnableQuicProtocolClick()
 		},
 	)
+}
+
+@Composable
+@PreviewLightDark
+private fun PreviewDetailsSectionPrivacy() {
+	NymVPNTheme(Theme.default()) {
+		Surface {
+			DetailsSectionPrivacy(
+				asnKind = AsnKind.RESIDENTIAL,
+				isQuicSupportedByGateway = true,
+				onEnableQuicProtocolClick = {},
+			)
+		}
+	}
 }

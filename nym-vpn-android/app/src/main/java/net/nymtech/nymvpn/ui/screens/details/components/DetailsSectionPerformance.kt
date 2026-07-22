@@ -6,13 +6,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 import net.nymtech.nymvpn.util.extensions.colorLoad
 import net.nymtech.nymvpn.util.extensions.colorPerformance
@@ -71,6 +75,7 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 	}
 
 	InfoSection(
+		titleResId = R.string.details_features_title,
 		items = items,
 		bottomContent = lastUpdated?.let {
 			{
@@ -86,4 +91,19 @@ fun DetailsSectionPerformance(score: Score?, load: Score?, uptime: Float?, lastU
 			}
 		},
 	)
+}
+
+@Composable
+@PreviewLightDark
+private fun PreviewDetailsSectionPerformance() {
+	NymVPNTheme(Theme.default()) {
+		Surface {
+			DetailsSectionPerformance(
+				score = Score.HIGH,
+				load = Score.HIGH,
+				uptime = 89f,
+				lastUpdated = "September 11, 2025 at 13:31",
+			)
+		}
+	}
 }

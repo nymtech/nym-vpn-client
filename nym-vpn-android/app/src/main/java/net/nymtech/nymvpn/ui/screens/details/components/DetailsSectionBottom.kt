@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -26,8 +27,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
@@ -107,5 +111,15 @@ fun DetailsSectionBottom(identity: String) {
 			tint = MaterialTheme.colorScheme.onPrimaryContainer,
 			modifier = Modifier.size(12.dp),
 		)
+	}
+}
+
+@Composable
+@PreviewLightDark
+private fun PreviewDetailsSectionBottom() {
+	NymVPNTheme(Theme.default()) {
+		Surface {
+			DetailsSectionBottom(identity = "wqewqewqewqewqfade2123123")
+		}
 	}
 }

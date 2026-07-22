@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -20,8 +21,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 
 @Composable
@@ -117,5 +121,21 @@ fun DetailsSectionIP(exitIpv4: String?, exitIpv6: String?, asn: String?, asnName
 		}
 	}
 
-	InfoSection(items = items)
+	InfoSection(
+		titleResId = R.string.details_features_title, items = items)
+}
+
+@Composable
+@PreviewLightDark
+private fun PreviewDetailsSectionIP() {
+	NymVPNTheme(Theme.default()) {
+		Surface {
+			DetailsSectionIP(
+				exitIpv4 = "12.34.152.125",
+				exitIpv6 = "12:ff:14::155",
+				asn = "AS29234",
+				asnName = "Google LLC",
+			)
+		}
+	}
 }

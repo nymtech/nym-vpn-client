@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,8 +23,11 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.theme.NymVPNTheme
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.Typography
 
 @Composable
@@ -47,6 +51,7 @@ fun DetailsSectionIdentity(identity: String, buildVersion: String?) {
 	}
 
 	InfoSection(
+		titleResId = R.string.details_features_title,
 		items = items,
 		bottomContent = {
 			Row(
@@ -77,4 +82,14 @@ fun DetailsSectionIdentity(identity: String, buildVersion: String?) {
 			}
 		},
 	)
+}
+
+@Composable
+@PreviewLightDark
+private fun PreviewDetailsSectionIdentity() {
+	NymVPNTheme(Theme.default()) {
+		Surface {
+			DetailsSectionIdentity(identity = "wqewqewqewqewqfade2123123", buildVersion = "1.2.4")
+		}
+	}
 }
