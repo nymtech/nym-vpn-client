@@ -276,42 +276,42 @@ nym-windows = { path = "crates/nym-windows" }
 test-rpc = { path = "crates/test/test-rpc" }
 
 # For normal development
-nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-lp = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
-nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "release/2026.14-amsterdam" }
+nym-authenticator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-bandwidth-fetcher = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-gateway-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-http-api-client-macro = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-lp = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-lp-data = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-network-defaults = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-ip-packet-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-registration-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-registration-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-upgrade-mode-check = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-wireguard-private-metadata-client = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-wireguard-private-metadata-shared = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
+nym-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "vpn/release/2026.14-amsterdam" }
 
 # For local development
 # [patch."https://github.com/nymtech/nym"]
