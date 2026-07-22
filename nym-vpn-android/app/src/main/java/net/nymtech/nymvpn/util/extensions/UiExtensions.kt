@@ -137,6 +137,9 @@ fun ErrorStateReason.toUserMessage(context: Context): String = when (this) {
 	ErrorStateReason.DeviceLoggedOut -> context.getString(R.string.error_device_logged_out)
 	ErrorStateReason.InactiveAccount -> context.getString(R.string.error_inactive_account)
 
+	ErrorStateReason.CredentialFetchingFailed -> context.getString(R.string.error_credential_fetching_failed)
+	ErrorStateReason.NoCredentialAvailable -> context.getString(R.string.error_no_credential_available)
+
 	ErrorStateReason.SetDns -> context.getString(R.string.error_set_dns)
 	ErrorStateReason.SetFirewallPolicy -> context.getString(R.string.error_set_firewall_policy)
 	ErrorStateReason.SetRouting -> context.getString(R.string.error_set_routing)

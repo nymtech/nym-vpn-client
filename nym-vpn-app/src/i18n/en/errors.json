@@ -29,7 +29,9 @@
     "tunnel-provider": "Tunnel provider error",
     "inactive-account": "Your account is inactive",
     "device-logged-out": "This device has been logged out. Please log in to continue using the VPN.",
-    "needs-relaxed-independence-criteria": "Needs relaxed independence criteria"
+    "needs-relaxed-independence-criteria": "Needs relaxed independence criteria",
+    "credential-fetching-failed": "Couldn't obtain the credentials needed to connect. Please try again.",
+    "no-credential-available": "No credentials available to connect. Please try again."
   },
   "account": {
     "internal": "Internal account error",

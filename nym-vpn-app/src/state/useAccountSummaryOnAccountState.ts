@@ -6,12 +6,10 @@ import { dispatch, useAppStore } from '../store';
 
 const ACCOUNT_STATES_REFRESH_SUMMARY: ReadonlySet<AccountState> = new Set([
   'ready',
-  'upgrade-mode',
   'bandwidth-exceeded',
   'status-not-active',
   'no-subscription',
   'max-device-reached',
-  'requesting-zk-nyms',
 ]);
 
 export function useAccountSummaryOnAccountState() {

@@ -3,7 +3,6 @@
 
 use crate::common::{TestBench, account_summary::*, endpoints, mock_account, mock_account_id};
 
-use nym_vpn_account_controller::AvailableTicketbooks;
 use nym_vpn_api_client::response::NymVpnDeviceStatus;
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, AccountControllerState,
@@ -49,10 +48,6 @@ async fn logged_out_state_command() -> anyhow::Result<()> {
 
     assert_eq!(
         test_bench.command_sender.get_active_devices().await,
-        Err(AccountCommandError::NoAccountStored)
-    );
-    assert_eq!(
-        test_bench.command_sender.get_available_tickets().await,
         Err(AccountCommandError::NoAccountStored)
     );
     assert_eq!(
@@ -134,10 +129,6 @@ async fn offline_state_command() -> anyhow::Result<()> {
 
     assert_eq!(
         test_bench.command_sender.get_active_devices().await,
-        Err(AccountCommandError::Offline)
-    );
-    assert_eq!(
-        test_bench.command_sender.get_available_tickets().await,
         Err(AccountCommandError::Offline)
     );
     assert_eq!(
@@ -295,16 +286,6 @@ async fn ready_state_command() -> anyhow::Result<()> {
         test_bench.command_sender.get_usage().await,
         Ok(mock_usage_response().items)
     );
-    assert_eq!(
-        test_bench
-            .command_sender
-            .get_available_tickets()
-            .await
-            .unwrap()
-            .ticketbooks
-            .len(),
-        3
-    );
 
     assert_eq!(
         test_bench.command_sender.reset_device_identity(None).await,
@@ -413,12 +394,6 @@ async fn error_state_command() -> anyhow::Result<()> {
     assert_eq!(
         test_bench.command_sender.get_usage().await,
         Ok(mock_usage_response().items)
-    );
-    assert_eq!(
-        test_bench.command_sender.get_available_tickets().await,
-        Ok(AvailableTicketbooks {
-            ticketbooks: Vec::new()
-        })
     );
 
     assert_eq!(

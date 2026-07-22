@@ -169,12 +169,12 @@
 	<string name="error_expired_subscription_description">Recurring payment method has been refused</string>
 	<string name="error_expired_subscription_button">Renew Now</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">NymVPN ইনিশিয়ালাইজ করা হচ্ছে (1/6)</string>
-	<string name="connection_state_awaiting_readiness">আপনার অ্যাকাউন্ট সেটআপ করা হচ্ছে (2/6)</string>
-	<string name="connection_state_refreshing_gateways">সার্ভার তালিকা আপডেট হচ্ছে (3/6)</string>
-	<string name="connection_state_selecting_gateways">সেরা সার্ভার নির্বাচন করা হচ্ছে (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">সার্ভারগুলোর সাথে গোপনভাবে রেজিস্টার করা হচ্ছে (5/6)</string>
-	<string name="connection_state_connecting_tunnel">সার্ভারের সাথে সংযোগ স্থাপন করা হচ্ছে (6/6)</string>
+	<string name="connection_state_resolving_addresses">NymVPN ইনিশিয়ালাইজ করা হচ্ছে (1/7)</string>
+	<string name="connection_state_awaiting_readiness">আপনার অ্যাকাউন্ট সেটআপ করা হচ্ছে (2/7)</string>
+	<string name="connection_state_refreshing_gateways">সার্ভার তালিকা আপডেট হচ্ছে (4/7)</string>
+	<string name="connection_state_selecting_gateways">সেরা সার্ভার নির্বাচন করা হচ্ছে (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">সার্ভারগুলোর সাথে গোপনভাবে রেজিস্টার করা হচ্ছে (6/7)</string>
+	<string name="connection_state_connecting_tunnel">সার্ভারের সাথে সংযোগ স্থাপন করা হচ্ছে (7/7)</string>
 	<!-- One-click mode -->
 	<string name="one_click_auto_server">Use best server</string>
 	<string name="one_click_mode_fast">Fast</string>

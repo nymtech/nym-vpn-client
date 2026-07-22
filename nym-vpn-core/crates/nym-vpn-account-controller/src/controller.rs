@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
 use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
@@ -22,7 +23,7 @@ use crate::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState, SyncMode,
         SyncingNetworkState,
     },
-    storage::{AccountStorage, AccountStorageOp, VpnCredentialStorage},
+    storage::{AccountStorage, AccountStorageOp},
 };
 
 pub struct AccountController<C, S>
@@ -69,6 +70,7 @@ where
         config: AccountControllerConfig,
         storage: S,
         connectivity_handle: C,
+        bandwidth_control_command_tx: BandwidthControllerRequestSender,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         tracing::info!(
@@ -86,27 +88,10 @@ where
         // Setup the account storage, which is used to store the account and device keys
         let account_storage = AccountStorage::from(storage);
 
-        // Setup the credential storage, which is used to store the ticketbooks
-        let credential_storage =
-            VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?;
-
-        // Load remaining state that may fail; close credential_storage on any error so the
-        // underlying db pool is released before we return.
-        let (vpn_api_account, device_keys, wireguard_keys_storage) = match async {
-            let vpn_api_account = account_storage.load_vpn_account().await?;
-            let device_keys = account_storage.load_device_keys().await?;
-            let wireguard_keys_storage =
-                WireguardKeysDb::init(Some(config.data_dir.clone())).await?;
-            Ok::<_, Error>((vpn_api_account, device_keys, wireguard_keys_storage))
-        }
-        .await
-        {
-            Ok(v) => v,
-            Err(e) => {
-                credential_storage.close().await;
-                return Err(e);
-            }
-        };
+        // Load remaining state that may fail
+        let vpn_api_account = account_storage.load_vpn_account().await?;
+        let device_keys = account_storage.load_device_keys().await?;
+        let wireguard_keys_storage = WireguardKeysDb::init(Some(config.data_dir.clone())).await?;
 
         // Load the cached account summary (if any) so it is available before the first network
         // sync completes. A read failure is non-critical - treat it as no cache.
@@ -125,10 +110,10 @@ where
         };
 
         // Shared_state
-        let shared_state = SharedAccountState::new(
+        let mut shared_state = SharedAccountState::new(
             connectivity_handle,
+            bandwidth_control_command_tx,
             config,
-            credential_storage,
             wireguard_keys_storage,
             nym_vpn_api_client,
             nyxd_client,
@@ -137,6 +122,7 @@ where
             device_keys,
             storage_op_sender,
             event_channel,
+            cancel_token.clone(),
         );
 
         let is_offline = shared_state
@@ -148,7 +134,7 @@ where
         let (current_state_handler, initial_state) = if is_offline {
             OfflineState::enter()
         } else {
-            SyncingNetworkState::enter(&shared_state, SyncMode::Optimistic)
+            SyncingNetworkState::enter(&mut shared_state, SyncMode::Optimistic).await
         };
 
         let public_initial_state = AccountControllerState::from(initial_state);
@@ -246,7 +232,6 @@ where
             }
         }
 
-        self.shared_state.credential_storage.close().await;
         self.shared_state.wireguard_keys_storage.close().await;
         tracing::debug!("Account controller state machine is exiting...");
     }

@@ -31,6 +31,7 @@ const GLOW_SPREAD = SPHERE_SIZE * 0.55;
 const PROGRESS_STEPS = {
   'resolving-api-addresses': { ring: 0, half: true },
   'awaiting-account-readiness': { ring: 0, half: false },
+  'awaiting-credentials-availability': { ring: 0, half: false },
   'refreshing-gateways': { ring: 1, half: true },
   'selecting-gateways': { ring: 1, half: false },
   'registering-with-gateways': { ring: 2, half: true },

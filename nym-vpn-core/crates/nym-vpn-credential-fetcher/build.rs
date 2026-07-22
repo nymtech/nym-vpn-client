@@ -8,7 +8,7 @@ async fn main() {
 
     #[allow(clippy::unwrap_used)]
     let out_dir = env::var("OUT_DIR").unwrap();
-    let database_path = format!("{out_dir}/nym-vpn-account-controller-example.sqlite");
+    let database_path = format!("{out_dir}/nym-vpn-credential-fetcher-example.sqlite");
 
     #[allow(clippy::expect_used)]
     let mut conn = SqliteConnection::connect(&format!("sqlite://{database_path}?mode=rwc"))
