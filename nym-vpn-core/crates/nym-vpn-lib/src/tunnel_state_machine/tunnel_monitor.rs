@@ -100,10 +100,10 @@ use crate::{
 };
 
 /// Default MTU for mixnet tun device.
-const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
+const DEFAULT_MIXNET_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
     1280
 } else {
-    1500
+    1420
 };
 
 /// User-facing tunnel type identifier.
@@ -1044,18 +1044,19 @@ impl TunnelMonitor {
                 self.route_handler
                     .get_mtu_for_route(assigned_addresses.entry_mixnet_gateway_ip)
                     .await
+                    .map(|route_mtu| std::cmp::min(DEFAULT_MIXNET_MTU, route_mtu))
                     .inspect_err(|e| {
                         tracing::warn!(
                             "{}",
                             e.display_chain_with_msg("Failed to detect mtu for route")
                         );
                     })
-                    .unwrap_or(DEFAULT_TUN_MTU)
+                    .unwrap_or(DEFAULT_MIXNET_MTU)
             }
 
             #[cfg(not(any(target_os = "linux", target_os = "windows")))]
             {
-                DEFAULT_TUN_MTU
+                DEFAULT_MIXNET_MTU
             }
         };
 
