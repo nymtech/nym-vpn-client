@@ -325,9 +325,20 @@ async fn main() -> Result<()> {
                 None => None,
             };
 
-            let result = run_tests::run(&*instance, tests, skip_wait, !verbose, summary_logger)
-                .await
-                .context("Tests failed");
+            // SSH creds for out-of-band daemon log capture on test failure.
+            let ssh_options = vm_config
+                .get_ssh_options()
+                .map(|(user, password)| (user.to_string(), password.to_string()));
+            let result = run_tests::run(
+                &*instance,
+                tests,
+                skip_wait,
+                !verbose,
+                summary_logger,
+                ssh_options,
+            )
+            .await
+            .context("Tests failed");
 
             if display {
                 instance.wait().await;

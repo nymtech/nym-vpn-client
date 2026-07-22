@@ -304,6 +304,25 @@ jobs:
             ${{ env.VM_USER }}@${VM_IP}:/tmp/test-report.txt /tmp/test-report.txt 2>/dev/null || \
             echo "No test report found"
 
+      - name: Retrieve daemon logs
+        if: always()
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+        run: |
+          mkdir -p /tmp/daemon-logs
+          scp ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.VM_USER }}@${VM_IP}:'/tmp/daemon-log-*.log' /tmp/daemon-logs/ 2>/dev/null || \
+            echo "No daemon logs found"
+
+      - name: Upload daemon logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: daemon-logs
+          path: /tmp/daemon-logs/
+          if-no-files-found: ignore
+          retention-days: 20
+
       - name: Format test report
         if: always()
         run: |
