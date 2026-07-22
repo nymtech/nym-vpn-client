@@ -521,12 +521,26 @@ impl NymVpnService {
         };
 
         let network_details = network_env.nym_network_details();
+
+        // Built here (rather than owned solely by `VpnApiClient`) so it can be shared with the
+        // tunnel state machine's bandwidth monitor further down.
+        let skew_time_provider_urls = network_env
+            .nym_vpn_api_urls()
+            .ok_or(Error::InvalidEnvironment("empty nym_vpn_api_urls"))?;
+        let skew_time_provider = nym_vpn_api_client::VpnApiClient::health_endpoint_time_provider(
+            api_urls_to_urls(&skew_time_provider_urls).map_err(Error::ConvertApiUrls)?,
+            Some(parameters.user_agent.clone()),
+        )
+        .map_err(Error::CreateApiClient)?;
+        let skew_manager = nym_vpn_api_client::SkewManager::new(skew_time_provider);
+
         let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::from_network(
             network_details,
             Some(parameters.user_agent.clone()),
         )
         .await
-        .map_err(Error::CreateApiClient)?;
+        .map_err(Error::CreateApiClient)?
+        .with_skew_manager(skew_manager.clone());
 
         let nyxd_client = NyxdClient::new(&network_env);
 
@@ -716,6 +730,7 @@ impl NymVpnService {
             account_command_tx.clone(),
             account_state_rx.clone(),
             bandwidth_command_tx.clone(),
+            skew_manager,
             statistics_event_sender.clone(),
             topology_service.clone(),
             connectivity_handle,

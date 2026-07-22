@@ -49,6 +49,7 @@ use nym_registration_client::{
     RegistrationMode, RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
 };
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_api_client::SkewManager;
 use nym_vpn_lib_types::{
     AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
     EstablishConnectionData, GatewayLightInfo, MixnetConnectionData, NymAddress,
@@ -264,6 +265,7 @@ pub struct TunnelMonitor {
     account_controller_state: AccountStateReceiver,
     account_command_tx: AccountCommandSender,
     bandwidth_command_tx: BandwidthControllerRequestSender,
+    skew_manager: SkewManager,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     custom_topology_provider: VpnTopologyServiceHandle,
     shutdown_token: CancellationToken,
@@ -323,6 +325,7 @@ impl TunnelMonitor {
         account_controller_state: AccountStateReceiver,
         account_command_tx: AccountCommandSender,
         bandwidth_command_tx: BandwidthControllerRequestSender,
+        skew_manager: SkewManager,
         gateway_provider: GatewayProvider<GatewayCacheHandle>,
         custom_topology_provider: VpnTopologyServiceHandle,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
@@ -344,6 +347,7 @@ impl TunnelMonitor {
             account_controller_state,
             account_command_tx,
             bandwidth_command_tx,
+            skew_manager,
             gateway_provider,
             custom_topology_provider,
             shutdown_token: shutdown_token.clone(),
@@ -1206,6 +1210,7 @@ impl TunnelMonitor {
 
         let bw = BandwidthMonitor::create(
             self.bandwidth_command_tx.clone(),
+            self.skew_manager.clone(),
             selected_gateways,
             entry_gateway_client,
             exit_gateway_client,

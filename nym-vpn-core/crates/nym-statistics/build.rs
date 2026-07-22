@@ -21,5 +21,5 @@ async fn main() {
         .await
         .expect("Failed to perform SQLx migrations");
 
-    println!("cargo:rustc-env=DATABASE_URL=sqlite://{}", &database_path);
+    println!("cargo:rustc-env=DATABASE_URL=sqlite://{}", database_path);
 }
