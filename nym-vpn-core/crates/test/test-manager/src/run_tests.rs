@@ -37,7 +37,14 @@ async fn fetch_guest_daemon_log(access: GuestSshAccess) -> Result<String> {
                 .and_then(|session| {
                     session.exec_blocking(&format!("sudo cat {GUEST_DAEMON_LOG_PATH}"))
                 }) {
-                Ok(contents) => return Ok(contents),
+                Ok(contents) if !contents.trim().is_empty() => return Ok(contents),
+                Ok(_) => {
+                    log::debug!(
+                        "daemon log capture attempt {attempt}/5: empty output (missing/unreadable file?)"
+                    );
+                    last_err = Some(anyhow::anyhow!("empty daemon log output"));
+                    std::thread::sleep(Duration::from_secs(3));
+                }
                 Err(err) => {
                     log::debug!("daemon log capture attempt {attempt}/5 failed: {err:#}");
                     last_err = Some(err);
