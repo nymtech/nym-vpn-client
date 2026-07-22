@@ -137,6 +137,9 @@ pub async fn spawn(
                 "nym-socks5-proxy did not report ready within {ready_timeout:?}; tearing it down and continuing without it"
             );
         }
+        // Safe for all three error variants: cancellation is idempotent and
+        // joining a supervisor that has already exited (ProxyError,
+        // ExitedBeforeReady) or is mid-exit returns immediately without racing.
         teardown_after_failed_start(&supervisor_token, join_handle).await;
         return Err(err);
     }
