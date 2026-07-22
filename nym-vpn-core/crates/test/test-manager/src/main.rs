@@ -5,6 +5,7 @@
 mod config;
 #[cfg(target_os = "linux")]
 mod container;
+mod device_cleanup;
 mod logging;
 mod nym_daemon;
 mod run_tests;
@@ -99,6 +100,13 @@ enum Commands {
     FormatTestReports {
         /// One or more test reports output by 'test-manager run-tests --test-report'
         reports: Vec<PathBuf>,
+    },
+
+    /// Delete all devices registered on the test account (pre-run cleanup)
+    DeleteDevices {
+        /// Account mnemonic (24 words)
+        #[arg(long)]
+        nym_mnemonic: String,
     },
 
     /// Update the system image
@@ -214,6 +222,12 @@ async fn main() -> Result<()> {
         }
         Commands::FormatTestReports { reports } => {
             summary::print_summary_table(&reports).await;
+            Ok(())
+        }
+        Commands::DeleteDevices { nym_mnemonic } => {
+            device_cleanup::delete_all_devices(&nym_mnemonic)
+                .await
+                .context("Failed to delete account devices")?;
             Ok(())
         }
         Commands::RunVm {

@@ -259,6 +259,18 @@ jobs:
             ${{ env.TEST_CRATE_DIR }}/test-manager/test.sh \
             ${{ env.VM_USER }}@${VM_IP}:${{ env.VM_DIST_DIR }}/test.sh
 
+      - name: Purge account devices
+        env:
+          VM_IP: ${{ steps.vm-ip.outputs.ip }}
+          TEST_HARNESS_MNEMONIC: ${{ secrets.TEST_HARNESS_MAINNET_MNEMONIC }}
+        run: |
+          # Delete all devices on the test account (account-level API auth, no
+          # daemon needed) so each run starts clean and never hits MaxDeviceReached
+          ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+            ${{ env.VM_USER }}@${VM_IP} \
+            "${{ env.VM_DIST_DIR }}/test-manager delete-devices --nym-mnemonic '${TEST_HARNESS_MNEMONIC}'" || \
+            echo "Device purge failed (continuing)"
+
       - name: Configure test VM
         env:
           VM_IP: ${{ steps.vm-ip.outputs.ip }}
