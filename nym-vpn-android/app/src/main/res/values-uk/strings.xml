@@ -169,12 +169,12 @@
 	<string name="error_expired_subscription_description">Спосіб оплати з регулярними платежами було відхилено</string>
 	<string name="error_expired_subscription_button">Поновити зараз</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Ініціалізація NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">Налаштування облікового запису (2/6)</string>
-	<string name="connection_state_refreshing_gateways">Оновлення списку серверів (3/6)</string>
-	<string name="connection_state_selecting_gateways">Вибір кращих серверів (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">Анонімна реєстрація на серверах (5/6)</string>
-	<string name="connection_state_connecting_tunnel">Встановлення з\'єднання з сервером (6/6)</string>
+	<string name="connection_state_resolving_addresses">Ініціалізація NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Налаштування облікового запису (2/7)</string>
+	<string name="connection_state_refreshing_gateways">Оновлення списку серверів (4/7)</string>
+	<string name="connection_state_selecting_gateways">Вибір кращих серверів (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Анонімна реєстрація на серверах (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Встановлення з\'єднання з сервером (7/7)</string>
 	<!-- One-click mode -->
 	<string name="one_click_auto_server">Використовуйте найкращий сервер</string>
 	<string name="one_click_mode_fast">Швидкий</string>

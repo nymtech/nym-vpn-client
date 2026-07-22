@@ -169,12 +169,12 @@
 	<string name="error_expired_subscription_description">Phương thức thanh toán định kỳ đã bị từ chối</string>
 	<string name="error_expired_subscription_button">Gia hạn ngay</string>
 	<!-- Main Screen -->
-	<string name="connection_state_resolving_addresses">Đang khởi tạo NymVPN (1/6)</string>
-	<string name="connection_state_awaiting_readiness">Đang thiết lập tài khoản của bạn (2/6)</string>
-	<string name="connection_state_refreshing_gateways">Đang cập nhật danh sách máy chủ (3/6)</string>
-	<string name="connection_state_selecting_gateways">Đang chọn máy chủ tốt nhất (4/6)</string>
-	<string name="connection_state_connecting_mixnet_client">Đang đăng ký ẩn danh với các máy chủ (5/6)</string>
-	<string name="connection_state_connecting_tunnel">Đang thiết lập kết nối máy chủ (6/6)</string>
+	<string name="connection_state_resolving_addresses">Đang khởi tạo NymVPN (1/7)</string>
+	<string name="connection_state_awaiting_readiness">Đang thiết lập tài khoản của bạn (2/7)</string>
+	<string name="connection_state_refreshing_gateways">Đang cập nhật danh sách máy chủ (4/7)</string>
+	<string name="connection_state_selecting_gateways">Đang chọn máy chủ tốt nhất (5/7)</string>
+	<string name="connection_state_connecting_mixnet_client">Đang đăng ký ẩn danh với các máy chủ (6/7)</string>
+	<string name="connection_state_connecting_tunnel">Đang thiết lập kết nối máy chủ (7/7)</string>
 	<!-- One-click mode -->
 	<string name="one_click_auto_server">Sử dụng máy chủ tốt nhất</string>
 	<string name="one_click_mode_fast">Nhanh</string>

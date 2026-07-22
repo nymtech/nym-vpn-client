@@ -20,7 +20,6 @@ class LoginReadinessTest {
 			),
 		)
 		assertFalse(LoginReadiness.isSettledForLogin(AccountControllerState.Syncing))
-		assertFalse(LoginReadiness.isSettledForLogin(AccountControllerState.RequestingZkNyms))
 		assertFalse(
 			LoginReadiness.isSettledForLogin(
 				AccountControllerState.Error(
@@ -39,7 +38,6 @@ class LoginReadinessTest {
 	fun readyStates_areReadyToConnect() {
 		assertTrue(LoginReadiness.isReadyToConnect(AccountControllerState.ReadyToConnect))
 		assertTrue(LoginReadiness.isReadyToConnect(AccountControllerState.Decentralised))
-		assertTrue(LoginReadiness.isReadyToConnect(AccountControllerState.UpgradeMode))
 		assertFalse(LoginReadiness.isReadyToConnect(AccountControllerState.Syncing))
 	}
 
@@ -93,10 +91,6 @@ class LoginReadinessTest {
 		assertEquals(
 			LoginPreparationWaitOutcome.ContinueWaiting,
 			LoginReadiness.loginPreparationWaitOutcome(AccountControllerState.Syncing),
-		)
-		assertEquals(
-			LoginPreparationWaitOutcome.ContinueWaiting,
-			LoginReadiness.loginPreparationWaitOutcome(AccountControllerState.RequestingZkNyms),
 		)
 		assertEquals(
 			LoginPreparationWaitOutcome.Failed,
