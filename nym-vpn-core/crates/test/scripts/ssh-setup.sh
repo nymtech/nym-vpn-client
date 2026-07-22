@@ -63,6 +63,11 @@ Environment="RUST_LOG=debug"
 WantedBy=multi-user.target
 EOF
 
+    # The base VM image may ship a pre-baked, logged-in account under
+    # /var/lib/nym-vpnd. 
+    echo "Clearing any pre-baked nym-vpnd account state"
+    rm -rf /var/lib/nym-vpnd/mainnet
+
     echo "Starting Nym VPNd service"
 
     semanage fcontext -a -t bin_t "$RUNNER_DIR/.*" &> /dev/null || true

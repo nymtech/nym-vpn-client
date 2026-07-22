@@ -2,6 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use crate::vm::ssh::SSHSession;
 use crate::{
     logging::{Logger, Panic, TestOutput, TestResult},
     nym_daemon::{self, RpcClientProvider},
@@ -12,8 +13,83 @@ use crate::{
 use anyhow::{Context, Result};
 use futures::FutureExt;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
-use std::{panic, time::Duration};
+use std::{io::Write, net::IpAddr, panic, time::Duration};
 use test_rpc::{client_nym::NymServiceClient, logging::Output};
+
+const GUEST_DAEMON_LOG_PATH: &str = "/var/log/nym-vpnd/nym-vpnd.log";
+
+const DAEMON_LOG_TAIL_LINES: usize = 4000;
+
+#[derive(Clone)]
+struct GuestSshAccess {
+    user: String,
+    password: String,
+    ip: IpAddr,
+}
+
+/// Fetch the daemon log over SSH, retrying briefly since the guest may be
+/// firewalled off by the kill-switch during a connect attempt.
+async fn fetch_guest_daemon_log(access: GuestSshAccess) -> Result<String> {
+    tokio::task::spawn_blocking(move || {
+        let mut last_err = None;
+        for attempt in 1..=5 {
+            match SSHSession::connect(access.user.clone(), access.password.clone(), access.ip)
+                .and_then(|session| {
+                    session.exec_blocking(&format!("sudo cat {GUEST_DAEMON_LOG_PATH}"))
+                }) {
+                Ok(contents) if !contents.trim().is_empty() => return Ok(contents),
+                Ok(_) => {
+                    log::debug!(
+                        "daemon log capture attempt {attempt}/5: empty output (missing/unreadable file?)"
+                    );
+                    last_err = Some(anyhow::anyhow!("empty daemon log output"));
+                    std::thread::sleep(Duration::from_secs(3));
+                }
+                Err(err) => {
+                    log::debug!("daemon log capture attempt {attempt}/5 failed: {err:#}");
+                    last_err = Some(err);
+                    std::thread::sleep(Duration::from_secs(3));
+                }
+            }
+        }
+        Err(last_err.unwrap_or_else(|| anyhow::anyhow!("no attempts made")))
+    })
+    .await
+    .context("daemon log capture task panicked")?
+}
+
+/// Best-effort: write the full daemon log to a host file and echo the tail into
+/// the CI output. Never fails the run.
+async fn capture_daemon_log_on_failure(access: &GuestSshAccess, test_name: &str) {
+    let contents = match fetch_guest_daemon_log(access.clone()).await {
+        Ok(contents) => contents,
+        Err(err) => {
+            log::warn!("Could not capture daemon log for '{test_name}' over SSH: {err:#}");
+            return;
+        }
+    };
+
+    // Write to /tmp so CI can collect it (same place as the test report), rather
+    // than the ephemeral working dir.
+    let file_name = format!("/tmp/daemon-log-{test_name}.log");
+    match std::fs::File::create(&file_name).and_then(|mut f| f.write_all(contents.as_bytes())) {
+        Ok(()) => log::info!("Wrote full daemon log for '{test_name}' to {file_name}"),
+        Err(err) => log::warn!("Failed to write daemon log file {file_name}: {err}"),
+    }
+
+    let lines: Vec<&str> = contents.lines().collect();
+    let tail = lines
+        .iter()
+        .skip(lines.len().saturating_sub(DAEMON_LOG_TAIL_LINES))
+        .copied()
+        .collect::<Vec<_>>()
+        .join("\n");
+    log::info!(
+        "===== nym-vpnd log tail ({} of {} lines) for {test_name} =====\n{tail}\n===== end nym-vpnd log for {test_name} =====",
+        DAEMON_LOG_TAIL_LINES.min(lines.len()),
+        lines.len(),
+    );
+}
 
 /// The baud rate of the serial connection between the test manager and the test runner.
 /// There is a known issue with setting a baud rate at all or macOS, and the workaround
@@ -30,6 +106,8 @@ struct TestHandler<'a> {
     summary_logger: Option<SummaryLogger>,
     print_failed_tests_only: bool,
     logger: Logger,
+    /// SSH access for out-of-band daemon log capture on failure.
+    guest_ssh_access: Option<GuestSshAccess>,
 }
 
 impl TestHandler<'_> {
@@ -65,6 +143,12 @@ impl TestHandler<'_> {
                 self.logger.flush_records();
             }
             self.logger.store_records(false);
+        }
+
+        if test_output.result.failure()
+            && let Some(access) = &self.guest_ssh_access
+        {
+            capture_daemon_log_on_failure(access, test_name).await;
         }
 
         test_output.print();
@@ -106,7 +190,13 @@ pub async fn run(
     skip_wait: bool,
     print_failed_tests_only: bool,
     summary_logger: Option<SummaryLogger>,
+    ssh_options: Option<(String, String)>,
 ) -> Result<TestResult> {
+    let guest_ssh_access = ssh_options.map(|(user, password)| GuestSshAccess {
+        user,
+        password,
+        ip: *instance.get_ip(),
+    });
     log::trace!("Setting test constants");
 
     let pty_path = instance.get_pty();
@@ -155,6 +245,7 @@ pub async fn run(
         summary_logger,
         print_failed_tests_only,
         logger: Logger::get_or_init(),
+        guest_ssh_access,
     };
 
     for test in tests {

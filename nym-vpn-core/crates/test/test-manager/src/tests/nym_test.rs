@@ -121,6 +121,10 @@ pub async fn dc_and_ensure_logged_in(
         .await
         .context("Failed to ensure logged in")?;
 
+    if let Err(err) = nym_proxy_client.set_allow_lan(true).await {
+        log::warn!("Failed to enable allow_lan for diagnostics: {err}");
+    }
+
     log::debug!("🔄 Daemon successfully prepared 🔄");
 
     Ok(())
