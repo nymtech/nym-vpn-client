@@ -58,8 +58,9 @@ jobs:
       - name: Download release PKG
         env:
           RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
+          REPO: ${{ github.repository }}
         run: |
-          gh release download "$RELEASE_TAG" --pattern "*.pkg"
+          gh release download "$RELEASE_TAG" --repo "$REPO" --pattern "*.pkg"
 
       - name: Find artifact file
         id: find_pkg
@@ -79,10 +80,11 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
           ARTIFACT_NAME: ${{ steps.find_pkg.outputs.pkg_file }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
-          ARTIFACT_URL=$(gh release view "$RELEASE_TAG" -q '.assets[] | select(.name == "$ARTIFACT_NAME") | .url')
+          ARTIFACT_URL=$(gh release view "$RELEASE_TAG" --repo "$REPO" -q '.assets[] | select(.name == "$ARTIFACT_NAME") | .url')
           if [ -z "$ARTIFACT_URL" ]; then
             echo "::error:: Failed to locate pkg artifact"
             exit 1
@@ -94,10 +96,11 @@ jobs:
         id: find_publish_date
         env:
           RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
+          REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
 
-          PUBLISHED_AT=$(gh release view "$RELEASE_TAG" -q '.publishedAt' --json publishedAt)
+          PUBLISHED_AT=$(gh release view "$RELEASE_TAG" --repo "$REPO" -q '.publishedAt' --json publishedAt)
           if [ -z "$PUBLISHED_AT" ]; then
             echo "::error:: Failed to fetch publishedAt!"
             exit 1
