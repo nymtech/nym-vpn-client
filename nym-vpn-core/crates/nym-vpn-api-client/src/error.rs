@@ -51,6 +51,9 @@ pub enum VpnApiClientError {
     #[error("failed to update device")]
     UpdateDevice(#[source] Box<HttpClientError>),
 
+    #[error("failed to delete device")]
+    DeleteDevice(#[source] Box<HttpClientError>),
+
     #[error("failed to request zk-nym")]
     RequestZkNym(#[source] Box<HttpClientError>),
 

@@ -946,6 +946,28 @@ impl VpnApiClient {
 
     // ZK-NYM
 
+    pub async fn delete_device(
+        &self,
+        account: &VpnAccount,
+        device_identity_key: &str,
+    ) -> Result<serde_json::Value> {
+        self.delete_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                &account.id(),
+                routes::DEVICE,
+                device_identity_key,
+            ],
+            account,
+            None,
+        )
+        .await
+        .map_err(Box::new)
+        .map_err(VpnApiClientError::DeleteDevice)
+    }
+
     pub async fn get_device_zk_nyms(
         &self,
         account: &VpnAccount,
