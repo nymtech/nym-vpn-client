@@ -596,17 +596,17 @@ export type VpndInfo = { version: string; network: string; gitCommit: string };
 export type VpndStatus =
   | { ok: VpndInfo | null }
   | {
-    nonCompat: {
-      /**
-       * The current daemon info, including its version
-       */
-      current: VpndInfo;
-      /**
-       * The SemVer version requirement
-       */
-      requirement: string;
-    };
-  }
+      nonCompat: {
+        /**
+         * The current daemon info, including its version
+         */
+        current: VpndInfo;
+        /**
+         * The SemVer version requirement
+         */
+        requirement: string;
+      };
+    }
   | 'down'
   | 'authDenied';
 
