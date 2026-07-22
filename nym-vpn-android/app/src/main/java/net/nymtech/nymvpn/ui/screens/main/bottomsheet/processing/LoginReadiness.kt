@@ -61,6 +61,5 @@ object LoginReadiness {
 
 	fun canAdvanceLoginNavigation(workSettled: Boolean, carouselFinished: Boolean): Boolean = workSettled && carouselFinished
 
-	fun shouldShowCredentialsCopy(setupCarouselFinished: Boolean, accountState: AccountControllerState?): Boolean =
-		setupCarouselFinished && accountState is AccountControllerState.Syncing
+	fun shouldShowCredentialsCopy(setupCarouselFinished: Boolean, accountState: AccountControllerState?): Boolean = setupCarouselFinished && accountState is AccountControllerState.Syncing
 }
