@@ -38,7 +38,7 @@ use crate::resolver;
 use crate::socks5_proxy::Socks5ProxyManager;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::socks5_proxy::find_proxy_binary;
-use crate::{adblocker, recents::RecentsManager};
+use crate::{adblocker, favorites::recents::RecentsManager};
 
 use crate::{
     GatewayProviderError, UserAgent, bandwidth_monitor::Error as BandwidthMonitorError,

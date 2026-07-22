@@ -9,10 +9,10 @@ mod bandwidth_monitor;
 pub mod cache_refresh;
 pub mod config;
 mod dns_filter;
+mod favorites;
 pub mod logging;
 mod mixnet;
 pub mod privy;
-mod recents;
 #[cfg(not(target_os = "android"))]
 mod resolver;
 pub mod sentry;
@@ -43,11 +43,11 @@ pub use nym_sdk::{
 };
 
 pub use crate::{
+    favorites::{FavoritesManager, RecentGatewayCache, RecentsError, RecentsManager},
     mixnet::{
         DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, MixnetError,
         VpnTopologyProvider, VpnTopologyService, VpnTopologyServiceError, VpnTopologyServiceHandle,
     },
-    recents::{RecentGatewayCache, RecentsError, RecentsManager},
     tunnel_state_machine::tunnel::gateway_provider::GatewayProviderError,
 };
 

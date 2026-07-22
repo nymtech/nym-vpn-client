@@ -82,10 +82,10 @@ use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
     DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
     config::GlobalConfig,
+    favorites::recents::RecentsManager,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     logging::LogFileRemoverHandle,
     paths::{NymConfigPaths, Paths},
-    recents::RecentsManager,
     tunnel_state_machine::{
         NymConfig, TunnelCommand, TunnelConstants, TunnelStateMachine,
         tunnel::gateway_provider::GatewayProvider,
