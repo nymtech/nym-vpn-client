@@ -20,9 +20,31 @@ const PROXY_BINARY_NAME: &str = if cfg!(windows) {
     "nym-socks5-proxy"
 };
 
-/// Maximum time to wait for nym-socks5-proxy to report readiness before giving up
-/// on it.
+/// Default maximum time to wait for nym-socks5-proxy to report readiness before
+/// giving up on it. Overridable at runtime via `READY_TIMEOUT_ENV` for slow CI or
+/// constrained environments.
 const READY_TIMEOUT: Duration = Duration::from_secs(30);
+
+const READY_TIMEOUT_ENV: &str = "NYM_SOCKS5_PROXY_READY_TIMEOUT_SECS";
+
+fn ready_timeout() -> Duration {
+    resolve_ready_timeout(env::var(READY_TIMEOUT_ENV).ok())
+}
+
+fn resolve_ready_timeout(raw: Option<String>) -> Duration {
+    match raw {
+        Some(val) => match val.parse::<u64>() {
+            Ok(secs) => Duration::from_secs(secs),
+            Err(_) => {
+                tracing::warn!(
+                    "invalid {READY_TIMEOUT_ENV}={val:?}; using default {READY_TIMEOUT:?}"
+                );
+                READY_TIMEOUT
+            }
+        },
+        None => READY_TIMEOUT,
+    }
+}
 
 pub struct RunningProcess {
     msg_tx: mpsc::UnboundedSender<DaemonMessage>,
@@ -107,8 +129,17 @@ pub async fn spawn(
 
     // Wait for the proxy to become ready, but never block forever: a proxy that
     // starts yet never reports ready would otherwise wedge the tunnel state
-    // machine
-    await_ready(ready_rx, READY_TIMEOUT, &supervisor_token).await?;
+    // machine.
+    let ready_timeout = ready_timeout();
+    if let Err(err) = await_ready(ready_rx, ready_timeout).await {
+        if matches!(err, SpawnError::ReadyTimeout(_)) {
+            tracing::warn!(
+                "nym-socks5-proxy did not report ready within {ready_timeout:?}; tearing it down and continuing without it"
+            );
+        }
+        teardown_after_failed_start(&supervisor_token, join_handle).await;
+        return Err(err);
+    }
 
     tracing::info!("nym-socks5-proxy is ready");
 
@@ -119,23 +150,26 @@ pub async fn spawn(
     })
 }
 
-/// Await the proxy readiness signal
+/// Classify the proxy readiness outcome, bounded by `timeout`.
 async fn await_ready(
     ready_rx: oneshot::Receiver<Result<(), String>>,
     timeout: Duration,
-    supervisor_token: &CancellationToken,
 ) -> Result<(), SpawnError> {
     match tokio::time::timeout(timeout, ready_rx).await {
         Ok(Ok(Ok(()))) => Ok(()),
         Ok(Ok(Err(msg))) => Err(SpawnError::ProxyError(msg)),
         Ok(Err(_)) => Err(SpawnError::ExitedBeforeReady),
-        Err(_) => {
-            tracing::warn!(
-                "nym-socks5-proxy did not report ready within {timeout:?}; tearing it down and continuing without it"
-            );
-            supervisor_token.cancel();
-            Err(SpawnError::ReadyTimeout(timeout))
-        }
+        Err(_) => Err(SpawnError::ReadyTimeout(timeout)),
+    }
+}
+
+async fn teardown_after_failed_start(
+    supervisor_token: &CancellationToken,
+    join_handle: JoinHandle<()>,
+) {
+    supervisor_token.cancel();
+    if let Err(join_err) = join_handle.await {
+        tracing::error!("nym-socks5-proxy supervisor task panicked during teardown: {join_err}");
     }
 }
 
