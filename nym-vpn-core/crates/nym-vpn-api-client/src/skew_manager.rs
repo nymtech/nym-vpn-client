@@ -4,7 +4,10 @@
 use std::{sync::Arc, time::Duration};
 
 use time::{Duration as TimeDuration, OffsetDateTime};
-use tokio::{sync::RwLock, time::Instant};
+use tokio::{
+    sync::{Mutex, RwLock},
+    time::Instant,
+};
 
 use crate::{
     client::NYM_VPN_API_TIMEOUT,
@@ -19,6 +22,13 @@ const REMOTE_TIME_MAX_RETRIES: u8 = 2;
 const REMOTE_TIME_WAIT_DELAY: Duration = Duration::from_secs(1);
 
 const SKEW_CACHE_TTL: Duration = Duration::from_secs(4 * 60 * 60); // 4 hours
+
+// Maximum time `skew_corrected_time` will wait for a skew lookup before falling back to device
+// time. On a cold/expired cache, the lookup can retry against the remote time endpoint up to
+// `REMOTE_TIME_MAX_RETRIES` times, each with its own request timeout; without this bound, a slow
+// or unreachable endpoint could stall time-sensitive callers (e.g. a bandwidth top-up) for far
+// longer than the "never block or delay" guarantee this method promises.
+const SKEW_CORRECTED_TIME_LOOKUP_TIMEOUT: Duration = Duration::from_secs(3);
 
 /// Type providing access to the current device time.
 pub trait DeviceTimeProvider: std::fmt::Debug {
@@ -60,6 +70,7 @@ pub struct SkewManager {
 #[derive(Debug)]
 struct SkewManagerInner {
     skew_state: RwLock<Option<SkewState>>,
+    refresh_lock: Mutex<()>,
     device_time_provider: Box<dyn DeviceTimeProvider + Send + Sync>,
     remote_time_provider: Box<dyn RemoteTimeProvider + Send + Sync>,
 }
@@ -83,6 +94,7 @@ impl SkewManager {
         Self {
             inner: Arc::new(SkewManagerInner {
                 skew_state: RwLock::new(None),
+                refresh_lock: Mutex::new(()),
                 device_time_provider: Box::new(device_time_provider),
                 remote_time_provider: Box::new(remote_time_provider),
             }),
@@ -90,22 +102,10 @@ impl SkewManager {
     }
 
     pub async fn current_remote_time(&self) -> Result<Option<VpnApiTime>> {
-        let now = Instant::now();
-        let status = self
-            .inner
-            .skew_state
-            .read()
-            .await
-            .as_ref()
-            .map(|state| state.status(now));
-
-        let cached_remote_time = match status {
+        let cached_remote_time = match self.skew_status(Instant::now()).await {
             Some(SkewStatus::Valid(skew)) => {
                 tracing::debug!("Valid VPN API time skew");
-                let local_time = self.device_time();
-                let estimated_remote_time = local_time - skew;
-
-                VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time)
+                self.estimate_remote_time(skew)
             }
             Some(SkewStatus::Expired) | None => {
                 tracing::debug!("VPN API time skew expired or not present, refreshing");
@@ -219,10 +219,35 @@ impl SkewManager {
     }
 
     async fn refresh_skew(&self) -> Result<VpnApiTime> {
+        // Serialize concurrent refreshes: only the first caller to acquire this lock actually
+        // hits the remote time endpoint. Everyone else re-checks the cache once they get in and
+        // reuses whatever was just stored (refreshed moments ago, so just as trustworthy),
+        // instead of each issuing their own redundant network request.
+        let _refresh_guard = self.inner.refresh_lock.lock().await;
+
+        if let Some(SkewStatus::Valid(skew)) = self.skew_status(Instant::now()).await {
+            return Ok(self.estimate_remote_time(skew));
+        }
+
         let remote_time = self.get_remote_time().await?;
         self.store_skew(remote_time).await;
 
         Ok(remote_time)
+    }
+
+    async fn skew_status(&self, now: Instant) -> Option<SkewStatus> {
+        self.inner
+            .skew_state
+            .read()
+            .await
+            .as_ref()
+            .map(|state| state.status(now))
+    }
+
+    fn estimate_remote_time(&self, skew: TimeDuration) -> VpnApiTime {
+        let local_time = self.device_time();
+        let estimated_remote_time = local_time - skew;
+        VpnApiTime::from_estimated_remote_time(local_time, estimated_remote_time)
     }
 
     async fn store_skew(&self, remote_time: VpnApiTime) {
@@ -248,15 +273,29 @@ impl SkewManager {
     ///
     /// Uses the cached skew state when it is valid (no additional network request), and falls
     /// back to device time when the skew is not significant or cannot be determined: a skew
-    /// lookup failure must never block or delay the caller.
+    /// lookup failure (or one that takes too long) must never block or delay the caller.
     pub async fn skew_corrected_time(&self) -> OffsetDateTime {
-        let remote_time = self.current_remote_time().await.unwrap_or_else(|err| {
-            tracing::debug!(
-                error = %err,
-                "Failed to determine cached remote time, falling back to device time"
-            );
-            None
-        });
+        let remote_time = match tokio::time::timeout(
+            SKEW_CORRECTED_TIME_LOOKUP_TIMEOUT,
+            self.current_remote_time(),
+        )
+        .await
+        {
+            Ok(Ok(remote_time)) => remote_time,
+            Ok(Err(err)) => {
+                tracing::debug!(
+                    error = %err,
+                    "Failed to determine cached remote time, falling back to device time"
+                );
+                None
+            }
+            Err(_) => {
+                tracing::debug!(
+                    "Skew lookup exceeded {SKEW_CORRECTED_TIME_LOOKUP_TIMEOUT:?}, falling back to device time"
+                );
+                None
+            }
+        };
 
         match remote_time {
             Some(vpn_api_time) => self.device_time() - vpn_api_time.local_time_ahead_skew(),
@@ -296,7 +335,50 @@ impl SkewState {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
     use super::*;
+
+    #[tokio::test]
+    #[tracing_test::traced_test]
+    async fn test_concurrent_refreshes_on_cold_cache_share_one_remote_time_request() {
+        let calls = Arc::new(AtomicUsize::new(0));
+        let remote_time_provider = CountingDelayedTimeProvider {
+            calls: calls.clone(),
+            delay: Duration::from_millis(20),
+        };
+        let skew_manager =
+            SkewManager::new_for_testing(MockDeviceTimeProvider::new(vec![]), remote_time_provider);
+
+        // Several concurrent lookups race against a cold (empty) cache; they must share one
+        // refresh instead of each hitting the remote time endpoint.
+        let (a, b, c) = tokio::join!(
+            skew_manager.current_remote_time(),
+            skew_manager.current_remote_time(),
+            skew_manager.current_remote_time(),
+        );
+        a.unwrap();
+        b.unwrap();
+        c.unwrap();
+
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test(start_paused = true)]
+    #[tracing_test::traced_test]
+    async fn test_skew_corrected_time_falls_back_when_lookup_is_slow() {
+        let remote_time_provider = SlowRemoteTimeProvider {
+            delay: SKEW_CORRECTED_TIME_LOOKUP_TIMEOUT + Duration::from_secs(1),
+        };
+        let skew_manager =
+            SkewManager::new_for_testing(MockDeviceTimeProvider::new(vec![]), remote_time_provider);
+
+        let before = OffsetDateTime::now_utc();
+        let corrected = skew_manager.skew_corrected_time().await;
+
+        // Falls back to (approximately) device time rather than waiting out the slow lookup
+        assert!((corrected - before).whole_seconds().abs() < 1);
+    }
 
     #[tokio::test]
     #[tracing_test::traced_test]
@@ -409,6 +491,34 @@ mod tests {
     #[async_trait::async_trait]
     impl RemoteTimeProvider for MockTimeProvider {
         async fn request_remote_time(&self) -> Result<OffsetDateTime> {
+            Ok(OffsetDateTime::now_utc())
+        }
+    }
+
+    #[derive(Debug)]
+    struct CountingDelayedTimeProvider {
+        calls: Arc<AtomicUsize>,
+        delay: Duration,
+    }
+
+    #[async_trait::async_trait]
+    impl RemoteTimeProvider for CountingDelayedTimeProvider {
+        async fn request_remote_time(&self) -> Result<OffsetDateTime> {
+            self.calls.fetch_add(1, Ordering::SeqCst);
+            tokio::time::sleep(self.delay).await;
+            Ok(OffsetDateTime::now_utc())
+        }
+    }
+
+    #[derive(Debug)]
+    struct SlowRemoteTimeProvider {
+        delay: Duration,
+    }
+
+    #[async_trait::async_trait]
+    impl RemoteTimeProvider for SlowRemoteTimeProvider {
+        async fn request_remote_time(&self) -> Result<OffsetDateTime> {
+            tokio::time::sleep(self.delay).await;
             Ok(OffsetDateTime::now_utc())
         }
     }

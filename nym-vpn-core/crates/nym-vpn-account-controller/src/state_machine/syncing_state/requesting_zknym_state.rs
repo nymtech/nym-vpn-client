@@ -230,7 +230,25 @@ impl RequestingZkNymsState {
             Ok(join_result) => join_result,
             Err(err) => {
                 error!("Failed to join on the fetching task, task probably got cancelled : {err}");
-                return NextAccountControllerState::SameState(self);
+                // `self.zk_nym_fetching_handle` has already resolved (that's how we got here),
+                // so it must never be kept around via `SameState`: polling an already-completed
+                // `JoinHandle` again panics. Enter a fresh `RequestingZkNymsState` (with its own
+                // freshly spawned handle) instead, following the same retry-with-attempts
+                // pattern used for `ZkNymError` below.
+                return if self.attempts > ZK_NYM_MAX_FAILS {
+                    NextAccountControllerState::NewState(ErrorState::enter(
+                        AccountControllerErrorStateReason::Internal {
+                            context: ZK_NYM_STATE_CONTEXT.to_string(),
+                            details: format!("zk-nym fetching task failed to join: {err}"),
+                        },
+                    ))
+                } else {
+                    NextAccountControllerState::NewState(RequestingZkNymsState::enter(
+                        shared_state,
+                        self.attempts + 1,
+                        false,
+                    ))
+                };
             }
         };
 
