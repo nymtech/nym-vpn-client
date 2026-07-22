@@ -56,7 +56,6 @@ jobs:
           brew install xmlstarlet
 
       - name: Download release PKG
-        working-directory: nym-vpn-apple/build/pkg
         env:
           RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
         run: |
