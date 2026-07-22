@@ -11,7 +11,7 @@ use hyper_util::rt::TokioIo;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use test_rpc::transport::{ConnectionHandle, GrpcForwarder};
 use tokio::io::{AsyncReadExt, AsyncWriteExt, DuplexStream};
-use tokio_util::codec::{Decoder, LengthDelimitedCodec};
+use tokio_util::codec::LengthDelimitedCodec;
 use tower::Service;
 
 const GRPC_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
@@ -71,7 +71,11 @@ pub fn new_rpc_client(
     connection_handle: ConnectionHandle,
     nym_daemon_transport: GrpcForwarder,
 ) -> RpcClientProvider {
-    let mut framed_transport = LengthDelimitedCodec::new().framed(nym_daemon_transport);
+    // Match the daemon-side/test-rpc MultiplexCodec, which lifts the frame cap to
+    // usize::MAX.
+    let mut framed_transport = LengthDelimitedCodec::builder()
+        .max_frame_length(usize::MAX)
+        .new_framed(nym_daemon_transport);
     let (management_channel_provider_tx, mut management_channel_provider_rx) = mpsc::unbounded();
 
     tokio::spawn(async move {
