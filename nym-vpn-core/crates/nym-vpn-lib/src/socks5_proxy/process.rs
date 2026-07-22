@@ -6,7 +6,7 @@ use std::{env, path::PathBuf, process::Stdio, result::Result, time::Duration};
 use nym_socks5_proxy_ipc::{DaemonMessage, InterfaceAddresses, ProxyConfig, ProxyMessage};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
-    process::{Child, ChildStdin, ChildStdout, Command},
+    process::{Child, ChildStderr, ChildStdin, ChildStdout, Command},
     sync::{mpsc, oneshot},
     task::JoinHandle,
 };
@@ -88,8 +88,8 @@ pub async fn spawn(
     command
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        // Proxy logs go to its own log file; discard stderr.
-        .stderr(Stdio::null());
+        // Capture stderr and forward it into the daemon log (backup for proxy logs)
+        .stderr(Stdio::piped());
     // Run in own process group on Unix so it doesn't inherit a terminal.
     #[cfg(unix)]
     command.process_group(0);
@@ -104,6 +104,12 @@ pub async fn spawn(
         .stdout
         .take()
         .expect("stdout was piped but is unavailable");
+    let stderr = child
+        .stderr
+        .take()
+        .expect("stderr was piped but is unavailable");
+
+    tokio::spawn(stderr_forwarder(stderr));
 
     // Channel for sending DaemonMessages from handle → writer task → child stdin.
     let (msg_tx, msg_rx) = mpsc::unbounded_channel::<DaemonMessage>();
@@ -176,6 +182,20 @@ async fn teardown_after_failed_start(
     }
 }
 
+async fn stderr_forwarder(stderr: ChildStderr) {
+    let mut lines = BufReader::new(stderr).lines();
+    loop {
+        match lines.next_line().await {
+            Ok(Some(line)) => tracing::warn!("nym-socks5-proxy stderr: {line}"),
+            Ok(None) => break,
+            Err(err) => {
+                tracing::debug!("error reading nym-socks5-proxy stderr: {err}");
+                break;
+            }
+        }
+    }
+}
+
 async fn supervisor(
     mut child: Child,
     stdin: ChildStdin,
@@ -195,6 +215,7 @@ async fn supervisor(
             result = lines.next_line() => {
                 match result {
                     Ok(Some(line)) => {
+                        tracing::debug!("nym-socks5-proxy stdout: {line}");
                         handle_proxy_line(&line, &mut ready_tx, &event_tx);
                     }
                     Ok(None) => {
