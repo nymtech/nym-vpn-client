@@ -46,7 +46,7 @@ async fn delete_device_uses_account_auth_only() {
     let server = MockServer::start().await;
     let (client, account) = client_and_account(&server);
 
-    Mock::given(method("DELETE"))
+    Mock::given(method("PATCH"))
         .and(path_regex(r"/public/v1/account/.+/device/.+"))
         .and(header_exists("authorization"))
         .and(HeaderAbsent("x-device-authorization"))

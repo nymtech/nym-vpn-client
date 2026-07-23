@@ -964,7 +964,11 @@ impl VpnApiClient {
         account: &VpnAccount,
         device_identity_key: &str,
     ) -> Result<serde_json::Value> {
-        self.delete_authorized(
+        // Device removal is a PATCH to `delete_me`, not an HTTP DELETE
+        let body = UpdateDeviceRequestBody {
+            status: UpdateDeviceRequestStatus::from(DeviceStatus::DeleteMe),
+        };
+        self.patch_authorized(
             &[
                 routes::PUBLIC,
                 routes::V1,
@@ -973,6 +977,7 @@ impl VpnApiClient {
                 routes::DEVICE,
                 device_identity_key,
             ],
+            &body,
             account,
             None,
         )
