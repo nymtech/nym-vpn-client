@@ -175,7 +175,9 @@ jobs:
           echo "sparkle_bin=$EXTRACT_DIR/bin" >> $GITHUB_OUTPUT
 
       - name: Generate Sparkle appcast (sign_update)
+        id: sign_update
         env:
+          WORKDIR: ${{ github.workspace }}
           APPLE_SPARKLE_PRIVATE_KEY: ${{ secrets.APPLE_SPARKLE_PRIVATE_KEY }}
           PKG_FILE: ${{ steps.find_pkg.outputs.pkg_file }}
           SPARKLE_DIR: ${{ steps.download_sparkle.outputs.sparkle_dir }}
@@ -245,16 +247,19 @@ jobs:
           echo "✅ Generated appcast.xml:"
           cat appcast.xml
 
+          APP_CAST_ITEM="$WORKDIR/appcast-item.xml"
+
           echo "🧩 Extracting <item> block for nym-websites…"
           awk '
             BEGIN { p=0 }
             /<item>/{ p=1 }
             p { print }
             /<\/item>/{ p=0 }
-          ' appcast.xml > appcast-item.xml
+          ' appcast.xml > $APP_CAST_ITEM
 
           echo "✅ appcast-item.xml:"
-          cat appcast-item.xml
+          cat $APP_CAST_ITEM
+          echo "appcast_item=$APP_CAST_ITEM" >> $GITHUB_OUTPUT
 
       - name: Checkout nym-websites
         uses: actions/checkout@v7
@@ -267,7 +272,7 @@ jobs:
       - name: Insert new Sparkle <item> into nym-websites appcast.xml
         working-directory: nym-websites
         env:
-          ITEM_FILE: ${{ github.workspace }}/${{ env.APPCAST_ITEM_RELATIVE_PATH }}
+          ITEM_FILE: ${{ steps.sign_update.outputs.appcast_item }}
           SHORT_VERSION: ${{ steps.pkg_me.outputs.short_version }}
         run: |
           set -euo pipefail
