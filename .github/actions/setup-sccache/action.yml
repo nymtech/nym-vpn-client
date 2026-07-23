@@ -1,0 +1,27 @@
+name: 'Setup sccache'
+description: 'Configures sccache environment variables cross-platform'
+runs:
+  using: 'composite'
+  steps:
+    - name: Run sccache action
+      uses: mozilla-actions/sccache-action@v0.0.10
+
+    - name: Configure sccache (Unix)
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        echo "RUSTC_WRAPPER=sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_DIR=$HOME/.cache/sccache" >> "$GITHUB_ENV"
+        echo "SCCACHE_CACHE_SIZE=20G" >> "$GITHUB_ENV"
+        echo "SCCACHE_IDLE_TIMEOUT=0" >> "$GITHUB_ENV"
+        echo "CARGO_INCREMENTAL=0" >> "$GITHUB_ENV"
+
+    - name: Configure sccache (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        "RUSTC_WRAPPER=sccache" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "SCCACHE_DIR=$HOME\.cache\sccache" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "SCCACHE_CACHE_SIZE=20G" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "SCCACHE_IDLE_TIMEOUT=0" | Out-File -FilePath $env:GITHUB_ENV -Append
+        "CARGO_INCREMENTAL=0" | Out-File -FilePath $env:GITHUB_ENV -Append
