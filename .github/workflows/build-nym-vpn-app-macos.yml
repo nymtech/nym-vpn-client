@@ -235,7 +235,7 @@ jobs:
         id: core-version
         uses: nicolaiunrein/cargo-get@master
         with:
-          subcommand: package.version --entry nym-vpn-core
+          subcommand: workspace.package.version --entry nym-vpn-core/Cargo.toml
 
       - name: Update prebundled servers
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
