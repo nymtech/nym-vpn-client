@@ -171,12 +171,15 @@ jobs:
           tar -xf "$SPARKLE_TAR" -C "$EXTRACT_DIR" --strip-components=1
 
           echo "📦 Sparkle extracted to: $EXTRACT_DIR"
-          echo "SPARKLE_BIN=$EXTRACT_DIR/bin" >> $GITHUB_ENV
+          echo "sparkle_dir=$SPARKLE_DIR" >> $GITHUB_OUTPUT
+          echo "sparkle_bin=$EXTRACT_DIR/bin" >> $GITHUB_OUTPUT
 
       - name: Generate Sparkle appcast (sign_update)
         env:
           APPLE_SPARKLE_PRIVATE_KEY: ${{ secrets.APPLE_SPARKLE_PRIVATE_KEY }}
           PKG_FILE: ${{ steps.find_pkg.outputs.pkg_file }}
+          SPARKLE_DIR: ${{ steps.download_sparkle.outputs.sparkle_dir }}
+          SPARKLE_BIN: ${{ steps.download_sparkle.outputs.sparkle_bin }}
           BUILD: ${{ steps.find_pkg.outputs.build }}
           HOST_LINK: "https://nymvpn.com"
           SHORT_VERSION: ${{ steps.find_pkg.outputs.short_version }}
