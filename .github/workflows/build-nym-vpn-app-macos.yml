@@ -231,6 +231,12 @@ jobs:
           version: ${{ inputs.version }}
           target: core
 
+      - name: Get package version
+        id: core-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-core
+
       - name: Update prebundled servers
         if: ${{ env.RELEASE_TYPE == 'qa' || env.RELEASE_TYPE == 'ship' }}
         working-directory: nym-vpn-apple/scripts
@@ -558,6 +564,7 @@ jobs:
         working-directory: nym-vpn-apple
         env:
           INSTALLER_SIGNING_IDENTITY: "Developer ID Installer: Nym Technologies SA (${{ secrets.APPLE_TEAM_ID }})"
+          CORE_VERSION: ${{ steps.core-version.outputs.version }}
         run: |
           set -euo pipefail
           which xmlstarlet || brew install xmlstarlet
@@ -571,13 +578,13 @@ jobs:
           MIN_OS_VERSION="$(plutil -extract LSMinimumSystemVersion raw $APP_PLIST_PATH)"
 
           STAGING_DIRECTORY="$PWD/build/pkg"
-          PKG_NAME="NymVPN-$MARKETING_VERSION.pkg"
+          PKG_NAME="NymVPN-${CORE_VERSION}.pkg"
           PKG_PATH="$STAGING_DIRECTORY/$PKG_NAME"
           STAGING_APP_DIR="$STAGING_DIRECTORY/macos"
 
           COMPONENT_PLIST_FILE="$STAGING_DIRECTORY/component.plist"
           DIST_XML_FILE="$STAGING_DIRECTORY/Distribution"
-          UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-$MARKETING_VERSION-unsigned.pkg"
+          UNSIGNED_PKG_PATH="$STAGING_DIRECTORY/NymVPN-${CORE_VERSION}-unsigned.pkg"
           NESTED_PKG_PATH="$STAGING_DIRECTORY/$PRODUCT_BUNDLE_IDENTIFIER.pkg"
 
           # Directory with pkg scripts
