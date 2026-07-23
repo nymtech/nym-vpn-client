@@ -115,4 +115,4 @@ jobs:
       - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --verbose --workspace --locked
+          cargo test --workspace --locked
