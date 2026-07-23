@@ -16,10 +16,10 @@ use std::{
 };
 use tarpc::{ClientMessage, Response};
 use tokio::{
-    io::{AsyncRead, AsyncWrite},
+    io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     sync::futures::Notified,
 };
-use tokio_util::codec::{Decoder, Encoder, LengthDelimitedCodec};
+use tokio_util::codec::{Decoder, Encoder, Framed, LengthDelimitedCodec};
 
 use crate::{Error, ServiceRequest, ServiceResponse};
 
@@ -59,6 +59,69 @@ impl TryFrom<u8> for FrameType {
 
 pub type GrpcForwarder = tokio::io::DuplexStream;
 pub type CompletionHandle = tokio::task::JoinHandle<()>;
+
+pub async fn synchronize_framed_session(
+    framed: &mut Framed<GrpcForwarder, LengthDelimitedCodec>,
+) -> io::Result<()> {
+    framed.send(Bytes::new()).await?;
+
+    loop {
+        match framed.next().await {
+            Some(Ok(bytes)) if bytes.is_empty() => return Ok(()),
+            Some(Ok(_)) => {}
+            Some(Err(error)) => return Err(error),
+            None => return Err(io::ErrorKind::UnexpectedEof.into()),
+        }
+    }
+}
+
+pub async fn forward_framed_bidirectional<S>(
+    stream: S,
+    framed: &mut Framed<GrpcForwarder, LengthDelimitedCodec>,
+) -> io::Result<()>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    let (mut stream_reader, mut stream_writer) = tokio::io::split(stream);
+    let (mut framed_sink, mut framed_stream) = framed.split();
+
+    let stream_to_framed = async {
+        let mut buffer = vec![0u8; DAEMON_CHANNEL_BUF_SIZE];
+        loop {
+            let read = stream_reader.read(&mut buffer).await;
+            match read {
+                Ok(num_bytes) => {
+                    framed_sink
+                        .send(Bytes::copy_from_slice(&buffer[..num_bytes]))
+                        .await?;
+                    if num_bytes == 0 {
+                        return Ok(());
+                    }
+                }
+                Err(error) => {
+                    let _ = framed_sink.send(Bytes::new()).await;
+                    return Err(error);
+                }
+            }
+        }
+    };
+
+    let framed_to_stream = async {
+        loop {
+            match framed_stream.next().await {
+                Some(Ok(bytes)) if bytes.is_empty() => {
+                    stream_writer.shutdown().await?;
+                    return Ok(());
+                }
+                Some(Ok(bytes)) => stream_writer.write_all(&bytes).await?,
+                Some(Err(error)) => return Err(error),
+                None => return Ok(()),
+            }
+        }
+    };
+
+    tokio::try_join!(stream_to_framed, framed_to_stream).map(|_| ())
+}
 
 #[derive(Debug, Clone)]
 pub struct ConnectionHandle {
@@ -497,4 +560,203 @@ fn display_chain(error: impl std::error::Error) -> String {
         error = source;
     }
     s
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{forward_framed_bidirectional, synchronize_framed_session};
+    use bytes::Bytes;
+    use futures::{SinkExt, StreamExt};
+    use std::{io, time::Duration};
+    use tokio::io::{AsyncReadExt, AsyncWriteExt, duplex};
+    use tokio_util::codec::{Decoder, LengthDelimitedCodec};
+
+    #[tokio::test]
+    async fn stream_eof_waits_for_framed_eof_acknowledgement() {
+        let (bridge_stream, stream_peer) = duplex(64);
+        let (mut stream_peer_reader, mut stream_peer_writer) = tokio::io::split(stream_peer);
+        let (bridge_framed_io, framed_peer_io) = duplex(64);
+        let mut bridge_framed = LengthDelimitedCodec::new().framed(bridge_framed_io);
+        let mut framed_peer = LengthDelimitedCodec::new().framed(framed_peer_io);
+
+        let bridge = tokio::spawn(async move {
+            forward_framed_bidirectional(bridge_stream, &mut bridge_framed).await
+        });
+
+        stream_peer_writer
+            .shutdown()
+            .await
+            .expect("close stream input");
+        let eof = framed_peer
+            .next()
+            .await
+            .expect("framed bridge remains open")
+            .expect("EOF frame is valid");
+        assert!(eof.is_empty());
+        assert!(!bridge.is_finished());
+
+        framed_peer
+            .send(Bytes::new())
+            .await
+            .expect("acknowledge stream EOF");
+        assert_eq!(
+            stream_peer_reader.read_u8().await.unwrap_err().kind(),
+            io::ErrorKind::UnexpectedEof
+        );
+        bridge.await.expect("bridge task").expect("clean shutdown");
+    }
+
+    #[tokio::test]
+    async fn framed_eof_waits_for_stream_eof_acknowledgement() {
+        let (bridge_stream, stream_peer) = duplex(64);
+        let (mut stream_peer_reader, mut stream_peer_writer) = tokio::io::split(stream_peer);
+        let (bridge_framed_io, framed_peer_io) = duplex(64);
+        let mut bridge_framed = LengthDelimitedCodec::new().framed(bridge_framed_io);
+        let mut framed_peer = LengthDelimitedCodec::new().framed(framed_peer_io);
+
+        let bridge = tokio::spawn(async move {
+            forward_framed_bidirectional(bridge_stream, &mut bridge_framed).await
+        });
+
+        framed_peer
+            .send(Bytes::new())
+            .await
+            .expect("send framed EOF");
+        assert_eq!(
+            stream_peer_reader.read_u8().await.unwrap_err().kind(),
+            io::ErrorKind::UnexpectedEof
+        );
+        assert!(!bridge.is_finished());
+
+        stream_peer_writer
+            .shutdown()
+            .await
+            .expect("acknowledge framed EOF");
+        let eof = framed_peer
+            .next()
+            .await
+            .expect("framed bridge remains open")
+            .expect("EOF acknowledgement is valid");
+        assert!(eof.is_empty());
+        bridge.await.expect("bridge task").expect("clean shutdown");
+    }
+
+    #[tokio::test]
+    async fn session_sync_discards_delayed_frames_before_acknowledgement() {
+        let (bridge_io, peer_io) = duplex(64);
+        let mut bridge = LengthDelimitedCodec::new().framed(bridge_io);
+        let mut peer = LengthDelimitedCodec::new().framed(peer_io);
+
+        bridge
+            .send(Bytes::from_static(b"stale request"))
+            .await
+            .expect("queue stale request");
+        let sync = tokio::spawn(async move {
+            synchronize_framed_session(&mut bridge)
+                .await
+                .map(|()| bridge)
+        });
+
+        assert_eq!(
+            peer.next()
+                .await
+                .expect("stale request")
+                .expect("valid frame"),
+            Bytes::from_static(b"stale request")
+        );
+        assert!(
+            peer.next()
+                .await
+                .expect("sync marker")
+                .expect("valid frame")
+                .is_empty()
+        );
+        peer.send(Bytes::from_static(b"stale response"))
+            .await
+            .expect("send delayed stale response");
+        peer.send(Bytes::new())
+            .await
+            .expect("acknowledge synchronization");
+
+        let mut bridge = sync
+            .await
+            .expect("sync task")
+            .expect("session synchronized");
+        assert!(
+            tokio::time::timeout(Duration::from_millis(10), bridge.next())
+                .await
+                .is_err()
+        );
+    }
+
+    #[tokio::test]
+    async fn session_sync_flushes_a_cancelled_partial_frame_before_acknowledgement() {
+        let (bridge_io, peer_io) = duplex(64);
+        let mut bridge = LengthDelimitedCodec::new().framed(bridge_io);
+        let mut peer = LengthDelimitedCodec::new().framed(peer_io);
+        let stale_request = Bytes::from(vec![9; 4096]);
+
+        let mut cancelled_send = Box::pin(bridge.send(stale_request.clone()));
+        assert!(futures::poll!(&mut cancelled_send).is_pending());
+        drop(cancelled_send);
+
+        let sync = tokio::spawn(async move {
+            synchronize_framed_session(&mut bridge)
+                .await
+                .map(|()| bridge)
+        });
+
+        assert_eq!(
+            peer.next()
+                .await
+                .expect("cancelled frame")
+                .expect("valid frame"),
+            stale_request
+        );
+        assert!(
+            peer.next()
+                .await
+                .expect("sync marker")
+                .expect("valid frame")
+                .is_empty()
+        );
+        peer.send(Bytes::new())
+            .await
+            .expect("acknowledge synchronization");
+
+        sync.await
+            .expect("sync task")
+            .expect("session synchronized");
+    }
+
+    #[tokio::test]
+    async fn blocked_response_does_not_block_request_forwarding() {
+        let (bridge_stream, mut stream_peer) = duplex(64);
+        let (bridge_framed_io, framed_peer_io) = duplex(64);
+        let mut bridge_framed = LengthDelimitedCodec::new().framed(bridge_framed_io);
+        let mut framed_peer = LengthDelimitedCodec::new().framed(framed_peer_io);
+
+        let bridge = tokio::spawn(async move {
+            forward_framed_bidirectional(bridge_stream, &mut bridge_framed).await
+        });
+
+        framed_peer
+            .send(Bytes::from(vec![7; 4096]))
+            .await
+            .expect("queue response that blocks on the unread peer");
+        tokio::task::yield_now().await;
+
+        stream_peer
+            .write_all(b"request")
+            .await
+            .expect("write request while response direction is blocked");
+        let forwarded = tokio::time::timeout(Duration::from_secs(1), framed_peer.next())
+            .await
+            .expect("request forwarding must not share response backpressure")
+            .expect("framed bridge remains open")
+            .expect("request frame is valid");
+
+        assert_eq!(&forwarded[..], b"request");
+        bridge.abort();
+    }
 }
