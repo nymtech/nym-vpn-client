@@ -14,7 +14,8 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt, DuplexStream};
 use tokio_util::codec::{Decoder, LengthDelimitedCodec};
 use tower::Service;
 
-const GRPC_REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
+/// Unary gRPC timeout over the serial mux.
+const GRPC_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 const CONVERTER_BUF_SIZE: usize = 16 * 1024;
 
 #[derive(Clone)]

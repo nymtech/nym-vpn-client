@@ -7,7 +7,7 @@ use crate::{
     logging::{Logger, Panic, TestOutput, TestResult},
     nym_daemon::{self, RpcClientProvider},
     summary::SummaryLogger,
-    tests::{TestContext, TestMetadata, TestWrapperFunctionNym},
+    tests::{TestContext, TestMetadata, TestWrapperFunctionNym, helpers_nym},
     vm,
 };
 use anyhow::{Context, Result};
@@ -60,6 +60,9 @@ async fn fetch_guest_daemon_log(access: GuestSshAccess) -> Result<String> {
 
 /// Best-effort: write the full daemon log to a host file and echo the tail into
 /// the CI output. Never fails the run.
+///
+/// The guest file is cumulative across the suite (one daemon process, one log).
+/// Named artifacts are snapshots of that file at failure time, not per-test sessions.
 async fn capture_daemon_log_on_failure(access: &GuestSshAccess, test_name: &str) {
     let contents = match fetch_guest_daemon_log(access.clone()).await {
         Ok(contents) => contents,
@@ -69,11 +72,38 @@ async fn capture_daemon_log_on_failure(access: &GuestSshAccess, test_name: &str)
         }
     };
 
+    let first_ts = contents
+        .lines()
+        .find(|line| !line.trim().is_empty())
+        .and_then(daemon_log_line_timestamp)
+        .unwrap_or("unknown");
+    let last_ts = contents
+        .lines()
+        .rev()
+        .find(|line| !line.trim().is_empty())
+        .and_then(daemon_log_line_timestamp)
+        .unwrap_or("unknown");
+    let line_count = contents.lines().count();
+
+    let preamble = format!(
+        "# cumulative guest log ({GUEST_DAEMON_LOG_PATH}); not a per-test session\n\
+         # captured_for_test={test_name}\n\
+         # first_ts={first_ts} last_ts={last_ts} lines={line_count}\n"
+    );
+
     // Write to /tmp so CI can collect it (same place as the test report), rather
     // than the ephemeral working dir.
     let file_name = format!("/tmp/daemon-log-{test_name}.log");
-    match std::fs::File::create(&file_name).and_then(|mut f| f.write_all(contents.as_bytes())) {
-        Ok(()) => log::info!("Wrote full daemon log for '{test_name}' to {file_name}"),
+    let write_result = (|| -> std::io::Result<()> {
+        let mut f = std::fs::File::create(&file_name)?;
+        f.write_all(preamble.as_bytes())?;
+        f.write_all(contents.as_bytes())?;
+        Ok(())
+    })();
+    match write_result {
+        Ok(()) => log::info!(
+            "Wrote full daemon log for '{test_name}' to {file_name} (cumulative; first_ts={first_ts} last_ts={last_ts} lines={line_count})"
+        ),
         Err(err) => log::warn!("Failed to write daemon log file {file_name}: {err}"),
     }
 
@@ -85,10 +115,22 @@ async fn capture_daemon_log_on_failure(access: &GuestSshAccess, test_name: &str)
         .collect::<Vec<_>>()
         .join("\n");
     log::info!(
-        "===== nym-vpnd log tail ({} of {} lines) for {test_name} =====\n{tail}\n===== end nym-vpnd log for {test_name} =====",
+        "===== nym-vpnd log tail ({} of {} lines) for {test_name} =====\n\
+         (cumulative guest log; first_ts={first_ts} last_ts={last_ts})\n\
+         {tail}\n===== end nym-vpnd log for {test_name} =====",
         DAEMON_LOG_TAIL_LINES.min(lines.len()),
         lines.len(),
     );
+}
+
+fn daemon_log_line_timestamp(line: &str) -> Option<&str> {
+    // Typical format: 2026-07-23T06:07:11.835343Z  INFO ...
+    let ts = line.split_whitespace().next()?;
+    if ts.len() >= 20 && ts.contains('T') {
+        Some(ts)
+    } else {
+        None
+    }
 }
 
 /// The baud rate of the serial connection between the test manager and the test runner.
@@ -145,10 +187,19 @@ impl TestHandler<'_> {
             self.logger.store_records(false);
         }
 
-        if test_output.result.failure()
-            && let Some(access) = &self.guest_ssh_access
-        {
-            capture_daemon_log_on_failure(access, test_name).await;
+        if test_output.result.failure() {
+            // Test consumed its NymProxyClient; open a fresh one to clear a leftover tunnel.
+            if let Ok(mut client) = self.rpc_provider.new_client_nym().await {
+                helpers_nym::best_effort_disconnect(&mut client).await;
+            } else {
+                log::warn!(
+                    "Could not create RPC client for fail-path disconnect after '{test_name}'"
+                );
+            }
+
+            if let Some(access) = &self.guest_ssh_access {
+                capture_daemon_log_on_failure(access, test_name).await;
+            }
         }
 
         test_output.print();
@@ -350,5 +401,26 @@ pub async fn run_test_function(
         test_name,
         error_messages: output,
         result,
+    }
+}
+
+#[cfg(test)]
+mod daemon_log_tests {
+    use super::daemon_log_line_timestamp;
+
+    #[test]
+    fn parses_tracing_timestamp() {
+        let line = "2026-07-23T06:07:11.835343Z  INFO nym_vpnd: Connected";
+        assert_eq!(
+            daemon_log_line_timestamp(line),
+            Some("2026-07-23T06:07:11.835343Z")
+        );
+    }
+
+    #[test]
+    fn rejects_non_timestamp_lines() {
+        assert_eq!(daemon_log_line_timestamp("# cumulative guest log"), None);
+        assert_eq!(daemon_log_line_timestamp(""), None);
+        assert_eq!(daemon_log_line_timestamp("INFO only"), None);
     }
 }

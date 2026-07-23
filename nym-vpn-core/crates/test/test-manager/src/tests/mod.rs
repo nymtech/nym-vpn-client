@@ -5,7 +5,7 @@
 mod blocking_tests;
 pub mod config_nym;
 mod envs;
-mod helpers_nym;
+pub(crate) mod helpers_nym;
 pub mod nym_test;
 mod test_metadata;
 mod tunnel_tests;
@@ -19,7 +19,11 @@ pub use test_metadata::TestMetadata;
 use crate::{nym_daemon::RpcClientProvider, tests::config_nym::TEST_CONFIG_NYM};
 use test_rpc::{NymServiceClient, meta::Os};
 
+/// Timeout for disconnect waits (and other non-connect tunnel waits that pass an explicit duration).
 const WAIT_FOR_TUNNEL_STATE_TIMEOUT: Duration = Duration::from_secs(40);
+
+/// Timeout for `wait_for_tunnel_state` (e.g. Connected after cold zk-nym).
+pub(crate) const WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT: Duration = Duration::from_secs(120);
 
 #[derive(Clone)]
 pub struct TestContext {

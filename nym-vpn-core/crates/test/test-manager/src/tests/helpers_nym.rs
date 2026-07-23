@@ -2,12 +2,22 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::{Error, WAIT_FOR_TUNNEL_STATE_TIMEOUT, config_nym::TEST_CONFIG_NYM};
+use super::{
+    Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT,
+    config_nym::TEST_CONFIG_NYM,
+};
 use futures::StreamExt;
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerState, TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
 use std::{net::SocketAddr, time::Duration};
 use test_rpc::NymServiceClient;
+
+/// Bounded best-effort disconnect after a tunnel wait timeout. Must not nest a full
+/// `disconnect_and_wait` (that would block the suite for another 40s on a dead serial).
+const BEST_EFFORT_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+
+const TUNNEL_STATE_POLL_ATTEMPTS: u32 = 3;
+const TUNNEL_STATE_POLL_DELAY: Duration = Duration::from_millis(500);
 
 #[derive(Debug, PartialEq)]
 pub enum ExpectedTunnelState {
@@ -89,6 +99,7 @@ pub async fn disconnect_and_wait(nym_client: &mut NymProxyClient) -> Result<(), 
         nym_client,
         |state| matches!(state, TunnelState::Disconnected),
         WAIT_FOR_TUNNEL_STATE_TIMEOUT,
+        false,
     )
     .await?;
 
@@ -97,11 +108,28 @@ pub async fn disconnect_and_wait(nym_client: &mut NymProxyClient) -> Result<(), 
     Ok(())
 }
 
+/// Best-effort `disconnect_tunnel` with a short deadline. Never waits for Disconnected.
+pub async fn best_effort_disconnect(nym_client: &mut NymProxyClient) {
+    match tokio::time::timeout(
+        BEST_EFFORT_DISCONNECT_TIMEOUT,
+        nym_client.disconnect_tunnel(),
+    )
+    .await
+    {
+        Ok(Ok(_)) => log::info!("Best-effort disconnect_tunnel succeeded"),
+        Ok(Err(err)) => log::warn!("Best-effort disconnect_tunnel failed: {err}"),
+        Err(_) => log::warn!(
+            "Best-effort disconnect_tunnel timed out after {}s",
+            BEST_EFFORT_DISCONNECT_TIMEOUT.as_secs()
+        ),
+    }
+}
+
 pub async fn wait_for_tunnel_state(
     rpc: &mut NymProxyClient,
     expected: ExpectedTunnelState,
 ) -> Result<TunnelState, Error> {
-    let timeout = Duration::from_secs(60);
+    let (timeout, disconnect_on_timeout) = tunnel_wait_params(&expected);
     log::debug!(
         "Waiting for tunnel state: {expected:?} (timeout: {}s)",
         timeout.as_secs()
@@ -110,16 +138,32 @@ pub async fn wait_for_tunnel_state(
         rpc,
         move |state| ExpectedTunnelState::from(state.clone()) == expected,
         timeout,
+        disconnect_on_timeout,
     )
     .await
 }
 
+/// Connect waits get a longer timeout and disconnect-on-timeout; other waits do not.
+pub(crate) fn tunnel_wait_params(expected: &ExpectedTunnelState) -> (Duration, bool) {
+    match expected {
+        ExpectedTunnelState::Connected | ExpectedTunnelState::Connecting => {
+            (WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, true)
+        }
+        _ => (WAIT_FOR_TUNNEL_STATE_TIMEOUT, false),
+    }
+}
+
 /// Wait for the tunnel to reach a state accepted by `accept_state_fn`, using the daemon event
 /// stream. We subscribe to events before checking the current state, so no transitions are missed.
+///
+/// On timeout, the event stream is dropped before follow-up unary RPCs so the serial mux can
+/// accept `get_tunnel_state`. When `disconnect_on_timeout` is set, a bounded best-effort
+/// disconnect is attempted so a failed wait does not leave the tunnel up for the next test.
 pub async fn wait_for_tunnel_state_fn(
     rpc: &mut NymProxyClient,
     accept_state_fn: impl Fn(&TunnelState) -> bool,
     timeout: Duration,
+    disconnect_on_timeout: bool,
 ) -> Result<TunnelState, Error> {
     let mut events = rpc
         .listen_to_events()
@@ -160,14 +204,81 @@ pub async fn wait_for_tunnel_state_fn(
     match result {
         Ok(inner) => inner,
         Err(_) => {
-            let current = rpc.get_tunnel_state().await.ok();
-            let err = format!(
-                "Tunnel event listener timed out after {}s. Current state: {current:?}",
-                timeout.as_secs()
-            );
+            // Free the serial mux before follow-up unaries.
+            drop(events);
+
+            let poll = poll_tunnel_state(rpc).await;
+            if let Ok(ref state) = poll
+                && accept_state_fn(state)
+            {
+                log::warn!(
+                    "Tunnel wait timed out after {}s but follow-up poll found expected state: {state:?}",
+                    timeout.as_secs()
+                );
+                return Ok(state.clone());
+            }
+
+            let err = format_tunnel_wait_timeout_error(timeout, &poll);
             log::error!("{err}");
+
+            if disconnect_on_timeout {
+                best_effort_disconnect(rpc).await;
+            }
+
             Err(Error::Daemon(err))
         }
+    }
+}
+
+async fn poll_tunnel_state(rpc: &mut NymProxyClient) -> Result<TunnelState, NymClientError> {
+    let mut last_err = None;
+    for attempt in 1..=TUNNEL_STATE_POLL_ATTEMPTS {
+        match rpc.get_tunnel_state().await {
+            Ok(state) => return Ok(state),
+            Err(err) => {
+                log::debug!(
+                    "get_tunnel_state poll {attempt}/{TUNNEL_STATE_POLL_ATTEMPTS} failed: {err}"
+                );
+                last_err = Some(err);
+                if attempt < TUNNEL_STATE_POLL_ATTEMPTS {
+                    tokio::time::sleep(TUNNEL_STATE_POLL_DELAY).await;
+                }
+            }
+        }
+    }
+    Err(last_err.expect("TUNNEL_STATE_POLL_ATTEMPTS >= 1"))
+}
+
+/// Pure diagnostic for wait timeouts. Never reports bare `None` without an RPC error.
+pub(crate) fn format_tunnel_wait_timeout_error(
+    timeout: Duration,
+    poll: &Result<TunnelState, NymClientError>,
+) -> String {
+    match poll {
+        Ok(state) => format!(
+            "Tunnel event listener timed out after {}s. last_observed={state:?} (StillInState)",
+            timeout.as_secs()
+        ),
+        Err(err) => format!(
+            "Tunnel event listener timed out after {}s. last_rpc=Err({err}) (RpcFailed); last_observed=<unavailable>",
+            timeout.as_secs()
+        ),
+    }
+}
+
+pub(crate) fn format_account_wait_timeout_error(
+    timeout: Duration,
+    poll: &Result<AccountControllerState, NymClientError>,
+) -> String {
+    match poll {
+        Ok(state) => format!(
+            "Account event listener timed out after {}s. last_observed={state:?} (StillInState)",
+            timeout.as_secs()
+        ),
+        Err(err) => format!(
+            "Account event listener timed out after {}s. last_rpc=Err({err}) (RpcFailed); last_observed=<unavailable>",
+            timeout.as_secs()
+        ),
     }
 }
 
@@ -225,15 +336,45 @@ pub async fn wait_for_account_state_fn(
     match result {
         Ok(inner) => inner,
         Err(_) => {
-            let current = rpc.get_account_state().await.ok();
-            let err = format!(
-                "Account event listener timed out after {}s. Current state: {current:?}",
-                timeout.as_secs()
-            );
+            drop(events);
+
+            let poll = poll_account_state(rpc).await;
+            if let Ok(ref state) = poll
+                && accept_state_fn(state)
+            {
+                log::warn!(
+                    "Account wait timed out after {}s but follow-up poll found expected state: {state:?}",
+                    timeout.as_secs()
+                );
+                return Ok(state.clone());
+            }
+
+            let err = format_account_wait_timeout_error(timeout, &poll);
             log::error!("{err}");
             Err(Error::Daemon(err))
         }
     }
+}
+
+async fn poll_account_state(
+    rpc: &mut NymProxyClient,
+) -> Result<AccountControllerState, NymClientError> {
+    let mut last_err = None;
+    for attempt in 1..=TUNNEL_STATE_POLL_ATTEMPTS {
+        match rpc.get_account_state().await {
+            Ok(state) => return Ok(state),
+            Err(err) => {
+                log::debug!(
+                    "get_account_state poll {attempt}/{TUNNEL_STATE_POLL_ATTEMPTS} failed: {err}"
+                );
+                last_err = Some(err);
+                if attempt < TUNNEL_STATE_POLL_ATTEMPTS {
+                    tokio::time::sleep(TUNNEL_STATE_POLL_DELAY).await;
+                }
+            }
+        }
+    }
+    Err(last_err.expect("TUNNEL_STATE_POLL_ATTEMPTS >= 1"))
 }
 
 /// useful after tunnel connect/reconnect where the data plane may not be ready
