@@ -2,7 +2,7 @@ name: macos-updater
 on:
     # Temporary for initial PR
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened ]
     paths:
       - ".github/workflows/macos-updater.yml"
   workflow_dispatch:
