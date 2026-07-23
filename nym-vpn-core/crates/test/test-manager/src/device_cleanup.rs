@@ -52,11 +52,45 @@ pub async fn delete_all_devices(mnemonic: &str) -> Result<()> {
         }
     }
 
-    if failures > 0 {
-        log::warn!("{failures} device(s) could not be deleted");
-    } else {
-        log::info!("All devices deleted");
+    let remaining = client
+        .get_devices(&account)
+        .await
+        .context("Failed to verify account device cleanup")?
+        .items
+        .len();
+    validate_cleanup_result(failures, remaining)?;
+
+    log::info!("All devices deleted and cleanup verified");
+    Ok(())
+}
+
+fn validate_cleanup_result(failures: usize, remaining: usize) -> Result<()> {
+    if failures > 0 || remaining > 0 {
+        anyhow::bail!(
+            "Device cleanup incomplete: {failures} deletion failure(s), {remaining} device(s) remaining"
+        );
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_cleanup_result;
+
+    #[test]
+    fn cleanup_succeeds_only_when_all_devices_are_deleted() {
+        assert!(validate_cleanup_result(0, 0).is_ok());
     }
 
-    Ok(())
+    #[test]
+    fn cleanup_fails_on_delete_error() {
+        let error = validate_cleanup_result(1, 0).expect_err("delete failures must be fatal");
+        assert!(error.to_string().contains("1 deletion failure"));
+    }
+
+    #[test]
+    fn cleanup_fails_when_devices_remain() {
+        let error = validate_cleanup_result(0, 2).expect_err("remaining devices must be fatal");
+        assert!(error.to_string().contains("2 device(s) remaining"));
+    }
 }

@@ -29,6 +29,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: e2e-mainnet-test-account
+  cancel-in-progress: false
+
 env:
   CARGO_TERM_COLOR: always
   TEST_CRATE_DIR: nym-vpn-core/crates/test
@@ -266,10 +270,10 @@ jobs:
         run: |
           # Delete all devices on the test account (account-level API auth, no
           # daemon needed) so each run starts clean and never hits MaxDeviceReached
-          ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
+          printf '%s\n' "$TEST_HARNESS_MNEMONIC" | \
+            ssh ${{ env.SSH_OPTS }} -i ${{ env.SSH_KEY_PATH }} \
             ${{ env.VM_USER }}@${VM_IP} \
-            "${{ env.VM_DIST_DIR }}/test-manager delete-devices --nym-mnemonic '${TEST_HARNESS_MNEMONIC}'" || \
-            echo "Device purge failed (continuing)"
+            "${{ env.VM_DIST_DIR }}/test-manager delete-devices"
 
       - name: Configure test VM
         env:

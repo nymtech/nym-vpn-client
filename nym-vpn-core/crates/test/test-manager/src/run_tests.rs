@@ -7,18 +7,19 @@ use crate::{
     logging::{Logger, Panic, TestOutput, TestResult},
     nym_daemon::{self, RpcClientProvider},
     summary::SummaryLogger,
-    tests::{TestContext, TestMetadata, TestWrapperFunctionNym, helpers_nym},
+    tests::{TestContext, TestMetadata, TestWrapperFunctionNym},
     vm,
 };
 use anyhow::{Context, Result};
 use futures::FutureExt;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
-use std::{io::Write, net::IpAddr, panic, time::Duration};
+use std::{future::Future, io::Write, net::IpAddr, panic, time::Duration};
 use test_rpc::{client_nym::NymServiceClient, logging::Output};
 
 const GUEST_DAEMON_LOG_PATH: &str = "/var/log/nym-vpnd/nym-vpnd.log";
 
 const DAEMON_LOG_TAIL_LINES: usize = 4000;
+const DAEMON_LOG_CAPTURE_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[derive(Clone)]
 struct GuestSshAccess {
@@ -30,32 +31,47 @@ struct GuestSshAccess {
 /// Fetch the daemon log over SSH, retrying briefly since the guest may be
 /// firewalled off by the kill-switch during a connect attempt.
 async fn fetch_guest_daemon_log(access: GuestSshAccess) -> Result<String> {
-    tokio::task::spawn_blocking(move || {
-        let mut last_err = None;
-        for attempt in 1..=5 {
-            match SSHSession::connect(access.user.clone(), access.password.clone(), access.ip)
-                .and_then(|session| {
-                    session.exec_blocking(&format!("sudo cat {GUEST_DAEMON_LOG_PATH}"))
-                }) {
-                Ok(contents) if !contents.trim().is_empty() => return Ok(contents),
-                Ok(_) => {
-                    log::debug!(
-                        "daemon log capture attempt {attempt}/5: empty output (missing/unreadable file?)"
-                    );
-                    last_err = Some(anyhow::anyhow!("empty daemon log output"));
-                    std::thread::sleep(Duration::from_secs(3));
+    await_daemon_log_capture(
+        async move {
+            tokio::task::spawn_blocking(move || {
+                let mut last_err = None;
+                for attempt in 1..=5 {
+                    match SSHSession::connect(access.user.clone(), access.password.clone(), access.ip)
+                        .and_then(|session| {
+                            session.exec_blocking(&format!("sudo cat {GUEST_DAEMON_LOG_PATH}"))
+                        }) {
+                        Ok(contents) if !contents.trim().is_empty() => return Ok(contents),
+                        Ok(_) => {
+                            log::debug!(
+                                "daemon log capture attempt {attempt}/5: empty output (missing/unreadable file?)"
+                            );
+                            last_err = Some(anyhow::anyhow!("empty daemon log output"));
+                            std::thread::sleep(Duration::from_secs(3));
+                        }
+                        Err(err) => {
+                            log::debug!("daemon log capture attempt {attempt}/5 failed: {err:#}");
+                            last_err = Some(err);
+                            std::thread::sleep(Duration::from_secs(3));
+                        }
+                    }
                 }
-                Err(err) => {
-                    log::debug!("daemon log capture attempt {attempt}/5 failed: {err:#}");
-                    last_err = Some(err);
-                    std::thread::sleep(Duration::from_secs(3));
-                }
-            }
-        }
-        Err(last_err.unwrap_or_else(|| anyhow::anyhow!("no attempts made")))
-    })
+                Err(last_err.unwrap_or_else(|| anyhow::anyhow!("no attempts made")))
+            })
+            .await
+            .context("daemon log capture task panicked")?
+        },
+        DAEMON_LOG_CAPTURE_TIMEOUT,
+    )
     .await
-    .context("daemon log capture task panicked")?
+}
+
+async fn await_daemon_log_capture<T>(
+    capture: impl Future<Output = Result<T>>,
+    timeout: Duration,
+) -> Result<T> {
+    tokio::time::timeout(timeout, capture)
+        .await
+        .map_err(|_| anyhow::anyhow!("daemon log capture timed out after {}s", timeout.as_secs()))?
 }
 
 /// Best-effort: write the full daemon log to a host file and echo the tail into
@@ -187,22 +203,14 @@ impl TestHandler<'_> {
             self.logger.store_records(false);
         }
 
-        if test_output.result.failure() {
-            // Test consumed its NymProxyClient; open a fresh one to clear a leftover tunnel.
-            if let Ok(mut client) = self.rpc_provider.new_client_nym().await {
-                helpers_nym::best_effort_disconnect(&mut client).await;
-            } else {
-                log::warn!(
-                    "Could not create RPC client for fail-path disconnect after '{test_name}'"
-                );
-            }
-
-            if let Some(access) = &self.guest_ssh_access {
-                capture_daemon_log_on_failure(access, test_name).await;
-            }
-        }
-
+        // Print before fail-path side effects so a wedged serial mux cannot hide the error.
         test_output.print();
+
+        if test_output.result.failure()
+            && let Some(access) = &self.guest_ssh_access
+        {
+            capture_daemon_log_on_failure(access, test_name).await;
+        }
 
         register_test_result(
             test_output.result,
@@ -406,7 +414,8 @@ pub async fn run_test_function(
 
 #[cfg(test)]
 mod daemon_log_tests {
-    use super::daemon_log_line_timestamp;
+    use super::{await_daemon_log_capture, daemon_log_line_timestamp};
+    use std::{future::pending, time::Duration};
 
     #[test]
     fn parses_tracing_timestamp() {
@@ -422,5 +431,15 @@ mod daemon_log_tests {
         assert_eq!(daemon_log_line_timestamp("# cumulative guest log"), None);
         assert_eq!(daemon_log_line_timestamp(""), None);
         assert_eq!(daemon_log_line_timestamp("INFO only"), None);
+    }
+
+    #[tokio::test]
+    async fn daemon_log_capture_is_bounded() {
+        let error =
+            await_daemon_log_capture(pending::<anyhow::Result<()>>(), Duration::from_millis(1))
+                .await
+                .expect_err("pending capture must time out");
+
+        assert!(error.to_string().contains("daemon log capture timed out"));
     }
 }

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #![allow(clippy::disallowed_types)]
-use std::{io, time::Duration};
+use std::{future::Future, io, time::Duration};
 
 use anyhow::Context;
 use futures::{FutureExt, SinkExt, StreamExt, channel::mpsc, future::BoxFuture, pin_mut};
@@ -16,6 +16,7 @@ use tower::Service;
 
 /// Unary gRPC timeout over the serial mux.
 const GRPC_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
+const RPC_CLIENT_CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
 const CONVERTER_BUF_SIZE: usize = 16 * 1024;
 
 #[derive(Clone)]
@@ -62,10 +63,30 @@ impl RpcClientProvider {
         tokio::time::sleep(std::time::Duration::from_millis(500)).await;
 
         log::trace!("Nym daemon: connecting");
-        NymProxyClient::new_over_serial(self.service.clone(), Some(GRPC_REQUEST_TIMEOUT))
-            .await
-            .context("Failed to create RpcClient over serial")
+        await_rpc_client_connection(
+            async {
+                NymProxyClient::new_over_serial(self.service.clone(), Some(GRPC_REQUEST_TIMEOUT))
+                    .await
+                    .context("Failed to create RpcClient over serial")
+            },
+            RPC_CLIENT_CONNECT_TIMEOUT,
+        )
+        .await
     }
+}
+
+async fn await_rpc_client_connection<T>(
+    connection: impl Future<Output = anyhow::Result<T>>,
+    timeout: Duration,
+) -> anyhow::Result<T> {
+    tokio::time::timeout(timeout, connection)
+        .await
+        .map_err(|_| {
+            anyhow::anyhow!(
+                "Timed out after {}s creating RpcClient over serial",
+                timeout.as_secs()
+            )
+        })?
 }
 
 pub fn new_rpc_client(
@@ -170,4 +191,29 @@ pub fn new_rpc_client(
     };
 
     RpcClientProvider { service }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::await_rpc_client_connection;
+    use std::{future::pending, time::Duration};
+
+    #[tokio::test]
+    async fn serial_rpc_client_connection_is_bounded() {
+        let error =
+            await_rpc_client_connection(pending::<anyhow::Result<()>>(), Duration::from_millis(1))
+                .await
+                .expect_err("pending connection must time out");
+
+        assert!(error.to_string().contains("creating RpcClient over serial"));
+    }
+
+    #[tokio::test]
+    async fn serial_rpc_client_connection_returns_success() {
+        let result = await_rpc_client_connection(async { Ok(42) }, Duration::from_secs(1))
+            .await
+            .expect("ready connection");
+
+        assert_eq!(result, 42);
+    }
 }

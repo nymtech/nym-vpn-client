@@ -102,12 +102,8 @@ enum Commands {
         reports: Vec<PathBuf>,
     },
 
-    /// Delete all devices registered on the test account (pre-run cleanup)
-    DeleteDevices {
-        /// Account mnemonic (24 words)
-        #[arg(long)]
-        nym_mnemonic: String,
-    },
+    /// Delete all devices registered on the test account (mnemonic is read from stdin)
+    DeleteDevices,
 
     /// Update the system image
     ///
@@ -224,7 +220,9 @@ async fn main() -> Result<()> {
             summary::print_summary_table(&reports).await;
             Ok(())
         }
-        Commands::DeleteDevices { nym_mnemonic } => {
+        Commands::DeleteDevices => {
+            let nym_mnemonic =
+                read_mnemonic(std::io::stdin()).context("Failed to read mnemonic from stdin")?;
             device_cleanup::delete_all_devices(&nym_mnemonic)
                 .await
                 .context("Failed to delete account devices")?;
@@ -376,5 +374,31 @@ async fn main() -> Result<()> {
             log::info!("Note: updates have not been persisted to the image");
             Ok(())
         }
+    }
+}
+
+fn read_mnemonic(mut reader: impl std::io::Read) -> Result<String> {
+    let mut mnemonic = String::new();
+    reader.read_to_string(&mut mnemonic)?;
+    let mnemonic = mnemonic.trim().to_owned();
+    anyhow::ensure!(!mnemonic.is_empty(), "mnemonic input is empty");
+    Ok(mnemonic)
+}
+
+#[cfg(test)]
+mod mnemonic_input_tests {
+    use super::read_mnemonic;
+
+    #[test]
+    fn mnemonic_is_trimmed_from_stdin() {
+        assert_eq!(
+            read_mnemonic("word one two\n".as_bytes()).expect("mnemonic"),
+            "word one two"
+        );
+    }
+
+    #[test]
+    fn empty_mnemonic_is_rejected() {
+        assert!(read_mnemonic(" \n".as_bytes()).is_err());
     }
 }

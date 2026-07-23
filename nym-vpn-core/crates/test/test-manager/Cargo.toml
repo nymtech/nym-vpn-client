@@ -39,7 +39,7 @@ ssh2 = { workspace = true }
 tarpc = { workspace = true }
 thiserror = { workspace = true }
 time = { workspace = true }
-tokio = { workspace = true, features = ["process"] }
+tokio = { workspace = true, features = ["process", "test-util"] }
 tokio-serde = { workspace = true }
 tokio-serial = { workspace = true }
 tonic = { workspace = true }

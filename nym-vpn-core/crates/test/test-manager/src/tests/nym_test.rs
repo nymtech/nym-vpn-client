@@ -4,14 +4,18 @@
 
 use crate::tests::{
     TestContext,
-    helpers_nym::{self},
+    helpers_nym::{self, resolve_hostname_with_retry},
 };
 use anyhow::{Context, ensure};
 use helpers_nym::ExpectedTunnelState;
 use nym_vpn_lib_types::AccountControllerState;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
+use std::time::Duration;
 use test_macro::test_function_nym;
 use test_rpc::NymServiceClient;
+
+/// Per-hostname budget for in-VM DNS after connect (matches tunnel reconnect checks).
+const ROUNDTRIP_DNS_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[test_function_nym]
 pub async fn test_account_and_tunnel_roundtrip(
@@ -39,20 +43,15 @@ pub async fn test_account_and_tunnel_roundtrip(
     helpers_nym::wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Connected)
         .await?;
 
-    // DNS resolution while connected (runs inside VM via tarpc)
+    // DNS resolution while connected (runs inside VM via tarpc). Bounded so a
+    // stalled resolver cannot wedge the suite until outer SSH keepalives kill CI.
     let hostnames_to_test = ["nym.com", "google.com"];
     for host in &hostnames_to_test {
         log::info!("Resolving {} inside VM...", host);
-        let addrs = rpc
-            .resolve_hostname(host.to_string())
+        let addrs = resolve_hostname_with_retry(&rpc, host, ROUNDTRIP_DNS_TIMEOUT)
             .await
-            .context(format!("DNS resolution failed for {} inside VM", host))?;
+            .with_context(|| format!("DNS resolution failed for {host} inside VM"))?;
         log::info!("Resolved {} to {:?}", host, addrs);
-        ensure!(
-            !addrs.is_empty(),
-            "DNS resolution returned no addresses for {} inside VM",
-            host
-        );
     }
 
     // Disconnect tunnel

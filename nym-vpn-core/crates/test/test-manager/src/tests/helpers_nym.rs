@@ -9,7 +9,7 @@ use super::{
 use futures::StreamExt;
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerState, TunnelEvent, TunnelState};
 use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
-use std::{net::SocketAddr, time::Duration};
+use std::{future::Future, net::SocketAddr, time::Duration};
 use test_rpc::NymServiceClient;
 
 /// Bounded best-effort disconnect after a tunnel wait timeout. Must not nest a full
@@ -18,6 +18,15 @@ const BEST_EFFORT_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
 const TUNNEL_STATE_POLL_ATTEMPTS: u32 = 3;
 const TUNNEL_STATE_POLL_DELAY: Duration = Duration::from_millis(500);
+const TUNNEL_STATE_POLL_BUDGET: Duration = Duration::from_secs(10);
+
+enum TunnelTimeoutOutcome {
+    Recovered(Box<TunnelState>),
+    Failed {
+        error: String,
+        should_disconnect: bool,
+    },
+}
 
 #[derive(Debug, PartialEq)]
 pub enum ExpectedTunnelState {
@@ -165,68 +174,144 @@ pub async fn wait_for_tunnel_state_fn(
     timeout: Duration,
     disconnect_on_timeout: bool,
 ) -> Result<TunnelState, Error> {
-    let mut events = rpc
-        .listen_to_events()
-        .await
-        .map_err(|status| Error::Daemon(format!("Failed to get event stream: {status}")))?;
+    enforce_tunnel_wait_deadline(
+        timeout,
+        wait_for_tunnel_state_with_recovery(rpc, accept_state_fn, timeout, disconnect_on_timeout),
+    )
+    .await
+}
 
-    let state = rpc
-        .get_tunnel_state()
-        .await
-        .map_err(|error| Error::Daemon(format!("Failed to get tunnel state: {error:?}")))?;
+async fn wait_for_tunnel_state_with_recovery(
+    rpc: &mut NymProxyClient,
+    accept_state_fn: impl Fn(&TunnelState) -> bool,
+    timeout: Duration,
+    disconnect_on_timeout: bool,
+) -> Result<TunnelState, Error> {
+    let (event_budget, poll_budget) = tunnel_wait_phase_budgets(timeout, disconnect_on_timeout);
 
-    log::debug!("Current tunnel state: {state:?}");
+    let event_result = tokio::time::timeout(event_budget, async {
+        let mut events = rpc
+            .listen_to_events()
+            .await
+            .map_err(|status| Error::Daemon(format!("Failed to get event stream: {status}")))?;
 
-    if accept_state_fn(&state) {
-        return Ok(state);
-    }
+        let state = rpc
+            .get_tunnel_state()
+            .await
+            .map_err(|error| Error::Daemon(format!("Failed to get tunnel state: {error:?}")))?;
 
-    let result = tokio::time::timeout(timeout, async {
+        log::debug!("Current tunnel state: {state:?}");
+
+        if accept_state_fn(&state) {
+            return Ok(state);
+        }
+
         loop {
             match events.next().await {
                 Some(Ok(TunnelEvent::NewState(state))) if accept_state_fn(&state) => {
                     log::debug!("Reached expected tunnel state: {state:?}");
-                    break Ok(state);
+                    return Ok(state);
                 }
                 Some(Ok(event)) => {
                     log::trace!("Ignoring tunnel event: {event:?}");
                     continue;
                 }
                 Some(Err(status)) => {
-                    break Err(Error::Daemon(format!("Failed to get next event: {status}")));
+                    return Err(Error::Daemon(format!("Failed to get next event: {status}")));
                 }
-                None => break Err(Error::Daemon(String::from("Lost daemon event stream"))),
+                None => return Err(Error::Daemon(String::from("Lost daemon event stream"))),
             }
         }
     })
     .await;
 
-    match result {
+    match event_result {
         Ok(inner) => inner,
         Err(_) => {
-            // Free the serial mux before follow-up unaries.
-            drop(events);
+            // The timed-out event future is dropped before follow-up unaries,
+            // releasing the serial mux.
+            let outcome = match tokio::time::timeout(poll_budget, poll_tunnel_state(rpc)).await {
+                Ok(poll) => classify_tunnel_timeout(
+                    event_budget,
+                    &poll,
+                    &accept_state_fn,
+                    disconnect_on_timeout,
+                ),
+                Err(_) => TunnelTimeoutOutcome::Failed {
+                    error: format!(
+                        "Tunnel event phase timed out after {}s. follow-up RPC poll timed out after {}s (RpcFailed); last_observed=<unavailable>",
+                        event_budget.as_secs(),
+                        poll_budget.as_secs()
+                    ),
+                    should_disconnect: disconnect_on_timeout,
+                },
+            };
 
-            let poll = poll_tunnel_state(rpc).await;
-            if let Ok(ref state) = poll
-                && accept_state_fn(state)
-            {
-                log::warn!(
-                    "Tunnel wait timed out after {}s but follow-up poll found expected state: {state:?}",
-                    timeout.as_secs()
-                );
-                return Ok(state.clone());
+            match outcome {
+                TunnelTimeoutOutcome::Recovered(state) => {
+                    log::warn!(
+                        "Tunnel event phase timed out after {}s but follow-up poll found expected state: {state:?}",
+                        event_budget.as_secs()
+                    );
+                    Ok(*state)
+                }
+                TunnelTimeoutOutcome::Failed {
+                    error,
+                    should_disconnect,
+                } => {
+                    log::error!("{error}");
+                    if should_disconnect {
+                        best_effort_disconnect(rpc).await;
+                    }
+                    Err(Error::Daemon(error))
+                }
             }
-
-            let err = format_tunnel_wait_timeout_error(timeout, &poll);
-            log::error!("{err}");
-
-            if disconnect_on_timeout {
-                best_effort_disconnect(rpc).await;
-            }
-
-            Err(Error::Daemon(err))
         }
+    }
+}
+
+fn tunnel_wait_phase_budgets(
+    timeout: Duration,
+    disconnect_on_timeout: bool,
+) -> (Duration, Duration) {
+    let cleanup_budget = if disconnect_on_timeout {
+        BEST_EFFORT_DISCONNECT_TIMEOUT.min(timeout)
+    } else {
+        Duration::ZERO
+    };
+    let before_cleanup = timeout.saturating_sub(cleanup_budget);
+    let poll_budget = TUNNEL_STATE_POLL_BUDGET.min(before_cleanup);
+    let event_budget = before_cleanup.saturating_sub(poll_budget);
+    (event_budget, poll_budget)
+}
+
+async fn enforce_tunnel_wait_deadline<T>(
+    timeout: Duration,
+    wait: impl Future<Output = Result<T, Error>>,
+) -> Result<T, Error> {
+    tokio::time::timeout(timeout, wait).await.map_err(|_| {
+        Error::Daemon(format!(
+            "Tunnel wait exceeded total deadline of {}s",
+            timeout.as_secs()
+        ))
+    })?
+}
+
+fn classify_tunnel_timeout(
+    timeout: Duration,
+    poll: &Result<TunnelState, NymClientError>,
+    accept_state_fn: &impl Fn(&TunnelState) -> bool,
+    disconnect_on_timeout: bool,
+) -> TunnelTimeoutOutcome {
+    if let Ok(state) = poll
+        && accept_state_fn(state)
+    {
+        return TunnelTimeoutOutcome::Recovered(Box::new(state.clone()));
+    }
+
+    TunnelTimeoutOutcome::Failed {
+        error: format_tunnel_wait_timeout_error(timeout, poll),
+        should_disconnect: disconnect_on_timeout,
     }
 }
 
@@ -412,5 +497,131 @@ pub async fn resolve_hostname_with_retry(
             log::error!("{err}");
             anyhow::bail!(err)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        ExpectedTunnelState, TunnelTimeoutOutcome, classify_tunnel_timeout,
+        enforce_tunnel_wait_deadline, format_account_wait_timeout_error,
+        format_tunnel_wait_timeout_error, tunnel_wait_params, tunnel_wait_phase_budgets,
+    };
+    use crate::tests::{WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
+    use nym_vpn_lib_types::{AccountControllerState, TunnelState};
+    use nym_vpn_proto::rpc_client::Error as NymClientError;
+    use std::time::Duration;
+
+    #[test]
+    fn connect_wait_uses_extended_timeout_and_cleanup() {
+        for state in [
+            ExpectedTunnelState::Connected,
+            ExpectedTunnelState::Connecting,
+        ] {
+            assert_eq!(
+                tunnel_wait_params(&state),
+                (WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, true)
+            );
+        }
+    }
+
+    #[test]
+    fn disconnect_wait_uses_default_timeout_without_cleanup() {
+        assert_eq!(
+            tunnel_wait_params(&ExpectedTunnelState::Disconnected),
+            (WAIT_FOR_TUNNEL_STATE_TIMEOUT, false)
+        );
+    }
+
+    #[test]
+    fn tunnel_timeout_reports_last_observed_state() {
+        let message = format_tunnel_wait_timeout_error(
+            Duration::from_secs(120),
+            &Ok(TunnelState::Disconnected),
+        );
+
+        assert!(message.contains("last_observed=Disconnected"));
+        assert!(message.contains("StillInState"));
+    }
+
+    #[test]
+    fn tunnel_timeout_reports_rpc_failure() {
+        let message = format_tunnel_wait_timeout_error(
+            Duration::from_secs(120),
+            &Err(NymClientError::AuthenticationRequired),
+        );
+
+        assert!(message.contains("RpcFailed"));
+        assert!(message.contains("last_observed=<unavailable>"));
+    }
+
+    #[test]
+    fn account_timeout_reports_last_observed_state() {
+        let message = format_account_wait_timeout_error(
+            Duration::from_secs(60),
+            &Ok(AccountControllerState::ReadyToConnect),
+        );
+
+        assert!(message.contains("last_observed=ReadyToConnect"));
+        assert!(message.contains("StillInState"));
+    }
+
+    #[test]
+    fn late_expected_state_recovers_without_cleanup() {
+        let outcome = classify_tunnel_timeout(
+            Duration::from_secs(120),
+            &Ok(TunnelState::Disconnected),
+            &|state| matches!(state, TunnelState::Disconnected),
+            true,
+        );
+
+        assert!(matches!(
+            outcome,
+            TunnelTimeoutOutcome::Recovered(state)
+                if matches!(*state, TunnelState::Disconnected)
+        ));
+    }
+
+    #[test]
+    fn failed_connect_wait_requests_cleanup() {
+        let outcome = classify_tunnel_timeout(
+            Duration::from_secs(120),
+            &Err(NymClientError::AuthenticationRequired),
+            &|state| matches!(state, TunnelState::Connected { .. }),
+            true,
+        );
+
+        assert!(matches!(
+            outcome,
+            TunnelTimeoutOutcome::Failed {
+                should_disconnect: true,
+                ..
+            }
+        ));
+    }
+
+    #[test]
+    fn tunnel_phase_budgets_fit_total_deadline() {
+        let total = Duration::from_secs(120);
+        let (event, poll) = tunnel_wait_phase_budgets(total, true);
+
+        assert_eq!(event, Duration::from_secs(100));
+        assert_eq!(poll, Duration::from_secs(10));
+        assert_eq!(event + poll + super::BEST_EFFORT_DISCONNECT_TIMEOUT, total);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn tunnel_wait_enforces_total_elapsed_deadline() {
+        let timeout = Duration::from_secs(120);
+        let started = tokio::time::Instant::now();
+        let error = enforce_tunnel_wait_deadline(
+            timeout,
+            std::future::pending::<Result<(), super::Error>>(),
+        )
+        .await
+        .expect_err("pending wait must hit total deadline");
+
+        assert_eq!(started.elapsed(), timeout);
+        assert!(error.to_string().contains("total deadline of 120s"));
     }
 }

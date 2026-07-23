@@ -11,7 +11,7 @@ use nym_vpn_api_client::{
 };
 use wiremock::{
     Match, Mock, MockServer, Request, ResponseTemplate,
-    matchers::{header_exists, method, path_regex},
+    matchers::{body_json, header_exists, method, path},
 };
 
 // this is not a valid mnemonic - its just a test account
@@ -45,9 +45,15 @@ fn client_and_account(server: &MockServer) -> (VpnApiClient, VpnAccount) {
 async fn delete_device_uses_account_auth_only() {
     let server = MockServer::start().await;
     let (client, account) = client_and_account(&server);
+    let device_identity = "SomeOrphanedDeviceIdentityKey";
+    let expected_path = format!(
+        "/public/v1/account/{}/device/{device_identity}",
+        account.id()
+    );
 
     Mock::given(method("PATCH"))
-        .and(path_regex(r"/public/v1/account/.+/device/.+"))
+        .and(path(expected_path))
+        .and(body_json(serde_json::json!({ "status": "delete_me" })))
         .and(header_exists("authorization"))
         .and(HeaderAbsent("x-device-authorization"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({})))
@@ -55,9 +61,31 @@ async fn delete_device_uses_account_auth_only() {
         .mount(&server)
         .await;
 
-    let result = client
-        .delete_device(&account, "SomeOrphanedDeviceIdentityKey")
+    let response = client
+        .delete_device(&account, device_identity)
+        .await
+        .expect("delete_device should succeed");
+
+    assert_eq!(response, serde_json::json!({}));
+}
+
+#[tokio::test]
+async fn delete_device_propagates_non_success_response() {
+    let server = MockServer::start().await;
+    let (client, account) = client_and_account(&server);
+
+    Mock::given(method("PATCH"))
+        .respond_with(ResponseTemplate::new(500).set_body_json(serde_json::json!({
+            "message": "cleanup failed"
+        })))
+        .expect(1)
+        .mount(&server)
         .await;
 
-    assert!(result.is_ok(), "delete_device should succeed: {result:?}");
+    let error = client
+        .delete_device(&account, "SomeOrphanedDeviceIdentityKey")
+        .await
+        .expect_err("non-success response must fail");
+
+    assert!(error.to_string().contains("failed to delete device"));
 }
