@@ -304,6 +304,9 @@ enum ForwardError {
 
     #[error("Handshake error")]
     HandshakeError(#[source] io::Error),
+
+    #[error("{0} forwarding queue closed")]
+    ForwardQueueClosed(&'static str),
 }
 
 async fn forward_messages<
@@ -311,112 +314,119 @@ async fn forward_messages<
     S: DeserializeOwned + Unpin + Send + 'static,
 >(
     serial_stream: impl AsyncRead + AsyncWrite + Unpin + Send + 'static,
-    mut runner_forwarder: tarpc::transport::channel::UnboundedChannel<T, S>,
+    runner_forwarder: tarpc::transport::channel::UnboundedChannel<T, S>,
     daemon_forwarder: GrpcForwarder,
     mut handshaker: (mpsc::UnboundedSender<()>, mpsc::UnboundedReceiver<()>),
     handshake_fwd: Option<mpsc::UnboundedSender<()>>,
     connected_state: Arc<AtomicBool>,
 ) -> Result<(), ForwardError> {
     let codec = MultiplexCodec::new(connected_state);
-    let mut serial_stream = codec.framed(serial_stream);
+    let serial_stream = codec.framed(serial_stream);
+    let (mut serial_sink, mut serial_source) = serial_stream.split();
 
     // Needs to be framed to allow empty messages.
-    let mut daemon_forwarder = LengthDelimitedCodec::new().framed(daemon_forwarder);
+    let daemon_forwarder = LengthDelimitedCodec::new().framed(daemon_forwarder);
+    let (mut daemon_sink, mut daemon_source) = daemon_forwarder.split();
+    let (mut runner_sink, mut runner_source) = runner_forwarder.split();
+    let (runner_tx, mut runner_rx) = mpsc::unbounded();
+    let (daemon_tx, mut daemon_rx) = mpsc::unbounded();
 
-    loop {
-        futures::select! {
-            frame = serial_stream.next().fuse() => {
-                let Some(frame) = frame else {
-                    break Ok(());
-                };
-
-                let frame = frame.map_err(ForwardError::SerialConnection)?;
-
-                //
-                // Deserialize frame and send it to one of the channels
-                //
-
-                match frame {
-                    Frame::TestRunner(data) => {
-                        let message = serde_json::from_slice(&data)
-                            .map_err(ForwardError::DeserializeFailed)?;
-                        runner_forwarder
-                            .send(message)
-                            .await
-                            .map_err(ForwardError::TestRunnerChannel)?;
-                    }
-                    Frame::DaemonRpc(data) => {
-                        daemon_forwarder
-                            .send(data)
-                            .await
-                            .map_err(ForwardError::DaemonChannel)?;
-                    }
-                    Frame::Handshake => {
-                        log::trace!("shake: recv");
-                        if let Some(shake_fwd) = handshake_fwd.as_ref() {
-                            let _ = shake_fwd.unbounded_send(());
-                        } else {
-                            let _ = handshaker.0.unbounded_send(());
-                        }
+    let serial_reader = async move {
+        while let Some(frame) = serial_source.next().await {
+            match frame.map_err(ForwardError::SerialConnection)? {
+                Frame::TestRunner(data) => {
+                    let message =
+                        serde_json::from_slice(&data).map_err(ForwardError::DeserializeFailed)?;
+                    runner_tx
+                        .unbounded_send(message)
+                        .map_err(|_| ForwardError::ForwardQueueClosed("test runner"))?;
+                }
+                Frame::DaemonRpc(data) => {
+                    daemon_tx
+                        .unbounded_send(data)
+                        .map_err(|_| ForwardError::ForwardQueueClosed("daemon"))?;
+                }
+                Frame::Handshake => {
+                    log::trace!("shake: recv");
+                    if let Some(shake_fwd) = handshake_fwd.as_ref() {
+                        let _ = shake_fwd.unbounded_send(());
+                    } else {
+                        let _ = handshaker.0.unbounded_send(());
                     }
                 }
-            }
-
-            handshake = handshaker.1.next().fuse() => {
-                if handshake.is_none() {
-                    break Ok(());
-                }
-
-                log::trace!("shake: send");
-
-                // Ping the other end
-                serial_stream
-                    .send(Frame::Handshake)
-                    .await
-                    .map_err(ForwardError::HandshakeError)?;
-            }
-
-            message = runner_forwarder.next().fuse() => {
-                let Some(message) = message else {
-                    break Ok(());
-                };
-
-                let message = message.map_err(ForwardError::TestRunnerChannel)?;
-
-                //
-                // Serialize messages from tarpc channel into frames
-                // and send them over the serial connection
-                //
-
-                let serialized =
-                    serde_json::to_vec(&message).map_err(ForwardError::SerializeFailed)?;
-                serial_stream
-                    .send(Frame::TestRunner(serialized.into()))
-                    .await
-                    .map_err(ForwardError::SerialConnection)?;
-            }
-
-            data = daemon_forwarder.next().fuse() => {
-                let Some(data) = data else {
-                    //
-                    // Force management interface socket to close
-                    //
-                    let _ = serial_stream.send(Frame::DaemonRpc(Bytes::new())).await;
-                    break Ok(());
-                };
-
-                let data = data.map_err(ForwardError::DaemonChannel)?;
-
-                //
-                // Forward whatever the heck this is
-                //
-
-                serial_stream
-                    .send(Frame::DaemonRpc(data.into()))
-                    .await
-                    .map_err(ForwardError::SerialConnection)?;
             }
         }
+        Ok(())
+    };
+
+    let runner_writer = async move {
+        while let Some(message) = runner_rx.next().await {
+            runner_sink
+                .send(message)
+                .await
+                .map_err(ForwardError::TestRunnerChannel)?;
+        }
+        Ok(())
+    };
+
+    let daemon_writer = async move {
+        while let Some(data) = daemon_rx.next().await {
+            daemon_sink
+                .send(data)
+                .await
+                .map_err(ForwardError::DaemonChannel)?;
+        }
+        Ok(())
+    };
+
+    let serial_writer = async move {
+        loop {
+            futures::select! {
+                handshake = handshaker.1.next().fuse() => {
+                    if handshake.is_none() {
+                        break Ok(());
+                    }
+
+                    log::trace!("shake: send");
+                    serial_sink
+                        .send(Frame::Handshake)
+                        .await
+                        .map_err(ForwardError::HandshakeError)?;
+                }
+
+                message = runner_source.next().fuse() => {
+                    let Some(message) = message else {
+                        break Ok(());
+                    };
+                    let message = message.map_err(ForwardError::TestRunnerChannel)?;
+                    let serialized =
+                        serde_json::to_vec(&message).map_err(ForwardError::SerializeFailed)?;
+                    serial_sink
+                        .send(Frame::TestRunner(serialized.into()))
+                        .await
+                        .map_err(ForwardError::SerialConnection)?;
+                }
+
+                data = daemon_source.next().fuse() => {
+                    let Some(data) = data else {
+                        let _ = serial_sink.send(Frame::DaemonRpc(Bytes::new())).await;
+                        break Ok(());
+                    };
+                    let data = data.map_err(ForwardError::DaemonChannel)?;
+                    serial_sink
+                        .send(Frame::DaemonRpc(data.into()))
+                        .await
+                        .map_err(ForwardError::SerialConnection)?;
+                }
+            }
+        }
+    };
+
+    tokio::select! {
+        result = serial_reader => result,
+        result = runner_writer => result,
+        result = daemon_writer => result,
+        result = serial_writer => result,
     }
 }
 
@@ -564,7 +574,10 @@ fn display_chain(error: impl std::error::Error) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{forward_framed_bidirectional, synchronize_framed_session};
+    use super::{
+        DAEMON_CHANNEL_BUF_SIZE, create_client_transports, create_server_transports,
+        forward_framed_bidirectional, synchronize_framed_session,
+    };
     use bytes::Bytes;
     use futures::{SinkExt, StreamExt};
     use std::{io, time::Duration};
@@ -758,5 +771,93 @@ mod tests {
 
         assert_eq!(&forwarded[..], b"request");
         bridge.abort();
+    }
+
+    #[tokio::test]
+    async fn blocked_daemon_destination_does_not_block_opposite_direction() {
+        let (client_serial, server_serial) = duplex(64 * 1024);
+        let (_client_runner, client_daemon, mut connection, client_task) =
+            create_client_transports(client_serial).expect("create client transports");
+        let (_server_runner, server_daemon, server_task) = create_server_transports(server_serial);
+        let mut client_daemon = LengthDelimitedCodec::new().framed(client_daemon);
+        let mut server_daemon = LengthDelimitedCodec::new().framed(server_daemon);
+
+        connection
+            .wait_for_server()
+            .await
+            .expect("complete transport handshake");
+
+        client_daemon
+            .send(Bytes::from(vec![7; DAEMON_CHANNEL_BUF_SIZE]))
+            .await
+            .expect("fill the unread server daemon destination");
+        tokio::task::yield_now().await;
+
+        server_daemon
+            .send(Bytes::from_static(b"opposite direction"))
+            .await
+            .expect("queue opposite-direction daemon traffic");
+        let forwarded = tokio::time::timeout(Duration::from_secs(1), client_daemon.next())
+            .await
+            .expect("opposite direction must not share destination backpressure")
+            .expect("client daemon transport remains open")
+            .expect("opposite-direction frame is valid");
+
+        assert_eq!(&forwarded[..], b"opposite direction");
+        client_task.abort();
+        server_task.abort();
+    }
+
+    #[tokio::test]
+    async fn blocked_daemon_destination_does_not_block_runner_demux() {
+        let (client_serial, server_serial) = duplex(64 * 1024);
+        let (client_runner, client_daemon, mut connection, client_task) =
+            create_client_transports(client_serial).expect("create client transports");
+        let (mut server_runner, server_daemon, server_task) =
+            create_server_transports(server_serial);
+        let mut client_daemon = LengthDelimitedCodec::new().framed(client_daemon);
+        // Leave the server daemon unread so destination writes back up into the mux.
+        let _blocked_server_daemon = LengthDelimitedCodec::new().framed(server_daemon);
+
+        connection
+            .wait_for_server()
+            .await
+            .expect("complete transport handshake");
+
+        let flood = tokio::spawn(async move {
+            for _ in 0..4 {
+                if client_daemon
+                    .send(Bytes::from(vec![7; DAEMON_CHANNEL_BUF_SIZE]))
+                    .await
+                    .is_err()
+                {
+                    break;
+                }
+            }
+            // Keep the daemon half alive until the assertion finishes; dropping it
+            // closes the multiplexed session.
+            client_daemon
+        });
+        tokio::time::sleep(Duration::from_millis(50)).await;
+
+        let client =
+            crate::service::ServiceClient::new(tarpc::client::Config::default(), client_runner)
+                .spawn();
+        let _request = tokio::spawn(async move {
+            let _ = client
+                .get_default_interface(tarpc::context::current())
+                .await;
+        });
+
+        let received = tokio::time::timeout(Duration::from_secs(1), server_runner.next())
+            .await
+            .expect("runner demux must not share daemon destination backpressure")
+            .expect("server runner transport remains open")
+            .expect("runner frame is valid");
+
+        assert!(matches!(received, tarpc::ClientMessage::Request(_)));
+        flood.abort();
+        client_task.abort();
+        server_task.abort();
     }
 }
