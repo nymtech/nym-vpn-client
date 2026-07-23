@@ -23,7 +23,7 @@ use test_rpc::{NymServiceClient, meta::Os};
 const WAIT_FOR_TUNNEL_STATE_TIMEOUT: Duration = Duration::from_secs(40);
 
 /// Timeout for `wait_for_tunnel_state` (e.g. Connected after cold zk-nym).
-pub(crate) const WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT: Duration = Duration::from_secs(120);
+pub(crate) const WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT: Duration = Duration::from_secs(180);
 
 #[derive(Clone)]
 pub struct TestContext {

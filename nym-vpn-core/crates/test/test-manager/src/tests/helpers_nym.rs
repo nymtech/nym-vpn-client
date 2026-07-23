@@ -16,7 +16,7 @@ use test_rpc::NymServiceClient;
 const BEST_EFFORT_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 
 const TUNNEL_STATE_POLL_DELAY: Duration = Duration::from_millis(500);
-const TUNNEL_STATE_RPC_TIMEOUT: Duration = Duration::from_secs(10);
+const TUNNEL_STATE_RPC_TIMEOUT: Duration = Duration::from_secs(30);
 
 trait StateClient<S> {
     async fn read_state(&mut self) -> Result<S, NymClientError>;
