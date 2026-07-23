@@ -301,18 +301,17 @@ jobs:
         with:
           token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
           path: nym-websites
-          commit-message: Update Appcast.xml with v${{ steps.find_pkg.outputs.short_version }}
-          title: Update Appcast.xml with v${{ steps.find_pkg.outputs.short_version }}
+          commit-message: Update Appcast.xml with v${{ steps.pkg_metadata.outputs.short_version }}
+          title: Update Appcast.xml with v${{ steps.pkg_metadata.outputs.short_version }}
           draft: false
           body: |
-            Automated Sparkle appcast update for macOS v${{ steps.find_pkg.outputs.short_version }}.
+            Automated Sparkle appcast update for macOS v${{ steps.pkg_metadata.outputs.short_version }}.
             Source: nym-vpn-client macos-updater
-          branch: automation/update-macos-appcast-v${{ steps.find_pkg.outputs.short_version }}
+          branch: automation/update-macos-appcast-v${{ steps.pkg_metadata.outputs.short_version }}
           base: main
           delete-branch: true
           reviewers: |
             pronebird
-            agentpietrucha
 
       - name: Check outputs
         if: ${{ steps.cpr.outputs.pull-request-number }}
