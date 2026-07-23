@@ -59,6 +59,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
           REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release download "$RELEASE_TAG" --repo "$REPO" --pattern "*.pkg"
 
@@ -81,6 +82,7 @@ jobs:
           RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
           ARTIFACT_NAME: ${{ steps.find_pkg.outputs.pkg_file }}
           REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
@@ -97,6 +99,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
           REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
