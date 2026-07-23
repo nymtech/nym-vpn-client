@@ -9,8 +9,9 @@ use nym_vpn_lib_types::{Gateway, RecentGateways, TunnelType};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-pub use crate::recents::gateway_cache::RecentGatewayCache;
+pub use crate::recents::{error::RecentsError, gateway_cache::RecentGatewayCache};
 
+mod error;
 mod gateway_cache;
 
 const MAX_RECENTS: usize = 20;
@@ -157,7 +158,7 @@ impl<C: RecentGatewayCache> RecentsManager<C> {
             .collect()
     }
 
-    pub async fn get_recent(
+    async fn inner_get_recent(
         &self,
         tunnel_type: TunnelType,
     ) -> Result<RecentGateways, crate::gateway_directory::Error> {
@@ -180,5 +181,16 @@ impl<C: RecentGatewayCache> RecentsManager<C> {
         let entry = Self::get_recent_queue(&inner.entry, &entry_gateways);
         let exit = Self::get_recent_queue(&inner.exit, &exit_gateways);
         Ok(RecentGateways { entry, exit })
+    }
+    pub async fn get_recent(
+        &self,
+        tunnel_type: TunnelType,
+    ) -> Result<RecentGateways, RecentsError> {
+        self.inner_get_recent(tunnel_type)
+            .await
+            .map_err(|source| RecentsError::GetGateways {
+                tunnel_type,
+                source,
+            })
     }
 }

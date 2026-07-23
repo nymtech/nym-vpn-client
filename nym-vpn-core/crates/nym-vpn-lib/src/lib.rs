@@ -47,7 +47,7 @@ pub use crate::{
         DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, MixnetError,
         VpnTopologyProvider, VpnTopologyService, VpnTopologyServiceError, VpnTopologyServiceHandle,
     },
-    recents::{RecentGatewayCache, RecentsManager},
+    recents::{RecentGatewayCache, RecentsError, RecentsManager},
     tunnel_state_machine::tunnel::gateway_provider::GatewayProviderError,
 };
 
