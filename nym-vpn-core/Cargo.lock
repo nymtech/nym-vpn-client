@@ -5769,6 +5769,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-favorites"
+version = "2026.12.0-beta.1"
+dependencies = [
+ "async-trait",
+ "itertools 0.14.0",
+ "nym-gateway-directory",
+ "nym-vpn-lib-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "nym-file-updater"
 version = "2026.12.0-beta.1"
 dependencies = [
@@ -7256,6 +7271,7 @@ dependencies = [
  "nym-dbus",
  "nym-diagnostic",
  "nym-dns",
+ "nym-favorites",
  "nym-file-updater",
  "nym-firewall",
  "nym-firewall-config",
@@ -7376,6 +7392,7 @@ dependencies = [
  "nym-bandwidth-controller",
  "nym-common 2026.12.0-beta.1",
  "nym-diagnostic",
+ "nym-favorites",
  "nym-firewall-config",
  "nym-gateway-directory",
  "nym-http-api-client",

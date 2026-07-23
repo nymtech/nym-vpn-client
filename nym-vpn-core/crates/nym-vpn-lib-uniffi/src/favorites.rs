@@ -3,7 +3,7 @@
 
 use std::{path::PathBuf, sync::Arc};
 
-use nym_vpn_lib::{FavoritesManager, RecentsError, RecentsManager};
+use nym_favorites::{FavoritesManager, RecentsError, RecentsManager};
 use nym_vpn_lib_types::{FavoriteSelector, FavoriteSelectors, RecentGateways, TunnelType};
 use tokio::sync::RwLock;
 
@@ -111,7 +111,7 @@ impl FavoritesController {
         self.manager
             .write()
             .await
-            .remove_favorite_exit(selector)
+            .add_favorite_entry(selector)
             .await;
     }
 

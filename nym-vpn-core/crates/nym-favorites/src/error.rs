@@ -8,6 +8,6 @@ pub enum RecentsError {
     #[error("failed to lookup gateway cache")]
     GetGateways {
         tunnel_type: TunnelType,
-        source: crate::gateway_directory::Error,
+        source: nym_gateway_directory::Error,
     },
 }

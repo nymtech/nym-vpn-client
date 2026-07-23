@@ -1,9 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{
-    MixnetError, favorites::RecentsError, tunnel_state_machine::Error as TunnelStateMachineError,
-};
+use crate::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
+use nym_favorites::RecentsError;
 use nym_vpn_api_client::error::VpnApiClientError;
 use nym_vpn_lib_types::GatewayType;
 

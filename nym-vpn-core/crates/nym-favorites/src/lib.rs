@@ -5,10 +5,10 @@ use std::path::PathBuf;
 
 use nym_vpn_lib_types::{FavoriteSelector, FavoriteSelectors};
 
-use crate::favorites::util::{flush, persisted};
 pub use error::RecentsError;
 pub use gateway_cache::RecentGatewayCache;
 pub use recents::RecentsManager;
+use util::{flush, persisted};
 
 mod error;
 mod gateway_cache;

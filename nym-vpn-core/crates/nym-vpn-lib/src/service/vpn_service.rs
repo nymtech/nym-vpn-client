@@ -31,6 +31,7 @@ use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 
 use nym_common::trace_err_chain;
+use nym_favorites::RecentsManager;
 use nym_gateway_directory::{GatewayFilter, GatewayFilters};
 use nym_statistics::{
     StatisticsCommandsSender, StatisticsController, StatisticsControllerError, StatisticsSender,
@@ -82,7 +83,6 @@ use crate::tunnel_state_machine::LinuxSplitTunnelConfiguration;
 use crate::{
     DEFAULT_DNS_SERVERS_CONFIG, NodeIdentity, UserAgent, VpnTopologyService,
     config::GlobalConfig,
-    favorites::recents::RecentsManager,
     gateway_directory::{self, GatewayCache, GatewayCacheHandle, GatewayClient},
     logging::LogFileRemoverHandle,
     paths::{NymConfigPaths, Paths},

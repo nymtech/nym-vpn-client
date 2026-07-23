@@ -81,6 +81,7 @@ nym-wg-go = { workspace = true, features = ["amnezia"] }
 nym-wg-metadata-client.workspace = true
 nym-sqlx-pool-guard.workspace = true
 nym-file-updater.workspace = true
+nym-favorites.workspace = true
 opentelemetry.workspace = true
 opentelemetry_sdk.workspace = true
 quinn.workspace = true

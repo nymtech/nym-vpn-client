@@ -51,6 +51,7 @@ nym-http-api-client.workspace = true
 nym-common.workspace = true
 nym-gateway-directory.workspace = true
 nym-platform-metadata = { workspace = true, features = ["user-agent-macro"] }
+nym-favorites.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 nym-vpn-proto = { workspace = true, features = ["rpc_client"] }

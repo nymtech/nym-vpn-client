@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 use super::util::{flush, persisted};
-use crate::favorites::{error::RecentsError, gateway_cache::RecentGatewayCache};
+use crate::{error::RecentsError, gateway_cache::RecentGatewayCache};
 
 const MAX_RECENTS: usize = 20;
 const RECENTS_FILE_NAME: &str = "recents.json";
@@ -130,7 +130,7 @@ impl<C: RecentGatewayCache> RecentsManager<C> {
     async fn inner_get_recent(
         &self,
         tunnel_type: TunnelType,
-    ) -> Result<RecentGateways, crate::gateway_directory::Error> {
+    ) -> Result<RecentGateways, nym_gateway_directory::Error> {
         let cache = self.cache.read().await.clone();
         let (inner, entry_gateways, exit_gateways) = match tunnel_type {
             TunnelType::Mixnet => (
