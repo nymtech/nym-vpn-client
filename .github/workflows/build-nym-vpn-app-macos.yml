@@ -203,7 +203,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: python-venv
-          key: ${{ runner.os }}-python-venv
+          key: ${{ runner.os }}-${{ runner.arch }}-python-venv
 
       - name: Setup virtual env
         if: steps.cache-virtual-env.outputs.cache-hit != 'true'
