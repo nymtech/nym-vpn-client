@@ -293,6 +293,8 @@ jobs:
           echo "✅ Updated $TARGET (inserted after line 4)"
           sed -n '1,40p' "$TARGET" || true
 
+          git diff
+
       # - name: Create PR in nym-websites
       #   uses: peter-evans/create-pull-request@v8
       #   id: pr
