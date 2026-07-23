@@ -4,7 +4,7 @@
 use crate::diagnostic::{build_api_client, registration::setup_bandwidth_provider};
 
 use anyhow::Context;
-use nym_bandwidth_controller::{BandwidthTicketProvider, SystemSpendTimeProvider};
+use nym_bandwidth_controller::BandwidthTicketProvider;
 use nym_credentials_interface::TicketType;
 use nym_lp::{Ciphersuite, peer::LpRemotePeer};
 use nym_lp_data::packet::version;
@@ -68,7 +68,7 @@ impl LpClientRegistration {
                 &registration_config.local_wg_keypair,
                 &registration_config.gateway_id_key,
                 &registration_config.bandwidth_provider,
-                &SystemSpendTimeProvider,
+                None,
                 TicketType::V1WireguardEntry,
             )
             .await;
