@@ -104,6 +104,9 @@ on:
       pkg_installer_name:
         description: "Name of the PKG installer artifact"
         value: ${{ jobs.apple.outputs.pkg_installer_name }}
+      ios_build:
+        description: "Build number of the iOS app"
+        value: ${{ jobs.apple.outputs.ios_build }}
       fdroid_artifact_name:
         description: "Name of the F-Droid artifact"
         value: ${{ jobs.android.outputs.fdroid_artifact_name }}

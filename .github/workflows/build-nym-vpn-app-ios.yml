@@ -29,6 +29,10 @@ on:
         description: "Orchestrated app version (empty = use Xcode MARKETING_VERSION as before)"
         type: string
         default: ""
+    outputs:
+      ios_build:
+        description: "Build number of the iOS app"
+        value: ${{ jobs.build-nym-vpn-app-ios.outputs.ios_build }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -42,6 +46,7 @@ jobs:
     timeout-minutes: 45
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
+      ios_build: ${{ steps.ios_build_number.outputs.ios_build }}
     steps:
       - name: "Cleanup working directory"
         shell: bash
@@ -398,6 +403,10 @@ jobs:
           )
           echo "IOS_BUILD_NUMBER=$IOS_BUILD_NUMBER" >> "$GITHUB_ENV"
           echo "🔢 PR build number (no bump): $IOS_BUILD_NUMBER"
+
+      - name: Output iOS build number
+        id: ios_build_number
+        run: echo "ios_build=$IOS_BUILD_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Build iOS (Release, signed)
         working-directory: nym-vpn-apple
