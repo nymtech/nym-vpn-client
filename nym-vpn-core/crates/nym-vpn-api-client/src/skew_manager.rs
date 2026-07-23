@@ -268,7 +268,25 @@ impl SkewManager {
     /// (a locked cache is simply treated as "not available"), so it's safe to call from
     /// time-sensitive paths that must not be delayed. Callers decide what "not available" means
     /// for them - typically, falling back to `device_time()`.
+    ///
+    /// Note this samples the device clock *now* - if the result is going to be used significantly
+    /// later (e.g. after a slow async operation), prefer [`Self::cached_skew`] instead and apply
+    /// it to a clock reading taken at the point of actual use, or this correction will itself
+    /// become stale by the time it's used.
     pub fn cached_skew_corrected_time(&self) -> Option<OffsetDateTime> {
+        self.cached_skew().map(|skew| self.device_time() - skew)
+    }
+
+    /// Returns the currently cached clock skew (how far ahead of the VPN API server's clock the
+    /// local device clock is) - or `None` otherwise (skew not yet known, expired, not
+    /// significant, or the cache is momentarily locked for writing).
+    ///
+    /// Unlike [`Self::cached_skew_corrected_time`], this doesn't sample the device clock itself:
+    /// it returns just the offset, so callers can apply it to a clock reading taken right before
+    /// it's actually needed (e.g. `OffsetDateTime::now_utc() - skew`) instead of one taken well
+    /// before, which would let unrelated async work (network round-trips, retries, ...) make the
+    /// correction stale before it's used.
+    pub fn cached_skew(&self) -> Option<TimeDuration> {
         let skew = match self
             .inner
             .skew_state
@@ -281,7 +299,7 @@ impl SkewManager {
             SkewStatus::Expired => return None,
         };
 
-        Self::use_remote_time(self.estimate_remote_time(skew)).then(|| self.device_time() - skew)
+        Self::use_remote_time(self.estimate_remote_time(skew)).then_some(skew)
     }
 }
 
