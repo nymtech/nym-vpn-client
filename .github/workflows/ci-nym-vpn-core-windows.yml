@@ -110,7 +110,7 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --locked
+          cargo build --workspace --locked
 
       - name: Run tests
         working-directory: nym-vpn-core

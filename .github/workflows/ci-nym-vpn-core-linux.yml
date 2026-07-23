@@ -76,7 +76,7 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --locked
+          cargo build --workspace --locked
 
       - name: Build tests
         working-directory: nym-vpn-core
