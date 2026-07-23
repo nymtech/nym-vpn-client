@@ -182,10 +182,10 @@ jobs:
           PKG_FILE: ${{ steps.find_pkg.outputs.pkg_file }}
           SPARKLE_DIR: ${{ steps.download_sparkle.outputs.sparkle_dir }}
           SPARKLE_BIN: ${{ steps.download_sparkle.outputs.sparkle_bin }}
-          BUILD: ${{ steps.find_pkg.outputs.build }}
+          BUILD: ${{ steps.pkg_metadata.outputs.build }}
           HOST_LINK: "https://nymvpn.com"
-          SHORT_VERSION: ${{ steps.find_pkg.outputs.short_version }}
-          MIN_OS_VERSION: ${{ steps.find_pkg.outputs.min_os }}
+          SHORT_VERSION: ${{ steps.pkg_metadata.outputs.short_version }}
+          MIN_OS_VERSION: ${{ steps.pkg_metadata.outputs.min_os }}
           PUBLISH_DATE: ${{ steps.find_publish_date.outputs.publish_date }}
           DOWNLOAD_URL: ${{ steps.find_pkg_url.outputs.pkg_url }}
         run: |
@@ -231,7 +231,7 @@ jobs:
             echo '        <item>'
             echo "            <title>${SHORT_VERSION}</title>"
             echo "            <pubDate>${PUBLISH_DATE}</pubDate>"
-            echo "            <sparkle:version>${IOS_BUILD_NUMBER}</sparkle:version>"
+            echo "            <sparkle:version>${BUILD}</sparkle:version>"
             echo "            <sparkle:shortVersionString>${SHORT_VERSION}</sparkle:shortVersionString>"
             echo "            <sparkle:minimumSystemVersion>${MIN_OS_VERSION}</sparkle:minimumSystemVersion>"
             echo '            <enclosure'
