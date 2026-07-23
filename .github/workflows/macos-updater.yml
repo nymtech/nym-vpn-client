@@ -32,15 +32,10 @@ jobs:
           rm -rf ./.??* || true
           ls -la ./
 
-      # - name: Checkout repo
-      #   uses: actions/checkout@v7
-      #   with:
-      #     fetch-depth: 1
-
       - name: Resolve
         id: resolve
         env:
-          VERSION_TAG: ${{ inputs.version_tag || 'nym-vpn-v2026.11.0' }}
+          VERSION_TAG: ${{ inputs.version_tag }}
         run: |
           echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
 
