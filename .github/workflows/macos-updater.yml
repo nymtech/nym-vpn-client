@@ -63,36 +63,37 @@ jobs:
         run: |
           gh release download "$RELEASE_TAG" --repo "$REPO" --pattern "*.pkg"
 
-      - name: Find artifact file
+      - name: Find PKG file
         id: find_pkg
         run: |
           set -euo pipefail
 
-          ARTIFACT_FILE=$(find "${{ github.workspace }}" -name '*.pkg' -type f | head -1)
-          if [ -z "$ARTIFACT_FILE" ]; then
-            echo "::error:: Failed to locate pkg artifact"
+          PKG_FILE=$(find "${{ github.workspace }}" -name '*.pkg' -type f | head -1)
+          if [ -z "$PKG_FILE" ]; then
+            echo "::error:: Failed to locate pkg"
             exit 1
           fi
-          echo "pkg_file=$ARTIFACT_FILE" >> $GITHUB_OUTPUT
-          echo "::notice:: Found artifact for upload: $ARTIFACT_FILE"
+          echo "pkg_file=$PKG_FILE" >> $GITHUB_OUTPUT
+          echo "::notice:: Found PKG for upload: $PKG_FILE"
 
-      - name: Find artifact download URL
+      - name: Find PKG download URL
         id: find_pkg_url
         env:
           RELEASE_TAG: ${{ steps.resolve.outputs.version_tag }}
-          ARTIFACT_NAME: ${{ steps.find_pkg.outputs.pkg_file }}
+          PKG_FILE: ${{ steps.find_pkg.outputs.pkg_file }}
           REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
-          ARTIFACT_URL=$(gh release view "$RELEASE_TAG" --repo "$REPO" -q '.assets[] | select(.name == "$ARTIFACT_NAME") | .url' --json assets)
-          if [ -z "$ARTIFACT_URL" ]; then
-            echo "::error:: Failed to locate pkg artifact"
+          PKG_NAME=$(basename "$PKG_FILE")
+          PKG_URL=$(gh release view "$RELEASE_TAG" --repo "$REPO" -q '.assets[] | select(.name == "$PKG_NAME") | .url' --json assets)
+          if [ -z "$PKG_URL" ]; then
+            echo "::error:: Failed to locate pkg download URL"
             exit 1
           fi
-          echo "artifact_url=$ARTIFACT_URL" >> $GITHUB_OUTPUT
-          echo "::notice:: Found artifact download URL: $ARTIFACT_URL"
+          echo "pkg_url=$PKG_URL" >> $GITHUB_OUTPUT
+          echo "::notice:: Found pkg download URL: $PKG_URL"
 
       - name: Find publish date
         id: find_publish_date
@@ -121,7 +122,7 @@ jobs:
       - name: Extract PKG metadata
         id: pkg_metadata
         env:
-          PKG_FILE: ${{ steps.find_pkg.outputs.ARTIFACT_NAME }}
+          PKG_FILE: ${{ steps.find_pkg.outputs.pkg_file }}
         run: |
           set -euo pipefail
 
@@ -180,7 +181,7 @@ jobs:
           SHORT_VERSION: ${{ steps.find_pkg.outputs.short_version }}
           MIN_OS_VERSION: ${{ steps.find_pkg.outputs.min_os }}
           PUBLISH_DATE: ${{ steps.find_publish_date.outputs.publish_date }}
-          DOWNLOAD_URL: ${{ steps.find_pkg_url.outputs.artifact_url }}
+          DOWNLOAD_URL: ${{ steps.find_pkg_url.outputs.pkg_url }}
         run: |
           echo "📦 Using signed + notarized + stapled PKG for Sparkle signing: $PKG_FILE"
 
