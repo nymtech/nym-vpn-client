@@ -87,7 +87,8 @@ jobs:
           set -euo pipefail
 
           PKG_NAME=$(basename "$PKG_FILE")
-          PKG_URL=$(gh release view "$RELEASE_TAG" --repo "$REPO" -q '.assets[] | select(.name == "$PKG_NAME") | .url' --json assets)
+          PKG_URL=$(gh release view "$RELEASE_TAG" --repo "$REPO" --json assets | \
+            jq -r '.assets[] | select(.name == $name) | .url' --arg name "$PKG_NAME")
           if [ -z "$PKG_URL" ]; then
             echo "::error:: Failed to locate pkg download URL"
             exit 1
