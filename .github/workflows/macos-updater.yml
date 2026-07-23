@@ -127,8 +127,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          OUT_DIR="$RUNNER_TEMP/pkg_output"
-
+          OUT_DIR="pkg_output"
           pkgutil --expand "$PKG_FILE" "$OUT_DIR"
           DIST_FILE="$OUT_DIR/Distribution"
           BUILD=$(xmlstarlet sel -t -v "//bundle[@id='net.nymtech.vpn']/@CFBundleVersion" -n "$DIST_FILE")
@@ -142,10 +141,12 @@ jobs:
 
       - name: Download Sparkle tools
         id: download_sparkle
+        env:
+          WORKDIR: ${{ github.workspace }}
         run: |
           set -euo pipefail
 
-          SPARKLE_DIR="$RUNNER_TEMP/sparkle"
+          SPARKLE_DIR="$WORKDIR/sparkle"
           mkdir -p "$SPARKLE_DIR"
 
           echo "📥 Fetching latest Sparkle release metadata…"
