@@ -295,27 +295,27 @@ jobs:
 
           git diff
 
-      # - name: Create PR in nym-websites
-      #   uses: peter-evans/create-pull-request@v8
-      #   id: pr
-      #   with:
-      #     token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
-      #     path: nym-websites
-      #     commit-message: Update Appcast.xml with v${{ steps.find_pkg.outputs.short_version }}
-      #     title: Update Appcast.xml with v${{ steps.find_pkg.outputs.short_version }}
-      #     draft: false
-      #     body: |
-      #       Automated Sparkle appcast update for macOS v${{ steps.find_pkg.outputs.short_version }}.
-      #       Source: nym-vpn-client macos-updater
-      #     branch: automation/update-macos-appcast-v${{ steps.find_pkg.outputs.short_version }}
-      #     base: main
-      #     delete-branch: true
-      #     reviewers: |
-      #       pronebird
-      #       agentpietrucha
+      - name: Create PR in nym-websites
+        uses: peter-evans/create-pull-request@v8
+        id: pr
+        with:
+          token: ${{ secrets.WEB_REPO_TOKEN_FOR_APPCAST }}
+          path: nym-websites
+          commit-message: Update Appcast.xml with v${{ steps.find_pkg.outputs.short_version }}
+          title: Update Appcast.xml with v${{ steps.find_pkg.outputs.short_version }}
+          draft: false
+          body: |
+            Automated Sparkle appcast update for macOS v${{ steps.find_pkg.outputs.short_version }}.
+            Source: nym-vpn-client macos-updater
+          branch: automation/update-macos-appcast-v${{ steps.find_pkg.outputs.short_version }}
+          base: main
+          delete-branch: true
+          reviewers: |
+            pronebird
+            agentpietrucha
 
-      # - name: Check outputs
-      #   if: ${{ steps.cpr.outputs.pull-request-number }}
-      #   run: |
-      #     echo "::notice:: Pull Request Number - ${{ steps.pr.outputs.pull-request-number }}"
-      #     echo "::notice:: Pull Request URL - ${{ steps.pr.outputs.pull-request-url }}"
+      - name: Check outputs
+        if: ${{ steps.cpr.outputs.pull-request-number }}
+        run: |
+          echo "::notice:: Pull Request Number - ${{ steps.pr.outputs.pull-request-number }}"
+          echo "::notice:: Pull Request URL - ${{ steps.pr.outputs.pull-request-url }}"
