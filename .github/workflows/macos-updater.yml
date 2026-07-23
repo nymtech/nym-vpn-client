@@ -123,11 +123,12 @@ jobs:
       - name: Extract PKG metadata
         id: pkg_metadata
         env:
+          WORKDIR: ${{ github.workspace }}
           PKG_FILE: ${{ steps.find_pkg.outputs.pkg_file }}
         run: |
           set -euo pipefail
 
-          OUT_DIR="$RUNNER_TEMP/pkg_output"
+          OUT_DIR="$WORKDIR/pkg_output"
           mkdir -p "$OUT_DIR"
 
           pkgutil --expand "$PKG_FILE" "$OUT_DIR"
@@ -143,10 +144,12 @@ jobs:
 
       - name: Download Sparkle tools
         id: download_sparkle
+        env:
+          WORKDIR: ${{ github.workspace }}
         run: |
           set -euo pipefail
 
-          SPARKLE_DIR="$RUNNER_TEMP/sparkle"
+          SPARKLE_DIR="$WORKDIR/sparkle"
           mkdir -p "$SPARKLE_DIR"
 
           echo "📥 Fetching latest Sparkle release metadata…"
