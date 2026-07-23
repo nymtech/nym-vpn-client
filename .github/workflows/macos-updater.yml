@@ -67,7 +67,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          ARTIFACT_FILE=$(find "${{ github.workspace }}/dist/" -name '*.pkg' -type f | head -1)
+          ARTIFACT_FILE=$(find "${{ github.workspace }}" -name '*.pkg' -type f | head -1)
           if [ -z "$ARTIFACT_FILE" ]; then
             echo "::error:: Failed to locate pkg artifact"
             exit 1
