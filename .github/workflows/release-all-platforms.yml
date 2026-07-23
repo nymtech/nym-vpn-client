@@ -444,3 +444,26 @@ jobs:
       publish_testflight: ${{ needs.resolve.outputs.ios == 'true' && needs.resolve.outputs.channel == 'nightly' }}
       publish_to_public_testflight: true
     secrets: inherit
+
+  zulip:
+    needs: [resolve, build, release]
+    # && needs.resolve.outputs.publish_github_release == 'true'
+    if: |
+      !cancelled() && (
+        needs.restore-build-cache.outputs.cache-hit == 'true' ||
+        needs.build.result == 'success'
+      ) && needs.release.result == 'success'
+    uses: ./.github/workflows/zulip-notify-release.yml
+    with:
+      version: ${{ needs.resolve.outputs.version }}
+      release_channel: ${{ needs.resolve.outputs.channel }}
+      github_branch: ${{ github.ref_name }}
+      github_release_url: ${{ needs.release.outputs.github_release_url }}
+      linux_app_deb_x64_url: ${{ needs.release.outputs.linux_app_deb_x64_url }}
+      linux_app_deb_arm64_url: ${{ needs.release.outputs.linux_app_deb_arm64_url }}
+      windows_installer_x64_url: ${{ needs.release.outputs.windows_installer_x64_url }}
+      windows_installer_arm64_url: ${{ needs.release.outputs.windows_installer_arm64_url }}
+      macos_installer_url: ${{ needs.release.outputs.macos_installer_url }}
+      android_apk_url: ${{ needs.release.outputs.android_apk_url }}
+      ios_build: ${{ needs.build.outputs.ios_build || '0' }} # this needs some sort of handling when using caching!
+    secrets: inherit
