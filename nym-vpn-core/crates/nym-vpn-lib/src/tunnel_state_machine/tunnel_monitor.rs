@@ -5,6 +5,8 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
 use std::os::fd::BorrowedFd;
+#[cfg(unix)]
+use std::os::fd::RawFd;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
@@ -13,17 +15,16 @@ use std::{
     net::{IpAddr, SocketAddr},
     ops::Deref,
     pin::pin,
+    sync::Arc,
     time::Duration,
 };
-#[cfg(unix)]
-use std::{os::fd::RawFd, sync::Arc};
 
 use futures::{FutureExt, StreamExt, future::Fuse};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
-use nym_bandwidth_controller::requests::BandwidthControllerRequestSender;
+use nym_bandwidth_controller::{SpendTimeProvider, requests::BandwidthControllerRequestSender};
 use nym_gateway_directory::{
     GatewayCacheHandle, GatewayClient, GatewayMinPerformance, NodeIdentity,
 };
@@ -149,6 +150,20 @@ const TICKETBOOK_READINESS_TIMEOUT: Duration = Duration::from_secs(120);
 
 /// Whether LP registration is enabled
 const ENABLE_LP_REGISTRATION: bool = true;
+
+/// Adapts [`SkewManager`] to the registration client's [`SpendTimeProvider`], so that ecash
+/// tickets spent during registration are timestamped with the VPN API's clock rather than the
+/// potentially skewed local one, same as [`BandwidthMonitor`] already does for topups.
+#[derive(Debug, Clone)]
+struct RegistrationSpendTimeProvider(SkewManager);
+
+impl SpendTimeProvider for RegistrationSpendTimeProvider {
+    fn spend_time(&self) -> OffsetDateTime {
+        self.0
+            .cached_skew_corrected_time()
+            .unwrap_or_else(|| self.0.device_time())
+    }
+}
 
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
@@ -564,6 +579,9 @@ impl TunnelMonitor {
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)
             .bandwidth_request_sender(self.bandwidth_command_tx.clone())
+            .spend_time_provider(Arc::new(RegistrationSpendTimeProvider(
+                self.skew_manager.clone(),
+            )))
             .enable_lp_registration(ENABLE_LP_REGISTRATION)
             .user_agent(user_agent)
             .custom_topology_provider(Box::new(

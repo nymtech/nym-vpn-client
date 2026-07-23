@@ -3,7 +3,7 @@
 use crate::diagnostic::{build_api_client, registration::setup_bandwidth_provider};
 
 use nym_authenticator_client::{AuthClientMixnetListener, AuthenticatorClient, RegistrationError};
-use nym_bandwidth_controller::BandwidthTicketProvider;
+use nym_bandwidth_controller::{BandwidthTicketProvider, SystemSpendTimeProvider};
 use nym_client_core::client::topology_control::nym_api_provider::Config;
 use nym_credentials_interface::TicketType;
 use nym_ip_packet_client::IprClientConnect;
@@ -199,6 +199,7 @@ impl MixnetClientRegistration {
         let auth_res = auth_client
             .register_wireguard(
                 &*wg_registration_config.bandwidth_provider,
+                &SystemSpendTimeProvider,
                 TicketType::V1WireguardEntry,
             )
             .await;
