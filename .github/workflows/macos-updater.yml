@@ -111,7 +111,7 @@ jobs:
             exit 1
           fi
 
-          PUBLISH_DATE=$(date -jf "%Y-%m-%dT%H:%M:%SZ" "$PUBLISHED_AT" "+%a, %d %b %Y %H:%M:%S %z")
+          PUBLISH_DATE=$(date -u -jf "%Y-%m-%dT%H:%M:%SZ" "$PUBLISHED_AT" "+%a, %d %b %Y %H:%M:%S %z")
           if [ -z "$PUBLISH_DATE" ]; then
             echo "::error:: Failed to parse publishedAt: $PUBLISHED_AT"
             exit 1
