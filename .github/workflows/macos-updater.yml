@@ -86,7 +86,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          ARTIFACT_URL=$(gh release view "$RELEASE_TAG" --repo "$REPO" -q '.assets[] | select(.name == "$ARTIFACT_NAME") | .url')
+          ARTIFACT_URL=$(gh release view "$RELEASE_TAG" --repo "$REPO" -q '.assets[] | select(.name == "$ARTIFACT_NAME") | .url' --json assets)
           if [ -z "$ARTIFACT_URL" ]; then
             echo "::error:: Failed to locate pkg artifact"
             exit 1
