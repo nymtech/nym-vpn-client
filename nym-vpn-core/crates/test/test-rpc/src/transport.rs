@@ -19,7 +19,7 @@ use tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     sync::futures::Notified,
 };
-use tokio_util::codec::{Decoder, Encoder, Framed, LengthDelimitedCodec};
+use tokio_util::codec::{Decoder, Encoder, FramedRead, FramedWrite, LengthDelimitedCodec};
 
 use crate::{Error, ServiceRequest, ServiceResponse};
 
@@ -60,13 +60,36 @@ impl TryFrom<u8> for FrameType {
 pub type GrpcForwarder = tokio::io::DuplexStream;
 pub type CompletionHandle = tokio::task::JoinHandle<()>;
 
-pub async fn synchronize_framed_session(
-    framed: &mut Framed<GrpcForwarder, LengthDelimitedCodec>,
-) -> io::Result<()> {
-    framed.send(Bytes::new()).await?;
+/// Independent length-delimited halves. Prefer over `Framed::split` (shared BiLock).
+pub fn length_delimited_framed_halves<T>(
+    io: T,
+) -> (
+    FramedRead<tokio::io::ReadHalf<T>, LengthDelimitedCodec>,
+    FramedWrite<tokio::io::WriteHalf<T>, LengthDelimitedCodec>,
+)
+where
+    T: AsyncRead + AsyncWrite,
+{
+    let (reader, writer) = tokio::io::split(io);
+    let codec = LengthDelimitedCodec::new();
+    (
+        FramedRead::new(reader, codec.clone()),
+        FramedWrite::new(writer, codec),
+    )
+}
+
+pub async fn synchronize_framed_session<R, W>(
+    framed_read: &mut FramedRead<R, LengthDelimitedCodec>,
+    framed_write: &mut FramedWrite<W, LengthDelimitedCodec>,
+) -> io::Result<()>
+where
+    R: AsyncRead + Unpin,
+    W: AsyncWrite + Unpin,
+{
+    framed_write.send(Bytes::new()).await?;
 
     loop {
-        match framed.next().await {
+        match framed_read.next().await {
             Some(Ok(bytes)) if bytes.is_empty() => return Ok(()),
             Some(Ok(_)) => {}
             Some(Err(error)) => return Err(error),
@@ -75,15 +98,17 @@ pub async fn synchronize_framed_session(
     }
 }
 
-pub async fn forward_framed_bidirectional<S>(
+pub async fn forward_framed_bidirectional<S, R, W>(
     stream: S,
-    framed: &mut Framed<GrpcForwarder, LengthDelimitedCodec>,
+    framed_read: &mut FramedRead<R, LengthDelimitedCodec>,
+    framed_write: &mut FramedWrite<W, LengthDelimitedCodec>,
 ) -> io::Result<()>
 where
     S: AsyncRead + AsyncWrite + Unpin,
+    R: AsyncRead + Unpin,
+    W: AsyncWrite + Unpin,
 {
     let (mut stream_reader, mut stream_writer) = tokio::io::split(stream);
-    let (mut framed_sink, mut framed_stream) = framed.split();
 
     let stream_to_framed = async {
         let mut buffer = vec![0u8; DAEMON_CHANNEL_BUF_SIZE];
@@ -91,7 +116,7 @@ where
             let read = stream_reader.read(&mut buffer).await;
             match read {
                 Ok(num_bytes) => {
-                    framed_sink
+                    framed_write
                         .send(Bytes::copy_from_slice(&buffer[..num_bytes]))
                         .await?;
                     if num_bytes == 0 {
@@ -99,7 +124,7 @@ where
                     }
                 }
                 Err(error) => {
-                    let _ = framed_sink.send(Bytes::new()).await;
+                    let _ = framed_write.send(Bytes::new()).await;
                     return Err(error);
                 }
             }
@@ -108,7 +133,7 @@ where
 
     let framed_to_stream = async {
         loop {
-            match framed_stream.next().await {
+            match framed_read.next().await {
                 Some(Ok(bytes)) if bytes.is_empty() => {
                     stream_writer.shutdown().await?;
                     return Ok(());
@@ -321,12 +346,15 @@ async fn forward_messages<
     connected_state: Arc<AtomicBool>,
 ) -> Result<(), ForwardError> {
     let codec = MultiplexCodec::new(connected_state);
-    let serial_stream = codec.framed(serial_stream);
-    let (mut serial_sink, mut serial_source) = serial_stream.split();
+    let (serial_reader, serial_writer) = tokio::io::split(serial_stream);
+    let mut serial_source = FramedRead::new(serial_reader, codec.clone());
+    let mut serial_sink = FramedWrite::new(serial_writer, codec);
 
     // Needs to be framed to allow empty messages.
-    let daemon_forwarder = LengthDelimitedCodec::new().framed(daemon_forwarder);
-    let (mut daemon_sink, mut daemon_source) = daemon_forwarder.split();
+    let (daemon_reader, daemon_writer) = tokio::io::split(daemon_forwarder);
+    let daemon_codec = LengthDelimitedCodec::new();
+    let mut daemon_source = FramedRead::new(daemon_reader, daemon_codec.clone());
+    let mut daemon_sink = FramedWrite::new(daemon_writer, daemon_codec);
     let (mut runner_sink, mut runner_source) = runner_forwarder.split();
     let (runner_tx, mut runner_rx) = mpsc::unbounded();
     let (daemon_tx, mut daemon_rx) = mpsc::unbounded();
@@ -576,7 +604,7 @@ fn display_chain(error: impl std::error::Error) -> String {
 mod tests {
     use super::{
         DAEMON_CHANNEL_BUF_SIZE, create_client_transports, create_server_transports,
-        forward_framed_bidirectional, synchronize_framed_session,
+        forward_framed_bidirectional, length_delimited_framed_halves, synchronize_framed_session,
     };
     use bytes::Bytes;
     use futures::{SinkExt, StreamExt};
@@ -589,11 +617,17 @@ mod tests {
         let (bridge_stream, stream_peer) = duplex(64);
         let (mut stream_peer_reader, mut stream_peer_writer) = tokio::io::split(stream_peer);
         let (bridge_framed_io, framed_peer_io) = duplex(64);
-        let mut bridge_framed = LengthDelimitedCodec::new().framed(bridge_framed_io);
+        let (mut bridge_framed_read, mut bridge_framed_write) =
+            length_delimited_framed_halves(bridge_framed_io);
         let mut framed_peer = LengthDelimitedCodec::new().framed(framed_peer_io);
 
         let bridge = tokio::spawn(async move {
-            forward_framed_bidirectional(bridge_stream, &mut bridge_framed).await
+            forward_framed_bidirectional(
+                bridge_stream,
+                &mut bridge_framed_read,
+                &mut bridge_framed_write,
+            )
+            .await
         });
 
         stream_peer_writer
@@ -624,11 +658,17 @@ mod tests {
         let (bridge_stream, stream_peer) = duplex(64);
         let (mut stream_peer_reader, mut stream_peer_writer) = tokio::io::split(stream_peer);
         let (bridge_framed_io, framed_peer_io) = duplex(64);
-        let mut bridge_framed = LengthDelimitedCodec::new().framed(bridge_framed_io);
+        let (mut bridge_framed_read, mut bridge_framed_write) =
+            length_delimited_framed_halves(bridge_framed_io);
         let mut framed_peer = LengthDelimitedCodec::new().framed(framed_peer_io);
 
         let bridge = tokio::spawn(async move {
-            forward_framed_bidirectional(bridge_stream, &mut bridge_framed).await
+            forward_framed_bidirectional(
+                bridge_stream,
+                &mut bridge_framed_read,
+                &mut bridge_framed_write,
+            )
+            .await
         });
 
         framed_peer
@@ -657,17 +697,17 @@ mod tests {
     #[tokio::test]
     async fn session_sync_discards_delayed_frames_before_acknowledgement() {
         let (bridge_io, peer_io) = duplex(64);
-        let mut bridge = LengthDelimitedCodec::new().framed(bridge_io);
+        let (mut bridge_read, mut bridge_write) = length_delimited_framed_halves(bridge_io);
         let mut peer = LengthDelimitedCodec::new().framed(peer_io);
 
-        bridge
+        bridge_write
             .send(Bytes::from_static(b"stale request"))
             .await
             .expect("queue stale request");
         let sync = tokio::spawn(async move {
-            synchronize_framed_session(&mut bridge)
+            synchronize_framed_session(&mut bridge_read, &mut bridge_write)
                 .await
-                .map(|()| bridge)
+                .map(|()| (bridge_read, bridge_write))
         });
 
         assert_eq!(
@@ -691,12 +731,12 @@ mod tests {
             .await
             .expect("acknowledge synchronization");
 
-        let mut bridge = sync
+        let (mut bridge_read, _bridge_write) = sync
             .await
             .expect("sync task")
             .expect("session synchronized");
         assert!(
-            tokio::time::timeout(Duration::from_millis(10), bridge.next())
+            tokio::time::timeout(Duration::from_millis(10), bridge_read.next())
                 .await
                 .is_err()
         );
@@ -705,18 +745,16 @@ mod tests {
     #[tokio::test]
     async fn session_sync_flushes_a_cancelled_partial_frame_before_acknowledgement() {
         let (bridge_io, peer_io) = duplex(64);
-        let mut bridge = LengthDelimitedCodec::new().framed(bridge_io);
+        let (mut bridge_read, mut bridge_write) = length_delimited_framed_halves(bridge_io);
         let mut peer = LengthDelimitedCodec::new().framed(peer_io);
         let stale_request = Bytes::from(vec![9; 4096]);
 
-        let mut cancelled_send = Box::pin(bridge.send(stale_request.clone()));
+        let mut cancelled_send = Box::pin(bridge_write.send(stale_request.clone()));
         assert!(futures::poll!(&mut cancelled_send).is_pending());
         drop(cancelled_send);
 
         let sync = tokio::spawn(async move {
-            synchronize_framed_session(&mut bridge)
-                .await
-                .map(|()| bridge)
+            synchronize_framed_session(&mut bridge_read, &mut bridge_write).await
         });
 
         assert_eq!(
@@ -746,11 +784,17 @@ mod tests {
     async fn blocked_response_does_not_block_request_forwarding() {
         let (bridge_stream, mut stream_peer) = duplex(64);
         let (bridge_framed_io, framed_peer_io) = duplex(64);
-        let mut bridge_framed = LengthDelimitedCodec::new().framed(bridge_framed_io);
+        let (mut bridge_framed_read, mut bridge_framed_write) =
+            length_delimited_framed_halves(bridge_framed_io);
         let mut framed_peer = LengthDelimitedCodec::new().framed(framed_peer_io);
 
         let bridge = tokio::spawn(async move {
-            forward_framed_bidirectional(bridge_stream, &mut bridge_framed).await
+            forward_framed_bidirectional(
+                bridge_stream,
+                &mut bridge_framed_read,
+                &mut bridge_framed_write,
+            )
+            .await
         });
 
         framed_peer
@@ -771,6 +815,87 @@ mod tests {
 
         assert_eq!(&forwarded[..], b"request");
         bridge.abort();
+    }
+
+    #[tokio::test]
+    async fn blocked_framed_write_flush_does_not_block_framed_read() {
+        let (bridge_stream, stream_peer) = duplex(64);
+        let (mut stream_reader, mut stream_writer) = tokio::io::split(stream_peer);
+        let (bridge_framed_io, framed_peer_io) = duplex(64);
+        let (mut bridge_framed_read, mut bridge_framed_write) =
+            length_delimited_framed_halves(bridge_framed_io);
+        let mut framed_peer = LengthDelimitedCodec::new().framed(framed_peer_io);
+
+        let bridge = tokio::spawn(async move {
+            forward_framed_bidirectional(
+                bridge_stream,
+                &mut bridge_framed_read,
+                &mut bridge_framed_write,
+            )
+            .await
+        });
+
+        let flood = tokio::spawn(async move {
+            let _ = stream_writer.write_all(&vec![1u8; 32 * 1024]).await;
+            stream_writer
+        });
+        tokio::time::sleep(Duration::from_millis(50)).await;
+
+        framed_peer
+            .send(Bytes::from_static(b"pong"))
+            .await
+            .expect("send opposite-direction frame while framed write flush is blocked");
+
+        let mut buf = [0u8; 4];
+        tokio::time::timeout(Duration::from_secs(1), stream_reader.read_exact(&mut buf))
+            .await
+            .expect("framed read must progress while framed write flush is blocked")
+            .expect("read opposite-direction bytes");
+        assert_eq!(&buf, b"pong");
+
+        flood.abort();
+        bridge.abort();
+    }
+
+    #[tokio::test]
+    async fn bidirectional_large_framed_exchange_over_tiny_duplex() {
+        let (a_io, b_io) = duplex(128);
+        let (mut a_read, mut a_write) = length_delimited_framed_halves(a_io);
+        let (mut b_read, mut b_write) = length_delimited_framed_halves(b_io);
+        let payload_a = Bytes::from(vec![0xA; 8192]);
+        let payload_b = Bytes::from(vec![0xB; 8192]);
+
+        tokio::time::timeout(Duration::from_secs(1), async {
+            tokio::try_join!(
+                async {
+                    let send = a_write.send(payload_a.clone());
+                    let recv = async {
+                        a_read
+                            .next()
+                            .await
+                            .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?
+                    };
+                    let (_, received) = tokio::try_join!(send, recv)?;
+                    assert_eq!(received, payload_b);
+                    Ok::<_, io::Error>(())
+                },
+                async {
+                    let send = b_write.send(payload_b.clone());
+                    let recv = async {
+                        b_read
+                            .next()
+                            .await
+                            .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))?
+                    };
+                    let (_, received) = tokio::try_join!(send, recv)?;
+                    assert_eq!(received, payload_a);
+                    Ok::<_, io::Error>(())
+                },
+            )
+        })
+        .await
+        .expect("concurrent large framed exchange must complete within 1s")
+        .expect("exchange succeeds");
     }
 
     #[tokio::test]

@@ -10,10 +10,11 @@ use futures::{StreamExt, channel::mpsc, future::BoxFuture};
 use hyper_util::rt::TokioIo;
 use nym_vpn_proto::rpc_client::RpcClient as NymProxyClient;
 use test_rpc::transport::{
-    ConnectionHandle, GrpcForwarder, forward_framed_bidirectional, synchronize_framed_session,
+    ConnectionHandle, GrpcForwarder, forward_framed_bidirectional, length_delimited_framed_halves,
+    synchronize_framed_session,
 };
 use tokio::io::DuplexStream;
-use tokio_util::codec::{Decoder, Framed, LengthDelimitedCodec};
+use tokio_util::codec::{FramedRead, FramedWrite, LengthDelimitedCodec};
 use tower::Service;
 
 /// Unary gRPC timeout over the serial mux.
@@ -88,28 +89,36 @@ async fn await_rpc_client_connection<T>(
         })?
 }
 
-async fn await_session_synchronization(
-    framed: &mut Framed<GrpcForwarder, LengthDelimitedCodec>,
+async fn await_session_synchronization<R, W>(
+    framed_read: &mut FramedRead<R, LengthDelimitedCodec>,
+    framed_write: &mut FramedWrite<W, LengthDelimitedCodec>,
     timeout: Duration,
-) -> io::Result<()> {
-    tokio::time::timeout(timeout, synchronize_framed_session(framed))
-        .await
-        .map_err(|_| {
-            io::Error::new(
-                io::ErrorKind::TimedOut,
-                format!(
-                    "Timed out after {}s synchronizing daemon RPC session",
-                    timeout.as_secs()
-                ),
-            )
-        })?
+) -> io::Result<()>
+where
+    R: tokio::io::AsyncRead + Unpin,
+    W: tokio::io::AsyncWrite + Unpin,
+{
+    tokio::time::timeout(
+        timeout,
+        synchronize_framed_session(framed_read, framed_write),
+    )
+    .await
+    .map_err(|_| {
+        io::Error::new(
+            io::ErrorKind::TimedOut,
+            format!(
+                "Timed out after {}s synchronizing daemon RPC session",
+                timeout.as_secs()
+            ),
+        )
+    })?
 }
 
 pub fn new_rpc_client(
     connection_handle: ConnectionHandle,
     nym_daemon_transport: GrpcForwarder,
 ) -> RpcClientProvider {
-    let mut framed_transport = LengthDelimitedCodec::new().framed(nym_daemon_transport);
+    let (mut framed_read, mut framed_write) = length_delimited_framed_halves(nym_daemon_transport);
     let (management_channel_provider_tx, mut management_channel_provider_rx) = mpsc::unbounded();
 
     tokio::spawn(async move {
@@ -125,8 +134,12 @@ pub fn new_rpc_client(
                     }
                 };
 
-            if let Err(error) =
-                await_session_synchronization(&mut framed_transport, RPC_SESSION_SYNC_TIMEOUT).await
+            if let Err(error) = await_session_synchronization(
+                &mut framed_read,
+                &mut framed_write,
+                RPC_SESSION_SYNC_TIMEOUT,
+            )
+            .await
             {
                 log::debug!("Failed to synchronize daemon RPC session: {error}");
                 break;
@@ -139,7 +152,8 @@ pub fn new_rpc_client(
                 }
                 result = forward_framed_bidirectional(
                     management_channel_in,
-                    &mut framed_transport,
+                    &mut framed_read,
+                    &mut framed_write,
                 ) => {
                     match result {
                         Ok(()) => log::debug!("Nym daemon connection EOF (not an error)"),
@@ -161,7 +175,7 @@ pub fn new_rpc_client(
 mod tests {
     use super::{await_rpc_client_connection, await_session_synchronization};
     use std::{future::pending, time::Duration};
-    use tokio_util::codec::{Decoder, LengthDelimitedCodec};
+    use test_rpc::transport::length_delimited_framed_halves;
 
     #[tokio::test]
     async fn serial_rpc_client_connection_is_bounded() {
@@ -185,11 +199,15 @@ mod tests {
     #[tokio::test]
     async fn serial_rpc_session_synchronization_is_bounded() {
         let (transport, _unresponsive_peer) = tokio::io::duplex(64);
-        let mut transport = LengthDelimitedCodec::new().framed(transport);
+        let (mut framed_read, mut framed_write) = length_delimited_framed_halves(transport);
 
-        let error = await_session_synchronization(&mut transport, Duration::from_millis(1))
-            .await
-            .expect_err("missing synchronization acknowledgement must time out");
+        let error = await_session_synchronization(
+            &mut framed_read,
+            &mut framed_write,
+            Duration::from_millis(1),
+        )
+        .await
+        .expect_err("missing synchronization acknowledgement must time out");
 
         assert_eq!(error.kind(), std::io::ErrorKind::TimedOut);
     }

@@ -10,10 +10,9 @@ use tarpc::server::Channel;
 use test_rpc::{
     Service,
     nym_daemon::{NYMVPN_SOCKET_PATH, ServiceStatus},
-    transport::{GrpcForwarder, forward_framed_bidirectional},
+    transport::{GrpcForwarder, forward_framed_bidirectional, length_delimited_framed_halves},
 };
 use tokio::io::AsyncWriteExt;
-use tokio_util::codec::{Decoder, LengthDelimitedCodec};
 
 mod app_nymvpn;
 mod forward;
@@ -81,16 +80,16 @@ async fn main() -> Result<(), Error> {
 
 /// Forward data between the test manager and Mullvad management interface socket
 async fn forward_to_nym_daemon_interface(proxy_transport: GrpcForwarder) {
-    let mut proxy_transport = LengthDelimitedCodec::new().framed(proxy_transport);
+    let (mut proxy_read, mut proxy_write) = length_delimited_framed_halves(proxy_transport);
 
     loop {
         // Wait for input from the test manager before connecting to the UDS or named pipe.
         // Connect at the last moment since the daemon may not even be running when the
         // test runner first starts.
-        let first_message = match proxy_transport.next().await {
+        let first_message = match proxy_read.next().await {
             Some(Ok(bytes)) => {
                 if bytes.is_empty() {
-                    if let Err(error) = proxy_transport.send(bytes::Bytes::new()).await {
+                    if let Err(error) = proxy_write.send(bytes::Bytes::new()).await {
                         log::error!(
                             "failed to acknowledge daemon session synchronization: {error}"
                         );
@@ -117,7 +116,7 @@ async fn forward_to_nym_daemon_interface(proxy_transport: GrpcForwarder) {
                 Err(error) => {
                     log::error!("🌚 nym daemon: failed to connect: {error}");
                     // send EOF
-                    let _ = proxy_transport.send(bytes::Bytes::new()).await;
+                    let _ = proxy_write.send(bytes::Bytes::new()).await;
                     continue;
                 }
             };
@@ -130,7 +129,8 @@ async fn forward_to_nym_daemon_interface(proxy_transport: GrpcForwarder) {
         }
 
         if let Err(error) =
-            forward_framed_bidirectional(daemon_socket_endpoint, &mut proxy_transport).await
+            forward_framed_bidirectional(daemon_socket_endpoint, &mut proxy_read, &mut proxy_write)
+                .await
         {
             log::error!("nym daemon forwarding failed: {error}");
         } else {
