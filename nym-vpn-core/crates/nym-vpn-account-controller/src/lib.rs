@@ -4,7 +4,6 @@
 // The account controller is responsible for
 // 1. checking if the account exists
 // 2. register the device
-// 3. request ticketbooks and top up the local credential store
 
 mod command_sender;
 mod commands;
@@ -18,7 +17,6 @@ mod shared_state;
 mod state_machine;
 mod state_receiver;
 mod storage;
-mod ticketbooks;
 
 pub(crate) use shared_state::SharedAccountState;
 
@@ -31,4 +29,3 @@ pub use event_sender::AccountControllerEventSender;
 pub use nyxd_client::NyxdClient;
 pub use state_receiver::AccountStateReceiver;
 pub use storage::remove_files_for_account;
-pub use ticketbooks::AvailableTicketbooks;

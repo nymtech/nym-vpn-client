@@ -4,12 +4,14 @@
 use std::{net::IpAddr, time::Duration};
 
 use nym_authenticator_client::AuthenticatorClient;
-use nym_bandwidth_controller::{BandwidthTicketProvider, DEFAULT_TICKETS_TO_SPEND};
 
 use crate::tunnel_health::{MetadataPathHealth, update_metadata_path_health};
+use nym_bandwidth_controller::{
+    DEFAULT_TICKETS_TO_SPEND, requests::BandwidthControllerRequestSender,
+};
 use nym_registration_common::WireguardConfiguration;
+use nym_vpn_api_client::SkewManager;
 use sysinfo::Networks;
-use time::OffsetDateTime;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
 use tokio_util::sync::CancellationToken;
 
@@ -19,7 +21,6 @@ use nym_gateway_directory::Gateway;
 
 use crate::tunnel_state_machine::tunnel::SelectedGateways;
 use nym_common::trace_err_chain;
-use nym_vpn_account_controller::AccountCommandSender;
 use nym_wg_metadata_client::{MetadataClient, TunUpReceiver, error::MetadataClientError};
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 use url::Url;
@@ -359,20 +360,20 @@ impl TemporaryBandwidthClient {
                     .unwrap_or(false)
             {
                 tracing::debug!(
-                    "Using latest metadata client for {}'s bandwidth controller",
+                    "Using latest metadata client for {}'s bandwidth monitor",
                     gateway.identity()
                 );
                 TemporaryBandwidthClient::Latest(Box::new(metadata_client))
             } else {
                 tracing::debug!(
-                    "Using deprecated mixnet client for {}'s bandwidth controller",
+                    "Using deprecated mixnet client for {}'s bandwidth monitor",
                     gateway.identity()
                 );
                 TemporaryBandwidthClient::Deprecated(Box::new(auth_client))
             }
         } else {
             tracing::debug!(
-                "No authenticator client provided, using latest metadata client for {}'s bandwidth controller",
+                "No authenticator client provided, using latest metadata client for {}'s bandwidth monitor",
                 gateway.identity()
             );
             TemporaryBandwidthClient::Latest(Box::new(metadata_client))
@@ -608,11 +609,11 @@ impl<N: NetworkInterfaceStats> SystemBandwidthMonitor<N> {
     }
 }
 
-pub(crate) struct BandwidthController {
-    ticket_provider: Box<dyn BandwidthTicketProvider>,
+pub(crate) struct BandwidthMonitor {
+    bc_command_tx: BandwidthControllerRequestSender,
+    skew_manager: SkewManager,
     wg_entry_gateway_client: TemporaryBandwidthClient,
     wg_exit_gateway_client: TemporaryBandwidthClient,
-    account_command_tx: AccountCommandSender,
     timeout_check_interval: IntervalStream,
     entry_depletion_rate: DepletionRate,
     exit_depletion_rate: DepletionRate,
@@ -624,23 +625,24 @@ pub(crate) struct BandwidthController {
     metadata_path_health: Option<MetadataPathHealth>,
 }
 
-impl BandwidthController {
+impl BandwidthMonitor {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
-        ticket_provider: Box<dyn BandwidthTicketProvider>,
+        bc_command_tx: BandwidthControllerRequestSender,
+        skew_manager: SkewManager,
         wg_entry_gateway_client: TemporaryBandwidthClient,
         wg_exit_gateway_client: TemporaryBandwidthClient,
-        account_command_tx: AccountCommandSender,
         shutdown_token: CancellationToken,
         metadata_path_health: Option<MetadataPathHealth>,
     ) -> Self {
         let timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
 
-        BandwidthController {
-            ticket_provider,
+        BandwidthMonitor {
+            bc_command_tx,
+            skew_manager,
             wg_entry_gateway_client,
             wg_exit_gateway_client,
-            account_command_tx,
             timeout_check_interval,
             entry_depletion_rate: Default::default(),
             exit_depletion_rate: Default::default(),
@@ -717,8 +719,8 @@ impl BandwidthController {
 
     async fn got_upgrade_mode_attestation(&self) -> bool {
         // in case of failure we assume conservative case of NOT having the attestation
-        self.account_command_tx
-            .query_upgrade_mode_enabled()
+        self.bc_command_tx
+            .get_upgrade_mode_token()
             .await
             .inspect_err(|err| {
                 trace_err_chain!(
@@ -726,13 +728,13 @@ impl BandwidthController {
                     "critical failure: failed to resolve account controller query"
                 )
             })
-            .unwrap_or_default()
+            .is_ok_and(|maybe_token| maybe_token.is_some())
     }
 
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn create(
-        ticket_provider: Box<dyn BandwidthTicketProvider>,
-        account_command_tx: AccountCommandSender,
+        bc_command_tx: BandwidthControllerRequestSender,
+        skew_manager: SkewManager,
         selected_gateways: &SelectedGateways,
         entry_auth_client: Option<AuthenticatorClient>,
         exit_auth_client: Option<AuthenticatorClient>,
@@ -743,7 +745,7 @@ impl BandwidthController {
         gateway_metadata_update_version: Option<semver::Version>,
         cancel_token: CancellationToken,
         metadata_path_health: MetadataPathHealth,
-    ) -> BandwidthController {
+    ) -> BandwidthMonitor {
         let wg_entry_client = Self::construct_bandwidth_client(
             entry_wireguard_config.private_ipv4.into(),
             entry_signal_channel,
@@ -760,10 +762,10 @@ impl BandwidthController {
         );
 
         Self::new(
-            ticket_provider,
+            bc_command_tx,
+            skew_manager,
             wg_entry_client,
             wg_exit_client,
-            account_command_tx,
             cancel_token.clone(),
             Some(metadata_path_health),
         )
@@ -782,13 +784,18 @@ impl BandwidthController {
             &mut self.wg_exit_gateway_client
         };
 
+        let spend_time = self
+            .skew_manager
+            .cached_skew_corrected_time()
+            .unwrap_or_else(|| self.skew_manager.device_time());
+
         let credential = self
-            .ticket_provider
+            .bc_command_tx
             .get_ecash_ticket(
                 ticketbook_type,
                 bw_client.gateway_id(),
                 DEFAULT_TICKETS_TO_SPEND,
-                OffsetDateTime::now_utc(), // Skew input can be fed here
+                spend_time,
             )
             .await
             .map_err(|source| SpecificGatewayError::RequestCredential {
@@ -817,14 +824,14 @@ impl BandwidthController {
             &mut self.wg_exit_gateway_client
         };
 
-        let Some(upgrade_mode_jwt) = self
-            .ticket_provider
-            .get_upgrade_mode_token()
-            .await
-            .map_err(|source| UpgradeModeRecheckError::UpgradeModeTokenRequest {
-                gateway_id: bw_client.gateway_id().to_string(),
-                source: Box::new(source),
-            })?
+        let Some(upgrade_mode_jwt) =
+            self.bc_command_tx
+                .get_upgrade_mode_token()
+                .await
+                .map_err(|source| UpgradeModeRecheckError::UpgradeModeTokenRequest {
+                    gateway_id: bw_client.gateway_id().to_string(),
+                    source: Box::new(source),
+                })?
         else {
             return Err(UpgradeModeRecheckError::UnavailableUpgradeModeToken {
                 gateway_id: bw_client.gateway_id().to_string(),
@@ -950,16 +957,12 @@ impl BandwidthController {
                     // if we want to continue the connection we have to attempt to send a zk-nym instead
                     // (so we exit the match statement)
                 } else if got_um_data && self.upgrade_mode_enabled_on_last_check {
-                    // UM is over - we inform AC and top up bandwidth as normal
+                    // UM is over - we inform BC and top up bandwidth as normal
                     tracing::info!(
                         "gateway {gateway_id} has informed us the upgrade mode has finished"
                     );
-                    if let Err(err) = self.account_command_tx.send_disable_upgrade_mode().await {
-                        trace_err_chain!(err, "error sending message to the account controller");
-                        // we need to trigger a shutdown here because this message must not fail,
-                        // if it did, AC won't exit upgrade mode state and won't resume acquiring zk-nyms
-                        self.shutdown_token.cancel();
-                        return None;
+                    if let Err(err) = self.bc_command_tx.clear_emergency_credentials().await {
+                        trace_err_chain!(err, "error sending message to the bandwidth controller");
                     }
                     // we continue sending zk-nym
                 } else {
@@ -993,7 +996,7 @@ impl BandwidthController {
         };
         tokio::select! {
             _ = self.shutdown_token.cancelled() => {
-                tracing::trace!("BandwidthController: Received shutdown");
+                tracing::trace!("BandwidthMonitor: Received shutdown");
             }
             ret = bw_client.query_bandwidth_with_retries(DEFAULT_CLIENT_RETRIES) => {
                 return match ret {
@@ -1029,11 +1032,7 @@ impl BandwidthController {
             .await
             .is_none()
         {
-            // Explicitly close the credential storage so that the underlying SQLite pool releases
-            // OS file handles promptly (especially important on Windows).
-            self.ticket_provider.close().await;
-
-            tracing::debug!("BandwidthController: Exiting");
+            tracing::debug!("BandwidthMonitor: Exiting");
             return;
         }
 
@@ -1048,7 +1047,7 @@ impl BandwidthController {
         while !self.shutdown_token.is_cancelled() {
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {
-                    tracing::trace!("BandwidthController: Received shutdown");
+                    tracing::trace!("BandwidthMonitor: Received shutdown");
                     break;
                 }
                 _ = system_bandwidth_check_interval.next() => {
@@ -1090,11 +1089,7 @@ impl BandwidthController {
             }
         }
 
-        // Explicitly close the credential storage so that the underlying SQLite pool releases
-        // OS file handles promptly (especially important on Windows).
-        self.ticket_provider.close().await;
-
-        tracing::debug!("BandwidthController: Exiting");
+        tracing::debug!("BandwidthMonitor: Exiting");
     }
 }
 

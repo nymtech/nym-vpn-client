@@ -63,7 +63,6 @@ pub use account::{
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
     deeplink::{AutologinResponse, DeeplinkClient, DeeplinkKind, GetDeeplinkParams},
-    request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
     storage::{Mnemonic, StorableAccount},
     ticketbooks::AvailableTickets,
 };
@@ -80,9 +79,10 @@ pub use diagnostic::{
 };
 pub use gateway::{
     Asn, AsnKind, BridgeInformation, BridgeParameters, Country, Entry, EntryPoint, Exit, ExitPoint,
-    Gateway, GatewayFilter, GatewayType, LewesProtocolDetails, LewesProtocolDetailsData, Location,
-    LookupGatewayFilters, Lp, NodeIdentity, ParseRecipientError, Performance, Probe, ProbeOutcome,
-    QuicClientOptions, Recipient, Score, Socks5, TentativeGateways,
+    Gateway, GatewayFilter, GatewayType, GetRecentGatewaysParams, LewesProtocolDetails,
+    LewesProtocolDetailsData, Location, LookupGatewayFilters, Lp, NodeIdentity,
+    ParseRecipientError, Performance, Probe, ProbeOutcome, QuicClientOptions, RecentGateways,
+    Recipient, Score, Socks5, TentativeGateways,
 };
 pub use gateway_independence::GatewayIndependence;
 pub use gateway_selection_algorithm::{GatewaySelectionAlgorithm, GatewaySelectionAlgorithmConfig};
@@ -95,8 +95,7 @@ pub use network_stats::{NetworkStatisticsConfig, NetworkStatisticsIdentity};
 pub use paths::LogPath;
 pub use privy::PrivyDerivationMessage;
 pub use rpc_requests::{
-    AccountBalanceResponse, AccountCommandResponse, Coin, DecentralisedObtainTicketbooksRequest,
-    ListGatewaysOptions, StoreAccountRequest,
+    AccountBalanceResponse, AccountCommandResponse, Coin, ListGatewaysOptions, StoreAccountRequest,
 };
 #[cfg(feature = "uniffi-bindings")]
 pub use service::default_vpn_service_config;

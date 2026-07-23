@@ -16,9 +16,9 @@ use nym_vpn_lib_types::{
     AvailableTickets, DiagnosticReport, EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway,
     GetDeeplinkParams, HttpRpcSettings, ListGatewaysOptions, LogPath, LookupGatewayFilters,
     NetworkCompatibility, NetworkStatisticsIdentity, NymVpnDevice, NymVpnUsage, ParsedAccountLinks,
-    PrivyDerivationMessage, RegistrationReport, Socks5Settings, Socks5Status, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TentativeGateways, TunnelEvent, TunnelState,
-    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    PrivyDerivationMessage, RecentGateways, RegistrationReport, Socks5Settings, Socks5Status,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TentativeGateways, TunnelEvent,
+    TunnelState, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
@@ -523,14 +523,10 @@ impl RpcClient {
         AccountBalanceResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn decentralised_obtain_ticketbooks(
-        &mut self,
-        amount: u64,
-    ) -> Result<AccountCommandResponse> {
-        let request = proto::DecentralisedObtainTicketbooksRequest { amount };
+    pub async fn decentralised_obtain_ticketbooks(&mut self) -> Result<AccountCommandResponse> {
         let response = self
             .0
-            .decentralised_obtain_ticketbooks(request)
+            .decentralised_obtain_ticketbooks(())
             .await
             .map_err(Error::Rpc)?
             .into_inner();
@@ -639,6 +635,12 @@ impl RpcClient {
             .into_inner();
 
         Ok(AvailableTickets::from(response))
+    }
+
+    pub async fn restock_ticketbooks(&mut self) -> Result<()> {
+        self.0.restock_ticketbooks(()).await.map_err(Error::Rpc)?;
+
+        Ok(())
     }
 
     pub async fn get_account_summary(&mut self) -> Result<Option<VpnAccountSummary>> {
@@ -932,6 +934,20 @@ impl RpcClient {
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
         TentativeGateways::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn get_recent_gateways(
+        &mut self,
+        params: nym_vpn_lib_types::GetRecentGatewaysParams,
+    ) -> Result<RecentGateways> {
+        let request = proto::GetRecentGatewaysParams::from(params);
+        let response = self
+            .0
+            .get_recent_gateways(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+        RecentGateways::try_from(response).map_err(Error::InvalidResponse)
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

@@ -49,6 +49,7 @@ use nym_registration_client::{
     RegistrationMode, RegistrationNymNode, RegistrationResult, WireguardRegistrationResult,
 };
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
+use nym_vpn_api_client::SkewManager;
 use nym_vpn_lib_types::{
     AccountControllerError, BridgeAddress, ConnectionData, ErrorStateReason,
     EstablishConnectionData, GatewayLightInfo, MixnetConnectionData, NymAddress,
@@ -81,7 +82,7 @@ use crate::tunnel_provider::AndroidTunProvider;
 use crate::tunnel_provider::OSTunProvider;
 use crate::{
     DEFAULT_MIN_GATEWAY_PERFORMANCE, DEFAULT_MIN_MIXNODE_PERFORMANCE, UserAgent,
-    bandwidth_controller::BandwidthController,
+    bandwidth_monitor::BandwidthMonitor,
     mixnet::VpnTopologyServiceHandle,
     tunnel_health::{METADATA_PATH_HEALTH_GRACE, MetadataPathHealth, should_defer_probe_teardown},
     tunnel_state_machine::{
@@ -143,10 +144,19 @@ const METADATA_ENDPOINT_REACHABILITY_TIMEOUT: Duration = Duration::from_secs(10)
 /// Timeout for starting the registration client
 const REGISTRATION_CLIENT_STARTUP_TIMEOUT: Duration = Duration::from_secs(8);
 
+/// How long we wait for the bandwidth controller to have the ticketbooks we need before connecting.
+const TICKETBOOK_READINESS_TIMEOUT: Duration = Duration::from_secs(120);
+
+/// Whether LP registration is enabled
+const ENABLE_LP_REGISTRATION: bool = true;
+
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
     /// Checking account
     AwaitingAccountReadiness,
+
+    /// Checking Credentials,
+    AwaitingCredentialsAvailability,
 
     /// Refreshing gateways
     RefreshingGateways,
@@ -255,6 +265,7 @@ pub struct TunnelMonitor {
     account_controller_state: AccountStateReceiver,
     account_command_tx: AccountCommandSender,
     bandwidth_command_tx: BandwidthControllerRequestSender,
+    skew_manager: SkewManager,
     gateway_provider: GatewayProvider<GatewayCacheHandle>,
     custom_topology_provider: VpnTopologyServiceHandle,
     shutdown_token: CancellationToken,
@@ -314,6 +325,7 @@ impl TunnelMonitor {
         account_controller_state: AccountStateReceiver,
         account_command_tx: AccountCommandSender,
         bandwidth_command_tx: BandwidthControllerRequestSender,
+        skew_manager: SkewManager,
         gateway_provider: GatewayProvider<GatewayCacheHandle>,
         custom_topology_provider: VpnTopologyServiceHandle,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
@@ -335,6 +347,7 @@ impl TunnelMonitor {
             account_controller_state,
             account_command_tx,
             bandwidth_command_tx,
+            skew_manager,
             gateway_provider,
             custom_topology_provider,
             shutdown_token: shutdown_token.clone(),
@@ -378,6 +391,14 @@ impl TunnelMonitor {
         self.shutdown_token
             .clone()
             .run_until_cancelled(self.await_account_readiness_with_retry())
+            .await
+            .ok_or(tunnel::Error::Cancelled)??;
+
+        self.send_event(TunnelMonitorEvent::AwaitingCredentialsAvailability);
+
+        self.shutdown_token
+            .clone()
+            .run_until_cancelled(self.await_ticketbook_readiness())
             .await
             .ok_or(tunnel::Error::Cancelled)??;
 
@@ -543,7 +564,7 @@ impl TunnelMonitor {
             .mixnet_client_startup_timeout(REGISTRATION_CLIENT_STARTUP_TIMEOUT)
             .mode(mode)
             .bandwidth_request_sender(self.bandwidth_command_tx.clone())
-            .enable_lp_registration(true)
+            .enable_lp_registration(ENABLE_LP_REGISTRATION)
             .user_agent(user_agent)
             .custom_topology_provider(Box::new(
                 self.custom_topology_provider.make_topology_provider(),
@@ -741,7 +762,7 @@ impl TunnelMonitor {
             .fuse();
         tokio::pin!(metadata_endpoints_reachable);
 
-        // Send metadata endpoint data to the bandwidth controller
+        // Send metadata endpoint data to the bandwidth monitor
         match &tunnel_interface {
             TunnelInterface::One(exit) => {
                 let _metadata_event_handler = tokio::spawn(async move {
@@ -910,8 +931,8 @@ impl TunnelMonitor {
 
         // Shutdown WireGuard tunnel runtime
         if let Some(wg_tunnel_runtime) = wg_tunnel_runtime {
-            if let Err(err) = wg_tunnel_runtime.bandwidth_controller_handle.await {
-                tracing::error!("Failed to await bandwidth controller handle: {}", err);
+            if let Err(err) = wg_tunnel_runtime.bandwidth_monitor_handle.await {
+                tracing::error!("Failed to await bandwidth monitor handle: {}", err);
             }
 
             if let Some(transport_fwd_handle) = wg_tunnel_runtime.transport_fwd_handle
@@ -969,6 +990,30 @@ impl TunnelMonitor {
             Err(e) => Err(e),
         }
         .map_err(|e| Error::Account(account::Error::ControllerState(e)))
+    }
+
+    /// Wait until the bandwidth controller has the ticketbooks needed to connect, erroring if they
+    /// can't be obtained or we time out.
+    async fn await_ticketbook_readiness(&self) -> Result<()> {
+        let required_ticketbooks = self
+            .tunnel_parameters
+            .tunnel_settings
+            .ticket_types_required(ENABLE_LP_REGISTRATION);
+        match tokio::time::timeout(
+            TICKETBOOK_READINESS_TIMEOUT,
+            self.bandwidth_command_tx
+                .wait_for_ticketbooks(required_ticketbooks),
+        )
+        .await
+        {
+            Ok(result) => result.map_err(|e| tunnel::Error::BandwidthController(e).into()),
+            Err(_elapsed) => Err(tunnel::Error::BandwidthController(
+                nym_bandwidth_controller::error::BandwidthControllerError::internal(
+                    "timed out waiting for the required ticketbooks",
+                ),
+            )
+            .into()),
+        }
     }
 
     fn send_event(&mut self, event: TunnelMonitorEvent) {
@@ -1163,9 +1208,9 @@ impl TunnelMonitor {
 
         let metadata_path_health = MetadataPathHealth::new();
 
-        let bw = BandwidthController::create(
-            Box::new(self.bandwidth_command_tx.clone()),
-            self.account_command_tx.clone(),
+        let bw = BandwidthMonitor::create(
+            self.bandwidth_command_tx.clone(),
+            self.skew_manager.clone(),
             selected_gateways,
             entry_gateway_client,
             exit_gateway_client,
@@ -1182,7 +1227,7 @@ impl TunnelMonitor {
             Some(handle) if bw.is_using_latest_client() => {
                 // We don't need the mixnet client anymore
                 tracing::info!(
-                    "Disconnecting mixnet client as we are using the latest bandwidth controller"
+                    "Disconnecting mixnet client as we are using the latest bandwidth monitor"
                 );
                 handle.stop().await;
                 None
@@ -1190,10 +1235,10 @@ impl TunnelMonitor {
             Some(handle) => Some(handle),
             None => None,
         };
-        let bandwidth_controller_handle = tokio::spawn(bw.run());
+        let bandwidth_monitor_handle = tokio::spawn(bw.run());
 
         let rt = WgTunnelRuntime {
-            bandwidth_controller_handle,
+            bandwidth_monitor_handle,
             transport_fwd_handle: None,
             authenticator_listener_handle,
             metadata_path_health,
@@ -2064,7 +2109,7 @@ struct StartTunnelResult {
 }
 
 struct WgTunnelRuntime {
-    bandwidth_controller_handle: JoinHandle<()>,
+    bandwidth_monitor_handle: JoinHandle<()>,
     transport_fwd_handle: Option<JoinHandle<()>>,
     authenticator_listener_handle: Option<AuthClientMixnetListenerHandle>,
     metadata_path_health: MetadataPathHealth,

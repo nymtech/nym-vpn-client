@@ -5,11 +5,11 @@ use std::{sync::Arc, time::Duration};
 
 use crate::{
     SharedAccountState,
-    commands::{AccountCommand, UpgradeModeCommand, common_handler, handler},
+    commands::{AccountCommand, common_handler, handler},
     state_machine::{
         AccountControllerStateHandler, DecentralisedState, ErrorState, LoggedOutState,
         NextAccountControllerState, OfflineState, PendingSubscriptionState,
-        PrivateAccountControllerState, RequestingZkNymsState,
+        PrivateAccountControllerState, ReadyState,
         syncing_state::{SyncMode, SyncingNetworkState},
     },
 };
@@ -24,7 +24,6 @@ use nym_vpn_lib_types::{
 };
 use tokio::sync::{mpsc, oneshot};
 use tokio_util::sync::{CancellationToken, DropGuard};
-use tracing::warn;
 
 const SYNCING_LOCAL_STATE_CONTEXT: &str = "SYNCING_LOCAL_STATE";
 
@@ -52,7 +51,7 @@ const SUMMARY_STALE_AFTER: Duration = Duration::from_secs(24 * 60 * 60);
 /// Possible next state :
 /// - LoggedOutState : No account is stored
 /// - SyncingNetworkState : No summary is cached, or the cache is stale and must be refreshed
-/// - RequestingZkNymsState : Everything checks out, we just need to top up our zk-nyms
+/// - ReadyState : Everything checks out.
 /// - PendingSubscriptionState : The subscription exists but is not yet active
 /// - ErrorState : One of the checks failed in a non-recoverable way
 /// - OfflineState : the connectivity monitor is telling we're not connected
@@ -63,34 +62,38 @@ pub(crate) struct SyncingLocalState {
 }
 
 impl SyncingLocalState {
-    pub(crate) fn enter<C: ConnectivityMonitor>(
-        shared_state: &SharedAccountState<C>,
+    pub(crate) async fn enter<C: ConnectivityMonitor>(
+        shared_state: &mut SharedAccountState<C>,
     ) -> (
         Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
         let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
-            return LoggedOutState::enter();
+            return LoggedOutState::enter(shared_state).await;
         };
         if vpn_api_account.mode().is_decentralised() {
             return DecentralisedState::enter();
         }
         let Some(device) = shared_state.device.clone() else {
-            return ErrorState::enter(AccountControllerErrorStateReason::Internal {
-                context: SYNCING_LOCAL_STATE_CONTEXT.into(),
-                details: "Logged in, but no device keys".into(),
-            });
+            return ErrorState::enter(
+                shared_state,
+                AccountControllerErrorStateReason::Internal {
+                    context: SYNCING_LOCAL_STATE_CONTEXT.into(),
+                    details: "Logged in, but no device keys".into(),
+                },
+            )
+            .await;
         };
 
         // Nothing to check locally without a cached summary: go fetch one from the network.
         let Some(summary) = shared_state.vpn_account_summary.clone() else {
-            return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory);
+            return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await;
         };
 
         // A stale cache can't be trusted; force a mandatory re-fetch instead of checking it.
         if summary.is_stale(SUMMARY_STALE_AFTER) {
             tracing::debug!("Cached account summary is stale, forcing a network refresh");
-            return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory);
+            return SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await;
         }
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
@@ -206,14 +209,14 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                             summary.remaining_devices = summary.remaining_devices.saturating_sub(1);
                             shared_state.store_summary(summary);
                         }
-                        NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, 0, false))
+                        NextAccountControllerState::NewState(ReadyState::enter(shared_state).await)
                     }
                     Ok(Err(err)) => {
                         // The account doesn't check out
                         match err {
                             SyncError::PendingSubscription => NextAccountControllerState::NewState(PendingSubscriptionState::enter()),
                             err => {
-                                NextAccountControllerState::NewState(ErrorState::enter(err.into_error_reason()))
+                                NextAccountControllerState::NewState(ErrorState::enter(shared_state, err.into_error_reason()).await)
                             }
                         }
                     }
@@ -238,7 +241,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         return if error {
                             NextAccountControllerState::SameState(self)
                         } else {
-                            NextAccountControllerState::NewState(LoggedOutState::enter())
+                            NextAccountControllerState::NewState(LoggedOutState::enter(shared_state).await)
                         }
                     },
                     AccountCommand::LinkAccount(return_sender, privy_account) => {
@@ -250,7 +253,7 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         return_sender.send(res);
                     },
                     AccountCommand::AccountBalance(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
-                    AccountCommand::ObtainTicketbooks(return_sender, _) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
+                    AccountCommand::ObtainTicketbooks(return_sender) => return_sender.send(Err(AccountCommandError::AccountNotDecentralised)),
                     AccountCommand::RefreshAccountState(return_sender, force) => {
                         return_sender.send(Ok(()));
                         return if shared_state.firewall_active {
@@ -258,47 +261,36 @@ impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingLocalSt
                         } else {
                             if force {
                                 shared_state.mark_summary_as_stale();
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                             } else {
-                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
+                                return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);
                             }
                         }
                     },
                     AccountCommand::ResetDeviceIdentity(return_sender, seed) => {
                         return_sender.send(handler::handle_reset_device_identity(shared_state, seed).await);
-                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory));
+                        return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Mandatory).await);
                     },
 
                     AccountCommand::VpnApiFirewallDown(return_sender) =>  {
                         return_sender.send(Ok(()));
                         // No-op if the firewall was already down
-                        if shared_state.firewall_active {
-                            shared_state.firewall_active = false;
-                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic));
+                        if shared_state.set_firewall_state(false) {
+                            return NextAccountControllerState::NewState(SyncingNetworkState::enter(shared_state, SyncMode::Optimistic).await);
                         }
                     },
 
                     AccountCommand::VpnApiFirewallUp(return_sender) => {
-                        shared_state.firewall_active = true;
-                        // Explicitly cancel the check task since the same state persists; the only
-                        // network interaction (device registration) must not run while firewalled.
-                        self.sync_cancel_token.take();
+                        if shared_state.set_firewall_state(true) {
+                            // Explicitly cancel the check task since the same state persists; the only
+                            // network interaction (device registration) must not run while firewalled.
+                            self.sync_cancel_token.take();
+                        }
                         return_sender.send(Ok(()));
                     },
 
                     AccountCommand::Common(common_command) => {
                         common_handler::handle_common_command(common_command, shared_state).await
-                    },
-                    AccountCommand::UpgradeMode(upgrade_mode_command) => match upgrade_mode_command {
-                        UpgradeModeCommand::GetUpgradeModeEnabled(return_sender) => {
-                            return_sender.send(Ok(false))
-                        }
-                        UpgradeModeCommand::DisableUpgradeMode(return_sender) => {
-                            warn!(
-                                "received unexpected command to disable upgrade mode while in 'SyncingLocalState' state"
-                            );
-                            return_sender.send(Ok(()))
-                        }
                     },
                 }
                 NextAccountControllerState::SameState(self)

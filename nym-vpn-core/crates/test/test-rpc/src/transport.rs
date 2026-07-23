@@ -369,7 +369,9 @@ impl MultiplexCodec {
     fn new(has_connected: Arc<AtomicBool>) -> Self {
         let mut codec_builder = LengthDelimitedCodec::builder();
 
-        codec_builder.length_field_length(MULTIPLEX_LEN_DELIMITED_HEADER_SIZE);
+        codec_builder
+            .length_field_length(MULTIPLEX_LEN_DELIMITED_HEADER_SIZE)
+            .max_frame_length(usize::MAX);
 
         Self {
             has_connected,

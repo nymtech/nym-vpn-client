@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{MixnetError, tunnel_state_machine::Error as TunnelStateMachineError};
+use crate::{MixnetError, RecentsError, tunnel_state_machine::Error as TunnelStateMachineError};
 use nym_vpn_api_client::error::VpnApiClientError;
 use nym_vpn_lib_types::GatewayType;
 
@@ -110,6 +110,9 @@ pub enum ListGatewaysError {
         gw_type: GatewayType,
         source: crate::gateway_directory::Error,
     },
+
+    #[error("failed to get recent gateways ({0})")]
+    GetRecentGateways(RecentsError),
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

@@ -24,6 +24,7 @@ nym-compact-ecash.workspace = true
 nym-config.workspace = true
 nym-contracts-common.workspace = true
 nym-credential-proxy-requests.workspace = true
+nym-credentials.workspace = true
 nym-crypto = { workspace = true, features = ["asymmetric", "stream_cipher"] }
 nym-http-api-client.workspace = true
 nym-network-defaults = { workspace = true, optional = true }
@@ -37,6 +38,7 @@ strum_macros.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 time = { workspace = true, features = [
+    "macros",
     "serde-human-readable",
     "serde-well-known",
 ] }
@@ -49,7 +51,7 @@ bip39 = { workspace = true, features = ["zeroize"] }
 nym-crypto = { workspace = true, features = ["asymmetric", "stream_cipher"] }
 nym-http-api-client.workspace = true
 serde_json.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "test-util"] }
 tracing-test.workspace = true
 wiremock.workspace = true
 

@@ -13,9 +13,9 @@ use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerState, AutologinResponse, DiagnosticRunParams,
     EntryPoint, ExitPoint, FeatureFlags, FrontingMode, Gateway, GatewaySelectionAlgorithm,
     GetDeeplinkParams, ListGatewaysOptions, MixnetTrafficConfig, NetworkCompatibility,
-    ParsedAccountLinks, RegisterAccountRequest, RegisterAccountResponse, StoreAccountRequest,
-    StoredAccountMode, SystemMessage, TargetState, TentativeGateways, TunnelState,
-    VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
+    ParsedAccountLinks, RecentGateways, RegisterAccountRequest, RegisterAccountResponse,
+    StoreAccountRequest, StoredAccountMode, SystemMessage, TargetState, TentativeGateways,
+    TunnelState, TunnelType, VpnAccountSummary, VpnServiceConfig, VpnServiceInfo,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -449,5 +449,12 @@ impl NymVpnServiceCommandSender {
     pub async fn get_tentative_gateways(&self) -> Result<TentativeGateways> {
         self.send_and_wait(VpnServiceCommand::GetTentativeGateways, ())
             .await
+    }
+
+    pub async fn get_recent_gateways(&self, tunnel_type: TunnelType) -> Result<RecentGateways> {
+        Ok(self
+            .send_and_wait(VpnServiceCommand::GetRecentGateways, tunnel_type)
+            .await?
+            .map_err(NymVpnServiceCommandInnerError::ListGateway)?)
     }
 }
