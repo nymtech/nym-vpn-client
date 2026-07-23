@@ -2,10 +2,10 @@ name: release-all-platforms
 
 on:
   # Temporary for initial PR
-  # pull_request:
-  #   types: [opened, synchronize, reopened]
-  #   paths:
-  #     - ".github/workflows/release-all-platforms.yml"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - ".github/workflows/release-all-platforms.yml"
   # NOTE: pick the release branch in the "Run workflow" ref selector. Reusable callees
   # always run at the SAME ref as this orchestrator, so the dispatch ref IS the release
   # branch — there is no separate branch input (it could not redirect the callees).
