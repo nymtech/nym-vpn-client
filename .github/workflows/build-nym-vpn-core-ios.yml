@@ -30,6 +30,14 @@ jobs:
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout repo
         uses: actions/checkout@v7
         with:

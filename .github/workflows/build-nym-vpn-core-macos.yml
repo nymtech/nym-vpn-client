@@ -42,6 +42,14 @@ jobs:
       UPLOAD_DIR_MACOS: core_artifacts_macos_${{ matrix.cpu_arch }}
     runs-on: custom-macos-15
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
@@ -115,6 +123,14 @@ jobs:
     runs-on: custom-macos-15
     needs: build-wireguard-go-macos
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
@@ -192,6 +208,14 @@ jobs:
     needs: [build-nym-vpn-core-macos, build-nym-vpn-rpc]
     runs-on: custom-macos-15
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Download core artifacts (x86_64)
         uses: actions/download-artifact@v8
         with:
