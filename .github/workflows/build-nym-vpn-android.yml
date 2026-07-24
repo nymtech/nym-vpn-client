@@ -71,7 +71,7 @@ on:
     outputs:
       artifact_name:
         description: "Name of the built artifact"
-        value: ${{ jobs.build.outputs.artifact_name }}
+        value: ${{ jobs.build-nym-vpn-app-android.outputs.artifact_name }}
     secrets:
       VPND_SENTRY_DSN:
         required: true

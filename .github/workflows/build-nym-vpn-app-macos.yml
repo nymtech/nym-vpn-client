@@ -31,7 +31,7 @@ on:
     outputs:
       pkg_installer_name:
         description: "PKG installer artifact name"
-        value: ${{ jobs.build-macos.outputs.pkg_installer_name }}
+        value: ${{ jobs.build-nym-vpn-app-macos.outputs.pkg_installer_name }}
     secrets:
       APPLE_DEVELOPER_ID_APPLICATION_CERT:
         required: true
