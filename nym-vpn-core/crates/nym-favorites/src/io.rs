@@ -7,7 +7,7 @@ use serde::{Serialize, de::DeserializeOwned};
 
 use crate::FavoritesError;
 
-pub(crate) async fn persisted<T>(file_path: &PathBuf) -> Option<T>
+pub(crate) async fn parse_from_file<T>(file_path: &PathBuf) -> Option<T>
 where
     T: DeserializeOwned,
 {
@@ -24,7 +24,7 @@ where
         .ok()
 }
 
-pub(crate) async fn flush<T>(value: &T, file_path: &PathBuf) -> Result<(), FavoritesError>
+pub(crate) async fn save_to_file<T>(value: &T, file_path: &PathBuf) -> Result<(), FavoritesError>
 where
     T: std::fmt::Debug + ?Sized + Serialize,
 {

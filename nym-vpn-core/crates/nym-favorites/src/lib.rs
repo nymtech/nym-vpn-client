@@ -7,13 +7,13 @@ use nym_vpn_lib_types::{FavoriteSelector, FavoriteSelectors};
 
 pub use error::FavoritesError;
 pub use gateway_cache::RecentGatewayCache;
+use io::{parse_from_file, save_to_file};
 pub use recents::RecentsManager;
-use util::{flush, persisted};
 
 mod error;
 mod gateway_cache;
+pub(crate) mod io;
 pub mod recents;
-pub(crate) mod util;
 
 const FAVORITES_FILE_NAME: &str = "favorites.json";
 
@@ -26,7 +26,7 @@ impl FavoritesManager {
     pub async fn new(dir_path: PathBuf) -> Self {
         let file_path = dir_path.join(FAVORITES_FILE_NAME);
 
-        let cache = match persisted(&file_path).await {
+        let cache = match parse_from_file(&file_path).await {
             Some(cache) => cache,
             None => {
                 let cache = FavoriteSelectors {
@@ -34,7 +34,7 @@ impl FavoritesManager {
                     exit: Vec::new(),
                 };
                 // flushing errors are logged, but they are not fatal on creating the manager
-                let _ = flush(&cache, &file_path).await;
+                let _ = save_to_file(&cache, &file_path).await;
                 cache
             }
         };
@@ -60,7 +60,7 @@ impl FavoritesManager {
     ) -> Result<(), FavoritesError> {
         let list = self.cache.entry.clone();
         Self::add_favorite(&mut list, selector);
-        flush(&self.cache, &self.file_path).await?;
+        save_to_file(&self.cache, &self.file_path).await?;
         self.cache.entry = list;
 
         Ok(())
@@ -72,7 +72,7 @@ impl FavoritesManager {
     ) -> Result<(), FavoritesError> {
         let list = self.cache.entry.clone();
         Self::remove_favorite(&mut self.cache.entry, selector);
-        flush(&self.cache, &self.file_path).await?;
+        save_to_file(&self.cache, &self.file_path).await?;
         self.cache.entry = list;
 
         Ok(())
@@ -84,7 +84,7 @@ impl FavoritesManager {
     ) -> Result<(), FavoritesError> {
         let list = self.cache.exit.clone();
         Self::add_favorite(&mut self.cache.exit, selector);
-        flush(&self.cache, &self.file_path).await?;
+        save_to_file(&self.cache, &self.file_path).await?;
         self.cache.exit = list;
 
         Ok(())
@@ -96,7 +96,7 @@ impl FavoritesManager {
     ) -> Result<(), FavoritesError> {
         let list = self.cache.exit.clone();
         Self::remove_favorite(&mut self.cache.exit, selector);
-        flush(&self.cache, &self.file_path).await?;
+        save_to_file(&self.cache, &self.file_path).await?;
         self.cache.exit = list;
 
         Ok(())

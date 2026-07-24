@@ -9,7 +9,7 @@ use nym_vpn_lib_types::{Gateway, RecentGateways, TunnelType};
 use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
-use super::util::{flush, persisted};
+use super::io::{parse_from_file, save_to_file};
 use crate::{error::FavoritesError, gateway_cache::RecentGatewayCache};
 
 const MAX_RECENTS: usize = 20;
@@ -65,7 +65,7 @@ pub struct RecentsManager<C: RecentGatewayCache> {
 impl<C: RecentGatewayCache> RecentsManager<C> {
     pub async fn new(dir_path: PathBuf, gateway_cache: C) -> Self {
         let file_path = dir_path.join(RECENTS_FILE_NAME);
-        let cache = match persisted::<Recents>(&file_path).await {
+        let cache = match parse_from_file::<Recents>(&file_path).await {
             Some(mut cache) => {
                 // in case disk got more entries than current maximum, we truncate that to the current max value
                 cache.truncate();
@@ -74,7 +74,7 @@ impl<C: RecentGatewayCache> RecentsManager<C> {
             None => {
                 let cache = Recents::default();
                 // flushing errors are logged, but they are not fatal on creating the manager
-                let _ = flush(&cache, &file_path).await;
+                let _ = save_to_file(&cache, &file_path).await;
                 cache
             }
         };
@@ -113,7 +113,7 @@ impl<C: RecentGatewayCache> RecentsManager<C> {
         };
 
         // flushing errors are logged, but they are not fatal
-        let _ = flush(&cache, &self.file_path).await;
+        let _ = save_to_file(&cache, &self.file_path).await;
     }
 
     fn get_recent_queue(queue: &VecDeque<String>, gateways: &GatewayList) -> Vec<Gateway> {
