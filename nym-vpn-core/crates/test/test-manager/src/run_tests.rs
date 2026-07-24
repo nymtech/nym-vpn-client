@@ -21,6 +21,9 @@ const GUEST_DAEMON_LOG_PATH: &str = "/var/log/nym-vpnd/nym-vpnd.log";
 const DAEMON_LOG_TAIL_LINES: usize = 4000;
 const DAEMON_LOG_CAPTURE_TIMEOUT: Duration = Duration::from_secs(30);
 
+const GUEST_LOAD_COMMAND: &str = "cat /proc/loadavg; echo ---; nproc";
+const GUEST_LOAD_CAPTURE_TIMEOUT: Duration = Duration::from_secs(15);
+
 #[derive(Clone)]
 struct GuestSshAccess {
     user: String,
@@ -149,6 +152,50 @@ fn daemon_log_line_timestamp(line: &str) -> Option<&str> {
     }
 }
 
+async fn capture_guest_load_on_failure(access: &GuestSshAccess, test_name: &str) {
+    let output = await_daemon_log_capture(
+        {
+            let access = access.clone();
+            async move {
+                tokio::task::spawn_blocking(move || {
+                    SSHSession::connect(access.user.clone(), access.password.clone(), access.ip)
+                        .and_then(|session| session.exec_blocking(GUEST_LOAD_COMMAND))
+                })
+                .await
+                .context("guest load capture task panicked")?
+            }
+        },
+        GUEST_LOAD_CAPTURE_TIMEOUT,
+    )
+    .await;
+
+    match output {
+        Ok(output) => log::info!("{}", format_guest_load_report(test_name, &output)),
+        Err(err) => log::warn!("Could not capture guest load average for '{test_name}': {err:#}"),
+    }
+}
+
+/// Pure formatting for the guest load-average report, split out from [`capture_guest_load_on_failure`]
+/// so the parsing/formatting logic is unit-testable without an SSH connection.
+fn format_guest_load_report(test_name: &str, raw_output: &str) -> String {
+    let (loadavg, nproc) = raw_output
+        .split_once("---")
+        .map(|(loadavg, nproc)| (loadavg.trim(), nproc.trim()))
+        .unwrap_or((raw_output.trim(), "unknown"));
+    let loadavg = if loadavg.is_empty() {
+        "unavailable"
+    } else {
+        loadavg
+    };
+    let nproc = if nproc.is_empty() { "unknown" } else { nproc };
+
+    format!(
+        "===== guest load snapshot for {test_name} =====\n\
+         loadavg (1m 5m 15m runnable/total last_pid)={loadavg} nproc={nproc}\n\
+         ===== end guest load snapshot for {test_name} ====="
+    )
+}
+
 /// The baud rate of the serial connection between the test manager and the test runner.
 /// There is a known issue with setting a baud rate at all or macOS, and the workaround
 /// is to set it to zero: https://github.com/serialport/serialport-rs/pull/58
@@ -209,6 +256,7 @@ impl TestHandler<'_> {
         if test_output.result.failure()
             && let Some(access) = &self.guest_ssh_access
         {
+            capture_guest_load_on_failure(access, test_name).await;
             capture_daemon_log_on_failure(access, test_name).await;
         }
 
@@ -414,7 +462,7 @@ pub async fn run_test_function(
 
 #[cfg(test)]
 mod daemon_log_tests {
-    use super::{await_daemon_log_capture, daemon_log_line_timestamp};
+    use super::{await_daemon_log_capture, daemon_log_line_timestamp, format_guest_load_report};
     use std::{future::pending, time::Duration};
 
     #[test]
@@ -441,5 +489,34 @@ mod daemon_log_tests {
                 .expect_err("pending capture must time out");
 
         assert!(error.to_string().contains("daemon log capture timed out"));
+    }
+
+    #[test]
+    fn formats_guest_load_report_with_separator() {
+        let raw = "0.52 1.14 1.30 3/210 2481\n---\n2\n";
+        let report = format_guest_load_report("test_account_and_tunnel_roundtrip", raw);
+        assert!(
+            report
+                .contains("loadavg (1m 5m 15m runnable/total last_pid)=0.52 1.14 1.30 3/210 2481")
+        );
+        assert!(report.contains("nproc=2"));
+        assert!(report.contains("guest load snapshot for test_account_and_tunnel_roundtrip"));
+    }
+
+    #[test]
+    fn formats_guest_load_report_missing_separator_falls_back() {
+        // e.g. `nproc` failed but `loadavg` printed before the `---` marker was reached.
+        let report = format_guest_load_report("t", "0.10 0.20 0.30 1/100 999\n");
+        assert!(
+            report.contains("loadavg (1m 5m 15m runnable/total last_pid)=0.10 0.20 0.30 1/100 999")
+        );
+        assert!(report.contains("nproc=unknown"));
+    }
+
+    #[test]
+    fn formats_guest_load_report_empty_output() {
+        let report = format_guest_load_report("t", "");
+        assert!(report.contains("loadavg (1m 5m 15m runnable/total last_pid)=unavailable"));
+        assert!(report.contains("nproc=unknown"));
     }
 }
