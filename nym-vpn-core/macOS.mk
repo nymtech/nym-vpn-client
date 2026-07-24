@@ -83,6 +83,18 @@ rpc-swift-package:
 	cd $(RPC_CRATE_DIR); \
 	$(ALL_IDEMPOTENT_FLAGS) $(CARGO) swift package --accept-all --platforms macos --name NymVPNRpc --xcframework-name NymVPNRpcUniffi $(RELEASE_FLAG)
 
+	# See: https://github.com/antoniusnaumann/cargo-swift/pull/101
+	cd $(RPC_CRATE_DIR); \
+	for HEADERS_DIR in NymVPNRpc/NymVPNRpcUniffi.xcframework/*/Headers ; do \
+		echo "🔨 Fixing up headers in $${HEADERS_DIR}…"; \
+		for SUBDIR in "$${HEADERS_DIR}"/*/; do \
+			[[ -d "$${SUBDIR}" ]] || continue; \
+			echo "🔨 Copying headers from $${SUBDIR}…"; \
+			cp -n "$${SUBDIR}/"* "$${HEADERS_DIR}/"; \
+			rm -rf "$${SUBDIR}"; \
+		done \
+	done
+
 $(BIN_TARGETS): create-upload-dir
 	@if [ "$@" == "nym-vpnd" ]; then \
     	if [ -z "$(SENTRY_DSN)" ]; then \

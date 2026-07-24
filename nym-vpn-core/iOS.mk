@@ -44,6 +44,16 @@ swift-package: $(LIBWG_BUILD_DIR)/libwg.a
 	cd $(LIB_CRATE_DIR); \
 	$(ALL_IDEMPOTENT_FLAGS) cargo swift package --accept-all --platforms ios --name NymVPNLib --target aarch64-apple-ios --xcframework-name NymVPNLibUniffi $(RELEASE_FLAG)
 
+	# See: https://github.com/antoniusnaumann/cargo-swift/pull/101
+	cd $(LIB_CRATE_DIR); \
+	for HEADERS_DIR in NymVPNLib/NymVPNLibUniffi.xcframework/*/Headers ; do \
+		for SUBDIR in "$${HEADERS_DIR}"/*/; do \
+			[[ -d "$${SUBDIR}" ]] || continue; \
+			cp -n "$${SUBDIR}/"* "$${HEADERS_DIR}/"; \
+			rm -rf "$${SUBDIR}"; \
+		done \
+	done
+
 libwg: $(LIBWG_BUILD_DIR)/libwg.a
 
 $(LIBWG_BUILD_DIR)/libwg.a: $(LIBWG_SOURCES)
