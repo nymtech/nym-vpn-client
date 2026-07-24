@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use nym_vpn_lib_types::{FavoriteSelector, FavoriteSelectors};
 
-pub use error::RecentsError;
+pub use error::FavoritesError;
 pub use gateway_cache::RecentGatewayCache;
 pub use recents::RecentsManager;
 use util::{flush, persisted};
@@ -33,7 +33,8 @@ impl FavoritesManager {
                     entry: Vec::new(),
                     exit: Vec::new(),
                 };
-                flush(&cache, &file_path).await;
+                // flushing errors are logged, but they are not fatal on creating the manager
+                let _ = flush(&cache, &file_path).await;
                 cache
             }
         };
@@ -53,24 +54,36 @@ impl FavoritesManager {
         }
     }
 
-    pub async fn add_favorite_entry(&mut self, selector: FavoriteSelector) {
+    pub async fn add_favorite_entry(
+        &mut self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
         Self::add_favorite(&mut self.cache.entry, selector);
-        flush(&self.cache, &self.file_path).await;
+        flush(&self.cache, &self.file_path).await
     }
 
-    pub async fn remove_favorite_entry(&mut self, selector: FavoriteSelector) {
+    pub async fn remove_favorite_entry(
+        &mut self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
         Self::remove_favorite(&mut self.cache.entry, selector);
-        flush(&self.cache, &self.file_path).await;
+        flush(&self.cache, &self.file_path).await
     }
 
-    pub async fn add_favorite_exit(&mut self, selector: FavoriteSelector) {
+    pub async fn add_favorite_exit(
+        &mut self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
         Self::add_favorite(&mut self.cache.exit, selector);
-        flush(&self.cache, &self.file_path).await;
+        flush(&self.cache, &self.file_path).await
     }
 
-    pub async fn remove_favorite_exit(&mut self, selector: FavoriteSelector) {
+    pub async fn remove_favorite_exit(
+        &mut self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
         Self::remove_favorite(&mut self.cache.exit, selector);
-        flush(&self.cache, &self.file_path).await;
+        flush(&self.cache, &self.file_path).await
     }
 
     pub fn get_favorites(&self) -> FavoriteSelectors {

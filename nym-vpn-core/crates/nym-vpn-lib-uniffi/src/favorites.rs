@@ -3,7 +3,7 @@
 
 use std::{path::PathBuf, sync::Arc};
 
-use nym_favorites::{FavoritesManager, RecentsError, RecentsManager};
+use nym_favorites::{FavoritesError as LibFavoritesError, FavoritesManager, RecentsManager};
 use nym_vpn_lib_types::{FavoriteSelector, FavoriteSelectors, RecentGateways, TunnelType};
 use tokio::sync::RwLock;
 
@@ -12,13 +12,17 @@ use crate::gateway_cache::NymGatewayCache;
 #[derive(Debug, thiserror::Error)]
 enum FavoritesInnerError {
     #[error("failed to get recent gateways ({0})")]
-    Recents(RecentsError),
+    Recents(LibFavoritesError),
+
+    #[error("failed to modify favorite selectors ({0})")]
+    Favorites(LibFavoritesError),
 }
 
 impl FavoritesInnerError {
     pub fn error_chain(&self) -> String {
         match self {
             Self::Recents(err) => err.to_string(),
+            Self::Favorites(err) => err.to_string(),
         }
     }
 }
@@ -83,36 +87,56 @@ impl FavoritesController {
         Self { manager }
     }
 
-    pub async fn add_favorite_entry(&self, selector: FavoriteSelector) {
+    pub async fn add_favorite_entry(
+        &self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
         self.manager
             .write()
             .await
             .add_favorite_entry(selector)
-            .await;
+            .await
+            .map_err(FavoritesInnerError::Favorites)?;
+        Ok(())
     }
 
-    pub async fn add_favorite_exit(&self, selector: FavoriteSelector) {
+    pub async fn add_favorite_exit(
+        &self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
         self.manager
             .write()
             .await
-            .add_favorite_entry(selector)
-            .await;
+            .add_favorite_exit(selector)
+            .await
+            .map_err(FavoritesInnerError::Favorites)?;
+        Ok(())
     }
 
-    pub async fn remove_favorite_entry(&self, selector: FavoriteSelector) {
+    pub async fn remove_favorite_entry(
+        &self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
         self.manager
             .write()
             .await
             .remove_favorite_entry(selector)
-            .await;
+            .await
+            .map_err(FavoritesInnerError::Favorites)?;
+        Ok(())
     }
 
-    pub async fn remove_favorite_exit(&self, selector: FavoriteSelector) {
+    pub async fn remove_favorite_exit(
+        &self,
+        selector: FavoriteSelector,
+    ) -> Result<(), FavoritesError> {
         self.manager
             .write()
             .await
-            .add_favorite_entry(selector)
-            .await;
+            .add_favorite_exit(selector)
+            .await
+            .map_err(FavoritesInnerError::Favorites)?;
+        Ok(())
     }
 
     pub async fn get_favorites(&self) -> FavoriteSelectors {

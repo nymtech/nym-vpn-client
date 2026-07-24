@@ -22,6 +22,7 @@ serde.workspace = true
 
 nym-gateway-directory.workspace = true
 nym-vpn-lib-types = { workspace = true, features = [
+    "serde",
     "uniffi-bindings",
     "nym-type-conversions",
 ] }

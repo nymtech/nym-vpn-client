@@ -58,7 +58,7 @@ pub enum Command {
     #[command(subcommand)]
     SetEntry(FavoriteSelector),
 
-    /// Unset a favorite exit selector
+    /// Set a favorite exit selector
     #[command(subcommand)]
     SetExit(FavoriteSelector),
 
@@ -86,24 +86,24 @@ impl Command {
             Command::SetEntry(selector) => {
                 favorites_manager
                     .add_favorite_entry(selector.try_into()?)
-                    .await
+                    .await?
             }
             Command::SetExit(selector) => {
                 favorites_manager
                     .add_favorite_exit(selector.try_into()?)
-                    .await
+                    .await?
             }
             Command::RemoveEntry(selector) => {
                 favorites_manager
                     .remove_favorite_entry(selector.try_into()?)
-                    .await
+                    .await?
             }
             Command::RemoveExit(selector) => {
                 favorites_manager
                     .remove_favorite_exit(selector.try_into()?)
-                    .await
+                    .await?
             }
-        };
+        }
         Ok(())
     }
 }

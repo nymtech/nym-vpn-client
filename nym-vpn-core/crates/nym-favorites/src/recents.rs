@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::RwLock;
 
 use super::util::{flush, persisted};
-use crate::{error::RecentsError, gateway_cache::RecentGatewayCache};
+use crate::{error::FavoritesError, gateway_cache::RecentGatewayCache};
 
 const MAX_RECENTS: usize = 20;
 const RECENTS_FILE_NAME: &str = "recents.json";
@@ -73,7 +73,8 @@ impl<C: RecentGatewayCache> RecentsManager<C> {
             }
             None => {
                 let cache = Recents::default();
-                flush(&cache, &file_path).await;
+                // flushing errors are logged, but they are not fatal on creating the manager
+                let _ = flush(&cache, &file_path).await;
                 cache
             }
         };
@@ -111,10 +112,8 @@ impl<C: RecentGatewayCache> RecentsManager<C> {
             cache_lock.clone()
         };
 
-        let file_path = self.file_path.clone();
-        // put IO disk operation on a new thread, as it's a best effort sync to disk that's not needed
-        // for the hot path of going into connected state
-        tokio::spawn(async move { flush(&cache, &file_path).await });
+        // flushing errors are logged, but they are not fatal
+        let _ = flush(&cache, &self.file_path).await;
     }
 
     fn get_recent_queue(queue: &VecDeque<String>, gateways: &GatewayList) -> Vec<Gateway> {
@@ -154,10 +153,10 @@ impl<C: RecentGatewayCache> RecentsManager<C> {
     pub async fn get_recent(
         &self,
         tunnel_type: TunnelType,
-    ) -> Result<RecentGateways, RecentsError> {
+    ) -> Result<RecentGateways, FavoritesError> {
         self.inner_get_recent(tunnel_type)
             .await
-            .map_err(|source| RecentsError::GetGateways {
+            .map_err(|source| FavoritesError::GetGateways {
                 tunnel_type,
                 source,
             })
