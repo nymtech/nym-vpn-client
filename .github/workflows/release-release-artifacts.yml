@@ -166,10 +166,6 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v8
 
-      - run: |
-          ls -la
-          tree -d .
-
       - name: Prepare build output directory
         shell: bash
         env:
