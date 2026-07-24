@@ -216,7 +216,7 @@ jobs:
 
       - name: Install codemagic-cli-tools
         run: |
-          pip3 install codemagic-cli-tools
+          python3 -m pip install codemagic-cli-tools
           keychain --version
 
       - name: Apply orchestrated version (apple)

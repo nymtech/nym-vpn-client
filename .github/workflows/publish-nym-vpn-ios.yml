@@ -47,7 +47,7 @@ jobs:
 
       - name: Install codemagic-cli-tools
         run: |
-          pip3 install codemagic-cli-tools
+          python3 -m pip install codemagic-cli-tools
           app-store-connect --version
 
       - name: Download artifacts
