@@ -130,6 +130,14 @@ jobs:
       ios: ${{ steps.resolve.outputs.ios }}
       macos: ${{ steps.resolve.outputs.macos }}
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - uses: actions/checkout@v7
         with:
           fetch-depth: 1

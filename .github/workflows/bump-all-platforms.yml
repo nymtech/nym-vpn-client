@@ -107,6 +107,14 @@ jobs:
     name: Update all software versions
     runs-on: arc-linux-latest
     steps:
+      - name: "Cleanup working directory"
+        shell: bash
+        run: |
+          ls -la ./
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
       - name: Configure git
         run: |
           git config --global user.name "${{ env.GIT_USER }}"
