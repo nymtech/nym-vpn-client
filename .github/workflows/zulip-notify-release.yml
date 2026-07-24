@@ -73,6 +73,7 @@ jobs:
           APK_URL: ${{ inputs.android_apk_url }}
           RELEASE_URL: ${{ inputs.github_release_url }}
           BRANCH: ${{ inputs.github_branch }}
+          RELEASE_CHANNEL: ${{ inputs.release_channel }}
         run: |
           set -euo pipefail
 
@@ -200,7 +201,7 @@ jobs:
         env:
           APP_VERSION: ${{ inputs.version }}
           VERSION: ${{ inputs.version }}
-          BRANCH: ${{ inputs.branch }}
+          BRANCH: ${{ inputs.github_branch }}
           RELEASE_CHANNEL: ${{ inputs.release_channel }}
           WIN_X64_INSTALLER: ${{ inputs.windows_installer_x64_url }}
           WIN_ARM64_INSTALLER: ${{ inputs.windows_installer_arm64_url }}
