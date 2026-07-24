@@ -43,7 +43,7 @@ jobs:
       - name: Activate virtual env
         run: |
           source python-venv/bin/activate
-          echo PATH=$PATH >> $GITHUB_ENV
+          echo "$GITHUB_WORKSPACE/python-venv/bin" >> $GITHUB_PATH
 
       - name: Install codemagic-cli-tools
         run: |
