@@ -6,6 +6,7 @@ pub mod ad_block;
 pub mod device;
 pub mod diagnostic;
 pub mod dns;
+pub mod favorites;
 pub mod gateway;
 pub mod geo_exclusion;
 pub mod lan;

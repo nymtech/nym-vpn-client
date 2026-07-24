@@ -455,6 +455,13 @@ pub struct FavoriteSelectors {
     pub exit: Vec<FavoriteSelector>,
 }
 
+impl std::fmt::Display for FavoriteSelectors {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "entry: {:?}", self.entry)?;
+        write!(f, "exit: {:?}", self.exit)
+    }
+}
+
 #[derive(Debug, Copy, Clone, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "uniffi-bindings", derive(uniffi::Enum))]
 #[cfg_attr(
