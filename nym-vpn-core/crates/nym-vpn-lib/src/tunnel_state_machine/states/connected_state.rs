@@ -167,6 +167,7 @@ impl ConnectedState {
     ) -> Result<()> {
         let policy = params.as_policy();
 
+        nym_http_api_client::network_reconfigured();
         shared_state
             .firewall
             .apply_policy(policy)
@@ -295,6 +296,7 @@ impl ConnectedState {
 
         // Revert the internal resolver to use the configured nameserver group
         HickoryDnsResolver::shared().use_configured_resolver();
+        nym_http_api_client::network_reconfigured();
 
         #[cfg(not(target_os = "android"))]
         Self::reset_dns(shared_state).await;
