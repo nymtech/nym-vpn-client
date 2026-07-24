@@ -784,10 +784,7 @@ impl BandwidthMonitor {
             &mut self.wg_exit_gateway_client
         };
 
-        let spend_time = self
-            .skew_manager
-            .cached_skew_corrected_time()
-            .unwrap_or_else(|| self.skew_manager.device_time());
+        let spend_time = self.skew_manager.cached_skew_corrected_time();
 
         let credential = self
             .bc_command_tx
