@@ -58,7 +58,7 @@ impl FavoritesManager {
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
-        let list = self.cache.entry.clone();
+        let mut list = self.cache.entry.clone();
         Self::add_favorite(&mut list, selector);
         save_to_file(&self.cache, &self.file_path).await?;
         self.cache.entry = list;
@@ -70,8 +70,8 @@ impl FavoritesManager {
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
-        let list = self.cache.entry.clone();
-        Self::remove_favorite(&mut self.cache.entry, selector);
+        let mut list = self.cache.entry.clone();
+        Self::remove_favorite(&mut list, selector);
         save_to_file(&self.cache, &self.file_path).await?;
         self.cache.entry = list;
 
@@ -82,8 +82,8 @@ impl FavoritesManager {
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
-        let list = self.cache.exit.clone();
-        Self::add_favorite(&mut self.cache.exit, selector);
+        let mut list = self.cache.exit.clone();
+        Self::add_favorite(&mut list, selector);
         save_to_file(&self.cache, &self.file_path).await?;
         self.cache.exit = list;
 
@@ -94,8 +94,8 @@ impl FavoritesManager {
         &mut self,
         selector: FavoriteSelector,
     ) -> Result<(), FavoritesError> {
-        let list = self.cache.exit.clone();
-        Self::remove_favorite(&mut self.cache.exit, selector);
+        let mut list = self.cache.exit.clone();
+        Self::remove_favorite(&mut list, selector);
         save_to_file(&self.cache, &self.file_path).await?;
         self.cache.exit = list;
 
