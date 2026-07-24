@@ -27,7 +27,7 @@ pub(crate) const WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT: Duration = Duration::from_se
 
 #[derive(Clone)]
 pub struct TestContext {
-    pub _rpc_provider: RpcClientProvider,
+    pub rpc_provider: RpcClientProvider,
 }
 
 pub type TestWrapperFunctionNym = fn(

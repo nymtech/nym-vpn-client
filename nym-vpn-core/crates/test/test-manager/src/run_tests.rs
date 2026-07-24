@@ -235,7 +235,7 @@ impl TestHandler<'_> {
             test,
             test_name,
             TestContext {
-                _rpc_provider: self.rpc_provider.clone(),
+                rpc_provider: self.rpc_provider.clone(),
             },
         )
         .await;

@@ -119,6 +119,8 @@ where
                     framed_write
                         .send(Bytes::copy_from_slice(&buffer[..num_bytes]))
                         .await?;
+                    // Guest test-runner: stream=daemon UDS, framed=serial (replies).
+                    log::info!("fwd[stream→framed] bytes={num_bytes}");
                     if num_bytes == 0 {
                         return Ok(());
                     }
@@ -135,10 +137,15 @@ where
         loop {
             match framed_read.next().await {
                 Some(Ok(bytes)) if bytes.is_empty() => {
+                    log::info!("fwd[framed→stream] bytes=0");
                     stream_writer.shutdown().await?;
                     return Ok(());
                 }
-                Some(Ok(bytes)) => stream_writer.write_all(&bytes).await?,
+                Some(Ok(bytes)) => {
+                    stream_writer.write_all(&bytes).await?;
+                    // Guest test-runner: framed=serial, stream=daemon UDS (requests).
+                    log::info!("fwd[framed→stream] bytes={}", bytes.len());
+                }
                 Some(Err(error)) => return Err(error),
                 None => return Ok(()),
             }

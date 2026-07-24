@@ -61,6 +61,21 @@ pub struct RpcClientProvider {
 }
 
 impl RpcClientProvider {
+    /// Test seam: provider whose `new_client_nym` will hang until connect timeout unless a
+    /// forward loop consumes the duplex (asserts recreate path requests a new channel).
+    #[cfg(test)]
+    pub(crate) fn dangling_for_tests() -> (Self, mpsc::UnboundedReceiver<TokioIo<DuplexStream>>) {
+        let (management_channel_provider_tx, management_channel_provider_rx) = mpsc::unbounded();
+        (
+            Self {
+                service: DummyService {
+                    management_channel_provider_tx,
+                },
+            },
+            management_channel_provider_rx,
+        )
+    }
+
     pub async fn new_client_nym(&self) -> anyhow::Result<NymProxyClient> {
         log::trace!("Nym daemon: connecting");
         await_rpc_client_connection(

@@ -6,6 +6,7 @@ use super::{
     Error, WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT,
     config_nym::TEST_CONFIG_NYM,
 };
+use crate::nym_daemon::RpcClientProvider;
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerState, TunnelState};
 use nym_vpn_proto::rpc_client::{Error as NymClientError, RpcClient as NymProxyClient};
 use std::{fmt::Debug, future::Future, net::SocketAddr, time::Duration};
@@ -20,6 +21,12 @@ const TUNNEL_STATE_RPC_TIMEOUT: Duration = Duration::from_secs(30);
 
 trait StateClient<S> {
     async fn read_state(&mut self) -> Result<S, NymClientError>;
+
+    /// Drop and recreate the underlying RPC session once after a stall. Returns `true`
+    /// when a new session was established and the caller should retry immediately.
+    async fn recreate_after_rpc_stall(&mut self) -> Result<bool, Error> {
+        Ok(false)
+    }
 }
 
 trait TunnelStateClient: StateClient<TunnelState> {
@@ -30,21 +37,53 @@ trait AccountStateClient: StateClient<AccountControllerState> {}
 
 impl<T> AccountStateClient for T where T: StateClient<AccountControllerState> {}
 
-impl StateClient<TunnelState> for NymProxyClient {
+/// Replaces `NymProxyClient` once via `RpcClientProvider` when serial/HTTP2 appears poisoned.
+struct RecreatingNymClient<'a> {
+    rpc: &'a mut NymProxyClient,
+    provider: &'a RpcClientProvider,
+    recreated: bool,
+}
+
+impl RecreatingNymClient<'_> {
+    async fn recreate_once(&mut self) -> Result<bool, Error> {
+        if !may_attempt_session_recreate(self.recreated) {
+            return Ok(false);
+        }
+        log::warn!("recreating NymProxyClient after RPC stall");
+        *self.rpc = self.provider.new_client_nym().await.map_err(Error::Other)?;
+        self.recreated = true;
+        Ok(true)
+    }
+}
+
+/// One-shot gate for serial session recreate (testable without a live gRPC client).
+pub(crate) fn may_attempt_session_recreate(already_recreated: bool) -> bool {
+    !already_recreated
+}
+
+impl StateClient<TunnelState> for RecreatingNymClient<'_> {
     async fn read_state(&mut self) -> Result<TunnelState, NymClientError> {
-        self.get_tunnel_state().await
+        self.rpc.get_tunnel_state().await
+    }
+
+    async fn recreate_after_rpc_stall(&mut self) -> Result<bool, Error> {
+        self.recreate_once().await
     }
 }
 
-impl TunnelStateClient for NymProxyClient {
+impl TunnelStateClient for RecreatingNymClient<'_> {
     async fn disconnect_tunnel(&mut self) -> Result<bool, NymClientError> {
-        NymProxyClient::disconnect_tunnel(self).await
+        NymProxyClient::disconnect_tunnel(self.rpc).await
     }
 }
 
-impl StateClient<AccountControllerState> for NymProxyClient {
+impl StateClient<AccountControllerState> for RecreatingNymClient<'_> {
     async fn read_state(&mut self) -> Result<AccountControllerState, NymClientError> {
-        self.get_account_state().await
+        self.rpc.get_account_state().await
+    }
+
+    async fn recreate_after_rpc_stall(&mut self) -> Result<bool, Error> {
+        self.recreate_once().await
     }
 }
 
@@ -73,7 +112,10 @@ impl From<TunnelState> for ExpectedTunnelState {
 
 pub const THROTTLE_RETRY_DELAY: Duration = Duration::from_secs(120);
 
-pub async fn login_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Result<()> {
+pub async fn login_idempotent(
+    nym_client: &mut NymProxyClient,
+    provider: &RpcClientProvider,
+) -> anyhow::Result<()> {
     match nym_client
         .get_account_state()
         .await
@@ -89,7 +131,7 @@ pub async fn login_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Result
             // for other states just wait, AC will either reach ReadyToConnect or we'll timeout.
         }
     }
-    wait_for_account_state(nym_client, AccountControllerState::ReadyToConnect)
+    wait_for_account_state(nym_client, provider, AccountControllerState::ReadyToConnect)
         .await
         .map(drop)
         .map_err(From::from)
@@ -120,12 +162,16 @@ async fn store_account_idempotent(nym_client: &mut NymProxyClient) -> anyhow::Re
     Ok(())
 }
 
-pub async fn disconnect_and_wait(nym_client: &mut NymProxyClient) -> Result<(), Error> {
+pub async fn disconnect_and_wait(
+    nym_client: &mut NymProxyClient,
+    provider: &RpcClientProvider,
+) -> Result<(), Error> {
     log::trace!("Disconnecting");
     nym_client.disconnect_tunnel().await?;
 
     wait_for_tunnel_state_fn(
         nym_client,
+        provider,
         |state| matches!(state, TunnelState::Disconnected),
         WAIT_FOR_TUNNEL_STATE_TIMEOUT,
         false,
@@ -154,6 +200,7 @@ where
 
 pub async fn wait_for_tunnel_state(
     rpc: &mut NymProxyClient,
+    provider: &RpcClientProvider,
     expected: ExpectedTunnelState,
 ) -> Result<TunnelState, Error> {
     let (timeout, disconnect_on_timeout) = tunnel_wait_params(&expected);
@@ -163,6 +210,7 @@ pub async fn wait_for_tunnel_state(
     );
     wait_for_tunnel_state_fn(
         rpc,
+        provider,
         move |state| ExpectedTunnelState::from(state.clone()) == expected,
         timeout,
         disconnect_on_timeout,
@@ -184,13 +232,24 @@ pub(crate) fn tunnel_wait_params(expected: &ExpectedTunnelState) -> (Duration, b
 /// does not reliably deliver the long-lived event stream used by local socket clients.
 pub async fn wait_for_tunnel_state_fn(
     rpc: &mut NymProxyClient,
+    provider: &RpcClientProvider,
     accept_state_fn: impl Fn(&TunnelState) -> bool,
     timeout: Duration,
     disconnect_on_timeout: bool,
 ) -> Result<TunnelState, Error> {
+    let mut client = RecreatingNymClient {
+        rpc,
+        provider,
+        recreated: false,
+    };
     enforce_tunnel_wait_deadline(
         timeout,
-        wait_for_tunnel_state_with_polling(rpc, accept_state_fn, timeout, disconnect_on_timeout),
+        wait_for_tunnel_state_with_polling(
+            &mut client,
+            accept_state_fn,
+            timeout,
+            disconnect_on_timeout,
+        ),
     )
     .await
 }
@@ -282,6 +341,8 @@ where
                     time::OffsetDateTime::now_utc()
                 );
                 last_rpc_error = Some(format!("Err({error}) (RpcFailed)"));
+                // Do not recreate on RpcFailed: a quick application error must not tear
+                // down a healthy serial session. Recreate only on client-side timeout.
             }
             Err(_) => {
                 log::info!(
@@ -293,6 +354,10 @@ where
                     "TimedOut({}s) (RpcTimedOut)",
                     rpc_timeout.as_secs()
                 ));
+                if reader.recreate_after_rpc_stall().await? {
+                    log::warn!("poll[{state_name}#{attempt}] recreated RPC session after timeout");
+                    continue;
+                }
             }
         }
 
@@ -327,6 +392,7 @@ async fn enforce_tunnel_wait_deadline<T>(
 
 pub async fn wait_for_account_state(
     rpc: &mut NymProxyClient,
+    provider: &RpcClientProvider,
     expected: AccountControllerState,
 ) -> Result<AccountControllerState, Error> {
     let timeout = Duration::from_secs(60);
@@ -334,16 +400,22 @@ pub async fn wait_for_account_state(
         "Waiting for account state: {expected:?} (timeout: {}s)",
         timeout.as_secs()
     );
-    wait_for_account_state_fn(rpc, move |state| state.eq(&expected), timeout).await
+    wait_for_account_state_fn(rpc, provider, move |state| state.eq(&expected), timeout).await
 }
 
 /// Wait for account readiness without opening a long-lived stream over the serial transport.
 pub async fn wait_for_account_state_fn(
     rpc: &mut NymProxyClient,
+    provider: &RpcClientProvider,
     accept_state_fn: impl Fn(&AccountControllerState) -> bool,
     timeout: Duration,
 ) -> Result<AccountControllerState, Error> {
-    poll_account_state_until(rpc, accept_state_fn, timeout).await
+    let mut client = RecreatingNymClient {
+        rpc,
+        provider,
+        recreated: false,
+    };
+    poll_account_state_until(&mut client, accept_state_fn, timeout).await
 }
 
 async fn poll_account_state_until<R>(
@@ -403,6 +475,7 @@ mod tests {
         tunnel_wait_params, wait_for_tunnel_state_with_polling,
     };
     use crate::tests::{WAIT_FOR_TUNNEL_CONNECTED_TIMEOUT, WAIT_FOR_TUNNEL_STATE_TIMEOUT};
+    use futures::StreamExt;
     use nym_vpn_lib_types::{AccountControllerState, TunnelState};
     use nym_vpn_proto::rpc_client::Error as NymClientError;
     use std::{collections::VecDeque, future::pending, time::Duration};
@@ -415,6 +488,9 @@ mod tests {
     struct FakeTunnelStateReader {
         reads: VecDeque<FakeRead>,
         disconnects: usize,
+        recreates: usize,
+        reads_after_recreate: Option<VecDeque<FakeRead>>,
+        pending_after_recreate: bool,
     }
 
     impl FakeTunnelStateReader {
@@ -422,12 +498,47 @@ mod tests {
             Self {
                 reads: reads.into_iter().collect(),
                 disconnects: 0,
+                recreates: 0,
+                reads_after_recreate: None,
+                pending_after_recreate: false,
             }
+        }
+
+        fn with_reads_after_recreate(mut self, reads: impl IntoIterator<Item = FakeRead>) -> Self {
+            self.reads_after_recreate = Some(reads.into_iter().collect());
+            self
+        }
+
+        fn pending_after_recreate(mut self) -> Self {
+            self.pending_after_recreate = true;
+            self
         }
     }
 
     struct FakeAccountStateReader {
         reads: VecDeque<Result<AccountControllerState, NymClientError>>,
+        recreates: usize,
+        reads_after_recreate: Option<VecDeque<Result<AccountControllerState, NymClientError>>>,
+    }
+
+    impl FakeAccountStateReader {
+        fn new(
+            reads: impl IntoIterator<Item = Result<AccountControllerState, NymClientError>>,
+        ) -> Self {
+            Self {
+                reads: reads.into_iter().collect(),
+                recreates: 0,
+                reads_after_recreate: None,
+            }
+        }
+
+        fn with_reads_after_recreate(
+            mut self,
+            reads: impl IntoIterator<Item = Result<AccountControllerState, NymClientError>>,
+        ) -> Self {
+            self.reads_after_recreate = Some(reads.into_iter().collect());
+            self
+        }
     }
 
     impl StateClient<AccountControllerState> for FakeAccountStateReader {
@@ -436,18 +547,43 @@ mod tests {
                 .pop_front()
                 .unwrap_or(Ok(AccountControllerState::ReadyToConnect))
         }
+
+        async fn recreate_after_rpc_stall(&mut self) -> Result<bool, super::Error> {
+            if self.recreates > 0 {
+                return Ok(false);
+            }
+            self.recreates += 1;
+            if let Some(reads) = self.reads_after_recreate.take() {
+                self.reads = reads;
+            }
+            Ok(true)
+        }
     }
 
     impl StateClient<TunnelState> for FakeTunnelStateReader {
         async fn read_state(&mut self) -> Result<TunnelState, NymClientError> {
-            match self
-                .reads
-                .pop_front()
-                .unwrap_or(FakeRead::Result(Box::new(Ok(TunnelState::Disconnected))))
-            {
+            let next = self.reads.pop_front().or_else(|| {
+                if self.pending_after_recreate && self.recreates > 0 {
+                    Some(FakeRead::Pending)
+                } else {
+                    None
+                }
+            });
+            match next.unwrap_or(FakeRead::Result(Box::new(Ok(TunnelState::Disconnected)))) {
                 FakeRead::Result(result) => *result,
                 FakeRead::Pending => pending().await,
             }
+        }
+
+        async fn recreate_after_rpc_stall(&mut self) -> Result<bool, super::Error> {
+            if self.recreates > 0 {
+                return Ok(false);
+            }
+            self.recreates += 1;
+            if let Some(reads) = self.reads_after_recreate.take() {
+                self.reads = reads;
+            }
+            Ok(true)
         }
     }
 
@@ -493,13 +629,10 @@ mod tests {
 
     #[tokio::test(start_paused = true)]
     async fn account_polling_recovers_after_transient_rpc_error() {
-        let mut reader = FakeAccountStateReader {
-            reads: [
-                Err(NymClientError::AuthenticationRequired),
-                Ok(AccountControllerState::ReadyToConnect),
-            ]
-            .into(),
-        };
+        let mut reader = FakeAccountStateReader::new([
+            Err(NymClientError::AuthenticationRequired),
+            Ok(AccountControllerState::ReadyToConnect),
+        ]);
 
         let state = poll_account_state_until(
             &mut reader,
@@ -510,6 +643,84 @@ mod tests {
         .expect("account polling should recover");
 
         assert!(matches!(state, AccountControllerState::ReadyToConnect));
+        assert_eq!(
+            reader.recreates, 0,
+            "RpcFailed must not recreate the serial session"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn account_polling_recreates_session_after_stall_and_recovers() {
+        struct HangThenAccount {
+            inner: FakeAccountStateReader,
+            first: bool,
+        }
+        impl StateClient<AccountControllerState> for HangThenAccount {
+            async fn read_state(&mut self) -> Result<AccountControllerState, NymClientError> {
+                if self.first {
+                    self.first = false;
+                    pending().await
+                } else {
+                    self.inner.read_state().await
+                }
+            }
+            async fn recreate_after_rpc_stall(&mut self) -> Result<bool, super::Error> {
+                self.inner.recreate_after_rpc_stall().await
+            }
+        }
+        let mut reader = HangThenAccount {
+            inner: FakeAccountStateReader::new([])
+                .with_reads_after_recreate([Ok(AccountControllerState::ReadyToConnect)]),
+            first: true,
+        };
+
+        let state = poll_account_state_until(
+            &mut reader,
+            |state| matches!(state, AccountControllerState::ReadyToConnect),
+            Duration::from_secs(60),
+        )
+        .await
+        .expect("account recreate after stall should recover");
+
+        assert!(matches!(state, AccountControllerState::ReadyToConnect));
+        assert_eq!(reader.inner.recreates, 1);
+    }
+
+    #[test]
+    fn session_recreate_permit_is_one_shot() {
+        assert!(super::may_attempt_session_recreate(false));
+        assert!(!super::may_attempt_session_recreate(true));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn tunnel_polling_rpc_failed_does_not_recreate_session() {
+        let mut reader = FakeTunnelStateReader::new([
+            FakeRead::Result(Box::new(Err(NymClientError::AuthenticationRequired))),
+            FakeRead::Result(Box::new(Ok(TunnelState::Disconnected))),
+        ]);
+
+        let state = poll_tunnel_state_until(
+            &mut reader,
+            |state| matches!(state, TunnelState::Disconnected),
+            Duration::from_secs(2),
+        )
+        .await
+        .expect("RpcFailed should soft-recover without recreate");
+
+        assert!(matches!(state, TunnelState::Disconnected));
+        assert_eq!(reader.recreates, 0);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn provider_dangling_create_is_requested_on_new_client_nym() {
+        let (provider, mut rx) = crate::nym_daemon::RpcClientProvider::dangling_for_tests();
+        let create = tokio::spawn(async move { provider.new_client_nym().await });
+        let channel = tokio::time::timeout(Duration::from_secs(1), rx.next())
+            .await
+            .expect("recreate path must request a management duplex")
+            .expect("channel remains open");
+        drop(channel);
+        create.abort();
     }
 
     #[tokio::test(start_paused = true)]
@@ -549,6 +760,8 @@ mod tests {
     #[tokio::test(start_paused = true)]
     async fn tunnel_polling_bounds_stalled_rpc() {
         let mut reader = FakeTunnelStateReader::new([FakeRead::Pending]);
+        // Disable one-shot recreate so a permanent stall still hits the deadline.
+        reader.recreates = 1;
         let timeout = Duration::from_secs(2);
         let started = tokio::time::Instant::now();
 
@@ -562,8 +775,42 @@ mod tests {
     }
 
     #[tokio::test(start_paused = true)]
+    async fn tunnel_polling_recreates_session_after_stall_and_recovers() {
+        let mut reader = FakeTunnelStateReader::new([FakeRead::Pending])
+            .with_reads_after_recreate([FakeRead::Result(Box::new(Ok(TunnelState::Disconnected)))]);
+
+        // Stall consumes TUNNEL_STATE_RPC_TIMEOUT (30s); leave budget for the post-recreate poll.
+        let state = poll_tunnel_state_until(
+            &mut reader,
+            |state| matches!(state, TunnelState::Disconnected),
+            Duration::from_secs(60),
+        )
+        .await
+        .expect("recreate after stall should recover");
+
+        assert!(matches!(state, TunnelState::Disconnected));
+        assert_eq!(reader.recreates, 1);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn tunnel_polling_recreates_session_at_most_once() {
+        let mut reader = FakeTunnelStateReader::new([FakeRead::Pending]).pending_after_recreate();
+        let timeout = Duration::from_secs(90);
+        let started = tokio::time::Instant::now();
+
+        let error = poll_tunnel_state_until(&mut reader, |_| false, timeout)
+            .await
+            .expect_err("second stall after recreate must time out");
+
+        assert_eq!(started.elapsed(), timeout);
+        assert_eq!(reader.recreates, 1);
+        assert!(error.to_string().contains("RpcTimedOut"));
+    }
+
+    #[tokio::test(start_paused = true)]
     async fn failed_connect_polling_attempts_cleanup() {
         let mut reader = FakeTunnelStateReader::new([]);
+        reader.recreates = 1;
 
         wait_for_tunnel_state_with_polling(&mut reader, |_| false, Duration::from_secs(2), true)
             .await

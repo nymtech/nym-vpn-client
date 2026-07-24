@@ -128,6 +128,7 @@ async fn forward_to_nym_daemon_interface(proxy_transport: GrpcForwarder) {
             continue;
         }
 
+        log::info!("nym daemon: bidirectional forward starting (stream=daemon UDS, framed=serial)");
         if let Err(error) =
             forward_framed_bidirectional(daemon_socket_endpoint, &mut proxy_read, &mut proxy_write)
                 .await

@@ -2,9 +2,12 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::tests::{
-    TestContext,
-    helpers_nym::{self, resolve_hostname_with_retry},
+use crate::{
+    nym_daemon::RpcClientProvider,
+    tests::{
+        TestContext,
+        helpers_nym::{self, resolve_hostname_with_retry},
+    },
 };
 use anyhow::{Context, ensure};
 use helpers_nym::ExpectedTunnelState;
@@ -19,11 +22,11 @@ const ROUNDTRIP_DNS_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[test_function_nym]
 pub async fn test_account_and_tunnel_roundtrip(
-    _: TestContext,
+    test_context: TestContext,
     rpc: NymServiceClient,
     mut nym_proxy_client: NymProxyClient,
 ) -> Result<(), anyhow::Error> {
-    dc_and_ensure_logged_in(&mut nym_proxy_client, false).await?;
+    dc_and_ensure_logged_in(&mut nym_proxy_client, &test_context.rpc_provider, false).await?;
 
     // Verify account identity
     let identity = nym_proxy_client
@@ -40,8 +43,12 @@ pub async fn test_account_and_tunnel_roundtrip(
     // Connect tunnel
     log::info!("Connecting tunnel...");
     nym_proxy_client.connect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Connected)
-        .await?;
+    helpers_nym::wait_for_tunnel_state(
+        &mut nym_proxy_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Connected,
+    )
+    .await?;
 
     // DNS resolution while connected (runs inside VM via tarpc). Bounded so a
     // stalled resolver cannot wedge the suite until outer SSH keepalives kill CI.
@@ -57,8 +64,12 @@ pub async fn test_account_and_tunnel_roundtrip(
     // Disconnect tunnel
     log::info!("Disconnecting tunnel...");
     nym_proxy_client.disconnect_tunnel().await?;
-    helpers_nym::wait_for_tunnel_state(&mut nym_proxy_client, ExpectedTunnelState::Disconnected)
-        .await?;
+    helpers_nym::wait_for_tunnel_state(
+        &mut nym_proxy_client,
+        &test_context.rpc_provider,
+        ExpectedTunnelState::Disconnected,
+    )
+    .await?;
 
     // Verify devices
     let devices = nym_proxy_client
@@ -102,21 +113,26 @@ pub async fn test_account_and_tunnel_roundtrip(
 /// Make sure the daemon is installed and logged in and restore settings to the defaults.
 pub async fn dc_and_ensure_logged_in(
     nym_proxy_client: &mut NymProxyClient,
+    provider: &RpcClientProvider,
     forget_account: bool,
 ) -> anyhow::Result<()> {
     log::debug!("🔄 Resetting daemon settings before test...");
-    helpers_nym::disconnect_and_wait(nym_proxy_client)
+    helpers_nym::disconnect_and_wait(nym_proxy_client, provider)
         .await
         .context("Failed to disconnect")?;
 
     if forget_account {
         log::debug!("🔄 Resetting device identity & ticketbooks...");
         nym_proxy_client.forget_account().await?;
-        helpers_nym::wait_for_account_state(nym_proxy_client, AccountControllerState::LoggedOut)
-            .await?;
+        helpers_nym::wait_for_account_state(
+            nym_proxy_client,
+            provider,
+            AccountControllerState::LoggedOut,
+        )
+        .await?;
     }
 
-    helpers_nym::login_idempotent(nym_proxy_client)
+    helpers_nym::login_idempotent(nym_proxy_client, provider)
         .await
         .context("Failed to ensure logged in")?;
 
