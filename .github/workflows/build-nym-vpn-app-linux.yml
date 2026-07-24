@@ -103,6 +103,12 @@ jobs:
           version: ${{ inputs.version }}
           target: core
 
+      - name: Get package version
+        id: package-version
+        uses: nicolaiunrein/cargo-get@master
+        with:
+          subcommand: package.version --entry nym-vpn-app/src-tauri
+
       - name: Install JS dependencies
         working-directory: nym-vpn-app
         shell: bash
