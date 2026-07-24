@@ -19,6 +19,7 @@ const REBOOT_TIMEOUT: Duration = Duration::from_secs(60);
 const POST_REBOOT_GRACE_PERIOD: Duration = Duration::from_secs(5);
 const LOG_LEVEL_TIMEOUT: Duration = Duration::from_secs(60);
 const DAEMON_RESTART_TIMEOUT: Duration = Duration::from_secs(60);
+const WAIT_RPC_DEADLINE_SLACK: Duration = Duration::from_secs(20);
 
 #[derive(Debug, Clone)]
 pub struct NymServiceClient {
@@ -168,6 +169,32 @@ impl NymServiceClient {
     ) -> Result<nym_daemon::ObservedAccountState, Error> {
         self.client
             .get_observed_account_state(tarpc::context::current())
+            .await
+            .map_err(Error::Tarpc)?
+    }
+
+    pub async fn wait_for_observed_tunnel_state(
+        &self,
+        targets: Vec<nym_daemon::ObservedTunnelStateKind>,
+        timeout: Duration,
+    ) -> Result<nym_daemon::WaitOutcome<nym_daemon::ObservedTunnelState>, Error> {
+        let mut ctx = tarpc::context::current();
+        ctx.deadline = deadline_after(timeout);
+        self.client
+            .wait_for_observed_tunnel_state(ctx, targets, duration_as_millis_u64(timeout))
+            .await
+            .map_err(Error::Tarpc)?
+    }
+
+    pub async fn wait_for_observed_account_state(
+        &self,
+        targets: Vec<nym_daemon::ObservedAccountStateKind>,
+        timeout: Duration,
+    ) -> Result<nym_daemon::WaitOutcome<nym_daemon::ObservedAccountState>, Error> {
+        let mut ctx = tarpc::context::current();
+        ctx.deadline = deadline_after(timeout);
+        self.client
+            .wait_for_observed_account_state(ctx, targets, duration_as_millis_u64(timeout))
             .await
             .map_err(Error::Tarpc)?
     }
@@ -501,5 +528,42 @@ impl NymServiceClient {
         self.client
             .ifconfig_alias_remove(tarpc::context::current(), interface.into(), alias.into())
             .await?
+    }
+}
+
+/// tarpc request deadline for a guest-side wait: its own timeout plus head-room, saturating
+/// at the far future if the addition would overflow.
+fn deadline_after(timeout: Duration) -> SystemTime {
+    SystemTime::now()
+        .checked_add(timeout.saturating_add(WAIT_RPC_DEADLINE_SLACK))
+        .unwrap_or_else(|| SystemTime::now() + WAIT_RPC_DEADLINE_SLACK)
+}
+
+/// Saturating `Duration` -> milliseconds for the wire (`u64`), avoiding a `u128` truncation.
+fn duration_as_millis_u64(timeout: Duration) -> u64 {
+    u64::try_from(timeout.as_millis()).unwrap_or(u64::MAX)
+}
+
+#[cfg(test)]
+mod wait_deadline_tests {
+    use super::{WAIT_RPC_DEADLINE_SLACK, deadline_after, duration_as_millis_u64};
+    use std::time::{Duration, SystemTime};
+
+    #[test]
+    fn deadline_includes_slack_beyond_the_wait_timeout() {
+        let timeout = Duration::from_secs(120);
+        let before = SystemTime::now();
+        let deadline = deadline_after(timeout);
+        let min_expected = before + timeout + WAIT_RPC_DEADLINE_SLACK;
+        assert!(
+            deadline >= min_expected,
+            "deadline must clear the wait timeout plus slack"
+        );
+    }
+
+    #[test]
+    fn millis_conversion_saturates_instead_of_truncating() {
+        assert_eq!(duration_as_millis_u64(Duration::from_millis(1500)), 1500);
+        assert_eq!(duration_as_millis_u64(Duration::MAX), u64::MAX);
     }
 }
