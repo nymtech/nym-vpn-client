@@ -379,6 +379,13 @@ jobs:
           name: ${{ env.MACOS_ARTIFACTS }}
           path: ${{ env.MACOS_ARTIFACTS }}
 
+  # restore-build-cache:
+  #   name: Restore build cache (noop)
+  #   runs-on: arc-linux-latest
+  #   needs: [resolve, check-release-exists]
+  #   steps:
+  #     - run: exit 0
+
   build:
     needs: [resolve, check-release-exists, restore-build-cache]
     if: |
@@ -399,12 +406,12 @@ jobs:
     secrets: inherit
 
   # This step is only used for testing purposes when developing this workflow
+  # Important: Comment out this job once done testing!
   save-build-cache:
     runs-on: arc-linux-latest
     needs: [resolve, build, restore-build-cache]
-    # IMPORTANT: Disable this workflow with `&& false` once done testing!
     if: |
-      !cancelled() && needs.restore-build-cache.outputs.cache-hit != 'true' && needs.build.result == 'success' && true
+      !cancelled() && needs.restore-build-cache.outputs.cache-hit != 'true' && needs.build.result == 'success'
     steps:
       - uses: actions/download-artifact@v8
 
@@ -449,7 +456,7 @@ jobs:
 
   build-outputs:
     runs-on: arc-linux-latest
-    needs: [build, restore-build-cache, save-build-cache]
+    needs: [build, restore-build-cache]
     if: |
       !cancelled() && (
         needs.restore-build-cache.outputs.cache-hit == 'true' ||
